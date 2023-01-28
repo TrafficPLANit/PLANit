@@ -80,4 +80,16 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
   public RoutedTripDeparturesImpl deepClone() {
     return new RoutedTripDeparturesImpl(this, true);
   }
+
+  /** String representation of departures
+   *
+   * @return departures of this instance in string form
+   */
+  @Override
+  public String toString(){
+    var sb = new StringBuilder("Departures: ");
+    forEach( d -> sb.append(d).append(':'));
+    return sb.toString();
+  }
+
 }

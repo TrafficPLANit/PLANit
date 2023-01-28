@@ -6,7 +6,7 @@ import org.goplanit.network.layers.ServiceNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.RoutedServiceLayer;
+import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layers.ServiceNetworkLayerFactory;
 
 /**
@@ -14,7 +14,7 @@ import org.goplanit.utils.network.layers.ServiceNetworkLayerFactory;
  * 
  * @author markr
  */
-public class ServiceNetworkLayerFactoryImpl extends ManagedIdEntityFactoryImpl<RoutedServiceLayer> implements ServiceNetworkLayerFactory {
+public class ServiceNetworkLayerFactoryImpl extends ManagedIdEntityFactoryImpl<ServiceNetworkLayer> implements ServiceNetworkLayerFactory {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ServiceNetworkLayerFactoryImpl.class.getCanonicalName());
@@ -37,7 +37,7 @@ public class ServiceNetworkLayerFactoryImpl extends ManagedIdEntityFactoryImpl<R
    * {@inheritDoc}
    */
   @Override
-  public RoutedServiceLayer registerNew(final MacroscopicNetworkLayer parentLayer) {
+  public ServiceNetworkLayer registerNew(final MacroscopicNetworkLayer parentLayer) {
     if (!container.getParentNetwork().getTransportLayers().containsKey(parentLayer.getId())) {
       LOGGER.warning("IGNORED, unable to create service layer, provided parent layer not present on parent network");
     }

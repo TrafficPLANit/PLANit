@@ -118,6 +118,26 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
    * {@inheritDoc}
    */
   @Override
+  public void removeLegSegment(int index) {
+    if(index <0 || index >= getNumberOfLegSegments()){
+      LOGGER.warning(String.format("Invalid index %d provided for removing leg segment from rotued trip frequency, ignored", index));
+      return;
+    }
+    this.orderedLegSegments.remove(index);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeAllLegSegments() {
+    this.orderedLegSegments.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Iterator<ServiceLegSegment> iterator() {
     return this.orderedLegSegments.iterator();
   }

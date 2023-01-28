@@ -3,7 +3,7 @@ package org.goplanit.network.layers;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.service.ServiceNetworkLayerFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.RoutedServiceLayer;
+import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layers.ServiceNetworkLayerFactory;
 import org.goplanit.utils.network.layers.ServiceNetworkLayers;
 
@@ -13,7 +13,7 @@ import org.goplanit.utils.network.layers.ServiceNetworkLayers;
  * @author markr
  *
  */
-public class ServiceNetworkLayersImpl extends TopologicalLayersImpl<RoutedServiceLayer> implements ServiceNetworkLayers {
+public class ServiceNetworkLayersImpl extends TopologicalLayersImpl<ServiceNetworkLayer> implements ServiceNetworkLayers {
 
   /** the parent network */
   private final MacroscopicNetwork parentNetwork;

@@ -8,7 +8,7 @@ import org.goplanit.network.layer.modifier.ServiceNetworkLayerModifierImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.RoutedServiceLayer;
+import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceLegSegments;
@@ -26,7 +26,7 @@ import org.goplanit.utils.network.layer.service.ServiceNodes;
  * @author markr
  *
  */
-public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode, ServiceLeg, ServiceLegSegment> implements RoutedServiceLayer {
+public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode, ServiceLeg, ServiceLegSegment> implements ServiceNetworkLayer {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(ServiceNetworkLayerImpl.class.getCanonicalName());
