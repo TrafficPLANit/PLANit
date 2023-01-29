@@ -6,12 +6,8 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.service.routed.*;
 
-import java.time.LocalTime;
 import java.util.*;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * Implementation of {@link RoutedServicesLayerModifier}
@@ -22,148 +18,115 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
   private static final Logger LOGGER = Logger.getLogger(RoutedServicesLayerModifierImpl.class.getCanonicalName());
   protected final RoutedServicesLayer routedServicesLayer;
 
-  private List<RoutedTripFrequency> truncateFrequencyTripChainToServiceNetwork(
-          int indexOffset, List<Integer> toBeRemovedLegSegments, RoutedTripFrequency routedTripFrequency, RoutedTripFrequencyFactory factory) {
-    //todo: below is direct copy of schedule based approach. 99% is identical and propose to create a method that takes
-    // a few lambdas for the few differences and then use that to avoid duplicating this code
-
-    // CONTINUE HERE....then test...then move one
-//    /* in case last chain ended at final leg timing, offset is not in range and we can stop */
-//    if(indexOffset >= toBeRemovedRelTimingSegments.size()){
-//      return null;
-//    }
-//
-//    boolean isFirstChainTruncation = indexOffset == -1;
-//    // check for special case where nothing is to be removed for the very first chain, i.e., first removal index is after first chain final index
-//    boolean initialChainWithoutRemovalBeforeChain = isFirstChainTruncation && toBeRemovedRelTimingSegments.get(0) > 0
-//
-//    /* consider all to be removed consecutive entries leading up to the next valid chain*/
-//    final List<Integer> consecutiveLegsToRemoveBeforeChain = initialChainWithoutRemovalBeforeChain ?
-//            List.of() : IntegerListUtils.getLongestConsecutiveSubList(Math.max(0,indexOffset), toBeRemovedRelTimingSegments);
-//    final List<Integer> allIndicesBeforeFirstChainLeg = initialChainWithoutRemovalBeforeChain ?
-//            List.of() : IntegerListUtils.rangeOf(0, ListUtils.getLast(consecutiveLegsToRemoveBeforeChain)+1);
-//    final int nextRecursionIndexOffset = initialChainWithoutRemovalBeforeChain ?
-//            0 : Math.min(indexOffset + consecutiveLegsToRemoveBeforeChain.size(), toBeRemovedRelTimingSegments.size());
-//
-//    if(!initialChainWithoutRemovalBeforeChain && ListUtils.getLast(consecutiveLegsToRemoveBeforeChain) == routedTripSchedule.getLastRelativeLegTimingIndex()){
-//      /* no valid chain present after removal of invalid components preceding the to-be-created chain, done */
-//      return null;
-//    }
-//
-//    /*... then , get the durations and dwell times leading up to the valid chain of this portion of the entry and sum them
-//     * to serve as the departure time offset in addition to the original departure time */
-//    final long departureShiftInNanos = allIndicesBeforeFirstChainLeg.stream().mapToLong(ltIndex ->
-//            routedTripSchedule.getRelativeLegTiming(ltIndex).getDuration().toNanoOfDay()
-//                    + routedTripSchedule.getRelativeLegTiming(ltIndex).getDwellTime().toNanoOfDay()).sum();
-//
-//    /* create a copy of the original to adjust */
-//    var truncatedRoutedTripSchedule = factory.createUniqueDeepCopyOf(routedTripSchedule);
-//
-//    /* update the departure times if needed */
-//    if(!consecutiveLegsToRemoveBeforeChain.isEmpty()) {
-//      truncatedRoutedTripSchedule.getDepartures().allDepartLaterBy(LocalTime.ofNanoOfDay(departureShiftInNanos));
-//    }
-//
-//    // check for special case...chain ends with last leg included, so nothing to remove beyond this
-//    final boolean lastChainWithoutRemovalAfter = nextRecursionIndexOffset >= toBeRemovedRelTimingSegments.size();
-//    /* identify leg timings around the truncated chain to remove...*/
-//    List<Integer> truncatedLegTimingIndicesToRemove = allIndicesBeforeFirstChainLeg;
-//    if(!lastChainWithoutRemovalAfter){
-//      // regular case...truncated schedule has leg timings to remove after it ends
-//      final int firstLegIndexValueToRemoveAfterChain = toBeRemovedRelTimingSegments.get(nextRecursionIndexOffset);
-//      final var allIndicesAfterLastChainLeg =
-//              IntegerListUtils.rangeOf(firstLegIndexValueToRemoveAfterChain,routedTripSchedule.getLastRelativeLegTimingIndex()+1);
-//      truncatedLegTimingIndicesToRemove.addAll(allIndicesAfterLastChainLeg);
-//    }
-//
-//    /* ...remove all leg timings except the ones belonging to this chain */
-//    truncatedRoutedTripSchedule.removeLegTimingsIn(truncatedLegTimingIndicesToRemove);
-//
-//    /* call next recursion */
-//    var recursiveResult = truncateScheduledTripChainToServiceNetwork(
-//            nextRecursionIndexOffset, toBeRemovedRelTimingSegments, routedTripSchedule, factory);
-//    if(recursiveResult == null){
-//      recursiveResult = new ArrayList<>(1);
-//    }
-//    recursiveResult.add(truncatedRoutedTripSchedule);
-//    return recursiveResult;
-
-    return null; //todo remove once done
-  }
-
   /**
-   * Recursive method that based on the given offset related to the to be removed timing segments, identifies the first
-   * upcoming valid chain after this offset. If found, it creates a copy of the original schedule and removes all segments
-   * around the identified valid chain and adds it to the list of new "truncated" routed trip schedules to replace the origina
-   * schedule after finishing. It is assumed at least part of the schedule is valid
+   * Recursive method supporting both #RoutedTripFrequency and #RoutedTripSchedule truncations. Based on the given offset related to the to be removed timing segments, identifies the first
+   * upcoming valid chain after this offset. If found, it creates a copy of the original and removes all segments
+   * around the identified valid chain and adds it to the list of new "truncated" routed trip schedules (or frequecnies) to replace the original
+   * after finishing. It is assumed at least part of the schedule or frequency's segments are valid (is to be checked beforehand)
    *
-   * @param indexOffset to use, relates to index in the toBeRemovedRelativeTimingLegSegments, first call it should be set to -1
-   * @param toBeRemovedRelTimingSegments identified leg segments to remove in the routedTripSchedule
-   * @param routedTripSchedule to base the truncated routedTripSchedules on
-   * @param factory to create new truncated routed trip schedules
-   * @return list of newly created truncated trip schedules (not yet registered on their routed services container), if any and maybe null
+   * @param indexOffset to use, relates to index in the toBeRemovedSegments, first call it should be set to -1
+   * @param toBeRemovedSegments identified leg segments (or rel timing segments) to remove in the routedTrip
+   * @param freqOrSched to base the truncated routedTrips  on (either a RoutedTripSchedule or RoutedTripFrequency
+   * @param factory to create new truncated routed trip schedules (or frequencies)
+   * @return list of newly created truncated trip schedules or frequencies (not yet registered on their routed services container), if any and maybe null
    */
-  private List<RoutedTripSchedule> truncateScheduledTripChainToServiceNetwork(
-          int indexOffset, final List<Integer> toBeRemovedRelTimingSegments, final RoutedTripSchedule routedTripSchedule, RoutedTripScheduleFactory factory) {
-    /* in case last chain ended at final leg timing, offset is not in range and we can stop */
-    if(indexOffset >= toBeRemovedRelTimingSegments.size()){
+  private <T extends RoutedTrip> List<T> recursiveTruncateXTripChainToServiceNetwork(
+          int indexOffset, List<Integer> toBeRemovedSegments, T freqOrSched, RoutedTripFactory<T> factory) {
+    /* in case last chain ended at final segment, offset is not in range and we can stop */
+    if(indexOffset >= toBeRemovedSegments.size()){
       return null;
     }
 
+    // identify which cast to what class to use for class specific parts of recursive method
+    // todo if this turns out to be a runtime cost that is too high, pass along boolean in call to avoid instanceof
+    boolean isTripSchedule = freqOrSched instanceof RoutedTripSchedule;
+    if(!isTripSchedule && !(freqOrSched instanceof RoutedTripFrequency)){
+      throw new PlanItRunTimeException("Only routed trip schedule or routed trip frequencies are supported in recurive truncation to service network");
+    }
+
+    final int numSegments = isTripSchedule ?
+            ((RoutedTripSchedule)freqOrSched).getRelativeLegTimingsSize() :
+            ((RoutedTripFrequency)freqOrSched).getNumberOfLegSegments();
+
     boolean isFirstChainTruncation = indexOffset == -1;
-    // check for special case where nothing is to be removed for the very first chain, i.e., first removal index is after first chain final index
-    boolean initialChainWithoutRemovalBeforeChain = isFirstChainTruncation && toBeRemovedRelTimingSegments.get(0) > 0;
+    indexOffset = Math.max(0,indexOffset);
+
+    /* check for special case where nothing is to be removed for the very first chain, i.e., first removal index is after first chain final index */
+    boolean initialChainWithoutRemovalBeforeChain = isFirstChainTruncation && toBeRemovedSegments.get(0) > 0;
 
     /* consider all to be removed consecutive entries leading up to the next valid chain*/
     final List<Integer> consecutiveLegsToRemoveBeforeChain = initialChainWithoutRemovalBeforeChain ?
-            List.of() : IntegerListUtils.getLongestConsecutiveSubList(Math.max(0,indexOffset), toBeRemovedRelTimingSegments);
+            List.of() : IntegerListUtils.getLongestConsecutiveSubList(indexOffset, toBeRemovedSegments);
     final List<Integer> allIndicesBeforeFirstChainLeg = initialChainWithoutRemovalBeforeChain ?
-            List.of() : IntegerListUtils.rangeOf(0, ListUtils.getLast(consecutiveLegsToRemoveBeforeChain)+1);
+            List.of() : IntegerListUtils.rangeOf(0, ListUtils.getLastValue(consecutiveLegsToRemoveBeforeChain)+1);
     final int nextRecursionIndexOffset = initialChainWithoutRemovalBeforeChain ?
-            0 : Math.min(indexOffset + consecutiveLegsToRemoveBeforeChain.size(), toBeRemovedRelTimingSegments.size());
+            0 : Math.min(indexOffset + consecutiveLegsToRemoveBeforeChain.size(), toBeRemovedSegments.size());
 
-    if(!initialChainWithoutRemovalBeforeChain && ListUtils.getLast(consecutiveLegsToRemoveBeforeChain) == routedTripSchedule.getLastRelativeLegTimingIndex()){
-        /* no valid chain present after removal of invalid components preceding the to-be-created chain, done */
-        return null;
+    if(!initialChainWithoutRemovalBeforeChain && ListUtils.getLastValue(consecutiveLegsToRemoveBeforeChain) == numSegments){
+      /* no valid chain present after removal of invalid components preceding the to-be-created chain, done */
+      return null;
     }
-
-    /*... then , get the durations and dwell times leading up to the valid chain of this portion of the entry and sum them
-     * to serve as the departure time offset in addition to the original departure time */
-    final long departureShiftInNanos = allIndicesBeforeFirstChainLeg.stream().mapToLong(ltIndex ->
-            routedTripSchedule.getRelativeLegTiming(ltIndex).getDuration().toNanoOfDay()
-                    + routedTripSchedule.getRelativeLegTiming(ltIndex).getDwellTime().toNanoOfDay()).sum();
 
     /* create a copy of the original to adjust */
-    var truncatedRoutedTripSchedule = factory.createUniqueDeepCopyOf(routedTripSchedule);
-
-    /* update the departure times if needed */
-    if(!consecutiveLegsToRemoveBeforeChain.isEmpty()) {
-      truncatedRoutedTripSchedule.getDepartures().allDepartLaterBy(LocalTime.ofNanoOfDay(departureShiftInNanos));
-    }
+    var truncatedRoutedTripX = (T) (isTripSchedule ?
+            ((RoutedTripScheduleFactory)factory).createUniqueDeepCopyOf(((RoutedTripSchedule)freqOrSched)):
+            ((RoutedTripFrequencyFactory)factory).createUniqueDeepCopyOf(((RoutedTripFrequency)freqOrSched)));
 
     // check for special case...chain ends with last leg included, so nothing to remove beyond this
-    final boolean lastChainWithoutRemovalAfter = nextRecursionIndexOffset >= toBeRemovedRelTimingSegments.size();
-    /* identify leg timings around the truncated chain to remove...*/
-    List<Integer> truncatedLegTimingIndicesToRemove = allIndicesBeforeFirstChainLeg;
+    final boolean lastChainWithoutRemovalAfter = nextRecursionIndexOffset >= toBeRemovedSegments.size();
+    /* identify segments around the truncated chain to remove...*/
+    List<Integer> truncatedSegmentIndicesToRemove = new ArrayList<>(allIndicesBeforeFirstChainLeg);
     if(!lastChainWithoutRemovalAfter){
-      // regular case...truncated schedule has leg timings to remove after it ends
-      final int firstLegIndexValueToRemoveAfterChain = toBeRemovedRelTimingSegments.get(nextRecursionIndexOffset);
-      final var allIndicesAfterLastChainLeg =
-              IntegerListUtils.rangeOf(firstLegIndexValueToRemoveAfterChain,routedTripSchedule.getLastRelativeLegTimingIndex()+1);
-      truncatedLegTimingIndicesToRemove.addAll(allIndicesAfterLastChainLeg);
+      // regular case...truncated version has segments to remove after it ends
+      final int firstLegIndexValueToRemoveAfterChain = toBeRemovedSegments.get(nextRecursionIndexOffset);
+      final var allIndicesAfterLastChainLeg = IntegerListUtils.rangeOf(firstLegIndexValueToRemoveAfterChain,numSegments);
+      truncatedSegmentIndicesToRemove.addAll(allIndicesAfterLastChainLeg);
     }
 
-    /* ...remove all leg timings except the ones belonging to this chain */
-    truncatedRoutedTripSchedule.removeLegTimingsIn(truncatedLegTimingIndicesToRemove);
+    /* ...remove all segments except the ones belonging to this chain */
+    if(isTripSchedule){
+      ((RoutedTripSchedule)truncatedRoutedTripX).removeLegTimingsIn(truncatedSegmentIndicesToRemove);
+    }else {
+      ((RoutedTripFrequency)truncatedRoutedTripX).removeLegSegmentsIn(truncatedSegmentIndicesToRemove);
+    }
 
     /* call next recursion */
-    var recursiveResult = truncateScheduledTripChainToServiceNetwork(
-            nextRecursionIndexOffset, toBeRemovedRelTimingSegments, routedTripSchedule, factory);
+    var recursiveResult = recursiveTruncateXTripChainToServiceNetwork(
+            nextRecursionIndexOffset, toBeRemovedSegments, freqOrSched, factory);
     if(recursiveResult == null){
       recursiveResult = new ArrayList<>(1);
     }
-    recursiveResult.add(truncatedRoutedTripSchedule);
+    recursiveResult.add(truncatedRoutedTripX);
     return recursiveResult;
+  }
+
+  /**
+   * Truncate to service network, see {@link #recursiveTruncateXTripChainToServiceNetwork(int, List, RoutedTrip, RoutedTripFactory)} for details
+   *
+   * @param toBeRemovedLegSegments to apply
+   * @param routedTripFrequency to apply truncation to
+   * @param factory to create new instances for trunacted partials
+   * @return list of partial routed trip frquencies created (if any)
+   */
+  private List<RoutedTripFrequency> truncateFrequencyTripChainToServiceNetwork(
+          List<Integer> toBeRemovedLegSegments, RoutedTripFrequency routedTripFrequency, RoutedTripFrequencyFactory factory) {
+
+    /* bootstrap recursive call */
+    return recursiveTruncateXTripChainToServiceNetwork(-1, toBeRemovedLegSegments, routedTripFrequency, factory);
+  }
+
+  /**
+   * Truncate to service network, see {@link #recursiveTruncateXTripChainToServiceNetwork(int, List, RoutedTrip, RoutedTripFactory)} for details
+   *
+   * @param toBeRemovedRelTimingSegments to apply
+   * @param routedTripSchedule to apply truncation to
+   * @param factory to create new instances for trunacted partials
+   * @return list of partial routed trip frquencies created (if any)
+   */
+  private List<RoutedTripSchedule> truncateScheduledTripChainToServiceNetwork(
+          final List<Integer> toBeRemovedRelTimingSegments, final RoutedTripSchedule routedTripSchedule, RoutedTripScheduleFactory factory) {
+    /* bootstrap recursive call */
+    return recursiveTruncateXTripChainToServiceNetwork(-1, toBeRemovedRelTimingSegments, routedTripSchedule, factory);
   }
 
   /**
@@ -192,9 +155,9 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
       return null;
     }
 
-    /* (Recursive) replace existing routed trip schedule by one or more truncated ones, one per identified consecutive chain with adjusted departure times */
-    List<RoutedTripFrequency> truncatedRoutedTripFrequencies = truncateFrequencyTripChainToServiceNetwork(
-            -1, toBeRemovedLegSegments, routedTripFrequency, factory);
+    /* Replace existing routed trip schedule by one or more truncated ones, one per identified consecutive chain with adjusted departure times */
+    List<RoutedTripFrequency> truncatedRoutedTripFrequencies =
+            truncateFrequencyTripChainToServiceNetwork(toBeRemovedLegSegments, routedTripFrequency, factory);
     if(truncatedRoutedTripFrequencies == null || truncatedRoutedTripFrequencies.isEmpty()){
       throw new PlanItRunTimeException("Invalid truncation of routed trip frequency, expected at least one alternative to be created");
     }
@@ -236,8 +199,8 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
     }
 
     /* (Recursive) replace existing routed trip schedule by one or more truncated ones, one per identified consecutive chain with adjusted departure times */
-    List<RoutedTripSchedule> truncatedRoutedTripSchedules = truncateScheduledTripChainToServiceNetwork(
-            -1, toBeRemovedRelativeTimingLegSegments, routedTripSchedule, factory);
+    List<RoutedTripSchedule> truncatedRoutedTripSchedules =
+            truncateScheduledTripChainToServiceNetwork(toBeRemovedRelativeTimingLegSegments, routedTripSchedule, factory);
     if(truncatedRoutedTripSchedules == null || truncatedRoutedTripSchedules.isEmpty()){
       throw new PlanItRunTimeException("Invalid truncation of routed trip schedule, expected at least one alternative schedule to be created");
     }
@@ -324,7 +287,7 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
       return;
     }
 
-    LOGGER.info(String.format("%s Truncating routed services to remaining service network for mode %s",
+    LOGGER.info(String.format("%sTruncating routed services to remaining service network for mode %s",
             LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode()));
 
     /* SCHEDULE BASED */
@@ -350,11 +313,11 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
                 singleRts -> routedService.getTripInfo().getScheduleBasedTrips().register(singleRts));
       }
     }
-    LOGGER.info(String.format("%s [%s] # kept scheduled trips as is : %d",
+    LOGGER.info(String.format("%s[%s] # kept scheduled trips as is : %d",
             LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numKeptScheduledTrips));
-    LOGGER.info(String.format("%s [%s] # removed scheduled trips : %d",
+    LOGGER.info(String.format("%s[%s] # removed/replaced scheduled trips : %d",
             LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numRemovedScheduledTrips));
-    LOGGER.info(String.format("%s [%s] # newly created truncated scheduled trips : %d",
+    LOGGER.info(String.format("%s[%s] # newly created partials of scheduled trips : %d",
             LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numCreatedTruncatedScheduledTrips));
 
     /* FREQUENCY BASED */
@@ -380,11 +343,11 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
                 singleRtf -> routedService.getTripInfo().getFrequencyBasedTrips().register(singleRtf));
       }
     }
-    LOGGER.info(String.format("%s [%s] # kept frequency based trips as is : %d",
+    LOGGER.info(String.format("%s[%s] # kept frequency based trips as is : %d",
             LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numKeptFrequencyTrips));
-    LOGGER.info(String.format("%s [%s] # removed frequency based trips : %d",
+    LOGGER.info(String.format("%s[%s] # removed/replaced frequency based trips : %d",
             LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numRemovedFrequencyTrips));
-    LOGGER.info(String.format("%s [%s] # newly created truncated frequency based trips : %d",
+    LOGGER.info(String.format("%s[%s] # newly created partials of frequency based trips : %d",
             LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numCreatedTruncatedFrequencyTrips));
   }
 
