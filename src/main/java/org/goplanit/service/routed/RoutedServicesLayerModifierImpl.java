@@ -16,7 +16,7 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(RoutedServicesLayerModifierImpl.class.getCanonicalName());
-  protected final RoutedServicesLayer routedServicesLayer;
+  protected final RoutedServicesLayerImpl routedServicesLayer;
 
   /**
    * Recursive method supporting both #RoutedTripFrequency and #RoutedTripSchedule truncations. Based on the given offset related to the to be removed timing segments, identifies the first
@@ -356,7 +356,7 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
    *
    * @param routedServicesLayer this modifier acts upon
    */
-  protected RoutedServicesLayerModifierImpl(final RoutedServicesLayer routedServicesLayer) {
+  protected RoutedServicesLayerModifierImpl(final RoutedServicesLayerImpl routedServicesLayer) {
     this.routedServicesLayer = routedServicesLayer;
   }
 
@@ -369,7 +369,9 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
   public void truncateToServiceNetwork(){
     LOGGER.info(String.format("%s Truncating routed services to remaining service network",LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId())));
     /* identify missing service network entities per routed service mode and truncate to become consistent again */
-    routedServicesLayer.getSupportedModes().forEach(m -> truncateToServiceNetworkByMode(routedServicesLayer.getServicesByMode(m)));
+    for( var servicesPerMode : routedServicesLayer){
+      truncateToServiceNetworkByMode(servicesPerMode);
+    }
 
     /* after truncation routed services all internal ids need to be recreated to ensure contiguous ids throughout the routed services */
     recreateManagedEntitiesIds();
@@ -380,9 +382,74 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
    */
   @Override
   public void recreateManagedEntitiesIds() {
-    //todo: make sure all ids buried within container entities (child managed ids) are also properly reset because these
-    // might also be affected?? Check with networks to see how this is done
-    //routedServicesLayer.recreateManagedIds(routedServicesLayer.);
+    // do for routed modes container
+    recreateRoutedServicesIds();
+    // do for all routed trips (scheduled and frequency based as they all use the same id token)
+    recreateRoutedTripsIds();
+    // do for all scheduled departures
+    recreateRoutedTripScheduleDepartureIds();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateRoutedTripScheduleDepartureIds() {
+    /* allow modifier to recreate the scheduled trips departure entity ids. because these ids are unique across all modes, services, trips schedules for which each has a container
+     * we should only reset it once, otherwise it is no longer unique across those contains when recreating the ids
+     */
+    boolean doIdReset = true;
+    for(var routedModeServices : routedServicesLayer) {
+      for (var entry : routedModeServices) {
+        for( var sbt : entry.getTripInfo().getScheduleBasedTrips()) {
+          sbt.getDepartures().recreateIds(doIdReset);
+          doIdReset = false;
+        }
+      }
+    }
+
+    // todo support event for modified ids as we do in zoning modifier for example
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateRoutedTripsIds() {
+    /* allow modifier to recreate the scheduled trips entity ids. because these ids are unique across all modes and services for which each has a container
+     * we should only reset it once, otherwise it is no longer unique across those contains when recreating the ids
+     */
+    boolean doIdReset = true;
+    for(var routedModeServices : routedServicesLayer) {
+      for (var entry : routedModeServices) {
+        if(entry.getTripInfo().getScheduleBasedTrips().getFactory().getIdGroupingToken() != entry.getTripInfo().getFrequencyBasedTrips().getFactory().getIdGroupingToken()){
+          throw new PlanItRunTimeException("Expectation in updating ids is that all trips (frequency and scheduled) use same id token, this was found to not be the case, please adjust implementation");
+        }
+        entry.getTripInfo().getScheduleBasedTrips().recreateIds(doIdReset);
+        doIdReset = false;
+        entry.getTripInfo().getFrequencyBasedTrips().recreateIds(doIdReset);
+      }
+    }
+
+    // todo support event for modified ids as we do in zoning modifier for example
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateRoutedServicesIds() {
+    /* allow modifier to recreate the routed service layer managed entity ids. because routedServices' ids are unique across all modes for which each has a container
+     * we should only reset it once, otherwise it is no longer unique across those contains when recreating the ids
+     */
+    boolean doIdReset = true;
+    for(var routedModeServices : routedServicesLayer){
+      /* only reset once, because all entries across all modes use the same groupIdToken */
+      routedModeServices.recreateIds(doIdReset);
+      doIdReset = false;
+    }
+
+    // todo support event for modified ids as we do in zoning modifier for example
   }
 
 }

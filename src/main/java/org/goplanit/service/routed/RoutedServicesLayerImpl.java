@@ -47,6 +47,7 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
     return new RoutedModeServicesImpl(tokenId, mode);
   }
 
+
   /**
    * Generate id for instances of this class based on the token and class identifier
    * 
@@ -133,6 +134,14 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    */
   public final ServiceNetworkLayer getParentLayer() {
     return parentLayer;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isServicesByModeEmpty(Mode mode) {
+    return !routedServicesByMode.containsKey(mode) || routedServicesByMode.get(mode).isEmpty();
   }
 
   /**

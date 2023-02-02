@@ -101,7 +101,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   public void recreateZoneIds() {
     /*
      * both connectoids containers use the same underlying id generated for the zone managed id, so it is unique across the two containers. Hence, we should only reset it once,
-     * otherwise it is not longer unique across both when recreating the ids
+     * otherwise it is no longer unique across both when recreating the ids
      */
     boolean resetManagedIdClass = true;
     zoning.getOdZones().recreateIds(resetManagedIdClass);
