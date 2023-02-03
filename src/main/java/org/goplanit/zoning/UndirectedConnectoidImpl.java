@@ -148,7 +148,7 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoidImpl clone() {
+  public UndirectedConnectoidImpl shallowClone() {
     return new UndirectedConnectoidImpl(this, false);
   }
 

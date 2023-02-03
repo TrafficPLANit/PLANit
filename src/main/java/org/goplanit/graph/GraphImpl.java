@@ -50,7 +50,7 @@ public class GraphImpl<V extends Vertex, E extends Edge> extends UntypedGraphImp
    * {@inheritDoc}
    */
   @Override
-  public GraphImpl<V, E> clone() {
+  public GraphImpl<V, E> shallowClone() {
     return new GraphImpl<>(this, false);
   }
 

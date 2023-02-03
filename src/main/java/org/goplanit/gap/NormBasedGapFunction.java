@@ -193,7 +193,7 @@ public class NormBasedGapFunction extends GapFunction {
    * {@inheritDoc}
    */
   @Override
-  public NormBasedGapFunction clone() {
+  public NormBasedGapFunction shallowClone() {
     return new NormBasedGapFunction(this, false);
   }
 

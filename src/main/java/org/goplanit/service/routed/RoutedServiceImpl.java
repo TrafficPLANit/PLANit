@@ -69,7 +69,7 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
     this.mode = other.mode;
 
     // container wrapper so requires clone also for shallow copy
-    this.trips = deepCopy ? other.trips.deepClone() : other.trips.clone();
+    this.trips = deepCopy ? other.trips.deepClone() : other.trips.shallowClone();
   }
 
   /**
@@ -86,7 +86,7 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
    * {@inheritDoc}
    */
   @Override
-  public RoutedServiceImpl clone() {
+  public RoutedServiceImpl shallowClone() {
     return new RoutedServiceImpl(this, false);
   }
 

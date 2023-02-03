@@ -59,7 +59,7 @@ public class ConjugateConnectoidEdgeImpl extends ConjugateDirectedEdgeImpl<Conju
    * {@inheritDoc}
    */
   @Override
-  public ConjugateConnectoidEdgeImpl clone() {
+  public ConjugateConnectoidEdgeImpl shallowClone() {
     return new ConjugateConnectoidEdgeImpl(this, false);
   }
 

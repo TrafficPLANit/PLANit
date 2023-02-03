@@ -73,7 +73,7 @@ public class ConjugateConnectoidEdgesImpl extends ManagedIdEntitiesImpl<Conjugat
    * {@inheritDoc}
    */
   @Override
-  public ConjugateConnectoidEdgesImpl clone() {
+  public ConjugateConnectoidEdgesImpl shallowClone() {
     return new ConjugateConnectoidEdgesImpl(this, false);
   }
 

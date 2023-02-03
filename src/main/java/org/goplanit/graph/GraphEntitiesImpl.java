@@ -44,7 +44,7 @@ public abstract class GraphEntitiesImpl<E extends GraphEntity> extends LongMapWr
    * {@inheritDoc}
    */
   @Override
-  public abstract GraphEntitiesImpl<E> clone();
+  public abstract GraphEntitiesImpl<E> shallowClone();
 
   /**
    * {@inheritDoc}

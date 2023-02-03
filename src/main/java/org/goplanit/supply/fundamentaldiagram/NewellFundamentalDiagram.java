@@ -119,7 +119,7 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
    * {@inheritDoc}
    */  
   @Override
-  public NewellFundamentalDiagram clone() {
+  public NewellFundamentalDiagram shallowClone() {
     return new NewellFundamentalDiagram(this, false);
   }
 

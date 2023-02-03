@@ -178,7 +178,7 @@ public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L>
    * {@inheritDoc}
    */
   @Override
-  public abstract LinkSegmentBase<L> clone();
+  public abstract LinkSegmentBase<L> shallowClone();
 
   /**
    * {@inheritDoc}

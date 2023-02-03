@@ -61,7 +61,7 @@ public class VerticesImpl extends GraphEntitiesImpl<Vertex> implements Vertices 
    * {@inheritDoc}
    */
   @Override
-  public VerticesImpl clone() {
+  public VerticesImpl shallowClone() {
     return new VerticesImpl(this, false);
   }
 

@@ -50,7 +50,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
    * {@inheritDoc}
    */
   @Override
-  public UntypedDirectedGraphImpl<V, E, ES> clone() {
+  public UntypedDirectedGraphImpl<V, E, ES> shallowClone() {
     return new DirectedGraphImpl(this, false);
   }
 

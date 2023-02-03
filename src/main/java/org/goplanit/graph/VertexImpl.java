@@ -168,7 +168,7 @@ public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Verte
    * {@inheritDoc}
    */
   @Override
-  public VertexImpl<E> clone() {
+  public VertexImpl<E> shallowClone() {
     return new VertexImpl<>(this, false);
   }
 

@@ -129,7 +129,7 @@ public abstract class NetworkLayerImpl extends ExternalIdAbleImpl implements Net
    * {@inheritDoc}
    */
   @Override
-  public abstract NetworkLayerImpl clone();
+  public abstract NetworkLayerImpl shallowClone();
 
   /**
    * {@inheritDoc}

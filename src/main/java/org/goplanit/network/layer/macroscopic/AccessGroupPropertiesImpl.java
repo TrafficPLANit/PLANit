@@ -146,7 +146,7 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
    * {@inheritDoc}
    */
   @Override
-  public AccessGroupProperties clone() {
+  public AccessGroupProperties shallowClone() {
     return new AccessGroupPropertiesImpl(this, false);
   }
 

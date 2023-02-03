@@ -76,7 +76,7 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
    * {@inheritDoc}
    */
   @Override
-  public abstract UntypedPhysicalLayerImpl<N, L, LS> clone();
+  public abstract UntypedPhysicalLayerImpl<N, L, LS> shallowClone();
 
   /**
    * {@inheritDoc}

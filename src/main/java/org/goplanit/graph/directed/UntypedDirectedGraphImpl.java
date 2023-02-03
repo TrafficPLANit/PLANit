@@ -55,7 +55,7 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
 
     // container class, so clone upon shallow copy
     this.edgeSegments =
-            deepCopy ? directedGraphImpl.getEdgeSegments().deepClone() : directedGraphImpl.getEdgeSegments().clone();
+            deepCopy ? directedGraphImpl.getEdgeSegments().deepClone() : directedGraphImpl.getEdgeSegments().shallowClone();
   }
 
   // Getters - Setters
@@ -72,7 +72,7 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
    * {@inheritDoc}
    */
   @Override
-  public UntypedDirectedGraphImpl<V, E, ES> clone() {
+  public UntypedDirectedGraphImpl<V, E, ES> shallowClone() {
     return new UntypedDirectedGraphImpl<>(this, false);
   }
 

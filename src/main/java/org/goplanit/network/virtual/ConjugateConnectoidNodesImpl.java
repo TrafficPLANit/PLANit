@@ -64,7 +64,7 @@ public class ConjugateConnectoidNodesImpl extends ManagedIdEntitiesImpl<Conjugat
    * {@inheritDoc}
    */
   @Override
-  public ConjugateConnectoidNodesImpl clone() {
+  public ConjugateConnectoidNodesImpl shallowClone() {
     return new ConjugateConnectoidNodesImpl(this, false);
   }
 

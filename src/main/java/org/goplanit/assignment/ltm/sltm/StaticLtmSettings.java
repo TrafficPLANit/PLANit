@@ -8,7 +8,7 @@ import java.util.logging.Logger;
  * 
  * @author markr
  */
-public class StaticLtmSettings implements Cloneable {
+public class StaticLtmSettings {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmSettings.class.getCanonicalName());
@@ -78,10 +78,9 @@ public class StaticLtmSettings implements Cloneable {
   }
 
   /**
-   * {@inheritDoc}
+   * Shallow copy
    */
-  @Override
-  public StaticLtmSettings clone() {
+  public StaticLtmSettings shallowClone() {
     return new StaticLtmSettings(this);
   }
 

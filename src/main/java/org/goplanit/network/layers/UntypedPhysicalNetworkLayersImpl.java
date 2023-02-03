@@ -35,7 +35,7 @@ public abstract class UntypedPhysicalNetworkLayersImpl<L extends UntypedPhysical
    * {@inheritDoc}}
    */
   @Override
-  public abstract UntypedPhysicalNetworkLayersImpl<L> clone();
+  public abstract UntypedPhysicalNetworkLayersImpl<L> shallowClone();
 
   /**
    * {@inheritDoc}}

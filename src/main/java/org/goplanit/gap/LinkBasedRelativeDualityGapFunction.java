@@ -136,7 +136,7 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    * {@inheritDoc}
    */
   @Override
-  public LinkBasedRelativeDualityGapFunction clone() {
+  public LinkBasedRelativeDualityGapFunction shallowClone() {
     return new LinkBasedRelativeDualityGapFunction(this, false);
   }
 

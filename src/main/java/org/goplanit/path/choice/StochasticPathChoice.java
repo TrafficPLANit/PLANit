@@ -75,7 +75,7 @@ public abstract class StochasticPathChoice extends PathChoice {
    * {@inheritDoc}
    */
   @Override
-  public abstract StochasticPathChoice clone();
+  public abstract StochasticPathChoice shallowClone();
 
   /**
    * {@inheritDoc}

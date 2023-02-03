@@ -37,7 +37,7 @@ public class RoutedTripsFrequencyImpl extends RoutedTripsImpl<RoutedTripFrequenc
    * {@inheritDoc}
    */
   @Override
-  public RoutedTripsFrequencyImpl clone() {
+  public RoutedTripsFrequencyImpl shallowClone() {
     return new RoutedTripsFrequencyImpl(this, false);
   }
 

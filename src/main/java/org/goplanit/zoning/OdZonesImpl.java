@@ -71,7 +71,7 @@ public class OdZonesImpl extends ZonesImpl<OdZone> implements OdZones {
    * {@inheritDoc}
    */
   @Override
-  public OdZonesImpl clone() {
+  public OdZonesImpl shallowClone() {
     return new OdZonesImpl(this, false);
   }
 

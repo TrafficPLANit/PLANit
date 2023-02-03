@@ -39,15 +39,15 @@ public class RoutedServiceTripInfoImpl implements RoutedServiceTripInfo {
     super();
 
     // container wrappers so require clone always
-    this.frequencyBasedTrips  = deepCopy ? other.frequencyBasedTrips.deepClone()  : other.frequencyBasedTrips.clone();
-    this.scheduleBasedTrips   = deepCopy ? other.scheduleBasedTrips.deepClone()   : other.scheduleBasedTrips.clone();
+    this.frequencyBasedTrips  = deepCopy ? other.frequencyBasedTrips.deepClone()  : other.frequencyBasedTrips.shallowClone();
+    this.scheduleBasedTrips   = deepCopy ? other.scheduleBasedTrips.deepClone()   : other.scheduleBasedTrips.shallowClone();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public RoutedServiceTripInfoImpl clone() {
+  public RoutedServiceTripInfoImpl shallowClone() {
     return new RoutedServiceTripInfoImpl(this, false);
   }
 

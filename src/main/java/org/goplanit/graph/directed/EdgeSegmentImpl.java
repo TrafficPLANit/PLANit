@@ -191,7 +191,7 @@ public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl imp
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegmentImpl<E> clone() {
+  public EdgeSegmentImpl<E> shallowClone() {
     return new EdgeSegmentImpl<>(this, false);
   }
 

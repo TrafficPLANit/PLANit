@@ -135,7 +135,7 @@ public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment> 
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdgeImpl<V, ES> clone() {
+  public DirectedEdgeImpl<V, ES> shallowClone() {
     return new DirectedEdgeImpl<>(this, false);
   }
 

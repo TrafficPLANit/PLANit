@@ -123,7 +123,7 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
    * {@inheritDoc}
    */
   @Override
-  public abstract TopologicalLayerNetwork clone();
+  public abstract TopologicalLayerNetwork shallowClone();
 
   /**
    * {@inheritDoc

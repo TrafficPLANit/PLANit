@@ -82,7 +82,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
     super(other, deepCopy);
 
     /* network layer is in fact a graph, so requriing cloning even for shallow copy */
-    this.graph = deepCopy ? other.graph.deepClone() : other.graph.clone();
+    this.graph = deepCopy ? other.graph.deepClone() : other.graph.shallowClone();
 
     this.layerModifier = new UntypedNetworkLayerModifierImpl<>(graph);
   }
@@ -155,7 +155,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    * {@inheritDoc}
    */
   @Override
-  public abstract UntypedNetworkLayerImpl<V, E, S> clone();
+  public abstract UntypedNetworkLayerImpl<V, E, S> shallowClone();
 
   /**
    * {@inheritDoc}

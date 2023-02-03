@@ -49,7 +49,7 @@ public class ConjugateACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<Con
    * {@inheritDoc}
    */
   @Override
-  public ConjugateACyclicSubGraphImpl clone() {
+  public ConjugateACyclicSubGraphImpl shallowClone() {
     return new ConjugateACyclicSubGraphImpl(this, false);
   }
 

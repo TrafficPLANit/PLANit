@@ -112,7 +112,7 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
    * {@inheritDoc}
    */
   @Override
-  public ConjugateDirectedEdgeImpl<V, ES> clone() {
+  public ConjugateDirectedEdgeImpl<V, ES> shallowClone() {
     return new ConjugateDirectedEdgeImpl<>(this, false);
   }
 

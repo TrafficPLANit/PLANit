@@ -87,7 +87,7 @@ public class TimePeriods extends LongMapWrapperImpl<TimePeriod> {
    * {@inheritDoc}
    */
   @Override
-  public TimePeriods clone() {
+  public TimePeriods shallowClone() {
     return new TimePeriods(this, false);
   }
 

@@ -83,7 +83,7 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    * {@inheritDoc}
    */
   @Override
-  public ModesImpl clone() {
+  public ModesImpl shallowClone() {
     return new ModesImpl(this, false);
   }
 

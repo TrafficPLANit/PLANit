@@ -34,7 +34,7 @@ public abstract class TopologicalLayerImpl extends NetworkLayerImpl implements T
    * {@inheritDoc}
    */
   @Override
-  public abstract TopologicalLayerImpl clone();
+  public abstract TopologicalLayerImpl shallowClone();
 
   /**
    * {@inheritDoc}

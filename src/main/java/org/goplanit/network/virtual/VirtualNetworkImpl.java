@@ -59,15 +59,15 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
     super(other, deepCopy);
 
     // container wrappers so requires clone also for shallow copy
-    this.connectoidSegments = deepCopy ? other.connectoidSegments.deepClone() : other.connectoidSegments.clone();
-    this.connectoidEdges    = deepCopy ? other.connectoidEdges.deepClone()    : other.connectoidEdges.clone();
+    this.connectoidSegments = deepCopy ? other.connectoidSegments.deepClone() : other.connectoidSegments.shallowClone();
+    this.connectoidEdges    = deepCopy ? other.connectoidEdges.deepClone()    : other.connectoidEdges.shallowClone();
   }
 
   /**
    * {@inheritDoc
    */
   @Override
-  public VirtualNetworkImpl clone() {
+  public VirtualNetworkImpl shallowClone() {
     return new VirtualNetworkImpl(this, false);
   }
 

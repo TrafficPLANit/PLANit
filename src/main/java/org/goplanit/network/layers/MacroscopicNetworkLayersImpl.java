@@ -43,7 +43,7 @@ public class MacroscopicNetworkLayersImpl extends UntypedPhysicalNetworkLayersIm
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicNetworkLayersImpl clone() {
+  public MacroscopicNetworkLayersImpl shallowClone() {
     return new MacroscopicNetworkLayersImpl(this, false);
   }
 

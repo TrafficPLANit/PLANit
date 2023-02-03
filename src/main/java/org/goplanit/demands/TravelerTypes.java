@@ -68,7 +68,7 @@ public class TravelerTypes extends LongMapWrapperImpl<TravellerType> {
    * {@inheritDoc}
    */
   @Override
-  public TravelerTypes clone() {
+  public TravelerTypes shallowClone() {
     return new TravelerTypes(this, false);
   }
 

@@ -274,8 +274,8 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    */
   public StaticLtm(StaticLtm sltm) {
     super(sltm, false);
-    this.settings = sltm.settings.clone();
-    this.simulationData = sltm.simulationData.clone();
+    this.settings = sltm.settings.shallowClone();
+    this.simulationData = sltm.simulationData.shallowClone();
   }
 
   /**
@@ -320,7 +320,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * {@inheritDoc}
    */
   @Override
-  public StaticLtm clone() {
+  public StaticLtm shallowClone() {
     return new StaticLtm(this);
   }
 

@@ -119,11 +119,12 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     this.capacityPerLanePcuHourLane = other.getExplicitCapacityPerLane();
     this.maximumDensityPerLanePcuKmLane = other.getExplicitMaximumDensityPerLane();
 
+    this.modeAccessProperties = new TreeMap<>();
     Set<Mode> modesDone = new TreeSet<>();
     if(deepCopy){
       for (Mode mode : other.getAllowedModes()) {
         if (!modesDone.contains(mode)) {
-          AccessGroupProperties clonedEntry =other.getAccessProperties(mode).deepClone();
+          AccessGroupProperties clonedEntry = other.getAccessProperties(mode).deepClone();
           setAccessGroupProperties(clonedEntry);
           modesDone.addAll(clonedEntry.getAccessModes());
         }
@@ -201,7 +202,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentTypeImpl clone() {
+  public MacroscopicLinkSegmentTypeImpl shallowClone() {
     return new MacroscopicLinkSegmentTypeImpl(this, false);
   }
 

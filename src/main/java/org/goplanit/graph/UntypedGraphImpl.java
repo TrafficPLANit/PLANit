@@ -72,8 +72,8 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
    */
   public UntypedGraphImpl(final UntypedGraphImpl<V, E> other,boolean deepCopy) {
     super(other);
-    this.edges    = deepCopy ? other.getEdges().deepClone()     : other.getEdges().clone();     // container class, so clone upon shallow copy
-    this.vertices = deepCopy ? other.getVertices().deepClone()  : other.getVertices(). clone(); // container class, so clone upon shallow copy
+    this.edges    = deepCopy ? other.getEdges().deepClone()     : other.getEdges().shallowClone();     // container class, so clone upon shallow copy
+    this.vertices = deepCopy ? other.getVertices().deepClone()  : other.getVertices(). shallowClone(); // container class, so clone upon shallow copy
     this.groupId  = other.groupId;
   }
 
@@ -110,7 +110,7 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
    * {@inheritDoc}
    */
   @Override
-  public UntypedGraph<V, E> clone() {
+  public UntypedGraph<V, E> shallowClone() {
     return new UntypedGraphImpl<>(this, false);
   }
 

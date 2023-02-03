@@ -52,7 +52,7 @@ public class ConjugateLinkSegmentImpl extends EdgeSegmentImpl<ConjugateLink> imp
    * {@inheritDoc}
    */
   @Override
-  public ConjugateLinkSegmentImpl clone() {
+  public ConjugateLinkSegmentImpl shallowClone() {
     return new ConjugateLinkSegmentImpl(this, false);
   }
 

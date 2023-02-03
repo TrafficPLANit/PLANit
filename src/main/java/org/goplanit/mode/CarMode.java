@@ -61,7 +61,7 @@ public class CarMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public CarMode clone() {
+  public CarMode shallowClone() {
     return new CarMode(this, false);
   }
 

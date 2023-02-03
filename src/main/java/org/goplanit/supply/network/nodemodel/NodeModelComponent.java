@@ -39,7 +39,7 @@ public abstract class NodeModelComponent extends PlanitComponent<NodeModelCompon
    * {@inheritDoc}
    */
   @Override
-  public abstract NodeModelComponent clone();
+  public abstract NodeModelComponent shallowClone();
 
   /**
    * {@inheritDoc}

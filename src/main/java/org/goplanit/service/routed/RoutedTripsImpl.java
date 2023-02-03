@@ -56,7 +56,7 @@ public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEnt
    * {@inheritDoc}
    */
   @Override
-  public abstract RoutedTripsImpl clone();
+  public abstract RoutedTripsImpl shallowClone();
 
   /**
    * {@inheritDoc}

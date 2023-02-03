@@ -62,7 +62,7 @@ public class ServiceLegsImpl extends ManagedIdEntitiesImpl<ServiceLeg> implement
    * {@inheritDoc}
    */
   @Override
-  public ServiceLegsImpl clone() {
+  public ServiceLegsImpl shallowClone() {
     return new ServiceLegsImpl(this, false);
   }
 

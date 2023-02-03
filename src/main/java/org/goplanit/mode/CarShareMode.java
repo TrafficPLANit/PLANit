@@ -58,7 +58,7 @@ public class CarShareMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public CarShareMode clone() {
+  public CarShareMode shallowClone() {
     return new CarShareMode(this, false);
   }
 

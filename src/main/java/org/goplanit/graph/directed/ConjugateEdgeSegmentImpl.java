@@ -70,7 +70,7 @@ public class ConjugateEdgeSegmentImpl extends EdgeSegmentImpl<ConjugateDirectedE
    * {@inheritDoc}
    */
   @Override
-  public ConjugateEdgeSegmentImpl clone() {
+  public ConjugateEdgeSegmentImpl shallowClone() {
     return new ConjugateEdgeSegmentImpl(this, false);
   }
 

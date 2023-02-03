@@ -68,7 +68,7 @@ public class MacroscopicLinkImpl<N extends DirectedVertex, LS extends Macroscopi
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkImpl<N, LS> clone() {
+  public MacroscopicLinkImpl<N, LS> shallowClone() {
     return new MacroscopicLinkImpl<>(this, false);
   }
 

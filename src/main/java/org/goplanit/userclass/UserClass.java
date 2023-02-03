@@ -107,7 +107,7 @@ public class UserClass extends ExternalIdAbleImpl {
    * {@inheritDoc}
    */
   @Override
-  public UserClass clone() {
+  public UserClass shallowClone() {
     return new UserClass(this);
   }
 
@@ -116,7 +116,7 @@ public class UserClass extends ExternalIdAbleImpl {
    */
   @Override
   public UserClass deepClone() {
-    return clone(); // no impact;
+    return shallowClone(); // no impact;
   }
 
   /**

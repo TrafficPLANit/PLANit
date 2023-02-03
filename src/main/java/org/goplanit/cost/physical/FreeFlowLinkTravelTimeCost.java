@@ -94,7 +94,7 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
    * {@inheritDoc}
    */
   @Override
-  public FreeFlowLinkTravelTimeCost clone() {
+  public FreeFlowLinkTravelTimeCost shallowClone() {
     return new FreeFlowLinkTravelTimeCost(this, false);
   }
 

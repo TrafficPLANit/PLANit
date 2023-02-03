@@ -58,7 +58,7 @@ public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
    * {@inheritDoc}
    */
   @Override
-  public EdgesImpl clone() {
+  public EdgesImpl shallowClone() {
     return new EdgesImpl(this, false);
   }
 
@@ -66,7 +66,7 @@ public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
    * {@inheritDoc}
    */
   @Override
-  public GraphEntitiesImpl<Edge> deepClone() {
+  public EdgesImpl deepClone() {
     return new EdgesImpl(this, true);
   }
 

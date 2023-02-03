@@ -73,7 +73,7 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoidsImpl clone() {
+  public UndirectedConnectoidsImpl shallowClone() {
     return new UndirectedConnectoidsImpl(this, false);
   }
 

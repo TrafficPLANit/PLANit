@@ -99,7 +99,7 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
    * {@inheritDoc}
    */
   @Override
-  public ConjugateEdgeImpl<V> clone() {
+  public ConjugateEdgeImpl<V> shallowClone() {
     return new ConjugateEdgeImpl<>(this, false);
   }
 

@@ -108,7 +108,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentBase<MacroscopicLink>
   /**
    * {@inheritDoc}
    */
-  public MacroscopicLinkSegmentImpl clone() {
+  public MacroscopicLinkSegmentImpl shallowClone() {
     return new MacroscopicLinkSegmentImpl(this, false);
   }
 

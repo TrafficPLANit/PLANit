@@ -97,7 +97,7 @@ public class StaticLtmSimulationData extends SimulationData {
    * {@inheritDoc}
    */
   @Override
-  public StaticLtmSimulationData clone() {
+  public StaticLtmSimulationData shallowClone() {
     return new StaticLtmSimulationData(this);
   }
 

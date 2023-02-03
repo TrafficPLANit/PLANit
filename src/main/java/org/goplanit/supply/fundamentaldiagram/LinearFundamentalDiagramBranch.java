@@ -106,7 +106,7 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    * {@inheritDoc}
    */
   @Override
-  public LinearFundamentalDiagramBranch clone() {
+  public LinearFundamentalDiagramBranch shallowClone() {
     return new LinearFundamentalDiagramBranch(this);
   }
 

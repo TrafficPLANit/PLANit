@@ -13,7 +13,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
  * 
  * @author markr
  */
-public class InitialModesLinkSegmentCost implements Cloneable, Cost<MacroscopicLinkSegment> {
+public class InitialModesLinkSegmentCost implements Cost<MacroscopicLinkSegment> {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(InitialModesLinkSegmentCost.class.getCanonicalName());
@@ -103,10 +103,11 @@ public class InitialModesLinkSegmentCost implements Cloneable, Cost<MacroscopicL
   }
 
   /**
-   * {@inheritDoc}
+   * Shallow copy
+   *
+   * @return shallow copy
    */
-  @Override
-  public InitialModesLinkSegmentCost clone() {
+  public InitialModesLinkSegmentCost shallowClone() {
     return new InitialModesLinkSegmentCost(this);
   }
 

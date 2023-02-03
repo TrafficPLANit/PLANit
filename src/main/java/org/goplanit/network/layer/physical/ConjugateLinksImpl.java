@@ -62,7 +62,7 @@ public class ConjugateLinksImpl extends ManagedIdEntitiesImpl<ConjugateLink> imp
    * {@inheritDoc}
    */
   @Override
-  public ConjugateLinksImpl clone() {
+  public ConjugateLinksImpl shallowClone() {
     return new ConjugateLinksImpl(this, false);
   }
 

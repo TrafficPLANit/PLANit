@@ -36,7 +36,7 @@ public class RoutedTripsScheduleImpl extends RoutedTripsImpl<RoutedTripSchedule>
    * {@inheritDoc}
    */
   @Override
-  public RoutedTripsScheduleImpl clone() {
+  public RoutedTripsScheduleImpl shallowClone() {
     return new RoutedTripsScheduleImpl(this, false);
   }
 

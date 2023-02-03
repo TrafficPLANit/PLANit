@@ -60,7 +60,7 @@ public class ManagedDirectedPathsImpl extends ManagedIdEntitiesImpl<ManagedDirec
    * {@inheritDoc}
    */
   @Override
-  public ManagedDirectedPathsImpl clone() {
+  public ManagedDirectedPathsImpl shallowClone() {
     return new ManagedDirectedPathsImpl(this, false);
   }
 

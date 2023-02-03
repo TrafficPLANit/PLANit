@@ -64,14 +64,14 @@ public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializabl
     this.tokenId = other.tokenId;
 
     // clone because idImpl is not a member but is a composite and part of PlanitComponent itself
-    this.idImpl = deepCopy ? other.idImpl.deepClone() : other.idImpl.clone();
+    this.idImpl = deepCopy ? other.idImpl.deepClone() : other.idImpl.shallowClone();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract PlanitComponent<T> clone();
+  public abstract PlanitComponent<T> shallowClone();
 
   /**
    * {@inheritDoc}

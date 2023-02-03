@@ -58,7 +58,7 @@ public class ServiceNetworkLayersImpl extends TopologicalLayersImpl<ServiceNetwo
    * {@inheritDoc}
    */
   @Override
-  public ServiceNetworkLayersImpl clone() {
+  public ServiceNetworkLayersImpl shallowClone() {
     return new ServiceNetworkLayersImpl(this, false);
   }
 

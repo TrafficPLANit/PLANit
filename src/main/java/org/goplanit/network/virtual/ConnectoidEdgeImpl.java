@@ -115,7 +115,7 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl<DirectedVertex, EdgeSeg
    * {@inheritDoc}
    */
   @Override
-  public ConnectoidEdgeImpl clone() {
+  public ConnectoidEdgeImpl shallowClone() {
     return new ConnectoidEdgeImpl(this, false);
   }
 

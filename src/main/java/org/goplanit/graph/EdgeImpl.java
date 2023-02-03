@@ -279,7 +279,7 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
    * {@inheritDoc}
    */
   @Override
-  public EdgeImpl<V> clone() {
+  public EdgeImpl<V> shallowClone() {
     return new EdgeImpl<>(this, false);
   }
 

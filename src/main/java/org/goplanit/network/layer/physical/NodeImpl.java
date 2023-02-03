@@ -82,7 +82,7 @@ public class NodeImpl<LS extends EdgeSegment> extends DirectedVertexImpl<LS> imp
    * {@inheritDoc}
    */
   @Override
-  public NodeImpl<LS> clone() {
+  public NodeImpl<LS> shallowClone() {
     return new NodeImpl<>(this, false);
   }
 

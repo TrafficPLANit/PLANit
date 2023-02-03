@@ -85,7 +85,7 @@ public class RoutedTripDepartureImpl extends ExternalIdAbleImpl implements Route
    * {@inheritDoc}
    */
   @Override
-  public RoutedTripDepartureImpl clone() {
+  public RoutedTripDepartureImpl shallowClone() {
     return new RoutedTripDepartureImpl(this, false);
   }
 

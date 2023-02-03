@@ -40,7 +40,7 @@ public abstract class NetworkLoading extends PlanitComponent<NetworkLoading> imp
    * {@inheritDoc}
    */
   @Override
-  public abstract NetworkLoading clone();
+  public abstract NetworkLoading shallowClone();
 
   /**
    * {@inheritDoc}

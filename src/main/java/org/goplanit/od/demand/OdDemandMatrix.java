@@ -79,7 +79,7 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
    * {@inheritDoc}
    */
   @Override
-  public OdDemandMatrix clone() {
+  public OdDemandMatrix shallowClone() {
     return new OdDemandMatrix(this);
   }
 
@@ -89,7 +89,7 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
   @Override
   public OdDemandMatrix deepClone() {
     /* primitive wrapper so deep clone and clone are the same */
-    return clone();
+    return shallowClone();
   }
 
 }

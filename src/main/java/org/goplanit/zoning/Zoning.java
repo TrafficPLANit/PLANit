@@ -112,12 +112,12 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     this.zoningModifier = new ZoningModifierImpl(this);
 
     // effectively these are all container wrappers as well, so always require a clone
-    this.virtualNetwork = deepCopy      ? other.virtualNetwork.deepClone()      : other.virtualNetwork.clone();
-    this.odConnectoids = deepCopy       ? other.odConnectoids.deepClone()       : other.odConnectoids.clone();
-    this.transferConnectoids = deepCopy ? other.transferConnectoids.deepClone() : other.transferConnectoids.clone();
-    this.odZones = deepCopy             ? other.odZones.deepClone()             : other.odZones.clone();
-    this.transferZones = deepCopy       ? other.transferZones.deepClone()       : other.transferZones.clone();
-    this.transferZoneGroups = deepCopy  ? other.transferZoneGroups.deepClone()  : other.transferZoneGroups.clone();
+    this.virtualNetwork = deepCopy      ? other.virtualNetwork.deepClone()      : other.virtualNetwork.shallowClone();
+    this.odConnectoids = deepCopy       ? other.odConnectoids.deepClone()       : other.odConnectoids.shallowClone();
+    this.transferConnectoids = deepCopy ? other.transferConnectoids.deepClone() : other.transferConnectoids.shallowClone();
+    this.odZones = deepCopy             ? other.odZones.deepClone()             : other.odZones.shallowClone();
+    this.transferZones = deepCopy       ? other.transferZones.deepClone()       : other.transferZones.shallowClone();
+    this.transferZoneGroups = deepCopy  ? other.transferZoneGroups.deepClone()  : other.transferZoneGroups.shallowClone();
   }
 
   // Public - getters - setters
@@ -260,7 +260,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * {@inheritDoc}
    */
   @Override
-  public Zoning clone() {
+  public Zoning shallowClone() {
     return new Zoning(this, false);
   }
 

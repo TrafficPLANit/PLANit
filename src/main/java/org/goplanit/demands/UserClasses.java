@@ -71,7 +71,7 @@ public class UserClasses extends LongMapWrapperImpl<UserClass> {
    * {@inheritDoc}
    */
   @Override
-  public UserClasses clone() {
+  public UserClasses shallowClone() {
     return new UserClasses(this, false);
   }
 

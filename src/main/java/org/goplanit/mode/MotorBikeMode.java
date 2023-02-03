@@ -62,7 +62,7 @@ public class MotorBikeMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public MotorBikeMode clone() {
+  public MotorBikeMode shallowClone() {
     return new MotorBikeMode(this, false);
   }
 

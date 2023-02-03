@@ -50,7 +50,7 @@ public class ConjugateGraphImpl<V extends ConjugateVertex, E extends ConjugateEd
    * {@inheritDoc}
    */
   @Override
-  public ConjugateGraphImpl<V, E> clone() {
+  public ConjugateGraphImpl<V, E> shallowClone() {
     return new ConjugateGraphImpl<>(this, false);
   }
 

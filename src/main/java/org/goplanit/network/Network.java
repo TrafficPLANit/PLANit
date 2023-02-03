@@ -58,7 +58,7 @@ public abstract class Network extends PlanitComponent<Network> implements Serial
    * {@inheritDoc}
    */
   @Override
-  public abstract Network clone();
+  public abstract Network shallowClone();
 
   /**
    * {@inheritDoc}

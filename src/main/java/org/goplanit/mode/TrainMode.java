@@ -61,7 +61,7 @@ public class TrainMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public TrainMode clone() {
+  public TrainMode shallowClone() {
     return new TrainMode(this, false);
   }
 

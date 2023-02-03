@@ -102,7 +102,7 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * {@inheritDoc}
    */
   @Override
-  public FixedConnectoidTravelTimeCost clone() {
+  public FixedConnectoidTravelTimeCost shallowClone() {
     return new FixedConnectoidTravelTimeCost(this, false);
   }
 

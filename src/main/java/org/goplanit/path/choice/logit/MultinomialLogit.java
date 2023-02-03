@@ -38,7 +38,7 @@ public class MultinomialLogit extends LogitChoiceModel {
    * {@inheritDoc}
    */
   @Override
-  public MultinomialLogit clone() {
+  public MultinomialLogit shallowClone() {
     return new MultinomialLogit(this, false);
   }
 

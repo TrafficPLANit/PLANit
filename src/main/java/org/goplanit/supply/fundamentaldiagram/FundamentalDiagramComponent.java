@@ -229,7 +229,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    */
   public void setCapacityLinkSegmentPcuHourLane(final MacroscopicLinkSegment linkSegment, final double capacityPcuHourLane) {
     FundamentalDiagram foundFd = getOrWarning(linkSegment);
-    FundamentalDiagram newFd = foundFd.clone();
+    FundamentalDiagram newFd = foundFd.shallowClone();
     newFd.setCapacityPcuHour(capacityPcuHourLane);
     register(linkSegment, newFd);
   }
@@ -243,7 +243,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    */
   public void setMaximumDensityLinkSegmentPcuKmLane(final MacroscopicLinkSegment linkSegment, final double maxDensityPcuKmLane) {
     FundamentalDiagram foundFd = getOrWarning(linkSegment);
-    FundamentalDiagram newFd = foundFd.clone();
+    FundamentalDiagram newFd = foundFd.shallowClone();
     newFd.setMaximumDensityPcuKmHour(maxDensityPcuKmLane);
     register(linkSegment, newFd);
   }
@@ -256,7 +256,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    */
   public void setCapacityLinkSegmentTypePcuHourLane(final MacroscopicLinkSegmentType linkSegmentType, final double capacityPcuHourLane) {
     FundamentalDiagram foundFd = getOrWarning(linkSegmentType);
-    FundamentalDiagram newFd = foundFd.clone();
+    FundamentalDiagram newFd = foundFd.shallowClone();
     newFd.setCapacityPcuHour(capacityPcuHourLane);
     register(linkSegmentType, newFd);
   }
@@ -270,7 +270,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    */
   public void setMaximumDensityLinkSegmentTypePcuKmLane(final MacroscopicLinkSegmentType linkSegmentType, final double maxDensityPcuKmLane) {
     FundamentalDiagram foundFd = getOrWarning(linkSegmentType);
-    FundamentalDiagram newFd = foundFd.clone();
+    FundamentalDiagram newFd = foundFd.shallowClone();
     newFd.setMaximumDensityPcuKmHour(maxDensityPcuKmLane);
     register(linkSegmentType, newFd);
   }
@@ -332,7 +332,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    * {@inheritDoc}
    */
   @Override
-  public abstract FundamentalDiagramComponent clone();
+  public abstract FundamentalDiagramComponent shallowClone();
 
   /**
    * {@inheritDoc}

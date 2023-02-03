@@ -8,7 +8,7 @@ import org.goplanit.utils.math.Precision;
  * @author markr
  *
  */
-public interface FundamentalDiagramBranch extends Cloneable {
+public interface FundamentalDiagramBranch {
 
   /**
    * The flow at a given density
@@ -100,7 +100,7 @@ public interface FundamentalDiagramBranch extends Cloneable {
    * 
    * @return cloned branch
    */
-  public abstract FundamentalDiagramBranch clone();
+  public abstract FundamentalDiagramBranch shallowClone();
 
   /**
    * Verify if the branch is linear or not

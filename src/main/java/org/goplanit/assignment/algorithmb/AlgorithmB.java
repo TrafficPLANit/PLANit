@@ -109,7 +109,7 @@ public class AlgorithmB extends StaticTrafficAssignment {
    * {@inheritDoc}
    */
   @Override
-  public AlgorithmB clone() {
+  public AlgorithmB shallowClone() {
     return new AlgorithmB(this);
   }
 

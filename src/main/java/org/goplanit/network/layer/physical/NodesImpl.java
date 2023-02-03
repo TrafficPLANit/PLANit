@@ -74,7 +74,7 @@ public class NodesImpl extends ManagedIdEntitiesImpl<Node> implements Nodes {
    * {@inheritDoc}
    */
   @Override
-  public NodesImpl clone() {
+  public NodesImpl shallowClone() {
     return new NodesImpl(this, false);
   }
 

@@ -96,7 +96,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
     this.requireTopologicalSortUpdate = other.requireTopologicalSortUpdate;
     this.bushGroupingToken = other.bushGroupingToken;
 
-    this.dag = deepCopy ? other.getDag().deepClone() : other.dag.clone();
+    this.dag = deepCopy ? other.getDag().deepClone() : other.dag.shallowClone();
   }
 
   /**
@@ -113,7 +113,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * {@inheritDoc}
    */
   @Override
-  public abstract RootedBush<V, ES> clone();
+  public abstract RootedBush<V, ES> shallowClone();
 
   /**
    * {@inheritDoc}

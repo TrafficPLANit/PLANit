@@ -61,7 +61,7 @@ public class TramMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public TramMode clone() {
+  public TramMode shallowClone() {
     return new TramMode(this, false);
   }
 

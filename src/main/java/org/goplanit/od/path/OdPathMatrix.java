@@ -66,7 +66,7 @@ public class OdPathMatrix extends OdNonPrimitiveMatrix<ManagedDirectedPath> impl
    * {@inheritDoc}
    */
   @Override
-  public OdPathMatrix clone() {
+  public OdPathMatrix shallowClone() {
     return new OdPathMatrix(this, false);
   }
 

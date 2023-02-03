@@ -62,7 +62,7 @@ public class PedestrianMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public PedestrianMode clone() {
+  public PedestrianMode shallowClone() {
     return new PedestrianMode(this, false);
   }
 

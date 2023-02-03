@@ -7,7 +7,7 @@ package org.goplanit.supply.fundamentaldiagram;
  * @author markr
  *
  */
-public interface FundamentalDiagram extends Cloneable {
+public interface FundamentalDiagram {
 
   /**
    * shorthand for Newell fundamental diagram class type
@@ -67,7 +67,7 @@ public interface FundamentalDiagram extends Cloneable {
    * 
    * @return cloned instance
    */
-  public abstract FundamentalDiagram clone();
+  public abstract FundamentalDiagram shallowClone();
 
   /**
    * deep clone of fundamental diagram

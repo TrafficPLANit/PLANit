@@ -31,7 +31,7 @@ public class ProjectRoutedServices extends LongMapWrapperImpl<RoutedServices> {
    * {@inheritDoc}
    */
   @Override
-  public ProjectRoutedServices clone() {
+  public ProjectRoutedServices shallowClone() {
     return new ProjectRoutedServices(this);
   }
 

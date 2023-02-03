@@ -64,7 +64,7 @@ public class DirectedVerticesImpl extends GraphEntitiesImpl<DirectedVertex> impl
    * {@inheritDoc}
    */
   @Override
-  public DirectedVerticesImpl clone() {
+  public DirectedVerticesImpl shallowClone() {
     return new DirectedVerticesImpl(this, false);
   }
 

@@ -31,7 +31,7 @@ public class ProjectOdPathSets extends LongMapWrapperImpl<OdPathSets> {
    * {@inheritDoc}
    */
   @Override
-  public ProjectOdPathSets clone() {
+  public ProjectOdPathSets shallowClone() {
     return new ProjectOdPathSets(this);
   }
 

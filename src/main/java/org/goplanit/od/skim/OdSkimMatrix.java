@@ -70,7 +70,7 @@ public class OdSkimMatrix extends OdPrimitiveMatrix<Double> {
    * {@inheritDoc}
    */
   @Override
-  public OdSkimMatrix clone() {
+  public OdSkimMatrix shallowClone() {
     return new OdSkimMatrix(this);
   }
 

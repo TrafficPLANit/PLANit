@@ -58,7 +58,7 @@ public class CarHighOccupancyMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public CarHighOccupancyMode clone() {
+  public CarHighOccupancyMode shallowClone() {
     return new CarHighOccupancyMode(this, false);
   }
 

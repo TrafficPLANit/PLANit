@@ -64,7 +64,7 @@ public class LinksImpl<L extends Link> extends ManagedIdEntitiesImpl<L> implemen
    * {@inheritDoc}
    */
   @Override
-  public LinksImpl clone() {
+  public LinksImpl shallowClone() {
     return new LinksImpl(this, false);
   }
 

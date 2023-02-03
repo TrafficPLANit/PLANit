@@ -75,7 +75,7 @@ public class ConnectoidSegmentsImpl extends ManagedIdEntitiesImpl<ConnectoidSegm
    * {@inheritDoc}
    */
   @Override
-  public ConnectoidSegmentsImpl clone() {
+  public ConnectoidSegmentsImpl shallowClone() {
     return new ConnectoidSegmentsImpl(this, false);
   }
 

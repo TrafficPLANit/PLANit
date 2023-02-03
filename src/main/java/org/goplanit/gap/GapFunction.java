@@ -105,7 +105,7 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
    * {@inheritDoc}
    */
   @Override
-  public abstract GapFunction clone();
+  public abstract GapFunction shallowClone();
 
   /**
    * {@inheritDoc}

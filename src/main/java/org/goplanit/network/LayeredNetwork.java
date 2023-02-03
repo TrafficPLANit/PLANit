@@ -73,8 +73,8 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
     super(other, deepCopy);
 
     // both are container wrappers, so requireing cloning also for shallow copy
-    this.modes = deepCopy ? other.modes.deepClone() : other.modes.clone();
-    this.transportLayers = (T) (deepCopy ? other.getTransportLayers().deepClone() : other.getTransportLayers().clone());
+    this.modes = deepCopy ? other.modes.deepClone() : other.modes.shallowClone();
+    this.transportLayers = (T) (deepCopy ? other.getTransportLayers().deepClone() : other.getTransportLayers().shallowClone());
   }
 
   /**
@@ -123,7 +123,7 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
    * {@inheritDoc
    */
   @Override
-  public abstract LayeredNetwork clone();
+  public abstract LayeredNetwork shallowClone();
 
   /**
    * {@inheritDoc}

@@ -44,7 +44,7 @@ public abstract class LogitChoiceModel extends PlanitComponent<LogitChoiceModel>
    * {@inheritDoc}
    */
   @Override
-  public abstract LogitChoiceModel clone();
+  public abstract LogitChoiceModel shallowClone();
 
   /**
    * {@inheritDoc}

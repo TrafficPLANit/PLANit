@@ -62,7 +62,7 @@ public class EventBasedLtm extends LtmAssignment {
    * {@inheritDoc}
    */
   @Override
-  public EventBasedLtm clone() {
+  public EventBasedLtm shallowClone() {
     return new EventBasedLtm(this, false);
   }
 

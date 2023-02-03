@@ -304,19 +304,19 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   protected TrafficAssignment(TrafficAssignment other, boolean deepCopy) {
     super(other, deepCopy);
 
-    this.demands        = deepCopy ? other.demands.deepClone()          : other.demands.clone();
-    this.physicalNetwork= deepCopy ? other.physicalNetwork.deepClone()  : other.physicalNetwork.clone();
-    this.zoning         = deepCopy ? other.zoning.deepClone()           : other.zoning.clone();
+    this.demands        = deepCopy ? other.demands.deepClone()          : other.demands.shallowClone();
+    this.physicalNetwork= deepCopy ? other.physicalNetwork.deepClone()  : other.physicalNetwork.shallowClone();
+    this.zoning         = deepCopy ? other.zoning.deepClone()           : other.zoning.shallowClone();
 
     this.trafficAssignmentComponents = new HashMap<>();
     other.trafficAssignmentComponents.entrySet().forEach(
             entry -> trafficAssignmentComponents.put(entry.getKey(), deepCopy ? entry.getValue().deepClone() : entry.getValue()));
 
     // primitive container wrapper, so clone equates to deep clone
-    this.initialLinkSegmentCostTimePeriodAgnostic = other.initialLinkSegmentCostTimePeriodAgnostic.clone();
+    this.initialLinkSegmentCostTimePeriodAgnostic = other.initialLinkSegmentCostTimePeriodAgnostic.shallowClone();
     // map of primitive container wrappers, so clone equates to deep clone
     this.initialLinkSegmentCostByTimePeriod = new HashMap<>();
-    other.initialLinkSegmentCostByTimePeriod.forEach( (p,e) -> initialLinkSegmentCostByTimePeriod.put(p, e.clone()));
+    other.initialLinkSegmentCostByTimePeriod.forEach( (p,e) -> initialLinkSegmentCostByTimePeriod.put(p, e.shallowClone()));
   }
 
   /**
@@ -588,7 +588,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * {@inheritDoc}
    */
   @Override
-  public abstract TrafficAssignment clone();
+  public abstract TrafficAssignment shallowClone();
 
   /**
    * {@inheritDoc}

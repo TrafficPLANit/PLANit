@@ -74,7 +74,7 @@ public class CentroidImpl extends DirectedVertexImpl<EdgeSegment> implements Cen
    * {@inheritDoc}
    */
   @Override
-  public CentroidImpl clone() {
+  public CentroidImpl shallowClone() {
     return new CentroidImpl(this, false);
   }
 

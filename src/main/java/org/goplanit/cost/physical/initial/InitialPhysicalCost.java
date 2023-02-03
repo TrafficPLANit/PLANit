@@ -107,7 +107,7 @@ public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysica
    * {@inheritDoc}
    */
   @Override
-  public abstract InitialPhysicalCost clone();
+  public abstract InitialPhysicalCost shallowClone();
 
   /**
    * {@inheritDoc}

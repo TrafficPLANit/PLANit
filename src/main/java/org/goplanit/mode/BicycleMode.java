@@ -62,7 +62,7 @@ public class BicycleMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public BicycleMode clone() {
+  public BicycleMode shallowClone() {
     return new BicycleMode(this, false);
   }
 

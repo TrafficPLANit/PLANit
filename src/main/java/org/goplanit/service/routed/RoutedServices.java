@@ -66,14 +66,14 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
     this.parentServiceNetwork = other.parentServiceNetwork;
 
     // container wrappers so require clone always
-    this.layers = deepCopy ? other.layers.deepClone() : other.layers.clone();
+    this.layers = deepCopy ? other.layers.deepClone() : other.layers.shallowClone();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public PlanitComponent<RoutedServices> clone() {
+  public PlanitComponent<RoutedServices> shallowClone() {
     return new RoutedServices(this, false);
   }
 

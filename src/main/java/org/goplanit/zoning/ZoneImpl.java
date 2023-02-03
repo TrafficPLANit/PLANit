@@ -179,7 +179,7 @@ public abstract class ZoneImpl extends ExternalIdAbleImpl implements Zone {
    * {@inheritDoc}
    */
   @Override
-  public abstract ZoneImpl clone();
+  public abstract ZoneImpl shallowClone();
 
   /**
    * {@inheritDoc}

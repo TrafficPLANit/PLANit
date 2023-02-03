@@ -236,7 +236,7 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
    * {@inheritDoc}
    */
   @Override
-  public TransferZoneImpl clone() {
+  public TransferZoneImpl shallowClone() {
     return new TransferZoneImpl(this, false);
   }
 

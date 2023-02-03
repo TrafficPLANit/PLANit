@@ -63,7 +63,7 @@ public class MacroscopicLinksImpl extends LinksImpl<MacroscopicLink> implements 
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinksImpl clone() {
+  public MacroscopicLinksImpl shallowClone() {
     return new MacroscopicLinksImpl(this, false);
   }
 

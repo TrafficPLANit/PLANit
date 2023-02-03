@@ -46,7 +46,7 @@ public abstract class PathChoice extends PlanitComponent<PathChoice> implements 
    * {@inheritDoc}
    */
   @Override
-  public abstract PathChoice clone();
+  public abstract PathChoice shallowClone();
 
   /**
    * {@inheritDoc}

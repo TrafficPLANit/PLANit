@@ -73,7 +73,7 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoidsImpl clone() {
+  public DirectedConnectoidsImpl shallowClone() {
     return new DirectedConnectoidsImpl(this, false);
   }
 

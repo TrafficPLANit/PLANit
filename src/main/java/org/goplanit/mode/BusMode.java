@@ -61,7 +61,7 @@ public class BusMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public BusMode clone() {
+  public BusMode shallowClone() {
     return new BusMode(this, false);
   }
 

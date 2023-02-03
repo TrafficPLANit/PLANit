@@ -63,7 +63,7 @@ public class MacroscopicLinkSegmentsImpl extends ManagedIdEntitiesImpl<Macroscop
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentsImpl clone() {
+  public MacroscopicLinkSegmentsImpl shallowClone() {
     return new MacroscopicLinkSegmentsImpl(this, false);
   }
 

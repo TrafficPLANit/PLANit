@@ -55,7 +55,7 @@ public abstract class RoutedTripImpl extends ExternalIdAbleImpl implements Route
    * {@inheritDoc}
    */
   @Override
-  public abstract RoutedTripImpl clone();
+  public abstract RoutedTripImpl shallowClone();
 
   /**
    * {@inheritDoc}

@@ -98,7 +98,7 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    * {@inheritDoc}
    */
   @Override
-  public ServiceNodeImpl clone() {
+  public ServiceNodeImpl shallowClone() {
     return new ServiceNodeImpl(this, false);
   }
 

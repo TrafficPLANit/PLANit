@@ -62,7 +62,7 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
     super(other, deepCopy);
 
     // container wrapper so requires clone also for shallow copy
-    this.linkSegmentTypes = deepCopy ? other.linkSegmentTypes.deepClone() : other.linkSegmentTypes.clone();
+    this.linkSegmentTypes = deepCopy ? other.linkSegmentTypes.deepClone() : other.linkSegmentTypes.shallowClone();
   }
 
   /**
@@ -114,7 +114,7 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicNetworkLayerImpl clone() {
+  public MacroscopicNetworkLayerImpl shallowClone() {
     return new MacroscopicNetworkLayerImpl(this, false);
   }
 

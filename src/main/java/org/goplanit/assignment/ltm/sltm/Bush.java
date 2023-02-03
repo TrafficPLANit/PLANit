@@ -35,7 +35,7 @@ public interface Bush extends IdAble {
   /**
    * {@inheritDoc}
    */
-  public abstract Bush clone();
+  public abstract Bush shallowClone();
 
   /**
    * {@inheritDoc}

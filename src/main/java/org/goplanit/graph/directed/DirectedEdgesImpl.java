@@ -61,7 +61,7 @@ public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implement
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdgesImpl clone() {
+  public DirectedEdgesImpl shallowClone() {
     return new DirectedEdgesImpl(this, false);
   }
 

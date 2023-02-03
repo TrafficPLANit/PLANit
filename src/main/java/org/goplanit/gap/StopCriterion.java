@@ -12,7 +12,7 @@ import org.goplanit.utils.reflection.ReflectionUtils;
  * @author markr
  *
  */
-public class StopCriterion implements Cloneable {
+public class StopCriterion {
 
   /**
    * Default Epsilon in case it is not set by user
@@ -101,7 +101,7 @@ public class StopCriterion implements Cloneable {
   /**
    * Shallow clone this instance
    */
-  public StopCriterion clone() {
+  public StopCriterion shallowClone() {
     return new StopCriterion(this, false);
   }
 

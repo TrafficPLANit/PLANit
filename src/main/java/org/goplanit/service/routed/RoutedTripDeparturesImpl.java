@@ -69,7 +69,7 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
    * {@inheritDoc}
    */
   @Override
-  public RoutedTripDeparturesImpl clone() {
+  public RoutedTripDeparturesImpl shallowClone() {
     return new RoutedTripDeparturesImpl(this, false);
   }
 

@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.goplanit.service.routed.modifier.RoutedServicesLayerModifierImpl;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -12,7 +13,7 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.service.routed.RoutedModeServices;
 import org.goplanit.utils.service.routed.RoutedServicesLayer;
-import org.goplanit.utils.service.routed.RoutedServicesLayerModifier;
+import org.goplanit.utils.service.routed.modifier.RoutedServicesLayerModifier;
 
 /**
  * Implementation of the RoutedServicesLayer interface
@@ -98,7 +99,7 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
     this.routedServicesByMode = new HashMap<>();
     other.routedServicesByMode.values().forEach(
             modeServices -> routedServicesByMode.put(
-                    modeServices.getMode(), deepCopy ? modeServices.deepClone() : modeServices.clone()));
+                    modeServices.getMode(), deepCopy ? modeServices.deepClone() : modeServices.shallowClone()));
   }
 
   /**
@@ -115,7 +116,7 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    * {@inheritDoc}
    */
   @Override
-  public RoutedServicesLayerImpl clone() {
+  public RoutedServicesLayerImpl shallowClone() {
     return new RoutedServicesLayerImpl(this, false);
   }
 

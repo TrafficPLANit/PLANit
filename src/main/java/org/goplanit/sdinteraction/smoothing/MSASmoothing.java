@@ -80,7 +80,7 @@ public class MSASmoothing extends Smoothing {
    * {@inheritDoc}
    */
   @Override
-  public MSASmoothing clone() {
+  public MSASmoothing shallowClone() {
     return new MSASmoothing(this, false);
   }
 

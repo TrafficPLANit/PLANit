@@ -83,7 +83,7 @@ public class TravellerType extends ExternalIdAbleImpl {
    * {@inheritDoc}
    */
   @Override
-  public TravellerType clone() {
+  public TravellerType shallowClone() {
     return new TravellerType(this);
   }
 
@@ -92,7 +92,7 @@ public class TravellerType extends ExternalIdAbleImpl {
    */
   @Override
   public TravellerType deepClone() {
-    return clone(); // no impact
+    return shallowClone(); // no impact
   }
 
   /**

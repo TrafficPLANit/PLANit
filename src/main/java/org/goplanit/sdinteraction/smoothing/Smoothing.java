@@ -68,7 +68,7 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
    * {@inheritDoc}
    */
   @Override
-  public abstract Smoothing clone();
+  public abstract Smoothing shallowClone();
 
   /**
    * {@inheritDoc}

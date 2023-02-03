@@ -62,7 +62,7 @@ public class LightRailMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public LightRailMode clone() {
+  public LightRailMode shallowClone() {
     return new LightRailMode(this, false);
   }
 

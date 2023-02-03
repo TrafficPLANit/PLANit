@@ -35,7 +35,7 @@ public abstract class ZonesImpl<Z extends Zone> extends ManagedIdEntitiesImpl<Z>
    * {@inheritDoc}
    */
   @Override
-  public abstract ZonesImpl<Z> clone();
+  public abstract ZonesImpl<Z> shallowClone();
 
   /**
    * {@inheritDoc}

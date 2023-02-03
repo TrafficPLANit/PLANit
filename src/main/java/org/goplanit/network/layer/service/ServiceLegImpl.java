@@ -164,7 +164,7 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
    * {@inheritDoc}
    */
   @Override
-  public ServiceLegImpl clone(){
+  public ServiceLegImpl shallowClone(){
     return new ServiceLegImpl(this, false);
   }
 

@@ -125,7 +125,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   @Override
   public void removeDanglingZones() {
     /* identify all dangling zones */
-    Set<Zone> danglingZones = new HashSet<Zone>(zoning.getOdZones().toCollection());
+    Set<Zone> danglingZones = new HashSet<>(zoning.getOdZones().toCollection());
     danglingZones.addAll(zoning.getTransferZones().toCollection());
     zoning.getOdConnectoids().forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));
     zoning.getTransferConnectoids().forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));

@@ -83,7 +83,7 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
    * {@inheritDoc}
    */
   @Override
-  public TransferZoneGroupsImpl clone() {
+  public TransferZoneGroupsImpl shallowClone() {
     return new TransferZoneGroupsImpl(this, false);
   }
 

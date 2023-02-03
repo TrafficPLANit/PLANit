@@ -134,7 +134,7 @@ public class ManagedDirectedPathImpl extends ExternalIdAbleImpl implements Manag
    * {@inheritDoc}
    */
   @Override
-  public ManagedDirectedPathImpl clone() {
+  public ManagedDirectedPathImpl shallowClone() {
     return new ManagedDirectedPathImpl(this, false);
   }
 

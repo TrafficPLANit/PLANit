@@ -52,7 +52,7 @@ public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E ext
    * {@inheritDoc}
    */
   @Override
-  public ConjugateDirectedGraphImpl<V, E, ES> clone() {
+  public ConjugateDirectedGraphImpl<V, E, ES> shallowClone() {
     return new ConjugateDirectedGraphImpl<>(this, false);
   }
 

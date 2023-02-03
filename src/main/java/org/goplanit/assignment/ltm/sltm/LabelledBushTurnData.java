@@ -21,7 +21,7 @@ import org.goplanit.utils.zoning.Centroid;
  * @author markr
  *
  */
-public class LabelledBushTurnData implements Cloneable {
+public class LabelledBushTurnData {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(LabelledBushTurnData.class.getCanonicalName());
@@ -668,10 +668,10 @@ public class LabelledBushTurnData implements Cloneable {
   }
 
   /**
-   * {@inheritDoc}
+   * shallow copy
+   * @return shallow copy
    */
-  @Override
-  public LabelledBushTurnData clone() {
+  public LabelledBushTurnData shallowClone() {
     return new LabelledBushTurnData(this, false);
   }
 

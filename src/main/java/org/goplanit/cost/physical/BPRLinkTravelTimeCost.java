@@ -413,7 +413,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * {@inheritDoc}
    */
   @Override
-  public BPRLinkTravelTimeCost clone() {
+  public BPRLinkTravelTimeCost shallowClone() {
     return new BPRLinkTravelTimeCost(this, false);
   }
 

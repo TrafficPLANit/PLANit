@@ -75,7 +75,7 @@ public class PredefinedModeImpl extends ModeImpl implements PredefinedMode {
    * {@inheritDoc}
    */
   @Override
-  public PredefinedModeImpl clone() {
+  public PredefinedModeImpl shallowClone() {
     return new PredefinedModeImpl(this, false);
   }
 

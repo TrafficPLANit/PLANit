@@ -63,7 +63,7 @@ public class ServiceNodesImpl extends ManagedIdEntitiesImpl<ServiceNode> impleme
    * {@inheritDoc}
    */
   @Override
-  public ServiceNodesImpl clone() {
+  public ServiceNodesImpl shallowClone() {
     return new ServiceNodesImpl(this, false);
   }
 

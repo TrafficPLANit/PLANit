@@ -171,7 +171,7 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoidImpl clone() {
+  public DirectedConnectoidImpl shallowClone() {
     return new DirectedConnectoidImpl(this, false);
   }
 

@@ -75,7 +75,7 @@ public class ConnectoidEdgesImpl extends ManagedIdEntitiesImpl<ConnectoidEdge> i
    * {@inheritDoc}
    */
   @Override
-  public ConnectoidEdgesImpl clone() {
+  public ConnectoidEdgesImpl shallowClone() {
     return new ConnectoidEdgesImpl(this, false);
   }
 

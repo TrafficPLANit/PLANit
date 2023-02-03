@@ -143,7 +143,7 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
    * {@inheritDoc}
    */
   @Override
-  public ServiceLegSegmentImpl clone() {
+  public ServiceLegSegmentImpl shallowClone() {
     return new ServiceLegSegmentImpl(this, false);
   }
 

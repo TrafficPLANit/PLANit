@@ -41,7 +41,7 @@ public class ConjugateConnectoidSegmentImpl extends EdgeSegmentImpl<ConjugateCon
    * {@inheritDoc}
    */
   @Override
-  public ConjugateConnectoidSegmentImpl clone() {
+  public ConjugateConnectoidSegmentImpl shallowClone() {
     return new ConjugateConnectoidSegmentImpl(this, false);
   }
 

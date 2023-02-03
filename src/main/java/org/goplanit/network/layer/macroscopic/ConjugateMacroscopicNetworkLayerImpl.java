@@ -183,7 +183,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
    * {@inheritDoc}
    */
   @Override
-  public ConjugateMacroscopicNetworkLayerImpl clone() {
+  public ConjugateMacroscopicNetworkLayerImpl shallowClone() {
     return new ConjugateMacroscopicNetworkLayerImpl(this, false);
   }
 

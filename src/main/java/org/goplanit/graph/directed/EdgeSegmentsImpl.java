@@ -78,7 +78,7 @@ public class EdgeSegmentsImpl extends GraphEntitiesImpl<EdgeSegment> implements 
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegmentsImpl clone() {
+  public EdgeSegmentsImpl shallowClone() {
     return new EdgeSegmentsImpl(this, false);
   }
 

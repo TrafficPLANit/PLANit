@@ -113,7 +113,7 @@ public class TimePeriodImpl extends ExternalIdAbleImpl implements TimePeriod {
    * {@inheritDoc}
    */
   @Override
-  public TimePeriodImpl clone() {
+  public TimePeriodImpl shallowClone() {
     return new TimePeriodImpl(this, false);
   }
 

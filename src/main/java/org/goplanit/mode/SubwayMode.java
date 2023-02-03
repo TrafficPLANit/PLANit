@@ -61,7 +61,7 @@ public class SubwayMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public SubwayMode clone() {
+  public SubwayMode shallowClone() {
     return new SubwayMode(this, false);
   }
 

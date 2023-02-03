@@ -98,7 +98,7 @@ public class DestinationBush extends RootedLabelledBush {
    * {@inheritDoc}
    */
   @Override
-  public DestinationBush clone() {
+  public DestinationBush shallowClone() {
     return new DestinationBush(this, false);
   }
 

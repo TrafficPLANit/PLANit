@@ -75,9 +75,9 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    */
   public Demands(Demands other, boolean deepCopy) {
     super(other, deepCopy);
-    this.travelerTypes  = deepCopy ? other.travelerTypes.deepClone()  : other.travelerTypes.clone(); // container class so clone for copy
-    this.userClasses    = deepCopy ? other.userClasses.deepClone()    : other.userClasses. clone();  // container class so clone for copy
-    this.timePeriods    = deepCopy ? other.timePeriods.deepClone()    : other.timePeriods. clone();  // container class so clone for copy
+    this.travelerTypes  = deepCopy ? other.travelerTypes.deepClone()  : other.travelerTypes.shallowClone(); // container class so clone for copy
+    this.userClasses    = deepCopy ? other.userClasses.deepClone()    : other.userClasses.shallowClone();  // container class so clone for copy
+    this.timePeriods    = deepCopy ? other.timePeriods.deepClone()    : other.timePeriods.shallowClone();  // container class so clone for copy
 
     this.odDemandsByTimePeriodAndMode = new TreeMap<>();
     if(deepCopy) {
@@ -143,7 +143,7 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    * {@inheritDoc}
    */
   @Override
-  public Demands clone() {
+  public Demands shallowClone() {
     return new Demands(this, false);
   }
 

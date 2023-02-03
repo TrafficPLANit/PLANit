@@ -41,7 +41,7 @@ public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServic
    * {@inheritDoc}
    */
   @Override
-  public RoutedServicesLayersImpl clone() {
+  public RoutedServicesLayersImpl shallowClone() {
     return new RoutedServicesLayersImpl(this, false);
   }
 

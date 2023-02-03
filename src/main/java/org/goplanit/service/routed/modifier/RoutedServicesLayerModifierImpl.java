@@ -1,10 +1,27 @@
-package org.goplanit.service.routed;
+package org.goplanit.service.routed.modifier;
 
+import org.goplanit.service.routed.RoutedServicesLayerImpl;
+import org.goplanit.service.routed.modifier.event.ModifiedRoutedServicesIdsEvent;
+import org.goplanit.service.routed.modifier.event.ModifiedRoutedTripIdsEvent;
+import org.goplanit.service.routed.modifier.event.handler.SyncDeparturesXmlIdToIdHandler;
+import org.goplanit.service.routed.modifier.event.handler.SyncRoutedServicesXmlIdToIdHandler;
+import org.goplanit.service.routed.modifier.event.handler.SyncRoutedTripsXmlIdToIdHandler;
 import org.goplanit.utils.collections.IntegerListUtils;
 import org.goplanit.utils.collections.ListUtils;
+import org.goplanit.utils.event.Event;
+import org.goplanit.utils.event.EventListener;
+import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.service.routed.*;
+import org.goplanit.utils.service.routed.modifier.RoutedServicesLayerModifier;
+import org.goplanit.utils.service.routed.modifier.RoutedServicesModificationEvent;
+import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierEventType;
+import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
+import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
+import org.goplanit.utils.zoning.modifier.event.ZoningModifierListener;
+import org.goplanit.zoning.modifier.event.ModifiedTripScheduleDepartureIdsEvent;
+import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -12,7 +29,7 @@ import java.util.logging.Logger;
 /**
  * Implementation of {@link RoutedServicesLayerModifier}
  */
-public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModifier {
+public class RoutedServicesLayerModifierImpl extends EventProducerImpl implements RoutedServicesLayerModifier {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(RoutedServicesLayerModifierImpl.class.getCanonicalName());
@@ -352,11 +369,19 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void fireEvent(EventListener eventListener, Event event) {
+    ((RoutedServicesModifierListener) eventListener).onRoutedServicesModifierEvent((RoutedServicesModificationEvent) event);
+  }
+
+  /**
    * Constructor
    *
    * @param routedServicesLayer this modifier acts upon
    */
-  protected RoutedServicesLayerModifierImpl(final RoutedServicesLayerImpl routedServicesLayer) {
+  public RoutedServicesLayerModifierImpl(final RoutedServicesLayerImpl routedServicesLayer) {
     this.routedServicesLayer = routedServicesLayer;
   }
 
@@ -364,24 +389,35 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
   /**
    * {@inheritDoc}
    *
-   *  todo: add support for events upon making changes to routed services as with other modifier implementations
+   *  Note that this implementation will automatically overwrite all pre-existing XML ids with the internal ids of all managed id containers within the routed services layer to ensure
+   *  uniqueness on both levels of ids
    */
   public void truncateToServiceNetwork(){
-    LOGGER.info(String.format("%s Truncating routed services to remaining service network",LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId())));
+    LOGGER.info(String.format("%sTruncating routed services to remaining service network",LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId())));
     /* identify missing service network entities per routed service mode and truncate to become consistent again */
     for( var servicesPerMode : routedServicesLayer){
       truncateToServiceNetworkByMode(servicesPerMode);
     }
 
+    /* make sure all XML ids remain unique as well by registering syncing XML ids to internal ids */
+    var listeners =
+        List.of(new SyncDeparturesXmlIdToIdHandler(), new SyncRoutedServicesXmlIdToIdHandler(), new SyncRoutedTripsXmlIdToIdHandler());
+    listeners.forEach(l -> addListener(l));
     /* after truncation routed services all internal ids need to be recreated to ensure contiguous ids throughout the routed services */
     recreateManagedEntitiesIds();
+    listeners.forEach(l -> removeListener(l));
   }
+
 
   /**
    * {@inheritDoc}
+   *
+   * All managed ids of the layer are recreated via {@link #recreateRoutedServicesIds()}, {@link #recreateRoutedTripsIds()}, and {@link #recreateRoutedTripScheduleDepartureIds()}
+   * including their triggered events which will trigger callbacks to their event listeners (if any are registered)
    */
   @Override
   public void recreateManagedEntitiesIds() {
+    LOGGER.info(String.format("%sRecreating all ids managed by routed service layer",LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId())));
     // do for routed modes container
     recreateRoutedServicesIds();
     // do for all routed trips (scheduled and frequency based as they all use the same id token)
@@ -392,6 +428,8 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
 
   /**
    * {@inheritDoc}
+   *
+   * Triggers a ModifiedTripScheduleDepartureIdsEvent upon completion
    */
   @Override
   public void recreateRoutedTripScheduleDepartureIds() {
@@ -408,11 +446,13 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
       }
     }
 
-    // todo support event for modified ids as we do in zoning modifier for example
+    fireEvent(new ModifiedTripScheduleDepartureIdsEvent(this, routedServicesLayer));
   }
 
   /**
    * {@inheritDoc}
+   *
+   * Triggers a ModifiedRoutedTripIdsEvent upon completion
    */
   @Override
   public void recreateRoutedTripsIds() {
@@ -431,11 +471,13 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
       }
     }
 
-    // todo support event for modified ids as we do in zoning modifier for example
+    fireEvent(new ModifiedRoutedTripIdsEvent(this, routedServicesLayer));
   }
 
   /**
    * {@inheritDoc}
+   *
+   * Triggers a ModifiedRoutedServicesIdsEvent upon completion
    */
   @Override
   public void recreateRoutedServicesIds() {
@@ -449,7 +491,31 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
       doIdReset = false;
     }
 
-    // todo support event for modified ids as we do in zoning modifier for example
+    fireEvent(new ModifiedRoutedServicesIdsEvent(this, routedServicesLayer));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addListener(RoutedServicesModifierListener listener, RoutedServicesModifierEventType eventType) {
+    super.addListener(listener, eventType);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeListener(RoutedServicesModifierListener listener, RoutedServicesModifierEventType eventType) {
+    super.removeListener(listener, eventType);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeListener(RoutedServicesModifierListener listener) {
+    super.removeListener(listener);
   }
 
 }

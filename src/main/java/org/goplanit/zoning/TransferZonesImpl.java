@@ -72,7 +72,7 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Transf
    * {@inheritDoc}
    */
   @Override
-  public TransferZonesImpl clone() {
+  public TransferZonesImpl shallowClone() {
     return new TransferZonesImpl(this, false);
   }
 

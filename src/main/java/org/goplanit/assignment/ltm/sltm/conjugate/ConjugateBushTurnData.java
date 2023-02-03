@@ -18,7 +18,7 @@ import org.goplanit.utils.math.Precision;
  * @author markr
  *
  */
-public class ConjugateBushTurnData implements Cloneable {
+public class ConjugateBushTurnData{
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateBushTurnData.class.getCanonicalName());
@@ -236,10 +236,11 @@ public class ConjugateBushTurnData implements Cloneable {
   }
 
   /**
-   * {@inheritDoc}
+   * Shallow copy
+   *
+   * @return shallow copy
    */
-  @Override
-  public ConjugateBushTurnData clone() {
+  public ConjugateBushTurnData shallowClone() {
     return new ConjugateBushTurnData(this);
   }
 

@@ -87,7 +87,7 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
    * {@inheritDoc}
    */
   @Override
-  public abstract StaticTrafficAssignment clone();
+  public abstract StaticTrafficAssignment shallowClone();
 
   /**
    * {@inheritDoc}

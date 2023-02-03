@@ -70,7 +70,7 @@ public class ConjugateVertexImpl extends VertexImpl<ConjugateEdge> implements Co
    * {@inheritDoc}
    */
   @Override
-  public ConjugateVertexImpl clone() {
+  public ConjugateVertexImpl shallowClone() {
     return new ConjugateVertexImpl(this, false);
   }
 

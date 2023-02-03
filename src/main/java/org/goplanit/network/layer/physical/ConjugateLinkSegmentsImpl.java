@@ -64,7 +64,7 @@ public class ConjugateLinkSegmentsImpl extends ManagedIdEntitiesImpl<ConjugateLi
    * {@inheritDoc}
    */
   @Override
-  public ConjugateLinkSegmentsImpl clone() {
+  public ConjugateLinkSegmentsImpl shallowClone() {
     return new ConjugateLinkSegmentsImpl(this, false);
   }
 

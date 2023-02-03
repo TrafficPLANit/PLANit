@@ -602,7 +602,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * {@inheritDoc}
    */
   @Override
-  public TraditionalStaticAssignment clone() {
+  public TraditionalStaticAssignment shallowClone() {
     return new TraditionalStaticAssignment(this);
   }
 

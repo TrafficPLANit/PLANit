@@ -57,14 +57,14 @@ public interface OdDemands extends OdData<Double> {
    * {@inheritDoc}
    */
   @Override
-  public abstract OdDemands clone();
+  public abstract OdDemands shallowClone();
 
   /**
    * {@inheritDoc}
    */
   @Override
   public default OdDemands deepClone(){
-    return clone();
+    return shallowClone();
   }
 
 }

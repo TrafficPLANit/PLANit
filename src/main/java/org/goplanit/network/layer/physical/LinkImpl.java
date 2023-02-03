@@ -126,7 +126,7 @@ public class LinkImpl<N extends DirectedVertex, LS extends EdgeSegment> extends 
    * {@inheritDoc}
    */
   @Override
-  public LinkImpl<N, LS> clone() {
+  public LinkImpl<N, LS> shallowClone() {
     return new LinkImpl<>(this, false);
   }
 

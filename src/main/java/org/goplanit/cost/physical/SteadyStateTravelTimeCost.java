@@ -215,7 +215,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * {@inheritDoc}
    */
   @Override
-  public SteadyStateTravelTimeCost clone() {
+  public SteadyStateTravelTimeCost shallowClone() {
     return new SteadyStateTravelTimeCost(this, false);
   }
 

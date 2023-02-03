@@ -109,7 +109,7 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl<ConnectoidEdge> imple
    * {@inheritDoc}
    */
   @Override
-  public ConnectoidSegmentImpl clone() {
+  public ConnectoidSegmentImpl shallowClone() {
     return new ConnectoidSegmentImpl(this, false);
   }
 

@@ -61,7 +61,7 @@ public class HeavyGoodsMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public HeavyGoodsMode clone() {
+  public HeavyGoodsMode shallowClone() {
     return new HeavyGoodsMode(this, false);
   }
 

@@ -37,16 +37,6 @@ public class CentroidFactoryImpl extends ManagedIdEntityFactoryImpl<Centroid> im
   @Override
   public CentroidImpl create(final Zone parentZone) {
     return new CentroidImpl(getIdGroupingToken(), parentZone);
-  }  
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Centroid createUniqueDeepCopyOf(final ManagedId entityToCopy) {
-    Centroid copy = (Centroid) entityToCopy.clone();
-    copy.recreateManagedIds(getIdGroupingToken());
-    return copy;
   }
 
 }

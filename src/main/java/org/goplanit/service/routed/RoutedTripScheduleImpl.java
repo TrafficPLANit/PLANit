@@ -48,7 +48,7 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
     super(other, deepCopy);
 
     // container wrapper requires clone always
-    this.departures = deepCopy ? other.departures.deepClone() : other.departures.clone();
+    this.departures = deepCopy ? other.departures.deepClone() : other.departures.shallowClone();
 
     this.relativeLegTimings = new ArrayList<>(other.getRelativeLegTimingsSize());
     other.relativeLegTimings.forEach(lt ->
@@ -79,7 +79,7 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
    * {@inheritDoc}
    */
   @Override
-  public RoutedTripScheduleImpl clone() {
+  public RoutedTripScheduleImpl shallowClone() {
     return new RoutedTripScheduleImpl(this, false);
   }
 

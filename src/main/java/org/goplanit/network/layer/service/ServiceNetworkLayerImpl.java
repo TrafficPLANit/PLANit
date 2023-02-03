@@ -141,7 +141,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    * {@inheritDoc}
    */
   @Override
-  public ServiceNetworkLayerImpl clone() {
+  public ServiceNetworkLayerImpl shallowClone() {
     return new ServiceNetworkLayerImpl(this, false);
   }
 

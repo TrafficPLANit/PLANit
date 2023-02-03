@@ -107,7 +107,7 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    * {@inheritDoc}
    */
   @Override
-  public ConjugateLinkImpl clone() {
+  public ConjugateLinkImpl shallowClone() {
     return new ConjugateLinkImpl(this, false);
   }
 

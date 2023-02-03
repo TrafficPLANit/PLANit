@@ -155,7 +155,7 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
    * {@inheritDoc}
    */
   @Override
-  public TransferZoneGroupImpl clone() {
+  public TransferZoneGroupImpl shallowClone() {
     return new TransferZoneGroupImpl(this, false);
   }
 

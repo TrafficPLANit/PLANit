@@ -61,7 +61,7 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
    * {@inheritDoc}
    */
   @Override
-  public abstract ConnectoidsImpl<T> clone();
+  public abstract ConnectoidsImpl<T> shallowClone();
 
   /**
    * {@inheritDoc}

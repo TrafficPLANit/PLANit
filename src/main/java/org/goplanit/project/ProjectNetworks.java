@@ -31,7 +31,7 @@ public class ProjectNetworks extends LongMapWrapperImpl<LayeredNetwork<?, ?>> {
    * {@inheritDoc}
    */
   @Override
-  public ProjectNetworks clone() {
+  public ProjectNetworks shallowClone() {
     return new ProjectNetworks(this);
   }
 

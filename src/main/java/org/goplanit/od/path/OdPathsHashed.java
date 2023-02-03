@@ -67,7 +67,7 @@ public class OdPathsHashed extends OdHashedImpl<ManagedDirectedPath> implements 
    * {@inheritDoc}
    */
   @Override
-  public OdPathsHashed clone() {
+  public OdPathsHashed shallowClone() {
     return new OdPathsHashed(this, false);
   }
 

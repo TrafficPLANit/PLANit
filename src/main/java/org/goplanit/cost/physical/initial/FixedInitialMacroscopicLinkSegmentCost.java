@@ -50,7 +50,7 @@ public class FixedInitialMacroscopicLinkSegmentCost extends InitialMacroscopicLi
    * {@inheritDoc}
    */
   @Override
-  public FixedInitialMacroscopicLinkSegmentCost clone() {
+  public FixedInitialMacroscopicLinkSegmentCost shallowClone() {
     return new FixedInitialMacroscopicLinkSegmentCost(this, false);
   }
 

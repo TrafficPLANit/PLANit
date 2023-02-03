@@ -87,7 +87,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * {@inheritDoc}
    */
   @Override
-  public abstract LtmAssignment clone();
+  public abstract LtmAssignment shallowClone();
 
   /**
    * {@inheritDoc}

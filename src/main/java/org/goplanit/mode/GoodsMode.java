@@ -61,7 +61,7 @@ public class GoodsMode extends PredefinedModeImpl {
    * {@inheritDoc}
    */
   @Override
-  public GoodsMode clone() {
+  public GoodsMode shallowClone() {
     return new GoodsMode(this, false);
   }
 

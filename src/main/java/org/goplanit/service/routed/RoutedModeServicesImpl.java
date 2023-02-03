@@ -49,7 +49,7 @@ public class RoutedModeServicesImpl extends ManagedIdEntitiesImpl<RoutedService>
    * {@inheritDoc}
    */
   @Override
-  public RoutedModeServicesImpl clone() {
+  public RoutedModeServicesImpl shallowClone() {
     return new RoutedModeServicesImpl(this, false);
   }
 

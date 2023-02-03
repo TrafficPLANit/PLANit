@@ -102,7 +102,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     this.destination = bush.destination;
 
     // container wrapper with primitives, so always clone
-    this.bushData = bush.bushData.clone();
+    this.bushData = bush.bushData.shallowClone();
   }
 
   /**
@@ -141,7 +141,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * {@inheritDoc}
    */
   @Override
-  public ConjugateDestinationBush clone() {
+  public ConjugateDestinationBush shallowClone() {
     return new ConjugateDestinationBush(this, false);
   }
 

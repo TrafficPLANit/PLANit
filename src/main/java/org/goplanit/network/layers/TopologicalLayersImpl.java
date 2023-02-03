@@ -35,7 +35,7 @@ public abstract class TopologicalLayersImpl<T extends TopologicalLayer> extends 
    * {@inheritDoc}
    */
   @Override
-  public abstract TopologicalLayersImpl<T> clone();
+  public abstract TopologicalLayersImpl<T> shallowClone();
 
   /**
    * {@inheritDoc}

@@ -355,7 +355,7 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    * {@inheritDoc}
    */
   @Override
-  public UntypedACyclicSubGraphImpl<V, E> clone() {
+  public UntypedACyclicSubGraphImpl<V, E> shallowClone() {
     return new UntypedACyclicSubGraphImpl<>(this, false);
   }
 

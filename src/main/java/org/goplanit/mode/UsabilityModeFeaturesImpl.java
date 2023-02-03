@@ -61,7 +61,7 @@ public class UsabilityModeFeaturesImpl implements UsabilityModeFeatures {
    * {@inheritDoc}
    */
   @Override
-  public UsabilityModeFeatures clone() {
+  public UsabilityModeFeatures shallowClone() {
     return new UsabilityModeFeaturesImpl(this);
   }
 
@@ -70,7 +70,7 @@ public class UsabilityModeFeaturesImpl implements UsabilityModeFeatures {
    */
   @Override
   public UsabilityModeFeatures deepClone() {
-    return clone(); // nothing to deep copy yet
+    return shallowClone(); // nothing to deep copy yet
   }
 
 }

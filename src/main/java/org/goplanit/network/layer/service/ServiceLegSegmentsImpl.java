@@ -62,7 +62,7 @@ public class ServiceLegSegmentsImpl extends ManagedIdEntitiesImpl<ServiceLegSegm
    * {@inheritDoc}
    */
   @Override
-  public ServiceLegSegmentsImpl clone() {
+  public ServiceLegSegmentsImpl shallowClone() {
     return new ServiceLegSegmentsImpl(this, false);
   }
 

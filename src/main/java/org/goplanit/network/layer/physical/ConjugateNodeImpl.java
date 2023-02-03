@@ -79,7 +79,7 @@ public class ConjugateNodeImpl extends DirectedVertexImpl<ConjugateLinkSegment> 
    * {@inheritDoc}
    */
   @Override
-  public ConjugateNodeImpl clone() {
+  public ConjugateNodeImpl shallowClone() {
     return new ConjugateNodeImpl(this, false);
   }
 

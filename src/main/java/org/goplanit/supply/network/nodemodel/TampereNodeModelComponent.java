@@ -39,7 +39,7 @@ public class TampereNodeModelComponent extends NodeModelComponent {
    * {@inheritDoc}
    */
   @Override
-  public TampereNodeModelComponent clone() {
+  public TampereNodeModelComponent shallowClone() {
     return new TampereNodeModelComponent(this, false);
   }
 

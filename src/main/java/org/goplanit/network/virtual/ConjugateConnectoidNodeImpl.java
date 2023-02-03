@@ -78,7 +78,7 @@ public class ConjugateConnectoidNodeImpl extends DirectedVertexImpl<ConjugateEdg
    * {@inheritDoc}
    */
   @Override
-  public ConjugateConnectoidNodeImpl clone() {
+  public ConjugateConnectoidNodeImpl shallowClone() {
     return new ConjugateConnectoidNodeImpl(this, false);
   }
 

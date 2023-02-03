@@ -373,7 +373,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * {@inheritDoc}
    */
   @Override
-  public abstract ConnectoidImpl clone();
+  public abstract ConnectoidImpl shallowClone();
 
   /**
    * {@inheritDoc}

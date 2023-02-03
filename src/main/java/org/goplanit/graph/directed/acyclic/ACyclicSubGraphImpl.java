@@ -50,7 +50,7 @@ public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVert
    * {@inheritDoc}
    */
   @Override
-  public ACyclicSubGraphImpl clone() {
+  public ACyclicSubGraphImpl shallowClone() {
     return new ACyclicSubGraphImpl(this, false);
   }
 

@@ -79,7 +79,7 @@ public class ServiceNetwork extends TopologicalLayerNetwork<ServiceNetworkLayer,
    * {@inheritDoc}
    */
   @Override
-  public ServiceNetwork clone() {
+  public ServiceNetwork shallowClone() {
     return new ServiceNetwork(this, false);
   }
 

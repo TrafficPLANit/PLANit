@@ -83,7 +83,7 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
         double modeSpeedLimit = linkSegment.getModelledSpeedLimitKmH(mode);
         LOGGER.info(String.format("Overwriting fundamental diagram used on link segment %s, restricting free flow speed to %.2f", linkSegment.getXmlId(), modeSpeedLimit));
         NewellFundamentalDiagram oldFd = (NewellFundamentalDiagram) get(linkSegment);
-        NewellFundamentalDiagram newFd = oldFd.clone();
+        NewellFundamentalDiagram newFd = oldFd.shallowClone();
         newFd.setMaximumSpeedKmHour(modeSpeedLimit);
 
         /* register */
@@ -115,7 +115,7 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
    * {@inheritDoc}
    */
   @Override
-  public NewellFundamentalDiagramComponent clone() {
+  public NewellFundamentalDiagramComponent shallowClone() {
     return new NewellFundamentalDiagramComponent(this, false);
   }
 

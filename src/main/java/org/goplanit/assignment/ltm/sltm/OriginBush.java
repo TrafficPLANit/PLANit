@@ -106,7 +106,7 @@ public class OriginBush extends RootedLabelledBush {
    * {@inheritDoc}
    */
   @Override
-  public OriginBush clone() {
+  public OriginBush shallowClone() {
     return new OriginBush(this, false);
   }
 

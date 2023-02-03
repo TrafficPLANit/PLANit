@@ -87,7 +87,7 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
    * {@inheritDoc}
    */
   @Override
-  public abstract GraphEntityImpl clone();
+  public abstract GraphEntityImpl shallowClone();
 
   /**
    * {@inheritDoc}

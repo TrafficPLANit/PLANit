@@ -75,7 +75,7 @@ public abstract class TransportLayersImpl<T extends NetworkLayer> extends Manage
    * {@inheritDoc}
    */
   @Override
-  public abstract TransportLayersImpl<T> clone();
+  public abstract TransportLayersImpl<T> shallowClone();
 
   /**
    * {@inheritDoc}

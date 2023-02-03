@@ -151,7 +151,7 @@ public class ModeImpl extends ExternalIdAbleImpl implements Mode {
    * {@inheritDoc}
    */
   @Override
-  public ModeImpl clone() {
+  public ModeImpl shallowClone() {
     return new ModeImpl(this, false);
   }
 

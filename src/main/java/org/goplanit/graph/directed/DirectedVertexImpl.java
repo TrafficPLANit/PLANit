@@ -59,8 +59,7 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
     /**
      * shallow copy
      */
-    @Override
-    public EdgeSegmentIterable<ESI> clone(){ return new EdgeSegmentIterable<>(this);}
+    public EdgeSegmentIterable<ESI> shallowClone(){ return new EdgeSegmentIterable<>(this);}
 
   }
 
@@ -209,8 +208,8 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
     super(directedVertexImpl, deepCopy);
 
     // container of non-owned references so always clone required
-    this.entryEdgeSegments = directedVertexImpl.entryEdgeSegments.clone();
-    this.exitEdgeSegments = directedVertexImpl.exitEdgeSegments.clone();
+    this.entryEdgeSegments = directedVertexImpl.entryEdgeSegments.shallowClone();
+    this.exitEdgeSegments = directedVertexImpl.exitEdgeSegments.shallowClone();
   }
 
   // Public
@@ -244,7 +243,7 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
    * {@inheritDoc}
    */
   @Override
-  public DirectedVertexImpl<E> clone() {
+  public DirectedVertexImpl<E> shallowClone() {
     return new DirectedVertexImpl<>(this, false);
   }
 

@@ -104,7 +104,7 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    * {@inheritDoc}
    */
   @Override
-  public OdPathSets clone() {
+  public OdPathSets shallowClone() {
     return new OdPathSets(this, false);
   }
 

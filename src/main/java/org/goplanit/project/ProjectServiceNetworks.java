@@ -31,7 +31,7 @@ public class ProjectServiceNetworks extends LongMapWrapperImpl<ServiceNetwork> {
    * {@inheritDoc}
    */
   @Override
-  public ProjectServiceNetworks clone() {
+  public ProjectServiceNetworks shallowClone() {
     return new ProjectServiceNetworks(this);
   }
 
