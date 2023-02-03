@@ -1,6 +1,6 @@
 package org.goplanit.converter.intermodal;
 
-import org.goplanit.converter.MultiConverterReader;
+import org.goplanit.converter.PairConverterReader;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
@@ -14,7 +14,7 @@ import org.goplanit.zoning.Zoning;
  * @author markr
  *
  */
-public interface IntermodalReader extends MultiConverterReader<MacroscopicNetwork, Zoning> {
+public interface IntermodalReader<T extends ServiceNetwork,U extends RoutedServices> extends PairConverterReader<MacroscopicNetwork, Zoning> {
 
   /**
    * {@inheritDoc}
@@ -30,6 +30,6 @@ public interface IntermodalReader extends MultiConverterReader<MacroscopicNetwor
    */
   public abstract boolean supportServiceConversion();
 
-  public abstract <T extends ServiceNetwork,U extends RoutedServices> Quadruple<MacroscopicNetwork, Zoning, T, U> readWithServices();
+  public abstract Quadruple<MacroscopicNetwork, Zoning, T, U> readWithServices();
 
 }

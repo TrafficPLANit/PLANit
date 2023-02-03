@@ -25,7 +25,7 @@ public abstract class MultiConverter<T, U> extends ConverterBase {
    * @param reader to use for parsing
    * @param writer to use for persisting
    */
-  protected MultiConverter(MultiConverterReader<T, U> reader, MultiConverterWriter<T, U> writer) {
+  protected MultiConverter(PairConverterReader<T, U> reader, MultiConverterWriter<T, U> writer) {
     super(reader, writer);
   }
 
@@ -37,7 +37,7 @@ public abstract class MultiConverter<T, U> extends ConverterBase {
   @SuppressWarnings("unchecked")
   public void convert() throws PlanItException {
 
-    MultiConverterReader<T, U> reader = (MultiConverterReader<T, U>) getReader();
+    PairConverterReader<T, U> reader = (PairConverterReader<T, U>) getReader();
     LOGGER.info(String.format("****************** [START] CONVERTER: READ %s [START] ********************", reader.getTypeDescription()));
     Pair<T, U> multiResult = reader.read();
     reader.reset();

@@ -1,7 +1,7 @@
 package org.goplanit.converter.intermodal;
 
 import org.goplanit.converter.MultiConverter;
-import org.goplanit.converter.MultiConverterReader;
+import org.goplanit.converter.PairConverterReader;
 import org.goplanit.converter.MultiConverterWriter;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.zoning.Zoning;
@@ -20,7 +20,7 @@ public class IntermodalConverter extends MultiConverter<MacroscopicNetwork, Zoni
    * @param reader for intermodal networks
    * @param writer for intermodal networks
    */
-  protected IntermodalConverter(MultiConverterReader<MacroscopicNetwork, Zoning> reader, MultiConverterWriter<MacroscopicNetwork, Zoning> writer) {
+  protected IntermodalConverter(PairConverterReader<MacroscopicNetwork, Zoning> reader, MultiConverterWriter<MacroscopicNetwork, Zoning> writer) {
     super(reader, writer);
   }
 

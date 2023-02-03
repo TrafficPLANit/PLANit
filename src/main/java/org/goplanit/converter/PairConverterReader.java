@@ -12,7 +12,7 @@ import org.goplanit.utils.misc.Pair;
  * @author markr
  *
  */
-public interface MultiConverterReader<T, U> extends ConverterEntity {
+public interface PairConverterReader<T, U> extends ConverterEntity {
   
   /** any settings to configure the reader can be configured by collecting these settings
    * @return the settings to configrue the reader
