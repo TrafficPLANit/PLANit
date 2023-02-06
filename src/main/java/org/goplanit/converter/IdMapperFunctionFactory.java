@@ -6,12 +6,15 @@ import java.util.logging.Logger;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.service.ServiceLeg;
+import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.TransferZoneGroup;
@@ -36,25 +39,18 @@ public class IdMapperFunctionFactory {
    * @param clazz    to use
    * @param idMapper the type of mapping function to create
    * @return function that generates node id's for MATSIM node output
-   * @throws PlanItException thrown if error
-   * 
+   *
    */
-  protected static <T extends ExternalIdAble> Function<T, String> createIdMappingFunction(Class<T> clazz, final IdMapperType idMapper) throws PlanItException {
+  protected static <T extends ExternalIdAble> Function<T, String> createIdMappingFunction(Class<T> clazz, final IdMapperType idMapper) {
     switch (idMapper) {
     case ID:
-      return (instance) -> {
-        return Long.toString(instance.getId());
-      };
+      return (instance) -> Long.toString(instance.getId());
     case EXTERNAL_ID:
-      return (instance) -> {
-        return instance.getExternalId();
-      };
+      return (instance) -> instance.getExternalId();
     case XML:
-      return (instance) -> {
-        return instance.getXmlId();
-      };
+      return (instance) -> instance.getXmlId();
     default:
-      throw new PlanItException(String.format("unknown id mapping type found for %s %s", clazz.getName(), idMapper.toString()));
+      throw new PlanItRunTimeException(String.format("unknown id mapping type found for %s %s", clazz.getName(), idMapper));
     }
   }
 
@@ -63,9 +59,8 @@ public class IdMapperFunctionFactory {
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates node id's for MATSIM node output
-   * @throws PlanItException thrown if error
    */
-  public static Function<Vertex, String> createVertexIdMappingFunction(final IdMapperType idMapper) throws PlanItException {
+  public static Function<Vertex, String> createVertexIdMappingFunction(final IdMapperType idMapper) {
     return createIdMappingFunction(Vertex.class, idMapper);
   }
 
@@ -74,9 +69,8 @@ public class IdMapperFunctionFactory {
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates mapped link id's for persistence
-   * @throws PlanItException thrown if error
    */
-  public static Function<Link, String> createLinkIdMappingFunction(final IdMapperType idMapper) throws PlanItException {
+  public static Function<Link, String> createLinkIdMappingFunction(final IdMapperType idMapper) {
     return createIdMappingFunction(Link.class, idMapper);
   }
 
@@ -85,9 +79,8 @@ public class IdMapperFunctionFactory {
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates mapped link segment type id's for persistence
-   * @throws PlanItException thrown if error
    */
-  public static Function<MacroscopicLinkSegmentType, String> createLinkSegmentTypeIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+  public static Function<MacroscopicLinkSegmentType, String> createLinkSegmentTypeIdMappingFunction(IdMapperType idMapper) {
     return createIdMappingFunction(MacroscopicLinkSegmentType.class, idMapper);
   }
 
@@ -96,9 +89,8 @@ public class IdMapperFunctionFactory {
    * 
    * @param idMapper that generates mapped link segment id's for persistence
    * @return created function
-   * @throws PlanItException thrown if error
    */
-  public static Function<MacroscopicLinkSegment, String> createLinkSegmentIdMappingFunction(final IdMapperType idMapper) throws PlanItException {
+  public static Function<MacroscopicLinkSegment, String> createLinkSegmentIdMappingFunction(final IdMapperType idMapper) {
     switch (idMapper) {
     case EXTERNAL_ID:
       return (macroscopicLinkSegment) -> {
@@ -122,9 +114,8 @@ public class IdMapperFunctionFactory {
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates mapped mode id's for persistence
-   * @throws PlanItException thrown if error
    */
-  public static Function<Mode, String> createModeIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+  public static Function<Mode, String> createModeIdMappingFunction(IdMapperType idMapper) {
     return createIdMappingFunction(Mode.class, idMapper);
   }
 
@@ -133,9 +124,8 @@ public class IdMapperFunctionFactory {
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates directed connectoi id's for node output
-   * @throws PlanItException thrown if error
    */
-  public static Function<Connectoid, String> createConnectoidIdMappingFunction(final IdMapperType idMapper) throws PlanItException {
+  public static Function<Connectoid, String> createConnectoidIdMappingFunction(final IdMapperType idMapper) {
     return createIdMappingFunction(Connectoid.class, idMapper);
   }
 
@@ -144,9 +134,8 @@ public class IdMapperFunctionFactory {
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates zone id's for zone output
-   * @throws PlanItException thrown if error
    */
-  public static Function<Zone, String> createZoneIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+  public static Function<Zone, String> createZoneIdMappingFunction(IdMapperType idMapper) {
     return createIdMappingFunction(Zone.class, idMapper);
   }
 
@@ -155,9 +144,8 @@ public class IdMapperFunctionFactory {
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates transfer zone group id's for transfer zone group output
-   * @throws PlanItException thrown if error
    */
-  public static Function<TransferZoneGroup, String> createTransferZoneGroupIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+  public static Function<TransferZoneGroup, String> createTransferZoneGroupIdMappingFunction(IdMapperType idMapper) {
     return createIdMappingFunction(TransferZoneGroup.class, idMapper);
   }
 
@@ -166,9 +154,8 @@ public class IdMapperFunctionFactory {
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates traveller type ids for traveller type output
-   * @throws PlanItException thrown if error
    */
-  public static Function<TravellerType, String> createTravellerTypeIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+  public static Function<TravellerType, String> createTravellerTypeIdMappingFunction(IdMapperType idMapper) {
     return createIdMappingFunction(TravellerType.class, idMapper);
   }
 
@@ -177,9 +164,8 @@ public class IdMapperFunctionFactory {
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates time period ids for time period output
-   * @throws PlanItException thrown if error
    */
-  public static Function<TimePeriod, String> createTimePeriodIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+  public static Function<TimePeriod, String> createTimePeriodIdMappingFunction(IdMapperType idMapper) {
     return createIdMappingFunction(TimePeriod.class, idMapper);
   }
 
@@ -188,10 +174,28 @@ public class IdMapperFunctionFactory {
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates user class ids for user class output
-   * @throws PlanItException thrown if error
    */
-  public static Function<UserClass, String> createUserClassIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+  public static Function<UserClass, String> createUserClassIdMappingFunction(IdMapperType idMapper) {
     return createIdMappingFunction(UserClass.class, idMapper);
   }
 
+  /**
+   * create a function that takes a service leg and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates service leg ids for service leg output
+   */
+  public static Function<ServiceLeg, String> createServiceLegIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(ServiceLeg.class, idMapper);
+  }
+
+  /**
+   * create a function that takes a service leg segment and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates service leg segment ids for service leg segment output
+   */
+  public static Function<ServiceLegSegment, String> createServiceLegSegmentIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(ServiceLegSegment.class, idMapper);
+  }
 }

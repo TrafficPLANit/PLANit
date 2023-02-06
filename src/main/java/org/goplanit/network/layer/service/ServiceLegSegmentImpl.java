@@ -29,7 +29,7 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
   private static final Logger LOGGER = Logger.getLogger(ServiceLegSegmentImpl.class.getCanonicalName());
 
   /** Service leg's underlying links connecting its two service nodes */
-  protected List<LinkSegment> networkLayerLinkSegments;
+  protected List<? extends LinkSegment> networkLayerLinkSegments;
 
   /**
    * Constructor with no reference to underlying physical links (to be populated later)
@@ -103,7 +103,7 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
    * {@inheritDoc}
    */
   @Override
-  public List<LinkSegment> getPhysicalParentSegments() {
+  public List<? extends LinkSegment> getPhysicalParentSegments() {
     return this.networkLayerLinkSegments;
   }
 
@@ -111,7 +111,7 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
    * {@inheritDoc}
    */
   @Override
-  public void setPhysicalParentSegments(final List<LinkSegment> networkLayerLinkSegments) {
+  public void setPhysicalParentSegments(final List<? extends LinkSegment> networkLayerLinkSegments) {
     this.networkLayerLinkSegments = networkLayerLinkSegments;
   }
 
