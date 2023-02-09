@@ -15,6 +15,9 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
+import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.utils.service.routed.RoutedTrip;
+import org.goplanit.utils.service.routed.RoutedTripDeparture;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.TransferZoneGroup;
@@ -197,5 +200,35 @@ public class IdMapperFunctionFactory {
    */
   public static Function<ServiceLegSegment, String> createServiceLegSegmentIdMappingFunction(IdMapperType idMapper) {
     return createIdMappingFunction(ServiceLegSegment.class, idMapper);
+  }
+
+  /**
+   * create a function that takes a routed trip and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates routed trip ids
+   */
+  public static Function<RoutedTrip, String> createRoutedTripIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(RoutedTrip.class, idMapper);
+  }
+
+  /**
+   * create a function that takes a RoutedTripDeparture and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates RoutedTripDeparture ids
+   */
+  public static Function<RoutedTripDeparture, String> createRoutedTripDepartureIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(RoutedTripDeparture.class, idMapper);
+  }
+
+  /**
+   * create a function that takes a RoutedService and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates RoutedService ids
+   */
+  public static Function<RoutedService, String> createRoutedServiceIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(RoutedService.class , idMapper);
   }
 }
