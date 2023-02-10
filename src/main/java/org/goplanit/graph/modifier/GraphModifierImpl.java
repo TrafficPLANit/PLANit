@@ -12,10 +12,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.modifier.event.BreakEdgeEvent;
-import org.goplanit.graph.modifier.event.RemoveSubGraphEdgeEvent;
-import org.goplanit.graph.modifier.event.RemoveSubGraphEvent;
-import org.goplanit.graph.modifier.event.RemoveSubGraphVertexEvent;
+import org.goplanit.event.RecreatedGraphEntitiesManagedIdsEvent;
+import org.goplanit.graph.modifier.event.*;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
@@ -336,9 +334,11 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   public void recreateManagedEntitiesIds() {
     if (theGraph.getEdges() instanceof ManagedIdEntities<?>) {
       ((ManagedIdEntities<?>) theGraph.getEdges()).recreateIds();
+      fireEvent(new RecreatedGraphEntitiesManagedIdsEvent(this, (ManagedIdEntities<?>)theGraph.getEdges()));
     }
     if (theGraph.getVertices() instanceof ManagedIdEntities<?>) {
       ((ManagedIdEntities<?>) theGraph.getVertices()).recreateIds();
+      fireEvent(new RecreatedGraphEntitiesManagedIdsEvent(this, (ManagedIdEntities<?>)theGraph.getVertices()));
     }
   }
 

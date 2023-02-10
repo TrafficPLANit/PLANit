@@ -73,8 +73,19 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateManagedIdEntities() {
+    graphModifier.recreateManagedEntitiesIds();
+  }
+
+  /**
    * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed. Also remove zoning entities that rely
    * solely on removed dangling network entities
+   * <p>
+   *   Should fire #RecreatedGraphEntitiesManagedIdsEvent after it has been executed
+   * </p>
    * 
    * @param belowSize         remove subnetworks below the given size
    * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)

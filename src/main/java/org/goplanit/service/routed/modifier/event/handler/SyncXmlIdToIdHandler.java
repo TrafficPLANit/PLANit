@@ -3,7 +3,10 @@ package org.goplanit.graph.modifier.event.handler;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.modifier.event.BreakEdgeEvent;
+import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventType;
+import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
+import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModificationEvent;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierEventType;
@@ -16,13 +19,13 @@ import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener
  *
  * @author markr
  */
-public abstract class SyncXmlIdToIdHandler<T extends ExternalIdAble> implements RoutedServicesModifierListener {
+public abstract class SyncXmlIdToIdHandler<T extends ExternalIdAble> implements RoutedServicesModifierListener, GraphModifierListener {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(SyncXmlIdToIdHandler.class.getCanonicalName());
 
   /** supported event type */
-  private final RoutedServicesModifierEventType eventType;
+  private final EventType eventType;
 
   /**
    * Perform action by syncing XML ids to ids
@@ -33,10 +36,17 @@ public abstract class SyncXmlIdToIdHandler<T extends ExternalIdAble> implements 
     entity.setXmlId(String.valueOf(entity.getId()));
   }
 
+  protected void onEvent(Event event){
+    if (!event.getType().equals(eventType)) {
+      LOGGER.warning(String.format("%s does not support event type %s", SyncXmlIdToIdHandler.class.getName(), event.getType()));
+      return;
+    }
+  }
+
   /**
    * Default constructor
    */
-  public SyncXmlIdToIdHandler(RoutedServicesModifierEventType eventType) {
+  public SyncXmlIdToIdHandler(EventType eventType) {
     super();
     this.eventType = eventType;
   }
@@ -54,10 +64,15 @@ public abstract class SyncXmlIdToIdHandler<T extends ExternalIdAble> implements 
    */
   @Override
   public void onRoutedServicesModifierEvent(RoutedServicesModificationEvent event) {
-    if (!event.getType().equals(eventType)) {
-      LOGGER.warning(String.format("%s does not support event type %s", SyncXmlIdToIdHandler.class.getName(), event.getType()));
-      return;
-    }
+    onEvent(event);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void onGraphModificationEvent(GraphModificationEvent event) {
+    onEvent(event);
   }
 
 }

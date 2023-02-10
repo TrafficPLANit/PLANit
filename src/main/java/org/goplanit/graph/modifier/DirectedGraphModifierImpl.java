@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.modifier.event.BreakEdgeSegmentEvent;
+import org.goplanit.event.RecreatedGraphEntitiesManagedIdsEvent;
 import org.goplanit.graph.modifier.event.RemoveSubGraphEdgeSegmentEvent;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
@@ -204,6 +205,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
     graphModifier.recreateManagedEntitiesIds();
     if (getUntypedDirectedGraph().getEdgeSegments() instanceof ManagedIdEntities<?>) {
       ((ManagedIdEntities<?>) getUntypedDirectedGraph().getEdgeSegments()).recreateIds();
+      fireEvent(new RecreatedGraphEntitiesManagedIdsEvent(this, (ManagedIdEntities<?>) getUntypedDirectedGraph().getEdgeSegments()));
     }
   }
 

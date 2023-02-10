@@ -13,6 +13,7 @@ import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.service.routed.*;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesLayerModifier;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModificationEvent;
@@ -23,6 +24,7 @@ import org.goplanit.utils.zoning.modifier.event.ZoningModifierListener;
 import org.goplanit.zoning.modifier.event.ModifiedTripScheduleDepartureIdsEvent;
 import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
 
+import java.beans.EventHandler;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -55,7 +57,6 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
     }
 
     // identify which cast to what class to use for class specific parts of recursive method
-    // todo if this turns out to be a runtime cost that is too high, pass along boolean in call to avoid instanceof
     boolean isTripSchedule = freqOrSched instanceof RoutedTripSchedule;
     if(!isTripSchedule && !(freqOrSched instanceof RoutedTripFrequency)){
       throw new PlanItRunTimeException("Only routed trip schedule or routed trip frequencies are supported in recurive truncation to service network");
@@ -79,7 +80,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
     final int nextRecursionIndexOffset = initialChainWithoutRemovalBeforeChain ?
             0 : Math.min(indexOffset + consecutiveLegsToRemoveBeforeChain.size(), toBeRemovedSegments.size());
 
-    if(!initialChainWithoutRemovalBeforeChain && ListUtils.getLastValue(consecutiveLegsToRemoveBeforeChain) == numSegments){
+    if(!initialChainWithoutRemovalBeforeChain && ListUtils.getLastValue(consecutiveLegsToRemoveBeforeChain) == (numSegments-1)){
       /* no valid chain present after removal of invalid components preceding the to-be-created chain, done */
       return null;
     }
@@ -270,6 +271,11 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
    *
    */
   private Map<RoutedTripSchedule, Collection<RoutedTripSchedule>> createTruncatedRoutedServiceSchedulesToServiceNetwork(RoutedService routedService) {
+
+//    if(routedService.getName().equals("607X")){
+//      int bla = 4;
+//    }
+
     /* schedule based */
     var scheduledTrips = routedService.getTripInfo().getScheduleBasedTrips();
     var scheduleIterator = scheduledTrips.iterator();
@@ -290,7 +296,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
   }
 
   /**
-   * Truncate all routed services for a mode and match them to the remaining service network (which likely has undergone changes), i.e.,
+   * Truncate all frequency based routed services for a mode and match them to the remaining service network (which likely has undergone changes), i.e.,
    * remove all service network entities that are now missing. If, for some reason, the provided services by mode have no (more) entries
    * the services by mode are removed from the layer.
    * <p>
@@ -299,45 +305,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
    *
    * @param servicesByMode routed services to truncate to underlying service network
    */
-  private void truncateToServiceNetworkByMode(RoutedModeServices servicesByMode) {
-    if(servicesByMode.isEmpty()){
-      return;
-    }
-
-    LOGGER.info(String.format("%sTruncating routed services to remaining service network for mode %s",
-            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode()));
-
-    /* SCHEDULE BASED */
-    int numKeptScheduledTrips = 0;
-    int numRemovedScheduledTrips = 0;
-    int numCreatedTruncatedScheduledTrips = 0;
-    for(var routedService : servicesByMode){
-      var truncatedSchedulesByOriginal =  createTruncatedRoutedServiceSchedulesToServiceNetwork(routedService);
-      for( var entry : truncatedSchedulesByOriginal.entrySet()){
-        if(entry.getValue() == null || entry.getValue().isEmpty()){
-          boolean scheduleKept = !entry.getKey().getDepartures().isEmpty();
-          numKeptScheduledTrips = scheduleKept ? numKeptScheduledTrips + 1 : numKeptScheduledTrips;
-          numRemovedScheduledTrips = !scheduleKept ? numRemovedScheduledTrips + 1 : numRemovedScheduledTrips;
-          continue;
-        }
-
-        ++numRemovedScheduledTrips;
-        var currCreatedTruncatedSchedules = entry.getValue();
-        numCreatedTruncatedScheduledTrips += currCreatedTruncatedSchedules.size();
-
-        /* register created replacements on container */
-        currCreatedTruncatedSchedules.stream().forEach(
-                singleRts -> routedService.getTripInfo().getScheduleBasedTrips().register(singleRts));
-      }
-    }
-    LOGGER.info(String.format("%s[%s] # kept scheduled trips as is : %d",
-            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numKeptScheduledTrips));
-    LOGGER.info(String.format("%s[%s] # removed/replaced scheduled trips : %d",
-            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numRemovedScheduledTrips));
-    LOGGER.info(String.format("%s[%s] # newly created partials of scheduled trips : %d",
-            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numCreatedTruncatedScheduledTrips));
-
-    /* FREQUENCY BASED */
+  private void truncateFrequencyServicesToServiceNetworkByMode(RoutedModeServices servicesByMode) {
     int numKeptFrequencyTrips = 0;
     int numRemovedFrequencyTrips = 0;
     int numCreatedTruncatedFrequencyTrips = 0;
@@ -357,16 +325,85 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
 
         /* register created replacements on container */
         currCreatedTruncatedFrequencies.stream().forEach(
-                singleRtf -> routedService.getTripInfo().getFrequencyBasedTrips().register(singleRtf));
+            singleRtf -> routedService.getTripInfo().getFrequencyBasedTrips().register(singleRtf));
       }
     }
     LOGGER.info(String.format("%s[%s] # kept frequency based trips as is : %d",
-            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numKeptFrequencyTrips));
+        LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numKeptFrequencyTrips));
     LOGGER.info(String.format("%s[%s] # removed/replaced frequency based trips : %d",
-            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numRemovedFrequencyTrips));
+        LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numRemovedFrequencyTrips));
     LOGGER.info(String.format("%s[%s] # newly created partials of frequency based trips : %d",
-            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numCreatedTruncatedFrequencyTrips));
+        LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numCreatedTruncatedFrequencyTrips));
   }
+
+  /**
+   * Truncate all schedule based routed services for a mode and match them to the remaining service network (which likely has undergone changes), i.e.,
+   * remove all service network entities that are now missing. If, for some reason, the provided services by mode have no (more) entries
+   * the services by mode are removed from the layer.
+   * <p>
+   *   Ids are not recreated in this call, only truncation is performed and truncated schedules are registered internally on each service
+   * </p>
+   *
+   * @param servicesByMode routed services to truncate to underlying service network
+   */
+  private void truncateScheduledServicesToServiceNetworkByMode(RoutedModeServices servicesByMode) {
+    int numKeptScheduledTrips = 0;
+    int numRemovedScheduledTrips = 0;
+    int numCreatedTruncatedScheduledTrips = 0;
+    for(var routedService : servicesByMode){
+      var truncatedSchedulesByOriginal =  createTruncatedRoutedServiceSchedulesToServiceNetwork(routedService);
+      for( var entry : truncatedSchedulesByOriginal.entrySet()){
+        if(entry.getValue() == null || entry.getValue().isEmpty()){
+          boolean scheduleKept = !entry.getKey().getDepartures().isEmpty();
+          numKeptScheduledTrips = scheduleKept ? numKeptScheduledTrips + 1 : numKeptScheduledTrips;
+          numRemovedScheduledTrips = !scheduleKept ? numRemovedScheduledTrips + 1 : numRemovedScheduledTrips;
+          continue;
+        }
+
+        ++numRemovedScheduledTrips;
+        var currCreatedTruncatedSchedules = entry.getValue();
+        numCreatedTruncatedScheduledTrips += currCreatedTruncatedSchedules.size();
+
+        /* register created replacements on container */
+        currCreatedTruncatedSchedules.stream().forEach(
+            singleRts -> routedService.getTripInfo().getScheduleBasedTrips().register(singleRts));
+      }
+    }
+    LOGGER.info(String.format("%s[%s] # kept scheduled trips as is : %d",
+        LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numKeptScheduledTrips));
+    LOGGER.info(String.format("%s[%s] # removed/replaced scheduled trips : %d",
+        LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numRemovedScheduledTrips));
+    LOGGER.info(String.format("%s[%s] # newly created partials of scheduled trips : %d",
+        LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode(), numCreatedTruncatedScheduledTrips));
+  }
+
+  /**
+   * Truncate all routed services for a mode and match them to the remaining service network (which likely has undergone changes), i.e.,
+   * remove/truncate all routed services (and their trips) relying on service network entities that are now missing.
+   * <p>
+   *   Ids are not recreated in this call, only truncation is performed and truncated schedules are registered internally on each service
+   * </p>
+   *
+   * @param servicesByMode routed services to truncate to underlying service network
+   */
+  private void truncateToServiceNetworkByMode(RoutedModeServices servicesByMode) {
+    if(servicesByMode.isEmpty()){
+      return;
+    }
+
+    LOGGER.info(String.format("%sTruncating routed services to remaining service network for mode %s",
+            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode()));
+
+    /* SCHEDULE BASED */
+    truncateScheduledServicesToServiceNetworkByMode(servicesByMode);
+
+    /* FREQUENCY BASED */
+    truncateFrequencyServicesToServiceNetworkByMode(servicesByMode);
+
+    /* remove unused services (does not recreate ids) */
+    removeRoutedServicesWithoutTrips(false, servicesByMode.getMode());
+  }
+
 
   /**
    * {@inheritDoc}
@@ -390,22 +427,70 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
    * {@inheritDoc}
    *
    *  Note that this implementation will automatically overwrite all pre-existing XML ids with the internal ids of all managed id containers within the routed services layer to ensure
-   *  uniqueness on both levels of ids
+   *  uniqueness on both levels of ids.
+   *
+   *  If, for some reason, the provided services by mode have no (more) entries the services by mode are removed from the layer. Same goes for routed services that have
+   *  no more trips
    */
   public void truncateToServiceNetwork(){
     LOGGER.info(String.format("%sTruncating routed services to remaining service network",LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId())));
+
     /* identify missing service network entities per routed service mode and truncate to become consistent again */
     for( var servicesPerMode : routedServicesLayer){
       truncateToServiceNetworkByMode(servicesPerMode);
     }
 
-    /* make sure all XML ids remain unique as well by registering syncing XML ids to internal ids */
-    var listeners =
-        List.of(new SyncDeparturesXmlIdToIdHandler(), new SyncRoutedServicesXmlIdToIdHandler(), new SyncRoutedTripsXmlIdToIdHandler());
-    listeners.forEach(l -> addListener(l));
+    /* make sure empty entries are removed */
+    removeEmptyRoutedServicesByMode(false);
+
     /* after truncation routed services all internal ids need to be recreated to ensure contiguous ids throughout the routed services */
     recreateManagedEntitiesIds();
-    listeners.forEach(l -> removeListener(l));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeEmptyRoutedServicesByMode(boolean recreateManagedEntitiesIds) {
+    boolean removedAnything = false;
+    var iter = this.routedServicesLayer.iterator();
+    while(iter.hasNext()){
+      if(iter.next().isEmpty()){
+        iter.remove();
+        removedAnything = removedAnything || true ;
+      }
+    }
+
+    if(recreateManagedEntitiesIds && removedAnything){
+      recreateManagedEntitiesIds();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeRoutedServicesWithoutTrips(boolean recreateManagedEntitiesIds, Mode... modes) {
+
+    boolean removedAnything = false;
+    for(Mode mode : modes){
+      var servicesByMode = this.routedServicesLayer.getServicesByMode(mode);
+      if(servicesByMode.isEmpty()){
+        continue;
+      }
+
+      int before = servicesByMode.size();
+      servicesByMode.removeIf( r -> !r.getTripInfo().hasAnyTrips());
+      if(before != servicesByMode.size() && !removedAnything){
+        LOGGER.info(String.format("%sRemoved %d routed services without trips (remaining: %d) for mode %s",
+            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()),  before - servicesByMode.size(), servicesByMode.size(), servicesByMode.getMode()));
+        removedAnything = true;
+      }
+    }
+
+    if(recreateManagedEntitiesIds && removedAnything){
+      recreateManagedEntitiesIds();
+    }
   }
 
 
@@ -492,6 +577,14 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
     }
 
     fireEvent(new ModifiedRoutedServicesIdsEvent(this, routedServicesLayer));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addListener(RoutedServicesModifierListener listener) {
+    super.addListener(listener);
   }
 
   /**

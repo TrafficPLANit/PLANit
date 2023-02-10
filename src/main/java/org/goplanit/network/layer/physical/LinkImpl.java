@@ -7,6 +7,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.physical.Link;
 
 /**
@@ -146,12 +147,11 @@ public class LinkImpl<N extends DirectedVertex, LS extends EdgeSegment> extends 
     if (super.validate()) {
 
       if (getGeometry() != null) {
-        if (!getNodeA().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(0))) {
-
+        if (!getNodeA().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(0), Precision.EPSILON_6)) {
           return false;
         }
 
-        if (!getNodeB().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(getGeometry().getNumPoints() - 1))) {
+        if (!getNodeB().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(getGeometry().getNumPoints() - 1),Precision.EPSILON_6)) {
           LOGGER.warning(String.format("link (id:%d externalId:%s) geometry inconsistent with extreme node B", getId(), getExternalId()));
           return false;
         }

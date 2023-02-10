@@ -30,6 +30,10 @@ import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.zoning.Zoning;
 
+import javax.crypto.Mac;
+
+import static org.goplanit.network.Network.MACROSCOPIC_NETWORK;
+
 /**
  * The top-level class which hosts a single project.
  *
@@ -166,6 +170,16 @@ public class CustomPlanItProject {
    */
   public LayeredNetwork<?, ?> createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
     return inputs.createAndRegisterInfrastructureNetwork(infrastructureNetworkType);
+  }
+
+  /**
+   * Create and register a macroscopic network on the project
+   *
+   * @return the generated macroscopic network
+   * @throws PlanItException thrown if there is an error
+   */
+  public MacroscopicNetwork createAndRegisterMacroscopicNetwork() throws PlanItException {
+    return (MacroscopicNetwork) createAndRegisterInfrastructureNetwork(MACROSCOPIC_NETWORK);
   }
 
   /**
