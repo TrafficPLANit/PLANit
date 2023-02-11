@@ -3,12 +3,11 @@ package org.goplanit.zoning.modifier.event.handler;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.modifier.event.BreakEdgeSegmentEvent;
+import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.locationtech.jts.geom.Point;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;

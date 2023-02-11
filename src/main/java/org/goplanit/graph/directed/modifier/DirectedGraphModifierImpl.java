@@ -1,4 +1,4 @@
-package org.goplanit.graph.modifier;
+package org.goplanit.graph.directed.modifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,9 +7,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.modifier.event.BreakEdgeSegmentEvent;
-import org.goplanit.event.RecreatedGraphEntitiesManagedIdsEvent;
-import org.goplanit.graph.modifier.event.RemoveSubGraphEdgeSegmentEvent;
+import org.goplanit.graph.modifier.GraphModifierImpl;
+import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
+import org.goplanit.graph.directed.modifier.event.RecreatedDirectedGraphEntitiesManagedIdsEvent;
+import org.goplanit.graph.directed.modifier.event.RemoveSubGraphEdgeSegmentEvent;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
@@ -66,7 +67,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * @return directed graph
    */
   public UntypedDirectedGraph<?, ?, ?> getUntypedDirectedGraph() {
-    return (UntypedDirectedGraph<?, ?, ?>) graphModifier.theGraph;
+    return (UntypedDirectedGraph<?, ?, ?>) graphModifier.getGraph();
   }
 
   /**
@@ -205,7 +206,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
     graphModifier.recreateManagedEntitiesIds();
     if (getUntypedDirectedGraph().getEdgeSegments() instanceof ManagedIdEntities<?>) {
       ((ManagedIdEntities<?>) getUntypedDirectedGraph().getEdgeSegments()).recreateIds();
-      fireEvent(new RecreatedGraphEntitiesManagedIdsEvent(this, (ManagedIdEntities<?>) getUntypedDirectedGraph().getEdgeSegments()));
+      fireEvent(new RecreatedDirectedGraphEntitiesManagedIdsEvent(this, (ManagedIdEntities<?>) getUntypedDirectedGraph().getEdgeSegments()));
     }
   }
 
@@ -278,9 +279,12 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    */
   @Override
   public void addListener(GraphModifierListener listener) {
+
     if (listener instanceof DirectedGraphModifierListener) {
       super.addListener(listener);
-    } else {
+    }
+
+    if(listener instanceof GraphModifierListener){
       graphModifier.addListener(listener);
     }
   }

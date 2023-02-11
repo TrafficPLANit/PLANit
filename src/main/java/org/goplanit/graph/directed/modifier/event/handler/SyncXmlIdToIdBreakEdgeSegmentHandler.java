@@ -1,8 +1,8 @@
-package org.goplanit.graph.modifier.event.handler;
+package org.goplanit.graph.directed.modifier.event.handler;
 
 import java.util.logging.Logger;
 
-import org.goplanit.graph.modifier.event.BreakEdgeSegmentEvent;
+import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;

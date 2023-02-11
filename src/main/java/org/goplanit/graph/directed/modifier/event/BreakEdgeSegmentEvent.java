@@ -1,4 +1,4 @@
-package org.goplanit.graph.modifier.event;
+package org.goplanit.graph.directed.modifier.event;
 
 import org.goplanit.utils.event.EventImpl;
 import org.goplanit.utils.graph.directed.DirectedVertex;

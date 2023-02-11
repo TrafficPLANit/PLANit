@@ -116,7 +116,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   public void recreateAccessZoneIdMapping() {
     Collection<AccessZoneProperties> accessZoneValues = accessZones.values();
-    accessZones = new TreeMap<Long, AccessZoneProperties>();
+    accessZones = new TreeMap<>();
     accessZoneValues.forEach(accessZoneValue -> accessZones.put(accessZoneValue.accessZone.getId(), accessZoneValue));
   }
 

@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
-import org.goplanit.event.RecreatedGraphEntitiesManagedIdsEvent;
+import org.goplanit.graph.modifier.event.RecreatedGraphEntitiesManagedIdsEvent;
 import org.goplanit.graph.modifier.event.*;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
@@ -109,14 +109,6 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected void fireEvent(EventListener eventListener, Event event) {
-    GraphModifierListener.class.cast(eventListener).onGraphModificationEvent(GraphModificationEvent.class.cast(event));
-  }
-
-  /**
    * Constructor
    * 
    * @param theGraph to use
@@ -124,6 +116,26 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   public GraphModifierImpl(final UntypedGraph<?, ?> theGraph) {
     super();
     this.theGraph = theGraph;
+  }
+
+  /**
+   * Access to graph
+   *
+   * @return the underlying graph
+   */
+  public UntypedGraph<?,?> getGraph(){
+    return theGraph;
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   *   make public so derived classes can access it as well
+   * </p>
+   */
+  @Override
+  public void fireEvent(EventListener eventListener, Event event) {
+    GraphModifierListener.class.cast(eventListener).onGraphModificationEvent(GraphModificationEvent.class.cast(event));
   }
 
   /**

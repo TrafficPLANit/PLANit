@@ -20,6 +20,7 @@ import org.goplanit.zoning.ConnectoidsImpl;
 import org.goplanit.zoning.TransferZoneGroupsImpl;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
+import org.goplanit.zoning.modifier.event.RecreatedZoningEntitiesManagedIdsEvent;
 
 /**
  * Implementation of the zoningModifier interface
@@ -164,6 +165,29 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
     if (groupRemoved) {
       recreateTransferZoneGroupIds();
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateManagedIdEntities() {
+    recreateConnectoidIds();
+    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getOdConnectoids()));
+    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getTransferConnectoids()));
+    recreateZoneIds();
+    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getOdZones()));
+    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getTransferZones()));
+    recreateTransferZoneGroupIds();
+    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getTransferZoneGroups()));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addListener(ZoningModifierListener listener) {
+    super.addListener(listener);
   }
 
   /**

@@ -1,12 +1,10 @@
 package org.goplanit.service.routed.modifier.event.handler;
 
-import org.goplanit.graph.modifier.event.handler.SyncXmlIdToIdHandler;
+import org.goplanit.event.handler.SyncXmlIdToIdHandler;
 import org.goplanit.service.routed.modifier.event.ModifiedRoutedServicesIdsEvent;
 import org.goplanit.utils.service.routed.RoutedService;
-import org.goplanit.utils.service.routed.RoutedTripDeparture;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModificationEvent;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
-import org.goplanit.zoning.modifier.event.ModifiedTripScheduleDepartureIdsEvent;
 
 import java.util.logging.Logger;
 
@@ -19,7 +17,7 @@ import java.util.logging.Logger;
  *
  * @author markr
  */
-public class SyncRoutedServicesXmlIdToIdHandler extends SyncXmlIdToIdHandler<RoutedService> implements RoutedServicesModifierListener {
+public class SyncRoutedServicesXmlIdToIdHandler extends SyncXmlIdToIdHandler implements RoutedServicesModifierListener {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(SyncRoutedServicesXmlIdToIdHandler.class.getCanonicalName());

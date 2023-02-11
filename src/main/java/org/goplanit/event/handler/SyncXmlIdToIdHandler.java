@@ -1,43 +1,45 @@
-package org.goplanit.graph.modifier.event.handler;
+package org.goplanit.event.handler;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.modifier.event.BreakEdgeEvent;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventType;
+import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
+import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModificationEvent;
-import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierEventType;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
 
 /**
- * Whenever routed services managed Ids with an external id are changed in terms of their internal id, their XML ids remain the same and might no longer be unique.
- * When this is not desirbale and the user wants to keep the XML ids unique, for example when the network is persisted to disk afterwards, in which case the XML ids must be unique, then
+ * Whenever managed Ids containers with entities aso supporting an external id are changed in terms of their internal id, their XML ids remain the same and might no longer be unique.
+ * When this is not desirable and the user wants to keep the XML ids unique, for example when the network is persisted to disk afterwards, in which case the XML ids must be unique, then
  * this handler can be used to sync the XML ids to the newly assigned unique internal ids.
  *
  * @author markr
  */
-public abstract class SyncXmlIdToIdHandler<T extends ExternalIdAble> implements RoutedServicesModifierListener, GraphModifierListener {
+public abstract class SyncXmlIdToIdHandler implements RoutedServicesModifierListener, GraphModifierListener, DirectedGraphModifierListener {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(SyncXmlIdToIdHandler.class.getCanonicalName());
 
-  /** supported event type */
-  private final EventType eventType;
+  /** supported event types */
+  private final EventType[] eventTypes;
 
   /**
    * Perform action by syncing XML ids to ids
    *
    * @param entity entity to sync XML id to internal id
    */
-  protected void syncXmlIdToInternalId(ExternalIdAble entity) {
+  protected <T extends ExternalIdAble> void syncXmlIdToInternalId(T entity) {
     entity.setXmlId(String.valueOf(entity.getId()));
   }
 
   protected void onEvent(Event event){
-    if (!event.getType().equals(eventType)) {
+    if (!Arrays.stream(eventTypes).anyMatch(et -> et.equals(event.getType()))) {
       LOGGER.warning(String.format("%s does not support event type %s", SyncXmlIdToIdHandler.class.getName(), event.getType()));
       return;
     }
@@ -45,10 +47,12 @@ public abstract class SyncXmlIdToIdHandler<T extends ExternalIdAble> implements 
 
   /**
    * Default constructor
+   *
+   * @param eventTypes event types
    */
-  public SyncXmlIdToIdHandler(EventType eventType) {
+  public SyncXmlIdToIdHandler(EventType... eventTypes) {
     super();
-    this.eventType = eventType;
+    this.eventTypes = eventTypes;
   }
 
   /**
@@ -56,7 +60,7 @@ public abstract class SyncXmlIdToIdHandler<T extends ExternalIdAble> implements 
    */
   @Override
   public EventType[] getKnownSupportedEventTypes() {
-    return new EventType[] {eventType };
+    return eventTypes;
   }
 
   /**
@@ -75,4 +79,11 @@ public abstract class SyncXmlIdToIdHandler<T extends ExternalIdAble> implements 
     onEvent(event);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
+    onEvent(event);
+  }
 }

@@ -5,13 +5,11 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
-import org.goplanit.graph.modifier.DirectedGraphModifierImpl;
+import org.goplanit.graph.directed.modifier.DirectedGraphModifierImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.directed.DirectedEdge;
-import org.goplanit.utils.graph.directed.DirectedGraph;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.graph.modifier.DirectedGraphModifier;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.misc.Pair;
