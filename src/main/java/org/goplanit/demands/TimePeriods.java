@@ -1,8 +1,10 @@
 package org.goplanit.demands;
 
+import org.goplanit.service.routed.RoutedTripDepartureFactoryImpl;
 import org.goplanit.time.TimePeriodImpl;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.utils.id.*;
+import org.goplanit.utils.service.routed.RoutedTripDeparture;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.time.TimePeriodUtils;
 import org.goplanit.utils.wrapper.LongMapWrapperImpl;
@@ -17,16 +19,17 @@ import java.util.TreeSet;
  *
  * @author garym, markr
  */
-public class TimePeriods extends LongMapWrapperImpl<TimePeriod> {
+public class TimePeriods extends ManagedIdEntitiesImpl<TimePeriod> implements ManagedIdEntities<TimePeriod>{
 
-  private final Demands demands;
+  /** factory to create instances on this container */
+  private final TimePeriodsFactory factory;
 
   /**
    * Constructor
    */
-  public TimePeriods(Demands demands) {
-    super(new HashMap<>(), TimePeriod::getId);
-    this.demands = demands;
+  public TimePeriods(final IdGroupingToken tokenId) {
+    super(TimePeriod::getId, TimePeriod.TIMEPERIOD_ID_CLASS);
+    this.factory = new TimePeriodsFactory(tokenId, this);
   }
 
   /**
@@ -36,28 +39,13 @@ public class TimePeriods extends LongMapWrapperImpl<TimePeriod> {
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
   public TimePeriods(TimePeriods other, boolean deepCopy) {
-    super(other);
-    this.demands = other.demands;
+    super(other, deepCopy);
+    this.factory = new TimePeriodsFactory(other.getFactory().getIdGroupingToken(), this);
 
     if(deepCopy){
       clear();
       other.forEach( tp -> register(deepCopy ? tp.deepClone() : tp));
     }
-  }
-
-  /**
-   * Factory method to create and register a new time period on the demands
-   *
-   * @param description      the description for this time period
-   * @param startTimeSeconds the start time in seconds since midnight (00:00)
-   * @param durationSeconds  the duration in seconds since start time
-   * @return new time period created
-   * @throws PlanItException thrown if start time and/or duration are invalid
-   */
-  public TimePeriod createAndRegisterNewTimePeriod(String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
-    var newTimePeriod = new TimePeriodImpl(demands.getIdGroupingToken(), description, startTimeSeconds, durationSeconds);
-    register(newTimePeriod);
-    return newTimePeriod;
   }
 
   /**
@@ -80,7 +68,15 @@ public class TimePeriods extends LongMapWrapperImpl<TimePeriod> {
    * @return the retrieved time period, or null if no time period was found
    */
   public TimePeriod getByXmlId(final String xmlId) {
-    return findFirst(timePeriod -> xmlId.equals(((TimePeriod) timePeriod).getXmlId()));
+    return findFirst(timePeriod -> xmlId.equals(timePeriod.getXmlId()));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TimePeriodsFactory getFactory() {
+    return this.factory;
   }
 
   /**
@@ -96,14 +92,5 @@ public class TimePeriods extends LongMapWrapperImpl<TimePeriod> {
    */
   public TimePeriods deepClone() {
     return new TimePeriods(this, true);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void clear() {
-    super.clear();
-    IdGenerator.reset(demands.getIdGroupingToken(), TimePeriod.class);
   }
 }

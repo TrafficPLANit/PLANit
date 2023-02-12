@@ -154,9 +154,9 @@ public class sLtmNetworkLoadingTest {
     try {
 
       Demands demands = new Demands(testToken);
-      demands.timePeriods.createAndRegisterNewTimePeriod("dummyTimePeriod", 0, 3600);
-      demands.travelerTypes.createAndRegisterNew("dummyTravellerType");
-      demands.userClasses.createAndRegister("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
+      demands.timePeriods.getFactory().registerNew("dummyTimePeriod", 0, 3600);
+      demands.travelerTypes.getFactory().registerNew("dummyTravellerType");
+      demands.userClasses.getFactory().registerNew("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
 
       /* OD DEMANDS 1000 A->C, 1000 C->B */
       OdZones odZones = zoning.getOdZones();

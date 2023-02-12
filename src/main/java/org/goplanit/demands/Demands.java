@@ -7,6 +7,7 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
+import org.goplanit.demands.modifier.DemandsModifier;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
@@ -52,7 +53,10 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
   /**
    * internal class instance containing all traveler types on this demand instance
    */
-  public final TravelerTypes travelerTypes;
+  public final TravellerTypes travelerTypes;
+
+  /** modifier features for demands */
+  public final DemandsModifier demandModifier;
 
   /**
    * Constructor
@@ -61,10 +65,11 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    */
   public Demands(IdGroupingToken groupId) {
     super(groupId, Demands.class);
-    this.travelerTypes = new TravelerTypes(this);
-    this.userClasses = new UserClasses(this);
-    this.timePeriods = new TimePeriods(this);
+    this.travelerTypes = new TravellerTypes(groupId);
+    this.userClasses = new UserClasses(groupId);
+    this.timePeriods = new TimePeriods(groupId);
     odDemandsByTimePeriodAndMode = new TreeMap<Long, TreeMap<Mode, OdDemands>>();
+    demandModifier = new DemandsModifier(this);
   }
 
   /**
@@ -92,6 +97,8 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     }else{
       this.odDemandsByTimePeriodAndMode.putAll(other.odDemandsByTimePeriodAndMode);
     }
+
+    this.demandModifier = new DemandsModifier(this);
   }
 
   /**
@@ -156,6 +163,21 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
   }
 
   /**
+   * Log general information on this demands to the user
+   *
+   * @param prefix to use
+   */
+  public void logInfo(String prefix) {
+    LOGGER.info(String.format("%s#time periods: %d", prefix, timePeriods.size()));
+    LOGGER.info(String.format("%s#user classes: %d", prefix, userClasses.size()));
+    LOGGER.info(String.format("%s#traveller types: %d", prefix, travelerTypes.size()));
+
+    odDemandsByTimePeriodAndMode.entrySet().forEach(
+            tpEntry -> LOGGER.info(String.format(
+                    "%s#Oddemands by mode for time period %s: %d", prefix, timePeriods.get(tpEntry.getKey()).getDescription(), tpEntry.getValue().entrySet().size())));
+  }
+
+  /**
    * reset all demands, traveler types, time periods and user classes
    */
   public void reset() {
@@ -163,6 +185,15 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     userClasses.clear();
     timePeriods.clear();
     odDemandsByTimePeriodAndMode.clear();
+  }
+
+  /**
+   * access to modifier features
+   *
+   * @return demand modifier
+   */
+  public DemandsModifier getDemandsModifier(){
+    return demandModifier;
   }
 
   /**

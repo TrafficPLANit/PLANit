@@ -222,9 +222,6 @@ public class PlanItProjectInput {
             Zoning.class.getCanonicalName(), 
             new Object[] { projectGroupId, infrastructureNetwork.getNetworkGroupingTokenId() }, 
             infrastructureNetwork);
-    
-    String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.zoningPrefix(zoning.getId());
-    zoning.logInfo(prefix);
 
     zonings.register(zoning);
     return zoning;
@@ -246,11 +243,6 @@ public class PlanItProjectInput {
     final Demands demands = 
         getComponentFactory(Demands.class).create(
             Demands.class.getCanonicalName(), new Object[] { projectGroupId }, zoning, network);  
-    
-    String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.demandsPrefix(demands.getId());
-    LOGGER.info(String.format("%s#time periods: %d", prefix, demands.timePeriods.size()));
-    LOGGER.info(String.format("%s#traveler types: %d", prefix, demands.travelerTypes.size()));    
-    LOGGER.info(String.format("%s#user classes: %d", prefix, demands.userClasses.size()));
 
     this.demands.register(demands);
     return demands;

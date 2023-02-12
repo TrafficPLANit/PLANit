@@ -3,6 +3,8 @@ package org.goplanit.demands;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.wrapper.LongMapWrapperImpl;
 
@@ -13,16 +15,19 @@ import java.util.HashMap;
  *
  * @author markr
  */
-public class UserClasses extends LongMapWrapperImpl<UserClass> {
+public class UserClasses extends ManagedIdEntitiesImpl<UserClass> {
 
-  private final Demands demands;
+  /** factory to create instances on this container */
+  private final UserClassesFactory factory;
 
   /**
    * Constructor
+   *
+   * @param tokenId to use
    */
-  public UserClasses(Demands demands) {
-    super(new HashMap<>(), UserClass::getId);
-    this.demands = demands;
+  public UserClasses(final IdGroupingToken tokenId) {
+    super(UserClass::getId, UserClass.USERCLASS_ID_CLASS);
+    this.factory = new UserClassesFactory(tokenId, this);
   }
 
   /**
@@ -32,8 +37,9 @@ public class UserClasses extends LongMapWrapperImpl<UserClass> {
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
   public UserClasses(UserClasses other, boolean deepCopy) {
-    this(other.demands);
+    super(other, deepCopy);
 
+    this.factory = new UserClassesFactory(other.getFactory().getIdGroupingToken(), this);
     if(deepCopy){
       this.clear();
       other.forEach( uc -> register(uc.deepClone()));
@@ -42,17 +48,11 @@ public class UserClasses extends LongMapWrapperImpl<UserClass> {
   }
 
   /**
-   * Factory method to create and register a new user class on the demands
-   *
-   * @param name          the name for this user class
-   * @param mode          the mode for this user class
-   * @param travellerType the travel type for this user class
-   * @return new traveler type created
+   * {@inheritDoc}
    */
-  public UserClass createAndRegister(String name, Mode mode, TravellerType travellerType) {
-    var newUserClass = new UserClass(demands.getIdGroupingToken(), name, mode, travellerType);
-    register(newUserClass);
-    return newUserClass;
+  @Override
+  public UserClassesFactory getFactory() {
+    return factory;
   }
 
   /**
@@ -88,6 +88,5 @@ public class UserClasses extends LongMapWrapperImpl<UserClass> {
   @Override
   public void clear() {
     super.clear();
-    IdGenerator.reset(demands.getIdGroupingToken(), UserClass.class);
   }
 }

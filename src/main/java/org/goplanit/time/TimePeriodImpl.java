@@ -3,9 +3,11 @@ package org.goplanit.time;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.service.routed.RoutedTrip;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -36,17 +38,26 @@ public class TimePeriodImpl extends ExternalIdAbleImpl implements TimePeriod {
   private final String description;
 
   /**
+   * Generate id for instances of this class based on the token and class identifier
+   *
+   * @param tokenId to use
+   * @return generated id
+   */
+  protected static long generateId(IdGroupingToken tokenId) {
+    return IdGenerator.generateId(tokenId, TimePeriod.TIMEPERIOD_ID_CLASS);
+  }
+
+  /**
    * Constructor
    * 
    * @param groupId          contiguous id generation within this group for instances of this class
    * @param startTimeSeconds start time in seconds from midnight
    * @param durationSeconds  duration in seconds
-   * @throws PlanItException thrown if error
    */
-  public TimePeriodImpl(IdGroupingToken groupId, long startTimeSeconds, long durationSeconds) throws PlanItException {
+  public TimePeriodImpl(IdGroupingToken groupId, long startTimeSeconds, long durationSeconds) {
     super(IdGenerator.generateId(groupId, TimePeriod.class));
-    PlanItException.throwIf(durationSeconds > (24.0 * 3600), "Duration more than 24 hours");
-    PlanItException.throwIf(startTimeSeconds > (24.0 * 3600), "Start time later than 24 hours");
+    PlanItRunTimeException.throwIf(durationSeconds > (24.0 * 3600), "Duration more than 24 hours");
+    PlanItRunTimeException.throwIf(startTimeSeconds > (24.0 * 3600), "Start time later than 24 hours");
     this.startTimeSeconds = startTimeSeconds;
     this.durationSeconds = durationSeconds;
     this.description = null;
@@ -59,12 +70,11 @@ public class TimePeriodImpl extends ExternalIdAbleImpl implements TimePeriod {
    * @param description      description of this time period
    * @param startTimeSeconds start time of this time period
    * @param durationSeconds  duration of this time period
-   * @throws PlanItException thrown if error
    */
-  public TimePeriodImpl(IdGroupingToken groupId, String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
+  public TimePeriodImpl(IdGroupingToken groupId, String description, long startTimeSeconds, long durationSeconds) {
     super(IdGenerator.generateId(groupId, TimePeriod.class));
-    PlanItException.throwIf(durationSeconds > (24.0 * 3600), "Duration more than 24 hours");
-    PlanItException.throwIf(startTimeSeconds > (24.0 * 3600), "Start time later than 24 hours");
+    PlanItRunTimeException.throwIf(durationSeconds > (24.0 * 3600), "Duration more than 24 hours");
+    PlanItRunTimeException.throwIf(startTimeSeconds > (24.0 * 3600), "Start time later than 24 hours");
     this.startTimeSeconds = startTimeSeconds;
     this.durationSeconds = durationSeconds;
     this.description = description;
@@ -107,6 +117,16 @@ public class TimePeriodImpl extends ExternalIdAbleImpl implements TimePeriod {
   @Override
   public String getDescription() {
     return description;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    long newId = generateId(tokenId);
+    setId(newId);
+    return newId;
   }
 
   /**

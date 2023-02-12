@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.goplanit.demands.modifier.event.DemandsModificationEvent;
+import org.goplanit.demands.modifier.event.DemandsModifierListener;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
@@ -21,7 +23,7 @@ import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener
  *
  * @author markr
  */
-public abstract class SyncXmlIdToIdHandler implements RoutedServicesModifierListener, GraphModifierListener, DirectedGraphModifierListener {
+public abstract class SyncXmlIdToIdHandler implements RoutedServicesModifierListener, GraphModifierListener, DirectedGraphModifierListener, DemandsModifierListener {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(SyncXmlIdToIdHandler.class.getCanonicalName());
@@ -84,6 +86,14 @@ public abstract class SyncXmlIdToIdHandler implements RoutedServicesModifierList
    */
   @Override
   public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
+    onEvent(event);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void onDemandsModificationEvent(DemandsModificationEvent event) {
     onEvent(event);
   }
 }

@@ -3,8 +3,10 @@ package org.goplanit.userclass;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.mode.Mode;
+import org.hsqldb.rights.User;
 
 /**
  * A user class defines a combination of one or more characteristics of users in an aggregate representation of traffic which partially dictate how they behave in traffic
@@ -13,7 +15,7 @@ import org.goplanit.utils.mode.Mode;
  * @author markr
  *
  */
-public class UserClass extends ExternalIdAbleImpl {
+public class UserClass extends ExternalIdAbleImpl implements ManagedId {
 
   /**
    * Name of this user class
@@ -29,6 +31,19 @@ public class UserClass extends ExternalIdAbleImpl {
    * Traveler type of this user class
    */
   private final TravellerType travellerType;
+
+  /**
+   * Generate id for instances of this class based on the token and class identifier
+   *
+   * @param tokenId to use
+   * @return generated id
+   */
+  protected static long generateId(IdGroupingToken tokenId) {
+    return IdGenerator.generateId(tokenId, UserClass.USERCLASS_ID_CLASS);
+  }
+
+  /** id class for generating ids */
+  public static final Class<UserClass> USERCLASS_ID_CLASS = UserClass.class;
 
   /**
    * default name
@@ -65,6 +80,24 @@ public class UserClass extends ExternalIdAbleImpl {
     this.name = other.name;
     this.travellerType = other.travellerType;
     this.mode = other.mode;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    long newId = generateId(tokenId);
+    setId(newId);
+    return newId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Class<? extends UserClass> getIdClass() {
+    return USERCLASS_ID_CLASS;
   }
 
   /**
