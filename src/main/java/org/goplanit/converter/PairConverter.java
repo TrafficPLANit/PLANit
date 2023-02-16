@@ -2,6 +2,7 @@ package org.goplanit.converter;
 
 import java.util.logging.Logger;
 
+import org.goplanit.converter.intermodal.IntermodalReader;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.misc.Pair;
 
@@ -14,10 +15,10 @@ import org.goplanit.utils.misc.Pair;
  * @author markr
  *
  */
-public abstract class MultiConverter<T, U> extends ConverterBase {
+public abstract class PairConverter<T, U> extends ConverterBase {
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(MultiConverter.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(PairConverter.class.getCanonicalName());
 
   /**
    * constructor
@@ -25,7 +26,7 @@ public abstract class MultiConverter<T, U> extends ConverterBase {
    * @param reader to use for parsing
    * @param writer to use for persisting
    */
-  protected MultiConverter(PairConverterReader<T, U> reader, MultiConverterWriter<T, U> writer) {
+  protected PairConverter(PairConverterReader<T, U> reader, PairConverterWriter<T, U> writer) {
     super(reader, writer);
   }
 
@@ -34,19 +35,18 @@ public abstract class MultiConverter<T, U> extends ConverterBase {
    * 
    * @throws PlanItException thrown if error
    */
-  @SuppressWarnings("unchecked")
+  @Override
   public void convert() throws PlanItException {
-
     PairConverterReader<T, U> reader = (PairConverterReader<T, U>) getReader();
     LOGGER.info(String.format("****************** [START] CONVERTER: READ %s [START] ********************", reader.getTypeDescription()));
     Pair<T, U> multiResult = reader.read();
     reader.reset();
     LOGGER.info(String.format("****************** [END]   CONVERTER: READ %s [END]   ********************", reader.getTypeDescription()));
 
-    MultiConverterWriter<T, U> writer = (MultiConverterWriter<T, U>) getWriter();
-    LOGGER.info(String.format("****************** [START] NETWORK CONVERTER: WRITE %s [START] ********************", writer.getTypeDescription()));
+    PairConverterWriter<T, U> writer = (PairConverterWriter<T, U>) getWriter();
+    LOGGER.info(String.format("****************** [START] CONVERTER: WRITE %s [START] ********************", writer.getTypeDescription()));
     writer.write(multiResult.first(), multiResult.second());
     writer.reset();
-    LOGGER.info(String.format("****************** [END]   NETWORK CONVERTER: WRITE %s [END]   ********************", writer.getTypeDescription()));
+    LOGGER.info(String.format("****************** [END]   CONVERTER: WRITE %s [END]   ********************", writer.getTypeDescription()));
   }
 }

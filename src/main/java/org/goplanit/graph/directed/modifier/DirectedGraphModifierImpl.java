@@ -169,13 +169,15 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    */
   @Override
   public void removeEdgeSegment(EdgeSegment edgeSegment) {
-    edgeSegment.removeParentEdge();
     getUntypedDirectedGraph().getEdgeSegments().remove(edgeSegment.getId());
+    if(edgeSegment.getParent() != null){
+      edgeSegment.getParent().removeEdgeSegment(edgeSegment);
+    }
+    edgeSegment.removeParentEdge();
+
     if (hasListener(RemoveSubGraphEdgeSegmentEvent.EVENT_TYPE)) {
       fireEvent(new RemoveSubGraphEdgeSegmentEvent(this, edgeSegment));
     }
-    // edge segments will be removed from edge via overridden removeEdge method
-    // todo remove this line if this works (old: directedEdge.removeEdgeSegments(); here within removeSubgraph implementation before this method existed)
   }
 
   /**

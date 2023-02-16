@@ -11,7 +11,7 @@ import org.goplanit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public interface MultiConverterWriter<T, U> extends ConverterEntity {
+public interface PairConverterWriter<T, U> extends ConverterEntity {
 
   /** Any settings to configure the writer can be configured by collecting these settings
    * 

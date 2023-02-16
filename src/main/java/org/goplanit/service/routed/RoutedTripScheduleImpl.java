@@ -150,12 +150,40 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
   }
 
   /**
-   * Get default
-   * 
-   * @return default dwell time
+   * {@inheritDoc}
    */
+  @Override
   public LocalTime getDefaultDwellTime() {
     return defaultDwellTime;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LocalTime updateDefaultDwellTimeToMostCommon() {
+
+    /* identify most frequency dwell time */
+    var frequency = new TreeMap<LocalTime, Integer>();
+    for(var legTiming : this){
+      int countIncrement = frequency.getOrDefault(legTiming.getDwellTime(),0)+1;
+      frequency.put(legTiming.getDwellTime(), countIncrement);
+    }
+
+    /* found value */
+    var mostFrequent = frequency.entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).get().getKey();
+
+    /* update default */
+    setDefaultDwellTime(mostFrequent);
+
+    /* update relative leg timings */
+    for(var legTiming : this){
+      if(!legTiming.getDwellTime().equals(mostFrequent)){
+        ((RelativeLegTimingImpl)legTiming).setDwellTime(mostFrequent);
+      }
+    }
+
+    return mostFrequent;
   }
 
   /**

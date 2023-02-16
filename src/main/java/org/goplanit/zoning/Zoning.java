@@ -84,17 +84,17 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * unique throughout the combination of the virtual and physical network. Hence, they should use the same network id token
    * 
    * @param groupId        contiguous id generation within this group for instances of this class
-   * @param networkGroupId contiguous id generation for all instances created by the virtual network
+   * @param virtualNetworkGroupId contiguous id generation for all instances created by the virtual network
    */
-  public Zoning(IdGroupingToken groupId, IdGroupingToken networkGroupId) {
+  public Zoning(IdGroupingToken groupId, IdGroupingToken virtualNetworkGroupId) {
     super(groupId, Zoning.class);
-    virtualNetwork = new VirtualNetworkImpl(networkGroupId);
+    virtualNetwork = new VirtualNetworkImpl(virtualNetworkGroupId);
 
-    odConnectoids = new UndirectedConnectoidsImpl(networkGroupId);
-    transferConnectoids = new DirectedConnectoidsImpl(networkGroupId);
-    odZones = new OdZonesImpl(networkGroupId);
-    transferZones = new TransferZonesImpl(networkGroupId);
-    transferZoneGroups = new TransferZoneGroupsImpl(networkGroupId);
+    odConnectoids = new UndirectedConnectoidsImpl(virtualNetworkGroupId);
+    transferConnectoids = new DirectedConnectoidsImpl(virtualNetworkGroupId);
+    odZones = new OdZonesImpl(virtualNetworkGroupId);
+    transferZones = new TransferZonesImpl(virtualNetworkGroupId);
+    transferZoneGroups = new TransferZoneGroupsImpl(virtualNetworkGroupId);
 
     zoningModifier = new ZoningModifierImpl(this);
   }
@@ -128,6 +128,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * @param prefix to use
    */
   public void logInfo(String prefix) {
+    LOGGER.info(String.format("%s XML id %s (external id: %s) ", prefix, getXmlId(), getExternalId()));
     LOGGER.info(String.format("%s#od zones: %d (#centroids: %d)", prefix, odZones.size(), odZones.getNumberOfCentroids()));
     LOGGER.info(String.format("%s#od connectoids: %d", prefix, odConnectoids.size()));
     if (!transferZones.isEmpty()) {

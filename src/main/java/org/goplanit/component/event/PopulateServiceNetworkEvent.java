@@ -1,7 +1,9 @@
 package org.goplanit.component.event;
 
 import org.goplanit.component.PlanitComponentFactory;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
+import org.goplanit.zoning.Zoning;
 
 /**
  * A Populate service network event is fired when PLANit requests for a registered listener to populate the newly created service network instance. It is assumed only a single
@@ -21,9 +23,10 @@ public class PopulateServiceNetworkEvent extends PopulateUntypedComponentEvent {
    * 
    * @param source            of the event
    * @param networkToPopulate service network to populate
+   * @param parentNetwork to use
    */
-  public PopulateServiceNetworkEvent(final PlanitComponentFactory<?> source, final ServiceNetwork networkToPopulate) {
-    super(EVENT_TYPE, source, networkToPopulate, null);
+  public PopulateServiceNetworkEvent(final PlanitComponentFactory<?> source, final ServiceNetwork networkToPopulate, MacroscopicNetwork parentNetwork) {
+    super(EVENT_TYPE, source, networkToPopulate, parentNetwork);
   }
 
   /**
@@ -33,6 +36,15 @@ public class PopulateServiceNetworkEvent extends PopulateUntypedComponentEvent {
    */
   public ServiceNetwork getServiceNetworkToPopulate() {
     return (ServiceNetwork) getComponentToPopulate();
+  }
+
+  /**
+   * collect parent network to relate to
+   *
+   * @return network
+   */
+  public MacroscopicNetwork getParentNetwork() {
+    return (MacroscopicNetwork) getAdditionalContent()[0];
   }
 
 }

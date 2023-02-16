@@ -4,6 +4,7 @@ import org.goplanit.converter.PairConverterReader;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.service.routed.RoutedServices;
+import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.zoning.Zoning;
 
@@ -30,6 +31,6 @@ public interface IntermodalReader<T extends ServiceNetwork,U extends RoutedServi
    */
   public abstract boolean supportServiceConversion();
 
-  public abstract Quadruple<MacroscopicNetwork, Zoning, T, U> readWithServices();
+  public abstract Quadruple<MacroscopicNetwork, Zoning, T, U> readWithServices() throws PlanItException;
 
 }

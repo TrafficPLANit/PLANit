@@ -195,13 +195,10 @@ public class PlanItProjectInput {
 
     /* log info across layers */
     String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.networkPrefix(infrastructureNetwork.getId());
-    LOGGER.info(String.format("%s#modes: %d", prefix, infrastructureNetwork.getModes().size()));    
-    
-    /* for each layer log information regarding contents */
-    for(NetworkLayer networkLayer : infrastructureNetwork.getTransportLayers()) {
-      networkLayer.logInfo(prefix);
-    }
-    
+    LOGGER.info(String.format("%s#modes: %d", prefix, infrastructureNetwork.getModes().size()));
+
+    infrastructureNetwork.logInfo(prefix);
+
     physicalNetworks.register(infrastructureNetwork);
     return infrastructureNetwork;
   }

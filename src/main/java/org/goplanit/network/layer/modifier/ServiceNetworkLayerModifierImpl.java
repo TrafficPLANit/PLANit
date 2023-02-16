@@ -92,7 +92,7 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
 
     var toBeRemovedServiceLegs =
             graph.getEdges().stream().filter(
-                    e -> e.getVertexA()==null || e.getVertexB()==null).collect(Collectors.toList());
+                    e -> e.getVertexA()==null || e.getVertexB()==null || !e.hasEdgeSegment()).collect(Collectors.toList() );
     toBeRemovedServiceLegs.forEach( e -> this.graphModifier.removeEdge(e));
     LOGGER.info(String.format("%s Removed %d service legs without a mapping to physical network", serviceLayerLoggingPrefix, toBeRemovedServiceLegs.size()));
 

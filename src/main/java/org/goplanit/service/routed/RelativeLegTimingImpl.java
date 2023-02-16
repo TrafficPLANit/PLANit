@@ -20,7 +20,7 @@ public class RelativeLegTimingImpl implements RelativeLegTiming {
   private final LocalTime duration;
 
   /** dwell time at the destination of the leg */
-  private final LocalTime dwellTime;
+  private LocalTime dwellTime;
 
   /**
    * Constructor
@@ -70,5 +70,14 @@ public class RelativeLegTimingImpl implements RelativeLegTiming {
   @Override
   public LocalTime getDwellTime() {
     return dwellTime;
+  }
+
+  /**
+   * Replace the dwell time with a new dwell time
+   *
+   * @param dwellTime to set
+   */
+  public void setDwellTime(LocalTime dwellTime){
+    this.dwellTime = dwellTime;
   }
 }

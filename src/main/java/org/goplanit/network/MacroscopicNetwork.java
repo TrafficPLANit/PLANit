@@ -7,6 +7,7 @@ import org.apache.commons.collections4.map.HashedMap;
 import org.goplanit.network.layer.macroscopic.MacroscopicGridNetworkLayerGenerator;
 import org.goplanit.network.layers.MacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.NetworkLayer;
@@ -75,7 +76,11 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
 
   @Override
   public void logInfo(String prefix) {
-
+    LOGGER.info(String.format("%s XML id %s (external id: %s) has %d layers", prefix, getXmlId(), getExternalId(), getTransportLayers().size()));
+    /* for each layer log information regarding contents */
+    for(NetworkLayer networkLayer : getTransportLayers()) {
+      networkLayer.logInfo(LoggingUtils.networkLayerPrefix(networkLayer.getId()));
+    }
   }
 
   /**
