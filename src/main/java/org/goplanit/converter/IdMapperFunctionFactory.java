@@ -9,6 +9,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.ExternalIdAble;
+import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
@@ -18,6 +19,7 @@ import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.service.routed.RoutedService;
 import org.goplanit.utils.service.routed.RoutedTrip;
 import org.goplanit.utils.service.routed.RoutedTripDeparture;
+import org.goplanit.utils.service.routed.RoutedTripSchedule;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.TransferZoneGroup;
@@ -230,5 +232,15 @@ public class IdMapperFunctionFactory {
    */
   public static Function<RoutedService, String> createRoutedServiceIdMappingFunction(IdMapperType idMapper) {
     return createIdMappingFunction(RoutedService.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a RoutedTripSchedule and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates RoutedTripSchedule ids
+   */
+  public static Function<RoutedTripSchedule, String> createRoutedTripScheduleIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(RoutedTripSchedule.class , idMapper);
   }
 }

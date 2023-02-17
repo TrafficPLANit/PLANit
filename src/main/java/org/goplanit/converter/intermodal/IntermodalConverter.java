@@ -45,6 +45,16 @@ public class IntermodalConverter<T extends ServiceNetwork, U extends RoutedServi
   }
 
   /**
+   * Support conversion fo PLANit network and zoning without services
+   *
+   * @throws PlanItException thrown when error
+   */
+  public void convert() throws PlanItException {
+    LOGGER.info("Convering without services, invoke convertWithServices() to include services in this conversion");
+    super.convert();
+  }
+
+  /**
    * Support conversion fo PLANit network and zoning with services
    *
    * @throws PlanItException thrown when error
