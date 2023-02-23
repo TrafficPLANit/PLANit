@@ -1,7 +1,9 @@
 package org.goplanit.service.routed;
 
 import java.time.LocalTime;
+import java.util.Objects;
 
+import org.goplanit.utils.misc.HashUtils;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.service.routed.RelativeLegTiming;
 
@@ -79,5 +81,24 @@ public class RelativeLegTimingImpl implements RelativeLegTiming {
    */
   public void setDwellTime(LocalTime dwellTime){
     this.dwellTime = dwellTime;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    RelativeLegTimingImpl that = (RelativeLegTimingImpl) o;
+    return Objects.equals(parentLegSegment, that.parentLegSegment) && Objects.equals(duration, that.duration) && Objects.equals(dwellTime, that.dwellTime);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(parentLegSegment.getId(), duration, dwellTime);
   }
 }
