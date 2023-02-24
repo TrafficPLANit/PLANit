@@ -26,7 +26,9 @@ import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
 
 import java.beans.EventHandler;
 import java.util.*;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of {@link RoutedServicesLayerModifier}
@@ -445,6 +447,47 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
 
     /* after truncation routed services all internal ids need to be recreated to ensure contiguous ids throughout the routed services */
     recreateManagedEntitiesIds();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void consolidateIdenticallyScheduledTrips(Mode mode) {
+    var servicesByMode = routedServicesLayer.getServicesByMode(mode);
+    if(servicesByMode == null || servicesByMode.isEmpty()){
+      return;
+    }
+
+    LongAdder consolidatedTripSchedules = new LongAdder();
+    LongAdder removedTripSchedules = new LongAdder();
+    for(var routedService : servicesByMode){
+      if(!routedService.getTripInfo().hasScheduleBasedTrips()){
+        continue;
+      }
+      Set<RoutedTripSchedule> schedulesToRemoveAfterConsolidation = new HashSet<>();
+
+      var scheduleBasedTrips = routedService.getTripInfo().getScheduleBasedTrips();
+      /* group all schedules based on having identical relative leg timings */
+      var groupedByRelativeSchedule = scheduleBasedTrips.groupBy( rts -> rts.getRelativeLegTimingsAsStream().collect(Collectors.toList()));
+      for(var schedulesToConsolidate : groupedByRelativeSchedule.values()){
+        if(schedulesToConsolidate.size()<=1){
+          continue;
+        }
+
+        /* multiple entries, consolidate into first schedule by adding departures of others to it */
+        var referenceDeparturesToSupplement = schedulesToConsolidate.remove(0).getDepartures();
+        schedulesToConsolidate.stream().flatMap(schedule -> schedule.getDepartures().stream()).forEach( departure -> referenceDeparturesToSupplement.register(departure));
+        /* mark all but first (reused) for removal */
+        schedulesToRemoveAfterConsolidation.addAll(schedulesToConsolidate);
+        consolidatedTripSchedules.increment();
+      }
+
+      routedService.getTripInfo().getScheduleBasedTrips().removeAll(schedulesToRemoveAfterConsolidation);
+      removedTripSchedules.add(schedulesToRemoveAfterConsolidation.size());
+    }
+
+    LOGGER.info(String.format("Consolidated PLANit trip schedules (mode: %s), remaining consolidated: %d, removed: %d", mode.getName(), consolidatedTripSchedules.intValue(), removedTripSchedules.intValue()));
   }
 
   /**

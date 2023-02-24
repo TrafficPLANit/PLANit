@@ -180,17 +180,21 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    */
   @Override
   public void logInfo(String prefix) {
-    LOGGER.info(String.format("%s [layer: %s]", prefix, getXmlId()));
     for (RoutedModeServices modeServices : this) {
+      if(modeServices.size()<=0){
+        LOGGER.info(String.format("%s[mode: %s] no services present", prefix, modeServices.getMode().getXmlId()));
+        continue;
+      }
+
       int numScheduleBasedTrips = 0;
       int numFrequencyBasedTrips = 0;
-      LOGGER.info(String.format("%s [layer: %s] [mode: %s] #routedServices: %d", prefix, getXmlId(), modeServices.getMode().getXmlId(), modeServices.size()));
+      LOGGER.info(String.format("%s[mode: %s] #routedServices: %d", getXmlId(), modeServices.getMode().getXmlId(), modeServices.size()));
       for(var entry : modeServices){
         numScheduleBasedTrips += entry.getTripInfo().getScheduleBasedTrips().size();
         numFrequencyBasedTrips += entry.getTripInfo().getFrequencyBasedTrips().size();
       }
-      LOGGER.info(String.format("%s [layer: %s] [mode: %s] #schedule-trips: %d", prefix, getXmlId(), modeServices.getMode().getXmlId(), numScheduleBasedTrips));
-      LOGGER.info(String.format("%s [layer: %s] [mode: %s] #frequency-trips: %d", prefix, getXmlId(), modeServices.getMode().getXmlId(), numFrequencyBasedTrips));
+      LOGGER.info(String.format("%s[mode: %s] #schedule-trips: %d", getXmlId(), modeServices.getMode().getXmlId(), numScheduleBasedTrips));
+      LOGGER.info(String.format("%s[mode: %s] #frequency-trips: %d", getXmlId(), modeServices.getMode().getXmlId(), numFrequencyBasedTrips));
     }
   }
 
