@@ -213,6 +213,10 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
     for(var relLegTiming : this){
       usedServiceNodes.add(relLegTiming.getParentLegSegment().getUpstreamServiceNode());
     }
+    if(usedServiceNodes.isEmpty()){
+      return usedServiceNodes;
+    }
+
     usedServiceNodes.add(getRelativeLegTiming(getRelativeLegTimingsSize()-1).getParentLegSegment().getDownstreamServiceNode());
     return usedServiceNodes;
   }

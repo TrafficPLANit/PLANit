@@ -513,7 +513,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
    * {@inheritDoc}
    */
   @Override
-  public void removeRoutedServicesWithoutTrips(boolean recreateManagedEntitiesIds, Mode... modes) {
+  public void removeRoutedServicesWithoutTrips(boolean recreateRoutedServiceManagedIds, Mode... modes) {
 
     boolean removedAnything = false;
     for(Mode mode : modes){
@@ -531,8 +531,8 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
       }
     }
 
-    if(recreateManagedEntitiesIds && removedAnything){
-      recreateManagedEntitiesIds();
+    if(recreateRoutedServiceManagedIds && removedAnything){
+      recreateRoutedServicesIds();
     }
   }
 
