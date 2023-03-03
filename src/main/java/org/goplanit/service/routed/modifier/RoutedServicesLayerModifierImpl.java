@@ -12,7 +12,9 @@ import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.misc.CharacterUtils;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.service.routed.*;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesLayerModifier;
@@ -430,6 +432,9 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
    *
    *  Note that this implementation will automatically overwrite all pre-existing XML ids with the internal ids of all managed id containers within the routed services layer to ensure
    *  uniqueness on both levels of ids.
+   *  <p>
+   *    Listeners can be registered for existing id modification events
+   *  </p>
    *
    *  If, for some reason, the provided services by mode have no (more) entries the services by mode are removed from the layer. Same goes for routed services that have
    *  no more trips
@@ -465,6 +470,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
       if(!routedService.getTripInfo().hasScheduleBasedTrips()){
         continue;
       }
+
       Set<RoutedTripSchedule> schedulesToRemoveAfterConsolidation = new HashSet<>();
 
       var scheduleBasedTrips = routedService.getTripInfo().getScheduleBasedTrips();
@@ -476,10 +482,13 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
         }
 
         /* multiple entries, consolidate into first schedule by adding departures of others to it */
-        var referenceDeparturesToSupplement = schedulesToConsolidate.remove(0).getDepartures();
+        var referenceTripSchedule = schedulesToConsolidate.remove(0);
+        var referenceDeparturesToSupplement = referenceTripSchedule.getDepartures();
         schedulesToConsolidate.stream().flatMap(schedule -> schedule.getDepartures().stream()).forEach( departure -> referenceDeparturesToSupplement.register(departure));
         /* mark all but first (reused) for removal */
         schedulesToRemoveAfterConsolidation.addAll(schedulesToConsolidate);
+        /* add external ids to remaining trip schedule to not lose information */
+        schedulesToConsolidate.stream().filter(s -> s.hasExternalId()).forEach( s -> referenceTripSchedule.appendExternalId(s.getExternalId(), CharacterUtils.COMMA));
         consolidatedTripSchedules.increment();
       }
 
@@ -487,25 +496,29 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
       removedTripSchedules.add(schedulesToRemoveAfterConsolidation.size());
     }
 
-    LOGGER.info(String.format("Consolidated PLANit trip schedules (mode: %s), remaining consolidated: %d, removed: %d", mode.getName(), consolidatedTripSchedules.intValue(), removedTripSchedules.intValue()));
+    LOGGER.info(String.format("%sConsolidated PLANit trip schedules (mode: %s), remaining consolidated: %d, removed: %d",
+        LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), mode.getName(), consolidatedTripSchedules.intValue(), removedTripSchedules.intValue()));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void removeEmptyRoutedServicesByMode(boolean recreateManagedEntitiesIds) {
+  public void removeEmptyRoutedServicesByMode(boolean recreateRoutedServicesManagedEntitiesIds) {
     boolean removedAnything = false;
     var iter = this.routedServicesLayer.iterator();
     while(iter.hasNext()){
-      if(iter.next().isEmpty()){
+      var routedServiceForMode = iter.next();
+      if(routedServiceForMode.isEmpty()){
+        LOGGER.info(String.format("%sRemove routed services container for mode: %s, no services identified",
+            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), routedServiceForMode.getMode().getName()));
         iter.remove();
         removedAnything = removedAnything || true ;
       }
     }
 
-    if(recreateManagedEntitiesIds && removedAnything){
-      recreateManagedEntitiesIds();
+    if(recreateRoutedServicesManagedEntitiesIds && removedAnything){
+      recreateRoutedServicesIds();
     }
   }
 
@@ -536,6 +549,98 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeScheduledTripsWithoutLegs(boolean recreateManagedEntitiesIds, Mode... modes) {
+    boolean removedAnything = false;
+
+    for(Mode mode : modes){
+      var servicesByMode = this.routedServicesLayer.getServicesByMode(mode);
+      if(servicesByMode.isEmpty()){
+        continue;
+      }
+
+      /* collect all trips' schedule pairs which schedule has no relative leg timings */
+      var tripsWithEmptyLegTimings =
+          servicesByMode.stream().filter( r -> r.getTripInfo().hasScheduleBasedTrips()).flatMap( r -> r.getTripInfo().getScheduleBasedTrips().stream().map( rts -> Pair.of(r, rts))).filter(
+              tripSchedulePair -> !tripSchedulePair.second().hasRelativeLegTimings()).collect(Collectors.toList());
+      if(!tripsWithEmptyLegTimings.isEmpty()){
+        /* perform removal of found entries (implicitly removes departures associated with this schedule as well*/
+        tripsWithEmptyLegTimings.forEach( pair -> pair.first().getTripInfo().getScheduleBasedTrips().remove(pair.second()));
+
+        /* logging */
+        LOGGER.info(String.format("%sRemoved %d trip schedules with only a single stop for mode %s",
+            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()),  tripsWithEmptyLegTimings.size(), servicesByMode.getMode()));
+        removedAnything = true;
+      }
+    }
+
+    if(recreateManagedEntitiesIds && removedAnything){
+      recreateRoutedTripsIds();
+      recreateRoutedTripScheduleDepartureIds();
+    }
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeDuplicateTripDepartures(boolean recreateManagedDepartureIds) {
+    boolean removedAnything = false;
+
+    /* for all services by mode */
+    for(Mode mode : this.routedServicesLayer.getSupportedModesWithServices()){
+      LongAdder removedDuplicates = new LongAdder();
+
+      var servicesByMode = this.routedServicesLayer.getServicesByMode(mode);
+      if(servicesByMode.isEmpty()){
+        continue;
+      }
+
+      /* for each service */
+      for(var routedService : servicesByMode){
+        if(!routedService.getTripInfo().hasScheduleBasedTrips()){
+          continue;
+        }
+
+        /* for each schedule */
+        for(var routedTripSchedule : routedService.getTripInfo().getScheduleBasedTrips()){
+          Collection<RoutedTripDeparture> toBeRemovedDepartures = null;
+
+          RoutedTripDeparture prevDeparture = null;
+          /* for each departure - loop in ascending order of departure times, then extract duplicates (if any) */
+          for(var departure : routedTripSchedule.getDepartures().streamAscDepartureTime().collect(Collectors.toList())){
+            if(prevDeparture != null && prevDeparture.getDepartureTime().equals(departure.getDepartureTime())){
+              toBeRemovedDepartures = (toBeRemovedDepartures==null) ? new ArrayList<>(2) : toBeRemovedDepartures;
+              toBeRemovedDepartures.add(departure);
+            }
+            prevDeparture = departure;
+          }
+
+          /* remove duplicate entries */
+          if(toBeRemovedDepartures != null){
+            toBeRemovedDepartures.forEach(d -> routedTripSchedule.getDepartures().remove(d));
+            removedDuplicates.add(toBeRemovedDepartures.size());
+            removedAnything = true;
+          }
+        }
+      }
+
+      /* logging */
+      if(removedDuplicates.longValue() > 0) {
+        LOGGER.info(String.format("%sRemoved %d duplicate departures across all routed trip schedules for mode %s",
+            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), removedDuplicates.longValue(), servicesByMode.getMode()));
+      }
+    }
+
+
+    if(recreateManagedDepartureIds && removedAnything){
+      recreateRoutedTripScheduleDepartureIds();
+    }
+  }
 
   /**
    * {@inheritDoc}

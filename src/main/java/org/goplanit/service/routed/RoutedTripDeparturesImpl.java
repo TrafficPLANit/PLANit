@@ -3,7 +3,6 @@ package org.goplanit.service.routed;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.service.routed.RoutedTripDeparture;
-import org.goplanit.utils.service.routed.RoutedTripDepartureFactory;
 import org.goplanit.utils.service.routed.RoutedTripDepartures;
 
 import java.time.LocalTime;

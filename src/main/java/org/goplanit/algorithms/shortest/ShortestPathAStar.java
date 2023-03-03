@@ -137,10 +137,6 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
           continue;
         }
 
-//        if(adjacentEdgeSegment.getParent().hasExternalId() && adjacentEdgeSegment.getParent().getExternalId().equals("279958930")){
-//          int bla = 4;
-//        }
-
         int adjacentVertexId = (int) adjacentEdgeSegment.getDownstreamVertex().getId();
 
         // edge cost

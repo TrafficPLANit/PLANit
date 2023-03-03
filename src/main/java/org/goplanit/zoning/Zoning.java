@@ -129,12 +129,12 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    */
   public void logInfo(String prefix) {
     LOGGER.info(String.format("%s XML id %s (external id: %s) ", prefix, getXmlId(), getExternalId()));
-    LOGGER.info(String.format("%s#od zones: %d (#centroids: %d)", prefix, odZones.size(), odZones.getNumberOfCentroids()));
-    LOGGER.info(String.format("%s#od connectoids: %d", prefix, odConnectoids.size()));
+    LOGGER.info(String.format("%s #od zones: %d (#centroids: %d)", prefix, odZones.size(), odZones.getNumberOfCentroids()));
+    LOGGER.info(String.format("%s #od connectoids: %d", prefix, odConnectoids.size()));
     if (!transferZones.isEmpty()) {
-      LOGGER.info(String.format("%s#transfer connectoids: %d", prefix, transferConnectoids.size()));
-      LOGGER.info(String.format("%s#transfer zones: %d", prefix, transferZones.size(), transferZones.getNumberOfCentroids()));
-      LOGGER.info(String.format("%s#transfer zone groups: %d", prefix, transferZoneGroups.size()));
+      LOGGER.info(String.format("%s #transfer connectoids: %d", prefix, transferConnectoids.size()));
+      LOGGER.info(String.format("%s #transfer zones: %d", prefix, transferZones.size(), transferZones.getNumberOfCentroids()));
+      LOGGER.info(String.format("%s #transfer zone groups: %d", prefix, transferZoneGroups.size()));
     }
   }
 
