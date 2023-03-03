@@ -66,7 +66,7 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
    */
   @Override
   public MacroscopicLinkSegmentType getByXmlId(String xmlId) {
-    return findFirst(type -> xmlId.equals(((MacroscopicLinkSegmentType) type).getXmlId()));
+    return firstMatch(type -> xmlId.equals(((MacroscopicLinkSegmentType) type).getXmlId()));
   }
 
   /**

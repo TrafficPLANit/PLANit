@@ -76,7 +76,7 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    */
   @Override
   public Mode getByXmlId(String xmlId) {
-    return findFirst(mode -> xmlId.equals(((Mode) mode).getXmlId()));
+    return firstMatch(mode -> xmlId.equals(((Mode) mode).getXmlId()));
   }
 
   /**

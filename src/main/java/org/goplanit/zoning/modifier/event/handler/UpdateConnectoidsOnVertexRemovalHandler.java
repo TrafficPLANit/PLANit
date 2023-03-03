@@ -50,18 +50,18 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
     if (zoning == null) {
       LOGGER.severe(String.format("Zoning is null when initialising in %s, %s invalid", this.getClass().getName()));
     }
-    connectoidsByAccessVertex = new HashMap<DirectedVertex, ArrayList<Connectoid>>();
+    connectoidsByAccessVertex = new HashMap<>();
     for (var connectoid : zoning.getOdConnectoids()) {
       var accessVertex = connectoid.getAccessVertex();
       if (accessVertex != null) {
-        connectoidsByAccessVertex.putIfAbsent(accessVertex, new ArrayList<Connectoid>(1));
+        connectoidsByAccessVertex.putIfAbsent(accessVertex, new ArrayList<>(1));
         connectoidsByAccessVertex.get(accessVertex).add(connectoid);
       }
     }
     for (var connectoid : zoning.getTransferConnectoids()) {
       var accessVertex = connectoid.getAccessVertex();
       if (accessVertex != null) {
-        connectoidsByAccessVertex.putIfAbsent(accessVertex, new ArrayList<Connectoid>(1));
+        connectoidsByAccessVertex.putIfAbsent(accessVertex, new ArrayList<>(1));
         connectoidsByAccessVertex.get(accessVertex).add(connectoid);
       }
     }

@@ -60,7 +60,7 @@ public abstract class TransportLayersImpl<T extends NetworkLayer> extends Manage
    */
   @Override
   public T get(final Mode mode) {
-    return findFirst(layer -> layer.supports(mode));
+    return firstMatch(layer -> layer.supports(mode));
   }
 
   /**
@@ -68,7 +68,7 @@ public abstract class TransportLayersImpl<T extends NetworkLayer> extends Manage
    */
   @Override
   public T getByXmlId(String xmlId) {
-    return findFirst(layer -> layer.getXmlId().equals(xmlId));
+    return firstMatch(layer -> layer.getXmlId().equals(xmlId));
   }
 
   /**

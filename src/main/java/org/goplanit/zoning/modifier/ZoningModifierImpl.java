@@ -3,21 +3,20 @@ package org.goplanit.zoning.modifier;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
-import org.goplanit.utils.zoning.OdZone;
-import org.goplanit.utils.zoning.TransferZone;
-import org.goplanit.utils.zoning.TransferZoneGroup;
-import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.network.layers.ServiceNetworkLayers;
+import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
 import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierEventType;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierListener;
-import org.goplanit.zoning.ConnectoidsImpl;
-import org.goplanit.zoning.TransferZoneGroupsImpl;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
 import org.goplanit.zoning.modifier.event.RecreatedZoningEntitiesManagedIdsEvent;
@@ -36,9 +35,9 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
    * register listeners for the internally fired events on the internally known containers of the zoning
    */
   private void addInternalEventListeners() {
-    this.addListener((ConnectoidsImpl<?>) zoning.getOdConnectoids());
-    this.addListener((ConnectoidsImpl<?>) zoning.getTransferConnectoids());
-    this.addListener((TransferZoneGroupsImpl) zoning.getTransferZoneGroups());
+    this.addListener(zoning.getOdConnectoids());
+    this.addListener(zoning.getTransferConnectoids());
+    this.addListener(zoning.getTransferZoneGroups());
   }
 
   /**
@@ -70,6 +69,22 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   }
 
   /**
+   * recreate part of zone ids (od zones)
+   */
+  protected void recreateOdZoneIds(boolean resetIds) {
+    zoning.getOdZones().recreateIds(resetIds);
+    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getOdZones()));
+  }
+
+  /**
+   * recreate part of zone ids (transfer zones)
+   */
+  protected void recreateTransferZoneIds(boolean resetIds) {
+    zoning.getTransferZones().recreateIds(resetIds);
+    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getTransferZones()));
+  }
+
+  /**
    * constructor
    * 
    * @param zoning instance to apply modifications on
@@ -90,9 +105,11 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
      */
     boolean recreateManagedIdClass = true;
     zoning.getOdConnectoids().recreateIds(recreateManagedIdClass);
+    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getOdConnectoids()));
 
     recreateManagedIdClass = false;
     zoning.getTransferConnectoids().recreateIds(recreateManagedIdClass);
+    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getTransferConnectoids()));
   }
 
   /**
@@ -104,11 +121,10 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
      * both connectoids containers use the same underlying id generated for the zone managed id, so it is unique across the two containers. Hence, we should only reset it once,
      * otherwise it is no longer unique across both when recreating the ids
      */
-    boolean resetManagedIdClass = true;
-    zoning.getOdZones().recreateIds(resetManagedIdClass);
-    resetManagedIdClass = false;
-    zoning.getTransferZones().recreateIds(resetManagedIdClass);
+    recreateOdZoneIds(true);
+    recreateTransferZoneIds(false);
 
+    // used internally by connectoids for example, todo: ideally replace by using the RecreatedZoningEntitiesManagedIdsEvent instead, ugly to have two different events for the same thing
     fireEvent(new ModifiedZoneIdsEvent(this, zoning));
   }
 
@@ -118,20 +134,19 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   @Override
   public void recreateTransferZoneGroupIds() {
     zoning.getTransferZoneGroups().recreateIds();
+    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getTransferZoneGroups()));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void removeDanglingZones() {
-    /* identify all dangling zones */
-    Set<Zone> danglingZones = new HashSet<>(zoning.getOdZones().toCollection());
-    danglingZones.addAll(zoning.getTransferZones().toCollection());
-    zoning.getOdConnectoids().forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));
+  public void removeDanglingTransferZones(boolean recreateZoneIds) {
+    /* identify all dangling transfer zones */
+    Set<Zone> danglingZones = new HashSet<>(zoning.getTransferZones().toCollection());
     zoning.getTransferConnectoids().forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));
 
-    /* remove all remaining zones that are not referenced by any connectoid */
+    /* remove all zones that are not referenced by any connectoid */
     if (!danglingZones.isEmpty()) {
       for (Zone danglingZone : danglingZones) {
         removeZone(danglingZone);
@@ -141,7 +156,11 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
       }
 
       /* recreate the ids (and their references within the zoning) if any */
-      recreateZoneIds();
+      if(recreateZoneIds) {
+        recreateZoneIds();
+      }
+
+      LOGGER.info(String.format("%sRemoved %d dangling transfer zones", LoggingUtils.zoningPrefix(zoning.getId()), danglingZones.size()));
     }
   }
 
@@ -149,22 +168,92 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
    * {@inheritDoc}
    */
   @Override
+  public void removeDanglingOdZones(boolean recreateZoneIds) {
+    /* identify all dangling OD zones */
+    Set<Zone> danglingZones = new HashSet<>(zoning.getOdZones().toCollection());
+    zoning.getOdConnectoids().forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));
+
+    if (!danglingZones.isEmpty()) {
+      for (Zone danglingZone : danglingZones) {
+        removeZone(danglingZone);
+
+        /* remove all zones that are not referenced by any connectoid */
+        if (recreateZoneIds) {
+          /* recreate the ids (and their references within the zoning) if any */
+          recreateZoneIds();
+        }
+      }
+
+      LOGGER.info(String.format("%sRemoved %d dangling OD zones", LoggingUtils.zoningPrefix(zoning.getId()), danglingZones.size()));
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeDanglingZones() {
+    /* remove all dangling zones, recreate ids only at the end for both (since they share uniqueness of the ids) */
+    removeDanglingTransferZones(false);
+    removeDanglingOdZones(true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void removeDanglingTransferZoneGroups() {
-    boolean groupRemoved = false;
+
+    LongAdder counter = new LongAdder();
     /* remove group if dangling */
     Iterator<TransferZoneGroup> iterator = zoning.getTransferZoneGroups().iterator();
     while (iterator.hasNext()) {
       TransferZoneGroup group = iterator.next();
       if (group.isEmpty()) {
         iterator.remove();
-        groupRemoved = true;
+        counter.increment();
       }
     }
 
     /* recreate the ids if any */
-    if (groupRemoved) {
+    if (counter.longValue()>0) {
       recreateTransferZoneGroupIds();
+
+      LOGGER.info(String.format("%sRemoved %d dangling transfer zone groups", LoggingUtils.zoningPrefix(zoning.getId()), counter.longValue()));
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeUnusedTransferConnectoids(final ServiceNetworkLayers serviceNetworkLayers, boolean recreateManagedConnectoidIds) {
+    /* partition by physical layer - because a connectoids only relates to a single layer, entries do not occur twice */
+    var physicalLayers = serviceNetworkLayers.stream().map(snl -> snl.getParentNetworkLayer()).collect(Collectors.toList());
+    var transferConnectoidsByPhysicalLayer =
+        this.zoning.getTransferConnectoids().groupByPhysicalLayerAndCustomKey(physicalLayers, DirectedConnectoid::getAccessNode);
+
+    LongAdder counter = new LongAdder();
+    for(var serviceNetworkLayer : serviceNetworkLayers){
+
+      var serviceNodesByPhysicalNode = serviceNetworkLayer.getServiceNodes().groupBy( sn -> sn.getPhysicalParentNode());
+      serviceNodesByPhysicalNode.remove(null); // make sure that unmapped service nodes do not cause issues
+
+      /* from all entries remove entries for which a service node exists --> remaining entries are the ones to remove*/
+      var transferConnectoidsByPhysicalAccessNodeToRemove = transferConnectoidsByPhysicalLayer.get(serviceNetworkLayer.getParentNetworkLayer());
+      var physicalNodesWithServices = serviceNodesByPhysicalNode.keySet();
+      physicalNodesWithServices.forEach( accessNode -> transferConnectoidsByPhysicalAccessNodeToRemove.remove(accessNode)); // prune
+
+      /* remove identified entries from zoning */
+      transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().flatMap(l -> l.stream()).forEach(
+          transferConnectoidToRemove -> zoning.getTransferConnectoids().remove(transferConnectoidToRemove));
+      counter.add(transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().collect(Collectors.summingInt(l -> l.size())));
+    }
+
+    if(recreateManagedConnectoidIds) {
+      recreateConnectoidIds();
+    }
+    LOGGER.info(String.format("%sRemoved %d unused transfer connectoids", LoggingUtils.zoningPrefix(zoning.getId()), counter.longValue()));
   }
 
   /**
@@ -173,13 +262,8 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   @Override
   public void recreateManagedIdEntities() {
     recreateConnectoidIds();
-    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getOdConnectoids()));
-    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getTransferConnectoids()));
     recreateZoneIds();
-    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getOdZones()));
-    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getTransferZones()));
     recreateTransferZoneGroupIds();
-    fireEvent(new RecreatedZoningEntitiesManagedIdsEvent(this, zoning.getTransferZoneGroups()));
   }
 
   /**

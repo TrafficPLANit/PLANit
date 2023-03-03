@@ -1,14 +1,8 @@
 package org.goplanit.demands;
 
-import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.wrapper.LongMapWrapperImpl;
-
-import java.util.HashMap;
 
 /**
  * Inner class to register and store user classes for the current demand object
@@ -64,7 +58,7 @@ public class UserClasses extends ManagedIdEntitiesImpl<UserClass> {
    * @return the retrieved user class, or null if no user class was found
    */
   public UserClass getUserClassByXmlId(String xmlId) {
-    return findFirst(userClass -> xmlId.equals(((UserClass) userClass).getXmlId()));
+    return firstMatch(userClass -> xmlId.equals(((UserClass) userClass).getXmlId()));
   }
 
   /**

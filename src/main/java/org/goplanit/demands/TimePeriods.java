@@ -1,15 +1,9 @@
 package org.goplanit.demands;
 
-import org.goplanit.service.routed.RoutedTripDepartureFactoryImpl;
-import org.goplanit.time.TimePeriodImpl;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.*;
-import org.goplanit.utils.service.routed.RoutedTripDeparture;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.time.TimePeriodUtils;
-import org.goplanit.utils.wrapper.LongMapWrapperImpl;
 
-import java.util.HashMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -68,7 +62,7 @@ public class TimePeriods extends ManagedIdEntitiesImpl<TimePeriod> implements Ma
    * @return the retrieved time period, or null if no time period was found
    */
   public TimePeriod getByXmlId(final String xmlId) {
-    return findFirst(timePeriod -> xmlId.equals(timePeriod.getXmlId()));
+    return firstMatch(timePeriod -> xmlId.equals(timePeriod.getXmlId()));
   }
 
   /**

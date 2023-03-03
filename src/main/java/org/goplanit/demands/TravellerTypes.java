@@ -2,10 +2,6 @@ package org.goplanit.demands;
 
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.utils.id.*;
-import org.goplanit.utils.time.TimePeriod;
-import org.goplanit.utils.wrapper.LongMapWrapperImpl;
-
-import java.util.HashMap;
 
 /**
  * Inner class to register and store traveler types
@@ -53,7 +49,7 @@ public class TravellerTypes extends ManagedIdEntitiesImpl<TravellerType> impleme
    * @return the retrieved traveler type, or null if no traveler type was found
    */
   public TravellerType getByXmlId(String xmlId) {
-    return findFirst(travelerType -> xmlId.equals(((TravellerType) travelerType).getXmlId()));
+    return firstMatch(travelerType -> xmlId.equals(((TravellerType) travelerType).getXmlId()));
   }
 
   /**
