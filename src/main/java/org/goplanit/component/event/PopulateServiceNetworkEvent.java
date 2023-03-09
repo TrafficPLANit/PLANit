@@ -23,10 +23,9 @@ public class PopulateServiceNetworkEvent extends PopulateUntypedComponentEvent {
    * 
    * @param source            of the event
    * @param networkToPopulate service network to populate
-   * @param parentNetwork to use
    */
-  public PopulateServiceNetworkEvent(final PlanitComponentFactory<?> source, final ServiceNetwork networkToPopulate, MacroscopicNetwork parentNetwork) {
-    super(EVENT_TYPE, source, networkToPopulate, parentNetwork);
+  public PopulateServiceNetworkEvent(final PlanitComponentFactory<?> source, final ServiceNetwork networkToPopulate) {
+    super(EVENT_TYPE, source, networkToPopulate);
   }
 
   /**

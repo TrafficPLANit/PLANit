@@ -1,14 +1,16 @@
 package org.goplanit.graph.directed;
 
+import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.GraphEntitiesImpl;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.directed.DirectedEdge;
-import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.graph.directed.EdgeSegmentFactory;
-import org.goplanit.utils.graph.directed.EdgeSegments;
+import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
+import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
 
 /**
  * Implementation of EdgeSegments interface.
@@ -51,9 +53,10 @@ public class EdgeSegmentsImpl extends GraphEntitiesImpl<EdgeSegment> implements 
    * 
    * @param other top copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param biConsumer when deepCopy applied to each original and copy, may be null
    */
-  public EdgeSegmentsImpl(EdgeSegmentsImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public EdgeSegmentsImpl(EdgeSegmentsImpl other, boolean deepCopy, BiConsumer<EdgeSegment, EdgeSegment> biConsumer) {
+    super(other, deepCopy, biConsumer);
     this.edgeSegmentFactory =
             new EdgeSegmentFactoryImpl(other.edgeSegmentFactory.getIdGroupingToken(), this);
   }
@@ -79,7 +82,7 @@ public class EdgeSegmentsImpl extends GraphEntitiesImpl<EdgeSegment> implements 
    */
   @Override
   public EdgeSegmentsImpl shallowClone() {
-    return new EdgeSegmentsImpl(this, false);
+    return new EdgeSegmentsImpl(this, false, null);
   }
 
   /**
@@ -87,7 +90,15 @@ public class EdgeSegmentsImpl extends GraphEntitiesImpl<EdgeSegment> implements 
    */
   @Override
   public EdgeSegmentsImpl deepClone() {
-    return new EdgeSegmentsImpl(this, true);
+    return new EdgeSegmentsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegmentsImpl deepCloneWithMapping(BiConsumer<EdgeSegment, EdgeSegment> mapper) {
+    return new EdgeSegmentsImpl(this, true, mapper);
   }
 
 }

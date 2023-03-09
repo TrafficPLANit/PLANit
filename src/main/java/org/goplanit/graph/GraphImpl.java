@@ -2,10 +2,7 @@ package org.goplanit.graph;
 
 import java.util.logging.Logger;
 
-import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.graph.Graph;
-import org.goplanit.utils.graph.GraphEntities;
-import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.graph.*;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -42,8 +39,8 @@ public class GraphImpl<V extends Vertex, E extends Edge> extends UntypedGraphImp
    * @param graphImpl to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public GraphImpl(final GraphImpl<V, E> graphImpl, boolean deepCopy) {
-    super(graphImpl, deepCopy);
+  public GraphImpl(final GraphImpl<V, E> graphImpl, boolean deepCopy, GraphEntityDeepCopyMapper<V> vertexMapper, GraphEntityDeepCopyMapper<E> edgeMapper) {
+    super(graphImpl, deepCopy, vertexMapper, edgeMapper);
   }
 
   /**
@@ -51,15 +48,17 @@ public class GraphImpl<V extends Vertex, E extends Edge> extends UntypedGraphImp
    */
   @Override
   public GraphImpl<V, E> shallowClone() {
-    return new GraphImpl<>(this, false);
+    return new GraphImpl<>(this, false, null, null);
   }
 
   /**
    * {@inheritDoc}
+   *
+   * for Graphs we also update the interdependencies between its internal containers when performing a deep copy
    */
   @Override
   public GraphImpl<V, E> deepClone() {
-    return new GraphImpl<>(this, true);
+    return new GraphImpl<>(this, true, new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
   }
 
 }

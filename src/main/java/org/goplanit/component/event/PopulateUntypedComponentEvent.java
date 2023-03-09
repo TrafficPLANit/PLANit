@@ -33,6 +33,26 @@ public abstract class PopulateUntypedComponentEvent extends EventImpl implements
   }
 
   /**
+   * Verify if additional content is present or not
+   *
+   * @return true when present, false when additional content is null
+   */
+  protected boolean hasAdditionalContent() {
+    return getAdditionalContent() != null;
+  }
+
+  /**
+   * Constructor
+   *
+   * @param type                of the populate component event
+   * @param source              of the event
+   * @param componentToPopulate to populate
+   */
+  protected PopulateUntypedComponentEvent(final PlanitComponentEventType type, final PlanitComponentFactory<?> source, PlanitComponent<?> componentToPopulate) {
+    this(type, source, componentToPopulate, null);
+  }
+
+  /**
    * Constructor
    *
    * @param type                of the populate component event

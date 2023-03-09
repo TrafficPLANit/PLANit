@@ -364,6 +364,7 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    */
   @Override
   public UntypedACyclicSubGraphImpl<V, E> deepClone() {
+    LOGGER.severe("Not a smart deep clone on untyped acyclic sub graph, so interdependencies will get screwed up, recommend not to use until properly implemented");
     return new UntypedACyclicSubGraphImpl<>(this, true);
   }
 

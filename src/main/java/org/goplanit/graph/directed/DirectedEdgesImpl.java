@@ -1,10 +1,17 @@
 package org.goplanit.graph.directed;
 
 import org.goplanit.graph.GraphEntitiesImpl;
+import org.goplanit.utils.graph.GraphEntities;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedEdgeFactory;
 import org.goplanit.utils.graph.directed.DirectedEdges;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of DirectedEdges interface
@@ -42,9 +49,10 @@ public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implement
    * 
    * @param directedEdgesImpl to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param biConsumer when deepCopy applied to each original and copy, may be null
    */
-  public DirectedEdgesImpl(DirectedEdgesImpl directedEdgesImpl, boolean deepCopy) {
-    super(directedEdgesImpl, deepCopy);
+  public DirectedEdgesImpl(DirectedEdgesImpl directedEdgesImpl, boolean deepCopy, BiConsumer<DirectedEdge, DirectedEdge> biConsumer) {
+    super(directedEdgesImpl, deepCopy, biConsumer);
     this.directedEdgeFactory =
             new DirectedEdgeFactoryImpl(directedEdgesImpl.directedEdgeFactory.getIdGroupingToken(), this);
   }
@@ -62,7 +70,7 @@ public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implement
    */
   @Override
   public DirectedEdgesImpl shallowClone() {
-    return new DirectedEdgesImpl(this, false);
+    return new DirectedEdgesImpl(this, false, null);
   }
 
   /**
@@ -70,7 +78,15 @@ public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implement
    */
   @Override
   public DirectedEdgesImpl deepClone() {
-    return new DirectedEdgesImpl(this, true);
+    return new DirectedEdgesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedEdgesImpl deepCloneWithMapping(BiConsumer<DirectedEdge, DirectedEdge> mapper) {
+    return new DirectedEdgesImpl(this, true, mapper);
   }
 
 }

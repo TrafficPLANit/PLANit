@@ -43,6 +43,7 @@ public abstract class Network extends PlanitComponent<Network> implements Serial
    */
   public Network(Network network, boolean deepCopy) {
     super(network, deepCopy);
+    networkIdGroupingToken = network.networkIdGroupingToken;
   }
 
   /**

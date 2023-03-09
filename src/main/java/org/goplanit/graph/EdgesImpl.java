@@ -1,9 +1,17 @@
 package org.goplanit.graph;
 
+import org.goplanit.graph.directed.EdgeSegmentsImpl;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.EdgeFactory;
 import org.goplanit.utils.graph.Edges;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
+import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
+
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of Edges interface
@@ -20,9 +28,10 @@ public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
    *
    * @param edgesImpl to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param biConsumer when deepCopy applied to each original and copy, may be null
    */
-  protected EdgesImpl(EdgesImpl edgesImpl, boolean deepCopy) {
-    super(edgesImpl, deepCopy);
+  protected EdgesImpl(EdgesImpl edgesImpl, boolean deepCopy, BiConsumer<Edge, Edge> biConsumer) {
+    super(edgesImpl, deepCopy, biConsumer);
     this.edgeFactory = new EdgeFactoryImpl(edgesImpl.edgeFactory.getIdGroupingToken(), this);
   }
 
@@ -59,7 +68,7 @@ public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
    */
   @Override
   public EdgesImpl shallowClone() {
-    return new EdgesImpl(this, false);
+    return new EdgesImpl(this, false, null);
   }
 
   /**
@@ -67,7 +76,15 @@ public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
    */
   @Override
   public EdgesImpl deepClone() {
-    return new EdgesImpl(this, true);
+    return new EdgesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgesImpl deepCloneWithMapping(BiConsumer<Edge, Edge> mapper) {
+    return new EdgesImpl(this, true, mapper);
   }
 
 }

@@ -177,7 +177,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     } else if (newPlanitComponent instanceof Demands && hasListener(PopulateDemandsEvent.EVENT_TYPE)) {
       event = new PopulateDemandsEvent(this, (Demands) newPlanitComponent, (Zoning) parameters[0], (MacroscopicNetwork) parameters[1]);
     } else if (newPlanitComponent instanceof ServiceNetwork && hasListener(PopulateServiceNetworkEvent.EVENT_TYPE)) {
-      event = new PopulateServiceNetworkEvent(this, (ServiceNetwork) newPlanitComponent, (MacroscopicNetwork) parameters[0]);
+      event = new PopulateServiceNetworkEvent(this, (ServiceNetwork) newPlanitComponent);
     } else if (newPlanitComponent instanceof RoutedServices && hasListener(PopulateRoutedServicesEvent.EVENT_TYPE)) {
       event = new PopulateRoutedServicesEvent(this, (RoutedServices) newPlanitComponent);
     } else if (newPlanitComponent instanceof GapFunction && hasListener(PopulateGapFunctionEvent.EVENT_TYPE)) {

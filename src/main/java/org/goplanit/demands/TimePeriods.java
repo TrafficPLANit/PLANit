@@ -6,6 +6,7 @@ import org.goplanit.utils.time.TimePeriodUtils;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.BiConsumer;
 
 /**
  * Class to register and store time periods for the current demand object
@@ -13,7 +14,7 @@ import java.util.TreeSet;
  *
  * @author garym, markr
  */
-public class TimePeriods extends ManagedIdEntitiesImpl<TimePeriod> implements ManagedIdEntities<TimePeriod>{
+public final class TimePeriods extends ManagedIdEntitiesImpl<TimePeriod> implements ManagedIdEntities<TimePeriod>{
 
   /** factory to create instances on this container */
   private final TimePeriodsFactory factory;
@@ -31,15 +32,11 @@ public class TimePeriods extends ManagedIdEntitiesImpl<TimePeriod> implements Ma
    *
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public TimePeriods(TimePeriods other, boolean deepCopy) {
-    super(other, deepCopy);
+  public TimePeriods(TimePeriods other, boolean deepCopy, BiConsumer<TimePeriod, TimePeriod> mapper) {
+    super(other, deepCopy, mapper);
     this.factory = new TimePeriodsFactory(other.getFactory().getIdGroupingToken(), this);
-
-    if(deepCopy){
-      clear();
-      other.forEach( tp -> register(deepCopy ? tp.deepClone() : tp));
-    }
   }
 
   /**
@@ -78,13 +75,21 @@ public class TimePeriods extends ManagedIdEntitiesImpl<TimePeriod> implements Ma
    */
   @Override
   public TimePeriods shallowClone() {
-    return new TimePeriods(this, false);
+    return new TimePeriods(this, false, null);
   }
 
   /**
-   * Support deep clone --> once move to managed id this becomes mandatory override
+   * {@inheritDoc}
    */
   public TimePeriods deepClone() {
-    return new TimePeriods(this, true);
+    return new TimePeriods(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ManagedIdEntities<TimePeriod> deepCloneWithMapping(BiConsumer<TimePeriod, TimePeriod> mapper) {
+    return new TimePeriods(this, true, mapper);
   }
 }

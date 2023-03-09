@@ -3,6 +3,7 @@ package org.goplanit.graph.directed;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.GraphEntities;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedGraph;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -47,19 +48,39 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
   }
 
   /**
-   * {@inheritDoc}
+   * Copy constructor
+   *
+   * @param directedGraphImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param vertexMapper tracking how orignal vertices are mapped to new vertices in case of deep copy
+   * @param edgeMapper tracking how orignal edges are mapped to new edges in case of deep copy
+   * @param edgeSegmentMapper tracking how orignal edge segments are mapped to new edge segments in case of deep copy
    */
-  @Override
-  public UntypedDirectedGraphImpl<V, E, ES> shallowClone() {
-    return new DirectedGraphImpl(this, false);
+  public DirectedGraphImpl(
+      final DirectedGraphImpl directedGraphImpl,
+      boolean deepCopy,
+      GraphEntityDeepCopyMapper<V> vertexMapper,
+      GraphEntityDeepCopyMapper<E> edgeMapper,
+      GraphEntityDeepCopyMapper<ES> edgeSegmentMapper) {
+    super(directedGraphImpl, deepCopy, vertexMapper, edgeMapper, edgeSegmentMapper);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public UntypedDirectedGraphImpl<V, E, ES> deepClone() {
-    return new DirectedGraphImpl(this, true);
+  public DirectedGraphImpl<V, E, ES> shallowClone() {
+    return new DirectedGraphImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * For directed graphs we also update the internal interdependencies based on available knowledge
+   */
+  @Override
+  public DirectedGraphImpl<V, E, ES> deepClone() {
+    return new DirectedGraphImpl(this, true, new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
   }
 
 }

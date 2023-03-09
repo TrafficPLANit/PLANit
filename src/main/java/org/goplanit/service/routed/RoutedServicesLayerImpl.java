@@ -192,7 +192,8 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
         numScheduleBasedTrips += entry.getTripInfo().getScheduleBasedTrips().size();
         numFrequencyBasedTrips += entry.getTripInfo().getFrequencyBasedTrips().size();
       }
-      LOGGER.info(String.format("%s[mode: %s] #routedServices: %d  #scheduled-trips: %d  #frequency-trips: %d", prefix, modeServices.getMode().getXmlId(), modeServices.size(), numScheduleBasedTrips, numFrequencyBasedTrips));
+      LOGGER.info(String.format("%s[mode: %s] #routedServices: %d  #trip-schedules: %d  #trips-frequency: %d",
+          prefix, modeServices.getMode().getXmlId(), modeServices.size(), numScheduleBasedTrips, numFrequencyBasedTrips));
     }
   }
 

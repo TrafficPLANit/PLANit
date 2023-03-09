@@ -59,6 +59,7 @@ public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVert
    */
   @Override
   public ACyclicSubGraphImpl deepClone() {
+    LOGGER.severe("Not a smart deep clone on acyclic sub graph, so interdependencies will get screwed up, recommend not to use until properly implemented");
     return new ACyclicSubGraphImpl(this, true);
   }
 

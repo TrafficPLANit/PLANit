@@ -3,6 +3,7 @@ package org.goplanit.graph.directed;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.GraphEntities;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
@@ -43,9 +44,13 @@ public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E ext
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param conjVertexMapper tracking how original vertices are mapped to new vertices in case of deep copy
+   * @param conjEdgeMapper tracking how original edges are mapped to new edges in case of deep copy
+   * @param conjEdgeSegmentMapper tracking how original edge segments are mapped to new edge segments in case of deep copy
    */
-  public ConjugateDirectedGraphImpl(final ConjugateDirectedGraphImpl<V, E, ES> other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ConjugateDirectedGraphImpl(
+      final ConjugateDirectedGraphImpl<V, E, ES> other, boolean deepCopy, GraphEntityDeepCopyMapper<V> conjVertexMapper, GraphEntityDeepCopyMapper<E> conjEdgeMapper, GraphEntityDeepCopyMapper<ES> conjEdgeSegmentMapper) {
+    super(other, deepCopy, conjVertexMapper, conjEdgeMapper, conjEdgeSegmentMapper);
   }
 
   /**
@@ -53,15 +58,18 @@ public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E ext
    */
   @Override
   public ConjugateDirectedGraphImpl<V, E, ES> shallowClone() {
-    return new ConjugateDirectedGraphImpl<>(this, false);
+    return new ConjugateDirectedGraphImpl<>(this, false, null, null, null);
   }
 
   /**
    * {@inheritDoc}
+   *
+   * for conjugate graphs a deep copy also updates known interdependencies between its internal entities
    */
   @Override
   public ConjugateDirectedGraphImpl<V, E, ES> deepClone() {
-    return new ConjugateDirectedGraphImpl<>(this, true);
+    return new ConjugateDirectedGraphImpl<>(
+        this, true, new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
   }
 
 }

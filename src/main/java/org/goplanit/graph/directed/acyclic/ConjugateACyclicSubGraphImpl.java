@@ -58,6 +58,7 @@ public class ConjugateACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<Con
    */
   @Override
   public ConjugateACyclicSubGraphImpl deepClone() {
+    LOGGER.severe("Not a smart deep clone on conjugate acyclic sub graph, so interdependencies will get screwed up, recommend not to use until properly implemented");
     return new ConjugateACyclicSubGraphImpl(this, true);
   }
 
