@@ -2,9 +2,14 @@ package org.goplanit.network.layer.physical;
 
 import java.util.logging.Logger;
 
+import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.ManagedGraphEntities;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
@@ -52,10 +57,18 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
+   * @param nodeMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
+   * @param linkMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
+   * @param linkSegmentMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  public UntypedPhysicalLayerImpl(UntypedPhysicalLayerImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public UntypedPhysicalLayerImpl(
+          UntypedPhysicalLayerImpl other,
+          boolean deepCopy,
+          GraphEntityDeepCopyMapper<N> nodeMapper,
+          GraphEntityDeepCopyMapper<L> linkMapper,
+          GraphEntityDeepCopyMapper<LS> linkSegmentMapper) {
+    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper);
   }
 
   /**
@@ -83,5 +96,17 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
    */
   @Override
   public abstract UntypedPhysicalLayerImpl<N, L, LS> deepClone();
+
+  /**
+   * A smart deep clone updates known interdependencies between nodes, links, and link segments utilising the graph entity deep copy mappers
+   *
+   * @param nodeMapper tracking original to copy mappings
+   * @param linkMapper tracking original to copy mappings
+   * @param linkSegmentMapper tracking original to copy mappings
+   */
+  public UntypedPhysicalLayerImpl<N, L, LS> smartDeepClone(
+          GraphEntityDeepCopyMapper<N> nodeMapper, GraphEntityDeepCopyMapper<L> linkMapper, GraphEntityDeepCopyMapper<LS> linkSegmentMapper) {
+    return new UntypedPhysicalLayerImpl<>(this, true, nodeMapper, linkMapper, linkSegmentMapper);
+  }
 
 }

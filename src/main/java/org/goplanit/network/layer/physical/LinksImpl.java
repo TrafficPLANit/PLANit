@@ -1,11 +1,15 @@
 package org.goplanit.network.layer.physical;
 
+import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentTypesImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.LinkFactory;
 import org.goplanit.utils.network.layer.physical.Links;
+
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -45,9 +49,10 @@ public class LinksImpl<L extends Link> extends ManagedIdEntitiesImpl<L> implemen
    * 
    * @param linksImpl to copy
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
+   * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public LinksImpl(LinksImpl linksImpl, boolean deepCopy) {
-    super(linksImpl, deepCopy);
+  public LinksImpl(LinksImpl linksImpl, boolean deepCopy, BiConsumer<L,L> mapper) {
+    super(linksImpl, deepCopy, mapper);
     this.linkFactory =
             new LinkFactoryImpl(linksImpl.linkFactory.getIdGroupingToken(), this);
   }
@@ -65,7 +70,7 @@ public class LinksImpl<L extends Link> extends ManagedIdEntitiesImpl<L> implemen
    */
   @Override
   public LinksImpl shallowClone() {
-    return new LinksImpl(this, false);
+    return new LinksImpl(this, false, null);
   }
 
   /**
@@ -73,7 +78,15 @@ public class LinksImpl<L extends Link> extends ManagedIdEntitiesImpl<L> implemen
    */
   @Override
   public LinksImpl deepClone() {
-    return new LinksImpl(this, true);
+    return new LinksImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinksImpl deepCloneWithMapping(BiConsumer<L,L> mapper) {
+    return new LinksImpl(this, true, mapper);
   }
 
   /**

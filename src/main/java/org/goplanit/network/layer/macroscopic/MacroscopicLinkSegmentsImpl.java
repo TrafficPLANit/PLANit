@@ -1,10 +1,14 @@
 package org.goplanit.network.layer.macroscopic;
 
+import org.goplanit.mode.ModesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentFactory;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
+
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -44,9 +48,10 @@ public class MacroscopicLinkSegmentsImpl extends ManagedIdEntitiesImpl<Macroscop
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
+   * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public MacroscopicLinkSegmentsImpl(MacroscopicLinkSegmentsImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public MacroscopicLinkSegmentsImpl(MacroscopicLinkSegmentsImpl other, boolean deepCopy, BiConsumer<MacroscopicLinkSegment,MacroscopicLinkSegment> mapper) {
+    super(other, deepCopy, mapper);
     this.linkSegmentFactory =
             new MacroscopicLinkSegmentFactoryImpl(other.linkSegmentFactory.getIdGroupingToken(), this);
   }
@@ -64,7 +69,7 @@ public class MacroscopicLinkSegmentsImpl extends ManagedIdEntitiesImpl<Macroscop
    */
   @Override
   public MacroscopicLinkSegmentsImpl shallowClone() {
-    return new MacroscopicLinkSegmentsImpl(this, false);
+    return new MacroscopicLinkSegmentsImpl(this, false, null);
   }
 
   /**
@@ -72,7 +77,15 @@ public class MacroscopicLinkSegmentsImpl extends ManagedIdEntitiesImpl<Macroscop
    */
   @Override
   public MacroscopicLinkSegmentsImpl deepClone() {
-    return new MacroscopicLinkSegmentsImpl(this, true);
+    return new MacroscopicLinkSegmentsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegmentsImpl deepCloneWithMapping(BiConsumer<MacroscopicLinkSegment,MacroscopicLinkSegment> mapper) {
+    return new MacroscopicLinkSegmentsImpl(this, true, mapper);
   }
 
 }

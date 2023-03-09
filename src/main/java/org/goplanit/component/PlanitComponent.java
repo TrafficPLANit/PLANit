@@ -74,7 +74,7 @@ public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializabl
   public abstract PlanitComponent<T> shallowClone();
 
   /**
-   * {@inheritDoc}
+   * deep clone on planit component should attempt to also update internal dependencies between deep cloned containers where possible
    */
   @Override
   public abstract PlanitComponent<T> deepClone();

@@ -1,5 +1,6 @@
 package org.goplanit.mode;
 
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
@@ -49,9 +50,10 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public ModesImpl(ModesImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ModesImpl(ModesImpl other, boolean deepCopy, BiConsumer<Mode,Mode> mapper) {
+    super(other, deepCopy, mapper);
     this.modeFactory = new ModeFactoryImpl(other.modeFactory.getIdGroupingToken(), this);
   }
 
@@ -84,7 +86,7 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    */
   @Override
   public ModesImpl shallowClone() {
-    return new ModesImpl(this, false);
+    return new ModesImpl(this, false, null);
   }
 
   /**
@@ -92,7 +94,15 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    */
   @Override
   public ModesImpl deepClone() {
-    return new ModesImpl(this, true);
+    return new ModesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ModesImpl deepCloneWithMapping(BiConsumer<Mode,Mode> mapper) {
+    return new ModesImpl(this, true, mapper);
   }
 
   /**

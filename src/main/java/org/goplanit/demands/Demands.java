@@ -1,15 +1,21 @@
 package org.goplanit.demands;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.modifier.DemandsModifier;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.userclass.TravellerType;
+import org.goplanit.userclass.UserClass;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -80,25 +86,59 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    */
   public Demands(Demands other, boolean deepCopy) {
     super(other, deepCopy);
-    this.travelerTypes  = deepCopy ? other.travelerTypes.deepClone()  : other.travelerTypes.shallowClone(); // container class so clone for copy
-    this.userClasses    = deepCopy ? other.userClasses.deepClone()    : other.userClasses.shallowClone();  // container class so clone for copy
-    this.timePeriods    = deepCopy ? other.timePeriods.deepClone()    : other.timePeriods.shallowClone();  // container class so clone for copy
 
     this.odDemandsByTimePeriodAndMode = new TreeMap<>();
     if(deepCopy) {
+      var travellerTypesMapper = new ManagedIdDeepCopyMapper<TravellerType>();
+      var userClassesMapper = new ManagedIdDeepCopyMapper<UserClass>();
+      var timePeriodMapper = new ManagedIdDeepCopyMapper<TimePeriod>();
+
+      this.travelerTypes  = other.travelerTypes.deepCloneWithMapping(travellerTypesMapper);
+      this.userClasses  = other.userClasses.deepCloneWithMapping(userClassesMapper);
+      this.timePeriods = other.timePeriods.deepCloneWithMapping(timePeriodMapper);
+
+      updateUserClassTravellerTypes(t -> travellerTypesMapper.getMapping(t), true);
+
+      /* OD DEMANDS */
       for (var timePeriod : timePeriods) {
         var modes = other.getRegisteredModesForTimePeriod(timePeriod);
         for (var mode : modes) {
           OdDemands odDemandMatrix = other.get(mode, timePeriod);
+
+          var clonedTimePeriod = timePeriodMapper.getMapping(timePeriod);
+          if(clonedTimePeriod == null){
+            throw new PlanItRunTimeException("Unable to find cloned time period, this shouldn't happen");
+          }
           this.registerOdDemandPcuHour(
-                  timePeriods.get(timePeriod.getId()), mode, odDemandMatrix.deepClone());
+                  clonedTimePeriod, mode, odDemandMatrix.deepClone());
         }
       }
+
     }else{
+      this.travelerTypes  = other.travelerTypes.shallowClone();
+      this.userClasses    = other.userClasses.shallowClone();
+      this.timePeriods    = other.timePeriods.shallowClone();
+
+      /* OD DEMANDS */
       this.odDemandsByTimePeriodAndMode.putAll(other.odDemandsByTimePeriodAndMode);
     }
 
     this.demandModifier = new DemandsModifier(this);
+  }
+
+  /**
+   * Update the traveller type of all user classes based on the mapping provided (if any)
+   * @param ttToTtMapping to use should contain original travellerType as currently used on user class and then the value is the new traveller type to replace it
+   * @param removeMissingMappings when true if there is no mapping, the traveller type is nullified, otherwise they are left in-tact
+   */
+  public void updateUserClassTravellerTypes(Function<TravellerType,TravellerType> ttToTtMapping, boolean removeMissingMappings) {
+    for(var userClass : this.userClasses){
+      var travellerType = userClass.getTravelerType();
+      var newTravellerType = ttToTtMapping.apply(travellerType);
+      if (newTravellerType != null || removeMissingMappings) {
+        userClass.setTravellerType(newTravellerType);
+      }
+    }
   }
 
   /**

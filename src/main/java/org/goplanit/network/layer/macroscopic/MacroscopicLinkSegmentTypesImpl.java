@@ -1,9 +1,11 @@
 package org.goplanit.network.layer.macroscopic;
 
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypeFactory;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
@@ -49,9 +51,11 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
+   * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public MacroscopicLinkSegmentTypesImpl(final MacroscopicLinkSegmentTypesImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public MacroscopicLinkSegmentTypesImpl(
+          final MacroscopicLinkSegmentTypesImpl other, boolean deepCopy, BiConsumer<MacroscopicLinkSegmentType,MacroscopicLinkSegmentType> mapper) {
+    super(other, deepCopy, mapper);
     this.linkSegmentTypeFactory =
             new MacroscopicLinkSegmentTypeFactoryImpl(other.linkSegmentTypeFactory.getIdGroupingToken(),this);
   }
@@ -84,7 +88,7 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
    */
   @Override
   public MacroscopicLinkSegmentTypesImpl shallowClone() {
-    return new MacroscopicLinkSegmentTypesImpl(this, false);
+    return new MacroscopicLinkSegmentTypesImpl(this, false, null);
   }
 
   /**
@@ -92,7 +96,15 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
    */
   @Override
   public MacroscopicLinkSegmentTypesImpl deepClone() {
-    return new MacroscopicLinkSegmentTypesImpl(this, true);
+    return new MacroscopicLinkSegmentTypesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegmentTypesImpl deepCloneWithMapping(BiConsumer<MacroscopicLinkSegmentType,MacroscopicLinkSegmentType> mapper) {
+    return new MacroscopicLinkSegmentTypesImpl(this, true, mapper);
   }
 
 }

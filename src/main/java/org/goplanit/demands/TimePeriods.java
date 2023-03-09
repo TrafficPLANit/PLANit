@@ -89,7 +89,7 @@ public final class TimePeriods extends ManagedIdEntitiesImpl<TimePeriod> impleme
    * {@inheritDoc}
    */
   @Override
-  public ManagedIdEntities<TimePeriod> deepCloneWithMapping(BiConsumer<TimePeriod, TimePeriod> mapper) {
+  public TimePeriods deepCloneWithMapping(BiConsumer<TimePeriod, TimePeriod> mapper) {
     return new TimePeriods(this, true, mapper);
   }
 }

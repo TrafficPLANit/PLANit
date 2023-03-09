@@ -1,20 +1,19 @@
 package org.goplanit.network.layer.macroscopic;
 
+import java.util.function.Function;
 import java.util.logging.Logger;
 
-import org.goplanit.network.layer.physical.LinksImpl;
 import org.goplanit.network.layer.physical.NodesImpl;
 import org.goplanit.network.layer.physical.UntypedPhysicalLayerImpl;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.*;
-import org.goplanit.utils.network.layer.physical.Link;
-import org.goplanit.utils.network.layer.physical.Links;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
 import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
-import org.locationtech.jts.geom.Envelope;
 
 /**
  * Macroscopic physical Network (layer) that supports one or more modes and link segment types, where the modes are registered on the network (Infrastructure network) level
@@ -57,12 +56,41 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
+   * @param nodeMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
+   * @param linkMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
+   * @param linkSegmentMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
+   * @param linkSegmentTypeMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  protected MacroscopicNetworkLayerImpl(MacroscopicNetworkLayerImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  protected MacroscopicNetworkLayerImpl(
+          MacroscopicNetworkLayerImpl other,
+          boolean deepCopy,
+          GraphEntityDeepCopyMapper<Node> nodeMapper,
+          GraphEntityDeepCopyMapper<MacroscopicLink> linkMapper,
+          GraphEntityDeepCopyMapper<MacroscopicLinkSegment> linkSegmentMapper,
+          ManagedIdDeepCopyMapper<MacroscopicLinkSegmentType> linkSegmentTypeMapper) {
+    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper);
 
-    // container wrapper so requires clone also for shallow copy
-    this.linkSegmentTypes = deepCopy ? other.linkSegmentTypes.deepClone() : other.linkSegmentTypes.shallowClone();
+    this.linkSegmentTypes = deepCopy ? other.linkSegmentTypes.deepCloneWithMapping(linkSegmentTypeMapper) : other.linkSegmentTypes.shallowClone();
+    if(deepCopy) {
+      updateLinkSegmentLinkSegmentTypes(ls -> linkSegmentTypeMapper.getMapping(ls), true);
+    }
+  }
+
+  /**
+   * Update the parent edge of all edge segments based on the mapping provided (if any)
+   * @param lsTypeToLsTypeMapping to use should contain original link segment type as currently used on link segment and then the value is the new link segment type to replace it
+   * @param removeMissingMappings when true if there is no mapping, the type is nullified, otherwise it is left in-tact
+   */
+  public void updateLinkSegmentLinkSegmentTypes(Function<MacroscopicLinkSegmentType, MacroscopicLinkSegmentType> lsTypeToLsTypeMapping, boolean removeMissingMappings) {
+    for(var linkSegment :  getLinkSegments()){
+      if(linkSegment.getLinkSegmentType() == null){
+        continue;
+      }
+      var clonedType = lsTypeToLsTypeMapping.apply(linkSegment.getLinkSegmentType());
+      if(clonedType != null || removeMissingMappings){
+        linkSegment.setLinkSegmentType(clonedType);
+      }
+    }
   }
 
   /**
@@ -91,7 +119,7 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    */
   @Override
   public MacroscopicLinks getLinks() {
-    return (MacroscopicLinks) getGraph().getEdges();
+    return (MacroscopicLinks) getDirectedGraph().getEdges();
   }
 
   /**
@@ -99,7 +127,7 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    */
   @Override
   public MacroscopicLinkSegments getLinkSegments() {
-    return (MacroscopicLinkSegments) getGraph().getEdgeSegments();
+    return (MacroscopicLinkSegments) getDirectedGraph().getEdgeSegments();
   }
 
   /**
@@ -107,7 +135,7 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    */
   @Override
   public Nodes getNodes() {
-    return (Nodes) getGraph().getVertices();
+    return (Nodes) getDirectedGraph().getVertices();
   }
 
   /**
@@ -115,7 +143,8 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    */
   @Override
   public MacroscopicNetworkLayerImpl shallowClone() {
-    return new MacroscopicNetworkLayerImpl(this, false);
+    return new MacroscopicNetworkLayerImpl(
+            this, false, null, null, null, null);
   }
 
   /**
@@ -123,7 +152,13 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    */
   @Override
   public MacroscopicNetworkLayerImpl deepClone() {
-    return new MacroscopicNetworkLayerImpl(this, true);
+    return new MacroscopicNetworkLayerImpl(
+            this,
+            true,
+            new GraphEntityDeepCopyMapper<>(),
+            new GraphEntityDeepCopyMapper<>(),
+            new GraphEntityDeepCopyMapper<>(),
+            new ManagedIdDeepCopyMapper<>());
   }
 
   /**

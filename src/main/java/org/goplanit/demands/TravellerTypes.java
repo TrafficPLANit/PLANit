@@ -2,6 +2,9 @@ package org.goplanit.demands;
 
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.utils.id.*;
+import org.goplanit.utils.time.TimePeriod;
+
+import java.util.function.BiConsumer;
 
 /**
  * Inner class to register and store traveler types
@@ -28,16 +31,12 @@ public class TravellerTypes extends ManagedIdEntitiesImpl<TravellerType> impleme
    *
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public TravellerTypes(TravellerTypes other, boolean deepCopy) {
-    super(other, deepCopy);
+  public TravellerTypes(TravellerTypes other, boolean deepCopy, BiConsumer<TravellerType, TravellerType> mapper) {
+    super(other, deepCopy, mapper);
 
     this.factory = new TravellerTypesFactory(other.getFactory().getIdGroupingToken(), this);
-    if(deepCopy){
-      this.clear();
-      other.forEach( tt -> register(tt.deepClone()));
-    }
-
   }
 
   /**
@@ -65,15 +64,23 @@ public class TravellerTypes extends ManagedIdEntitiesImpl<TravellerType> impleme
    */
   @Override
   public TravellerTypes shallowClone() {
-    return new TravellerTypes(this, false);
+    return new TravellerTypes(this, false, null);
   }
 
   /**
-   * Support deep clone --> once move to managed id this becomes mandatory override
+   * {@inheritDoc}
    */
   @Override
   public TravellerTypes deepClone() {
-    return new TravellerTypes(this, true);
+    return new TravellerTypes(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TravellerTypes deepCloneWithMapping(BiConsumer<TravellerType, TravellerType> mapper) {
+    return new TravellerTypes(this, true, mapper);
   }
 
 }

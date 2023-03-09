@@ -160,7 +160,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
    */
   @Override
   public ConjugateLinks getConjugateLinks() {
-    return (ConjugateLinks) getGraph().getEdges();
+    return (ConjugateLinks) getDirectedGraph().getEdges();
   }
 
   /**
@@ -168,7 +168,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
    */
   @Override
   public ConjugateLinkSegments getConjugateLinkSegments() {
-    return (ConjugateLinkSegments) getGraph().getEdgeSegments();
+    return (ConjugateLinkSegments) getDirectedGraph().getEdgeSegments();
   }
 
   /**
@@ -176,7 +176,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
    */
   @Override
   public ConjugateNodes getConjugateNodes() {
-    return (ConjugateNodes) getGraph().getVertices();
+    return (ConjugateNodes) getDirectedGraph().getVertices();
   }
 
   /**

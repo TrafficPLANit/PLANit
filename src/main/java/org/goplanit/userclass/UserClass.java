@@ -30,7 +30,7 @@ public class UserClass extends ExternalIdAbleImpl implements ManagedId {
   /**
    * Traveler type of this user class
    */
-  private final TravellerType travellerType;
+  private TravellerType travellerType;
 
   /**
    * Generate id for instances of this class based on the token and class identifier
@@ -110,6 +110,15 @@ public class UserClass extends ExternalIdAbleImpl implements ManagedId {
   }
 
   /**
+   * Set the traveler type of this user class. Use with caution
+   *
+   * @return TravelerType of this user class
+   */
+  public void setTravellerType(TravellerType travellerType) {
+    this.travellerType = travellerType;
+  }
+
+  /**
    * check if it has a name
    * 
    * @return true when name is present false otherwise
@@ -159,4 +168,5 @@ public class UserClass extends ExternalIdAbleImpl implements ManagedId {
   public String toString() {
     return String.format("[id: %d, XMLid: %s, name: %s, mode %s, travellertype %s]", getId(), getXmlId(), getName(), getMode().toString(), travellerType.toString());
   }
+
 }

@@ -74,7 +74,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   protected ServiceNetworkLayerImpl(final IdGroupingToken tokenId, final MacroscopicNetworkLayer parentNetworkLayer, final ServiceNodes nodes, final ServiceLegs legs,
                                     final ServiceLegSegments legSegments) {
     super(tokenId, nodes, legs, legSegments);
-    this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this, this.graph); // overwrite default from super <-- not pretty but otherwise no access to graph yet
+    this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this, this.directedGraph); // overwrite default from super <-- not pretty but otherwise no access to graph yet
     this.parentNetworkLayer = parentNetworkLayer;
   }
 
@@ -89,7 +89,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   public ServiceNetworkLayerImpl(ServiceNetworkLayerImpl other, boolean deepCopy) {
     super(other, deepCopy);
     this.parentNetworkLayer = other.parentNetworkLayer;
-    this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this, this.graph);
+    this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this, this.directedGraph);
   }
 
   /**
@@ -97,7 +97,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    */
   @Override
   public final ServiceLegs getLegs() {
-    return (ServiceLegs) getGraph().getEdges();
+    return (ServiceLegs) getDirectedGraph().getEdges();
   }
 
   /**
@@ -105,7 +105,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    */
   @Override
   public final ServiceLegSegments getLegSegments() {
-    return (ServiceLegSegments) getGraph().getEdgeSegments();
+    return (ServiceLegSegments) getDirectedGraph().getEdgeSegments();
   }
 
   /**
@@ -113,7 +113,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    */
   @Override
   public final ServiceNodes getServiceNodes() {
-    return (ServiceNodes) getGraph().getVertices();
+    return (ServiceNodes) getDirectedGraph().getVertices();
   }
 
   /**
