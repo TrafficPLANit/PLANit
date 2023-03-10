@@ -84,9 +84,10 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
         if (currOdDemand != null && currOdDemand > 0) {
           if (bush == null) {
             /* collect conjugate root node for this conjugate destination bush */
+            var destinationCentroidVertex = findCentroidVertex(destination);
             var rootConjugateConnectoidNode = centroid2ConjugateNodeMapping.get(destination.getCentroid());
             /* register new bush */
-            bush = new ConjugateDestinationBush(conjugateNetworkLayer.getLayerIdGroupingToken(), destination, rootConjugateConnectoidNode,
+            bush = new ConjugateDestinationBush(conjugateNetworkLayer.getLayerIdGroupingToken(), destinationCentroidVertex, rootConjugateConnectoidNode,
                 conjugateNetworkLayer.getConjugateLinkSegments().size() + conjugateVirtualNetwork.getConjugateConnectoidEdgeSegments().size());
             conjugateBushes[(int) destination.getOdZoneId()] = bush;
             break;
@@ -105,11 +106,12 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
     // TODO: we now create this mapping twice, see #createEmptyBushes, not efficient
     var centroid2ConjugateNodeMapping = conjugateVirtualNetwork.createCentroidToConjugateNodeMapping();
 
-    var destination = bush.getRootZone();
+    var destinationCentroidVertex = bush.getRootZoneVertex();
+    var destination = destinationCentroidVertex.getParent().getParentZone();
     ShortestBushResult allToOneResult = null;
 
     for (var origin : zoning.getOdZones()) {
-      if (origin.idEquals(destination)) {
+      if (origin.idEquals(destinationCentroidVertex)) {
         continue;
       }
 

@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -20,6 +21,7 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
@@ -56,6 +58,8 @@ public class ShortestPathTest {
   private Centroid centroidC;
   private Centroid centroidD;
   private Centroid centroidE;
+
+  private Map<Zone, CentroidVertex> zone2CentroidVertexMapping;
 
   @BeforeClass
   public static void setUp() throws Exception {
@@ -157,19 +161,14 @@ public class ShortestPathTest {
       zoneE.setXmlId("E");
       
       centroidA = zoneA.getCentroid();
-      centroidA.setXmlId(zoneA.getXmlId());
       centroidA.setPosition(geoFactory.createPoint(new Coordinate(0, 0)));
       centroidB = zoneB.getCentroid();
-      centroidB.setXmlId(zoneB.getXmlId());
       centroidB.setPosition(geoFactory.createPoint(new Coordinate(1*1000, 4*1000)));
       centroidC = zoneC.getCentroid();
-      centroidC.setXmlId(zoneC.getXmlId());
       centroidC.setPosition(geoFactory.createPoint(new Coordinate(2*1000, 2*1000)));
       centroidD = zoneD.getCentroid();
-      centroidD.setXmlId(zoneD.getXmlId());
       centroidD.setPosition(geoFactory.createPoint(new Coordinate(3*1000, 4*1000)));
       centroidE = zoneE.getCentroid();
-      centroidE.setXmlId(zoneE.getXmlId());
       centroidE.setPosition(geoFactory.createPoint(new Coordinate(4*1000, 4*1000)));
       
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(0),  zoneA, 0);
@@ -180,6 +179,7 @@ public class ShortestPathTest {
       
       transportNetwork = new TransportModelNetwork(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids();
+      zone2CentroidVertexMapping = transportNetwork.createZoneToCentroidVertexMapping(true, false);
           
       // costs
       linkSegmentCosts = new double[]
@@ -219,7 +219,7 @@ public class ShortestPathTest {
 
       ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
 
-      ShortestPathResult result = dijkstra.executeOneToAll(centroidA);
+      ShortestPathResult result = dijkstra.executeOneToAll(zone2CentroidVertexMapping.get(centroidA.getParentZone()));
 
       double costAto1 = result.getCostOf(networkLayer.getNodes().get(1));
       assertEquals(10, costAto1, Precision.EPSILON_6);
@@ -239,10 +239,10 @@ public class ShortestPathTest {
       double costAto6 = result.getCostOf(networkLayer.getNodes().get(6));
       assertEquals(costAto6, 35, Precision.EPSILON_6);
 
-      double aToCCost = result.getCostOf(centroidC);
+      double aToCCost = result.getCostOf(zone2CentroidVertexMapping.get(centroidC.getParentZone()));
       assertEquals(aToCCost, 77.0, Precision.EPSILON_6);
 
-      double aToBCost = result.getCostOf(centroidB);
+      double aToBCost = result.getCostOf(zone2CentroidVertexMapping.get(centroidB.getParentZone()));
       assertEquals(aToBCost, 85.0, Precision.EPSILON_6);
 
     } catch (Exception e) {
@@ -262,7 +262,7 @@ public class ShortestPathTest {
 
       ShortestPathResult result = dijkstra.executeAllToOne(networkLayer.getNodes().get(1));
 
-      double costAto1 = result.getCostOf(centroidA);
+      double costAto1 = result.getCostOf(zone2CentroidVertexMapping.get(centroidA.getParentZone()));
       assertEquals(costAto1, 10, Precision.EPSILON_6);
 
       double cost2to1 = result.getCostOf(networkLayer.getNodes().get(2));
@@ -273,37 +273,37 @@ public class ShortestPathTest {
 
       result = dijkstra.executeAllToOne(networkLayer.getNodes().get(2));
 
-      double costAto2 = result.getCostOf(centroidA);
+      double costAto2 = result.getCostOf(zone2CentroidVertexMapping.get(centroidA.getParentZone()));
       assertEquals(costAto2, 22, Precision.EPSILON_6);
 
       result = dijkstra.executeAllToOne(networkLayer.getNodes().get(3));
 
-      double costAto3 = result.getCostOf(centroidA);
+      double costAto3 = result.getCostOf(zone2CentroidVertexMapping.get(centroidA.getParentZone()));
       assertEquals(costAto3, 52, Precision.EPSILON_6);
 
       result = dijkstra.executeAllToOne(networkLayer.getNodes().get(4));
 
-      double costAto4 = result.getCostOf(centroidA);
+      double costAto4 = result.getCostOf(zone2CentroidVertexMapping.get(centroidA.getParentZone()));
       assertEquals(costAto4, 62, Precision.EPSILON_6);
 
       result = dijkstra.executeAllToOne(networkLayer.getNodes().get(5));
 
-      double costAto5 = result.getCostOf(centroidA);
+      double costAto5 = result.getCostOf(zone2CentroidVertexMapping.get(centroidA.getParentZone()));
       assertEquals(costAto5, 33, Precision.EPSILON_6);
 
       result = dijkstra.executeAllToOne(networkLayer.getNodes().get(6));
 
-      double costAto6 = result.getCostOf(centroidA);
+      double costAto6 = result.getCostOf(zone2CentroidVertexMapping.get(centroidA.getParentZone()));
       assertEquals(costAto6, 35, Precision.EPSILON_6);
 
-      result = dijkstra.executeAllToOne(centroidC);
+      result = dijkstra.executeAllToOne(zone2CentroidVertexMapping.get(centroidC.getParentZone()));
 
-      double aToCCost = result.getCostOf(centroidA);
+      double aToCCost = result.getCostOf(zone2CentroidVertexMapping.get(centroidA.getParentZone()));
       assertEquals(aToCCost, 77.0, Precision.EPSILON_6);
 
-      result = dijkstra.executeAllToOne(centroidB);
+      result = dijkstra.executeAllToOne(zone2CentroidVertexMapping.get(centroidB.getParentZone()));
 
-      double aToBCost = result.getCostOf(centroidA);
+      double aToBCost = result.getCostOf(zone2CentroidVertexMapping.get(centroidA.getParentZone()));
       assertEquals(aToBCost, 85.0, Precision.EPSILON_6);
 
     } catch (Exception e) {
@@ -324,36 +324,40 @@ public class ShortestPathTest {
 
       ShortestPathAStar aStar = new ShortestPathAStar(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers(), crs, multiplier);
 
-      ShortestPathResult result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(1));
+      final var centroidVertexA = zone2CentroidVertexMapping.get(centroidA.getParentZone());
+      final var centroidVertexB = zone2CentroidVertexMapping.get(centroidB.getParentZone());
+      final var centroidVertexC = zone2CentroidVertexMapping.get(centroidC.getParentZone());
+
+      ShortestPathResult result = aStar.executeOneToOne(centroidVertexA, networkLayer.getNodes().get(1));
       double costAto1 = result.getCostOf(networkLayer.getNodes().get(1));
       assertEquals(costAto1, 10, Precision.EPSILON_6);
 
-      result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(2));
+      result = aStar.executeOneToOne(centroidVertexA, networkLayer.getNodes().get(2));
       double costAto2 = result.getCostOf(networkLayer.getNodes().get(2));
       assertEquals(costAto2, 22, Precision.EPSILON_6);
 
-      result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(3));
+      result = aStar.executeOneToOne(centroidVertexA, networkLayer.getNodes().get(3));
       double costAto3 = result.getCostOf(networkLayer.getNodes().get(3));
       assertEquals(costAto3, 52, Precision.EPSILON_6);
 
-      result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(4));
+      result = aStar.executeOneToOne(centroidVertexA, networkLayer.getNodes().get(4));
       double costAto4 = result.getCostOf(networkLayer.getNodes().get(4));
       assertEquals(costAto4, 62, Precision.EPSILON_6);
 
-      result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(5));
+      result = aStar.executeOneToOne(centroidVertexA, networkLayer.getNodes().get(5));
       double costAto5 = result.getCostOf(networkLayer.getNodes().get(5));
       assertEquals(costAto5, 33, Precision.EPSILON_6);
 
-      result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(6));
+      result = aStar.executeOneToOne(centroidVertexA, networkLayer.getNodes().get(6));
       double costAto6 = result.getCostOf(networkLayer.getNodes().get(6));
       assertEquals(costAto6, 35, Precision.EPSILON_6);
 
-      result = aStar.executeOneToOne(centroidA, centroidC);
-      double aToCCost = result.getCostOf(centroidC);
+      result = aStar.executeOneToOne(centroidVertexA, centroidVertexC);
+      double aToCCost = result.getCostOf(centroidVertexC);
       assertEquals(aToCCost, 77.0, Precision.EPSILON_6);
 
-      result = aStar.executeOneToOne(centroidA, centroidB);
-      double aToBCost = result.getCostOf(centroidB);
+      result = aStar.executeOneToOne(centroidVertexA, centroidVertexB);
+      double aToBCost = result.getCostOf(centroidVertexB);
       assertEquals(aToBCost, 85.0, Precision.EPSILON_6);
 
     } catch (Exception e) {

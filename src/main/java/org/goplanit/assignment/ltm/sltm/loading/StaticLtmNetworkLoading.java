@@ -23,6 +23,7 @@ import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.pcu.PcuCapacitated;
 import org.goplanit.utils.zoning.Centroid;
@@ -572,8 +573,8 @@ public abstract class StaticLtmNetworkLoading {
     var splittingRateData = staticLtmNetworkLoading.getSplittingRateData();
     var sendingFlowData = staticLtmNetworkLoading.sendingFlowData;
       
-    /* tracked but non-blocking or centroid is notified as non-blocking */
-    if (!splittingRateData.isPotentiallyBlocking(node) || node instanceof Centroid) {
+    /* tracked but non-blocking or centroidVertex is notified as non-blocking */
+    if (!splittingRateData.isPotentiallyBlocking(node) || node instanceof CentroidVertex) {
       consumer.acceptNonBlockingLinkBasedResult(node, sendingFlowData.getCurrentSendingFlows());
       return;
     }

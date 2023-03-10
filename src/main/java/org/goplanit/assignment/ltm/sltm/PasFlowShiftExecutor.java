@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.consumer.NMRCollectMostRestrictingTurnConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
-import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushRooted;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
@@ -494,7 +493,7 @@ public abstract class PasFlowShiftExecutor {
           double bushS2Portion = bushEntrySegmentS2Flow / totalEntrySegmentS2Flow;
           double entrySegmentPasflowShift = proposedProportionalPasflowShift * bushS2Portion;
 
-          LOGGER.info(String.format("** Entry segment (" + entrySegment.toString() + ") - Zone (" + bush.getRootZone().getXmlId() + ") - start flow shift: %.10f",
+          LOGGER.info(String.format("** Entry segment (" + entrySegment.toString() + ") - Zone (" + bush.getRootZoneVertex().getXmlId() + ") - start flow shift: %.10f",
               entrySegmentPasflowShift));
 
           /* perform the flow shift for the current bush and its attributed portion */

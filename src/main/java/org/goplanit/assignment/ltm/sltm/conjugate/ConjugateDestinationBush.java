@@ -21,6 +21,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.ConjugateNode;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
 import org.goplanit.utils.zoning.OdZone;
 
@@ -63,7 +64,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   }
 
   /** destination of this conjugate bush */
-  protected final OdZone destination;
+  protected final CentroidVertex destination;
 
   /** track bush specific data */
   protected final ConjugateBushTurnData bushData;
@@ -85,7 +86,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    *                         destination
    * @param maxSubGraphTurns The maximum number of conjugate edge segments, i.e. turns, the conjugate bush can at most register given the parent network it is a subset of
    */
-  public ConjugateDestinationBush(final IdGroupingToken idToken, final OdZone destination, ConjugateConnectoidNode rootVertex, int maxSubGraphTurns) {
+  public ConjugateDestinationBush(final IdGroupingToken idToken, final CentroidVertex destination, ConjugateConnectoidNode rootVertex, int maxSubGraphTurns) {
     super(idToken, rootVertex, true /* inverted */, new ConjugateACyclicSubGraphImpl(idToken, rootVertex, true /* inverted */, maxSubGraphTurns));
     this.bushData = new ConjugateBushTurnData();
     this.destination = destination;
@@ -555,11 +556,11 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
   /**
    * Each conjugate destination bush is expected to have a single destination zone to which all of its root vertices are connected, which is to be returned here
-   * 
+   *
    * @return destination zone
    */
   @Override
-  public OdZone getRootZone() {
+  public CentroidVertex getRootZoneVertex() {
     return this.destination;
   }
 

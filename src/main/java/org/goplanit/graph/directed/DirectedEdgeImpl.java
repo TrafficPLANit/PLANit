@@ -35,24 +35,6 @@ public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment> 
   private ES edgeSegmentBa = null;
 
   /**
-   * set edge segment from B to A
-   * 
-   * @param edgeSegmentBa to set
-   */
-  protected void setEdgeSegmentBa(ES edgeSegmentBa) {
-    this.edgeSegmentBa = edgeSegmentBa;
-  }
-
-  /**
-   * set edge segment from A to B
-   * 
-   * @param edgeSegmentAb to set
-   */
-  protected void setEdgeSegmentAb(ES edgeSegmentAb) {
-    this.edgeSegmentAb = edgeSegmentAb;
-  }
-
-  /**
    * Constructor which injects link lengths directly
    *
    * @param groupId, contiguous id generation within this group for instances of this class
@@ -89,19 +71,35 @@ public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment> 
 
   // Public
 
-  // Protected
+  /**
+   * set edge segment from B to A
+   *
+   * @param edgeSegmentBa to set
+   */
+  public void setEdgeSegmentBa(ES edgeSegmentBa) {
+    this.edgeSegmentBa = edgeSegmentBa;
+  }
+
+  /**
+   * set edge segment from A to B
+   *
+   * @param edgeSegmentAb to set
+   */
+  public void setEdgeSegmentAb(ES edgeSegmentAb) {
+    this.edgeSegmentAb = edgeSegmentAb;
+  }
 
   /**
    * {@inheritDoc}
    */
   @SuppressWarnings("unchecked")
   @Override
-  public ES registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) {
-    if (edgeSegment.getParent() == null) {
+  public ES registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB, final boolean force) {
+    if (edgeSegment!= null && edgeSegment.getParent() == null) {
       edgeSegment.setParent(this);
     }
 
-    if (edgeSegment.getParent() != this) {
+    if (!force && (edgeSegment==null || edgeSegment.getParent() != this)) {
       LOGGER.warning("Inconsistency between link segment's parent link and link it is being registered on");
       return null;
     }

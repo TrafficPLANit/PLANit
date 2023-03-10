@@ -76,7 +76,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
      */
     boolean newlyRegistered = effectivePas.registerBush(bush);
     if (newlyRegistered && getSettings().isDetailedLogging()) {
-      LOGGER.info(String.format("%s %s added to PAS %s", bush.isInverted() ? "Destination" : "Origin", bush.getRootZone().getXmlId(), effectivePas.toString()));
+      LOGGER.info(String.format("%s %s added to PAS %s", bush.isInverted() ? "Destination" : "Origin", bush.getRootZoneVertex().getXmlId(), effectivePas.toString()));
     }
     return true;
   }

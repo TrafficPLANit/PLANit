@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
@@ -114,6 +115,9 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
     visited.set((int) vertex.getId());
 
     AcyclicVertexData vertexData = getVertexData(vertex);
+    if(vertexData == null){
+      throw new PlanItRunTimeException("No vertex data available for vertex %s, this shouldn't happen", vertex.toString());
+    }
     preVisit(vertexData, counter);
 
     var getNextVertex = EdgeSegment.getVertexForEdgeSegmentLambda(isDirectionInverted());

@@ -6,6 +6,7 @@ import java.util.Map;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.misc.CloneUtils;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
@@ -88,7 +89,13 @@ public abstract class ZoneImpl extends ExternalIdAbleImpl implements Zone {
     super(other);
     this.name = other.name;
 
-    this.centroid = other.centroid;
+    // centroid hold 1:1 reference to parent zone, so always a clone is needed
+    if(deepCopy){
+      this.centroid = other.centroid.deepClone();
+    }else{
+      this.centroid = other.centroid.shallowClone();
+    }
+    this.centroid.setParentZone(this);
 
     this.geometry = deepCopy ? other.getGeometry().copy() : other.geometry;
     this.inputProperties = new HashMap<>();
@@ -172,6 +179,7 @@ public abstract class ZoneImpl extends ExternalIdAbleImpl implements Zone {
   public long recreateManagedIds(IdGroupingToken tokenId) {
     long newId = generateZoneId(tokenId);
     setId(newId);
+    getCentroid().recreateManagedIds(tokenId);
     return newId;
   }
 

@@ -8,6 +8,7 @@ import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.zoning.OdZone;
 
 /**
@@ -24,7 +25,7 @@ public class DestinationBush extends RootedLabelledBush {
   private static final Logger LOGGER = Logger.getLogger(DestinationBush.class.getCanonicalName());
 
   /** Destination of this bush */
-  protected final OdZone destination;
+  protected final CentroidVertex destination;
 
   /**
    * Constructor
@@ -33,8 +34,8 @@ public class DestinationBush extends RootedLabelledBush {
    * @param destination             destination of the bush
    * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
-  public DestinationBush(final IdGroupingToken idToken, OdZone destination, long maxSubGraphEdgeSegments) {
-    super(idToken, destination.getCentroid(), true /* inverted */, maxSubGraphEdgeSegments);
+  public DestinationBush(final IdGroupingToken idToken, CentroidVertex destination, long maxSubGraphEdgeSegments) {
+    super(idToken, destination, true /* inverted */, maxSubGraphEdgeSegments);
     this.destination = destination;
   }
 
@@ -90,7 +91,7 @@ public class DestinationBush extends RootedLabelledBush {
    * {@inheritDoc}
    */
   @Override
-  public OdZone getRootZone() {
+  public CentroidVertex getRootZoneVertex() {
     return getDestination();
   }
 
@@ -116,7 +117,7 @@ public class DestinationBush extends RootedLabelledBush {
   @Override
   public String toString() {
     String result = super.toString();
-    return "Bush: destination zone: " + getDestination().getXmlId() + "\n" + result;
+    return "Bush: destination zone: " + getDestination().getParent().getParentZone().getXmlId() + "\n" + result;
   }
 
   /**
@@ -124,17 +125,18 @@ public class DestinationBush extends RootedLabelledBush {
    * 
    * @return destination zone
    */
-  public OdZone getDestination() {
+  public CentroidVertex getDestination() {
     return this.destination;
   }
 
   /**
    * add origin demand for this origin bush
-   * 
+   *
+   * @param originCentroidVertex to add for
    * @param demandPcuH demand to add
    */
-  public void addOriginDemandPcuH(OdZone originZone, double demandPcuH) {
-    super.addOriginDemandPcuH(originZone, demandPcuH);
+  public void addOriginDemandPcuH(CentroidVertex originCentroidVertex, double demandPcuH) {
+    super.addOriginDemandPcuH(originCentroidVertex, demandPcuH);
   }
 
 }

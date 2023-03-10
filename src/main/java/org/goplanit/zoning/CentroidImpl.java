@@ -1,10 +1,9 @@
 package org.goplanit.zoning;
 
-import org.goplanit.graph.directed.DirectedVertexImpl;
-import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.*;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
+import org.locationtech.jts.geom.Point;
 
 /**
  * Centroid implementation
@@ -12,7 +11,7 @@ import org.goplanit.utils.zoning.Zone;
  * @author gman6028, markr
  *
  */
-public class CentroidImpl extends DirectedVertexImpl<EdgeSegment> implements Centroid {
+public class CentroidImpl extends IdAbleImpl implements Centroid {
 
   // Protected
 
@@ -27,13 +26,17 @@ public class CentroidImpl extends DirectedVertexImpl<EdgeSegment> implements Cen
   /** name of the centroid */
   private String name;
 
+  /** location of the centroid */
+  private Point position;
+
   /**
-   * Set the parent zone
-   * 
-   * @param parentZone to set
+   * Generate id for instances of this class based on the token and class identifier
+   *
+   * @param tokenId to use
+   * @return generated id
    */
-  protected void setParentzone(Zone parentZone) {
-    this.parentZone = parentZone;
+  protected static long generateId(IdGroupingToken tokenId) {
+    return IdGenerator.generateId(tokenId, CENTROID_ID_CLASS);
   }
 
   /**
@@ -52,8 +55,8 @@ public class CentroidImpl extends DirectedVertexImpl<EdgeSegment> implements Cen
    * @param parentZone The parent zone of this Centroid
    */
   protected CentroidImpl(final IdGroupingToken groupId, final Zone parentZone) {
-    super(groupId);
-    setParentzone(parentZone);
+    super(generateId(groupId));
+    setParentZone(parentZone);
   }
 
   /**
@@ -63,8 +66,8 @@ public class CentroidImpl extends DirectedVertexImpl<EdgeSegment> implements Cen
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
   protected CentroidImpl(final CentroidImpl other, boolean deepCopy) {
-    super(other, deepCopy);
-    setParentzone(other.getParentZone());
+    super(other);
+    setParentZone(other.getParentZone());
     setName(other.getName());
   }
 
@@ -86,6 +89,16 @@ public class CentroidImpl extends DirectedVertexImpl<EdgeSegment> implements Cen
     return new CentroidImpl(this, true);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    long newId = generateId(tokenId);
+    setId(newId);
+    return newId;
+  }
+
   // Getters-Setters
 
   /**
@@ -94,6 +107,16 @@ public class CentroidImpl extends DirectedVertexImpl<EdgeSegment> implements Cen
   @Override
   public Zone getParentZone() {
     return this.parentZone;
+  }
+
+  /**
+   * Set the parent zone
+   *
+   * @param parentZone to set
+   */
+  @Override
+  public void setParentZone(Zone parentZone) {
+    this.parentZone = parentZone;
   }
 
   /**
@@ -110,6 +133,22 @@ public class CentroidImpl extends DirectedVertexImpl<EdgeSegment> implements Cen
   @Override
   public void setName(String name) {
     this.name = name;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Point getPosition() {
+    return position;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setPosition(Point position) {
+    this.position = position;
   }
 
 }

@@ -3,6 +3,7 @@ package org.goplanit.zoning;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
@@ -13,9 +14,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
-import org.goplanit.utils.network.virtual.ConnectoidEdge;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
-import org.goplanit.utils.network.virtual.VirtualNetwork;
+import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
@@ -39,6 +38,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
 
   /**
    * Virtual network holds all the virtual connections to the physical network (layers)
+   * todo: we should have potentially multiple virtual networks per zoning, one for each physical nework the zoning is used on!
    */
   protected final VirtualNetwork virtualNetwork;
 
@@ -117,7 +117,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     // extension of class, with reference to this, so copy always required
     this.zoningModifier = new ZoningModifierImpl(this);
 
-    // effectively these are all container wrappers as well, so always require a clone
+    // These are all container wrappers as well, so always require a clone
     if(deepCopy){
       this.odConnectoids =        other.odConnectoids.deepCloneWithMapping(undirConnectoidMapper);
       this.transferConnectoids =  other.transferConnectoids.deepCloneWithMapping(dirConnectoidMapper);
@@ -133,9 +133,12 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
 
       var connectoidEdgeMapper = new GraphEntityDeepCopyMapper<ConnectoidEdge>();
       var connectoidEdgeSegmentMapper = new GraphEntityDeepCopyMapper<ConnectoidSegment>();
-      this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(connectoidEdgeMapper, connectoidEdgeSegmentMapper);
+      var centroidVertexMapper = new GraphEntityDeepCopyMapper<CentroidVertex>();
+      this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(connectoidEdgeMapper, connectoidEdgeSegmentMapper, centroidVertexMapper);
 
-      //todo update connectoids and connectoid edges as well as centroids...continue here
+      // make sure centroid vertex's parent centroid is updated properly (this goes across zones that own  zone and centroids and virtual network, so done here)
+      var centroidMapper = centroidVertexMapper.stream().collect(Collectors.toMap(entry -> entry.getKey().getParent(), entry -> entry.getValue().getParent()));
+      CentroidVertexUtils.updateCentroidVertexCentroidMapping(virtualNetwork.getCentroidVertices(), (Centroid originalCentroid) -> centroidMapper.get(originalCentroid), true);
 
     }else{
       this.odConnectoids =        other.odConnectoids.shallowClone();

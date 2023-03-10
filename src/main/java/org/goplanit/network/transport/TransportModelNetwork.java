@@ -1,20 +1,18 @@
 package org.goplanit.network.transport;
 
-import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
-import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
-import org.goplanit.utils.network.virtual.ConnectoidEdge;
-import org.goplanit.utils.network.virtual.ConnectoidEdgeFactory;
-import org.goplanit.utils.network.virtual.ConnectoidSegmentFactory;
-import org.goplanit.utils.network.virtual.VirtualNetwork;
-import org.goplanit.utils.zoning.DirectedConnectoid;
-import org.goplanit.utils.zoning.UndirectedConnectoid;
+import org.goplanit.utils.network.virtual.*;
+import org.goplanit.utils.zoning.*;
 import org.goplanit.zoning.Zoning;
 
 /**
@@ -70,21 +68,35 @@ public class TransportModelNetwork {
   // Public
 
   /**
-   * create and register the edge segments for the passed in connectoid edges, XML id set to id prefixed with "c".
+   * create and register the edge segments for the passed in connectoid edge, XML id set to id prefixed with "c_ab or c_ba".
    * 
-   * @param virtualNetwork  to create and register on
-   * @param connectoidEdges to process
+   * @param connectoidSegmentFactory  to create and register on
+   * @param connectoidEdge to process
    */
-  protected void createAndRegisterConnectoidEdgeSegments(VirtualNetwork virtualNetwork, Collection<ConnectoidEdge> connectoidEdges) {
+  protected void createAndRegisterConnectoidEdgeSegments(ConnectoidSegmentFactory connectoidSegmentFactory, ConnectoidEdge connectoidEdge) {
+    var segment = connectoidSegmentFactory.registerNew(connectoidEdge, true);
+    segment.setXmlId("c_ab" + segment.getId());
+    segment = connectoidSegmentFactory.registerNew(connectoidEdge, false);
+    segment.setXmlId("c_ba" + segment.getId());
+    connectVerticesToEdge(connectoidEdge);
+  }
 
-    ConnectoidSegmentFactory connectoidSegmentFactory = virtualNetwork.getConnectoidSegments().getFactory();
-    for (ConnectoidEdge connectoidEdge : connectoidEdges) {
-      var segment = connectoidSegmentFactory.registerNew(connectoidEdge, true);
-      segment.setXmlId("c" + segment.getId());
-      segment = connectoidSegmentFactory.registerNew(connectoidEdge, false);
-      segment.setXmlId("c" + segment.getId());
-      connectVerticesToEdge(connectoidEdge);
-    }
+  /**
+   * Given context of centroid vertex and connectoid + access zone, we create the required connectoid edges and connected segments with the provided factories
+   *
+   * @param connectoidEdgeFactory factory to use
+   * @param connectoidSegmentFactory factory to use
+   * @param centroidVertex centroid vertex created for the access zone
+   * @param accessZone at hand for the current connectoid
+   * @param connectoid the connectoid at hand used to extract length to access zone
+   */
+  protected void createAndConnectoidEdgeAndEdgeSegments(ConnectoidEdgeFactory connectoidEdgeFactory, ConnectoidSegmentFactory connectoidSegmentFactory, CentroidVertex centroidVertex, Zone accessZone, Connectoid connectoid) {
+    double connectoidLength = connectoid.getLengthKm(accessZone).orElseThrow(
+        () -> new PlanItRunTimeException("unable to retrieve length for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
+    var connectoidEdge =
+        connectoidEdgeFactory.registerNew(centroidVertex, connectoid.getAccessVertex(), connectoidLength);
+    connectVerticesToEdge(connectoidEdge);
+    createAndRegisterConnectoidEdgeSegments(connectoidSegmentFactory, connectoidEdge);
   }
 
   /**
@@ -167,33 +179,48 @@ public class TransportModelNetwork {
         infrastructureNetwork.getXmlId() != null ? infrastructureNetwork.getXmlId() : "N/A", zoning.getId(), zoning.getXmlId() != null ? zoning.getXmlId() : "N/A"));
 
     VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
-    ConnectoidEdgeFactory connectoidEdgeFactory = virtualNetwork.getConnectoidEdges().getFactory();
+    var centroidVertexFactory = virtualNetwork.getCentroidVertices().getFactory();
+    var connectoidEdgeFactory = virtualNetwork.getConnectoidEdges().getFactory();
+    var connectoidSegmentFactory = virtualNetwork.getConnectoidSegments().getFactory();
+
+    Map<Zone, CentroidVertex> zone2CentroidVertexMapping = new HashMap<>();
     for (UndirectedConnectoid undirectedConnectoid : zoning.getOdConnectoids()) {
-      /* undirected connectoid (virtual) edge between zone centroid and access node */
-      Collection<ConnectoidEdge> connectoidEdges = connectoidEdgeFactory.registerNew(undirectedConnectoid);
-      for (ConnectoidEdge connectoidEdge : connectoidEdges) {
-        connectVerticesToEdge(connectoidEdge);
-      }
-      createAndRegisterConnectoidEdgeSegments(virtualNetwork, connectoidEdges);
+      for(var accessZone : undirectedConnectoid.getAccessZones()){
+        var centroidVertex = zone2CentroidVertexMapping.get(accessZone);
+        if(centroidVertex == null) {
+          centroidVertex = centroidVertexFactory.registerNew(accessZone.getCentroid()); // explicit vertex for centroid related to this virtual/physical network
+          zone2CentroidVertexMapping.put(accessZone, centroidVertex);
+        }
 
+        createAndConnectoidEdgeAndEdgeSegments(connectoidEdgeFactory, connectoidSegmentFactory, centroidVertex, accessZone, undirectedConnectoid);
+      }
     }
+
     for (DirectedConnectoid directedConnectoid : zoning.getTransferConnectoids()) {
-      /* directed connectoid (virtual) edge between zone centroid and access link segment's downstream node */
-      Collection<ConnectoidEdge> connectoidEdges = connectoidEdgeFactory.registerNew(directedConnectoid);
-      for (ConnectoidEdge connectoidEdge : connectoidEdges) {
-        connectVerticesToEdge(connectoidEdge);
-      }
-      createAndRegisterConnectoidEdgeSegments(virtualNetwork, connectoidEdges);
-    }
+      for(var accessZone : directedConnectoid.getAccessZones()) {
+        var centroidVertex = zone2CentroidVertexMapping.get(accessZone);
+        if(centroidVertex == null) {
+          centroidVertex = centroidVertexFactory.registerNew(accessZone.getCentroid()); // explicit vertex for centroid related to this virtual/physical network
+          zone2CentroidVertexMapping.put(accessZone, centroidVertex);
+        }
 
+        var accessEdgeSegment = directedConnectoid.getAccessLinkSegment();
+        var accessVertex = (Node) (accessEdgeSegment != null ? accessEdgeSegment.getDownstreamVertex() : null);
+        if (accessVertex == null) {
+          throw new PlanItRunTimeException("No access vertex found for directed connectoid, this shouldn't happen");
+        }
+        createAndConnectoidEdgeAndEdgeSegments(connectoidEdgeFactory, connectoidSegmentFactory, centroidVertex, accessZone, directedConnectoid);
+      }
+    }
     logInfo();
   }
 
-  /**
-   * Returns the total number of edge segments available in this traffic assignment by combining the physical and non-physical link segments
-   * 
-   * @return total number of physical and virtual edge segments
-   */
+
+    /**
+     * Returns the total number of edge segments available in this traffic assignment by combining the physical and non-physical link segments
+     *
+     * @return total number of physical and virtual edge segments
+     */
   public int getNumberOfEdgeSegmentsAllLayers() {
     return getNumberOfPhysicalLinkSegmentsAllLayers(getInfrastructureNetwork()) + getNumberOfConnectoidSegments(getZoning());
   }
@@ -274,4 +301,17 @@ public class TransportModelNetwork {
     return zoning;
   }
 
+  /**
+   * Create a (new) mapping from zones (transfer and or OD) to their centroid vertex.
+   *
+   * @param OdZones when true OdZones will be included in the mapping, not included otherwise
+   * @param transferZones when true transferZones will be included in the mapping, not included otherwise
+   * @return mapping that was created
+   */
+  public Map<Zone, CentroidVertex> createZoneToCentroidVertexMapping(boolean OdZones, boolean transferZones){
+    return getZoning().getVirtualNetwork().getCentroidVertices().stream().filter(
+        cVertex ->
+            (OdZones && (cVertex.getParent().getParentZone() instanceof OdZone)) || (transferZones && (cVertex.getParent().getParentZone() instanceof TransferZone))).collect(
+                Collectors.toMap(cVertex -> cVertex.getParent().getParentZone(), cVertex -> cVertex));
+  }
 }

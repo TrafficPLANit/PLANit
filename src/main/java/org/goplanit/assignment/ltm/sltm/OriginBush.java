@@ -8,6 +8,7 @@ import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.zoning.OdZone;
 
 /**
@@ -30,7 +31,7 @@ public class OriginBush extends RootedLabelledBush {
    * @param origin                  origin of the bush
    * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
-  public OriginBush(final IdGroupingToken idToken, OdZone origin, long maxSubGraphEdgeSegments) {
+  public OriginBush(final IdGroupingToken idToken, CentroidVertex origin, long maxSubGraphEdgeSegments) {
     this(idToken, origin, 0, maxSubGraphEdgeSegments);
   }
 
@@ -42,8 +43,8 @@ public class OriginBush extends RootedLabelledBush {
    * @param originDemandPcuH        demand
    * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
-  public OriginBush(final IdGroupingToken idToken, OdZone origin, double originDemandPcuH, long maxSubGraphEdgeSegments) {
-    super(idToken, origin.getCentroid(), false /* not inverted */, maxSubGraphEdgeSegments);
+  public OriginBush(final IdGroupingToken idToken, CentroidVertex origin, double originDemandPcuH, long maxSubGraphEdgeSegments) {
+    super(idToken, origin, false /* not inverted */, maxSubGraphEdgeSegments);
     addOriginDemandPcuH(origin, originDemandPcuH);
   }
 
@@ -98,7 +99,7 @@ public class OriginBush extends RootedLabelledBush {
    * {@inheritDoc}
    */
   @Override
-  public OdZone getRootZone() {
+  public CentroidVertex getRootZoneVertex() {
     return getOrigin();
   }
 
@@ -132,7 +133,7 @@ public class OriginBush extends RootedLabelledBush {
    * 
    * @return origin zone
    */
-  public OdZone getOrigin() {
+  public CentroidVertex getOrigin() {
     return this.originDemandsPcuH.keySet().iterator().next();
   }
 

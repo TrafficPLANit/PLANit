@@ -8,10 +8,12 @@ import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.GraphEntities;
+import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConnectoidEdge;
 import org.goplanit.utils.network.virtual.ConnectoidEdgeFactory;
 import org.goplanit.utils.zoning.Connectoid;
@@ -39,32 +41,10 @@ public class ConnectoidEdgeFactoryImpl extends GraphEntityFactoryImpl<Connectoid
   /**
    * {@inheritDoc}
    */
-  public Collection<ConnectoidEdge> registerNew(Connectoid connectoid) {
-
-    /* constructed from connectoid information */
-    ArrayList<ConnectoidEdge> connectoidEdges = new ArrayList<ConnectoidEdge>();
-    for (Zone accessZone : connectoid) {
-
-      /* Access node */
-      /* for now we only utilise a single access node, either the given one, or the downstream node of a directed connectoid */
-      /* TODO: when we implement PT assignments this likely will change */
-      DirectedVertex accessVertex = null;
-      if (connectoid instanceof UndirectedConnectoid) {
-        accessVertex = UndirectedConnectoid.class.cast(connectoid).getAccessVertex();
-      } else if (connectoid instanceof DirectedConnectoid) {
-        EdgeSegment accessEdgeSegment = DirectedConnectoid.class.cast(connectoid).getAccessLinkSegment();
-        accessVertex = (Node) (accessEdgeSegment != null ? accessEdgeSegment.getDownstreamVertex() : null);
-      } else {
-        throw new PlanItRunTimeException("Connectoid %s is of unrecognised type and access node could not be retrieved", connectoid.getXmlId());
-      }
-
+  public ConnectoidEdge registerNew(CentroidVertex centroidVertex, DirectedVertex nonCentroidVertex, double lengthKm){
       /* create and register connectoid edge */
-      Optional<Double> connectoidLength = connectoid.getLengthKm(accessZone);
-      connectoidLength.orElseThrow(() -> new PlanItRunTimeException("unable to retrieve lenght for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
-      ConnectoidEdge newConnectoidEdge = new ConnectoidEdgeImpl(getIdGroupingToken(), accessZone.getCentroid(), accessVertex, connectoidLength.get());
+      ConnectoidEdge newConnectoidEdge = new ConnectoidEdgeImpl(getIdGroupingToken(), centroidVertex, nonCentroidVertex, lengthKm);
       getGraphEntities().register(newConnectoidEdge);
-      connectoidEdges.add(newConnectoidEdge);
-    }
-    return connectoidEdges;
+    return newConnectoidEdge;
   }
 }

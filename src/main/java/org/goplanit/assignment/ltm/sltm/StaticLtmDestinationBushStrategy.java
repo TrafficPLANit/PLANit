@@ -10,6 +10,7 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
 
@@ -31,14 +32,14 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    * Populate with initial demand for given OD and shortest bush DAG
    * 
    * @param destinationBush  to populate
-   * @param  origin     to use
+   * @param  originCentroidVertex     to use
    * @param oDDemandPcuH     to use
    * @param odDag            to use
    * @param destinationLabel dummy destination label to use
    * 
    */
-  private void initialiseBushForOrigin(final DestinationBush destinationBush, final OdZone origin, final Double oDDemandPcuH, final ACyclicSubGraph odDag,
-      BushFlowLabel destinationLabel) {
+  private void initialiseBushForOrigin(final DestinationBush destinationBush, final CentroidVertex originCentroidVertex, final Double oDDemandPcuH, final ACyclicSubGraph odDag,
+                                       BushFlowLabel destinationLabel) {
 
     /* get topological sorted vertices to process (starting at destination) */
     boolean descendingIterator = true;
@@ -47,7 +48,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
 
     /* proceed until we arrive at our origin */
     DirectedVertex currVertex = null;
-    while (vertexIter.hasNext() && !origin.getCentroid().equals(currVertex)) {
+    while (vertexIter.hasNext() && !originCentroidVertex.equals(currVertex)) {
       currVertex = vertexIter.next();
     }
 
@@ -65,7 +66,8 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    */
   @Override
   protected void initialiseBush(RootedLabelledBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
-    var destination = ((DestinationBush) bush).getDestination();
+    var destinationVertex = ((DestinationBush) bush).getDestination();
+    var destination = (OdZone) destinationVertex.getParent().getParentZone();
     ShortestBushResult allToOneResult = null;
 
     for (var origin : zoning.getOdZones()) {
@@ -78,18 +80,19 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
 
         /* find all-to-one shortest paths */
         if (allToOneResult == null) {
-          allToOneResult = shortestBushAlgorithm.executeAllToOne(destination.getCentroid());
+          allToOneResult = shortestBushAlgorithm.executeAllToOne(destinationVertex);
         }
 
         /* initialise bush with this origin shortest path(s) */
-        var originDag = allToOneResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), origin.getCentroid(), destination.getCentroid());
+        var originCentroidVertex = findCentroidVertex(origin);
+        var originDag = allToOneResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), findCentroidVertex(origin), destinationVertex);
         if (originDag.isEmpty()) {
           LOGGER.severe(String.format("Unable to create bush connection(s) from origin (%s) to destination %s", origin.getXmlId(), destination.getXmlId()));
           continue;
         }
 
-        bush.addOriginDemandPcuH(origin, currOdDemand);
-        initialiseBushForOrigin((DestinationBush) bush, origin, currOdDemand, originDag, dummyLabel);
+        bush.addOriginDemandPcuH(originCentroidVertex, currOdDemand);
+        initialiseBushForOrigin((DestinationBush) bush, originCentroidVertex, currOdDemand, originDag, dummyLabel);
       }
     }
   }
@@ -106,6 +109,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
 
     OdDemands odDemands = getOdDemands();
     for (var destination : zoning.getOdZones()) {
+      var destinationVertex = findCentroidVertex(destination);
       for (var origin : zoning.getOdZones()) {
         if (destination.idEquals(origin)) {
           continue;
@@ -114,7 +118,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
         Double currOdDemand = odDemands.getValue(origin, destination);
         if (currOdDemand != null && currOdDemand > 0) {
           /* register new bush */
-          var bush = new DestinationBush(getIdGroupingToken(), destination, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
+          var bush = new DestinationBush(getIdGroupingToken(), destinationVertex, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
           destinationBushes[(int) destination.getOdZoneId()] = bush;
           break;
         }

@@ -9,6 +9,7 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
@@ -43,8 +44,8 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
     /* get topological sorted vertices to process */
     var vertexIter = odDag.getTopologicalIterator(true /* update */);
     var currVertex = vertexIter.next();
-    if (!(currVertex instanceof Centroid)) {
-      LOGGER.warning("root vertex is not centroid, should not happen");
+    if (!(currVertex instanceof CentroidVertex)) {
+      LOGGER.warning("Root vertex is not a centroid vertex, should not happen");
       return;
     }
 
@@ -62,7 +63,8 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
    */
   @Override
   protected void initialiseBush(RootedLabelledBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
-    var origin = ((OriginBush) bush).getOrigin();
+    var originVertex = ((OriginBush) bush).getOrigin();
+    var origin = (OdZone) originVertex.getParent().getParentZone();
     ShortestBushResult shortestBushResult = null;
 
     for (var destination : zoning.getOdZones()) {
@@ -75,11 +77,11 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
 
         /* find one-to-all shortest paths */
         if (shortestBushResult == null) {
-          shortestBushResult = shortestBushAlgorithm.executeOneToAll(origin.getCentroid());
+          shortestBushResult = shortestBushAlgorithm.executeOneToAll(originVertex);
         }
 
         /* initialise bush with this destination shortest path */
-        var destinationDag = shortestBushResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), origin.getCentroid(), destination.getCentroid());
+        var destinationDag = shortestBushResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), originVertex, findCentroidVertex(destination));
 
         ((OriginBush) bush).addOriginDemandPcuH(currOdDemand);
         initialiseBushForDestination((OriginBush) bush, destination, currOdDemand, destinationDag);
@@ -99,6 +101,7 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
 
     OdDemands odDemands = getOdDemands();
     for (var origin : zoning.getOdZones()) {
+      var originVertex = findCentroidVertex(origin);
       for (var destination : zoning.getOdZones()) {
         if (destination.idEquals(origin)) {
           continue;
@@ -107,7 +110,7 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
         Double currOdDemand = odDemands.getValue(origin, destination);
         if (currOdDemand != null && currOdDemand > 0) {
           /* register new bush */
-          var bush = new OriginBush(getIdGroupingToken(), origin, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
+          var bush = new OriginBush(getIdGroupingToken(), originVertex, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
           originBushes[(int) origin.getOdZoneId()] = bush;
           break;
         }

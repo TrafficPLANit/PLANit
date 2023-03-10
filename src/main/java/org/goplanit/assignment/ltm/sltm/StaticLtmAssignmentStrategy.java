@@ -1,6 +1,7 @@
 package org.goplanit.assignment.ltm.sltm;
 
 import java.util.BitSet;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.loading.SplittingRateData;
@@ -18,9 +19,12 @@ import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.time.TimePeriod;
+import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.utils.zoning.Zone;
 
 /**
  * Base class for dealing with different assignment solution methods within sLTM. These solution methods differ regarding their approach to representing path choices, e.g. bush
@@ -65,6 +69,9 @@ public abstract class StaticLtmAssignmentStrategy {
    * Track which nodes were potentially blocking in previous iteration to ensure costs are updated for these nodes even when they are no longer blocking in the current iteration
    */
   private final BitSet prevIterationPotentiallyBlocking;
+
+  /** have a mapping between zone and connectoid to the layer by means of its centroid vertex */
+  private Map<Zone, CentroidVertex> zone2VertexMapping;
 
   /**
    * The transport model network used
@@ -147,6 +154,15 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   protected <T> T getTrafficAssignmentComponent(final Class<T> taComponentClassKey) {
     return taComponents.getTrafficAssignmentComponent(taComponentClassKey);
+  }
+
+  /** map zone to centroid vertex
+   *
+   * @param zone to map
+   * @return vertex found
+   */
+  protected CentroidVertex findCentroidVertex(OdZone zone){
+    return zone2VertexMapping.get(zone);
   }
 
   /**
@@ -273,6 +289,10 @@ public abstract class StaticLtmAssignmentStrategy {
     this.settings = settings;
     this.taComponents = taComponents;
     this.prevIterationPotentiallyBlocking = new BitSet(transportModelNetwork.getNumberOfVerticesAllLayers());
+
+    /* construct mapping from OdZone to centroidVertex which is needed for path finding among other things, where we get an OD but need to find a path from
+     * centroid vertex to centroid vertex */
+    this.zone2VertexMapping = transportModelNetwork.createZoneToCentroidVertexMapping(true /*include OdZones */, false /* exclude transfer zones */);
   }
 
   /**

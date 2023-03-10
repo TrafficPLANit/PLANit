@@ -12,7 +12,6 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.path.OdPaths;
 import org.goplanit.od.path.OdPathsHashed;
 import org.goplanit.path.ManagedDirectedPathFactoryImpl;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
@@ -38,9 +37,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * 
    * @param currentSegmentCosts costs to use for the shortest path algorithm
    * @return create odPaths
-   * @throws PlanItException thrown if error
    */
-  private OdPaths createOdPaths(final double[] currentSegmentCosts) throws PlanItException {
+  private OdPaths createOdPaths(final double[] currentSegmentCosts) {
     final ShortestPathOneToAll shortestPathAlgorithm = new ShortestPathDijkstra(currentSegmentCosts, getTransportNetwork().getNumberOfVerticesAllLayers());
     ManagedDirectedPathFactory pathFactory = new ManagedDirectedPathFactoryImpl(getIdGroupingToken());
     OdPaths odPaths = new OdPathsHashed(getIdGroupingToken(), getTransportNetwork().getZoning().getOdZones());
@@ -48,7 +46,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     Zoning zoning = getTransportNetwork().getZoning();
     OdDemands odDemands = getOdDemands();
     for (var origin : zoning.getOdZones()) {
-      var oneToAllResult = shortestPathAlgorithm.executeOneToAll(origin.getCentroid());
+      var originVertex = findCentroidVertex(origin);
+      var oneToAllResult = shortestPathAlgorithm.executeOneToAll(originVertex);
       for (var destination : zoning.getOdZones()) {
         if (destination.idEquals(origin)) {
           continue;
@@ -57,7 +56,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         /* for positive demand on OD generate the shortest path under given costs */
         Double currOdDemand = odDemands.getValue(origin, destination);
         if (currOdDemand != null && currOdDemand > 0) {
-          var path = oneToAllResult.createPath(pathFactory, origin.getCentroid(), destination.getCentroid());
+          var destinationVertex = findCentroidVertex(destination);
+          var path = oneToAllResult.createPath(pathFactory, originVertex,destinationVertex);
           if (path == null) {
             LOGGER.warning(String.format("%sUnable to create path for OD (%s,%s) with non-zero demand (%.2f)", LoggingUtils.runIdPrefix(getAssignmentId()), origin.getXmlId(),
                 destination.getXmlId(), currOdDemand));

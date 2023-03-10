@@ -8,6 +8,7 @@ import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.assignment.ltm.sltm.RootedLabelledBush;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.zoning.OdZone;
 
@@ -34,10 +35,10 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
    * @param bushSendingFlows to populate as a starting point for the bush loading
    */
   private void initialiseRootExitSegmentSendingFlows(final RootedLabelledBush bush, final MultiKeyMap<Object, Double> bushSendingFlows) {
-    Set<OdZone> origins = bush.getOrigins();
-    for (var origin : origins) {
+    Set<CentroidVertex> originVertices = bush.getOriginVertices();
+    for (var originVertex : originVertices) {
       double totalOriginsSendingFlow = 0;
-      for (var originExit : origin.getCentroid().getExitEdgeSegments()) {
+      for (var originExit : originVertex.getExitEdgeSegments()) {
         if (bush.containsEdgeSegment(originExit)) {
           var usedLabels = bush.getFlowCompositionLabels(originExit);
           for (var usedLabel : usedLabels) {
@@ -48,9 +49,9 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
         }
       }
 
-      if (Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(origin))) {
+      if (Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(originVertex))) {
         LOGGER.severe(String.format("bush specific origin's (%s) travel demand (%.2f pcu/h) not equal to total flow (%.2f pcu/h) placed on bush root, this shouldn't happen",
-            origin.getXmlId(), bush.getOriginDemandPcuH(origin), totalOriginsSendingFlow));
+            originVertex.getParent().getParentZone().getXmlId(), bush.getOriginDemandPcuH(originVertex), totalOriginsSendingFlow));
       }
     }
   }

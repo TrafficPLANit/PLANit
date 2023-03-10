@@ -11,6 +11,7 @@ import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.zoning.Centroid;
 
 /**
@@ -389,7 +390,7 @@ public class LabelledBushTurnData {
       return 0;
     }
 
-    if (edgeSegment.getUpstreamVertex() instanceof Centroid) {
+    if (edgeSegment.getUpstreamVertex() instanceof CentroidVertex) {
       /* no preceding link segments, so same as what is being sent out of the segment */
       return getTotalSendingFlowFromPcuH(edgeSegment, compositionLabel);
     }

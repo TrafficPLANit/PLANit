@@ -7,6 +7,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.zoning.Centroid;
 
 /**
@@ -161,7 +162,7 @@ public class BushTurnData {
    * @return bush sending flow found
    */
   public double getTotalAcceptedFlowToPcuH(final EdgeSegment edgeSegment, double[] flowAcceptanceFactors) {
-    if (edgeSegment.getUpstreamVertex() instanceof Centroid) {
+    if (edgeSegment.getUpstreamVertex() instanceof CentroidVertex) {
       /* no preceding link segments, so same as what is being sent out of the segment */
       return getTotalSendingFlowFromPcuH(edgeSegment);
     }

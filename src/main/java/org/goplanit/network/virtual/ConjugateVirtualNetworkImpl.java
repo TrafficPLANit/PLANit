@@ -6,13 +6,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidEdges;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNodes;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidSegments;
-import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
-import org.goplanit.utils.network.virtual.ConnectoidEdge;
-import org.goplanit.utils.network.virtual.VirtualNetwork;
+import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.zoning.Centroid;
 
 /**
@@ -138,8 +132,8 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
    * {@inheritDoc}
    */
   @Override
-  public Map<Centroid, ConjugateConnectoidNode> createCentroidToConjugateNodeMapping() {
-    var mapping = new HashMap<Centroid, ConjugateConnectoidNode>();
+  public Map<CentroidVertex, ConjugateConnectoidNode> createCentroidToConjugateNodeMapping() {
+    var mapping = new HashMap<CentroidVertex, ConjugateConnectoidNode>();
     for (ConjugateConnectoidNode conjugateNode : getConjugateConnectoidNodes()) {
       var originalEdge = conjugateNode.getOriginalEdge();
       if (originalEdge != null) {

@@ -55,14 +55,13 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * Constructor
    * 
    * @param groupId contiguous id generation within this group for instances of this class
-   * @throws PlanItException thrown if there is an error
    */
-  public TraditionalStaticAssignmentSimulationData(final IdGroupingToken groupId) throws PlanItException {
+  public TraditionalStaticAssignmentSimulationData(final IdGroupingToken groupId) {
     this.groupId = groupId;
-    this.modeSpecificData = new TreeMap<Mode, ModeData>();
-    this.modalNetworkSegmentCostsMap = new HashMap<Mode, double[]>();
-    this.modalSkimMatrixMap = new HashMap<Mode, Map<OdSkimSubOutputType, OdSkimMatrix>>();
-    this.modalOdPathMatrixMap = new HashMap<Mode, OdPathMatrix>();
+    this.modeSpecificData = new TreeMap<>();
+    this.modalNetworkSegmentCostsMap = new HashMap<>();
+    this.modalSkimMatrixMap = new HashMap<>();
+    this.modalOdPathMatrixMap = new HashMap<>();
   }
 
   /**
@@ -130,7 +129,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param originDestinationOutputTypeConfiguration configuration to use
    */
   public void resetSkimMatrix(Mode mode, OdZones zones, OdOutputTypeConfiguration originDestinationOutputTypeConfiguration) {
-    modalSkimMatrixMap.put(mode, new HashMap<OdSkimSubOutputType, OdSkimMatrix>());
+    modalSkimMatrixMap.put(mode, new HashMap<>());
 
     for (var odSkimOutputType : originDestinationOutputTypeConfiguration.getActiveSubOutputTypes()) {
       OdSkimMatrix odSkimMatrix = new OdSkimMatrix(zones, (OdSkimSubOutputType) odSkimOutputType);

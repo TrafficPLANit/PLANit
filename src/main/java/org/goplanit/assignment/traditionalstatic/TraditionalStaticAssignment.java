@@ -5,11 +5,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.StaticTrafficAssignment;
-import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.cost.Cost;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
@@ -29,17 +29,17 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.time.TimePeriod;
-import org.goplanit.utils.zoning.Centroid;
+import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.Zone;
 
 /**
@@ -68,6 +68,9 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
   /** to generate paths we use a path factory that is configured to generate appropriate ids */
   private ManagedDirectedPathFactory localPathFactory;
+
+  /** have a mapping between zone and connectoid to the layer by means of its centroid vertex */
+  private Map<OdZone, CentroidVertex> zone2VertexMapping;
 
   /**
    * create the logging prefix for logging statements during equilibration
@@ -140,6 +143,12 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       this.localPathFactory = new ManagedDirectedPathFactoryImpl(networkLayer.getLayerIdGroupingToken());
     }
 
+    /* construct mapping from OdZone to centroidVertex which is needed for path finding among other things, where we get an OD but need to find a path from
+     * centroid vertex to centroid vertex */
+    this.zone2VertexMapping = getZoning().getVirtualNetwork().getCentroidVertices().stream().filter(
+        cVertex -> (cVertex.getParent().getParentZone() instanceof OdZone)).collect( // filter OdZones
+            Collectors.toMap(cVertex -> (OdZone) cVertex.getParent().getParentZone(), cVertex -> cVertex)); // map to zone
+
     /* register new time period on costs */
     getPhysicalCost().updateTimePeriod(timePeriod);
     getVirtualCost().updateTimePeriod(timePeriod);
@@ -198,23 +207,23 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
           /* new shortest path tree for current origin */
           if (previousOriginZoneId != currentOriginZone.getId()) {
-
-            final Centroid originCentroid = currentOriginZone.getCentroid();
-            if (!originCentroid.hasExitEdgeSegments()) {
+            var originCentroidVertex = zone2VertexMapping.get(currentOriginZone);
+            if (!originCentroidVertex.hasExitEdgeSegments()) {
               throw new PlanItException(String.format("Edge segments have not been assigned to Centroid for Zone %d", currentOriginZone.getExternalId()));
             }
 
             // UPDATE SHORTEST PATHS
-            shortestPathResult = shortestPathAlgorithm.executeOneToAll(originCentroid);
+            shortestPathResult = shortestPathAlgorithm.executeOneToAll(originCentroidVertex);
           }
 
           if (Precision.positive(odDemand)) {
-            double odShortestPathCost = shortestPathResult.getCostOf(currentDestinationZone.getCentroid());
+            var destinationCentroidVertex = zone2VertexMapping.get(currentDestinationZone);
+            double odShortestPathCost = shortestPathResult.getCostOf(destinationCentroidVertex);
             if (odShortestPathCost == Double.POSITIVE_INFINITY || odShortestPathCost == Double.MAX_VALUE) {
               LOGGER.warning(String.format("%s impossible path from origin zone %s (id:%d) to destination zone %s (id:%d) for mode %s (id:%d)", createLoggingPrefix(),
                   currentOriginZone.getXmlId(), currentOriginZone.getId(), currentDestinationZone.getXmlId(), currentDestinationZone.getId(), mode.getXmlId(), mode.getId()));
             } else {
-              updateNetworkFlowsForPath(shortestPathResult, currentOriginZone, currentDestinationZone, odDemand, currentModeData);
+              updateNetworkFlowsForPath(shortestPathResult, zone2VertexMapping.get(currentOriginZone), destinationCentroidVertex, odDemand, currentModeData);
               dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
             }
           }
@@ -222,7 +231,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
           /* update skim and path data if needed */
 
-          updateODOutputData(skimMatrixMap, currentOriginZone, currentDestinationZone, odDemand, shortestPathResult);
+          updateODOutputData(skimMatrixMap, currentOriginZone, currentDestinationZone, shortestPathResult);
           updatePathOutputData(mode, odPathMatrix, currentOriginZone, currentDestinationZone, shortestPathResult);
         }
       }
@@ -278,20 +287,20 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @return the path cost for the calculated minimum cost path
    * @throws PlanItException thrown if there is an error
    */
-  private void updateNetworkFlowsForPath(final ShortestPathResult shortestPathResult, final Zone origin, final Zone destination, final double odDemand,
+  private void updateNetworkFlowsForPath(final ShortestPathResult shortestPathResult, final CentroidVertex origin, final CentroidVertex destination, final double odDemand,
       final ModeData currentModeData) throws PlanItException {
 
     // prep
     EdgeSegment currentEdgeSegment = null;
-    Vertex currentVertex = destination.getCentroid();
+    Vertex currentVertex = destination;
 
-    while (currentVertex.getId() != origin.getCentroid().getId()) {
+    while (currentVertex.getId() != origin.getId()) {
 
       currentEdgeSegment = shortestPathResult.getNextEdgeSegmentForVertex(currentVertex);
 
       if (currentEdgeSegment == null) {
-        PlanItException.throwIf(currentVertex instanceof Centroid,
-            "The solution could not find an Edge Segment for the connectoid for zone " + ((Centroid) currentVertex).getParentZone().getExternalId());
+        PlanItException.throwIf(currentVertex instanceof CentroidVertex,
+            "The solution could not find an Edge Segment for the connectoid for zone " + ((CentroidVertex) currentVertex).getParent().getParentZone().getExternalId());
       }
 
       currentModeData.addToNextSegmentFlows(currentEdgeSegment.getId(), odDemand);
@@ -305,19 +314,18 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param skimMatrixMap          Map of OD skim matrices for each active output type
    * @param currentOriginZone      current origin zone
    * @param currentDestinationZone current destination zone
-   * @param odDemand               the odDemand
    * @param shortestPathResult     costs for the shortest path results for the specified mode and origin-any destination
    */
-  private void updateODOutputData(final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone,
-      final double odDemand, final ShortestPathResult shortestPathResult) {
+  private void updateODOutputData(
+      final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone, final ShortestPathResult shortestPathResult) {
 
     if (getOutputManager().isOutputTypeActive(OutputType.OD)) {
-      var activeSubOutputTypes = ((OdOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD)).getActiveSubOutputTypes();
+      var activeSubOutputTypes = getOutputManager().getOutputTypeConfiguration(OutputType.OD).getActiveSubOutputTypes();
       for (final var odSkimOutputType : activeSubOutputTypes) {
         if (odSkimOutputType.equals(OdSkimSubOutputType.COST)) {
 
           // Collect cost to get to vertex from shortest path ONE-TO-ALL information directly
-          final double odGeneralisedCost = shortestPathResult.getCostOf(currentDestinationZone.getCentroid());
+          final double odGeneralisedCost = shortestPathResult.getCostOf(zone2VertexMapping.get(currentDestinationZone));
           final OdSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);
           odSkimMatrix.setValue(currentOriginZone, currentDestinationZone, odGeneralisedCost);
         }
@@ -338,7 +346,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
     if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
-      final ManagedDirectedPath path = shortestPathResult.createPath(localPathFactory, origin.getCentroid(), destination.getCentroid());
+      final ManagedDirectedPath path = shortestPathResult.createPath(
+          localPathFactory, zone2VertexMapping.get(origin), zone2VertexMapping.get(destination));
       if (path == null) {
         LOGGER.fine(String.format("Unable to create path from origin %s (id:%d) to destination %s (id:%d) for mode %s (id:%d)", origin.getXmlId(), origin.getId(),
             destination.getXmlId(), destination.getId(), mode.getXmlId(), mode.getId()));

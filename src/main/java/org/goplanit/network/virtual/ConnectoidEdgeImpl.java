@@ -6,6 +6,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConnectoidEdge;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.zoning.Centroid;
@@ -64,11 +65,11 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl<DirectedVertex, EdgeSeg
    * Constructor
    *
    * @param groupId   contiguous id generation within this group for instances of this class
-   * @param centroidA the centroid at one end of the connectoid
+   * @param centroidA the centroidVertex at one end of the connectoid
    * @param vertexB   the vertex at the other end of the connectoid
    * @param length    length of the current connectoid
    */
-  protected ConnectoidEdgeImpl(final IdGroupingToken groupId, final Centroid centroidA, final DirectedVertex vertexB, final double length) {
+  protected ConnectoidEdgeImpl(final IdGroupingToken groupId, final CentroidVertex centroidA, final DirectedVertex vertexB, final double length) {
     super(groupId, centroidA, vertexB, length);
     setConnectoidEdgeId(generateConnectoidEdgeId(groupId));
   }

@@ -12,8 +12,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.zoning.OdZone;
-import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 
 /**
  * A rooted bush is an acyclic directed graph comprising of implicit paths along a network. It has a single root which can be any vertex with only outgoing edge segments. while
@@ -35,7 +34,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   private final UntypedACyclicSubGraph<V, ES> dag;
 
   /** the origin demands (PCU/h) of the bush all representing a root (starting point) within the DAG */
-  protected Map<OdZone, Double> originDemandsPcuH;
+  protected Map<CentroidVertex, Double> originDemandsPcuH;
 
   /** token for id generation unique within this bush */
   protected final IdGroupingToken bushGroupingToken;
@@ -46,12 +45,12 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   /**
    * Track origin demands for bush
    *
-   * @param originZone to set
+   * @param originCentroidVertex to set
    * @param demandPcuH demand to set
    */
-  protected void addOriginDemandPcuH(OdZone originZone, double demandPcuH) {
-    double currentDemandPcuH = this.originDemandsPcuH.getOrDefault(originZone, 0.0);
-    this.originDemandsPcuH.put(originZone, currentDemandPcuH + demandPcuH);
+  protected void addOriginDemandPcuH(CentroidVertex originCentroidVertex, double demandPcuH) {
+    double currentDemandPcuH = this.originDemandsPcuH.getOrDefault(originCentroidVertex, 0.0);
+    this.originDemandsPcuH.put(originCentroidVertex, currentDemandPcuH + demandPcuH);
   }
 
   /**
@@ -152,18 +151,18 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * 
    * @return origins on this bush
    */
-  public Set<OdZone> getOrigins() {
+  public Set<CentroidVertex> getOriginVertices() {
     return this.originDemandsPcuH.keySet();
   }
 
   /**
    * Get the origin demand for a given origin
    * 
-   * @param originZone to collect demand for
+   * @param originVertex to collect demand for
    * @return demand (if any)
    */
-  public Double getOriginDemandPcuH(OdZone originZone) {
-    return this.originDemandsPcuH.get(originZone);
+  public Double getOriginDemandPcuH(CentroidVertex originVertex) {
+    return this.originDemandsPcuH.get(originVertex);
   }
 
   /**
@@ -177,8 +176,8 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
 
   /**
    * Each rooted bush is expected to have a zone attached to its root vertex, which is to be returned here
-   * 
+   *
    * @return root zone
    */
-  protected abstract Zone getRootZone();
+  protected abstract CentroidVertex getRootZoneVertex();
 }
