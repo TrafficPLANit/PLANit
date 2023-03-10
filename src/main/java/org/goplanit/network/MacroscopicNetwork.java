@@ -7,7 +7,9 @@ import org.apache.commons.collections4.map.HashedMap;
 import org.goplanit.network.layer.macroscopic.MacroscopicGridNetworkLayerGenerator;
 import org.goplanit.network.layers.MacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.NetworkLayer;
@@ -53,25 +55,11 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    *
    * @param other to clone
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param modeMapper to use for tracking mapping between original and copied modes
+   * @param layerMapper to use for tracking mapping between original and copied layers
    */
-  protected MacroscopicNetwork(final MacroscopicNetwork other, boolean deepCopy) {
-    super(other, deepCopy);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public MacroscopicNetwork shallowClone() {
-    return new MacroscopicNetwork(this, false);
-  }
-
-  /**
-   * {@inheritDoc
-   */
-  @Override
-  public MacroscopicNetwork deepClone() {
-    return new MacroscopicNetwork(this, true);
+  protected MacroscopicNetwork(final MacroscopicNetwork other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<MacroscopicNetworkLayer> layerMapper) {
+    super(other, deepCopy, modeMapper, layerMapper);
   }
 
   @Override
@@ -122,6 +110,22 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
     var carMode = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
     MacroscopicGridNetworkLayerGenerator.create(rows, columns, network.getTransportLayers(), carMode).generate();
     return network;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicNetwork shallowClone() {
+    return new MacroscopicNetwork(this, false, null, null);
+  }
+
+  /**
+   * {@inheritDoc
+   */
+  @Override
+  public MacroscopicNetwork deepClone() {
+    return new MacroscopicNetwork(this, true, new ManagedIdDeepCopyMapper<>(), new ManagedIdDeepCopyMapper<>());
   }
 
 }

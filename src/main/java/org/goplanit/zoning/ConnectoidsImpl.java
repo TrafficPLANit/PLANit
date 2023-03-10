@@ -4,8 +4,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
+import org.goplanit.service.routed.RoutedTripsImpl;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
@@ -52,22 +54,11 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public ConnectoidsImpl(ConnectoidsImpl<T> other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ConnectoidsImpl(ConnectoidsImpl<T> other, boolean deepCopy, BiConsumer<T, T> mapper) {
+    super(other, deepCopy, mapper);
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public abstract ConnectoidsImpl<T> shallowClone();
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public abstract ConnectoidsImpl<T> deepClone();
 
   /**
    * {@inheritDoc}
@@ -103,4 +94,22 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
     }
     return indexByAccessZone;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ConnectoidsImpl<T> shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ConnectoidsImpl<T> deepClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ConnectoidsImpl deepCloneWithMapping(BiConsumer<T, T> mapper);
 }

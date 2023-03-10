@@ -174,16 +174,6 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   public abstract UntypedNetworkLayerImpl<V, E, S> deepClone();
 
   /**
-   * A smart deep clone updates known interdependencies between vertices, edges, and edge segments utilising the graph entity deep copy mappers
-   *
-   * @param vertexMapper tracking original to copy mappings
-   * @param edgeMapper tracking original to copy mappings
-   * @param edgeSegmentMapper tracking original to copy mappings
-   */
-  public abstract UntypedNetworkLayerImpl<V, E, S> smartDeepClone(
-          GraphEntityDeepCopyMapper<V> vertexMapper, GraphEntityDeepCopyMapper<E> edgeMapper, GraphEntityDeepCopyMapper<S> edgeSegmentMapper);
-
-  /**
    * {@inheritDoc}
    */
   @SuppressWarnings("unchecked")

@@ -1,10 +1,14 @@
 package org.goplanit.network.layer.service;
 
+import org.goplanit.network.layer.physical.ConjugateNodesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegFactory;
 import org.goplanit.utils.network.layer.service.ServiceLegs;
+
+import java.util.function.BiConsumer;
 
 /**
  * Container class for managing service legs within a service network
@@ -43,9 +47,10 @@ public class ServiceLegsImpl extends ManagedIdEntitiesImpl<ServiceLeg> implement
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ServiceLegsImpl(ServiceLegsImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ServiceLegsImpl(ServiceLegsImpl other, boolean deepCopy, BiConsumer<ServiceLeg,ServiceLeg> mapper) {
+    super(other, deepCopy, mapper);
     this.serviceLegFactory =
             new ServiceLegFactoryImpl(other.serviceLegFactory.getIdGroupingToken(), this);
   }
@@ -63,7 +68,7 @@ public class ServiceLegsImpl extends ManagedIdEntitiesImpl<ServiceLeg> implement
    */
   @Override
   public ServiceLegsImpl shallowClone() {
-    return new ServiceLegsImpl(this, false);
+    return new ServiceLegsImpl(this, false, null);
   }
 
   /**
@@ -71,7 +76,15 @@ public class ServiceLegsImpl extends ManagedIdEntitiesImpl<ServiceLeg> implement
    */
   @Override
   public ServiceLegsImpl deepClone() {
-    return new ServiceLegsImpl(this, true);
+    return new ServiceLegsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegsImpl deepCloneWithMapping(BiConsumer<ServiceLeg,ServiceLeg> mapper) {
+    return new ServiceLegsImpl(this, true, mapper);
   }
 
 }

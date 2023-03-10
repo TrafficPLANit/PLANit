@@ -97,16 +97,4 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
   @Override
   public abstract UntypedPhysicalLayerImpl<N, L, LS> deepClone();
 
-  /**
-   * A smart deep clone updates known interdependencies between nodes, links, and link segments utilising the graph entity deep copy mappers
-   *
-   * @param nodeMapper tracking original to copy mappings
-   * @param linkMapper tracking original to copy mappings
-   * @param linkSegmentMapper tracking original to copy mappings
-   */
-  public UntypedPhysicalLayerImpl<N, L, LS> smartDeepClone(
-          GraphEntityDeepCopyMapper<N> nodeMapper, GraphEntityDeepCopyMapper<L> linkMapper, GraphEntityDeepCopyMapper<LS> linkSegmentMapper) {
-    return new UntypedPhysicalLayerImpl<>(this, true, nodeMapper, linkMapper, linkSegmentMapper);
-  }
-
 }

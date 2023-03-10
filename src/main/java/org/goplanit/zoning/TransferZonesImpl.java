@@ -2,9 +2,9 @@ package org.goplanit.zoning;
 
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.zoning.TransferZone;
-import org.goplanit.utils.zoning.TransferZoneFactory;
-import org.goplanit.utils.zoning.TransferZones;
+import org.goplanit.utils.zoning.*;
+
+import java.util.function.BiConsumer;
 
 /**
  * implementation of the Zones &lt;T&gt; interface for transfer zones
@@ -42,9 +42,10 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Transf
    * 
    * @param other to copy
    * @param deepCopy when true, create a eep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public TransferZonesImpl(TransferZonesImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public TransferZonesImpl(TransferZonesImpl other, boolean deepCopy, BiConsumer<TransferZone, TransferZone> mapper) {
+    super(other, deepCopy, mapper);
     this.transferZoneFactory =
             new TransferZoneFactoryImpl(other.transferZoneFactory.getIdGroupingToken(), this);
   }
@@ -73,7 +74,7 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Transf
    */
   @Override
   public TransferZonesImpl shallowClone() {
-    return new TransferZonesImpl(this, false);
+    return new TransferZonesImpl(this, false, null);
   }
 
   /**
@@ -81,7 +82,15 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Transf
    */
   @Override
   public TransferZonesImpl deepClone() {
-    return new TransferZonesImpl(this, true);
+    return new TransferZonesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZonesImpl deepCloneWithMapping(BiConsumer<TransferZone, TransferZone> mapper) {
+    return new TransferZonesImpl(this, true, mapper);
   }
 
 }

@@ -1,10 +1,14 @@
 package org.goplanit.network.layer.service;
 
+import org.goplanit.network.layer.physical.ConjugateNodesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceLegSegmentFactory;
 import org.goplanit.utils.network.layer.service.ServiceLegSegments;
+
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of ServiceLegSegments container.
@@ -43,9 +47,10 @@ public class ServiceLegSegmentsImpl extends ManagedIdEntitiesImpl<ServiceLegSegm
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ServiceLegSegmentsImpl(ServiceLegSegmentsImpl other, boolean deepCopy) {
-    super(other,deepCopy);
+  public ServiceLegSegmentsImpl(ServiceLegSegmentsImpl other, boolean deepCopy, BiConsumer<ServiceLegSegment,ServiceLegSegment> mapper) {
+    super(other,deepCopy, mapper);
     this.serviceLegSegmentFactory =
             new ServiceLegSegmentFactoryImpl(other.serviceLegSegmentFactory.getIdGroupingToken(), this);
   }
@@ -63,7 +68,7 @@ public class ServiceLegSegmentsImpl extends ManagedIdEntitiesImpl<ServiceLegSegm
    */
   @Override
   public ServiceLegSegmentsImpl shallowClone() {
-    return new ServiceLegSegmentsImpl(this, false);
+    return new ServiceLegSegmentsImpl(this, false, null);
   }
 
   /**
@@ -71,7 +76,15 @@ public class ServiceLegSegmentsImpl extends ManagedIdEntitiesImpl<ServiceLegSegm
    */
   @Override
   public ServiceLegSegmentsImpl deepClone() {
-    return new ServiceLegSegmentsImpl(this, true);
+    return new ServiceLegSegmentsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegSegmentsImpl deepCloneWithMapping(BiConsumer<ServiceLegSegment,ServiceLegSegment> mapper) {
+    return new ServiceLegSegmentsImpl(this, true, mapper);
   }
 
 }

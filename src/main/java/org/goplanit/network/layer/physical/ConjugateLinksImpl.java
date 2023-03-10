@@ -4,7 +4,10 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.network.layer.physical.ConjugateLink;
 import org.goplanit.utils.network.layer.physical.ConjugateLinkFactory;
+import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
 import org.goplanit.utils.network.layer.physical.ConjugateLinks;
+
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -44,9 +47,10 @@ public class ConjugateLinksImpl extends ManagedIdEntitiesImpl<ConjugateLink> imp
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ConjugateLinksImpl(ConjugateLinksImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ConjugateLinksImpl(ConjugateLinksImpl other, boolean deepCopy, BiConsumer<ConjugateLink,ConjugateLink> mapper) {
+    super(other, deepCopy, mapper);
     this.factory = new ConjugateLinkFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
@@ -63,7 +67,7 @@ public class ConjugateLinksImpl extends ManagedIdEntitiesImpl<ConjugateLink> imp
    */
   @Override
   public ConjugateLinksImpl shallowClone() {
-    return new ConjugateLinksImpl(this, false);
+    return new ConjugateLinksImpl(this, false, null);
   }
 
   /**
@@ -71,7 +75,15 @@ public class ConjugateLinksImpl extends ManagedIdEntitiesImpl<ConjugateLink> imp
    */
   @Override
   public ConjugateLinksImpl deepClone() {
-    return new ConjugateLinksImpl(this, true);
+    return new ConjugateLinksImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateLinksImpl deepCloneWithMapping(BiConsumer<ConjugateLink,ConjugateLink> mapper) {
+    return new ConjugateLinksImpl(this, true, mapper);
   }
 
 }

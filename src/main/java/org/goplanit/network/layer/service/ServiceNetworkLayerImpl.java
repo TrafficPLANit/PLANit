@@ -1,14 +1,18 @@
 package org.goplanit.network.layer.service;
 
 import java.util.Collection;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.layer.modifier.ServiceNetworkLayerModifierImpl;
+import org.goplanit.network.layer.physical.ConjugateNodesImpl;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
+import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceLegSegments;
@@ -86,8 +90,13 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ServiceNetworkLayerImpl(ServiceNetworkLayerImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ServiceNetworkLayerImpl(
+      ServiceNetworkLayerImpl other,
+      boolean deepCopy,
+      GraphEntityDeepCopyMapper<ServiceNode> nodeMapper,
+      GraphEntityDeepCopyMapper<ServiceLeg> legMapper,
+      GraphEntityDeepCopyMapper<ServiceLegSegment> legSegmentMapper) {
+    super(other, deepCopy, nodeMapper, legMapper, legSegmentMapper);
     this.parentNetworkLayer = other.parentNetworkLayer;
     this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this, this.directedGraph);
   }
@@ -135,22 +144,6 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
     LOGGER.info(String.format("%s#service legs: %d", prefix, getLegs().size()));
     LOGGER.info(String.format("%s#service leg segments: %d", prefix, getLegSegments().size()));
     LOGGER.info(String.format("%s#service nodes: %d", prefix, getServiceNodes().size()));
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ServiceNetworkLayerImpl shallowClone() {
-    return new ServiceNetworkLayerImpl(this, false);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ServiceNetworkLayerImpl deepClone() {
-    return new ServiceNetworkLayerImpl(this, true);
   }
 
   /**
@@ -206,4 +199,22 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   public ServiceNetworkLayerModifierImpl<ServiceNode, ServiceLeg, ServiceLegSegment> getLayerModifier(){
     return (ServiceNetworkLayerModifierImpl<ServiceNode, ServiceLeg, ServiceLegSegment>) super.getLayerModifier();
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNetworkLayerImpl shallowClone() {
+    return new ServiceNetworkLayerImpl(this, false, null, null, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNetworkLayerImpl deepClone() {
+    return new ServiceNetworkLayerImpl(
+        this, true, new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
+  }
+
 }

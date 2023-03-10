@@ -1,10 +1,14 @@
 package org.goplanit.zoning;
 
+import org.goplanit.path.ManagedDirectedPathsImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.DirectedConnectoidFactory;
 import org.goplanit.utils.zoning.DirectedConnectoids;
+
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of directed connectoids class
@@ -44,8 +48,8 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public DirectedConnectoidsImpl(DirectedConnectoidsImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public DirectedConnectoidsImpl(DirectedConnectoidsImpl other, boolean deepCopy, BiConsumer<DirectedConnectoid, DirectedConnectoid> mapper) {
+    super(other, deepCopy, mapper);
     this.directedConnectoidFactory =
             new DirectedConnectoidFactoryImpl(other.directedConnectoidFactory.getIdGroupingToken(), this);
   }
@@ -74,7 +78,7 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
    */
   @Override
   public DirectedConnectoidsImpl shallowClone() {
-    return new DirectedConnectoidsImpl(this, false);
+    return new DirectedConnectoidsImpl(this, false, null);
   }
 
   /**
@@ -82,7 +86,15 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
    */
   @Override
   public DirectedConnectoidsImpl deepClone() {
-    return new DirectedConnectoidsImpl(this, true);
+    return new DirectedConnectoidsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedConnectoidsImpl deepCloneWithMapping(BiConsumer<DirectedConnectoid, DirectedConnectoid> mapper) {
+    return new DirectedConnectoidsImpl(this, true, mapper);
   }
 
 }

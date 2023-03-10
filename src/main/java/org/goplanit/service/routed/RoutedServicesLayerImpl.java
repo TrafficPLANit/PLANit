@@ -9,9 +9,11 @@ import org.goplanit.service.routed.modifier.RoutedServicesLayerModifierImpl;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.service.routed.RoutedModeServices;
+import org.goplanit.utils.service.routed.RoutedService;
 import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesLayerModifier;
 
@@ -89,7 +91,7 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedServicesLayerImpl(RoutedServicesLayerImpl other, boolean deepCopy) {
+  public RoutedServicesLayerImpl(RoutedServicesLayerImpl other, boolean deepCopy, ManagedIdDeepCopyMapper<RoutedService> routedServiceMapper) {
     super(other);
     this.tokenId = other.tokenId;
     this.parentLayer = other.parentLayer;
@@ -99,7 +101,7 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
     this.routedServicesByMode = new HashMap<>();
     other.routedServicesByMode.values().forEach(
             modeServices -> routedServicesByMode.put(
-                    modeServices.getMode(), deepCopy ? modeServices.deepClone() : modeServices.shallowClone()));
+                    modeServices.getMode(), deepCopy ? modeServices.deepCloneWithMapping(routedServiceMapper) : modeServices.shallowClone()));
   }
 
   /**
@@ -110,22 +112,6 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
     long newId = generateId(tokenId);
     setId(newId);
     return newId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RoutedServicesLayerImpl shallowClone() {
-    return new RoutedServicesLayerImpl(this, false);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RoutedServicesLayerImpl deepClone() {
-    return new RoutedServicesLayerImpl(this, true);
   }
 
   /**
@@ -203,6 +189,22 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
   @Override
   public boolean isEmpty() {
     return routedServicesByMode.isEmpty();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServicesLayerImpl shallowClone() {
+    return new RoutedServicesLayerImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServicesLayerImpl deepClone() {
+    return new RoutedServicesLayerImpl(this, true, new ManagedIdDeepCopyMapper<>());
   }
 
 }

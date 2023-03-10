@@ -1,9 +1,13 @@
 package org.goplanit.path;
 
+import org.goplanit.network.layers.MacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.ManagedDirectedPaths;
+
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of (managed) DirectedPaths interface
@@ -41,9 +45,10 @@ public class ManagedDirectedPathsImpl extends ManagedIdEntitiesImpl<ManagedDirec
    * 
    * @param directedPathsImpl to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entities (may be null)
    */
-  public ManagedDirectedPathsImpl(ManagedDirectedPathsImpl directedPathsImpl, boolean deepCopy) {
-    super(directedPathsImpl, deepCopy);
+  public ManagedDirectedPathsImpl(ManagedDirectedPathsImpl directedPathsImpl, boolean deepCopy, BiConsumer<ManagedDirectedPath, ManagedDirectedPath> mapper) {
+    super(directedPathsImpl, deepCopy, mapper);
     this.directedPathFactory =
             new ContainerisedDirectedPathFactoryImpl(directedPathsImpl.directedPathFactory.getIdGroupingToken(), this);
   }
@@ -61,7 +66,7 @@ public class ManagedDirectedPathsImpl extends ManagedIdEntitiesImpl<ManagedDirec
    */
   @Override
   public ManagedDirectedPathsImpl shallowClone() {
-    return new ManagedDirectedPathsImpl(this, false);
+    return new ManagedDirectedPathsImpl(this, false, null);
   }
 
   /**
@@ -69,7 +74,15 @@ public class ManagedDirectedPathsImpl extends ManagedIdEntitiesImpl<ManagedDirec
    */
   @Override
   public ManagedDirectedPathsImpl deepClone() {
-    return new ManagedDirectedPathsImpl(this, true);
+    return new ManagedDirectedPathsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ManagedDirectedPathsImpl deepCloneWithMapping(BiConsumer<ManagedDirectedPath, ManagedDirectedPath> mapper) {
+    return new ManagedDirectedPathsImpl(this, true, mapper);
   }
 
 }

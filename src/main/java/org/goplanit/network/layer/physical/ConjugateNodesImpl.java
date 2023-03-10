@@ -2,9 +2,12 @@ package org.goplanit.network.layer.physical;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.physical.ConjugateLink;
 import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.physical.ConjugateNodeFactory;
 import org.goplanit.utils.network.layer.physical.ConjugateNodes;
+
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -44,9 +47,10 @@ public class ConjugateNodesImpl extends ManagedIdEntitiesImpl<ConjugateNode> imp
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ConjugateNodesImpl(ConjugateNodesImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ConjugateNodesImpl(ConjugateNodesImpl other, boolean deepCopy, BiConsumer<ConjugateNode,ConjugateNode> mapper) {
+    super(other, deepCopy, mapper);
     this.factory = new ConjugateNodeFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
@@ -63,7 +67,7 @@ public class ConjugateNodesImpl extends ManagedIdEntitiesImpl<ConjugateNode> imp
    */
   @Override
   public ConjugateNodesImpl shallowClone() {
-    return new ConjugateNodesImpl(this, false);
+    return new ConjugateNodesImpl(this, false, null);
   }
 
   /**
@@ -71,7 +75,15 @@ public class ConjugateNodesImpl extends ManagedIdEntitiesImpl<ConjugateNode> imp
    */
   @Override
   public ConjugateNodesImpl deepClone() {
-    return new ConjugateNodesImpl(this, true);
+    return new ConjugateNodesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateNodesImpl deepCloneWithMapping(BiConsumer<ConjugateNode,ConjugateNode> mapper) {
+    return new ConjugateNodesImpl(this, true, mapper);
   }
 
 }

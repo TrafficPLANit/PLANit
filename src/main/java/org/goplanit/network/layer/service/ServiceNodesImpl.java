@@ -1,10 +1,14 @@
 package org.goplanit.network.layer.service;
 
+import org.goplanit.network.layer.physical.ConjugateNodesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.network.layer.service.ServiceNodeFactory;
 import org.goplanit.utils.network.layer.service.ServiceNodes;
+
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -44,9 +48,10 @@ public class ServiceNodesImpl extends ManagedIdEntitiesImpl<ServiceNode> impleme
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ServiceNodesImpl(ServiceNodesImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ServiceNodesImpl(ServiceNodesImpl other, boolean deepCopy, BiConsumer<ServiceNode,ServiceNode> mapper) {
+    super(other, deepCopy, mapper);
     this.serviceNodeFactory =
             new ServiceNodeFactoryImpl(other.serviceNodeFactory.getIdGroupingToken(), this);
   }
@@ -64,7 +69,7 @@ public class ServiceNodesImpl extends ManagedIdEntitiesImpl<ServiceNode> impleme
    */
   @Override
   public ServiceNodesImpl shallowClone() {
-    return new ServiceNodesImpl(this, false);
+    return new ServiceNodesImpl(this, false, null);
   }
 
   /**
@@ -72,7 +77,15 @@ public class ServiceNodesImpl extends ManagedIdEntitiesImpl<ServiceNode> impleme
    */
   @Override
   public ServiceNodesImpl deepClone() {
-    return new ServiceNodesImpl(this, true);
+    return new ServiceNodesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNodesImpl deepCloneWithMapping(BiConsumer<ServiceNode,ServiceNode> mapper) {
+    return new ServiceNodesImpl(this, true, mapper);
   }
 
 }

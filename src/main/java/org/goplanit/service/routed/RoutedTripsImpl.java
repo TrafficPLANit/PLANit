@@ -3,7 +3,10 @@ package org.goplanit.service.routed;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.service.routed.RoutedTrip;
+import org.goplanit.utils.service.routed.RoutedTripDeparture;
 import org.goplanit.utils.service.routed.RoutedTrips;
+
+import java.util.function.BiConsumer;
 
 /**
  * Base class for toued trips of some derived type (either schedule or frequency based for example).
@@ -38,9 +41,10 @@ public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEnt
    *
    * @param routedTripsBase to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  protected RoutedTripsImpl(RoutedTripsImpl<T> routedTripsBase, boolean deepCopy) {
-    super(routedTripsBase, deepCopy);
+  protected RoutedTripsImpl(RoutedTripsImpl<T> routedTripsBase, boolean deepCopy, BiConsumer<T, T> mapper) {
+    super(routedTripsBase, deepCopy, mapper);
     this.factory = null; // reset so it is clear it needs to be set by concrete implementing class afterwards
   }
 
@@ -63,4 +67,10 @@ public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEnt
    */
   @Override
   public abstract RoutedTripsImpl deepClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract RoutedTripsImpl deepCloneWithMapping(BiConsumer<T, T> mapper);
 }

@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import org.goplanit.mode.ModesImpl;
 import org.goplanit.network.virtual.VirtualNetworkImpl;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.network.layer.NetworkLayer;
@@ -68,12 +69,20 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
    *
    * @param other                   to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param modeMapper to use for tracking mapping between original and copied modes
+   * @param layerMapper to use for tracking mapping between original and copied layers
    */
-  protected LayeredNetwork(final LayeredNetwork<U, T> other, boolean deepCopy) {
+  protected LayeredNetwork(final LayeredNetwork<U, T> other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<U> layerMapper) {
     super(other, deepCopy);
 
-    // both are container wrappers, so requireing cloning also for shallow copy
-    this.modes = deepCopy ? other.modes.deepClone() : other.modes.shallowClone();
+    // both are container wrappers, so requiring cloning also for shallow copy
+    if(deepCopy){
+      this.modes = other.modes.deepCloneWithMapping(modeMapper);
+      this.transportLayers = (T) other.getTransportLayers().deepCloneWithMapping(layerMapper);
+    }else{
+      this.modes = other.modes.shallowClone();
+      this.transportLayers = (T) other.getTransportLayers().shallowClone();
+    }
     this.transportLayers = (T) (deepCopy ? other.getTransportLayers().deepClone() : other.getTransportLayers().shallowClone());
   }
 

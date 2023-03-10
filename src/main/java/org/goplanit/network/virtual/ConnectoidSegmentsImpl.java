@@ -3,9 +3,12 @@ package org.goplanit.network.virtual;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.virtual.ConnectoidEdge;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.ConnectoidSegmentFactory;
 import org.goplanit.utils.network.virtual.ConnectoidSegments;
+
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -46,8 +49,8 @@ public class ConnectoidSegmentsImpl extends ManagedIdEntitiesImpl<ConnectoidSegm
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ConnectoidSegmentsImpl(ConnectoidSegmentsImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ConnectoidSegmentsImpl(ConnectoidSegmentsImpl other, boolean deepCopy,BiConsumer<ConnectoidSegment,ConnectoidSegment> mapper) {
+    super(other, deepCopy, mapper);
     this.connectoidSegmentFactory =
             new ConnectoidSegmentFactoryImpl(other.connectoidSegmentFactory.getIdGroupingToken(), this);
   }
@@ -76,7 +79,7 @@ public class ConnectoidSegmentsImpl extends ManagedIdEntitiesImpl<ConnectoidSegm
    */
   @Override
   public ConnectoidSegmentsImpl shallowClone() {
-    return new ConnectoidSegmentsImpl(this, false);
+    return new ConnectoidSegmentsImpl(this, false, null);
   }
 
   /**
@@ -84,7 +87,15 @@ public class ConnectoidSegmentsImpl extends ManagedIdEntitiesImpl<ConnectoidSegm
    */
   @Override
   public ConnectoidSegmentsImpl deepClone() {
-    return new ConnectoidSegmentsImpl(this, true);
+    return new ConnectoidSegmentsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidSegmentsImpl deepCloneWithMapping(BiConsumer<ConnectoidSegment,ConnectoidSegment> mapper) {
+    return new ConnectoidSegmentsImpl(this, true, mapper);
   }
 
   /**

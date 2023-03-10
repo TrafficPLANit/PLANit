@@ -2,12 +2,16 @@ package org.goplanit.service.routed;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.utils.service.routed.RoutedServicesLayers;
 
 /**
@@ -60,13 +64,14 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedServices(final RoutedServices other, boolean deepCopy) {
+  public RoutedServices(final RoutedServices other, boolean deepCopy, BiConsumer<RoutedServicesLayer, RoutedServicesLayer> mapper) {
     super(other, deepCopy);
     this.parentServiceNetwork = other.parentServiceNetwork;
 
     // container wrappers so require clone always
-    this.layers = deepCopy ? other.layers.deepClone() : other.layers.shallowClone();
+    this.layers = deepCopy ? other.layers.deepCloneWithMapping(mapper) : other.layers.shallowClone();
   }
 
   /**
@@ -74,7 +79,7 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
    */
   @Override
   public PlanitComponent<RoutedServices> shallowClone() {
-    return new RoutedServices(this, false);
+    return new RoutedServices(this, false, null);
   }
 
   /**
@@ -82,7 +87,7 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
    */
   @Override
   public PlanitComponent<RoutedServices> deepClone() {
-    return new RoutedServices(this, true);
+    return new RoutedServices(this, true, new ManagedIdDeepCopyMapper<>());
   }
 
   /**

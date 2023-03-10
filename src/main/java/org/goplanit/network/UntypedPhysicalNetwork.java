@@ -1,5 +1,8 @@
 package org.goplanit.network;
 
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -43,9 +46,12 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
    *
    * @param other                   to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param modeMapper to use for tracking mapping between original and copied modes
+   * @param layerMapper to use for tracking mapping between original and copied layers
+   *
    */
-  protected UntypedPhysicalNetwork(final UntypedPhysicalNetwork<L, LS> other, boolean deepCopy) {
-    super(other, deepCopy);
+  protected UntypedPhysicalNetwork(final UntypedPhysicalNetwork<L, LS> other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<L> layerMapper) {
+    super(other, deepCopy, modeMapper, layerMapper);
   }
 
   /**

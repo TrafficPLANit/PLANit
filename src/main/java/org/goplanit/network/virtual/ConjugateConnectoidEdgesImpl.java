@@ -1,9 +1,13 @@
 package org.goplanit.network.virtual;
 
+import org.goplanit.network.layer.service.ServiceNodesImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.network.virtual.*;
+
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -43,9 +47,10 @@ public class ConjugateConnectoidEdgesImpl extends ManagedIdEntitiesImpl<Conjugat
    *
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ConjugateConnectoidEdgesImpl(ConjugateConnectoidEdgesImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ConjugateConnectoidEdgesImpl(ConjugateConnectoidEdgesImpl other, boolean deepCopy, BiConsumer<ConjugateConnectoidEdge,ConjugateConnectoidEdge> mapper) {
+    super(other, deepCopy, mapper);
     this.factory =
             new ConjugateConnectoidEdgeFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
@@ -74,7 +79,7 @@ public class ConjugateConnectoidEdgesImpl extends ManagedIdEntitiesImpl<Conjugat
    */
   @Override
   public ConjugateConnectoidEdgesImpl shallowClone() {
-    return new ConjugateConnectoidEdgesImpl(this, false);
+    return new ConjugateConnectoidEdgesImpl(this, false, null);
   }
 
   /**
@@ -82,7 +87,15 @@ public class ConjugateConnectoidEdgesImpl extends ManagedIdEntitiesImpl<Conjugat
    */
   @Override
   public ConjugateConnectoidEdgesImpl deepClone() {
-    return new ConjugateConnectoidEdgesImpl(this, true);
+    return new ConjugateConnectoidEdgesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateConnectoidEdgesImpl deepCloneWithMapping(BiConsumer<ConjugateConnectoidEdge,ConjugateConnectoidEdge> mapper) {
+    return new ConjugateConnectoidEdgesImpl(this, true, mapper);
   }
 
   /**

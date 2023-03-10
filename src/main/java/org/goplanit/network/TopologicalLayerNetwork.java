@@ -2,6 +2,9 @@ package org.goplanit.network;
 
 import java.util.logging.Logger;
 
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.locationtech.jts.geom.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -59,9 +62,11 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
    *
    * @param other                   to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param modeMapper to use for tracking mapping between original and copied modes
+   * @param layerMapper to use for tracking mapping between original and copied layers
    */
-  protected TopologicalLayerNetwork(final TopologicalLayerNetwork<T, U> other, boolean deepCopy) {
-    super(other, deepCopy);
+  protected TopologicalLayerNetwork(final TopologicalLayerNetwork<T, U> other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<T> layerMapper) {
+    super(other, deepCopy, modeMapper, layerMapper);
     this.coordinateReferenceSystem = other.getCoordinateReferenceSystem();
   }
 

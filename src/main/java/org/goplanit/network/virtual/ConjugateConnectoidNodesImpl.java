@@ -1,10 +1,14 @@
 package org.goplanit.network.virtual;
 
+import org.goplanit.network.layer.service.ServiceNodesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidNodeFactory;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidNodes;
+
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -46,9 +50,10 @@ public class ConjugateConnectoidNodesImpl extends ManagedIdEntitiesImpl<Conjugat
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ConjugateConnectoidNodesImpl(ConjugateConnectoidNodesImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ConjugateConnectoidNodesImpl(ConjugateConnectoidNodesImpl other, boolean deepCopy, BiConsumer<ConjugateConnectoidNode,ConjugateConnectoidNode> mapper) {
+    super(other, deepCopy, mapper);
     this.factory = new ConjugateConnectoidNodeFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
@@ -65,7 +70,7 @@ public class ConjugateConnectoidNodesImpl extends ManagedIdEntitiesImpl<Conjugat
    */
   @Override
   public ConjugateConnectoidNodesImpl shallowClone() {
-    return new ConjugateConnectoidNodesImpl(this, false);
+    return new ConjugateConnectoidNodesImpl(this, false, null);
   }
 
   /**
@@ -73,7 +78,15 @@ public class ConjugateConnectoidNodesImpl extends ManagedIdEntitiesImpl<Conjugat
    */
   @Override
   public ConjugateConnectoidNodesImpl deepClone() {
-    return new ConjugateConnectoidNodesImpl(this, true);
+    return new ConjugateConnectoidNodesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateConnectoidNodesImpl deepCloneWithMapping(BiConsumer<ConjugateConnectoidNode,ConjugateConnectoidNode> mapper) {
+    return new ConjugateConnectoidNodesImpl(this, true, mapper);
   }
 
 }

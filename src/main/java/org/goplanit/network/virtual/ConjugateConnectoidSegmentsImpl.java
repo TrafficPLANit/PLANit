@@ -1,11 +1,15 @@
 package org.goplanit.network.virtual;
 
+import org.goplanit.network.layer.service.ServiceNodesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidSegment;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidSegmentFactory;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidSegments;
+
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -45,9 +49,10 @@ public class ConjugateConnectoidSegmentsImpl extends ManagedIdEntitiesImpl<Conju
    *
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ConjugateConnectoidSegmentsImpl(ConjugateConnectoidSegmentsImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ConjugateConnectoidSegmentsImpl(ConjugateConnectoidSegmentsImpl other, boolean deepCopy, BiConsumer<ConjugateConnectoidSegment,ConjugateConnectoidSegment> mapper) {
+    super(other, deepCopy, mapper);
     this.factory = new ConjugateConnectoidSegmentFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
@@ -64,7 +69,7 @@ public class ConjugateConnectoidSegmentsImpl extends ManagedIdEntitiesImpl<Conju
    */
   @Override
   public ConjugateConnectoidSegmentsImpl shallowClone() {
-    return new ConjugateConnectoidSegmentsImpl(this, false);
+    return new ConjugateConnectoidSegmentsImpl(this, false, null);
   }
 
   /**
@@ -72,6 +77,14 @@ public class ConjugateConnectoidSegmentsImpl extends ManagedIdEntitiesImpl<Conju
    */
   @Override
   public ConjugateConnectoidSegmentsImpl deepClone() {
-    return new ConjugateConnectoidSegmentsImpl(this, true);
+    return new ConjugateConnectoidSegmentsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateConnectoidSegmentsImpl deepCloneWithMapping(BiConsumer<ConjugateConnectoidSegment,ConjugateConnectoidSegment> mapper) {
+    return new ConjugateConnectoidSegmentsImpl(this, true, mapper);
   }
 }

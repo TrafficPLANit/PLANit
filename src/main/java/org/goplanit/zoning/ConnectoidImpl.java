@@ -236,7 +236,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * {@inheritDoc}
    */
   @Override
-  public long getNumberOfAccessZones() {
+  public int getNumberOfAccessZones() {
     return accessZones.size();
   }
 

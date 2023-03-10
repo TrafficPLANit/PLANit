@@ -1,11 +1,10 @@
 package org.goplanit.network.virtual;
 
 import org.goplanit.network.Network;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
+import org.goplanit.utils.graph.directed.EdgeSegmentUtils;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.ConnectoidEdges;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
-import org.goplanit.utils.network.virtual.ConnectoidSegments;
-import org.goplanit.utils.network.virtual.VirtualNetwork;
+import org.goplanit.utils.network.virtual.*;
 
 import java.util.logging.Logger;
 
@@ -54,29 +53,27 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    *
    * @param other to clone
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param connectoidEdgeMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param connectoidSegmentMapper to use for tracking mapping between original and copied entity (may be null)
    */
-  protected VirtualNetworkImpl(final VirtualNetworkImpl other, boolean deepCopy) {
+  protected VirtualNetworkImpl(
+      final VirtualNetworkImpl other,
+      boolean deepCopy,
+      GraphEntityDeepCopyMapper<ConnectoidEdge> connectoidEdgeMapper,
+      GraphEntityDeepCopyMapper<ConnectoidSegment> connectoidSegmentMapper
+      ) {
     super(other, deepCopy);
 
     // container wrappers so requires clone also for shallow copy
-    this.connectoidSegments = deepCopy ? other.connectoidSegments.deepClone() : other.connectoidSegments.shallowClone();
-    this.connectoidEdges    = deepCopy ? other.connectoidEdges.deepClone()    : other.connectoidEdges.shallowClone();
-  }
+    if(deepCopy){
+      this.connectoidSegments = other.connectoidSegments.deepCloneWithMapping(connectoidSegmentMapper);
+      this.connectoidEdges    = other.connectoidEdges.deepCloneWithMapping(connectoidEdgeMapper);
 
-  /**
-   * {@inheritDoc
-   */
-  @Override
-  public VirtualNetworkImpl shallowClone() {
-    return new VirtualNetworkImpl(this, false);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public VirtualNetworkImpl deepClone() {
-    return new VirtualNetworkImpl(this, true);
+      EdgeSegmentUtils.updateEdgeSegmentParentEdges(connectoidSegments, (ConnectoidEdge originalEdge) -> connectoidEdgeMapper.getMapping(originalEdge), true);
+    }else{
+      this.connectoidSegments = other.connectoidSegments.shallowClone();
+      this.connectoidEdges    = other.connectoidEdges.shallowClone();
+    }
   }
 
   /**
@@ -130,6 +127,31 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
     var conjugateVirtualNetwork = new ConjugateVirtualNetworkImpl(idToken, this);
     conjugateVirtualNetwork.update();
     return conjugateVirtualNetwork;
+  }
+
+  /**
+   * {@inheritDoc
+   */
+  @Override
+  public VirtualNetworkImpl shallowClone() {
+    return new VirtualNetworkImpl(this, false, null, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public VirtualNetworkImpl deepClone() {
+    return deepCloneWithMapping(new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public VirtualNetworkImpl deepCloneWithMapping(GraphEntityDeepCopyMapper<ConnectoidEdge> connectoidEdgeMapper,
+                                                 GraphEntityDeepCopyMapper<ConnectoidSegment> connectoidSegmentMapper) {
+    return new VirtualNetworkImpl(this, true, connectoidEdgeMapper,connectoidSegmentMapper);
   }
 
 }

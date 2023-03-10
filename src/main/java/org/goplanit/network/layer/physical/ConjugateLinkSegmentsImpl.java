@@ -1,11 +1,13 @@
 package org.goplanit.network.layer.physical;
 
+import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentsImpl;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
-import org.goplanit.utils.network.layer.physical.ConjugateLinkSegmentFactory;
-import org.goplanit.utils.network.layer.physical.ConjugateLinkSegments;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.*;
+
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -45,9 +47,13 @@ public class ConjugateLinkSegmentsImpl extends ManagedIdEntitiesImpl<ConjugateLi
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ConjugateLinkSegmentsImpl(ConjugateLinkSegmentsImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ConjugateLinkSegmentsImpl(
+      ConjugateLinkSegmentsImpl other,
+      boolean deepCopy,
+      BiConsumer<ConjugateLinkSegment,ConjugateLinkSegment> mapper) {
+    super(other, deepCopy, mapper);
     this.factory =
             new ConjugateLinkSegmentFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
@@ -65,7 +71,7 @@ public class ConjugateLinkSegmentsImpl extends ManagedIdEntitiesImpl<ConjugateLi
    */
   @Override
   public ConjugateLinkSegmentsImpl shallowClone() {
-    return new ConjugateLinkSegmentsImpl(this, false);
+    return new ConjugateLinkSegmentsImpl(this, false, null);
   }
 
   /**
@@ -73,7 +79,15 @@ public class ConjugateLinkSegmentsImpl extends ManagedIdEntitiesImpl<ConjugateLi
    */
   @Override
   public ConjugateLinkSegmentsImpl deepClone() {
-    return new ConjugateLinkSegmentsImpl(this, true);
+    return new ConjugateLinkSegmentsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateLinkSegmentsImpl deepCloneWithMapping(BiConsumer<ConjugateLinkSegment,ConjugateLinkSegment> mapper) {
+    return new ConjugateLinkSegmentsImpl(this, true, mapper);
   }
 
 }

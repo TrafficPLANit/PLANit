@@ -2,7 +2,10 @@ package org.goplanit.network;
 
 import org.goplanit.network.layers.ServiceNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layers.ServiceNetworkLayers;
 
@@ -51,8 +54,8 @@ public class ServiceNetwork extends TopologicalLayerNetwork<ServiceNetworkLayer,
    * @param other to copy.
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ServiceNetwork(final ServiceNetwork other, boolean deepCopy) {
-    super(other, deepCopy);
+  public ServiceNetwork(final ServiceNetwork other, boolean deepCopy, ManagedIdDeepCopyMapper<ServiceNetworkLayer> layerMapper) {
+    super(other, deepCopy, null, layerMapper); // modes are inherited from parent network, so not used, no need for mapping
     this.parentNetwork = other.parentNetwork;
   }
 
@@ -80,7 +83,7 @@ public class ServiceNetwork extends TopologicalLayerNetwork<ServiceNetworkLayer,
    */
   @Override
   public ServiceNetwork shallowClone() {
-    return new ServiceNetwork(this, false);
+    return new ServiceNetwork(this, false, null);
   }
 
   /**
@@ -88,7 +91,7 @@ public class ServiceNetwork extends TopologicalLayerNetwork<ServiceNetworkLayer,
    */
   @Override
   public ServiceNetwork deepClone() {
-    return new ServiceNetwork(this, true);
+    return new ServiceNetwork(this, true, new ManagedIdDeepCopyMapper<>());
   }
 
 }

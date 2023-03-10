@@ -1,11 +1,13 @@
 package org.goplanit.network.layers;
 
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.NetworkLayer;
+import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.layers.NetworkLayers;
 
 /**
@@ -49,9 +51,10 @@ public abstract class TransportLayersImpl<T extends NetworkLayer> extends Manage
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public TransportLayersImpl(TransportLayersImpl<T> other, boolean deepCopy) {
-    super(other, deepCopy);
+  public TransportLayersImpl(TransportLayersImpl<T> other, boolean deepCopy, BiConsumer<T, T> mapper) {
+    super(other, deepCopy, mapper);
     this.idToken = other.idToken;
   }
 
@@ -82,5 +85,11 @@ public abstract class TransportLayersImpl<T extends NetworkLayer> extends Manage
    */
   @Override
   public abstract TransportLayersImpl<T> deepClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TransportLayersImpl<T> deepCloneWithMapping(BiConsumer<T, T> mapper);
 
 }

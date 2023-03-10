@@ -8,6 +8,7 @@ import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.layer.physical.ConjugateLinkSegmentsImpl;
 import org.goplanit.network.layer.physical.ConjugateLinksImpl;
 import org.goplanit.network.layer.physical.ConjugateNodesImpl;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -141,8 +142,13 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConjugateMacroscopicNetworkLayerImpl(ConjugateMacroscopicNetworkLayerImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  protected ConjugateMacroscopicNetworkLayerImpl(
+      ConjugateMacroscopicNetworkLayerImpl other,
+      boolean deepCopy,
+      GraphEntityDeepCopyMapper<ConjugateNode> nodeMapper,
+      GraphEntityDeepCopyMapper<ConjugateLink> linkMapper,
+      GraphEntityDeepCopyMapper<ConjugateLinkSegment> linkSegmentMapper) {
+    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper);
     this.originalLayer = other.originalLayer;
   }
 
@@ -184,7 +190,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
    */
   @Override
   public ConjugateMacroscopicNetworkLayerImpl shallowClone() {
-    return new ConjugateMacroscopicNetworkLayerImpl(this, false);
+    return new ConjugateMacroscopicNetworkLayerImpl(this, false, null, null, null);
   }
 
   /**
@@ -192,7 +198,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
    */
   @Override
   public ConjugateMacroscopicNetworkLayerImpl deepClone() {
-    return new ConjugateMacroscopicNetworkLayerImpl(this, true);
+    return new ConjugateMacroscopicNetworkLayerImpl(this, true, new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
   }
 
   /**

@@ -7,9 +7,7 @@ import org.goplanit.graph.UntypedGraphImpl;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.UntypedDirectedGraph;
-import org.goplanit.utils.graph.directed.DirectedEdge;
-import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -78,49 +76,12 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
     // container class, so clone upon shallow copy
     if(deepCopy) {
       this.edgeSegments = directedGraphImpl.getEdgeSegments().deepCloneWithMapping(edgeSegmentMapper);
-      updateEdgeSegmentParentEdges(originalEdge -> edgeMapper.getMapping(originalEdge), true);
-      updateDirectedEdgeEdgeSegments(originalEdgeSegment -> edgeSegmentMapper.getMapping(originalEdgeSegment), true);
+      EdgeSegmentUtils.updateEdgeSegmentParentEdges(edgeSegments, (E originalEdge) -> edgeMapper.getMapping(originalEdge), true);
+      DirectedEdgeUtils.updateDirectedEdgeEdgeSegments(edges, (ES originalEdgeSegment) -> edgeSegmentMapper.getMapping(originalEdgeSegment), true);
     }else{
       this.edgeSegments = directedGraphImpl.getEdgeSegments().shallowClone();
     }
   }
-
-  /**
-   * Update the parent edge of all edge segments based on the mapping provided (if any)
-   * @param edgeToEdgeMapping to use should contain original edge as currently used on vertex and then the value is the new edge to replace it
-   * @param removeMissingMappings when true if there is no mapping, the parent edge is nullified, otherwise it is left in-tact
-   */
-  public void updateEdgeSegmentParentEdges(Function<E, E> edgeToEdgeMapping, boolean removeMissingMappings) {
-    for(var edgeSegment :  edgeSegments){
-      var parent = (E) edgeSegment.getParent();
-      if(parent == null){
-        continue;
-      }
-      var newParent = edgeToEdgeMapping.apply(parent);
-      if(newParent != null || removeMissingMappings) {
-        edgeSegment.setParent(newParent);
-      }
-    }
-  }
-
-  /**
-   * Update the edge segments of all directed edge based on the mapping provided (if any)
-   * @param edgeSegmentToEdgeSegmentMapping to use should contain original edgeSegment and then the value is the new edgeSegment to replace it
-   * @param removeMissingMappings when true if there is no mapping, the edgeSegment on the directed edge is nullified, otherwise it is left in-tact
-   */
-  private void updateDirectedEdgeEdgeSegments(Function<ES, ES> edgeSegmentToEdgeSegmentMapping, boolean removeMissingMappings) {
-    for(var directedEdge :  edges){
-      var newAbSegment = edgeSegmentToEdgeSegmentMapping.apply((ES) directedEdge.getEdgeSegmentAb());
-      if(newAbSegment != null || removeMissingMappings){
-        directedEdge.registerEdgeSegment(newAbSegment, true);
-      }
-      var newBaSegment = edgeSegmentToEdgeSegmentMapping.apply((ES) directedEdge.getEdgeSegmentBa());
-      if(newBaSegment != null || removeMissingMappings){
-        directedEdge.registerEdgeSegment(newBaSegment, false);
-      }
-    }
-  }
-
 
   // Getters - Setters
 

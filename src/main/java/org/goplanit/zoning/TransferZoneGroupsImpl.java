@@ -1,7 +1,9 @@
 package org.goplanit.zoning;
 
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
+import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -64,9 +66,10 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
    * 
    * @param other to copy
    * @param deepCopy when true, create a eep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public TransferZoneGroupsImpl(TransferZoneGroupsImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public TransferZoneGroupsImpl(TransferZoneGroupsImpl other, boolean deepCopy, BiConsumer<TransferZoneGroup, TransferZoneGroup> mapper) {
+    super(other, deepCopy, mapper);
     this.transferZoneGroupFactory =
             new TransferZoneGroupFactoryImpl(other.transferZoneGroupFactory.getIdGroupingToken(), this);
   }
@@ -77,22 +80,6 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
   @Override
   public TransferZoneGroupFactory getFactory() {
     return transferZoneGroupFactory;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public TransferZoneGroupsImpl shallowClone() {
-    return new TransferZoneGroupsImpl(this, false);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public TransferZoneGroupsImpl deepClone() {
-    return new TransferZoneGroupsImpl(this, true);
   }
 
   /**
@@ -114,4 +101,27 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZoneGroupsImpl shallowClone() {
+    return new TransferZoneGroupsImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZoneGroupsImpl deepClone() {
+    return new TransferZoneGroupsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZoneGroupsImpl deepCloneWithMapping(BiConsumer<TransferZoneGroup, TransferZoneGroup> mapper) {
+    return new TransferZoneGroupsImpl(this, true, mapper);
+  }
 }

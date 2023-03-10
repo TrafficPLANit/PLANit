@@ -89,55 +89,14 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
       this.vertices = other.getVertices().deepCloneWithMapping(vertexMapper);
       this.edges    = other.getEdges().deepCloneWithMapping(edgesMapper);
 
-      updateEdgeVertices( originalVertex -> vertexMapper.getMapping(originalVertex), true);
-      updateVertexEdges( originalEdge -> edgesMapper.getMapping(originalEdge), true );
+      EdgeUtils.updateEdgeVertices(edges, (V originalVertex) -> vertexMapper.getMapping(originalVertex), true);
+      VertexUtils.updateVertexEdges(vertices, (E originalEdge) -> edgesMapper.getMapping(originalEdge), true );
     }else{
       this.edges    = other.getEdges().shallowClone();
       this.vertices = other.getVertices(). shallowClone();
     }
 
     this.groupId  = other.groupId;
-  }
-
-  /**
-   * Update the edges of all vertices based on the mapping provided (if any)
-   * @param edgeToEdgeMapping to use should contain original edge as currently used on vertex and then the value is the new edge to replace it
-   * @param removeMissingMappings when true if there is no mapping, the edge is removed as adjacent to the vertex, otherwise they are left in-tact
-   */
-  public void updateVertexEdges(Function<E,E> edgeToEdgeMapping, boolean removeMissingMappings) {
-    for(var vertex : this.vertices){
-      var edgeIter = vertex.getEdges().iterator();
-      var toBeAdded = new ArrayList<E>(vertex.getEdges().size());
-      while (edgeIter.hasNext()) {
-        var currEdge = edgeIter.next();
-        var newEdge = edgeToEdgeMapping.apply((E) currEdge);
-        if (newEdge != null) {
-          toBeAdded.add(newEdge);
-        }
-        if (removeMissingMappings && newEdge == null) {
-          edgeIter.remove();
-        }
-      }
-      vertex.addEdges(toBeAdded);
-    }
-  }
-
-  /**
-   * Update the vertices of all edges based on the mapping provided. If no mapping exists, the edge will be assigned a null reference, unless indicated otherwise
-   * @param vertexToVertexMapping to use should contain original vertex as currently used on edge and then the value is the new vertex to replace it
-   * @param replaceMissingMappings when true missing mappings results in a null assignment, otherwise they are left in-tact
-   */
-  public void updateEdgeVertices(Function<V,V> vertexToVertexMapping, boolean replaceMissingMappings) {
-    this.edges.forEach( edge -> {
-      var newVertexA = vertexToVertexMapping.apply((V)edge.getVertexA());
-      if(newVertexA!= null || replaceMissingMappings) {
-        edge.replace(edge.getVertexA(), newVertexA);
-      }
-      var newVertexB = vertexToVertexMapping.apply((V)edge.getVertexB());
-      if(newVertexB!= null || replaceMissingMappings) {
-        edge.replace(edge.getVertexB(), newVertexB);
-      }
-    });
   }
 
   /**

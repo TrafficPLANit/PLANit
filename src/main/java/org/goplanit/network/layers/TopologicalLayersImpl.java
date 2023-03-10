@@ -1,8 +1,13 @@
 package org.goplanit.network.layers;
 
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.id.ManagedIdEntityFactory;
 import org.goplanit.utils.network.layer.TopologicalLayer;
+import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.layers.TopologicalLayers;
+
+import java.util.function.BiConsumer;
 
 /**
  * implementation of the transport layers interface, without the createNew() method, but now with base layer class of TopologicalLayer
@@ -26,9 +31,10 @@ public abstract class TopologicalLayersImpl<T extends TopologicalLayer> extends 
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public TopologicalLayersImpl(TopologicalLayersImpl<T> other, boolean deepCopy) {
-    super(other, deepCopy);
+  public TopologicalLayersImpl(TopologicalLayersImpl<T> other, boolean deepCopy, BiConsumer<T, T> mapper) {
+    super(other, deepCopy, mapper);
   }
 
   /**
@@ -42,5 +48,11 @@ public abstract class TopologicalLayersImpl<T extends TopologicalLayer> extends 
    */
   @Override
   public abstract TopologicalLayersImpl<T> deepClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TopologicalLayersImpl<T> deepCloneWithMapping(BiConsumer<T, T> mapper);
 
 }

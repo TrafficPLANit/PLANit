@@ -8,17 +8,16 @@ import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
 import org.goplanit.network.virtual.VirtualNetworkImpl;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
+import org.goplanit.utils.network.virtual.ConnectoidEdge;
+import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.time.TimePeriod;
-import org.goplanit.utils.zoning.DirectedConnectoids;
-import org.goplanit.utils.zoning.OdZones;
-import org.goplanit.utils.zoning.TransferZoneGroups;
-import org.goplanit.utils.zoning.TransferZones;
-import org.goplanit.utils.zoning.UndirectedConnectoids;
-import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
 import org.goplanit.zoning.modifier.ZoningModifierImpl;
 
@@ -105,19 +104,48 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public Zoning(final Zoning other, boolean deepCopy) {
+  public Zoning(
+      final Zoning other,
+      boolean deepCopy,
+      ManagedIdDeepCopyMapper<UndirectedConnectoid> undirConnectoidMapper,
+      ManagedIdDeepCopyMapper<DirectedConnectoid> dirConnectoidMapper,
+      ManagedIdDeepCopyMapper<OdZone> odZoneMapper,
+      ManagedIdDeepCopyMapper<TransferZone> transferZoneMapper,
+      ManagedIdDeepCopyMapper<TransferZoneGroup> transferZoneGroupMapper) {
     super(other, deepCopy);
 
     // extension of class, with reference to this, so copy always required
     this.zoningModifier = new ZoningModifierImpl(this);
 
     // effectively these are all container wrappers as well, so always require a clone
-    this.virtualNetwork = deepCopy      ? other.virtualNetwork.deepClone()      : other.virtualNetwork.shallowClone();
-    this.odConnectoids = deepCopy       ? other.odConnectoids.deepClone()       : other.odConnectoids.shallowClone();
-    this.transferConnectoids = deepCopy ? other.transferConnectoids.deepClone() : other.transferConnectoids.shallowClone();
-    this.odZones = deepCopy             ? other.odZones.deepClone()             : other.odZones.shallowClone();
-    this.transferZones = deepCopy       ? other.transferZones.deepClone()       : other.transferZones.shallowClone();
-    this.transferZoneGroups = deepCopy  ? other.transferZoneGroups.deepClone()  : other.transferZoneGroups.shallowClone();
+    if(deepCopy){
+      this.odConnectoids =        other.odConnectoids.deepCloneWithMapping(undirConnectoidMapper);
+      this.transferConnectoids =  other.transferConnectoids.deepCloneWithMapping(dirConnectoidMapper);
+      this.odZones =              other.odZones.deepCloneWithMapping(odZoneMapper);
+      this.transferZones =        other.transferZones.deepCloneWithMapping(transferZoneMapper);
+      this.transferZoneGroups =   other.transferZoneGroups.deepCloneWithMapping(transferZoneGroupMapper);
+
+      if(odZoneMapper != null) ConnectoidUtils.updateAccessZoneMapping(odConnectoids, (OdZone z) -> odZoneMapper.getMapping(z), true);
+      if(transferZoneMapper != null){
+        ConnectoidUtils.updateAccessZoneMapping(transferConnectoids, (TransferZone z) -> transferZoneMapper.getMapping(z), true);
+        TransferZoneGroupUtils.updateTransferZoneMapping(transferZoneGroups, (TransferZone z) -> transferZoneMapper.getMapping(z), true);
+      }
+
+      var connectoidEdgeMapper = new GraphEntityDeepCopyMapper<ConnectoidEdge>();
+      var connectoidEdgeSegmentMapper = new GraphEntityDeepCopyMapper<ConnectoidSegment>();
+      this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(connectoidEdgeMapper, connectoidEdgeSegmentMapper);
+
+      //todo update connectoids and connectoid edges as well as centroids...continue here
+
+    }else{
+      this.odConnectoids =        other.odConnectoids.shallowClone();
+      this.transferConnectoids =  other.transferConnectoids.shallowClone();
+      this.odZones =              other.odZones.shallowClone();
+      this.transferZones =        other.transferZones.shallowClone();
+      this.transferZoneGroups =   other.transferZoneGroups.shallowClone();
+
+      this.virtualNetwork =       other.virtualNetwork.shallowClone();
+    }
   }
 
   // Public - getters - setters
@@ -262,15 +290,23 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    */
   @Override
   public Zoning shallowClone() {
-    return new Zoning(this, false);
+    return new Zoning(this, false, null, null, null, null, null);
   }
 
   /**
    * {@inheritDoc}
+   *
    */
   @Override
   public Zoning deepClone() {
-    return new Zoning(this, true);
+    return new Zoning(
+        this,
+        true,
+        new ManagedIdDeepCopyMapper<>(),
+        new ManagedIdDeepCopyMapper<>(),
+        new ManagedIdDeepCopyMapper<>(),
+        new ManagedIdDeepCopyMapper<>(),
+        new ManagedIdDeepCopyMapper<>());
   }
 
   /**

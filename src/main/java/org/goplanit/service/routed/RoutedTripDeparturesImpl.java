@@ -2,10 +2,12 @@ package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.utils.service.routed.RoutedTripDeparture;
 import org.goplanit.utils.service.routed.RoutedTripDepartures;
 
 import java.time.LocalTime;
+import java.util.function.BiConsumer;
 
 /**
  * Class that manages all routed trip departures for a given routed trip schedule
@@ -33,9 +35,10 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedTripDeparturesImpl(RoutedTripDeparturesImpl other, boolean deepCopy) {
-    super(other, deepCopy);
+  public RoutedTripDeparturesImpl(RoutedTripDeparturesImpl other, boolean deepCopy, BiConsumer<RoutedTripDeparture, RoutedTripDeparture> mapper) {
+    super(other, deepCopy, mapper);
     this.factory =
             new RoutedTripDepartureFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
@@ -69,7 +72,7 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
    */
   @Override
   public RoutedTripDeparturesImpl shallowClone() {
-    return new RoutedTripDeparturesImpl(this, false);
+    return new RoutedTripDeparturesImpl(this, false, null);
   }
 
   /**
@@ -77,7 +80,15 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
    */
   @Override
   public RoutedTripDeparturesImpl deepClone() {
-    return new RoutedTripDeparturesImpl(this, true);
+    return new RoutedTripDeparturesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedTripDeparturesImpl deepCloneWithMapping(BiConsumer<RoutedTripDeparture, RoutedTripDeparture> mapper) {
+    return new RoutedTripDeparturesImpl(this, true, mapper);
   }
 
   /** String representation of departures
