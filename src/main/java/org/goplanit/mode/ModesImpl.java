@@ -70,7 +70,7 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    */
   @Override
   public PredefinedMode get(PredefinedModeType modeType) {
-    return (PredefinedMode) getMap().values().stream().dropWhile(mode -> !((mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()))).findFirst().get();
+    return (PredefinedMode) getMap().values().stream().dropWhile(mode -> !((mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()))).findFirst().orElse(null);
   }
 
   /**
