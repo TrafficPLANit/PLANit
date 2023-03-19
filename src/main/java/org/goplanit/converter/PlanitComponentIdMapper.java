@@ -1,11 +1,15 @@
 package org.goplanit.converter;
 
 import org.goplanit.utils.id.ExternalIdAble;
+import org.goplanit.utils.locale.CountryNames;
+import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.mode.Mode;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 public class PlanitComponentIdMapper {
 
@@ -52,4 +56,5 @@ public class PlanitComponentIdMapper {
   public Map<Class<? extends ExternalIdAble>, Function<? extends ExternalIdAble, String>> getRaw() {
     return mappings;
   }
+
 }
