@@ -275,11 +275,6 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
    *
    */
   private Map<RoutedTripSchedule, Collection<RoutedTripSchedule>> createTruncatedRoutedServiceSchedulesToServiceNetwork(RoutedService routedService) {
-
-//    if(routedService.getName().equals("607X")){
-//      int bla = 4;
-//    }
-
     /* schedule based */
     var scheduledTrips = routedService.getTripInfo().getScheduleBasedTrips();
     var scheduleIterator = scheduledTrips.iterator();

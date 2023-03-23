@@ -275,7 +275,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   public <Ex extends Edge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(final List<Ex> edgesToBreak, final Vertex vertexToBreakAt, final CoordinateReferenceSystem crs) {
     PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
 
-    Map<Long, Pair<Ex, Ex>> affectedEdges = new HashMap<Long, Pair<Ex, Ex>>();
+    Map<Long, Pair<Ex, Ex>> affectedEdges = new HashMap<>();
     for (Ex edgeToBreak : edgesToBreak) {
       if (affectedEdges.containsKey(edgeToBreak.getId())) {
         LOGGER.severe(String.format("Edge (%s) cannot be broken twice at a single vertex, yet this appears to be the case", edgeToBreak.getXmlId()));
