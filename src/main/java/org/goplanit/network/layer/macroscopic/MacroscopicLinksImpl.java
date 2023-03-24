@@ -47,6 +47,7 @@ public class MacroscopicLinksImpl extends LinksImpl<MacroscopicLink> implements 
    *
    * @param other to copy
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
+   * @param mapper to apply
    */
   public MacroscopicLinksImpl(MacroscopicLinksImpl other, boolean deepCopy, BiConsumer<MacroscopicLink,MacroscopicLink> mapper) {
     super(other, deepCopy, mapper);

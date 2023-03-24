@@ -20,7 +20,8 @@ public interface ShortestPathResult extends ShortestResult{
 
   /**
    * Create the path from the provided origin to a specified destination vertex, using the results available. The path builder is used to create the instance of the path.
-   * 
+   *
+   * @param <T> type of path
    * @param pathFactory to use for creating path instances
    * @param origin      the specified origin vertex
    * @param destination the specified destination vertex

@@ -94,6 +94,7 @@ public class ZoningConverterUtils {
   /** Verify if the waiting area for an access mode's access link(segment) must be on the logical relative location (left hand side for left hand drive) or not.
    * In case the mapping is overwritten it is assumed the driving direction does not matter as it is user defined to be explicitly mapped.
    *
+   * @param <T> type of access entity
    * @param accessMode to check
    * @param waitingAreaSourceId required to check if user overwrite is present for this waiting area, may be null to
    * @param accessEntity the access entity that may be mapped to the waiting area under investigation, may be null if not available
@@ -226,8 +227,7 @@ public class ZoningConverterUtils {
     return Pair.of(closestLink,entriesRemoved);
   }
 
-  /** Same as node based equivalent, only now we do not know yet which node is our reference node, so we consider both as options
-   */
+  // Same as node based version, only now we do not know yet which node is our reference node, so we consider both as options
   public static Collection<LinkSegment> findAccessLinkSegmentsForWaitingArea(
       String waitingAreaSourceId,
       Geometry waitingAreaGeometry,
@@ -338,6 +338,7 @@ public class ZoningConverterUtils {
    * @param waitingAreaSourceId we're checking for
    * @param waitingAreaGeometry we're checking for
    * @param accessLink nominated
+   * @param accessLinkSourceId original source id of the PLANit access link
    * @param accessNode that is nominated
    * @param accessMode used
    * @param getOverwrittenWaitingAreaSourceId function that provides the overwritten waiting area source id for a given access node, maybe return null if not overwritten

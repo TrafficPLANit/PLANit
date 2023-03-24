@@ -14,7 +14,7 @@ public class ZoningModifierUtils {
    * Convenience method to sync XMLids to Ids by making use of modifiers and Event listeners.
    * Note this also recreates all managed id entities ids as well
    *
-   * @param zoning
+   * @param zoning to apply to
    */
   public static void syncManagedIdEntitiesContainerXmlIdsToIds(Zoning zoning) {
     SyncXmlIdToIdZoningEntitiesHandler syncXmlIdToZoningEntitiesIds = new SyncXmlIdToIdZoningEntitiesHandler();

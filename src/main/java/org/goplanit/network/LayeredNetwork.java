@@ -129,7 +129,7 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
   }
 
   /**
-   * {@inheritDoc
+   * {@inheritDoc}
    */
   @Override
   public abstract LayeredNetwork shallowClone();

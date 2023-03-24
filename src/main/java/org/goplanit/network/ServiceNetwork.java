@@ -53,6 +53,7 @@ public class ServiceNetwork extends TopologicalLayerNetwork<ServiceNetworkLayer,
    *
    * @param other to copy.
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param layerMapper to track mapping from original to copy
    */
   public ServiceNetwork(final ServiceNetwork other, boolean deepCopy, ManagedIdDeepCopyMapper<ServiceNetworkLayer> layerMapper) {
     super(other, deepCopy, null, layerMapper); // modes are inherited from parent network, so not used, no need for mapping

@@ -58,6 +58,8 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
 
     /**
      * shallow copy
+     *
+     * @return created copy
      */
     public EdgeSegmentIterable<ESI> shallowClone(){ return new EdgeSegmentIterable<>(this);}
 
@@ -203,6 +205,7 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
    * Copy constructor
    * 
    * @param directedVertexImpl to copy
+   * @param deepCopy flag indicating if a deep copy is required
    */
   protected DirectedVertexImpl(DirectedVertexImpl<E> directedVertexImpl, boolean deepCopy) {
     super(directedVertexImpl, deepCopy);

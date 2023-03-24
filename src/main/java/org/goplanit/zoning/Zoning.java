@@ -103,6 +103,11 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param undirConnectoidMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param dirConnectoidMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param odZoneMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param transferZoneMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param transferZoneGroupMapper to use for tracking mapping between original and copied entity (may be null)
    */
   public Zoning(
       final Zoning other,

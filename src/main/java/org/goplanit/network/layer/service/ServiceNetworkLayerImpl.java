@@ -89,6 +89,9 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param nodeMapper to use
+   * @param legMapper to use
+   * @param legSegmentMapper to use
    */
   public ServiceNetworkLayerImpl(
       ServiceNetworkLayerImpl other,

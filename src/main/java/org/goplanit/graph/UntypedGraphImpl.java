@@ -1,15 +1,11 @@
 package org.goplanit.graph;
 
-import java.util.ArrayList;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.logging.Logger;
-
-import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.utils.graph.*;
 import org.goplanit.utils.id.IdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+
+import java.util.logging.Logger;
 
 /**
  * 
@@ -166,6 +162,7 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
    *
    * @param vertexMapper tracking original to copy mappings
    * @param edgeMapper tracking original to copy mappings
+   * @return created copy
    */
   public UntypedGraphImpl<V, E> smartDeepClone(
       GraphEntityDeepCopyMapper<V> vertexMapper, GraphEntityDeepCopyMapper<E> edgeMapper) {

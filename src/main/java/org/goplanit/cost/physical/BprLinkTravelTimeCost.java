@@ -11,7 +11,6 @@ import org.goplanit.interactor.LinkVolumeAccessor;
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
@@ -27,13 +26,13 @@ import org.goplanit.utils.time.TimePeriod;
  *
  * @author markr
  */
-public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkVolumeAccessor {
+public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkVolumeAccessor {
 
   /** generated UID */
   private static final long serialVersionUID = -1529475107840907959L;
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(BPRLinkTravelTimeCost.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(BprLinkTravelTimeCost.class.getCanonicalName());
 
   /**
    * Inner class to store Map of alpha and beta parameters used in BPR function for each mode
@@ -53,7 +52,9 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     }
 
     /**
-     * Constructor
+     * Copy constructor
+     *
+     * @param other to copy
      */
     public BprParameters(BprParameters other) {
       parametersMap = new HashMap<>(other.parametersMap);
@@ -189,7 +190,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  public BPRLinkTravelTimeCost(IdGroupingToken groupId) {
+  public BprLinkTravelTimeCost(IdGroupingToken groupId) {
     super(groupId);
     this.parametersPerLinkSegmentAndMode = new HashMap<>();
     this.defaultParametersPerMode = new BprParameters();
@@ -203,7 +204,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @param other to use
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public BPRLinkTravelTimeCost(BPRLinkTravelTimeCost other, boolean deepCopy) {
+  public BprLinkTravelTimeCost(BprLinkTravelTimeCost other, boolean deepCopy) {
     super(other, deepCopy);
     this.linkVolumeAccessee = other.linkVolumeAccessee;
 
@@ -413,16 +414,16 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * {@inheritDoc}
    */
   @Override
-  public BPRLinkTravelTimeCost shallowClone() {
-    return new BPRLinkTravelTimeCost(this, false);
+  public BprLinkTravelTimeCost shallowClone() {
+    return new BprLinkTravelTimeCost(this, false);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public BPRLinkTravelTimeCost deepClone() {
-    return new BPRLinkTravelTimeCost(this, true);
+  public BprLinkTravelTimeCost deepClone() {
+    return new BprLinkTravelTimeCost(this, true);
   }
 
 

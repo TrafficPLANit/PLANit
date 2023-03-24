@@ -102,6 +102,8 @@ public class TransportModelNetwork {
   /**
    * Returns the total number of edge segments available in this traffic assignment by combining the physical and non-physical link segments
    *
+   * @param theNetwork to use
+   * @param theZoning to use
    * @return total number of physical and virtual edge segments
    */
   public static int getNumberOfEdgeSegmentsAllLayers(LayeredNetwork<?, ?> theNetwork, Zoning theZoning) {

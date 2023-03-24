@@ -115,6 +115,7 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
    * @param vertexMapper tracking original to copy mappings
    * @param edgeMapper tracking original to copy mappings
    * @param edgeSegmentMapper tracking original to copy mappings
+   * @return created copy
    */
   public UntypedDirectedGraphImpl<V, E, ES> smartDeepClone(
       GraphEntityDeepCopyMapper<V> vertexMapper, GraphEntityDeepCopyMapper<E> edgeMapper, GraphEntityDeepCopyMapper<ES> edgeSegmentMapper) {

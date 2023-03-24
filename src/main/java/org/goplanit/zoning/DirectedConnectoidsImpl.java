@@ -47,8 +47,10 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public DirectedConnectoidsImpl(DirectedConnectoidsImpl other, boolean deepCopy, BiConsumer<DirectedConnectoid, DirectedConnectoid> mapper) {
+  public DirectedConnectoidsImpl(
+      DirectedConnectoidsImpl other, boolean deepCopy, BiConsumer<DirectedConnectoid, DirectedConnectoid> mapper) {
     super(other, deepCopy, mapper);
     this.directedConnectoidFactory =
             new DirectedConnectoidFactoryImpl(other.directedConnectoidFactory.getIdGroupingToken(), this);

@@ -90,6 +90,7 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param routedServiceMapper to use for tracking mapping between original and copied entity (may be null)
    */
   public RoutedServicesLayerImpl(RoutedServicesLayerImpl other, boolean deepCopy, ManagedIdDeepCopyMapper<RoutedService> routedServiceMapper) {
     super(other);

@@ -1,7 +1,6 @@
 package org.goplanit.cost.physical;
 
 import org.goplanit.cost.Cost;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
@@ -16,7 +15,7 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
 public interface PhysicalCost<LS extends LinkSegment> extends Cost<LS> {
 
   /** short hand for configuring physical cost with BPR function instance */
-  public static final String BPR = BPRLinkTravelTimeCost.class.getCanonicalName();
+  public static final String BPR = BprLinkTravelTimeCost.class.getCanonicalName();
 
   /** short hand for configuring physical cost with free flow function instance */
   public static final String FREEFLOW = FreeFlowLinkTravelTimeCost.class.getCanonicalName();

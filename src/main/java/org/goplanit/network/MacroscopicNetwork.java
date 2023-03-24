@@ -121,7 +121,7 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
   }
 
   /**
-   * {@inheritDoc
+   * {@inheritDoc}
    */
   @Override
   public MacroscopicNetwork deepClone() {

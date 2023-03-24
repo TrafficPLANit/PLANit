@@ -43,6 +43,7 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
   /**
    * Constructor
    *
+   * @param serviceNetworkLayer to use
    * @param graph parent graph to base modifier on
    */
   public ServiceNetworkLayerModifierImpl(ServiceNetworkLayerImpl serviceNetworkLayer, UntypedDirectedGraphImpl<V, E, S> graph) {

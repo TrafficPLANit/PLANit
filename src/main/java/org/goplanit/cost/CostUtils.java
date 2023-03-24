@@ -59,7 +59,7 @@ public class CostUtils {
    * @param mode to use
    * @param virtualCost   to apply to virtual part of network
    * @param virtualNetwork virtualNetwork containing virtual part of the network
-   * @return generalised cost array by link segment id
+   * @param costArray to fill
    */
   public static void populateModalVirtualLinkSegmentCosts(Mode mode, VirtualCost virtualCost, VirtualNetwork virtualNetwork, double[] costArray){
     if(virtualNetwork.getConnectoidSegments().isEmpty()){
@@ -76,7 +76,7 @@ public class CostUtils {
    * @param mode to use
    * @param physicalCost to apply to physical part of network
    * @param network physical network
-   * @return generalised cost array by link segment id
+   * @param costArray to fill
    */
   public static void populateModalPhysicalLinkSegmentCosts(Mode mode, AbstractPhysicalCost physicalCost, UntypedPhysicalNetwork network, double[] costArray) {
     physicalCost.populateWithCost((UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment>) network.getLayerByMode(mode), mode, costArray);

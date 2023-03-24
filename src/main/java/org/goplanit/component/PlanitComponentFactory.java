@@ -23,7 +23,7 @@ import org.goplanit.component.event.PopulateRoutedServicesEvent;
 import org.goplanit.component.event.PopulateServiceNetworkEvent;
 import org.goplanit.component.event.PopulateZoningEvent;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
-import org.goplanit.cost.physical.BPRLinkTravelTimeCost;
+import org.goplanit.cost.physical.BprLinkTravelTimeCost;
 import org.goplanit.cost.physical.FreeFlowLinkTravelTimeCost;
 import org.goplanit.cost.physical.SteadyStateTravelTimeCost;
 import org.goplanit.cost.physical.initial.InitialMacroscopicLinkSegmentCost;
@@ -118,7 +118,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(RoutedServices.class);
     registerPlanitComponentType(MacroscopicNetwork.class);
     registerPlanitComponentType(ServiceNetwork.class);
-    registerPlanitComponentType(BPRLinkTravelTimeCost.class);
+    registerPlanitComponentType(BprLinkTravelTimeCost.class);
     registerPlanitComponentType(FreeFlowLinkTravelTimeCost.class);
     registerPlanitComponentType(SteadyStateTravelTimeCost.class);
     registerPlanitComponentType(InitialMacroscopicLinkSegmentCost.class);
@@ -273,6 +273,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * Simplified factory method which creates the component, registers the provided listeners for the temporary factory instance component and
    * then invokes the creation with those listeners as a one-off call
    *
+   * @param <C> type of component
+   * @param <U> specific type of component
    * @param clazzCategory the concrete component belongs to
    * @param concreteClass to create
    * @param constructorParameters to use
@@ -289,6 +291,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * Simplified factory method which creates the component, registers the provided listeners for the temporary factory instance component and
    * then invokes the creation with those listeners as a one-off call
    *
+   * @param <C> type of component
    * @param clazzCategory the concrete component belongs to
    * @param concreteClassCanonicalName to create
    * @param constructorParameters to use
@@ -312,6 +315,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * Simplified factory method which creates the component, registers the provided listeners for the temporary factory instance component and
    * then invokes the creation with those listeners as a one-off call
    *
+   * @param <C> type of component
    * @param clazzCategory the concrete component belongs to
    * @param concreteClassCanonicalName to create
    * @param constructorParameters to use
@@ -326,6 +330,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
   /**
    * Simplified factory method which creates the component (without any listeners)
    *
+   * @param <C> type of component
    * @param clazzCategory the concrete component belongs to
    * @param concreteClassCanonicalName to create
    * @param constructorParameters to use
@@ -340,6 +345,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * Simplified factory method which creates the component, registers the provided listeners for the temporary factory instance component and
    * then invokes the creation with those listeners as a one-off call
    *
+   * @param <C> type of component
+   * @param <U> specific type of component
    * @param clazzCategory the concrete component belongs to
    * @param concreteClass to create
    * @param constructorParameters to use
@@ -354,12 +361,13 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
   /**
    * Create PLANit component
    *
+   * @param <C> type of component
    * @param planitComponentClassName the derived class name of the PLANit component (without packages)
    * @param constructorParameters    parameters to pass to the constructor
    * @return the created TrafficAssignmentComponent
    */
-  public <T extends PlanitComponent<?>> T create(final String planitComponentClassName, final Object[] constructorParameters) {
-    final T newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
+  public <C extends PlanitComponent<?>> C create(final String planitComponentClassName, final Object[] constructorParameters) {
+    final C newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
     dispatchPopulatePlanitComponentEvent(newTrafficComponent, null);
     return newTrafficComponent;
   }
@@ -367,13 +375,14 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
   /**
    * Create PLANit component
    *
+   * @param <C> type of component
    * @param planitComponentClassName the derived class name of the PLANit component (without packages)
    * @param constructorParameters    parameters to pass to the constructor
    * @param eventParameters          object array which contains any additional data that might be required to populate the component
    * @return the created component
    */
-  public <T extends PlanitComponent<?>> T create(final String planitComponentClassName, final Object[] constructorParameters, final Object... eventParameters) {
-    final T newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
+  public <C extends PlanitComponent<?>> C create(final String planitComponentClassName, final Object[] constructorParameters, final Object... eventParameters) {
+    final C newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
     dispatchPopulatePlanitComponentEvent(newTrafficComponent, eventParameters);
     return newTrafficComponent;
   }
@@ -381,7 +390,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
   /**
    * Allows one to verify if this factory creates derived classes of the provided class super type. Useful in case the generic type parameter is not available at run time for this
    * factory
-   * 
+   *
    * @param <U>        type to verify
    * @param superClazz class of type
    * @return true when factory is compatible, false otherwise

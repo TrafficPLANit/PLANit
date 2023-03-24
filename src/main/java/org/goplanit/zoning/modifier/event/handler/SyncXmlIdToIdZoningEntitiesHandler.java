@@ -2,7 +2,6 @@ package org.goplanit.zoning.modifier.event.handler;
 
 import org.goplanit.event.handler.SyncXmlIdToIdHandler;
 import org.goplanit.utils.id.ExternalIdAble;
-import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierListener;
 import org.goplanit.zoning.modifier.event.RecreatedZoningEntitiesManagedIdsEvent;

@@ -42,6 +42,8 @@ public class UsabilityModeFeaturesImpl implements UsabilityModeFeatures {
 
   /**
    * Copy constructor
+   *
+   * @param other to copy
    */
   protected UsabilityModeFeaturesImpl(UsabilityModeFeaturesImpl other) {
     this(other.useOfType);

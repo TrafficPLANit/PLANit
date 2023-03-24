@@ -34,6 +34,7 @@ public abstract class SyncXmlIdToIdHandler implements RoutedServicesModifierList
   /**
    * Perform action by syncing XML ids to ids
    *
+   * @param <T> type of ExternalIdAble
    * @param entity entity to sync XML id to internal id
    */
   protected <T extends ExternalIdAble> void syncXmlIdToInternalId(T entity) {

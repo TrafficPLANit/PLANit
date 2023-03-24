@@ -16,12 +16,14 @@ import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierEventTyp
 public abstract class ModifiedRoutedServicesLayerEventImpl extends EventImpl implements RoutedServicesModificationEvent {
 
   /**
-   * Wrapper for a modified rotued service layer event
+   * Wrapper for a modified routed service layer event
    *
+   * @param eventType type of the event
    * @param source zoning modifier firing the event
    * @param routedServicesLayer to use
    */
-  protected ModifiedRoutedServicesLayerEventImpl(RoutedServicesModifierEventType eventType, RoutedServicesLayerModifier source, RoutedServicesLayer routedServicesLayer) {
+  protected ModifiedRoutedServicesLayerEventImpl(
+      RoutedServicesModifierEventType eventType, RoutedServicesLayerModifier source, RoutedServicesLayer routedServicesLayer) {
     super(eventType, source, routedServicesLayer);
   }
 

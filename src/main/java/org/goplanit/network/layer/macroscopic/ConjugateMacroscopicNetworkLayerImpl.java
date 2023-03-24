@@ -141,6 +141,9 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param nodeMapper to use
+   * @param linkMapper to use
+   * @param linkSegmentMapper to use
    */
   protected ConjugateMacroscopicNetworkLayerImpl(
       ConjugateMacroscopicNetworkLayerImpl other,

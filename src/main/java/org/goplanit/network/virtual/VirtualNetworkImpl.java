@@ -67,6 +67,7 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param connectoidEdgeMapper to use for tracking mapping between original and copied entity (may be null)
    * @param connectoidSegmentMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param centroidVertexMapper to use for tracking mapping between original and copied entity (may be null)
    */
   protected VirtualNetworkImpl(
       final VirtualNetworkImpl other,
@@ -169,7 +170,7 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
   }
 
   /**
-   * {@inheritDoc
+   * {@inheritDoc}
    */
   @Override
   public VirtualNetworkImpl shallowClone() {

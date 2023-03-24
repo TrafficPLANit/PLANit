@@ -17,7 +17,7 @@ public class ZoningIdMapper extends PlanitComponentIdMapper{
   /**
    * Create id mappers per type based on a given id mapping type
    *
-   * @return newly created map with all zoning entity mappings
+   * @param mappingType to apply
    */
   public ZoningIdMapper(IdMapperType mappingType){
     super(mappingType);

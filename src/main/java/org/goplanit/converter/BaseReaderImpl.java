@@ -1,12 +1,9 @@
 package org.goplanit.converter;
 
-import java.util.HashMap;
-import java.util.function.Function;
-
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.misc.CustomIndexTracker;
 import org.goplanit.utils.wrapper.MapWrapper;
-import org.goplanit.utils.wrapper.MapWrapperImpl;
+
+import java.util.function.Function;
 
 /**
  * Abstract base class implementation for converter readers which has a mechanism to (optionally) keep track of entities by their source id as PLANit only indexes by internal id

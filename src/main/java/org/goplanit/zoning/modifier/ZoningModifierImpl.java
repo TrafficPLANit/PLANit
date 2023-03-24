@@ -70,6 +70,8 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
 
   /**
    * recreate part of zone ids (od zones)
+   *
+   * @param resetIds flag indicating whether to reset the ids before creating new ones
    */
   protected void recreateOdZoneIds(boolean resetIds) {
     zoning.getOdZones().recreateIds(resetIds);
@@ -78,6 +80,8 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
 
   /**
    * recreate part of zone ids (transfer zones)
+   *
+   * @param resetIds flag indicating whether to reset the ids before creating new ones
    */
   protected void recreateTransferZoneIds(boolean resetIds) {
     zoning.getTransferZones().recreateIds(resetIds);

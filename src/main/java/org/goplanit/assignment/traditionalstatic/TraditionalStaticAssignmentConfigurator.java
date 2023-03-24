@@ -1,7 +1,7 @@
 package org.goplanit.assignment.traditionalstatic;
 
 import org.goplanit.assignment.TrafficAssignmentConfigurator;
-import org.goplanit.cost.physical.BPRLinkTravelTimeCost;
+import org.goplanit.cost.physical.BprLinkTravelTimeCost;
 import org.goplanit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.sdinteraction.smoothing.MSASmoothing;
@@ -32,7 +32,7 @@ public class TraditionalStaticAssignmentConfigurator extends TrafficAssignmentCo
     super(instanceType);
 
     // initialise defaults
-    this.createAndRegisterPhysicalCost(BPRLinkTravelTimeCost.class.getCanonicalName());
+    this.createAndRegisterPhysicalCost(BprLinkTravelTimeCost.class.getCanonicalName());
     this.createAndRegisterVirtualCost(FixedConnectoidTravelTimeCost.class.getCanonicalName());
     this.createAndRegisterSmoothing(MSASmoothing.class.getCanonicalName());
     this.createAndRegisterGapFunction(LinkBasedRelativeDualityGapFunction.class.getCanonicalName());

@@ -21,6 +21,8 @@ public final class TimePeriods extends ManagedIdEntitiesImpl<TimePeriod> impleme
 
   /**
    * Constructor
+   *
+   * @param tokenId  to use for id generation
    */
   public TimePeriods(final IdGroupingToken tokenId) {
     super(TimePeriod::getId, TimePeriod.TIMEPERIOD_ID_CLASS);

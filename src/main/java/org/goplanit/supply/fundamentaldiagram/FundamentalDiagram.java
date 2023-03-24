@@ -71,6 +71,8 @@ public interface FundamentalDiagram {
 
   /**
    * deep clone of fundamental diagram
+   *
+   * @return cloned instance
    */
   public abstract FundamentalDiagram deepClone();
 

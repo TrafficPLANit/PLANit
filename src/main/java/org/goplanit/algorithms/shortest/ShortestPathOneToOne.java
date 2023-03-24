@@ -29,6 +29,7 @@ public interface ShortestPathOneToOne {
    *
    * @param origin      vertex of source node
    * @param destination vertex of sink node
+   * @param bannedSegments segments not allowed to be used
    * @return shortest path result of the execution
    */
   public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination, Set<? extends EdgeSegment> bannedSegments);

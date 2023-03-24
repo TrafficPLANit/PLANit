@@ -43,6 +43,7 @@ public class TimePeriodsFactory extends ManagedIdEntityFactoryImpl<TimePeriod> i
    * @param description for the time period
    * @param startTimeSeconds start time in seconds since midnight
    * @param durationSeconds duration in seconds
+   * @return created instance
    */
   public TimePeriod registerNew(String description, long startTimeSeconds, long durationSeconds) {
     var newTimePeriod = new TimePeriodImpl(getIdGroupingToken(), description, startTimeSeconds, durationSeconds);

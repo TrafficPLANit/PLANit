@@ -38,6 +38,8 @@ public class SimpleDirectedPathImpl implements SimpleDirectedPath {
 
   /**
    * Copy constructor (shallow copy)
+   *
+   * @param other to copy
    */
   protected SimpleDirectedPathImpl(SimpleDirectedPathImpl other) {
     super();

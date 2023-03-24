@@ -79,6 +79,8 @@ public class StaticLtmSettings {
 
   /**
    * Shallow copy
+   *
+   * @return  shallow copy
    */
   public StaticLtmSettings shallowClone() {
     return new StaticLtmSettings(this);

@@ -9,7 +9,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
  * 
  * @author markr
  */
-public class BPRConfigurator extends PhysicalCostConfigurator<BPRLinkTravelTimeCost> {
+public class BPRConfigurator extends PhysicalCostConfigurator<BprLinkTravelTimeCost> {
 
   private static final String SET_PARAMETERS = "setParameters";
 
@@ -20,7 +20,7 @@ public class BPRConfigurator extends PhysicalCostConfigurator<BPRLinkTravelTimeC
    * 
    */
   protected BPRConfigurator() {
-    super(BPRLinkTravelTimeCost.class);
+    super(BprLinkTravelTimeCost.class);
   }
 
   /**

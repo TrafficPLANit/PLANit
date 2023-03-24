@@ -48,8 +48,10 @@ public class ConnectoidSegmentsImpl extends ManagedIdEntitiesImpl<ConnectoidSegm
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to apply
    */
-  public ConnectoidSegmentsImpl(ConnectoidSegmentsImpl other, boolean deepCopy,BiConsumer<ConnectoidSegment,ConnectoidSegment> mapper) {
+  public ConnectoidSegmentsImpl(
+      ConnectoidSegmentsImpl other, boolean deepCopy,BiConsumer<ConnectoidSegment,ConnectoidSegment> mapper) {
     super(other, deepCopy, mapper);
     this.connectoidSegmentFactory =
             new ConnectoidSegmentFactoryImpl(other.connectoidSegmentFactory.getIdGroupingToken(), this);

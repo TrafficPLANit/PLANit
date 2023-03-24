@@ -112,7 +112,7 @@ public class UserClass extends ExternalIdAbleImpl implements ManagedId {
   /**
    * Set the traveler type of this user class. Use with caution
    *
-   * @return TravelerType of this user class
+   * @param travellerType of this user class
    */
   public void setTravellerType(TravellerType travellerType) {
     this.travellerType = travellerType;

@@ -51,7 +51,7 @@ public class BicycleMode extends PredefinedModeImpl {
   /**
    * Copy constructor
    *
-   * @param other
+   * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
   protected BicycleMode(BicycleMode other, boolean deepCopy) {

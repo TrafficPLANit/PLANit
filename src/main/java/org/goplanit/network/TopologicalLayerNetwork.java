@@ -131,7 +131,7 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
   public abstract TopologicalLayerNetwork shallowClone();
 
   /**
-   * {@inheritDoc
+   * {@inheritDoc}
    */
   @Override
   public abstract TopologicalLayerNetwork deepClone();

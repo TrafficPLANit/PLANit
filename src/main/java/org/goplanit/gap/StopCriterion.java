@@ -100,6 +100,8 @@ public class StopCriterion {
 
   /**
    * Shallow clone this instance
+   *
+   * @return created copy
    */
   public StopCriterion shallowClone() {
     return new StopCriterion(this, false);
@@ -107,6 +109,8 @@ public class StopCriterion {
 
   /**
    * Deep clone this instance
+   *
+   * @return created copy
    */
   public StopCriterion deepClone() {
     return new StopCriterion(this, true);

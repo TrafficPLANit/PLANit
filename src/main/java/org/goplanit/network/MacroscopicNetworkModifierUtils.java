@@ -11,7 +11,8 @@ public class MacroscopicNetworkModifierUtils {
   /**
    * Convenience method to sync XMLids to Ids by making use of layer modifiers and Event listeners.
    * Note this also recreates all managed id entities ids as well
-   * @param network
+   *
+   * @param network to apply to
    */
   public static void syncManagedIdEntitiesContainerXmlIdsToIds(MacroscopicNetwork network) {
     NetworkModifierUtils.syncManagedIdEntitiesContainerXmlIdsToIds(network);

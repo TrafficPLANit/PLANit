@@ -46,6 +46,7 @@ public class VerticesImpl extends GraphEntitiesImpl<Vertex> implements Vertices 
    * 
    * @param verticesImpl to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param biConsumer apply to each copy
    */
   public VerticesImpl(VerticesImpl verticesImpl, boolean deepCopy, BiConsumer<Vertex, Vertex> biConsumer) {
     super(verticesImpl, deepCopy, biConsumer);
