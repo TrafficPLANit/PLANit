@@ -1,4 +1,4 @@
-package org.goplanit.converter;
+package org.goplanit.converter.idmapping;
 
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.network.layer.service.ServiceLeg;

@@ -12,6 +12,7 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.macroscopic.AccessGroupProperties;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 
@@ -188,6 +189,15 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   @Override
   public boolean isModeAllowed(Mode mode) {
     return modeAccessProperties.containsKey(mode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isModeTypeAllowed(PredefinedModeType modeType) {
+    return modeAccessProperties.entrySet().stream().anyMatch(
+            entry -> entry.getKey().isPredefinedModeType() && entry.getKey().getPredefinedModeType().equals(modeType));
   }
 
   /**

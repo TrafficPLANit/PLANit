@@ -1,15 +1,11 @@
-package org.goplanit.converter;
+package org.goplanit.converter.idmapping;
 
 import org.goplanit.utils.id.ExternalIdAble;
-import org.goplanit.utils.locale.CountryNames;
-import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.mode.Mode;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.logging.Logger;
 
 public class PlanitComponentIdMapper {
 

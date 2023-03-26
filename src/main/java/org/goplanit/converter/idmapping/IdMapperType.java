@@ -1,4 +1,4 @@
-package org.goplanit.converter;
+package org.goplanit.converter.idmapping;
 
 /**
  * Indicates which PLANit id to use for extracting ids on the output format.
