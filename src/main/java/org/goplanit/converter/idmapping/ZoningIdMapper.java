@@ -1,15 +1,9 @@
-package org.goplanit.converter;
+package org.goplanit.converter.idmapping;
 
-import org.goplanit.utils.graph.Vertex;
-import org.goplanit.utils.id.ExternalIdAble;
-import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.TransferZoneGroup;
 import org.goplanit.utils.zoning.Zone;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
 
 public class ZoningIdMapper extends PlanitComponentIdMapper{

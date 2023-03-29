@@ -1,9 +1,5 @@
-package org.goplanit.converter;
+package org.goplanit.converter.idmapping;
 
-import org.goplanit.utils.graph.Vertex;
-import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.service.ServiceLeg;
-import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.service.routed.RoutedService;
 import org.goplanit.utils.service.routed.RoutedTrip;
 import org.goplanit.utils.service.routed.RoutedTripDeparture;

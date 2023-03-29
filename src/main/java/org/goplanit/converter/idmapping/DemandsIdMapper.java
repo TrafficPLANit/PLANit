@@ -1,12 +1,7 @@
-package org.goplanit.converter;
+package org.goplanit.converter.idmapping;
 
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
-import org.goplanit.utils.graph.Vertex;
-import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
-import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.time.TimePeriod;
 
 import java.util.function.Function;

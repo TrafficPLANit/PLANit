@@ -1,23 +1,22 @@
-package org.goplanit.converter;
+package org.goplanit.converter.idmapping;
 
+import org.goplanit.converter.idmapping.IdMapperFunctionFactory;
+import org.goplanit.converter.idmapping.IdMapperType;
+import org.goplanit.converter.idmapping.PlanitComponentIdMapper;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.graph.Vertex;
-import org.goplanit.utils.id.ExternalIdAble;
-import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.time.TimePeriod;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
 
 /**
  * All network id mappers in a convenience class
  */
-public class NetworkIdMapper extends PlanitComponentIdMapper{
+public class NetworkIdMapper extends PlanitComponentIdMapper {
 
   /**
    * Constructor
