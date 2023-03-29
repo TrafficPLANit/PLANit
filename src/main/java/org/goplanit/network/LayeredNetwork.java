@@ -3,11 +3,11 @@ package org.goplanit.network;
 import java.util.logging.Logger;
 
 import org.goplanit.mode.ModesImpl;
-import org.goplanit.network.virtual.VirtualNetworkImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
+import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layers.NetworkLayers;
 
@@ -94,6 +94,16 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
    */
   public U getLayerByMode(Mode mode) {
     return transportLayers.get(mode);
+  }
+
+  /**
+   * collect a layer by predefined mode type (we exclude custom mode types)
+   *
+   * @param predefinedModeType to collect layer for
+   * @return corresponding layer, (null if not found)
+   */
+  public U getLayerByPredefinedModeType(PredefinedModeType predefinedModeType) {
+    return transportLayers.get(predefinedModeType);
   }
 
   /**

@@ -3,7 +3,6 @@ package org.goplanit.cost.physical;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.goplanit.component.PlanitComponent;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.interactor.LinkInflowOutflowAccessor;
 import org.goplanit.network.LayeredNetwork;

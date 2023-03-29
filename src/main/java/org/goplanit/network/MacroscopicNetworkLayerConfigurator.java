@@ -28,10 +28,10 @@ public class MacroscopicNetworkLayerConfigurator {
   private static final Logger LOGGER = Logger.getLogger(MacroscopicNetworkLayerConfigurator.class.getCanonicalName());
 
   /** track unique proposed layers */
-  protected final Set<String> transportLayersByXmlId = new HashSet<String>();
+  protected final Set<String> transportLayersByXmlId = new HashSet<>();
 
   /** track mode to layer mapping */
-  protected final Map<Mode, String> modeToLayerXmlId = new TreeMap<Mode, String>();
+  protected final Map<Mode, String> modeToLayerXmlId = new TreeMap<>();
 
   /**
    * proposed on_street layer id
