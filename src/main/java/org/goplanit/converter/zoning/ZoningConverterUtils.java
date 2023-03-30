@@ -133,7 +133,7 @@ public class ZoningConverterUtils {
    * @return remaining links that are deemed eligible
    */
   public static Collection<MacroscopicLink> excludeLinksOnWrongSideOf(
-      Geometry location, Collection<MacroscopicLink> links, boolean isLeftHandDrive, Collection<Mode> accessModes, PlanitJtsCrsUtils geoUtils) {
+      Geometry location, Collection<MacroscopicLink> links, boolean isLeftHandDrive, Collection<? extends Mode> accessModes, PlanitJtsCrsUtils geoUtils) {
     Collection<MacroscopicLink> matchedLinks = new HashSet<>(links);
     for(var link : links) {
       for(Mode accessMode : accessModes){
@@ -201,7 +201,8 @@ public class ZoningConverterUtils {
      * @param geoUtils to use
      * @return pair with remaining closest link found and boolean indicating if any closest links were removed before finding a compatible closest links (true when one or more closest links are removed, false otherwise)
      */
-  public static Pair<MacroscopicLink,Boolean> excludeClosestLinksIncrementallyOnWrongSideOf(Geometry location, Collection<MacroscopicLink> links, boolean isLeftHandDrive, Collection<Mode> accessModes, PlanitJtsCrsUtils geoUtils) {
+  public static Pair<MacroscopicLink,Boolean> excludeClosestLinksIncrementallyOnWrongSideOf(
+      Geometry location, Collection<MacroscopicLink> links, boolean isLeftHandDrive, Collection<? extends Mode> accessModes, PlanitJtsCrsUtils geoUtils) {
     boolean entriesRemoved = false;
     MacroscopicLink closestLink = null;
     do{
