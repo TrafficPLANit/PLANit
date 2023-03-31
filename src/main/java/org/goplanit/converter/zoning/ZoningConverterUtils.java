@@ -290,7 +290,7 @@ public class ZoningConverterUtils {
     /* potential link segments based on mode compatibility and access link restriction */
     List<LinkSegment> accessLinkSegments = new ArrayList<>(4);
     for (var linkSegment : node.<LinkSegment>getEntryLinkSegments()) {
-      if (((MacroscopicLinkSegment) linkSegment).isModeAllowed(accessMode) && (linkSegment.getParent().idEquals(accessLink))) {
+      if (linkSegment.isModeAllowed(accessMode) && (linkSegment.getParent().idEquals(accessLink))) {
         accessLinkSegments.add(linkSegment);
       }
     }
