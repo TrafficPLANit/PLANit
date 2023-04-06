@@ -123,20 +123,18 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
   public boolean validate() {
     boolean valid = super.validate();
     if (valid && hasPhysicalParentSegments()) {
-      var nodeA = isDirectionAb() ? getUpstreamServiceNode() : getDownstreamServiceNode();
-      var nodeB = isDirectionAb() ? getDownstreamServiceNode(): getUpstreamServiceNode();
-      if (!(getParent().getServiceNodeA().getPhysicalParentNode().equals( isDirectionAb() ? getFirstPhysicalLinkSegment().getUpstreamNode() : getLastPhysicalLinkSegment().getDownstreamNode()))) {
-        LOGGER.severe(String.format("Service Node A its parent node (%s) on leg %s does not equate to node A (%s) of the first parent link (%s)",
-            getParent().getServiceNodeA().getPhysicalParentNode().getXmlId(), getXmlId(), getFirstPhysicalLinkSegment().getUpstreamNode().getXmlId(), getFirstPhysicalLinkSegment().getXmlId()));
+      if (!(getParent().getServiceNodeA().isMappedToPhysicalParentNode(isDirectionAb() ? getFirstPhysicalLinkSegment().getUpstreamNode() : getLastPhysicalLinkSegment().getDownstreamNode()))) {
+        LOGGER.severe(String.format("Service Node A (%s)'s physical node mapping on leg %s does not equate to physical node A (%s) of the first parent link (%s)",
+            getParent().getServiceNodeA().getXmlId(), getXmlId(), getFirstPhysicalLinkSegment().getUpstreamNode().getXmlId(), getFirstPhysicalLinkSegment().getXmlId()));
         valid = false;
       }
-      if (!(getParent().getServiceNodeB().getPhysicalParentNode().equals(isDirectionAb() ? getLastPhysicalLinkSegment().getDownstreamNode() : getFirstPhysicalLinkSegment().getUpstreamNode()))) {
-        LOGGER.severe(String.format("Service Node B its parent node (%s) on leg %s does not equate to node B (%s) of the last parent link (%s)",
-            getParent().getServiceNodeB().getPhysicalParentNode().getXmlId(), getXmlId(), getLastPhysicalLinkSegment().getDownstreamNode().getXmlId(), getLastPhysicalLinkSegment().getXmlId()));
+      if (!(getParent().getServiceNodeB().isMappedToPhysicalParentNode(isDirectionAb() ? getLastPhysicalLinkSegment().getDownstreamNode() : getFirstPhysicalLinkSegment().getUpstreamNode()))) {
+        LOGGER.severe(String.format("Service Node B's (%s) physical node on leg %s does not equate to node B (%s) of the last parent link (%s)",
+            getParent().getServiceNodeB().getXmlId(), getXmlId(), getLastPhysicalLinkSegment().getDownstreamNode().getXmlId(), getLastPhysicalLinkSegment().getXmlId()));
         valid = false;
       }
     }
-    return true;
+    return valid;
   }
 
   /**

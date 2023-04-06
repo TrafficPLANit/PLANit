@@ -1,9 +1,16 @@
 package org.goplanit.network.layer.service;
 
+import java.util.Collection;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.goplanit.graph.directed.DirectedVertexImpl;
+import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.IteratorUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
@@ -24,27 +31,33 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ServiceNodeImpl.class.getCanonicalName());
 
-  /** underlying network node */
-  protected Node networkNode;
+  /**
+   * Collect stream of downstream physical nodes of attached entry service leg segments (if any)
+   *
+   * @return the stream
+   */
+  protected Stream<Node> getDownstreamPhysicalNodeStream(){
+    return IteratorUtils.asStream(getEntryEdgeSegments().iterator()).filter( e -> e.hasPhysicalParentSegments()).map(
+        e -> ListUtils.getLastValue(e.getPhysicalParentSegments()).getDownstreamNode());
+  }
 
   /**
-   * Set the network layer node this service node refers to
-   * 
-   * @param networkNode to use
+   * Collect stream of upstream physical nodes of attached exit service leg segments (if any)
+   *
+   * @return the stream
    */
-  protected void setNetworkLayerNode(Node networkNode) {
-    this.networkNode = networkNode;
+  protected Stream<Node> getUpstreamPhysicalNodeStream(){
+    return IteratorUtils.asStream(getExitEdgeSegments().iterator()).filter( e -> e.hasPhysicalParentSegments()).map(
+        e -> ListUtils.getFirstValue(e.getPhysicalParentSegments()).getUpstreamNode());
   }
 
   /**
    * Constructor
    * 
    * @param tokenId     contiguous id generation within this group for instances of this class
-   * @param networkNode referenced by this service node
    */
-  protected ServiceNodeImpl(final IdGroupingToken tokenId, final Node networkNode) {
+  protected ServiceNodeImpl(final IdGroupingToken tokenId) {
     super(tokenId);
-    this.networkNode = networkNode;
   }
 
   /**
@@ -55,7 +68,6 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    */
   protected ServiceNodeImpl(final ServiceNodeImpl other, boolean deepCopy) {
     super(other, deepCopy);
-    this.networkNode = other.getPhysicalParentNode();
   }
 
   /**
@@ -65,7 +77,8 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    */
   @Override
   public final Point getPosition() {
-    return networkNode.getPosition();
+    LOGGER.warning("Unable to retrieve single position, use underlying physical link segment node positions instead");
+    return null;
   }
 
   @Override
@@ -74,24 +87,22 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
   }
 
   /**
-   * Collect the network layer node this service node relates to
+   * Collect the physical nodes at the extremities of all underlying physical link segments. Since these can be different, these might result
+   * in multiple physical nodes rather than one
    * 
-   * @return related network layer node
+   * @return related network layer node(s)
    */
   @Override
-  public final Node getPhysicalParentNode() {
-    return networkNode;
+  public final Set<Node> getPhysicalParentNodes() {
+    return Stream.concat(getUpstreamPhysicalNodeStream(), getDownstreamPhysicalNodeStream()).collect(Collectors.toSet());
   }
 
-  /**
-   * Set the network layer parent node. It is not recommended to do this unless you know what you are doing as it can introduce
-   * inconsistencies between network layers
-   *
-   * @param parentNode new parent node in the network layer
+  /*
+   * {@inheritDoc
    */
   @Override
-  public void setPhysicalParentNode(Node parentNode) {
-    this.networkNode = parentNode;
+  public boolean hasPhysicalParentNodes() {
+    return  getUpstreamPhysicalNodeStream().findFirst().isPresent() || getDownstreamPhysicalNodeStream().findFirst().isPresent();
   }
 
   /**
@@ -108,6 +119,18 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
   @Override
   public ServiceNodeImpl deepClone() {
     return new ServiceNodeImpl(this, true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isMappedToPhysicalParentNode(Node physicalParentNode) {
+    boolean match = getUpstreamPhysicalNodeStream().anyMatch(e -> e.equals(physicalParentNode));
+    if(match){
+      return true;
+    }
+    return getDownstreamPhysicalNodeStream().anyMatch(e -> e.equals(physicalParentNode));
   }
 
 }

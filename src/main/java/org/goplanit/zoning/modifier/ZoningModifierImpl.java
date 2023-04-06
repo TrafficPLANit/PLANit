@@ -240,13 +240,13 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
     LongAdder counter = new LongAdder();
     for(var serviceNetworkLayer : serviceNetworkLayers){
 
-      var serviceNodesByPhysicalNode = serviceNetworkLayer.getServiceNodes().groupBy( sn -> sn.getPhysicalParentNode());
-      serviceNodesByPhysicalNode.remove(null); // make sure that unmapped service nodes do not cause issues
+      var serviceNodesByPhysicalNodes = serviceNetworkLayer.getServiceNodes().groupBy( sn -> sn.getPhysicalParentNodes());
+      serviceNodesByPhysicalNodes.remove(null); // make sure that unmapped service nodes do not cause issues
 
-      /* from all entries remove entries for which a service node exists --> remaining entries are the ones to remove*/
+      /* from all entries, remove the entries for which a service node exists --> remaining entries are the ones to remove*/
       var transferConnectoidsByPhysicalAccessNodeToRemove = transferConnectoidsByPhysicalLayer.get(serviceNetworkLayer.getParentNetworkLayer());
-      var physicalNodesWithServices = serviceNodesByPhysicalNode.keySet();
-      physicalNodesWithServices.forEach( accessNode -> transferConnectoidsByPhysicalAccessNodeToRemove.remove(accessNode)); // prune
+      var physicalNodesWithServices = serviceNodesByPhysicalNodes.keySet();
+      physicalNodesWithServices.stream().flatMap(e -> e.stream()).forEach(accessNode -> transferConnectoidsByPhysicalAccessNodeToRemove.remove(accessNode)); // prune
 
       /* remove identified entries from zoning */
       transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().flatMap(l -> l.stream()).forEach(

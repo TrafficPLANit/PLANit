@@ -1,5 +1,6 @@
 package org.goplanit.network.layer.macroscopic;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -66,6 +67,10 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentBase<MacroscopicLink>
     if (!isModeAllowed(mode)) {
       return Double.MAX_VALUE;
     }
+    var speedLimitKmh = getModelledSpeedLimitKmH(mode);
+    if(speedLimitKmh == 0.0){
+      return Double.MAX_VALUE;
+    }
 
     return getParentLink().getLengthKm() / getModelledSpeedLimitKmH(mode);
   }
@@ -83,7 +88,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentBase<MacroscopicLink>
    */
   @Override
   public Set<Mode> getAllowedModes() {
-    return linkSegmentType.getAllowedModes();
+    return Collections.unmodifiableSet(linkSegmentType.getAllowedModes());
   }
 
   // getters - setters
