@@ -3,25 +3,27 @@ package org.goplanit.converter.idmapping;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
+import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.ServiceNetwork;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
-import org.goplanit.utils.service.routed.RoutedService;
-import org.goplanit.utils.service.routed.RoutedTrip;
-import org.goplanit.utils.service.routed.RoutedTripDeparture;
-import org.goplanit.utils.service.routed.RoutedTripSchedule;
+import org.goplanit.utils.service.routed.*;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.TransferZoneGroup;
 import org.goplanit.utils.zoning.Zone;
+import org.goplanit.zoning.Zoning;
 
 /**
  * Factory that creates functions for id mapping from PLANit ids to ids to be used for persistence. Based on the passed in IdMapper type functions will generate different ids when
@@ -240,5 +242,65 @@ public class IdMapperFunctionFactory {
    */
   public static Function<RoutedTripSchedule, String> createRoutedTripScheduleIdMappingFunction(IdMapperType idMapper) {
     return createIdMappingFunction(RoutedTripSchedule.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a NetworkLayer and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates NetworkLayer ids
+   */
+  public static Function<MacroscopicNetworkLayer, String> createMacroscopicNetworkLayerIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(MacroscopicNetworkLayer.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a MacroscopicNetwork and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates MacroscopicNetwork ids
+   */
+  public static Function<MacroscopicNetwork, String> createMacroscopicNetworkIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(MacroscopicNetwork.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a ServiceNetwork and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates ServiceNetwork ids
+   */
+  public static Function<ServiceNetwork, String> createServiceNetworkIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(ServiceNetwork.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a RoutedServicesLayer and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates RoutedServicesLayer ids
+   */
+  public static Function<RoutedServicesLayer, String> createRoutedServiceLayerIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(RoutedServicesLayer.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a ServiceNetworkLayer and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates ServiceNetworkLayer ids
+   */
+  public static Function<ServiceNetworkLayer, String> createServiceNetworkLayerIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(ServiceNetworkLayer.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a Zoning and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates Zoning ids
+   */
+  public static Function<Zoning, String> createZoningIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(Zoning.class , idMapper);
   }
 }

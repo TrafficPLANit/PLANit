@@ -1,14 +1,7 @@
 package org.goplanit.graph.modifier;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
@@ -272,10 +265,11 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    * 
    */
   @Override
-  public <Ex extends Edge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(final List<Ex> edgesToBreak, final Vertex vertexToBreakAt, final CoordinateReferenceSystem crs) {
+  public <Ex extends Edge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(
+      final List<Ex> edgesToBreak, final Vertex vertexToBreakAt, final CoordinateReferenceSystem crs) {
     PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
 
-    Map<Long, Pair<Ex, Ex>> affectedEdges = new HashMap<>();
+    Map<Long, Pair<Ex, Ex>> affectedEdges = new TreeMap<>();
     for (Ex edgeToBreak : edgesToBreak) {
       if (affectedEdges.containsKey(edgeToBreak.getId())) {
         LOGGER.severe(String.format("Edge (%s) cannot be broken twice at a single vertex, yet this appears to be the case", edgeToBreak.getXmlId()));
@@ -302,7 +296,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
 
     /* create unique copy of edge with unique id and register it, do a deep copy to ensure any input properties are duplicated */
     Ex breakToB = (Ex) theGraph.getEdges().getFactory().createUniqueDeepCopyOf(edgeToBreak);
-    ((GraphEntities<Ex>) theGraph.getEdges()).register((Ex) breakToB);
+    ((GraphEntities<Ex>) theGraph.getEdges()).register(breakToB);
 
     if (edgeToBreak.getVertexA() == null || edgeToBreak.getVertexB() == null) {
       LOGGER.severe(String.format("unable to break edge since edge to break %s (id:%d) is missing one or more vertices", edgeToBreak.getExternalId(), edgeToBreak.getId()));
@@ -326,7 +320,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
     }
 
     /* broken links geometry must be updated since it links is truncated compared to its original */
-    for (Edge brokenEdge : Set.of(aToBreak, breakToB)) {
+    for (Edge brokenEdge : List.of(aToBreak, breakToB)) {
       updateBrokenEdgeGeometry(brokenEdge, vertexToBreakAt);
       brokenEdge.setLengthKm(geoUtils.getDistanceInKilometres(brokenEdge.getGeometry()));
     }

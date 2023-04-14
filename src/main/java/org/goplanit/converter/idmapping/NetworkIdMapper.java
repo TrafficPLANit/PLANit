@@ -1,11 +1,10 @@
 package org.goplanit.converter.idmapping;
 
-import org.goplanit.converter.idmapping.IdMapperFunctionFactory;
-import org.goplanit.converter.idmapping.IdMapperType;
-import org.goplanit.converter.idmapping.PlanitComponentIdMapper;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
@@ -32,6 +31,8 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
     add(TravellerType.class, IdMapperFunctionFactory.createTravellerTypeIdMappingFunction(type));
     add(UserClass.class, IdMapperFunctionFactory.createUserClassIdMappingFunction(type));
     add(Vertex.class, IdMapperFunctionFactory.createVertexIdMappingFunction(type));
+    add(MacroscopicNetworkLayer.class, IdMapperFunctionFactory.createMacroscopicNetworkLayerIdMappingFunction(type));
+    add(MacroscopicNetwork.class, IdMapperFunctionFactory.createMacroscopicNetworkIdMappingFunction(type));
   }
 
   /** get id mapper for nodes
@@ -81,6 +82,20 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
    */
   public Function<UserClass, String> getUserClassIdMapper(){
     return get(UserClass.class);
+  }
+
+  /** get id mapper for network layers
+   * @return id mapper
+   */
+  public Function<MacroscopicNetworkLayer, String> getNetworkLayerIdMapper(){
+    return get(MacroscopicNetworkLayer.class);
+  }
+
+  /** get id mapper for networks
+   * @return id mapper
+   */
+  public Function<MacroscopicNetwork, String> getNetworkIdMapper(){
+    return get(MacroscopicNetwork.class);
   }
 
 }

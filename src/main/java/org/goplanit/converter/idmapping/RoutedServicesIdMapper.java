@@ -1,6 +1,8 @@
 package org.goplanit.converter.idmapping;
 
+import org.goplanit.utils.function.PlanitExceptionFunction;
 import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.utils.service.routed.RoutedTrip;
 import org.goplanit.utils.service.routed.RoutedTripDeparture;
 
@@ -20,6 +22,7 @@ public class RoutedServicesIdMapper extends PlanitComponentIdMapper{
     add(RoutedTrip.class, IdMapperFunctionFactory.createRoutedTripIdMappingFunction(type));
     add(RoutedTripDeparture.class,  IdMapperFunctionFactory.createRoutedTripDepartureIdMappingFunction(type));
     add(RoutedService.class, IdMapperFunctionFactory.createRoutedServiceIdMappingFunction(type));
+    add(RoutedServicesLayer.class, IdMapperFunctionFactory.createRoutedServiceLayerIdMappingFunction(type));
   }
 
   /**
@@ -49,4 +52,12 @@ public class RoutedServicesIdMapper extends PlanitComponentIdMapper{
     return get(RoutedTripDeparture.class);
   }
 
+  /**
+   * Collect how RoutedServicesLayer ids are to be mapped to the XML ids when persisting
+   *
+   * @return mapping from RoutedServicesLayer to string (XML id to persist)
+   */
+  public Function<RoutedServicesLayer, String> getRoutedServiceLayerIdMapper() {
+    return get(RoutedServicesLayer.class);
+  }
 }

@@ -11,6 +11,7 @@ import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.locale.DrivingDirectionDefaultByCountry;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.TrackModeType;
@@ -499,12 +500,14 @@ public class ZoningConverterUtils {
    */
   public static Collection<DirectedConnectoid> createAndRegisterDirectedConnectoids(Zoning zoning, final TransferZone transferZone, final Iterable<? extends MacroscopicLinkSegment> linkSegments, final Set<Mode> allowedModes){
     Set<DirectedConnectoid> createdConnectoids = new HashSet<>();
-    for(var linkSegment : linkSegments) {
-      DirectedConnectoid newConnectoid = createAndRegisterDirectedConnectoid(zoning, transferZone, linkSegment, allowedModes);
+
+    // we sort to ensure connectoids are always created in same deterministic order
+    IterableUtils.asStream(linkSegments).sorted(Comparator.comparing(MacroscopicLinkSegment::getId)).forEach( linkSegment -> {
+        DirectedConnectoid newConnectoid = createAndRegisterDirectedConnectoid(zoning, transferZone, linkSegment, allowedModes);
       if(newConnectoid != null) {
         createdConnectoids.add(newConnectoid);
       }
-    }
+    });
 
     return createdConnectoids;
   }

@@ -1,10 +1,7 @@
 package org.goplanit.graph.directed.modifier;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.modifier.GraphModifierImpl;
@@ -244,9 +241,9 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
     Map<Long, Pair<Ex, Ex>> brokenEdges = graphModifier.breakEdgesAt(edgesToBreak, vertexToBreakAt, crs);
 
     /* update the underlying directed edge segments */
-    for (Entry<Long, Pair<Ex, Ex>> entry : brokenEdges.entrySet()) {
+    brokenEdges.entrySet().stream().sorted(Comparator.comparing(Entry::getKey)).forEach( entry -> {
       updateBrokenEdgeItsEdgeSegments(entry.getValue().first(), entry.getValue().second());
-    }
+    });
 
     return brokenEdges;
   }
