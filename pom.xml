@@ -47,18 +47,24 @@
 			<artifactId>commons-csv</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-geometry</artifactId>
+		</dependency>
+
 		<!-- version inherited from parent -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
-		</dependency>			
+		</dependency>
 
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
 			<!-- only used locally for testing so not an actual dependency for using the API -->
 			<optional>true</optional>
 		</dependency>
+
 
 	</dependencies>
 	

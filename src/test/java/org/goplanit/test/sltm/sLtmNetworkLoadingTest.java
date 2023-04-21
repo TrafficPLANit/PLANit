@@ -1,8 +1,5 @@
 package org.goplanit.test.sltm;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
-
 import java.util.logging.Logger;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -21,17 +18,18 @@ import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
-import org.goplanit.utils.network.layer.physical.Links;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
 import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test the sLTM network loading algorithms basic functionality (no route choice)
@@ -53,7 +51,7 @@ public class sLtmNetworkLoadingTest {
   /**
    * {@inheritDoc}
    */
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
       LOGGER = Logging.createLogger(sLtmNetworkLoadingTest.class);
@@ -63,13 +61,13 @@ public class sLtmNetworkLoadingTest {
   /**
    * {@inheritDoc}
    */
-  @After
-  public void tearDown() {
+  @AfterAll
+  public static void tearDown() {
     Logging.closeLogger(LOGGER);
   }
 
   //@formatter:off
-  @Before
+  @BeforeEach
   public void intialise() {
     // construct the network. 
     //
@@ -141,7 +139,7 @@ public class sLtmNetworkLoadingTest {
                       
     }catch(Exception e) {
       e.printStackTrace();
-      assertFalse(true);
+      fail("initialise");
     }
   }
   //@formatter:on

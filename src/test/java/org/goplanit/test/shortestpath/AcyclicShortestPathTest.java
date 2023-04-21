@@ -1,11 +1,10 @@
 package org.goplanit.test.shortestpath;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -35,10 +34,11 @@ import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 
@@ -67,20 +67,20 @@ public class AcyclicShortestPathTest {
 
   private ManagedDirectedPathFactory pathFactory;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
       LOGGER = Logging.createLogger(ShortestPathTest.class);
     }
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     Logging.closeLogger(LOGGER);
   }
 
   //@formatter:off
-  @Before
+  @BeforeEach
   public void intialise() {
     // construct the network. The is the same network as in shortest path algorithm integration tests
     //
@@ -204,7 +204,7 @@ public class AcyclicShortestPathTest {
       
     }catch(Exception e) {
       e.printStackTrace();
-      assertFalse(true);
+      fail("intialise");
     }
   }
 

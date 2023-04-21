@@ -1,9 +1,5 @@
 package org.goplanit.test.sltm;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
-
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
@@ -26,10 +22,13 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test the sLTM assignment basic functionality (route choice) with a grid based network layout
@@ -158,7 +157,7 @@ public class sLtmAssignmentGridTest {
   /**
    * {@inheritDoc}
    */
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
       LOGGER = Logging.createLogger(sLtmAssignmentGridTest.class);
@@ -168,13 +167,13 @@ public class sLtmAssignmentGridTest {
   /**
    * {@inheritDoc}
    */
-  @After
-  public void tearDown() {
+  @AfterAll
+  public static void tearDown() {
     Logging.closeLogger(LOGGER);
   }
 
   //@formatter:off
-  @Before
+  @BeforeEach
   public void intialise() {
     // construct the network. 
     //
@@ -241,7 +240,7 @@ public class sLtmAssignmentGridTest {
                       
     }catch(Exception e) {
       e.printStackTrace();
-      assertFalse(true);
+      fail("initialise");
     }
   }
   //@formatter:on

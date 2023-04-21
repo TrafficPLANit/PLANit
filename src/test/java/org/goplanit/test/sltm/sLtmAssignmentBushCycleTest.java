@@ -1,8 +1,5 @@
 package org.goplanit.test.sltm;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
-
 import java.util.logging.Logger;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -30,12 +27,14 @@ import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
 import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test the sLTM bush-based cycle avoidance capability in a network that is prone to generate cycles
@@ -79,7 +78,7 @@ public class sLtmAssignmentBushCycleTest {
   /**
    * {@inheritDoc}
    */
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
       LOGGER = Logging.createLogger(sLtmAssignmentBushCycleTest.class);
@@ -89,13 +88,13 @@ public class sLtmAssignmentBushCycleTest {
   /**
    * {@inheritDoc}
    */
-  @After
-  public void tearDown() {
+  @AfterAll
+  public static void tearDown() {
     Logging.closeLogger(LOGGER);
   }
 
   //@formatter:off
-  @Before
+  @BeforeEach
   public void intialise() {
     // construct the network.
     //
@@ -217,7 +216,7 @@ public class sLtmAssignmentBushCycleTest {
                       
     }catch(Exception e) {
       e.printStackTrace();
-      assertFalse(true);
+      fail("initialise");
     }
   }
   //@formatter:on
@@ -238,8 +237,8 @@ public class sLtmAssignmentBushCycleTest {
       /* DESTINATION BASED */
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).setType(StaticLtmType.DESTINATION_BUSH_BASED);
 
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateOutput(OutputType.LINK);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
+      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.setActivateDetailedLogging(true);

@@ -1,13 +1,13 @@
 package org.goplanit.test.nodemodel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelInput;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.ojalgo.array.Array1D;
 import org.ojalgo.array.Array2D;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -26,7 +26,7 @@ public class TamperNodeModelTest {
   Array2D<Double> turnSendingflows;
 
   //@formatter:off
-  @Before
+  @BeforeEach
   public void intialise() {
     inCapacities = Array1D.PRIMITIVE64.copy(new double[] { 1000, 2000, 1000, 2000 });
     outReceivingFlows = Array1D.PRIMITIVE64.copy(new double[] { 1000, 2000, 1000, 2000 });

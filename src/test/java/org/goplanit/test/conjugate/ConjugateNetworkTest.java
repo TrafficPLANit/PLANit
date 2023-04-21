@@ -1,9 +1,5 @@
 package org.goplanit.test.conjugate;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
-
 import java.util.logging.Logger;
 
 import org.goplanit.logging.Logging;
@@ -15,10 +11,9 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.zoning.Zoning;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test the sLTM assignment basic functionality (route choice) with a grid based network layout
@@ -43,7 +38,7 @@ public class ConjugateNetworkTest {
   /**
    * {@inheritDoc}
    */
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
       LOGGER = Logging.createLogger(ConjugateNetworkTest.class);
@@ -53,13 +48,13 @@ public class ConjugateNetworkTest {
   /**
    * {@inheritDoc}
    */
-  @After
-  public void tearDown() {
+  @AfterAll
+  public static void tearDown() {
     Logging.closeLogger(LOGGER);
   }
 
   //@formatter:off
-  @Before
+  @BeforeEach
   public void intialise() {
     // construct the network. 
     //
@@ -126,7 +121,7 @@ public class ConjugateNetworkTest {
                       
     }catch(Exception e) {
       e.printStackTrace();
-      assertFalse(true);
+      Assertions.fail();
     }
   }
   //@formatter:on
@@ -165,7 +160,7 @@ public class ConjugateNetworkTest {
 
     } catch (Exception e) {
       e.printStackTrace();
-      fail("Error when testing conjugate network creation from macroscopic network layer");
+      Assertions.fail("Error when testing conjugate network creation from macroscopic network layer");
     }
   }
 

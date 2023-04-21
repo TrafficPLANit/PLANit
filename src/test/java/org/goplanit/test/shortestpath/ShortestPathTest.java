@@ -1,9 +1,5 @@
 package org.goplanit.test.shortestpath;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
-
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -25,13 +21,16 @@ import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test the shortest path algorithms
@@ -61,20 +60,20 @@ public class ShortestPathTest {
 
   private Map<Zone, CentroidVertex> zone2CentroidVertexMapping;
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
       LOGGER = Logging.createLogger(ShortestPathTest.class);
     }
   }
 
-  @AfterClass
+  @AfterAll
   public static void tearDown() {
     Logging.closeLogger(LOGGER);
   }
 
   //@formatter:off
-  @Before
+  @BeforeEach
   public void intialise() {
     // construct the network. The is the same network as in shortest path algorithm integration tests
     //
@@ -205,7 +204,7 @@ public class ShortestPathTest {
       
     }catch(Exception e) {
       e.printStackTrace();
-      assertFalse(true);
+      fail("initialise");
     }
   }
 //@formatter:on
