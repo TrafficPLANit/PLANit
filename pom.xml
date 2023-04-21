@@ -61,7 +61,6 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<!-- only used locally for testing so not an actual dependency for using the API -->
 			<optional>true</optional>
 		</dependency>
 

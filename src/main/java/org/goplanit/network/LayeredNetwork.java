@@ -139,6 +139,15 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
   }
 
   /**
+   * Empty when all layers in the layers container are empty
+   * @return true when empty, false otherwise
+   */
+  @Override
+  public boolean isEmpty() {
+    return getTransportLayers().isEachLayerEmpty();
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
