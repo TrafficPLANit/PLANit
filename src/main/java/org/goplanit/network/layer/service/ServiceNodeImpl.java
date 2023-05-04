@@ -1,11 +1,9 @@
 package org.goplanit.network.layer.service;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.goplanit.graph.directed.DirectedVertexImpl;
 import org.goplanit.utils.containers.ListUtils;
@@ -36,7 +34,7 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    *
    * @return the stream
    */
-  protected Stream<Node> getDownstreamPhysicalNodeStream(){
+  protected Stream<Node> getEntrySegmentsDownstreamPhysicalNodeStream(){
     return IteratorUtils.asStream(getEntryEdgeSegments().iterator()).filter( e -> e.hasPhysicalParentSegments()).map(
         e -> ListUtils.getLastValue(e.getPhysicalParentSegments()).getDownstreamNode());
   }
@@ -46,7 +44,7 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    *
    * @return the stream
    */
-  protected Stream<Node> getUpstreamPhysicalNodeStream(){
+  protected Stream<Node> getExitSegmentsUpstreamPhysicalNodeStream(){
     return IteratorUtils.asStream(getExitEdgeSegments().iterator()).filter( e -> e.hasPhysicalParentSegments()).map(
         e -> ListUtils.getFirstValue(e.getPhysicalParentSegments()).getUpstreamNode());
   }
@@ -94,7 +92,7 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    */
   @Override
   public final Set<Node> getPhysicalParentNodes() {
-    return Stream.concat(getUpstreamPhysicalNodeStream(), getDownstreamPhysicalNodeStream()).collect(Collectors.toSet());
+    return Stream.concat(getExitSegmentsUpstreamPhysicalNodeStream(), getEntrySegmentsDownstreamPhysicalNodeStream()).collect(Collectors.toSet());
   }
 
   /*
@@ -102,7 +100,7 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    */
   @Override
   public boolean hasPhysicalParentNodes() {
-    return  getUpstreamPhysicalNodeStream().findFirst().isPresent() || getDownstreamPhysicalNodeStream().findFirst().isPresent();
+    return  getExitSegmentsUpstreamPhysicalNodeStream().findFirst().isPresent() || getEntrySegmentsDownstreamPhysicalNodeStream().findFirst().isPresent();
   }
 
   /**
@@ -126,11 +124,11 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    */
   @Override
   public boolean isMappedToPhysicalParentNode(Node physicalParentNode) {
-    boolean match = getUpstreamPhysicalNodeStream().anyMatch(e -> e.equals(physicalParentNode));
+    boolean match = getExitSegmentsUpstreamPhysicalNodeStream().anyMatch(e -> e.equals(physicalParentNode));
     if(match){
       return true;
     }
-    return getDownstreamPhysicalNodeStream().anyMatch(e -> e.equals(physicalParentNode));
+    return getEntrySegmentsDownstreamPhysicalNodeStream().anyMatch(e -> e.equals(physicalParentNode));
   }
 
 }

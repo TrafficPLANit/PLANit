@@ -476,14 +476,17 @@ public class ZoningConverterUtils {
    *
    * @param zoning to register on
    * @param accessZone to relate connectoids to
+   * @param downstreamAccessNode when true access node is chosen as the downstream node, when false, upstream node is chosen
    * @param linkSegment to create connectoid for
    * @param allowedModes used for the connectoid
    * @return created connectoid when at least one of the allowed modes is also allowed on the link segment
    */
-  public static DirectedConnectoid createAndRegisterDirectedConnectoid(Zoning zoning, final TransferZone accessZone, final MacroscopicLinkSegment linkSegment, final Set<Mode> allowedModes){
+  public static DirectedConnectoid createAndRegisterDirectedConnectoid(
+      Zoning zoning, final TransferZone accessZone, final boolean downstreamAccessNode, final MacroscopicLinkSegment linkSegment, final Set<Mode> allowedModes){
     final Set<Mode> realAllowedModes = linkSegment.getAllowedModesFrom(allowedModes);
     if(realAllowedModes!= null && !realAllowedModes.isEmpty()) {
-      var connectoid = zoning.getTransferConnectoids().getFactory().registerNew(linkSegment,accessZone, true, realAllowedModes);
+      var connectoid =
+          zoning.getTransferConnectoids().getFactory().registerNew(downstreamAccessNode, linkSegment, accessZone, true, realAllowedModes);
       return connectoid;
     }
     return null;
@@ -494,16 +497,27 @@ public class ZoningConverterUtils {
    *
    * @param zoning to register on
    * @param transferZone to relate connectoids to
+   * @param accessNode the access node the connectoid utilises (determine the up/downstream connection of the attached link segment(s)
    * @param linkSegments to create connectoids for (one per segment)
    * @param allowedModes used for each connectoid
    * @return created connectoids
    */
-  public static Collection<DirectedConnectoid> createAndRegisterDirectedConnectoids(Zoning zoning, final TransferZone transferZone, final Iterable<? extends MacroscopicLinkSegment> linkSegments, final Set<Mode> allowedModes){
+  public static Collection<DirectedConnectoid> createAndRegisterDirectedConnectoids(
+      Zoning zoning,
+      final TransferZone transferZone,
+      final Node accessNode,
+      final Iterable<? extends MacroscopicLinkSegment> linkSegments,
+      final Set<Mode> allowedModes){
     Set<DirectedConnectoid> createdConnectoids = new HashSet<>();
 
     // we sort to ensure connectoids are always created in same deterministic order
     IterableUtils.asStream(linkSegments).sorted(Comparator.comparing(MacroscopicLinkSegment::getId)).forEach( linkSegment -> {
-        DirectedConnectoid newConnectoid = createAndRegisterDirectedConnectoid(zoning, transferZone, linkSegment, allowedModes);
+      boolean downstreamAccessNode = linkSegment.isDownstreamNode(accessNode);
+      if(!linkSegment.hasNode(accessNode)){
+        throw new PlanItRunTimeException("Chosen access node %s not attached to link segment %s", accessNode.getIdsAsString(), linkSegment.getIdsAsString());
+      }
+      DirectedConnectoid newConnectoid = createAndRegisterDirectedConnectoid(
+          zoning, transferZone, downstreamAccessNode, linkSegment, allowedModes);
       if(newConnectoid != null) {
         createdConnectoids.add(newConnectoid);
       }

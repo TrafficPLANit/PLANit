@@ -34,28 +34,17 @@ public class DirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<Di
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment, Zone parentZone, double length) {
-    DirectedConnectoid newConnectoid = registerNew(accessLinkSegment);
-    newConnectoid.addAccessZone(parentZone);
-    newConnectoid.setLength(parentZone, length);
-    directedConnectoids.register(newConnectoid);
-    return newConnectoid;
+  public DirectedConnectoid registerNew(boolean downstreamAccessNode, LinkSegment accessLinkSegment) {
+    return registerNew(downstreamAccessNode, accessLinkSegment, null, Connectoid.DEFAULT_LENGTH_KM);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment, Zone parentZone) {
-    return registerNew(accessLinkSegment, parentZone, Connectoid.DEFAULT_LENGTH_KM);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment) {
-    DirectedConnectoid newConnectoid = new DirectedConnectoidImpl(getIdGroupingToken(), accessLinkSegment);
+  public DirectedConnectoid registerNew(final boolean downstreamAccessNode, LinkSegment accessLinkSegment, Zone parentZone, double length) {
+    DirectedConnectoid newConnectoid =
+        new DirectedConnectoidImpl(getIdGroupingToken(), downstreamAccessNode, accessLinkSegment, parentZone, length);
     directedConnectoids.register(newConnectoid);
     return newConnectoid;
   }
