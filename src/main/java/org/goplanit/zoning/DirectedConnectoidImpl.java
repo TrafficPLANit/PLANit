@@ -84,6 +84,21 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
   }
 
   /**
+   * Constructor
+   *
+   * @param idToken           contiguous id generation within this group for instances of this class
+   * @param downstreamAccessNode when true access node is chosen as the downstream node of the segment, when false, upstream node is chosen
+   * @param accessLinkSegment the link segment in the network (layer) the connectoid connects with (possibly via its downstream node)
+   */
+  protected DirectedConnectoidImpl(
+      final IdGroupingToken idToken, final boolean downstreamAccessNode, final LinkSegment accessLinkSegment) {
+    super(idToken);
+    setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
+    setAccessLinkSegment(accessLinkSegment);
+    setNodeAccessDownstream(downstreamAccessNode);
+  }
+
+  /**
    * Copy constructor
    * 
    * @param other to copy

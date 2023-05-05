@@ -35,7 +35,10 @@ public class DirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<Di
    */
   @Override
   public DirectedConnectoid registerNew(boolean downstreamAccessNode, LinkSegment accessLinkSegment) {
-    return registerNew(downstreamAccessNode, accessLinkSegment, null, Connectoid.DEFAULT_LENGTH_KM);
+    DirectedConnectoid newConnectoid =
+        new DirectedConnectoidImpl(getIdGroupingToken(), downstreamAccessNode, accessLinkSegment);
+    directedConnectoids.register(newConnectoid);
+    return newConnectoid;
   }
 
   /**

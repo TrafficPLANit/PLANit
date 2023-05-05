@@ -260,7 +260,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   @Override
   public Zone addAccessZone(Zone accessZone) {
     if (accessZone == null) {
-      LOGGER.warning(String.format("unable to add access zone to connectoid %s, it is null", getXmlId()));
+      LOGGER.warning(String.format("unable to add access zone to connectoid %s, it is null", getIdsAsString()));
     }
     AccessZoneProperties duplicate = accessZones.put(accessZone.getId(), new AccessZoneProperties(accessZone));
     return duplicate != null ? duplicate.accessZone : null;
