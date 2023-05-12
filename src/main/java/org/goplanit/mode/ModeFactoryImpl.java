@@ -70,8 +70,10 @@ public class ModeFactoryImpl extends ManagedIdEntityFactoryImpl<Mode> implements
       return new TrainMode(groupId);
     case TRAM:
       return new TramMode(groupId);
+    case FERRY:
+      return new FerryMode(groupId);
     default:
-      LOGGER.severe(String.format("mode type %s unknown, mode not created", modeType));
+      LOGGER.severe(String.format("Mode type %s unknown, mode not created", modeType));
       return null;
     }
   }
