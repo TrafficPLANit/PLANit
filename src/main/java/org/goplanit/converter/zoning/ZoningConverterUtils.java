@@ -118,7 +118,7 @@ public class ZoningConverterUtils {
    * @return true when restricted for driving direction, false otherwise
    */
   public static boolean isAvoidCrossTrafficForAccessMode(final Mode accessMode) {
-    return !accessMode.getPhysicalFeatures().getTrackType().equals(TrackModeType.RAIL);
+    return accessMode.getPhysicalFeatures().getTrackType().equals(TrackModeType.ROAD);
   }
 
   /** create a subset of links from the passed in ones, removing all links for which we can be certain that geometry is located on the wrong side of the road infrastructure geometry. Note that
@@ -141,10 +141,7 @@ public class ZoningConverterUtils {
 
         /* road based PT modes are only accessible on one side, so they must stop with the waiting area in the correct driving direction, i.e., must avoid cross traffic, because otherwise they
          * have no doors at the right side, e.g., travellers have to cross the road to get to the vehicle, which should not happen */
-        boolean mustAvoidCrossingTraffic = true;
-        if(accessMode.getPhysicalFeatures().getTrackType().equals(TrackModeType.RAIL)) {
-          mustAvoidCrossingTraffic = false;
-        }
+        boolean mustAvoidCrossingTraffic = ZoningConverterUtils.isAvoidCrossTrafficForAccessMode(accessMode);
 
         MacroscopicLinkSegment oneWayLinkSegment = link.getLinkSegmentIfLinkIsOneWayForMode(accessMode);
         if(oneWayLinkSegment != null && mustAvoidCrossingTraffic) {

@@ -114,7 +114,7 @@ public abstract class NetworkLayerImpl extends ExternalIdAbleImpl implements Net
   @Override
   public void logInfo(String prefix) {
     /* log supported modes */
-    LOGGER.info(String.format("%s#supported modes: %s", prefix, getSupportedModes().stream().map((mode) -> mode.getXmlId()).collect(Collectors.joining(", "))));
+    LOGGER.info(String.format("%ssupported modes: %s", prefix, getSupportedModes().stream().map((mode) -> mode.getXmlId()).collect(Collectors.joining(", "))));
   }
 
   /**
