@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.DirectedEdgeImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
@@ -11,6 +12,7 @@ import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.MultiLineString;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
@@ -48,16 +50,6 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
    */
   protected ServiceLegImpl(ServiceLegImpl other, boolean deepCopy) {
     super(other, deepCopy);
-  }
-
-  /**
-   * Not allowed in service context as each segment may have different lengths derived from underlying physical leg segments
-   * 
-   * @return found length
-   */
-  @Override
-  public double getLengthKm() {
-    throw new PlanItRunTimeException("Not possible to determine length based on service leg, underlying leg segments may have different lengths");
   }
 
   /**
@@ -116,13 +108,16 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
   }
 
   /**
-   * Not allowed, collect geometry via underlying links instead
+   * Because each service leg segment may comprise different physical link(s) (segments) they may have different
+   * geometry for either direction, so no single geometry may exist on the (non-directional) leg. Hence, we construct
+   * an as-the-crow flies line between the service nodes instead
    * 
-   * @return null
+   * @return straight line between service node a position and service node b position
    */
   @Override
   public LineString getGeometry() {
-    return null;
+    return PlanitJtsUtils.createLineString(
+            getServiceNodeA().getPosition().getCoordinate(), getServiceNodeB().getPosition().getCoordinate());
   }
 
   /**
@@ -133,6 +128,42 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
   @Override
   public void setGeometry(LineString lineString) {
     LOGGER.warning("Not allowed to set geometry on service leg, do so on underlying links instead");
+  }
+
+  /**
+   * Will apply #LengthType.AVERAGE to obtain average length across service leg segments
+   * (in case both service leg segments are mapped to the leg and have different lengths due to different underlying
+   * physical link segments).
+   *
+   * @return found length, if no underlying service leg segments are present, length is set to infinite
+   */
+  @Override
+  public double getLengthKm() {
+    return getLengthKm(LengthType.AVERAGE);
+  }
+
+  /**
+   * determine length based on desired length type (in case both service leg segments are mapped to the leg and
+   * have different lengths due to different underlying physical link segments)
+   *
+   * @param lengthType to apply
+   * @return found length, if no underlying service leg segments are present, length is set to zero
+   */
+  @Override
+  public double getLengthKm(LengthType lengthType){
+    double resultIfAbsent = 0;
+    var streamOfLinkSegmentLengths = getLegSegments().stream().mapToDouble(ls -> ls.getLengthKm());
+    switch (lengthType){
+      case MAX:
+        return streamOfLinkSegmentLengths.max().orElse(resultIfAbsent);
+      case MIN:
+        return streamOfLinkSegmentLengths.min().orElse(resultIfAbsent);
+      case AVERAGE:
+        return streamOfLinkSegmentLengths.average().orElse(resultIfAbsent);
+      default:
+        LOGGER.warning(String.format("Unsupported length type %s when constructing length for service leg %s, revert to default %.2f", getIdsAsString(), resultIfAbsent));
+        return  resultIfAbsent;
+    }
   }
 
   /**

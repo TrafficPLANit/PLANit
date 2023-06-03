@@ -7,7 +7,9 @@ import java.util.stream.Stream;
 
 import org.goplanit.graph.directed.DirectedVertexImpl;
 import org.goplanit.utils.containers.ListUtils;
+import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.misc.IteratorUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
@@ -69,19 +71,34 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
   }
 
   /**
-   * Based on network node
+   * Construct new position based on underlying physical node(s). If multiple physical nodes are used to represent
+   * this service node, the average position of each of them is returned. Unlike physical nodes, the position of
+   * service nodes does not live on the object instance, it is recreated every time the position is queried.
    * 
-   * @return network node position
+   * @return newly inferred service node position
    */
   @Override
   public final Point getPosition() {
-    LOGGER.warning("Unable to retrieve single position, use underlying physical link segment node positions instead");
-    return null;
+    var physicalParentNodes = getPhysicalParentNodes();
+    if(physicalParentNodes.isEmpty()){
+      LOGGER.warning(String.format("No physical parent nodes available on service node (%s), position unknown", getIdsAsString()));
+      return null;
+    }
+
+    if(physicalParentNodes.size() == 1) {
+      return (Point) physicalParentNodes.iterator().next().getPosition().copy();
+    }
+
+
+    /* multiple locations, construct average position */
+    var averageX = physicalParentNodes.stream().collect(Collectors.averagingDouble( n -> n.getPosition().getCoordinate().x));
+    var averageY = physicalParentNodes.stream().collect(Collectors.averagingDouble( n -> n.getPosition().getCoordinate().y));
+    return PlanitJtsUtils.createPoint(averageX, averageY);
   }
 
   @Override
   public void setPosition(Point position) {
-    LOGGER.warning("Unable to modify position, network node determines position of service node indirectly");
+    LOGGER.warning("Unable to modify position, physical network node indirectly determines position of service node");
   }
 
   /**

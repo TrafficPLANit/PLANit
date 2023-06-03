@@ -8,6 +8,7 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.time.TimePeriod;
 
 import java.util.function.Function;
@@ -35,7 +36,9 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
     add(MacroscopicNetwork.class, IdMapperFunctionFactory.createMacroscopicNetworkIdMappingFunction(type));
   }
 
-  /** get id mapper for nodes
+  /**
+   * get id mapper for nodes
+   *
    * @return id mapper
    */
   public Function<Vertex, String> getVertexIdMapper(){

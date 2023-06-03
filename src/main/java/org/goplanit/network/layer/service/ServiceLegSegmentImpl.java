@@ -1,13 +1,18 @@
 package org.goplanit.network.layer.service;
 
 import org.goplanit.graph.directed.EdgeSegmentImpl;
+import org.goplanit.utils.arrays.ArrayUtils;
+import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegments;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.LineString;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -72,6 +77,21 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
   @Override
   public ServiceLeg getParent() {
     return super.getParent();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LineString getGeometry() {
+    if(!hasGeometry()){
+      return null;
+    }
+
+    var concatenatedCoordinates = getPhysicalParentSegments().stream().flatMap(ls ->
+            Arrays.stream(ls.getParent().getGeometry().getCoordinates())).collect(Collectors.toList());
+    return PlanitJtsUtils.createLineString(
+            concatenatedCoordinates.toArray(new Coordinate[concatenatedCoordinates.size()]));
   }
 
   /**
