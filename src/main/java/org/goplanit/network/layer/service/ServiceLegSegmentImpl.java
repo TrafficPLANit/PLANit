@@ -88,10 +88,19 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
       return null;
     }
 
-    var concatenatedCoordinates = getPhysicalParentSegments().stream().flatMap(ls ->
-            Arrays.stream(ls.getParent().getGeometry().getCoordinates())).collect(Collectors.toList());
-    return PlanitJtsUtils.createLineString(
-            concatenatedCoordinates.toArray(new Coordinate[concatenatedCoordinates.size()]));
+    List<LineString> geometriesInDirectionOfTravel = new ArrayList<>();
+    int numCoordinates = 0;
+    for(var physicalSegment : getPhysicalParentSegments()){
+      var segmentGeometry = physicalSegment.getParentLink().getGeometry();
+      if(!physicalSegment.isDirectionAb()){
+        segmentGeometry = segmentGeometry.reverse();
+      }
+      geometriesInDirectionOfTravel.add(segmentGeometry);
+      numCoordinates += segmentGeometry.getNumPoints();
+    }
+    var concatenatedCoordinates = geometriesInDirectionOfTravel.stream().flatMap(lsGeometry ->
+            Arrays.stream(lsGeometry.getCoordinates())).toArray(Coordinate[]::new);
+    return PlanitJtsUtils.createLineString(concatenatedCoordinates);
   }
 
   /**
