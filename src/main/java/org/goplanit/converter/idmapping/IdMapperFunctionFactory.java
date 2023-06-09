@@ -18,6 +18,8 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
+import org.goplanit.utils.network.virtual.ConnectoidEdge;
+import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.service.routed.*;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.Connectoid;
@@ -302,5 +304,25 @@ public class IdMapperFunctionFactory {
    */
   public static Function<Zoning, String> createZoningIdMappingFunction(IdMapperType idMapper) {
     return createIdMappingFunction(Zoning.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a ConnectoidEdge and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates ConnectoidEdge ids
+   */
+  public static Function<? extends ExternalIdAble, String> createConnectoidEdgeIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(ConnectoidEdge.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a ConnectoidSegment and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates ConnectoidSegment ids
+   */
+  public static Function<? extends ExternalIdAble, String> createConnectoidSegmentIdMappingFunction(IdMapperType idMapper) {
+    return createIdMappingFunction(ConnectoidSegment.class , idMapper);
   }
 }

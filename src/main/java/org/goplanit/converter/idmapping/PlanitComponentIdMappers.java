@@ -10,6 +10,9 @@ public class PlanitComponentIdMappers {
   /** id mappers for zoning entities */
   private ZoningIdMapper zoningIdMappers;
 
+  /** id mappers for virtual network entities */
+  private VirtualNetworkIdMapper virtualNetworkIdMapper;
+
   /** id mappers for service network entities */
   private ServiceNetworkIdMapper serviceNetworkIdMapper;
 
@@ -33,7 +36,6 @@ public class PlanitComponentIdMappers {
   public void setDedicatedIdMapper(PlanitComponentIdMapper componentIdMapper){
     if(componentIdMapper instanceof  NetworkIdMapper){
       networkIdMappers = (NetworkIdMapper)componentIdMapper;
-
     }else if(componentIdMapper instanceof  ZoningIdMapper){
       zoningIdMappers = (ZoningIdMapper)componentIdMapper;
     }else if(componentIdMapper instanceof  DemandsIdMapper){
@@ -42,6 +44,8 @@ public class PlanitComponentIdMappers {
       serviceNetworkIdMapper = (ServiceNetworkIdMapper)componentIdMapper;
     }else if(componentIdMapper instanceof  RoutedServicesIdMapper){
       routedServicesIdMapper = (RoutedServicesIdMapper)componentIdMapper;
+    }else if(componentIdMapper instanceof  VirtualNetworkIdMapper){
+      virtualNetworkIdMapper = (VirtualNetworkIdMapper)componentIdMapper;
     }else{
       throw new PlanItRunTimeException("Unsupported id mapper provided as override");
     }
@@ -68,8 +72,10 @@ public class PlanitComponentIdMappers {
     if(demandsIdMapperIdMapper == null) {
       demandsIdMapperIdMapper = new DemandsIdMapper(idMapperType);
     }
+    if(virtualNetworkIdMapper == null) {
+      virtualNetworkIdMapper = new VirtualNetworkIdMapper(idMapperType);
+    }
   }
-
 
   public NetworkIdMapper getNetworkIdMappers() {
     return networkIdMappers;
@@ -89,5 +95,9 @@ public class PlanitComponentIdMappers {
 
   public DemandsIdMapper getDemandsIdMapperIdMapper() {
     return demandsIdMapperIdMapper;
+  }
+
+  public VirtualNetworkIdMapper getVirtualNetworkIdMapper() {
+    return virtualNetworkIdMapper;
   }
 }
