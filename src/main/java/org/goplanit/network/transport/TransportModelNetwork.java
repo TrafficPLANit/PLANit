@@ -174,9 +174,9 @@ public class TransportModelNetwork {
 
   /**
    * Integrate physical and virtual links within od zones (undirected connectoid access node and centroid)
-   *r
+   * @return return transport model network integration was performed on to allow chaining
    */
-  public void integrateTransportNetworkViaConnectoids(){
+  public TransportModelNetwork integrateTransportNetworkViaConnectoids(){
     LOGGER.info(String.format("Integrating physical network %d (XML id %s) with zoning %d (XML id %s)", infrastructureNetwork.getId(),
         infrastructureNetwork.getXmlId() != null ? infrastructureNetwork.getXmlId() : "N/A", zoning.getId(), zoning.getXmlId() != null ? zoning.getXmlId() : "N/A"));
 
@@ -215,6 +215,7 @@ public class TransportModelNetwork {
       }
     }
     logInfo();
+    return this;
   }
 
 

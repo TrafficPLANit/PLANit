@@ -339,4 +339,39 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     return null;
   }
 
+  /**
+   * Verify if od zones are present
+   *
+   * @return true when present, false otherwise
+   */
+  public boolean hasOdZones() {
+    return !getOdZones().isEmpty();
+  }
+
+  /**
+   * Verify if transfer zones are present
+   *
+   * @return true when present, false otherwise
+   */
+  public boolean hasTransferZones() {
+    return !getTransferZones().isEmpty();
+  }
+
+  /**
+   * Verify if transfer connectoids are present
+   *
+   * @return true when present, false otherwise
+   */
+  public boolean hasTransferConnectoids() {
+    return !getTransferConnectoids().isEmpty();
+  }
+
+  /**
+   * Verify if transfer connectoids are present
+   *
+   * @return true when present, false otherwise
+   */
+  public boolean hasOdConnectoids() {
+    return !getOdConnectoids().isEmpty();
+  }
 }

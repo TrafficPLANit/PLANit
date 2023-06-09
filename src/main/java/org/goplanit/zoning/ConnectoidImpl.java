@@ -99,7 +99,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   protected ConnectoidType type = DEFAULT_CONNECTOID_TYPE;
 
   /** the zones and their properties accessible from this connectoid */
-  protected TreeMap<Long, AccessZoneProperties> accessZones = new TreeMap<Long, AccessZoneProperties>();
+  protected TreeMap<Long, AccessZoneProperties> accessZones = new TreeMap<>();
 
   /**
    * Generate connectoid id
@@ -337,7 +337,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   @Override
   public Iterator<Zone> iterator() {
-    Iterator<Zone> it = new Iterator<Zone>() {
+    Iterator<Zone> it = new Iterator<>() {
 
       private Iterator<AccessZoneProperties> iterator = accessZones.values().iterator();
 

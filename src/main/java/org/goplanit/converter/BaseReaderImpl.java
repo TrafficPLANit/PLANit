@@ -97,4 +97,12 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
   protected BaseReaderImpl() {
     this.sourceIdTracker = new CustomIndexTracker();
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    sourceIdTracker.reset();
+  }
 }
