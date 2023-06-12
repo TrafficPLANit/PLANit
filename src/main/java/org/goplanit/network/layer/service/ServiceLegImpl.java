@@ -110,12 +110,16 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
   /**
    * Because each service leg segment may comprise different physical link(s) (segments) they may have different
    * geometry for either direction, so no single geometry may exist on the (non-directional) leg. Hence, we construct
-   * an as-the-crow flies line between the service nodes instead
+   * an on-the-fy and as-the-crow flies line between the service nodes instead (if the underlying service nodes do have a location)
    * 
-   * @return straight line between service node a position and service node b position
+   * @return straight line between service node a position and service node b position if they have a position, otherwise null
    */
   @Override
   public LineString getGeometry() {
+    if(getServiceNodeA()== null || getServiceNodeB()==null || !(getServiceNodeA().hasPosition() && getServiceNodeB().hasPosition())){
+      return null;
+    }
+
     return PlanitJtsUtils.createLineString(
             getServiceNodeA().getPosition().getCoordinate(), getServiceNodeB().getPosition().getCoordinate());
   }

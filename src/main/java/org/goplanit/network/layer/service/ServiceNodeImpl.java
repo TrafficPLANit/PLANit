@@ -86,13 +86,16 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
     }
 
     if(physicalParentNodes.size() == 1) {
-      return (Point) physicalParentNodes.iterator().next().getPosition().copy();
+      var parentNode = physicalParentNodes.iterator().next();
+      if(parentNode.hasPosition()) {
+        return (Point) physicalParentNodes.iterator().next().getPosition().copy();
+      }
+      return null;
     }
 
-
     /* multiple locations, construct average position */
-    var averageX = physicalParentNodes.stream().collect(Collectors.averagingDouble( n -> n.getPosition().getCoordinate().x));
-    var averageY = physicalParentNodes.stream().collect(Collectors.averagingDouble( n -> n.getPosition().getCoordinate().y));
+    var averageX = physicalParentNodes.stream().filter(n -> n.hasPosition()).collect(Collectors.averagingDouble( n -> n.getPosition().getCoordinate().x));
+    var averageY = physicalParentNodes.stream().filter(n -> n.hasPosition()).collect(Collectors.averagingDouble( n -> n.getPosition().getCoordinate().y));
     return PlanitJtsUtils.createPoint(averageX, averageY);
   }
 

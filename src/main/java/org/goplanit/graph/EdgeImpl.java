@@ -300,28 +300,28 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
   public boolean validate() {
 
     if (getVertexA() == null) {
-      LOGGER.warning(String.format("vertex A missing on edge (id:%d externalId:%s)", getId(), getExternalId()));
+      LOGGER.warning(String.format("Vertex A missing on edge (id:%d externalId:%s)", getId(), getExternalId()));
       return false;
     }
 
     if (getVertexB() == null) {
-      LOGGER.warning(String.format("vertex B missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
+      LOGGER.warning(String.format("Vertex B missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
       return false;
     }
 
     if (getVertexA().getEdges(getVertexB()) == null || !(getVertexA().getEdges(getVertexB()).contains(this))) {
-      LOGGER.warning(String.format("edge (id:%d externalId:%s) not registered on vertex A", getId(), getExternalId()));
+      LOGGER.warning(String.format("Edge (id:%d externalId:%s) not registered on vertex A", getId(), getExternalId()));
       return false;
     }
 
     if (getVertexB().getEdges(getVertexA()) == null || !(getVertexB().getEdges(getVertexA()).contains(this))) {
-      LOGGER.warning(String.format("edge (id:%d externalId:%s) not registered on vertex B", getId(), getExternalId()));
+      LOGGER.warning(String.format("Edge (id:%d externalId:%s) not registered on vertex B", getId(), getExternalId()));
       return false;
     }
 
     if(getGeometry()!=null &&
         (!getGeometry().isWithinDistance(getVertexB().getPosition(), Precision.EPSILON_6) || !getGeometry().isWithinDistance(getVertexB().getPosition(), Precision.EPSILON_6))){
-      LOGGER.warning(String.format("edge (id:%d externalId:%s) internal geometry does not cover its vertices", getId(), getExternalId()));
+      LOGGER.warning(String.format("Edge (id:%d externalId:%s) internal geometry does not cover its vertices", getId(), getExternalId()));
     }
 
     return true;
