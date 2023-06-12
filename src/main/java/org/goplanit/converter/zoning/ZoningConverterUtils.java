@@ -43,7 +43,7 @@ public class ZoningConverterUtils {
    * be used, i,e., if the link were to be broken at this point. Only in case the upstream link segment of this point is one-way and if used for the waiting area
    * geometry and then would reside on the wrong side of the road (for modes where this matters such as bus), then this method will return false. In all other situation, e.g. two-way roads
    * or relative location of waiting area is valid, or mode does not require a specific location relative to road (train), then it will return true. Note that this might occur
-   * if the waiting areaa geometry when assessed only by the linear linea between extreme nodes is residing on the correct side, but internal geometry is more complex causing the internal point
+   * if the waiting area geometry when assessed only by the linear linea between extreme nodes is residing on the correct side, but internal geometry is more complex causing the internal point
    * to be wrongly located. That is what this method is verifying.
    *
    * @param waitingAreaSourceId that goes with the geometry

@@ -57,19 +57,37 @@ public class CentroidVertexImpl extends DirectedVertexImpl<ConnectoidSegment> im
   }
 
   /**
-   * position of centroid vertex is collected from its parent
+   * position of centroid vertex. When not explicitly set it is collected from its parent. If parent centroid and its
+   * own position differ, a warning is issued
+   *
    * @return centroid position
    */
   @Override
   public Point getPosition(){
+    if(position!=null && parent.hasPosition() && position.equals(parent.getPosition())){
+      LOGGER.warning("Collecting position for centroid vertex, but its position and that of its parent " +
+          "centroid differ, this shouldn't happen");
+    }
+
+    if(position!=null){
+      return position;
+    }
     return getParent().getPosition();
   }
 
   /**
-   * position cannot be altered on centrod vertex as it is derived from its parent. throws PlanitRunTimeException.
+   * Position cannot be altered on centroid vertex when centroid that it is related to has already a position defined.
+   * Only when centroid's position has no meaning, i.e., it is not set, one can assign a unique position to each centroid
+   * vertex related to this centroid.
+   *
+   * @param position to set
    */
   @Override
   public void setPosition(Point position){
-    throw new PlanItRunTimeException("Not allowed to set position of centroid vertex, to be done via its parent centroid");
+    if(getParent().hasPosition()){
+      LOGGER.warning("IGNORE: Not allowed to overwrite position of centroid vertex, when parent centroid position exists");
+    }else{
+      this.position = position;
+    }
   }
 }

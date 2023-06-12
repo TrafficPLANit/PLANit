@@ -6,14 +6,20 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.goplanit.network.LayeredNetwork;
+import org.goplanit.network.TopologicalLayerNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.geo.PlanitJtsCrsUtils;
+import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.zoning.*;
 import org.goplanit.zoning.Zoning;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 
 /**
  * Entire transport network that is being modeled including both the physical and virtual aspects of it as well as the zoning. It acts as a wrapper unifying the two components
@@ -38,7 +44,7 @@ public class TransportModelNetwork {
   /**
    * Holds the infrastructure road network that is being modelled
    */
-  protected final LayeredNetwork<?, ?> infrastructureNetwork;
+  protected final TopologicalLayerNetwork<?, ?> infrastructureNetwork;
 
   /**
    * Holds the zoning structure and virtual transport network interfacing with the physical network
@@ -84,19 +90,80 @@ public class TransportModelNetwork {
   /**
    * Given context of centroid vertex and connectoid + access zone, we create the required connectoid edges and connected segments with the provided factories
    *
-   * @param connectoidEdgeFactory factory to use
+   * @param connectoidEdgeFactory    factory to use
    * @param connectoidSegmentFactory factory to use
-   * @param centroidVertex centroid vertex created for the access zone
-   * @param accessZone at hand for the current connectoid
-   * @param connectoid the connectoid at hand used to extract length to access zone
+   * @param centroidVertex           centroid vertex created for the access zone
+   * @param accessZone               at hand for the current connectoid
+   * @param connectoid               the connectoid at hand used to extract length to access zone
+   * @param geoTools                 to use for geometry creation
    */
-  protected void createAndConnectoidEdgeAndEdgeSegments(ConnectoidEdgeFactory connectoidEdgeFactory, ConnectoidSegmentFactory connectoidSegmentFactory, CentroidVertex centroidVertex, Zone accessZone, Connectoid connectoid) {
+  protected void createAndRegisterConnectoidEdgeAndEdgeSegments(
+      ConnectoidEdgeFactory connectoidEdgeFactory, ConnectoidSegmentFactory connectoidSegmentFactory, CentroidVertex centroidVertex, Zone accessZone, Connectoid connectoid, PlanitJtsCrsUtils geoTools) {
     double connectoidLength = connectoid.getLengthKm(accessZone).orElseThrow(
         () -> new PlanItRunTimeException("unable to retrieve length for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
     var connectoidEdge =
         connectoidEdgeFactory.registerNew(centroidVertex, connectoid.getAccessVertex(), connectoidLength);
     connectVerticesToEdge(connectoidEdge);
     createAndRegisterConnectoidEdgeSegments(connectoidSegmentFactory, connectoidEdge);
+
+    /* populate geometry as well */
+    populateConnectoidGeometry(connectoidEdge, geoTools);
+  }
+
+  /**
+   * Populate connectoid edge with geometry, simple line between the two vertices when centroid is present, otherwise
+   * to closest project point on geometry of parent zone to signify connectoid (visually)
+   *
+   * @param connectoidEdge          to create geometry for
+   * @param geoTools                to use for geometry creation
+   * @return true when successful, false otherwise
+   */
+  private boolean populateConnectoidGeometry(ConnectoidEdge connectoidEdge, PlanitJtsCrsUtils geoTools) {
+    var centroidVertex = connectoidEdge.getCentroidVertex();
+    var parentCentroid = centroidVertex.getParent();
+
+    boolean connectoidHasGeometry = connectoidEdge.hasGeometry();
+    /* when centroid is present and it makes sense to use for the geometry, use as is */
+    if(!connectoidHasGeometry && parentCentroid.hasPosition()){
+      connectoidHasGeometry = connectoidEdge.populateBasicGeometry(true);
+    }
+
+    var parentZone = parentCentroid!=null ? parentCentroid.getParentZone() : null;
+    if(!connectoidHasGeometry && parentZone!=null && parentZone.hasGeometry()){
+      /* possible that no centroid is present making it impossible to create basic geometry (vertex-vertex), instead use
+       * zone information */
+      var zoneGeometry = parentZone.getGeometry();
+
+      /* point -> use point geometry and create simple line, after populating centroid vertex location */
+      if(zoneGeometry instanceof Point){
+        centroidVertex.setPosition((Point)zoneGeometry);
+        return connectoidEdge.populateBasicGeometry(true);
+      }
+      /* polygon -> convert to line string */
+      if(zoneGeometry instanceof Polygon){
+        zoneGeometry = PlanitJtsUtils.createLineString(((Polygon)zoneGeometry).getExteriorRing().getCoordinates());
+      }
+
+      /* not a line string -> not supported yet */
+      if(!(zoneGeometry instanceof LineString)){
+        return false;
+      }
+
+      /* should not happen, but avoid null pointer */
+      if(connectoidEdge.getNonCentroidVertex()==null ||  !connectoidEdge.getNonCentroidVertex().hasPosition()){
+        return false;
+      }
+
+      /* line string -> find closest projected point and use that as "centroid" vertex location */
+      var projectedLocation = geoTools.getClosestProjectedLinearLocationOnLineString(
+          connectoidEdge.getNonCentroidVertex().getPosition().getCoordinate(), (LineString)zoneGeometry);
+      var closestPointOnZoneGeometry = PlanitJtsUtils.createPoint(projectedLocation.getCoordinate(zoneGeometry));
+      connectoidEdge.setGeometry(PlanitJtsUtils.createLineString(
+          closestPointOnZoneGeometry.getCoordinate(),
+          connectoidEdge.getNonCentroidVertex().getPosition().getCoordinate()));
+      connectoidHasGeometry = true;
+    }
+    return connectoidHasGeometry;
   }
 
   /**
@@ -167,7 +234,7 @@ public class TransportModelNetwork {
    * @param infrastructureNetwork the network used to generate this TransportNetwork
    * @param zoning                the Zoning used to generate this TransportNetwork
    */
-  public TransportModelNetwork(LayeredNetwork<?, ?> infrastructureNetwork, Zoning zoning) {
+  public TransportModelNetwork(TopologicalLayerNetwork<?, ?> infrastructureNetwork, Zoning zoning) {
     this.infrastructureNetwork = infrastructureNetwork;
     this.zoning = zoning;
   }
@@ -185,6 +252,8 @@ public class TransportModelNetwork {
     var connectoidEdgeFactory = virtualNetwork.getConnectoidEdges().getFactory();
     var connectoidSegmentFactory = virtualNetwork.getConnectoidSegments().getFactory();
 
+    var geoTools = new PlanitJtsCrsUtils(getInfrastructureNetwork().getCoordinateReferenceSystem());
+
     Map<Zone, CentroidVertex> zone2CentroidVertexMapping = new HashMap<>();
     for (UndirectedConnectoid undirectedConnectoid : zoning.getOdConnectoids()) {
       for(var accessZone : undirectedConnectoid.getAccessZones()){
@@ -194,7 +263,8 @@ public class TransportModelNetwork {
           zone2CentroidVertexMapping.put(accessZone, centroidVertex);
         }
 
-        createAndConnectoidEdgeAndEdgeSegments(connectoidEdgeFactory, connectoidSegmentFactory, centroidVertex, accessZone, undirectedConnectoid);
+        createAndRegisterConnectoidEdgeAndEdgeSegments(
+            connectoidEdgeFactory, connectoidSegmentFactory, centroidVertex, accessZone, undirectedConnectoid, geoTools);
       }
     }
 
@@ -211,7 +281,8 @@ public class TransportModelNetwork {
         if (accessVertex == null) {
           throw new PlanItRunTimeException("No access vertex found for directed connectoid, this shouldn't happen");
         }
-        createAndConnectoidEdgeAndEdgeSegments(connectoidEdgeFactory, connectoidSegmentFactory, centroidVertex, accessZone, directedConnectoid);
+        createAndRegisterConnectoidEdgeAndEdgeSegments(
+            connectoidEdgeFactory, connectoidSegmentFactory, centroidVertex, accessZone, directedConnectoid, geoTools);
       }
     }
     logInfo();
@@ -282,7 +353,7 @@ public class TransportModelNetwork {
    * 
    * @return physicalNetwork
    */
-  public LayeredNetwork<?, ?> getInfrastructureNetwork() {
+  public TopologicalLayerNetwork<?, ?> getInfrastructureNetwork() {
     return infrastructureNetwork;
   }
 
