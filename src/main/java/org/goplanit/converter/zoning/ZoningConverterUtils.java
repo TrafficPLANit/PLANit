@@ -8,17 +8,14 @@ import org.goplanit.utils.geo.PlanitEntityGeoUtils;
 import org.goplanit.utils.geo.PlanitGraphGeoUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.locale.DrivingDirectionDefaultByCountry;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.TrackModeType;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.DirectedConnectoid;
@@ -240,11 +237,11 @@ public class ZoningConverterUtils {
       PlanitJtsCrsUtils geoUtils) {
 
     // node A of potential access link
-    var accessLinkSegments = findAccessLinkSegmentsForWaitingArea(waitingAreaSourceId,
+    var accessLinkSegments = findAccessEntryLinkSegmentsForWaitingArea(waitingAreaSourceId,
         waitingAreaGeometry, accessLink, accessLinkSourceId, accessLink.getNodeA(), accessMode, countryName, mustAvoidCrossingTraffic, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, getOverwrittenWaitingAreaSourceId, geoUtils);
 
     // node B of potential access link
-    var accessLinkSegmentsB = findAccessLinkSegmentsForWaitingArea(waitingAreaSourceId,
+    var accessLinkSegmentsB = findAccessEntryLinkSegmentsForWaitingArea(waitingAreaSourceId,
         waitingAreaGeometry, accessLink, accessLinkSourceId, accessLink.getNodeB(), accessMode, countryName, mustAvoidCrossingTraffic, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, getOverwrittenWaitingAreaSourceId, geoUtils);
 
     if(accessLinkSegments!=null){
@@ -272,7 +269,7 @@ public class ZoningConverterUtils {
    * @param geoUtils to use
    * @return found link segments that are deemed valid given the constraints
    */
-  public static Collection<LinkSegment> findAccessLinkSegmentsForWaitingArea(
+  public static Collection<LinkSegment> findAccessEntryLinkSegmentsForWaitingArea(
       String waitingAreaSourceId,
       Geometry waitingAreaGeometry,
       MacroscopicLink accessLink,
@@ -365,7 +362,7 @@ public class ZoningConverterUtils {
 
     /* now collect the available access link segments (if any) - switch of logging of issues, since we are only interested in determining if this is feasible, we are not creating anything yet */
     Collection<LinkSegment> accessLinkSegments =
-        findAccessLinkSegmentsForWaitingArea(
+        findAccessEntryLinkSegmentsForWaitingArea(
             waitingAreaSourceId, waitingAreaGeometry, accessLink, accessLinkSourceId, accessNode, accessMode, countryName, mustAvoidCrossingTraffic, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, getOverwrittenWaitingAreaSourceId, geoUtils);
 
     return !accessLinkSegments.isEmpty();
