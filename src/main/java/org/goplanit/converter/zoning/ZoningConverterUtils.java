@@ -102,7 +102,7 @@ public class ZoningConverterUtils {
   public static <T> boolean isAvoidCrossTrafficForAccessModeOrAccessNodeWaitingAreaOverwritten(
       final Mode accessMode, final String waitingAreaSourceId, T accessEntity, Function<T,String> getOverwrittenWaitingAreaSourceId) {
 
-    if(accessEntity != null && getOverwrittenWaitingAreaSourceId != null) {
+    if(accessEntity != null && getOverwrittenWaitingAreaSourceId != null && getOverwrittenWaitingAreaSourceId.apply(accessEntity) != null) {
       /* ... exception : user override with mapping to this zone for this node, in which case we allow crossing traffic regardless */
       return !waitingAreaSourceId.equals(getOverwrittenWaitingAreaSourceId.apply(accessEntity));
     }
