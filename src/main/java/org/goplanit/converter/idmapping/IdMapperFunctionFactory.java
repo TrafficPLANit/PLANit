@@ -51,11 +51,11 @@ public class IdMapperFunctionFactory {
   protected static <T extends ExternalIdAble> Function<T, String> createIdMappingFunction(Class<T> clazz, final IdMapperType idMapper) {
     switch (idMapper) {
     case ID:
-      return (instance) -> Long.toString(instance.getId());
+      return (instance) -> instance!=null ? Long.toString(instance.getId()) : null;
     case EXTERNAL_ID:
-      return (instance) -> instance.getExternalId();
+      return (instance) -> instance!=null ? instance.getExternalId() : null;
     case XML:
-      return (instance) -> instance.getXmlId();
+      return (instance) -> instance!=null ? instance.getXmlId() : null;
     default:
       throw new PlanItRunTimeException(String.format("unknown id mapping type found for %s %s", clazz.getName(), idMapper));
     }
