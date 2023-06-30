@@ -74,6 +74,7 @@ public class ZoningConverterUtils {
    *
    * @param waitingAreaGeometry for which to check location
    * @param accessLinkSegment the location resides on
+   * @param accessLinkSegmentLineSegment to use
    * @param geoUtils to use
    * @return true when left of, false otherwise
    */
