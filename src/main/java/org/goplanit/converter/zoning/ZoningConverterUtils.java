@@ -40,7 +40,7 @@ public class ZoningConverterUtils {
    *
    * @param waitingAreaSourceId these link segments pertain to
    * @param node to verify
-   * @param accessLinkSourceId source id of the access link used, this will be matched gainst the overwritten access link source id (if provided)
+   * @param accessLinkSourceId source id of the access link used, this will be matched against the overwritten access link source id (if provided)
    * @param getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId mapping from waiting area source id to nominated access link source id, which if a match to provided access link source id
    *                                                               makes sure that even if there exists crossing traffic this does not render its access link segment(s) invalid, may be null
    * @param getOverwrittenWaitingAreaSourceId function that provides the overwritten waiting area source id for a given access node, maybe return null if not overwrritten
@@ -61,10 +61,9 @@ public class ZoningConverterUtils {
     if (getOverwrittenWaitingAreaSourceId!= null && getOverwrittenWaitingAreaSourceId.apply(node) != null) {
       isOverwriteActive = !(waitingAreaSourceId == getOverwrittenWaitingAreaSourceId.apply(node));
     }
-    /* waiting area -> link (source id) stop_location overwrite */
+    /* waiting area -> link (source id) overwrite */
     if (getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId!= null && getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId.apply(waitingAreaSourceId) != null) {
-      isOverwriteActive = isOverwriteActive ||
-          !(getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId.apply(waitingAreaSourceId).equals(accessLinkSourceId));
+      isOverwriteActive = isOverwriteActive || getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId.apply(waitingAreaSourceId).equals(accessLinkSourceId);
     }
     return isOverwriteActive;
   }
@@ -494,6 +493,11 @@ public class ZoningConverterUtils {
       String countryName,
       final PlanitJtsCrsUtils geoUtils) {
 
+    /* when override, no restrictinos are placed on a match, as long as a location can be created */
+    boolean isOverride =  getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId!= null &&
+        getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId.apply(waitingAreaSourceId) != null &&
+        getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId.apply(waitingAreaSourceId).equals(accessLinkSourceId);
+
     var accessLinkSegmentGeometry = accessLinkSegment.getParentLink().getGeometry();
     /* exclude the extreme node at the upstream end because if this is access node, the preceding access link segment should be chosen */
     int startIndex = accessLinkSegment.isParentGeometryInSegmentDirection(false) ? 1 : 0;
@@ -504,7 +508,7 @@ public class ZoningConverterUtils {
 
     /* 1) verify if extreme node is deemed acceptable*/
     if(accessLinkSegment.getDownstreamVertex().isPositionEqual2D(closestExistingCoordinate, Precision.EPSILON_6) &&
-        distanceToExistingCoordinateOnLinkInMeters < maxAllowedDistanceMeters){
+        (distanceToExistingCoordinateOnLinkInMeters < maxAllowedDistanceMeters)){
 
       if(isPotentialAccessEntryLinkSegmentForWaitingArea(
           waitingAreaSourceId, waitingAreaGeometry, accessLinkSegment, accessLinkSourceId, accessLinkSegment.getDownstreamVertex(), accessMode, getOverwrittenWaitingAreaSourceIdForNode, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, countryName, geoUtils)) {
@@ -516,12 +520,10 @@ public class ZoningConverterUtils {
 
     /* 2) if close enough utilise internal node location as stop_position/connectoid, otherwise create artificial point on closest projected location which
      * in most cases will be closer and within threshold */
-    Coordinate chosenCoordinate = null;
     LineSegment lineSegmentForLocation = null;
     if(distanceToExistingCoordinateOnLinkInMeters < maxAllowedDistanceMeters){
-      chosenCoordinate = closestExistingCoordinate;
       var linkCoordinates = accessLinkSegmentGeometry.getCoordinates();
-      int coordinateIndex = PlanitJtsUtils.getCoordinateIndexOf(chosenCoordinate, linkCoordinates);
+      final int coordinateIndex = PlanitJtsUtils.getCoordinateIndexOf(closestExistingCoordinate, linkCoordinates);
       if(coordinateIndex <= 0 || coordinateIndex==(accessLinkSegmentGeometry.getCoordinates().length-1)) {
         throw new PlanItRunTimeException("Unable to locate link internal location even though it is expected to exist when identifying connectoid location for waiting area %s", waitingAreaSourceId);
       }
@@ -535,26 +537,34 @@ public class ZoningConverterUtils {
       /* verify projected location is valid */
       Coordinate closestProjectedCoordinate = projectedLinLocOnLink.getCoordinate(accessLinkSegmentGeometry);
       if( !closestExistingCoordinate.equals2D(closestProjectedCoordinate) &&
-          geoUtils.getClosestDistanceInMeters(closestProjectedCoordinate, waitingAreaGeometry) <= maxAllowedDistanceMeters) {
-        /* acceptable location that is internal, create proposed linesegment location as result */
+          (isOverride || geoUtils.getClosestDistanceInMeters(closestProjectedCoordinate, waitingAreaGeometry) <= maxAllowedDistanceMeters)) {
+
+        /* acceptable location that is internal, create proposed line segment location as result and update chosen coordinate*/
         lineSegmentForLocation = new LineSegment(
             accessLinkSegmentGeometry.getCoordinates()[projectedLinLocOnLink.getSegmentIndex()], closestProjectedCoordinate);
       }
     }
 
-    if(lineSegmentForLocation !=null) {
-      Point connectoidLocation = PlanitJtsUtils.createPoint(chosenCoordinate);
-      boolean mustAvoidCrossingTraffic =
-          isAvoidCrossTrafficForAccessModeOrAccessNodeWaitingAreaOverwritten(
-              accessMode, waitingAreaSourceId, connectoidLocation, getOverwrittenWaitingAreaSourceIdForPoint);
+    if(lineSegmentForLocation ==null) {
+      return null;
+    }
 
-      var isLeftOfWaitingArea = isWaitingAreaLeftOfAccessLineSegment(waitingAreaGeometry, accessLinkSegment, lineSegmentForLocation, geoUtils);
-      if (mustAvoidCrossingTraffic) {
-        return (isLeftOfWaitingArea == DrivingDirectionDefaultByCountry.isLeftHandDrive(countryName)) ? connectoidLocation : null;
-      }
+    var chosenCoordinate = lineSegmentForLocation.getCoordinate(1);
+    Point connectoidLocation = PlanitJtsUtils.createPoint(chosenCoordinate);
+    if(isOverride){
       return connectoidLocation;
     }
-    return null;
+
+    /* if location dependent check the result, otherwise found location is accepted */
+    boolean mustAvoidCrossingTraffic =
+        isAvoidCrossTrafficForAccessModeOrAccessNodeWaitingAreaOverwritten(
+            accessMode, waitingAreaSourceId, connectoidLocation, getOverwrittenWaitingAreaSourceIdForPoint);
+    if(!mustAvoidCrossingTraffic){
+      return connectoidLocation;
+    }
+
+    var isLeftOfWaitingArea = isWaitingAreaLeftOfAccessLineSegment(waitingAreaGeometry, accessLinkSegment, lineSegmentForLocation, geoUtils);
+    return (isLeftOfWaitingArea == DrivingDirectionDefaultByCountry.isLeftHandDrive(countryName)) ? connectoidLocation : null;
   }
 
   /** find a suitable connectoid location on the given link based on the constraints that it must be able to reside on a link segment that is in the correct relative position
