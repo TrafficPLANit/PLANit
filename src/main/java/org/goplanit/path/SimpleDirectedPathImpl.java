@@ -9,6 +9,8 @@ import org.goplanit.utils.path.SimpleDirectedPath;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * This object represents a simple directed path based on a number of consecutive LinkSegments
@@ -144,6 +146,16 @@ public class SimpleDirectedPathImpl implements SimpleDirectedPath {
    */
   public void prepend(EdgeSegment... edgeSegments){
     Arrays.stream(edgeSegments).forEach(e -> this.path.push(e));
+  }
+
+  /**
+   * Hash code  taken over all edge segments
+   *
+   * @return hashcode
+   */
+  @Override
+  public int hashCode(){
+    return StreamSupport.stream(spliterator(), false).collect(Collectors.toList()).hashCode();
   }
 
 }
