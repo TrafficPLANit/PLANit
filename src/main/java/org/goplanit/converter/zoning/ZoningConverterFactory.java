@@ -15,7 +15,7 @@ public class ZoningConverterFactory {
    * @param writer the writer to use
    * @return the converter that is created
    */
-  public static ZoningConverter createConverter(ZoningReader reader, ZoningWriter writer) {
+  public static ZoningConverter create(ZoningReader reader, ZoningWriter writer) {
     return new ZoningConverter(reader, writer);
   }
 }

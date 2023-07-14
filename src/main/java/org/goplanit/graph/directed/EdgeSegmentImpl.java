@@ -3,9 +3,8 @@ package org.goplanit.graph.directed;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.GraphEntityImpl;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
-import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -15,7 +14,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
+public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl implements EdgeSegment {
 
   /** generated UID */
   private static final long serialVersionUID = -6521489123632246969L;
@@ -24,61 +23,127 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
   private static final Logger LOGGER = Logger.getLogger(EdgeSegmentImpl.class.getCanonicalName());
 
   /**
-   * the upstreamVertex of the edge segment TODO: remove instead store direction and derive vertex from parent if needed
+   * Store the direction of this edge segment in relation to its parent edge
    */
-  private DirectedVertex upstreamVertex;
-
-  /**
-   * The downstream vertex of this edge segment TODO: remove instead store direction and derive vertex from parent if needed
-   */
-  private DirectedVertex downstreamVertex;
+  private boolean directionAb;
 
   /**
    * segment's parent edge
    */
-  private DirectedEdge parentEdge;
+  private E parentEdge;
 
-  // Public
+  // Protected
+
+  /**
+   * Validate given edge segment on validity
+   * 
+   * @param edgeSegment to validate
+   * @return true when valid, false when not
+   */
+  protected static final boolean validate(EdgeSegment edgeSegment) {
+    if (edgeSegment.getParent() == null) {
+      LOGGER.warning(String.format("parent edge missing on edge segment (id:%d externalId:%s)", edgeSegment.getId(), edgeSegment.getExternalId()));
+      return false;
+    }
+
+    if (edgeSegment.getUpstreamVertex() == null) {
+      LOGGER.warning(String.format("upstream vertex missing on edge segment (id:%d externalId:%s)", edgeSegment.getId(), edgeSegment.getExternalId()));
+      return false;
+    }
+
+    if (edgeSegment.getDownstreamVertex() == null) {
+      LOGGER.warning(String.format("downstream vertex missing on edge segment (id:%d externalId:%s)", edgeSegment.getId(), edgeSegment.getExternalId()));
+      return false;
+    }
+
+    if (edgeSegment.getParent().getVertexA() == edgeSegment.getUpstreamVertex() && edgeSegment.isDirectionAb()) {
+      if (edgeSegment.getParent().getEdgeSegmentAb() == null) {
+        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", edgeSegment.getId(),
+            edgeSegment.getExternalId()));
+        return false;
+      }
+      if (!edgeSegment.getParent().getEdgeSegmentAb().equals(edgeSegment)) {
+        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is not", edgeSegment.getId(),
+            edgeSegment.getExternalId()));
+        return false;
+      }
+    }else if(edgeSegment.getParent().getVertexB() == edgeSegment.getUpstreamVertex() && !edgeSegment.isDirectionAb()){
+      if (edgeSegment.getParent().getEdgeSegmentBa() == null) {
+        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", edgeSegment.getId(),
+            edgeSegment.getExternalId()));
+        return false;
+      }
+
+      if (!edgeSegment.getParent().getEdgeSegmentBa().equals(edgeSegment)) {
+        LOGGER.warning(String.format("edge segment B->A on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is not", edgeSegment.getId(),
+            edgeSegment.getExternalId()));
+        return false;
+      }
+    } else {
+      LOGGER.warning(String.format("edge segment direction inconsistent with its vertices (id:%d externalId:%s) should be the same but it is not", edgeSegment.getId(),
+          edgeSegment.getExternalId()));
+    }
+
+    if (edgeSegment.getParent().getVertexA().equals(edgeSegment.getUpstreamVertex())) {
+      if (!edgeSegment.getParent().getVertexB().equals(edgeSegment.getDownstreamVertex())) {
+        LOGGER.warning(String.format("edge segment (id:%d externalId:%s) vertices do not match with parent edge vertices", edgeSegment.getId(), edgeSegment.getExternalId()));
+        return false;
+      }
+    } else {
+      if (!edgeSegment.getParent().getVertexB().equals(edgeSegment.getUpstreamVertex()) || !edgeSegment.getParent().getVertexA().equals(edgeSegment.getDownstreamVertex())) {
+        LOGGER.warning(String.format("edge segment (id:%d externalId:%s) vertices do not match with parent edge vertices", edgeSegment.getId(), edgeSegment.getExternalId()));
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   /**
    * Constructor
    *
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param parentEdge  parent edge of segment
-   * @param directionAB direction of travel
+   * @param directionAb direction of travel
+   * @param idClazz     custom id class to use
    */
-  protected EdgeSegmentImpl(final IdGroupingToken groupId, final DirectedEdge parentEdge, final boolean directionAB) {
-    this(groupId, directionAB);
+  protected EdgeSegmentImpl(final IdGroupingToken groupId, final E parentEdge, final boolean directionAb, final Class<? extends EdgeSegment> idClazz) {
+    super(groupId, EDGE_SEGMENT_ID_CLASS);
     setParent(parentEdge);
-    if (directionAB == true) {
-      setUpstreamVertex(parentEdge.getVertexA());
-      setDownstreamVertex(parentEdge.getVertexB());
-    } else {
-      setUpstreamVertex(parentEdge.getVertexB());
-      setDownstreamVertex(parentEdge.getVertexA());
-    }
+    this.directionAb = directionAb;
+  }
+
+  /**
+   * Constructor
+   *
+   * @param groupId     contiguous id generation within this group for instances of this class
+   * @param parentEdge  parent edge of segment
+   * @param directionAb direction of travel
+   */
+  protected EdgeSegmentImpl(final IdGroupingToken groupId, final E parentEdge, final boolean directionAb) {
+    this(groupId, parentEdge, directionAb, EDGE_SEGMENT_ID_CLASS);
   }
 
   /**
    * Constructor (without setting parent edge)
    *
    * @param groupId     contiguous id generation within this group for instances of this class
-   * @param directionAB direction of travel
+   * @param directionAb direction of travel
    */
-  protected EdgeSegmentImpl(final IdGroupingToken groupId, final boolean directionAB) {
-    super(groupId, EDGE_SEGMENT_ID_CLASS);
+  protected EdgeSegmentImpl(final IdGroupingToken groupId, final boolean directionAb) {
+    this(groupId, null, directionAb);
   }
 
   /**
    * Copy constructor
    * 
    * @param edgeSegmentImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected EdgeSegmentImpl(EdgeSegmentImpl edgeSegmentImpl) {
-    super(edgeSegmentImpl);
-    setParent(edgeSegmentImpl.getParentEdge());
-    setUpstreamVertex(edgeSegmentImpl.getUpstreamVertex());
-    setDownstreamVertex(edgeSegmentImpl.getDownstreamVertex());
+  protected EdgeSegmentImpl(EdgeSegmentImpl<E> edgeSegmentImpl, boolean deepCopy) {
+    super(edgeSegmentImpl, deepCopy);
+    setParent(edgeSegmentImpl.getParent());
+    this.directionAb = edgeSegmentImpl.directionAb;
   }
 
   // Public
@@ -87,57 +152,8 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    * {@inheritDoc}
    */
   @Override
-  public boolean remove(DirectedVertex vertex) {
-    if (vertex != null) {
-      if (getUpstreamVertex() != null && getUpstreamVertex().getId() == vertex.getId()) {
-        this.upstreamVertex = null;
-        return true;
-      } else if (getDownstreamVertex() != null && getDownstreamVertex().getId() == vertex.getId()) {
-        this.downstreamVertex = null;
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setDownstreamVertex(DirectedVertex downstreamVertex) {
-    this.downstreamVertex = downstreamVertex;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setUpstreamVertex(DirectedVertex upstreamVertex) {
-    this.upstreamVertex = upstreamVertex;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedVertex getUpstreamVertex() {
-    return upstreamVertex;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedVertex getDownstreamVertex() {
-    return downstreamVertex;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public boolean isDirectionAb() {
-    return getParentEdge().hasEdgeSegmentAb() && getParentEdge().getEdgeSegmentAb().getId() == this.getId();
+    return this.directionAb;
   }
 
   // Getter - Setters
@@ -146,20 +162,21 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdge getParentEdge() {
+  public E getParent() {
     return this.parentEdge;
   }
 
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
   public void setParent(DirectedEdge parentEdge) {
     if (parentEdge == null) {
       LOGGER.warning(String.format("Parent edge is null, unable to set on edge segment (id: %d)", getId()));
       return;
     }
-    this.parentEdge = parentEdge;
+    this.parentEdge = (E) parentEdge;
   }
 
   /**
@@ -174,8 +191,16 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegmentImpl clone() {
-    return new EdgeSegmentImpl(this);
+  public EdgeSegmentImpl<E> shallowClone() {
+    return new EdgeSegmentImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegmentImpl<E> deepClone() {
+    return new EdgeSegmentImpl<>(this, true);
   }
 
   /**
@@ -184,56 +209,7 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    */
   @Override
   public boolean validate() {
-    if (parentEdge == null) {
-      LOGGER.warning(String.format("parent edge missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
-      return false;
-    }
-
-    if (getUpstreamVertex() == null) {
-      LOGGER.warning(String.format("upstream vertex missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
-      return false;
-    }
-
-    if (getDownstreamVertex() == null) {
-      LOGGER.warning(String.format("downstream vertex missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
-      return false;
-    }
-
-    if (getParentEdge().getVertexA() == getUpstreamVertex()) {
-      if (getParentEdge().getEdgeSegmentAb() == null) {
-        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", getId(), getExternalId()));
-        return false;
-      }
-      if (!getParentEdge().getEdgeSegmentAb().equals(this)) {
-        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is not", getId(), getExternalId()));
-        return false;
-      }
-    }
-    if (getParentEdge().getVertexB() == getUpstreamVertex()) {
-      if (getParentEdge().getEdgeSegmentBa() == null) {
-        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", getId(), getExternalId()));
-        return false;
-      }
-
-      if (!getParentEdge().getEdgeSegmentBa().equals(this)) {
-        LOGGER.warning(String.format("edge segment B->A on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is not", getId(), getExternalId()));
-        return false;
-      }
-    }
-
-    if (getParentEdge().getVertexA().equals(getUpstreamVertex())) {
-      if (!getParentEdge().getVertexB().equals(getDownstreamVertex())) {
-        LOGGER.warning(String.format("edge segment (id:%d externalId:%s) vertices do not match with parent edge vertices", getId(), getExternalId()));
-        return false;
-      }
-    } else {
-      if (!getParentEdge().getVertexB().equals(getUpstreamVertex()) || !getParentEdge().getVertexA().equals(getDownstreamVertex())) {
-        LOGGER.warning(String.format("edge segment (id:%d externalId:%s) vertices do not match with parent edge vertices", getId(), getExternalId()));
-        return false;
-      }
-    }
-
-    return true;
+    return EdgeSegmentImpl.validate(this);
   }
 
 }

@@ -6,7 +6,7 @@ package org.goplanit.network.layer.physical;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.DirectedVertexImpl;
-import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Node;
 
@@ -16,7 +16,7 @@ import org.goplanit.utils.network.layer.physical.Node;
  * @author markr
  *
  */
-public class NodeImpl extends DirectedVertexImpl implements Node {
+public class NodeImpl<LS extends EdgeSegment> extends DirectedVertexImpl<LS> implements Node {
 
   // Protected
 
@@ -34,16 +34,6 @@ public class NodeImpl extends DirectedVertexImpl implements Node {
 
   /** name of the node */
   protected String name;
-
-  /**
-   * generate unique node id
-   *
-   * @param groupId contiguous id generation within this group for instances of this class
-   * @return nodeId
-   */
-  protected static long generateNodeId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, Node.NODE_ID_CLASS);
-  }
 
   /**
    * set the node id on this node
@@ -67,14 +57,15 @@ public class NodeImpl extends DirectedVertexImpl implements Node {
   }
 
   /**
-   * Copy constructor, see also {@code VertexImpl}
+   * Copy constructor
    * 
-   * @param nodeImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  protected NodeImpl(NodeImpl nodeImpl) {
-    super(nodeImpl);
-    setNodeId(nodeImpl.getNodeId());
-    setName(nodeImpl.getName());
+  protected NodeImpl(NodeImpl<LS> other, boolean deepCopy) {
+    super(other, deepCopy);
+    setNodeId(other.getNodeId());
+    setName(other.getName());
   }
 
   // Getters-Setters
@@ -91,8 +82,16 @@ public class NodeImpl extends DirectedVertexImpl implements Node {
    * {@inheritDoc}
    */
   @Override
-  public NodeImpl clone() {
-    return new NodeImpl(this);
+  public NodeImpl<LS> shallowClone() {
+    return new NodeImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public NodeImpl<LS> deepClone() {
+    return new NodeImpl<>(this, true);
   }
 
   /**

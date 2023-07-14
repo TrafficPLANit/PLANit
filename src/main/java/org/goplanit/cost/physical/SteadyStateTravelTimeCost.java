@@ -1,9 +1,12 @@
 package org.goplanit.cost.physical;
 
+import java.util.Arrays;
+import java.util.Map;
+
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.interactor.LinkInflowOutflowAccessor;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.TransportLayerNetwork;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -84,6 +87,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * @param fd                 to use
    * @param inflowRatePcuHour  to use
    * @param outflowRatePcuHour to use
+   * @return travel time computed, when outflow is zero and inflow is positive an infinite travel time is returned
    */
   private double computeTravelTime(LinkSegment linkSegment, FundamentalDiagram fd, double inflowRatePcuHour, double outflowRatePcuHour) {
     /* minimum travel time */
@@ -92,7 +96,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double hypoCriticalDelay = 0;
     double hyperCriticalDelay = 0;
 
-    if (Precision.isPositive(inflowRatePcuHour)) {
+    if (Precision.positive(inflowRatePcuHour)) {
       /* hypo critical delay */
       if (!fd.getFreeFlowBranch().isLinear()) {
         // hypocritical delay = hypocritical travel time - minimum travel time
@@ -100,7 +104,14 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
       }
 
       /* average hyper critical delay */
-      if (Precision.isSmaller(outflowRatePcuHour, inflowRatePcuHour)) {
+      if (Precision.smaller(outflowRatePcuHour, inflowRatePcuHour)) {
+
+        if (!Precision.positive(outflowRatePcuHour)) {
+          LOGGER.warning(String.format("Link segment %s (%d) appears to have no outflow while positive inflow (%.2f) -> infinite travel time, this is unlikely",
+              linkSegment.getXmlId(), linkSegment.getId(), inflowRatePcuHour));
+          return Double.POSITIVE_INFINITY;
+        }
+
         // hyperCriticalDelay = (excess inflow rate * 1/2* duration)/outflow rate)
         hyperCriticalDelay = ((inflowRatePcuHour - outflowRatePcuHour) * 0.5 * currentTimePeriodHours / outflowRatePcuHour);
       }
@@ -124,26 +135,31 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * Copy Constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public SteadyStateTravelTimeCost(SteadyStateTravelTimeCost other) {
-    super(other);
+  public SteadyStateTravelTimeCost(SteadyStateTravelTimeCost other, boolean deepCopy /*no impact at present */) {
+    super(other, deepCopy);
     this.accessee = other.accessee;
+
+    this.currentTimePeriodHours = other.currentTimePeriodHours;
+    this.freeFlowTravelTimePerLinkSegment = Arrays.copyOf(other.freeFlowTravelTimePerLinkSegment, other.freeFlowTravelTimePerLinkSegment.length);
+    this.linkSegmentFundamentalDiagrams = Arrays.copyOf(other.linkSegmentFundamentalDiagrams, other.linkSegmentFundamentalDiagrams.length);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void initialiseBeforeSimulation(TransportLayerNetwork<?, ?> network) throws PlanItException {
+  public void initialiseBeforeSimulation(LayeredNetwork<?, ?> network) throws PlanItException {
     PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "Steady state travel time cost is only compatible with macroscopic networks");
-    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
+    var macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
         "Steady state travel time cost is currently only compatible with networks using a single infrastructure layer");
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1, "Steady state travel time cost is currently only compatible with a single mode, found %d",
         network.getModes().size());
 
-    Mode mode = network.getModes().getFirst();
-    MacroscopicLinkSegments linkSegments = ((MacroscopicNetwork) network).getLayerByMode(mode).getLinkSegments();
+    var mode = network.getModes().getFirst();
+    var linkSegments = ((MacroscopicNetwork) network).getLayerByMode(mode).getLinkSegments();
     initialiseFreeFlowTravelTimesPerLinkSegment(mode, linkSegments);
     initialiseFundamentalDiagramsPerLinkSegment(linkSegments);
   }
@@ -185,10 +201,10 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * @param costToFill    the cost to populate (in hours)
    */
   @Override
-  public void populateWithCost(UntypedPhysicalLayer<?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
+  public void populateWithCost(UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> physicalLayer, Mode mode, double[] costToFill) {
     double[] inflows = accessee.getLinkSegmentInflowsPcuHour();
     double[] outflows = accessee.getLinkSegmentOutflowsPcuHour();
-    for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
+    for (var linkSegment : physicalLayer.getLinkSegments()) {
       int linkSegmentId = (int) linkSegment.getLinkSegmentId();
       costToFill[linkSegmentId] = computeTravelTime(linkSegment, linkSegmentFundamentalDiagrams[linkSegmentId], inflows[linkSegmentId], outflows[linkSegmentId]);
     }
@@ -198,8 +214,16 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * {@inheritDoc}
    */
   @Override
-  public SteadyStateTravelTimeCost clone() {
-    return new SteadyStateTravelTimeCost(this);
+  public SteadyStateTravelTimeCost shallowClone() {
+    return new SteadyStateTravelTimeCost(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SteadyStateTravelTimeCost deepClone() {
+    return new SteadyStateTravelTimeCost(this, true);
   }
 
   /**
@@ -211,7 +235,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   }
 
   /**
-   * Full reset returns to pre-{@link #initialiseBeforeSimulation(TransportLayerNetwork)} state.
+   * Full reset returns to pre-{@link #initialiseBeforeSimulation(LayeredNetwork)} state.
    */
   @Override
   public void reset() {
@@ -251,7 +275,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     }
     /* hyperCriticalDelay derivative */
     else {
-      if (Precision.isPositive(outflowRatePcuH)) {
+      if (Precision.positive(outflowRatePcuH)) {
         /* congested derivative (T/2)*(1/v) */
         return 0.5 * currentTimePeriodHours / outflowRatePcuH;
       } else {
@@ -259,6 +283,15 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
         return Double.POSITIVE_INFINITY;
       }
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    // no settings
+    return null;
   }
 
 }

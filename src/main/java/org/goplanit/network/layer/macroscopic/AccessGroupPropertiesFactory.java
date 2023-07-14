@@ -104,8 +104,8 @@ public class AccessGroupPropertiesFactory {
    *                        physical restriction
    */
   public static void createOnLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType, final Mode modeToAdd, final double maxSpeedKmH) {
-    if (Precision.isGreater(maxSpeedKmH, modeToAdd.getMaximumSpeedKmH())) {
-      create(modeToAdd);
+    if (Precision.greater(maxSpeedKmH, modeToAdd.getMaximumSpeedKmH())) {
+      create(modeToAdd); //todo: this does not seem to do anything...
     } else {
       linkSegmentType.setAccessGroupProperties(create(maxSpeedKmH, modeToAdd));
     }

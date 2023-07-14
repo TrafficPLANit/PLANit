@@ -15,7 +15,7 @@ public class ProjectRoutedServices extends LongMapWrapperImpl<RoutedServices> {
    * Constructor
    */
   protected ProjectRoutedServices() {
-    super(new TreeMap<Long, RoutedServices>(), RoutedServices::getId);
+    super(new TreeMap<>(), RoutedServices::getId);
   }
 
   /**
@@ -31,7 +31,7 @@ public class ProjectRoutedServices extends LongMapWrapperImpl<RoutedServices> {
    * {@inheritDoc}
    */
   @Override
-  public ProjectRoutedServices clone() {
+  public ProjectRoutedServices shallowClone() {
     return new ProjectRoutedServices(this);
   }
 

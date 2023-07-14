@@ -1,25 +1,23 @@
 package org.goplanit.demands;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
+import org.goplanit.demands.modifier.DemandsModifier;
 import org.goplanit.od.demand.OdDemands;
-import org.goplanit.time.TimePeriodImpl;
-import org.goplanit.userclass.TravelerType;
+import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
-import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.time.TimePeriod;
-import org.goplanit.utils.time.TimePeriodUtils;
-import org.goplanit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * Container class for all demands registered on the project. In PlanIt we assume that all traffic flows between an origin and destination. Hence all demand for a given time period
@@ -49,220 +47,6 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
   protected final TreeMap<Long, TreeMap<Mode, OdDemands>> odDemandsByTimePeriodAndMode;
 
   /**
-   * Inner class to register and store traveler types for the current demand object
-   * 
-   * @author markr
-   *
-   */
-  public class TravelerTypes extends LongMapWrapperImpl<TravelerType> {
-
-    /**
-     * Constructor
-     */
-    public TravelerTypes() {
-      super(new HashMap<Long, TravelerType>(), TravelerType::getId);
-    }
-
-    /**
-     * Copy constructor
-     * 
-     * @param other to copy
-     */
-    public TravelerTypes(TravelerTypes other) {
-      super(other);
-    }
-
-    /**
-     * Factory method to create and register a new travel type on the demands
-     * 
-     * @param name the name of the travel type
-     * @return new traveler type created
-     */
-    public TravelerType createAndRegisterNew(String name) {
-      TravelerType newTravelerType = new TravelerType(getIdGroupingToken(), name);
-      register(newTravelerType);
-      return newTravelerType;
-    }
-
-    /**
-     * Retrieve a TravelerType by its XML Id
-     * 
-     * This method is not efficient, since it loops through all the registered traveler type in order to find the required entry.
-     * 
-     * @param xmlId the XML Id of the specified traveler type
-     * @return the retrieved traveler type, or null if no traveler type was found
-     */
-    public TravelerType getByXmlId(String xmlId) {
-      return findFirst(travelerType -> xmlId.equals(((TravelerType) travelerType).getXmlId()));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public TravelerTypes clone() {
-      return new TravelerTypes(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void clear() {
-      super.clear();
-      IdGenerator.reset(getIdGroupingToken(), TravelerType.class);
-    }
-  }
-
-  /**
-   * Inner class to register and store user classes for the current demand object
-   * 
-   * @author markr
-   *
-   */
-  public class UserClasses extends LongMapWrapperImpl<UserClass> {
-
-    /**
-     * Constructor
-     */
-    public UserClasses() {
-      super(new HashMap<Long, UserClass>(), UserClass::getId);
-    }
-
-    /**
-     * Copy constructor
-     * 
-     * @param other to copy
-     */
-    public UserClasses(UserClasses other) {
-      super(other);
-    }
-
-    /**
-     * Factory method to create and register a new user class on the demands
-     * 
-     * @param name          the name for this user class
-     * @param mode          the mode for this user class
-     * @param travellerType the travel type for this user class
-     * @return new traveler type created
-     */
-    public UserClass createAndRegisterNewUserClass(String name, Mode mode, TravelerType travellerType) {
-      UserClass newUserClass = new UserClass(getIdGroupingToken(), name, mode, travellerType);
-      register(newUserClass);
-      return newUserClass;
-    }
-
-    /**
-     * Retrieve a UserClass by its XML Id
-     * 
-     * This method is not efficient, since it loops through all the registered user classes in order to find the required entry.
-     * 
-     * @param xmlId the XML Id of the specified user class
-     * @return the retrieved user class, or null if no user class was found
-     */
-    public UserClass getUserClassByXmlId(String xmlId) {
-      return findFirst(userClass -> xmlId.equals(((UserClass) userClass).getXmlId()));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public UserClasses clone() {
-      return new UserClasses(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void clear() {
-      super.clear();
-      IdGenerator.reset(getIdGroupingToken(), UserClass.class);
-    }
-  }
-
-  /**
-   * Inner class to register and store time periods for the current demand object
-   * 
-   * @author garym, markr
-   *
-   */
-  public class TimePeriods extends LongMapWrapperImpl<TimePeriod> {
-
-    /**
-     * Constructor
-     */
-    public TimePeriods() {
-      super(new HashMap<Long, TimePeriod>(), TimePeriod::getId);
-    }
-
-    /**
-     * Copy constructor
-     * 
-     * @param other to copy
-     */
-    public TimePeriods(TimePeriods other) {
-      super(other);
-    }
-
-    /**
-     * Factory method to create and register a new time period on the demands
-     * 
-     * @param description      the description for this time period
-     * @param startTimeSeconds the start time in seconds since midnight (00:00)
-     * @param durationSeconds  the duration in seconds since start time
-     * @return new time period created
-     * @throws PlanItException thrown if start time and/or duration are invalid
-     */
-    public TimePeriod createAndRegisterNewTimePeriod(String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
-      TimePeriod newTimePeriod = new TimePeriodImpl(getIdGroupingToken(), description, startTimeSeconds, durationSeconds);
-      register(newTimePeriod);
-      return newTimePeriod;
-    }
-
-    /**
-     * Returns a set of all registered time periods sorted by the start time, i.e., the way th time period is comparable
-     * 
-     * @return Set of all registered time periods
-     */
-    public SortedSet<TimePeriod> asSortedSetByStartTime() {
-      SortedSet<TimePeriod> timePeriodSet = new TreeSet<TimePeriod>(TimePeriodUtils.comparatorByStartTime());
-      timePeriodSet.addAll(getMap().values());
-      return timePeriodSet;
-    }
-
-    /**
-     * Retrieve a TimePeriod by its xml Id
-     * 
-     * This method is not efficient, since it loops through all the registered time periods in order to find the required time period.
-     * 
-     * @param xmlId the XML Id of the specified time period
-     * @return the retrieved time period, or null if no time period was found
-     */
-    public TimePeriod getByXmlId(final String xmlId) {
-      return findFirst(timePeriod -> xmlId.equals(((TimePeriod) timePeriod).getXmlId()));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public TimePeriods clone() {
-      return new TimePeriods(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void clear() {
-      super.clear();
-      IdGenerator.reset(getIdGroupingToken(), TimePeriod.class);
-    }
-  }
-
-  /**
    * internal class instance containing all time periods on this demand instance
    */
   public final TimePeriods timePeriods;
@@ -275,7 +59,10 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
   /**
    * internal class instance containing all traveler types on this demand instance
    */
-  public final TravelerTypes travelerTypes;
+  public final TravellerTypes travelerTypes;
+
+  /** modifier features for demands */
+  public final DemandsModifier demandModifier;
 
   /**
    * Constructor
@@ -284,28 +71,72 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    */
   public Demands(IdGroupingToken groupId) {
     super(groupId, Demands.class);
-    this.travelerTypes = new TravelerTypes();
-    this.userClasses = new UserClasses();
-    this.timePeriods = new TimePeriods();
+    this.travelerTypes = new TravellerTypes(groupId);
+    this.userClasses = new UserClasses(groupId);
+    this.timePeriods = new TimePeriods(groupId);
     odDemandsByTimePeriodAndMode = new TreeMap<Long, TreeMap<Mode, OdDemands>>();
+    demandModifier = new DemandsModifier(this);
   }
 
   /**
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public Demands(Demands other) {
-    super(other);
-    this.travelerTypes = other.travelerTypes.clone();
-    this.userClasses = other.userClasses.clone();
-    this.timePeriods = other.timePeriods.clone();
-    this.odDemandsByTimePeriodAndMode = new TreeMap<Long, TreeMap<Mode, OdDemands>>();
-    for (TimePeriod timePeriod : timePeriods) {
-      Set<Mode> modes = getRegisteredModesForTimePeriod(timePeriod);
-      for (Mode mode : modes) {
-        OdDemands odDemandMatrix = get(mode, timePeriod);
-        this.registerOdDemandPcuHour(timePeriod, mode, odDemandMatrix);
+  public Demands(Demands other, boolean deepCopy) {
+    super(other, deepCopy);
+
+    this.odDemandsByTimePeriodAndMode = new TreeMap<>();
+    if(deepCopy) {
+      var travellerTypesMapper = new ManagedIdDeepCopyMapper<TravellerType>();
+      var userClassesMapper = new ManagedIdDeepCopyMapper<UserClass>();
+      var timePeriodMapper = new ManagedIdDeepCopyMapper<TimePeriod>();
+
+      this.travelerTypes  = other.travelerTypes.deepCloneWithMapping(travellerTypesMapper);
+      this.userClasses  = other.userClasses.deepCloneWithMapping(userClassesMapper);
+      this.timePeriods = other.timePeriods.deepCloneWithMapping(timePeriodMapper);
+
+      updateUserClassTravellerTypes(t -> travellerTypesMapper.getMapping(t), true);
+
+      /* OD DEMANDS */
+      for (var timePeriod : timePeriods) {
+        var modes = other.getRegisteredModesForTimePeriod(timePeriod);
+        for (var mode : modes) {
+          OdDemands odDemandMatrix = other.get(mode, timePeriod);
+
+          var clonedTimePeriod = timePeriodMapper.getMapping(timePeriod);
+          if(clonedTimePeriod == null){
+            throw new PlanItRunTimeException("Unable to find cloned time period, this shouldn't happen");
+          }
+          this.registerOdDemandPcuHour(
+                  clonedTimePeriod, mode, odDemandMatrix.deepClone());
+        }
+      }
+
+    }else{
+      this.travelerTypes  = other.travelerTypes.shallowClone();
+      this.userClasses    = other.userClasses.shallowClone();
+      this.timePeriods    = other.timePeriods.shallowClone();
+
+      /* OD DEMANDS */
+      this.odDemandsByTimePeriodAndMode.putAll(other.odDemandsByTimePeriodAndMode);
+    }
+
+    this.demandModifier = new DemandsModifier(this);
+  }
+
+  /**
+   * Update the traveller type of all user classes based on the mapping provided (if any)
+   * @param ttToTtMapping to use should contain original travellerType as currently used on user class and then the value is the new traveller type to replace it
+   * @param removeMissingMappings when true if there is no mapping, the traveller type is nullified, otherwise they are left in-tact
+   */
+  public void updateUserClassTravellerTypes(Function<TravellerType,TravellerType> ttToTtMapping, boolean removeMissingMappings) {
+    for(var userClass : this.userClasses){
+      var travellerType = userClass.getTravelerType();
+      var newTravellerType = ttToTtMapping.apply(travellerType);
+      if (newTravellerType != null || removeMissingMappings) {
+        userClass.setTravellerType(newTravellerType);
       }
     }
   }
@@ -359,8 +190,31 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    * {@inheritDoc}
    */
   @Override
-  public Demands clone() {
-    return new Demands(this);
+  public Demands shallowClone() {
+    return new Demands(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Demands deepClone() {
+    return new Demands(this, true);
+  }
+
+  /**
+   * Log general information on this demands to the user
+   *
+   * @param prefix to use
+   */
+  public void logInfo(String prefix) {
+    LOGGER.info(String.format("%s#time periods: %d", prefix, timePeriods.size()));
+    LOGGER.info(String.format("%s#user classes: %d", prefix, userClasses.size()));
+    LOGGER.info(String.format("%s#traveller types: %d", prefix, travelerTypes.size()));
+
+    odDemandsByTimePeriodAndMode.entrySet().forEach(
+            tpEntry -> LOGGER.info(String.format(
+                    "%s#Oddemands by mode for time period %s: %d", prefix, timePeriods.get(tpEntry.getKey()).getDescription(), tpEntry.getValue().entrySet().size())));
   }
 
   /**
@@ -373,4 +227,21 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     odDemandsByTimePeriodAndMode.clear();
   }
 
+  /**
+   * access to modifier features
+   *
+   * @return demand modifier
+   */
+  public DemandsModifier getDemandsModifier(){
+    return demandModifier;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    // TODO -> consider logging the traveler types, user classes, and time periods
+    return null;
+  }
 }

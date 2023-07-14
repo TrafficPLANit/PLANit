@@ -2,6 +2,12 @@ package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.utils.service.routed.RoutedServicesLayer;
+import org.goplanit.utils.service.routed.RoutedServicesLayerFactory;
+import org.goplanit.utils.service.routed.RoutedServicesLayers;
+
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of the RoutedServicesLayers interface.
@@ -11,7 +17,7 @@ import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServicesLayer> implements RoutedServicesLayers {
 
   /** factory for this container class */
-  protected final RoutedServicesLayerFactory factory;
+  protected final RoutedServicesLayerFactoryImpl factory;
 
   /**
    * Constructor
@@ -20,33 +26,51 @@ public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServic
    */
   protected RoutedServicesLayersImpl(final IdGroupingToken tokenId) {
     super(RoutedServicesLayer::getId, RoutedServicesLayer.ROUTED_SERVICES_LAYER_ID_CLASS);
-    this.factory = new RoutedServicesLayerFactory(tokenId, this);
+    this.factory = new RoutedServicesLayerFactoryImpl(tokenId, this);
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param routedServicesLayersImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedServicesLayersImpl(final RoutedServicesLayersImpl routedServicesLayersImpl) {
-    super(routedServicesLayersImpl);
-    this.factory = routedServicesLayersImpl.factory;
+  public RoutedServicesLayersImpl(final RoutedServicesLayersImpl other, boolean deepCopy, BiConsumer<RoutedServicesLayer, RoutedServicesLayer> mapper) {
+    super(other, deepCopy, mapper);
+    this.factory = new RoutedServicesLayerFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public RoutedServicesLayersImpl clone() {
-    return new RoutedServicesLayersImpl(this);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RoutedServicesLayerFactory getFactory() {
+  public RoutedServicesLayerFactoryImpl getFactory() {
     return factory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServicesLayersImpl shallowClone() {
+    return new RoutedServicesLayersImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServicesLayersImpl deepClone() {
+    return new RoutedServicesLayersImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServicesLayersImpl deepCloneWithMapping(BiConsumer<RoutedServicesLayer, RoutedServicesLayer> mapper) {
+    return new RoutedServicesLayersImpl(this, true, mapper);
   }
 
 }

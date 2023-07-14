@@ -48,4 +48,29 @@ public class MotorBikeMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.MOTOR_BIKE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, MOTOR_BIKE_PHYSICAL_FEATURES, MOTOR_BIKE_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected MotorBikeMode(MotorBikeMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MotorBikeMode shallowClone() {
+    return new MotorBikeMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MotorBikeMode deepClone() {
+    return new MotorBikeMode(this, true);
+  }
 }

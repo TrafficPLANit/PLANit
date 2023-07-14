@@ -1,14 +1,11 @@
 package org.goplanit.graph;
 
-import java.util.logging.Logger;
-
-import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.graph.GraphEntities;
-import org.goplanit.utils.graph.UntypedGraph;
-import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.graph.*;
 import org.goplanit.utils.id.IdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+
+import java.util.logging.Logger;
 
 /**
  * 
@@ -62,18 +59,40 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
     this.vertices = vertices;
   }
 
-  // Getters - Setters
+  /**
+   * Copy constructor for shallow copy
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  public UntypedGraphImpl(final UntypedGraphImpl<V, E> other, boolean deepCopy) {
+    this(other, deepCopy, null, null);
+  }
 
   /**
    * Copy constructor for shallow copy
    * 
-   * @param graphImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param vertexMapper to use for tracking mapping between original and copied vertices
+   * @param edgesMapper to use for tracking mapping between original and copied edges
    */
-  public UntypedGraphImpl(final UntypedGraphImpl<V, E> graphImpl) {
-    super(graphImpl);
-    this.edges = (GraphEntities<E>) graphImpl.getEdges().clone();
-    this.vertices = (GraphEntities<V>) graphImpl.getVertices().clone();
-    this.groupId = graphImpl.groupId;
+  public UntypedGraphImpl(final UntypedGraphImpl<V, E> other, boolean deepCopy, GraphEntityDeepCopyMapper<V> vertexMapper, GraphEntityDeepCopyMapper<E> edgesMapper) {
+    super(other);
+
+    if(deepCopy){
+      /* deep copy requires updating of deep copied interdependencies within graph */
+      this.vertices = other.getVertices().deepCloneWithMapping(vertexMapper);
+      this.edges    = other.getEdges().deepCloneWithMapping(edgesMapper);
+
+      EdgeUtils.updateEdgeVertices(edges, (V originalVertex) -> vertexMapper.getMapping(originalVertex), true);
+      VertexUtils.updateVertexEdges(vertices, (E originalEdge) -> edgesMapper.getMapping(originalEdge), true );
+    }else{
+      this.edges    = other.getEdges().shallowClone();
+      this.vertices = other.getVertices(). shallowClone();
+    }
+
+    this.groupId  = other.groupId;
   }
 
   /**
@@ -105,13 +124,6 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
     return UntypedGraph.GRAPH_ID_CLASS;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public UntypedGraph<V, E> clone() {
-    return new UntypedGraphImpl<V, E>(this);
-  }
 
   /**
    * {@inheritDoc}
@@ -127,6 +139,34 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
   @Override
   public GraphEntities<E> getEdges() {
     return edges;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UntypedGraph<V, E> shallowClone() {
+    return new UntypedGraphImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UntypedGraph<V, E> deepClone() {
+    return new UntypedGraphImpl<>(this, true);
+  }
+
+  /**
+   * A smart deep clone updates known interdependencies between vertices, edges, and edge segments utilising the graph entity deep copy mappers
+   *
+   * @param vertexMapper tracking original to copy mappings
+   * @param edgeMapper tracking original to copy mappings
+   * @return created copy
+   */
+  public UntypedGraphImpl<V, E> smartDeepClone(
+      GraphEntityDeepCopyMapper<V> vertexMapper, GraphEntityDeepCopyMapper<E> edgeMapper) {
+    return new UntypedGraphImpl<>(this, true, vertexMapper, edgeMapper);
   }
 
 }

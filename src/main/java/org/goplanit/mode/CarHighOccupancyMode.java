@@ -44,4 +44,30 @@ public class CarHighOccupancyMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.CAR_HIGH_OCCUPANCY, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, CAR_HOV_PHYSICAL_FEATURES, CAR_HOV_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected CarHighOccupancyMode(CarHighOccupancyMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public CarHighOccupancyMode shallowClone() {
+    return new CarHighOccupancyMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public CarHighOccupancyMode deepClone() {
+    return new CarHighOccupancyMode(this, true);
+  }
+
 }

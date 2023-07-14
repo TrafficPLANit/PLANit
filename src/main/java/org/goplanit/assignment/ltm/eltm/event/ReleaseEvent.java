@@ -5,6 +5,8 @@ import java.io.Serializable;
 import org.goplanit.assignment.ltm.eltm.LinkSegmentBoundary.Location;
 import org.goplanit.utils.cumulatives.CumulativePoint;
 import org.goplanit.utils.event.EventType;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.id.IdAble;
 
 /**
  * A release event represents the arrival of a trigger event at the opposite link boundary from where it originated. Additional information with this event is to be provided by

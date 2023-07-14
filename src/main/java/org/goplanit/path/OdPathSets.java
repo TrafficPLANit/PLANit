@@ -1,12 +1,13 @@
 package org.goplanit.path;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.od.path.OdPathMatrix;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.zoning.Zoning;
 
 /**
  * Contains one or more origin-destination based path sets that can be used in assignment. For now each individual path set takes on the form of the already available ODPathMatrix.
@@ -32,7 +33,7 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    */
   public OdPathSets(IdGroupingToken groupId) {
     super(groupId, OdPathSets.class);
-    this.odPathMatrices = new TreeMap<Long, OdPathMatrix>();
+    this.odPathMatrices = new TreeMap<>();
     ;
   }
 
@@ -40,10 +41,15 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    * Constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public OdPathSets(OdPathSets other) {
-    super(other);
-    this.odPathMatrices = new TreeMap<Long, OdPathMatrix>(other.odPathMatrices);
+  public OdPathSets(OdPathSets other, boolean deepCopy) {
+    super(other, deepCopy);
+
+    // container wrapper so requires clone also for shallow copy
+    this.odPathMatrices = new TreeMap<>();
+    other.odPathMatrices.entrySet().forEach(
+            entry -> odPathMatrices.put(entry.getKey(), deepCopy ? entry.getValue().deepClone() : entry.getValue()));
   }
 
   /**
@@ -62,7 +68,7 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    * @return newly created od path matrix
    */
   public OdPathMatrix createAndRegisterOdPathMatrix(final Zoning zoning) {
-    final OdPathMatrix newOdPathMatrix = new OdPathMatrix(getIdGroupingToken(), zoning.odZones);
+    final OdPathMatrix newOdPathMatrix = new OdPathMatrix(getIdGroupingToken(), zoning.getOdZones());
     odPathMatrices.put(newOdPathMatrix.getId(), newOdPathMatrix);
     return newOdPathMatrix;
   }
@@ -98,8 +104,16 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    * {@inheritDoc}
    */
   @Override
-  public OdPathSets clone() {
-    return new OdPathSets(this);
+  public OdPathSets shallowClone() {
+    return new OdPathSets(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdPathSets deepClone() {
+    return new OdPathSets(this, true);
   }
 
   /**
@@ -108,5 +122,13 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
   @Override
   public void reset() {
     odPathMatrices.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 }

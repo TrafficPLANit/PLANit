@@ -40,6 +40,15 @@ public class UsabilityModeFeaturesImpl implements UsabilityModeFeatures {
     this.useOfType = useOfType;
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   */
+  protected UsabilityModeFeaturesImpl(UsabilityModeFeaturesImpl other) {
+    this(other.useOfType);
+  }
+
   /* getters - setters */
 
   /**
@@ -48,6 +57,22 @@ public class UsabilityModeFeaturesImpl implements UsabilityModeFeatures {
   @Override
   public UseOfModeType getUseOfType() {
     return useOfType;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UsabilityModeFeatures shallowClone() {
+    return new UsabilityModeFeaturesImpl(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UsabilityModeFeatures deepClone() {
+    return shallowClone(); // nothing to deep copy yet
   }
 
 }

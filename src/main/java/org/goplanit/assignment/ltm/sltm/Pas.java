@@ -1,18 +1,21 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortestpath.ShortestPathResult;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.CollectionUtils;
 
 /**
  * Paired Alternative Segment (PAS) implementation comprising two subpaths (segments), one of a higher cost than the other. In a PAS both subpaths start at the same vertex and end
@@ -24,13 +27,12 @@ import org.goplanit.utils.math.Precision;
 public class Pas {
 
   /** logger to use */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(Pas.class.getCanonicalName());
 
-  /** cheap PA segment s1 */
+  /** cheap PA segment s1 in downstream direction*/
   private EdgeSegment[] s1;
 
-  /** expensive PA segment s2 */
+  /** expensive PA segment s2 in downstream direction*/
   private EdgeSegment[] s2;
 
   /** cheap path cost */
@@ -40,45 +42,7 @@ public class Pas {
   private double s2Cost;
 
   /** registered origin bushes */
-  private final Set<Bush> originBushes;
-
-  /**
-   * Remove bushes from this PAS
-   * 
-   * @param bushes to remove
-   */
-  private void removeOrigins(List<Bush> originsWithoutRemainingPasFlow) {
-    originsWithoutRemainingPasFlow.forEach((bush) -> originBushes.remove(bush));
-  }
-
-  /**
-   * Execute a flow shift on a given bush for the given PAS segment. This does not move flow through the final merge vertex nor the initial diverge vertex.
-   * 
-   * @param origin                bush at hand
-   * @param flowShiftPcuH         to execute (assumed to be correctly proportioned in relation to other bushes for this PAS
-   * @param pasSegment            to update on bush
-   * @param flowAcceptanceFactors to use when updating the flows
-   * @param potentialBushPruning  when true verify if the flow shift has caused the bush turn sending flows to become non-positive, if so remove (prune) the turn from the bush
-   * @return sending flow on last edge segment of the PAS alternative after the flow shift (considering encountered reductions)
-   */
-  private double executeBushFlowShift(Bush origin, double flowShiftPcuH, EdgeSegment[] pasSegment, double[] flowAcceptanceFactors, boolean potentialBushPruning) {
-    int index = 0;
-    EdgeSegment currentSegment = null;
-    EdgeSegment nextSegment = pasSegment[index];
-    while (++index < pasSegment.length) {
-      currentSegment = nextSegment;
-      nextSegment = pasSegment[index];
-      if (potentialBushPruning && Precision.isSmallerEqual(origin.getTurnSendingFlow(currentSegment, nextSegment), flowShiftPcuH)) {
-        /* no remaining flow at all after flow shift, remove turn from bush entirely */
-        origin.removeTurn(currentSegment, nextSegment);
-      } else {
-        origin.addTurnSendingFlow(currentSegment, nextSegment, flowShiftPcuH);
-      }
-      flowShiftPcuH *= flowAcceptanceFactors[(int) currentSegment.getId()];
-    }
-
-    return flowShiftPcuH;
-  }
+  private final Set<RootedLabelledBush> registeredBushes;
 
   /**
    * Constructor
@@ -89,7 +53,7 @@ public class Pas {
   private Pas(final EdgeSegment[] s1, final EdgeSegment[] s2) {
     this.s1 = s1;
     this.s2 = s2;
-    this.originBushes = new HashSet<Bush>();
+    this.registeredBushes = new HashSet<RootedLabelledBush>();
   }
 
   /**
@@ -114,137 +78,18 @@ public class Pas {
   }
 
   /**
-   * Shift flows for this PAS given the currently known costs and smoothing procedure to apply
-   * 
-   * @param networkS2FlowPcuH     total flow currently using the high cost alternative
-   * @param flowShiftPcuH         amount to shift from high cost to low cost segment
-   * @param flowAcceptanceFactors to use
-   * @return true when flow shifted, false otherwise
-   */
-  protected boolean executeFlowShift(double networkS2FlowPcuH, double flowShiftPcuH, final double[] flowAcceptanceFactors) {
-
-    List<Bush> originsWithoutRemainingPasFlow = new ArrayList<Bush>();
-    for (Bush origin : originBushes) {
-
-      double bushS2Flow = 0;
-      double[] bushEntryTurnFlows = null;
-      double totalBushEntryTurnFlows = 0;
-      int numberOfUsedEntrySegments = 0;
-
-      bushS2Flow = origin.computeSubPathSendingFlow(getDivergeVertex(), getMergeVertex(), s2);
-      if (getDivergeVertex().hasEntryEdgeSegments()) {
-        /*
-         * for each incoming edgeSegment into the diverge we must obtain its portion of flow contributing to the total subpath flow on the high cost segment. This we then use to
-         * determine how to spread the flow shift across the turns into the PAS segment for this bush
-         */
-
-        /* total turn accepted flow into PAS s2 from bush */
-        bushEntryTurnFlows = new double[getDivergeVertex().getEntryEdgeSegments().size()];
-        int index = 0;
-        for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
-          if (origin.containsEdgeSegment(entrySegment)) {
-            double turnSendingFlow = origin.getTurnSendingFlow(entrySegment, getFirstEdgeSegment(false /* high cost */));
-            double turnAcceptedFlow = turnSendingFlow * flowAcceptanceFactors[(int) entrySegment.getId()];
-            bushEntryTurnFlows[index] = turnAcceptedFlow;
-            totalBushEntryTurnFlows += turnAcceptedFlow;
-            ++numberOfUsedEntrySegments;
-          }
-          ++index;
-        }
-        /* scale to portion attributed to PAS s2 */
-        double pasPortionScalingFactor = bushS2Flow / totalBushEntryTurnFlows;
-        for (index = 0; index < bushEntryTurnFlows.length; ++index) {
-          bushEntryTurnFlows[index] *= pasPortionScalingFactor;
-        }
-      }
-
-      /* Bush flow portion */
-      boolean potentialBushPruning = false;
-      double bushPortion = Math.min(bushS2Flow / networkS2FlowPcuH, 1); // bush portion >1 when earlier other overlapping PAS flow shifts added flow to S2
-      double bushFlowShift = flowShiftPcuH * bushPortion;
-      if (Precision.isGreaterEqual(bushFlowShift, bushS2Flow)) {
-        /* remove this origin from the PAS when done as no flow remains on high cost segment */
-        originsWithoutRemainingPasFlow.add(origin);
-        /* remove what we can */
-        bushFlowShift = bushS2Flow;
-        /* possibility that bush along path s2 has no more flow */
-        potentialBushPruning = true;
-      }
-
-      if (numberOfUsedEntrySegments >= 1) {
-        /*
-         * multiple entry segments lead into the PAS segment we are moving flow from --> we must update turn flows/splitting rates of turns passing through initial diverge vertex
-         * before updating s1/s2
-         */
-        int index = 0;
-        EdgeSegment firstS2EdgeSegment = getFirstEdgeSegment(false /* high cost segment */);
-        EdgeSegment firstS1EdgeSegment = getFirstEdgeSegment(true /* low cost segment */);
-        for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
-          double entryEdgeSegmentFlowPcuH = bushEntryTurnFlows[index++];
-          if (Precision.isPositive(entryEdgeSegmentFlowPcuH)) {
-            double entryPortion = entryEdgeSegmentFlowPcuH / totalBushEntryTurnFlows;
-            /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s2 segment */
-            double bushEntrySegmentFlowShift = bushFlowShift * entryPortion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
-
-            if (potentialBushPruning && Precision.isSmallerEqual(origin.getTurnSendingFlow(entrySegment, firstS2EdgeSegment), bushEntrySegmentFlowShift)) {
-              /* no remaining flow at all after flow shift, remove turn from bush entirely */
-              origin.removeTurn(entrySegment, firstS2EdgeSegment);
-            } else {
-              origin.addTurnSendingFlow(entrySegment, firstS2EdgeSegment, -bushEntrySegmentFlowShift);
-            }
-            origin.addTurnSendingFlow(entrySegment, firstS1EdgeSegment, bushEntrySegmentFlowShift);
-          }
-        }
-      }
-
-      /* now update s2/s1 with the flow shift */
-      {
-        /* origin-bush high cost segment: -delta flow */
-        double s2FinalShiftedFlow = executeBushFlowShift(origin, -bushFlowShift, s2, flowAcceptanceFactors, potentialBushPruning);
-        /* origin-bush low cost segment: +delta flow */
-        double s1FinalSendingFlow = executeBushFlowShift(origin, bushFlowShift, s1, flowAcceptanceFactors, false);
-        EdgeSegment lastS1Segment = getLastEdgeSegment(true /* low cost */);
-        EdgeSegment lastS2Segment = getLastEdgeSegment(false /* high cost */);
-
-        /*
-         * for the turn sending flow shift through the final merge vertex, we use the splitting rates of the bush S2 segment and transfer them to the s1 segment, i.e. the
-         * percentage of flow using each exit segment is applied to the s1 segment
-         */
-        if (getMergeVertex().hasExitEdgeSegments()) {
-          for (EdgeSegment exitSegment : getMergeVertex().getExitEdgeSegments()) {
-            double splittingRate = origin.getSplittingRate(lastS2Segment, exitSegment);
-
-            /* remove flow for s2 */
-            double s2FlowShift = s2FinalShiftedFlow * splittingRate;
-            if (potentialBushPruning && Precision.isSmallerEqual(origin.getTurnSendingFlow(lastS2Segment, exitSegment), s2FlowShift)) {
-              /* no remaining flow at all after flow shift, remove turn from bush entirely */
-              origin.removeTurn(lastS2Segment, exitSegment);
-            } else {
-              origin.addTurnSendingFlow(lastS2Segment, exitSegment, s2FlowShift);
-            }
-
-            /* add flow for s1 */
-            origin.addTurnSendingFlow(lastS1Segment, exitSegment, s1FinalSendingFlow * splittingRate);
-          }
-        }
-      }
-    }
-
-    /* remove irrelevant bushes */
-    removeOrigins(originsWithoutRemainingPasFlow);
-
-    return true;
-  }
-
-  /**
    * Create a new PAS (factory method)
    * 
    * @param s1 to use
    * @param s2 to use
    * 
-   * @return newly created PAS
+   * @return newly created PAS, or null when alternative segment(s) is/are null
    */
   protected static Pas create(final EdgeSegment[] s1, final EdgeSegment[] s2) {
+    if (s1 == null || s2 == null) {
+      LOGGER.warning("Unable to create new PAS, one or both alternative segments are null");
+      return null;
+    }
     return new Pas(s1, s2);
   }
 
@@ -269,10 +114,30 @@ public class Pas {
   /**
    * Register origin on the PAS
    * 
-   * @param origin bush to register
+   * @param bush bush to register
+   * @return true when newly added, false, when already present
    */
-  public void registerOrigin(final Bush origin) {
-    originBushes.add(origin);
+  public boolean registerBush(final RootedLabelledBush bush) {
+    return registeredBushes.add(bush);
+  }
+
+  /**
+   * Verify if bush is registered on PAS
+   * 
+   * @param bush to check
+   * @return true when registered, false otherwise
+   */
+  public boolean hasRegisteredBush(final RootedLabelledBush bush) {
+    return registeredBushes.contains(bush);
+  }
+
+  /**
+   * The registered bushes
+   * 
+   * @return registered bushes
+   */
+  public Set<RootedLabelledBush> getRegisteredBushes() {
+    return registeredBushes;
   }
 
   /**
@@ -280,8 +145,33 @@ public class Pas {
    * 
    * @return true when origins are present, false otherwise
    */
-  public boolean hasOrigins() {
-    return !originBushes.isEmpty();
+  public boolean hasRegisteredBushes() {
+    return !registeredBushes.isEmpty();
+  }
+
+  /**
+   * Remove all currently registered bushes from PAS
+   */
+  public void removeAllRegisteredBushes() {
+    registeredBushes.clear();
+  }
+
+  /**
+   * Remove bushes from this PAS
+   * 
+   * @param bushes to remove
+   */
+  public void removeBushes(List<RootedLabelledBush> bushes) {
+    bushes.forEach((bush) -> removeBush(bush));
+  }
+
+  /**
+   * Remove bush from this PAS
+   * 
+   * @param bush to remove
+   */
+  public void removeBush(RootedLabelledBush bush) {
+    registeredBushes.remove(bush);
   }
 
   /**
@@ -293,7 +183,7 @@ public class Pas {
    * @return when non-negative the segment is overlapping with the PAS, where the value indicates the accepted flow on this sub-path for the bush (with sendinf flow at start as
    *         base demand)
    */
-  public double computeOverlappingAcceptedFlow(Bush bush, boolean lowCost, double[] linkSegmentFlowAcceptanceFactors) {
+  public double computeOverlappingAcceptedFlow(RootedLabelledBush bush, boolean lowCost, double[] linkSegmentFlowAcceptanceFactors) {
     EdgeSegment[] alternative = lowCost ? s1 : s2;
     return bush.computeSubPathAcceptedFlow(getDivergeVertex(), getMergeVertex(), alternative, linkSegmentFlowAcceptanceFactors);
   }
@@ -301,22 +191,59 @@ public class Pas {
   /**
    * check if shortest path tree is overlapping with one of the alternatives
    * 
-   * @param pathMatchForCheapPath to verify
-   * @param lowCost               when true check with low cost alternative otherwise high cost
+   * @param pathSearchResult to verify
+   * @param lowCost      when true check with low cost alternative otherwise high cost
    * @return true when overlapping, false otherwise
    */
-  public boolean isOverlappingWith(ShortestPathResult pathMatchForCheapPath, boolean lowCost) {
+  public boolean isOverlappingWith(ShortestPathResult pathSearchResult, boolean lowCost) {
     EdgeSegment[] alternative = lowCost ? s1 : s2;
     EdgeSegment currEdgeSegment = null;
     EdgeSegment matchingEdgeSegment = null;
-    for (int index = alternative.length - 1; index >= 0; --index) {
-      currEdgeSegment = alternative[index];
-      matchingEdgeSegment = pathMatchForCheapPath.getIncomingEdgeSegmentForVertex(currEdgeSegment.getDownstreamVertex());
-      if (!currEdgeSegment.idEquals(matchingEdgeSegment)) {
-        return false;
+        
+    if(pathSearchResult.isInverted()) {
+      /* when search type (and result) is in inverted direction, the result is traversed in downstream direction, i.e., match from first to last */      
+      for (int index = 0; index < alternative.length; ++index) {
+        currEdgeSegment = alternative[index];
+        matchingEdgeSegment = pathSearchResult.getNextEdgeSegmentForVertex(currEdgeSegment.getUpstreamVertex());
+        if (!currEdgeSegment.idEquals(matchingEdgeSegment)) {
+          return false;
+        }
+      }
+    }else {
+      /* when search type (and result) is in regular direction, the result is traversed in upstream direction, i.e., match from last to first */
+      for (int index = alternative.length - 1; index >= 0; --index) {
+        currEdgeSegment = alternative[index];
+        matchingEdgeSegment = pathSearchResult.getNextEdgeSegmentForVertex(currEdgeSegment.getDownstreamVertex());
+        if (!currEdgeSegment.idEquals(matchingEdgeSegment)) {
+          return false;
+        }
       }
     }
     return true;
+  }
+
+  /**
+   * Verify if the provided path is equal to the PAS alternative
+   * 
+   * @param pathToVerify to verify
+   * @param lowCost      which of the two alternatives to check against
+   * @return true when equal, false otherwise
+   */
+  public boolean isAlternativeEqual(final EdgeSegment[] pathToVerify, boolean lowCost) {
+    EdgeSegment[] alternative = lowCost ? s1 : s2;
+    return Arrays.equals(alternative, pathToVerify);
+  }
+
+  /**
+   * Verify if the provided path is equal to the PAS alternative
+   * 
+   * @param pathToVerify to verify
+   * @param lowCost      which of the two alternatives to check against
+   * @return true when equal, false otherwise
+   */
+  public boolean isAlternativeEqual(final Collection<EdgeSegment> pathToVerify, boolean lowCost) {
+    EdgeSegment[] alternative = lowCost ? s1 : s2;
+    return CollectionUtils.equals(pathToVerify, alternative);
   }
 
   /**
@@ -457,6 +384,16 @@ public class Pas {
   }
 
   /**
+   * Returns the difference between the cost of the high cost and the low cost segment normalised based on the total number of edge segments across both alternatives. Should always
+   * be larger than zero.
+   * 
+   * @return (s2Cost - s2Cost)/(#numEdgeSegmentsS1+#numEdgeSegmentsS2)
+   */
+  public double getNormalisedReducedCost() {
+    return (s2Cost - s1Cost) / (s1.length + s2.length);
+  }
+
+  /**
    * Match first link segment of PAS segment to predicate provided
    * 
    * @param lowCostSegment when true apply on s1, otherwise on s2
@@ -471,6 +408,78 @@ public class Pas {
       }
     }
     return null;
+  }
+
+  /**
+   * Verify if the current known cost for the PAS is considered equal under the given epsilon
+   * 
+   * @param epsilon to use
+   * @return true when abs(costS1-costS2) smaller or equal than epsilon
+   */
+  public boolean isCostEqual(double epsilon) {
+    return Precision.equal(s2Cost, s1Cost, epsilon);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(s1, s2);
+  }
+
+  /**
+   * A PAS equals another pas if the alternative segments are the same. The registered origins or current cost are not considered in this equality test
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof Pas)) {
+      return false;
+    }
+
+    if (obj == this) {
+      return true;
+    }
+
+    var objPas = (Pas) obj;
+    if (Arrays.equals(objPas.s1, this.s1) && Arrays.equals(objPas.s2, this.s2)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+
+    Consumer<EdgeSegment> consumer = (ls) -> {
+      if (ls == null) {
+        LOGGER.warning("edgeSegment null on PAS alternative, shouldn't happen");
+        sb.append("null,");
+        return;
+      }
+      sb.append(ls.getXmlId() != null ? ls.getXmlId() : String.valueOf(ls.getId()) + "*").append(",");
+    };
+
+    sb.append("s1: [");
+    if (s1 != null && s1.length > 0) {
+      Arrays.stream(s1).forEach(consumer);
+      sb.replace(sb.length() - 1, sb.length(), "");
+    }
+    sb.append("] s2: [");
+    if (s2 != null && s2.length > 0) {
+      Arrays.stream(s2).forEach(consumer);
+      sb.replace(sb.length() - 1, sb.length(), "");
+    }
+    sb.append("]");
+    return sb.toString();
   }
 
 }

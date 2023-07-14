@@ -47,4 +47,29 @@ public class TrainMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.TRAIN, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, TRAIN_PHYSICAL_FEATURES, TRAIN_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected TrainMode(TrainMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TrainMode shallowClone() {
+    return new TrainMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TrainMode deepClone() {
+    return new TrainMode(this, true);
+  }
 }

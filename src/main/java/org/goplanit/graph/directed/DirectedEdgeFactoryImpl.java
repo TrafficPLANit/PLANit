@@ -6,6 +6,7 @@ import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedEdgeFactory;
 import org.goplanit.utils.graph.directed.DirectedEdges;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -30,7 +31,7 @@ public class DirectedEdgeFactoryImpl extends GraphEntityFactoryImpl<DirectedEdge
    */
   @Override
   public DirectedEdge registerNew(DirectedVertex vertexA, DirectedVertex vertexB, boolean registerOnVertices) throws PlanItException {
-    final DirectedEdge newEdge = new DirectedEdgeImpl(getIdGroupingToken(), vertexA, vertexB);
+    final DirectedEdge newEdge = new DirectedEdgeImpl<DirectedVertex, EdgeSegment>(getIdGroupingToken(), vertexA, vertexB);
     getGraphEntities().register(newEdge);
     if (registerOnVertices) {
       vertexA.addEdge(newEdge);

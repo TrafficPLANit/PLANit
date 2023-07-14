@@ -47,4 +47,29 @@ public class TramMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.TRAM, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, TRAM_PHYSICAL_FEATURES, TRAM_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected TramMode(TramMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TramMode shallowClone() {
+    return new TramMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TramMode deepClone() {
+    return new TramMode(this, true);
+  }
 }

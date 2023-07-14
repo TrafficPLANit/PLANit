@@ -15,7 +15,7 @@ public class ProjectOdPathSets extends LongMapWrapperImpl<OdPathSets> {
    * Constructor
    */
   protected ProjectOdPathSets() {
-    super(new TreeMap<Long, OdPathSets>(), OdPathSets::getId);
+    super(new TreeMap<>(), OdPathSets::getId);
   }
 
   /**
@@ -31,7 +31,7 @@ public class ProjectOdPathSets extends LongMapWrapperImpl<OdPathSets> {
    * {@inheritDoc}
    */
   @Override
-  public ProjectOdPathSets clone() {
+  public ProjectOdPathSets shallowClone() {
     return new ProjectOdPathSets(this);
   }
 

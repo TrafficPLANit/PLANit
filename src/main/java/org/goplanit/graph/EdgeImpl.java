@@ -2,15 +2,14 @@ package org.goplanit.graph;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Logger;
 
-import org.locationtech.jts.geom.LineString;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CloneUtils;
+import org.locationtech.jts.geom.LineString;
 
 /**
  * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry additional information for each
@@ -19,7 +18,7 @@ import org.goplanit.utils.misc.CloneUtils;
  * @author markr
  *
  */
-public class EdgeImpl extends GraphEntityImpl implements Edge {
+public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(EdgeImpl.class.getCanonicalName());
@@ -30,12 +29,12 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
   /**
    * Vertex A
    */
-  private Vertex vertexA = null;
+  private V vertexA = null;
 
   /**
    * Vertex B
    */
-  private Vertex vertexB = null;
+  private V vertexB = null;
 
   /**
    * The line geometry of this link if set
@@ -62,7 +61,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * 
    * @param vertexB to set
    */
-  protected void setVertexB(Vertex vertexB) {
+  protected void setVertexB(V vertexB) {
     this.vertexB = vertexB;
   }
 
@@ -71,7 +70,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * 
    * @param vertexA to set
    */
-  protected void setVertexA(Vertex vertexA) {
+  protected void setVertexA(V vertexA) {
     this.vertexA = vertexA;
   }
 
@@ -82,7 +81,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * @param vertexA  first vertex in the link
    * @param vertexB  second vertex in the link
    */
-  protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB) {
+  protected EdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB) {
     super(groupId, EDGE_ID_CLASS);
     this.vertexA = vertexA;
     this.vertexB = vertexB;
@@ -98,28 +97,30 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * @param vertexB  second vertex in the link
    * @param lengthKm length of the link
    */
-  protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB, final double lengthKm) {
+  protected EdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB, final double lengthKm) {
     this(groupId, vertexA, vertexB);
     this.lengthInKm = lengthKm;
   }
 
   /**
-   * Copy constructor, input properties are copied using serialisation/deserialisation because shallow copy is considered dangerous
+   * Copy constructor
    * 
-   * @param edgeImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected EdgeImpl(EdgeImpl edgeImpl) {
-    super(edgeImpl);
-    if (edgeImpl.hasGeometry()) {
-      setGeometry((LineString) edgeImpl.getGeometry().copy());
-    }
-    this.vertexA = edgeImpl.vertexA;
-    this.vertexB = edgeImpl.vertexB;
-    this.lengthInKm = edgeImpl.lengthInKm;
-    this.name = edgeImpl.name;
-    if (edgeImpl.inputProperties != null && !edgeImpl.inputProperties.isEmpty()) {
-      for (Entry<String, Object> entry : edgeImpl.inputProperties.entrySet()) {
-        addInputProperty(new String(entry.getKey()), CloneUtils.clone(entry.getValue()));
+  protected EdgeImpl(EdgeImpl<V> other, boolean deepCopy) {
+    super(other, deepCopy);
+
+    setGeometry((other.hasGeometry() && deepCopy) ? (LineString) other.getGeometry().copy() : other.lineGeometry);
+
+    this.vertexA = other.vertexA;
+    this.vertexB = other.vertexB;
+    this.lengthInKm = other.lengthInKm;
+    this.name = other.name;
+
+    if (other.inputProperties != null && !other.inputProperties.isEmpty()) {
+      for (var entry : other.inputProperties.entrySet()) {
+        addInputProperty(entry.getKey(), deepCopy ? CloneUtils.deepClone(entry.getValue()): entry.getValue());
       }
     }
   }
@@ -221,7 +222,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * {@inheritDoc}
    */
   @Override
-  public Vertex getVertexA() {
+  public V getVertexA() {
     return vertexA;
   }
 
@@ -229,7 +230,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * {@inheritDoc}
    */
   @Override
-  public Vertex getVertexB() {
+  public V getVertexB() {
     return vertexB;
   }
 
@@ -253,19 +254,20 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * {@inheritDoc}
    * 
    */
+  @SuppressWarnings("unchecked")
   @Override
-  public boolean replace(final Vertex vertexToReplace, final Vertex vertexToReplaceWith) throws PlanItException {
+  public boolean replace(final Vertex vertexToReplace, final Vertex vertexToReplaceWith) {
     boolean vertexReplaced = false;
 
     /* replace vertices on edge */
     if (vertexToReplaceWith != null) {
       if (getVertexA() != null && vertexToReplace.getId() == getVertexA().getId()) {
         removeVertex(vertexToReplace);
-        setVertexA(vertexToReplaceWith);
+        setVertexA((V) vertexToReplaceWith);
         vertexReplaced = true;
       } else if (getVertexB() != null && vertexToReplace.getId() == getVertexB().getId()) {
         removeVertex(vertexToReplace);
-        setVertexB(vertexToReplaceWith);
+        setVertexB((V) vertexToReplaceWith);
         vertexReplaced = true;
       }
     }
@@ -275,11 +277,19 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
 
   /**
    * {@inheritDoc}
-   * 
    */
   @Override
-  public EdgeImpl clone() {
-    return new EdgeImpl(this);
+  public EdgeImpl<V> shallowClone() {
+    return new EdgeImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   */
+  @Override
+  public EdgeImpl<V>  deepClone() {
+    return new EdgeImpl<>(this, true);
   }
 
   /**
@@ -290,23 +300,28 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
   public boolean validate() {
 
     if (getVertexA() == null) {
-      LOGGER.warning(String.format("vertex A missing on edge (id:%d externalId:%s)", getId(), getExternalId()));
+      LOGGER.warning(String.format("Vertex A missing on edge (id:%d externalId:%s)", getId(), getExternalId()));
       return false;
     }
 
     if (getVertexB() == null) {
-      LOGGER.warning(String.format("vertex B missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
+      LOGGER.warning(String.format("Vertex B missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
       return false;
     }
 
     if (getVertexA().getEdges(getVertexB()) == null || !(getVertexA().getEdges(getVertexB()).contains(this))) {
-      LOGGER.warning(String.format("edge (id:%d externalId:%s) not registered on vertex A", getId(), getExternalId()));
+      LOGGER.warning(String.format("Edge (id:%d externalId:%s) not registered on vertex A", getId(), getExternalId()));
       return false;
     }
 
     if (getVertexB().getEdges(getVertexA()) == null || !(getVertexB().getEdges(getVertexA()).contains(this))) {
-      LOGGER.warning(String.format("edge (id:%d externalId:%s) not registered on vertex B", getId(), getExternalId()));
+      LOGGER.warning(String.format("Edge (id:%d externalId:%s) not registered on vertex B", getId(), getExternalId()));
       return false;
+    }
+
+    if(getGeometry()!=null &&
+        (!getGeometry().isWithinDistance(getVertexB().getPosition(), Precision.EPSILON_6) || !getGeometry().isWithinDistance(getVertexB().getPosition(), Precision.EPSILON_6))){
+      LOGGER.warning(String.format("Edge (id:%d externalId:%s) internal geometry does not cover its vertices", getId(), getExternalId()));
     }
 
     return true;

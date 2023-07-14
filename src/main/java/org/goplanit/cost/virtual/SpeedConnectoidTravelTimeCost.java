@@ -1,10 +1,13 @@
 package org.goplanit.cost.virtual;
 
-import org.goplanit.network.virtual.VirtualNetwork;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -40,9 +43,10 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public SpeedConnectoidTravelTimeCost(SpeedConnectoidTravelTimeCost other) {
-    super(other);
+  public SpeedConnectoidTravelTimeCost(SpeedConnectoidTravelTimeCost other, boolean deepCopy /* no impact yet */) {
+    super(other, deepCopy);
     connectoidSpeed = other.connectoidSpeed;
   }
 
@@ -80,7 +84,7 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    */
   @Override
   public double getGeneralisedCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
-    return connectoidSegment.getParentEdge().getLengthKm() / connectoidSpeed;
+    return connectoidSegment.getParent().getLengthKm() / connectoidSpeed;
   }
 
   /**
@@ -88,7 +92,7 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    */
   @Override
   public void populateWithCost(final VirtualNetwork virtualNetwork, final Mode mode, double[] costToFill) throws PlanItException {
-    for (ConnectoidSegment virtualSegment : virtualNetwork.getConnectoidSegments()) {
+    for (var virtualSegment : virtualNetwork.getConnectoidSegments()) {
       costToFill[(int) virtualSegment.getId()] = getGeneralisedCost(mode, virtualSegment);
     }
   }
@@ -97,8 +101,16 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * {@inheritDoc}
    */
   @Override
-  public SpeedConnectoidTravelTimeCost clone() {
-    return new SpeedConnectoidTravelTimeCost(this);
+  public SpeedConnectoidTravelTimeCost shallowClone() {
+    return new SpeedConnectoidTravelTimeCost(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SpeedConnectoidTravelTimeCost deepClone() {
+    return new SpeedConnectoidTravelTimeCost(this, true);
   }
 
   /**
@@ -123,6 +135,16 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
   @Override
   public double getDTravelTimeDFlow(boolean uncongested, Mode mode, ConnectoidSegment connectoidSegment) {
     return 0.0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    var settings = new HashMap<String, String>();
+    settings.put("fixed-speed-connectoid-cost (km/h)", "" + connectoidSpeed);
+    return settings;
   }
 
 }

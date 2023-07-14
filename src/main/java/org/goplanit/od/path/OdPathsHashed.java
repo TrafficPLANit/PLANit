@@ -3,7 +3,7 @@ package org.goplanit.od.path;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.od.OdHashedImpl;
 import org.goplanit.utils.od.OdHashedIterator;
-import org.goplanit.utils.path.DirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.zoning.OdZones;
 
 /**
@@ -14,13 +14,13 @@ import org.goplanit.utils.zoning.OdZones;
  * @author markr
  *
  */
-public class OdPathsHashed extends OdHashedImpl<DirectedPath> implements OdPaths {
+public class OdPathsHashed extends OdHashedImpl<ManagedDirectedPath> implements OdPaths {
 
   /**
    * Wrapper around hashed iterator for od paths
    * 
    */
-  public class OdPathsHashedIterator extends OdHashedIterator<DirectedPath> {
+  public class OdPathsHashedIterator extends OdHashedIterator<ManagedDirectedPath> {
 
     public OdPathsHashedIterator(OdPathsHashed container) {
       super(container, container.zones);
@@ -39,12 +39,20 @@ public class OdPathsHashed extends OdHashedImpl<DirectedPath> implements OdPaths
   }
 
   /**
-   * Copy constructor (shallow copy of contents)
+   * Copy constructor
    * 
    * @param other to copy from
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public OdPathsHashed(final OdPathsHashed other) {
+  public OdPathsHashed(final OdPathsHashed other, boolean deepCopy) {
     super(other);
+    if(deepCopy){
+      this.odHashed.clear();
+      other.zones.forEach(
+              origin -> other.zones.forEach(
+                      destination -> other.odHashed.values().forEach( original ->
+                              setValue(origin, destination,original.deepClone()))));
+    }
   }
 
   /**
@@ -59,8 +67,16 @@ public class OdPathsHashed extends OdHashedImpl<DirectedPath> implements OdPaths
    * {@inheritDoc}
    */
   @Override
-  public OdPathsHashed clone() {
-    return new OdPathsHashed(this);
+  public OdPathsHashed shallowClone() {
+    return new OdPathsHashed(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdPathsHashed deepClone() {
+    return new OdPathsHashed(this, true);
   }
 
   // getters - setters

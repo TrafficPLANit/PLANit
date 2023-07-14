@@ -34,9 +34,10 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public LinkBasedRelativeDualityGapFunction(LinkBasedRelativeDualityGapFunction other) {
-    super(other);
+  public LinkBasedRelativeDualityGapFunction(LinkBasedRelativeDualityGapFunction other, boolean deepCopy) {
+    super(other, deepCopy);
     this.measuredNetworkCost = other.measuredNetworkCost;
     this.gap = other.gap;
     this.minimumNetworkCost = other.minimumNetworkCost;
@@ -102,14 +103,24 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    */
   @Override
   public double computeGap() {
-    if (!Precision.isPositive(measuredNetworkCost)) {
+    if (Precision.smaller(measuredNetworkCost, minimumNetworkCost)) {
+      LOGGER.severe(String.format("Minimum network cost (%.2f) exceeds measured network cost (%.2f), this should not happen", minimumNetworkCost, measuredNetworkCost));
+    }
+
+    /* special case, both might be zero for example - unlikely but technically this is considered converged */
+    double absoluteGap = measuredNetworkCost - minimumNetworkCost;
+    if (absoluteGap == 0) {
+      gap = absoluteGap;
+      return gap;
+    }
+
+    if (!Precision.positive(measuredNetworkCost)) {
       LOGGER.severe(String.format("Measured network cost (%.2f) needs to be positive to compute gap, this is not the case", measuredNetworkCost));
       return -1;
     }
-    if (Precision.isSmaller(measuredNetworkCost, minimumNetworkCost)) {
-      LOGGER.severe(String.format("Minimum network cost (%.2f) exceeds measured network cost (%.2f), this should not happen", minimumNetworkCost, measuredNetworkCost));
-    }
-    gap = (measuredNetworkCost - minimumNetworkCost) / measuredNetworkCost;
+
+    /* regular non-zero measured cost */
+    gap = absoluteGap / measuredNetworkCost;
     return gap;
   }
 
@@ -125,8 +136,16 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    * {@inheritDoc}
    */
   @Override
-  public LinkBasedRelativeDualityGapFunction clone() {
-    return new LinkBasedRelativeDualityGapFunction(this);
+  public LinkBasedRelativeDualityGapFunction shallowClone() {
+    return new LinkBasedRelativeDualityGapFunction(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinkBasedRelativeDualityGapFunction deepClone() {
+    return new LinkBasedRelativeDualityGapFunction(this, true);
   }
 
 }

@@ -98,7 +98,7 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
     if (gapsByIteration.size() > 2) {
       double latestGap = gapsByIteration.get(getRegisteredIterations());
       double nextLatestGap = gapsByIteration.get(getRegisteredIterations() - 1);
-      if (Precision.isGreaterEqual(latestGap - nextLatestGap, maxSingleIterationWorseningGapThreshold)) {
+      if (Precision.greaterEqual(latestGap - nextLatestGap, maxSingleIterationWorseningGapThreshold)) {
         return false;
       }
     }
@@ -106,7 +106,7 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
     /* check if average gap over iterations is not improving by the minimum requirement */
     double gapDelta = gapsByIteration.get(iterationOffset) - gapsByIteration.get(getRegisteredIterations());
     double averagePerIterationGapImprovement = gapDelta / (getRegisteredIterations() - iterationOffset);
-    if (Precision.isSmallerEqual(averagePerIterationGapImprovement, minAverageImprovingGapThreshold)) {
+    if (Precision.smallerEqual(averagePerIterationGapImprovement, minAverageImprovingGapThreshold)) {
       return false;
     }
 
@@ -178,7 +178,7 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
    */
   public void logGapsSince(long runId, int referenceIteration) {
     LOGGER.info(
-        String.format("%sGaps for iteration %d-%d: %s", LoggingUtils.createRunIdPrefix(runId), referenceIteration, getRegisteredIterations(), this.gapsByIteration.toString()));
+        String.format("%sGaps for iteration %d-%d: %s", LoggingUtils.runIdPrefix(runId), referenceIteration, getRegisteredIterations(), this.gapsByIteration.toString()));
   }
 
   /**

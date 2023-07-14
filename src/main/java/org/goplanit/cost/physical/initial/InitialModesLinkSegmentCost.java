@@ -13,10 +13,9 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
  * 
  * @author markr
  */
-public class InitialModesLinkSegmentCost implements Cloneable, Cost<MacroscopicLinkSegment> {
+public class InitialModesLinkSegmentCost implements Cost<MacroscopicLinkSegment> {
 
   /** Logger to use */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(InitialModesLinkSegmentCost.class.getCanonicalName());
 
   /**
@@ -28,7 +27,7 @@ public class InitialModesLinkSegmentCost implements Cloneable, Cost<MacroscopicL
    * Constructor
    */
   protected InitialModesLinkSegmentCost() {
-    this.costPerModeAndLinkSegment = new HashMap<Mode, Map<Long, Double>>();
+    this.costPerModeAndLinkSegment = new HashMap<>();
   }
 
   /**
@@ -38,7 +37,7 @@ public class InitialModesLinkSegmentCost implements Cloneable, Cost<MacroscopicL
    */
   protected InitialModesLinkSegmentCost(InitialModesLinkSegmentCost initialLinkSegmentCostMode) {
     this();
-    initialLinkSegmentCostMode.costPerModeAndLinkSegment.forEach((mode, map) -> costPerModeAndLinkSegment.put(mode, new HashMap<Long, Double>(map)));
+    initialLinkSegmentCostMode.costPerModeAndLinkSegment.forEach((mode, map) -> costPerModeAndLinkSegment.put(mode, new HashMap<>(map)));
   }
 
   /**
@@ -104,10 +103,11 @@ public class InitialModesLinkSegmentCost implements Cloneable, Cost<MacroscopicL
   }
 
   /**
-   * {@inheritDoc}
+   * Shallow copy
+   *
+   * @return shallow copy
    */
-  @Override
-  public InitialModesLinkSegmentCost clone() {
+  public InitialModesLinkSegmentCost shallowClone() {
     return new InitialModesLinkSegmentCost(this);
   }
 

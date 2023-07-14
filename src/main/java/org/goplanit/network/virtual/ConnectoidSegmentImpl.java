@@ -20,7 +20,7 @@ import org.goplanit.utils.network.virtual.ConnectoidSegment;
  * @author markr
  *
  */
-public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements ConnectoidSegment {
+public class ConnectoidSegmentImpl extends EdgeSegmentImpl<ConnectoidEdge> implements ConnectoidSegment {
 
   /** generated UID */
   private static final long serialVersionUID = 6462304338451088764L;
@@ -67,9 +67,8 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param parentEdge  parent connectoid
    * @param directionAb direction of travel
-   * @throws PlanItException thrown when error
    */
-  protected ConnectoidSegmentImpl(final IdGroupingToken groupId, final ConnectoidEdge parentEdge, final boolean directionAb) throws PlanItException {
+  protected ConnectoidSegmentImpl(final IdGroupingToken groupId, final ConnectoidEdge parentEdge, final boolean directionAb) {
     super(groupId, parentEdge, directionAb);
     setConnectoidSegmentId(generateConnectoidSegmentId(groupId));
   }
@@ -77,11 +76,12 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
   /**
    * Copy constructor
    * 
-   * @param connectoidSegmentImpl to set
+   * @param other to set
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConnectoidSegmentImpl(ConnectoidSegmentImpl connectoidSegmentImpl) {
-    super(connectoidSegmentImpl);
-    setConnectoidSegmentId(connectoidSegmentImpl.getConnectoidSegmentId());
+  protected ConnectoidSegmentImpl(ConnectoidSegmentImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    setConnectoidSegmentId(other.getConnectoidSegmentId());
   }
 
   // Public getters - setters
@@ -109,8 +109,16 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
    * {@inheritDoc}
    */
   @Override
-  public ConnectoidSegmentImpl clone() {
-    return new ConnectoidSegmentImpl(this);
+  public ConnectoidSegmentImpl shallowClone() {
+    return new ConnectoidSegmentImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidSegmentImpl deepClone() {
+    return new ConnectoidSegmentImpl(this, true);
   }
 
 }

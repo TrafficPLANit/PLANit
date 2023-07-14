@@ -6,7 +6,7 @@ package org.goplanit.graph.directed.acyclic;
  * @author markr
  *
  */
-class AcyclicVertexData implements Cloneable {
+class AcyclicVertexData{
 
   /** pre visit index, required for topological sorting, see gupta et al. 2008 */
   public long preVisitIndex = 0;
@@ -15,13 +15,16 @@ class AcyclicVertexData implements Cloneable {
   public long postVisitIndex = 0;
 
   /**
-   * {@inheritDoc}
+   * Default constructor
    */
-  @Override
-  public AcyclicVertexData clone() {
-    AcyclicVertexData copy = new AcyclicVertexData();
-    copy.preVisitIndex = preVisitIndex;
-    copy.postVisitIndex = postVisitIndex;
-    return copy;
+  public AcyclicVertexData(){
+    super();
   }
+
+  public AcyclicVertexData(AcyclicVertexData other){
+    super();
+    this.preVisitIndex = other.preVisitIndex;
+    this.postVisitIndex = other.postVisitIndex;
+  }
+
 }

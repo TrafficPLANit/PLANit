@@ -1,8 +1,15 @@
 package org.goplanit.service.routed;
 
+import org.goplanit.path.ManagedDirectedPathsImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.path.ManagedDirectedPath;
+import org.goplanit.utils.service.routed.RoutedModeServices;
+import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.utils.service.routed.RoutedServiceFactory;
+
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of the RoutedModeServices interface
@@ -15,7 +22,7 @@ public class RoutedModeServicesImpl extends ManagedIdEntitiesImpl<RoutedService>
   private final Mode supportedMode;
 
   /** factory to use to create routed service instances */
-  private final RoutedServiceFactory factory;
+  private final RoutedServiceFactoryImpl factory;
 
   /**
    * Constructor
@@ -26,33 +33,28 @@ public class RoutedModeServicesImpl extends ManagedIdEntitiesImpl<RoutedService>
   public RoutedModeServicesImpl(final IdGroupingToken tokenId, final Mode supportedMode) {
     super(RoutedService::getId, RoutedService.ROUTED_SERVICE_ID_CLASS);
     this.supportedMode = supportedMode;
-    this.factory = new RoutedServiceFactory(tokenId, this);
+    this.factory = new RoutedServiceFactoryImpl(tokenId, this);
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param routedModeServicesImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedModeServicesImpl(RoutedModeServicesImpl routedModeServicesImpl) {
-    super(routedModeServicesImpl);
+  public RoutedModeServicesImpl(RoutedModeServicesImpl routedModeServicesImpl, boolean deepCopy, BiConsumer<RoutedService, RoutedService> mapper) {
+    super(routedModeServicesImpl, deepCopy, mapper);
     this.supportedMode = routedModeServicesImpl.supportedMode;
-    this.factory = new RoutedServiceFactory(routedModeServicesImpl.factory.getIdGroupingToken(), this);
+    this.factory =
+            new RoutedServiceFactoryImpl(routedModeServicesImpl.factory.getIdGroupingToken(), this);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public RoutedModeServicesImpl clone() {
-    return new RoutedModeServicesImpl(this);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RoutedServiceFactory getFactory() {
+  public RoutedServiceFactoryImpl getFactory() {
     return factory;
   }
 
@@ -63,6 +65,30 @@ public class RoutedModeServicesImpl extends ManagedIdEntitiesImpl<RoutedService>
    */
   public final Mode getMode() {
     return supportedMode;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedModeServicesImpl shallowClone() {
+    return new RoutedModeServicesImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedModeServicesImpl deepClone() {
+    return new RoutedModeServicesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedModeServicesImpl deepCloneWithMapping(BiConsumer<RoutedService, RoutedService> mapper) {
+    return new RoutedModeServicesImpl(this, true, mapper);
   }
 
 }

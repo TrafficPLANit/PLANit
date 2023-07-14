@@ -3,6 +3,7 @@ package org.goplanit.service.routed;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.service.routed.RoutedTrip;
 
 /**
  * Implementation of a RoutedTrip interface. Acts as a base class for derived implementations that are not abstract
@@ -34,8 +35,9 @@ public abstract class RoutedTripImpl extends ExternalIdAbleImpl implements Route
    * Copy constructor
    * 
    * @param routedTripImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedTripImpl(RoutedTripImpl routedTripImpl) {
+  public RoutedTripImpl(RoutedTripImpl routedTripImpl, boolean deepCopy /* no impact yet */) {
     super(routedTripImpl);
   }
 
@@ -53,6 +55,12 @@ public abstract class RoutedTripImpl extends ExternalIdAbleImpl implements Route
    * {@inheritDoc}
    */
   @Override
-  public abstract RoutedTripImpl clone();
+  public abstract RoutedTripImpl shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract RoutedTripImpl deepClone();
 
 }

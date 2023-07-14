@@ -47,4 +47,30 @@ public class BusMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.BUS, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, BUS_PHYSICAL_FEATURES, BUS_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected BusMode(BusMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public BusMode shallowClone() {
+    return new BusMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public BusMode deepClone() {
+    return new BusMode(this, true);
+  }
+
 }

@@ -1,14 +1,20 @@
 package org.goplanit.network.layer.service;
 
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.goplanit.graph.directed.DirectedVertexImpl;
-import org.locationtech.jts.geom.Point;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.containers.ListUtils;
+import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.CollectionUtils;
+import org.goplanit.utils.misc.IteratorUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
+import org.locationtech.jts.geom.Point;
 
 /**
  * A ServiceNode is used in a ServiceNetwork where it holds a reference to a DirectedNode of the ServiceNetworkLayer's underlying physical network layer. Each ServiceNode
@@ -17,7 +23,7 @@ import org.goplanit.utils.network.layer.service.ServiceNode;
  * @author markr
  *
  */
-public class ServiceNodeImpl extends DirectedVertexImpl implements ServiceNode {
+public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> implements ServiceNode {
 
   /** generated UID */
   private static final long serialVersionUID = 3704157577170156850L;
@@ -25,86 +31,124 @@ public class ServiceNodeImpl extends DirectedVertexImpl implements ServiceNode {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ServiceNodeImpl.class.getCanonicalName());
 
-  /** underlying network node */
-  protected Node networkNode;
+  /**
+   * Collect stream of downstream physical nodes of attached entry service leg segments (if any)
+   *
+   * @return the stream
+   */
+  protected Stream<Node> getEntrySegmentsDownstreamPhysicalNodeStream(){
+    return IteratorUtils.asStream(getEntryEdgeSegments().iterator()).filter( e -> e.hasPhysicalParentSegments()).map(
+        e -> ListUtils.getLastValue(e.getPhysicalParentSegments()).getDownstreamNode());
+  }
 
   /**
-   * Set the network layer node this service node refers to
-   * 
-   * @param networkNode to use
+   * Collect stream of upstream physical nodes of attached exit service leg segments (if any)
+   *
+   * @return the stream
    */
-  protected void setNetworkLayerNode(Node networkNode) {
-    this.networkNode = networkNode;
+  protected Stream<Node> getExitSegmentsUpstreamPhysicalNodeStream(){
+    return IteratorUtils.asStream(getExitEdgeSegments().iterator()).filter( e -> e.hasPhysicalParentSegments()).map(
+        e -> ListUtils.getFirstValue(e.getPhysicalParentSegments()).getUpstreamNode());
   }
 
   /**
    * Constructor
    * 
    * @param tokenId     contiguous id generation within this group for instances of this class
-   * @param networkNode referenced by this service node
    */
-  protected ServiceNodeImpl(final IdGroupingToken tokenId, final Node networkNode) {
+  protected ServiceNodeImpl(final IdGroupingToken tokenId) {
     super(tokenId);
-    this.networkNode = networkNode;
   }
 
   /**
    * Copy constructor
    * 
-   * @param serviceNode to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ServiceNodeImpl(final ServiceNodeImpl serviceNode) {
-    super(serviceNode);
-    this.networkNode = serviceNode.getParentNode();
-    edges.putAll(serviceNode.edges);
-    entryEdgeSegments.addAll(serviceNode.entryEdgeSegments);
-    exitEdgeSegments.addAll(serviceNode.exitEdgeSegments);
+  protected ServiceNodeImpl(final ServiceNodeImpl other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean addEdgeSegment(EdgeSegment serviceLegSegment) {
-    if (!(serviceLegSegment instanceof ServiceLegSegment)) {
-      LOGGER.warning("Unable to add, provided EdgeSegment no instance of ServiceLegSegment");
-      return false;
-    }
-    
-    return super.addEdgeSegment(serviceLegSegment);
-  }
-
-  /**
-   * Based on network node
+   * Construct new position based on underlying physical node(s). If multiple physical nodes are used to represent
+   * this service node, the average position of each of them is returned. Unlike physical nodes, the position of
+   * service nodes does not live on the object instance, it is recreated every time the position is queried.
    * 
-   * @return network node position
+   * @return newly inferred service node position
    */
   @Override
   public final Point getPosition() {
-    return networkNode.getPosition();
+    var physicalParentNodes = getPhysicalParentNodes();
+    if(physicalParentNodes.isEmpty()){
+      LOGGER.warning(String.format("No physical parent nodes available on service node (%s), position unknown", getIdsAsString()));
+      return null;
+    }
+
+    if(physicalParentNodes.size() == 1) {
+      var parentNode = physicalParentNodes.iterator().next();
+      if(parentNode.hasPosition()) {
+        return (Point) physicalParentNodes.iterator().next().getPosition().copy();
+      }
+      return null;
+    }
+
+    /* multiple locations, construct average position */
+    var averageX = physicalParentNodes.stream().filter(n -> n.hasPosition()).collect(Collectors.averagingDouble( n -> n.getPosition().getCoordinate().x));
+    var averageY = physicalParentNodes.stream().filter(n -> n.hasPosition()).collect(Collectors.averagingDouble( n -> n.getPosition().getCoordinate().y));
+    return PlanitJtsUtils.createPoint(averageX, averageY);
   }
-  
-  @Override  
+
+  @Override
   public void setPosition(Point position) {
-    LOGGER.warning("Unable to modify position, network node determines position of service node indirectly");
+    LOGGER.warning("Unable to modify position, physical network node indirectly determines position of service node");
   }
 
   /**
-   * Collect the network layer node this service node relates to
+   * Collect the physical nodes at the extremities of all underlying physical link segments. Since these can be different, these might result
+   * in multiple physical nodes rather than one
    * 
-   * @return related network layer node
+   * @return related network layer node(s)
    */
   @Override
-  public final Node getParentNode() {
-    return networkNode;
+  public final Set<Node> getPhysicalParentNodes() {
+    return Stream.concat(getExitSegmentsUpstreamPhysicalNodeStream(), getEntrySegmentsDownstreamPhysicalNodeStream()).collect(Collectors.toSet());
+  }
+
+  /*
+   * {@inheritDoc
+   */
+  @Override
+  public boolean hasPhysicalParentNodes() {
+    return  getExitSegmentsUpstreamPhysicalNodeStream().findFirst().isPresent() || getEntrySegmentsDownstreamPhysicalNodeStream().findFirst().isPresent();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ServiceNodeImpl clone() {
-    return new ServiceNodeImpl(this);
+  public ServiceNodeImpl shallowClone() {
+    return new ServiceNodeImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNodeImpl deepClone() {
+    return new ServiceNodeImpl(this, true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isMappedToPhysicalParentNode(Node physicalParentNode) {
+    boolean match = getExitSegmentsUpstreamPhysicalNodeStream().anyMatch(e -> e.equals(physicalParentNode));
+    if(match){
+      return true;
+    }
+    return getEntrySegmentsDownstreamPhysicalNodeStream().anyMatch(e -> e.equals(physicalParentNode));
   }
 
 }

@@ -1,12 +1,13 @@
 package org.goplanit.network.layer.macroscopic;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.goplanit.network.layer.physical.LinkSegmentImpl;
-import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.network.layer.physical.LinkSegmentBase;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
@@ -16,7 +17,7 @@ import org.goplanit.utils.network.layer.physical.Link;
  *
  * @author markr
  */
-public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements MacroscopicLinkSegment {
+public class MacroscopicLinkSegmentImpl extends LinkSegmentBase<MacroscopicLink> implements MacroscopicLinkSegment {
 
   // Private
 
@@ -42,20 +43,20 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param parentLink  the parent link of this link segment
    * @param directionAB direction of travel
-   * @throws PlanItException thrown when error
    */
-  protected MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) throws PlanItException {
+  protected MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final MacroscopicLink parentLink, final boolean directionAB) {
     super(groupId, parentLink, directionAB);
   }
 
   /**
    * Copy constructor
    * 
-   * @param macroscopicLinkSegmentImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected MacroscopicLinkSegmentImpl(MacroscopicLinkSegmentImpl macroscopicLinkSegmentImpl) {
-    super(macroscopicLinkSegmentImpl);
-    setLinkSegmentType(macroscopicLinkSegmentImpl.getLinkSegmentType());
+  protected MacroscopicLinkSegmentImpl(MacroscopicLinkSegmentImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    setLinkSegmentType(other.getLinkSegmentType());
   }
 
   /**
@@ -64,6 +65,10 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   @Override
   public double computeFreeFlowTravelTimeHour(final Mode mode) {
     if (!isModeAllowed(mode)) {
+      return Double.MAX_VALUE;
+    }
+    var speedLimitKmh = getModelledSpeedLimitKmH(mode);
+    if(speedLimitKmh == 0.0){
       return Double.MAX_VALUE;
     }
 
@@ -83,7 +88,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    */
   @Override
   public Set<Mode> getAllowedModes() {
-    return linkSegmentType.getAllowedModes();
+    return Collections.unmodifiableSet(linkSegmentType.getAllowedModes());
   }
 
   // getters - setters
@@ -104,11 +109,19 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
     return linkSegmentType;
   }
 
+
   /**
    * {@inheritDoc}
    */
-  public MacroscopicLinkSegmentImpl clone() {
-    return new MacroscopicLinkSegmentImpl(this);
+  public MacroscopicLinkSegmentImpl shallowClone() {
+    return new MacroscopicLinkSegmentImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public MacroscopicLinkSegmentImpl deepClone() {
+    return new MacroscopicLinkSegmentImpl(this, true);
   }
 
 }

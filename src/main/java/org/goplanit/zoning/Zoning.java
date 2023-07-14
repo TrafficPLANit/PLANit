@@ -1,24 +1,24 @@
 package org.goplanit.zoning;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
-import org.goplanit.network.virtual.VirtualNetwork;
+import org.goplanit.network.virtual.VirtualNetworkImpl;
 import org.goplanit.od.demand.OdDemands;
-import org.goplanit.zoning.modifier.ZoningModifierImpl;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
+import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.time.TimePeriod;
-import org.goplanit.utils.zoning.DirectedConnectoids;
-import org.goplanit.utils.zoning.OdZones;
-import org.goplanit.utils.zoning.TransferZoneGroups;
-import org.goplanit.utils.zoning.TransferZones;
-import org.goplanit.utils.zoning.UndirectedConnectoids;
-import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
+import org.goplanit.zoning.modifier.ZoningModifierImpl;
 
 /**
  * Zoning class which holds a particular zoning
@@ -38,6 +38,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
 
   /**
    * Virtual network holds all the virtual connections to the physical network (layers)
+   * todo: we should have potentially multiple virtual networks per zoning, one for each physical nework the zoning is used on!
    */
   protected final VirtualNetwork virtualNetwork;
 
@@ -52,27 +53,27 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   /**
    * provide access to undirected connectoids (of od zones)
    */
-  public final UndirectedConnectoids odConnectoids;
+  protected final UndirectedConnectoids odConnectoids;
 
   /**
    * provide access to directed connectoids (of transfer zones)
    */
-  public final DirectedConnectoids transferConnectoids;
+  protected final DirectedConnectoids transferConnectoids;
 
   /**
    * provide access to zones
    */
-  public final OdZones odZones;
+  protected final OdZones odZones;
 
   /**
    * provide access to transfer zones (if any)
    */
-  public final TransferZones transferZones;
+  protected final TransferZones transferZones;
 
   /**
    * provide access to transfer zone groups (if any)
    */
-  public final TransferZoneGroups transferZoneGroups;
+  protected final TransferZoneGroups transferZoneGroups;
 
   /**
    * Constructor
@@ -82,17 +83,17 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * unique throughout the combination of the virtual and physical network. Hence, they should use the same network id token
    * 
    * @param groupId        contiguous id generation within this group for instances of this class
-   * @param networkGroupId contiguous id generation for all instances created by the virtual network
+   * @param virtualNetworkGroupId contiguous id generation for all instances created by the virtual network
    */
-  public Zoning(IdGroupingToken groupId, IdGroupingToken networkGroupId) {
+  public Zoning(IdGroupingToken groupId, IdGroupingToken virtualNetworkGroupId) {
     super(groupId, Zoning.class);
-    virtualNetwork = new VirtualNetwork(networkGroupId);
+    virtualNetwork = new VirtualNetworkImpl(virtualNetworkGroupId);
 
-    odConnectoids = new UndirectedConnectoidsImpl(networkGroupId);
-    transferConnectoids = new DirectedConnectoidsImpl(networkGroupId);
-    odZones = new OdZonesImpl(networkGroupId);
-    transferZones = new TransferZonesImpl(networkGroupId);
-    transferZoneGroups = new TransferZoneGroupsImpl(networkGroupId);
+    odConnectoids = new UndirectedConnectoidsImpl(virtualNetworkGroupId);
+    transferConnectoids = new DirectedConnectoidsImpl(virtualNetworkGroupId);
+    odZones = new OdZonesImpl(virtualNetworkGroupId);
+    transferZones = new TransferZonesImpl(virtualNetworkGroupId);
+    transferZoneGroups = new TransferZoneGroupsImpl(virtualNetworkGroupId);
 
     zoningModifier = new ZoningModifierImpl(this);
   }
@@ -101,17 +102,58 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param undirConnectoidMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param dirConnectoidMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param odZoneMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param transferZoneMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param transferZoneGroupMapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public Zoning(final Zoning other) {
-    super(other);
-    this.virtualNetwork = other.virtualNetwork;
-    this.odConnectoids = other.odConnectoids.clone();
-    this.transferConnectoids = other.transferConnectoids.clone();
-    this.odZones = other.odZones.clone();
-    this.transferZones = other.transferZones.clone();
-    this.transferZoneGroups = other.transferZoneGroups.clone();
+  public Zoning(
+      final Zoning other,
+      boolean deepCopy,
+      ManagedIdDeepCopyMapper<UndirectedConnectoid> undirConnectoidMapper,
+      ManagedIdDeepCopyMapper<DirectedConnectoid> dirConnectoidMapper,
+      ManagedIdDeepCopyMapper<OdZone> odZoneMapper,
+      ManagedIdDeepCopyMapper<TransferZone> transferZoneMapper,
+      ManagedIdDeepCopyMapper<TransferZoneGroup> transferZoneGroupMapper) {
+    super(other, deepCopy);
 
+    // extension of class, with reference to this, so copy always required
     this.zoningModifier = new ZoningModifierImpl(this);
+
+    // These are all container wrappers as well, so always require a clone
+    if(deepCopy){
+      this.odConnectoids =        other.odConnectoids.deepCloneWithMapping(undirConnectoidMapper);
+      this.transferConnectoids =  other.transferConnectoids.deepCloneWithMapping(dirConnectoidMapper);
+      this.odZones =              other.odZones.deepCloneWithMapping(odZoneMapper);
+      this.transferZones =        other.transferZones.deepCloneWithMapping(transferZoneMapper);
+      this.transferZoneGroups =   other.transferZoneGroups.deepCloneWithMapping(transferZoneGroupMapper);
+
+      if(odZoneMapper != null) ConnectoidUtils.updateAccessZoneMapping(odConnectoids, (OdZone z) -> odZoneMapper.getMapping(z), true);
+      if(transferZoneMapper != null){
+        ConnectoidUtils.updateAccessZoneMapping(transferConnectoids, (TransferZone z) -> transferZoneMapper.getMapping(z), true);
+        TransferZoneGroupUtils.updateTransferZoneMapping(transferZoneGroups, (TransferZone z) -> transferZoneMapper.getMapping(z), true);
+      }
+
+      var connectoidEdgeMapper = new GraphEntityDeepCopyMapper<ConnectoidEdge>();
+      var connectoidEdgeSegmentMapper = new GraphEntityDeepCopyMapper<ConnectoidSegment>();
+      var centroidVertexMapper = new GraphEntityDeepCopyMapper<CentroidVertex>();
+      this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(connectoidEdgeMapper, connectoidEdgeSegmentMapper, centroidVertexMapper);
+
+      // make sure centroid vertex's parent centroid is updated properly (this goes across zones that own  zone and centroids and virtual network, so done here)
+      var centroidMapper = centroidVertexMapper.stream().collect(Collectors.toMap(entry -> entry.getKey().getParent(), entry -> entry.getValue().getParent()));
+      CentroidVertexUtils.updateCentroidVertexCentroidMapping(virtualNetwork.getCentroidVertices(), (Centroid originalCentroid) -> centroidMapper.get(originalCentroid), true);
+
+    }else{
+      this.odConnectoids =        other.odConnectoids.shallowClone();
+      this.transferConnectoids =  other.transferConnectoids.shallowClone();
+      this.odZones =              other.odZones.shallowClone();
+      this.transferZones =        other.transferZones.shallowClone();
+      this.transferZoneGroups =   other.transferZoneGroups.shallowClone();
+
+      this.virtualNetwork =       other.virtualNetwork.shallowClone();
+    }
   }
 
   // Public - getters - setters
@@ -122,12 +164,13 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * @param prefix to use
    */
   public void logInfo(String prefix) {
-    LOGGER.info(String.format("%s#od zones: %d (#centroids: %d)", prefix, odZones.size(), odZones.getNumberOfCentroids()));
-    LOGGER.info(String.format("%s#od connectoids: %d", prefix, odConnectoids.size()));
+    LOGGER.info(String.format("%s XML id %s (external id: %s) ", prefix, getXmlId(), getExternalId()));
+    LOGGER.info(String.format("%s #od zones: %d (#centroids: %d)", prefix, odZones.size(), odZones.getNumberOfCentroids()));
+    LOGGER.info(String.format("%s #od connectoids: %d", prefix, odConnectoids.size()));
     if (!transferZones.isEmpty()) {
-      LOGGER.info(String.format("%s#transfer connectoids: %d", prefix, transferConnectoids.size()));
-      LOGGER.info(String.format("%s#transfer zones: %d (#centroids:", prefix, transferZones.size(), transferZones.getNumberOfCentroids()));
-      LOGGER.info(String.format("%s#transfer zone groups: %d", prefix, transferZoneGroups.size()));
+      LOGGER.info(String.format("%s #transfer connectoids: %d", prefix, transferConnectoids.size()));
+      LOGGER.info(String.format("%s #transfer zones: %d", prefix, transferZones.size(), transferZones.getNumberOfCentroids()));
+      LOGGER.info(String.format("%s #transfer zone groups: %d", prefix, transferZoneGroups.size()));
     }
   }
 
@@ -188,12 +231,39 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   }
 
   /**
-   * Access to the odZones container
+   * Access to the transferZones container
    * 
-   * @return odZones
+   * @return transferZones
    */
   public TransferZones getTransferZones() {
     return transferZones;
+  }
+
+  /**
+   * Access to the transferZoneGroups container
+   * 
+   * @return TranferZoneGroups
+   */
+  public TransferZoneGroups getTransferZoneGroups() {
+    return transferZoneGroups;
+  }
+
+  /**
+   * Access to the origin-destination connectoids container
+   * 
+   * @return od connectoids container
+   */
+  public UndirectedConnectoids getOdConnectoids() {
+    return this.odConnectoids;
+  }
+
+  /**
+   * Access to the transfer connectoids container
+   * 
+   * @return transfer connectoids container
+   */
+  public DirectedConnectoids getTransferConnectoids() {
+    return this.transferConnectoids;
   }
 
   /**
@@ -227,8 +297,24 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * {@inheritDoc}
    */
   @Override
-  public Zoning clone() {
-    return new Zoning(this);
+  public Zoning shallowClone() {
+    return new Zoning(this, false, null, null, null, null, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   */
+  @Override
+  public Zoning deepClone() {
+    return new Zoning(
+        this,
+        true,
+        new ManagedIdDeepCopyMapper<>(),
+        new ManagedIdDeepCopyMapper<>(),
+        new ManagedIdDeepCopyMapper<>(),
+        new ManagedIdDeepCopyMapper<>(),
+        new ManagedIdDeepCopyMapper<>());
   }
 
   /**
@@ -245,4 +331,47 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     this.transferZones.reset();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
+  }
+
+  /**
+   * Verify if od zones are present
+   *
+   * @return true when present, false otherwise
+   */
+  public boolean hasOdZones() {
+    return !getOdZones().isEmpty();
+  }
+
+  /**
+   * Verify if transfer zones are present
+   *
+   * @return true when present, false otherwise
+   */
+  public boolean hasTransferZones() {
+    return !getTransferZones().isEmpty();
+  }
+
+  /**
+   * Verify if transfer connectoids are present
+   *
+   * @return true when present, false otherwise
+   */
+  public boolean hasTransferConnectoids() {
+    return !getTransferConnectoids().isEmpty();
+  }
+
+  /**
+   * Verify if transfer connectoids are present
+   *
+   * @return true when present, false otherwise
+   */
+  public boolean hasOdConnectoids() {
+    return !getOdConnectoids().isEmpty();
+  }
 }

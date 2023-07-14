@@ -17,6 +17,6 @@ public interface ZoningWriter extends ConverterWriter<Zoning> {
   @Override
   default String getTypeDescription() {
     return "(OD/TRANSFER) ZONING";
-  }  
+  }
 
 }

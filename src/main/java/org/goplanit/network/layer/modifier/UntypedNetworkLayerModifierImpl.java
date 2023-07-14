@@ -5,12 +5,11 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
-import org.goplanit.graph.modifier.DirectedGraphModifierImpl;
+import org.goplanit.graph.directed.modifier.DirectedGraphModifierImpl;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.modifier.DirectedGraphModifier;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.misc.Pair;
@@ -33,23 +32,21 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   private static final Logger LOGGER = Logger.getLogger(UntypedNetworkLayerModifierImpl.class.getCanonicalName());
 
   /** the graph modifier to use to apply larger modifications */
-  protected DirectedGraphModifier graphModifier;
+  protected DirectedGraphModifierImpl graphModifier;
+
+  /** Access to the underlying graph registered on the modifier
+   *
+   * @return underlying directed graph */
+  protected UntypedDirectedGraphImpl<V,E,S> getUntypedDirectedGraph(){
+    return (UntypedDirectedGraphImpl<V, E, S>) graphModifier.getUntypedDirectedGraph();
+  }
 
   // PUBLIC
 
   /**
    * Constructor
    *
-   * @param graphModifier parent graph modifier
-   */
-  public UntypedNetworkLayerModifierImpl(final DirectedGraphModifier graphModifier) {
-    this.graphModifier = graphModifier;
-  }
-
-  /**
-   * Constructor
-   *
-   * @param graph parent graph to abse modifier on
+   * @param graph parent graph to base modifier on
    */
   public UntypedNetworkLayerModifierImpl(UntypedDirectedGraphImpl<V, E, S> graph) {
     this.graphModifier = new DirectedGraphModifierImpl(graph);
@@ -67,16 +64,26 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
    * @param nodeToBreakAt the node to break at
    * @param crs           to use to recompute link lengths of broken links
    * @return the broken links for each original link's internal id
-   * @throws PlanItException thrown if error
    */
   @Override
-  public Map<Long, Pair<E, E>> breakAt(List<E> linksToBreak, V nodeToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
+  public Map<Long, Pair<E, E>> breakAt(List<E> linksToBreak, V nodeToBreakAt, CoordinateReferenceSystem crs) {
     return graphModifier.breakEdgesAt(linksToBreak, nodeToBreakAt, crs);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateManagedIdEntities() {
+    graphModifier.recreateManagedEntitiesIds();
   }
 
   /**
    * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed. Also remove zoning entities that rely
    * solely on removed dangling network entities
+   * <p>
+   *   Should fire #RecreatedGraphEntitiesManagedIdsEvent after it has been executed
+   * </p>
    * 
    * @param belowSize         remove subnetworks below the given size
    * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)

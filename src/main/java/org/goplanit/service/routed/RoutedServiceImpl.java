@@ -1,8 +1,12 @@
 package org.goplanit.service.routed;
 
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.utils.service.routed.RoutedServiceTripInfo;
 
 /**
  * Implementation of a RoutedService instance based on the RoutedService interface
@@ -23,6 +27,9 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
   /** the trip information for this service */
   private final RoutedServiceTripInfo trips;
 
+  /** mode of the routed service */
+  private final Mode mode;
+
   /**
    * Generate id for instances of this class based on the token and class identifier
    * 
@@ -37,26 +44,32 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
    * Constructor
    * 
    * @param tokenId to use for id generation
+   * @param mode of the service
    */
-  public RoutedServiceImpl(final IdGroupingToken tokenId) {
+  public RoutedServiceImpl(final IdGroupingToken tokenId, final Mode mode) {
     super(generateId(tokenId));
     this.name = null;
     this.nameDescription = null;
     this.serviceDescription = null;
+    this.mode = mode;
     this.trips = new RoutedServiceTripInfoImpl(tokenId);
   }
 
   /**
    * Copy constructor
    * 
-   * @param routedServiceImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedServiceImpl(RoutedServiceImpl routedServiceImpl) {
-    super(routedServiceImpl);
-    this.name = routedServiceImpl.name;
-    this.nameDescription = routedServiceImpl.nameDescription;
-    this.serviceDescription = routedServiceImpl.serviceDescription;
-    this.trips = routedServiceImpl.trips.clone();
+  public RoutedServiceImpl(RoutedServiceImpl other, boolean deepCopy) {
+    super(other);
+    this.name = other.name;
+    this.nameDescription = other.nameDescription;
+    this.serviceDescription = other.serviceDescription;
+    this.mode = other.mode;
+
+    // container wrapper so requires clone also for shallow copy
+    this.trips = deepCopy ? other.trips.deepClone() : other.trips.shallowClone();
   }
 
   /**
@@ -73,8 +86,16 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
    * {@inheritDoc}
    */
   @Override
-  public RoutedServiceImpl clone() {
-    return new RoutedServiceImpl(this);
+  public RoutedServiceImpl shallowClone() {
+    return new RoutedServiceImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServiceImpl deepClone() {
+    return new RoutedServiceImpl(this, true);
   }
 
   /**
@@ -137,8 +158,24 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
    * {@inheritDoc}
    */
   @Override
+  public Mode getMode() {
+    return mode;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void resetChildManagedIdEntities() {
     this.trips.reset();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString(){
+    return String.format("id: %d XMLid: %s name: %s ", getId(), getXmlId(), getName());
   }
 
 }

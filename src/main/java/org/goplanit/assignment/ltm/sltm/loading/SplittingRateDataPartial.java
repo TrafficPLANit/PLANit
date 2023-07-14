@@ -1,13 +1,11 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
 import java.util.BitSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.TreeSet;
 
-import org.goplanit.utils.graph.EdgeSegment;
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.misc.HashUtils;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.ojalgo.array.Array1D;
 
 /**
@@ -23,7 +21,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
   /**
    * Nodes that are tracked to maintain their splitting rates available which might or might not be also potentially blocking
    */
-  private final Set<DirectedVertex> trackedNodes;
+  private final TreeSet<DirectedVertex> trackedNodes;
 
   /**
    * tracked nodes that are also marked as potentially blocking
@@ -33,7 +31,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
   /**
    * Splitting rates per potentially blocking node, entry, exit link combination where the key is the combined hash of the node and entry edge segment ids
    */
-  private final HashMap<Integer, Array1D<Double>> splittingRates = new HashMap<Integer, Array1D<Double>>();
+  private final MultiKeyMap<Object, Array1D<Double>> splittingRates = new MultiKeyMap<>();
 
   /**
    * Register splitting rates for given combination of node and entry segment
@@ -42,8 +40,10 @@ public class SplittingRateDataPartial implements SplittingRateData {
    * @param entrySegment            to use
    */
   private void registerSplittingRates(DirectedVertex potentiallyBlockingNode, EdgeSegment entrySegment) {
-    splittingRates.putIfAbsent(HashUtils.createCombinedHashCode(potentiallyBlockingNode.getId(), entrySegment.getId()),
-        Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.sizeOfExitEdgeSegments()));
+    var result = splittingRates.get(potentiallyBlockingNode, entrySegment);
+    if (result == null) {
+      splittingRates.put(potentiallyBlockingNode, entrySegment, Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.getNumberOfExitEdgeSegments()));
+    }
   }
 
   /**
@@ -53,7 +53,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
    */
   public SplittingRateDataPartial(int numberOfVertices) {
     super();
-    this.trackedNodes = new HashSet<DirectedVertex>();
+    this.trackedNodes = new TreeSet<DirectedVertex>();
     this.potentiallyBlockingNodes = new BitSet(numberOfVertices);
   }
 
@@ -79,7 +79,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
   public void registerTrackedNode(final DirectedVertex trackNode) {
     if (!trackedNodes.contains(trackNode)) {
       trackedNodes.add(trackNode);
-      for (EdgeSegment entrySegment : trackNode.getEntryEdgeSegments()) {
+      for (var entrySegment : trackNode.getEntryEdgeSegments()) {
         registerSplittingRates(trackNode, entrySegment);
       }
     }
@@ -105,7 +105,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
    * {@inheritDoc}
    */
   @Override
-  public Set<DirectedVertex> getTrackedNodes() {
+  public TreeSet<DirectedVertex> getTrackedNodes() {
     return trackedNodes;
   }
 
@@ -114,7 +114,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
    */
   @Override
   public Array1D<Double> getSplittingRates(final EdgeSegment entrySegment) {
-    return splittingRates.get(HashUtils.createCombinedHashCode(entrySegment.getDownstreamVertex().getId(), entrySegment.getId()));
+    return splittingRates.get(entrySegment.getDownstreamVertex(), entrySegment);
   }
 
   /**

@@ -1,5 +1,8 @@
 package org.goplanit.network;
 
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -39,6 +42,19 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
   }
 
   /**
+   * Copy constructor.
+   *
+   * @param other                   to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param modeMapper to use for tracking mapping between original and copied modes
+   * @param layerMapper to use for tracking mapping between original and copied layers
+   *
+   */
+  protected UntypedPhysicalNetwork(final UntypedPhysicalNetwork<L, LS> other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<L> layerMapper) {
+    super(other, deepCopy, modeMapper, layerMapper);
+  }
+
+  /**
    * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the internal ids if needed
    * 
    * @throws PlanItException thrown if error
@@ -61,4 +77,16 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
       infrastructureLayer.getLayerModifier().removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest);
     }
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract UntypedPhysicalNetwork shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract UntypedPhysicalNetwork deepClone();
 }

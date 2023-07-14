@@ -1,10 +1,14 @@
 package org.goplanit.network.layer.service;
 
+import org.goplanit.network.layer.physical.ConjugateNodesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegFactory;
 import org.goplanit.utils.network.layer.service.ServiceLegs;
+
+import java.util.function.BiConsumer;
 
 /**
  * Container class for managing service legs within a service network
@@ -39,13 +43,16 @@ public class ServiceLegsImpl extends ManagedIdEntitiesImpl<ServiceLeg> implement
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param serviceNodesImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ServiceLegsImpl(ServiceLegsImpl serviceNodesImpl) {
-    super(serviceNodesImpl);
-    this.serviceLegFactory = serviceNodesImpl.serviceLegFactory;
+  public ServiceLegsImpl(ServiceLegsImpl other, boolean deepCopy, BiConsumer<ServiceLeg,ServiceLeg> mapper) {
+    super(other, deepCopy, mapper);
+    this.serviceLegFactory =
+            new ServiceLegFactoryImpl(other.serviceLegFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -60,8 +67,24 @@ public class ServiceLegsImpl extends ManagedIdEntitiesImpl<ServiceLeg> implement
    * {@inheritDoc}
    */
   @Override
-  public ServiceLegsImpl clone() {
-    return new ServiceLegsImpl(this);
+  public ServiceLegsImpl shallowClone() {
+    return new ServiceLegsImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegsImpl deepClone() {
+    return new ServiceLegsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegsImpl deepCloneWithMapping(BiConsumer<ServiceLeg,ServiceLeg> mapper) {
+    return new ServiceLegsImpl(this, true, mapper);
   }
 
 }

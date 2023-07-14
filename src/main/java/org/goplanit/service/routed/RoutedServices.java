@@ -1,11 +1,18 @@
 package org.goplanit.service.routed;
 
 import java.io.Serializable;
+import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
+import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.utils.service.routed.RoutedServicesLayer;
+import org.goplanit.utils.service.routed.RoutedServicesLayers;
 
 /**
  * Routed services are service that follow a predefined paths (route) on a service network layer that are offered as a service of some sort, i.e., it either follows a schedule or a
@@ -55,20 +62,48 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
   /**
    * Copy constructor
    * 
-   * @param routedServices to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedServices(final RoutedServices routedServices) {
-    super(routedServices);
-    this.parentServiceNetwork = routedServices.parentServiceNetwork;
-    this.layers = routedServices.layers.clone();
+  public RoutedServices(final RoutedServices other, boolean deepCopy, BiConsumer<RoutedServicesLayer, RoutedServicesLayer> mapper) {
+    super(other, deepCopy);
+    this.parentServiceNetwork = other.parentServiceNetwork;
+
+    // container wrappers so require clone always
+    this.layers = deepCopy ? other.layers.deepCloneWithMapping(mapper) : other.layers.shallowClone();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public PlanitComponent<RoutedServices> clone() {
-    return new RoutedServices(this);
+  public PlanitComponent<RoutedServices> shallowClone() {
+    return new RoutedServices(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PlanitComponent<RoutedServices> deepClone() {
+    return new RoutedServices(this, true, new ManagedIdDeepCopyMapper<>());
+  }
+
+  /**
+   * reset by removing all layers and what is in them
+   */
+  @Override
+  public void reset() {
+    layers.reset();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
   /**
@@ -89,12 +124,12 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
     return layers;
   }
 
-  /**
-   * reset by removing all layers and what is in them
-   */
-  @Override
-  public void reset() {
-    layers.reset();
+  /** Log the stats for the routed services , e.g., the layers and their aggregate contents
+   *
+   * @param prefix to apply
+   * */
+  public void logInfo(String prefix) {
+    LOGGER.info(String.format("%s XML id %s (external id: %s) has %d layers", prefix, getXmlId(), getExternalId(), getLayers().size()));
+    getLayers().forEach( layer -> layer.logInfo(prefix.concat(LoggingUtils.routedServiceLayerPrefix(layer.getId()))));
   }
-
 }

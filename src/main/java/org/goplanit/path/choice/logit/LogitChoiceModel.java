@@ -34,15 +34,21 @@ public abstract class LogitChoiceModel extends PlanitComponent<LogitChoiceModel>
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected LogitChoiceModel(LogitChoiceModel other) {
-    super(other);
+  protected LogitChoiceModel(LogitChoiceModel other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract LogitChoiceModel clone();
+  public abstract LogitChoiceModel shallowClone();
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract LogitChoiceModel deepClone();
 }

@@ -1,10 +1,10 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
-import java.util.Set;
+import java.util.TreeSet;
 
-import org.ojalgo.array.Array1D;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.ojalgo.array.Array1D;
 
 /**
  * Interface for the different implementations that track splitting rates during sLTM network loading.
@@ -41,7 +41,7 @@ public interface SplittingRateData {
    * 
    * @return registered potentially blocking nodes
    */
-  public abstract Set<DirectedVertex> getTrackedNodes();
+  public abstract TreeSet<DirectedVertex> getTrackedNodes();
 
   /**
    * Obtain the downstream splitting rates of given node entry segment (can be modified)
@@ -61,7 +61,7 @@ public interface SplittingRateData {
   public default double getSplittingRate(EdgeSegment entrySegment, EdgeSegment exitSegment) {
     Array1D<Double> vertexSplittingRates = getSplittingRates(entrySegment);
     int index = 0;
-    for (EdgeSegment currExitSegment : entrySegment.getDownstreamVertex().getExitEdgeSegments()) {
+    for (var currExitSegment : entrySegment.getDownstreamVertex().getExitEdgeSegments()) {
       if (currExitSegment.idEquals(exitSegment)) {
         return vertexSplittingRates.get(index);
       }

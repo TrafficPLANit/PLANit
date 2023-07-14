@@ -41,7 +41,7 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
     super();
     this.maxSpeedKmH = maxSpeedKmH;
     this.criticalSpeedKmH = criticalSpeedKmH;
-    this.supportedModes = new TreeSet<Mode>(accessModes);
+    this.supportedModes = new TreeSet<>(accessModes);
   }
 
   /**
@@ -81,7 +81,7 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
     super();
     this.maxSpeedKmH = maxSpeedKmH;
     this.criticalSpeedKmH = null;
-    this.supportedModes = new TreeSet<Mode>(Arrays.asList(accessModes));
+    this.supportedModes = new TreeSet<>(Arrays.asList(accessModes));
   }
 
   /**
@@ -92,7 +92,7 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
   public AccessGroupPropertiesImpl(Collection<Mode> accessModes) {
     this.criticalSpeedKmH = null;
     this.maxSpeedKmH = null;
-    this.supportedModes = new TreeSet<Mode>(accessModes);
+    this.supportedModes = new TreeSet<>(accessModes);
   }
 
   // Getter - setters
@@ -101,11 +101,13 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public AccessGroupPropertiesImpl(final AccessGroupPropertiesImpl other) {
+  public AccessGroupPropertiesImpl(final AccessGroupPropertiesImpl other, boolean deepCopy /* no impact yet */) {
+    super();
     this.maxSpeedKmH = other.maxSpeedKmH;
     this.criticalSpeedKmH = other.criticalSpeedKmH;
-    this.supportedModes = new TreeSet<Mode>(other.supportedModes);
+    this.supportedModes = new TreeSet<>(other.supportedModes);
   }
 
   /**
@@ -144,8 +146,16 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
    * {@inheritDoc}
    */
   @Override
-  public AccessGroupProperties clone() {
-    return new AccessGroupPropertiesImpl(this);
+  public AccessGroupProperties shallowClone() {
+    return new AccessGroupPropertiesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public AccessGroupProperties deepClone() {
+    return new AccessGroupPropertiesImpl(this, true);
   }
 
   /**
@@ -169,7 +179,21 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
    */
   @Override
   public boolean isEqualExceptForModes(AccessGroupProperties accessProperties) {
-    return Precision.isEqual(getMaximumSpeedKmH(), accessProperties.getMaximumSpeedKmH()) && Precision.isEqual(getCriticalSpeedKmH(), accessProperties.getCriticalSpeedKmH());
+    boolean maxSpeedEqual = false;
+    if(getMaximumSpeedKmH() ==null || accessProperties.getMaximumSpeedKmH() == null){
+      maxSpeedEqual = getMaximumSpeedKmH() ==null && accessProperties.getMaximumSpeedKmH() == null;
+    }else{
+      maxSpeedEqual = Precision.equal(getMaximumSpeedKmH(), accessProperties.getMaximumSpeedKmH());
+    }
+
+    boolean critSpeedEqual = false;
+    if(getCriticalSpeedKmH()==null || accessProperties.getCriticalSpeedKmH()==null){
+      critSpeedEqual = getCriticalSpeedKmH()==null && accessProperties.getCriticalSpeedKmH()==null;
+    }else{
+      critSpeedEqual = Precision.equal(getCriticalSpeedKmH(), accessProperties.getCriticalSpeedKmH());
+    }
+
+    return maxSpeedEqual && critSpeedEqual;
   }
 
   /**
@@ -181,6 +205,21 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
   @Override
   public void addAccessMode(Mode mode) {
     this.supportedModes.add(mode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("Modes: [");
+    this.supportedModes.forEach(m -> sb.append(m.toString()).append(","));
+    sb.deleteCharAt(sb.length() - 1);
+    sb.append("] maxSpeed (km/h): ");
+    sb.append(getMaximumSpeedOrDefaultKmH(-1));
+    sb.append(" critSpeed (km/h): ");
+    sb.append(getCriticalSpeedOrDefaultKmH(-1));
+    return sb.toString();
   }
 
 }

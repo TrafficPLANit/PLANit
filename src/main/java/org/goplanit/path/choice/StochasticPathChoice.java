@@ -45,11 +45,12 @@ public abstract class StochasticPathChoice extends PathChoice {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected StochasticPathChoice(final StochasticPathChoice other) {
-    super(other);
-    this.logitChoiceModel = other.logitChoiceModel;
-    this.odPathSet = other.odPathSet;
+  protected StochasticPathChoice(final StochasticPathChoice other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.logitChoiceModel = other.logitChoiceModel; // not owned
+    this.odPathSet = other.odPathSet;               // not owned
   }
 
   /**
@@ -74,6 +75,12 @@ public abstract class StochasticPathChoice extends PathChoice {
    * {@inheritDoc}
    */
   @Override
-  public abstract StochasticPathChoice clone();
+  public abstract StochasticPathChoice shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract StochasticPathChoice deepClone();
 
 }

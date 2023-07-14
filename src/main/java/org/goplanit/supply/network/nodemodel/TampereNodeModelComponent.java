@@ -1,5 +1,7 @@
 package org.goplanit.supply.network.nodemodel;
 
+import java.util.Map;
+
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -27,17 +29,26 @@ public class TampereNodeModelComponent extends NodeModelComponent {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public TampereNodeModelComponent(final TampereNodeModelComponent other) {
-    super(other);
+  public TampereNodeModelComponent(final TampereNodeModelComponent other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public TampereNodeModelComponent clone() {
-    return new TampereNodeModelComponent(this);
+  public TampereNodeModelComponent shallowClone() {
+    return new TampereNodeModelComponent(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TampereNodeModelComponent deepClone() {
+    return new TampereNodeModelComponent(this, true);
   }
 
   /**
@@ -46,6 +57,14 @@ public class TampereNodeModelComponent extends NodeModelComponent {
   @Override
   public void reset() {
     // nothing to reset
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
 }

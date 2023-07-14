@@ -1,7 +1,7 @@
 package org.goplanit.converter.network;
 
 import org.goplanit.converter.ConverterReader;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 
 /**
  * Interface to read a PLANit network
@@ -9,7 +9,7 @@ import org.goplanit.network.TransportLayerNetwork;
  * @author markr
  *
  */
-public interface NetworkReader extends ConverterReader<TransportLayerNetwork<?,?>> {
+public interface NetworkReader extends ConverterReader<LayeredNetwork<?,?>> {
 
   /**
    * {@inheritDoc}

@@ -1,6 +1,7 @@
 package org.goplanit.mode;
 
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.mode.PhysicalModeFeatures;
 import org.goplanit.utils.mode.PredefinedMode;
 import org.goplanit.utils.mode.PredefinedModeType;
@@ -29,12 +30,27 @@ public class PredefinedModeImpl extends ModeImpl implements PredefinedMode {
    * @param physicalFeatures  physical features of the mode
    * @param usabilityFeatures usabilitu features of the mode
    */
-  protected PredefinedModeImpl(IdGroupingToken groupId, PredefinedModeType modeType, double maxSpeed, double pcu, PhysicalModeFeatures physicalFeatures,
-      UsabilityModeFeatures usabilityFeatures) {
-    super(groupId, modeType.value(), maxSpeed, pcu, physicalFeatures, usabilityFeatures);
+  protected PredefinedModeImpl(
+          IdGroupingToken groupId,
+          PredefinedModeType modeType,
+          double maxSpeed,
+          double pcu,
+          PhysicalModeFeatures physicalFeatures,
+          UsabilityModeFeatures usabilityFeatures) {
+    super(groupId, modeType.value(), maxSpeed, pcu, (PhysicalModeFeaturesImpl) physicalFeatures, (UsabilityModeFeaturesImpl) usabilityFeatures);
     this.modeType = modeType;
     /* Xml id is always its predefined mode type value (name) */
     setXmlId(modeType.value());
+  }
+
+  /**
+   * Copy constructor
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected PredefinedModeImpl(final PredefinedModeImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.modeType = other.modeType;
   }
 
   /**
@@ -47,4 +63,27 @@ public class PredefinedModeImpl extends ModeImpl implements PredefinedMode {
     return modeType;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString(){
+    return modeType.toString();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PredefinedModeImpl shallowClone() {
+    return new PredefinedModeImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PredefinedModeImpl deepClone() {
+    return new PredefinedModeImpl(this, true);
+  }
 }

@@ -1,8 +1,12 @@
 package org.goplanit.gap;
 
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.reflection.ReflectionUtils;
 
 /**
  * Gap function based on the norm, e.g. ||x||_p where p indicates which norm (norm 1, norm 2 etc) and x represents a vector of differences between two values. When averaged
@@ -70,9 +74,10 @@ public class NormBasedGapFunction extends GapFunction {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public NormBasedGapFunction(NormBasedGapFunction other) {
-    super(other);
+  public NormBasedGapFunction(NormBasedGapFunction other, boolean deepCopy) {
+    super(other, deepCopy);
     this.averaged = other.averaged;
     this.count = other.count;
     this.gap = other.gap;
@@ -188,11 +193,31 @@ public class NormBasedGapFunction extends GapFunction {
    * {@inheritDoc}
    */
   @Override
-  public NormBasedGapFunction clone() {
-    return new NormBasedGapFunction(this);
+  public NormBasedGapFunction shallowClone() {
+    return new NormBasedGapFunction(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public NormBasedGapFunction deepClone() {
+    return new NormBasedGapFunction(this, true);
   }
 
   // GETTERS - SETTERS
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    var keyValueMap = new HashMap<String, String>(super.collectSettingsAsKeyValueMap());
+    
+    var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(this, i -> Modifier.isProtected(i) && !Modifier.isStatic(i));
+    privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
+    return keyValueMap;
+  }
 
   public int getNorm() {
     return norm;

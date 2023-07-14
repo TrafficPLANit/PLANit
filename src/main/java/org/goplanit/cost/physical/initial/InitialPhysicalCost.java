@@ -7,6 +7,7 @@ import org.goplanit.cost.physical.PhysicalCost;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -15,7 +16,7 @@ import org.goplanit.utils.time.TimePeriod;
  * @author gman6028, markr
  *
  */
-public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysicalCost> implements PhysicalCost, Serializable {
+public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysicalCost> implements PhysicalCost<MacroscopicLinkSegment>, Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = -7894043964147010621L;
@@ -33,9 +34,10 @@ public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysica
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public InitialPhysicalCost(InitialPhysicalCost other) {
-    super(other);
+  public InitialPhysicalCost(InitialPhysicalCost other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -100,5 +102,17 @@ public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysica
    * @return cost the initial cost for this mode and link segment
    */
   public abstract double getSegmentCost(final TimePeriod timePeriod, final Mode mode, final MacroscopicLinkSegment linkSegment);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract InitialPhysicalCost shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract InitialPhysicalCost deepClone();
 
 }

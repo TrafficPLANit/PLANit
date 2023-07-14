@@ -1,25 +1,30 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.BitSet;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.loading.SplittingRateData;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
+import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
-import org.goplanit.network.virtual.VirtualNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.time.TimePeriod;
+import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.utils.zoning.Zone;
 
 /**
  * Base class for dealing with different assignment solution methods within sLTM. These solution methods differ regarding their approach to representing path choices, e.g. bush
@@ -59,6 +64,14 @@ public abstract class StaticLtmAssignmentStrategy {
 
   /** the user configured traffic assignment components used */
   private final TrafficAssignmentComponentAccessee taComponents;
+
+  /**
+   * Track which nodes were potentially blocking in previous iteration to ensure costs are updated for these nodes even when they are no longer blocking in the current iteration
+   */
+  private final BitSet prevIterationPotentiallyBlocking;
+
+  /** have a mapping between zone and connectoid to the layer by means of its centroid vertex */
+  private Map<Zone, CentroidVertex> zone2VertexMapping;
 
   /**
    * The transport model network used
@@ -143,6 +156,15 @@ public abstract class StaticLtmAssignmentStrategy {
     return taComponents.getTrafficAssignmentComponent(taComponentClassKey);
   }
 
+  /** map zone to centroid vertex
+   *
+   * @param zone to map
+   * @return vertex found
+   */
+  protected CentroidVertex findCentroidVertex(OdZone zone){
+    return zone2VertexMapping.get(zone);
+  }
+
   /**
    * Verify convergence progress and if insufficient attempt to activate one or more extensions to overcome convergence difficulties
    * 
@@ -160,7 +182,7 @@ public abstract class StaticLtmAssignmentStrategy {
       if (!changedScheme) {
         LOGGER.warning(
             String.format("%sDetected network loading is not converging as expected (internal loading iteration %d) - unable to activate further extensions, consider aborting",
-                LoggingUtils.createRunIdPrefix(getAssignmentId()), networkLoadingIterationIndex));
+                LoggingUtils.runIdPrefix(getAssignmentId()), networkLoadingIterationIndex));
       }
     }
   }
@@ -203,6 +225,54 @@ public abstract class StaticLtmAssignmentStrategy {
   protected abstract StaticLtmNetworkLoading createNetworkLoading();
 
   /**
+   * Perform an update of the network wide costs where a partial update is applied in case only potentially blocking nodes are updated during the loading
+   * 
+   * @param theMode                                to perform the update for
+   * @param updateOnlyPotentiallyBlockingNodeCosts flag indicating if only the costs of the entry link segments of potentially blocking nodes are to be updated, or all link segment
+   *                                               costs are to be updated
+   * @param costsToUpdate                          the network wide costs to update (fully or partially), this is an output
+   * @throws PlanItException thrown if error
+   */
+  protected void executeNetworkCostsUpdate(Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts, double[] costsToUpdate) throws PlanItException {
+
+    final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
+    final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
+    SplittingRateData splittingRateData = getLoading().getSplittingRateData();
+    if (updateOnlyPotentiallyBlockingNodeCosts) {
+
+      MacroscopicNetworkLayer networkLayer = getInfrastructureNetwork().getLayerByMode(theMode);
+      VirtualNetwork virtualLayer = getTransportNetwork().getZoning().getVirtualNetwork();
+
+      /* only update when node is both (flow) tracked as well as potentially blocking */
+      boolean currentlyPotentiallyBlocking = false;
+      for (var trackedFlowNode : splittingRateData.getTrackedNodes()) {
+        currentlyPotentiallyBlocking = splittingRateData.isPotentiallyBlocking(trackedFlowNode);
+        if (!currentlyPotentiallyBlocking && !prevIterationPotentiallyBlocking.get((int) trackedFlowNode.getId())) {
+          continue;
+        }
+
+        /* entry segments */
+        networkLayer.getLinkSegments().forEachMatchingIdIn(trackedFlowNode.getEntryEdgeSegments(),
+            (es) -> costsToUpdate[(int) es.getId()] = physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) es));
+        virtualLayer.getConnectoidSegments().forEachMatchingIdIn(trackedFlowNode.getEntryEdgeSegments(),
+            (es) -> costsToUpdate[(int) es.getId()] = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es));
+
+        prevIterationPotentiallyBlocking.set((int) trackedFlowNode.getId(), currentlyPotentiallyBlocking);
+      }
+    }
+    /* OTHER -> all nodes (and attached links) are updated, update all costs */
+    else {
+
+      /* virtual cost */
+      virtualCost.populateWithCost(getTransportNetwork().getVirtualNetwork(), theMode, costsToUpdate);
+
+      /* physical cost */
+      physicalCost.populateWithCost(getInfrastructureNetwork().getLayerByMode(theMode), theMode, costsToUpdate);
+
+    }
+  }
+
+  /**
    * Constructor
    * 
    * @param idGroupingToken       to use for id generation
@@ -218,6 +288,11 @@ public abstract class StaticLtmAssignmentStrategy {
     this.idGroupingToken = idGroupingToken;
     this.settings = settings;
     this.taComponents = taComponents;
+    this.prevIterationPotentiallyBlocking = new BitSet(transportModelNetwork.getNumberOfVerticesAllLayers());
+
+    /* construct mapping from OdZone to centroidVertex which is needed for path finding among other things, where we get an OD but need to find a path from
+     * centroid vertex to centroid vertex */
+    this.zone2VertexMapping = transportModelNetwork.createZoneToCentroidVertexMapping(true /*include OdZones */, false /* exclude transfer zones */);
   }
 
   /**
@@ -231,6 +306,18 @@ public abstract class StaticLtmAssignmentStrategy {
     this.networkLoading = createNetworkLoading();
     this.networkLoading.initialiseInputs(mode, odDemands, getTransportNetwork());
     setOdDemands(odDemands);
+  }
+
+  /**
+   * Verify if assignment has converged, which, means computing ths gap and determining if it has converged in this iteration in this default setup
+   * 
+   * @param gapFunction    to use
+   * @param iterationIndex to use
+   * @return true when considered converged, false otherwise
+   */
+  public boolean hasConverged(GapFunction gapFunction, int iterationIndex) {
+    gapFunction.computeGap();
+    return gapFunction.hasConverged(iterationIndex);
   }
 
   /**
@@ -249,50 +336,6 @@ public abstract class StaticLtmAssignmentStrategy {
    * @return true when iteration could be successfully completed, false otherwise
    */
   public abstract boolean performIteration(final Mode theMode, final double[] costsToUpdate, int iterationIndex);
-
-  /**
-   * Perform an update of the network wide costs where a partial update is applied in case only potentially blocking nodes are updated during the loading
-   * 
-   * @param theMode                                to perform the update for
-   * @param updateOnlyPotentiallyBlockingNodeCosts flag indicating if only the costs of the entry link segments of potentially blocking nodes are to be updated, or all link segment
-   *                                               costs are to be updated
-   * @param costsToUpdate                          the network wide costs to update (fully or partially), this is an output
-   * @throws PlanItException thrown if error
-   */
-  public void executeNetworkCostsUpdate(Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts, double[] costsToUpdate) throws PlanItException {
-
-    final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
-    final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
-    SplittingRateData splittingRateData = getLoading().getSplittingRateData();
-    if (updateOnlyPotentiallyBlockingNodeCosts) {
-
-      MacroscopicNetworkLayer networkLayer = getInfrastructureNetwork().getLayerByMode(theMode);
-      VirtualNetwork virtualLayer = getTransportNetwork().getZoning().getVirtualNetwork();
-
-      /* only update when node is both (flow) tracked as well as potentially blocking */
-      for (DirectedVertex trackedFlowNode : splittingRateData.getTrackedNodes()) {
-        if (!splittingRateData.isPotentiallyBlocking(trackedFlowNode)) {
-          continue;
-        }
-
-        /* entry segments */
-        networkLayer.getLinkSegments().forEachMatchingIdIn(trackedFlowNode.getEntryEdgeSegments(),
-            (es) -> costsToUpdate[(int) es.getId()] = physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) es));
-        virtualLayer.getConnectoidSegments().forEachMatchingIdIn(trackedFlowNode.getEntryEdgeSegments(),
-            (es) -> costsToUpdate[(int) es.getId()] = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es));
-      }
-    }
-    /* OTHER -> all nodes (and attached links) are updated, update all costs */
-    else {
-
-      /* virtual cost */
-      virtualCost.populateWithCost(getTransportNetwork().getVirtualNetwork(), theMode, costsToUpdate);
-
-      /* physical cost */
-      physicalCost.populateWithCost(getInfrastructureNetwork().getLayerByMode(theMode), theMode, costsToUpdate);
-
-    }
-  }
 
   /**
    * Description of the chosen sLTM strategy for equilibration

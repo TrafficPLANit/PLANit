@@ -1,5 +1,6 @@
 package org.goplanit.mode;
 
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
@@ -45,13 +46,15 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
   }
 
   /**
-   * Copy Constructor
+   * Copy Constructor, also creates a new factory with reference to this container
    * 
-   * @param modesImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public ModesImpl(ModesImpl modesImpl) {
-    super(modesImpl);
-    this.modeFactory = modesImpl.modeFactory;
+  public ModesImpl(ModesImpl other, boolean deepCopy, BiConsumer<Mode,Mode> mapper) {
+    super(other, deepCopy, mapper);
+    this.modeFactory = new ModeFactoryImpl(other.modeFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -67,7 +70,7 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    */
   @Override
   public PredefinedMode get(PredefinedModeType modeType) {
-    return (PredefinedMode) getMap().values().stream().dropWhile(mode -> !((mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()))).findFirst().get();
+    return (PredefinedMode) getMap().values().stream().dropWhile(mode -> !((mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()))).findFirst().orElse(null);
   }
 
   /**
@@ -75,15 +78,31 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    */
   @Override
   public Mode getByXmlId(String xmlId) {
-    return findFirst(mode -> xmlId.equals(((Mode) mode).getXmlId()));
+    return firstMatch(mode -> xmlId.equals(((Mode) mode).getXmlId()));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ModesImpl clone() {
-    return new ModesImpl(this);
+  public ModesImpl shallowClone() {
+    return new ModesImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ModesImpl deepClone() {
+    return new ModesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ModesImpl deepCloneWithMapping(BiConsumer<Mode,Mode> mapper) {
+    return new ModesImpl(this, true, mapper);
   }
 
   /**

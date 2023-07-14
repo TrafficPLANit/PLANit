@@ -14,4 +14,8 @@ public interface ConverterReaderSettings {
    */
   public abstract void reset();
 
+  /**
+   * Log relevant settings
+   */
+  public abstract void logSettings();
 }

@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.physical.PhysicalCostConfigurator;
 import org.goplanit.cost.physical.PhysicalCostConfiguratorFactory;
-import org.goplanit.cost.physical.initial.InitialLinkSegmentCost;
+import org.goplanit.cost.physical.initial.InitialMacroscopicLinkSegmentCost;
 import org.goplanit.cost.physical.initial.InitialModesLinkSegmentCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.cost.virtual.VirtualCostConfigurator;
@@ -15,7 +15,7 @@ import org.goplanit.demands.Demands;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.GapFunctionConfigurator;
 import org.goplanit.gap.GapFunctionConfiguratorFactory;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.output.OutputManager;
 import org.goplanit.output.configuration.OutputConfiguration;
 import org.goplanit.output.configuration.OutputTypeConfiguration;
@@ -24,10 +24,10 @@ import org.goplanit.output.formatter.OutputFormatter;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.sdinteraction.smoothing.SmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.SmoothingConfiguratorFactory;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.builder.Configurator;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.time.TimePeriod;
+import org.goplanit.zoning.Zoning;
 
 /**
  * Configurator class for traffic assignment. Hides builder pattern from user while allowing for easy way to configure an assignment without having actual access to it.
@@ -58,6 +58,9 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
 
   protected static final String SET_DEMANDS = "setDemands";
 
+  /** flag indicating if settings are to be logged upon building the component or not */
+  protected boolean logSettings = TrafficAssignmentBuilder.LOG_SETTINGS;
+
   /**
    * Nested configurator for smoothing within this assignment
    */
@@ -83,7 +86,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @param network to set
    */
-  protected void setInfrastructureNetwork(TransportLayerNetwork<?, ?> network) {
+  protected void setInfrastructureNetwork(LayeredNetwork<?, ?> network) {
     registerDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK, network);
   }
 
@@ -137,12 +140,12 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @return network
    */
-  public TransportLayerNetwork<?, ?> getInfrastructureNetwork() {
-    return (TransportLayerNetwork<?, ?>) getFirstParameterOfDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK);
+  public LayeredNetwork<?, ?> getInfrastructureNetwork() {
+    return (LayeredNetwork<?, ?>) getFirstParameterOfDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK);
   }
 
   /**
-   * collect the registered zoning
+   * Get the registered zoning
    * 
    * @return zoning
    */
@@ -151,12 +154,30 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   }
 
   /**
-   * collect the registered demands
+   * Get the registered demands
    * 
    * @return demands
    */
   public Demands getDemands() {
     return (Demands) getFirstParameterOfDelayedMethodCall(SET_DEMANDS);
+  }
+
+  /**
+   * Set the flag for logging all settings
+   * 
+   * @param flag to set
+   */
+  public void setLogSettings(boolean flag) {
+    this.logSettings = flag;
+  }
+
+  /**
+   * Get the flag for logging all settings
+   * 
+   * @return true when logging false otherwise
+   */
+  public boolean isLogSettings() {
+    return this.logSettings;
   }
 
   /**
@@ -243,10 +264,10 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    *
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    */
-  public void registerInitialLinkSegmentCost(InitialLinkSegmentCost initialLinkSegmentCost) {
+  public void registerInitialLinkSegmentCost(InitialMacroscopicLinkSegmentCost initialLinkSegmentCost) {
     registerInitialLinkSegmentCost(initialLinkSegmentCost.getTimePeriodAgnosticCosts());
     if (initialLinkSegmentCost.getTimePeriods() != null) {
-      for (TimePeriod timePeriod : initialLinkSegmentCost.getTimePeriods()) {
+      for (var timePeriod : initialLinkSegmentCost.getTimePeriods()) {
         registerInitialLinkSegmentCost(initialLinkSegmentCost.getTimePeriodCosts(timePeriod));
       }
     }

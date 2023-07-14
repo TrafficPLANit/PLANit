@@ -2,9 +2,8 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.ShortestPathResult;
+import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
+import org.goplanit.algorithms.shortest.ShortestPathOneToAll;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -12,15 +11,12 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.path.OdPaths;
 import org.goplanit.od.path.OdPathsHashed;
-import org.goplanit.path.DirectedPathFactoryImpl;
-import org.goplanit.zoning.Zoning;
-import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.path.DirectedPath;
-import org.goplanit.utils.path.DirectedPathFactory;
-import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.utils.path.ManagedDirectedPathFactory;
+import org.goplanit.zoning.Zoning;
 
 /**
  * Implementation to deal with a path based sLTM implementation
@@ -41,19 +37,18 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * 
    * @param currentSegmentCosts costs to use for the shortest path algorithm
    * @return create odPaths
-   * @throws PlanItException thrown if error
    */
-  private OdPaths createOdPaths(final double[] currentSegmentCosts) throws PlanItException {
-    final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(currentSegmentCosts, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers(),
-        getTransportNetwork().getNumberOfVerticesAllLayers());
-    DirectedPathFactory pathFactory = new DirectedPathFactoryImpl(getIdGroupingToken());
+  private OdPaths createOdPaths(final double[] currentSegmentCosts) {
+    final ShortestPathOneToAll shortestPathAlgorithm = new ShortestPathDijkstra(currentSegmentCosts, getTransportNetwork().getNumberOfVerticesAllLayers());
+    ManagedDirectedPathFactory pathFactory = new ManagedDirectedPathFactoryImpl(getIdGroupingToken());
     OdPaths odPaths = new OdPathsHashed(getIdGroupingToken(), getTransportNetwork().getZoning().getOdZones());
 
     Zoning zoning = getTransportNetwork().getZoning();
     OdDemands odDemands = getOdDemands();
-    for (OdZone origin : zoning.getOdZones()) {
-      ShortestPathResult oneToAllResult = shortestPathAlgorithm.executeOneToAll(origin.getCentroid());
-      for (OdZone destination : zoning.getOdZones()) {
+    for (var origin : zoning.getOdZones()) {
+      var originVertex = findCentroidVertex(origin);
+      var oneToAllResult = shortestPathAlgorithm.executeOneToAll(originVertex);
+      for (var destination : zoning.getOdZones()) {
         if (destination.idEquals(origin)) {
           continue;
         }
@@ -61,9 +56,10 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         /* for positive demand on OD generate the shortest path under given costs */
         Double currOdDemand = odDemands.getValue(origin, destination);
         if (currOdDemand != null && currOdDemand > 0) {
-          DirectedPath path = oneToAllResult.createPath(pathFactory, origin.getCentroid(), destination.getCentroid());
+          var destinationVertex = findCentroidVertex(destination);
+          var path = oneToAllResult.createPath(pathFactory, originVertex,destinationVertex);
           if (path == null) {
-            LOGGER.warning(String.format("%sUnable to create path for OD (%s,%s) with non-zero demand (%.2f)", LoggingUtils.createRunIdPrefix(getAssignmentId()), origin.getXmlId(),
+            LOGGER.warning(String.format("%sUnable to create path for OD (%s,%s) with non-zero demand (%.2f)", LoggingUtils.runIdPrefix(getAssignmentId()), origin.getXmlId(),
                 destination.getXmlId(), currOdDemand));
             continue;
           }
@@ -144,7 +140,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    */
   @Override
   public String getDescription() {
-    return "{Path-based";
+    return "Path-based";
   }
 
 }

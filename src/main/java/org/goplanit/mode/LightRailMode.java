@@ -48,4 +48,29 @@ public class LightRailMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.LIGHTRAIL, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, LIGHTRAIL_PHYSICAL_FEATURES, LIGHTRAIL_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected LightRailMode(LightRailMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LightRailMode shallowClone() {
+    return new LightRailMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LightRailMode deepClone() {
+    return new LightRailMode(this, true);
+  }
 }

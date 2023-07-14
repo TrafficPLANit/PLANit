@@ -3,7 +3,7 @@ package org.goplanit.converter.network;
 import java.util.logging.Logger;
 
 import org.goplanit.converter.Converter;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 
 /**
  * Network converter class able to convert a network from one type to another
@@ -11,7 +11,7 @@ import org.goplanit.network.TransportLayerNetwork;
  * @author markr
  *
  */
-public class NetworkConverter extends Converter<TransportLayerNetwork<?,?>> {
+public class NetworkConverter extends Converter<LayeredNetwork<?,?>> {
 
   /** the logger */
   @SuppressWarnings("unused")

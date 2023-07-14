@@ -1,10 +1,17 @@
 package org.goplanit.graph.directed;
 
 import org.goplanit.graph.GraphEntitiesImpl;
+import org.goplanit.utils.graph.GraphEntities;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedEdgeFactory;
 import org.goplanit.utils.graph.directed.DirectedEdges;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of DirectedEdges interface
@@ -38,13 +45,16 @@ public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implement
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates a new factory with reference to this container
    * 
    * @param directedEdgesImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param biConsumer when deepCopy applied to each original and copy, may be null
    */
-  public DirectedEdgesImpl(DirectedEdgesImpl directedEdgesImpl) {
-    super(directedEdgesImpl);
-    this.directedEdgeFactory = directedEdgesImpl.directedEdgeFactory;
+  public DirectedEdgesImpl(DirectedEdgesImpl directedEdgesImpl, boolean deepCopy, BiConsumer<DirectedEdge, DirectedEdge> biConsumer) {
+    super(directedEdgesImpl, deepCopy, biConsumer);
+    this.directedEdgeFactory =
+            new DirectedEdgeFactoryImpl(directedEdgesImpl.directedEdgeFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -59,8 +69,24 @@ public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implement
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdgesImpl clone() {
-    return new DirectedEdgesImpl(this);
+  public DirectedEdgesImpl shallowClone() {
+    return new DirectedEdgesImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedEdgesImpl deepClone() {
+    return new DirectedEdgesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedEdgesImpl deepCloneWithMapping(BiConsumer<DirectedEdge, DirectedEdge> mapper) {
+    return new DirectedEdgesImpl(this, true, mapper);
   }
 
 }

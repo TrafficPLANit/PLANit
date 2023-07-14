@@ -3,10 +3,12 @@ package org.goplanit.network.layer.physical;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.DirectedEdgeImpl;
+import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.physical.Link;
-import org.goplanit.utils.network.layer.physical.Node;
 
 /**
  * Link class connecting two nodes via some geometry. Each link has one or two underlying link segments in a particular direction which may carry additional information for each
@@ -15,7 +17,7 @@ import org.goplanit.utils.network.layer.physical.Node;
  * @author markr
  *
  */
-public class LinkImpl extends DirectedEdgeImpl implements Link {
+public class LinkImpl<N extends DirectedVertex, LS extends EdgeSegment> extends DirectedEdgeImpl<N, LS> implements Link {
 
   // Protected
 
@@ -62,13 +64,14 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
   }
 
   /**
-   * Copy constructor, geometry is deep copied, see also {@code DirectedEdge} copy constructed
+   * Copy constructor
    * 
-   * @param linkImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected LinkImpl(LinkImpl linkImpl) {
-    super(linkImpl);
-    setLinkId(linkImpl.getLinkId());
+  protected LinkImpl(LinkImpl<N, LS> other, boolean deepCopy) {
+    super(other, deepCopy);
+    setLinkId(other.getLinkId());
   }
 
   /**
@@ -78,7 +81,7 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * @param nodeA    the first node in the link
    * @param nodeB    the second node in the link
    */
-  protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB) {
+  protected LinkImpl(final IdGroupingToken groupId, final N nodeA, final N nodeB) {
     super(groupId, nodeA, nodeB);
     setLinkId(generateLinkId(groupId));
   }
@@ -91,7 +94,7 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * @param nodeB    the second node in the link
    * @param length   the length of the link
    */
-  protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length) {
+  protected LinkImpl(final IdGroupingToken groupId, final N nodeA, final N nodeB, final double length) {
     super(groupId, nodeA, nodeB, length);
     setLinkId(generateLinkId(groupId));
   }
@@ -124,8 +127,16 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * {@inheritDoc}
    */
   @Override
-  public LinkImpl clone() {
-    return new LinkImpl(this);
+  public LinkImpl<N, LS> shallowClone() {
+    return new LinkImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinkImpl<N, LS> deepClone() {
+    return new LinkImpl<>(this, true);
   }
 
   /**
@@ -136,12 +147,11 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
     if (super.validate()) {
 
       if (getGeometry() != null) {
-        if (!getNodeA().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(0))) {
-
+        if (!getNodeA().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(0), Precision.EPSILON_6)) {
           return false;
         }
 
-        if (!getNodeB().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(getGeometry().getNumPoints() - 1))) {
+        if (!getNodeB().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(getGeometry().getNumPoints() - 1),Precision.EPSILON_6)) {
           LOGGER.warning(String.format("link (id:%d externalId:%s) geometry inconsistent with extreme node B", getId(), getExternalId()));
           return false;
         }

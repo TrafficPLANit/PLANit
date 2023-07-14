@@ -3,9 +3,9 @@ package org.goplanit.cost.virtual;
 import java.io.Serializable;
 
 import org.goplanit.component.PlanitComponent;
-import org.goplanit.network.virtual.VirtualNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -32,9 +32,10 @@ public abstract class AbstractVirtualCost extends PlanitComponent<AbstractVirtua
    * Copy Constructor
    *
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public AbstractVirtualCost(final AbstractVirtualCost other) {
-    super(other);
+  public AbstractVirtualCost(final AbstractVirtualCost other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**

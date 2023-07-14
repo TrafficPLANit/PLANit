@@ -1,7 +1,7 @@
 package org.goplanit.od.path;
 
 import org.goplanit.utils.od.OdDataIterator;
-import org.goplanit.utils.path.DirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPath;
 
 /**
  * Iterator for directed paths tracked by od
@@ -9,6 +9,6 @@ import org.goplanit.utils.path.DirectedPath;
  * @author markr
  *
  */
-public interface OdPathIterator extends OdDataIterator<DirectedPath> {
+public interface OdPathIterator extends OdDataIterator<ManagedDirectedPath> {
 
 }

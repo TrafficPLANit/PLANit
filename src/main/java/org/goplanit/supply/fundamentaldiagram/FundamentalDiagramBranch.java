@@ -8,7 +8,7 @@ import org.goplanit.utils.math.Precision;
  * @author markr
  *
  */
-public interface FundamentalDiagramBranch extends Cloneable {
+public interface FundamentalDiagramBranch {
 
   /**
    * The flow at a given density
@@ -33,7 +33,7 @@ public interface FundamentalDiagramBranch extends Cloneable {
    * @return speedKmHour found
    */
   public default double getSpeedKmHourByFlow(double flowPcuHour) {
-    if (Precision.isGreater(flowPcuHour, 0)) {
+    if (Precision.greater(flowPcuHour, 0)) {
       return flowPcuHour / getDensityPcuKm(flowPcuHour);
     }
     return getSpeedKmHourAtZeroFlow();
@@ -54,7 +54,7 @@ public interface FundamentalDiagramBranch extends Cloneable {
    * @return speedKmHour found
    */
   public default double getSpeedKmHourByDensity(double densityPcuKm) {
-    if (Precision.isGreater(densityPcuKm, 0)) {
+    if (Precision.greater(densityPcuKm, 0)) {
       return getFlowPcuHour(densityPcuKm) / densityPcuKm;
     }
     return getSpeedKmHourAtZeroDensity();
@@ -96,11 +96,11 @@ public interface FundamentalDiagramBranch extends Cloneable {
   public abstract int relaxedHashCode(int scale);
 
   /**
-   * Clone a branch
+   * shallow clone a branch
    * 
    * @return cloned branch
    */
-  public abstract FundamentalDiagramBranch clone();
+  public abstract FundamentalDiagramBranch shallowClone();
 
   /**
    * Verify if the branch is linear or not

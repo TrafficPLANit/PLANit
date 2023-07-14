@@ -1,12 +1,18 @@
 package org.goplanit.gap;
 
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.goplanit.utils.reflection.ReflectionUtils;
+
 /**
  * StopCriterion class. In its base form we only provide an epsilon value. However by deriving from this class additional citeria can be added
  * 
  * @author markr
  *
  */
-public class StopCriterion implements Cloneable {
+public class StopCriterion {
 
   /**
    * Default Epsilon in case it is not set by user
@@ -36,8 +42,9 @@ public class StopCriterion implements Cloneable {
 
   /**
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public StopCriterion(StopCriterion other) {
+  public StopCriterion(StopCriterion other, boolean deepCopy /* no impact yet*/) {
     this.epsilon = other.epsilon;
     this.maxIterations = other.maxIterations;
   }
@@ -92,9 +99,32 @@ public class StopCriterion implements Cloneable {
   }
 
   /**
-   * clone this instance
+   * Shallow clone this instance
+   *
+   * @return created copy
    */
-  public StopCriterion clone() {
-    return new StopCriterion(this);
+  public StopCriterion shallowClone() {
+    return new StopCriterion(this, false);
+  }
+
+  /**
+   * Deep clone this instance
+   *
+   * @return created copy
+   */
+  public StopCriterion deepClone() {
+    return new StopCriterion(this, true);
+  }
+
+  /**
+   * Settings of base stop criterion class
+   * 
+   * @return Map with settings as key value pairs 
+   */
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(this, i -> Modifier.isPrivate(i) && !Modifier.isStatic(i));
+    var keyValueMap = new HashMap<String, String>();
+    privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
+    return keyValueMap;
   }
 }

@@ -2,8 +2,8 @@ package org.goplanit.zoning;
 
 import java.util.logging.Logger;
 
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
@@ -70,38 +70,45 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    * Constructor
    *
    * @param idToken           contiguous id generation within this group for instances of this class
+   * @param downstreamAccessNode when true access node is chosen as the downstream node of the segment, when false, upstream node is chosen
    * @param accessLinkSegment the link segment in the network (layer) the connectoid connects with (possibly via its downstream node)
    * @param accessZone        for the connectoid
    * @param length            for the connection (not of the edge segment, but to access the zone)
    */
-  protected DirectedConnectoidImpl(final IdGroupingToken idToken, final LinkSegment accessLinkSegment, final Zone accessZone, double length) {
+  protected DirectedConnectoidImpl(
+      final IdGroupingToken idToken, final boolean downstreamAccessNode, final LinkSegment accessLinkSegment, final Zone accessZone, double length) {
     super(idToken, accessZone, length);
     setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
     setAccessLinkSegment(accessLinkSegment);
+    setNodeAccessDownstream(downstreamAccessNode);
   }
 
   /**
    * Constructor
    *
    * @param idToken           contiguous id generation within this group for instances of this class
-   * @param accessEdgeSegment the edge segment in the network (layer) the connectoid connects with (possibly via its downstream node)
+   * @param downstreamAccessNode when true access node is chosen as the downstream node of the segment, when false, upstream node is chosen
+   * @param accessLinkSegment the link segment in the network (layer) the connectoid connects with (possibly via its downstream node)
    */
-  public DirectedConnectoidImpl(final IdGroupingToken idToken, final LinkSegment accessEdgeSegment) {
+  protected DirectedConnectoidImpl(
+      final IdGroupingToken idToken, final boolean downstreamAccessNode, final LinkSegment accessLinkSegment) {
     super(idToken);
     setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
-    setAccessLinkSegment(accessEdgeSegment);
+    setAccessLinkSegment(accessLinkSegment);
+    setNodeAccessDownstream(downstreamAccessNode);
   }
 
   /**
    * Copy constructor
    * 
-   * @param connectoidImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected DirectedConnectoidImpl(final DirectedConnectoidImpl connectoidImpl) {
-    super(connectoidImpl);
-    setDirectedConnectoidId(connectoidImpl.getDirectedConnectoidId());
-    setAccessLinkSegment(connectoidImpl.getAccessLinkSegment());
-    setNodeAccessDownstream(connectoidImpl.isNodeAccessDownstream());
+  protected DirectedConnectoidImpl(final DirectedConnectoidImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    setDirectedConnectoidId(other.getDirectedConnectoidId());
+    setAccessLinkSegment(other.getAccessLinkSegment());
+    setNodeAccessDownstream(other.isNodeAccessDownstream());
   }
 
   // Public
@@ -129,7 +136,7 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    * {@inheritDoc}
    */
   @Override
-  public void replaceAccessLinkSegment(EdgeSegment exitEdgeSegment) {
+  public void replaceAccessLinkSegment(LinkSegment accessEdgeSegment) {
     setAccessLinkSegment(accessEdgeSegment);
   }
 
@@ -170,8 +177,16 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoidImpl clone() {
-    return new DirectedConnectoidImpl(this);
+  public DirectedConnectoidImpl shallowClone() {
+    return new DirectedConnectoidImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedConnectoidImpl deepClone() {
+    return new DirectedConnectoidImpl(this, true);
   }
 
 }

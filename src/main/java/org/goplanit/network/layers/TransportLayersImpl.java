@@ -1,12 +1,14 @@
 package org.goplanit.network.layers;
 
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.TransportLayer;
-import org.goplanit.utils.network.layers.TransportLayers;
+import org.goplanit.utils.network.layer.NetworkLayer;
+import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
+import org.goplanit.utils.network.layers.NetworkLayers;
 
 /**
  * Base implementation of the TransportLayer interface, without the createNew() method
@@ -14,7 +16,7 @@ import org.goplanit.utils.network.layers.TransportLayers;
  * @author markr
  *
  */
-public abstract class TransportLayersImpl<T extends TransportLayer> extends ManagedIdEntitiesImpl<T> implements TransportLayers<T> {
+public abstract class TransportLayersImpl<T extends NetworkLayer> extends ManagedIdEntitiesImpl<T> implements NetworkLayers<T> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -40,7 +42,7 @@ public abstract class TransportLayersImpl<T extends TransportLayer> extends Mana
    * @param idToken to generated id's for infrastructure layers
    */
   public TransportLayersImpl(IdGroupingToken idToken) {
-    super(T::getId, TransportLayer.TRANSPORT_LAYER_ID_CLASS);
+    super(T::getId, NetworkLayer.NETWORK_LAYER_ID_CLASS);
     this.idToken = idToken;
   }
 
@@ -48,9 +50,11 @@ public abstract class TransportLayersImpl<T extends TransportLayer> extends Mana
    * Constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public TransportLayersImpl(TransportLayersImpl<T> other) {
-    super(other);
+  public TransportLayersImpl(TransportLayersImpl<T> other, boolean deepCopy, BiConsumer<T, T> mapper) {
+    super(other, deepCopy, mapper);
     this.idToken = other.idToken;
   }
 
@@ -59,7 +63,7 @@ public abstract class TransportLayersImpl<T extends TransportLayer> extends Mana
    */
   @Override
   public T get(final Mode mode) {
-    return findFirst(layer -> layer.supports(mode));
+    return firstMatch(layer -> layer.supports(mode));
   }
 
   /**
@@ -67,13 +71,25 @@ public abstract class TransportLayersImpl<T extends TransportLayer> extends Mana
    */
   @Override
   public T getByXmlId(String xmlId) {
-    return findFirst(layer -> layer.getXmlId().equals(xmlId));
+    return firstMatch(layer -> layer.getXmlId().equals(xmlId));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract TransportLayersImpl<T> clone();
+  public abstract TransportLayersImpl<T> shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TransportLayersImpl<T> deepClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TransportLayersImpl<T> deepCloneWithMapping(BiConsumer<T, T> mapper);
 
 }

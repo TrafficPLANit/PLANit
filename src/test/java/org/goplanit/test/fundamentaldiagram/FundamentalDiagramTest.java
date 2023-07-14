@@ -1,18 +1,18 @@
 package org.goplanit.test.fundamentaldiagram;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import java.util.logging.Logger;
 
 import org.goplanit.logging.Logging;
 import org.goplanit.supply.fundamentaldiagram.NewellFundamentalDiagram;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.goplanit.utils.macroscopic.MacroscopicConstants;
 import org.goplanit.utils.math.Precision;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test the fundamental diagram (component) basic functionality
@@ -28,7 +28,7 @@ public class FundamentalDiagramTest {
   /**
    * {@inheritDoc}
    */
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
       LOGGER = Logging.createLogger(FundamentalDiagramTest.class);
@@ -38,13 +38,13 @@ public class FundamentalDiagramTest {
   /**
    * {@inheritDoc}
    */
-  @After
-  public void tearDown() {
+  @AfterAll
+  public static void tearDown() {
     Logging.closeLogger(LOGGER);
   }
 
   //@formatter:off
-  @Before
+  @BeforeEach
   public void intialise() {
 
   }

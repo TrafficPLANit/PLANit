@@ -3,9 +3,9 @@ package org.goplanit.graph.directed;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.EdgeImpl;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -15,7 +15,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
+public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment> extends EdgeImpl<V> implements DirectedEdge {
 
   // Protected
 
@@ -28,29 +28,11 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
   /**
    * Edge segment A to B direction
    */
-  private EdgeSegment edgeSegmentAb = null;
+  private ES edgeSegmentAb = null;
   /**
    * Edge segment B to A direction
    */
-  private EdgeSegment edgeSegmentBa = null;
-
-  /**
-   * set edge segment from B to A
-   * 
-   * @param edgeSegmentBa to set
-   */
-  protected void setEdgeSegmentBa(EdgeSegment edgeSegmentBa) {
-    this.edgeSegmentBa = edgeSegmentBa;
-  }
-
-  /**
-   * set edge segment from A to B
-   * 
-   * @param edgeSegmentAb to set
-   */
-  protected void setEdgeSegmentAb(EdgeSegment edgeSegmentAb) {
-    this.edgeSegmentAb = edgeSegmentAb;
-  }
+  private ES edgeSegmentBa = null;
 
   /**
    * Constructor which injects link lengths directly
@@ -59,7 +41,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * @param vertexA  first vertex in the link
    * @param vertexB  second vertex in the link
    */
-  protected DirectedEdgeImpl(final IdGroupingToken groupId, final DirectedVertex vertexA, final DirectedVertex vertexB) {
+  protected DirectedEdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB) {
     super(groupId, vertexA, vertexB);
   }
 
@@ -71,7 +53,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * @param vertexB  second vertex in the link
    * @param lengthKm length of the link in km
    */
-  protected DirectedEdgeImpl(final IdGroupingToken groupId, final DirectedVertex vertexA, final DirectedVertex vertexB, final double lengthKm) {
+  protected DirectedEdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB, final double lengthKm) {
     super(groupId, vertexA, vertexB, lengthKm);
   }
 
@@ -79,61 +61,63 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * Copy Constructor. Edge segments are shallow copied and point to the passed in edge as their parent So additional effort is needed to make the new edge usable
    * 
    * @param directedEdgeImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected DirectedEdgeImpl(DirectedEdgeImpl directedEdgeImpl) {
-    super(directedEdgeImpl);
-    setEdgeSegmentAb(directedEdgeImpl.getEdgeSegmentAb());
-    setEdgeSegmentBa(directedEdgeImpl.getEdgeSegmentBa());
+  protected DirectedEdgeImpl(DirectedEdgeImpl<V, ES> directedEdgeImpl, final boolean deepCopy) {
+    super(directedEdgeImpl, deepCopy);
+    setEdgeSegmentAb(directedEdgeImpl.getEdgeSegmentAb()); // not owned, so not deep copied
+    setEdgeSegmentBa(directedEdgeImpl.getEdgeSegmentBa()); // not owned, so not deep copied
   }
 
   // Public
 
-  // Protected
+  /**
+   * set edge segment from B to A
+   *
+   * @param edgeSegmentBa to set
+   */
+  public void setEdgeSegmentBa(ES edgeSegmentBa) {
+    this.edgeSegmentBa = edgeSegmentBa;
+  }
 
   /**
-   * {@inheritDoc}
+   * set edge segment from A to B
+   *
+   * @param edgeSegmentAb to set
    */
-  @Override
-  public DirectedVertex getVertexA() {
-    return (DirectedVertex) super.getVertexA();
+  public void setEdgeSegmentAb(ES edgeSegmentAb) {
+    this.edgeSegmentAb = edgeSegmentAb;
   }
 
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
-  public DirectedVertex getVertexB() {
-    return (DirectedVertex) super.getVertexB();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public EdgeSegment registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) {
-    if (edgeSegment.getParentEdge() == null) {
+  public ES registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB, final boolean force) {
+    if (edgeSegment!= null && edgeSegment.getParent() == null) {
       edgeSegment.setParent(this);
     }
 
-    if (edgeSegment.getParentEdge().getId() != getId()) {
+    if (!force && (edgeSegment==null || edgeSegment.getParent() != this)) {
       LOGGER.warning("Inconsistency between link segment's parent link and link it is being registered on");
       return null;
     }
 
-    final EdgeSegment currentEdgeSegment = directionAB ? getEdgeSegmentAb() : getEdgeSegmentBa();
+    final ES overwrittenEdgeSegment = directionAB ? getEdgeSegmentAb() : getEdgeSegmentBa();
     if (directionAB) {
-      setEdgeSegmentAb(edgeSegment);
+      setEdgeSegmentAb((ES) edgeSegment);
     } else {
-      setEdgeSegmentBa(edgeSegment);
+      setEdgeSegmentBa((ES) edgeSegment);
     }
-    return currentEdgeSegment;
+    return overwrittenEdgeSegment;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment getEdgeSegmentAb() {
+  public ES getEdgeSegmentAb() {
     return edgeSegmentAb;
   }
 
@@ -141,7 +125,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment getEdgeSegmentBa() {
+  public ES getEdgeSegmentBa() {
     return edgeSegmentBa;
   }
 
@@ -149,24 +133,53 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdgeImpl clone() {
-    return new DirectedEdgeImpl(this);
+  public DirectedEdgeImpl<V, ES> shallowClone() {
+    return new DirectedEdgeImpl<>(this, false);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
+  public DirectedEdgeImpl<V, ES> deepClone() {
+    return new DirectedEdgeImpl<>(this, true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @SuppressWarnings("unchecked")
+  @Override
   public void replace(EdgeSegment edgeSegmentToReplace, EdgeSegment edgeSegmentToReplaceWith) {
     if (edgeSegmentToReplace != null) {
       if (hasEdgeSegmentAb() && getEdgeSegmentAb().getId() == edgeSegmentToReplace.getId()) {
-        setEdgeSegmentAb(edgeSegmentToReplaceWith);
+        setEdgeSegmentAb((ES) edgeSegmentToReplaceWith);
       } else if (hasEdgeSegmentBa() && getEdgeSegmentBa().getId() == edgeSegmentToReplace.getId()) {
-        setEdgeSegmentBa(edgeSegmentToReplaceWith);
+        setEdgeSegmentBa((ES) edgeSegmentToReplaceWith);
       } else {
         LOGGER.warning("provided edge segment to replace is not known on the directed edge");
       }
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ES removeEdgeSegmentAb() {
+    var removedEdgeSegment = edgeSegmentAb;
+    setEdgeSegmentAb(null);
+    return removedEdgeSegment;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ES removeEdgeSegmentBa() {
+    var removedEdgeSegment = edgeSegmentBa;
+    setEdgeSegmentBa(null);
+    return removedEdgeSegment;
   }
 
 }

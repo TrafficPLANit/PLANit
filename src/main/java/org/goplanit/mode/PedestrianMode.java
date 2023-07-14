@@ -48,4 +48,29 @@ public class PedestrianMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.PEDESTRIAN, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, PEDESTRIAN_PHYSICAL_FEATURES, PEDESTRIAN_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected PedestrianMode(PedestrianMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PedestrianMode shallowClone() {
+    return new PedestrianMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PedestrianMode deepClone() {
+    return new PedestrianMode(this, true);
+  }
 }

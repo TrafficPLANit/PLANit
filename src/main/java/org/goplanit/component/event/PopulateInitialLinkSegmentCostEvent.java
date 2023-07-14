@@ -1,7 +1,7 @@
 package org.goplanit.component.event;
 
 import org.goplanit.component.PlanitComponentFactory;
-import org.goplanit.cost.physical.initial.InitialLinkSegmentCost;
+import org.goplanit.cost.physical.initial.InitialMacroscopicLinkSegmentCost;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -27,7 +27,7 @@ public class PopulateInitialLinkSegmentCostEvent extends PopulateUntypedComponen
    * @param network                          parent network of these costs
    * @param timePeriod                       Optional time periods for which to populate, may be null in which case it is time period agnostic
    */
-  public PopulateInitialLinkSegmentCostEvent(final PlanitComponentFactory<?> source, final InitialLinkSegmentCost initialLinkSegmentCostToPopulate, String fileName,
+  public PopulateInitialLinkSegmentCostEvent(final PlanitComponentFactory<?> source, final InitialMacroscopicLinkSegmentCost initialLinkSegmentCostToPopulate, String fileName,
       final MacroscopicNetwork network, TimePeriod timePeriod) {
     super(EVENT_TYPE, source, initialLinkSegmentCostToPopulate, new Object[] { fileName, network, timePeriod });
   }
@@ -37,8 +37,8 @@ public class PopulateInitialLinkSegmentCostEvent extends PopulateUntypedComponen
    * 
    * @return zoning
    */
-  public InitialLinkSegmentCost getInitialLinkSegmentCostToPopulate() {
-    return (InitialLinkSegmentCost) getComponentToPopulate();
+  public InitialMacroscopicLinkSegmentCost getInitialLinkSegmentCostToPopulate() {
+    return (InitialMacroscopicLinkSegmentCost) getComponentToPopulate();
   }
 
   /**

@@ -1,5 +1,6 @@
 package org.goplanit.supply.fundamentaldiagram;
 
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
@@ -73,15 +74,16 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
      * be altered
      */
     for (MacroscopicLinkSegment linkSegment : parentNetworkLayer.getLinkSegments()) {
-      if (Precision.isSmaller(linkSegment.getPhysicalSpeedLimitKmH(), linkSegment.getLinkSegmentType().getMaximumSpeedKmH(mode))) {
+      if (Precision.smaller(linkSegment.getPhysicalSpeedLimitKmH(), linkSegment.getLinkSegmentType().getMaximumSpeedKmH(mode))) {
         LOGGER.warning(String.format("Physical speed limit (%.2f) on link segment %s is more restrictive than the speed limit (%.2f) of the applied link segment type %s",
-            linkSegment.getPhysicalSpeedLimitKmH(), linkSegment.getXmlId(), linkSegment.getLinkSegmentType().getMaximumSpeedKmH(mode)));
+            linkSegment.getPhysicalSpeedLimitKmH(), linkSegment.getXmlId(), linkSegment.getLinkSegmentType().getMaximumSpeedKmH(mode),
+            linkSegment.getLinkSegmentType().getXmlId()));
 
         /* updated FD */
         double modeSpeedLimit = linkSegment.getModelledSpeedLimitKmH(mode);
         LOGGER.info(String.format("Overwriting fundamental diagram used on link segment %s, restricting free flow speed to %.2f", linkSegment.getXmlId(), modeSpeedLimit));
         NewellFundamentalDiagram oldFd = (NewellFundamentalDiagram) get(linkSegment);
-        NewellFundamentalDiagram newFd = oldFd.clone();
+        NewellFundamentalDiagram newFd = oldFd.shallowClone();
         newFd.setMaximumSpeedKmHour(modeSpeedLimit);
 
         /* register */
@@ -103,17 +105,26 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public NewellFundamentalDiagramComponent(final NewellFundamentalDiagramComponent other) {
-    super(other);
+  public NewellFundamentalDiagramComponent(final NewellFundamentalDiagramComponent other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public NewellFundamentalDiagramComponent clone() {
-    return new NewellFundamentalDiagramComponent(this);
+  public NewellFundamentalDiagramComponent shallowClone() {
+    return new NewellFundamentalDiagramComponent(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public NewellFundamentalDiagramComponent deepClone() {
+    return new NewellFundamentalDiagramComponent(this, true);
   }
 
   /**
@@ -140,6 +151,14 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
    */
   public FundamentalDiagram register(final MacroscopicLinkSegmentType linkSegmentType, final NewellFundamentalDiagram fundamentalDiagram) {
     return super.register(linkSegmentType, fundamentalDiagram);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
 }

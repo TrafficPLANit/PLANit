@@ -2,6 +2,11 @@ package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.service.routed.RoutedTrip;
+import org.goplanit.utils.service.routed.RoutedTripDeparture;
+import org.goplanit.utils.service.routed.RoutedTrips;
+
+import java.util.function.BiConsumer;
 
 /**
  * Base class for toued trips of some derived type (either schedule or frequency based for example).
@@ -11,14 +16,14 @@ import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEntitiesImpl<T> implements RoutedTrips<T> {
 
   /** factory for this container class */
-  protected RoutedTripFactory<T> factory;
+  protected RoutedTripFactoryImpl<T> factory;
 
   /**
    * The factory to use. To be set once by super class immediately after construction of the instance
    * 
    * @param factory to use
    */
-  protected void setFactory(final RoutedTripFactory<T> factory) {
+  protected void setFactory(final RoutedTripFactoryImpl<T> factory) {
     this.factory = factory;
   }
 
@@ -32,21 +37,40 @@ public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEnt
   }
 
   /**
-   * Copy constructor
-   * 
+   * Copy constructor, incomplete, requires derived class to explicitly set factory
+   *
    * @param routedTripsBase to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedTripsImpl(RoutedTripsImpl<T> routedTripsBase) {
-    super(routedTripsBase);
-    this.factory = routedTripsBase.factory;
+  protected RoutedTripsImpl(RoutedTripsImpl<T> routedTripsBase, boolean deepCopy, BiConsumer<T, T> mapper) {
+    super(routedTripsBase, deepCopy, mapper);
+    this.factory = null; // reset so it is clear it needs to be set by concrete implementing class afterwards
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public RoutedTripFactory<T> getFactory() {
+  public RoutedTripFactoryImpl<T> getFactory() {
     return factory;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract RoutedTripsImpl shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract RoutedTripsImpl deepClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract RoutedTripsImpl deepCloneWithMapping(BiConsumer<T, T> mapper);
 }

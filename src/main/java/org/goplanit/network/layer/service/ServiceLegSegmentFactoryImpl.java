@@ -3,9 +3,14 @@ package org.goplanit.network.layer.service;
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegments;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceLegSegmentFactory;
+
+import java.util.List;
 
 /**
  * Factory for creating service leg segments on service leg segment container
@@ -29,13 +34,19 @@ public class ServiceLegSegmentFactoryImpl extends GraphEntityFactoryImpl<Service
    */
   @Override
   public ServiceLegSegmentImpl registerNew(final ServiceLeg parentLeg, final boolean directionAb, boolean registerOnServiceNodeAndLeg) {
-    final ServiceLegSegmentImpl legSegment = new ServiceLegSegmentImpl(getIdGroupingToken(), parentLeg, directionAb);
+    return registerNew(parentLeg, directionAb, null, registerOnServiceNodeAndLeg);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegSegmentImpl registerNew(ServiceLeg parentLeg, boolean directionAb, final List<LinkSegment> networkLayerLinkSegments, boolean registerOnServiceNodeAndLeg){
+    final ServiceLegSegmentImpl legSegment = new ServiceLegSegmentImpl(getIdGroupingToken(), parentLeg, directionAb, networkLayerLinkSegments);
     getGraphEntities().register(legSegment);
 
     if (registerOnServiceNodeAndLeg) {
       parentLeg.registerEdgeSegment(legSegment, directionAb);
-      parentLeg.getServiceNodeA().addEdgeSegment(legSegment);
-      parentLeg.getServiceNodeB().addEdgeSegment(legSegment);
     }
     return legSegment;
   }

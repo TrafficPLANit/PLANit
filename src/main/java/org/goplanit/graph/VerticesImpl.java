@@ -1,9 +1,12 @@
 package org.goplanit.graph;
 
-import org.goplanit.utils.graph.Vertex;
-import org.goplanit.utils.graph.VertexFactory;
-import org.goplanit.utils.graph.Vertices;
+import org.goplanit.utils.graph.*;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
+
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -39,13 +42,15 @@ public class VerticesImpl extends GraphEntitiesImpl<Vertex> implements Vertices 
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates a new factory with reference to this container
    * 
    * @param verticesImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param biConsumer apply to each copy
    */
-  public VerticesImpl(VerticesImpl verticesImpl) {
-    super(verticesImpl);
-    this.vertexFactory = verticesImpl.vertexFactory;
+  public VerticesImpl(VerticesImpl verticesImpl, boolean deepCopy, BiConsumer<Vertex, Vertex> biConsumer) {
+    super(verticesImpl, deepCopy, biConsumer);
+    this.vertexFactory = new VertexFactoryImpl(verticesImpl.vertexFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -60,8 +65,21 @@ public class VerticesImpl extends GraphEntitiesImpl<Vertex> implements Vertices 
    * {@inheritDoc}
    */
   @Override
-  public VerticesImpl clone() {
-    return new VerticesImpl(this);
+  public VerticesImpl shallowClone() {
+    return new VerticesImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public VerticesImpl deepClone() {
+    return new VerticesImpl(this, true, null);
+  }
+
+  @Override
+  public VerticesImpl deepCloneWithMapping(BiConsumer<Vertex, Vertex> mapper) {
+    return new VerticesImpl(this, true, mapper);
   }
 
 }

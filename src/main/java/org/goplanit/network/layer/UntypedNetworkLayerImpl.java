@@ -6,16 +6,18 @@ import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.layer.modifier.UntypedNetworkLayerModifierImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.ManagedGraphEntities;
 import org.goplanit.utils.graph.UntypedDirectedGraph;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntities;
-import org.goplanit.utils.network.layer.TransportLayer;
+import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.UntypedDirectedGraphLayer;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
+import org.locationtech.jts.geom.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
@@ -34,7 +36,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   /**
    * The graph containing the vertices, edges, and edge segments (or derived implementations)
    */
-  private final UntypedDirectedGraphImpl<V, E, S> graph;
+  protected final UntypedDirectedGraphImpl<V, E, S> directedGraph;
 
   /** the modifier to use to apply larger modifications */
   protected UntypedDirectedGraphLayerModifier<V, E, S> layerModifier;
@@ -46,8 +48,8 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    * 
    * @return graph
    */
-  protected UntypedDirectedGraph<V, E, S> getGraph() {
-    return graph;
+  protected UntypedDirectedGraph<V, E, S> getDirectedGraph() {
+    return directedGraph;
   }
 
   // PUBLIC
@@ -67,38 +69,32 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   public <Vx extends ManagedGraphEntities<V>, Ex extends ManagedGraphEntities<E>, Sx extends ManagedGraphEntities<S>> 
       UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final Vx vertices, final Ex edges, final Sx edgeSegments) {
     super(tokenId);
-    this.graph = new UntypedDirectedGraphImpl<V, E, S>(tokenId, vertices, edges, edgeSegments);
-    this.layerModifier = new UntypedNetworkLayerModifierImpl<V, E, S>(this.graph);
-  }
-
-  /**
-   * Network Constructor
-   *
-   * @param <Vx> container type for vertices
-   * @param <Ex> container type for vertices
-   * @param <Sx> container type for vertices
-   * @param tokenId       contiguous id generation within this group for instances of this class
-   * @param vertices      vertices container to use
-   * @param edges         edges container to use
-   * @param edgeSegments  edge Segments container to use
-   * @param layerModifier to use for applying modifications to the graph
-   */
-  public <Vx extends ManagedGraphEntities<V>, Ex extends ManagedGraphEntities<E>, Sx extends ManagedGraphEntities<S>>
-      UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final Vx vertices, final Ex edges, final Sx edgeSegments, UntypedDirectedGraphLayerModifier<V, E, S> layerModifier) {
-    super(tokenId);
-    this.graph = new UntypedDirectedGraphImpl<V, E, S>(tokenId, vertices, edges, edgeSegments);
-    this.layerModifier = layerModifier;
+    this.directedGraph = new UntypedDirectedGraphImpl<>(tokenId, vertices, edges, edgeSegments);
+    this.layerModifier = new UntypedNetworkLayerModifierImpl<>(this.directedGraph);
   }
 
   /**
    * Copy constructor
    * 
-   * @param untypedDirectedGraphLayerImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param vertexMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
+   * @param edgeMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
+   * @param edgeSegmentMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public UntypedNetworkLayerImpl(UntypedNetworkLayerImpl<V, E, S> untypedDirectedGraphLayerImpl) {
-    super(untypedDirectedGraphLayerImpl);
-    this.graph = untypedDirectedGraphLayerImpl.graph.clone();
-    this.layerModifier = new UntypedNetworkLayerModifierImpl<V, E, S>(graph);
+  public UntypedNetworkLayerImpl(
+          UntypedNetworkLayerImpl<V, E, S> other,
+          boolean deepCopy,
+          GraphEntityDeepCopyMapper<V> vertexMapper,
+          GraphEntityDeepCopyMapper<E> edgeMapper,
+          GraphEntityDeepCopyMapper<S> edgeSegmentMapper) {
+    super(other, deepCopy);
+
+    /* network layer is in fact a graph, so requiring cloning even for shallow copy */
+    this.directedGraph =
+            deepCopy ? other.directedGraph.smartDeepClone(vertexMapper, edgeMapper, edgeSegmentMapper) : other.directedGraph.shallowClone();
+
+    this.layerModifier = new UntypedNetworkLayerModifierImpl<>(directedGraph);
   }
 
   // Getters - Setters
@@ -108,7 +104,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    */
   @Override
   public IdGroupingToken getLayerIdGroupingToken() {
-    return graph.getGraphIdGroupingToken();
+    return directedGraph.getGraphIdGroupingToken();
   }
 
   /**
@@ -117,11 +113,27 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   @Override
   public void transform(CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException {
     try {
-      getGraph().transformGeometries(PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
+      getDirectedGraph().transformGeometries(PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
     } catch (Exception e) {
       PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
-      throw new PlanItException(String.format("%s error during transformation of physical network %s CRS", TransportLayer.createLayerLogPrefix(this), getXmlId()), e);
+      throw new PlanItException(String.format("%s error during transformation of physical network %s CRS", NetworkLayer.createLayerLogPrefix(this), getXmlId()), e);
     }
+  }
+
+  /**
+   * Create bounding box based on underlying nodes, this means that any geometries of links tht are internal may cross the boundary of the bounding box
+   *
+   * @return bounding box for this layer based on its nodes' locations, if no vertices are present null is returned
+   */
+  @Override
+  public Envelope createBoundingBox() {
+    if(getDirectedGraph().getVertices().isEmpty()){
+      return null;
+    }
+
+    Envelope envelope = new Envelope(getDirectedGraph().getVertices().iterator().next().getPosition().getCoordinate());
+    getDirectedGraph().getVertices().forEach(v -> envelope.expandToInclude(v.getPosition().getCoordinate()));
+    return envelope;
   }
 
   /**
@@ -130,7 +142,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    * @return true if empty false otherwise
    */
   public boolean isEmpty() {
-    return graph.isEmpty();
+    return directedGraph.isEmpty();
   }
 
   /**
@@ -138,7 +150,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    */
   @Override
   public boolean validate() {
-    return graph.validate();
+    return directedGraph.validate();
   }
 
   /**
@@ -153,7 +165,13 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    * {@inheritDoc}
    */
   @Override
-  public abstract UntypedNetworkLayerImpl<V, E, S> clone();
+  public abstract UntypedNetworkLayerImpl<V, E, S> shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract UntypedNetworkLayerImpl<V, E, S> deepClone();
 
   /**
    * {@inheritDoc}
@@ -162,8 +180,8 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   @Override
   public void reset() {
     super.reset();
-    ((ManagedIdEntities<V>) this.graph.getVertices()).reset();
-    ((ManagedIdEntities<V>) this.graph.getEdges()).reset();
-    ((ManagedIdEntities<V>) this.graph.getEdgeSegments()).reset();
+    ((ManagedIdEntities<V>) this.directedGraph.getVertices()).reset();
+    ((ManagedIdEntities<E>) this.directedGraph.getEdges()).reset();
+    ((ManagedIdEntities<S>) this.directedGraph.getEdgeSegments()).reset();
   }
 }

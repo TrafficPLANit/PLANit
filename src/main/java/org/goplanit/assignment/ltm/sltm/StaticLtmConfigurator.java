@@ -22,8 +22,10 @@ import org.goplanit.utils.exceptions.PlanItException;
  * </ul>
  * Further the following other settings have the defaults:
  * <ul>
+ * <li>sltmType: ORIGIN_BUSH_BASED</li>
  * <li>disableLinkStorageConstraints: true</li>
  * <li>activateDetailedLogging: false</li>
+ * <li>activateEnforceMaxEntropyFlowDistribution: false</li>
  * </ul>
  * 
  * @author markr
@@ -35,7 +37,9 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
   private static final String ACTIVATE_DETAILED_LOGGING = "setActivateDetailedLogging";
 
-  private static final String ACTIVATE_BUSH_BASED = "setActivateBushBased";
+  private static final String SET_TYPE = "setType";
+
+  private static final String ACTIVATE_ENFORCE_MAX_ENTROPY_FLOW_DISTRIBUTION = "setEnforceMaxEntropyFlowSolution";
 
   /**
    * Constructor
@@ -53,7 +57,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
     disableLinkStorageConstraints(DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
     activateDetailedLogging(DEFAULT_ACTIVATE_DETAILED_LOGGING);
-    activateBushBased(DEFAULT_ACTIVATE_BUSH_BASED);
+    setType(DEFAULT_SLTM_TYPE);
   }
 
   /** default value used */
@@ -63,7 +67,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
   public static boolean DEFAULT_ACTIVATE_DETAILED_LOGGING = false;
 
   /** default value used */
-  public static boolean DEFAULT_ACTIVATE_BUSH_BASED = true;
+  public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmSettings.DEFAULT_SLTM_TYPE;
 
   //
   // Directly configurable options
@@ -88,12 +92,22 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
   }
 
   /**
-   * (De)Activate the bush based assignment strategy. If switched off, a apth absed approach is applied
+   * Determine the type of sLTM assignment to use
+   * 
+   * @param type to set
+   */
+  public void setType(StaticLtmType type) {
+    registerDelayedMethodCall(SET_TYPE, type);
+  }
+
+  /**
+   * (De)Activate the bush based max entropy flow solution. If switched off, any equal cost solution for a PAS is considered correct, when switched on an attempt is made to obtain
+   * unique equal flow distribution if possible. The latter is computationally more costly but results in unique solution.
    * 
    * @param flag to set
    */
-  public void activateBushBased(boolean flag) {
-    registerDelayedMethodCall(ACTIVATE_BUSH_BASED, flag);
+  public void activateMaxEntropyFlowDistribution(boolean flag) {
+    registerDelayedMethodCall(ACTIVATE_ENFORCE_MAX_ENTROPY_FLOW_DISTRIBUTION, flag);
   }
 
 }

@@ -1,9 +1,6 @@
 package org.goplanit.zoning;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -32,6 +29,9 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
   /** the transfer zone groups this transfer zone is part of */
   Set<TransferZoneGroup> transferZoneGroups = null;
 
+  /** List of human-readable platform names relevant for this transfer zone */
+  List<String> platformNames;
+
   /**
    * generate unique od zone id
    *
@@ -59,19 +59,25 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
   public TransferZoneImpl(IdGroupingToken tokenId) {
     super(tokenId);
     setTransferZoneId(generateTransferZoneId(tokenId));
+    this.platformNames = null;
   }
 
   /**
    * Copy constructor
    * 
-   * @param transferZoneImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public TransferZoneImpl(TransferZoneImpl transferZoneImpl) {
-    super(transferZoneImpl);
-    this.transferZoneId = transferZoneImpl.transferZoneId;
-    this.type = transferZoneImpl.type;
-    if (transferZoneImpl.hasTransferZoneGroup()) {
-      this.transferZoneGroups = new HashSet<TransferZoneGroup>(transferZoneImpl.getTransferZoneGroups());
+  public TransferZoneImpl(TransferZoneImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.transferZoneId = other.transferZoneId;
+    this.type = other.type;
+
+    if (other.hasTransferZoneGroup()) {
+      this.transferZoneGroups = new HashSet<>(other.getTransferZoneGroups());
+    }
+    if(other.hasPlatformNames()){
+      this.platformNames = new ArrayList<>(other.getTransferZonePlatformNames());
     }
   }
 
@@ -81,6 +87,41 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
   @Override
   public long getTransferZoneId() {
     return transferZoneId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<String> getTransferZonePlatformNames() {
+    return this.platformNames;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean addTransferZonePlatformName(String platformName) {
+    if(platformName == null){
+      return false;
+    }
+
+    if(this.platformNames == null){
+      this.platformNames = new ArrayList<>(1);
+    }else if(this.platformNames.contains(platformName)){
+      return false;
+    }
+
+    this.platformNames.add(platformName);
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeTransferZonePlatformName(String platformName) {
+    return this.platformNames.remove(platformName);
   }
 
   /**
@@ -195,8 +236,16 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
    * {@inheritDoc}
    */
   @Override
-  public TransferZoneImpl clone() {
-    return new TransferZoneImpl(this);
+  public TransferZoneImpl shallowClone() {
+    return new TransferZoneImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZoneImpl deepClone() {
+    return new TransferZoneImpl(this, true);
   }
 
 }

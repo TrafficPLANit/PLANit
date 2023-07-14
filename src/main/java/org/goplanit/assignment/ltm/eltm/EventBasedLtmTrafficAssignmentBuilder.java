@@ -3,7 +3,7 @@ package org.goplanit.assignment.ltm.eltm;
 import org.goplanit.assignment.TrafficAssignmentBuilder;
 import org.goplanit.demands.Demands;
 import org.goplanit.input.InputBuilderListener;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -37,7 +37,7 @@ public class EventBasedLtmTrafficAssignmentBuilder extends TrafficAssignmentBuil
    * @throws PlanItException when triangular fundamental diagram cannot be instantiated
    */
   public EventBasedLtmTrafficAssignmentBuilder(IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands, final Zoning zoning,
-      final TransportLayerNetwork<?, ?> network) throws PlanItException {
+      final LayeredNetwork<?, ?> network) throws PlanItException {
     super(EventBasedLtm.class, groupId, inputBuilderListener, demands, zoning, network);
   }
 

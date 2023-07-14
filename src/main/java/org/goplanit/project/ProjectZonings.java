@@ -15,7 +15,7 @@ public class ProjectZonings extends LongMapWrapperImpl<Zoning> {
    * Constructor
    */
   protected ProjectZonings() {
-    super(new TreeMap<Long, Zoning>(), Zoning::getId);
+    super(new TreeMap<>(), Zoning::getId);
   }
 
   /**
@@ -31,7 +31,7 @@ public class ProjectZonings extends LongMapWrapperImpl<Zoning> {
    * {@inheritDoc}
    */
   @Override
-  public ProjectZonings clone() {
+  public ProjectZonings shallowClone() {
     return new ProjectZonings(this);
   }
 

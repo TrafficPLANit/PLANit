@@ -1,16 +1,16 @@
 package org.goplanit.graph;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import org.locationtech.jts.geom.Point;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.CloneUtils;
+import org.locationtech.jts.geom.Point;
 
 /**
  * Vertex representation connected to one or more entry and exit edges
@@ -18,7 +18,7 @@ import org.goplanit.utils.misc.CloneUtils;
  * @author markr
  *
  */
-public class VertexImpl extends GraphEntityImpl implements Vertex {
+public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Vertex {
 
   /** generated UID */
   private static final long serialVersionUID = -2877566769607366608L;
@@ -36,9 +36,9 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
   protected Point position;
 
   /**
-   * Edges of this vertex
+   * Edges of this vertex. List used to ensure fixed order in iterating and minimal memory overhead
    */
-  protected final Map<Long, Edge> edges = new HashMap<Long, Edge>();
+  protected final ArrayList<E> edges = new ArrayList<>(2);
 
   /**
    * Constructor
@@ -50,17 +50,40 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
   }
 
   /**
-   * Copy constructor. Geometry and input properties are deep copied, edges are not because they are not owned by this class by the vertex.
+   * Constructor
    * 
-   * @param vertexImpl to copy
+   * @param groupId contiguous id generation within this group for instances of this class
+   * @param vertexIdClass to use
    */
-  protected VertexImpl(VertexImpl vertexImpl) {
-    super(vertexImpl);
-    setPosition((Point) vertexImpl.getPosition().copy());
-    edges.putAll(vertexImpl.edges);
-    if (vertexImpl.inputProperties != null && !vertexImpl.inputProperties.isEmpty()) {
-      for (Entry<String, Object> entry : vertexImpl.inputProperties.entrySet()) {
-        addInputProperty(new String(entry.getKey()), CloneUtils.clone(entry.getValue()));
+  protected VertexImpl(final IdGroupingToken groupId, final Class<? extends Vertex> vertexIdClass) {
+    super(groupId, vertexIdClass);
+  }
+
+  /**
+   * Constructor. Only to be used when not reliant on contiguous id generation within enclosing container
+   * 
+   * @param id to use
+   */
+  protected VertexImpl(long id) {
+    super(id);
+  }
+
+  /**
+   * Copy constructor.
+   * 
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected VertexImpl(VertexImpl<E> other, boolean deepCopy) {
+    super(other, deepCopy);
+    edges.addAll(other.edges); // edges not owned, so not deep copied
+
+    setPosition(deepCopy ? (Point) other.getPosition().copy() : other.getPosition());
+    if (other.inputProperties != null && !other.inputProperties.isEmpty()) {
+      if(deepCopy) {
+        CloneUtils.deepCloneFromTo(other.inputProperties, this.inputProperties);
+      }else{
+        this.inputProperties.putAll(other.inputProperties);
       }
     }
   }
@@ -91,7 +114,7 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
   @Override
   public void addInputProperty(final String key, final Object value) {
     if (inputProperties == null) {
-      inputProperties = new HashMap<String, Object>();
+      inputProperties = new HashMap<>();
     }
     inputProperties.put(key, value);
   }
@@ -106,9 +129,15 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
   public boolean addEdge(final Edge edge) {
-    return edges.put(edge.getId(), edge) != null;
+    if (edges.contains(edge)) {
+      return false;
+    }
+
+    edges.add((E) edge);
+    return true;
   }
 
   /**
@@ -116,23 +145,38 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
    */
   @Override
   public boolean removeEdge(final long edgeId) {
-    return edges.remove(edgeId) != null;
+    return edges.removeIf(e -> e.getId() == edgeId);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Collection<Edge> getEdges() {
-    return Collections.unmodifiableCollection(edges.values());
+  public void removeAllEdges(){
+    edges.clear();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public VertexImpl clone() {
-    return new VertexImpl(this);
+  public Collection<? extends E> getEdges() {
+    return Collections.unmodifiableCollection(edges);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public VertexImpl<E> shallowClone() {
+    return new VertexImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public VertexImpl<E> deepClone() {
+    return new VertexImpl<>(this, true);
+  }
 }

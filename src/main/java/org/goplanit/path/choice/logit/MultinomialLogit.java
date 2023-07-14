@@ -1,5 +1,7 @@
 package org.goplanit.path.choice.logit;
 
+import java.util.Map;
+
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -26,17 +28,26 @@ public class MultinomialLogit extends LogitChoiceModel {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected MultinomialLogit(MultinomialLogit other) {
-    super(other);
+  protected MultinomialLogit(MultinomialLogit other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public MultinomialLogit clone() {
-    return new MultinomialLogit(this);
+  public MultinomialLogit shallowClone() {
+    return new MultinomialLogit(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MultinomialLogit deepClone() {
+    return new MultinomialLogit(this, true);
   }
 
   /**
@@ -45,6 +56,14 @@ public class MultinomialLogit extends LogitChoiceModel {
   @Override
   public void reset() {
     // No internal state (yet), do nothing
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
 }

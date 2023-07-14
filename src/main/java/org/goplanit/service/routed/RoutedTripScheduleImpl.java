@@ -1,11 +1,15 @@
 package org.goplanit.service.routed;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
+import org.goplanit.utils.network.layer.service.ServiceNode;
+import org.goplanit.utils.service.routed.RelativeLegTiming;
+import org.goplanit.utils.service.routed.RoutedTripDepartures;
+import org.goplanit.utils.service.routed.RoutedTripSchedule;
 
 /**
  * Implementation of a RoutedTripSchedule interface.
@@ -31,18 +35,25 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
   public RoutedTripScheduleImpl(final IdGroupingToken tokenId) {
     super(tokenId);
     this.departures = new RoutedTripDeparturesImpl(tokenId);
-    this.relativeLegTimings = new ArrayList<RelativeLegTiming>(1);
+    this.relativeLegTimings = new ArrayList<>(1);
   }
 
   /**
    * Copy constructor
    * 
-   * @param routedTripScheduleImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedTripScheduleImpl(RoutedTripScheduleImpl routedTripScheduleImpl) {
-    super(routedTripScheduleImpl);
-    this.departures = routedTripScheduleImpl.departures.clone();
-    this.relativeLegTimings = new ArrayList<RelativeLegTiming>(routedTripScheduleImpl.relativeLegTimings);
+  public RoutedTripScheduleImpl(RoutedTripScheduleImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+
+    // container wrapper requires clone always
+    this.departures = deepCopy ? other.departures.deepClone() : other.departures.shallowClone();
+
+    this.relativeLegTimings = new ArrayList<>(other.getRelativeLegTimingsSize());
+    other.relativeLegTimings.forEach(lt ->
+            relativeLegTimings.add(
+                    deepCopy ? new RelativeLegTimingImpl((RelativeLegTimingImpl) lt) : lt));
   }
 
   /**
@@ -68,8 +79,16 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
    * {@inheritDoc}
    */
   @Override
-  public RoutedTripScheduleImpl clone() {
-    return new RoutedTripScheduleImpl(this);
+  public RoutedTripScheduleImpl shallowClone() {
+    return new RoutedTripScheduleImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedTripScheduleImpl deepClone() {
+    return new RoutedTripScheduleImpl(this, true);
   }
 
   /**
@@ -92,8 +111,16 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
    * {@inheritDoc}
    */
   @Override
+  public void clearDepartures() {
+    departures.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public RelativeLegTiming addRelativeLegSegmentTiming(ServiceLegSegment parentLegSegment, LocalTime duration, LocalTime dwellTime) {
-    RelativeLegTiming newEntry = new RelativeLegTiming(parentLegSegment, duration, dwellTime);
+    var newEntry = new RelativeLegTimingImpl(parentLegSegment, duration, dwellTime);
     relativeLegTimings.add(newEntry);
     return newEntry;
   }
@@ -115,12 +142,48 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
   }
 
   /**
-   * Get default
-   * 
-   * @return default dwell time
+   * {@inheritDoc}
    */
+  @Override
+  public void removeLegTiming(int legTimingIndex) {
+    relativeLegTimings.remove(legTimingIndex);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public LocalTime getDefaultDwellTime() {
     return defaultDwellTime;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LocalTime updateDefaultDwellTimeToMostCommon() {
+
+    /* identify most frequency dwell time */
+    var frequency = new TreeMap<LocalTime, Integer>();
+    for(var legTiming : this){
+      int countIncrement = frequency.getOrDefault(legTiming.getDwellTime(),0)+1;
+      frequency.put(legTiming.getDwellTime(), countIncrement);
+    }
+
+    /* found value */
+    var mostFrequent = frequency.entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).get().getKey();
+
+    /* update default */
+    setDefaultDwellTime(mostFrequent);
+
+    /* update relative leg timings */
+    for(var legTiming : this){
+      if(!legTiming.getDwellTime().equals(mostFrequent)){
+        ((RelativeLegTimingImpl)legTiming).setDwellTime(mostFrequent);
+      }
+    }
+
+    return mostFrequent;
   }
 
   /**
@@ -132,4 +195,29 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
     this.defaultDwellTime = defaultDwellTime;
   }
 
+  /**
+   * Iterate over currently available relative leg timings
+   * @return iterator of relative leg timings
+   */
+  @Override
+  public Iterator<RelativeLegTiming> iterator() {
+    return this.relativeLegTimings.iterator();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<ServiceNode> getUsedServiceNodes() {
+    Set<ServiceNode> usedServiceNodes = new HashSet<>();
+    for(var relLegTiming : this){
+      usedServiceNodes.add(relLegTiming.getParentLegSegment().getUpstreamServiceNode());
+    }
+    if(usedServiceNodes.isEmpty()){
+      return usedServiceNodes;
+    }
+
+    usedServiceNodes.add(getRelativeLegTiming(getRelativeLegTimingsSize()-1).getParentLegSegment().getDownstreamServiceNode());
+    return usedServiceNodes;
+  }
 }

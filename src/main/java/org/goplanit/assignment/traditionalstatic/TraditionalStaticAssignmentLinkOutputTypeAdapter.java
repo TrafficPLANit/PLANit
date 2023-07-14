@@ -92,7 +92,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
    */
   private Optional<Double> getVCRatio(final MacroscopicLinkSegment linkSegment) throws PlanItException {
     double totalFlow = 0.0;
-    for (final Mode mode : getAssignment().getTransportNetwork().getInfrastructureNetwork().getModes()) {
+    for (var mode : getAssignment().getTransportNetwork().getInfrastructureNetwork().getModes()) {
       totalFlow += getFlow(linkSegment, mode).get();
     }
     final double capacityPerLane = getCapacityPerLanePcuHour(linkSegment).get();

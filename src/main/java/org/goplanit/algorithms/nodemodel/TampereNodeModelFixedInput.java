@@ -1,13 +1,13 @@
 package org.goplanit.algorithms.nodemodel;
 
 import java.util.ArrayList;
-import java.util.Set;
 
-import org.ojalgo.array.Array1D;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.ojalgo.array.Array1D;
+import org.ojalgo.function.PrimitiveFunction;
 
 /**
  * Inner class that holds the mapping of the inputs to/from the underlying physical network (if any). Currently we support the PLANit network format for this mapping, or one
@@ -33,10 +33,10 @@ public class TampereNodeModelFixedInput {
    * @param edgeSegments  to map from
    * @throws PlanItException
    */
-  private void mapLinkSegments(ArrayList<MacroscopicLinkSegment> linkSegments, Set<EdgeSegment> edgeSegments) throws PlanItException {
+  private void mapLinkSegments(ArrayList<MacroscopicLinkSegment> linkSegments, Iterable<? extends EdgeSegment> edgeSegments) throws PlanItException {
     PlanItException.throwIf(edgeSegments == null, "edge segments to map are null");
 
-    for (EdgeSegment incomingLinkSegment : edgeSegments) {
+    for (var incomingLinkSegment : edgeSegments) {
       PlanItException.throwIf(!(incomingLinkSegment instanceof MacroscopicLinkSegment), "Edges of node are not of type MacroScopicLinkSegment when mapping in Tampere node model");
 
       linkSegments.add((MacroscopicLinkSegment) incomingLinkSegment);
@@ -54,8 +54,8 @@ public class TampereNodeModelFixedInput {
     PlanItException.throwIf(linkSegments == null, "link segments to extract capacity from are null");
 
     arrayToInitialise = Array1D.PRIMITIVE64.makeZero(linkSegments.size());
-    for (MacroscopicLinkSegment linkSegment : linkSegments) {
-      arrayToInitialise.add(linkSegment.getCapacityOrDefaultPcuH());
+    for (var linkSegment : linkSegments) {
+      arrayToInitialise.add(Math.min(getMaxInLinkSegmentCapacity(), linkSegment.getCapacityOrDefaultPcuH()));
     }
   }
 
@@ -65,8 +65,8 @@ public class TampereNodeModelFixedInput {
    * @param incomingEdgeSegments to map
    * @throws PlanItException
    */
-  private void mapIncomingLinkSegments(Set<EdgeSegment> incomingEdgeSegments) throws PlanItException {
-    this.incomingLinkSegments = new ArrayList<MacroscopicLinkSegment>(incomingEdgeSegments.size());
+  private void mapIncomingLinkSegments(Iterable<? extends EdgeSegment> incomingEdgeSegments, int numSegments) throws PlanItException {
+    this.incomingLinkSegments = new ArrayList<MacroscopicLinkSegment>(numSegments);
     mapLinkSegments(incomingLinkSegments, incomingEdgeSegments);
   }
 
@@ -76,8 +76,8 @@ public class TampereNodeModelFixedInput {
    * @param outgoingEdgeSegments to map
    * @throws PlanItException
    */
-  private void mapOutgoingLinkSegments(Set<EdgeSegment> outgoingEdgeSegments) throws PlanItException {
-    this.outgoingLinkSegments = new ArrayList<MacroscopicLinkSegment>(outgoingEdgeSegments.size());
+  private void mapOutgoingLinkSegments(Iterable<? extends EdgeSegment> outgoingEdgeSegments, int numSegments) throws PlanItException {
+    this.outgoingLinkSegments = new ArrayList<MacroscopicLinkSegment>(numSegments);
     mapLinkSegments(outgoingLinkSegments, outgoingEdgeSegments);
   }
 
@@ -106,6 +106,9 @@ public class TampereNodeModelFixedInput {
     }
   }
 
+  /** in case in link shave no capacity set, or an physically infeasible capacity, it is capped to this capacity */
+  protected double maxInLinkSegmentCapacity = DEFAULT_MAX_IN_CAPACITY;
+
   /** mapping of incoming link index to link segment (if any), i.e., a=1,...|A^in|-1 */
   protected ArrayList<MacroscopicLinkSegment> incomingLinkSegments;
   /** mapping of outgoing link index to link segment (if any), i.e.e, b=1,...|B^out|-1 */
@@ -115,6 +118,9 @@ public class TampereNodeModelFixedInput {
   protected Array1D<Double> incomingLinkSegmentCapacities;
   /** store the receiving flows of each outgoing link segment at capacity, i.e., R_b=C_b */
   protected Array1D<Double> outgoingLinkSegmentReceivingFlows;
+
+  /** default max in capacity */
+  public static double DEFAULT_MAX_IN_CAPACITY = 10_000.0;
 
   /**
    * Constructor. The TampereNodeModelFixedInput class is meant to be created once for each node where the node model is applied more than once. All fixed inputs conditioned on the
@@ -127,9 +133,9 @@ public class TampereNodeModelFixedInput {
    */
   public TampereNodeModelFixedInput(Node node, boolean initialiseReceivingFlowsAtCapacity) throws PlanItException {
     // Set A^in
-    mapIncomingLinkSegments(node.getEntryEdgeSegments());
+    mapIncomingLinkSegments(node.getEntryEdgeSegments(), node.getNumberOfEntryEdgeSegments());
     // Set A^out
-    mapOutgoingLinkSegments(node.getEntryEdgeSegments());
+    mapOutgoingLinkSegments(node.getExitEdgeSegments(), node.getNumberOfExitEdgeSegments());
     // Set C_a
     initialiseIncomingLinkSegmentCapacities();
     // Set R_b
@@ -137,7 +143,7 @@ public class TampereNodeModelFixedInput {
   }
 
   /**
-   * Constructor. Using this constructor does not require any dependency on PLANit network infrastructure
+   * Constructor. Using this constructor does not require any dependency on PLANit network infrastructure.
    * 
    * @param incomingLinkSegmentCapacities     to use
    * @param outgoingLinkSegmentReceivingFlows to use
@@ -158,6 +164,14 @@ public class TampereNodeModelFixedInput {
   }
 
   /**
+   * Based on the set maximum in link capacity, check and update current in link capacities if they exceed this maximum
+   */
+  public void capInLinkCapacitiesToMaximum() {
+    PrimitiveFunction.Unary capToMaxCapacity = v -> Math.max(getMaxInLinkSegmentCapacity(), v);
+    incomingLinkSegmentCapacities.modifyAll(capToMaxCapacity);
+  }
+
+  /**
    * Collect number of incoming link segments
    * 
    * @return number of incoming link segments
@@ -173,6 +187,24 @@ public class TampereNodeModelFixedInput {
    */
   public int getNumberOfOutgoingLinkSegments() {
     return outgoingLinkSegmentReceivingFlows.size();
+  }
+
+  /**
+   * Collect current maximum in link capacity that is being used
+   * 
+   * @return max in capacity
+   */
+  public double getMaxInLinkSegmentCapacity() {
+    return maxInLinkSegmentCapacity;
+  }
+
+  /**
+   * Collect current maximum in link capacity that is being used
+   *
+   * @param maxInLinkSegmentCapacity set the capacity
+   */
+  public void setMaxInLinkSegmentCapacity(double maxInLinkSegmentCapacity) {
+    this.maxInLinkSegmentCapacity = maxInLinkSegmentCapacity;
   }
 
 }

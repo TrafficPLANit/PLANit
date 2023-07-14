@@ -29,15 +29,22 @@ public abstract class NodeModelComponent extends PlanitComponent<NodeModelCompon
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public NodeModelComponent(final NodeModelComponent other) {
-    super(other);
+  public NodeModelComponent(final NodeModelComponent other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract NodeModelComponent clone();
+  public abstract NodeModelComponent shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract NodeModelComponent deepClone();
 
 }

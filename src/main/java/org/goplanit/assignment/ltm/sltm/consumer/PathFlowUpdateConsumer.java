@@ -1,12 +1,11 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.goplanit.od.path.OdPaths;
 import org.goplanit.utils.functionalinterface.TriConsumer;
-import org.goplanit.utils.graph.EdgeSegment;
-import org.goplanit.utils.path.DirectedPath;
+import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.zoning.OdZone;
 
 /**
@@ -34,12 +33,12 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
   /**
    * Apply the flow to the turn (and update link sending flow if required)
    * 
-   * @param prevSegmentId       of turn
+   * @param prevSegment         of turn
    * @param currentSegment      of turn
    * @param turnSendingFlowPcuH sending flow rate of turn
    * @return accepted flow rate of turn after applying link acceptance factor
    */
-  protected abstract double applySingleFlowUpdate(final int prevSegmentId, final EdgeSegment currentSegment, final double turnSendingFlowPcuH);
+  protected abstract double applySingleFlowUpdate(final EdgeSegment prevSegment, final EdgeSegment currentSegment, final double turnSendingFlowPcuH);
 
   /**
    * Apply the flow to a final path segment (and update link sending flow if required) which has no outgoing edge segment on the turn
@@ -66,21 +65,21 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
   @Override
   public void accept(OdZone origin, OdZone destination, Double odDemand) {
     /* path */
-    DirectedPath odPath = odPaths.getValue(origin, destination);
+    ManagedDirectedPath odPath = odPaths.getValue(origin, destination);
     double acceptedPathFlowRate = odDemand;
-    if (odPath.isEmpty()) {
-      LOGGER.warning(String.format("IGNORE: encountered empty path %s", odPath.getXmlId()));
+    if (odPath == null || odPath.isEmpty()) {
+      LOGGER.warning(String.format("IGNORE: encountered empty path %s", odPath == null ? "" : odPath.getXmlId()));
       return;
     }
 
     /* turn */
-    Iterator<EdgeSegment> edgeSegmentIter = odPath.iterator();
-    int previousEdgeSegmentId = (int) edgeSegmentIter.next().getId();
+    var edgeSegmentIter = odPath.iterator();
+    var previousEdgeSegment = edgeSegmentIter.next();
     EdgeSegment currEdgeSegment = null;
     while (edgeSegmentIter.hasNext()) {
       currEdgeSegment = edgeSegmentIter.next();
-      acceptedPathFlowRate = applySingleFlowUpdate(previousEdgeSegmentId, currEdgeSegment, acceptedPathFlowRate);
-      previousEdgeSegmentId = (int) currEdgeSegment.getId();
+      acceptedPathFlowRate = applySingleFlowUpdate(previousEdgeSegment, currEdgeSegment, acceptedPathFlowRate);
+      previousEdgeSegment = currEdgeSegment;
     }
 
     applyPathFinalSegmentFlowUpdate(currEdgeSegment, acceptedPathFlowRate);

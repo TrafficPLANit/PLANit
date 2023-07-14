@@ -1,7 +1,10 @@
 package org.goplanit.cost.physical;
 
+import java.util.Map;
+
+import org.goplanit.component.PlanitComponent;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.TransportLayerNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
@@ -31,18 +34,19 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
    * Copy Constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public FreeFlowLinkTravelTimeCost(FreeFlowLinkTravelTimeCost other) {
-    super(other);
+  public FreeFlowLinkTravelTimeCost(FreeFlowLinkTravelTimeCost other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void initialiseBeforeSimulation(TransportLayerNetwork<?, ?> network) throws PlanItException {
+  public void initialiseBeforeSimulation(LayeredNetwork<?, ?> network) throws PlanItException {
     PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "Free flow  travel time cost is only compatible with macroscopic networks");
-    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
+    var macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
         "Free flow travel time cost is currently only compatible with networks using a single infrastructure layer");
   }
@@ -90,8 +94,16 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
    * {@inheritDoc}
    */
   @Override
-  public FreeFlowLinkTravelTimeCost clone() {
-    return new FreeFlowLinkTravelTimeCost(this);
+  public FreeFlowLinkTravelTimeCost shallowClone() {
+    return new FreeFlowLinkTravelTimeCost(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public FreeFlowLinkTravelTimeCost deepClone() {
+    return new FreeFlowLinkTravelTimeCost(this, true);
   }
 
   /**
@@ -100,6 +112,15 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
   @Override
   public void reset() {
     // do nothing
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    // no settings
+    return null;
   }
 
 }

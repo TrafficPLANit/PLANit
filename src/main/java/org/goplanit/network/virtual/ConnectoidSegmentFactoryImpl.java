@@ -29,9 +29,9 @@ public class ConnectoidSegmentFactoryImpl extends GraphEntityFactoryImpl<Connect
    * {@inheritDoc}
    */
   @Override
-  public ConnectoidSegment registerNew(ConnectoidEdge parent, boolean directionAB) throws PlanItException {
-    ConnectoidSegment connectoidSegment = new ConnectoidSegmentImpl(getIdGroupingToken(), parent, directionAB);
-    parent.registerConnectoidSegment(connectoidSegment, directionAB);
+  public ConnectoidSegment registerNew(ConnectoidEdge parent, boolean directionAb) {
+    ConnectoidSegment connectoidSegment = new ConnectoidSegmentImpl(getIdGroupingToken(), parent, directionAb);
+    parent.registerConnectoidSegment(connectoidSegment, directionAb);
     getGraphEntities().register(connectoidSegment);
     return connectoidSegment;
   }

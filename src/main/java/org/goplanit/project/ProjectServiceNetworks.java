@@ -15,7 +15,7 @@ public class ProjectServiceNetworks extends LongMapWrapperImpl<ServiceNetwork> {
    * Constructor
    */
   protected ProjectServiceNetworks() {
-    super(new TreeMap<Long, ServiceNetwork>(), ServiceNetwork::getId);
+    super(new TreeMap<>(), ServiceNetwork::getId);
   }
 
   /**
@@ -31,7 +31,7 @@ public class ProjectServiceNetworks extends LongMapWrapperImpl<ServiceNetwork> {
    * {@inheritDoc}
    */
   @Override
-  public ProjectServiceNetworks clone() {
+  public ProjectServiceNetworks shallowClone() {
     return new ProjectServiceNetworks(this);
   }
 

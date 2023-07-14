@@ -1,6 +1,9 @@
 package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.service.routed.RoutedServiceTripInfo;
+import org.goplanit.utils.service.routed.RoutedTripsFrequency;
+import org.goplanit.utils.service.routed.RoutedTripsSchedule;
 
 /**
  * Implementation of a RoutedServiceTripInfo interface
@@ -21,6 +24,7 @@ public class RoutedServiceTripInfoImpl implements RoutedServiceTripInfo {
    * @param tokenId to use for id generation
    */
   public RoutedServiceTripInfoImpl(final IdGroupingToken tokenId) {
+    super();
     this.frequencyBasedTrips = new RoutedTripsFrequencyImpl(tokenId);
     this.scheduleBasedTrips = new RoutedTripsScheduleImpl(tokenId);
   }
@@ -28,19 +32,31 @@ public class RoutedServiceTripInfoImpl implements RoutedServiceTripInfo {
   /**
    * Copy constructor
    * 
-   * @param routedServiceTripInfoImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedServiceTripInfoImpl(RoutedServiceTripInfoImpl routedServiceTripInfoImpl) {
-    this.frequencyBasedTrips = routedServiceTripInfoImpl.frequencyBasedTrips.clone();
-    this.scheduleBasedTrips = routedServiceTripInfoImpl.scheduleBasedTrips.clone();
+  public RoutedServiceTripInfoImpl(RoutedServiceTripInfoImpl other, boolean deepCopy) {
+    super();
+
+    // container wrappers so require clone always
+    this.frequencyBasedTrips  = deepCopy ? other.frequencyBasedTrips.deepClone()  : other.frequencyBasedTrips.shallowClone();
+    this.scheduleBasedTrips   = deepCopy ? other.scheduleBasedTrips.deepClone()   : other.scheduleBasedTrips.shallowClone();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public RoutedServiceTripInfoImpl clone() {
-    return new RoutedServiceTripInfoImpl(this);
+  public RoutedServiceTripInfoImpl shallowClone() {
+    return new RoutedServiceTripInfoImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServiceTripInfoImpl deepClone() {
+    return new RoutedServiceTripInfoImpl(this, true);
   }
 
   /**

@@ -1,11 +1,15 @@
 package org.goplanit.network.virtual;
 
+import org.goplanit.network.layer.service.ServiceNodesImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.network.virtual.ConnectoidEdge;
 import org.goplanit.utils.network.virtual.ConnectoidEdgeFactory;
 import org.goplanit.utils.network.virtual.ConnectoidEdges;
+
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -41,13 +45,16 @@ public class ConnectoidEdgesImpl extends ManagedIdEntitiesImpl<ConnectoidEdge> i
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param connectoidSegmentImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ConnectoidEdgesImpl(ConnectoidEdgesImpl connectoidSegmentImpl) {
-    super(connectoidSegmentImpl);
-    this.connectoidEdgeFactory = connectoidSegmentImpl.connectoidEdgeFactory;
+  public ConnectoidEdgesImpl(ConnectoidEdgesImpl other, boolean deepCopy, BiConsumer<ConnectoidEdge,ConnectoidEdge> mapper) {
+    super(other, deepCopy, mapper);
+    this.connectoidEdgeFactory =
+            new ConnectoidEdgeFactoryImpl(other.connectoidEdgeFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -70,18 +77,34 @@ public class ConnectoidEdgesImpl extends ManagedIdEntitiesImpl<ConnectoidEdge> i
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ConnectoidEdgesImpl clone() {
-    return new ConnectoidEdgesImpl(this);
-  }
-
-  /**
    * clear the container
    */
   public void clear() {
     getMap().clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidEdgesImpl shallowClone() {
+    return new ConnectoidEdgesImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidEdgesImpl deepClone() {
+    return new ConnectoidEdgesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidEdgesImpl deepCloneWithMapping(BiConsumer<ConnectoidEdge,ConnectoidEdge> mapper) {
+    return new ConnectoidEdgesImpl(this, true, mapper);
   }
 
 }

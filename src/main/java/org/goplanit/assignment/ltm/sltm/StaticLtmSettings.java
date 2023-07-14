@@ -8,7 +8,7 @@ import java.util.logging.Logger;
  * 
  * @author markr
  */
-public class StaticLtmSettings implements Cloneable {
+public class StaticLtmSettings {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmSettings.class.getCanonicalName());
@@ -19,8 +19,20 @@ public class StaticLtmSettings implements Cloneable {
   /** flag indicating if detailed logging is enabled */
   private Boolean detailedLogging = null;
 
-  /** flag indicating to apply bush based assignment, or path based, default is true meaning bush based */
-  private Boolean bushBased = BUSH_BASED_DEFAULT;
+  /** flag indicating tthe type of sLTM assignment to apply, bush or path based */
+  private StaticLtmType sLtmType = DEFAULT_SLTM_TYPE;
+
+  /**
+   * flag indicating what to do when cost and derivative of cost on PAS alternative is equal, yet the flows are not. When false, this is considered a solution, when true an attempt
+   * is made to proportionally distribute flows across PAS alternatives to obtain a unique solution. The former is faster, the latter gives a consistent result.
+   */
+  private Boolean enforceMaxEntropyFlowSolution = ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT;
+
+  /** default setting for assignment is to apply an origin-based bush-based type of implementation over a path based one */
+  public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmType.DESTINATION_BUSH_BASED;
+
+  /** default setting for enforcing a flow proportional solution when possible */
+  public static boolean ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT = false;
 
   /**
    * Constructor
@@ -34,37 +46,11 @@ public class StaticLtmSettings implements Cloneable {
    * @param staticLtmSettings to copy
    */
   public StaticLtmSettings(StaticLtmSettings staticLtmSettings) {
-    this.bushBased = staticLtmSettings.bushBased.booleanValue();
+    this.sLtmType = staticLtmSettings.sLtmType;
     this.detailedLogging = staticLtmSettings.detailedLogging.booleanValue();
     this.disableStorageConstraints = staticLtmSettings.disableStorageConstraints.booleanValue();
+    this.enforceMaxEntropyFlowSolution = staticLtmSettings.enforceMaxEntropyFlowSolution.booleanValue();
   }
-
-  public Boolean isDisableStorageConstraints() {
-    return disableStorageConstraints;
-  }
-
-  public void setDisableStorageConstraints(Boolean disableStorageConstraints) {
-    this.disableStorageConstraints = disableStorageConstraints;
-  }
-
-  public Boolean isDetailedLogging() {
-    return detailedLogging;
-  }
-
-  public void setDetailedLogging(Boolean detailedLogging) {
-    this.detailedLogging = detailedLogging;
-  }
-
-  public Boolean isBushBased() {
-    return bushBased;
-  }
-
-  public void setBushBased(Boolean flag) {
-    this.bushBased = flag;
-  }
-
-  /** default setting for assignment is to apply a bush-based type of implementation over a path based one */
-  public static boolean BUSH_BASED_DEFAULT = true;
 
   /**
    * Validate if all settings have been properly set and log found issues
@@ -92,10 +78,48 @@ public class StaticLtmSettings implements Cloneable {
   }
 
   /**
-   * {@inheritDoc}
+   * Shallow copy
+   *
+   * @return  shallow copy
    */
-  @Override
-  public StaticLtmSettings clone() {
+  public StaticLtmSettings shallowClone() {
     return new StaticLtmSettings(this);
   }
+
+  public Boolean isDisableStorageConstraints() {
+    return disableStorageConstraints;
+  }
+
+  public void setDisableStorageConstraints(Boolean disableStorageConstraints) {
+    this.disableStorageConstraints = disableStorageConstraints;
+  }
+
+  public Boolean isDetailedLogging() {
+    return detailedLogging;
+  }
+
+  public void setDetailedLogging(Boolean detailedLogging) {
+    this.detailedLogging = detailedLogging;
+  }
+
+  public Boolean isBushBased() {
+    return this.sLtmType != StaticLtmType.PATH_BASED;
+  }
+
+  public void setSltmType(StaticLtmType type) {
+    this.sLtmType = type;
+  }
+  
+  public StaticLtmType getSltmType() {
+    return this.sLtmType;
+  }  
+
+  public Boolean isEnforceMaxEntropyFlowSolution() {
+    return enforceMaxEntropyFlowSolution;
+  }
+
+  public void setEnforceMaxEntropyFlowSolution(Boolean enforceMaxEntropyFlowSolution) {
+    this.enforceMaxEntropyFlowSolution = enforceMaxEntropyFlowSolution;
+  }
+
 }

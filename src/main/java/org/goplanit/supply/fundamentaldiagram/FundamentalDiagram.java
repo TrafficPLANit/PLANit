@@ -7,10 +7,10 @@ package org.goplanit.supply.fundamentaldiagram;
  * @author markr
  *
  */
-public interface FundamentalDiagram extends Cloneable {
+public interface FundamentalDiagram {
 
   /**
-   * short hand for Newell fundamental diagram class type
+   * shorthand for Newell fundamental diagram class type
    */
   public static final String NEWELL = NewellFundamentalDiagramComponent.class.getCanonicalName();
 
@@ -63,11 +63,18 @@ public interface FundamentalDiagram extends Cloneable {
   public abstract int relaxedHashCode(int scale);
 
   /**
-   * Clone the fundamental diagram
+   * Shallow copy of the fundamental diagram
    * 
    * @return cloned instance
    */
-  public abstract FundamentalDiagram clone();
+  public abstract FundamentalDiagram shallowClone();
+
+  /**
+   * deep clone of fundamental diagram
+   *
+   * @return cloned instance
+   */
+  public abstract FundamentalDiagram deepClone();
 
   /**
    * Change the capacity to the new value

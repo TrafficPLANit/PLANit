@@ -1,14 +1,12 @@
 package org.goplanit.test.sltm;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
-
 import java.util.logging.Logger;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
+import org.goplanit.assignment.ltm.sltm.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
@@ -19,17 +17,19 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
-import org.goplanit.utils.network.layer.physical.Links;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
 import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test the sLTM network loading algorithms basic functionality (no route choice)
@@ -51,7 +51,7 @@ public class sLtmNetworkLoadingTest {
   /**
    * {@inheritDoc}
    */
-  @BeforeClass
+  @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
       LOGGER = Logging.createLogger(sLtmNetworkLoadingTest.class);
@@ -61,13 +61,13 @@ public class sLtmNetworkLoadingTest {
   /**
    * {@inheritDoc}
    */
-  @After
-  public void tearDown() {
+  @AfterAll
+  public static void tearDown() {
     Logging.closeLogger(LOGGER);
   }
 
   //@formatter:off
-  @Before
+  @BeforeEach
   public void intialise() {
     // construct the network. 
     //
@@ -101,7 +101,7 @@ public class sLtmNetworkLoadingTest {
       }
       
       Nodes nodes = networkLayer.getNodes();
-      Links links = networkLayer.getLinks();
+      MacroscopicLinks links = networkLayer.getLinks();
       //links
       links.getFactory().registerNew(nodes.getByXmlId("0"), nodes.getByXmlId("1"), 1, true).setXmlId("0");;
       links.getFactory().registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("2"), 1, true).setXmlId("1");
@@ -127,19 +127,19 @@ public class sLtmNetworkLoadingTest {
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("MainType"), true, true);        
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
-      zoning.odZones.getFactory().registerNew().setXmlId("A");
-      zoning.odZones.getFactory().registerNew().setXmlId("B");
-      zoning.odZones.getFactory().registerNew().setXmlId("C");
-      zoning.odZones.getFactory().registerNew().setXmlId("D");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("B");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("C");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("D");
            
-      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("7"),  zoning.getOdZones().getByXmlId("A"), 0);
-      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("4"),  zoning.getOdZones().getByXmlId("B"), 0);
-      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("C"), 0);
-      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("3"),  zoning.getOdZones().getByXmlId("D"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("7"),  zoning.getOdZones().getByXmlId("A"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("4"),  zoning.getOdZones().getByXmlId("B"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("C"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("3"),  zoning.getOdZones().getByXmlId("D"), 0);
                       
     }catch(Exception e) {
       e.printStackTrace();
-      assertFalse(true);
+      fail("initialise");
     }
   }
   //@formatter:on
@@ -152,9 +152,9 @@ public class sLtmNetworkLoadingTest {
     try {
 
       Demands demands = new Demands(testToken);
-      demands.timePeriods.createAndRegisterNewTimePeriod("dummyTimePeriod", 0, 3600);
-      demands.travelerTypes.createAndRegisterNew("dummyTravellerType");
-      demands.userClasses.createAndRegisterNewUserClass("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
+      demands.timePeriods.getFactory().registerNew("dummyTimePeriod", 0, 3600);
+      demands.travelerTypes.getFactory().registerNew("dummyTravellerType");
+      demands.userClasses.getFactory().registerNew("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
 
       /* OD DEMANDS 1000 A->C, 1000 C->B */
       OdZones odZones = zoning.getOdZones();
@@ -167,13 +167,15 @@ public class sLtmNetworkLoadingTest {
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(true);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateBushBased(false);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).setType(StaticLtmType.PATH_BASED);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).getGapFunction().getStopCriterion().setMaxIterations(1);
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.execute();
 
       // TODO: path based sLTM assignment does not work yet, this is why gap computation gives severe warning. Fix this
+
+      // TODO: add assertions to check validity of outcome explicitly
 
     } catch (Exception e) {
       e.printStackTrace();

@@ -1,7 +1,7 @@
 package org.goplanit.converter.network;
 
 import org.goplanit.converter.ConverterWriter;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 
 /**
  * Interface to write a PLANit network to disk
@@ -9,7 +9,7 @@ import org.goplanit.network.TransportLayerNetwork;
  * @author markr
  *
  */
-public interface NetworkWriter extends ConverterWriter<TransportLayerNetwork<?,?>> {
+public interface NetworkWriter extends ConverterWriter<LayeredNetwork<?,?>> {
   
   /**
    * {@inheritDoc}

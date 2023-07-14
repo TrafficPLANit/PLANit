@@ -1,7 +1,6 @@
 package org.goplanit.assignment;
 
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -46,7 +45,7 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
     Calendar startTime = Calendar.getInstance();
     final Calendar initialStartTime = startTime;
     executeTimePeriod(timePeriod, getDemands().getRegisteredModesForTimePeriod(timePeriod));
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
+    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
   }
 
   /**
@@ -61,10 +60,11 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
   /**
    * Copy Constructor
    * 
-   * @param staticTrafficAssignment to copy
+   * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  protected StaticTrafficAssignment(StaticTrafficAssignment staticTrafficAssignment) {
-    super(staticTrafficAssignment);
+  protected StaticTrafficAssignment(StaticTrafficAssignment other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -75,12 +75,24 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
   @Override
   public void executeEquilibration() throws PlanItException {
     // perform assignment per period - per mode
-    final Collection<TimePeriod> timePeriods = getDemands().timePeriods.asSortedSetByStartTime();
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "total time periods: " + timePeriods.size());
-    for (final TimePeriod timePeriod : timePeriods) {
-      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createTimePeriodPrefix(timePeriod) + timePeriod.toString());
+    final var timePeriods = getDemands().timePeriods.asSortedSetByStartTime();
+    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + "total time periods: " + timePeriods.size());
+    for (var timePeriod : timePeriods) {
+      LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.timePeriodPrefix(timePeriod) + timePeriod.toString());
       executeTimePeriod(timePeriod);
     }
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract StaticTrafficAssignment shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract StaticTrafficAssignment deepClone();
 
 }

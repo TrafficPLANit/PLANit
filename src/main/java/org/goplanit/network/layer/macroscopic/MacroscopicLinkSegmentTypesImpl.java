@@ -1,9 +1,11 @@
 package org.goplanit.network.layer.macroscopic;
 
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypeFactory;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
@@ -45,13 +47,17 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param macroscopicLinkSegmentTypesImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
+   * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public MacroscopicLinkSegmentTypesImpl(final MacroscopicLinkSegmentTypesImpl macroscopicLinkSegmentTypesImpl) {
-    super(macroscopicLinkSegmentTypesImpl);
-    this.linkSegmentTypeFactory = macroscopicLinkSegmentTypesImpl.linkSegmentTypeFactory;
+  public MacroscopicLinkSegmentTypesImpl(
+          final MacroscopicLinkSegmentTypesImpl other, boolean deepCopy, BiConsumer<MacroscopicLinkSegmentType,MacroscopicLinkSegmentType> mapper) {
+    super(other, deepCopy, mapper);
+    this.linkSegmentTypeFactory =
+            new MacroscopicLinkSegmentTypeFactoryImpl(other.linkSegmentTypeFactory.getIdGroupingToken(),this);
   }
 
   /**
@@ -64,7 +70,7 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
    */
   @Override
   public MacroscopicLinkSegmentType getByXmlId(String xmlId) {
-    return findFirst(type -> xmlId.equals(((MacroscopicLinkSegmentType) type).getXmlId()));
+    return firstMatch(type -> xmlId.equals(((MacroscopicLinkSegmentType) type).getXmlId()));
   }
 
   /**
@@ -81,8 +87,24 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentTypesImpl clone() {
-    return new MacroscopicLinkSegmentTypesImpl(this);
+  public MacroscopicLinkSegmentTypesImpl shallowClone() {
+    return new MacroscopicLinkSegmentTypesImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegmentTypesImpl deepClone() {
+    return new MacroscopicLinkSegmentTypesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegmentTypesImpl deepCloneWithMapping(BiConsumer<MacroscopicLinkSegmentType,MacroscopicLinkSegmentType> mapper) {
+    return new MacroscopicLinkSegmentTypesImpl(this, true, mapper);
   }
 
 }

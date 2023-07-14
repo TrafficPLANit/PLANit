@@ -2,9 +2,12 @@ package org.goplanit.zoning;
 
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.UndirectedConnectoid;
 import org.goplanit.utils.zoning.UndirectedConnectoidFactory;
 import org.goplanit.utils.zoning.UndirectedConnectoids;
+
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of Connectoids class
@@ -39,13 +42,16 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
+   * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public UndirectedConnectoidsImpl(UndirectedConnectoidsImpl other) {
-    super(other);
-    this.undirectedConnectoidFactory = other.undirectedConnectoidFactory;
+  public UndirectedConnectoidsImpl(UndirectedConnectoidsImpl other, boolean deepCopy, BiConsumer<UndirectedConnectoid, UndirectedConnectoid> mapper) {
+    super(other, deepCopy, mapper);
+    this.undirectedConnectoidFactory =
+            new UndirectedConnectoidFactoryImpl(other.undirectedConnectoidFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -71,7 +77,23 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoidsImpl clone() {
-    return new UndirectedConnectoidsImpl(this);
+  public UndirectedConnectoidsImpl shallowClone() {
+    return new UndirectedConnectoidsImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UndirectedConnectoidsImpl deepClone() {
+    return new UndirectedConnectoidsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UndirectedConnectoidsImpl deepCloneWithMapping(BiConsumer<UndirectedConnectoid, UndirectedConnectoid> mapper) {
+    return new UndirectedConnectoidsImpl(this, true, mapper);
   }
 }

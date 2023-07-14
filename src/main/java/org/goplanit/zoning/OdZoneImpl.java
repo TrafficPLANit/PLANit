@@ -49,11 +49,12 @@ public class OdZoneImpl extends ZoneImpl implements OdZone {
   /**
    * Copy constructor
    * 
-   * @param odZoneImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public OdZoneImpl(OdZoneImpl odZoneImpl) {
-    super(odZoneImpl);
-    this.odZoneId = odZoneImpl.odZoneId;
+  public OdZoneImpl(OdZoneImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.odZoneId = other.odZoneId;
   }
 
   /**
@@ -77,8 +78,16 @@ public class OdZoneImpl extends ZoneImpl implements OdZone {
    * {@inheritDoc}
    */
   @Override
-  public OdZoneImpl clone() {
-    return new OdZoneImpl(this);
+  public OdZoneImpl shallowClone() {
+    return new OdZoneImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdZoneImpl deepClone() {
+    return new OdZoneImpl(this, true);
   }
 
 }

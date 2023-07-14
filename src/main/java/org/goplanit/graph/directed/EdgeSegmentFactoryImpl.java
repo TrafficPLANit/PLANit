@@ -1,9 +1,8 @@
 package org.goplanit.graph.directed;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
-import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegmentFactory;
 import org.goplanit.utils.graph.directed.EdgeSegments;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -30,7 +29,7 @@ public class EdgeSegmentFactoryImpl extends GraphEntityFactoryImpl<EdgeSegment> 
    */
   @Override
   public EdgeSegment create(final DirectedEdge parentEdge, final boolean directionAB) {
-    final EdgeSegment edgeSegment = new EdgeSegmentImpl(getIdGroupingToken(), directionAB);
+    final EdgeSegment edgeSegment = new EdgeSegmentImpl<DirectedEdge>(getIdGroupingToken(), directionAB);
     edgeSegment.setParent(parentEdge);
     return edgeSegment;
   }
@@ -40,15 +39,11 @@ public class EdgeSegmentFactoryImpl extends GraphEntityFactoryImpl<EdgeSegment> 
    */
   @Override
   public EdgeSegment registerNew(DirectedEdge parentEdge, boolean directionAb, boolean registerOnVertexAndEdge) {
-    final EdgeSegment edgeSegment = new EdgeSegmentImpl(getIdGroupingToken(), parentEdge, directionAb);
+    final var edgeSegment = new EdgeSegmentImpl<DirectedEdge>(getIdGroupingToken(), parentEdge, directionAb);
     getGraphEntities().register(edgeSegment);
 
     if (registerOnVertexAndEdge) {
       parentEdge.registerEdgeSegment(edgeSegment, directionAb);
-      if (parentEdge.getVertexA() instanceof DirectedVertex) {
-        ((DirectedVertex) parentEdge.getVertexA()).addEdgeSegment(edgeSegment);
-        ((DirectedVertex) parentEdge.getVertexB()).addEdgeSegment(edgeSegment);
-      }
     }
     return edgeSegment;
   }

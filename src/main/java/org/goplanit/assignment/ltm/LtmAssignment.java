@@ -44,10 +44,10 @@ public abstract class LtmAssignment extends TrafficAssignment {
   @Override
   protected void verifyNetworkDemandZoningCompatibility() throws PlanItException {
     PlanItException.throwIf(!(getInfrastructureNetwork() instanceof MacroscopicNetwork), "sLTM is only compatible with macroscopic networks");
-    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) getInfrastructureNetwork();
+    var macroscopicNetwork = (MacroscopicNetwork) getInfrastructureNetwork();
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
         "LTM is currently only compatible with networks using a single transport layer in its physical network");
-    MacroscopicNetworkLayer networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
+    var networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
     if (getInfrastructureNetwork().getModes().size() != networkLayer.getSupportedModes().size()) {
       LOGGER.warning("LTM network wide modes do not match modes supported by the single available layer, consider removing unused modes");
     }
@@ -76,17 +76,24 @@ public abstract class LtmAssignment extends TrafficAssignment {
   /**
    * Copy Constructor
    * 
-   * @param sltm to copy
+   * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  protected LtmAssignment(final LtmAssignment sltm) {
-    super(sltm);
+  protected LtmAssignment(final LtmAssignment other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract LtmAssignment clone();
+  public abstract LtmAssignment shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract LtmAssignment deepClone();
 
   // Getters - Setters
 
@@ -96,7 +103,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * @param fundamentalDiagram the fundamental diagram
    */
   public void setFundamentalDiagram(final FundamentalDiagramComponent fundamentalDiagram) {
-    logRegisteredComponent(fundamentalDiagram, true);
+    logRegisteredComponentName(fundamentalDiagram, true);
     registerComponent(FundamentalDiagramComponent.class, fundamentalDiagram);
   }
 
@@ -106,7 +113,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * @param nodeModel to use
    */
   public void setNodeModel(final NodeModelComponent nodeModel) {
-    logRegisteredComponent(nodeModel, true);
+    logRegisteredComponentName(nodeModel, true);
     registerComponent(NodeModelComponent.class, nodeModel);
   }
 
@@ -125,7 +132,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * @param pathChoice model used
    */
   public void setPathChoice(PathChoice pathChoice) {
-    logRegisteredComponent(pathChoice, true);
+    logRegisteredComponentName(pathChoice, true);
     registerComponent(PathChoice.class, pathChoice);
   }
 

@@ -6,7 +6,7 @@ import org.goplanit.assignment.TrafficAssignment;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.network.layer.physical.PhysicalLayer;
 import org.goplanit.utils.graph.GraphEntities;
-import org.goplanit.utils.network.layer.TransportLayer;
+import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
@@ -38,7 +38,7 @@ public abstract class PhysicalLinkOutputTypeAdapterImpl extends OutputTypeAdapte
    */
   @Override
   public GraphEntities<LinkSegment> getPhysicalLinkSegments(long infrastructureLayerId) {
-    TransportLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
+    NetworkLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
     if (networkLayer instanceof PhysicalLayer) {
       return ((PhysicalLayer) networkLayer).getLinkSegments();
     }

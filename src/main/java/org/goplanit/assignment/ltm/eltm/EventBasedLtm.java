@@ -1,10 +1,13 @@
 package org.goplanit.assignment.ltm.eltm;
 
+import java.util.Map;
+
 import org.goplanit.assignment.ltm.LtmAssignment;
 import org.goplanit.interactor.InteractorAccessor;
 import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -30,10 +33,11 @@ public class EventBasedLtm extends LtmAssignment {
   /**
    * Copy Constructor
    * 
-   * @param eltm to copy
+   * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public EventBasedLtm(EventBasedLtm eltm) {
-    super(eltm);
+  public EventBasedLtm(EventBasedLtm other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   @Override
@@ -58,8 +62,16 @@ public class EventBasedLtm extends LtmAssignment {
    * {@inheritDoc}
    */
   @Override
-  public EventBasedLtm clone() {
-    return new EventBasedLtm(this);
+  public EventBasedLtm shallowClone() {
+    return new EventBasedLtm(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LtmAssignment deepClone() {
+    throw new PlanItRunTimeException("Deep clone not yet implemented");
   }
 
   @Override
@@ -74,6 +86,14 @@ public class EventBasedLtm extends LtmAssignment {
   @Override
   public void reset() {
     // TODO Auto-generated method stub
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
 }

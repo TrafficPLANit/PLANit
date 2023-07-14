@@ -1,5 +1,6 @@
 package org.goplanit.graph;
 
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.VertexFactory;
 import org.goplanit.utils.graph.Vertices;
@@ -27,7 +28,7 @@ public class VertexFactoryImpl extends GraphEntityFactoryImpl<Vertex> implements
    */
   @Override
   public Vertex createNew() {
-    return new VertexImpl(getIdGroupingToken());
+    return new VertexImpl<Edge>(getIdGroupingToken());
   }
 
   /**

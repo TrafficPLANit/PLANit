@@ -70,6 +70,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
     public AccessZoneProperties(AccessZoneProperties other) {
       this.accessZone = other.accessZone;
       this.lengthKm = other.lengthKm;
+
       /* shallow */
       if (other.allowedModes != null) {
         this.allowedModes = (TreeMap<Long, Mode>) other.allowedModes.clone();
@@ -83,7 +84,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
      */
     void addAllowedMode(Mode mode) {
       if (allowedModes == null) {
-        allowedModes = new TreeMap<Long, Mode>();
+        allowedModes = new TreeMap<>();
       }
       allowedModes.put(mode.getId(), mode);
     }
@@ -98,7 +99,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   protected ConnectoidType type = DEFAULT_CONNECTOID_TYPE;
 
   /** the zones and their properties accessible from this connectoid */
-  protected TreeMap<Long, AccessZoneProperties> accessZones = new TreeMap<Long, AccessZoneProperties>();
+  protected TreeMap<Long, AccessZoneProperties> accessZones = new TreeMap<>();
 
   /**
    * Generate connectoid id
@@ -115,7 +116,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   public void recreateAccessZoneIdMapping() {
     Collection<AccessZoneProperties> accessZoneValues = accessZones.values();
-    accessZones = new TreeMap<Long, AccessZoneProperties>();
+    accessZones = new TreeMap<>();
     accessZoneValues.forEach(accessZoneValue -> accessZones.put(accessZoneValue.accessZone.getId(), accessZoneValue));
   }
 
@@ -164,15 +165,17 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   /**
    * Copy constructor
    * 
-   * @param connectoidImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConnectoidImpl(ConnectoidImpl connectoidImpl) {
-    super(connectoidImpl);
-    for (AccessZoneProperties entry : connectoidImpl.accessZones.values()) {
-      accessZones.put(entry.accessZone.getId(), new AccessZoneProperties(entry));
-    }
-    this.name = connectoidImpl.name;
-    this.type = connectoidImpl.type;
+  protected ConnectoidImpl(ConnectoidImpl other, boolean deepCopy) {
+    super(other);
+    this.name = other.name;
+    this.type = other.type;
+
+    this.accessZones = new TreeMap<>();
+    other.accessZones.forEach( (k,v) ->
+            accessZones.put( k, deepCopy ? new AccessZoneProperties(v) : v));
   }
 
   // Public
@@ -233,7 +236,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * {@inheritDoc}
    */
   @Override
-  public long getNumberOfAccessZones() {
+  public int getNumberOfAccessZones() {
     return accessZones.size();
   }
 
@@ -257,7 +260,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   @Override
   public Zone addAccessZone(Zone accessZone) {
     if (accessZone == null) {
-      LOGGER.warning(String.format("unable to add access zone to connectoid %s, it is null", getXmlId()));
+      LOGGER.warning(String.format("unable to add access zone to connectoid %s, it is null", getIdsAsString()));
     }
     AccessZoneProperties duplicate = accessZones.put(accessZone.getId(), new AccessZoneProperties(accessZone));
     return duplicate != null ? duplicate.accessZone : null;
@@ -267,7 +270,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * {@inheritDoc}
    */
   @Override
-  public boolean isModeAllowed(Zone accessZone, Mode mode) throws PlanItException {
+  public boolean isModeAllowed(Zone accessZone, Mode mode) {
     if (!hasAccessZone(accessZone)) {
       LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when checking if mode is allowed", accessZone.getXmlId(), accessZone.getId(),
           getXmlId(), getId()));
@@ -334,7 +337,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   @Override
   public Iterator<Zone> iterator() {
-    Iterator<Zone> it = new Iterator<Zone>() {
+    Iterator<Zone> it = new Iterator<>() {
 
       private Iterator<AccessZoneProperties> iterator = accessZones.values().iterator();
 
@@ -370,6 +373,12 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * {@inheritDoc}
    */
   @Override
-  public abstract ConnectoidImpl clone();
+  public abstract ConnectoidImpl shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ConnectoidImpl deepClone();
 
 }

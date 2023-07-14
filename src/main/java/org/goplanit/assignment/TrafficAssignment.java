@@ -15,7 +15,8 @@ import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.demands.Demands;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
+import org.goplanit.network.TopologicalLayerNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.output.OutputManager;
@@ -23,11 +24,12 @@ import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.networkloading.NetworkLoading;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.time.TimePeriod;
+import org.goplanit.zoning.Zoning;
 
 /**
  * Traffic assignment class which simultaneously is responsible for the loading hence it is also considered as a traffic assignment component of this type
@@ -50,14 +52,12 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    */
   private OutputManager outputManager;
 
-  
-
   /* INPUT COMPONENTS */
 
   /**
    * network to use
    */
-  private TransportLayerNetwork<?, ?> physicalNetwork = null;
+  private TopologicalLayerNetwork<?, ?> physicalNetwork = null;
 
   /**
    * The transport network to use which is an adaptor around the physical network and the zoning
@@ -81,6 +81,21 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    */
   private final Map<Class<? extends PlanitComponent<?>>, PlanitComponent<?>> trafficAssignmentComponents;
 
+  // Getters - Setters
+
+  /**
+   * Helper, log the settings of the provided component
+   * 
+   * @param component
+   */
+  private void logComponentSettings(PlanitComponent<?> component) {
+    var settingsMap = component.collectSettingsAsKeyValueMap();
+    if (settingsMap != null) {
+      String componentPrefix = LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surroundwithBrackets(component.getClass().getSimpleName());
+      settingsMap.forEach((k, v) -> LOGGER.info(componentPrefix + k + " " + v));
+    }
+  }
+
   /**
    * The initial link segment cost to use where the mapping is based on the user provided time period. Note that the registered InitialLinkSegmentCostMode is part of another
    * registered initialCost that is present on the project. However, a user might have decided that while they were parsed under one time period, to apply them on the assignment in
@@ -102,7 +117,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * @return prefix for logging of traffic assignment messages
    */
   protected String createLoggingPrefix(int iterationIndex) {
-    return LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createIterationPrefix(iterationIndex);
+    return LoggingUtils.runIdPrefix(getId()) + LoggingUtils.iterationPrefix(iterationIndex);
   }
 
   /**
@@ -238,10 +253,10 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * log registering an item on this traffic assignment
    * 
    * @param item     to (un)register
-   * @param register when true it signals activate, otherwise deactive
+   * @param register when true it signals activate, otherwise deactivate
    */
-  protected void logRegisteredComponent(Object item, boolean register) {
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.logActiveStateByClassName(item, register));
+  protected void logRegisteredComponentName(Object item, boolean register) {
+    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.logActiveStateByClassName(item, register));
   }
 
   /**
@@ -284,19 +299,33 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   /**
    * Copy Constructor
    * 
-   * @param trafficAssignment to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected TrafficAssignment(TrafficAssignment trafficAssignment) {
-    super(trafficAssignment);
-    this.demands = trafficAssignment.demands;
-    this.physicalNetwork = trafficAssignment.physicalNetwork;
-    this.zoning = trafficAssignment.zoning;
+  protected TrafficAssignment(TrafficAssignment other, boolean deepCopy) {
+    super(other, deepCopy);
 
-    this.trafficAssignmentComponents = new HashMap<Class<? extends PlanitComponent<?>>, PlanitComponent<?>>(trafficAssignment.trafficAssignmentComponents);
+    this.demands        = deepCopy ? other.demands.deepClone()          : other.demands.shallowClone();
+    this.physicalNetwork= deepCopy ? other.physicalNetwork.deepClone()  : other.physicalNetwork.shallowClone();
+    this.zoning         = deepCopy ? other.zoning.deepClone()           : other.zoning.shallowClone();
 
-    this.initialLinkSegmentCostTimePeriodAgnostic = trafficAssignment.initialLinkSegmentCostTimePeriodAgnostic;
-    this.initialLinkSegmentCostByTimePeriod = new HashMap<TimePeriod, InitialModesLinkSegmentCost>(trafficAssignment.initialLinkSegmentCostByTimePeriod);
+    this.trafficAssignmentComponents = new HashMap<>();
+    other.trafficAssignmentComponents.entrySet().forEach(
+            entry -> trafficAssignmentComponents.put(entry.getKey(), deepCopy ? entry.getValue().deepClone() : entry.getValue()));
+
+    // primitive container wrapper, so clone equates to deep clone
+    this.initialLinkSegmentCostTimePeriodAgnostic = other.initialLinkSegmentCostTimePeriodAgnostic.shallowClone();
+    // map of primitive container wrappers, so clone equates to deep clone
+    this.initialLinkSegmentCostByTimePeriod = new HashMap<>();
+    other.initialLinkSegmentCostByTimePeriod.forEach( (p,e) -> initialLinkSegmentCostByTimePeriod.put(p, e.shallowClone()));
   }
+
+  /**
+   * Collect the current iteration index of the simulation
+   * 
+   * @return current iteration index
+   */
+  public abstract int getIterationIndex();
 
   /**
    * Create the output type adapter for the current output type, specifically tailored towards the assignment type that we are builing
@@ -305,13 +334,6 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * @return the output type adapter corresponding to the current traffic assignment and output type
    */
   public abstract OutputTypeAdapter createOutputTypeAdapter(OutputType outputType);
-
-  /**
-   * Collect the current iteration index of the simulation
-   * 
-   * @return current iteration index
-   */
-  public abstract int getIterationIndex();
 
   // Public methods
 
@@ -322,7 +344,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    */
   public void execute() throws PlanItException {
 
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("----------------- %s -----------------", this.getClass().getSimpleName()));
+    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surround(this.getClass().getSimpleName(), '-', 17));
 
     initialiseBeforeExecution();
 
@@ -330,10 +352,44 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
 
     finalizeAfterExecution();
 
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("----------------- %s ----------------", this.getClass().getSimpleName()));
+    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surround(this.getClass().getSimpleName(), '-', 17));
+  }
+
+  /**
+   * Log settings of this traffic assignment
+   */
+  public void logAllSettings() {
+    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surround("ASSIGNMENT SETTINGS - START", '-', 17));
+    logComponentSettings(this);
+    for (var componentEntry : this.trafficAssignmentComponents.entrySet()) {
+      logComponentSettings(componentEntry.getValue());
+    }
+    // TODO output manager settings
+    // this.getOutputManager().collectSettingsAsKeyValueMap();
+    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surround("ASSIGNMENT SETTINGS - END", '-', 17));
   }
 
   // Getters - Setters
+
+  /**
+   * {@inheritDoc}
+   */
+  public void reset() {
+    // do not reset input components because they are considered configuration, not internal state. Also, initial cost is not reset since
+    // this is considered a fixed input as well without an internal state, we only remove them
+    this.initialLinkSegmentCostByTimePeriod.clear();
+    this.initialLinkSegmentCostTimePeriodAgnostic = null;
+
+    // disband the transport network, this is considered internal state
+    try {
+      disbandTransportNetwork();
+    } catch (PlanItException e) {
+      LOGGER.severe(String.format("Unable to reset assignment %s, transport network could not be disbanded", getXmlId()));
+    }
+
+    // do reset internal traffic assignment components, they are considered internal state.
+    this.trafficAssignmentComponents.forEach((clazz, component) -> component.reset());
+  }
 
   /**
    * Get the TransportNetwork used in the current assignment
@@ -349,8 +405,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    *
    * @param physicalNetwork the network object for the current assignment
    */
-  public void setInfrastructureNetwork(final TransportLayerNetwork<?, ?> physicalNetwork) {
-    logRegisteredComponent(physicalNetwork, true);
+  public void setInfrastructureNetwork(final TopologicalLayerNetwork<?, ?> physicalNetwork) {
+    logRegisteredComponentName(physicalNetwork, true);
     this.physicalNetwork = physicalNetwork;
   }
 
@@ -359,7 +415,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    *
    * @return physical network for the current assignment
    */
-  public TransportLayerNetwork<?, ?> getInfrastructureNetwork() {
+  public TopologicalLayerNetwork<?, ?> getInfrastructureNetwork() {
     return this.physicalNetwork;
   }
 
@@ -378,7 +434,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * @param demands the Demands object for the current assignment
    */
   public void setDemands(final Demands demands) {
-    logRegisteredComponent(demands, true);
+    logRegisteredComponentName(demands, true);
     this.demands = demands;
   }
 
@@ -397,7 +453,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * @param zoning the Zoning object for the current assignment
    */
   public void setZoning(final Zoning zoning) {
-    logRegisteredComponent(zoning, true);
+    logRegisteredComponentName(zoning, true);
     this.zoning = zoning;
   }
 
@@ -407,7 +463,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * @param smoothing Smoothing object for the current assignment
    */
   public void setSmoothing(final Smoothing smoothing) {
-    logRegisteredComponent(smoothing, true);
+    logRegisteredComponentName(smoothing, true);
     registerComponent(Smoothing.class, smoothing);
   }
 
@@ -426,7 +482,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * @param gapfunction the gap function to set
    */
   public void setGapFunction(final GapFunction gapfunction) {
-    logRegisteredComponent(gapfunction, true);
+    logRegisteredComponentName(gapfunction, true);
     registerComponent(GapFunction.class, gapfunction);
   }
 
@@ -462,11 +518,11 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   /**
    * Set the physical cost where in case the cost is an InteractorAccessor will trigger an event to get access to the required data via requesting an InteractorAccessee
    *
+   * @param <LS> type of link segment
    * @param physicalCost the physical cost object for the current assignment
-   * @throws PlanItException thrown if there is an error
    */
-  public void setPhysicalCost(final AbstractPhysicalCost physicalCost) throws PlanItException {
-    logRegisteredComponent(physicalCost, true);
+  public <LS extends MacroscopicLinkSegment> void setPhysicalCost(final AbstractPhysicalCost physicalCost) {
+    logRegisteredComponentName(physicalCost, true);
     registerComponent(AbstractPhysicalCost.class, physicalCost);
   }
 
@@ -495,7 +551,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * @throws PlanItException thrown if there is an error
    */
   public void setVirtualCost(final AbstractVirtualCost virtualCost) throws PlanItException {
-    logRegisteredComponent(virtualCost, true);
+    logRegisteredComponentName(virtualCost, true);
     registerComponent(AbstractVirtualCost.class, virtualCost);
   }
 
@@ -526,28 +582,20 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   public void setOutputManager(OutputManager outputManager) {
     this.outputManager = outputManager;
     // TODO: move all logging of components to one central place instead of in setters
-    outputManager.getOutputFormatters().forEach(of -> logRegisteredComponent(of, false));
-    outputManager.getRegisteredOutputTypeConfigurations().forEach(oc -> LOGGER.info(LoggingUtils.createRunIdPrefix(this.getId()) + "activated: OutputType." + oc.getOutputType()));
+    outputManager.getOutputFormatters().forEach(of -> logRegisteredComponentName(of, true));
+    outputManager.getRegisteredOutputTypeConfigurations().forEach(oc -> LOGGER.info(LoggingUtils.runIdPrefix(this.getId()) + "activated: OutputType." + oc.getOutputType()));
   }
 
   /**
    * {@inheritDoc}
    */
-  public void reset() {
-    // do not reset input components because they are considered configuration, not internal state. Also, initial cost is not reset since
-    // this is considered a fixed input as well without an internal state, we only remove them
-    this.initialLinkSegmentCostByTimePeriod.clear();
-    this.initialLinkSegmentCostTimePeriodAgnostic = null;
+  @Override
+  public abstract TrafficAssignment shallowClone();
 
-    // disband the transport network, this is considered internal state
-    try {
-      disbandTransportNetwork();
-    } catch (PlanItException e) {
-      LOGGER.severe(String.format("Unable to reset assignment %s, transport network could not be disbanded", getXmlId()));
-    }
-
-    // do reset internal traffic assignment components, they are considered internal state.
-    this.trafficAssignmentComponents.forEach((clazz, component) -> component.reset());
-  }
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TrafficAssignment deepClone();
 
 }

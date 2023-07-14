@@ -1,22 +1,22 @@
 package org.goplanit.path;
 
-import java.util.Deque;
-
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.path.ContainerisedDirectedPathFactory;
-import org.goplanit.utils.path.DirectedPath;
-import org.goplanit.utils.path.DirectedPaths;
+import org.goplanit.utils.path.ManagedDirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPaths;
+
+import java.util.Deque;
 
 /**
  * Factory for creating directed paths on container
  * 
  * @author markr
  */
-public class ContainerisedDirectedPathFactoryImpl extends DirectedPathFactoryImpl implements ContainerisedDirectedPathFactory {
+public class ContainerisedDirectedPathFactoryImpl extends ManagedDirectedPathFactoryImpl implements ContainerisedDirectedPathFactory {
 
-  /** container to use */
-  private final DirectedPaths directedPaths;
+  /** container for directed paths to use */
+  private final ManagedDirectedPaths directedPaths;
 
   /**
    * Constructor
@@ -24,7 +24,7 @@ public class ContainerisedDirectedPathFactoryImpl extends DirectedPathFactoryImp
    * @param groupIdToken  to use for creating element ids
    * @param directedPaths to register the created instances on
    */
-  public ContainerisedDirectedPathFactoryImpl(IdGroupingToken groupIdToken, DirectedPaths directedPaths) {
+  public ContainerisedDirectedPathFactoryImpl(IdGroupingToken groupIdToken, ManagedDirectedPaths directedPaths) {
     super(groupIdToken);
     this.directedPaths = directedPaths;
   }
@@ -33,8 +33,8 @@ public class ContainerisedDirectedPathFactoryImpl extends DirectedPathFactoryImp
    * {@inheritDoc}
    */
   @Override
-  public DirectedPath registerNew() {
-    DirectedPath newPath = createNew();
+  public ManagedDirectedPath registerNew() {
+    ManagedDirectedPath newPath = createNew();
     directedPaths.register(newPath);
     return newPath;
   }
@@ -43,8 +43,8 @@ public class ContainerisedDirectedPathFactoryImpl extends DirectedPathFactoryImp
    * {@inheritDoc}
    */
   @Override
-  public DirectedPath registerNew(Deque<? extends EdgeSegment> edgeSegments) {
-    DirectedPath newPath = createNew(edgeSegments);
+  public ManagedDirectedPath registerNew(Deque<? extends EdgeSegment> edgeSegments) {
+    ManagedDirectedPath newPath = createNew(edgeSegments);
     directedPaths.register(newPath);
     return newPath;
   }

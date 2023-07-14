@@ -1,25 +1,16 @@
 package org.goplanit.graph.modifier;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.modifier.event.BreakEdgeEvent;
-import org.goplanit.graph.modifier.event.RemoveSubGraphEdgeEvent;
-import org.goplanit.graph.modifier.event.RemoveSubGraphEvent;
-import org.goplanit.graph.modifier.event.RemoveSubGraphVertexEvent;
+import org.goplanit.graph.modifier.event.RecreatedGraphEntitiesManagedIdsEvent;
+import org.goplanit.graph.modifier.event.*;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
-import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.Edge;
@@ -60,9 +51,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    * 
    * @param brokenEdge     the broken edge
    * @param vertexBrokenAt the vertex it was broken at
-   * @throws PlanItException thrown if error
    */
-  protected static void updateBrokenEdgeGeometry(Edge brokenEdge, Vertex vertexBrokenAt) throws PlanItException {
+  protected static void updateBrokenEdgeGeometry(Edge brokenEdge, Vertex vertexBrokenAt) {
     LineString updatedGeometry = null;
     if (brokenEdge.getVertexA().equals(vertexBrokenAt)) {
       updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesBefore(vertexBrokenAt.getPosition(), brokenEdge.getGeometry());
@@ -80,10 +70,9 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    * 
    * @param referenceVertex to process
    * @return all vertices in the subnetwork connected to passed in reference vertex
-   * @throws PlanItException thrown if parameters are null
    */
-  protected Set<Vertex> processSubNetworkVertex(Vertex referenceVertex) throws PlanItException {
-    PlanItException.throwIfNull(referenceVertex, "provided reference vertex is null when identifying its subnetwork, thisis not allowed");
+  protected Set<Vertex> processSubNetworkVertex(Vertex referenceVertex) {
+    PlanItRunTimeException.throwIfNull(referenceVertex, "provided reference vertex is null when identifying its subnetwork, thisis not allowed");
     Set<Vertex> subNetworkVertices = new HashSet<Vertex>();
     subNetworkVertices.add(referenceVertex);
 
@@ -113,14 +102,6 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected void fireEvent(EventListener eventListener, Event event) {
-    GraphModifierListener.class.cast(eventListener).onGraphModificationEvent(GraphModificationEvent.class.cast(event));
-  }
-
-  /**
    * Constructor
    * 
    * @param theGraph to use
@@ -131,11 +112,75 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   }
 
   /**
+   * Access to graph
+   *
+   * @return the underlying graph
+   */
+  public UntypedGraph<?,?> getGraph(){
+    return theGraph;
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   *   make public so derived classes can access it as well
+   * </p>
+   */
+  @Override
+  public void fireEvent(EventListener eventListener, Event event) {
+    GraphModifierListener.class.cast(eventListener).onGraphModificationEvent(GraphModificationEvent.class.cast(event));
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   */
+  @Override
+  public void removeVertex(Vertex vertex) {
+    /* remove vertex from vertex' edges */
+    for (Edge edge : vertex.getEdges()) {
+      edge.removeVertex(vertex);
+    }
+
+    /* remove edges from vertex */
+    vertex.removeAllEdges();
+
+    /* remove vertex from graph and fire event */
+    theGraph.getVertices().remove(vertex.getId());
+    if (hasListener(RemoveSubGraphVertexEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveSubGraphVertexEvent(this, vertex));
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   */
+  @Override
+  public void removeEdge(Edge edge) {
+    /* remove edge from vertex A */
+    if(edge.getVertexA()!= null){
+      edge.getVertexA().removeEdge(edge);
+    }
+
+    /* remove edge from vertex B */
+    if(edge.getVertexB()!= null){
+      edge.getVertexB().removeEdge(edge);
+    }
+
+    /* remove edge from graph and fire event */
+    theGraph.getEdges().remove(edge.getId());
+    if (hasListener(RemoveSubGraphEdgeEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveSubGraphEdgeEvent(this, edge));
+    }
+  }
+
+  /**
    * {@inheritDoc}
    * 
    */
   @Override
-  public void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
+  public void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
 
     Map<Integer, LongAdder> removedDanglingNetworksBySize = new HashMap<>();
     Set<Vertex> remainingVertices = new HashSet<Vertex>(theGraph.getVertices().size());
@@ -189,32 +234,17 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
 
     /* remove the subnetwork from the actual network */
     for (Vertex vertex : subGraphToRemove) {
+
+      /* remove vertex and fire vertex removal event */
+      removeVertex(vertex);
+
+      /* remove vertex' edges from graph  and fire edge removal event(s) */
       Set<? extends Edge> vertexEdges = new HashSet<>(vertex.getEdges());
-
-      /* remove edges from vertex */
       for (Edge edge : vertexEdges) {
-        vertex.removeEdge(edge);
+        removeEdge(edge);
       }
 
-      /* remove vertex from vertex' edges */
-      for (Edge edge : vertexEdges) {
-        edge.removeVertex(vertex);
-      }
-
-      /* remove vertex from graph */
-      theGraph.getVertices().remove(vertex.getId());
-      if (hasListener(RemoveSubGraphVertexEvent.EVENT_TYPE)) {
-        fireEvent(new RemoveSubGraphVertexEvent(this, vertex));
-      }
-
-      /* remove vertex' edges from graph */
-      for (Edge edge : vertexEdges) {
-        theGraph.getEdges().remove(edge.getId());
-        if (hasListener(RemoveSubGraphEdgeEvent.EVENT_TYPE)) {
-          fireEvent(new RemoveSubGraphEdgeEvent(this, edge));
-        }
-      }
-
+      /* fire remove subgraph event */
       if (hasListener(RemoveSubGraphEvent.EVENT_TYPE)) {
         fireEvent(new RemoveSubGraphEvent(this));
       }
@@ -225,7 +255,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   /**
    * {@inheritDoc}
    */
-  public void removeSubGraphOf(Vertex referenceVertex) throws PlanItException {
+  public void removeSubGraphOf(Vertex referenceVertex) {
     Set<Vertex> subNetworkNodesToRemove = processSubNetworkVertex(referenceVertex);
     removeSubGraph(subNetworkNodesToRemove);
   }
@@ -235,11 +265,11 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    * 
    */
   @Override
-  public <Ex extends Edge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(final List<Ex> edgesToBreak, final Vertex vertexToBreakAt, final CoordinateReferenceSystem crs)
-      throws PlanItException {
+  public <Ex extends Edge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(
+      final List<Ex> edgesToBreak, final Vertex vertexToBreakAt, final CoordinateReferenceSystem crs) {
     PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
 
-    Map<Long, Pair<Ex, Ex>> affectedEdges = new HashMap<Long, Pair<Ex, Ex>>();
+    Map<Long, Pair<Ex, Ex>> affectedEdges = new TreeMap<>();
     for (Ex edgeToBreak : edgesToBreak) {
       if (affectedEdges.containsKey(edgeToBreak.getId())) {
         LOGGER.severe(String.format("Edge (%s) cannot be broken twice at a single vertex, yet this appears to be the case", edgeToBreak.getXmlId()));
@@ -261,12 +291,12 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    */
   @SuppressWarnings("unchecked")
   @Override
-  public <Ex extends Edge> Ex breakEdgeAt(final Vertex vertexToBreakAt, final Ex edgeToBreak, final PlanitJtsCrsUtils geoUtils) throws PlanItException {
+  public <Ex extends Edge> Ex breakEdgeAt(final Vertex vertexToBreakAt, final Ex edgeToBreak, final PlanitJtsCrsUtils geoUtils) {
     Ex aToBreak = edgeToBreak;
 
-    /* create copy of edge with unique id and register it */
-    Ex breakToB = (Ex) theGraph.getEdges().getFactory().createUniqueCopyOf(edgeToBreak);
-    ((GraphEntities<Ex>) theGraph.getEdges()).register((Ex) breakToB);
+    /* create unique copy of edge with unique id and register it, do a deep copy to ensure any input properties are duplicated */
+    Ex breakToB = (Ex) theGraph.getEdges().getFactory().createUniqueDeepCopyOf(edgeToBreak);
+    ((GraphEntities<Ex>) theGraph.getEdges()).register(breakToB);
 
     if (edgeToBreak.getVertexA() == null || edgeToBreak.getVertexB() == null) {
       LOGGER.severe(String.format("unable to break edge since edge to break %s (id:%d) is missing one or more vertices", edgeToBreak.getExternalId(), edgeToBreak.getId()));
@@ -290,7 +320,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
     }
 
     /* broken links geometry must be updated since it links is truncated compared to its original */
-    for (Edge brokenEdge : Set.of(aToBreak, breakToB)) {
+    for (Edge brokenEdge : List.of(aToBreak, breakToB)) {
       updateBrokenEdgeGeometry(brokenEdge, vertexToBreakAt);
       brokenEdge.setLengthKm(geoUtils.getDistanceInKilometres(brokenEdge.getGeometry()));
     }
@@ -310,9 +340,11 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   public void recreateManagedEntitiesIds() {
     if (theGraph.getEdges() instanceof ManagedIdEntities<?>) {
       ((ManagedIdEntities<?>) theGraph.getEdges()).recreateIds();
+      fireEvent(new RecreatedGraphEntitiesManagedIdsEvent(this, (ManagedIdEntities<?>)theGraph.getEdges()));
     }
     if (theGraph.getVertices() instanceof ManagedIdEntities<?>) {
       ((ManagedIdEntities<?>) theGraph.getVertices()).recreateIds();
+      fireEvent(new RecreatedGraphEntitiesManagedIdsEvent(this, (ManagedIdEntities<?>)theGraph.getVertices()));
     }
   }
 

@@ -3,6 +3,7 @@ package org.goplanit.supply.networkloading;
 import java.io.Serializable;
 
 import org.goplanit.component.PlanitComponent;
+import org.goplanit.supply.network.nodemodel.NodeModelComponent;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -29,9 +30,22 @@ public abstract class NetworkLoading extends PlanitComponent<NetworkLoading> imp
    * Copy Constructor
    * 
    * @param networkLoading to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected NetworkLoading(NetworkLoading networkLoading) {
-    super(networkLoading);
+  protected NetworkLoading(NetworkLoading networkLoading, boolean deepCopy) {
+    super(networkLoading, deepCopy);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract NetworkLoading shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract NetworkLoading deepClone();
 
 }

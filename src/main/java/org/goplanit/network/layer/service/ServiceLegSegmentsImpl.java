@@ -1,10 +1,14 @@
 package org.goplanit.network.layer.service;
 
+import org.goplanit.network.layer.physical.ConjugateNodesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceLegSegmentFactory;
 import org.goplanit.utils.network.layer.service.ServiceLegSegments;
+
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of ServiceLegSegments container.
@@ -39,13 +43,16 @@ public class ServiceLegSegmentsImpl extends ManagedIdEntitiesImpl<ServiceLegSegm
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param serviceNodesImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ServiceLegSegmentsImpl(ServiceLegSegmentsImpl serviceNodesImpl) {
-    super(serviceNodesImpl);
-    this.serviceLegSegmentFactory = serviceNodesImpl.serviceLegSegmentFactory;
+  public ServiceLegSegmentsImpl(ServiceLegSegmentsImpl other, boolean deepCopy, BiConsumer<ServiceLegSegment,ServiceLegSegment> mapper) {
+    super(other,deepCopy, mapper);
+    this.serviceLegSegmentFactory =
+            new ServiceLegSegmentFactoryImpl(other.serviceLegSegmentFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -60,8 +67,24 @@ public class ServiceLegSegmentsImpl extends ManagedIdEntitiesImpl<ServiceLegSegm
    * {@inheritDoc}
    */
   @Override
-  public ServiceLegSegmentsImpl clone() {
-    return new ServiceLegSegmentsImpl(this);
+  public ServiceLegSegmentsImpl shallowClone() {
+    return new ServiceLegSegmentsImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegSegmentsImpl deepClone() {
+    return new ServiceLegSegmentsImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegSegmentsImpl deepCloneWithMapping(BiConsumer<ServiceLegSegment,ServiceLegSegment> mapper) {
+    return new ServiceLegSegmentsImpl(this, true, mapper);
   }
 
 }

@@ -1,10 +1,10 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.od.path.OdPaths;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
  * Consumer to apply during path based turn flow update for each combination of origin, destination, and demand
@@ -32,23 +32,31 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
   /**
    * Apply the flow to the turn (and update link sending flow if required)
    * 
-   * @param prevSegmentId       of turn
+   * @param prevSegment         of turn
    * @param currentSegment      of turn
    * @param turnSendingFlowPcuH sending flow rate of turn
    * @return accepted flow rate of turn after applying link acceptance factor
    */
   @Override
-  protected double applySingleFlowUpdate(final int prevSegmentId, final EdgeSegment currentSegment, final double turnSendingFlowPcuH) {
+  protected double applySingleFlowUpdate(final EdgeSegment prevSegment, final EdgeSegment currentSegment, final double turnSendingFlowPcuH) {
 
     if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(currentSegment.getUpstreamVertex())) {
+      int prevSegmentId = (int) prevSegment.getId();
+
       /* s_a = u_a where we only need to update the sending flows of tracked turns */
-      if (dataConfig.updateLinkSendingFlows) {
+      if (dataConfig.isSendingflowsUpdate()) {
         dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
       }
 
       /* v_ap = u_bp = alpha_a*...*f_p where we implicitly consider all preceding alphas (flow acceptance factors) up to now */
       double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
-      dataConfig.addToAcceptedTurnFlows(NetworkTurnFlowUpdateData.createTurnHashCode(prevSegmentId, (int) currentSegment.getId()), acceptedTurnFlowPcuH);
+      dataConfig.addToAcceptedTurnFlows(prevSegment, currentSegment, acceptedTurnFlowPcuH);
+
+      /* v_a = SUM(v_ap) (only when enabled) */
+      if (dataConfig.isOutflowsUpdate()) {
+        dataConfig.outFlows[prevSegmentId] += acceptedTurnFlowPcuH;
+      }
+
       return acceptedTurnFlowPcuH;
     } else {
       return turnSendingFlowPcuH;
@@ -82,7 +90,7 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
    * 
    * @return accepted turn flows
    */
-  public Map<Integer, Double> getAcceptedTurnFlows() {
+  public MultiKeyMap<Object, Double> getAcceptedTurnFlows() {
     return dataConfig.getAcceptedTurnFlows();
   }
 

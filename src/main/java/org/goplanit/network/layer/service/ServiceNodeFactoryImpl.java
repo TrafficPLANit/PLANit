@@ -28,16 +28,16 @@ public class ServiceNodeFactoryImpl extends GraphEntityFactoryImpl<ServiceNode> 
    * {@inheritDoc}
    */
   @Override
-  public ServiceNodeImpl createNew(Node networkNode) {
-    return new ServiceNodeImpl(getIdGroupingToken(), networkNode);
+  public ServiceNodeImpl createNew() {
+    return new ServiceNodeImpl(getIdGroupingToken());
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ServiceNode registerNew(Node networkNode) {
-    final ServiceNodeImpl newServiceNode = createNew(networkNode);
+  public ServiceNode registerNew() {
+    final ServiceNodeImpl newServiceNode = createNew();
     getGraphEntities().register(newServiceNode);
     return newServiceNode;
   }

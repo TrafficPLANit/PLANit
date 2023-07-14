@@ -1,6 +1,5 @@
 package org.goplanit.zoning;
 
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
@@ -35,10 +34,9 @@ public class DirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<Di
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment, Zone parentZone, double length) throws PlanItException {
-    DirectedConnectoid newConnectoid = registerNew(accessLinkSegment);
-    newConnectoid.addAccessZone(parentZone);
-    newConnectoid.setLength(parentZone, length);
+  public DirectedConnectoid registerNew(boolean downstreamAccessNode, LinkSegment accessLinkSegment) {
+    DirectedConnectoid newConnectoid =
+        new DirectedConnectoidImpl(getIdGroupingToken(), downstreamAccessNode, accessLinkSegment);
     directedConnectoids.register(newConnectoid);
     return newConnectoid;
   }
@@ -47,16 +45,9 @@ public class DirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<Di
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment, Zone parentZone) throws PlanItException {
-    return registerNew(accessLinkSegment, parentZone, Connectoid.DEFAULT_LENGTH_KM);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment) throws PlanItException {
-    DirectedConnectoid newConnectoid = new DirectedConnectoidImpl(getIdGroupingToken(), accessLinkSegment);
+  public DirectedConnectoid registerNew(final boolean downstreamAccessNode, LinkSegment accessLinkSegment, Zone parentZone, double length) {
+    DirectedConnectoid newConnectoid =
+        new DirectedConnectoidImpl(getIdGroupingToken(), downstreamAccessNode, accessLinkSegment, parentZone, length);
     directedConnectoids.register(newConnectoid);
     return newConnectoid;
   }

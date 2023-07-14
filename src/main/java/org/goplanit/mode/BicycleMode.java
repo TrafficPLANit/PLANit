@@ -48,4 +48,29 @@ public class BicycleMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.BICYCLE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, BICYCLE_PHYSICAL_FEATURES, BICYCLE_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected BicycleMode(BicycleMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public BicycleMode shallowClone() {
+    return new BicycleMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public BicycleMode deepClone() {
+    return new BicycleMode(this, true);
+  }
 }

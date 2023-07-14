@@ -1,11 +1,14 @@
 package org.goplanit.network.layers;
 
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.layer.ServiceNetworkLayerFactoryImpl;
+import org.goplanit.network.layer.service.ServiceNetworkLayerFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layers.ServiceNetworkLayerFactory;
 import org.goplanit.utils.network.layers.ServiceNetworkLayers;
+
+import java.util.function.BiConsumer;
 
 /**
  * Implementation of container and factory to manage service network layers. In this network type, all layers are of the ServiceNetworkLayer type
@@ -34,14 +37,16 @@ public class ServiceNetworkLayersImpl extends TopologicalLayersImpl<ServiceNetwo
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param serviceNetworkLayersImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param mapper apply to each mapping from original to copy
    */
-  public ServiceNetworkLayersImpl(ServiceNetworkLayersImpl serviceNetworkLayersImpl) {
-    super(serviceNetworkLayersImpl);
-    this.parentNetwork = serviceNetworkLayersImpl.parentNetwork;
-    this.factory = serviceNetworkLayersImpl.factory;
+  public ServiceNetworkLayersImpl(ServiceNetworkLayersImpl other, boolean deepCopy, BiConsumer<ServiceNetworkLayer, ServiceNetworkLayer> mapper) {
+    super(other, deepCopy, mapper);
+    this.parentNetwork = other.parentNetwork;
+    this.factory = new ServiceNetworkLayerFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
   /**
@@ -57,8 +62,24 @@ public class ServiceNetworkLayersImpl extends TopologicalLayersImpl<ServiceNetwo
    * {@inheritDoc}
    */
   @Override
-  public ServiceNetworkLayersImpl clone() {
-    return new ServiceNetworkLayersImpl(this);
+  public ServiceNetworkLayersImpl shallowClone() {
+    return new ServiceNetworkLayersImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNetworkLayersImpl deepClone() {
+    return new ServiceNetworkLayersImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNetworkLayersImpl deepCloneWithMapping(BiConsumer<ServiceNetworkLayer, ServiceNetworkLayer> mapper) {
+    return new ServiceNetworkLayersImpl(this, true, mapper);
   }
 
   /**

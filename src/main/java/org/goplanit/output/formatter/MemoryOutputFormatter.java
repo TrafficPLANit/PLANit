@@ -33,7 +33,7 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.od.OdDataIterator;
-import org.goplanit.utils.path.DirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.unit.VehiclesUnit;
 
@@ -151,7 +151,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @throws PlanItException thrown if there is an error
    */
   private void updateOutputAndKeyValuesForPath(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys,
-      OdDataIterator<? extends DirectedPath> odPathIterator, PathOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod, PathOutputIdentificationType pathIdType)
+                                               OdDataIterator<? extends ManagedDirectedPath> odPathIterator, PathOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod, PathOutputIdentificationType pathIdType)
       throws PlanItException {
     updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
       return pathOutputTypeAdapter.getPathOutputPropertyValue(label, odPathIterator, mode, timePeriod, pathIdType).get();

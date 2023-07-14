@@ -1,11 +1,15 @@
 package org.goplanit.network.layer.physical;
 
+import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentTypesImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.LinkFactory;
 import org.goplanit.utils.network.layer.physical.Links;
+
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -14,10 +18,21 @@ import org.goplanit.utils.network.layer.physical.Links;
  * @author markr
  * 
  */
-public class LinksImpl extends ManagedIdEntitiesImpl<Link> implements Links {
+public class LinksImpl<L extends Link> extends ManagedIdEntitiesImpl<L> implements Links<L> {
 
   /** factory to use */
-  private final LinkFactory linkFactory;
+  protected LinkFactory linkFactory;
+
+  /**
+   * Constructor
+   *
+   * @param groupId to use for creating ids for instances
+   * @param linkFactory to use
+   */
+  protected LinksImpl(final IdGroupingToken groupId, LinkFactory linkFactory) {
+    super(L::getId, L.EDGE_ID_CLASS);
+    this.linkFactory = linkFactory;
+  }
 
   /**
    * Constructor
@@ -25,29 +40,21 @@ public class LinksImpl extends ManagedIdEntitiesImpl<Link> implements Links {
    * @param groupId to use for creating ids for instances
    */
   public LinksImpl(final IdGroupingToken groupId) {
-    super(Link::getId, Link.EDGE_ID_CLASS);
-    this.linkFactory = new LinkFactoryImpl(groupId, this);
+    super(L::getId, L.EDGE_ID_CLASS);
+    this.linkFactory = new LinkFactoryImpl(groupId, (Links<Link>) this);
   }
 
   /**
-   * Constructor
-   * 
-   * @param groupId     to use for creating ids for instances
-   * @param linkFactory the factory to use
-   */
-  public LinksImpl(final IdGroupingToken groupId, LinkFactory linkFactory) {
-    super(Link::getId, Link.EDGE_ID_CLASS);
-    this.linkFactory = linkFactory;
-  }
-
-  /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param linksImpl to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
+   * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public LinksImpl(LinksImpl linksImpl) {
-    super(linksImpl);
-    this.linkFactory = linksImpl.linkFactory;
+  public LinksImpl(LinksImpl linksImpl, boolean deepCopy, BiConsumer<L,L> mapper) {
+    super(linksImpl, deepCopy, mapper);
+    this.linkFactory =
+            new LinkFactoryImpl(linksImpl.linkFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -62,8 +69,24 @@ public class LinksImpl extends ManagedIdEntitiesImpl<Link> implements Links {
    * {@inheritDoc}
    */
   @Override
-  public LinksImpl clone() {
-    return new LinksImpl(this);
+  public LinksImpl shallowClone() {
+    return new LinksImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinksImpl deepClone() {
+    return new LinksImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinksImpl deepCloneWithMapping(BiConsumer<L,L> mapper) {
+    return new LinksImpl(this, true, mapper);
   }
 
   /**
@@ -72,7 +95,7 @@ public class LinksImpl extends ManagedIdEntitiesImpl<Link> implements Links {
   @Override
   public void recreateIds(boolean resetManagedIdClass) {
     /* always reset the additional link id class */
-    IdGenerator.reset(getFactory().getIdGroupingToken(), Link.LINK_ID_CLASS);
+    IdGenerator.reset(getFactory().getIdGroupingToken(), L.LINK_ID_CLASS);
 
     super.recreateIds(resetManagedIdClass);
   }
@@ -82,7 +105,7 @@ public class LinksImpl extends ManagedIdEntitiesImpl<Link> implements Links {
    */
   @Override
   public void reset() {
-    IdGenerator.reset(getFactory().getIdGroupingToken(), Link.LINK_ID_CLASS);
+    IdGenerator.reset(getFactory().getIdGroupingToken(), L.LINK_ID_CLASS);
     super.reset();
   }
 

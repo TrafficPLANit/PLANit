@@ -71,10 +71,11 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
   /**
    * Copy constructor
    * 
-   * @param newellFundamentalDiagram to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public NewellFundamentalDiagram(NewellFundamentalDiagram newellFundamentalDiagram) {
-    super(newellFundamentalDiagram);
+  public NewellFundamentalDiagram(NewellFundamentalDiagram other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -118,8 +119,16 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
    * {@inheritDoc}
    */  
   @Override
-  public NewellFundamentalDiagram clone() {
-    return new NewellFundamentalDiagram(this);
+  public NewellFundamentalDiagram shallowClone() {
+    return new NewellFundamentalDiagram(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public NewellFundamentalDiagram deepClone() {
+    return new NewellFundamentalDiagram(this, true);
   }
 
   /**

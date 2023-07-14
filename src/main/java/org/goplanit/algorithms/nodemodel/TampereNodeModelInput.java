@@ -41,7 +41,7 @@ public class TampereNodeModelInput {
       double inLinkSendingFlow = turnSendingFlows.aggregateRow(inIndex, Aggregator.SUM).doubleValue();
       // lambda_a = C_a/Sum_b(s_ab)
       double lambdaIncomingLinkScalingFactor = 0.0;
-      if (Precision.isPositive(inLinkSendingFlow)) {
+      if (Precision.positive(inLinkSendingFlow)) {
         lambdaIncomingLinkScalingFactor = inLinkSegmentCapacity / inLinkSendingFlow;
       }
       capacityScalingFactors.set(inIndex, lambdaIncomingLinkScalingFactor);

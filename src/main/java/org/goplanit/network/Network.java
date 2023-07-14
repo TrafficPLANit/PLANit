@@ -1,6 +1,7 @@
 package org.goplanit.network;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.utils.id.IdGenerator;
@@ -13,7 +14,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class Network extends PlanitComponent<Network> implements Serializable {
+public abstract class Network extends PlanitComponent<Network> implements Serializable {
 
   /** generated serial id */
   private static final long serialVersionUID = -1434577945513081778L;
@@ -38,9 +39,11 @@ public class Network extends PlanitComponent<Network> implements Serializable {
    * Copy constructor
    * 
    * @param network to clone
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public Network(Network network) {
-    super(network);
+  public Network(Network network, boolean deepCopy) {
+    super(network, deepCopy);
+    networkIdGroupingToken = network.networkIdGroupingToken;
   }
 
   /**
@@ -53,14 +56,16 @@ public class Network extends PlanitComponent<Network> implements Serializable {
   }
 
   /**
-   * Clone the network
-   * 
-   * @return cloned network
+   * {@inheritDoc}
    */
   @Override
-  public Network clone() {
-    return new Network(this);
-  }
+  public abstract Network shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract Network deepClone();
 
   /**
    * {@inheritDoc}
@@ -69,4 +74,26 @@ public class Network extends PlanitComponent<Network> implements Serializable {
   public void reset() {
     // nothing to reset at this level
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
+  }
+
+  /**
+   * Log general information on this network to the user
+   *
+   * @param prefix to use
+   */
+  public abstract void logInfo(String prefix);
+
+  /**
+   * Verify if entire network is empty
+   *
+   * @return true if network is empty, false otherwise
+   */
+  public abstract boolean isEmpty();
 }

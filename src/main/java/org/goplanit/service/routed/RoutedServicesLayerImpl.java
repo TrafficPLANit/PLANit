@@ -5,11 +5,17 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.goplanit.service.routed.modifier.RoutedServicesLayerModifierImpl;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
+import org.goplanit.utils.service.routed.RoutedModeServices;
+import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.utils.service.routed.RoutedServicesLayer;
+import org.goplanit.utils.service.routed.modifier.RoutedServicesLayerModifier;
 
 /**
  * Implementation of the RoutedServicesLayer interface
@@ -27,6 +33,9 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
   /** parent layer all routed services are built upon */
   private final ServiceNetworkLayer parentLayer;
 
+  /** Modifier utilities for this layer consolidated in a single class */
+  private final RoutedServicesLayerModifierImpl layerModifier;
+
   /** container for routed services categorised by mode */
   private final Map<Mode, RoutedModeServices> routedServicesByMode;
 
@@ -41,6 +50,7 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
     return new RoutedModeServicesImpl(tokenId, mode);
   }
 
+
   /**
    * Generate id for instances of this class based on the token and class identifier
    * 
@@ -49,6 +59,16 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    */
   protected static long generateId(IdGroupingToken tokenId) {
     return IdGenerator.generateId(tokenId, RoutedServicesLayer.ROUTED_SERVICES_LAYER_ID_CLASS);
+  }
+
+  /**
+   * Remove a given routed services by mode
+   *
+   * @param servicesByMode to remove
+   * @return removed entry (if any)
+   */
+  protected RoutedModeServices removeServicesByMode(RoutedModeServices servicesByMode) {
+    return routedServicesByMode.remove(servicesByMode);
   }
 
   /**
@@ -61,20 +81,28 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
     super(generateId(tokenId));
     this.tokenId = tokenId;
     this.parentLayer = parentLayer;
-    this.routedServicesByMode = new HashMap<Mode, RoutedModeServices>();
+    this.layerModifier = new RoutedServicesLayerModifierImpl(this);
+    this.routedServicesByMode = new HashMap<>();
   }
 
   /**
    * Copy constructor
    * 
-   * @param routedServicesLayerImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param routedServiceMapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedServicesLayerImpl(RoutedServicesLayerImpl routedServicesLayerImpl) {
-    super(routedServicesLayerImpl);
-    this.tokenId = routedServicesLayerImpl.tokenId;
-    this.parentLayer = routedServicesLayerImpl.parentLayer;
-    this.routedServicesByMode = new HashMap<Mode, RoutedModeServices>();
-    routedServicesLayerImpl.routedServicesByMode.values().forEach(modeServices -> routedServicesByMode.put(modeServices.getMode(), modeServices));
+  public RoutedServicesLayerImpl(RoutedServicesLayerImpl other, boolean deepCopy, ManagedIdDeepCopyMapper<RoutedService> routedServiceMapper) {
+    super(other);
+    this.tokenId = other.tokenId;
+    this.parentLayer = other.parentLayer;
+    this.layerModifier = new RoutedServicesLayerModifierImpl(other);
+
+    // container wrappers so require clone always
+    this.routedServicesByMode = new HashMap<>();
+    other.routedServicesByMode.values().forEach(
+            modeServices -> routedServicesByMode.put(
+                    modeServices.getMode(), deepCopy ? modeServices.deepCloneWithMapping(routedServiceMapper) : modeServices.shallowClone()));
   }
 
   /**
@@ -85,14 +113,6 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
     long newId = generateId(tokenId);
     setId(newId);
     return newId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RoutedServicesLayerImpl clone() {
-    return new RoutedServicesLayerImpl(this);
   }
 
   /**
@@ -108,11 +128,30 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    * {@inheritDoc}
    */
   @Override
+  public boolean isServicesByModeEmpty(Mode mode) {
+    return !routedServicesByMode.containsKey(mode) || routedServicesByMode.get(mode).isEmpty();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public RoutedModeServices getServicesByMode(Mode mode) {
+    if(!parentLayer.supports(mode)){
+      LOGGER.warning(String.format("Unable to collect services for mode %s since it is not supported on the parent layer", mode.toString()));
+    }
     if (!routedServicesByMode.containsKey(mode)) {
       routedServicesByMode.put(mode, createRoutedModeServices(this.tokenId, mode));
     }
     return routedServicesByMode.get(mode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServicesLayerModifier getLayerModifier() {
+    return this.layerModifier;
   }
 
   /**
@@ -128,10 +167,45 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    */
   @Override
   public void logInfo(String prefix) {
-    LOGGER.info(String.format("%s [layer: %s]", prefix, getXmlId()));
     for (RoutedModeServices modeServices : this) {
-      LOGGER.info(String.format("%s [layer: %s] [mode: %s] #routedServices: %d", prefix, getXmlId(), modeServices.getMode().getXmlId(), modeServices.size()));
+      if(modeServices.size()<=0){
+        LOGGER.info(String.format("%s[mode: %s] no services present", prefix, modeServices.getMode().getXmlId()));
+        continue;
+      }
+
+      int numScheduleBasedTrips = 0;
+      int numFrequencyBasedTrips = 0;
+      for(var entry : modeServices){
+        numScheduleBasedTrips += entry.getTripInfo().getScheduleBasedTrips().size();
+        numFrequencyBasedTrips += entry.getTripInfo().getFrequencyBasedTrips().size();
+      }
+      LOGGER.info(String.format("%s[mode: %s] #routedServices: %d  #trip-schedules: %d  #trips-frequency: %d",
+          prefix, modeServices.getMode().getXmlId(), modeServices.size(), numScheduleBasedTrips, numFrequencyBasedTrips));
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isEmpty() {
+    return routedServicesByMode.isEmpty();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServicesLayerImpl shallowClone() {
+    return new RoutedServicesLayerImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServicesLayerImpl deepClone() {
+    return new RoutedServicesLayerImpl(this, true, new ManagedIdDeepCopyMapper<>());
   }
 
 }

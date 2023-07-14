@@ -9,7 +9,7 @@ import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.TransportLayer;
+import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.goplanit.utils.time.TimePeriod;
@@ -41,7 +41,7 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOu
    */
   @Override
   public Optional<Long> getInfrastructureLayerIdForMode(Mode mode) {
-    TransportLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode);
+    NetworkLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode);
     return Optional.of(networkLayer != null ? networkLayer.getId() : null);
   }
 
@@ -52,7 +52,7 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOu
    */
   @Override
   public MacroscopicLinkSegments getPhysicalLinkSegments(long infrastructureLayerId) {
-    TransportLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
+    NetworkLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
     if (networkLayer instanceof MacroscopicNetworkLayer) {
       return ((MacroscopicNetworkLayer) networkLayer).getLinkSegments();
     }

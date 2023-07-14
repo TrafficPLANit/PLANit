@@ -2,11 +2,12 @@ package org.goplanit.graph.directed;
 
 import java.util.logging.Logger;
 
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.GraphEntities;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedGraph;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -39,11 +40,47 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
 
   /**
    * Copy constructor
-   * 
-   * @param directedGraphImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public DirectedGraphImpl(final DirectedGraphImpl<V, E, ES> directedGraphImpl) {
-    super(directedGraphImpl);
+  public DirectedGraphImpl(final DirectedGraphImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * Copy constructor
+   *
+   * @param directedGraphImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param vertexMapper tracking how orignal vertices are mapped to new vertices in case of deep copy
+   * @param edgeMapper tracking how orignal edges are mapped to new edges in case of deep copy
+   * @param edgeSegmentMapper tracking how orignal edge segments are mapped to new edge segments in case of deep copy
+   */
+  public DirectedGraphImpl(
+      final DirectedGraphImpl directedGraphImpl,
+      boolean deepCopy,
+      GraphEntityDeepCopyMapper<V> vertexMapper,
+      GraphEntityDeepCopyMapper<E> edgeMapper,
+      GraphEntityDeepCopyMapper<ES> edgeSegmentMapper) {
+    super(directedGraphImpl, deepCopy, vertexMapper, edgeMapper, edgeSegmentMapper);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedGraphImpl<V, E, ES> shallowClone() {
+    return new DirectedGraphImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * For directed graphs we also update the internal interdependencies based on available knowledge
+   */
+  @Override
+  public DirectedGraphImpl<V, E, ES> deepClone() {
+    return new DirectedGraphImpl(this, true, new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
   }
 
 }

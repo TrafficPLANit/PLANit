@@ -12,6 +12,7 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.macroscopic.AccessGroupProperties;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 
@@ -104,29 +105,33 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     setName(name);
     this.capacityPerLanePcuHourLane = capacityPerLane;
     this.maximumDensityPerLanePcuKmLane = maximumDensityPerLane;
-    this.modeAccessProperties = new TreeMap<Mode, AccessGroupProperties>();
+    this.modeAccessProperties = new TreeMap<>();
   }
 
   /**
-   * Copy constructor. Use carefully since ids are also copied causing non-unique ids. Note that the mode properties are owned by each instance so they are deep copied, everything
-   * else is not
+   * Copy constructor. Use carefully since ids are also copied causing non-unique ids.
    * 
    * @param other to copy from
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  protected MacroscopicLinkSegmentTypeImpl(final MacroscopicLinkSegmentTypeImpl other) {
+  protected MacroscopicLinkSegmentTypeImpl(final MacroscopicLinkSegmentTypeImpl other, boolean deepCopy) {
     super(other);
     setName(other.getName());
     this.capacityPerLanePcuHourLane = other.getExplicitCapacityPerLane();
     this.maximumDensityPerLanePcuKmLane = other.getExplicitMaximumDensityPerLane();
 
-    this.modeAccessProperties = new TreeMap<Mode, AccessGroupProperties>();
-    Set<Mode> modesDone = new TreeSet<Mode>();
-    for (Mode mode : other.getAllowedModes()) {
-      if (!modesDone.contains(mode)) {
-        AccessGroupProperties clonedEntry = other.getAccessProperties(mode).clone();
-        setAccessGroupProperties(clonedEntry);
-        modesDone.addAll(clonedEntry.getAccessModes());
+    this.modeAccessProperties = new TreeMap<>();
+    Set<Mode> modesDone = new TreeSet<>();
+    if(deepCopy){
+      for (Mode mode : other.getAllowedModes()) {
+        if (!modesDone.contains(mode)) {
+          AccessGroupProperties clonedEntry = other.getAccessProperties(mode).deepClone();
+          setAccessGroupProperties(clonedEntry);
+          modesDone.addAll(clonedEntry.getAccessModes());
+        }
       }
+    }else{
+      this.modeAccessProperties.putAll(other.modeAccessProperties);
     }
   }
 
@@ -190,6 +195,15 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
+  public boolean isModeTypeAllowed(PredefinedModeType modeType) {
+    return modeAccessProperties.entrySet().stream().anyMatch(
+            entry -> entry.getKey().isPredefinedModeType() && entry.getKey().getPredefinedModeType().equals(modeType));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Set<Mode> getAllowedModes() {
     return modeAccessProperties.keySet();
   }
@@ -198,8 +212,16 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentTypeImpl clone() {
-    return new MacroscopicLinkSegmentTypeImpl(this);
+  public MacroscopicLinkSegmentTypeImpl shallowClone() {
+    return new MacroscopicLinkSegmentTypeImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegmentTypeImpl deepClone() {
+    return new MacroscopicLinkSegmentTypeImpl(this, true);
   }
 
   /**
@@ -259,7 +281,12 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     if (accessProperties == null) {
       return false;
     }
-    return accessProperties.removeAccessMode(toBeRemovedMode);
+    boolean success = accessProperties.removeAccessMode(toBeRemovedMode);
+    this.modeAccessProperties.remove(toBeRemovedMode);
+    if(!accessProperties.hasAccessModes() && !hasAllowedModes()){
+      LOGGER.warning(String.format("Link segment type (%s) has no more supported modes, consider removing", this.getXmlId()));
+    }
+    return success;
   }
 
   /**
@@ -279,6 +306,23 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
       processedModes.addAll(properties.getAccessModes());
     }
     return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void registerModeOnAccessGroup(Mode accessMode, AccessGroupProperties accessGroupProperties) {
+    if(findEqualAccessPropertiesForAnyMode(accessGroupProperties) == null){
+      LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group because access group does not exist on this link segment type (%s)", getXmlId()));
+      return;
+    }
+    if(modeAccessProperties.containsKey(accessMode)){
+      LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group because mode is already registered on an access group for this link segment type (%s)", getXmlId()));
+      return;
+    }
+    this.modeAccessProperties.put(accessMode, accessGroupProperties);
+    accessGroupProperties.addAccessMode(accessMode);
   }
 
   /**

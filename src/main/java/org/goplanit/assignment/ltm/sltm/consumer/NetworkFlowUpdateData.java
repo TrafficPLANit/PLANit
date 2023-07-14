@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 
 import java.util.logging.Logger;
 
+import org.goplanit.assignment.ltm.sltm.loading.InflowOutflowData;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingFactorData;
 import org.goplanit.assignment.ltm.sltm.loading.SendingFlowData;
 
@@ -23,18 +24,33 @@ public class NetworkFlowUpdateData {
   /**
    * Flow acceptance factors to use
    */
-  protected double[] flowAcceptanceFactors;
+  final protected double[] flowAcceptanceFactors;
 
   /**
-   * The sending flows to update in case the applied solution scheme is the POINT_QUEUE_BASIC scheme
+   * The sending flows to update if flagged as such
    */
   protected final double[] sendingFlows;
 
-  /** flag indicating if link sending flows are to be updated */
-  protected boolean updateLinkSendingFlows;
+  /**
+   * The outflows to update if flagged as such
+   */
+  protected final double[] outFlows;
 
   /**
-   * constructor
+   * Constructor to update sending flows during flow update
+   * 
+   * @param sendingFlowData          to use
+   * @param inflowOutflowdata        to use
+   * @param networkLoadingFactorData to use
+   */
+  public NetworkFlowUpdateData(final SendingFlowData sendingFlowData, final InflowOutflowData inflowOutflowdata, NetworkLoadingFactorData networkLoadingFactorData) {
+    this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
+    this.sendingFlows = sendingFlowData.getCurrentSendingFlows();
+    this.outFlows = inflowOutflowdata.getOutflows();
+  }
+
+  /**
+   * Constructor to update sending flows during flow update
    * 
    * @param sendingFlowData          to use
    * @param networkLoadingFactorData to use
@@ -42,18 +58,25 @@ public class NetworkFlowUpdateData {
   public NetworkFlowUpdateData(final SendingFlowData sendingFlowData, NetworkLoadingFactorData networkLoadingFactorData) {
     this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
     this.sendingFlows = sendingFlowData.getCurrentSendingFlows();
-    this.updateLinkSendingFlows = true;
+    this.outFlows = null;
   }
 
   /**
-   * constructor, special case where link sending flows are not to be updated
+   * Constructor, special case where link sending flows are not to be updated
    * 
    * @param networkLoadingFactorData to use
    */
   public NetworkFlowUpdateData(NetworkLoadingFactorData networkLoadingFactorData) {
     this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
     this.sendingFlows = null;
-    this.updateLinkSendingFlows = false;
+    this.outFlows = null;
   }
 
+  public boolean isSendingflowsUpdate() {
+    return sendingFlows != null;
+  }
+
+  public boolean isOutflowsUpdate() {
+    return outFlows != null;
+  }
 }

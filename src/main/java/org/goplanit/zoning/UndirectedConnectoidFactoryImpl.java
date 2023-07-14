@@ -35,7 +35,7 @@ public class UndirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoid registerNew(Node accessNode, Zone parentZone, double length) throws PlanItException {
+  public UndirectedConnectoid registerNew(Node accessNode, Zone parentZone, double length) {
     UndirectedConnectoid newConnectoid = registerNew(accessNode);
     newConnectoid.addAccessZone(parentZone);
     newConnectoid.setLength(parentZone, length);
@@ -46,7 +46,7 @@ public class UndirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoid registerNew(Node accessNode, Zone parentZone) throws PlanItException {
+  public UndirectedConnectoid registerNew(Node accessNode, Zone parentZone){
     return registerNew(accessNode, parentZone, Connectoid.DEFAULT_LENGTH_KM);
   }
 
@@ -54,7 +54,7 @@ public class UndirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoid registerNew(Node accessNode) throws PlanItException {
+  public UndirectedConnectoid registerNew(Node accessNode) {
     UndirectedConnectoid newConnectoid = new UndirectedConnectoidImpl(getIdGroupingToken(), accessNode);
     undirectedConnectoids.register(newConnectoid);
     return newConnectoid;

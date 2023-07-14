@@ -44,16 +44,26 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
    * @param tokenId to use
    * @param clazz   to register for
    */
-  public GraphEntityImpl(IdGroupingToken tokenId, Class<? extends GraphEntity> clazz) {
+  protected GraphEntityImpl(IdGroupingToken tokenId, Class<? extends GraphEntity> clazz) {
     super(generateId(tokenId, clazz));
+  }
+
+  /**
+   * Constructor. Note only to be used when entity is not reliant on an id generation procedure
+   * 
+   * @param id to use
+   */
+  protected GraphEntityImpl(long id) {
+    super(id);
   }
 
   /**
    * Copy constructor
    * 
    * @param other to copy from
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public GraphEntityImpl(GraphEntityImpl other) {
+  protected GraphEntityImpl(GraphEntityImpl other, boolean deepCopy /* no impact yet */) {
     super(other);
   }
 
@@ -72,4 +82,16 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
   public String toString() {
     return String.format("%s [%d %s]", getClass().getSimpleName(), getId(), getXmlId() == null ? "" : getXmlId());
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract GraphEntityImpl shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract GraphEntityImpl deepClone();
 }

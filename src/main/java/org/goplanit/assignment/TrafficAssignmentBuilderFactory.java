@@ -4,7 +4,7 @@ import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
 import org.goplanit.assignment.traditionalstatic.TraditionalStaticAssignmentBuilder;
 import org.goplanit.demands.Demands;
 import org.goplanit.input.InputBuilderListener;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -30,7 +30,7 @@ public class TrafficAssignmentBuilderFactory {
    * @throws PlanItException thrown if error
    */
   public static TrafficAssignmentBuilder<?> createBuilder(final String trafficAssignmentType, IdGroupingToken projectToken, InputBuilderListener inputBuilder, Demands theDemands,
-      Zoning theZoning, TransportLayerNetwork<?, ?> theNetwork) throws PlanItException {
+      Zoning theZoning, LayeredNetwork<?, ?> theNetwork) throws PlanItException {
 
     if (trafficAssignmentType.equals(TrafficAssignment.TRADITIONAL_STATIC_ASSIGNMENT)) {
       return new TraditionalStaticAssignmentBuilder(projectToken, inputBuilder, theDemands, theZoning, theNetwork);

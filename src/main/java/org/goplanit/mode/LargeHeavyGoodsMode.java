@@ -47,4 +47,29 @@ public class LargeHeavyGoodsMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.LARGE_HEAVY_GOODS_VEHICLE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, LHGV_PHYSICAL_FEATURES, LHGV_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected LargeHeavyGoodsMode(LargeHeavyGoodsMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LargeHeavyGoodsMode shallowClone() {
+    return new LargeHeavyGoodsMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LargeHeavyGoodsMode deepClone() {
+    return new LargeHeavyGoodsMode(this, true);
+  }
 }

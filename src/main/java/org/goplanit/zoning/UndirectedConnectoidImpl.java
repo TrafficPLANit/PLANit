@@ -105,12 +105,13 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
   /**
    * Copy constructor
    * 
-   * @param connectoidImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  protected UndirectedConnectoidImpl(final UndirectedConnectoidImpl connectoidImpl) {
-    super(connectoidImpl);
-    setAccessVertex(connectoidImpl.getAccessVertex());
-    setUndirectedConnectoidId(connectoidImpl.getUndirectedConnectoidId());
+  protected UndirectedConnectoidImpl(final UndirectedConnectoidImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    setAccessVertex(other.getAccessVertex());
+    setUndirectedConnectoidId(other.getUndirectedConnectoidId());
   }
 
   // Public
@@ -147,8 +148,16 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoidImpl clone() {
-    return new UndirectedConnectoidImpl(this);
+  public UndirectedConnectoidImpl shallowClone() {
+    return new UndirectedConnectoidImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UndirectedConnectoidImpl deepClone() {
+    return new UndirectedConnectoidImpl(this, true);
   }
 
 }

@@ -1,11 +1,17 @@
 package org.goplanit.graph.directed;
 
 import org.goplanit.graph.GraphEntitiesImpl;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedVertexFactory;
 import org.goplanit.utils.graph.directed.DirectedVertices;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
+
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * 
@@ -41,13 +47,16 @@ public class DirectedVerticesImpl extends GraphEntitiesImpl<DirectedVertex> impl
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates a new factory with reference to this container
    * 
-   * @param verticesImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param biConsumer when deepCopy applied to each original and copy, may be null
    */
-  public DirectedVerticesImpl(DirectedVerticesImpl verticesImpl) {
-    super(verticesImpl);
-    this.directedVertexFactory = verticesImpl.directedVertexFactory;
+  public DirectedVerticesImpl(DirectedVerticesImpl other, boolean deepCopy, BiConsumer<DirectedVertex, DirectedVertex> biConsumer) {
+    super(other, deepCopy, biConsumer);
+    this.directedVertexFactory =
+            new DirectedVertexFactoryImpl(other.directedVertexFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -62,8 +71,24 @@ public class DirectedVerticesImpl extends GraphEntitiesImpl<DirectedVertex> impl
    * {@inheritDoc}
    */
   @Override
-  public DirectedVerticesImpl clone() {
-    return new DirectedVerticesImpl(this);
+  public DirectedVerticesImpl shallowClone() {
+    return new DirectedVerticesImpl(this, false, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedVerticesImpl deepClone() {
+    return new DirectedVerticesImpl(this, true, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedVerticesImpl deepCloneWithMapping(BiConsumer<DirectedVertex, DirectedVertex> mapper) {
+    return new DirectedVerticesImpl(this, true, mapper);
   }
 
 }

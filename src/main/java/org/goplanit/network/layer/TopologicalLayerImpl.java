@@ -9,7 +9,7 @@ import org.goplanit.utils.network.layer.TopologicalLayer;
  * @author markr
  *
  */
-public abstract class TopologicalLayerImpl extends TransportLayerImpl implements TopologicalLayer {
+public abstract class TopologicalLayerImpl extends NetworkLayerImpl implements TopologicalLayer {
 
   /**
    * Constructor
@@ -23,16 +23,23 @@ public abstract class TopologicalLayerImpl extends TransportLayerImpl implements
   /**
    * Copy Constructor
    * 
-   * @param topologicalLayerImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public TopologicalLayerImpl(TopologicalLayerImpl topologicalLayerImpl) {
-    super(topologicalLayerImpl);
+  public TopologicalLayerImpl(TopologicalLayerImpl other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract TopologicalLayerImpl clone();
+  public abstract TopologicalLayerImpl shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TopologicalLayerImpl deepClone();
 
 }

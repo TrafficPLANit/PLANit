@@ -1,6 +1,7 @@
 package org.goplanit.gap;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -46,10 +47,20 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public GapFunction(final GapFunction other) {
-    super(other);
-    this.stopCriterion = other.stopCriterion.clone();
+  public GapFunction(final GapFunction other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.stopCriterion = deepCopy ? other.stopCriterion.deepClone() : other.stopCriterion;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    Map<String,String> stopCriterionSettings = getStopCriterion().collectSettingsAsKeyValueMap();    
+    return stopCriterionSettings;
   }
 
   /**
@@ -94,6 +105,12 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
    * {@inheritDoc}
    */
   @Override
-  public abstract GapFunction clone();
+  public abstract GapFunction shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract GapFunction deepClone();
 
 }

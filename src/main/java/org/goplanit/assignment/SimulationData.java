@@ -4,7 +4,7 @@ package org.goplanit.assignment;
  * General simulation data that only are available during simulation
  * 
  */
-public class SimulationData implements Cloneable {
+public class SimulationData {
 
   /**
    * Iteration index, tracking the iteration during execution
@@ -58,8 +58,7 @@ public class SimulationData implements Cloneable {
   /**
    * {@inheritDoc}
    */
-  @Override
-  public SimulationData clone() {
+  public SimulationData shallowClone() {
     return new SimulationData(this);
   }
 

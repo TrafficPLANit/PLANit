@@ -1,15 +1,17 @@
 package org.goplanit.algorithms.nodemodel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.ojalgo.array.Array1D;
-import org.ojalgo.array.Array2D;
-import org.ojalgo.function.PrimitiveFunction;
-import org.ojalgo.function.aggregator.Aggregator;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.function.NullaryDoubleSupplier;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
+import org.ojalgo.array.Array1D;
+import org.ojalgo.array.Array2D;
+import org.ojalgo.function.PrimitiveFunction;
+import org.ojalgo.function.aggregator.Aggregator;
 
 /**
  * General First order node model implementation as proposed by Tampere et al. (2011). Here we utilise the algorithm description as presented in Bliemer et al. (2014).
@@ -44,6 +46,11 @@ public class TampereNodeModel implements NodeModel {
 
   /** the result of the node model are the acceptance factors for each incoming link segment */
   protected Array1D<Double> incomingLinkSegmentFlowAcceptanceFactors;
+
+  /* optional outputs to collect */
+
+  /* track most restricting out link for each in link */
+  Map<Integer, Integer> mostRestrictingOutLinkIndexByInLinkIndex = new HashMap<Integer, Integer>();
 
   /**
    * Initialise the run conforming to Step 1 in Appendix A of Bliemer et al. 2014
@@ -81,7 +88,7 @@ public class TampereNodeModel implements NodeModel {
       double sumScaledTurnSendingFlows = scaledRemainingTurnSendingFlows.aggregateColumn(outLinkSegmentIndex, Aggregator.SUM).doubleValue();
 
       // Only non-zero flows can lead to a restriction
-      if (Precision.isPositive(sumScaledTurnSendingFlows)) {
+      if (Precision.positive(sumScaledTurnSendingFlows)) {
         // compute factor: remaining R_b for unprocessed b / SUM of lambda_a*t_ab
         double currentOutgoingRestrictionFactor = remainingReceivingFlow / sumScaledTurnSendingFlows;
         if (currentOutgoingRestrictionFactor < foundRestrictionFactor) {
@@ -115,7 +122,7 @@ public class TampereNodeModel implements NodeModel {
    * @return true if demand constrained in link(s) is/are found, false otherwise
    */
   protected boolean updateDemandConstrainedInLinkSegments(Pair<Double, Integer> mostRestrictingOutLinkSegmentData) {
-    ArrayList<Long> demandConstrainedInLinksY = new ArrayList<Long>();
+    ArrayList<Long> demandConstrainedInLinksY = new ArrayList<>();
 
     /* ALL REMAINING DEMAND CONSTRAINED */
     if (mostRestrictingOutLinkSegmentData == null) {
@@ -136,10 +143,10 @@ public class TampereNodeModel implements NodeModel {
       scaledRemainingTurnSendingFlows.loopColumn(mostRestrictedOutLinkIndex, (inLinkSegmentIndex, outLinkSegmentIndex) -> {
         final double turnSendingFlow = scaledRemainingTurnSendingFlows.get(inLinkSegmentIndex, outLinkSegmentIndex);
         // t_ab_topbar > 0 && a is unprocessed in link segment
-        if (Precision.isGreater(turnSendingFlow, Precision.EPSILON_6) && !isInLinkSegmentProcessed((int) inLinkSegmentIndex)) {
+        if (Precision.greater(turnSendingFlow, Precision.EPSILON_6) && !isInLinkSegmentProcessed((int) inLinkSegmentIndex)) {
           // lambda_a * beta_b
           final double requiredScalingFactor = inputs.capacityScalingFactors.get(inLinkSegmentIndex) * outLinkSegmentScalingFactorBeta;
-          if (Precision.isGreaterEqual(requiredScalingFactor, 1)) {
+          if (Precision.greaterEqual(requiredScalingFactor, 1)) {
             demandConstrainedInLinksY.add(inLinkSegmentIndex);
           }
         }
@@ -170,7 +177,7 @@ public class TampereNodeModel implements NodeModel {
     scaledRemainingTurnSendingFlows.loopColumn(mostRestrictedOutLinkIndex, (inLinkSegmentIndex, outLinkSegmentIndex) -> {
       final double turnSendingFlow = scaledRemainingTurnSendingFlows.get(inLinkSegmentIndex, outLinkSegmentIndex);
       // t_ab_topbar > 0 && a is unprocessed in link segment
-      if (Precision.isGreater(turnSendingFlow, Precision.EPSILON_6) && !isInLinkSegmentProcessed((int) inLinkSegmentIndex)) {
+      if (Precision.positive(turnSendingFlow, Precision.EPSILON_6) && !isInLinkSegmentProcessed((int) inLinkSegmentIndex)) {
         // capacity constrained
 
         // alpha_a = lambda_a*beta_b
@@ -182,6 +189,9 @@ public class TampereNodeModel implements NodeModel {
         // mark in-link as processed
         setInLinkSegmentProcessed((int) inLinkSegmentIndex);
         ++numberOfInLinksProcessed;
+
+        // track for user if required
+        mostRestrictingOutLinkIndexByInLinkIndex.put((int) inLinkSegmentIndex, mostRestrictedOutLinkIndex);
       }
     });
   }
@@ -275,6 +285,15 @@ public class TampereNodeModel implements NodeModel {
    */
   public TampereNodeModelInput getInputs() {
     return inputs;
+  }
+
+  /**
+   * collect most restricted out link index by in link index. Only available after run and only for capacity constrained in links entries exist
+   * 
+   * @return map result, empty if no capacity constrained in links were found
+   */
+  public Map<Integer, Integer> getMostRestrictedOutLinkByInLink() {
+    return this.mostRestrictingOutLinkIndexByInLinkIndex;
   }
 
 }

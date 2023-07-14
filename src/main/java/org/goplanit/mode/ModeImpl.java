@@ -33,10 +33,10 @@ public class ModeImpl extends ExternalIdAbleImpl implements Mode {
   private final String name;
 
   /** the physical features of this mode */
-  private PhysicalModeFeatures physicalFeatures;
+  private PhysicalModeFeaturesImpl physicalFeatures;
 
   /** the usability features of this mode */
-  private UsabilityModeFeatures usedToFeatures;
+  private UsabilityModeFeaturesImpl usedToFeatures;
 
   /**
    * Generate id for this instance
@@ -70,14 +70,29 @@ public class ModeImpl extends ExternalIdAbleImpl implements Mode {
    * @param physicalFeatures  physical features of the mode
    * @param usabilityFeatures usability features of the mode
    */
-  protected ModeImpl(final IdGroupingToken tokenId, final String name, final double maxSpeed, final double pcu, final PhysicalModeFeatures physicalFeatures,
-      final UsabilityModeFeatures usabilityFeatures) {
+  protected ModeImpl(final IdGroupingToken tokenId, final String name, final double maxSpeed, final double pcu, final PhysicalModeFeaturesImpl physicalFeatures,
+      final UsabilityModeFeaturesImpl usabilityFeatures) {
     super(generateId(tokenId));
     this.name = name;
     this.maxSpeed = maxSpeed;
     this.pcu = pcu;
     this.physicalFeatures = physicalFeatures;
     this.usedToFeatures = usabilityFeatures;
+  }
+
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected ModeImpl(final ModeImpl other, boolean deepCopy) {
+    super(other);
+    this.name = other.name;
+    this.maxSpeed = other.maxSpeed;
+    this.pcu = other.pcu;
+    this.physicalFeatures = deepCopy ? new PhysicalModeFeaturesImpl(other.physicalFeatures) : other.physicalFeatures;
+    this.usedToFeatures   = deepCopy ? new UsabilityModeFeaturesImpl(other.usedToFeatures)  : other.usedToFeatures;
   }
 
   // getters-setters
@@ -130,6 +145,22 @@ public class ModeImpl extends ExternalIdAbleImpl implements Mode {
   @Override
   public final UsabilityModeFeatures getUseFeatures() {
     return usedToFeatures;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ModeImpl shallowClone() {
+    return new ModeImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ModeImpl deepClone() {
+    return new ModeImpl(this, true);
   }
 
 }

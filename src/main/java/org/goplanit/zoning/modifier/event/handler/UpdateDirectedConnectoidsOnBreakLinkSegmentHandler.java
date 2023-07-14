@@ -3,10 +3,10 @@ package org.goplanit.zoning.modifier.event.handler;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.modifier.event.BreakEdgeSegmentEvent;
+import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.locationtech.jts.geom.Point;
 import org.goplanit.utils.event.EventType;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
@@ -39,7 +39,7 @@ public class UpdateDirectedConnectoidsOnBreakLinkSegmentHandler implements Direc
    * @param vertex            we broke at
    * @param brokenEdgeSegment that is now broken based on vertex
    */
-  protected void updateConnectedAccessLinkSegment(DirectedVertex vertex, EdgeSegment brokenEdgeSegment) {
+  protected void updateConnectedAccessLinkSegment(DirectedVertex vertex, LinkSegment brokenEdgeSegment) {
 
     /* determine if connectoid is related to this broken edge segment somehow */
     DirectedConnectoid connectoid = null;
@@ -109,7 +109,7 @@ public class UpdateDirectedConnectoidsOnBreakLinkSegmentHandler implements Direc
 
     /* update the access link segment of the relevant connectoids (if any) based on broken edge segment */
     BreakEdgeSegmentEvent breakEdgeSegmentEvent = BreakEdgeSegmentEvent.class.cast(event);
-    updateConnectedAccessLinkSegment(breakEdgeSegmentEvent.getVertexToBreakAt(), breakEdgeSegmentEvent.getNewlyBrokenEdgeSegment());
+    updateConnectedAccessLinkSegment(breakEdgeSegmentEvent.getVertexToBreakAt(), (LinkSegment) breakEdgeSegmentEvent.getNewlyBrokenEdgeSegment());
   }
 
 }

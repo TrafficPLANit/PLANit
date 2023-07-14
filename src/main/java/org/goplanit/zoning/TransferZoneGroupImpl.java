@@ -1,9 +1,6 @@
 package org.goplanit.zoning;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
@@ -22,7 +19,7 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
   /**
    * Map storing all the transfer zones in the group
    */
-  protected Map<Long, TransferZone> transferZoneMap = new TreeMap<Long, TransferZone>();
+  protected Map<Long, TransferZone> transferZoneMap = new TreeMap<>();
 
   /**
    * name of the transfer zone group
@@ -63,12 +60,15 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
   /**
    * Copy constructor
    * 
-   * @param transferZoneGroupImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public TransferZoneGroupImpl(TransferZoneGroupImpl transferZoneGroupImpl) {
-    super(transferZoneGroupImpl);
-    this.name = transferZoneGroupImpl.name;
-    this.transferZoneMap.putAll(transferZoneGroupImpl.transferZoneMap);
+  public TransferZoneGroupImpl(TransferZoneGroupImpl other, boolean deepCopy /* no impact yet*/) {
+    super(other);
+    this.name = other.name;
+
+    // content not owned so no deep clone
+    this.transferZoneMap = new HashMap<>(other.transferZoneMap);
   }
 
   /**
@@ -155,8 +155,16 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
    * {@inheritDoc}
    */
   @Override
-  public TransferZoneGroupImpl clone() {
-    return new TransferZoneGroupImpl(this);
+  public TransferZoneGroupImpl shallowClone() {
+    return new TransferZoneGroupImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZoneGroupImpl deepClone() {
+    return new TransferZoneGroupImpl(this, true);
   }
 
 }
