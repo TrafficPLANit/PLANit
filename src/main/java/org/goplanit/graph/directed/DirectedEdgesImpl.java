@@ -1,16 +1,11 @@
 package org.goplanit.graph.directed;
 
-import org.goplanit.graph.GraphEntitiesImpl;
-import org.goplanit.utils.graph.GraphEntities;
-import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
+import org.goplanit.utils.graph.GraphEntitiesImpl;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedEdgeFactory;
 import org.goplanit.utils.graph.directed.DirectedEdges;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.Pair;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**

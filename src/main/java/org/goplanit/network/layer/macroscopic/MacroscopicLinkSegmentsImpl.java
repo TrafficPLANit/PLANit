@@ -1,6 +1,7 @@
 package org.goplanit.network.layer.macroscopic;
 
 import org.goplanit.mode.ModesImpl;
+import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.mode.Mode;
@@ -17,7 +18,7 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class MacroscopicLinkSegmentsImpl extends ManagedIdEntitiesImpl<MacroscopicLinkSegment> implements MacroscopicLinkSegments {
+public class MacroscopicLinkSegmentsImpl extends ManagedGraphEntitiesImpl<MacroscopicLinkSegment> implements MacroscopicLinkSegments {
 
   /** factory to use */
   private final MacroscopicLinkSegmentFactory linkSegmentFactory;

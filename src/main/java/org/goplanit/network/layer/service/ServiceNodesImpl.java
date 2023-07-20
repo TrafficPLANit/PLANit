@@ -1,9 +1,7 @@
 package org.goplanit.network.layer.service;
 
-import org.goplanit.network.layer.physical.ConjugateNodesImpl;
+import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.network.layer.service.ServiceNodeFactory;
 import org.goplanit.utils.network.layer.service.ServiceNodes;
@@ -17,7 +15,7 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class ServiceNodesImpl extends ManagedIdEntitiesImpl<ServiceNode> implements ServiceNodes {
+public class ServiceNodesImpl extends ManagedGraphEntitiesImpl<ServiceNode> implements ServiceNodes {
 
   /** factory to use */
   private final ServiceNodeFactory serviceNodeFactory;

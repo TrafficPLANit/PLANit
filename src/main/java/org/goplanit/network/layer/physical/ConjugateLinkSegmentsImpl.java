@@ -2,6 +2,7 @@ package org.goplanit.network.layer.physical;
 
 import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentsImpl;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
+import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
@@ -16,7 +17,7 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class ConjugateLinkSegmentsImpl extends ManagedIdEntitiesImpl<ConjugateLinkSegment> implements ConjugateLinkSegments {
+public class ConjugateLinkSegmentsImpl extends ManagedGraphEntitiesImpl<ConjugateLinkSegment> implements ConjugateLinkSegments {
 
   /** factory to use */
   private final ConjugateLinkSegmentFactory factory;

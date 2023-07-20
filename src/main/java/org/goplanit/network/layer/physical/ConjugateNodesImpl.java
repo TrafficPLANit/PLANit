@@ -1,5 +1,6 @@
 package org.goplanit.network.layer.physical;
 
+import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.network.layer.physical.ConjugateLink;
@@ -16,7 +17,7 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class ConjugateNodesImpl extends ManagedIdEntitiesImpl<ConjugateNode> implements ConjugateNodes {
+public class ConjugateNodesImpl extends ManagedGraphEntitiesImpl<ConjugateNode> implements ConjugateNodes {
 
   /** factory to use */
   private final ConjugateNodeFactory factory;

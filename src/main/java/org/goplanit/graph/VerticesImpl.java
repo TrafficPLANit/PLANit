@@ -1,11 +1,8 @@
 package org.goplanit.graph;
 
 import org.goplanit.utils.graph.*;
-import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.Pair;
 
-import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**

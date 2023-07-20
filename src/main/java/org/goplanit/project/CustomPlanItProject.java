@@ -261,7 +261,7 @@ public class CustomPlanItProject {
      * unconventional but useful in our context: the configuration of the builder is exposed via its configurator. This ensures that the end user remains unaware of the builder
      * pattern, but instead simply configures a proxy. The builder in turn is built from within the project leveraging the configuration that the user interacted with
      */
-    return (TrafficAssignmentConfigurator<? extends TrafficAssignment>) taBuilder.getConfigurator();
+    return taBuilder.getConfigurator();
   }
 
   /**

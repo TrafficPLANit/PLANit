@@ -1,6 +1,7 @@
 package org.goplanit.network.layer.physical;
 
 import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentTypesImpl;
+import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
@@ -18,7 +19,7 @@ import java.util.function.BiConsumer;
  * @author markr
  * 
  */
-public class LinksImpl<L extends Link> extends ManagedIdEntitiesImpl<L> implements Links<L> {
+public class LinksImpl<L extends Link> extends ManagedGraphEntitiesImpl<L> implements Links<L> {
 
   /** factory to use */
   protected LinkFactory linkFactory;
@@ -41,7 +42,7 @@ public class LinksImpl<L extends Link> extends ManagedIdEntitiesImpl<L> implemen
    */
   public LinksImpl(final IdGroupingToken groupId) {
     super(L::getId, L.EDGE_ID_CLASS);
-    this.linkFactory = new LinkFactoryImpl(groupId, (Links<Link>) this);
+    this.linkFactory = new LinkFactoryImpl(groupId, this);
   }
 
   /**

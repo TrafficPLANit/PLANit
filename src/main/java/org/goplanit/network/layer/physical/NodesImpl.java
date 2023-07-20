@@ -1,5 +1,6 @@
 package org.goplanit.network.layer.physical;
 
+import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
@@ -17,7 +18,7 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class NodesImpl extends ManagedIdEntitiesImpl<Node> implements Nodes {
+public class NodesImpl extends ManagedGraphEntitiesImpl<Node> implements Nodes {
 
   /** factory to use */
   private final NodeFactory nodeFactory;

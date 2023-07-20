@@ -1,16 +1,8 @@
 package org.goplanit.graph;
 
-import org.goplanit.graph.directed.EdgeSegmentsImpl;
-import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.graph.EdgeFactory;
-import org.goplanit.utils.graph.Edges;
-import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
-import org.goplanit.utils.graph.directed.DirectedEdge;
-import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.*;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.Pair;
 
-import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**

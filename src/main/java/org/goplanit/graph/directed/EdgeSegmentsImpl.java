@@ -1,16 +1,12 @@
 package org.goplanit.graph.directed;
 
-import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.GraphEntitiesImpl;
+import org.goplanit.utils.graph.GraphEntitiesImpl;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.Pair;
 
 /**
  * Implementation of EdgeSegments interface.

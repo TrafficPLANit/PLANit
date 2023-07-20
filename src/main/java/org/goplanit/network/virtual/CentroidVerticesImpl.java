@@ -1,5 +1,6 @@
 package org.goplanit.network.virtual;
 
+import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
@@ -18,7 +19,7 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class CentroidVerticesImpl extends ManagedIdEntitiesImpl<CentroidVertex> implements CentroidVertices {
+public class CentroidVerticesImpl extends ManagedGraphEntitiesImpl<CentroidVertex> implements CentroidVertices {
 
   /** factory to use */
   private final CentroidVertexFactory centroidVertexFactory;

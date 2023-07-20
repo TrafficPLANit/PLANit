@@ -1,11 +1,12 @@
 package org.goplanit.network.virtual;
 
-import org.goplanit.network.layer.service.ServiceNodesImpl;
+import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.layer.service.ServiceNode;
-import org.goplanit.utils.network.virtual.*;
+import org.goplanit.utils.network.virtual.ConjugateConnectoidEdge;
+import org.goplanit.utils.network.virtual.ConjugateConnectoidEdgeFactory;
+import org.goplanit.utils.network.virtual.ConjugateConnectoidEdges;
+import org.goplanit.utils.network.virtual.ConnectoidEdge;
 
 import java.util.function.BiConsumer;
 
@@ -16,7 +17,7 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class ConjugateConnectoidEdgesImpl extends ManagedIdEntitiesImpl<ConjugateConnectoidEdge> implements ConjugateConnectoidEdges {
+public class ConjugateConnectoidEdgesImpl extends ManagedGraphEntitiesImpl<ConjugateConnectoidEdge> implements ConjugateConnectoidEdges {
 
   /** factory to use */
   private final ConjugateConnectoidEdgeFactory factory;

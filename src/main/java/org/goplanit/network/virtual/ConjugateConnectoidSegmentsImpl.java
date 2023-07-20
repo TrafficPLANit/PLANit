@@ -1,6 +1,7 @@
 package org.goplanit.network.virtual;
 
 import org.goplanit.network.layer.service.ServiceNodesImpl;
+import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
@@ -18,7 +19,7 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class ConjugateConnectoidSegmentsImpl extends ManagedIdEntitiesImpl<ConjugateConnectoidSegment> implements ConjugateConnectoidSegments {
+public class ConjugateConnectoidSegmentsImpl extends ManagedGraphEntitiesImpl<ConjugateConnectoidSegment> implements ConjugateConnectoidSegments {
 
   /** factory to use */
   private final ConjugateConnectoidSegmentFactory factory;
