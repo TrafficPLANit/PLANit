@@ -70,9 +70,8 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
    * @param belowSize         remove subnetworks below the given size
    * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
    * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
-   * @throws PlanItException thrown if error
    */
-  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
+  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
     for (L infrastructureLayer : getTransportLayers()) {
       infrastructureLayer.getLayerModifier().removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest);
     }

@@ -64,7 +64,7 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
    * for now not yet supported. If we implement it in the strict sense, we can simply borrow the functionality from super class and remove override
    */
   @Override
-  public void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
+  public void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
     throw new PlanItRunTimeException("Not yet supported");
   }
 

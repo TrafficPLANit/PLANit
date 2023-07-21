@@ -23,8 +23,7 @@ public interface PairConverterReader<T, U> extends ConverterEntity {
    * parse the network based on the configuration of the implementing class to yield a PLANit network
    * 
    * @return parsed entities
-   * @throws PlanItException thrown if error
    */
-  Pair<T, U> read() throws PlanItException;
+  Pair<T, U> read();
 
 }
