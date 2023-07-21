@@ -58,7 +58,8 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    * @param modeMapper to use for tracking mapping between original and copied modes
    * @param layerMapper to use for tracking mapping between original and copied layers
    */
-  protected MacroscopicNetwork(final MacroscopicNetwork other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<MacroscopicNetworkLayer> layerMapper) {
+  protected MacroscopicNetwork(
+      final MacroscopicNetwork other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<MacroscopicNetworkLayer> layerMapper) {
     super(other, deepCopy, modeMapper, layerMapper);
   }
 

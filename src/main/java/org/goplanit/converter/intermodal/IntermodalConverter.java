@@ -50,7 +50,7 @@ public class IntermodalConverter<T extends ServiceNetwork, U extends RoutedServi
    * @throws PlanItException thrown when error
    */
   public void convert() throws PlanItException {
-    LOGGER.info("Convering without services, invoke convertWithServices() to include services in this conversion");
+    LOGGER.info("Converting without services, invoke convertWithServices() if you wish to include services in this conversion");
     super.convert();
   }
 
