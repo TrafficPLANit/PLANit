@@ -26,8 +26,8 @@ public class DemandsConverter extends Converter<Demands> {
    * make sure the demands have access to the reference zoning by taking it from the reader and placing it on the writer
    * (if not already available)
    *
-   * @param demands
-   * @throws PlanItException
+   * @param demands demands to write
+   * @throws PlanItException thrown when error
    */
   @Override
   protected void write(Demands demands) throws PlanItException {

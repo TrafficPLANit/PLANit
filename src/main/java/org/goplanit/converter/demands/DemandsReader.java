@@ -17,7 +17,7 @@ public interface DemandsReader extends ConverterReader<Demands> {
    * having to manually transfer this zoning to the writer which also requires this same zoning consistency
     *  This is what this method enables
    *
-   * @param referenceZoning to supply demands writer with (after invoking {@link #read()}
+   * @return referenceZoning to supply demands writer with (after invoking {@link #read()}
    */
   public abstract Zoning getReferenceZoning();
 
