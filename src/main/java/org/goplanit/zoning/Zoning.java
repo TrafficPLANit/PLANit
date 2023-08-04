@@ -19,6 +19,7 @@ import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
 import org.goplanit.zoning.modifier.ZoningModifierImpl;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Zoning class which holds a particular zoning
@@ -36,9 +37,12 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
 
   // Protected
 
+  /** the CRS of this zoning */
+  protected CoordinateReferenceSystem crs;
+
   /**
    * Virtual network holds all the virtual connections to the physical network (layers)
-   * todo: we should have potentially multiple virtual networks per zoning, one for each physical nework the zoning is used on!
+   * todo: we should have potentially multiple virtual networks per zoning, one for each physical network the zoning is used on!
    */
   protected final VirtualNetwork virtualNetwork;
 
@@ -373,5 +377,23 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    */
   public boolean hasOdConnectoids() {
     return !getOdConnectoids().isEmpty();
+  }
+
+  /**
+   * The crs used by the zoning
+   *
+   * @return crs
+   */
+  public CoordinateReferenceSystem getCoordinateReferenceSystem(){
+    return crs;
+  }
+
+  /**
+   * Set the crs to use by the zoning
+   *
+   * @param crs to use
+   */
+  public void setCoordinateReferenceSystem(final CoordinateReferenceSystem crs){
+    this.crs = crs;
   }
 }
