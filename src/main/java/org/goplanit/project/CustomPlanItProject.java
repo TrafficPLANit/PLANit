@@ -148,7 +148,7 @@ public class CustomPlanItProject {
     this.odPathSets = inputs.odPathSets;
     this.serviceNetworks = inputs.serviceNetworks;
     this.routedServices = inputs.routedServices;
-    this.outputFormatters = new TreeMap<Long, OutputFormatter>();
+    this.outputFormatters = new TreeMap<>();
   }
 
   /**

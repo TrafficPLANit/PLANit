@@ -27,6 +27,23 @@ public abstract class Converter<T> extends ConverterBase {
     super(reader, writer);
   }
 
+  protected T read(){
+    var reader = ((ConverterReader<T>) getReader());
+    LOGGER.info(String.format("****************** [START] CONVERTER: READ %s [START] ********************", reader.getTypeDescription()));
+    T entity = reader.read();
+    reader.reset();
+    LOGGER.info(String.format("****************** [END]   CONVERTER: READ %s [END]   ********************", reader.getTypeDescription()));
+    return entity;
+  }
+
+  protected void write(T readEntity) throws PlanItException {
+    ConverterWriter<T> writer = ((ConverterWriter<T>) getWriter());
+    LOGGER.info(String.format("****************** [START] CONVERTER: WRITE %s [START] ********************", writer.getTypeDescription()));
+    writer.write(readEntity);
+    writer.reset();
+    LOGGER.info(String.format("****************** [END]   CONVERTER: WRITE %s [END]   ********************", writer.getTypeDescription()));
+  }
+
   /**
    * Convert the reader's parsed content by passing it on to the writer. It is assumed both reader and writer are fully configured when this method is called
    * 
@@ -34,18 +51,7 @@ public abstract class Converter<T> extends ConverterBase {
    */
   @SuppressWarnings("unchecked")
   public void convert() throws PlanItException {
-
-    var reader = ((ConverterReader<T>) getReader());
-    LOGGER.info(String.format("****************** [START] CONVERTER: READ %s [START] ********************", reader.getTypeDescription()));
-    T entity = reader.read();
-    reader.reset();
-    LOGGER.info(String.format("****************** [END]   CONVERTER: READ %s [END]   ********************", reader.getTypeDescription()));
-
-    ConverterWriter<T> writer = ((ConverterWriter<T>) getWriter());
-    LOGGER.info(String.format("****************** [START] CONVERTER: WRITE %s [START] ********************", writer.getTypeDescription()));
-    writer.write(entity);
-    writer.reset();
-    LOGGER.info(String.format("****************** [END]   CONVERTER: WRITE %s [END]   ********************", writer.getTypeDescription()));
+    write(read());
   }
 
 }
