@@ -8,7 +8,7 @@ import org.goplanit.utils.mode.*;
  * <ul>
  * <li>name: ferry</li>
  * <li>maxspeed (km/h): 20</li>
- * <li>pcu: 8</li>
+ * <li>pcu: 6</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
  * <li>track: WATER</li>
@@ -20,10 +20,10 @@ import org.goplanit.utils.mode.*;
  */
 public class FerryMode extends PredefinedModeImpl {
 
-  /* default max speed value for light rail mode */
-  public static final double DEFAULT_MAX_SPEED_KMH = 70;
+  /* default max speed value for ferry mode */
+  public static final double DEFAULT_MAX_SPEED_KMH = 20;
 
-  /* default pcu value for lightrail mode */
+  /* default pcu value for ferry mode */
   public static final double DEFAULT_PCU = 6;
 
   /* default physical features of ferry (VEHICLE, MOTORISED, WATER) */
