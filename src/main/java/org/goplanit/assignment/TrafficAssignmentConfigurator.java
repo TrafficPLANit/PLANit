@@ -207,12 +207,12 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   /**
    * Create and register physical link cost function to determine travel time
    *
-   * @param physicalTraveltimeCostFunctionType the type of cost function to be created
+   * @param physicalTravelTimeCostFunctionType the type of cost function to be created
    * @return the physical cost created
    * @throws PlanItException thrown if there is an error
    */
-  public PhysicalCostConfigurator<? extends AbstractPhysicalCost> createAndRegisterPhysicalCost(final String physicalTraveltimeCostFunctionType) throws PlanItException {
-    physicalCostConfigurator = PhysicalCostConfiguratorFactory.createConfigurator(physicalTraveltimeCostFunctionType);
+  public PhysicalCostConfigurator<? extends AbstractPhysicalCost> createAndRegisterPhysicalCost(final String physicalTravelTimeCostFunctionType) throws PlanItException {
+    physicalCostConfigurator = PhysicalCostConfiguratorFactory.createConfigurator(physicalTravelTimeCostFunctionType);
     return physicalCostConfigurator;
   }
 
