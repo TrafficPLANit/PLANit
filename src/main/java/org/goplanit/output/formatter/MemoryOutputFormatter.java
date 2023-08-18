@@ -479,13 +479,13 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @throws PlanItException thrown if the output property type is not in the output value property array
    */
   public int getPositionOfOutputValueProperty(final OutputType outputType, final OutputPropertyType outputValueProperty) throws PlanItException {
-    Set<MultiKey<? extends Object>> keySet = (Set<MultiKey<? extends Object>>) timeModeOutputTypeIterationDataMap.keySet();
+    Set<MultiKey<? extends Object>> keySet = timeModeOutputTypeIterationDataMap.keySet();
     for (MultiKey<? extends Object> multiKey : keySet) {
       Object[] keys = multiKey.getKeys();
       Mode mode1 = (Mode) keys[0];
       TimePeriod timePeriod1 = (TimePeriod) keys[1];
       Integer iterationIndex1 = (Integer) keys[2];
-      MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode1, timePeriod1, iterationIndex1, outputType);
+      MultiKeyPlanItData multiKeyPlanItData = timeModeOutputTypeIterationDataMap.get(mode1, timePeriod1, iterationIndex1, outputType);
       OutputType outputType1 = (OutputType) keys[3];
       if (outputType1.equals(outputType)) {
         return multiKeyPlanItData.getPositionOfOutputValueProperty(outputValueProperty);
