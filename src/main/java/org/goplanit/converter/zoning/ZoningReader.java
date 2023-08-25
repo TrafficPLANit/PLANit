@@ -1,6 +1,7 @@
 package org.goplanit.converter.zoning;
 
 import org.goplanit.converter.ConverterReader;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.zoning.Zoning;
 
 /**
