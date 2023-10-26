@@ -4,6 +4,28 @@ PlanIt Releases
 
 This project contains core code which is used by all the interface projects.
 
+## 0.4.0
+
+**enhancements**
+
+* #95 updated to JUnit 5
+* #93 replace clone() methods with shallowClone() and deepClone() and avoid Cloneable interface
+* #91 Added service network and routed services support
+* #89 Improvements to transfer zoning memory model
+* #88 Support CI through github actions by building and testing upon push
+* #89 Add support for conjugate directed graphs (edge-to-vertex-duals)
+* #86 Add support for all-to-one shortest path search (Dijkstra)
+* #84,#79,#78,#77,#76,#75,#74,#71,#70 Working on/preparing for sLTM implementation (not done)
+* #83 Enhancements to Tampere node model
+* #81 Architecture refinements/refactoring in code base
+* #80 log all settings of all traffic assignment components if requested (Default should be true)
+* #49 Centroids should not longer be a vertex in the network.
+
+**bug fixes**
+
+* #92 Cannot copy reference of factories in ManagedIdEntities implementations in copy constructor
+* #73 Breaking edges on directed graphs no longer correctly updates the edge segments
+
 ## 0.3.0
 
 **enhancements**
