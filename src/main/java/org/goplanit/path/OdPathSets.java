@@ -10,8 +10,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.zoning.Zoning;
 
 /**
- * Contains one or more origin-destination based path sets that can be used in assignment. For now each individual path set takes on the form of the already available ODPathMatrix.
- * In future versions more flexible implementation are planned
+ * Contains one or more origin-destination based path sets that can be used in assignment. For now each individual path
+ * set takes on the form of the already available OdPathMatrix. In future versions more flexible implementation are planned
  *
  * @author markr
  *

@@ -36,9 +36,10 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
    * @throws PlanItException thrown if error
    */
   protected LogitChoiceModel createLogitChoiceModelInstance(StochasticPathChoiceConfigurator configurator) throws PlanItException {
-    PlanitComponentFactory<LogitChoiceModel> logitChoiceModelFactory = new PlanitComponentFactory<LogitChoiceModel>(LogitChoiceModel.class);
+    PlanitComponentFactory<LogitChoiceModel> logitChoiceModelFactory = new PlanitComponentFactory<>(LogitChoiceModel.class);
     logitChoiceModelFactory.addListener(getInputBuilderListener());
-    return logitChoiceModelFactory.create(configurator.getLogitModel().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
+    return logitChoiceModelFactory.create(
+            configurator.getLogitModel().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 
   /**
@@ -49,6 +50,10 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
    */
   @Override
   protected void buildSubComponents(StochasticPathChoice pathChoiceInstance) throws PlanItException {
+    //TODO: BUG -> configurator not available, because when this builder is created a new configurator for the
+    //      builder is created unrelated to the configruator that was actually configured as part of the assignment.
+    //      Therefore, logitmodel configured on assignment path choice configator is not present here --> FAIL
+    //      Solution -> pass in configurator from assignment to when the builder is created. UGLY but acceptable for now
     StochasticPathChoiceConfigurator configurator = ((StochasticPathChoiceConfigurator) getConfigurator());
 
     // build logit model

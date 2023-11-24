@@ -6,12 +6,17 @@ import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathOneToAll;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
+import org.goplanit.gap.GapFunction;
+import org.goplanit.gap.StopCriterion;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.path.OdPaths;
 import org.goplanit.od.path.OdPathsHashed;
 import org.goplanit.path.ManagedDirectedPathFactoryImpl;
+import org.goplanit.path.choice.PathChoice;
+import org.goplanit.path.choice.PathChoiceConfiguratorFactory;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
@@ -117,12 +122,19 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   public boolean performIteration(final Mode theMode, final double[] costsToUpdate, int iterationIndex) {
 
     try {
-      // NETWORK LOADING - MODE AGNOSTIC FOR NOW
+      /* NETWORK LOADING - MODE AGNOSTIC FOR NOW */
       executeNetworkLoading();
 
       /* COST UPDATE */
       boolean updateOnlyPotentiallyBlockingNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
       this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
+
+      /* FIND NEW SHORTEST PATHS*/
+      //todo: find new shortest paths for each OD and add to set (if not already in set)
+
+      /* PERFORM PATH CHOICE */
+      //todo: execute path choice to obtain new probabilities per OD-path
+      var pathChoice = getTrafficAssignmentComponent(PathChoice.class);
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
@@ -141,6 +153,22 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   @Override
   public String getDescription() {
     return "Path-based";
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * Path-based based assignment requires a form of path choice if we do more than a single iteration
+   */
+  @Override
+  public void verifyComponentCompatibility() {
+    super.verifyComponentCompatibility();
+
+    var gapFunction = getTrafficAssignmentComponent(GapFunction.class);
+    if(!hasTrafficAssignmentComponent(PathChoice.class) && gapFunction.getStopCriterion().getMaxIterations()>1){
+      throw new PlanItRunTimeException("Path-based sLTM assignment has no Path Choice defined, when running multiple iterations this is a requirement");
+      //pathChoiceConfigurator = PathChoiceConfiguratorFactory.createConfigurator(pathChoiceType);
+    }
   }
 
 }

@@ -278,7 +278,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     // Allow derived classes to verify if the chosen inputs are compatible before proceeding, not mandatory
     trafficAssignment.verifyNetworkDemandZoningCompatibility();
 
-    // build the sub components of the assignment as well
+    // build the subcomponents of the assignment as well
     buildSubComponents(trafficAssignment);
 
     /* information is now present to generate appropriate output type adapters (requires output manager which now has been set */

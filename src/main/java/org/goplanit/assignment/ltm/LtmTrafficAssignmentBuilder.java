@@ -66,11 +66,11 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
     }
 
     /*
-     * path choice sub component... ...because it has sub components of its own, we must construct a builder for it instead of instantiating it directly here
+     * path choice sub component... ...because it has subcomponents of its own, we must construct a builder for it instead of instantiating it directly here
      */
     if (getConfigurator().getPathChoice() != null) {
-      var pathChoiceBuilder = PathChoiceBuilderFactory.createBuilder(getConfigurator().getPathChoice().getClassTypeToConfigure().getCanonicalName(), getGroupIdToken(),
-          getInputBuilderListener());
+      var pathChoiceBuilder = PathChoiceBuilderFactory.createBuilder(
+              getConfigurator().getPathChoice().getClassTypeToConfigure().getCanonicalName(), getGroupIdToken(), getInputBuilderListener());
       ltmAssignmentInstance.setPathChoice(pathChoiceBuilder.build());
     }
   }

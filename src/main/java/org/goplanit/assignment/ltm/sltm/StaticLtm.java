@@ -210,6 +210,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* smoothing check */
     PlanItException.throwIf(!(getSmoothing() instanceof MSASmoothing), "%sStatic LTM only supports MSA smoothing at the moment, but found %s", LoggingUtils.runIdPrefix(getId()),
         getSmoothing().getClass().getCanonicalName());
+
   }
 
   /**
@@ -219,6 +220,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   protected void initialiseBeforeExecution() throws PlanItException {
     super.initialiseBeforeExecution();
     this.assignmentStrategy = createAssignmentStrategy();
+    assignmentStrategy.verifyComponentCompatibility();
     LOGGER.info(String.format("%sstrategy: %s", LoggingUtils.runIdPrefix(getId()), assignmentStrategy.getDescription()));
   }
 

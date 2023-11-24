@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import org.goplanit.assignment.ltm.LtmConfigurator;
 import org.goplanit.assignment.ltm.LtmTrafficAssignmentBuilder;
 import org.goplanit.demands.Demands;
 import org.goplanit.input.InputBuilderListener;
@@ -40,6 +41,14 @@ public class StaticLtmTrafficAssignmentBuilder extends LtmTrafficAssignmentBuild
   public StaticLtmTrafficAssignmentBuilder(IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands, final Zoning zoning,
       final LayeredNetwork<?, ?> network) throws PlanItException {
     super(StaticLtm.class, groupId, inputBuilderListener, demands, zoning, network);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public StaticLtmConfigurator getConfigurator() {
+    return (StaticLtmConfigurator) super.getConfigurator();
   }
 
 }
