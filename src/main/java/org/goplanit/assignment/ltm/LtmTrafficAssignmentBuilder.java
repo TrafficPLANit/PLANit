@@ -70,7 +70,9 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
      */
     if (getConfigurator().getPathChoice() != null) {
       var pathChoiceBuilder = PathChoiceBuilderFactory.createBuilder(
-              getConfigurator().getPathChoice().getClassTypeToConfigure().getCanonicalName(), getGroupIdToken(), getInputBuilderListener());
+              getConfigurator().getPathChoice(), // pass on the configurator so its config gets used in the builder
+              getGroupIdToken(),
+              getInputBuilderListener());
       ltmAssignmentInstance.setPathChoice(pathChoiceBuilder.build());
     }
   }

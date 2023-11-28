@@ -576,7 +576,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   @Override
   public <T> boolean hasTrafficAssignmentComponent(final Class<T> planitComponentClass) {
     T component = (T) trafficAssignmentComponents.get(planitComponentClass);
-    return component == null;
+    return component != null;
   }
 
   /**
