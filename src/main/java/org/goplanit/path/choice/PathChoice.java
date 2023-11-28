@@ -42,6 +42,13 @@ public abstract class PathChoice extends PlanitComponent<PathChoice> implements 
     super(other, deepCopy);
   }
 
+  /** Indicate whether the paths are fixed throughout the equilibration process or not. If not, then
+   * a means to update the paths is expected to be invoked each iteration by the assignment
+   *
+   * @return true when fixed, false otherwise
+   */
+  public abstract boolean isPathsFixed();
+
   /**
    * {@inheritDoc}
    */

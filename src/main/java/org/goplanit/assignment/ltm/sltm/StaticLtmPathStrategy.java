@@ -75,6 +75,18 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     return odPaths;
   }
 
+  /**
+   * Convenience access to path choice component
+   * @return path choice component
+   */
+  protected PathChoice getPathChoice(){
+    var pathChoice = (PathChoice) getTrafficAssignmentComponent(PathChoice.class);
+    if(pathChoice == null){
+      throw new PlanItRunTimeException("No Path choice available on sLTM Path-based approach, shouldn't happen");
+    }
+    return pathChoice;
+  }
+
   /** create a path based network loading for this solution scheme */
   @Override
   protected StaticLtmLoadingPath createNetworkLoading() {
@@ -130,11 +142,14 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
 
       /* FIND NEW SHORTEST PATHS*/
+      var pathChoice = getPathChoice();
+      if(!pathChoice.isPathsFixed()){
+        //todo: update createOdPaths() to account for flexible path creation
+      }
       //todo: find new shortest paths for each OD and add to set (if not already in set)
 
       /* PERFORM PATH CHOICE */
       //todo: execute path choice to obtain new probabilities per OD-path
-      var pathChoice = getTrafficAssignmentComponent(PathChoice.class);
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
@@ -167,7 +182,6 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     var gapFunction = getTrafficAssignmentComponent(GapFunction.class);
     if(!hasTrafficAssignmentComponent(PathChoice.class) && gapFunction.getStopCriterion().getMaxIterations()>1){
       throw new PlanItRunTimeException("Path-based sLTM assignment has no Path Choice defined, when running multiple iterations this is a requirement");
-      //pathChoiceConfigurator = PathChoiceConfiguratorFactory.createConfigurator(pathChoiceType);
     }
   }
 

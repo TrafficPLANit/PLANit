@@ -48,6 +48,17 @@ public class StochasticPathChoice extends PathChoice {
   }
 
   /**
+   * indicate whether paths are to be created on the fly for each iteration or not. This implementation eventually
+   * should support both depending on how it is configured
+   *
+   * @return todo
+   */
+  @Override
+  public boolean isPathsFixed() {
+    return odPathSet == null; //todo change this when we are addressing this approach
+  }
+
+  /**
    * Copy constructor
    *
    * @param other    to copy

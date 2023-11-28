@@ -55,7 +55,7 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
 
     // create logit model component
     if (configurator.getLogitModel() != null) {
-      LogitChoiceModel logitModel = createLogitChoiceModelInstance(configurator.getLogitModel());
+      var logitModel = createLogitChoiceModelInstance(configurator.getLogitModel());
       configurator.getLogitModel().configure(logitModel);
       pathChoiceInstance.setLogitModel(logitModel);
     }
