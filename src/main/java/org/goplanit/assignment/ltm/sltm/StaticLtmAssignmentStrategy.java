@@ -335,8 +335,9 @@ public abstract class StaticLtmAssignmentStrategy {
    * Create the initial solution to start the equilibration process with
    * 
    * @param initialLinkSegmentCosts to use
+   * @param iterationIndex to use
    */
-  public abstract void createInitialSolution(double[] initialLinkSegmentCosts);
+  public abstract void createInitialSolution(double[] initialLinkSegmentCosts, int iterationIndex);
 
   /**
    * Perform a single iteration where we perform a loading and then an equilibration step resulting in updated costs

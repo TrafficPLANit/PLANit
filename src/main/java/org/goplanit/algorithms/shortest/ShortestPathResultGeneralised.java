@@ -76,7 +76,7 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
         /* from origin towards destination, add to back */
         pathEdgeSegments.add(nextEdgeSegment);
       } else {
-        /* from destination back toorigin, add to front */
+        /* from destination back to origin, add to front */
         pathEdgeSegments.addFirst(nextEdgeSegment);
       }
 

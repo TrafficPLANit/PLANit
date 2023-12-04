@@ -31,8 +31,9 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
 
   //@formatter:off
 
-  /** Factory method to create the right flow update consumer to use when conducting a path based flow update. We either create one that updates
-   * turn accepted flows (and possibly also sending flows), or one that only updates link sending flows. The latter is to be used for initialisation purposes only where
+  /** Factory method to create the right flow update consumer to use when conducting a path based flow update.
+   * We either create one that updates turn accepted flows (and possibly also sending flows), or one that only
+   * updates link sending flows. The latter is to be used for initialisation purposes only where
    * the former is the one used during the iterative loading procedure.
    * 
    * @param updateTurnAcceptedFlows flag indicating if the turn accepted flows are to be updated by this consumer
@@ -40,7 +41,8 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * @param updateOutflows           flag indicating if the link outflows are to be updated by this consumer
    * @return created flow update consumer
    */
-  private PathFlowUpdateConsumer<?> createPathFlowUpdateConsumer(boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows) {
+  private PathFlowUpdateConsumer<?> createPathFlowUpdateConsumer(
+          boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows) {
     if (!updateSendingFlows && !updateTurnAcceptedFlows) {
       LOGGER.warning("Network flow updates using paths must either updating link sending flows or turn accepted flows, neither are selected");
       return null;
@@ -97,7 +99,8 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     boolean updateTurnAcceptedFlows = true;
     boolean updateSendingFlows = !isIterativeSendingFlowUpdateActivated();
     boolean updateOutflows = false;
-    PathTurnFlowUpdateConsumer pathTurnFlowUpdateConsumer = (PathTurnFlowUpdateConsumer) createPathFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlows, updateOutflows);
+    PathTurnFlowUpdateConsumer pathTurnFlowUpdateConsumer =
+            (PathTurnFlowUpdateConsumer) createPathFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlows, updateOutflows);
     
     /* execute */
     getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathTurnFlowUpdateConsumer);
@@ -112,7 +115,8 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     /* only update link sending flows */
     boolean updateTurnAcceptedFlows = false, updateOutflows = false;
     boolean updateSendingFlows = true;   
-    var pathLinkFlowUpdateConsumer = (PathLinkFlowUpdateConsumer) createPathFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlows, updateOutflows); 
+    var pathLinkFlowUpdateConsumer = (PathLinkFlowUpdateConsumer)
+            createPathFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlows, updateOutflows);
     
     /* execute */
     getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathLinkFlowUpdateConsumer);
@@ -126,7 +130,8 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     /* update link sending flows and outflows */
     boolean updateTurnAcceptedFlows = false;
     boolean updateSendingFlows = true, updateOutflows = true;
-    var pathLinkFlowUpdateConsumer = (PathLinkFlowUpdateConsumer) createPathFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlows, updateOutflows); 
+    var pathLinkFlowUpdateConsumer = (PathLinkFlowUpdateConsumer)
+            createPathFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlows, updateOutflows);
     
     /* execute */
     getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathLinkFlowUpdateConsumer);   

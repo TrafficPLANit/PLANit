@@ -64,7 +64,7 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
   /**
    * Create an empty od path matrix and register it on this od path sets
    * 
-   * @param zoning used to derive the size of the aquare zone based matrix
+   * @param zoning used to derive the size of the square zone based matrix
    * @return newly created od path matrix
    */
   public OdPathMatrix createAndRegisterOdPathMatrix(final Zoning zoning) {

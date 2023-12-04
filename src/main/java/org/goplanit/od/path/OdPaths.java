@@ -10,6 +10,6 @@ import org.goplanit.utils.path.ManagedDirectedPath;
  * @author markr
  *
  */
-public interface OdPaths extends OdData<ManagedDirectedPath> {
+public interface OdPaths<T extends ManagedDirectedPath> extends OdData<T> {
 
 }

@@ -118,7 +118,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     simulationData.setLinkSegmentTravelTimePcuH(mode, initialLinkSegmentCosts);
 
     /* create initial solution as starting point for equilibration */
-    assignmentStrategy.createInitialSolution(initialLinkSegmentCosts);
+    assignmentStrategy.createInitialSolution(initialLinkSegmentCosts, simulationData.getIterationIndex());
 
     return simulationData;
   }
