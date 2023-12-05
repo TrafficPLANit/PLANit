@@ -1,6 +1,5 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import org.goplanit.path.ManagedDirectedPathImpl;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.path.ManagedDirectedPath;
@@ -23,7 +22,7 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
   /**
    * Current path choice probability
    */
-  private double currentPathchoiceProbability;
+  private double currentPathChoiceProbability;
 
   /** the path we're decorating */
   private ManagedDirectedPath wrappedPath;
@@ -34,7 +33,7 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
    * @param pathToWrap path to decorate
    */
   public StaticLtmDirectedPathImpl(ManagedDirectedPath pathToWrap) {
-    this.currentPathchoiceProbability = -1;
+    this.currentPathChoiceProbability = -1;
     this.linkSegmentsOnlyHashCode = java.util.Objects.hashCode(pathToWrap.iterator());
     this.wrappedPath = pathToWrap;
   }
@@ -46,19 +45,19 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
    * @param deepCopy deep copy or not
    */
   public StaticLtmDirectedPathImpl(StaticLtmDirectedPathImpl other, boolean deepCopy) {
-    this.currentPathchoiceProbability = other.currentPathchoiceProbability;
+    this.currentPathChoiceProbability = other.currentPathChoiceProbability;
     this.linkSegmentsOnlyHashCode = other.linkSegmentsOnlyHashCode;
     this.wrappedPath = deepCopy ? other.wrappedPath.deepClone() : other.wrappedPath.shallowClone();
   }
 
   @Override
   public void setPathChoiceProbability(double probability){
-    this.currentPathchoiceProbability = probability;
+    this.currentPathChoiceProbability = probability;
   }
 
   @Override
   public double getPathChoiceProbability(){
-    return this.currentPathchoiceProbability;
+    return this.currentPathChoiceProbability;
   }
 
   @Override

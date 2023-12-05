@@ -1,9 +1,11 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import java.util.logging.Logger;
-
-import org.goplanit.od.path.OdPaths;
+import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
+import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Consumer to apply during path based loading to update the inflows on the provided raw array by their link segment ids
@@ -50,7 +52,7 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
    * @param dataConfig containing data configuration to use
    * @param odPaths    to use
    */
-  public PathLinkFlowUpdateConsumer(final NetworkFlowUpdateData dataConfig, final OdPaths odPaths) {
+  public PathLinkFlowUpdateConsumer(final NetworkFlowUpdateData dataConfig, final OdMultiPaths<List<StaticLtmDirectedPath>> odPaths) {
     super(dataConfig, odPaths);
   }
 

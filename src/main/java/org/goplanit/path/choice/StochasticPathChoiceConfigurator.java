@@ -49,12 +49,4 @@ public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<Sto
     return logitChoiceModelConfigurator;
   }
 
-  /**
-   * Register a fixed od path set to use in the form of an ODPathMatrix
-   *
-   * @param odPathSet the fixed od path set in the shape of an od path matrix
-   */
-  public void setFixedOdPathMatrix(final OdPathMatrix odPathSet) {
-    registerDelayedMethodCall(SET_OD_PATH_MATRIX, odPathSet);
-  }
 }

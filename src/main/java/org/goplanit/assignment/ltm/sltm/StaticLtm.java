@@ -142,7 +142,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     Mode theMode = modes.iterator().next();
     this.simulationData = initialiseTimePeriod(timePeriod, theMode, getDemands().get(theMode, timePeriod));
 
-    boolean converged = false;
+    boolean convergedOrStop = false;
     Calendar iterationStartTime = Calendar.getInstance();
 
     /* ASSIGNMENT LOOP */
@@ -165,13 +165,13 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       getIterationData().setLinkSegmentTravelTimePcuH(theMode, costsToUpdate);
 
       // CONVERGENCE CHECK
-      converged = assignmentStrategy.hasConverged(getGapFunction(), simulationData.getIterationIndex());
+      convergedOrStop = assignmentStrategy.hasConverged(getGapFunction(), simulationData.getIterationIndex());
 
       // PERSIST
-      persistIterationResults(timePeriod, theMode, converged);
+      persistIterationResults(timePeriod, theMode, convergedOrStop);
 
       iterationStartTime = logBasicIterationInformation(iterationStartTime, (LinkBasedRelativeDualityGapFunction) getGapFunction());
-    } while (!converged);
+    } while (!convergedOrStop);
 
   }
 

@@ -162,7 +162,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
   }
 
   /**
-   * call to build and configure all sub components of this builder
+   * call to build and configure all subcomponents of this builder
    * 
    * @param trafficAssignmentInstance instance to build subcomponents for
    * @throws PlanItException thrown if error

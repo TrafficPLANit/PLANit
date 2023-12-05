@@ -1,11 +1,16 @@
 package org.goplanit.path.choice;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
 import org.goplanit.od.path.OdPathMatrix;
 import org.goplanit.path.choice.logit.LogitChoiceModel;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.path.SimpleDirectedPath;
+import org.w3.xlink.Simple;
 
 /**
  * Stochastic path choice component. Stochasticity is reflected by the fact that the path choice is applied by means of
@@ -28,15 +33,13 @@ public class StochasticPathChoice extends PathChoice {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StochasticPathChoice.class.getCanonicalName());
 
+  /** scaling factor for MNL, todo: make user configurable in the form of spread */
+  private static final double SCALE = 14;
+
   /**
    * The registered logit choice model
    */
   protected LogitChoiceModel logitChoiceModel = null;
-
-  /**
-   * The registered od path set instance
-   */
-  protected OdPathMatrix odPathSet = null;
 
   /**
    * Constructor
@@ -48,17 +51,6 @@ public class StochasticPathChoice extends PathChoice {
   }
 
   /**
-   * indicate whether paths are to be created on the fly for each iteration or not. This implementation eventually
-   * should support both depending on how it is configured
-   *
-   * @return todo
-   */
-  @Override
-  public boolean isPathsFixed() {
-    return odPathSet == null; //todo change this when we are addressing this approach
-  }
-
-  /**
    * Copy constructor
    *
    * @param other    to copy
@@ -67,7 +59,55 @@ public class StochasticPathChoice extends PathChoice {
   protected StochasticPathChoice(final StochasticPathChoice other, boolean deepCopy) {
     super(other, deepCopy);
     this.logitChoiceModel = other.logitChoiceModel; // not owned
-    this.odPathSet = other.odPathSet;               // not owned
+  }
+
+  /**
+   * Perform the path choice by determining the path probabilities based on path cost and scaling factor
+   *
+   * @param paths path alternatives to consider
+   * @param pathCosts costs of each path in order of collection
+   * @return computed probabilities
+   */
+  public double[] computePathProbabilities(Collection<? extends SimpleDirectedPath> paths, double[] pathCosts) {
+    var numPaths = pathCosts.length;
+    if(numPaths==1){
+      return new double[]{1.0};
+    }
+
+    var probabilities = new double[pathCosts.length];
+
+    // TODO: move to logit model + write unit test
+    /* ********************************************************************************
+     * In case of more than one route, calculate the probability for every route via
+     *
+     *
+     *            e^(-scale * general_cost_current_path)
+     *          ----------------------------------
+     *          SUM_candidates_p: (e^(-scale * general_cost_of_path_p))
+     * ********************************************************************************/
+
+    /* identify minimum cost option */
+    double minPathCost = Double.MAX_VALUE;
+    for(int index = 0; index < numPaths; ++index){
+      var pathCost = pathCosts[index];
+      if( pathCost < minPathCost){
+        minPathCost = pathCost;
+      }
+    }
+
+    /* construct denominator: offset by min cost to avoid floating point overflow errors */
+    double denominator = 0.0;
+    for(int index = 0; index < numPaths; ++index) {
+      var path_numerator_calc = Math.exp((pathCosts[index]-minPathCost) * -SCALE);
+      probabilities[index] = path_numerator_calc; // abuse to avoid computing this again below
+      denominator += path_numerator_calc;
+    }
+
+    /* construct probabilities */
+    for(int index = 0; index < numPaths; ++index) {
+      probabilities[index] = probabilities[index] / denominator; // convert to probability
+    }
+    return probabilities;
   }
 
   /**
@@ -77,15 +117,6 @@ public class StochasticPathChoice extends PathChoice {
    */
   public void setLogitModel(LogitChoiceModel logitChoiceModel) {
     this.logitChoiceModel = logitChoiceModel;
-  }
-
-  /**
-   * Register a fixed od path set to use in the form of an ODPathMatrix
-   *
-   * @param odPathSet the fixed od path set in the shape of an od path matrix
-   */
-  public void setOdPathMatrix(final OdPathMatrix odPathSet) {
-    this.odPathSet = odPathSet;
   }
 
   /**
@@ -119,4 +150,5 @@ public class StochasticPathChoice extends PathChoice {
   public Map<String, String> collectSettingsAsKeyValueMap() {
     return logitChoiceModel.collectSettingsAsKeyValueMap();
   }
+
 }

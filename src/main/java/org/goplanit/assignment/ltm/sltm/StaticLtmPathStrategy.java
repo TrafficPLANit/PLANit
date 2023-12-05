@@ -1,9 +1,5 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathOneToAll;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
@@ -18,13 +14,18 @@ import org.goplanit.od.path.OdPaths;
 import org.goplanit.od.path.OdPathsHashed;
 import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.path.choice.PathChoice;
+import org.goplanit.path.choice.StochasticPathChoice;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
+import org.goplanit.utils.path.PathUtils;
 import org.goplanit.zoning.Zoning;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Implementation to deal with a path based sLTM implementation
@@ -88,9 +89,6 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    */
   protected PathChoice getPathChoice(){
     var pathChoice = (PathChoice) getTrafficAssignmentComponent(PathChoice.class);
-    if(pathChoice == null){
-      throw new PlanItRunTimeException("No Path choice available on sLTM Path-based approach, shouldn't happen");
-    }
     return pathChoice;
   }
 
@@ -134,17 +132,17 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       /* create initial paths */
       final var newOdPaths = createOdPaths(initialLinkSegmentCosts);
 
-      /* initialise OD multi-path hash containers */
+      /* initialise OD multi-path hash containers and set path probability to 1*/
       getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
               (o, d, demand) -> {
                 var odMultiPathList = new ArrayList<StaticLtmDirectedPath>(INITIAL_PER_OD_PATH_CAPACITY);
-                odMultiPathList.add(newOdPaths.getValue(o, d));
+                var initialOdPath = newOdPaths.getValue(o, d);
+                initialOdPath.setPathChoiceProbability(1);  // set initial probability to 100%
+                odMultiPathList.add(initialOdPath);         // add to path set
                 odMultiPaths.setValue(o, d, odMultiPathList);
               });
 
-      //todo: incorrect we should no longer use the single path but multi-path. Replace with multi-path once this is in place
-      //getLoading().updateOdPaths(odMultiPaths);
-      getLoading().updateOdPaths(newOdPaths);
+      getLoading().updateOdPaths(odMultiPaths);
     } catch (Exception e) {
       LOGGER.severe(String.format("Unable to create paths for initial solution of path-based sLTM %s", getAssignmentId()));
     }
@@ -164,17 +162,34 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       boolean updateOnlyPotentiallyBlockingNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
       this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
 
-      /* FIND NEW SHORTEST PATHS*/
-      var pathChoice = getPathChoice();
-      if(!pathChoice.isPathsFixed()){
-        LOGGER.info("Creating new paths for path-based sLTM");
+      var stochasticPathChoice = (StochasticPathChoice) getPathChoice(); // currently only type of path choice which is verified (if present), so safe to cast
+      if(stochasticPathChoice != null) {
+
+        /* EXPAND OD PATH SETS WHEN ELIGIBLE NEW PATH FOUND */
         var newOdPaths = createOdPaths(costsToUpdate);
+        getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
+                (o, d, demand) -> {
+                  var newOdPath = newOdPaths.getValue(o, d);
+                  var existingOdPaths = odMultiPaths.getValue(o, d);
+                  if (existingOdPaths.stream().noneMatch(existingPath -> existingPath.getLinkSegmentsOnlyHashCode() == newOdPath.getLinkSegmentsOnlyHashCode())) {
+                    // new path, add to set
+                    existingOdPaths.add(newOdPath);
+                  }
+
+                  // cost update
+                  double[] pathCosts = PathUtils.computeEdgeSegmentAdditivePathCost(existingOdPaths, costsToUpdate);
+                  double[] pathProbabilities = stochasticPathChoice.computePathProbabilities(existingOdPaths, pathCosts);
+                });
+
+
+        LOGGER.info("Creating new paths for path-based sLTM");
+
+
+
+        /* PERFORM PATH CHOICE */
+        //todo: execute path choice to obtain new probabilities per OD-path
+        LOGGER.info("Executing path choice before next iteration for path-based sLTM");
       }
-
-
-      /* PERFORM PATH CHOICE */
-      //todo: execute path choice to obtain new probabilities per OD-path
-      LOGGER.info("Executing path choice before next iteration for path-based sLTM");
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
@@ -186,6 +201,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     }
     return true;
   }
+
 
   /**
    * {@inheritDoc}
@@ -205,9 +221,15 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     super.verifyComponentCompatibility();
 
     var gapFunction = getTrafficAssignmentComponent(GapFunction.class);
-    if(!hasTrafficAssignmentComponent(PathChoice.class) && gapFunction.getStopCriterion().getMaxIterations()>1){
+    var pathChoice = getPathChoice();
+    if(pathChoice==null && gapFunction.getStopCriterion().getMaxIterations()>1){
       throw new PlanItRunTimeException("Path-based sLTM assignment has no Path Choice defined, when running multiple iterations this is a requirement");
     }
+
+    if(pathChoice!=null && !(pathChoice instanceof StochasticPathChoice)){
+      throw new PlanItRunTimeException("Path-based sLTM assignment currently only supports Stochastic Path Choice, but found %s", pathChoice.getComponentType());
+    }
+
   }
 
 }

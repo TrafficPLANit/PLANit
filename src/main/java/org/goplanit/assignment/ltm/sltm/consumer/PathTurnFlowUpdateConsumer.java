@@ -1,8 +1,11 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
+import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.od.path.OdPaths;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 
@@ -81,7 +84,7 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
    * @param dataConfig to use
    * @param odPaths    to use
    */
-  public PathTurnFlowUpdateConsumer(final NetworkTurnFlowUpdateData dataConfig, final OdPaths odPaths) {
+  public PathTurnFlowUpdateConsumer(final NetworkTurnFlowUpdateData dataConfig, final OdMultiPaths<List<StaticLtmDirectedPath>> odPaths) {
     super(dataConfig, odPaths);
   }
 

@@ -1,11 +1,13 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
+import java.util.List;
 import java.util.logging.Logger;
 
-import org.goplanit.od.path.OdPaths;
+import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
+import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPathImpl;
+import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.utils.functionalinterface.TriConsumer;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.zoning.OdZone;
 
 /**
@@ -28,7 +30,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
   /**
    * Od Paths to use
    */
-  private final OdPaths<ManagedDirectedPath> odPaths;
+  private final OdMultiPaths<List<StaticLtmDirectedPath>> odMultiPaths;
 
   /**
    * Apply the flow to the turn (and update link sending flow if required)
@@ -52,11 +54,11 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
    * Constructor
    * 
    * @param dataConfig to use
-   * @param odPaths    to use
+   * @param odMultiPaths    to use
    */
-  public PathFlowUpdateConsumer(final T dataConfig, final OdPaths<ManagedDirectedPath> odPaths) {
+  public PathFlowUpdateConsumer(final T dataConfig, final OdMultiPaths<List<StaticLtmDirectedPath>> odMultiPaths) {
     this.dataConfig = dataConfig;
-    this.odPaths = odPaths;
+    this.odMultiPaths = odMultiPaths;
   }
 
   /**
@@ -65,24 +67,25 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
   @Override
   public void accept(OdZone origin, OdZone destination, Double odDemand) {
     /* path */
-    ManagedDirectedPath odPath = odPaths.getValue(origin, destination);
-    double acceptedPathFlowRate = odDemand;
-    if (odPath == null || odPath.isEmpty()) {
-      LOGGER.warning(String.format("IGNORE: encountered empty path %s", odPath == null ? "" : odPath.getXmlId()));
-      return;
-    }
+    var odPaths = odMultiPaths.getValue(origin, destination);
+    for (StaticLtmDirectedPath odPath : odPaths) {
+      double acceptedPathFlowRate = odDemand * odPath.getPathChoiceProbability();
+      if (odPath == null || odPath.isEmpty()) {
+        LOGGER.warning(String.format("IGNORE: encountered empty path %s", odPath == null ? "" : odPath.getXmlId()));
+        return;
+      }
 
-    /* turn */
-    var edgeSegmentIter = odPath.iterator();
-    var previousEdgeSegment = edgeSegmentIter.next();
-    EdgeSegment currEdgeSegment = null;
-    while (edgeSegmentIter.hasNext()) {
-      currEdgeSegment = edgeSegmentIter.next();
-      acceptedPathFlowRate = applySingleFlowUpdate(previousEdgeSegment, currEdgeSegment, acceptedPathFlowRate);
-      previousEdgeSegment = currEdgeSegment;
-    }
+      /* turn */
+      var edgeSegmentIter = odPath.iterator();
+      var previousEdgeSegment = edgeSegmentIter.next();
+      EdgeSegment currEdgeSegment = null;
+      while (edgeSegmentIter.hasNext()) {
+        currEdgeSegment = edgeSegmentIter.next();
+        acceptedPathFlowRate = applySingleFlowUpdate(previousEdgeSegment, currEdgeSegment, acceptedPathFlowRate);
+        previousEdgeSegment = currEdgeSegment;
+      }
 
-    applyPathFinalSegmentFlowUpdate(currEdgeSegment, acceptedPathFlowRate);
+      applyPathFinalSegmentFlowUpdate(currEdgeSegment, acceptedPathFlowRate);
+    }
   }
-
 }

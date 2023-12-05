@@ -54,7 +54,7 @@ public class StopCriterion {
    * 
    * @param gap            gap for the current iteration
    * @param iterationIndex index of current iteration
-   * @return true if gap is smaller than criterion, false otherwise
+   * @return true if gap is smaller than criterion (or we reached max iterations), false otherwise
    */
   public boolean hasConverged(double gap, int iterationIndex) {
     if (iterationIndex == maxIterations)

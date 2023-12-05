@@ -1,14 +1,17 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
 import org.goplanit.assignment.ltm.sltm.consumer.PathFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.PathLinkFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.PathTurnFlowUpdateConsumer;
+import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.od.path.OdPaths;
 import org.goplanit.utils.id.IdGroupingToken;
 
@@ -27,7 +30,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
   /**
    * Od Paths to use
    */
-  private OdPaths odPaths;
+  private OdMultiPaths<List<StaticLtmDirectedPath>> odPaths;
 
   //@formatter:off
 
@@ -161,7 +164,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * 
    * @param odPaths to use
    */
-  public void updateOdPaths(final OdPaths odPaths) {
+  public void updateOdPaths(final OdMultiPaths<List<StaticLtmDirectedPath>> odPaths) {
     this.odPaths = odPaths;
   }
 
