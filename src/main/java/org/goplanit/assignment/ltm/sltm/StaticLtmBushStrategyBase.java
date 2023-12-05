@@ -301,12 +301,12 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   }
 
   /**
+   * {@inheritDoc}
    * Create initial bushes, where for each origin the bush is initialised with the shortest path only
-   * 
-   * @param initialLinkSegmentCosts costs to use
+   *
    */
   @Override
-  public void createInitialSolution(double[] initialLinkSegmentCosts) {
+  public void createInitialSolution(double[] initialLinkSegmentCosts, int iterationIndex) {
     try {
 
       /* delegate to concrete implementation */

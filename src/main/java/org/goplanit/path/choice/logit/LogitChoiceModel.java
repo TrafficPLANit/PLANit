@@ -17,7 +17,7 @@ public abstract class LogitChoiceModel extends PlanitComponent<LogitChoiceModel>
   private static final long serialVersionUID = -4578323513280128464L;
 
   /**
-   * short hand for MNL class type
+   * shorthand for MNL class type
    */
   public static final String MNL = MultinomialLogit.class.getCanonicalName();
 

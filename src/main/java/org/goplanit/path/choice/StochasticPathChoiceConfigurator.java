@@ -7,7 +7,7 @@ import org.goplanit.path.choice.logit.LogitChoiceModelConfiguratorFactory;
 import org.goplanit.utils.exceptions.PlanItException;
 
 /**
- * Configurator for FixedConnectoidTravelTimeCost implementation
+ * Configurator for StochasticPathChoice implementation
  * 
  * @author markr
  */
@@ -36,7 +36,7 @@ public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<Sto
    * @throws PlanItException thrown if error
    */
   public LogitChoiceModelConfigurator<? extends LogitChoiceModel> createAndRegisterLogitModel(final String logitChoiceModelType) throws PlanItException {
-    LogitChoiceModelConfigurator<? extends LogitChoiceModel> logitChoiceModelConfigurator = LogitChoiceModelConfiguratorFactory.createConfigurator(logitChoiceModelType);
+    this.logitChoiceModelConfigurator = LogitChoiceModelConfiguratorFactory.createConfigurator(logitChoiceModelType);
     return logitChoiceModelConfigurator;
   }
   
@@ -54,7 +54,7 @@ public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<Sto
    *
    * @param odPathSet the fixed od path set in the shape of an od path matrix
    */
-  public void setOdPathMatrix(final OdPathMatrix odPathSet) {
+  public void setFixedOdPathMatrix(final OdPathMatrix odPathSet) {
     registerDelayedMethodCall(SET_OD_PATH_MATRIX, odPathSet);
   }
 }

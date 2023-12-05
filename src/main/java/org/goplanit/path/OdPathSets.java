@@ -10,8 +10,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.zoning.Zoning;
 
 /**
- * Contains one or more origin-destination based path sets that can be used in assignment. For now each individual path set takes on the form of the already available ODPathMatrix.
- * In future versions more flexible implementation are planned
+ * Contains one or more origin-destination based path sets that can be used in assignment. For now each individual path
+ * set takes on the form of the already available OdPathMatrix. In future versions more flexible implementation are planned
  *
  * @author markr
  *
@@ -64,7 +64,7 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
   /**
    * Create an empty od path matrix and register it on this od path sets
    * 
-   * @param zoning used to derive the size of the aquare zone based matrix
+   * @param zoning used to derive the size of the square zone based matrix
    * @return newly created od path matrix
    */
   public OdPathMatrix createAndRegisterOdPathMatrix(final Zoning zoning) {

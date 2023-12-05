@@ -6,7 +6,8 @@ import org.goplanit.od.path.OdPaths;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
- * Consumer to apply during path based loading to update the inflows on the provided raw array by their link segment ids for each combination of origin, destination, and demand
+ * Consumer to apply during path based loading to update the inflows on the provided raw array by their link segment ids
+ * for each combination of origin, destination, and demand
  * 
  * @author markr
  *

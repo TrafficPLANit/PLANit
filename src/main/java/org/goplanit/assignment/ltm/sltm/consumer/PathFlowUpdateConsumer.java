@@ -28,7 +28,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
   /**
    * Od Paths to use
    */
-  private final OdPaths odPaths;
+  private final OdPaths<ManagedDirectedPath> odPaths;
 
   /**
    * Apply the flow to the turn (and update link sending flow if required)
@@ -54,7 +54,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
    * @param dataConfig to use
    * @param odPaths    to use
    */
-  public PathFlowUpdateConsumer(final T dataConfig, final OdPaths odPaths) {
+  public PathFlowUpdateConsumer(final T dataConfig, final OdPaths<ManagedDirectedPath> odPaths) {
     this.dataConfig = dataConfig;
     this.odPaths = odPaths;
   }

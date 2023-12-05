@@ -72,6 +72,7 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
    * @param modeMapper to use for tracking mapping between original and copied modes
    * @param layerMapper to use for tracking mapping between original and copied layers
    */
+  @SuppressWarnings("unchecked")
   protected LayeredNetwork(final LayeredNetwork<U, T> other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<U> layerMapper) {
     super(other, deepCopy);
 
@@ -151,12 +152,12 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
    * {@inheritDoc}
    */
   @Override
-  public abstract LayeredNetwork shallowClone();
+  public abstract LayeredNetwork<U,T> shallowClone();
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract LayeredNetwork deepClone();
+  public abstract LayeredNetwork<U,T> deepClone();
 
 }

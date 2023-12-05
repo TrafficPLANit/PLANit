@@ -156,6 +156,17 @@ public abstract class StaticLtmAssignmentStrategy {
     return taComponents.getTrafficAssignmentComponent(taComponentClassKey);
   }
 
+  /**
+   * Verify existence of a component based on its class component signature key
+   *
+   * @param <T>                 key type of component
+   * @param taComponentClassKey class of component
+   * @return found component, if any
+   */
+  protected <T> boolean hasTrafficAssignmentComponent(final Class<T> taComponentClassKey) {
+    return taComponents.hasTrafficAssignmentComponent(taComponentClassKey);
+  }
+
   /** map zone to centroid vertex
    *
    * @param zone to map
@@ -324,8 +335,9 @@ public abstract class StaticLtmAssignmentStrategy {
    * Create the initial solution to start the equilibration process with
    * 
    * @param initialLinkSegmentCosts to use
+   * @param iterationIndex to use
    */
-  public abstract void createInitialSolution(double[] initialLinkSegmentCosts);
+  public abstract void createInitialSolution(double[] initialLinkSegmentCosts, int iterationIndex);
 
   /**
    * Perform a single iteration where we perform a loading and then an equilibration step resulting in updated costs
@@ -344,4 +356,11 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   public abstract String getDescription();
 
+  /**
+   * Verify if strategy used has certain dependencies that require checking.
+   * To be automatically invoked as part of assignment component compatibility verification
+   */
+  public void verifyComponentCompatibility() {
+    // optional for derived classes
+  }
 }

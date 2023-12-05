@@ -27,8 +27,8 @@ public abstract class PathChoiceBuilder<T extends PathChoice> extends PlanitComp
    */
   @SuppressWarnings("unchecked")
   protected T createPathChoiceInstance() throws PlanItException {
-    String pathChoiceClassName = getClassToBuild().getClass().getCanonicalName();
-    PlanitComponentFactory<PathChoice> pathChoiceFactory = new PlanitComponentFactory<PathChoice>(pathChoiceClassName);
+    String pathChoiceClassName = getClassToBuild().getCanonicalName();
+    PlanitComponentFactory<PathChoice> pathChoiceFactory = new PlanitComponentFactory<>(PathChoice.class);
     final T pathChoice = (T) pathChoiceFactory.create(pathChoiceClassName, new Object[] { getGroupIdToken() });
     PlanItException.throwIf(!(pathChoice instanceof PathChoice), "not a valid path choice type");
     return pathChoice;

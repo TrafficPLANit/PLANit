@@ -12,7 +12,7 @@ import org.goplanit.utils.zoning.OdZones;
  * @author gman6028, markr
  *
  */
-public class OdPathMatrix extends OdNonPrimitiveMatrix<ManagedDirectedPath> implements OdPaths {
+public class OdPathMatrix extends OdNonPrimitiveMatrix<ManagedDirectedPath> implements OdPaths<ManagedDirectedPath> {
 
   /**
    * Wrapper around primitive matrix iterator

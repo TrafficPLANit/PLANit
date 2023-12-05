@@ -15,8 +15,6 @@ import java.util.logging.Logger;
 /**
  * This object represents a path based on a number of consecutive LinkSegments
  *
- * The path creation makes use of the fact that the origin pair will have a null EdgeSegment, so there is no need to specify the origin.
- *
  * @author gman6028, markr
  *
  */

@@ -116,26 +116,28 @@ public class sLtmNetworkLoadingTest {
       MacroscopicLinkSegmentTypes linkTypes = networkLayer.getLinkSegmentTypes();
       linkTypes.getFactory().registerNew("MainType", 2000, 180, network.getModes().getFirst()).setXmlId("MainType");
       linkTypes.getFactory().registerNew("BottleNeckType", 250, 180, network.getModes().getFirst()).setXmlId("BottleNeckType");
-      
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("MainType"), true, true);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("1"), linkTypes.getByXmlId("MainType"), true, true);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("2"), linkTypes.getByXmlId("BottleNeckType"), true, true);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("3"), linkTypes.getByXmlId("MainType"), true, true);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("4"), linkTypes.getByXmlId("MainType"), true, true);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("5"), linkTypes.getByXmlId("MainType"), true, true);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("6"), linkTypes.getByXmlId("BottleNeckType"), true, true);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("MainType"), true, true);        
+
+      var linkSegmentFactory = networkLayer.getLinkSegments().getFactory();
+      linkSegmentFactory.registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("MainType"), true, true);
+      linkSegmentFactory.registerNew(links.getByXmlId("1"), linkTypes.getByXmlId("MainType"), true, true);
+      linkSegmentFactory.registerNew(links.getByXmlId("2"), linkTypes.getByXmlId("BottleNeckType"), true, true);
+      linkSegmentFactory.registerNew(links.getByXmlId("3"), linkTypes.getByXmlId("MainType"), true, true);
+      linkSegmentFactory.registerNew(links.getByXmlId("4"), linkTypes.getByXmlId("MainType"), true, true);
+      linkSegmentFactory.registerNew(links.getByXmlId("5"), linkTypes.getByXmlId("MainType"), true, true);
+      linkSegmentFactory.registerNew(links.getByXmlId("6"), linkTypes.getByXmlId("BottleNeckType"), true, true);
+      linkSegmentFactory.registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("MainType"), true, true);
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
       zoning.getOdZones().getFactory().registerNew().setXmlId("A");
       zoning.getOdZones().getFactory().registerNew().setXmlId("B");
       zoning.getOdZones().getFactory().registerNew().setXmlId("C");
       zoning.getOdZones().getFactory().registerNew().setXmlId("D");
-           
-      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("7"),  zoning.getOdZones().getByXmlId("A"), 0);
-      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("4"),  zoning.getOdZones().getByXmlId("B"), 0);
-      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("C"), 0);
-      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("3"),  zoning.getOdZones().getByXmlId("D"), 0);
+
+      var connectoidFactory = zoning.getOdConnectoids().getFactory();
+      connectoidFactory.registerNew(nodes.getByXmlId("7"),  zoning.getOdZones().getByXmlId("A"), 0);
+      connectoidFactory.registerNew(nodes.getByXmlId("4"),  zoning.getOdZones().getByXmlId("B"), 0);
+      connectoidFactory.registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("C"), 0);
+      connectoidFactory.registerNew(nodes.getByXmlId("3"),  zoning.getOdZones().getByXmlId("D"), 0);
                       
     }catch(Exception e) {
       e.printStackTrace();
@@ -164,12 +166,13 @@ public class sLtmNetworkLoadingTest {
       demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
 
       /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      StaticLtmConfigurator sltmConfigurator = (StaticLtmConfigurator) sLTMBuilder.getConfigurator();
-      sltmConfigurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sltmConfigurator.activateDetailedLogging(true);
-      sltmConfigurator.setType(StaticLtmType.PATH_BASED);
-      sltmConfigurator.getGapFunction().getStopCriterion().setMaxIterations(1);
+      var sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(
+              network.getIdGroupingToken(), null, demands, zoning, network);
+      var sLtmConfigurator = sLTMBuilder.getConfigurator();
+      sLtmConfigurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      sLtmConfigurator.activateDetailedLogging(true);
+      sLtmConfigurator.setType(StaticLtmType.PATH_BASED);
+      sLtmConfigurator.getGapFunction().getStopCriterion().setMaxIterations(1);
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.execute();

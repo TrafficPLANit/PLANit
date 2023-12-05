@@ -135,6 +135,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
     PlanItException.throwIf(getGapFunction() == null, "GapFunction is null");
     PlanItException.throwIf(getPhysicalCost() == null, "PhysicalCost is null");
     PlanItException.throwIf(getVirtualCost() == null, "VirtualCost is null");
+
   }
 
   /**
@@ -253,10 +254,10 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * log registering an item on this traffic assignment
    * 
    * @param item     to (un)register
-   * @param register when true it signals activate, otherwise deactivate
+   * @param activated when true it signals activate, otherwise deactivate
    */
-  protected void logRegisteredComponentName(Object item, boolean register) {
-    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.logActiveStateByClassName(item, register));
+  protected void logRegisteredComponentName(Object item, boolean activated) {
+    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.logActiveStateByClassName(item, activated));
   }
 
   /**
@@ -556,13 +557,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   }
 
   /**
-   * Collect the desired traffic assignment component by its class assuming it is available on the assignment. These are traffic assignment components that are created and
-   * registered upon the assignment, so not component inputs that are readily available upon creation, but components specific to the assignment itself. Derived assignments might
-   * also register additional components as well beyond the standard components registered here on the base class (gapfunction, smoothing, physical, virtual cost).
-   * 
-   * @param <T>                  component type
-   * @param planitComponentClass to collect of type T
-   * @return component, null if not available
+   * {@inheritDoc}
    */
   @SuppressWarnings("unchecked")
   @Override
@@ -572,6 +567,16 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
       LOGGER.warning(String.format("Unable to access component supposed to be registered under %s, consider registering it first", planitComponentClass.getName()));
     }
     return component;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> boolean hasTrafficAssignmentComponent(final Class<T> planitComponentClass) {
+    T component = (T) trafficAssignmentComponents.get(planitComponentClass);
+    return component != null;
   }
 
   /**

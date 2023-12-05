@@ -40,6 +40,7 @@ import org.goplanit.network.Network;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.path.OdPathSets;
 import org.goplanit.path.choice.PathChoice;
+import org.goplanit.path.choice.StochasticPathChoice;
 import org.goplanit.path.choice.logit.LogitChoiceModel;
 import org.goplanit.path.choice.logit.MultinomialLogit;
 import org.goplanit.sdinteraction.smoothing.MSASmoothing;
@@ -126,6 +127,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(SpeedConnectoidTravelTimeCost.class);
     registerPlanitComponentType(NewellFundamentalDiagramComponent.class);
     registerPlanitComponentType(TampereNodeModelComponent.class);
+    registerPlanitComponentType(StochasticPathChoice.class);
     registerPlanitComponentType(MultinomialLogit.class);
     registerPlanitComponentType(OdPathSets.class);
     registerPlanitComponentType(LinkBasedRelativeDualityGapFunction.class);

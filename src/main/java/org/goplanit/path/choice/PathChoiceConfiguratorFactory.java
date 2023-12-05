@@ -22,7 +22,7 @@ public class PathChoiceConfiguratorFactory {
     if (pathChoiceType.equals(PathChoice.STOCHASTIC)) {
       return new StochasticPathChoiceConfigurator();
     }else {
-      throw new PlanItException(String.format("unable to construct configurator for given pathChoiceType %s", pathChoiceType));
+      throw new PlanItException(String.format("Unable to construct configurator for given pathChoiceType %s", pathChoiceType));
     }
   }
 }
