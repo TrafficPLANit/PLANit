@@ -34,7 +34,7 @@ import org.ojalgo.structure.Access1D;
 
 /**
  * Class exposing the various sLTM network loading solution method components of sLTM (not considering path choice, this is assumed to be given). Network loading solution method
- * Based on Raadsen and Bliemer (2021) General solution scheme for the Static Link Transmission Model .
+ * Based on Raadsen and Bliemer (2023) General solution scheme for the Static Link Transmission Model .
  * 
  * @author markr
  *
@@ -50,7 +50,7 @@ public abstract class StaticLtmNetworkLoading {
   private final IdGroupingToken idToken;
 
   /**
-   * run Id of the loading's parent asignment
+   * run Id of the loading's parent assignment
    */
   private final long runId;
 
@@ -329,8 +329,7 @@ public abstract class StaticLtmNetworkLoading {
    * We only update the factors for incoming links of potentially blocking nodes, because if the node is not potentially blocking the storage capacity factor multiplied by the flow
    * capacity factor results in inflow divided by outflow which always equals to one, so no need to actively track it (do note that this requires to also apply this to the updates
    * of storage capacity and flow acceptance factors, otherwise the combined result is inconsistent and can lead to serious issues in the outcomes)
-   * 
-   * @param linkSegmentOutFlows to use, e.g. v_a.
+   *
    */
   private void updateNextFlowCapacityFactors() {
     this.networkLoadingFactorData.resetNextFlowCapacityFactors();
@@ -642,7 +641,7 @@ public abstract class StaticLtmNetworkLoading {
     /* sLTM only uses a single layer */
     double[] referenceEmptyArray = new double[network.getNumberOfEdgeSegmentsAllLayers()];
     
-    /* flow data defalts to zero unless explicitly set */
+    /* flow data defaults to zero unless explicitly set */
     this.sendingFlowData = new SendingFlowData(referenceEmptyArray);
     this.receivingFlowData = new ReceivingFlowData(referenceEmptyArray);       
     this.inFlowOutflowData = new InflowOutflowData(referenceEmptyArray);
@@ -667,7 +666,7 @@ public abstract class StaticLtmNetworkLoading {
    * (Extension A):  
    * 5. Restrict receiving flows to storage capacity Eq. (8) - only relevant when storage capacity is activated
    *   
-   * @param logSolutionScheme flag indicating whether or not to log the solution scheme used
+   * @param logSolutionScheme flag indicating whether to log the solution scheme used
    * @return true when successful, false otherwise 
    */
   public boolean stepZeroIterationInitialisation(boolean logSolutionScheme) {    

@@ -97,7 +97,8 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     boolean updateTurnAcceptedFlows = true;
     boolean updateSendingFlows = !isIterativeSendingFlowUpdateActivated();
     boolean updateOutflows = false;
-    PathTurnFlowUpdateConsumer pathTurnFlowUpdateConsumer = (PathTurnFlowUpdateConsumer) createPathFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlows, updateOutflows);
+    PathTurnFlowUpdateConsumer pathTurnFlowUpdateConsumer =
+            (PathTurnFlowUpdateConsumer) createPathFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlows, updateOutflows);
     
     /* execute */
     getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathTurnFlowUpdateConsumer);

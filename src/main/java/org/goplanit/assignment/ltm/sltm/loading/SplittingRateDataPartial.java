@@ -53,7 +53,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
    */
   public SplittingRateDataPartial(int numberOfVertices) {
     super();
-    this.trackedNodes = new TreeSet<DirectedVertex>();
+    this.trackedNodes = new TreeSet<>();
     this.potentiallyBlockingNodes = new BitSet(numberOfVertices);
   }
 

@@ -91,7 +91,7 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
    */
   public NetworkTurnFlowUpdateData(final boolean trackAllNodeTurnFlows, final SplittingRateData splittingRateData, NetworkLoadingFactorData networkLoadingFactorData) {
     super(networkLoadingFactorData);
-    this.acceptedTurnFlows = new MultiKeyMap<Object, Double>();
+    this.acceptedTurnFlows = new MultiKeyMap<>();
     this.splittingRateData = splittingRateData;
 
     /* see class description on why we use these flags */

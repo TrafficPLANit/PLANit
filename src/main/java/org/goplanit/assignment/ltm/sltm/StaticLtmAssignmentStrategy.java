@@ -177,7 +177,7 @@ public abstract class StaticLtmAssignmentStrategy {
      * solution at the cost of slower convergence, so whenever we are not yet stuck, we try to avoid activating these extensions.
      */
     if (!networkLoading.isConverging()) {
-      // dependent on whether or not we are modelling physical queues or not and where we started with settings
+      // dependent on whether we are modelling physical queues or not and where we started with settings
       boolean changedScheme = networkLoading.activateNextExtension(true);
       if (!changedScheme) {
         LOGGER.warning(
@@ -193,7 +193,7 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   protected void executeNetworkLoading() {
 
-    /* for now we do not consider path choice, we conduct a one-shot all-or-nothing network loading */
+    /* for now, we do not consider path choice, we conduct a one-shot all-or-nothing network loading */
     int networkLoadingIterationIndex = 0;
     getLoading().stepZeroIterationInitialisation(true);
     do {
@@ -204,7 +204,7 @@ public abstract class StaticLtmAssignmentStrategy {
       /* STEP 1 - Splitting rates update before sending flow update */
       getLoading().stepOneSplittingRatesUpdate();
 
-      /* STEP 2 - Sending flow update */
+      /* STEP 2 - Sending flow update (including node model update) */
       getLoading().stepTwoInflowSendingFlowUpdate();
 
       /* STEP 3 - Splitting rates update before receiving flow update */

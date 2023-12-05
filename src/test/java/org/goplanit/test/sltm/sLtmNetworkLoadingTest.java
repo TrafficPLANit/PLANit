@@ -145,7 +145,7 @@ public class sLtmNetworkLoadingTest {
   //@formatter:on
 
   /**
-   * Test sLTM network loading on above network using a path absed approach
+   * Test sLTM network loading on above network using a path based approach
    */
   @Test
   public void sLtmPointQueueNetworkLoadingPathTest() {
@@ -165,10 +165,11 @@ public class sLtmNetworkLoadingTest {
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(true);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).setType(StaticLtmType.PATH_BASED);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).getGapFunction().getStopCriterion().setMaxIterations(1);
+      StaticLtmConfigurator sltmConfigurator = (StaticLtmConfigurator) sLTMBuilder.getConfigurator();
+      sltmConfigurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      sltmConfigurator.activateDetailedLogging(true);
+      sltmConfigurator.setType(StaticLtmType.PATH_BASED);
+      sltmConfigurator.getGapFunction().getStopCriterion().setMaxIterations(1);
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.execute();
