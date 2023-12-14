@@ -41,8 +41,8 @@ import org.goplanit.network.ServiceNetwork;
 import org.goplanit.path.OdPathSets;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoice;
-import org.goplanit.path.choice.logit.LogitChoiceModel;
-import org.goplanit.path.choice.logit.MultinomialLogit;
+import org.goplanit.choice.ChoiceModel;
+import org.goplanit.choice.logit.MultinomialLogit;
 import org.goplanit.sdinteraction.smoothing.MSASmoothing;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.service.routed.RoutedServices;
@@ -100,7 +100,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registeredPlanitComponents.put(FundamentalDiagramComponent.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(NodeModelComponent.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(PathChoice.class.getCanonicalName(), new TreeSet<>());
-    registeredPlanitComponents.put(LogitChoiceModel.class.getCanonicalName(), new TreeSet<>());
+    registeredPlanitComponents.put(ChoiceModel.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(OdPathSets.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(GapFunction.class.getCanonicalName(), new TreeSet<>());
 

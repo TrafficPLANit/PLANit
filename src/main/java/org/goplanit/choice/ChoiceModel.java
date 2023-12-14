@@ -1,0 +1,109 @@
+package org.goplanit.choice;
+
+import java.io.Serializable;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.goplanit.choice.weibit.Weibit;
+import org.goplanit.component.PlanitComponent;
+import org.goplanit.choice.logit.MultinomialLogit;
+import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.reflection.ReflectionUtils;
+
+/**
+ * The logit choice model base class. Different logit choice models lead to different behaviour regarding choices.
+ *
+ * @author markr
+ *
+ */
+public abstract class ChoiceModel extends PlanitComponent<ChoiceModel> implements Serializable {
+
+  /** generated UID */
+  private static final long serialVersionUID = -4578323513280128464L;
+
+  /** the scaling factor used to scale the utilities/cost */
+  private double scalingFactor = DEFAULT_SCALING_FACTOR;
+
+  /**
+   * Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
+   */
+  protected ChoiceModel(IdGroupingToken groupId) {
+    super(groupId, ChoiceModel.class);
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected ChoiceModel(ChoiceModel other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * apply the logit choice model and produce the results in raw array form
+   *
+   * @param alternativeCosts costs of each alternative
+   * @return computed probabilities in order of alternative costs provided
+   */
+  public abstract double[] computeProbabilities(double[] alternativeCosts);
+
+
+  /** SUPPORTED OPTIONS **/
+
+  /**
+   * shorthand for MNL class type
+   */
+  public static final String MNL = MultinomialLogit.class.getCanonicalName();
+
+  /**
+   * shorthand for WEIBIT class type
+   */
+  public static final String WEIBIT = Weibit.class.getCanonicalName();
+
+
+
+  /** default scaling factor applied */
+  public static final double DEFAULT_SCALING_FACTOR = 1.0;
+
+
+  /** Scaling factor for MNL */
+  public double getScalingFactor() {
+    return scalingFactor;
+  }
+
+  /** override scaling factor to use
+   *
+   * @param scalingFactor to set
+   * */
+  public void setScalingFactor(double scalingFactor) {
+    this.scalingFactor = scalingFactor;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ChoiceModel shallowClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ChoiceModel deepClone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    var keyValueMap = new HashMap<String, String>();
+    var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(this, i -> Modifier.isProtected(i) && !Modifier.isStatic(i));
+    privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
+    return keyValueMap;
+  }
+}

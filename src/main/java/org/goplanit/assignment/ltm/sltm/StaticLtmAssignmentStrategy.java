@@ -13,6 +13,7 @@ import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
@@ -154,6 +155,15 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   protected <T> T getTrafficAssignmentComponent(final Class<T> taComponentClassKey) {
     return taComponents.getTrafficAssignmentComponent(taComponentClassKey);
+  }
+
+  /**
+   * Convenience access to smoothing component
+   * @return smoothing component
+   */
+  protected Smoothing getSmoothing(){
+    var smoothing = (Smoothing) getTrafficAssignmentComponent(Smoothing.class);
+    return smoothing;
   }
 
   /**

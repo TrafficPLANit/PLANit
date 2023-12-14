@@ -123,6 +123,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
             new OdMultiPathsHashed<>(getIdGroupingToken(), getTransportNetwork().getZoning().getOdZones());
   }
 
+
   /**
    * {@inheritDoc}
    */
@@ -162,7 +163,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       boolean updateOnlyPotentiallyBlockingNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
       this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
 
-      var stochasticPathChoice = (StochasticPathChoice) getPathChoice(); // currently only type of path choice which is verified (if present), so safe to cast
+      final var stochasticPathChoice = (StochasticPathChoice) getPathChoice(); // currently only type of path choice which is verified (if present), so safe to cast
+      final var smoothing = getSmoothing();
       if(stochasticPathChoice != null) {
 
         /* EXPAND OD PATH SETS WHEN ELIGIBLE NEW PATH FOUND */
@@ -170,15 +172,18 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
                 (o, d, demand) -> {
                   var newOdPath = newOdPaths.getValue(o, d);
+                  boolean newPathAdded = false;
                   var existingOdPaths = odMultiPaths.getValue(o, d);
                   if (existingOdPaths.stream().noneMatch(existingPath -> existingPath.getLinkSegmentsOnlyHashCode() == newOdPath.getLinkSegmentsOnlyHashCode())) {
                     // new path, add to set
                     existingOdPaths.add(newOdPath);
+                    newPathAdded = true;
                   }
 
                   // cost update
                   double[] pathCosts = PathUtils.computeEdgeSegmentAdditivePathCost(existingOdPaths, costsToUpdate);
-                  double[] pathProbabilities = stochasticPathChoice.computePathProbabilities(existingOdPaths, pathCosts);
+                  double[] newPathProbabilities = stochasticPathChoice.computePathProbabilities(existingOdPaths, pathCosts);
+                  
                 });
 
 

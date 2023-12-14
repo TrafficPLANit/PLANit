@@ -1,9 +1,8 @@
 package org.goplanit.path.choice;
 
-import org.goplanit.od.path.OdPathMatrix;
-import org.goplanit.path.choice.logit.LogitChoiceModel;
-import org.goplanit.path.choice.logit.LogitChoiceModelConfigurator;
-import org.goplanit.path.choice.logit.LogitChoiceModelConfiguratorFactory;
+import org.goplanit.choice.ChoiceModel;
+import org.goplanit.choice.ChoiceModelConfigurator;
+import org.goplanit.choice.ChoiceModelConfiguratorFactory;
 import org.goplanit.utils.exceptions.PlanItException;
 
 /**
@@ -16,9 +15,9 @@ public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<Sto
   private static final String SET_OD_PATH_MATRIX = "setOdPathMatrix";
     
   /**
-   * logit choice model configurator
+   * Choice model configurator
    */
-  protected LogitChoiceModelConfigurator<? extends LogitChoiceModel> logitChoiceModelConfigurator;
+  protected ChoiceModelConfigurator<? extends ChoiceModel> choiceModelConfigurator;
   
   /**
    * Constructor
@@ -29,24 +28,24 @@ public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<Sto
   }
   
   /**
-   * create and register the logit model of choice
+   * create and register the choice model to apply
    * 
-   * @param logitChoiceModelType name of the class to be instantiated
+   * @param choiceModelType name of the class to be instantiated
    * @return the logit choice model that is registered
    * @throws PlanItException thrown if error
    */
-  public LogitChoiceModelConfigurator<? extends LogitChoiceModel> createAndRegisterLogitModel(final String logitChoiceModelType) throws PlanItException {
-    this.logitChoiceModelConfigurator = LogitChoiceModelConfiguratorFactory.createConfigurator(logitChoiceModelType);
-    return logitChoiceModelConfigurator;
+  public ChoiceModelConfigurator<? extends ChoiceModel> createAndRegisterChoiceModel(final String choiceModelType) throws PlanItException {
+    this.choiceModelConfigurator = ChoiceModelConfiguratorFactory.createConfigurator(choiceModelType);
+    return choiceModelConfigurator;
   }
   
   /**
-   * Collect the logit model configurator
+   * Collect the choice model configurator
    * 
-   * @return logit model configurator
+   * @return choice model configurator
    */
-  public LogitChoiceModelConfigurator<? extends LogitChoiceModel> getLogitModel() {
-    return logitChoiceModelConfigurator;
+  public ChoiceModelConfigurator<? extends ChoiceModel> getChoiceModel() {
+    return choiceModelConfigurator;
   }
 
 }

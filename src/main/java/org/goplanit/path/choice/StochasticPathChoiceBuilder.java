@@ -4,8 +4,8 @@ import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponentFactory;
 import org.goplanit.input.InputBuilderListener;
-import org.goplanit.path.choice.logit.LogitChoiceModel;
-import org.goplanit.path.choice.logit.LogitChoiceModelConfigurator;
+import org.goplanit.choice.ChoiceModel;
+import org.goplanit.choice.ChoiceModelConfigurator;
 import org.goplanit.utils.builder.Configurator;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -30,34 +30,32 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
   }
 
   /**
-   * create a logit model instance based on passed in configurator
+   * create a choice model instance based on passed in configurator
    * 
-   * @param logitConfigurator for the logit model that is to be created
+   * @param choiceConfigurator for the choice model that is to be created
    * @return created choice model
-   * @throws PlanItException thrown if error
    */
-  protected LogitChoiceModel createLogitChoiceModelInstance(LogitChoiceModelConfigurator<?> logitConfigurator) throws PlanItException {
-    PlanitComponentFactory<LogitChoiceModel> logitChoiceModelFactory = new PlanitComponentFactory<>(LogitChoiceModel.class);
-    logitChoiceModelFactory.addListener(getInputBuilderListener());
-    return logitChoiceModelFactory.create(
-            logitConfigurator.getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
+  protected ChoiceModel createChoiceModelInstance(ChoiceModelConfigurator<?> choiceConfigurator) {
+    PlanitComponentFactory<ChoiceModel> choiceModelFactory = new PlanitComponentFactory<>(ChoiceModel.class);
+    choiceModelFactory.addListener(getInputBuilderListener());
+    return choiceModelFactory.create(
+            choiceConfigurator.getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 
   /**
-   * call to build and configure all sub components of this builder
+   * call to build and configure all sub-components of this builder
    * 
    * @param pathChoiceInstance the instance to build on
-   * @throws PlanItException thrown if error
    */
   @Override
-  protected void buildSubComponents(StochasticPathChoice pathChoiceInstance) throws PlanItException {
+  protected void buildSubComponents(StochasticPathChoice pathChoiceInstance){
     StochasticPathChoiceConfigurator configurator = ((StochasticPathChoiceConfigurator) getConfigurator());
 
-    // create logit model component
-    if (configurator.getLogitModel() != null) {
-      var logitModel = createLogitChoiceModelInstance(configurator.getLogitModel());
-      configurator.getLogitModel().configure(logitModel);
-      pathChoiceInstance.setLogitModel(logitModel);
+    // create choice model component
+    if (configurator.getChoiceModel() != null) {
+      var choiceModel = createChoiceModelInstance(configurator.getChoiceModel());
+      configurator.getChoiceModel().configure(choiceModel);
+      pathChoiceInstance.setChoiceModel(choiceModel);
     }
   }
 

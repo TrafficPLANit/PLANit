@@ -14,7 +14,7 @@ import org.goplanit.utils.exceptions.PlanItException;
  * <li>MSA smoothing (via configurator)</li>
  * <li>BPR function for physical cost (via configurator)</li>
  * <li>Fixed cost for virtual cost (via configurator)</li>
- * <li>Link absed relative gap function (via configurator)</li>
+ * <li>Link based relative gap function (via configurator)</li>
  * </ul>
  * 
  * @author markr

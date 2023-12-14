@@ -1,4 +1,6 @@
-package org.goplanit.path.choice.logit;
+package org.goplanit.choice.logit;
+
+import org.goplanit.choice.ChoiceModelConfigurator;
 
 /**
  * MNL configurator implementations
@@ -6,7 +8,7 @@ package org.goplanit.path.choice.logit;
  * @author markr
  *
  */
-public class MultinomialLogitConfigurator extends LogitChoiceModelConfigurator<MultinomialLogit> {
+public class MultinomialLogitConfigurator extends ChoiceModelConfigurator<MultinomialLogit> {
 
   /**
    * Constructor

@@ -1,4 +1,4 @@
 /**
  * PLANit logit based path choice classes
  */
-package org.goplanit.path.choice.logit;
+package org.goplanit.choice.logit;

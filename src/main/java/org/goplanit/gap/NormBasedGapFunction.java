@@ -212,7 +212,7 @@ public class NormBasedGapFunction extends GapFunction {
    */
   @Override
   public Map<String, String> collectSettingsAsKeyValueMap() {
-    var keyValueMap = new HashMap<String, String>(super.collectSettingsAsKeyValueMap());
+    var keyValueMap = new HashMap<>(super.collectSettingsAsKeyValueMap());
     
     var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(this, i -> Modifier.isProtected(i) && !Modifier.isStatic(i));
     privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));

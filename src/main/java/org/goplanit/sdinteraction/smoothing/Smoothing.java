@@ -16,7 +16,7 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
   /** generated UID */
   private static final long serialVersionUID = -3124652824035047922L;
 
-  /** short hand for configuring smoothing with MSA instance */
+  /** shorthand for configuring smoothing with MSA instance */
   public static final String MSA = MSASmoothing.class.getCanonicalName();
 
   /**

@@ -57,9 +57,8 @@ public class sLtmAssignmentBushCycleTest {
    * Create demands an populate with OD DEMANDS 2000 A->A``, A->A``
    * 
    * @return created demands
-   * @throws PlanItException thrown if error
    */
-  private Demands createDemands() throws PlanItException {
+  private Demands createDemands() {
     Demands demands = new Demands(testToken);
     demands.timePeriods.getFactory().registerNew("dummyTimePeriod", 0, 3600);
     demands.travelerTypes.getFactory().registerNew("dummyTravellerType");

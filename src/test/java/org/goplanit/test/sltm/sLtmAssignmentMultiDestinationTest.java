@@ -14,7 +14,7 @@ import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoiceConfigurator;
-import org.goplanit.path.choice.logit.LogitChoiceModel;
+import org.goplanit.choice.ChoiceModel;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -341,7 +341,7 @@ public class sLtmAssignmentMultiDestinationTest {
       final var suePathChoice = (StochasticPathChoiceConfigurator) configurator.createAndRegisterPathChoice(PathChoice.STOCHASTIC);
       {
         /* MNL for path choice */
-        suePathChoice.createAndRegisterLogitModel(LogitChoiceModel.MNL);
+        suePathChoice.createAndRegisterChoiceModel(ChoiceModel.WEIBIT);
         // by not setting a fixed od path set (suePathChoice.setFixedOdPathMatrix(...)), it is assumed we want a dynamic path set
       }
 
