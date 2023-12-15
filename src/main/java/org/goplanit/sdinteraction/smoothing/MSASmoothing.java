@@ -11,7 +11,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class MSASmoothing extends Smoothing {
+public class MSASmoothing extends IterationBasedSmoothing {
 
   /** generated UID */
   private static final long serialVersionUID = -3016251188673804117L;
@@ -47,21 +47,19 @@ public class MSASmoothing extends Smoothing {
   }
 
   /**
-   * Update stepSize to 1/iterationIndex
-   *
-   * @see org.goplanit.sdinteraction.smoothing.Smoothing#updateStep(int)
-   */
-  @Override
-  public void updateStep(final int iterationIndex) {
-    this.stepSize = 1.0 / (iterationIndex + 1);
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
   public double execute(final double previousValue, final double proposedValue) {
     return (1 - stepSize) * previousValue + stepSize * proposedValue;
+  }
+
+  /**
+   * Update stepSize to 1/iterationIndex
+   */
+  @Override
+  public void updateStepSize() {
+    this.stepSize = 1.0 / (getIteration() + 1);
   }
 
   /**

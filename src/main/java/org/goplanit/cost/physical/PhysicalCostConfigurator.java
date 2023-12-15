@@ -28,7 +28,7 @@ public class PhysicalCostConfigurator<T extends AbstractPhysicalCost> extends Co
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void configure(AbstractPhysicalCost physicalCost) throws PlanItException {
+  public void configure(AbstractPhysicalCost physicalCost) {
     super.configure((T) physicalCost);
   }
 

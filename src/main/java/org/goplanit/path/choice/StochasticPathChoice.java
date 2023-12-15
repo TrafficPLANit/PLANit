@@ -1,5 +1,6 @@
 package org.goplanit.path.choice;
 
+import java.awt.*;
 import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -30,7 +31,7 @@ public class StochasticPathChoice extends PathChoice {
   private static final Logger LOGGER = Logger.getLogger(StochasticPathChoice.class.getCanonicalName());
 
   /**
-   * The registered logit choice model
+   * The registered choice model
    */
   protected ChoiceModel choiceModel = null;
 
@@ -69,6 +70,32 @@ public class StochasticPathChoice extends PathChoice {
 
     // delegate to choice model
     return choiceModel.computeProbabilities(pathCosts);
+  }
+
+  /**
+   * Convert absolute path costs to perceived path costs for supported stochastic choice models
+   *
+   * @param absolutePathCosts the absolute path costs to convert
+   * @param pathProbabilities the path probabilities for each path
+   * @param odDemand the total demand of the od these paths relate to
+   * @return perceived path costs for each path
+   */
+  public double[] computePerceivedPathCosts(final double[] absolutePathCosts, final double[] pathProbabilities, final Double odDemand) {
+    final var numPaths = absolutePathCosts.length;
+    var perceivedPathCosts = new double[numPaths];
+    for(int index = 0; index < absolutePathCosts.length; ++ index){
+      perceivedPathCosts[index] = choiceModel.computePerceivedCost(absolutePathCosts[index], pathProbabilities[index] * odDemand, true);
+    }
+    return  perceivedPathCosts;
+  }
+
+  /**
+   * get the chosen choice model
+   *
+   * @return choiceModel
+   */
+  public ChoiceModel getChoiceModel() {
+    return this.choiceModel;
   }
 
   /**

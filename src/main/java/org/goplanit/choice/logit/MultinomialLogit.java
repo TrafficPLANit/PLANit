@@ -69,6 +69,24 @@ public class MultinomialLogit extends ChoiceModel {
   }
 
   /**
+   * For MNL the perceived cost in the context of OD path based demand = abs_cost + 1/scale * ln(demand).
+   * However, for demand smaller than 1 this is a problem because it can become negative, so we may transform this by taking the
+   * exponent.
+   *
+   * {@inheritDoc}
+   */
+  @Override
+  public double computePerceivedCost(double absoluteCost, double demand, boolean applyExpTransform) {
+    // abs_cost + 1/scale * ln(demand) == scale * abs_cost + ln(demand) which may be transformed to
+    // exp(scale * abs_cost + ln(demand)) == exp(scale * abs_cost) * demand)
+    if(!applyExpTransform){
+      return getScalingFactor() * absoluteCost + Math.log(demand);
+    }else{
+      return Math.exp(getScalingFactor() * absoluteCost) * demand;
+    }
+  }
+
+  /**
    * Copy constructor
    * 
    * @param other to copy

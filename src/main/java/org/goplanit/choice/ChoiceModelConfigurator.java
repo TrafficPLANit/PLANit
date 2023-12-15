@@ -13,6 +13,8 @@ import org.goplanit.utils.exceptions.PlanItException;
  */
 public class ChoiceModelConfigurator<T extends ChoiceModel> extends Configurator<T> {
 
+  public static final String SET_SCALING_FACTOR = "setScalingFactor";
+
   /**
    * Constructor
    * 
@@ -20,6 +22,25 @@ public class ChoiceModelConfigurator<T extends ChoiceModel> extends Configurator
    */
   public ChoiceModelConfigurator(Class<T> instanceType) {
     super(instanceType);
+  }
+
+
+  /**
+   * Return the scale parameter
+   *
+   * @return the scale parameter
+   */
+  public double getScalingFactor() {
+    return (double) getFirstParameterOfDelayedMethodCall(SET_SCALING_FACTOR);
+  }
+
+  /**
+   * Set the scale parameter
+   *
+   * @param scalingFactor the scale factor
+   */
+  public void setScalingFactor(double scalingFactor) {
+    registerDelayedMethodCall(SET_SCALING_FACTOR, scalingFactor);
   }
 
   /**

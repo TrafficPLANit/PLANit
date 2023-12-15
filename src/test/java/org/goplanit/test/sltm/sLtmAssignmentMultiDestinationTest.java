@@ -340,8 +340,9 @@ public class sLtmAssignmentMultiDestinationTest {
       /* PATH CHOICE - STOCHASTIC */
       final var suePathChoice = (StochasticPathChoiceConfigurator) configurator.createAndRegisterPathChoice(PathChoice.STOCHASTIC);
       {
-        /* MNL for path choice */
-        suePathChoice.createAndRegisterChoiceModel(ChoiceModel.WEIBIT);
+        /* Weibit for path choice */
+        var choiceModel = suePathChoice.createAndRegisterChoiceModel(ChoiceModel.WEIBIT);
+        choiceModel.setScalingFactor(7);
         // by not setting a fixed od path set (suePathChoice.setFixedOdPathMatrix(...)), it is assumed we want a dynamic path set
       }
 

@@ -28,7 +28,7 @@ public class FundamentalDiagramConfigurator<T extends FundamentalDiagramComponen
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void configure(FundamentalDiagramComponent fundamentalDiagram) throws PlanItException {
+  public void configure(FundamentalDiagramComponent fundamentalDiagram){
     super.configure((T) fundamentalDiagram);
   }
 

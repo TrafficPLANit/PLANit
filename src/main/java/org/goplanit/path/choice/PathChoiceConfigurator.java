@@ -28,7 +28,7 @@ public class PathChoiceConfigurator<T extends PathChoice> extends Configurator<T
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void configure(PathChoice pathChoice) throws PlanItException {
+  public void configure(PathChoice pathChoice){
     super.configure((T) pathChoice);
   }
 }

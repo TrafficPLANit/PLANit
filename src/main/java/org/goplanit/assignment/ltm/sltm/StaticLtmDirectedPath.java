@@ -12,6 +12,10 @@ public interface StaticLtmDirectedPath extends ManagedDirectedPath {
 
   public abstract double getPathChoiceProbability();
 
+  public abstract void setPathCost(double pathCost);
+
+  public abstract double getPathCost();
+
   /**
    * Hashcode based solely on the directed link segments of this path
    *

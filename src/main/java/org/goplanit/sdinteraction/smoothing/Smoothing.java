@@ -38,12 +38,12 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
     super(other, deepCopy);
   }
 
+
   /**
-   * Determine the stepsize for the passed in iteraction
-   *
-   * @param iterationIndex index of current iteration
+   * Perform updating of step size based on smoothing implementation at hand (Assuming all required information has been
+   * set beforehand)
    */
-  public abstract void updateStep(int iterationIndex);
+  public abstract void updateStepSize();
 
   /**
    * Apply smoothing based on the current step size

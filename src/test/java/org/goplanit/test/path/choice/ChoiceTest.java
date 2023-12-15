@@ -18,13 +18,18 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
  */
 public class ChoiceTest {
 
-    private final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("ChoiceTest");
+    private static final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("ChoiceTest");
+
+    private static Weibit weibit;
+    private static MultinomialLogit mnl;
 
     /**
      * {@inheritDoc}
      */
     @BeforeAll
     public static void setUp() throws Exception {
+        weibit = new Weibit(testToken);
+        mnl = new MultinomialLogit(testToken);
     }
 
     /**
@@ -42,7 +47,7 @@ public class ChoiceTest {
 
     @Test
     public void MnlTest() {
-        var mnl = new MultinomialLogit(testToken);
+        mnl.setScalingFactor(1);
 
         /* single option = 100% probability */
         assertEquals(1.0,mnl.computeProbabilities(new double[]{1.0})[0], Precision.EPSILON_6);
@@ -73,7 +78,7 @@ public class ChoiceTest {
 
     @Test
     public void WeibitTest() {
-        var weibit = new Weibit(testToken);
+        weibit.setScalingFactor(1);
 
         /* single option = 100% probability */
         assertEquals(1.0,weibit.computeProbabilities(new double[]{1.0})[0], Precision.EPSILON_6);
@@ -107,5 +112,18 @@ public class ChoiceTest {
         assertEquals(0.0009756, result_diff_10[1], Precision.EPSILON_6);
     }
 
+    @Test
+    public void MnlPerceivedCostTest() {
+        mnl.setScalingFactor(2);
+        assertEquals(7.386294361, mnl.computePerceivedCost(3,4, false), Precision.EPSILON_6);
+        assertEquals(1613.715173971, mnl.computePerceivedCost(3,4, true), Precision.EPSILON_6);
+    }
+
+    @Test
+    public void WeibitPerceivedCostTest() {
+        weibit.setScalingFactor(2);
+        assertEquals(3.583518938, weibit.computePerceivedCost(3,4, false), Precision.EPSILON_6);
+        assertEquals(36, weibit.computePerceivedCost(3,4, true), Precision.EPSILON_6);
+    }
 
 }

@@ -353,11 +353,12 @@ public abstract class StaticLtmAssignmentStrategy {
    * Perform a single iteration where we perform a loading and then an equilibration step resulting in updated costs
    *
    * @param theMode        to use
-   * @param costsToUpdate  the link segment costs we are updating (possibly partially for all link segments that might have been affected by a loading
+   * @param prevCosts  the link segment costs we experienced during the previous iteration (for all link segments considered in the loading)
+   * @param costsToUpdate  the link segment costs we are updating (possibly partially for all link segments that might have been affected by a loading)
    * @param iterationIndex we're at
    * @return true when iteration could be successfully completed, false otherwise
    */
-  public abstract boolean performIteration(final Mode theMode, final double[] costsToUpdate, int iterationIndex);
+  public abstract boolean performIteration(final Mode theMode, final double[] prevCosts, final double[] costsToUpdate, int iterationIndex);
 
   /**
    * Description of the chosen sLTM strategy for equilibration

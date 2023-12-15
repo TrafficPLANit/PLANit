@@ -59,6 +59,26 @@ public class Weibit extends ChoiceModel {
     return probabilities;
   }
 
+
+  /**
+   * For Weibit the perceived cost in the context of OD path based demand = ln(abs_cost) + 1/scale * ln(demand).
+   * However, for demand and/or cost smaller than 1 this is a problem because the result can become negative, so we may transform this by taking the
+   * exponent.
+   *
+   * {@inheritDoc}
+   */
+  @Override
+  public double computePerceivedCost(double absoluteCost, double demand, boolean applyExpTransform) {
+    // ln(abs_cost) + 1/scale * ln(demand) == scale * ln(abs_cost) + ln(demand) which may be transformed to
+    // exp(scale * ln(abs_cost) + ln(demand)) == exp(ln(abs_cost^scale) * demand) == abs_cost^scale * demand
+    if(!applyExpTransform){
+      // scale * ln(abs_cost) + ln(demand) == ln(demand * abs_cost^scale)
+      return Math.log(Math.pow(absoluteCost,getScalingFactor()) * demand);
+    }else{
+      return Math.pow(absoluteCost, getScalingFactor()) * demand;
+    }
+  }
+
   /**
    * Copy constructor
    * 

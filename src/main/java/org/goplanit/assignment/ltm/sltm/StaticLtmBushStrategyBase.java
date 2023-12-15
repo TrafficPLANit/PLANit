@@ -334,12 +334,13 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * 4. Conducting a loading to obtain network costs 
    * 
    * @param theMode to use
+   * @param prevCosts the previously used costs from the previous iteration
    * @param costsToUpdate to place updated costs in (output)
    * @param iterationIndex we're at
    * @return true when iteration could be successfully completed, false otherwise
    */
   @Override
-  public boolean performIteration(final Mode theMode, double[] costsToUpdate, int iterationIndex) {
+  public boolean performIteration(final Mode theMode, final double[] prevCosts, double[] costsToUpdate, int iterationIndex) {
     try {
       
       /* 1 - NETWORK LOADING - UPDATE ALPHAS - USE BUSH SPLITTING RATES (i-1) -  MODE AGNOSTIC FOR NOW */

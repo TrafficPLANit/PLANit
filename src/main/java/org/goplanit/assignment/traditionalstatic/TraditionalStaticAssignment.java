@@ -24,6 +24,7 @@ import org.goplanit.output.configuration.OdOutputTypeConfiguration;
 import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.path.ManagedDirectedPathFactoryImpl;
+import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
@@ -482,7 +483,15 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     while (!converged) {
       dualityGapFunction.reset();
-      getSmoothing().updateStep(simulationData.getIterationIndex());
+
+      // prep smoothing for this iteration
+      var smoothing = getSmoothing();
+      if(smoothing instanceof IterationBasedSmoothing) {
+        ((IterationBasedSmoothing) getSmoothing()).updateIteration(simulationData.getIterationIndex());
+      }else{
+        throw new PlanItRunTimeException("Currently traditional static assignment only supports iteration based smoothing options such as MSA");
+      }
+      getSmoothing().updateStepSize();
 
       // NETWORK LOADING - PER MODE
       for (final Mode mode : modes) {
@@ -498,7 +507,6 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
         }
 
         /* execute */
-
         executeAndSmoothTimePeriodAndMode(timePeriod, mode);
       }
 

@@ -45,12 +45,22 @@ public abstract class ChoiceModel extends PlanitComponent<ChoiceModel> implement
   }
 
   /**
-   * apply the logit choice model and produce the results in raw array form
+   * apply the choice model and produce the results in raw array form
    *
    * @param alternativeCosts costs of each alternative
    * @return computed probabilities in order of alternative costs provided
    */
   public abstract double[] computeProbabilities(double[] alternativeCosts);
+
+  /**
+   * Compute perceived cost for the given choice model based on known absolute cost and the flow that is assumed to be allocated to the alternative
+   *
+   * @param absoluteCost to use
+   * @param demand to use
+   * @param applyExpTransform when true apply an exponent transform, otherwise do not
+   * @return perceived cost, i.e., the adjustment to the absolute cost to account for the choice models inferred perception error
+   */
+  public abstract double computePerceivedCost(double absoluteCost, double demand, boolean applyExpTransform);
 
 
   /** SUPPORTED OPTIONS **/
@@ -71,7 +81,7 @@ public abstract class ChoiceModel extends PlanitComponent<ChoiceModel> implement
   public static final double DEFAULT_SCALING_FACTOR = 1.0;
 
 
-  /** Scaling factor for MNL */
+  /** Scaling factor */
   public double getScalingFactor() {
     return scalingFactor;
   }
@@ -106,4 +116,5 @@ public abstract class ChoiceModel extends PlanitComponent<ChoiceModel> implement
     privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
     return keyValueMap;
   }
+
 }

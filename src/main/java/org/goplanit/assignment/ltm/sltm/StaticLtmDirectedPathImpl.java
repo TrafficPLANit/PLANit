@@ -24,6 +24,11 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
    */
   private double currentPathChoiceProbability;
 
+  /**
+   * Current path cost
+   */
+  private double currentPathCost;
+
   /** the path we're decorating */
   private ManagedDirectedPath wrappedPath;
 
@@ -33,7 +38,8 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
    * @param pathToWrap path to decorate
    */
   public StaticLtmDirectedPathImpl(ManagedDirectedPath pathToWrap) {
-    this.currentPathChoiceProbability = -1;
+    this.currentPathChoiceProbability = 0;
+    this.currentPathCost = 0;
     this.linkSegmentsOnlyHashCode = java.util.Objects.hashCode(pathToWrap.iterator());
     this.wrappedPath = pathToWrap;
   }
@@ -46,6 +52,7 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
    */
   public StaticLtmDirectedPathImpl(StaticLtmDirectedPathImpl other, boolean deepCopy) {
     this.currentPathChoiceProbability = other.currentPathChoiceProbability;
+    this.currentPathCost = other.currentPathCost;
     this.linkSegmentsOnlyHashCode = other.linkSegmentsOnlyHashCode;
     this.wrappedPath = deepCopy ? other.wrappedPath.deepClone() : other.wrappedPath.shallowClone();
   }
@@ -58,6 +65,15 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
   @Override
   public double getPathChoiceProbability(){
     return this.currentPathChoiceProbability;
+  }
+
+  @Override
+  public void setPathCost(double pathCost) {
+    this.currentPathCost = pathCost;
+  }
+  @Override
+  public double getPathCost() {
+    return currentPathCost;
   }
 
   @Override

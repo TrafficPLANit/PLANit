@@ -34,7 +34,7 @@ public class GapFunctionConfigurator<T extends GapFunction> extends Configurator
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void configure(GapFunction gapFunction) throws PlanItException {
+  public void configure(GapFunction gapFunction) {
     super.configure((T) gapFunction);
   }
 

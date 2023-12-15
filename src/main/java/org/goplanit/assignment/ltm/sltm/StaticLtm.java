@@ -17,6 +17,7 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
+import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
 import org.goplanit.sdinteraction.smoothing.MSASmoothing;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
@@ -151,12 +152,16 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       assignmentStrategy.getLoading().resetIteration();
 
       simulationData.incrementIterationIndex();
-      getSmoothing().updateStep(simulationData.getIterationIndex());
+      var smoothing = getSmoothing();
+      if (smoothing instanceof IterationBasedSmoothing) {
+        ((IterationBasedSmoothing) smoothing).updateIteration(simulationData.getIterationIndex());
+        smoothing.updateStepSize();
+      }
 
       /* LOADING UPDATE + PATH/BUSH UPDATE */
       double[] prevCosts = getIterationData().getLinkSegmentTravelTimePcuH(theMode);
       double[] costsToUpdate = Arrays.copyOf(prevCosts, prevCosts.length);
-      boolean success = assignmentStrategy.performIteration(theMode, costsToUpdate, simulationData.getIterationIndex());
+      boolean success = assignmentStrategy.performIteration(theMode, prevCosts, costsToUpdate, simulationData.getIterationIndex());
       if (!success) {
         LOGGER.severe("Unable to continue PLANit sLTM run, aborting");
         break;
