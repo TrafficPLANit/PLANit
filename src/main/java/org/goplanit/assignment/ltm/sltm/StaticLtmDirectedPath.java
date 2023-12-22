@@ -8,9 +8,11 @@ import org.goplanit.utils.path.ManagedDirectedPath;
  */
 public interface StaticLtmDirectedPath extends ManagedDirectedPath {
 
-  public abstract void setPathChoiceProbability(double probability);
+  public abstract void updatePathChoiceProbability(double probability);
 
-  public abstract double getPathChoiceProbability();
+  public abstract double getCurrentPathChoiceProbability();
+
+  public abstract double getPreviousPathChoiceProbability();
 
   public abstract void setPathCost(double pathCost);
 

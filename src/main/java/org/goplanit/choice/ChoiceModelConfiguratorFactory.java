@@ -1,6 +1,7 @@
 package org.goplanit.choice;
 
 import org.goplanit.choice.logit.MultinomialLogitConfigurator;
+import org.goplanit.choice.weibit.WeibitConfigurator;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 
@@ -23,7 +24,7 @@ public class ChoiceModelConfiguratorFactory {
     if (choiceModelType.equals(ChoiceModel.MNL)) {
       return new MultinomialLogitConfigurator();
     }else if (choiceModelType.equals(ChoiceModel.WEIBIT)) {
-      return new MultinomialLogitConfigurator();
+      return new WeibitConfigurator();
     }else {
       throw new PlanItRunTimeException("unable to construct configurator for given choice model Type %s", choiceModelType);
     }

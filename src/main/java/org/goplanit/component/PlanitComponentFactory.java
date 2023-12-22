@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.traditionalstatic.TraditionalStaticAssignment;
+import org.goplanit.choice.weibit.Weibit;
 import org.goplanit.component.event.PlanitComponentEvent;
 import org.goplanit.component.event.PlanitComponentEventType;
 import org.goplanit.component.event.PlanitComponentListener;
@@ -129,6 +130,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(TampereNodeModelComponent.class);
     registerPlanitComponentType(StochasticPathChoice.class);
     registerPlanitComponentType(MultinomialLogit.class);
+    registerPlanitComponentType(Weibit.class);
     registerPlanitComponentType(OdPathSets.class);
     registerPlanitComponentType(LinkBasedRelativeDualityGapFunction.class);
     registerPlanitComponentType(NormBasedGapFunction.class);

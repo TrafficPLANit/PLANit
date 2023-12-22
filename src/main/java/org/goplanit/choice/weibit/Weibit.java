@@ -2,8 +2,10 @@ package org.goplanit.choice.weibit;
 
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Weibit choice model implementation for probabilities considering ratio of differences in utility
@@ -16,6 +18,9 @@ public class Weibit extends ChoiceModel {
 
   /** generated UID */
   private static final long serialVersionUID = -7602543264466240409L;
+
+  /** Logger to use */
+  private static final Logger LOGGER = Logger.getLogger(Weibit.class.getCanonicalName());
 
   /**
    * Constructor (public access required for reflection purposes)
@@ -69,6 +74,12 @@ public class Weibit extends ChoiceModel {
    */
   @Override
   public double computePerceivedCost(double absoluteCost, double demand, boolean applyExpTransform) {
+
+    if(demand < Precision.EPSILON_12){
+      LOGGER.severe("no demand, can't compute perceived cost (always zero), applying dummy demand of 1 --> DO NOT USE IN PRODUCTION");
+      demand = 1;
+    }
+
     // ln(abs_cost) + 1/scale * ln(demand) == scale * ln(abs_cost) + ln(demand) which may be transformed to
     // exp(scale * ln(abs_cost) + ln(demand)) == exp(ln(abs_cost^scale) * demand) == abs_cost^scale * demand
     if(!applyExpTransform){

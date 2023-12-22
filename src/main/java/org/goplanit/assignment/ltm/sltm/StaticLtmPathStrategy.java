@@ -4,8 +4,8 @@ import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathOneToAll;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
-import org.goplanit.choice.ChoiceModel;
 import org.goplanit.gap.GapFunction;
+import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
@@ -20,6 +20,7 @@ import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
@@ -27,11 +28,8 @@ import org.goplanit.utils.path.PathUtils;
 import org.goplanit.zoning.Zoning;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Implementation to deal with a path based sLTM implementation
@@ -49,6 +47,36 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
   /** odPaths to track */
   private final OdMultiPaths<List<StaticLtmDirectedPath>> odMultiPaths;
+
+  /**
+   * Update gap. Unconventional gap function where we update the GAP based on path cost discrepancy.
+   * Consider implementing alternative time permitting
+   * <p>
+   * minimumCost low cost path perceived cost   : low cost * SUM(low cost sending flow, high cost sending flow)
+   * measuredCost: low cost sending flow * perceived cost + high cost sending flow * perceived high cost
+   * <p>
+   * Sum the above over all low/high cost path alternatives. Note that we only consider highest and lowest cost path here, so sum does not
+   * add up to total network cost.
+   *
+   * @param gapFunction   to use
+   * @param lowestCostPath the low cost path
+   * @param lowestCostPerceivedCost the low cost path perceioved costs
+   * @param highestCostPath the high cost path
+   * @param highestCostPerceivedCost the high cost path perceived costs
+   * @param odDemand total OdDemand
+   */
+  protected void updateGap(
+          final LinkBasedRelativeDualityGapFunction gapFunction,
+          final StaticLtmDirectedPath lowestCostPath,
+          double lowestCostPerceivedCost,
+          final StaticLtmDirectedPath highestCostPath,
+          double highestCostPerceivedCost,
+          double odDemand) {
+    gapFunction.increaseConvexityBound(
+            lowestCostPerceivedCost * (odDemand * (highestCostPath.getCurrentPathChoiceProbability() + lowestCostPath.getCurrentPathChoiceProbability())));
+    gapFunction.increaseMeasuredCost(odDemand * lowestCostPath.getCurrentPathChoiceProbability() * lowestCostPerceivedCost);
+    gapFunction.increaseMeasuredCost(odDemand * highestCostPath.getCurrentPathChoiceProbability() * highestCostPerceivedCost);
+  }
 
   /**
    * Create the od paths based on provided costs. Only create paths for od pairs with non-zero flow.
@@ -84,7 +112,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
           }
           var sLtmPath = new StaticLtmDirectedPathImpl(path);
           sLtmPath.setPathCost(oneToAllResult.getCostOf(destinationVertex));
-          newOdShortestPaths.setValue(origin, destination, new StaticLtmDirectedPathImpl(path));
+          newOdShortestPaths.setValue(origin, destination, sLtmPath);
         }
       }
     }
@@ -146,7 +174,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
               (o, d, demand) -> {
                 var odMultiPathList = new ArrayList<StaticLtmDirectedPath>(INITIAL_PER_OD_PATH_CAPACITY);
                 var initialOdPath = newOdPaths.getValue(o, d);
-                initialOdPath.setPathChoiceProbability(1);  // set initial probability to 100%
+                initialOdPath.updatePathChoiceProbability(1); // set current probability to 100%
                 odMultiPathList.add(initialOdPath);         // add to path set
                 odMultiPaths.setValue(o, d, odMultiPathList);
               });
@@ -173,10 +201,12 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
       final var stochasticPathChoice = (StochasticPathChoice) getPathChoice(); // currently only type of path choice which is verified (if present), so safe to cast
 
+      /* determine path choice for next iteration */
       if(stochasticPathChoice != null) {
 
         // if simple smoothing, prep here, if path based, prep later
         final var smoothing = getSmoothing();
+        final var gapFunction = (LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class);
         final boolean applyOdIndependentSmoothing = smoothing instanceof IterationBasedSmoothing;
 
         /* EXPAND OD PATH SETS WHEN ELIGIBLE NEW PATH FOUND */
@@ -189,93 +219,79 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                   if (odPaths.stream().noneMatch(existingPath -> existingPath.getLinkSegmentsOnlyHashCode() == newOdPath.getLinkSegmentsOnlyHashCode())) {
                     // new path, add to set
                     odPaths.add(newOdPath);
+                    newOdPath.setPathCost(PathUtils.computeEdgeSegmentAdditivePathCost(newOdPath, prevCosts)); // so it is in line with other paths pre costs
                     newPathAdded = true;
                   }
 
-                    // TODO: THIS IS NOT RIGHT YET -> FIRST START SIMPLE AND COMPUTE FOR HIGHEST AND LOWEST COST PATH ITS PERCEIVED COST OF PREVIOUS ITERATION AND CURRENT
-                    // TODO: ITERATION, BOTH ARE KNOWN BOTH PREVIOUS ALSO REQUIRES THE PREVIOUS PROBABILITY RATHER THAN JUST THE CURRENT! THIS IS MISSING FROM THE PATH
-                    // TODO: THEN USE THE BELOW BUT EVERYTHING IS SHIFTED ONE ITERATION, SO INSTEAD OF USING THE NEWLY CALCULATED PROBABILITIES AND CURRENT, WE USE CURRENT
-                    // TODO: AND THE PREVIOUS ETC. IF WE DO SO, THE BELOW SHOULD BE WORKABLE
+                  double[] prevPerceivedPathCosts = odPaths.stream().map( p -> stochasticPathChoice.computePerceivedPathCost(p.getPathCost(), p.getCurrentPathChoiceProbability(), demand)).mapToDouble(v -> v).toArray();
+                  double[] prevCostRelatedPathProbabilities = odPaths.stream().map( p -> p.getPreviousPathChoiceProbability()).mapToDouble( v -> v).toArray();
 
+                  double[] currAbsolutePathCosts = PathUtils.computeEdgeSegmentAdditivePathCost(odPaths, costsToUpdate);
+                  double[] currCostRelatedPathProbabilities = odPaths.stream().map( p -> p.getCurrentPathChoiceProbability()).mapToDouble(v -> v).toArray();
+                  double[] currPerceivedPathCosts = stochasticPathChoice.computePerceivedPathCosts(currAbsolutePathCosts, currCostRelatedPathProbabilities, demand);
 
+                  //1. get i-1 iteration perceived cost for LOW and HIGH cost paths
+                  int lowCostPathIndex = newPathAdded ? odPaths.size()-1 : ArrayUtils.findMinValueIndex(currPerceivedPathCosts);
+                  int highCostPathIndex = ArrayUtils.findMaxValueIndex(currPerceivedPathCosts);
+                  double lowCostPathPrevPerceivedCost = prevPerceivedPathCosts[lowCostPathIndex];
+                  double highCostPathPrevPerceivedCost = prevPerceivedPathCosts[highCostPathIndex];
 
-//                  double[] pathProbabilitiesForOldCosts = stochasticPathChoice.computePathProbabilities(odPaths, prevCosts);
-//                  // path cost update + old path cost in array format
-//                  double[] currAbsolutePathCosts = PathUtils.computeEdgeSegmentAdditivePathCost(odPaths, costsToUpdate);
-//                  double[] newPathProbabilities = stochasticPathChoice.computePathProbabilities(odPaths, currAbsolutePathCosts);
-//
-//                  //todo: This is incorrect, we can't use this because they will be exactly equal always when using the new probabilities
-//                  // instead we should use the existing difference in perceived cost (with the existing probabilities/flows)
-//                  // and these should be compared to those in the iteration before,
-//                  double[] perceivedPathCosts = stochasticPathChoice.computePerceivedPathCosts(currAbsolutePathCosts, newPathProbabilities, demand);
-//
-//                  int highCostPathIndex = ArrayUtils.findMaxValueIndex(perceivedPathCosts);
-//                  var highCostPath = odPaths.get(highCostPathIndex);
-//                  int lowCostPathIndex = newPathAdded ? odPaths.size()-1 : ArrayUtils.findMinValueIndex(perceivedPathCosts);
-//                  var lowCostPath = odPaths.get(lowCostPathIndex);
-//
-//                  // compute dPerceivedCost/dProbability for lowest vs highest cost path
-//                  double oldPerceivedCostHighCostPath = stochasticPathChoice.getChoiceModel().computePerceivedCost(highCostPath.getPathCost(), highCostPath.getPathChoiceProbability() * demand, true);
-//
-//                  double dPerceivedPathCostsHighCostPath = perceivedPathCosts[highCostPathIndex] - oldPerceivedCostHighCostPath;
-//                  double dProbabilityHighCostPath = newPathProbabilities[highCostPathIndex] - highCostPath.getPathChoiceProbability();
-//                  double highCostPathdCdP = 0;
-//                  if(dPerceivedPathCostsHighCostPath*dProbabilityHighCostPath<0){
-//                    // sign is pointing in wrong direction, meaning that due to network interactions, an increase in flow led to a decrease in cost
-//                    // in this case we can't use this, instead we'll apply  a flat (zero) impact as a best guess without resorting to link level derivatives
-//                    // todo: if this happens often and we do not get good performance, we should consider using link level derivatives instead as these always have the correct sign
-//                    LOGGER.warning("Conflicting descent direction, flatlining derivative, consider moving to link based approach if this happens often");
-//                  }else {
-//                    highCostPathdCdP = dPerceivedPathCostsHighCostPath/dProbabilityHighCostPath;
-//                  }
-//
-//                  double dPerceivedPathCostsLowCostPath = 0;
-//                  double dProbabilityLowCostPath = 0;
-//                  double lowCostPathdCdP = 0;
-//                  if(newPathAdded) {
-//                    // if new path, then no (easy) path-based derivative of cost towards probability/flow can be created. So instead, of
-//                    // doing computationally complicated things, we instead simply adopt the derivative of the high cost path, which is expected to be a
-//                    // conservative estimate to start with, after the initial attempt, it will have a derivative in the next iteration so it will quickly become
-//                    // more accurate
-//                    lowCostPathdCdP = highCostPathdCdP;
-//                  }else{
-//                    double oldPerceivedCostLowCostPath = stochasticPathChoice.getChoiceModel().computePerceivedCost(lowCostPath.getPathCost(), lowCostPath.getPathChoiceProbability() * demand, true);
-//                    dPerceivedPathCostsLowCostPath = perceivedPathCosts[lowCostPathIndex] - oldPerceivedCostLowCostPath;
-//                    dProbabilityLowCostPath = newPathProbabilities[lowCostPathIndex] - lowCostPath.getPathChoiceProbability();
-//                    if(dPerceivedPathCostsHighCostPath*dProbabilityHighCostPath>0){
-//                      lowCostPathdCdP = dPerceivedPathCostsLowCostPath/dProbabilityLowCostPath;
-//                    }
-//                  }
+                  //2. get i-1 iteration path flows used for i-1 LOW and HIGH cost paths
+                  double lowCostPathPrevProbability = prevCostRelatedPathProbabilities[lowCostPathIndex];
+                  double highCostPathPrevProbability = prevCostRelatedPathProbabilities[highCostPathIndex];
 
-//                  /* Newton method (in original deterministic path equilibrium flow format)
-//                   *
-//                   *                C_high - C_low
-//                   * Delta_FLOW =  ----------------
-//                   *                SUM_all_links_on_either_path_but_not_both( dC_link/dFLOW_link)
-//                   *
-//                   * In this context we track dC/dF on a path level instead of per link for computational efficiency, we use a proxy in case the path is new
-//                   * (and no path information from previous iteration is available). We substitute the flow for probabilities.
-//                   * Also, we use perceived costs rather than absolute costs here since we're equilibrating the perceived costs, not absolute costs.
-//                   */
-//                  double newtonMethodProbabilityShift =
-//                          (perceivedPathCosts[highCostPathIndex] - perceivedPathCosts[lowCostPathIndex])
-//                          /(lowCostPathdCdP + highCostPathdCdP);
-//
-//                  // Apply probability shift, but no more than we have available:
-//                  lowCostPath.setPathChoiceProbability(
-//                          lowCostPath.getPathChoiceProbability() + Math.min(newtonMethodProbabilityShift,  highCostPath.getPathChoiceProbability()));
-//                  highCostPath.setPathChoiceProbability(
-//                          highCostPath.getPathChoiceProbability() - Math.min(newtonMethodProbabilityShift,  highCostPath.getPathChoiceProbability()));
+                  //3. get i iteration perceived costs for LOW and HIGH cost paths
+                  double lowCostPathCurrPerceivedCost = currPerceivedPathCosts[lowCostPathIndex];
+                  double highCostPathCurrPerceivedCost = currPerceivedPathCosts[highCostPathIndex];
+
+                  //4. get i path flows used to get i iteration perceived costs
+                  double lowCostPathCurrProbability = currCostRelatedPathProbabilities[lowCostPathIndex];
+                  double highCostPathCurrProbability = currCostRelatedPathProbabilities[highCostPathIndex];
+
+                  //5. determine dCost and dFlow (dProbability)
+                  double highCostPathDCost =  highCostPathCurrPerceivedCost - highCostPathPrevPerceivedCost;
+                  double highCostPathDProbability =  highCostPathCurrProbability - highCostPathPrevProbability;
+                  double highCostPathDenominator = highCostPathDProbability > Precision.EPSILON_9 ? highCostPathDCost/highCostPathDProbability : 0;
+
+                  double lowCostPathDCost =  lowCostPathCurrPerceivedCost - lowCostPathPrevPerceivedCost;
+                  double lowCostPathDProbability =  lowCostPathCurrProbability - lowCostPathPrevProbability;
+                  // in case of no prior change, we can't determine the derivative, instead we use the high-cost path one as a proxy
+                  double lowCostPathDenominator = lowCostPathDProbability > Precision.EPSILON_9 ? lowCostPathDCost/lowCostPathDProbability : highCostPathDProbability;
+
+                  //6. update gap
+                  var lowCostPath = odPaths.get(lowCostPathIndex);
+                  var highCostPath = odPaths.get(highCostPathIndex);
+                  updateGap(gapFunction, lowCostPath, lowCostPathCurrPerceivedCost, highCostPath, highCostPathCurrPerceivedCost, demand);
+
+                  //7. determine newton step to determine flows/probabilities for i+1
+                  double newtonStepDenominator = highCostPathDenominator + lowCostPathDenominator;
+                  double newtonStep = 0;
+                  if(newtonStepDenominator < Precision.EPSILON_9){
+                    // in case no change is observed in probabilities for both, we assign half to the preferred path
+                    newtonStep = 0.5 * highCostPathDProbability;
+                  }else {
+                     //   cost_high - step * dCost_high/d_Flow_high = cost_low - step * dCost_low/d_Flow_low
+                    newtonStep =
+                            (highCostPathCurrPerceivedCost - lowCostPathCurrPerceivedCost)
+                            /
+                            (highCostPathDenominator + lowCostPathDenominator);
+                  }
+
+                  // todo apply smoothing instead of multiplying by 0.5 (revert to always being iteration based for now I would think + implement fixed smoothing step option to use)
+                  double newLowCostPathProbability = Math.min(1, 0.5 * lowCostPathCurrProbability + newtonStep);
+                  double newHighCostPathProbability = Math.max(0, 0.5* highCostPathCurrProbability - newtonStep);
+
+                  //7. prep for i + 1 iteration
+                  {
+                    // update stored path costs to new costs, so they are available for the next iteration as prev costs when needed
+                    odPaths.forEach( p -> p.setPathCost(PathUtils.computeEdgeSegmentAdditivePathCost(p, costsToUpdate)));
+                    // update probabilities applied, so they are available for the next iteration
+                    lowCostPath.updatePathChoiceProbability(newLowCostPathProbability);
+                    highCostPath.updatePathChoiceProbability(newHighCostPathProbability);
+                  }
+
                 });
-
-
-        LOGGER.info("Creating new paths for path-based sLTM");
-
-
-
-        /* PERFORM PATH CHOICE */
-        //todo: execute path choice to obtain new probabilities per OD-path
-        LOGGER.info("Executing path choice before next iteration for path-based sLTM");
+        LOGGER.info("Created new paths and updated path choice for path-based sLTM");
       }
 
     } catch (Exception e) {

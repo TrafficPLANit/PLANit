@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.path.ManagedDirectedPath;
 
 import java.util.Collection;
@@ -25,9 +26,14 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
   private double currentPathChoiceProbability;
 
   /**
+   * Previous path choice probability
+   */
+  private double previousPathChoiceProbability;
+
+  /**
    * Current path cost
    */
-  private double currentPathCost;
+  private double pathCost;
 
   /** the path we're decorating */
   private ManagedDirectedPath wrappedPath;
@@ -39,8 +45,10 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
    */
   public StaticLtmDirectedPathImpl(ManagedDirectedPath pathToWrap) {
     this.currentPathChoiceProbability = 0;
-    this.currentPathCost = 0;
-    this.linkSegmentsOnlyHashCode = java.util.Objects.hashCode(pathToWrap.iterator());
+    this.previousPathChoiceProbability = 0;
+    this.pathCost = 0;
+    this.linkSegmentsOnlyHashCode = java.util.Arrays.hashCode(
+            IterableUtils.asStream(IterableUtils.toIterable(pathToWrap.iterator())).mapToLong( e -> e.getId()).toArray());
     this.wrappedPath = pathToWrap;
   }
 
@@ -52,28 +60,35 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
    */
   public StaticLtmDirectedPathImpl(StaticLtmDirectedPathImpl other, boolean deepCopy) {
     this.currentPathChoiceProbability = other.currentPathChoiceProbability;
-    this.currentPathCost = other.currentPathCost;
+    this.previousPathChoiceProbability = other.previousPathChoiceProbability;
+    this.pathCost = other.pathCost;
     this.linkSegmentsOnlyHashCode = other.linkSegmentsOnlyHashCode;
     this.wrappedPath = deepCopy ? other.wrappedPath.deepClone() : other.wrappedPath.shallowClone();
   }
 
   @Override
-  public void setPathChoiceProbability(double probability){
+  public void updatePathChoiceProbability(double probability){
+    this.previousPathChoiceProbability = currentPathChoiceProbability;
     this.currentPathChoiceProbability = probability;
   }
 
   @Override
-  public double getPathChoiceProbability(){
+  public double getCurrentPathChoiceProbability(){
     return this.currentPathChoiceProbability;
   }
 
   @Override
+  public double getPreviousPathChoiceProbability(){
+    return this.previousPathChoiceProbability;
+  }
+
+  @Override
   public void setPathCost(double pathCost) {
-    this.currentPathCost = pathCost;
+    this.pathCost = pathCost;
   }
   @Override
   public double getPathCost() {
-    return currentPathCost;
+    return pathCost;
   }
 
   @Override

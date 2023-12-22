@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
-import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPathImpl;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.utils.functionalinterface.TriConsumer;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -69,7 +68,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
     /* path */
     var odPaths = odMultiPaths.getValue(origin, destination);
     for (StaticLtmDirectedPath odPath : odPaths) {
-      double acceptedPathFlowRate = odDemand * odPath.getPathChoiceProbability();
+      double acceptedPathFlowRate = odDemand * odPath.getCurrentPathChoiceProbability();
       if (odPath == null || odPath.isEmpty()) {
         LOGGER.warning(String.format("IGNORE: encountered empty path %s", odPath == null ? "" : odPath.getXmlId()));
         return;
