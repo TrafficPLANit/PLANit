@@ -251,12 +251,16 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                   //5. determine dCost and dFlow (dProbability)
                   double highCostPathDCost =  highCostPathCurrPerceivedCost - highCostPathPrevPerceivedCost;
                   double highCostPathDProbability =  highCostPathCurrProbability - highCostPathPrevProbability;
-                  double highCostPathDenominator = highCostPathDProbability > Precision.EPSILON_9 ? highCostPathDCost/highCostPathDProbability : 0;
+                  double highCostPathDenominator = Math.abs(highCostPathDProbability) > Precision.EPSILON_9 ? highCostPathDCost/highCostPathDProbability : 0;
 
                   double lowCostPathDCost =  lowCostPathCurrPerceivedCost - lowCostPathPrevPerceivedCost;
                   double lowCostPathDProbability =  lowCostPathCurrProbability - lowCostPathPrevProbability;
                   // in case of no prior change, we can't determine the derivative, instead we use the high-cost path one as a proxy
-                  double lowCostPathDenominator = lowCostPathDProbability > Precision.EPSILON_9 ? lowCostPathDCost/lowCostPathDProbability : highCostPathDProbability;
+                  //TODO: replace the highcost path denominator with a softmax with scale parameter so we have a way of determining the agressiveness
+                  // boltzmann softmax --> exp(scale*X)/SUM_i(exp(scale*X_i)) --> result will be between min and max value of options chosen with high scaling factor resulting
+                  // in a value closer to the maximum of all options...so high scale means small steps because gradient is steeper than in reality whereas low scale means closer
+                  // to minimum gradient of the options, i.e., no impact of changing step so more aggressive step
+                  double lowCostPathDenominator = Math.abs(lowCostPathDProbability) > Precision.EPSILON_9 ? lowCostPathDCost/lowCostPathDProbability : highCostPathDenominator;
 
                   //6. update gap
                   var lowCostPath = odPaths.get(lowCostPathIndex);
@@ -271,6 +275,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                     newtonStep = 0.5 * highCostPathDProbability;
                   }else {
                      //   cost_high - step * dCost_high/d_Flow_high = cost_low - step * dCost_low/d_Flow_low
+                     //   rewrite towards step: step =  (cost_high - cost_low)/((dCost_high/d_Flow_high)+(dCost_low/d_Flow_low))
                     newtonStep =
                             (highCostPathCurrPerceivedCost - lowCostPathCurrPerceivedCost)
                             /
@@ -278,13 +283,16 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                   }
 
                   // todo apply smoothing instead of multiplying by 0.5 (revert to always being iteration based for now I would think + implement fixed smoothing step option to use)
-                  double newLowCostPathProbability = Math.min(1, 0.5 * lowCostPathCurrProbability + newtonStep);
-                  double newHighCostPathProbability = Math.max(0, 0.5* highCostPathCurrProbability - newtonStep);
+                  double newLowCostPathProbability = Math.min(1, lowCostPathCurrProbability + 0.5 * newtonStep);
+                  double newHighCostPathProbability = Math.max(0, highCostPathCurrProbability - 0.5 * newtonStep);
 
                   //7. prep for i + 1 iteration
                   {
                     // update stored path costs to new costs, so they are available for the next iteration as prev costs when needed
-                    odPaths.forEach( p -> p.setPathCost(PathUtils.computeEdgeSegmentAdditivePathCost(p, costsToUpdate)));
+                    for(int index = 0; index < odPaths.size(); ++ index){
+                        odPaths.get(index).setPathCost(currAbsolutePathCosts[index]);
+                    }
+
                     // update probabilities applied, so they are available for the next iteration
                     lowCostPath.updatePathChoiceProbability(newLowCostPathProbability);
                     highCostPath.updatePathChoiceProbability(newHighCostPathProbability);
