@@ -251,16 +251,36 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                   //5. determine dCost and dFlow (dProbability)
                   double highCostPathDCost =  highCostPathCurrPerceivedCost - highCostPathPrevPerceivedCost;
                   double highCostPathDProbability =  highCostPathCurrProbability - highCostPathPrevProbability;
-                  double highCostPathDenominator = Math.abs(highCostPathDProbability) > Precision.EPSILON_9 ? highCostPathDCost/highCostPathDProbability : 0;
+
+                  double highCostPathDenominator = Math.abs(0.5 * highCostPathDCost); // in case of no derivative available
+                  if(Math.abs(highCostPathDProbability) > Precision.EPSILON_9){
+                    highCostPathDenominator =highCostPathDCost/highCostPathDProbability;
+                    if (highCostPathDenominator<0 && (highCostPathDCost > 0 || highCostPathDProbability > 0)){
+                      // inconsistency in derivative, likely because of external factors and pragmatic obtaining of this value instead of computing it link by link
+                      // however, we can infer that when probability went down, cost cannot go up, so we set it to 0.0 instead, alternatively, when probability went
+                      // up cost cannot go down, so we set it to zero as well
+                      highCostPathDenominator = 0.0;
+                    }
+                  }
 
                   double lowCostPathDCost =  lowCostPathCurrPerceivedCost - lowCostPathPrevPerceivedCost;
                   double lowCostPathDProbability =  lowCostPathCurrProbability - lowCostPathPrevProbability;
-                  // in case of no prior change, we can't determine the derivative, instead we use the high-cost path one as a proxy
-                  //TODO: replace the highcost path denominator with a softmax with scale parameter so we have a way of determining the agressiveness
+                  // in case of no prior change (for example no queue so derivative of zero, or new path), we can't determine the derivative,
+                  // instead we take half of the low dcost as an approximation
+                  //TODO: replace this with with a softmax with scale parameter so we have a way of determining the agressiveness
                   // boltzmann softmax --> exp(scale*X)/SUM_i(exp(scale*X_i)) --> result will be between min and max value of options chosen with high scaling factor resulting
                   // in a value closer to the maximum of all options...so high scale means small steps because gradient is steeper than in reality whereas low scale means closer
                   // to minimum gradient of the options, i.e., no impact of changing step so more aggressive step
-                  double lowCostPathDenominator = Math.abs(lowCostPathDProbability) > Precision.EPSILON_9 ? lowCostPathDCost/lowCostPathDProbability : highCostPathDenominator;
+                  double lowCostPathDenominator = Math.abs(0.5 * lowCostPathDCost); // in case of no derivative available
+                  if(Math.abs(lowCostPathDProbability) > Precision.EPSILON_9){
+                    lowCostPathDenominator =lowCostPathDCost/lowCostPathDProbability;
+                    if (lowCostPathDenominator<0 && (lowCostPathDCost > 0 || lowCostPathDProbability > 0)){
+                      // inconsistency in derivative, likely because of external factors and pragmatic obtaining of this value instead of computing it link by link
+                      // however, we can infer that when probability went down, cost cannot go up, so we set it to 0.0 instead, alternatively, when probability went
+                      // up cost cannot go down, so we set it to zero as well
+                      lowCostPathDenominator = 0.0;
+                    }
+                  }
 
                   //6. update gap
                   var lowCostPath = odPaths.get(lowCostPathIndex);
@@ -272,7 +292,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                   double newtonStep = 0;
                   if(newtonStepDenominator < Precision.EPSILON_9){
                     // in case no change is observed in probabilities for both, we assign half to the preferred path
-                    newtonStep = 0.5 * highCostPathDProbability;
+                    newtonStep = Math.abs(0.5 * highCostPathDProbability);
                   }else {
                      //   cost_high - step * dCost_high/d_Flow_high = cost_low - step * dCost_low/d_Flow_low
                      //   rewrite towards step: step =  (cost_high - cost_low)/((dCost_high/d_Flow_high)+(dCost_low/d_Flow_low))
