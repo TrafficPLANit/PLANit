@@ -68,8 +68,16 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
 
   @Override
   public void updatePathChoiceProbability(double probability){
-    this.previousPathChoiceProbability = currentPathChoiceProbability;
+    setPrevPathChoiceProbabilityToCurr();
     this.currentPathChoiceProbability = probability;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setPrevPathChoiceProbabilityToCurr() {
+    this.previousPathChoiceProbability = currentPathChoiceProbability;
   }
 
   @Override

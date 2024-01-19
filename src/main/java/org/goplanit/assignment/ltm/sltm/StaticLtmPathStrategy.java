@@ -189,7 +189,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * {@inheritDoc}
    */
   @Override
-  public boolean performIteration(final Mode theMode, final double[] prevCosts, final double[] costsToUpdate, int iterationIndex) {
+  public boolean performIteration(
+          final Mode theMode, final double[] prevCosts, final double[] costsToUpdate, int iterationIndex) {
 
     try {
       /* NETWORK LOADING - MODE AGNOSTIC FOR NOW */
@@ -291,8 +292,13 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                   double newtonStepDenominator = highCostPathDenominator + lowCostPathDenominator;
                   double newtonStep = 0;
                   if(newtonStepDenominator < Precision.EPSILON_9){
-                    // in case no change is observed in probabilities for both, we assign half to the preferred path
-                    newtonStep = Math.abs(0.5 * highCostPathDProbability);
+                    // in case no change is observed (or can be computed) in derivatives for both, we can assume that
+                    // each path is either close to equilibrium given the other alternatives, or there is no derivative as it is not congested
+                    // in the former case the dProbability ios really low, in the latter case it may not be. To service both situations
+                    // we take the average of the to dProbabilities, such that if both are very close to equilibrium  we make a small step
+                    // but if one is not, we can at least take a decent step after which we get (hopefully) computable derivatives again or get closer
+                    // to (uncongested) equilibrium
+                    newtonStep = (Math.abs(highCostPathDProbability) + lowCostPathDProbability)/2.0;
                   }else {
                      //   cost_high - step * dCost_high/d_Flow_high = cost_low - step * dCost_low/d_Flow_low
                      //   rewrite towards step: step =  (cost_high - cost_low)/((dCost_high/d_Flow_high)+(dCost_low/d_Flow_low))
@@ -310,12 +316,18 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                   {
                     // update stored path costs to new costs, so they are available for the next iteration as prev costs when needed
                     for(int index = 0; index < odPaths.size(); ++ index){
-                        odPaths.get(index).setPathCost(currAbsolutePathCosts[index]);
-                    }
+                      var currPath = odPaths.get(index);
+                      currPath.setPathCost(currAbsolutePathCosts[index]);
 
-                    // update probabilities applied, so they are available for the next iteration
-                    lowCostPath.updatePathChoiceProbability(newLowCostPathProbability);
-                    highCostPath.updatePathChoiceProbability(newHighCostPathProbability);
+                      // update probabilities applied, so they are available for the next iteration
+                      if(index == lowCostPathIndex){
+                        lowCostPath.updatePathChoiceProbability(newLowCostPathProbability);
+                      }else if(index == highCostPathIndex){
+                        highCostPath.updatePathChoiceProbability(newHighCostPathProbability);
+                      }else{
+                        currPath.setPrevPathChoiceProbabilityToCurr();
+                      }
+                    }
                   }
 
                 });
