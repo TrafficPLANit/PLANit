@@ -253,7 +253,9 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                   double highCostPathDCost =  highCostPathCurrPerceivedCost - highCostPathPrevPerceivedCost;
                   double highCostPathDProbability =  highCostPathCurrProbability - highCostPathPrevProbability;
 
+                  //TODO NOT CORRECT CAN CAUSE ISSUE WITH SMALLER DENOMINATOR AND NEWTOPN STEP > 1 (i=7)
                   double highCostPathDenominator = Math.abs(0.5 * highCostPathDCost); // in case of no derivative available
+
                   if(Math.abs(highCostPathDProbability) > Precision.EPSILON_9){
                     highCostPathDenominator =highCostPathDCost/highCostPathDProbability;
                     if (highCostPathDenominator<0 && (highCostPathDCost > 0 || highCostPathDProbability > 0)){
@@ -272,7 +274,10 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                   // boltzmann softmax --> exp(scale*X)/SUM_i(exp(scale*X_i)) --> result will be between min and max value of options chosen with high scaling factor resulting
                   // in a value closer to the maximum of all options...so high scale means small steps because gradient is steeper than in reality whereas low scale means closer
                   // to minimum gradient of the options, i.e., no impact of changing step so more aggressive step
+
+                  //TODO NOT CORRECT CAN CAUSE ISSUE WITH SMALLER DENOMINATOR AND NEWTON STEP > 1 (i=7)
                   double lowCostPathDenominator = Math.abs(0.5 * lowCostPathDCost); // in case of no derivative available
+
                   if(Math.abs(lowCostPathDProbability) > Precision.EPSILON_9){
                     lowCostPathDenominator =lowCostPathDCost/lowCostPathDProbability;
                     if (lowCostPathDenominator<0 && (lowCostPathDCost > 0 || lowCostPathDProbability > 0)){
