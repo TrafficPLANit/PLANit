@@ -68,7 +68,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
     /* path */
     var odPaths = odMultiPaths.getValue(origin, destination);
     for (StaticLtmDirectedPath odPath : odPaths) {
-      double acceptedPathFlowRate = odDemand * odPath.getCurrentPathChoiceProbability();
+      double acceptedPathFlowRate = odDemand * odPath.getPathChoiceProbability();
       if (odPath == null || odPath.isEmpty()) {
         LOGGER.warning(String.format("IGNORE: encountered empty path %s", odPath == null ? "" : odPath.getXmlId()));
         return;

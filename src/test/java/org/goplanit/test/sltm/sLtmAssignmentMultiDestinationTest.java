@@ -75,7 +75,7 @@ public class sLtmAssignmentMultiDestinationTest {
     return demands;
   }
 
-  private void testOutputs(StaticLtm sLTM) {
+  private void testDeterministicOutputs(StaticLtm sLTM) {
     double outflow0 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
     double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
@@ -96,7 +96,7 @@ public class sLtmAssignmentMultiDestinationTest {
     assertTrue(Precision.smallerEqual(outflow8, 4000));
 
     assertEquals(outflow0, 8000, Precision.EPSILON_3);
-    assertEquals(outflow1, 4523, 1);
+    assertEquals(outflow1, 4522.6, 1);
     assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow3, outflow2, Precision.EPSILON_3);
     //assertEquals(outflow4, 3750, 1); do not test due to non-uniqueness being allowed under no congestion an triangular FD
@@ -110,6 +110,71 @@ public class sLtmAssignmentMultiDestinationTest {
     assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
     //assertEquals(outflow13, 2250, 1); do not test due to non-uniqueness being allowed under no congestion an triangular FD
     //assertEquals(outflow14, 2250, 1); do not test due to non-uniqueness being allowed under no congestion an triangular FD
+
+    double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+    double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+    double inflow3 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("3").getLinkSegmentAb());
+    double inflow4 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
+    double inflow5 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+    double inflow6 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("6").getLinkSegmentAb());
+    double inflow7 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("7").getLinkSegmentAb());
+    double inflow8 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+    double inflow9 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
+    double inflow10 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("10").getLinkSegmentAb());
+    double inflow11 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("11").getLinkSegmentAb());
+    double inflow12 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("12").getLinkSegmentAb());
+    double inflow13 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("13").getLinkSegmentAb());
+    double inflow14 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("14").getLinkSegmentAb());
+
+    assertEquals(outflow0, inflow1 + inflow5, Precision.EPSILON_6);
+    assertEquals(outflow1, inflow2 + inflow9, Precision.EPSILON_6);
+    assertEquals(outflow2, inflow3, Precision.EPSILON_6);
+    assertEquals(outflow3 + outflow13, inflow4, Precision.EPSILON_6);
+    assertEquals(outflow4, inflow4, Precision.EPSILON_6);
+    assertEquals(outflow5, inflow10 + inflow6, Precision.EPSILON_6);
+    assertEquals(outflow6, inflow7, Precision.EPSILON_6);
+    assertEquals(outflow7 + outflow14, inflow8, Precision.EPSILON_6);
+    assertEquals(outflow8, inflow8, Precision.EPSILON_6);
+    assertEquals(outflow9 + outflow11, inflow12, Precision.EPSILON_6);
+    assertEquals(outflow10, inflow11, Precision.EPSILON_6);
+    assertEquals(outflow12, inflow13 + inflow14, Precision.EPSILON_6);
+  }
+
+  private void testStochasticOutputs(StaticLtm sLTM) {
+    double outflow0 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+    double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+    double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+    double outflow3 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("3").getLinkSegmentAb());
+    double outflow4 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
+    double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+    double outflow6 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("6").getLinkSegmentAb());
+    double outflow7 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("7").getLinkSegmentAb());
+    double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+    double outflow9 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
+    double outflow10 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("10").getLinkSegmentAb());
+    double outflow11 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("11").getLinkSegmentAb());
+    double outflow12 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("12").getLinkSegmentAb());
+    double outflow13 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("13").getLinkSegmentAb());
+    double outflow14 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("14").getLinkSegmentAb());
+
+    assertTrue(Precision.smallerEqual(outflow4, 4000));
+    assertTrue(Precision.smallerEqual(outflow8, 4000));
+
+    assertEquals(outflow0, 8000, Precision.EPSILON_3);
+    assertEquals(outflow1, 4520.3, 1);
+    assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
+    assertEquals(outflow3, outflow2, Precision.EPSILON_3);
+    assertEquals(outflow4, 3749.7, 1);
+    assertEquals(outflow5, 3290.3, 1);
+    assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
+    assertEquals(outflow7, outflow6, Precision.EPSILON_3);
+    assertEquals(outflow8, 3750.3, 1);
+    assertEquals(outflow9, 3000.0, Precision.EPSILON_3);
+    assertEquals(outflow10, 1500.0, Precision.EPSILON_3);
+    assertEquals(outflow11, outflow10, Precision.EPSILON_3);
+    assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
+    assertEquals(outflow13, 2249.7, 1);
+    assertEquals(outflow14, 2249.7, 1);
 
     double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
@@ -342,7 +407,7 @@ public class sLtmAssignmentMultiDestinationTest {
       {
         /* Weibit for path choice */
         var choiceModel = suePathChoice.createAndRegisterChoiceModel(ChoiceModel.WEIBIT);
-        choiceModel.setScalingFactor(7);
+        choiceModel.setScalingFactor(1); // we go for rather muddled perceived cost to differentiate from deterministic result
         // by not setting a fixed od path set (suePathChoice.setFixedOdPathMatrix(...)), it is assumed we want a dynamic path set
       }
 
@@ -360,7 +425,7 @@ public class sLtmAssignmentMultiDestinationTest {
       sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
-      testOutputs(sLTM);
+      testStochasticOutputs(sLTM);
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -394,7 +459,7 @@ public class sLtmAssignmentMultiDestinationTest {
       sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
-      testOutputs(sLTM);
+      testDeterministicOutputs(sLTM);
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -428,7 +493,7 @@ public class sLtmAssignmentMultiDestinationTest {
       sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
-      testOutputs(sLTM);
+      testDeterministicOutputs(sLTM);
 
     } catch (Exception e) {
       e.printStackTrace();

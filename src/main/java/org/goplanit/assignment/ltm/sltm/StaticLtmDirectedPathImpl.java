@@ -25,16 +25,6 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
    */
   private double currentPathChoiceProbability;
 
-  /**
-   * Previous path choice probability
-   */
-  private double previousPathChoiceProbability;
-
-  /**
-   * Current path cost
-   */
-  private double pathCost;
-
   /** the path we're decorating */
   private ManagedDirectedPath wrappedPath;
 
@@ -45,8 +35,6 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
    */
   public StaticLtmDirectedPathImpl(ManagedDirectedPath pathToWrap) {
     this.currentPathChoiceProbability = 0;
-    this.previousPathChoiceProbability = 0;
-    this.pathCost = 0;
     this.linkSegmentsOnlyHashCode = java.util.Arrays.hashCode(
             IterableUtils.asStream(IterableUtils.toIterable(pathToWrap.iterator())).mapToLong( e -> e.getId()).toArray());
     this.wrappedPath = pathToWrap;
@@ -60,50 +48,24 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
    */
   public StaticLtmDirectedPathImpl(StaticLtmDirectedPathImpl other, boolean deepCopy) {
     this.currentPathChoiceProbability = other.currentPathChoiceProbability;
-    this.previousPathChoiceProbability = other.previousPathChoiceProbability;
-    this.pathCost = other.pathCost;
     this.linkSegmentsOnlyHashCode = other.linkSegmentsOnlyHashCode;
     this.wrappedPath = deepCopy ? other.wrappedPath.deepClone() : other.wrappedPath.shallowClone();
   }
 
   @Override
-  public void updatePathChoiceProbability(double probability){
-    setPrevPathChoiceProbabilityToCurr();
+  public void setPathChoiceProbability(double probability){
     this.currentPathChoiceProbability = probability;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public void setPrevPathChoiceProbabilityToCurr() {
-    this.previousPathChoiceProbability = currentPathChoiceProbability;
-  }
-
-  @Override
-  public double getCurrentPathChoiceProbability(){
+  public double getPathChoiceProbability(){
     return this.currentPathChoiceProbability;
-  }
-
-  @Override
-  public double getPreviousPathChoiceProbability(){
-    return this.previousPathChoiceProbability;
-  }
-
-  @Override
-  public void setPathCost(double pathCost) {
-    this.pathCost = pathCost;
-  }
-  @Override
-  public double getPathCost() {
-    return pathCost;
   }
 
   @Override
   public int getLinkSegmentsOnlyHashCode(){
     return this.linkSegmentsOnlyHashCode;
   }
-
 
   @Override
   public long getId() {

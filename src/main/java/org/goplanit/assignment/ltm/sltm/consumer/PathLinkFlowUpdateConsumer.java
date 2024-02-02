@@ -21,7 +21,7 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
   private static final Logger LOGGER = Logger.getLogger(PathLinkFlowUpdateConsumer.class.getCanonicalName());
 
   /**
-   * For each entry segment update the in(sending)flow
+   * For each entry segment update the in(sending)flow (and outflow if so specified)
    * 
    * @param prevSegment         to use
    * @param currentSegment      to use
@@ -32,7 +32,15 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
     /* u_a: update inflow for link segment */
     int prevSegmentId = (int) prevSegment.getId();
     dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
-    return turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
+
+    /* v_ap = u_bp = alpha_a*...*f_p  */
+    double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
+
+    /* v_a = SUM(v_ap) (only when enabled) */
+    if (dataConfig.isOutflowsUpdate()) {
+      dataConfig.outFlows[prevSegmentId] += acceptedTurnFlowPcuH;
+    }
+    return acceptedTurnFlowPcuH;
   }
 
   /**

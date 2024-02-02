@@ -924,7 +924,7 @@ public abstract class StaticLtmNetworkLoading {
   /**
    * When loading has converged, outputs might be persisted for (intermediate) iterations. Since the loading does not always
    * track the entire network for performance reasons. This method can be invoked before persisting results to populate the gaps
-   * (if any) regarding for example link in and outflows that might otherwise not be available, e.g. in the POINT_QUEUE_BASIC laoding scheme
+   * (if any) regarding for example link in and outflows that might otherwise not be available, e.g. in the POINT_QUEUE_BASIC loading scheme
    * only potentially blocking nodes and their immediate links might be tracked on the network level. Whereas if we want to see the results of this
    * iteration, we would want the full inflows/outflows on all links in the network. This is what this methods ensure with minimal overhead.
    * <p>
