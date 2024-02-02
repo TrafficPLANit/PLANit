@@ -48,15 +48,15 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
    * than having to revert to one by one updates. It does however require network information hence its placement here where via the initialiseBeforeSimulation, the network is
    * provided
    * 
-   * @param physicalLayer these cost pertain to
+   * @param layer these cost pertain to
    * @param mode          the mode these costs pertain to
    * @param costToFill    array of link segment costs identified by the link segment's internal id
    */
-  public void populateWithCost(final UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> physicalLayer, Mode mode, double[] costToFill) {
-    if(physicalLayer.getLinkSegments().isEmpty()){
-      LOGGER.warning("No physical links segments found in provided network layer, unable to populate link segment costs");
+  public void populateWithCost(final UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> layer, Mode mode, double[] costToFill) {
+    if(layer.getLinkSegments().isEmpty()){
+      LOGGER.warning("No link segments found in provided network layer, unable to populate link segment costs");
     }
-    for (var linkSegment : physicalLayer.getLinkSegments()) {
+    for (var linkSegment : layer.getLinkSegments()) {
       costToFill[(int) linkSegment.getId()] = getGeneralisedCost(mode, linkSegment);
     }
   }

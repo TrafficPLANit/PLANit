@@ -74,19 +74,77 @@ public class Weibit extends ChoiceModel {
    */
   @Override
   public double computePerceivedCost(double absoluteCost, double demand, boolean applyExpTransform) {
-
-    if(demand < Precision.EPSILON_12){
-      LOGGER.severe("no demand, can't compute perceived cost (always zero), applying dummy demand of 1 --> DO NOT USE IN PRODUCTION");
+    if(demand < Precision.EPSILON_12 && !applyExpTransform){
+      LOGGER.warning("No demand, applying dummy demand of 1 --> consider using exp transformed version instead which can deal with this");
       demand = 1;
     }
 
-    // ln(abs_cost) + 1/scale * ln(demand) == scale * ln(abs_cost) + ln(demand) which may be transformed to
-    // exp(scale * ln(abs_cost) + ln(demand)) == exp(ln(abs_cost^scale) * demand) == abs_cost^scale * demand
+
+    // ln(abs_cost) + 1/scale * ln(demand) == which may be transformed to
+    // exp(ln(abs_cost) + 1/scale * ln(demand)) = exp(ln(abs_cost) * (exp(ln(demand))^1/scale  = abs_cost * demand^(1/scale)
     if(!applyExpTransform){
-      // scale * ln(abs_cost) + ln(demand) == ln(demand * abs_cost^scale)
-      return Math.log(Math.pow(absoluteCost,getScalingFactor()) * demand);
+      if(demand < 1){
+        LOGGER.severe("No demand below 1 possible for non-transformed perceived cost, applying dummy demand of 1 --> DO NOT USE IN PRODUCTION switch to exp transformed");
+        demand = 1;
+      }
+      return Math.log(absoluteCost) + 1/getScalingFactor() * Math.log(demand);
     }else{
-      return Math.pow(absoluteCost, getScalingFactor()) * demand;
+      if(demand < 1){
+        // todo current exp transform does not solve issue since it increases in size between 0-1 --> requires multiplication by scaling factor to avoid this
+        // todo: this before led to incorrect calculation, probably bug, so when working revisit and update to include this approach again
+        // todo: UPDATE DERIVATIVE method below accordingly to keep consistent
+        LOGGER.warning("exp transformed solution does not cope with small demand, switch-off demand component of cost, DO NOT USE IN PRODUCTION");
+        return absoluteCost;
+      }
+      return absoluteCost * Math.pow(demand, 1/getScalingFactor());
+    }
+  }
+
+  /** For Weibit we can work out the derivative of perceived cost towards flow when we know the impact of dAbsoluteCost on a flow change as
+   *  well as the absolute cost itself. We support an exp transformation as well to allow for small values of demand.
+   *
+   *
+   * @param dAbsoluteCostDFlow derivative of absolute cost towards flow
+   * @param absoluteCost absolute cost itself
+   * @param demand demand related to the logit model (usually path specific demand for example)
+   * @param applyExpTransform when true consider exp transform of formulation, otherwise not
+   * @return perceived dCost/dflow
+   */
+  @Override
+  public double computeDPerceivedCostDFlow(double dAbsoluteCostDFlow, double absoluteCost, double demand, boolean applyExpTransform) {
+    if(demand < Precision.EPSILON_12 && !applyExpTransform){
+      LOGGER.warning("No demand for dPerceivedCost/dFlow, applying dummy demand of 1 --> consider using exp transformed version instead which can deal with this");
+      demand = 1;
+    }
+
+    // ln(abs_cost) + 1/scale * ln(demand)  which may be exp transformed to
+    // abs_cost * demand^(1/scale)
+    //
+    // in dPerceivedCost/dDemand form:
+    //   1/scale*d_abs_cost_d_flow + 1/(demand) in untransformed form or when transformed
+    //   abs_cost^scale * demand
+    var scalingFactor = getScalingFactor();
+    if(!applyExpTransform){
+      //                            f = ln(1/absoluteCost), g = 1/scale * ln(demand)
+      // sum of derivatives rule:   d(f + g) = d(f) + d(g), and
+      //                              d(f) --> chain rule d(f) = d(ln(h)) = 1/h * d(h) --> 1/abs_cost * dAbsoluteCostDFlow
+      //                              d(g)  = 1/scale * d(ln(demand) = 1/scale * 1/demand = 1/(scale * demand)
+      //                            f' + g' =
+      return dAbsoluteCostDFlow/absoluteCost + 1/(scalingFactor * demand);
+    }else{
+      if(demand < 1){
+        // todo current exp transform does not solve issue since it increases in size between 0-1 --> requires multiplication by scaling factor to avoid this
+        // todo: this before led to incorrect calculation, probably bug, so when working revisit and update to include this approach again
+        // todo: UPDATE DERIVATIVE method below accordingly to keep consistent
+        // so d(exp(ln(abs_cost))) is what is left after exp transforming the original function when setting demand portion to 0 --> we get d_abs_cost
+        LOGGER.warning("exp transformed solution does not cope with demand <1 yet, use only non-demand component of cost for derivative, DO NOT USE IN PRODUCTION");
+        return dAbsoluteCostDFlow;
+      }
+      // abs_cost * demand^(1/scale)
+      //                f = abs_cost, g = demand^(1/scale)
+      //                f' = dAbsoluteCostDFlow, g' = (1/scale)*demand^((1/scale)-1)
+      // chain rule:    f' * g + f * g'
+      return dAbsoluteCostDFlow * Math.pow(demand, 1/getScalingFactor()) + absoluteCost * (1/getScalingFactor() * Math.pow(demand, (1/getScalingFactor())-1));
     }
   }
 

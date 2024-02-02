@@ -273,11 +273,15 @@ public abstract class StaticLtmAssignmentStrategy {
         }
 
         /* entry segments */
-        networkLayer.getLinkSegments().forEachMatchingIdIn(trackedFlowNode.getEntryEdgeSegments(),
-            (es) -> costsToUpdate[(int) es.getId()] = physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) es));
-        virtualLayer.getConnectoidSegments().forEachMatchingIdIn(trackedFlowNode.getEntryEdgeSegments(),
-            (es) -> costsToUpdate[(int) es.getId()] = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es));
-
+        final var layerSegments = networkLayer.getLinkSegments();
+        final var virtualLayerSegments = virtualLayer.getConnectoidSegments();
+        trackedFlowNode.getEntryEdgeSegments().forEach(es -> {
+          if(layerSegments.containsKey(es.getId())){
+            costsToUpdate[(int) es.getId()] = physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) es);
+          }else if(virtualLayerSegments.containsKey(es.getId())){
+            costsToUpdate[(int) es.getId()] = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es);
+          }
+        });
         prevIterationPotentiallyBlocking.set((int) trackedFlowNode.getId(), currentlyPotentiallyBlocking);
       }
     }
@@ -291,6 +295,70 @@ public abstract class StaticLtmAssignmentStrategy {
       physicalCost.populateWithCost(getInfrastructureNetwork().getLayerByMode(theMode), theMode, costsToUpdate);
 
     }
+  }
+
+  /**
+   * Construct the dCost/dFlow per link segment for the purpose of determining steps towards equilibrium. Derivatives are
+   * calculated base don the adopted physical and virtual cost components and existing flows in the underlying network loading
+   * iteration
+   *
+   * @param theMode mode to populate for
+   * @param updateOnlyPotentiallyBlockingNodeCosts when true we only consider incoming links into potentiall blocking nodes (assuming
+   *                                               dCost/dFlow is zero for all non-blocking nodes which is only valid if a linear free flow
+   *                                               branch for the Fundamental diagram is adopted.
+   * @return resulting dCostDFlow per link segment involved (zero for non-touched link segments)
+   */
+  protected double[] constructLinkBasedDCostDFlow(Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts){
+    double[] linkBasedDCostDFlow = new double[getTransportNetwork().getNumberOfEdgeSegmentsAllLayers()];
+
+    final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
+    final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
+    final double[] acceptanceFactors = this.networkLoading.getCurrentFlowAcceptanceFactors();
+    final SplittingRateData splittingRateData = getLoading().getSplittingRateData();
+
+    MacroscopicNetworkLayer networkLayer = getInfrastructureNetwork().getLayerByMode(theMode);
+    final var physicalLayerSegments = networkLayer.getLinkSegments();
+    VirtualNetwork virtualLayer = getTransportNetwork().getZoning().getVirtualNetwork();
+    final var virtualLayerSegments = virtualLayer.getConnectoidSegments();
+
+    if (updateOnlyPotentiallyBlockingNodeCosts) {
+
+      /* only update when node is both (flow) tracked as well as potentially blocking */
+      boolean currentlyPotentiallyBlocking = false;
+      for (var trackedFlowNode : splittingRateData.getTrackedNodes()) {
+        currentlyPotentiallyBlocking = splittingRateData.isPotentiallyBlocking(trackedFlowNode);
+        if (!currentlyPotentiallyBlocking && !prevIterationPotentiallyBlocking.get((int) trackedFlowNode.getId())) {
+          continue;
+        }
+
+        /* entry segments */
+        trackedFlowNode.getEntryEdgeSegments().forEach(es -> {
+          boolean congested = acceptanceFactors[(int) es.getId()] < 1;
+          if(physicalLayerSegments.containsKey(es.getId())){
+            linkBasedDCostDFlow[(int) es.getId()] = physicalCost.getDTravelTimeDFlow(!congested, theMode, (MacroscopicLinkSegment) es);
+          }else if(virtualLayerSegments.containsKey(es.getId())){
+            linkBasedDCostDFlow[(int) es.getId()] = virtualCost.getDTravelTimeDFlow(!congested, theMode, (ConnectoidSegment) es);
+          }
+        });
+      }
+    }
+    /* OTHER -> all nodes (and attached links) are updated, update all costs */
+    else {
+
+      /* virtual cost */
+      for (var linkSegment : virtualLayerSegments) {
+        boolean congested = acceptanceFactors[(int) linkSegment.getId()] < 1;
+        linkBasedDCostDFlow[(int) linkSegment.getId()] = virtualCost.getDTravelTimeDFlow(congested, theMode, linkSegment);
+      }
+
+      /* physical cost */
+      for (var linkSegment : physicalLayerSegments) {
+        boolean congested = acceptanceFactors[(int) linkSegment.getId()] < 1;
+        linkBasedDCostDFlow[(int) linkSegment.getId()] = physicalCost.getDTravelTimeDFlow(congested, theMode, linkSegment);
+      }
+    }
+
+    return linkBasedDCostDFlow;
   }
 
   /**

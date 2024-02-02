@@ -62,6 +62,18 @@ public abstract class ChoiceModel extends PlanitComponent<ChoiceModel> implement
    */
   public abstract double computePerceivedCost(double absoluteCost, double demand, boolean applyExpTransform);
 
+  /** Compute the derivative of perceived cost towards flow knowing the impact of dAbsoluteCost on a flow change as
+   *  well as the absolute cost itself. We support an exp transformation as well to allow for small values of demand.
+   *  todo: For now we are assuming here that the derivative of the absolute cost function yields a value rather than a function, which is not general yet
+   *
+   * @param dAbsoluteCostDFlow derivative of absolute cost towards flow
+   * @param absoluteCost absolute cost itself
+   * @param demand demand related to the logit model (usually path specific demand for example)
+   * @param applyExpTransform when true consider exp transform of formulation, otherwise not
+   * @return perceived dCost/dflow for a given (OD) flow, i.e., demand
+   */
+  public abstract double computeDPerceivedCostDFlow(double dAbsoluteCostDFlow, double absoluteCost, double demand, boolean applyExpTransform);
+
 
   /** SUPPORTED OPTIONS **/
 

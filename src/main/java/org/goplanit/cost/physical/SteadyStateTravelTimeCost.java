@@ -196,15 +196,15 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   /**
    * Populate the cost array with the free flow link travel times for all link segments for the specified mode
    * 
-   * @param physicalLayer to use
+   * @param layer to use
    * @param mode          the mode to use
    * @param costToFill    the cost to populate (in hours)
    */
   @Override
-  public void populateWithCost(UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> physicalLayer, Mode mode, double[] costToFill) {
+  public void populateWithCost(UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> layer, Mode mode, double[] costToFill) {
     double[] inflows = accessee.getLinkSegmentInflowsPcuHour();
     double[] outflows = accessee.getLinkSegmentOutflowsPcuHour();
-    for (var linkSegment : physicalLayer.getLinkSegments()) {
+    for (var linkSegment : layer.getLinkSegments()) {
       int linkSegmentId = (int) linkSegment.getLinkSegmentId();
       costToFill[linkSegmentId] = computeTravelTime(linkSegment, linkSegmentFundamentalDiagrams[linkSegmentId], inflows[linkSegmentId], outflows[linkSegmentId]);
     }

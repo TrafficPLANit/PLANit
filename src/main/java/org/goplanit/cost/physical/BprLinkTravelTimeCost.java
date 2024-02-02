@@ -378,7 +378,7 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     double currentFlow = linkVolumeAccessee.getLinkSegmentVolume(linkSegment);
 
     // assumed beta > 1
-    return (beta - 1) * freeFlowTravelTime * alpha * Math.pow(currentFlow / capacity, beta - 1);
+    return beta * alpha * Math.pow(currentFlow / capacity, beta - 1) * 1/capacity;
   }
 
   /**
@@ -388,10 +388,10 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @param costToFill the cost to populate (in hours)
    */
   @Override
-  public void populateWithCost(UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> physicalLayer, Mode mode, double[] costToFill) {
+  public void populateWithCost(UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> layer, Mode mode, double[] costToFill) {
     double[] linkSegmentFlows = linkVolumeAccessee.getLinkSegmentVolumes();
 
-    for (var linkSegment : physicalLayer.getLinkSegments()) {
+    for (var linkSegment : layer.getLinkSegments()) {
       // changed from id to link segment id 7/9/2021 since we array is created based on linksegments only, not all edge segments (so excluding connectoid segments). Therefore
       // we should not be using the id that is unique across both, just the one for physical link segments. By accident this did work so far due to connectoid segments being
       // created after the link segments. Verify if tests still succeed. IF so, remove this comment
