@@ -10,6 +10,9 @@ public interface StaticLtmDirectedPath extends ManagedDirectedPath {
 
   public abstract void updatePathChoiceProbability(double probability);
 
+  /** update previous value to current one, without changing it */
+  public abstract void setPrevPathChoiceProbabilityToCurr();
+
   public abstract double getCurrentPathChoiceProbability();
 
   public abstract double getPreviousPathChoiceProbability();
