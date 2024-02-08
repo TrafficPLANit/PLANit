@@ -197,9 +197,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    *
    * @param smoothingType the type of smoothing component to be created
    * @return Smoothing configuration object
-   * @throws PlanItException thrown if there is an error
    */
-  public SmoothingConfigurator<? extends Smoothing> createAndRegisterSmoothing(final String smoothingType) throws PlanItException {
+  public SmoothingConfigurator<? extends Smoothing> createAndRegisterSmoothing(final String smoothingType) {
     smoothingConfigurator = SmoothingConfiguratorFactory.createConfigurator(smoothingType);
     return smoothingConfigurator;
   }

@@ -17,6 +17,7 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
 import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
 import org.goplanit.sdinteraction.smoothing.MSASmoothing;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -204,18 +205,18 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * {@inheritDoc}
    */
   @Override
-  protected void verifyComponentCompatibility() throws PlanItException {
+  protected void verifyComponentCompatibility(){
     super.verifyComponentCompatibility();
 
     /* gap function check */
-    PlanItException.throwIf(!(getGapFunction() instanceof LinkBasedRelativeDualityGapFunction),
+    PlanItRunTimeException.throwIf(!(getGapFunction() instanceof LinkBasedRelativeDualityGapFunction),
         "%sStatic LTM only supports a link based relative gap function (for equilibration) at the moment, but found %s", LoggingUtils.runIdPrefix(getId()),
         getGapFunction().getClass().getCanonicalName());
 
     /* smoothing check */
-    PlanItException.throwIf(!(getSmoothing() instanceof MSASmoothing), "%sStatic LTM only supports MSA smoothing at the moment, but found %s", LoggingUtils.runIdPrefix(getId()),
+    PlanItRunTimeException.throwIf(!(getSmoothing() instanceof MSASmoothing || getSmoothing() instanceof FixedStepSmoothing),
+            "%sStatic LTM only supports MSA or FixedStep smoothing at the moment, but found %s", LoggingUtils.runIdPrefix(getId()),
         getSmoothing().getClass().getCanonicalName());
-
   }
 
   /**

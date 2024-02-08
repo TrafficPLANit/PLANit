@@ -19,6 +19,9 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
   /** shorthand for configuring smoothing with MSA instance */
   public static final String MSA = MSASmoothing.class.getCanonicalName();
 
+  /** shorthand for configuring smoothing with a fixed step instance */
+  public static final String FIXED_STEP = FixedStepSmoothing.class.getCanonicalName();
+
   /**
    * Base constructor
    * 

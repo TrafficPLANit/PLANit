@@ -44,6 +44,7 @@ import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoice;
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.choice.logit.MultinomialLogit;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
 import org.goplanit.sdinteraction.smoothing.MSASmoothing;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.service.routed.RoutedServices;
@@ -116,6 +117,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(TraditionalStaticAssignment.class);
     registerPlanitComponentType(StaticLtm.class);
     registerPlanitComponentType(MSASmoothing.class);
+    registerPlanitComponentType(FixedStepSmoothing.class);
     registerPlanitComponentType(Demands.class);
     registerPlanitComponentType(RoutedServices.class);
     registerPlanitComponentType(MacroscopicNetwork.class);

@@ -60,7 +60,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * {@inheritDoc}
    */
   @Override
-  protected void verifyComponentCompatibility() throws PlanItException {
+  protected void verifyComponentCompatibility(){
     // not implemented yet
   }
 

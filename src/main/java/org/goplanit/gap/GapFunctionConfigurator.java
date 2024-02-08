@@ -4,7 +4,7 @@ import org.goplanit.utils.builder.Configurator;
 import org.goplanit.utils.exceptions.PlanItException;
 
 /**
- * Base class for all vgap function configurator implementations
+ * Base class for all gap function configurator implementations
  * 
  * @author markr
  *
@@ -13,7 +13,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 public class GapFunctionConfigurator<T extends GapFunction> extends Configurator<T> {
 
   /**
-   * the configurator for the stop critetion
+   * the configurator for the stop criterion
    */
   protected final StopCriterionConfigurator stopCriterionConfigurator;
 

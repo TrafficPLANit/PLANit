@@ -1,6 +1,7 @@
 package org.goplanit.sdinteraction.smoothing;
 
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 
 /**
  * factory for the smoothing configurator types supported directory by PLANit
@@ -15,14 +16,15 @@ public class SmoothingConfiguratorFactory {
    * 
    * @param smoothingType type of assignment the builder is created for
    * @return the created configurator
-   * @throws PlanItException thrown if error
    */
-  public static SmoothingConfigurator<? extends Smoothing> createConfigurator(final String smoothingType) throws PlanItException {
+  public static SmoothingConfigurator<? extends Smoothing> createConfigurator(final String smoothingType){
 
     if (smoothingType.equals(Smoothing.MSA)) {
       return new MSASmoothingConfigurator();
-    } else {
-      throw new PlanItException(String.format("unable to construct configurator for given smoothingType %s", smoothingType));
+    } else if (smoothingType.equals(Smoothing.FIXED_STEP)) {
+      return new FixedStepSmoothingConfigurator();
+    }else {
+      throw new PlanItRunTimeException(String.format("Unable to construct configurator for given smoothingType %s", smoothingType));
     }
   }
 }

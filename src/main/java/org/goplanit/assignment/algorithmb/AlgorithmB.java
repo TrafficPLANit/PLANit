@@ -42,7 +42,7 @@ public class AlgorithmB extends StaticTrafficAssignment {
    * {@inheritDoc}
    */
   @Override
-  protected void verifyComponentCompatibility() throws PlanItException {
+  protected void verifyComponentCompatibility() {
     // TODO Auto-generated method stub
   }
 

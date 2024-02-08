@@ -266,9 +266,13 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                   double newtonStep =
                             (highCostPathCurrPerceivedCost - lowCostPathCurrPerceivedCost) / newtonStepDenominator;
 
-                  // todo apply smoothing instead of multiplying by 0.25 (revert to always being iteration based for now I would think + implement fixed smoothing step option to use)
-                  double newLowCostPathProbability = Math.min(1, ((lowCostPath.getPathChoiceProbability() * demand)   + 0.25 * newtonStep)/demand);
-                  double newHighCostPathProbability = Math.max(0, ((highCostPath.getPathChoiceProbability() * demand) - 0.25 * newtonStep)/demand);
+                  var currLowCostDemand = lowCostPath.getPathChoiceProbability() * demand;
+                  var proposedLowCostDemand = currLowCostDemand + newtonStep;
+                  double newLowCostPathProbability = Math.min(1, smoothing.execute(currLowCostDemand, proposedLowCostDemand)/demand);
+
+                  var currHighCostDemand = highCostPath.getPathChoiceProbability() * demand;
+                  var proposedHighCostDemand = currHighCostDemand - newtonStep;
+                  double newHighCostPathProbability = Math.max(0, smoothing.execute(currHighCostDemand, proposedHighCostDemand)/demand);
 
                   //7. prep for i + 1 iteration
                   {

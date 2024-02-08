@@ -105,14 +105,12 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
   /**
    * Verify if a supported gap function is used
-   *
-   * @throws PlanItException thrown if the components are not compatible
    */
   @Override
-  protected void verifyComponentCompatibility() throws PlanItException {
+  protected void verifyComponentCompatibility() {
 
     /* gap function check */
-    PlanItException.throwIf(!(getGapFunction() instanceof LinkBasedRelativeDualityGapFunction),
+    PlanItRunTimeException.throwIf(!(getGapFunction() instanceof LinkBasedRelativeDualityGapFunction),
         "Traditional static assignment only supports link based relative duality gap function at the moment, but found %s", getGapFunction().getClass().getCanonicalName());
 
   }

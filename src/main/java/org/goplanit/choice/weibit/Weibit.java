@@ -41,11 +41,12 @@ public class Weibit extends ChoiceModel {
 
     /**********************************************************************************
      * In case of more than one route, calculate the probability for every route via
+     * (normlly there is a - sign, but because our costs are positive, we can leave it out as it is only there to make results positive)
      *
      *
-     *            ( 1/-general_cost_current_path)^scale
+     *            ( 1/general_cost_current_path)^scale
      *          ----------------------------------
-     *          SUM_candidates_p: ((1/-general_cost_of_path_p))^scale
+     *          SUM_candidates_p: ((1/general_cost_of_path_p))^scale
      * ********************************************************************************/
 
     /* construct denominator: offset by min cost to avoid floating point overflow errors */
@@ -89,14 +90,9 @@ public class Weibit extends ChoiceModel {
       }
       return Math.log(absoluteCost) + 1/getScalingFactor() * Math.log(demand);
     }else{
-      if(demand < 1){
-        // todo current exp transform does not solve issue since it increases in size between 0-1 --> requires multiplication by scaling factor to avoid this
-        // todo: this before led to incorrect calculation, probably bug, so when working revisit and update to include this approach again
-        // todo: UPDATE DERIVATIVE method below accordingly to keep consistent
-        LOGGER.warning("exp transformed solution does not cope with small demand, switch-off demand component of cost, DO NOT USE IN PRODUCTION");
-        return absoluteCost;
-      }
-      return absoluteCost * Math.pow(demand, 1/getScalingFactor());
+      // exp transform and multiply by scaling factor to avoid issues for demand and cost below 1.
+      // exp(scale*ln(abs_cost) + ln(demand)) = exp(scaling factor*ln(abs_cost) * (exp(ln(demand))  = abs_cost^scale * demand
+      return Math.pow(absoluteCost, getScalingFactor()) * demand;
     }
   }
 
@@ -132,19 +128,11 @@ public class Weibit extends ChoiceModel {
       //                            f' + g' =
       return dAbsoluteCostDFlow/absoluteCost + 1/(scalingFactor * demand);
     }else{
-      if(demand < 1){
-        // todo current exp transform does not solve issue since it increases in size between 0-1 --> requires multiplication by scaling factor to avoid this
-        // todo: this before led to incorrect calculation, probably bug, so when working revisit and update to include this approach again
-        // todo: UPDATE DERIVATIVE method below accordingly to keep consistent
-        // so d(exp(ln(abs_cost))) is what is left after exp transforming the original function when setting demand portion to 0 --> we get d_abs_cost
-        LOGGER.warning("exp transformed solution does not cope with demand <1 yet, use only non-demand component of cost for derivative, DO NOT USE IN PRODUCTION");
-        return dAbsoluteCostDFlow;
-      }
-      // abs_cost * demand^(1/scale)
-      //                f = abs_cost, g = demand^(1/scale)
-      //                f' = dAbsoluteCostDFlow, g' = (1/scale)*demand^((1/scale)-1)
+      // TODO: do it proper so we do not get in trouble with low demands: abs_cost^scale * demand
+      //                f = abs_cost*scale, g = demand
+      //                f' = scale*dAbsoluteCostDFlow, g' = 1
       // chain rule:    f' * g + f * g'
-      return dAbsoluteCostDFlow * Math.pow(demand, 1/getScalingFactor()) + absoluteCost * (1/getScalingFactor() * Math.pow(demand, (1/getScalingFactor())-1));
+      return dAbsoluteCostDFlow * getScalingFactor() * demand + Math.pow(absoluteCost, getScalingFactor());
     }
   }
 

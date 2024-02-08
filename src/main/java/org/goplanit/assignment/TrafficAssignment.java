@@ -25,6 +25,7 @@ import org.goplanit.output.enums.OutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.networkloading.NetworkLoading;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
@@ -123,28 +124,25 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   /**
    * Check if any components are undefined, if so throw exception
    *
-   * @throws PlanItException thrown if any components are undefined
    */
-  protected void checkForEmptyComponents() throws PlanItException {
+  protected void checkForEmptyComponents() {
     // input components
-    PlanItException.throwIf(demands == null, "Demand is null");
-    PlanItException.throwIf(physicalNetwork == null, "Network is null");
-    PlanItException.throwIf(zoning == null, "Zoning is null");
+    PlanItRunTimeException.throwIf(demands == null, "Demand is null");
+    PlanItRunTimeException.throwIf(physicalNetwork == null, "Network is null");
+    PlanItRunTimeException.throwIf(zoning == null, "Zoning is null");
     // traffic assignment components
-    PlanItException.throwIf(getSmoothing() == null, "Smoothing is null");
-    PlanItException.throwIf(getGapFunction() == null, "GapFunction is null");
-    PlanItException.throwIf(getPhysicalCost() == null, "PhysicalCost is null");
-    PlanItException.throwIf(getVirtualCost() == null, "VirtualCost is null");
+    PlanItRunTimeException.throwIf(getSmoothing() == null, "Smoothing is null");
+    PlanItRunTimeException.throwIf(getGapFunction() == null, "GapFunction is null");
+    PlanItRunTimeException.throwIf(getPhysicalCost() == null, "PhysicalCost is null");
+    PlanItRunTimeException.throwIf(getVirtualCost() == null, "VirtualCost is null");
 
   }
 
   /**
    * Verify if the create traffic assignment (sbu)components are compatible with each other and the created transport network. Called before starting the simulation and after the
    * transport network has been generated from physical and virtual network. So this is called after the build of the assignment instance
-   *
-   * @throws PlanItException thrown if the components are not compatible
    */
-  protected abstract void verifyComponentCompatibility() throws PlanItException;
+  protected abstract void verifyComponentCompatibility();
 
   /**
    * Verify if the traffic assignment inputs (components which are provided upon creation and not subcomponents that are created as part of the build process of the assignment are

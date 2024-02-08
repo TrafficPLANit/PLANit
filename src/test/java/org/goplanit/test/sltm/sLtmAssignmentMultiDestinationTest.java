@@ -15,6 +15,8 @@ import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoiceConfigurator;
 import org.goplanit.choice.ChoiceModel;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
+import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -402,6 +404,11 @@ public class sLtmAssignmentMultiDestinationTest {
 
       /* PATH BASED */
       configurator.setType(StaticLtmType.PATH_BASED);
+
+      /* fixed smoothing step */
+      var smoothingConfig = (FixedStepSmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      smoothingConfig.setStepSize(0.25);
+
       /* PATH CHOICE - STOCHASTIC */
       final var suePathChoice = (StochasticPathChoiceConfigurator) configurator.createAndRegisterPathChoice(PathChoice.STOCHASTIC);
       {
@@ -478,14 +485,15 @@ public class sLtmAssignmentMultiDestinationTest {
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sLTMBuilder.getConfigurator().activateDetailedLogging(false);
+      var sLtmConfig = sLTMBuilder.getConfigurator();
+      sLtmConfig.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      sLtmConfig.activateDetailedLogging(false);
       
       /* DESTINATION BASED */
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.DESTINATION_BUSH_BASED);
+      sLtmConfig.setType(StaticLtmType.DESTINATION_BUSH_BASED);
 
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+      sLtmConfig.activateOutput(OutputType.LINK);
+      sLtmConfig.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);

@@ -74,7 +74,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
   //
 
   /**
-   * Dis or enable enforcing any storage constraints on link(segments)
+   * Dis-or enable enforcing any storage constraints on link(segments)
    *
    * @param flag to set
    */

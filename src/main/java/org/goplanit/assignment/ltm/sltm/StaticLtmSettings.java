@@ -28,8 +28,9 @@ public class StaticLtmSettings {
    */
   private Boolean enforceMaxEntropyFlowSolution = ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT;
 
-  /** default setting for assignment is to apply an origin-based bush-based type of implementation over a path based one */
-  public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmType.DESTINATION_BUSH_BASED;
+  /** default setting for assignment is to apply a path based rather than an origin-based bush-based type of implementation*/
+  //public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmType.DESTINATION_BUSH_BASED;
+  public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmType.PATH_BASED;
 
   /** default setting for enforcing a flow proportional solution when possible */
   public static boolean ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT = false;
