@@ -16,13 +16,12 @@ import org.goplanit.utils.exceptions.PlanItException;
  * <li>Fundamental diagram: NEWELL</li>
  * <li>Node Model: TAMPERE</li>
  * <li>Smoothing: MSA</li>
- * <li>Gap function: NORM BASED (defaults: 1 norm + averaged))</li>
+ * <li>Gap function: PATH_BASED</li>
  * <li>Physical Cost: STEADY_STATE</li>
  * <li>Virtual Cost: FIXED</li>
  * </ul>
  * Further the following other settings have the defaults:
  * <ul>
- * <li>sltmType: ORIGIN_BUSH_BASED</li>
  * <li>disableLinkStorageConstraints: true</li>
  * <li>activateDetailedLogging: false</li>
  * <li>activateEnforceMaxEntropyFlowDistribution: false</li>
@@ -50,7 +49,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
     super(StaticLtm.class);
     createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
     createAndRegisterNodeModel(NodeModel.TAMPERE);
-    createAndRegisterGapFunction(GapFunction.LINK_BASED_RELATIVE_GAP);
+    createAndRegisterGapFunction(GapFunction.PATH_BASED_GAP);
     createAndRegisterSmoothing(Smoothing.MSA);
     createAndRegisterPhysicalCost(PhysicalCost.STEADY_STATE);
     createAndRegisterVirtualCost(VirtualCost.FIXED);

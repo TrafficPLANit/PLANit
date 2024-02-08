@@ -7,6 +7,7 @@ import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
 import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.choice.ChoiceModel;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
@@ -14,6 +15,8 @@ import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
+import org.goplanit.path.choice.PathChoice;
+import org.goplanit.path.choice.StochasticPathChoiceConfigurator;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -240,6 +243,15 @@ public class sLtmAssignmentSingleOdTest1 {
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       sLTMBuilder.getConfigurator().activateDetailedLogging(true);
       sLTMBuilder.getConfigurator().setType(StaticLtmType.PATH_BASED);
+
+      /* PATH CHOICE - STOCHASTIC */
+      final var suePathChoice = (StochasticPathChoiceConfigurator) sLTMBuilder.getConfigurator().createAndRegisterPathChoice(PathChoice.STOCHASTIC);
+      {
+        /* Weibit for path choice */
+        var choiceModel = suePathChoice.createAndRegisterChoiceModel(ChoiceModel.WEIBIT);
+        choiceModel.setScalingFactor(1); // we go for rather muddled perceived cost to differentiate from deterministic result
+        // by not setting a fixed od path set (suePathChoice.setFixedOdPathMatrix(...)), it is assumed we want a dynamic path set
+      }
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.execute();

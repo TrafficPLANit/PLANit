@@ -36,6 +36,7 @@ import org.goplanit.demands.Demands;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.gap.NormBasedGapFunction;
+import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.Network;
 import org.goplanit.network.ServiceNetwork;
@@ -136,6 +137,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(OdPathSets.class);
     registerPlanitComponentType(LinkBasedRelativeDualityGapFunction.class);
     registerPlanitComponentType(NormBasedGapFunction.class);
+    registerPlanitComponentType(PathBasedGapFunction.class);
   }
 
   /**

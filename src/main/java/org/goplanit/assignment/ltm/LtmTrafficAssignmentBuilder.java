@@ -14,8 +14,8 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.zoning.Zoning;
 
 /**
- * An LTM traffic assignment builder is assumed to only support Link Transmission Model (LTM) traffic assignment instances. It is used to build the traffic assignment instance with
- * the proper configuration settings
+ * An LTM traffic assignment builder is assumed to only support Link Transmission Model (LTM) traffic assignment instances.
+ * It is used to build the traffic assignment instance with the proper configuration settings
  *
  * @author markr
  *
@@ -50,12 +50,12 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
   }
 
   /**
-   * In addition to the super class sub components, we also construct the subcomponents specific to dynamic traffic assignment
+   * In addition to the super class subcomponents, we also construct the subcomponents specific to dynamic traffic assignment
    * 
    * @param ltmAssignmentInstance the instance to build on
    */
   protected void buildSubComponents(T ltmAssignmentInstance) throws PlanItException {
-    /* delegate to super class for base sub components */
+    /* delegate to super class for base subcomponents */
     super.buildSubComponents(ltmAssignmentInstance);
 
     /* Fundamental diagram sub component */
@@ -66,7 +66,7 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
     }
 
     /*
-     * path choice sub component... ...because it has subcomponents of its own, we must construct a builder for it instead of instantiating it directly here
+     * path choice subcomponent... ...because it has subcomponents of its own, we must construct a builder for it instead of instantiating it directly here
      */
     if (getConfigurator().getPathChoice() != null) {
       var pathChoiceBuilder = PathChoiceBuilderFactory.createBuilder(

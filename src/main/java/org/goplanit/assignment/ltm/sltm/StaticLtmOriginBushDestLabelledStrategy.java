@@ -38,7 +38,7 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
    */
   private void initialiseBushForDestination(final OriginBush originBush, final OdZone destination, final Double oDDemandPcuH, final ACyclicSubGraph odDag) {
 
-    /* destination label to to use (can be reused across bushes) */
+    /* destination label to use (can be reused across bushes) */
     final BushFlowLabel currentLabel = destinationLabels[(int) destination.getOdZoneId()];
 
     /* get topological sorted vertices to process */

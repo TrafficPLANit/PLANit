@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.LtmAssignment;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmStrategyConjugateBush;
+import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.network.MacroscopicNetwork;
@@ -87,9 +88,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * @param gapFunction the duality gap at the end of the iteration
    * @return the time (in ms) at the end of the iteration for profiling purposes only
    */
-  private Calendar logBasicIterationInformation(final Calendar startTime, final LinkBasedRelativeDualityGapFunction gapFunction) {
+  private Calendar logBasicIterationInformation(final Calendar startTime, final GapFunction gapFunction) {
     final Calendar currentTime = Calendar.getInstance();
-    LOGGER.info(String.format("%sGap: %.10f (%d ms)", createLoggingPrefix(getIterationIndex()), gapFunction.getGap(), currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
+    LOGGER.info(String.format("%sGap: %.10f (%d ms)", createLoggingPrefix(getIterationIndex()), gapFunction.getGap(10.0), currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
     return currentTime;
   }
 
@@ -176,7 +177,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       // PERSIST
       persistIterationResults(timePeriod, theMode, convergedOrStop);
 
-      iterationStartTime = logBasicIterationInformation(iterationStartTime, (LinkBasedRelativeDualityGapFunction) getGapFunction());
+      iterationStartTime = logBasicIterationInformation(iterationStartTime, getGapFunction());
     } while (!convergedOrStop);
 
   }
@@ -207,11 +208,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   @Override
   protected void verifyComponentCompatibility(){
     super.verifyComponentCompatibility();
-
-    /* gap function check */
-    PlanItRunTimeException.throwIf(!(getGapFunction() instanceof LinkBasedRelativeDualityGapFunction),
-        "%sStatic LTM only supports a link based relative gap function (for equilibration) at the moment, but found %s", LoggingUtils.runIdPrefix(getId()),
-        getGapFunction().getClass().getCanonicalName());
 
     /* smoothing check */
     PlanItRunTimeException.throwIf(!(getSmoothing() instanceof MSASmoothing || getSmoothing() instanceof FixedStepSmoothing),

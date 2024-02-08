@@ -1,13 +1,5 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Logger;
-
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
@@ -15,14 +7,18 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.gap.GapFunction;
-import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
+import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.zoning.Zoning;
+
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Base implementation to support a bush based solution for sLTM
@@ -47,7 +43,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     var passWithoutOrigins = new ArrayList<Pas>();
 
     var networkLoading = getLoading();
-    var gapFunction = (LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class);
+    var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
     var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
 
@@ -121,10 +117,11 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   protected Set<Pas> equalFlowDistributedPass;
 
   /**
-   * Update gap. Unconventional gap function where we update the GAP based on PAS cost discrepancy. This is due to the impossibility of efficiently determining the network and
+   * Update gap. modified path based gap function where we update the GAP based on PAS cost discrepancy.
+   * This is due to the impossibility of efficiently determining the network and
    * minimum path costs in a capacity constrained bush based setting. Instead we:
    * <p>
-   * minimumCost PAS : s1 cost * SUM(s1 sending flow, s2 sending flow) measuredCost PAS: s1 sending flow * s1 cost + s2 sending flow * s2 cost
+   * minimumCost PAS : s1 cost * SUM(s1 sending flow, s2 sending flow), measuredAbsoluteCostGap PAS: s2 sending flow * (s2 cost - s1 cost)
    * <p>
    * Sum the above over all PASs. Note that PASs can (partially) overlap, so the measured cost does likely not add up to the network cost
    * 
@@ -133,10 +130,9 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * @param s1SendingFlow of the PAS s1 segment
    * @param s2SendingFlow of the PAS s2 segment
    */
-  protected void updateGap(final LinkBasedRelativeDualityGapFunction gapFunction, final Pas pas, double s1SendingFlow, double s2SendingFlow) {
-    gapFunction.increaseConvexityBound(pas.getAlternativeLowCost() * (s1SendingFlow + s2SendingFlow));
-    gapFunction.increaseMeasuredCost(s1SendingFlow * pas.getAlternativeLowCost());
-    gapFunction.increaseMeasuredCost(s2SendingFlow * pas.getAlternativeHighCost());
+  protected void updateGap(final PathBasedGapFunction gapFunction, final Pas pas, double s1SendingFlow, double s2SendingFlow) {
+    gapFunction.increaseMinimumPathCosts(pas.getAlternativeLowCost(), (s1SendingFlow + s2SendingFlow));
+    gapFunction.increaseAbsolutePathGap(pas.getAlternativeHighCost(), pas.getAlternativeLowCost(), s2SendingFlow);
   }
 
   /**
@@ -418,6 +414,23 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       }
     }
     return converged;
-  } 
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * Path-based based assignment requires a form of path choice if we do more than a single iteration
+   */
+  @Override
+  public void verifyComponentCompatibility() {
+    super.verifyComponentCompatibility();
+
+    var gapFunction = getTrafficAssignmentComponent(GapFunction.class);
+
+    /* gap function check */
+    PlanItRunTimeException.throwIf(!(gapFunction instanceof PathBasedGapFunction),
+            "%s bush based Static LTM currently requires PAS compatible PathBasedRelative gap function, but found %s", gapFunction.getClass().getCanonicalName());
+
+  }
 
 }

@@ -23,6 +23,8 @@ public class GapFunctionConfiguratorFactory {
       return new LinkBasedRelativeGapConfigurator();
     } else if (gapFunctionType.equals(GapFunction.NORM_BASED_GAP)) {
       return new NormBasedGapConfigurator();
+    } else if (gapFunctionType.equals(GapFunction.PATH_BASED_GAP)) {
+      return new PathBasedGapConfigurator();
     } else {
       // TODO use value of string to use reflection and try and instantiate instead before throwing exception
       throw new PlanItException(String.format("unable to construct configurator for given gapFunctionType %s", gapFunctionType));

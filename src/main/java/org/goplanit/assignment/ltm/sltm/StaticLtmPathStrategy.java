@@ -6,6 +6,7 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
+import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
@@ -20,6 +21,7 @@ import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
@@ -27,6 +29,7 @@ import org.goplanit.utils.path.PathUtils;
 import org.goplanit.zoning.Zoning;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -48,33 +51,36 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   private final OdMultiPaths<List<StaticLtmDirectedPath>> odMultiPaths;
 
   /**
-   * Update gap. Unconventional gap function where we update the GAP based on path cost discrepancy.
-   * Consider implementing alternative time permitting
-   * <p>
-   * minimumCost low cost path perceived cost   : low cost * SUM(low cost sending flow, high cost sending flow)
-   * measuredCost: low cost sending flow * perceived cost + high cost sending flow * perceived high cost
-   * <p>
-   * Sum the above over all low/high cost path alternatives. Note that we only consider highest and lowest cost path here, so sum does not
-   * add up to total network cost.
+   * Update gap. gap function where we update the GAP based on path cost discrepancy following Bliemer et al 2014 gap function
    *
    * @param gapFunction   to use
-   * @param lowestCostPath the low-cost path
-   * @param lowestCostPerceivedCost the low-cost path perceived costs
-   * @param highestCostPath the high-cost path
-   * @param highestCostPerceivedCost the high-cost path perceived costs
+   * @param minPathCostIndex index to path with lowest perceived cost
+   * @param perceivedPathCosts the costs of each od path
+   * @param absolutePathCosts the absolute costs of each od path
+   * @param odPaths list of od paths
    * @param odDemand total OdDemand
    */
   protected void updateGap(
-          final LinkBasedRelativeDualityGapFunction gapFunction,
-          final StaticLtmDirectedPath lowestCostPath,
-          double lowestCostPerceivedCost,
-          final StaticLtmDirectedPath highestCostPath,
-          double highestCostPerceivedCost,
+          final PathBasedGapFunction gapFunction,
+          final int minPathCostIndex,
+          final double[] perceivedPathCosts,
+          final double[] absolutePathCosts,
+          final Collection<StaticLtmDirectedPath> odPaths,
           double odDemand) {
-    gapFunction.increaseConvexityBound(
-            lowestCostPerceivedCost * (odDemand * (highestCostPath.getPathChoiceProbability() + lowestCostPath.getPathChoiceProbability())));
-    gapFunction.increaseMeasuredCost(odDemand * lowestCostPath.getPathChoiceProbability() * lowestCostPerceivedCost);
-    gapFunction.increaseMeasuredCost(odDemand * highestCostPath.getPathChoiceProbability() * highestCostPerceivedCost);
+
+    double minPerceivedCost = perceivedPathCosts[minPathCostIndex];
+    if(!Precision.positive(minPerceivedCost)){
+      // in case this is zero (can happen in some exp transformed logit models where it is multiplied with demand), replace
+      // with absolute cost this is generally a conservative estimate for the lower bound. IDeally this is never needed though
+      // so if this occurs often consider investigating why low cost paths end up with zero demand and/or zero perceived costs.
+      minPerceivedCost = absolutePathCosts[minPathCostIndex];
+    }
+    gapFunction.increaseMinimumPathCosts(minPerceivedCost, odDemand);
+    int index = 0;
+    for(var path : odPaths){
+      double pathCost = index == minPathCostIndex ? minPerceivedCost : perceivedPathCosts[index++];
+      gapFunction.increaseAbsolutePathGap(pathCost, odDemand * path.getPathChoiceProbability(), minPerceivedCost);
+    }
   }
 
   /**
@@ -206,8 +212,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
         // if simple smoothing, prep here, if path based, prep later
         final var smoothing = getSmoothing();
-        final var gapFunction = (LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class);
-        final boolean applyOdIndependentSmoothing = smoothing instanceof IterationBasedSmoothing;
+        final var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
 
         /* EXPAND OD PATH SETS WHEN ELIGIBLE NEW PATH FOUND */
         var newOdPaths = createOdPaths(costsToUpdate);
@@ -282,8 +287,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                   }
 
                   //6. update gap
-                  // todo should be based on all paths, not just the ones changed
-                  updateGap(gapFunction, lowCostPath, lowCostPathCurrPerceivedCost, highCostPath, highCostPathCurrPerceivedCost, demand);
+                  updateGap(gapFunction, lowCostPathIndex, currPerceivedPathCosts, currAbsolutePathCosts, odPaths, demand);
                 });
         LOGGER.info("Created new paths and updated path choice for path-based sLTM");
       }
@@ -318,6 +322,11 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     super.verifyComponentCompatibility();
 
     var gapFunction = getTrafficAssignmentComponent(GapFunction.class);
+
+    /* gap function check */
+    PlanItRunTimeException.throwIf(!(gapFunction instanceof PathBasedGapFunction),
+            "%sStatic LTM with paths requires path based gap function, but found %s", gapFunction.getClass().getCanonicalName());
+
     var pathChoice = getPathChoice();
     if(pathChoice==null && gapFunction.getStopCriterion().getMaxIterations()>1){
       throw new PlanItRunTimeException("Path-based sLTM assignment has no Path Choice defined, when running multiple iterations this is a requirement");

@@ -64,7 +64,6 @@ public abstract class ChoiceModel extends PlanitComponent<ChoiceModel> implement
 
   /** Compute the derivative of perceived cost towards flow knowing the impact of dAbsoluteCost on a flow change as
    *  well as the absolute cost itself. We support an exp transformation as well to allow for small values of demand.
-   *  todo: For now we are assuming here that the derivative of the absolute cost function yields a value rather than a function, which is not general yet
    *
    * @param dAbsoluteCostDFlow derivative of absolute cost towards flow
    * @param absoluteCost absolute cost itself

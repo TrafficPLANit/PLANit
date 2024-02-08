@@ -33,6 +33,11 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
   public static final String NORM_BASED_GAP = NormBasedGapFunction.class.getCanonicalName();
 
   /**
+   * short code for a path based gap function type
+   */
+  public static final String PATH_BASED_GAP = PathBasedGapFunction.class.getCanonicalName();
+
+  /**
    * Constructor
    * 
    * @param idToken       to use for the generation of its id
@@ -95,6 +100,16 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
    * @return latest gap
    */
   public abstract double getGap();
+
+  /**
+   * Returns the last computed gap capped to given value
+   *
+   * @param truncateTo value to truncate to if gap exceeds this value
+   * @return latest gap truncated
+   */
+  public double getGap(double truncateTo){
+    return Math.min(truncateTo, getGap());
+  }
 
   /**
    * Reset the gap function

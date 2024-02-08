@@ -407,7 +407,7 @@ public class sLtmAssignmentMultiDestinationTest {
 
       /* fixed smoothing step */
       var smoothingConfig = (FixedStepSmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      smoothingConfig.setStepSize(0.25);
+      smoothingConfig.setStepSize(0.9);
 
       /* PATH CHOICE - STOCHASTIC */
       final var suePathChoice = (StochasticPathChoiceConfigurator) configurator.createAndRegisterPathChoice(PathChoice.STOCHASTIC);
@@ -417,7 +417,6 @@ public class sLtmAssignmentMultiDestinationTest {
         choiceModel.setScalingFactor(1); // we go for rather muddled perceived cost to differentiate from deterministic result
         // by not setting a fixed od path set (suePathChoice.setFixedOdPathMatrix(...)), it is assumed we want a dynamic path set
       }
-
 
       /* OUTPUT CONFIG */
       configurator.activateOutput(OutputType.LINK);
