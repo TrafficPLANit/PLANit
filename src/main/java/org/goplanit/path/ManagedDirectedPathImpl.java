@@ -5,7 +5,7 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.path.ManagedDirectedPath;
-import org.goplanit.utils.path.SimpleDirectedPath;
+import org.goplanit.utils.path.SimpleDirectedPathImpl;
 
 import java.util.Collection;
 import java.util.Deque;

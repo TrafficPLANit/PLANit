@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.choice.ChoiceModel;
+import org.goplanit.path.filter.PathFilter;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.path.SimpleDirectedPath;
 
@@ -34,6 +35,11 @@ public class StochasticPathChoice extends PathChoice {
    * The registered choice model
    */
   protected ChoiceModel choiceModel = null;
+
+  /**
+   * The registered path filter component containing all path filters to apply when generating paths on the fly
+   */
+  protected PathFilter pathFilters  = null;
 
   /**
    * Constructor
@@ -117,6 +123,24 @@ public class StochasticPathChoice extends PathChoice {
    */
   public void setChoiceModel(ChoiceModel choiceModel) {
     this.choiceModel = choiceModel;
+  }
+
+  /**
+   * get the filters
+   *
+   * @return path filters
+   */
+  public PathFilter getPathFilter() {
+    return this.pathFilters;
+  }
+
+  /**
+   * set the filters
+   *
+   * @param pathFilters the filters
+   */
+  public void setPathFilter(PathFilter pathFilters) {
+    this.pathFilters = pathFilters;
   }
 
   /**

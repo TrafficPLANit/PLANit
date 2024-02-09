@@ -22,7 +22,7 @@ public class PathChoiceConfigurator<T extends PathChoice> extends Configurator<T
   }
 
   /**
-   * Needed to avoid issues with generics, although it should be obvious that T extends Smoothing
+   * Needed to avoid issues with generics, although it should be obvious that T extends path choice
    * 
    * @param pathChoice the instance to configure
    */

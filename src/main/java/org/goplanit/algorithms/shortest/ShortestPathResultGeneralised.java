@@ -51,6 +51,12 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
    */
   @Override
   public <T extends SimpleDirectedPath> T createPath(final DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
+    // create path
+    return pathFactory.createNew(createRawPath(origin, destination));
+  }
+
+  @Override
+  public Deque<EdgeSegment> createRawPath(DirectedVertex origin, DirectedVertex destination) {
     // path edge segment container
     final Deque<EdgeSegment> pathEdgeSegments = new LinkedList<>();
 
@@ -85,7 +91,7 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
     }
 
     // create path
-    return pathFactory.createNew(pathEdgeSegments);
+    return pathEdgeSegments;
   }
 
   /**

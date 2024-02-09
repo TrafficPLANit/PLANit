@@ -1,5 +1,6 @@
 package org.goplanit.algorithms.shortest;
 
+import java.util.Deque;
 import java.util.function.Consumer;
 
 import org.goplanit.utils.graph.Vertex;
@@ -28,6 +29,15 @@ public interface ShortestPathResult extends ShortestResult{
    * @return the path that is created, when no path could be extracted null is returned
    */
   public abstract <T extends SimpleDirectedPath> T createPath(final DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination);
+
+  /**
+   * Create the path from the provided origin to a specified destination vertex, using the results available. The path builder is used to create the instance of the path.
+   *
+   * @param origin      the specified origin vertex
+   * @param destination the specified destination vertex
+   * @return the raw path in the form of an array of edgesegments, when no path could be extracted null is returned
+   */
+  public abstract Deque<EdgeSegment> createRawPath(DirectedVertex origin, DirectedVertex destination);
   
   /**
    * Find the next edge segment for a given vertex, depending on the underlying search this can be either in upstream or downstream direction

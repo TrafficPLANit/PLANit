@@ -45,6 +45,7 @@ import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoice;
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.choice.logit.MultinomialLogit;
+import org.goplanit.path.filter.PathFilter;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
 import org.goplanit.sdinteraction.smoothing.MSASmoothing;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
@@ -103,6 +104,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registeredPlanitComponents.put(FundamentalDiagramComponent.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(NodeModelComponent.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(PathChoice.class.getCanonicalName(), new TreeSet<>());
+    registeredPlanitComponents.put(PathFilter.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(ChoiceModel.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(OdPathSets.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(GapFunction.class.getCanonicalName(), new TreeSet<>());
@@ -133,6 +135,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(TampereNodeModelComponent.class);
     registerPlanitComponentType(StochasticPathChoice.class);
     registerPlanitComponentType(MultinomialLogit.class);
+    registerPlanitComponentType(PathFilter.class);
     registerPlanitComponentType(Weibit.class);
     registerPlanitComponentType(OdPathSets.class);
     registerPlanitComponentType(LinkBasedRelativeDualityGapFunction.class);

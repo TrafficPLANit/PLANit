@@ -26,6 +26,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
+import org.goplanit.utils.path.PathUtils;
 import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.AfterAll;
@@ -397,7 +398,7 @@ public class sLtmAssignmentMultiDestinationTest {
       Demands demands = createDemands();
 
       /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+      var sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       var configurator = sLTMBuilder.getConfigurator();
       configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       configurator.activateDetailedLogging(false);
@@ -416,6 +417,18 @@ public class sLtmAssignmentMultiDestinationTest {
         var choiceModel = suePathChoice.createAndRegisterChoiceModel(ChoiceModel.WEIBIT);
         choiceModel.setScalingFactor(1); // we go for rather muddled perceived cost to differentiate from deterministic result
         // by not setting a fixed od path set (suePathChoice.setFixedOdPathMatrix(...)), it is assumed we want a dynamic path set
+
+        // You can add your own custom filters alternatively, the one below being identical to the predefined max overlap one for 80%
+        final var MAX_OVERLAP = 0.6;
+        suePathChoice.getPathFilter().addCustomFilter(
+                (p, paths) -> paths.stream().noneMatch(pAlt -> {
+                  var factor = PathUtils.getOverlapFactor(p, pAlt);
+                  if(factor > MAX_OVERLAP){
+                    LOGGER.info(String.format("OVERLAP TOO HIGH %s", factor));
+                  }else{
+                    LOGGER.info(String.format("OVERLAP OK %s", factor));
+                  };
+                  return factor > MAX_OVERLAP;}));
       }
 
       /* OUTPUT CONFIG */

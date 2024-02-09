@@ -87,7 +87,7 @@ public class ShortestPathGeneralised {
     EdgeSegment[] nextEdgeSegmentByVertex = new EdgeSegment[numberOfVertices];
     Arrays.fill(nextEdgeSegmentByVertex, null);
 
-    PriorityQueue<Pair<DirectedVertex, Double>> openVertices = new PriorityQueue<Pair<DirectedVertex, Double>>(numberOfVertices, pairSecondComparator);
+    var openVertices = new PriorityQueue<Pair<DirectedVertex, Double>>(numberOfVertices, pairSecondComparator);
     initialiseOpenVertices(openVertices, vertexMeasuredCost);
 
     // collect cheapest cost and expand the vertex if not already visited

@@ -3,6 +3,8 @@ package org.goplanit.path.choice;
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.choice.ChoiceModelConfigurator;
 import org.goplanit.choice.ChoiceModelConfiguratorFactory;
+import org.goplanit.path.filter.PathFilter;
+import org.goplanit.path.filter.PathFilterConfigurator;
 import org.goplanit.utils.exceptions.PlanItException;
 
 /**
@@ -18,13 +20,19 @@ public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<Sto
    * Choice model configurator
    */
   protected ChoiceModelConfigurator<? extends ChoiceModel> choiceModelConfigurator;
+
+  /**
+   * PathFilter configurator
+   */
+  protected PathFilterConfigurator pathFilterConfigurator;
   
   /**
    * Constructor
    * 
    */
   protected StochasticPathChoiceConfigurator() {
-    super(StochasticPathChoice.class);        
+    super(StochasticPathChoice.class);
+    pathFilterConfigurator = new PathFilterConfigurator();
   }
   
   /**
@@ -48,4 +56,12 @@ public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<Sto
     return choiceModelConfigurator;
   }
 
+  /**
+   * Collect the path filter configurator (only relevant when on-the-fly paths are being generated, otherwise ignored)
+   *
+   * @return path filter configurator
+   */
+  public PathFilterConfigurator getPathFilter() {
+    return pathFilterConfigurator;
+  }
 }

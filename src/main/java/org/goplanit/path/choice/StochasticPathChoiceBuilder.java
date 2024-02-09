@@ -6,6 +6,8 @@ import org.goplanit.component.PlanitComponentFactory;
 import org.goplanit.input.InputBuilderListener;
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.choice.ChoiceModelConfigurator;
+import org.goplanit.path.filter.PathFilter;
+import org.goplanit.path.filter.PathFilterConfigurator;
 import org.goplanit.utils.builder.Configurator;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -43,7 +45,20 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
   }
 
   /**
-   * call to build and configure all sub-components of this builder
+   * create a path filter instance based on passed in configurator
+   *
+   * @param pathFilterConfigurator for the path filters container that is to be created
+   * @return created path filter
+   */
+  protected PathFilter createPathFilterInstance(PathFilterConfigurator pathFilterConfigurator) {
+    PlanitComponentFactory<PathFilter> pathFilterModelFactory = new PlanitComponentFactory<>(PathFilter.class);
+    pathFilterModelFactory.addListener(getInputBuilderListener());
+    return pathFilterModelFactory.create(
+            pathFilterConfigurator.getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
+  }
+
+  /**
+   * call to build and configure all subcomponents of this builder
    * 
    * @param pathChoiceInstance the instance to build on
    */
@@ -56,6 +71,13 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
       var choiceModel = createChoiceModelInstance(configurator.getChoiceModel());
       configurator.getChoiceModel().configure(choiceModel);
       pathChoiceInstance.setChoiceModel(choiceModel);
+    }
+
+    // create path filter component
+    if(configurator.getPathFilter() != null){
+      var pathFilters = createPathFilterInstance(configurator.getPathFilter());
+      configurator.getPathFilter().configure(pathFilters);
+      pathChoiceInstance.setPathFilter(pathFilters);
     }
   }
 

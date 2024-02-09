@@ -8,6 +8,8 @@ import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.path.SimpleDirectedPath;
 
+import java.util.Deque;
+
 /**
  * Implementation of the MinMaxPathResult interface
  * 
@@ -59,6 +61,14 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
   @Override
   public <T extends SimpleDirectedPath> T createPath(DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
     return minPathState ? minPathResult.createPath(pathFactory, origin, destination) : maxPathResult.createPath(pathFactory, origin, destination);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Deque<EdgeSegment> createRawPath(DirectedVertex origin, DirectedVertex destination) {
+    return minPathState ? minPathResult.createRawPath(origin, destination) : maxPathResult.createRawPath(origin, destination);
   }
 
   /**
