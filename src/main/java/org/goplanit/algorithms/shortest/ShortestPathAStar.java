@@ -134,6 +134,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
       // for all exiting edges
       for (var adjacentEdgeSegment : currentVertex.getExitEdgeSegments()) {
         if(bannedSegments!= null && !bannedSegments.isEmpty() && bannedSegments.contains(adjacentEdgeSegment)){
+          // todo: replace banned segments with infinite cost to avoid searching on them every time which is costly
           continue;
         }
 

@@ -7,7 +7,9 @@ package org.goplanit.algorithms.shortest;
  *
  */
 public enum ShortestSearchType {
-  ALL_TO_ONE, ONE_TO_ALL, ONE_TO_ONE;
+  ALL_TO_ONE,
+  ONE_TO_ALL,
+  ONE_TO_ONE;
 
   /**
    * Verify if the shortest search type is inverted compared to "regular" one-to-x search

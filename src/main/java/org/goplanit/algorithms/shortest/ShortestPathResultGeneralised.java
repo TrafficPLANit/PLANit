@@ -52,6 +52,10 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
   @Override
   public <T extends SimpleDirectedPath> T createPath(final DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
     // create path
+    var rawPath = createRawPath(origin, destination);
+    if(rawPath == null){
+      return null;
+    }
     return pathFactory.createNew(createRawPath(origin, destination));
   }
 
