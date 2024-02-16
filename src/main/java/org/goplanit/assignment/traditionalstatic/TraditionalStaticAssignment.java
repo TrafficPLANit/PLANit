@@ -217,7 +217,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
           if (Precision.positive(odDemand)) {
             var destinationCentroidVertex = zone2VertexMapping.get(currentDestinationZone);
-            double odShortestPathCost = shortestPathResult.getCostOf(destinationCentroidVertex);
+            double odShortestPathCost = shortestPathResult.getCostToReach(destinationCentroidVertex);
             if (odShortestPathCost == Double.POSITIVE_INFINITY || odShortestPathCost == Double.MAX_VALUE) {
               LOGGER.warning(String.format("%s impossible path from origin zone %s (id:%d) to destination zone %s (id:%d) for mode %s (id:%d)", createLoggingPrefix(),
                   currentOriginZone.getXmlId(), currentOriginZone.getId(), currentDestinationZone.getXmlId(), currentDestinationZone.getId(), mode.getXmlId(), mode.getId()));
@@ -324,7 +324,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
         if (odSkimOutputType.equals(OdSkimSubOutputType.COST)) {
 
           // Collect cost to get to vertex from shortest path ONE-TO-ALL information directly
-          final double odGeneralisedCost = shortestPathResult.getCostOf(zone2VertexMapping.get(currentDestinationZone));
+          final double odGeneralisedCost = shortestPathResult.getCostToReach(zone2VertexMapping.get(currentDestinationZone));
           final OdSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);
           odSkimMatrix.setValue(currentOriginZone, currentDestinationZone, odGeneralisedCost);
         }

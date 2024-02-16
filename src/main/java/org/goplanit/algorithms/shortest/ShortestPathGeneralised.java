@@ -55,7 +55,7 @@ public class ShortestPathGeneralised {
    * @param edgeSegment to use
    * @return cost of traversing edge segment
    */
-  protected Double getEdgeSegmentCost(final EdgeSegment edgeSegment) {
+  Double getEdgeSegmentCost(final EdgeSegment edgeSegment) {
     return edgeSegmentCosts[(int) edgeSegment.getId()];
   }
 

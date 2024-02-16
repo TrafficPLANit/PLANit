@@ -85,7 +85,7 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
     }
 
     /* register layers */
-    Map<String, Long> xmlIdToId = new HashedMap<String, Long>();
+    var xmlIdToId = new HashedMap<String, Long>();
     for (String layerXmlId : layerConfiguration.transportLayersByXmlId) {
       NetworkLayer newLayer = getTransportLayers().getFactory().registerNew();
       newLayer.setXmlId(layerXmlId);

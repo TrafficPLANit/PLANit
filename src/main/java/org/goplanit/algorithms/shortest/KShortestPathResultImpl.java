@@ -55,27 +55,49 @@ public class KShortestPathResultImpl implements KShortestPathResult {
     this.kShortestRawPathsWithCost = kShortestRawPathsWithCost;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void chooseKShortestPathIndex(int k) {
-    if(k>kShortestRawPathsWithCost.size()){
+    if(k>=kShortestRawPathsWithCost.size()){
       LOGGER.warning(String.format(
-              "Chosen a k (%d) for k-shortest path that is larger than the number of available shortest paths, truncating to maximum of %d", k, kShortestRawPathsWithCost.size()-1));
+              "Chosen a k index (%d) for k-shortest path that is larger than the max index given the available shortest paths, truncating to max index of %d", k, kShortestRawPathsWithCost.size()-1));
       k = kShortestRawPathsWithCost.size()-1;
     }
     this.currentK = k;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int getCurrentKShortestPathIndex() {
     return currentK;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <T extends SimpleDirectedPath> List<T> createPaths(DirectedPathFactory<T> pathFactory) {
+    var kShortestPaths = new ArrayList<T>(kShortestRawPathsWithCost.size());
+    for(int currK=0; currK<kShortestRawPathsWithCost.size(); ++currK){
+      chooseKShortestPathIndex(currK);
+      kShortestPaths.add(createPath(pathFactory, origin, destination));
+    }
+    return kShortestPaths;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public <T extends SimpleDirectedPath> T createPath(DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
     if(!validateOriginDestination(origin, destination)){
       return null;
     }
-    return pathFactory.createNew(kShortestRawPathsWithCost.get(currentK).first());
+    return pathFactory.createNew(kShortestRawPathsWithCost.get(getCurrentKShortestPathIndex()).first());
   }
 
   @Override
@@ -97,7 +119,7 @@ public class KShortestPathResultImpl implements KShortestPathResult {
   }
 
   @Override
-  public double getCostOf(Vertex vertex) {
+  public double getCostToReach(Vertex vertex) {
     if(vertex.idEquals(this.destination)){
       return kShortestRawPathsWithCost.get(currentK).second(); // full path cost to reach destination
     }

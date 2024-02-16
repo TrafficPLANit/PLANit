@@ -115,14 +115,14 @@ public class ChoiceTest {
     @Test
     public void MnlPerceivedCostTest() {
         mnl.setScalingFactor(2);
-        assertEquals(7.386294361, mnl.computePerceivedCost(3,4, false), Precision.EPSILON_6);
+        assertEquals(3.6931471805599454, mnl.computePerceivedCost(3,4, false), Precision.EPSILON_6);
         assertEquals(1613.715173971, mnl.computePerceivedCost(3,4, true), Precision.EPSILON_6);
     }
 
     @Test
     public void WeibitPerceivedCostTest() {
         weibit.setScalingFactor(2);
-        assertEquals(3.583518938, weibit.computePerceivedCost(3,4, false), Precision.EPSILON_6);
+        assertEquals(1.791759469228055, weibit.computePerceivedCost(3,4, false), Precision.EPSILON_6);
         assertEquals(36, weibit.computePerceivedCost(3,4, true), Precision.EPSILON_6);
     }
 

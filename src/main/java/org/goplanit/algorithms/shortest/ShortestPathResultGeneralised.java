@@ -110,7 +110,7 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
    * {@inheritDoc}
    */
   @Override
-  public double getCostOf(Vertex vertex) {
+  public double getCostToReach(Vertex vertex) {
     return vertexMeasuredCost[(int) vertex.getId()];
   }
 

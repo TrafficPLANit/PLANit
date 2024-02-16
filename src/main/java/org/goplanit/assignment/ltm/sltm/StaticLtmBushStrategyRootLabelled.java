@@ -188,7 +188,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         if (reducedCostSegment == null) {
           continue;
         }
-        double reducedCost = minMaxPaths.getCostOf(bushVertex) - networkMinPaths.getCostOf(bushVertex);
+        double reducedCost = minMaxPaths.getCostToReach(bushVertex) - networkMinPaths.getCostToReach(bushVertex);
 
         /* when bush does not contain the reduced cost edge segment (or the opposite direction which would cause a cycle) consider it */
         if (reducedCost > 0 && !bush.containsAnyEdgeSegmentOf(reducedCostSegment.getParent())) {

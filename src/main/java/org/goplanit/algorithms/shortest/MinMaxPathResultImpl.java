@@ -4,8 +4,6 @@ import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.path.DirectedPathFactory;
-import org.goplanit.utils.path.ManagedDirectedPath;
-import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.path.SimpleDirectedPath;
 
 import java.util.Deque;
@@ -88,8 +86,8 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    * {@inheritDoc}
    */
   @Override
-  public double getCostOf(Vertex vertex) {
-    return minPathState ? minPathResult.getCostOf(vertex) : maxPathResult.getCostOf(vertex);
+  public double getCostToReach(Vertex vertex) {
+    return minPathState ? minPathResult.getCostToReach(vertex) : maxPathResult.getCostToReach(vertex);
   }
 
   /**

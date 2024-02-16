@@ -26,7 +26,7 @@ public interface ShortestResult {
    * @param vertex to collect cost for
    * @return cost found
    */
-  public abstract double getCostOf(Vertex vertex);
+  public abstract double getCostToReach(Vertex vertex);
 
   /**
    * Provide the search type that was used to obtain this result

@@ -8,6 +8,7 @@ import java.util.Set;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
+import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
@@ -78,7 +79,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
    * {@inheritDoc}
    * 
    * We create the heuristic costs on-the-fly based on the coordinates of the vertex and computing the as-the-crow-flies lower bound cost. Can only be used when instance was
-   * created by providing ${code CRS} and ${codeheuristicDistanceMultiplier} in constructor. Also, all network entities should hold geo positions otherwise the execution will fail
+   * created by providing ${code CRS} and ${code heuristicDistanceMultiplier} in constructor. Also, all network entities should hold geo positions otherwise the execution will fail
    * with a nullpointer.
    *
    */
