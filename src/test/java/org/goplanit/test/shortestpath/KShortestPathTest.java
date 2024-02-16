@@ -264,6 +264,30 @@ public class KShortestPathTest {
       kShortestResult.chooseKShortestPathIndex(7);
       assertEquals(6,kShortestResult.getCurrentKShortestPathIndex()); // when not available truncated to largest (and warning is issued)
 
+      /*** CHANGE ORIGIN AND SEE IF THAT WORKS ***/
+
+      var originVertexD = network.getTransportLayers().getFirst().getNodes().getByXmlId("D");
+      var kShortestResultFromD = kShortest.executeOneToOne(originVertexD, destinationVertex);
+
+      var kShortestPathsFromD = kShortestResultFromD.createPaths(pathFactory);
+      // only two options in total
+      assertEquals(2, kShortestPathsFromD.size());
+
+      // Path 0
+      kShortestResultFromD.chooseKShortestPathIndex(0);
+      double firstCostFromD = kShortestResultFromD.getCostToReach(destinationVertex);
+      double dfhCost = linkSegments.getByXmlId("DF").getLengthKm() +
+              linkSegments.getByXmlId("FH").getLengthKm() + 1 * 0.1;
+      assertEquals(dfhCost, firstCostFromD, Precision.EPSILON_6);
+
+      // Path 1
+      kShortestResultFromD.chooseKShortestPathIndex(1);
+      double secondCostFromD = kShortestResultFromD.getCostToReach(destinationVertex);
+      double dfghCost = linkSegments.getByXmlId("DF").getLengthKm() +
+              linkSegments.getByXmlId("FG").getLengthKm() +
+              linkSegments.getByXmlId("GH").getLengthKm() + 1 * 0.1;
+      assertEquals(dfhCost, firstCostFromD, Precision.EPSILON_6);
+
     } catch (Exception e) {
       e.printStackTrace();
       fail("Error when testing Yen's K shortest path - one-to-all");

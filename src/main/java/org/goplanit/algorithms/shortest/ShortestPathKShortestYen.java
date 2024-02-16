@@ -95,7 +95,7 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
    */
   @Override
   public KShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination, Set<? extends EdgeSegment> bannedSegments) {
-    /* only recompute bootstrap result if origin changes */
+    /* only recompute bootstrap result if origin changes - one-to-all so it is available for all destinations at once */
     var oneToAll =  prevOneToAllResult;
     if(!origin.idEquals(prevOrigin)){
       oneToAll = oneToAllBootStrapSearch.executeOneToAll(origin);
