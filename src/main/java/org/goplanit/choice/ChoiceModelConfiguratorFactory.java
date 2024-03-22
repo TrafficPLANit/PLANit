@@ -1,5 +1,7 @@
 package org.goplanit.choice;
 
+import org.goplanit.choice.logit.BoundedMultinomialLogit;
+import org.goplanit.choice.logit.BoundedMultinomialLogitConfigurator;
 import org.goplanit.choice.logit.MultinomialLogitConfigurator;
 import org.goplanit.choice.weibit.WeibitConfigurator;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -25,6 +27,8 @@ public class ChoiceModelConfiguratorFactory {
       return new MultinomialLogitConfigurator();
     }else if (choiceModelType.equals(ChoiceModel.WEIBIT)) {
       return new WeibitConfigurator();
+    }else if (choiceModelType.equals(ChoiceModel.BOUNDED_MNL)) {
+      return new BoundedMultinomialLogitConfigurator();
     }else {
       throw new PlanItRunTimeException("unable to construct configurator for given choice model Type %s", choiceModelType);
     }

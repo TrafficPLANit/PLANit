@@ -5,6 +5,8 @@ import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
 import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.choice.logit.BoundedMultinomialLogit;
+import org.goplanit.choice.logit.BoundedMultinomialLogitConfigurator;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
@@ -389,10 +391,10 @@ public class sLtmAssignmentMultiDestinationTest {
   //@formatter:on
 
   /**
-   * Test sLTM path based assignment on above network for a point queue model
+   * Test sLTM path based assignment on above network for a point queue model with Weibit SUE
    */
   @Test
-  public void sLtmPointQueuePathBasedAssignmentTest() {
+  public void sLtmPointQueuePathBasedWeibitSueAssignmentTest() {
     try {
 
       Demands demands = createDemands();
@@ -416,6 +418,71 @@ public class sLtmAssignmentMultiDestinationTest {
         /* Weibit for path choice */
         var choiceModel = suePathChoice.createAndRegisterChoiceModel(ChoiceModel.WEIBIT);
         choiceModel.setScalingFactor(1); // we go for rather muddled perceived cost to differentiate from deterministic result
+        // by not setting a fixed od path set (suePathChoice.setFixedOdPathMatrix(...)), it is assumed we want a dynamic path set
+
+        // You can add your own custom filters alternatively, the one below being identical to the predefined max overlap one for 80%
+        final var MAX_OVERLAP = 0.6;
+        suePathChoice.getPathFilter().addCustomFilter(
+                (p, paths) -> paths.stream().noneMatch(pAlt -> {
+                  var factor = PathUtils.getOverlapFactor(p, pAlt);
+                  if(factor > MAX_OVERLAP){
+                    LOGGER.info(String.format("OVERLAP TOO HIGH %s", factor));
+                  }else{
+                    LOGGER.info(String.format("OVERLAP OK %s", factor));
+                  };
+                  return factor > MAX_OVERLAP;}));
+      }
+
+      /* OUTPUT CONFIG */
+      configurator.activateOutput(OutputType.LINK);
+      configurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+
+      /* GAP AND CONVERGENCE */
+      configurator.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      configurator.getGapFunction().getStopCriterion().setMaxIterations(1000);
+
+      /* BUILD AND EXECUTE */
+      StaticLtm sLTM = sLTMBuilder.build();
+      sLTM.setActivateDetailedLogging(true);
+      sLTM.execute();
+
+      testStochasticOutputs(sLTM);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      fail("Error when testing sLTM multi-destination path based assignment");
+    }
+  }
+
+  /**
+   * Test sLTM path based assignment on above network for a point queue model with bounded MNL
+   */
+  @Test
+  public void sLtmPointQueuePathBasedBoundedMnlSueAssignmentTest() {
+    try {
+
+      Demands demands = createDemands();
+
+      /* sLTM - POINT QUEUE */
+      var sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+      var configurator = sLTMBuilder.getConfigurator();
+      configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      configurator.activateDetailedLogging(false);
+
+      /* PATH BASED */
+      configurator.setType(StaticLtmType.PATH_BASED);
+
+      /* fixed smoothing step */
+      var smoothingConfig = (FixedStepSmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      smoothingConfig.setStepSize(0.4);
+
+      /* PATH CHOICE - STOCHASTIC */
+      final var suePathChoice = (StochasticPathChoiceConfigurator) configurator.createAndRegisterPathChoice(PathChoice.STOCHASTIC);
+      {
+        /* Weibit for path choice */
+        var choiceModel = (BoundedMultinomialLogitConfigurator) suePathChoice.createAndRegisterChoiceModel(ChoiceModel.BOUNDED_MNL);
+        choiceModel.setScalingFactor(1);  // we go for rather muddled perceived cost to differentiate from deterministic result
+        choiceModel.setDelta(0.5);        // we set bound with 0.5h of travel time difference for a path to be considered
         // by not setting a fixed od path set (suePathChoice.setFixedOdPathMatrix(...)), it is assumed we want a dynamic path set
 
         // You can add your own custom filters alternatively, the one below being identical to the predefined max overlap one for 80%

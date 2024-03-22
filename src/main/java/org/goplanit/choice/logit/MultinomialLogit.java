@@ -82,38 +82,46 @@ public class MultinomialLogit extends ChoiceModel {
    * {@inheritDoc}
    */
   @Override
-  public double computePerceivedCost(double absoluteCost, double demand, boolean applyExpTransform) {
+  public double computePerceivedCost(double[] alternativeCosts, int index, double demand, boolean applyExpTransform) {
+    return computePerceivedCost(alternativeCosts[index], demand, applyExpTransform);
+  }
 
-    if(demand < Precision.EPSILON_12){
-      LOGGER.severe("no demand, can't compute perceived cost (always zero), applying dummy demand of 1 --> DO NOT USE IN PRODUCTION");
-      demand = 1;
+  public double computePerceivedCost(double alternativeCost, double demand, boolean applyExpTransform) {
+
+    if(demand <= 0){
+      LOGGER.severe("Negative demand found, can't compute perceived cost (always zero), truncating to 10^-12");
+      demand = Precision.EPSILON_12;
     }
 
     // abs_cost + 1/scale * ln(demand) == scale * abs_cost + ln(demand) which may be transformed to
     // exp(scale * abs_cost + ln(demand)) == exp(scale * abs_cost) * demand
     if(!applyExpTransform){
-      return absoluteCost + Math.log(demand)/getScalingFactor();
+      return alternativeCost + Math.log(demand)/getScalingFactor();
     }else{
-      return Math.exp(getScalingFactor() * absoluteCost) * demand;
+      return Math.exp(getScalingFactor() * alternativeCost) * demand;
     }
   }
 
   /** For MNL we can work out the derivative of perceived cost towards flow when we know the impact of dAbsoluteCost on a flow change as
    *  well as the absolute cost itself. We support an exp transformation as well to allow for small values of demand.
    *
-   *
-   * @param dAbsoluteCostDFlow derivative of absolute cost towards flow
-   * @param absoluteCost absolute cost itself
+   * @param dAbsoluteCostDFlows derivatives of absolute cost towards flow
+   * @param absoluteCosts absolute costs itself
+   * @param index of the alternative explored
    * @param demand demand related to the logit model (usually path specific demand for example)
    * @param applyExpTransform when true consider exp transform of formulation, otherwise not
    * @return perceived dCost/dflow
    */
   @Override
+  public double computeDPerceivedCostDFlow(double[] dAbsoluteCostDFlows, double[] absoluteCosts, int index, double demand, boolean applyExpTransform) {
+    return computeDPerceivedCostDFlow(dAbsoluteCostDFlows[index], absoluteCosts[index], demand, applyExpTransform);
+  }
+
   public double computeDPerceivedCostDFlow(double dAbsoluteCostDFlow, double absoluteCost, double demand, boolean applyExpTransform) {
 
-    if(demand < Precision.EPSILON_12){
-      LOGGER.severe("no demand, can't compute perceived cost (always zero), applying dummy demand of 1 --> DO NOT USE IN PRODUCTION");
-      demand = 1;
+    if(demand <= 0){
+      LOGGER.severe("Negative demand found, can't compute perceived cost (always zero), truncating to 10^-12");
+      demand = Precision.EPSILON_12;
     }
 
     // abs_cost + 1/scale * ln(demand) == scale * abs_cost + ln(demand) which may be transformed to

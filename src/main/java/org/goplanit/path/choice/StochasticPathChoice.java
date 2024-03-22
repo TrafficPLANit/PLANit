@@ -90,21 +90,9 @@ public class StochasticPathChoice extends PathChoice {
     final var numPaths = absolutePathCosts.length;
     var perceivedPathCosts = new double[numPaths];
     for(int index = 0; index < absolutePathCosts.length; ++ index){
-      perceivedPathCosts[index] = choiceModel.computePerceivedCost(absolutePathCosts[index], pathProbabilities[index] * odDemand, true);
+      perceivedPathCosts[index] = choiceModel.computePerceivedCost(absolutePathCosts, index, pathProbabilities[index] * odDemand, true);
     }
     return  perceivedPathCosts;
-  }
-
-  /**
-   * Convert absolute path costs to perceived path costs for supported stochastic choice models
-   *
-   * @param absolutePathCost the absolute path costs to convert
-   * @param pathProbability the path probability
-   * @param odDemand the total demand of the od these paths relate to
-   * @return perceived path cost for absolute cost and associated flow
-   */
-  public double computePerceivedPathCost(final double absolutePathCost, final double pathProbability, final Double odDemand) {
-    return choiceModel.computePerceivedCost(absolutePathCost, pathProbability * odDemand, true);
   }
 
   /**

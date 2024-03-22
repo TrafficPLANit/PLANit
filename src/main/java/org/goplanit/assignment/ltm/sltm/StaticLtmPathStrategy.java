@@ -119,7 +119,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * Create the od paths based on provided costs. Only create paths for od pairs with non-zero flow.
    * 
    * @param currentSegmentCosts costs to use for the shortest path algorithm
-   * @return create odPaths
+   * @return newly created odPaths
    */
   private OdPaths<StaticLtmDirectedPath> createOdPaths(final double[] currentSegmentCosts) {
     final ShortestPathOneToAll shortestPathAlgorithm = new ShortestPathDijkstra(currentSegmentCosts, getTransportNetwork().getNumberOfVerticesAllLayers());
@@ -207,27 +207,33 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     }
 
     // 5. determine path based derivatives dcost/dflow (on perceived cost) utilising absolute cost derivatives and functional form of SUE function
+    double[] dpCostdFlows = {highCostPathDAbsoluteCostDFlow, lowCostPathDAbsoluteCostDFlow};
+    double[] absCosts = {currAbsolutePathCosts[highCostPathIndex], currAbsolutePathCosts[lowCostPathIndex]};
     double highCostPathDenominator = stochasticPathChoice.getChoiceModel().computeDPerceivedCostDFlow(
-            highCostPathDAbsoluteCostDFlow, currAbsolutePathCosts[highCostPathIndex], highCostPath.getPathChoiceProbability() * demand, true);
+            dpCostdFlows, absCosts, 0 /*high cost */, highCostPath.getPathChoiceProbability() * demand, true);
     // low cost path based dPerceivedCost/dFlow this required the derivative of the perceived cost related to the applied path choice model
     double lowCostPathDenominator = stochasticPathChoice.getChoiceModel().computeDPerceivedCostDFlow(
-            lowCostPathDAbsoluteCostDFlow,  currAbsolutePathCosts[lowCostPathIndex], lowCostPath.getPathChoiceProbability() * demand, true);
+            dpCostdFlows,  absCosts, 1 /*low cost */,lowCostPath.getPathChoiceProbability() * demand, true);
+
+    var currHighCostDemand = highCostPath.getPathChoiceProbability() * demand;
+    var currLowCostDemand = lowCostPath.getPathChoiceProbability() * demand;
 
     //6. NEWTON STEP: analytical equilibration of two paths based on their current cost and first derivative to determine flows/probabilities for i+1
     //   (adapted from Olga Perederieieva (2015) thesis)
     double newtonStepDenominator = highCostPathDenominator + lowCostPathDenominator;
     //   cost_high - step * dCost_high/d_Flow_high = cost_low - step * dCost_low/d_Flow_low
     //   rewrite towards step: step =  (cost_high - cost_low)/((dCost_high/d_Flow_high)+(dCost_low/d_Flow_low))
-    double newtonStep =
-            (highCostPathCurrPerceivedCost - lowCostPathCurrPerceivedCost) / newtonStepDenominator;
+    double newtonStep = Math.min(currHighCostDemand,
+            newtonStepDenominator != 0.0 ?
+              (highCostPathCurrPerceivedCost - lowCostPathCurrPerceivedCost) / newtonStepDenominator :
+              currHighCostDemand);
 
-    // 7. Apply smoothing to step
-    var currLowCostDemand = lowCostPath.getPathChoiceProbability() * demand;
+    // 7. Apply smoothing to step (capped at overall demand in case no derivatives were available for both options)
+
     var proposedLowCostDemand = currLowCostDemand + newtonStep;
-    double newLowCostPathProbability = Math.min(1, smoothing.execute(currLowCostDemand, proposedLowCostDemand)/demand);
-
-    var currHighCostDemand = highCostPath.getPathChoiceProbability() * demand;
     var proposedHighCostDemand = currHighCostDemand - newtonStep;
+
+    double newLowCostPathProbability = Math.min(1, smoothing.execute(currLowCostDemand, proposedLowCostDemand)/demand);
     double newHighCostPathProbability = Math.max(0, smoothing.execute(currHighCostDemand, proposedHighCostDemand)/demand);
 
     //8. update new probabilities for i + 1 iteration
