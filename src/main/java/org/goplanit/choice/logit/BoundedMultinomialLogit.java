@@ -39,7 +39,7 @@ public class BoundedMultinomialLogit extends ChoiceModel {
   private double delta = DEFAULT_DELTA;
 
   /**
-   * Compute exp^(-scale(absolutePathCost + max_across_alts(-general_cost_alt_path_p) - delta)
+   * Compute exp^(-scale(absolutePathCost + max_across_alts(-general_cost_alt_path_p) - delta))
    *
    * @param absolutePathCost the absolute pathcost of the alternative
    * @param negatedMaxAbsolutePathCost result of max_across_alts(-general_cost_alt_path_p)
@@ -50,7 +50,7 @@ public class BoundedMultinomialLogit extends ChoiceModel {
   }
 
   /**
-   * Compute exp^(-scale(absolutePathCost + max_across_alts(-general_cost_alt_path_p) - delta)-1
+   * Compute exp^(-scale(absolutePathCost + max_across_alts(-general_cost_alt_path_p) - delta))-1
    * (do not allow negative values here as these always fall outside of domain, truncate to zero in those cases)
    *
    * @param absolutePathCost the absolute pathcost of the alternative
@@ -184,6 +184,8 @@ public class BoundedMultinomialLogit extends ChoiceModel {
       return 0;
     }
 
+    // temp = -scale(dabsPathcost/dflow + dCost/dFlow(max_across_alts(-abscost_alt_path_p))
+    double temp = -getScalingFactor() *(dAbsoluteCostDFlows[index] - dAbsoluteCostDFlows[maxValueAlternativeIndex]);
     final double uPrime = computeBoundedPathAlternativeExpValue(alternativeAbsolutecost, negatedMaxAbsolutePathCost);
     final double u = uPrime - 1;
 
@@ -191,18 +193,27 @@ public class BoundedMultinomialLogit extends ChoiceModel {
     //
     // ln(demand) -ln(u) --> in dPerceivedCost/dDemand form:
     //   1/demand - 1/u * dcost/dflow(u) ==
-    //    1/demand - 1/u * u` * -scale(dabsPathcost/dflow + dCost/dFlow(max_across_alts(-abscost_alt_path_p)))
+    //    1/demand - 1/u * u` * temp
     //
     // or fp/u --> in dPerceivedCost/dDemand form:
-    //  chain adn product rule multiple times eventually gives
-    //    1/u + (demand * -u`/u^2) * -scale(dabsPathcost/dflow + dCost/dFlow(max_across_alts(-abscost_alt_path_p)))
+    //  quotient rule -->
+    //    u + (demand * -temp * u`)/ u^2
     //
-    double temp = -getScalingFactor() *(dAbsoluteCostDFlows[index] + -dAbsoluteCostDFlows[maxValueAlternativeIndex]);
+    double result;
     if(!applyExpTransform){
-      return 1/demand - (1/u * uPrime * temp);
+      result = 1/demand - (1/u * uPrime * temp);
     }else{
-      return (u-demand*temp*uPrime)/Math.pow(u,2);
+      result = (uPrime*(1 + (demand * -temp))-1)/Math.pow(u,2);
     }
+    if(result < 0){
+      // SPECIAL CASE:
+      //  in situations where the most attractive dAbsCost/dFlow does not belong to the path with the most attractive
+      //  dPerceivedcost/dFlow (which can happen in capacity constrained assignment) it is possible that a negative value
+      //  is found for dPerceivedcost/dFlow. This is not desirable as perceived cost will always go up with flow
+      //  (at least relative to the best alternative). Only because therefore we impose a lower bound of zero
+      result  = 0;
+    }
+    return result;
   }
 
   /**

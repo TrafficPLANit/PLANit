@@ -110,8 +110,9 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     gapFunction.increaseMinimumPathCosts(minPerceivedCost, odDemand);
     int index = 0;
     for(var path : odPaths){
-      double pathCost = index == minPathCostIndex ? minPerceivedCost : perceivedPathCosts[index++];
+      double pathCost = index == minPathCostIndex ? minPerceivedCost : perceivedPathCosts[index];
       gapFunction.increaseAbsolutePathGap(pathCost, odDemand * path.getPathChoiceProbability(), minPerceivedCost);
+      ++index;
     }
   }
 
@@ -176,7 +177,6 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
           StochasticPathChoice stochasticPathChoice, Smoothing smoothing, PathBasedGapFunction gapFunction,
           double demand){
 
-
     //1. get absolute and perceived costs for all paths
     double[] currAbsolutePathCosts = PathUtils.computeEdgeSegmentAdditiveValues(odPaths, currLinkSegmentsCosts);
     double[] currCostRelatedPathProbabilities = odPaths.stream().map( p -> p.getPathChoiceProbability()).mapToDouble(v -> v).toArray();
@@ -205,6 +205,11 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         highCostPathDAbsoluteCostDFlow -= dCostDFlow[overlappingLinkIndex];
       }
     }
+    // LOWER BOUND ENFORCEMENT - Part I
+    // For linear free flow branches of an FD,the dcost/dflow on uncongested links is zero -> when high cost non-overlapping path solely comprise such links
+    // this results in very high steps. To somewhat soften this and reduce likelihood of overstepping (flip-flopping), we enforce that the dcost/dflow of the high cost
+    // path is at least is as high as the lowest cost path's dcost dflow as a lower bound
+    highCostPathDAbsoluteCostDFlow = Math.max(lowCostPathDAbsoluteCostDFlow,highCostPathDAbsoluteCostDFlow);
 
     // 5. determine path based derivatives dcost/dflow (on perceived cost) utilising absolute cost derivatives and functional form of SUE function
     double[] dpCostdFlows = {highCostPathDAbsoluteCostDFlow, lowCostPathDAbsoluteCostDFlow};
@@ -221,6 +226,10 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     //6. NEWTON STEP: analytical equilibration of two paths based on their current cost and first derivative to determine flows/probabilities for i+1
     //   (adapted from Olga Perederieieva (2015) thesis)
     double newtonStepDenominator = highCostPathDenominator + lowCostPathDenominator;
+    if(newtonStepDenominator < 0){
+      LOGGER.severe("Negative step denominator, should never happen!");
+      newtonStepDenominator = 0.0;
+    }
     //   cost_high - step * dCost_high/d_Flow_high = cost_low - step * dCost_low/d_Flow_low
     //   rewrite towards step: step =  (cost_high - cost_low)/((dCost_high/d_Flow_high)+(dCost_low/d_Flow_low))
     double newtonStep = Math.min(currHighCostDemand,
@@ -229,22 +238,21 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
               currHighCostDemand);
 
     // 7. Apply smoothing to step (capped at overall demand in case no derivatives were available for both options)
-
     var proposedLowCostDemand = currLowCostDemand + newtonStep;
     var proposedHighCostDemand = currHighCostDemand - newtonStep;
 
     double newLowCostPathProbability = Math.min(1, smoothing.execute(currLowCostDemand, proposedLowCostDemand)/demand);
     double newHighCostPathProbability = Math.max(0, smoothing.execute(currHighCostDemand, proposedHighCostDemand)/demand);
 
-    //8. update new probabilities for i + 1 iteration
+    //8. update gap as it currently stands before commencing new iteration with new probabilities
+    updateGap(gapFunction, lowCostPathIndex, currPerceivedPathCosts, currAbsolutePathCosts, odPaths, demand);
+
+    //9. update new probabilities for i + 1 iteration
     {
       // update probabilities applied, so they are available for the next iteration
       lowCostPath.setPathChoiceProbability(newLowCostPathProbability);
       highCostPath.setPathChoiceProbability(newHighCostPathProbability);
     }
-
-    //9. update gap
-    updateGap(gapFunction, lowCostPathIndex, currPerceivedPathCosts, currAbsolutePathCosts, odPaths, demand);
   }
 
   /**

@@ -52,7 +52,8 @@ public class PathFilterConfigurator extends Configurator<PathFilter> {
   }
 
   /**
-   * Activate a custom created filter on paths
+   * Activate a custom created filter on paths. The predicate should return true for the path to be kept, i.e., not be filtered out
+   * of the set of eligible paths.
    *
    * @param pathFilterPredicate to consider
    */

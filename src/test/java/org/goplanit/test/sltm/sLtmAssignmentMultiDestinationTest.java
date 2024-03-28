@@ -474,14 +474,14 @@ public class sLtmAssignmentMultiDestinationTest {
 
       /* fixed smoothing step */
       var smoothingConfig = (FixedStepSmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      smoothingConfig.setStepSize(0.4);
+      smoothingConfig.setStepSize(0.25);
 
       /* PATH CHOICE - STOCHASTIC */
       final var suePathChoice = (StochasticPathChoiceConfigurator) configurator.createAndRegisterPathChoice(PathChoice.STOCHASTIC);
       {
-        /* Weibit for path choice */
+        /* Bounded MNL for path choice */
         var choiceModel = (BoundedMultinomialLogitConfigurator) suePathChoice.createAndRegisterChoiceModel(ChoiceModel.BOUNDED_MNL);
-        choiceModel.setScalingFactor(1);  // we go for rather muddled perceived cost to differentiate from deterministic result
+        choiceModel.setScalingFactor(10);  // we go for sharp perceived cost for challenging convergence
         choiceModel.setDelta(0.5);        // we set bound with 0.5h of travel time difference for a path to be considered
         // by not setting a fixed od path set (suePathChoice.setFixedOdPathMatrix(...)), it is assumed we want a dynamic path set
 
