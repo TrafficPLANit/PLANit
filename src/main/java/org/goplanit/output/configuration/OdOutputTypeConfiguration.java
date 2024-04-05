@@ -68,10 +68,8 @@ public class OdOutputTypeConfiguration extends OutputTypeConfiguration {
    * Constructor
    * 
    * Define the default output properties here.
-   * 
-   * @throws PlanItException thrown if there is an error adding the default properties
    */
-  public OdOutputTypeConfiguration() throws PlanItException {
+  public OdOutputTypeConfiguration() {
     super(OutputType.OD);
     // add default sub output types (OD - SKIM - COST);
     activeSubOutputTypes.add(OdSkimSubOutputType.COST);

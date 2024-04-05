@@ -87,15 +87,14 @@ public abstract class OutputTypeConfiguration {
   public abstract OutputProperty[] validateAndFilterKeyProperties(OutputProperty[] outputKeyProperties);
 
   /**
-   * OutputTypeconfiguration constructor
+   * OutputTypeConfiguration constructor
    * 
    * @param outputType the output type being created
-   * @throws PlanItException thrown if there is an exception
    */
-  public OutputTypeConfiguration(OutputType outputType) throws PlanItException {
+  public OutputTypeConfiguration(OutputType outputType) {
     this.outputType = outputType;
-    outputProperties = new TreeSet<OutputProperty>();
-    activeSubOutputTypes = new TreeSet<SubOutputTypeEnum>();
+    outputProperties = new TreeSet<>();
+    activeSubOutputTypes = new TreeSet<>();
   }
 
   /**
@@ -120,9 +119,8 @@ public abstract class OutputTypeConfiguration {
    * Add an output property to be included in the output files
    * 
    * @param outputProperty enumeration value specifying which output property to be included in the output files
-   * @throws PlanItException thrown if there is an error
    */
-  public void addProperty(OutputPropertyType outputProperty) throws PlanItException {
+  public void addProperty(OutputPropertyType outputProperty) {
     OutputProperty baseOutputProperty = OutputProperty.of(outputProperty);
     if (isOutputPropertyValid(baseOutputProperty)) {
       outputProperties.add(baseOutputProperty);

@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.output.enums.DataType;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.unit.Unit;
 
 /**
@@ -147,16 +148,15 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
    * 
    * @param propertyClassName the class name of the specified output property
    * @return the BaseOutputProperty object corresponding to the specified enumeration value
-   * @throws PlanItException thrown if there is an error creating the object
    */
-  public static OutputProperty of(String propertyClassName) throws PlanItException {
+  public static OutputProperty of(String propertyClassName){
     try {
       Class<?> entityClass = Class.forName(propertyClassName);
       OutputProperty outputProperty = (OutputProperty) entityClass.getDeclaredConstructor().newInstance();
       return outputProperty;
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
-      throw new PlanItException(String.format("Error when converting base output property %s", propertyClassName), e);
+      throw new PlanItRunTimeException(String.format("Error when converting base output property %s", propertyClassName), e);
     }
   }
 
@@ -165,9 +165,8 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
    * 
    * @param outputProperty the enumeration value of the specified output property
    * @return the BaseOutputProperty object corresponding to the specified enumeration value
-   * @throws PlanItException thrown if there is an error creating the object
    */
-  public static OutputProperty of(OutputPropertyType outputProperty) throws PlanItException {
+  public static OutputProperty of(OutputPropertyType outputProperty) {
     return of(outputProperty.value());
   }
 

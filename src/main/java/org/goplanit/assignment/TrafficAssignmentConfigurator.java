@@ -299,9 +299,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    *
    * @param outputType OutputType object to be used
    * @return outputTypeConfiguration the output type configuration that is now active
-   * @throws PlanItException thrown if there is an error activating the output
    */
-  public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
+  public OutputTypeConfiguration activateOutput(final OutputType outputType){
     if (!isOutputTypeActive(outputType)) {
       return getOutputManager().createAndRegisterOutputTypeConfiguration(outputType);
     } else {

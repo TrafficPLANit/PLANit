@@ -80,10 +80,9 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
    * Constructor
    * 
    * Define the default output properties here.
-   * 
-   * @throws PlanItException thrown if there is an error adding the default properties
+   *
    */
-  public LinkOutputTypeConfiguration() throws PlanItException {
+  public LinkOutputTypeConfiguration(){
     super(OutputType.LINK);
     addProperty(OutputPropertyType.LINK_SEGMENT_XML_ID);
     addProperty(OutputPropertyType.UPSTREAM_NODE_XML_ID);

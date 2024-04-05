@@ -104,9 +104,8 @@ public class OutputConfiguration {
    * 
    * @param outputType the output type to register the configuration for
    * @return outputTypeconfiguration the output type configuration that has been newly registered
-   * @throws PlanItException thrown if there is an error
    */
-  public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType) throws PlanItException {
+  public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType) {
     OutputTypeConfiguration createdOutputTypeConfiguration = null;
     switch (outputType) {
     case LINK:

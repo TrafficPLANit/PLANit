@@ -86,10 +86,9 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
    * @param demands                the demands
    * @param zoning                 the zoning
    * @param network                the network
-   * @throws PlanItException thrown if there is an exception
    */
   public LtmTrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands,
-      final Zoning zoning, final LayeredNetwork<?, ?> network) throws PlanItException {
+      final Zoning zoning, final LayeredNetwork<?, ?> network) {
     super(trafficAssignmentClass, groupId, inputBuilderListener, demands, zoning, network);
   }
 

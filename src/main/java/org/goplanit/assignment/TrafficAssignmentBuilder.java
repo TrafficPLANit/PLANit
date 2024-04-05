@@ -17,6 +17,7 @@ import org.goplanit.output.enums.OutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.networkloading.NetworkLoading;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.zoning.Zoning;
 
@@ -38,15 +39,14 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @param demands Demands object to be registered
    * @param zoning  Zoning object to be registered
    * @param network network object to be registered
-   * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
    */
-  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final LayeredNetwork<?, ?> network) throws PlanItException {
+  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final LayeredNetwork<?, ?> network) {
     if (zoning == null || demands == null || network == null) {
-      PlanItException.throwIf(zoning == null, "zoning in registerDemandZoningAndNetwork is null");
-      PlanItException.throwIf(demands == null, "demands in registerDemandZoningAndNetwork is null");
-      PlanItException.throwIf(network == null, "network in registerDemandZoningAndNetwork is null");
+      PlanItRunTimeException.throwIf(zoning == null, "zoning in registerDemandZoningAndNetwork is null");
+      PlanItRunTimeException.throwIf(demands == null, "demands in registerDemandZoningAndNetwork is null");
+      PlanItRunTimeException.throwIf(network == null, "network in registerDemandZoningAndNetwork is null");
     }
-    PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, network.getModes()),
+    PlanItRunTimeException.throwIf(!zoning.isCompatibleWithDemands(demands, network.getModes()),
         "Zoning structure is incompatible with one or more of the demands, likely the number of zones does not match the number of origins and/or destinations");
 
     for (var mode : network.getModes()) {
@@ -234,10 +234,9 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @param demands                the demands
    * @param zoning                 the zoning
    * @param network                the network
-   * @throws PlanItException thrown when error
    */
   protected TrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, final IdGroupingToken projectToken, InputBuilderListener inputBuilderListener, final Demands demands,
-      final Zoning zoning, final LayeredNetwork<?, ?> network) throws PlanItException {
+      final Zoning zoning, final LayeredNetwork<?, ?> network) {
     super(trafficAssignmentClass, projectToken, inputBuilderListener);
 
     /* register inputs (on configurator) */

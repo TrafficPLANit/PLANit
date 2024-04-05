@@ -82,6 +82,7 @@ public class PathBasedGapFunction extends GapFunction {
    * 
    * @param measuredPathCost cost of a single path
    * @param pathDemand assigned which is sued as multiplication factor
+   * @param minimumPathCost minimum cost across alternative paths
    */
   public void increaseAbsolutePathGap(double measuredPathCost, double pathDemand, double minimumPathCost) {
     scaledMeasuredPathCostGap += (measuredPathCost - minimumPathCost) * pathDemand;

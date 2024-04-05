@@ -100,7 +100,10 @@ public abstract class ChoiceModel extends PlanitComponent<ChoiceModel> implement
   public static final double DEFAULT_SCALING_FACTOR = 1.0;
 
 
-  /** Scaling factor */
+  /** Scaling factor
+   *
+   * @return scaling factor
+   */
   public double getScalingFactor() {
     return scalingFactor;
   }

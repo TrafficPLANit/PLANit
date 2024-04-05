@@ -48,7 +48,8 @@ public class FixedStepSmoothing extends Smoothing {
 
   /**
    * Set the new fixed step size to use
-   * @param stepSize
+   *
+   * @param stepSize step to use
    */
   public void setStepSize(double stepSize) {
     this.stepSize = stepSize;
@@ -56,7 +57,8 @@ public class FixedStepSmoothing extends Smoothing {
 
   /**
    * Get the fixed step size
-   * @return stepSize
+   *
+   * @return stepSize step to use
    */
   public double getStepSize(double stepSize) {
     return this.stepSize;

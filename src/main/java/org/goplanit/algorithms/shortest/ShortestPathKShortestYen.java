@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  * Yen's K-shortest path algorithm does not allow for cycles which makes it suitable for path choice. It is however costly
  * to run, especially without any additional constraints on these paths and using Dijkstra for all intermediate path searches.
  * However, it is easy to understand and a good benchmark implementation for other more sophisticated approaches.
- * <p/>
+ * </p>
  * 
  * @author markr
  *
@@ -93,9 +93,11 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
    *
    * @param oneToAllBootStrapSearch per origin, use this once to construct one-to-all wide shortest paths most efficiently
    * @param oneToOneSearch within each origin use this search to find all other k-1 shortest paths
+   * @param numShortestPaths the number of shortest paths to find
    */
   public ShortestPathKShortestYen(
-          ShortestPathOneToAll oneToAllBootStrapSearch, ShortestPathOneToOne oneToOneSearch,
+          ShortestPathOneToAll oneToAllBootStrapSearch,
+          ShortestPathOneToOne oneToOneSearch,
           int numShortestPaths) {
     this.oneToAllBootStrapSearch = oneToAllBootStrapSearch;
     this.oneToOnePerOriginSearch = oneToOneSearch;

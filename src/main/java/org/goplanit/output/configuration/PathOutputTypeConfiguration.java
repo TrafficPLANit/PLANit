@@ -69,10 +69,8 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    * Constructor
    * 
    * Define the default output properties here.
-   * 
-   * @throws PlanItException thrown if there is an error adding the default properties
    */
-  public PathOutputTypeConfiguration() throws PlanItException {
+  public PathOutputTypeConfiguration(){
     super(OutputType.PATH);
     // add default output properties
     addProperty(OutputPropertyType.PATH_ID);

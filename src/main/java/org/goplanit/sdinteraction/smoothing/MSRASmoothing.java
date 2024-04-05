@@ -182,7 +182,7 @@ public class MSRASmoothing extends IterationBasedSmoothing {
   /**
    * Based on threshold value determine if we should consider upcoming iteration as a bad Iteration or not. Provide
    *  previous and current reference values to do this, i.e., if
-   *  previousIterationReferenceValue/currentIterationReferenceValue < {@link #badIterationThreshold} then it is a bad
+   *  previousIterationReferenceValue/currentIterationReferenceValue is smaller than {@link #badIterationThreshold} then it is a bad
    *  iteration otherwise not
    *
    * @param previousIterationReferenceValue previous reference value to use
@@ -195,6 +195,8 @@ public class MSRASmoothing extends IterationBasedSmoothing {
 
   /**
    * Flag indicating if last iteration is to be considered a bad iteration which determines what step to apply
+   *
+   * @return true if bad iteration, false otherwise
    */
   public boolean isBadIteration() {
     return badIteration;
