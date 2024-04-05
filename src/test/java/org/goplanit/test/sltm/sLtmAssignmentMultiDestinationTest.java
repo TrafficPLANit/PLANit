@@ -431,9 +431,11 @@ public class sLtmAssignmentMultiDestinationTest {
 
       /* MSRA */
       var smoothingConfig = (MSRASmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.MSRA);
-      smoothingConfig.setKappaStep(1.2);
-      smoothingConfig.setGammaStep(0.01);
-      smoothingConfig.setBadIterationThreshold(0.8);
+      // we can even use it with negatives as it ismade  foolproof, this makes it possible to keep going back to more aggressive
+      // steps which for some approaches such as Weibit appears to be beneficial
+      smoothingConfig.setKappaStep(0.5);
+      smoothingConfig.setGammaStep(-0.02);
+      smoothingConfig.setBadIterationThreshold(1);
 
       /* PATH CHOICE - STOCHASTIC */
       final var suePathChoice = (StochasticPathChoiceConfigurator) configurator.createAndRegisterPathChoice(PathChoice.STOCHASTIC);
@@ -466,7 +468,7 @@ public class sLtmAssignmentMultiDestinationTest {
 
       /* BUILD AND EXECUTE */
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.setActivateDetailedLogging(true);
+      sLTM.setActivateDetailedLogging(false);
       sLTM.execute();
 
       testStochasticOutputs(sLTM, ChoiceModel.WEIBIT);
@@ -497,9 +499,11 @@ public class sLtmAssignmentMultiDestinationTest {
 
       /* MSRA */
       var smoothingConfig = (MSRASmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.MSRA);
-      smoothingConfig.setKappaStep(1.2);
-      smoothingConfig.setGammaStep(0.01);
-      smoothingConfig.setBadIterationThreshold(0.8);
+      // again "abusing" the self-regulating average to keep searching for the most aggressive step-size rather than reducing it by definition
+      // this seems to work better to reach convergence
+      smoothingConfig.setKappaStep(0.3);
+      smoothingConfig.setGammaStep(-0.015);
+      smoothingConfig.setBadIterationThreshold(0.99);
 
       /* PATH CHOICE - STOCHASTIC */
       final var suePathChoice = (StochasticPathChoiceConfigurator) configurator.createAndRegisterPathChoice(PathChoice.STOCHASTIC);
@@ -533,7 +537,7 @@ public class sLtmAssignmentMultiDestinationTest {
 
       /* BUILD AND EXECUTE */
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.setActivateDetailedLogging(true);
+      sLTM.setActivateDetailedLogging(false);
       sLTM.execute();
 
       testStochasticOutputs(sLTM, ChoiceModel.BOUNDED_MNL);

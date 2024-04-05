@@ -89,10 +89,10 @@ public class Weibit extends ChoiceModel {
     // which may be exp transformed to
     // abs_cost * demand^(1/scale) (or when multiplied by scale:  abs_cost^scale * demand)
     if(!applyExpTransform){
-//      if(demand < 1){
-//        LOGGER.severe("No demand below 1 possible for non-transformed perceived cost, applying dummy demand of 1 --> DO NOT USE IN PRODUCTION switch to exp transformed");
-//        demand = 1;
-//      }
+      if(demand < 1){
+        LOGGER.severe("No demand below 1 possible for non-transformed perceived cost, applying dummy demand of 1 --> DO NOT USE IN PRODUCTION switch to exp transformed");
+        demand = 1;
+      }
       return Math.log(alternativeCost) + 1/getScalingFactor() * Math.log(demand);
     }else{
       //return alternativeCost * Math.pow(demand,1/getScalingFactor());
