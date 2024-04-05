@@ -4,6 +4,7 @@ import org.goplanit.choice.ChoiceModel;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.MathUtils;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
 
@@ -46,7 +47,7 @@ public class BoundedMultinomialLogit extends ChoiceModel {
    * @return exp^(-scale(absolutePathCost + max_across_alts(-general_cost_alt_path_p) - delta)
    */
   private double computeBoundedPathAlternativeExpValue(double absolutePathCost, double negatedMaxAbsolutePathCost){
-    return Math.exp(-getScalingFactor() * (absolutePathCost + negatedMaxAbsolutePathCost - getDelta()));
+    return MathUtils.safeExp(-getScalingFactor() * (absolutePathCost + negatedMaxAbsolutePathCost - getDelta()));
   }
 
   /**
@@ -124,22 +125,22 @@ public class BoundedMultinomialLogit extends ChoiceModel {
 
     if(demand <=0){
       LOGGER.severe("No demand, can't compute computeDPerceivedCostDFlow, using dummy value of 10^-12 --> DO NOT USE IN PRODUCTION");
-      demand = Precision.EPSILON_12;
+      demand = Precision.EPSILON_6;
     }
 
     /* identify max cost option (costs are positive, so to find max of negated use min)*/
     final double negatedMaxAbsolutePathCost = -alternativeCosts[ArrayUtils.findMinValueIndex(alternativeCosts)];
-    /* compute transformed value representative of bounded model, i.e., exp(-scale(absolutePathCost + max_across_alts(-general_cost_alt_path_p) - delta)-1 */
-    final double alternativeCost = alternativeCosts[index];
 
-    double alternativeTransformedValue;
+    /* compute transformed value representative of bounded model, i.e., exp(-scale(absolutePathCost + max_across_alts(-general_cost_alt_path_p) - delta)-1 */
+    double alternativeCost = alternativeCosts[index];
     if( Math.abs(alternativeCost + negatedMaxAbsolutePathCost) > delta){
       // out of bounds -> best guess that we can compute is approaching from inside towards the bound
-      alternativeTransformedValue = negatedMaxAbsolutePathCost + delta + Precision.EPSILON_12;
-    }else {
-      // regular approach
-      alternativeTransformedValue = computeBoundedPathAlternativeValue(alternativeCost, negatedMaxAbsolutePathCost);
+      //alternativeCost = -negatedMaxAbsolutePathCost + delta - Precision.EPSILON_6;
+      return Double.MAX_VALUE; // as per unit test, because when out of bounds perceive cost should be infinite
     }
+
+    // regular approach
+    double alternativeTransformedValue = computeBoundedPathAlternativeValue(alternativeCost, negatedMaxAbsolutePathCost);
 
     // ln(demand) -ln(exp(-scale(absolutePathCost + max_across_alts(-general_cost_alt_path_p) - delta)-1)
     // which may be transformed to
@@ -176,11 +177,7 @@ public class BoundedMultinomialLogit extends ChoiceModel {
     final double negatedMaxAbsolutePathCost = -absoluteCosts[maxValueAlternativeIndex];
     double alternativeAbsolutecost = absoluteCosts[index];
     if( Math.abs(alternativeAbsolutecost - absoluteCosts[maxValueAlternativeIndex]) > delta){
-      // out of bounds -> TODO work on best guess
-
-      // ??? other option
-      //alternativeAbsolutecost = negatedMaxAbsolutePathCost + delta + Precision.EPSILON_12;
-      //alternativeAbsolutecost = negatedMaxAbsolutePathCost;
+      // out of bounds -> changing flow is assumed to have no impact on perceived cost
       return 0;
     }
 

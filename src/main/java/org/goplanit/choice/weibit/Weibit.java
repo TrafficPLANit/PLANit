@@ -80,22 +80,23 @@ public class Weibit extends ChoiceModel {
 
   public double computePerceivedCost(double alternativeCost, double demand, boolean applyExpTransform) {
     if(demand <= 0){
-      LOGGER.severe("Negative demand found, can't compute perceived cost (always zero), truncating to 10^-12");
+      LOGGER.severe("Negative or zero demand found, applying minimum lower bound dummy demand of to 10^-12");
       demand = Precision.EPSILON_12;
     }
 
-    // ln(abs_cost) + 1/scale * ln(demand) == which may be transformed to
-    // exp(ln(abs_cost) + 1/scale * ln(demand)) = exp(ln(abs_cost) * (exp(ln(demand))^1/scale  = abs_cost * demand^(1/scale)
+    // ln(abs_cost) + 1/scale * ln(demand) = ln(abs_cost) + ln(demand^(1/scale))  or when multiplied by scale:
+    // ln(abs_cost) + 1/scale * ln(demand) = ln(abs_cost^scale) + ln(demand)
+    // which may be exp transformed to
+    // abs_cost * demand^(1/scale) (or when multiplied by scale:  abs_cost^scale * demand)
     if(!applyExpTransform){
-      if(demand < 1){
-        LOGGER.severe("No demand below 1 possible for non-transformed perceived cost, applying dummy demand of 1 --> DO NOT USE IN PRODUCTION switch to exp transformed");
-        demand = 1;
-      }
+//      if(demand < 1){
+//        LOGGER.severe("No demand below 1 possible for non-transformed perceived cost, applying dummy demand of 1 --> DO NOT USE IN PRODUCTION switch to exp transformed");
+//        demand = 1;
+//      }
       return Math.log(alternativeCost) + 1/getScalingFactor() * Math.log(demand);
     }else{
-      // exp transform and multiply by scaling factor to avoid issues for demand and cost below 1.
-      // exp(scale*ln(abs_cost) + ln(demand)) = exp(scaling factor*ln(abs_cost) * (exp(ln(demand))  = abs_cost^scale * demand
-      return Math.pow(alternativeCost, getScalingFactor()) * demand;
+      //return alternativeCost * Math.pow(demand,1/getScalingFactor());
+      return Math.pow(alternativeCost,getScalingFactor()) * demand;
     }
   }
 
@@ -115,31 +116,34 @@ public class Weibit extends ChoiceModel {
   }
 
   public double computeDPerceivedCostDFlow(double dAbsoluteCostDFlow, double absoluteCost, double demand, boolean applyExpTransform) {
-    if(demand < Precision.EPSILON_12 && !applyExpTransform){
-      LOGGER.warning("No demand for dPerceivedCost/dFlow, applying dummy demand of 1 --> consider using exp transformed version instead which can deal with this");
-      demand = 1;
+    if(demand == 0.0){
+      LOGGER.warning("No demand for dPerceivedCost/dFlow, applying minimum lower bound dummy demand of to 10^-12");
+      demand = Precision.EPSILON_12;
     }
 
-    // ln(abs_cost) + 1/scale * ln(demand)  which may be exp transformed to
-    // abs_cost * demand^(1/scale)
+    // original:
+    // ln(abs_cost) + 1/scale * ln(demand) = ln(abs_cost) + ln(demand^(1/scale))  or when multiplied by scale:
+    // ln(abs_cost) + 1/scale * ln(demand) = ln(abs_cost^scale) + ln(demand)
+    // which may be exp transformed to
+    // abs_cost * demand^(1/scale) (or when multiplied by scale:  abs_cost^scale * demand)
     //
     // in dPerceivedCost/dDemand form:
     //   1/scale*d_abs_cost_d_flow + 1/(demand) in untransformed form or when transformed
     //   abs_cost^scale * demand
     var scalingFactor = getScalingFactor();
+    var oneDivScalingFactor = (1/getScalingFactor());
     if(!applyExpTransform){
-      //                            f = ln(1/absoluteCost), g = 1/scale * ln(demand)
+      //                            f = ln(absoluteCost), g = ln(demand^1/scale)
       // sum of derivatives rule:   d(f + g) = d(f) + d(g), and
       //                              d(f) --> chain rule d(f) = d(ln(h)) = 1/h * d(h) --> 1/abs_cost * dAbsoluteCostDFlow
       //                              d(g)  = 1/scale * d(ln(demand) = 1/scale * 1/demand = 1/(scale * demand)
       //                            f' + g' =
       return dAbsoluteCostDFlow/absoluteCost + 1/(scalingFactor * demand);
     }else{
-      // TODO: do it proper so we do not get in trouble with low demands: abs_cost^scale * demand
-      //                f = abs_cost*scale, g = demand
-      //                f' = scale*dAbsoluteCostDFlow, g' = 1
+      //                f = abs_cost^scale, g = demand
+      //                f' --> apply chain rule -> scale*abs_cost^(scale-1)*dc/df(abs_cost), g' = 1
       // chain rule:    f' * g + f * g'
-      return dAbsoluteCostDFlow * getScalingFactor() * demand + Math.pow(absoluteCost, getScalingFactor());
+      return scalingFactor * Math.pow(absoluteCost,scalingFactor-1) * dAbsoluteCostDFlow * demand + Math.pow(absoluteCost, scalingFactor);
     }
   }
 

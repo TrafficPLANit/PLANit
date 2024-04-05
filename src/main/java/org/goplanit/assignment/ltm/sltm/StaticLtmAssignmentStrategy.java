@@ -216,7 +216,7 @@ public abstract class StaticLtmAssignmentStrategy {
 
     /* for now, we do not consider path choice, we conduct a one-shot all-or-nothing network loading */
     int networkLoadingIterationIndex = 0;
-    getLoading().stepZeroIterationInitialisation(true);
+    getLoading().stepZeroIterationInitialisation(getSettings().isDetailedLogging());
     do {
 
       /* verify if progress is being made and if not activate extensions as deemed adequate */

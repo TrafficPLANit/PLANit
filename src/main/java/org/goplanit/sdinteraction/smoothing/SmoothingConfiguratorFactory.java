@@ -23,6 +23,8 @@ public class SmoothingConfiguratorFactory {
       return new MSASmoothingConfigurator();
     } else if (smoothingType.equals(Smoothing.FIXED_STEP)) {
       return new FixedStepSmoothingConfigurator();
+    } else if (smoothingType.equals(Smoothing.MSRA)) {
+      return new MSRASmoothingConfigurator();
     }else {
       throw new PlanItRunTimeException(String.format("Unable to construct configurator for given smoothingType %s", smoothingType));
     }

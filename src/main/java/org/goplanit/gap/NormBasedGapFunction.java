@@ -81,6 +81,7 @@ public class NormBasedGapFunction extends GapFunction {
     this.averaged = other.averaged;
     this.count = other.count;
     this.gap = other.gap;
+    this.previousGap = other.previousGap;
     this.measuredValue = other.measuredValue;
     this.norm = other.norm;
   }
@@ -99,6 +100,11 @@ public class NormBasedGapFunction extends GapFunction {
    * gap
    */
   protected double gap = MAX_GAP;
+
+  /**
+   * previous gap
+   */
+  protected double previousGap = MAX_GAP;
 
   /** maximum gap possible */
   public static final double MAX_GAP = Double.POSITIVE_INFINITY;
@@ -162,7 +168,8 @@ public class NormBasedGapFunction extends GapFunction {
   public void reset() {
     this.measuredValue = 0;
     this.count = 0;
-    this.gap = MAX_GAP;
+    // do not reset gap and previous gap because this is state that needs preserving if it is to work
+    // in an iterative fashion where we reset every iteration but need to keep trakc of the previous iteration gap
   }
 
   /**
@@ -172,13 +179,14 @@ public class NormBasedGapFunction extends GapFunction {
    */
   @Override
   public double computeGap() {
+    previousGap = gap;
     if (count <= 0) {
       gap = MAX_GAP;
     } else {
       double multiplicationFactor = isAveraged() ? (1.0 / count) : 1;
       gap = multiplicationFactor * Math.pow(measuredValue, 1.0 / norm);
     }
-    return getGap();
+    return gap;
   }
 
   /**
@@ -186,6 +194,14 @@ public class NormBasedGapFunction extends GapFunction {
    */
   @Override
   public double getGap() {
+    return gap;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getPreviousGap() {
     return gap;
   }
 

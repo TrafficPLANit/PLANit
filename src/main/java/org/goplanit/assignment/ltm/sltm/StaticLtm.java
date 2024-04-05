@@ -12,15 +12,13 @@ import java.util.logging.Logger;
 import org.goplanit.assignment.ltm.LtmAssignment;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmStrategyConjugateBush;
 import org.goplanit.gap.GapFunction;
-import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
-import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
 import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
-import org.goplanit.sdinteraction.smoothing.MSASmoothing;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -90,7 +88,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    */
   private Calendar logBasicIterationInformation(final Calendar startTime, final GapFunction gapFunction) {
     final Calendar currentTime = Calendar.getInstance();
-    LOGGER.info(String.format("%sGap: %.10f (%d ms)", createLoggingPrefix(getIterationIndex()), gapFunction.getGap(10.0), currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
+    LOGGER.info(String.format("%sGap: %.10f (%d ms)", createLoggingPrefix(getIterationIndex()), gapFunction.getGap(), currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
     return currentTime;
   }
 
@@ -150,15 +148,17 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
     /* ASSIGNMENT LOOP */
     do {
-      getGapFunction().reset();
-      assignmentStrategy.getLoading().resetIteration();
-
       simulationData.incrementIterationIndex();
       var smoothing = getSmoothing();
       if (smoothing instanceof IterationBasedSmoothing) {
         ((IterationBasedSmoothing) smoothing).updateIteration(simulationData.getIterationIndex());
+        if(smoothing instanceof MSRASmoothing) {
+          ((MSRASmoothing)smoothing).updateBadIteration(getGapFunction().getPreviousGap(), getGapFunction().getGap());
+        }
         smoothing.updateStepSize();
       }
+      getGapFunction().reset();
+      assignmentStrategy.getLoading().resetIteration();
 
       /* LOADING UPDATE + PATH/BUSH UPDATE */
       double[] prevCosts = getIterationData().getLinkSegmentTravelTimePcuH(theMode);
@@ -196,9 +196,11 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       assignmentStrategy.getLoading().stepSixFinaliseForPersistence();
       getOutputManager().persistOutputData(timePeriod, modes, converged);
 
-      LOGGER.info(String.format("** INFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentInflowsPcuH())));
-      LOGGER.info(String.format("** OUTFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentOutflowsPcuH())));
-      LOGGER.info(String.format("** ALPHA: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentFlowAcceptanceFactors())));
+      if(isActivateDetailedLogging()) {
+        LOGGER.info(String.format("** INFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentInflowsPcuH())));
+        LOGGER.info(String.format("** OUTFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentOutflowsPcuH())));
+        LOGGER.info(String.format("** ALPHA: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentFlowAcceptanceFactors())));
+      }
     }
   }
 
@@ -209,10 +211,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   protected void verifyComponentCompatibility(){
     super.verifyComponentCompatibility();
 
-    /* smoothing check */
-    PlanItRunTimeException.throwIf(!(getSmoothing() instanceof MSASmoothing || getSmoothing() instanceof FixedStepSmoothing),
-            "%sStatic LTM only supports MSA or FixedStep smoothing at the moment, but found %s", LoggingUtils.runIdPrefix(getId()),
-        getSmoothing().getClass().getCanonicalName());
   }
 
   /**

@@ -7,19 +7,28 @@ import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
 import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.choice.ChoiceModel;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.output.enums.OutputType;
+import org.goplanit.output.formatter.MemoryOutputFormatter;
+import org.goplanit.path.choice.PathChoice;
+import org.goplanit.path.choice.StochasticPathChoiceConfigurator;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
+import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
+import org.goplanit.utils.path.PathUtils;
 import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.AfterAll;
@@ -166,20 +175,29 @@ public class sLtmNetworkLoadingTest {
       demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
 
       /* sLTM - POINT QUEUE */
-      var sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(
-              network.getIdGroupingToken(), null, demands, zoning, network);
-      var sLtmConfigurator = sLTMBuilder.getConfigurator();
-      sLtmConfigurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sLtmConfigurator.activateDetailedLogging(true);
-      sLtmConfigurator.setType(StaticLtmType.PATH_BASED);
-      sLtmConfigurator.getGapFunction().getStopCriterion().setMaxIterations(1);
+      var sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+      var configurator = sLTMBuilder.getConfigurator();
+      configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      configurator.activateDetailedLogging(true);
 
+      /* PATH BASED */
+      configurator.setType(StaticLtmType.PATH_BASED);
+
+      /* PATH CHOICE - STOCHASTIC */
+      final var suePathChoice = (StochasticPathChoiceConfigurator) configurator.createAndRegisterPathChoice(PathChoice.STOCHASTIC);
+      suePathChoice.createAndRegisterChoiceModel(ChoiceModel.MNL);
+
+      /* OUTPUT CONFIG */
+      configurator.activateOutput(OutputType.LINK);
+      configurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+
+      /* GAP AND CONVERGENCE */
+      configurator.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      configurator.getGapFunction().getStopCriterion().setMaxIterations(1000);
+
+      /* BUILD AND EXECUTE */
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.execute();
-
-      // TODO: path based sLTM assignment does not work yet, this is why gap computation gives severe warning. Fix this
-
-      // TODO: add assertions to check validity of outcome explicitly
 
     } catch (Exception e) {
       e.printStackTrace();

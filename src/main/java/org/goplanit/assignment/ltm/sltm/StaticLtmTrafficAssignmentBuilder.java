@@ -11,7 +11,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 
 /**
  * The sLTM traffic assignment builder. This is a capacity constrained traffic assignment builder specifically for sLTM.
- * It user exposed options are made available through the {@code StaticLtmConfigurator}.
+ * It uses exposed options are made available through the {@code StaticLtmConfigurator}.
  *
  * @author markr
  *
@@ -36,7 +36,6 @@ public class StaticLtmTrafficAssignmentBuilder extends LtmTrafficAssignmentBuild
    * @param demands              the demands
    * @param zoning               the zoning
    * @param network              the network
-   * @throws PlanItException when triangular fundamental diagram cannot be instantiated
    */
   public StaticLtmTrafficAssignmentBuilder(
           IdGroupingToken groupId,

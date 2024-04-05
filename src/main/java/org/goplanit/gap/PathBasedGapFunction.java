@@ -40,6 +40,7 @@ public class PathBasedGapFunction extends GapFunction {
     super(other, deepCopy);
     this.scaledMeasuredPathCostGap = other.scaledMeasuredPathCostGap;
     this.gap = other.gap;
+    this.previousGap = other.previousGap;
     this.scaledMinimumPathCosts = other.scaledMinimumPathCosts;
   }
 
@@ -57,6 +58,11 @@ public class PathBasedGapFunction extends GapFunction {
    * Gap
    */
   protected double gap = INITIAL_GAP;
+
+  /**
+   * previous gap
+   */
+  protected double previousGap = INITIAL_GAP;
 
   /** initial gap to use */
   public static double INITIAL_GAP = Double.POSITIVE_INFINITY;
@@ -99,7 +105,9 @@ public class PathBasedGapFunction extends GapFunction {
   public void reset() {
     this.scaledMeasuredPathCostGap = 0;
     this.scaledMinimumPathCosts = 0;
-    this.gap = INITIAL_GAP;
+
+    // do not reset gap and previous gap because this is state that needs preserving if it is to work
+    // in an iterative fashion where we reset every iteration but need to keep trakc of the previous iteration gap
   }
 
   /**
@@ -107,21 +115,24 @@ public class PathBasedGapFunction extends GapFunction {
    */
   @Override
   public double computeGap() {
+    previousGap = gap;
     if (scaledMeasuredPathCostGap == 0 && scaledMinimumPathCosts == 0) {
-      return 0;
+      gap = 0;
+      return gap;
     }
 
-    if (!Precision.positive(scaledMeasuredPathCostGap)) {
-      LOGGER.severe(String.format("Measured network cost (%.2f) needs to be positive to compute gap, this is not the case", scaledMeasuredPathCostGap));
-      return -1;
+    if(scaledMinimumPathCosts == 0.0){
+      LOGGER.severe(String.format("Minimum network cost (%.2f) cannot be zero in order to compute gap, this is not the case", scaledMinimumPathCosts));
+      gap = 0;
+      return gap;
     }
 
-    if(!Precision.positive(scaledMinimumPathCosts)){
-      LOGGER.severe(String.format("Minimum network cost (%.2f) needs to be positive to compute gap, this is not the case", scaledMinimumPathCosts));
+    if(scaledMeasuredPathCostGap <0.0){
+      LOGGER.severe(String.format("Gap between minimum and measured should always be positive, but it is not (%.2f)", scaledMeasuredPathCostGap));
     }
 
     /* regular non-zero measured cost */
-    gap = scaledMeasuredPathCostGap / scaledMinimumPathCosts;
+    gap = scaledMeasuredPathCostGap / Math.abs(scaledMinimumPathCosts);
     return gap;
   }
 
@@ -131,6 +142,14 @@ public class PathBasedGapFunction extends GapFunction {
   @Override
   public double getGap() {
     return gap;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getPreviousGap() {
+    return previousGap;
   }
 
   /**

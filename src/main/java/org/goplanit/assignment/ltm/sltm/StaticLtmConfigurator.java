@@ -5,9 +5,14 @@ import org.goplanit.assignment.ltm.LtmConfigurator;
 import org.goplanit.cost.physical.PhysicalCost;
 import org.goplanit.cost.virtual.VirtualCost;
 import org.goplanit.gap.GapFunction;
+import org.goplanit.path.choice.PathChoice;
+import org.goplanit.path.choice.PathChoiceConfigurator;
+import org.goplanit.path.choice.PathChoiceConfiguratorFactory;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.utils.exceptions.PlanItException;
+
+import java.util.logging.Logger;
 
 /**
  * Configurator for sLTM. Adopting the following defaults:
@@ -31,6 +36,8 @@ import org.goplanit.utils.exceptions.PlanItException;
  *
  */
 public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
+
+  private static final Logger LOGGER = Logger.getLogger(StaticLtmConfigurator.class.getCanonicalName());
 
   private static final String DISABLE_LINK_STORAGE_CONSTRAINTS = "setDisableLinkStorageConstraints";
 
@@ -56,7 +63,9 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
     disableLinkStorageConstraints(DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
     activateDetailedLogging(DEFAULT_ACTIVATE_DETAILED_LOGGING);
+
     setType(DEFAULT_SLTM_TYPE);
+    createAndRegisterPathChoice(PathChoice.STOCHASTIC);
   }
 
   /** default value used */
@@ -97,6 +106,35 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
    */
   public void setType(StaticLtmType type) {
     registerDelayedMethodCall(SET_TYPE, type);
+    if(getType() != StaticLtmType.PATH_BASED){
+      LOGGER.info(String.format("sLTM type changed to non-path based, unregistering previously registered PathChoice component"));
+      unRegisterPathChoice();
+    }
+  }
+
+  /**
+   * Determine the type of sLTM assignment to use
+   *
+   * @return type set
+   */
+  public StaticLtmType getType() {
+    return (StaticLtmType) getFirstParameterOfDelayedMethodCall(SET_TYPE);
+  }
+
+  /**
+   * choose a particular path choice implementation
+   *
+   * @param pathChoiceType type to choose
+   * @return path choice configurator
+   * @throws PlanItException thrown if error
+   */
+  @Override
+  public PathChoiceConfigurator<? extends PathChoice> createAndRegisterPathChoice(final String pathChoiceType) throws PlanItException {
+    if(getType() != StaticLtmType.PATH_BASED){
+      setType(StaticLtmType.PATH_BASED);
+      LOGGER.info(String.format("PathChoice activated, this requires sLTM type to be path based, switching to type: %s", getType()));
+    }
+    return super.createAndRegisterPathChoice(pathChoiceType);
   }
 
   /**

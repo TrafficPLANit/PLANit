@@ -915,7 +915,7 @@ public abstract class StaticLtmNetworkLoading {
     this.networkLoadingFactorData.swapCurrentAndNextFlowAcceptanceFactors();
     
     boolean converged = this.flowAcceptanceGapFunction.getStopCriterion().hasConverged(globalGap, networkLoadingIteration);        
-    if(converged) {
+    if(converged && getSettings().isDetailedLogging()) {
       LOGGER.info(String.format("%ssLTM network loading converged in %d iterations (remaining gap: %.10f)",LoggingUtils.runIdPrefix(runId), networkLoadingIteration, globalGap));
     }
     return converged;

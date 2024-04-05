@@ -16,12 +16,14 @@ import org.goplanit.od.path.OdPathsHashed;
 import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoice;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
@@ -101,11 +103,12 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
           double odDemand) {
 
     double minPerceivedCost = perceivedPathCosts[minPathCostIndex];
-    if(!Precision.positive(minPerceivedCost)){
+    if(minPerceivedCost == 0.0){
       // in case this is zero (can happen in some exp transformed logit models where it is multiplied with demand), replace
-      // with absolute cost this is generally a conservative estimate for the lower bound. IDeally this is never needed though
+      // with absolute cost this is generally a conservative estimate for the lower bound. Ideally this is never needed though
       // so if this occurs often consider investigating why low cost paths end up with zero demand and/or zero perceived costs.
       minPerceivedCost = absolutePathCosts[minPathCostIndex];
+      throw new PlanItRunTimeException("NOT PERMITTED ANYMORE -- see if this still happens, replacing with absolute costs does not work when we allow for negative min perceived costs");
     }
     gapFunction.increaseMinimumPathCosts(minPerceivedCost, odDemand);
     int index = 0;
@@ -177,10 +180,17 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
           StochasticPathChoice stochasticPathChoice, Smoothing smoothing, PathBasedGapFunction gapFunction,
           double demand){
 
+    if(odPaths.size() == 1){
+      return;
+    }
+
+    // required since we cannot guarantee all demands are above 1 in the end result
+    boolean applyExpTransform = true;
+
     //1. get absolute and perceived costs for all paths
     double[] currAbsolutePathCosts = PathUtils.computeEdgeSegmentAdditiveValues(odPaths, currLinkSegmentsCosts);
     double[] currCostRelatedPathProbabilities = odPaths.stream().map( p -> p.getPathChoiceProbability()).mapToDouble(v -> v).toArray();
-    double[] currPerceivedPathCosts = stochasticPathChoice.computePerceivedPathCosts(currAbsolutePathCosts, currCostRelatedPathProbabilities, demand);
+    double[] currPerceivedPathCosts = stochasticPathChoice.computePerceivedPathCosts(currAbsolutePathCosts, currCostRelatedPathProbabilities, demand, applyExpTransform);
 
     //2. identify low and highest cost path and their respective absolute and perceived costs
     int lowCostPathIndex = newPathAdded ? odPaths.size()-1 : ArrayUtils.findMinValueIndex(currPerceivedPathCosts);
@@ -195,8 +205,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     double highCostPathDAbsoluteCostDFlow = PathUtils.computeEdgeSegmentAdditiveValues(highCostPath, dCostDFlow); // high cost path based sum of dCostdFlow
 
     // 4. identify non-overlapping links between low and high cost as flow shifts only impact those links
-    //todo: make configurable as this is a costly exercise (or if implemented more efficiently will cost more memory. Also unlikely to have an impact
-    // in many cases as bottlenecks are less likely to be overlapping.
+    //todo: make configurable as this is a costly exercise
     boolean onlyConsiderNonOverlappingLinks = true;
     if(onlyConsiderNonOverlappingLinks){
       int[] overlappingIndices = PathUtils.getOverlappingPathLinkIndices(lowCostPath, highCostPath);
@@ -205,7 +214,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         highCostPathDAbsoluteCostDFlow -= dCostDFlow[overlappingLinkIndex];
       }
     }
-    // LOWER BOUND ENFORCEMENT - Part I
+    // BOUND ENFORCEMENT - Part I
     // For linear free flow branches of an FD,the dcost/dflow on uncongested links is zero -> when high cost non-overlapping path solely comprise such links
     // this results in very high steps. To somewhat soften this and reduce likelihood of overstepping (flip-flopping), we enforce that the dcost/dflow of the high cost
     // path is at least is as high as the lowest cost path's dcost dflow as a lower bound
@@ -215,10 +224,16 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     double[] dpCostdFlows = {highCostPathDAbsoluteCostDFlow, lowCostPathDAbsoluteCostDFlow};
     double[] absCosts = {currAbsolutePathCosts[highCostPathIndex], currAbsolutePathCosts[lowCostPathIndex]};
     double highCostPathDenominator = stochasticPathChoice.getChoiceModel().computeDPerceivedCostDFlow(
-            dpCostdFlows, absCosts, 0 /*high cost */, highCostPath.getPathChoiceProbability() * demand, true);
+            dpCostdFlows, absCosts, 0 /*high cost */, highCostPath.getPathChoiceProbability() * demand, applyExpTransform);
     // low cost path based dPerceivedCost/dFlow this required the derivative of the perceived cost related to the applied path choice model
     double lowCostPathDenominator = stochasticPathChoice.getChoiceModel().computeDPerceivedCostDFlow(
-            dpCostdFlows,  absCosts, 1 /*low cost */,lowCostPath.getPathChoiceProbability() * demand, true);
+            dpCostdFlows,  absCosts, 1 /*low cost */,lowCostPath.getPathChoiceProbability() * demand, applyExpTransform);
+    // BOUND ENFORCEMENT - Part II
+    // derivative of low cost path should never be steeper than that of the high-cost path (if it exists). In certain edge cases this may occur due to very low demands. In that case
+    // we truncate to the high cost derivative as an upper bound
+    if(highCostPathDenominator > 0) {
+      lowCostPathDenominator = Math.min(lowCostPathDenominator, highCostPathDenominator);
+    }
 
     var currHighCostDemand = highCostPath.getPathChoiceProbability() * demand;
     var currLowCostDemand = lowCostPath.getPathChoiceProbability() * demand;
@@ -247,7 +262,14 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     //8. update gap as it currently stands before commencing new iteration with new probabilities
     updateGap(gapFunction, lowCostPathIndex, currPerceivedPathCosts, currAbsolutePathCosts, odPaths, demand);
 
-    //9. update new probabilities for i + 1 iteration
+    //9. - prune path set if expectation is that high cost bath remains unattractive todo: needs to be tested
+    if(Precision.smallerEqual(proposedHighCostDemand, 0.0, Precision.EPSILON_9) && newHighCostPathProbability < 0.01){
+      odPaths.remove(highCostPath);
+      newLowCostPathProbability += newHighCostPathProbability;
+      newHighCostPathProbability = 0.0;
+    }
+
+    //10. update new probabilities for i + 1 iteration
     {
       // update probabilities applied, so they are available for the next iteration
       lowCostPath.setPathChoiceProbability(newLowCostPathProbability);
@@ -343,6 +365,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       // prep
       final var smoothing = getSmoothing();
       final var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
+
       final var stochasticPathChoice = (StochasticPathChoice) getPathChoice(); // only type of path choice which is verified (if present), so safe to cast
       if(stochasticPathChoice == null) {
         return false;
@@ -408,7 +431,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
     /* gap function check */
     PlanItRunTimeException.throwIf(!(gapFunction instanceof PathBasedGapFunction),
-            "%sStatic LTM with paths requires path based gap function, but found %s", gapFunction.getClass().getCanonicalName());
+            "Static LTM with paths requires path based gap function, but found %s", gapFunction.getClass().getCanonicalName());
 
     var pathChoice = getPathChoice();
     if(pathChoice==null && gapFunction.getStopCriterion().getMaxIterations()>1){

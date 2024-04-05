@@ -19,8 +19,40 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
   /** shorthand for configuring smoothing with MSA instance */
   public static final String MSA = MSASmoothing.class.getCanonicalName();
 
+  /** shorthand for configuring smoothing with a self-regulating average instance */
+  public static final String MSRA = MSRASmoothing.class.getCanonicalName();
+
   /** shorthand for configuring smoothing with a fixed step instance */
   public static final String FIXED_STEP = FixedStepSmoothing.class.getCanonicalName();
+
+  /**
+   * General helper method for those derived implementations that may want to use it
+   *
+   * @param step between 0 and 1
+   * @param previousValue to use
+   * @param proposedValue to use
+   * @return (1- step) * prevValue + step * proposedValue
+   */
+  protected static double smooth(final double step, final double previousValue, final double proposedValue){
+    return (1 - step) * previousValue + step * proposedValue;
+  }
+
+  /**
+   * General helper method for those derived implementations that may want to use it
+   *
+   * @param step between 0 and 1
+   * @param previousValues to use
+   * @param proposedValues to use
+   * @param numberOfValues to apply
+   * @return (1- step) * prevValue[i] + step * proposedValue[i] for all i up to numberOfValues
+   */
+  protected static double[] smooth(final double step, final double[] previousValues, final double[] proposedValues, final int numberOfValues) {
+    final double[] smoothedValues = new double[numberOfValues];
+    for (int i = 0; i < numberOfValues; ++i) {
+      smoothedValues[i] = smooth(step, previousValues[i],proposedValues[i]);
+    }
+    return smoothedValues;
+  }
 
   /**
    * Base constructor

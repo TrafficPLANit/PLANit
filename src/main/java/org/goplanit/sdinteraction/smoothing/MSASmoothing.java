@@ -51,7 +51,7 @@ public class MSASmoothing extends IterationBasedSmoothing {
    */
   @Override
   public double execute(final double previousValue, final double proposedValue) {
-    return (1 - stepSize) * previousValue + stepSize * proposedValue;
+    return smooth(stepSize, previousValue, proposedValue);
   }
 
   /**
@@ -67,11 +67,7 @@ public class MSASmoothing extends IterationBasedSmoothing {
    */
   @Override
   public double[] execute(final double[] previousValues, final double[] proposedValues, final int numberOfValues) {
-    final double[] smoothedValues = new double[numberOfValues];
-    for (int i = 0; i < numberOfValues; ++i) {
-      smoothedValues[i] = (1 - stepSize) * previousValues[i] + stepSize * proposedValues[i];
-    }
-    return smoothedValues;
+    return smooth(stepSize, previousValues, proposedValues, numberOfValues);
   }
 
   /**
@@ -95,7 +91,7 @@ public class MSASmoothing extends IterationBasedSmoothing {
    */
   @Override
   public void reset() {
-    this.stepSize = DEFAULT_INITIAL_STEP_SIZE;
+    // No internal state (yet), do nothing
   }
 
   /**

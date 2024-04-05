@@ -44,6 +44,13 @@ public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentC
   private PathChoiceConfigurator<? extends PathChoice> pathChoiceConfigurator = null;
 
   /**
+   * Remove any previously registered path choice from the configurator
+   */
+  protected void unRegisterPathChoice() {
+    pathChoiceConfigurator = null;
+  }
+
+  /**
    * Constructor
    * 
    * @param ltmClass used

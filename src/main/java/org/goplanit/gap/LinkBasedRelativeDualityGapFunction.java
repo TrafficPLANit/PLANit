@@ -40,6 +40,7 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
     super(other, deepCopy);
     this.measuredNetworkCost = other.measuredNetworkCost;
     this.gap = other.gap;
+    this.previousGap = other.previousGap;
     this.minimumNetworkCost = other.minimumNetworkCost;
   }
 
@@ -57,6 +58,11 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    * Gap
    */
   protected double gap = INITIAL_GAP;
+
+  /**
+   * Previous gap
+   */
+  protected double previousGap = INITIAL_GAP;
 
   /** initial gap to use */
   public static double INITIAL_GAP = Double.POSITIVE_INFINITY;
@@ -95,7 +101,8 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
   public void reset() {
     this.measuredNetworkCost = 0;
     this.minimumNetworkCost = 0;
-    this.gap = INITIAL_GAP;
+    // do not reset gap and previous gap because this is state that needs preserving if it is to work
+    // in an iterative fashion where we reset every iteration but need to keep track of the previous iteration gap
   }
 
   /**
@@ -103,6 +110,7 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    */
   @Override
   public double computeGap() {
+    previousGap = gap;
     if (Precision.smaller(measuredNetworkCost, minimumNetworkCost)) {
       LOGGER.severe(String.format("Minimum network cost (%.2f) exceeds measured network cost (%.2f), this should not happen", minimumNetworkCost, measuredNetworkCost));
     }
@@ -130,6 +138,14 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
   @Override
   public double getGap() {
     return gap;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getPreviousGap() {
+    return previousGap;
   }
 
   /**

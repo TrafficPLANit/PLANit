@@ -111,7 +111,7 @@ public class FixedStepSmoothing extends Smoothing {
    */
   @Override
   public void reset() {
-    this.stepSize = DEFAULT_STEP_SIZE;
+    // No internal state (yet), do nothing
   }
 
   /**

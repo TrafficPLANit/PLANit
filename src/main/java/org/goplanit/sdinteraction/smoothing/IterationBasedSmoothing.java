@@ -43,7 +43,7 @@ public abstract class IterationBasedSmoothing extends Smoothing implements Seria
    * @param iterationIndex index of current iteration
    */
   public void updateIteration(int iterationIndex){
-    iterationIndex = iterationIndex;
+    this.iterationIndex = iterationIndex;
   }
 
   /**

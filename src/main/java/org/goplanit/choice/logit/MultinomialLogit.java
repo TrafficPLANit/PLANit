@@ -89,7 +89,7 @@ public class MultinomialLogit extends ChoiceModel {
   public double computePerceivedCost(double alternativeCost, double demand, boolean applyExpTransform) {
 
     if(demand <= 0){
-      LOGGER.severe("Negative demand found, can't compute perceived cost (always zero), truncating to 10^-12");
+      LOGGER.severe("Negative or zero demand found, applying minimum lower bound dummy demand of to 10^-12");
       demand = Precision.EPSILON_12;
     }
 

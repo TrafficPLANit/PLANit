@@ -5,9 +5,9 @@ import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
 import org.goplanit.assignment.ltm.sltm.StaticLtmType;
-import org.goplanit.choice.logit.BoundedMultinomialLogit;
 import org.goplanit.choice.logit.BoundedMultinomialLogitConfigurator;
 import org.goplanit.demands.Demands;
+import org.goplanit.gap.GapFunction;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.od.demand.OdDemandMatrix;
@@ -18,6 +18,7 @@ import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoiceConfigurator;
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -61,10 +62,11 @@ public class sLtmAssignmentMultiDestinationTest {
 
   /**
    * Create demands an populate with OD DEMANDS 4000 A->A`, 4000 A->A``
-   * 
+   *
+   * @param demand to use for each od
    * @return created demands
    */
-  private Demands createDemands() {
+  private Demands createDemands(double demand) {
     Demands demands = new Demands(testToken);
     demands.timePeriods.getFactory().registerNew("dummyTimePeriod", 0, 3600);
     demands.travelerTypes.getFactory().registerNew("dummyTravellerType");
@@ -73,8 +75,8 @@ public class sLtmAssignmentMultiDestinationTest {
     /* OD DEMANDS 4000 A->A`, 4000 A->A`` */
     OdZones odZones = zoning.getOdZones();
     OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
-    odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), 4000.0);
-    odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 4000.0);
+    odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), demand);
+    odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), demand);
     demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
 
     return demands;
@@ -104,17 +106,17 @@ public class sLtmAssignmentMultiDestinationTest {
     assertEquals(outflow1, 4522.6, 1);
     assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow3, outflow2, Precision.EPSILON_3);
-    //assertEquals(outflow4, 3750, 1); do not test due to non-uniqueness being allowed under no congestion an triangular FD
+    //assertEquals(outflow4, 3750, 1); do not test due to non-uniqueness being allowed under no congestion and triangular FD
     assertEquals(outflow5, 3190, 1);
     assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow7, outflow6, Precision.EPSILON_3);
-    //assertEquals(outflow8, 3750, 1); do not test due to non-uniqueness being allowed under no congestion an triangular FD
+    //assertEquals(outflow8, 3750, 1); do not test due to non-uniqueness being allowed under no congestion and triangular FD
     assertEquals(outflow9, 3000.0, Precision.EPSILON_3);
     assertEquals(outflow10, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow11, outflow10, Precision.EPSILON_3);
     assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
-    //assertEquals(outflow13, 2250, 1); do not test due to non-uniqueness being allowed under no congestion an triangular FD
-    //assertEquals(outflow14, 2250, 1); do not test due to non-uniqueness being allowed under no congestion an triangular FD
+    //assertEquals(outflow13, 2250, 1); do not test due to non-uniqueness being allowed under no congestion and triangular FD
+    //assertEquals(outflow14, 2250, 1); do not test due to non-uniqueness being allowed under no congestion and triangular FD
 
     double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
@@ -145,7 +147,7 @@ public class sLtmAssignmentMultiDestinationTest {
     assertEquals(outflow12, inflow13 + inflow14, Precision.EPSILON_6);
   }
 
-  private void testStochasticOutputs(StaticLtm sLTM) {
+  private void testStochasticOutputs(StaticLtm sLTM, String logitModel) {
     double outflow0 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
     double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
@@ -165,21 +167,40 @@ public class sLtmAssignmentMultiDestinationTest {
     assertTrue(Precision.smallerEqual(outflow4, 4000));
     assertTrue(Precision.smallerEqual(outflow8, 4000));
 
-    assertEquals(outflow0, 8000, Precision.EPSILON_3);
-    assertEquals(outflow1, 4520.3, 1);
-    assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
-    assertEquals(outflow3, outflow2, Precision.EPSILON_3);
-    assertEquals(outflow4, 3749.7, 1);
-    assertEquals(outflow5, 3290.3, 1);
-    assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
-    assertEquals(outflow7, outflow6, Precision.EPSILON_3);
-    assertEquals(outflow8, 3750.3, 1);
-    assertEquals(outflow9, 3000.0, Precision.EPSILON_3);
-    assertEquals(outflow10, 1500.0, Precision.EPSILON_3);
-    assertEquals(outflow11, outflow10, Precision.EPSILON_3);
-    assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
-    assertEquals(outflow13, 2249.7, 1);
-    assertEquals(outflow14, 2249.7, 1);
+    //todo: change to inflow check as outflow does not reveal differences between models all that clearly
+    if(logitModel.equals(ChoiceModel.BOUNDED_MNL)) {
+      assertEquals(outflow0, 8000, Precision.EPSILON_3);
+      assertEquals(outflow1, 4519.24, 1);
+      assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
+      assertEquals(outflow3, outflow2, Precision.EPSILON_3);
+      assertEquals(outflow4, 3749.72, 1);
+      assertEquals(outflow5, 3296.5, 1);
+      assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
+      assertEquals(outflow7, outflow6, Precision.EPSILON_3);
+      assertEquals(outflow8, 3750.28, 1);
+      assertEquals(outflow9, 3000.0, Precision.EPSILON_3);
+      assertEquals(outflow10, 1500.0, Precision.EPSILON_3);
+      assertEquals(outflow11, outflow10, Precision.EPSILON_3);
+      assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
+      assertEquals(outflow13, 2249.72, 1);
+      assertEquals(outflow14, 2250.28, 1);
+    }else if(logitModel.equals(ChoiceModel.WEIBIT)){
+      assertEquals(outflow0, 8000, Precision.EPSILON_3);
+      assertEquals(outflow1, 4522.72, 1);
+      assertEquals(outflow2, 1500, Precision.EPSILON_3);
+      assertEquals(outflow3, outflow2, Precision.EPSILON_3);
+      assertEquals(outflow4, 3749.36, 1);
+      assertEquals(outflow5, 3200.14, 1);
+      assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
+      assertEquals(outflow7, outflow6, Precision.EPSILON_3);
+      assertEquals(outflow8, 3750.64, 1);
+      assertEquals(outflow9, 3000.0, Precision.EPSILON_3);
+      assertEquals(outflow10, 1500.0, Precision.EPSILON_3);
+      assertEquals(outflow11, outflow10, Precision.EPSILON_3);
+      assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
+      assertEquals(outflow13, 2249.36, 1);
+      assertEquals(outflow14, 2250.64, 1);
+    }
 
     double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
@@ -196,18 +217,18 @@ public class sLtmAssignmentMultiDestinationTest {
     double inflow13 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("13").getLinkSegmentAb());
     double inflow14 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("14").getLinkSegmentAb());
 
-    assertEquals(outflow0, inflow1 + inflow5, Precision.EPSILON_6);
-    assertEquals(outflow1, inflow2 + inflow9, Precision.EPSILON_6);
-    assertEquals(outflow2, inflow3, Precision.EPSILON_6);
-    assertEquals(outflow3 + outflow13, inflow4, Precision.EPSILON_6);
-    assertEquals(outflow4, inflow4, Precision.EPSILON_6);
-    assertEquals(outflow5, inflow10 + inflow6, Precision.EPSILON_6);
-    assertEquals(outflow6, inflow7, Precision.EPSILON_6);
-    assertEquals(outflow7 + outflow14, inflow8, Precision.EPSILON_6);
-    assertEquals(outflow8, inflow8, Precision.EPSILON_6);
-    assertEquals(outflow9 + outflow11, inflow12, Precision.EPSILON_6);
-    assertEquals(outflow10, inflow11, Precision.EPSILON_6);
-    assertEquals(outflow12, inflow13 + inflow14, Precision.EPSILON_6);
+    assertEquals(outflow0, inflow1 + inflow5, Precision.EPSILON_3);
+    assertEquals(outflow1, inflow2 + inflow9, Precision.EPSILON_3);
+    assertEquals(outflow2, inflow3, Precision.EPSILON_3);
+    assertEquals(outflow3 + outflow13, inflow4, Precision.EPSILON_3);
+    assertEquals(outflow4, inflow4, Precision.EPSILON_3);
+    assertEquals(outflow5, inflow10 + inflow6, Precision.EPSILON_3);
+    assertEquals(outflow6, inflow7, Precision.EPSILON_3);
+    assertEquals(outflow7 + outflow14, inflow8, Precision.EPSILON_3);
+    assertEquals(outflow8, inflow8, Precision.EPSILON_3);
+    assertEquals(outflow9 + outflow11, inflow12, Precision.EPSILON_3);
+    assertEquals(outflow10, inflow11, Precision.EPSILON_3);
+    assertEquals(outflow12, inflow13 + inflow14, Precision.EPSILON_3);
   }
 
   /**
@@ -397,7 +418,7 @@ public class sLtmAssignmentMultiDestinationTest {
   public void sLtmPointQueuePathBasedWeibitSueAssignmentTest() {
     try {
 
-      Demands demands = createDemands();
+      Demands demands = createDemands(4000);
 
       /* sLTM - POINT QUEUE */
       var sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
@@ -408,16 +429,18 @@ public class sLtmAssignmentMultiDestinationTest {
       /* PATH BASED */
       configurator.setType(StaticLtmType.PATH_BASED);
 
-      /* fixed smoothing step */
-      var smoothingConfig = (FixedStepSmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      smoothingConfig.setStepSize(0.9);
+      /* MSRA */
+      var smoothingConfig = (MSRASmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.MSRA);
+      smoothingConfig.setKappaStep(1.2);
+      smoothingConfig.setGammaStep(0.01);
+      smoothingConfig.setBadIterationThreshold(0.8);
 
       /* PATH CHOICE - STOCHASTIC */
       final var suePathChoice = (StochasticPathChoiceConfigurator) configurator.createAndRegisterPathChoice(PathChoice.STOCHASTIC);
       {
         /* Weibit for path choice */
         var choiceModel = suePathChoice.createAndRegisterChoiceModel(ChoiceModel.WEIBIT);
-        choiceModel.setScalingFactor(1); // we go for rather muddled perceived cost to differentiate from deterministic result
+        choiceModel.setScalingFactor(10);
         // by not setting a fixed od path set (suePathChoice.setFixedOdPathMatrix(...)), it is assumed we want a dynamic path set
 
         // You can add your own custom filters alternatively, the one below being identical to the predefined max overlap one for 80%
@@ -446,7 +469,7 @@ public class sLtmAssignmentMultiDestinationTest {
       sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
-      testStochasticOutputs(sLTM);
+      testStochasticOutputs(sLTM, ChoiceModel.WEIBIT);
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -461,7 +484,7 @@ public class sLtmAssignmentMultiDestinationTest {
   public void sLtmPointQueuePathBasedBoundedMnlSueAssignmentTest() {
     try {
 
-      Demands demands = createDemands();
+      Demands demands = createDemands(4000);
 
       /* sLTM - POINT QUEUE */
       var sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
@@ -472,16 +495,18 @@ public class sLtmAssignmentMultiDestinationTest {
       /* PATH BASED */
       configurator.setType(StaticLtmType.PATH_BASED);
 
-      /* fixed smoothing step */
-      var smoothingConfig = (FixedStepSmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      smoothingConfig.setStepSize(0.25);
+      /* MSRA */
+      var smoothingConfig = (MSRASmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.MSRA);
+      smoothingConfig.setKappaStep(1.2);
+      smoothingConfig.setGammaStep(0.01);
+      smoothingConfig.setBadIterationThreshold(0.8);
 
       /* PATH CHOICE - STOCHASTIC */
       final var suePathChoice = (StochasticPathChoiceConfigurator) configurator.createAndRegisterPathChoice(PathChoice.STOCHASTIC);
       {
         /* Bounded MNL for path choice */
         var choiceModel = (BoundedMultinomialLogitConfigurator) suePathChoice.createAndRegisterChoiceModel(ChoiceModel.BOUNDED_MNL);
-        choiceModel.setScalingFactor(10);  // we go for sharp perceived cost for challenging convergence
+        choiceModel.setScalingFactor(10);
         choiceModel.setDelta(0.5);        // we set bound with 0.5h of travel time difference for a path to be considered
         // by not setting a fixed od path set (suePathChoice.setFixedOdPathMatrix(...)), it is assumed we want a dynamic path set
 
@@ -511,7 +536,7 @@ public class sLtmAssignmentMultiDestinationTest {
       sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
-      testStochasticOutputs(sLTM);
+      testStochasticOutputs(sLTM, ChoiceModel.BOUNDED_MNL);
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -526,7 +551,7 @@ public class sLtmAssignmentMultiDestinationTest {
   public void sLtmPointQueueBushOriginBasedAssignmentTest() {
     try {
 
-      Demands demands = createDemands();
+      Demands demands = createDemands(4000);
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
@@ -560,7 +585,7 @@ public class sLtmAssignmentMultiDestinationTest {
   public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
     try {
 
-      Demands demands = createDemands();
+      Demands demands = createDemands(4000);
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);

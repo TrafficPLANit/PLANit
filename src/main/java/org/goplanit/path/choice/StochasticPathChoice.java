@@ -84,13 +84,14 @@ public class StochasticPathChoice extends PathChoice {
    * @param absolutePathCosts the absolute path costs to convert
    * @param pathProbabilities the path probabilities for each path
    * @param odDemand the total demand of the od these paths relate to
+   * @param applyExpTransform indicate to exp transform or not
    * @return perceived path costs for each path
    */
-  public double[] computePerceivedPathCosts(final double[] absolutePathCosts, final double[] pathProbabilities, final Double odDemand) {
+  public double[] computePerceivedPathCosts(final double[] absolutePathCosts, final double[] pathProbabilities, final Double odDemand, boolean applyExpTransform) {
     final var numPaths = absolutePathCosts.length;
     var perceivedPathCosts = new double[numPaths];
     for(int index = 0; index < absolutePathCosts.length; ++ index){
-      perceivedPathCosts[index] = choiceModel.computePerceivedCost(absolutePathCosts, index, pathProbabilities[index] * odDemand, true);
+      perceivedPathCosts[index] = choiceModel.computePerceivedCost(absolutePathCosts, index, pathProbabilities[index] * odDemand, applyExpTransform);
     }
     return  perceivedPathCosts;
   }
