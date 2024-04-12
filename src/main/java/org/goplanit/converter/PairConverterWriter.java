@@ -1,7 +1,7 @@
 package org.goplanit.converter;
 
-import org.goplanit.converter.idmapping.IdMapperType;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.id.IdMapperType;
 
 /**
  * Interface for classes able to write a PLANit entities of given type to disk

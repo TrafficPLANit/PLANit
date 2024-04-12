@@ -2,6 +2,7 @@ package org.goplanit.converter.idmapping;
 
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.time.TimePeriod;
 
 import java.util.function.Function;

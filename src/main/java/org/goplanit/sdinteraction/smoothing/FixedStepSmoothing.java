@@ -60,7 +60,7 @@ public class FixedStepSmoothing extends Smoothing {
    *
    * @return stepSize step to use
    */
-  public double getStepSize(double stepSize) {
+  public double getStepSize() {
     return this.stepSize;
   }
 

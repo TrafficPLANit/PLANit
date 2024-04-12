@@ -1,6 +1,11 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import org.goplanit.utils.id.IdMapperType;
+import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.zoning.OdZone;
+
 import java.lang.reflect.Field;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -19,7 +24,13 @@ public class StaticLtmSettings {
   /** flag indicating if detailed logging is enabled */
   private Boolean detailedLogging = null;
 
-  /** flag indicating tthe type of sLTM assignment to apply, bush or path based */
+  /**
+   * Track ods in this container for extended logging (if any)
+   */
+  private Map<IdMapperType, Map<String, Set<String>>> trackedOds = new HashMap<>();
+
+
+  /** flag indicating the type of sLTM assignment to apply, bush or path based */
   private StaticLtmType sLtmType = DEFAULT_SLTM_TYPE;
 
   /**
@@ -34,6 +45,21 @@ public class StaticLtmSettings {
 
   /** default setting for enforcing a flow proportional solution when possible */
   public static boolean ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT = false;
+
+  /**
+   * Provide OD pair to track extended logging for during assignment for debugging purposes.
+   * (currently only supported for path based sLTM assignment)
+   *
+   * @param type id mapping type to use
+   * @param originIdAsString origin id in idType form
+   * @param destinationIdAsString origin id in idType form
+   */
+  protected void addTrackOdForLogging(IdMapperType type, String originIdAsString, String destinationIdAsString){
+    trackedOds.putIfAbsent(type, new HashMap<>());
+    var trackedOdsForType = trackedOds.get(type);
+    trackedOdsForType.putIfAbsent(originIdAsString, new HashSet<>());
+    trackedOdsForType.get(originIdAsString).add(destinationIdAsString);
+  }
 
   /**
    * Constructor
@@ -121,6 +147,74 @@ public class StaticLtmSettings {
 
   public void setEnforceMaxEntropyFlowSolution(Boolean enforceMaxEntropyFlowSolution) {
     this.enforceMaxEntropyFlowSolution = enforceMaxEntropyFlowSolution;
+  }
+
+  /**
+   * Provide OD pair to track extended logging for during assignment for debugging purposes.
+   * (currently only supported for path based sLTM assignment)
+   *
+   * @param originId origin id in idType form
+   * @param destinationId origin id in idType form
+   */
+  public void addTrackOdForLoggingById(Integer originId, Integer destinationId){
+    addTrackOdForLogging(IdMapperType.ID, String.valueOf(originId), String.valueOf(destinationId));
+  }
+
+  /**
+   * Provide OD pair to track extended logging for during assignment for debugging purposes.
+   * (currently only supported for path based sLTM assignment)
+   *
+   * @param originId origin id in idType form
+   * @param destinationId origin id in idType form
+   */
+  public void addTrackOdForLoggingByXmlId(String originId, String destinationId){
+    addTrackOdForLogging(IdMapperType.XML, originId, destinationId);
+  }
+
+  /**
+   * Provide OD pair to track extended logging for during assignment for debugging purposes.
+   * (currently only supported for path based sLTM assignment)
+   *
+   * @param originId origin id in idType form
+   * @param destinationId origin id in idType form
+   */
+  public void addTrackOdForLoggingByExternalId(String originId, String destinationId){
+    addTrackOdForLogging(IdMapperType.EXTERNAL_ID, originId, destinationId);
+  }
+
+
+  /**
+   * Check if any ods are marked for extended logging
+   *
+   * @return true if present, false otherwise
+   */
+  public boolean hasTrackOdsForLogging(){
+    return !trackedOds.isEmpty();
+  }
+
+  /**
+   * Check if a given od is marked for extended logging or not
+   *
+   * @param originZone origin to check
+   * @param destinationZone destination to check
+   * @return true when tracked, false otherwise
+   */
+  public boolean isTrackOdForLogging(OdZone originZone, OdZone destinationZone){
+    /* try each id type which has registered zones, if available... */
+    for(var entry : trackedOds.entrySet()){
+      var odsForType = entry.getValue();
+      var originIdForType = originZone.getIdAsString(entry.getKey());
+      if(!odsForType.containsKey(originIdForType)){
+        continue;
+      }
+
+      /* verify id od pair is registered */
+      var destinationIdForType = destinationZone.getIdAsString(entry.getKey());
+      if(odsForType.get(originIdForType).contains(destinationIdForType)){
+        return true;
+      }
+    }
+    return false;
   }
 
 }

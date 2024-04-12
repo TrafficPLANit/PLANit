@@ -1,7 +1,9 @@
 package org.goplanit.path.choice;
 
 import java.awt.*;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -9,6 +11,7 @@ import org.goplanit.choice.ChoiceModel;
 import org.goplanit.path.filter.PathFilter;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.path.SimpleDirectedPath;
+import org.goplanit.utils.reflection.ReflectionUtils;
 
 /**
  * Stochastic path choice component. Stochasticity is reflected by the fact that the path choice is applied by means of
@@ -30,6 +33,12 @@ public class StochasticPathChoice extends PathChoice {
    */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StochasticPathChoice.class.getCanonicalName());
+
+  /**
+   * Threshold to apply when deciding whether to keep or remove paths considered in path choice, value
+   * between 0 and 1 expected
+   */
+  private double removePathPobabilityThreshold;
 
   /**
    * The registered choice model
@@ -91,6 +100,7 @@ public class StochasticPathChoice extends PathChoice {
     final var numPaths = absolutePathCosts.length;
     var perceivedPathCosts = new double[numPaths];
     for(int index = 0; index < absolutePathCosts.length; ++ index){
+      double pathDemand = pathProbabilities[index] * odDemand;
       perceivedPathCosts[index] = choiceModel.computePerceivedCost(absolutePathCosts, index, pathProbabilities[index] * odDemand, applyExpTransform);
     }
     return  perceivedPathCosts;
@@ -132,6 +142,14 @@ public class StochasticPathChoice extends PathChoice {
     this.pathFilters = pathFilters;
   }
 
+  public void setRemovePathPobabilityThreshold(double removePathPobabilityThreshold){
+    this.removePathPobabilityThreshold =  removePathPobabilityThreshold;
+  }
+
+  public double getRemovePathPobabilityThreshold(){
+    return removePathPobabilityThreshold;
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -161,7 +179,16 @@ public class StochasticPathChoice extends PathChoice {
    */
   @Override
   public Map<String, String> collectSettingsAsKeyValueMap() {
-    return choiceModel.collectSettingsAsKeyValueMap();
+    var keyValueMap = new HashMap<String, String>();
+
+    // locals
+    var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(this, i -> Modifier.isPrivate(i) && !Modifier.isStatic(i));
+    privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
+
+    // transitives
+    keyValueMap.putAll(pathFilters.collectSettingsAsKeyValueMap());
+    keyValueMap.putAll(choiceModel.collectSettingsAsKeyValueMap());
+    return keyValueMap;
   }
 
 }

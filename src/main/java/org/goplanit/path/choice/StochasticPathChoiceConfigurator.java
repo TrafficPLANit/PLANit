@@ -15,6 +15,8 @@ import org.goplanit.utils.exceptions.PlanItException;
 public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<StochasticPathChoice> {
   
   private static final String SET_OD_PATH_MATRIX = "setOdPathMatrix";
+
+  private static final String SET_REMOVE_PATH_PROBABILITY_THRESHOLD = "setRemovePathPobabilityThreshold";
     
   /**
    * Choice model configurator
@@ -25,6 +27,12 @@ public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<Sto
    * PathFilter configurator
    */
   protected PathFilterConfigurator pathFilterConfigurator;
+
+  /**
+   * Threshold to apply when deciding whether to keep or remove paths considered in path choice, value
+   * between 0 and 1 expected
+   */
+  protected double removePathPobabilityThreshold;
   
   /**
    * Constructor
@@ -63,5 +71,25 @@ public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<Sto
    */
   public PathFilterConfigurator getPathFilter() {
     return pathFilterConfigurator;
+  }
+
+  /**
+   * Get the threshold below which paths are expected to be removed (and therefore no longer considered in path choice,
+   * where 0 means only unused paths will be removed whereas 1 means all paths will be removed
+   *
+   * @return removePathPobabilityThreshold set
+   */
+  public double getRemovePathPobabilityThreshold() {
+    return getTypedFirstParameterOfDelayedMethodCall(SET_REMOVE_PATH_PROBABILITY_THRESHOLD);
+  }
+
+  /**
+   * Set the threshold below which paths are expected to be removed (and therefore no longer considered in path choice,
+   * where 0 means only unused paths will be removed whereas 1 means all paths will be removed
+   *
+   * @param removePathPobabilityThreshold the threshold to apply (between 0 and 1)
+   */
+  public void setRemovePathPobabilityThreshold(double removePathPobabilityThreshold) {
+    registerDelayedMethodCall(SET_REMOVE_PATH_PROBABILITY_THRESHOLD,removePathPobabilityThreshold);
   }
 }

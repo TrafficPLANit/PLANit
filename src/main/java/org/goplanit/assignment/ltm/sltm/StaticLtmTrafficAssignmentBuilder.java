@@ -42,7 +42,7 @@ public class StaticLtmTrafficAssignmentBuilder extends LtmTrafficAssignmentBuild
           final InputBuilderListener inputBuilderListener,
           final Demands demands,
           final Zoning zoning,
-          final LayeredNetwork<?, ?> network) throws PlanItException {
+          final LayeredNetwork<?, ?> network){
     super(StaticLtm.class, groupId, inputBuilderListener, demands, zoning, network);
   }
 

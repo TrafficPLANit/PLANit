@@ -1,13 +1,8 @@
 package org.goplanit.converter;
 
-import org.goplanit.converter.idmapping.IdMapperType;
 import org.goplanit.converter.idmapping.PlanitComponentIdMapper;
 import org.goplanit.converter.idmapping.PlanitComponentIdMappers;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.goplanit.utils.epsg.EpsgCodesByCountry;
-import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.geo.PlanitCrsUtils;
+import org.goplanit.utils.id.IdMapperType;
 
 /**
  * abstract base class implementation to write a PLANit network to disk with id mapping sorted for convenience

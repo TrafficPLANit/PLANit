@@ -4,6 +4,8 @@ import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathOneToAll;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
+import org.goplanit.choice.ChoiceModel;
+import org.goplanit.choice.logit.BoundedMultinomialLogit;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -16,27 +18,23 @@ import org.goplanit.od.path.OdPathsHashed;
 import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoice;
-import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.path.PathUtils;
-import org.goplanit.utils.path.SimpleDirectedPath;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 /**
  * Implementation to deal with a path based sLTM implementation
@@ -89,7 +87,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    *
    * @param gapFunction   to use
    * @param minPathCostIndex index to path with lowest perceived cost
-   * @param perceivedPathCosts the costs of each od path
+   * @param perceivedPathCosts the perceived costs of each od path
+   * @param perceivedCostUpperBound upper bound to apply to any perceived cost. Truncate to this value if perceived costs exceeds the bound
    * @param absolutePathCosts the absolute costs of each od path
    * @param odPaths list of od paths
    * @param odDemand total OdDemand
@@ -98,6 +97,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
           final PathBasedGapFunction gapFunction,
           final int minPathCostIndex,
           final double[] perceivedPathCosts,
+          final double perceivedCostUpperBound,
           final double[] absolutePathCosts,
           final Collection<StaticLtmDirectedPath> odPaths,
           double odDemand) {
@@ -110,11 +110,17 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       minPerceivedCost = absolutePathCosts[minPathCostIndex];
       throw new PlanItRunTimeException("NOT PERMITTED ANYMORE -- see if this still happens, replacing with absolute costs does not work when we allow for negative min perceived costs");
     }
-    gapFunction.increaseMinimumPathCosts(minPerceivedCost, odDemand);
+
+    //gapFunction.increaseMinimumPathCosts(minPerceivedCost, odDemand); // traditional approach of min cost in denominator
     int index = 0;
     for(var path : odPaths){
       double pathCost = index == minPathCostIndex ? minPerceivedCost : perceivedPathCosts[index];
-      gapFunction.increaseAbsolutePathGap(pathCost, odDemand * path.getPathChoiceProbability(), minPerceivedCost);
+      // Adopting relative gap from rasmussen where the dnominator is NOT based on min cost but just the current cost. This avoids having really large gaps
+      // in earlier iterations while it converges to the same final gap at convergence regardless
+      gapFunction.increaseMinimumPathCosts(Math.min(perceivedCostUpperBound, pathCost), odDemand * path.getPathChoiceProbability());
+
+      // numerator
+      gapFunction.increaseAbsolutePathGap(Math.min(perceivedCostUpperBound, pathCost), odDemand * path.getPathChoiceProbability(), minPerceivedCost);
       ++index;
     }
   }
@@ -192,89 +198,132 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     double[] currCostRelatedPathProbabilities = odPaths.stream().map( p -> p.getPathChoiceProbability()).mapToDouble(v -> v).toArray();
     double[] currPerceivedPathCosts = stochasticPathChoice.computePerceivedPathCosts(currAbsolutePathCosts, currCostRelatedPathProbabilities, demand, applyExpTransform);
 
-    //2. identify low and highest cost path and their respective absolute and perceived costs
-    int lowCostPathIndex = newPathAdded ? odPaths.size()-1 : ArrayUtils.findMinValueIndex(currPerceivedPathCosts);
-    int highCostPathIndex = ArrayUtils.findMaxValueIndex(currPerceivedPathCosts);
-    var lowCostPath = odPaths.get(lowCostPathIndex);
-    var highCostPath = odPaths.get(highCostPathIndex);
-    double lowCostPathCurrPerceivedCost = currPerceivedPathCosts[lowCostPathIndex];
-    double highCostPathCurrPerceivedCost = currPerceivedPathCosts[highCostPathIndex];
-
-    //3. determine link based derivatives to inform step size for both low and high cost path (on link level) - absolute cost component only
-    double lowCostPathDAbsoluteCostDFlow = PathUtils.computeEdgeSegmentAdditiveValues(lowCostPath, dCostDFlow);
-    double highCostPathDAbsoluteCostDFlow = PathUtils.computeEdgeSegmentAdditiveValues(highCostPath, dCostDFlow); // high cost path based sum of dCostdFlow
-
-    // 4. identify non-overlapping links between low and high cost as flow shifts only impact those links
-    //todo: make configurable as this is a costly exercise
-    boolean onlyConsiderNonOverlappingLinks = true;
-    if(onlyConsiderNonOverlappingLinks){
-      int[] overlappingIndices = PathUtils.getOverlappingPathLinkIndices(lowCostPath, highCostPath);
-      for(var overlappingLinkIndex : overlappingIndices){
-        lowCostPathDAbsoluteCostDFlow -= dCostDFlow[overlappingLinkIndex];
-        highCostPathDAbsoluteCostDFlow -= dCostDFlow[overlappingLinkIndex];
-      }
-    }
-    // BOUND ENFORCEMENT - Part I
-    // For linear free flow branches of an FD,the dcost/dflow on uncongested links is zero -> when high cost non-overlapping path solely comprise such links
-    // this results in very high steps. To somewhat soften this and reduce likelihood of overstepping (flip-flopping), we enforce that the dcost/dflow of the high cost
-    // path is at least is as high as the lowest cost path's dcost dflow as a lower bound
-    highCostPathDAbsoluteCostDFlow = Math.max(lowCostPathDAbsoluteCostDFlow,highCostPathDAbsoluteCostDFlow);
-
-    // 5. determine path based derivatives dcost/dflow (on perceived cost) utilising absolute cost derivatives and functional form of SUE function
-    double[] dpCostdFlows = {highCostPathDAbsoluteCostDFlow, lowCostPathDAbsoluteCostDFlow};
-    double[] absCosts = {currAbsolutePathCosts[highCostPathIndex], currAbsolutePathCosts[lowCostPathIndex]};
-    double highCostPathDenominator = stochasticPathChoice.getChoiceModel().computeDPerceivedCostDFlow(
-            dpCostdFlows, absCosts, 0 /*high cost */, highCostPath.getPathChoiceProbability() * demand, applyExpTransform);
-    // low cost path based dPerceivedCost/dFlow this required the derivative of the perceived cost related to the applied path choice model
-    double lowCostPathDenominator = stochasticPathChoice.getChoiceModel().computeDPerceivedCostDFlow(
-            dpCostdFlows,  absCosts, 1 /*low cost */,lowCostPath.getPathChoiceProbability() * demand, applyExpTransform);
-    // BOUND ENFORCEMENT - Part II
-    // derivative of low cost path should never be steeper than that of the high-cost path (if it exists). In certain edge cases this may occur due to very low demands. In that case
-    // we truncate to the high cost derivative as an upper bound
-    if(highCostPathDenominator > 0) {
-      lowCostPathDenominator = Math.min(lowCostPathDenominator, highCostPathDenominator);
-    }
-
-    var currHighCostDemand = highCostPath.getPathChoiceProbability() * demand;
-    var currLowCostDemand = lowCostPath.getPathChoiceProbability() * demand;
-
-    //6. NEWTON STEP: analytical equilibration of two paths based on their current cost and first derivative to determine flows/probabilities for i+1
-    //   (adapted from Olga Perederieieva (2015) thesis)
-    double newtonStepDenominator = highCostPathDenominator + lowCostPathDenominator;
-    if(newtonStepDenominator < 0){
-      LOGGER.severe("Negative step denominator, should never happen!");
-      newtonStepDenominator = 0.0;
-    }
-    //   cost_high - step * dCost_high/d_Flow_high = cost_low - step * dCost_low/d_Flow_low
-    //   rewrite towards step: step =  (cost_high - cost_low)/((dCost_high/d_Flow_high)+(dCost_low/d_Flow_low))
-    double newtonStep = Math.min(currHighCostDemand,
-            newtonStepDenominator != 0.0 ?
-              (highCostPathCurrPerceivedCost - lowCostPathCurrPerceivedCost) / newtonStepDenominator :
-              currHighCostDemand);
-
-    // 7. Apply smoothing to step (capped at overall demand in case no derivatives were available for both options)
-    var proposedLowCostDemand = currLowCostDemand + newtonStep;
-    var proposedHighCostDemand = currHighCostDemand - newtonStep;
-
-    double newLowCostPathProbability = Math.min(1, smoothing.execute(currLowCostDemand, proposedLowCostDemand)/demand);
-    double newHighCostPathProbability = Math.max(0, smoothing.execute(currHighCostDemand, proposedHighCostDemand)/demand);
+    // sort values and construct indices of sorted values. We do this to base our pairwise probability shifts on
+    var currPerceivedPathCostsSortedIndices = IntStream.range(0,currPerceivedPathCosts.length).boxed().sorted(
+            Comparator.comparingDouble(i -> currPerceivedPathCosts[i])).mapToInt(e -> e).toArray();
 
     //8. update gap as it currently stands before commencing new iteration with new probabilities
-    updateGap(gapFunction, lowCostPathIndex, currPerceivedPathCosts, currAbsolutePathCosts, odPaths, demand);
-
-    //9. - prune path set if expectation is that high cost bath remains unattractive todo: needs to be tested
-    if(Precision.smallerEqual(proposedHighCostDemand, 0.0, Precision.EPSILON_9) && newHighCostPathProbability < 0.01){
-      odPaths.remove(highCostPath);
-      newLowCostPathProbability += newHighCostPathProbability;
-      newHighCostPathProbability = 0.0;
+    int lowestCostPathIndex = currPerceivedPathCostsSortedIndices[0];
+    int highestCostPathIndex = currPerceivedPathCostsSortedIndices[currPerceivedPathCosts.length - 1];
+    double perceivedCostUpperBoundForGap = currPerceivedPathCosts[highestCostPathIndex];
+    // in case the proposed demand for the path drops to zero (0 probability) it may be that it falls outside of the bounds of
+    // the logit model if we apply a bounded model. In that case the gap is infinite, which is unhelpful. Instead we approach the bound
+    // leading to a measurable gap instead.
+    if(stochasticPathChoice.getChoiceModel().getComponentType().equals(ChoiceModel.BOUNDED_MNL)){
+      var bMnl = ((BoundedMultinomialLogit) stochasticPathChoice.getChoiceModel());
+      var maxAbsCostWithNonZeroProbability = currAbsolutePathCosts[lowestCostPathIndex] + bMnl.getDelta() - bMnl.getDelta()/100.0;
+      perceivedCostUpperBoundForGap =
+              bMnl.computePerceivedCostGivenReferenceCost(
+                      maxAbsCostWithNonZeroProbability, currAbsolutePathCosts[lowestCostPathIndex], demand, applyExpTransform);
     }
 
-    //10. update new probabilities for i + 1 iteration
-    {
-      // update probabilities applied, so they are available for the next iteration
-      lowCostPath.setPathChoiceProbability(newLowCostPathProbability);
-      highCostPath.setPathChoiceProbability(newHighCostPathProbability);
+    updateGap(gapFunction, lowestCostPathIndex, currPerceivedPathCosts, perceivedCostUpperBoundForGap, currAbsolutePathCosts, odPaths, demand);
+
+    if(getSettings().hasTrackOdsForLogging() && getSettings().isTrackOdForLogging(origin, destination)){
+      LOGGER.info(String.format("-------------------- [ Origin (%s) Destination (%s) ]-------------------------------", origin.getIdsAsString(), destination.getIdsAsString()));
+      LOGGER.info(String.format("absolute costs:                 %s", Arrays.toString(currAbsolutePathCosts)));
+      LOGGER.info(String.format("perceived costs:                %s", Arrays.toString(currPerceivedPathCosts)));
+      LOGGER.info(String.format("perceived costs (no transform): %s", Arrays.toString(stochasticPathChoice.computePerceivedPathCosts(currAbsolutePathCosts, currCostRelatedPathProbabilities, demand, !applyExpTransform))));
+      LOGGER.info(String.format("probabilities:                  %s", Arrays.toString(currCostRelatedPathProbabilities)));
     }
+
+    int pairIndex = 0;
+    List<StaticLtmDirectedPath> pathsToRemove = new ArrayList<>(1);
+    while(pairIndex <= (odPaths.size()/2)-1){
+      // go through this pairwise
+
+      //2. identify low and highest cost path and their respective absolute and perceived costs
+      int lowCostPathIndex = currPerceivedPathCostsSortedIndices[pairIndex];
+      int highCostPathIndex = currPerceivedPathCostsSortedIndices[currPerceivedPathCosts.length - pairIndex - 1];
+      var lowCostPath = odPaths.get(lowCostPathIndex);
+
+      var highCostPath = odPaths.get(highCostPathIndex);
+      double lowCostPathCurrPerceivedCost = currPerceivedPathCosts[lowCostPathIndex];
+      double highCostPathCurrPerceivedCost = currPerceivedPathCosts[highCostPathIndex];
+
+      //3. determine link based derivatives to inform step size for both low and high cost path (on link level) - absolute cost component only
+      double lowCostPathDAbsoluteCostDFlow = PathUtils.computeEdgeSegmentAdditiveValues(lowCostPath, dCostDFlow);
+      double highCostPathDAbsoluteCostDFlow = PathUtils.computeEdgeSegmentAdditiveValues(highCostPath, dCostDFlow); // high cost path based sum of dCostdFlow
+
+      // 4. identify non-overlapping links between low and high cost as flow shifts only impact those links
+      //todo: make configurable as this is a costly exercise and for large networks setting this to false can improve convergence as steps becomes more conservative by definition
+      boolean onlyConsiderNonOverlappingLinks = false;
+      if(onlyConsiderNonOverlappingLinks){
+        int[] overlappingIndices = PathUtils.getOverlappingPathLinkIndices(lowCostPath, highCostPath);
+        for(var overlappingLinkIndex : overlappingIndices){
+          lowCostPathDAbsoluteCostDFlow -= dCostDFlow[overlappingLinkIndex];
+          highCostPathDAbsoluteCostDFlow -= dCostDFlow[overlappingLinkIndex];
+        }
+      }
+      // BOUND ENFORCEMENT - Part I
+      // For linear free flow branches of an FD,the dcost/dflow on uncongested links is zero -> when high cost non-overlapping path solely comprise such links
+      // this results in very high steps. To somewhat soften this and reduce likelihood of overstepping (flip-flopping), we enforce that the dcost/dflow of the high cost
+      // path is at least is as high as the lowest cost path's dcost dflow as a lower bound
+      highCostPathDAbsoluteCostDFlow = Math.max(lowCostPathDAbsoluteCostDFlow,highCostPathDAbsoluteCostDFlow);
+
+      // 5. determine path based derivatives dcost/dflow (on perceived cost) utilising absolute cost derivatives and functional form of SUE function
+      double[] dpCostdFlows = {highCostPathDAbsoluteCostDFlow, lowCostPathDAbsoluteCostDFlow};
+      double[] absCosts = {currAbsolutePathCosts[highCostPathIndex], currAbsolutePathCosts[lowCostPathIndex]};
+      double highCostPathDenominator = stochasticPathChoice.getChoiceModel().computeDPerceivedCostDFlow(
+              dpCostdFlows, absCosts, 0 /*high cost */, highCostPath.getPathChoiceProbability() * demand, applyExpTransform);
+      // low cost path based dPerceivedCost/dFlow this required the derivative of the perceived cost related to the applied path choice model
+      double lowCostPathDenominator = stochasticPathChoice.getChoiceModel().computeDPerceivedCostDFlow(
+              dpCostdFlows,  absCosts, 1 /*low cost */,lowCostPath.getPathChoiceProbability() * demand, applyExpTransform);
+      // BOUND ENFORCEMENT - Part II
+      // derivative of low cost path should never be steeper than that of the high-cost path (if it exists). In certain edge cases this may occur due to very low demands. In that case
+      // we truncate to the high cost derivative as an upper bound
+      if(highCostPathDenominator > 0) {
+        lowCostPathDenominator = Math.min(lowCostPathDenominator, highCostPathDenominator);
+      }
+
+      var currHighCostDemand = highCostPath.getPathChoiceProbability() * demand;
+      var currLowCostDemand = lowCostPath.getPathChoiceProbability() * demand;
+
+      //6. NEWTON STEP: analytical equilibration of two paths based on their current cost and first derivative to determine flows/probabilities for i+1
+      //   (adapted from Olga Perederieieva (2015) thesis)
+      double newtonStepDenominator = highCostPathDenominator + lowCostPathDenominator;
+      if(newtonStepDenominator < 0){
+        LOGGER.severe("Negative step denominator, should never happen!");
+        newtonStepDenominator = 0.0;
+      }
+      //   cost_high - step * dCost_high/d_Flow_high = cost_low - step * dCost_low/d_Flow_low
+      //   rewrite towards step: step =  (cost_high - cost_low)/((dCost_high/d_Flow_high)+(dCost_low/d_Flow_low))
+      double newtonStep = Math.min(currHighCostDemand,
+              newtonStepDenominator != 0.0 ?
+                      (highCostPathCurrPerceivedCost - lowCostPathCurrPerceivedCost) / newtonStepDenominator :
+                      currHighCostDemand);
+
+      // 7. Apply smoothing to step (capped at overall demand in case no derivatives were available for both options)
+      var proposedLowCostDemand = currLowCostDemand + newtonStep;
+      var proposedHighCostDemand = currHighCostDemand - newtonStep;
+
+      if(origin.getId() == 0 && destination.getId() == 2){
+        LOGGER.info(String.format(" [%d] -> [%d] ---- demand (%.8f, %.8f) ----Step proposed: %.8f, Step applied: %.8f)", highCostPathIndex, lowCostPathIndex,currLowCostDemand, currHighCostDemand, newtonStep, smoothing.execute(currLowCostDemand, proposedLowCostDemand)-currLowCostDemand));
+      }
+
+      double newLowCostPathProbability = Math.min(1, smoothing.execute(currLowCostDemand, proposedLowCostDemand)/demand);
+      double newHighCostPathProbability = Math.max(0, smoothing.execute(currHighCostDemand, proposedHighCostDemand)/demand);
+
+      //9. - prune path set if expectation is that high-cost path has become so unattractive it is not/negligibly used
+      //     required as really low used paths may become unstable in their perceived costs due to low flow causing convergence problems
+      if(newHighCostPathProbability < stochasticPathChoice.getRemovePathPobabilityThreshold()){
+        pathsToRemove.add(highCostPath);
+        newLowCostPathProbability += newHighCostPathProbability;
+        newHighCostPathProbability = 0.0;
+      }
+
+      //10. update new probabilities for i + 1 iteration
+      {
+        // update probabilities applied, so they are available for the next iteration
+        lowCostPath.setPathChoiceProbability(newLowCostPathProbability);
+        highCostPath.setPathChoiceProbability(newHighCostPathProbability);
+      }
+
+      ++pairIndex;
+    }
+
+    pathsToRemove.forEach(p -> odPaths.remove(p));
+
   }
 
   /**
@@ -372,20 +421,23 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       }
 
       /* EXPAND OD PATH SETS WHEN ELIGIBLE NEW PATH FOUND */
-      var newOdPaths = createOdPaths(costsToUpdate);
+      final OdPaths<StaticLtmDirectedPath> newOdPaths = (iterationIndex < 50) ? createOdPaths(costsToUpdate) : null;
 
       getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
               (o, d, demand) -> {
 
-                var newOdPath = newOdPaths.getValue(o, d);
-                boolean newPathAdded = false;
                 var odPaths =  odMultiPaths.getValue(o, d);
 
-                /* FILTER to see if new path is indeed eligible */
-                if(sLtmPathFilters.stream().allMatch(p -> p.test(newOdPath, odPaths))){
-                  // valid new path, add to set
-                  odPaths.add(newOdPath);
-                  newPathAdded = true;
+                boolean newPathAdded = false;
+                if(newOdPaths != null) {
+                  var newOdPath = newOdPaths.getValue(o, d);
+
+                  /* FILTER to see if new path is indeed eligible */
+                  if(sLtmPathFilters.stream().allMatch(p -> p.test(newOdPath, odPaths))){
+                    // valid new path, add to set
+                    odPaths.add(newOdPath);
+                    newPathAdded = true;
+                  }
                 }
 
                 /* redistribute flows given current OD pathset */

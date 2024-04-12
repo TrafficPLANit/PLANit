@@ -1,6 +1,7 @@
 package org.goplanit.converter.idmapping;
 
 import org.goplanit.utils.id.ExternalIdAble;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.mode.Mode;
 
 import java.util.HashMap;

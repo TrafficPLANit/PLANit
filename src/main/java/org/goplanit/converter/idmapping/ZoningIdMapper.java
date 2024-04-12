@@ -1,5 +1,6 @@
 package org.goplanit.converter.idmapping;
 
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.TransferZoneGroup;
 import org.goplanit.utils.zoning.Zone;

@@ -22,6 +22,7 @@ import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.reflection.ReflectionUtils;
@@ -397,6 +398,39 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    */
   public boolean isEnforceMaxEntropyFlowSolution() {
     return settings.isEnforceMaxEntropyFlowSolution();
+  }
+
+  /**
+   * Provide OD pair to track extended logging for during assignment for debugging purposes.
+   * (currently only supported for path based sLTM assignment)
+   *
+   * @param originId origin id in idType form
+   * @param destinationId origin id in idType form
+   */
+  public void addTrackOdForLoggingById(Integer originId, Integer destinationId){
+    settings.addTrackOdForLoggingById(originId, destinationId);
+  }
+
+  /**
+   * Provide OD pair to track extended logging for during assignment for debugging purposes.
+   * (currently only supported for path based sLTM assignment)
+   *
+   * @param originId origin id in idType form
+   * @param destinationId origin id in idType form
+   */
+  public void addTrackOdForLoggingByXmlId(String originId, String destinationId){
+    settings.addTrackOdForLoggingByXmlId(originId, destinationId);
+  }
+
+  /**
+   * Provide OD pair to track extended logging for during assignment for debugging purposes.
+   * (currently only supported for path based sLTM assignment)
+   *
+   * @param originId origin id in idType form
+   * @param destinationId origin id in idType form
+   */
+  public void addTrackOdForLoggingByExternalId(String originId, String destinationId){
+    settings.addTrackOdForLoggingByExternalId(originId, destinationId);
   }
 
   /**

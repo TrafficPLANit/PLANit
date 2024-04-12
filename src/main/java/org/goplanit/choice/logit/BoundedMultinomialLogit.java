@@ -123,24 +123,49 @@ public class BoundedMultinomialLogit extends ChoiceModel {
   @Override
   public double computePerceivedCost(double[] alternativeCosts, int index, double demand, boolean applyExpTransform) {
 
-    if(demand <=0){
-      LOGGER.severe("No demand, can't compute computeDPerceivedCostDFlow, using dummy value of 10^-12 --> DO NOT USE IN PRODUCTION");
-      demand = Precision.EPSILON_6;
-    }
-
     /* identify max cost option (costs are positive, so to find max of negated use min)*/
     final double negatedMaxAbsolutePathCost = -alternativeCosts[ArrayUtils.findMinValueIndex(alternativeCosts)];
 
-    /* compute transformed value representative of bounded model, i.e., exp(-scale(absolutePathCost + max_across_alts(-general_cost_alt_path_p) - delta)-1 */
-    double alternativeCost = alternativeCosts[index];
-    if( Math.abs(alternativeCost + negatedMaxAbsolutePathCost) > delta){
+    /* perform actual computation with given reference (best option) cost */
+    return computePerceivedCostGivenReferenceCost(alternativeCosts[index], -negatedMaxAbsolutePathCost, demand, applyExpTransform);
+  }
+
+  /**
+   *
+   *  For bounded MNL the perceived cost in the context of OD path based demand is
+   *  ln(demand) -ln(exp(-scale(absolutePathCost + max_across_alts(-general_cost_alt_path_p) - delta)-1).
+   *  <p>
+   *    the reference cost is expected to be provided already and consistent with -max_across_alts(-general_cost_alt_path_p)
+   *  </p>
+   *  <p>
+   *  In the special case the provided demand is zero or the cost of the alternative is such that it falls outside of the bounds
+   *  an exception is thrown as now suitable replacement value can be computed. This should instead be validated beforehand and this method
+   *  should not be called
+   *  </p>
+   *
+   * @param alternativeCost absolutePathCost to consider
+   * @param referenceCost the most attractive of all options used as reference point (positive value)
+   * @param demand demand to use
+   * @param applyExpTransform exp transform of approach to use (or not)
+   * @return perceived cost result
+   */
+  public double computePerceivedCostGivenReferenceCost(double alternativeCost, double referenceCost, double demand, boolean applyExpTransform) {
+
+    if(demand <=0){
+      LOGGER.fine("No demand, can't compute computePerceivedCost given reference cost, using dummy value of 10^-12");
+      demand = Precision.EPSILON_12;
+    }
+
+    if( Math.abs(alternativeCost + -referenceCost) > delta){
       // out of bounds -> best guess that we can compute is approaching from inside towards the bound
       //alternativeCost = -negatedMaxAbsolutePathCost + delta - Precision.EPSILON_6;
-      return Double.MAX_VALUE; // as per unit test, because when out of bounds perceive cost should be infinite
+
+      // as per unit test, because when out of bounds perceived cost should lead to zero probability
+      return Double.MAX_VALUE;
     }
 
     // regular approach
-    double alternativeTransformedValue = computeBoundedPathAlternativeValue(alternativeCost, negatedMaxAbsolutePathCost);
+    double alternativeTransformedValue = computeBoundedPathAlternativeValue(alternativeCost, -referenceCost);
 
     // ln(demand) -ln(exp(-scale(absolutePathCost + max_across_alts(-general_cost_alt_path_p) - delta)-1)
     // which may be transformed to
@@ -167,7 +192,7 @@ public class BoundedMultinomialLogit extends ChoiceModel {
   public double computeDPerceivedCostDFlow(double[] dAbsoluteCostDFlows, double[] absoluteCosts, int index, double demand, boolean applyExpTransform) {
 
     if(demand <=0){
-      LOGGER.severe("No demand, can't compute computeDPerceivedCostDFlow, using dummy value of 10^-12 --> DO NOT USE IN PRODUCTION");
+      LOGGER.fine("No demand, can't compute computeDPerceivedCostDFlow, using dummy value of 10^-12");
       demand = Precision.EPSILON_12;
     }
 

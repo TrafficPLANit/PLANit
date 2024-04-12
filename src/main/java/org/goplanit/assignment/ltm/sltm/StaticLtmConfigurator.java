@@ -7,11 +7,14 @@ import org.goplanit.cost.virtual.VirtualCost;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.PathChoiceConfigurator;
-import org.goplanit.path.choice.PathChoiceConfiguratorFactory;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.id.IdMapperType;
+import org.goplanit.utils.misc.Pair;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -46,6 +49,12 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
   private static final String SET_TYPE = "setType";
 
   private static final String ACTIVATE_ENFORCE_MAX_ENTROPY_FLOW_DISTRIBUTION = "setEnforceMaxEntropyFlowSolution";
+
+  private static final String ADD_TRACK_OD_FOR_LOGGING_ID = "addTrackOdForLoggingById";
+
+  private static final String ADD_TRACK_OD_FOR_LOGGING_XML_ID = "addTrackOdForLoggingByXmlId";
+
+  private static final String ADD_TRACK_OD_FOR_LOGGING_EXTERNAL_ID = "addTrackOdForLoggingByExternalId";
 
   /**
    * Constructor
@@ -140,11 +149,40 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
   /**
    * (De)Activate the bush based max entropy flow solution. If switched off, any equal cost solution for a PAS is considered correct, when switched on an attempt is made to obtain
    * unique equal flow distribution if possible. The latter is computationally more costly but results in unique solution.
+   * <p>
+   *   Only relevant for bush-based approach
+   * </p>
    * 
    * @param flag to set
    */
   public void activateMaxEntropyFlowDistribution(boolean flag) {
     registerDelayedMethodCall(ACTIVATE_ENFORCE_MAX_ENTROPY_FLOW_DISTRIBUTION, flag);
+  }
+
+  /**
+   * Provide OD pairs to track extended logging for during assignment for debugging purposes.
+   * (currently only supported for path based sLTM assignment)
+   *
+   * @param <T> type of ids
+   * @param idType type of id the ods relate to
+   * @param odPairs od pairs array based on chosen id type
+   */
+  public <T> void addTrackOdsForLogging(IdMapperType idType, Pair<T,T>... odPairs){
+    String delayedCall;
+    switch (idType) {
+      case ID:
+        delayedCall = ADD_TRACK_OD_FOR_LOGGING_ID;
+        break;
+      case XML:
+        delayedCall = ADD_TRACK_OD_FOR_LOGGING_XML_ID;
+        break;
+      case EXTERNAL_ID:
+        delayedCall = ADD_TRACK_OD_FOR_LOGGING_EXTERNAL_ID;
+        break;
+      default:
+        throw new PlanItRunTimeException("Unrecognised id type for tracking ods");
+    }
+    Arrays.stream(odPairs).forEach( p -> registerDelayedMethodCall(delayedCall, p.first(), p.second()));
   }
 
 }

@@ -1,6 +1,7 @@
 package org.goplanit.converter.idmapping;
 
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.id.IdMapperType;
 
 public class PlanitComponentIdMappers {
 

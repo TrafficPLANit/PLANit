@@ -79,9 +79,14 @@ public class PathFilter extends PlanitComponent<PathFilter> implements Serializa
 
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Map<String, String> collectSettingsAsKeyValueMap() {
-    return null;
+    var keyValueMap = new HashMap<String,String>();
+    keyValueMap.put("numPathFilters", String.valueOf(pathFilters.size()));
+    return keyValueMap;
   }
 
   /**
