@@ -303,7 +303,10 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       // NOT YET SUPPORTED
       break;
     case PATH:
-      // NOT YET SUPPORTED
+      if(settings.getSltmType() != StaticLtmType.PATH_BASED){
+        LOGGER.warning("Path output type not available when static LTM assignment is not path based");
+      }
+      outputTypeAdapter = new StaticLtmPathOutputTypeAdapter(outputType, this);
       break;
     default:
       LOGGER.warning(String.format("%s%s is not supported yet", LoggingUtils.runIdPrefix(getId()), outputType.value()));

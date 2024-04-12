@@ -19,10 +19,8 @@ import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoice;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
-import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.path.ManagedDirectedPath;
@@ -495,5 +493,15 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     }
 
   }
+
+  /**
+   * Access to current od multi-paths
+   *
+   * @return the current od multi-paths
+   */
+  public OdMultiPaths getOdMultiPaths(){
+    return odMultiPaths;
+  }
+
 
 }

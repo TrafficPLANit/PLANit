@@ -51,24 +51,24 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
       }
 
       switch (outputProperty.getOutputPropertyType()) {
-      case DESTINATION_ZONE_EXTERNAL_ID:
-        return PathOutputTypeAdapter.getDestinationZoneExternalId(odPathIterator);
-      case DESTINATION_ZONE_XML_ID:
-        return PathOutputTypeAdapter.getDestinationZoneXmlId(odPathIterator);
-      case DESTINATION_ZONE_ID:
-        return PathOutputTypeAdapter.getDestinationZoneId(odPathIterator);
-      case PATH_STRING:
-        return PathOutputTypeAdapter.getPathAsString(odPathIterator, pathOutputType);
-      case PATH_ID:
-        return PathOutputTypeAdapter.getPathId(odPathIterator);
-      case ORIGIN_ZONE_EXTERNAL_ID:
-        return PathOutputTypeAdapter.getOriginZoneExternalId(odPathIterator);
-      case ORIGIN_ZONE_XML_ID:
-        return PathOutputTypeAdapter.getOriginZoneXmlId(odPathIterator);
-      case ORIGIN_ZONE_ID:
-        return PathOutputTypeAdapter.getOriginZoneId(odPathIterator);
-      default:
-        return Optional.of(String.format("Tried to find link property of %s which is not applicable for OD path", outputProperty.getName()));
+        case DESTINATION_ZONE_EXTERNAL_ID:
+          return PathOutputTypeAdapter.getDestinationZoneExternalId(odPathIterator);
+        case DESTINATION_ZONE_XML_ID:
+          return PathOutputTypeAdapter.getDestinationZoneXmlId(odPathIterator);
+        case DESTINATION_ZONE_ID:
+          return PathOutputTypeAdapter.getDestinationZoneId(odPathIterator);
+        case PATH_STRING:
+          return PathOutputTypeAdapter.getPathAsString(odPathIterator, pathOutputType);
+        case PATH_ID:
+          return PathOutputTypeAdapter.getPathId(odPathIterator);
+        case ORIGIN_ZONE_EXTERNAL_ID:
+          return PathOutputTypeAdapter.getOriginZoneExternalId(odPathIterator);
+        case ORIGIN_ZONE_XML_ID:
+          return PathOutputTypeAdapter.getOriginZoneXmlId(odPathIterator);
+        case ORIGIN_ZONE_ID:
+          return PathOutputTypeAdapter.getOriginZoneId(odPathIterator);
+        default:
+          return Optional.of(String.format("Tried to find link property of %s which is not applicable for OD path", outputProperty.getName()));
       }
 
       // no unit convertable types here, so do not verify if conversion is needed

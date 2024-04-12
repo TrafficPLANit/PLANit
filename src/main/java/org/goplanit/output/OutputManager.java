@@ -141,7 +141,7 @@ public class OutputManager {
    */
   public void registerOutputTypeAdapter(OutputTypeAdapter outputTypeAdapter) {
     if (outputAdapter == null) {
-      LOGGER.warning(String.format("Output adapter not available to register type on, ignored regeistration of %s instance", outputTypeAdapter.getClass().getCanonicalName()));
+      LOGGER.warning(String.format("Output adapter not available to register type on, ignored registration of %s instance", outputTypeAdapter.getClass().getCanonicalName()));
       return;
     }
     if (outputTypeAdapter == null) {

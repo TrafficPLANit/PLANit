@@ -73,7 +73,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    * @return the travel cost (time) through the current link segment
    * @throws PlanItException thrown if there is an error
    */
-  private Optional<Double> getLinkTravelTimeHour(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
+  private Optional<Double> getLinkTravelTimeHour(final MacroscopicLinkSegment linkSegment, final Mode mode){
     final int id = (int) linkSegment.getId();
     final double[] modalLinkSegmentTravelTimes = getAssignment().getIterationData().getLinkSegmentTravelTimePcuH(mode);
     return Optional.of(modalLinkSegmentTravelTimes[id]);
@@ -85,9 +85,8 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    * @param linkSegment LinkSegment object containing the required data
    * @param mode        current mode
    * @return the travel cost (time) through the current link segment
-   * @throws PlanItException thrown if there is an error
    */
-  private Optional<Double> getCostTimesFlow(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
+  private Optional<Double> getCostTimesFlow(final MacroscopicLinkSegment linkSegment, final Mode mode) {
     return Optional.of(getLinkTravelTimeHour(linkSegment, mode).get() * getOutFlowPcuHour(linkSegment, mode).get());
   }
 
@@ -97,7 +96,6 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    *
    * @param linkSegment LinkSegment object containing the required data
    * @return VC ratio for the link segment
-   * @throws PlanItException thrown if there is an error
    */
   private Optional<Double> getVcRatio(final MacroscopicLinkSegment linkSegment) throws PlanItException {
     double totalFlow = 0.0;
