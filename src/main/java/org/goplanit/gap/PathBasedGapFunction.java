@@ -104,11 +104,21 @@ public class PathBasedGapFunction extends GapFunction {
    */
   @Override
   public void reset() {
+    resetIteration();
+    this.gap = INITIAL_GAP;
+    this.previousGap = INITIAL_GAP;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void resetIteration() {
     this.scaledMeasuredPathCostGap = 0;
     this.scaledMinimumPathCosts = 0;
 
     // do not reset gap and previous gap because this is state that needs preserving if it is to work
-    // in an iterative fashion where we reset every iteration but need to keep trakc of the previous iteration gap
+    // in an iterative fashion where we reset every iteration but need to keep track of the previous iteration gap
   }
 
   /**

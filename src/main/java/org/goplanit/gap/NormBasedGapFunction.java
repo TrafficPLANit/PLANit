@@ -163,13 +163,26 @@ public class NormBasedGapFunction extends GapFunction {
   }
 
   /**
-   * Reset
+   * {@inheritDoc}
    */
+  @Override
   public void reset() {
+    resetIteration();
+    this.gap = MAX_GAP;
+    this.previousGap = MAX_GAP;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void resetIteration() {
     this.measuredValue = 0;
     this.count = 0;
     // do not reset gap and previous gap because this is state that needs preserving if it is to work
     // in an iterative fashion where we reset every iteration but need to keep trakc of the previous iteration gap
+    // do not reset gap and previous gap because this is state that needs preserving if it is to work
+    // in an iterative fashion where we reset every iteration but need to keep track of the previous iteration gap
   }
 
   /**

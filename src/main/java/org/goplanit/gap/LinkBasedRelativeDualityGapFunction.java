@@ -99,6 +99,16 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    */
   @Override
   public void reset() {
+    resetIteration();
+    this.gap = INITIAL_GAP;
+    this.previousGap = INITIAL_GAP;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void resetIteration() {
     this.measuredNetworkCost = 0;
     this.minimumNetworkCost = 0;
     // do not reset gap and previous gap because this is state that needs preserving if it is to work

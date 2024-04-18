@@ -475,12 +475,16 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     initialiseTimePeriod(timePeriod, modes);
 
+    // full reset
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
+    dualityGapFunction.reset();
+
     boolean converged = false;
     Calendar iterationStartTime = Calendar.getInstance();
 
     while (!converged) {
-      dualityGapFunction.reset();
+      // iteration reset
+      dualityGapFunction.resetIteration();
 
       // prep smoothing for this iteration
       var smoothing = getSmoothing();

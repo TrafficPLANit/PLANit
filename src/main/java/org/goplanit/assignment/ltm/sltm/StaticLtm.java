@@ -158,7 +158,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
         }
         smoothing.updateStepSize();
       }
-      getGapFunction().reset();
+      getGapFunction().resetIteration();
       assignmentStrategy.getLoading().resetIteration();
 
       /* LOADING UPDATE + PATH/BUSH UPDATE */

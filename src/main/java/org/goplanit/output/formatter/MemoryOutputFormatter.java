@@ -48,6 +48,12 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());
 
+  private static final int TIMEPERIOD_KEY_INDEX = 1;
+
+  private static final int ITERATION_KEY_INDEX = 2;
+
+  private static final int OUTPUT_TYPE_KEY_INDEX = 3;
+
   /**
    * MultiKeyMap of data stores
    */
@@ -211,7 +217,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
       OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
     // for links we assume no sub-output types exist (yet), hence this check to make sure we can
     // cast safely
-    PlanItException.throwIf(!(currentOutputType instanceof OutputType) && ((OutputType) currentOutputType) == OutputType.LINK,
+    PlanItException.throwIf(!(currentOutputType instanceof OutputType) && currentOutputType == OutputType.LINK,
         "currentOutputTypeEnum is not compatible with outputTypeconfiguration");
 
     OutputType outputType = (OutputType) currentOutputType;
@@ -260,7 +266,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 
     // for od data we assume all data is classified into sub output types of type
     // OdSkimSubOutputType, hence this check to make sure we can cast safely
-    PlanItException.throwIf(!(currentOutputType instanceof SubOutputTypeEnum && ((SubOutputTypeEnum) currentOutputType) instanceof OdSkimSubOutputType),
+    PlanItException.throwIf(!(currentOutputType instanceof SubOutputTypeEnum && currentOutputType instanceof OdSkimSubOutputType),
         "currentOutputTypeEnum is not compatible with outputTypeconfiguration");
 
     // current sub output type
@@ -362,7 +368,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    */
   public Object getOutputDataValue(Mode mode, TimePeriod timePeriod, Integer iterationIndex, OutputType outputType, OutputPropertyType outputProperty, Object[] keyValues)
       throws PlanItException {
-    MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
+    MultiKeyPlanItData multiKeyPlanItData = timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
     return multiKeyPlanItData.getRowValue(outputProperty, keyValues);
   }
 
@@ -417,12 +423,32 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    */
   public int getLastIteration() {
 
-    Set<MultiKey<? extends Object>> keySet = (Set<MultiKey<? extends Object>>) timeModeOutputTypeIterationDataMap.keySet();
+    Set<MultiKey<?>> keySet = timeModeOutputTypeIterationDataMap.keySet();
     int lastIteration = 0;
-    for (MultiKey<? extends Object> multiKey : keySet) {
+    for (MultiKey<?> multiKey : keySet) {
       Object[] keys = multiKey.getKeys();
       Integer iteration = (Integer) keys[2];
       lastIteration = Math.max(lastIteration, iteration);
+    }
+    return lastIteration;
+  }
+
+  /**
+   * Returns the value of the last iteration of recorded data for a given time period
+   *
+   * @param timePeriod to consider
+   * @return the last iteration of recorded data for the given time period
+   */
+  public int getLastIteration(TimePeriod timePeriod) {
+
+    Set<MultiKey<?>> keySet = timeModeOutputTypeIterationDataMap.keySet();
+    int lastIteration = 0;
+    for (MultiKey<?> multiKey : keySet) {
+      Object[] keys = multiKey.getKeys();
+      if(keys[TIMEPERIOD_KEY_INDEX].equals(timePeriod)) {
+        Integer iteration = (Integer) keys[ITERATION_KEY_INDEX];
+        lastIteration = Math.max(lastIteration, iteration);
+      }
     }
     return lastIteration;
   }
@@ -465,7 +491,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
       LOGGER.warning("IGNORE: output type null when obtaining memory output iterator");
       return null;
     }
-    MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
+    MultiKeyPlanItData multiKeyPlanItData = timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
     MemoryOutputIterator memoryOutputIterator = new MemoryOutputIterator(multiKeyPlanItData);
     return memoryOutputIterator;
   }
@@ -479,14 +505,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @throws PlanItException thrown if the output property type is not in the output value property array
    */
   public int getPositionOfOutputValueProperty(final OutputType outputType, final OutputPropertyType outputValueProperty) throws PlanItException {
-    Set<MultiKey<? extends Object>> keySet = timeModeOutputTypeIterationDataMap.keySet();
-    for (MultiKey<? extends Object> multiKey : keySet) {
+    Set<MultiKey<?>> keySet = timeModeOutputTypeIterationDataMap.keySet();
+    for (MultiKey<?> multiKey : keySet) {
       Object[] keys = multiKey.getKeys();
       Mode mode1 = (Mode) keys[0];
-      TimePeriod timePeriod1 = (TimePeriod) keys[1];
-      Integer iterationIndex1 = (Integer) keys[2];
+      TimePeriod timePeriod1 = (TimePeriod) keys[TIMEPERIOD_KEY_INDEX];
+      Integer iterationIndex1 = (Integer) keys[ITERATION_KEY_INDEX];
       MultiKeyPlanItData multiKeyPlanItData = timeModeOutputTypeIterationDataMap.get(mode1, timePeriod1, iterationIndex1, outputType);
-      OutputType outputType1 = (OutputType) keys[3];
+      OutputType outputType1 = (OutputType) keys[OUTPUT_TYPE_KEY_INDEX];
       if (outputType1.equals(outputType)) {
         return multiKeyPlanItData.getPositionOfOutputValueProperty(outputValueProperty);
       }
@@ -503,14 +529,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @throws PlanItException thrown if the output property type is not in the output key property array
    */
   public int getPositionOfOutputKeyProperty(final OutputType outputType, final OutputPropertyType outputKeyProperty) throws PlanItException {
-    Set<MultiKey<? extends Object>> keySet = (Set<MultiKey<? extends Object>>) timeModeOutputTypeIterationDataMap.keySet();
-    for (MultiKey<? extends Object> multiKey : keySet) {
+    Set<MultiKey<?>> keySet = timeModeOutputTypeIterationDataMap.keySet();
+    for (MultiKey<?> multiKey : keySet) {
       Object[] keys = multiKey.getKeys();
       Mode mode1 = (Mode) keys[0];
-      TimePeriod timePeriod1 = (TimePeriod) keys[1];
-      Integer iterationIndex1 = (Integer) keys[2];
-      MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode1, timePeriod1, iterationIndex1, outputType);
-      OutputType outputType1 = (OutputType) keys[3];
+      TimePeriod timePeriod1 = (TimePeriod) keys[TIMEPERIOD_KEY_INDEX];
+      Integer iterationIndex1 = (Integer) keys[ITERATION_KEY_INDEX];
+      MultiKeyPlanItData multiKeyPlanItData = timeModeOutputTypeIterationDataMap.get(mode1, timePeriod1, iterationIndex1, outputType);
+      OutputType outputType1 = (OutputType) keys[OUTPUT_TYPE_KEY_INDEX];
       if (outputType1.equals(outputType)) {
         return multiKeyPlanItData.getPositionOfOutputKeyProperty(outputKeyProperty);
       }
