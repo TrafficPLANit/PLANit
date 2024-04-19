@@ -23,7 +23,7 @@ public class OdSkimMatrix extends OdPrimitiveMatrix<Double> {
   public class OdSkimMatrixIterator extends OdPrimitiveMatrixIterator<Double> {
 
     public OdSkimMatrixIterator(final OdSkimMatrix matrix) {
-      super(matrix.matrixContents, matrix.zones);
+      super(matrix.matrixContainer, matrix.zones);
     }
   }
 
@@ -43,7 +43,7 @@ public class OdSkimMatrix extends OdPrimitiveMatrix<Double> {
    * @param odSkimOutputType the skim output type for this OD skim matrix
    */
   public OdSkimMatrix(OdZones zones, OdSkimSubOutputType odSkimOutputType) {
-    super(OdSkimMatrix.class, IdGroupingToken.collectGlobalToken(), zones, Array2D.PRIMITIVE32.makeZero(zones.size(), zones.size()));
+    super(OdSkimMatrix.class, IdGroupingToken.collectGlobalToken(), Double.class, zones, Array2D.PRIMITIVE32.makeZero(zones.size(), zones.size()));
     this.odSkimOutputType = odSkimOutputType;
   }
 

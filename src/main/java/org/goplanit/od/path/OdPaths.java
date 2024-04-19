@@ -1,6 +1,7 @@
 package org.goplanit.od.path;
 
 import org.goplanit.utils.od.OdData;
+import org.goplanit.utils.od.OdDataIterator;
 import org.goplanit.utils.path.ManagedDirectedPath;
 
 /**
@@ -12,4 +13,22 @@ import org.goplanit.utils.path.ManagedDirectedPath;
  */
 public interface OdPaths<T extends ManagedDirectedPath> extends OdData<T> {
 
+  /**
+   * Returns an iterator which can iterate through all the origin-destinations and provide a path for each
+   *
+   * @return iterator through all the origin-destination cells
+   */
+  public OdPathIterator<T> iterator();
+
+  /**
+   * Shallow copy
+   * @return shallow copy
+   */
+  public OdPaths<T> shallowClone();
+
+  /**
+   * deep copy
+   * @return deep copy
+   */
+  public OdPaths<T> deepClone();
 }

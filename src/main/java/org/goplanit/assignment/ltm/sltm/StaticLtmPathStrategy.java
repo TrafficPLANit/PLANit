@@ -49,7 +49,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   private static final int INITIAL_PER_OD_PATH_CAPACITY = 3;
 
   /** odPaths to track */
-  private final OdMultiPaths<List<StaticLtmDirectedPath>> odMultiPaths;
+  private final OdMultiPaths<StaticLtmDirectedPath, List<StaticLtmDirectedPath>> odMultiPaths;
 
   /** List of filters in form of predicates to apply when checking if a newly created path is eligible for inclusion in the set */
   List<BiPredicate<ManagedDirectedPath, Collection<? extends ManagedDirectedPath>>> sLtmPathFilters = new ArrayList<>();

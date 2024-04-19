@@ -4,11 +4,11 @@ import org.goplanit.utils.od.OdDataIterator;
 import org.goplanit.utils.path.ManagedDirectedPath;
 
 /**
- * Iterator for directed paths tracked by od
+ * Iterator for managed directed paths tracked by od
  * 
  * @author markr
  *
  */
-public interface OdPathIterator extends OdDataIterator<ManagedDirectedPath> {
+public interface OdPathIterator<T extends ManagedDirectedPath> extends OdDataIterator<T> {
 
 }

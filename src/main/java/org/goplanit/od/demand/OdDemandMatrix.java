@@ -1,6 +1,5 @@
 package org.goplanit.od.demand;
 
-import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.od.OdPrimitiveMatrix;
 import org.goplanit.utils.od.OdPrimitiveMatrixIterator;
@@ -24,7 +23,7 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
   public class OdDemandMatrixIterator extends OdPrimitiveMatrixIterator<Double> {
 
     public OdDemandMatrixIterator(final OdDemandMatrix OdDemandMatrix) {
-      super(OdDemandMatrix.matrixContents, OdDemandMatrix.zones);
+      super(OdDemandMatrix.matrixContainer, OdDemandMatrix.zones);
     }
   }
 
@@ -34,7 +33,7 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
    * @param zones holds the zones defined in the network
    */
   public OdDemandMatrix(OdZones zones) {
-    super(OdDemandMatrix.class, IdGroupingToken.collectGlobalToken(), zones, Array2D.PRIMITIVE32.makeZero(zones.size(), zones.size()));
+    super(OdDemandMatrix.class, IdGroupingToken.collectGlobalToken(), Double.class, zones, Array2D.PRIMITIVE32.makeZero(zones.size(), zones.size()));
   }
 
   /**
@@ -72,7 +71,7 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
       }
     };
 
-    matrixContents.modifyAll(unary);
+    matrixContainer.modifyAll(unary);
   }
 
   /**

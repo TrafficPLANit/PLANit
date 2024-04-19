@@ -2,8 +2,7 @@ package org.goplanit.output.formatter;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.goplanit.od.path.OdPathMatrix;
-import org.goplanit.od.path.OdPathMatrix.OdPathMatrixIterator;
+import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.od.skim.OdSkimMatrix.OdSkimMatrixIterator;
 import org.goplanit.output.adapter.MacroscopicLinkOutputTypeAdapter;
@@ -16,9 +15,9 @@ import org.goplanit.output.configuration.PathOutputTypeConfiguration;
 import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.enums.OutputTypeEnum;
-import org.goplanit.output.enums.SubOutputTypeEnum;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.output.property.OutputPropertyType;
+import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -32,6 +31,7 @@ import java.io.FileWriter;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Class containing common methods required by classes which write results to CSV output files
@@ -146,19 +146,33 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
         // the current mode's conversion factor
         VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
 
-        Optional<OdPathMatrix> odPathMatrix = pathOutputTypeAdapter.getOdPathMatrix(mode);
-        odPathMatrix.orElseThrow(() -> new PlanItException("od path matrix could not be retrieved when persisting"));
+        Optional<OdMultiPaths<?,?>> odPaths = pathOutputTypeAdapter.getOdMultiPaths(mode);
+        odPaths.orElseThrow(() -> new PlanItException("od paths could not be retrieved when persisting"));
 
-        for (OdPathMatrixIterator odPathIterator = odPathMatrix.get().iterator(); odPathIterator.hasNext();) {
-          odPathIterator.next();
-          if (outputConfiguration.isPersistZeroFlow() || (odPathIterator.getCurrentValue() != null)) {
-            List<Object> rowValues = outputProperties.stream()
-                .map(outputProperty -> pathOutputTypeAdapter
-                    .getPathOutputPropertyValue(
-                            outputProperty, odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType()).orElse(null))
-                .map(OutputUtils::formatObject).collect(Collectors.toList());
-            csvPrinter.printRecord(rowValues);
+        for (var odMultiPathIterator = odPaths.get().iterator(); odMultiPathIterator.hasNext();) {
+          var odMultiPaths = odMultiPathIterator.next();
+
+          if (!outputConfiguration.isPersistZeroFlow() || (odMultiPaths == null || odMultiPaths.isEmpty())) {
+            continue;
           }
+
+          /* obtain the col vectors for each property, where the number of eventual rows is the # entries in each col vector
+           * which is the same for each property, namely how many paths there are for the given OD  */
+          List<? extends List<?>> colVectorValues = outputProperties.stream()
+              .map(outputProperty -> pathOutputTypeAdapter
+                  .getPathOutputPropertyValues(
+                          outputProperty, odMultiPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType()).orElse(null))
+              .collect(Collectors.toList());
+
+          /* transpose the column vectors, e.g., [[1,2,3,4],["a","b","c","d"]] -> [[1,"a"],[2,"b"],[3,"c"],[4,"d"]], and format each value
+           * the latter being the actual rows to persist */
+          var rowsValues = ListUtils.transpose((List<? extends List<Object>>) colVectorValues, OutputUtils::formatObject);
+
+          // now persist per row
+          for(var rowValue : rowsValues){
+            csvPrinter.printRecord(rowValue);
+          }
+
         }
       }
     } catch (PlanItException e) {

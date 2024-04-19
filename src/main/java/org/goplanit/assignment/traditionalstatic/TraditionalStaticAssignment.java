@@ -183,7 +183,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     final OdDemands odDemands = getDemands().get(mode, timePeriod);
 
     final var dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
-    final var odPathMatrix = simulationData.getOdPathMatrix(mode);
+    final var odPaths = simulationData.getOdPaths(mode);
     final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
 
     // loop over all available OD demands
@@ -231,7 +231,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
           /* update skim and path data if needed */
 
           updateODOutputData(skimMatrixMap, currentOriginZone, currentDestinationZone, shortestPathResult);
-          updatePathOutputData(mode, odPathMatrix, currentOriginZone, currentDestinationZone, shortestPathResult);
+          updatePathOutputData(mode, odPaths, currentOriginZone, currentDestinationZone, shortestPathResult);
         }
       }
     }

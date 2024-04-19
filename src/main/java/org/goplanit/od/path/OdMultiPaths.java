@@ -13,6 +13,13 @@ import java.util.Collection;
  * @author markr
  *
  */
-public interface OdMultiPaths<T extends Collection<? extends ManagedDirectedPath>> extends OdData<T> {
+public interface OdMultiPaths<U extends ManagedDirectedPath,T extends Collection<U>> extends OdData<T> {
+
+  /**
+   * Returns an iterator which can iterate through all the origin-destination cells
+   *
+   * @return iterator through all the origin-destination cells
+   */
+  public OdMultiPathIterator<U, T> iterator();
 
 }

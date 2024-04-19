@@ -19,10 +19,10 @@ public class OdPathMatrix extends OdNonPrimitiveMatrix<ManagedDirectedPath> impl
    * 
    * @author markr
    */
-  public class OdPathMatrixIterator extends OdNonPrimitiveMatrixIterator<ManagedDirectedPath> implements OdPathIterator {
+  public class OdPathMatrixIterator extends OdNonPrimitiveMatrixIterator<ManagedDirectedPath> implements OdPathIterator<ManagedDirectedPath> {
 
     public OdPathMatrixIterator(final OdPathMatrix matrix) {
-      super(matrix.matrixContents, matrix.zones);
+      super(matrix.matrixContainer, matrix.zones);
     }
   }
 
@@ -33,7 +33,7 @@ public class OdPathMatrix extends OdNonPrimitiveMatrix<ManagedDirectedPath> impl
    * @param zones   the zones being used
    */
   public OdPathMatrix(final IdGroupingToken groupId, final OdZones zones) {
-    super(OdPathMatrix.class, groupId, zones, new ManagedDirectedPath[zones.size()][zones.size()]);
+    super(OdPathMatrix.class, groupId, ManagedDirectedPath.class, zones, new ManagedDirectedPath[zones.size()][zones.size()]);
   }
 
   /**
@@ -45,7 +45,7 @@ public class OdPathMatrix extends OdNonPrimitiveMatrix<ManagedDirectedPath> impl
   public OdPathMatrix(final OdPathMatrix other, boolean deepCopy) {
     super(other);
 
-    this.matrixContents = new ManagedDirectedPath[other.zones.size()][other.zones.size()];
+    this.matrixContainer = new ManagedDirectedPath[other.zones.size()][other.zones.size()];
     for (var origin : other.zones) {
       for (var destination : other.zones) {
         var currValue = other.getValue(origin, destination);

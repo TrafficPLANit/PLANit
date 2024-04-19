@@ -1,8 +1,11 @@
 package org.goplanit.output.adapter;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
-import org.goplanit.od.path.OdPathMatrix;
+import org.goplanit.od.path.OdMultiPathIterator;
+import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.output.enums.PathOutputIdentificationType;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -91,12 +94,11 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
   /**
    * Returns the path as a String of comma-separated Id values
    * 
-   * @param odPathIterator ODPathIterator object containing the required data
+   * @param path path object containing the required data
    * @param pathOutputType the type of objects being used in the path
    * @return the OD path as a String of comma-separated node external Id values
    */
-  public static Optional<String> getPathAsString(OdDataIterator<? extends ManagedDirectedPath> odPathIterator, PathOutputIdentificationType pathOutputType) {
-    ManagedDirectedPath path = odPathIterator.getCurrentValue();
+  public static Optional<String> getPathAsString(ManagedDirectedPath path, PathOutputIdentificationType pathOutputType) {
     if (path != null) {
       switch (pathOutputType) {
       case LINK_SEGMENT_EXTERNAL_ID:
@@ -123,15 +125,14 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * 
    * If there is no path between the current origin and destination zones, this returns -1
    * 
-   * @param odPathIterator ODPathIterator object containing the required data
+   * @param path Path object containing the required data
    * @return the id of the current path, or -1 if no path exists
    */
-  public static Optional<Long> getPathId(OdDataIterator<? extends ManagedDirectedPath> odPathIterator) {
-    ManagedDirectedPath path = odPathIterator.getCurrentValue();
+  public static Optional<Long> getPathId(ManagedDirectedPath path) {
     if (path == null) {
       return Optional.of(-1l);
     }
-    return Optional.of(odPathIterator.getCurrentValue().getId());
+    return Optional.of(path.getId());
   }
 
   /**
@@ -140,18 +141,30 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @param mode the specified mode
    * @return the OD path object
    */
-  public abstract Optional<OdPathMatrix> getOdPathMatrix(Mode mode);
+  //public abstract Optional<OdPathMatrix> getOdPathMatrix(Mode mode);
+
+  /**
+   * Retrieve OD paths for a specified mode. Each OD may have one or more paths
+   *
+   * @param mode the specified mode
+   * @return the OD (multi-)paths object
+   */
+  public abstract Optional<OdMultiPaths<?,?>> getOdMultiPaths(Mode mode);
 
   /**
    * Returns the specified output property values for the current cell in the ODPathIterator
    * 
    * @param outputProperty the specified output property
-   * @param odPathIterator the iterator through the current ODPath object
+   * @param odMultiPathIterator the iterator through the current ODMultiPath object
    * @param mode           the current mode
    * @param timePeriod     the current time period
    * @param pathOutputType the type of objects in the path list
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
-  public abstract Optional<?> getPathOutputPropertyValue(OutputProperty outputProperty, OdDataIterator<? extends ManagedDirectedPath> odPathIterator, Mode mode, TimePeriod timePeriod,
-                                                         PathOutputIdentificationType pathOutputType);
+  public abstract Optional<? extends List<?>> getPathOutputPropertyValues(
+          OutputProperty outputProperty,
+          OdMultiPathIterator<?,?> odMultiPathIterator,
+          Mode mode,
+          TimePeriod timePeriod,
+          PathOutputIdentificationType pathOutputType);
 }

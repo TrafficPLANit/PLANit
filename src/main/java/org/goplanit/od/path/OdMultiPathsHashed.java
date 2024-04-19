@@ -1,12 +1,13 @@
 package org.goplanit.od.path;
 
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.od.OdHashed;
 import org.goplanit.utils.od.OdHashedImpl;
 import org.goplanit.utils.od.OdHashedIterator;
 import org.goplanit.utils.path.ManagedDirectedPath;
+import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.zoning.OdZones;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -19,15 +20,15 @@ import java.util.stream.Collectors;
  * @author markr
  *
  */
-public class OdMultiPathsHashed<T extends ManagedDirectedPath> extends OdHashedImpl<List<T>> implements OdMultiPaths<List<T>> {
+public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends Collection<T>> extends OdHashedImpl<U> implements OdMultiPaths<T, U> {
 
   /**
    * Wrapper around hashed iterator for od paths
    *
    */
-  public class OdPathsHashedIterator<U extends ManagedDirectedPath> extends OdHashedIterator<List<U>> {
+  public static class OdPathsHashedIterator<V extends ManagedDirectedPath, W extends Collection<V>> extends OdHashedIterator<W> implements OdMultiPathIterator<V,W> {
 
-    public OdPathsHashedIterator(OdMultiPathsHashed<U> container) {
+    public OdPathsHashedIterator(OdMultiPathsHashed<V,W> container) {
       super(container, container.zones);
     }
 
@@ -39,8 +40,8 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath> extends OdHashedI
    * @param groupId contiguous id generation within this group for instances of this class
    * @param zones   the zones being used
    */
-  public OdMultiPathsHashed(final IdGroupingToken groupId, final OdZones zones) {
-    super(OdMultiPathsHashed.class, groupId, zones);
+  public OdMultiPathsHashed(final IdGroupingToken groupId, Class<U> multiPathContainerClass, final OdZones zones) {
+    super(OdMultiPathsHashed.class, groupId, multiPathContainerClass, zones);
   }
 
   /**
@@ -49,10 +50,11 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath> extends OdHashedI
    * @param other to copy from
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public OdMultiPathsHashed(final OdMultiPathsHashed<T> other, boolean deepCopy) {
+  public OdMultiPathsHashed(final OdMultiPathsHashed<T,U> other, boolean deepCopy) {
     super(other);
     this.odHashed.clear();
-    Function<ManagedDirectedPath, ManagedDirectedPath> cloneFunc = deepCopy ? e -> e.deepClone() : e -> e.shallowClone();
+    Function<ManagedDirectedPath, ManagedDirectedPath> cloneFunc =
+            deepCopy ? ManagedDirectedPath::deepClone : ManagedDirectedPath::shallowClone;
     other.zones.forEach(
             origin -> other.zones.forEach(
                     destination -> other.odHashed.values().forEach(original ->

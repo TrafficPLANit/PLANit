@@ -60,7 +60,8 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
    * @param dataConfig containing data configuration to use
    * @param odPaths    to use
    */
-  public PathLinkFlowUpdateConsumer(final NetworkFlowUpdateData dataConfig, final OdMultiPaths<List<StaticLtmDirectedPath>> odPaths) {
+  public PathLinkFlowUpdateConsumer(
+          final NetworkFlowUpdateData dataConfig, final OdMultiPaths<StaticLtmDirectedPath,List<StaticLtmDirectedPath>> odPaths) {
     super(dataConfig, odPaths);
   }
 

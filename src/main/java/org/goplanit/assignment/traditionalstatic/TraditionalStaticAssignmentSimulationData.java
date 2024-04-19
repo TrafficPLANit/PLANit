@@ -12,7 +12,6 @@ import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.configuration.OdOutputTypeConfiguration;
 import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.utils.arrays.ArrayUtils;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
@@ -170,7 +169,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param mode the specified mode
    * @return the OD path for this mode
    */
-  public OdPathMatrix getOdPathMatrix(Mode mode) {
+  public OdPathMatrix getOdPaths(Mode mode) {
     return modalOdPathMatrixMap.get(mode);
   }
 
