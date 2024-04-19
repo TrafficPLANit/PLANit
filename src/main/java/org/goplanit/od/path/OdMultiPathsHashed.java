@@ -21,13 +21,13 @@ import java.util.stream.Collectors;
  * @author markr
  *
  */
-public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends Collection<T>> extends OdHashedImpl<U> implements OdMultiPaths<T, U> {
+public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends List<T>> extends OdHashedImpl<U> implements OdMultiPaths<T, U> {
 
   /**
    * Wrapper around hashed iterator for od paths
    *
    */
-  public static class OdPathsHashedIterator<V extends ManagedDirectedPath, W extends Collection<V>> extends OdHashedIterator<W> implements OdMultiPathIterator<V,W> {
+  public static class OdPathsHashedIterator<V extends ManagedDirectedPath, W extends List<V>> extends OdHashedIterator<W> implements OdMultiPathIterator<V,W> {
 
     public OdPathsHashedIterator(OdMultiPathsHashed<V,W> container) {
       super(container, container.zones);
@@ -43,7 +43,7 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends Collect
    * @param zones   the zones being used
    */
   public OdMultiPathsHashed(
-          final IdGroupingToken groupId, Class<? extends Collection> multiPathContainerClass, final OdZones zones) {
+          final IdGroupingToken groupId, Class<? extends List> multiPathContainerClass, final OdZones zones) {
     super(OdMultiPathsHashed.class, groupId, (Class<U>) multiPathContainerClass, zones);
   }
 

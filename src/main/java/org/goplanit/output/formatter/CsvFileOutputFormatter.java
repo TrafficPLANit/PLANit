@@ -31,7 +31,6 @@ import java.io.FileWriter;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Class containing common methods required by classes which write results to CSV output files
@@ -160,7 +159,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
            * which is the same for each property, namely how many paths there are for the given OD  */
           List<? extends List<?>> colVectorValues = outputProperties.stream()
               .map(outputProperty -> pathOutputTypeAdapter
-                  .getPathOutputPropertyValues(
+                  .getPathOutputPropertyValue(
                           outputProperty, odMultiPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType()).orElse(null))
               .collect(Collectors.toList());
 

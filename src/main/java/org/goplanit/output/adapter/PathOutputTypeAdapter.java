@@ -1,6 +1,5 @@
 package org.goplanit.output.adapter;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -152,7 +151,11 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
   public abstract Optional<OdMultiPaths<?,?>> getOdMultiPaths(Mode mode);
 
   /**
-   * Returns the specified output property values for the current cell in the ODPathIterator
+   * Returns the specified output property values for the current cell in the OdMultiPathIterator.
+   * this version will produce x results for the property based on how many paths there are present
+   * for the given od, e.g., if 5 paths exist for the od, and an originId is the output property then
+   * 5 times the same origin id is produced, if the path string is required, then the 5 unique path strings are
+   * constructed and returned
    * 
    * @param outputProperty the specified output property
    * @param odMultiPathIterator the iterator through the current ODMultiPath object
@@ -161,9 +164,30 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @param pathOutputType the type of objects in the path list
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
-  public abstract Optional<? extends List<?>> getPathOutputPropertyValues(
+  public abstract Optional<? extends List<?>> getPathOutputPropertyValue(
           OutputProperty outputProperty,
           OdMultiPathIterator<?,?> odMultiPathIterator,
+          Mode mode,
+          TimePeriod timePeriod,
+          PathOutputIdentificationType pathOutputType);
+
+  /**
+   * Returns the specified output property values for the current cell in the OdMultiPathIterator. This version is
+   * specifically tied to a particular path for the od, e.g., if the od has 5 paths, then an index between 0 and 4
+   * is expected to obtain just the result relevant for that path.
+   *
+   * @param outputProperty the specified output property
+   * @param odMultiPathIterator the iterator through the current ODMultiPath object
+   * @param multiPathIndex the od path to base this on given multiple entries exist on the current iterator point
+   * @param mode           the current mode
+   * @param timePeriod     the current time period
+   * @param pathOutputType the type of objects in the path list
+   * @return the value of the specified property (or an Exception if an error has occurred)
+   */
+  public abstract Optional<?> getPathOutputPropertyValue(
+          OutputProperty outputProperty,
+          OdMultiPathIterator<?,?> odMultiPathIterator,
+          int multiPathIndex,
           Mode mode,
           TimePeriod timePeriod,
           PathOutputIdentificationType pathOutputType);

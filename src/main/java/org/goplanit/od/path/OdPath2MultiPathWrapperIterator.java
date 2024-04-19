@@ -4,6 +4,7 @@ import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.zoning.Zone;
 
 import java.util.Collection;
+import java.util.List;
 
 import static org.goplanit.od.path.OdPath2MultiPathWrapper.getContainer;
 
@@ -13,7 +14,7 @@ import static org.goplanit.od.path.OdPath2MultiPathWrapper.getContainer;
  * @param <T> type of path
  * @param <U> type of container used wrap single-path per od in
  */
-public class OdPath2MultiPathWrapperIterator <T extends ManagedDirectedPath, U extends Collection<T>> implements OdMultiPathIterator<T, U>{
+public class OdPath2MultiPathWrapperIterator <T extends ManagedDirectedPath, U extends List<T>> implements OdMultiPathIterator<T, U>{
 
   private OdPathIterator<T> pathIteratorToWrap;
 
@@ -22,7 +23,9 @@ public class OdPath2MultiPathWrapperIterator <T extends ManagedDirectedPath, U e
   /** re-use this container if allowed, otherwise create them on the fly for each call */
   private final U dummyContainer;
 
-  private boolean allowReuseContainer = false;
+  private U currentValue = null;
+
+  private boolean allowReuseOfContainer = false;
 
   /**
    * Constructor
@@ -35,6 +38,7 @@ public class OdPath2MultiPathWrapperIterator <T extends ManagedDirectedPath, U e
     this.pathIteratorToWrap = pathIteratorToWrap;
     this.containerClazz = containerClazz;
     this.dummyContainer = OdPath2MultiPathWrapper.createContainer(containerClazz);
+    this.allowReuseOfContainer = allowReuseOfContainer;
   }
 
   /**
@@ -50,7 +54,7 @@ public class OdPath2MultiPathWrapperIterator <T extends ManagedDirectedPath, U e
    */
   @Override
   public Zone getCurrentDestination() {
-    return pathIteratorToWrap.getCurrentOrigin();
+    return pathIteratorToWrap.getCurrentDestination();
   }
 
   /**
@@ -58,9 +62,7 @@ public class OdPath2MultiPathWrapperIterator <T extends ManagedDirectedPath, U e
    */
   @Override
   public U getCurrentValue() {
-    U container = getContainer(allowReuseContainer, dummyContainer, containerClazz);
-    container.add(pathIteratorToWrap.getCurrentValue());
-    return container;
+    return currentValue;
   }
 
   /**
@@ -76,8 +78,11 @@ public class OdPath2MultiPathWrapperIterator <T extends ManagedDirectedPath, U e
    */
   @Override
   public U next() {
-    U container = getContainer(allowReuseContainer, dummyContainer, containerClazz);
-    container.add(pathIteratorToWrap.next());
-    return container;
+    this.currentValue = getContainer(allowReuseOfContainer, dummyContainer, containerClazz);
+    var wrappedValue =  pathIteratorToWrap.next();
+    if(wrappedValue != null) {
+      currentValue.add(wrappedValue);
+    }
+    return currentValue;
   }
 }

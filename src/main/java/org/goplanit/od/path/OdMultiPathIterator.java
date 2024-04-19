@@ -4,6 +4,7 @@ import org.goplanit.utils.od.OdDataIterator;
 import org.goplanit.utils.path.ManagedDirectedPath;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Iterator for directed multi-paths tracked by od
@@ -11,6 +12,6 @@ import java.util.Collection;
  * @author markr
  *
  */
-public interface OdMultiPathIterator<T extends ManagedDirectedPath, U extends Collection<T>> extends OdDataIterator<U> {
+public interface OdMultiPathIterator<T extends ManagedDirectedPath, U extends List<T>> extends OdDataIterator<U> {
 
 }

@@ -4,6 +4,7 @@ import org.goplanit.utils.od.OdData;
 import org.goplanit.utils.path.ManagedDirectedPath;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * A container class for Origin-Destination paths, where each OD may have more than one path specified. OdPaths should be Idable.
@@ -13,7 +14,7 @@ import java.util.Collection;
  * @author markr
  *
  */
-public interface OdMultiPaths<U extends ManagedDirectedPath,T extends Collection<U>> extends OdData<T> {
+public interface OdMultiPaths<U extends ManagedDirectedPath,T extends List<U>> extends OdData<T> {
 
   /**
    * Returns an iterator which can iterate through all the origin-destination cells

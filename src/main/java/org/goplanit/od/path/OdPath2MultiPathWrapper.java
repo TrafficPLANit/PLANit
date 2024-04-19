@@ -7,6 +7,7 @@ import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.zoning.Zone;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -22,7 +23,7 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends Collection<T>> extends OdDataImpl<U> implements OdMultiPaths<T, U> {
+public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends List<T>> extends OdDataImpl<U> implements OdMultiPaths<T, U> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(OdPath2MultiPathWrapper.class.getCanonicalName());
@@ -42,7 +43,7 @@ public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends Co
    * @return container
    */
   static <W extends ManagedDirectedPath, V extends Collection<W>> V  createContainer(Class<V> containerClazz){
-    return ReflectionUtils.createTypedInstance(containerClazz.getCanonicalName(),1);
+    return ReflectionUtils.createTypedInstance(containerClazz.getCanonicalName());
   }
 
   /**
@@ -50,7 +51,7 @@ public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends Co
    *
    * @return container to use for wrapping path
    */
-  static <W extends ManagedDirectedPath, V extends Collection<W>> V getContainer(boolean allowReuseContainer, final V dummyContainer, final Class<V> containerClazz){
+  static <W extends ManagedDirectedPath, V extends List<W>> V getContainer(boolean allowReuseContainer, final V dummyContainer, final Class<V> containerClazz){
     if(allowReuseContainer){
       dummyContainer.clear();
       return dummyContainer;

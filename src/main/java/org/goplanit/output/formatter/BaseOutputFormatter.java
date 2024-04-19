@@ -247,7 +247,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
         outputTypeIterationInformation.put(subOutputTypeEnum, iterationIndex.get());
       }
     } else {
-      // regular approach, single outputtype with single iteration reference
+      // regular approach, single output type with single iteration reference
       Optional<Integer> iterationIndex = outputAdapter.getOutputTypeAdapter(outputType).getIterationIndexForSubOutputType(null);
       if (iterationIndex.isEmpty()) {
         throw new PlanItException("iteration index could not be retrieved when persisting");

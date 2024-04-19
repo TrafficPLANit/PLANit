@@ -1,5 +1,6 @@
 package org.goplanit.output.formatter;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -71,7 +72,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @return array of output values
    * @throws PlanItException thrown if there is an error
    */
-  private Object[] getValue(OutputProperty[] outputPropertiesArray, Function<OutputProperty, Object> getValueFromAdapter) throws PlanItException {
+  private Object[] getValues(OutputProperty[] outputPropertiesArray, Function<OutputProperty, Object> getValueFromAdapter) throws PlanItException {
     Object[] values = new Object[outputPropertiesArray.length];
     for (int i = 0; i < outputPropertiesArray.length; i++) {
       values[i] = getValueFromAdapter.apply(outputPropertiesArray[i]);
@@ -91,10 +92,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @param getValueFromAdapter lambda function to get the required values from an output adapter
    * @throws PlanItException thrown if there is an error
    */
-  private void updateOutputAndKeyValues(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys,
-      Function<OutputProperty, Object> getValueFromAdapter) throws PlanItException {
-    Object[] outputValues = getValue(outputProperties, getValueFromAdapter);
-    Object[] keyValues = getValue(outputKeys, getValueFromAdapter);
+  private void updateOutputAndKeyValues(
+          MultiKeyPlanItData multiKeyPlanItData,
+          OutputProperty[] outputProperties,
+          OutputProperty[] outputKeys,
+          Function<OutputProperty, Object> getValueFromAdapter) throws PlanItException {
+
+    Object[] outputValues = getValues(outputProperties, getValueFromAdapter);
+    Object[] keyValues = getValues(outputKeys, getValueFromAdapter);
     multiKeyPlanItData.putRow(outputValues, keyValues);
   }
 
@@ -159,16 +164,19 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
           MultiKeyPlanItData multiKeyPlanItData,
           OutputProperty[] outputProperties,
           OutputProperty[] outputKeys,
-          OdMultiPathIterator<? extends ManagedDirectedPath,?> odMultiPathIterator,
+          OdMultiPathIterator<? extends ManagedDirectedPath,? extends Collection<? extends ManagedDirectedPath>> odMultiPathIterator,
           PathOutputTypeAdapter pathOutputTypeAdapter,
           Mode mode,
           TimePeriod timePeriod,
           PathOutputIdentificationType pathIdType) throws PlanItException {
 
-    updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-      return pathOutputTypeAdapter.getPathOutputPropertyValues(label, odMultiPathIterator, mode, timePeriod, pathIdType).get();
-    });
+    var currOdMultiPaths = odMultiPathIterator.getCurrentValue();
+    for(int multiPathIndex = 0; multiPathIndex < currOdMultiPaths.size(); ++multiPathIndex){
 
+      final int pathIndex = multiPathIndex;
+      updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys,
+              (label) -> pathOutputTypeAdapter.getPathOutputPropertyValue(label, odMultiPathIterator, pathIndex, mode, timePeriod, pathIdType).get());
+    }
   }
 
   /**

@@ -356,9 +356,9 @@ public class CustomPlanItProject {
     }
 
     if (!failedAssignments.isEmpty()) {
-      String failedAssignmentessage = "the following assignments failed:";
-      failedAssignments.forEach(ta -> failedAssignmentessage.concat(" ").concat(String.valueOf(ta.getId())));
-      throw new PlanItException(failedAssignmentessage);
+      String failedAssignmentMessage = "the following assignments failed:";
+      failedAssignments.forEach(ta -> failedAssignmentMessage.concat(" ").concat(String.valueOf(ta.getId())));
+      throw new PlanItException(failedAssignmentMessage);
     }
   }
 
