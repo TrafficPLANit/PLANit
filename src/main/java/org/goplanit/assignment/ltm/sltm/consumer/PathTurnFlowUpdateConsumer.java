@@ -85,7 +85,8 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
    * @param odPaths    to use
    */
   public PathTurnFlowUpdateConsumer(
-          final NetworkTurnFlowUpdateData dataConfig, final OdMultiPaths<StaticLtmDirectedPath, List<StaticLtmDirectedPath>> odPaths) {
+          final NetworkTurnFlowUpdateData dataConfig,
+          final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odPaths) {
     super(dataConfig, odPaths);
   }
 

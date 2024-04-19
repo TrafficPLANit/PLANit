@@ -29,7 +29,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
   /**
    * Od Paths to use
    */
-  private final OdMultiPaths<StaticLtmDirectedPath, List<StaticLtmDirectedPath>> odMultiPaths;
+  private final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths;
 
   /**
    * Apply the flow to the turn (and update link sending flow if required)
@@ -55,7 +55,8 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
    * @param dataConfig to use
    * @param odMultiPaths    to use
    */
-  public PathFlowUpdateConsumer(final T dataConfig, final OdMultiPaths<StaticLtmDirectedPath, List<StaticLtmDirectedPath>> odMultiPaths) {
+  public PathFlowUpdateConsumer(
+          final T dataConfig, final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths) {
     this.dataConfig = dataConfig;
     this.odMultiPaths = odMultiPaths;
   }

@@ -1,12 +1,10 @@
 package org.goplanit.od.path;
 
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.od.OdHashed;
 import org.goplanit.utils.od.OdHashedImpl;
 import org.goplanit.utils.od.OdHashedIterator;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.zoning.OdZones;
-import org.goplanit.utils.zoning.Zone;
 
 /**
  * This class stores paths by their origin and destination by creating a unique hash for the combined ids of the od zones. This results in a memory efficient implementation
@@ -22,10 +20,10 @@ public class OdPathsHashed<T extends ManagedDirectedPath> extends OdHashedImpl<T
    * Wrapper around hashed iterator for od paths
    *
    */
-  public class OdPathsHashedIterator<T> extends OdHashedIterator<T> {
+  public class OdPathsHashedIterator<U extends ManagedDirectedPath> extends OdHashedIterator<U> implements OdPathIterator<U> {
 
-    public OdPathsHashedIterator(OdPathsHashed<? extends T> container) {
-      super((OdHashed<T>) container, container.zones);
+    public OdPathsHashedIterator(OdPathsHashed<U> container) {
+      super(container, container.zones);
     }
 
   }
@@ -34,10 +32,11 @@ public class OdPathsHashed<T extends ManagedDirectedPath> extends OdHashedImpl<T
    * Constructor
    *
    * @param groupId contiguous id generation within this group for instances of this class
+   * @param pathClass type of the paths in container
    * @param zones   the zones being used
    */
-  public OdPathsHashed(final IdGroupingToken groupId, final OdZones zones) {
-    super(OdPathsHashed.class, groupId, zones);
+  public OdPathsHashed(final IdGroupingToken groupId, Class<T> pathClass, final OdZones zones) {
+    super(OdPathsHashed.class, groupId, pathClass, zones);
   }
 
   /**

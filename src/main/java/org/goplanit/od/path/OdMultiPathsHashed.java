@@ -1,5 +1,6 @@
 package org.goplanit.od.path;
 
+import org.goplanit.utils.containers.ContainerUtils;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.od.OdHashedImpl;
 import org.goplanit.utils.od.OdHashedIterator;
@@ -38,10 +39,12 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends Collect
    * Constructor
    *
    * @param groupId contiguous id generation within this group for instances of this class
+   * @param multiPathContainerClass class of container
    * @param zones   the zones being used
    */
-  public OdMultiPathsHashed(final IdGroupingToken groupId, Class<U> multiPathContainerClass, final OdZones zones) {
-    super(OdMultiPathsHashed.class, groupId, multiPathContainerClass, zones);
+  public OdMultiPathsHashed(
+          final IdGroupingToken groupId, Class<? extends Collection> multiPathContainerClass, final OdZones zones) {
+    super(OdMultiPathsHashed.class, groupId, (Class<U>) multiPathContainerClass, zones);
   }
 
   /**
@@ -55,11 +58,21 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends Collect
     this.odHashed.clear();
     Function<ManagedDirectedPath, ManagedDirectedPath> cloneFunc =
             deepCopy ? ManagedDirectedPath::deepClone : ManagedDirectedPath::shallowClone;
+
     other.zones.forEach(
             origin -> other.zones.forEach(
-                    destination -> other.odHashed.values().forEach(original ->
-                            setValue(origin, destination,
-                                    original.stream().map(e -> (T) cloneFunc.apply(e)).collect(Collectors.toList())))));
+                    destination -> other.odHashed.values().forEach(
+                            original -> {
+                              // create empty collectio of same type as original
+                              final U newCollecctionInstance =
+                                      (U) ReflectionUtils.createInstance(original.getClass().getCanonicalName(), original.size());
+                              // add all entries to the new container
+                              original.forEach(e -> newCollecctionInstance.add((T) cloneFunc.apply(e)));
+                              // place container on this class
+                              setValue(origin, destination, newCollecctionInstance);
+                            })));
+
+
   }
 
 
@@ -67,7 +80,7 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends Collect
    * {@inheritDoc}
    */
   @Override
-  public OdPathsHashedIterator<T> iterator() {
+  public OdPathsHashedIterator<T, U> iterator() {
     return new OdPathsHashedIterator<>(this);
   }
 
@@ -75,7 +88,7 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends Collect
    * {@inheritDoc}
    */
   @Override
-  public OdMultiPathsHashed<T> shallowClone() {
+  public OdMultiPathsHashed<T, U> shallowClone() {
     return new OdMultiPathsHashed<>(this, false);
   }
 
@@ -83,7 +96,7 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends Collect
    * {@inheritDoc}
    */
   @Override
-  public OdMultiPathsHashed<T> deepClone() {
+  public OdMultiPathsHashed<T, U> deepClone() {
     return new OdMultiPathsHashed<>(this, true);
   }
 

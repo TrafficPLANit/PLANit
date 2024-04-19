@@ -30,7 +30,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
   /**
    * Od Paths to use
    */
-  private OdMultiPaths<StaticLtmDirectedPath, List<StaticLtmDirectedPath>> odPaths;
+  private OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odPaths;
 
   //@formatter:off
 
@@ -164,7 +164,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * 
    * @param odPaths to use
    */
-  public void updateOdPaths(final OdMultiPaths<StaticLtmDirectedPath, List<StaticLtmDirectedPath>> odPaths) {
+  public void updateOdPaths(final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odPaths) {
     this.odPaths = odPaths;
   }
 

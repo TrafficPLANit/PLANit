@@ -1,6 +1,7 @@
 package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.assignment.TrafficAssignment;
+import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.od.path.OdPathMatrix;
 import org.goplanit.output.adapter.MacroscopicLinkOutputTypeAdapterImpl;
 import org.goplanit.output.adapter.PathOutputTypeAdapterImpl;
@@ -47,7 +48,7 @@ public class StaticLtmPathOutputTypeAdapter extends PathOutputTypeAdapterImpl {
    * @return the OD path object
    */
   @Override
-  public Optional<OdPathMatrix> getOdPathMatrix(Mode mode) {
+  public Optional<OdMultiPaths<?,?>> getOdMultiPaths(Mode mode) {
     return null;
   }
 }

@@ -1,22 +1,13 @@
 package org.goplanit.od.path;
 
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.od.OdDataImpl;
-import org.goplanit.utils.od.OdDataIterator;
-import org.goplanit.utils.od.OdHashedImpl;
-import org.goplanit.utils.od.OdHashedIterator;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.reflection.ReflectionUtils;
-import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.utils.zoning.Zone;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * This class allows an OdPath instance to be wrapped such that it can be processed as if it is an OD multi-path instance. Not to be used to add
@@ -82,8 +73,10 @@ public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends Co
    *
    * @param groupId contiguous id generation within this group for instances of this class
    * @param odSinglePaths the odSinglePaths we are wrapping
+   * @param containerClazz class of container
    */
-  public OdPath2MultiPathWrapper(final IdGroupingToken groupId, OdPaths<T> odSinglePaths, Class<U> containerClazz) {
+  public OdPath2MultiPathWrapper(
+          final IdGroupingToken groupId, OdPaths<T> odSinglePaths, Class<U> containerClazz) {
     super(OdPath2MultiPathWrapper.class, groupId, containerClazz, null /* zones are already in the od single paths we wrap */);
     this.odSinglePaths = odSinglePaths;
     this.containerClazz = containerClazz;
@@ -144,7 +137,7 @@ public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends Co
   }
 
   @Override
-  public OdDataIterator<U> iterator() {
+  public OdMultiPathIterator<T, U> iterator() {
     return new OdPath2MultiPathWrapperIterator<T,U>(containerClazz, isAllowReuseContainer(), odSinglePaths.iterator());
   }
 
@@ -176,7 +169,7 @@ public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends Co
 
   /** flag indicating f we can reuse the same dummy container when getting values.
    *
-   * @param flag
+   * @param flag the flag to set
    */
   public void setAllowReuseContainer(boolean flag) {
     this.allowReuseContainer = flag;

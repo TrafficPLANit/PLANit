@@ -49,7 +49,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   private static final int INITIAL_PER_OD_PATH_CAPACITY = 3;
 
   /** odPaths to track */
-  private final OdMultiPaths<StaticLtmDirectedPath, List<StaticLtmDirectedPath>> odMultiPaths;
+  private final OdMultiPaths<StaticLtmDirectedPath, ArrayList<StaticLtmDirectedPath>> odMultiPaths;
 
   /** List of filters in form of predicates to apply when checking if a newly created path is eligible for inclusion in the set */
   List<BiPredicate<ManagedDirectedPath, Collection<? extends ManagedDirectedPath>>> sLtmPathFilters = new ArrayList<>();
@@ -133,7 +133,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     final ShortestPathOneToAll shortestPathAlgorithm = new ShortestPathDijkstra(currentSegmentCosts, getTransportNetwork().getNumberOfVerticesAllLayers());
 
     ManagedDirectedPathFactory pathFactory = new ManagedDirectedPathFactoryImpl(getIdGroupingToken());
-    var newOdShortestPaths = new OdPathsHashed<StaticLtmDirectedPath>(getIdGroupingToken(), getTransportNetwork().getZoning().getOdZones());
+    var newOdShortestPaths = new OdPathsHashed<>(
+            getIdGroupingToken(), StaticLtmDirectedPath.class, getTransportNetwork().getZoning().getOdZones());
 
     Zoning zoning = getTransportNetwork().getZoning();
     OdDemands odDemands = getOdDemands();
@@ -361,7 +362,10 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
     this.odMultiPaths =
-            new OdMultiPathsHashed<>(getIdGroupingToken(), getTransportNetwork().getZoning().getOdZones());
+            new OdMultiPathsHashed<StaticLtmDirectedPath, ArrayList<StaticLtmDirectedPath>>(
+                    getIdGroupingToken(),
+                    ArrayList.class,
+                    getTransportNetwork().getZoning().getOdZones());
 
     // initialise path filtering setup
     initialiseSltmPathFilters();
