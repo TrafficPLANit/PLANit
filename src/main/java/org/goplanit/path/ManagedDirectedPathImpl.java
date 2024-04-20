@@ -39,6 +39,23 @@ public class ManagedDirectedPathImpl extends ExternalIdAbleImpl implements Manag
 
   /**
    * Constructor
+   */
+  private ManagedDirectedPathImpl() {
+    super(-1);
+    path = new SimpleDirectedPathImpl();
+  }
+
+  /**
+   * Allow creation of specific empty path for dummy use, assigned unused id of -1.
+   *
+   * @return dummy empty path
+   */
+  public static ManagedDirectedPathImpl createEmptyDummyPath(){
+    return new ManagedDirectedPathImpl();
+  }
+
+  /**
+   * Constructor
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */

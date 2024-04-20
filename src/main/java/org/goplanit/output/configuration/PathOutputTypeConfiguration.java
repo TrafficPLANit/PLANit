@@ -155,35 +155,20 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     switch (baseOutputProperty.getOutputPropertyType()) {
 
     case DESTINATION_ZONE_XML_ID:
-      return true;
     case DESTINATION_ZONE_EXTERNAL_ID:
-      return true;
     case DESTINATION_ZONE_ID:
-      return true;
     case ITERATION_INDEX:
-      return true;
     case MODE_EXTERNAL_ID:
-      return true;
     case MODE_XML_ID:
-      return true;
     case MODE_ID:
-      return true;
     case PATH_STRING:
-      return true;
     case ORIGIN_ZONE_EXTERNAL_ID:
-      return true;
     case ORIGIN_ZONE_XML_ID:
-      return true;
     case ORIGIN_ZONE_ID:
-      return true;
     case RUN_ID:
-      return true;
     case PATH_ID:
-      return true;
     case TIME_PERIOD_EXTERNAL_ID:
-      return true;
     case TIME_PERIOD_XML_ID:
-      return true;
     case TIME_PERIOD_ID:
       return true;
     default:

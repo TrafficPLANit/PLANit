@@ -12,9 +12,11 @@ import org.goplanit.od.path.OdMultiPathIterator;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.enums.PathOutputIdentificationType;
 import org.goplanit.output.property.OutputProperty;
+import org.goplanit.path.ManagedDirectedPathImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.path.ManagedDirectedPath;
+import org.goplanit.utils.path.SimpleDirectedPath;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -24,6 +26,10 @@ import org.goplanit.utils.time.TimePeriod;
  *
  */
 public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements PathOutputTypeAdapter {
+
+  /** dummy to use for cases where we want to persist non-existent paths but do not want to write separate
+   * special case to deal with this */
+  private static final ManagedDirectedPath dummyPath = ManagedDirectedPathImpl.createEmptyDummyPath();
 
   /**
    * Collect output property values that do not depend on path information directly (only indirect such
@@ -71,12 +77,11 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @param outputProperty to collect
    * @param path to use
    * @return result (if any match)
-   * @throws PlanItException thrown if error
    */
   protected Optional<?> getPathDependentPropertyValue(
           OutputProperty outputProperty,
           PathOutputIdentificationType pathOutputType,
-          ManagedDirectedPath path) throws PlanItException {
+          ManagedDirectedPath path){
 
     switch (outputProperty.getOutputPropertyType()) {
       case PATH_STRING:
@@ -131,14 +136,16 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
       }
 
       if (value.isPresent()) {
-        // repeat #path options times
-        return Optional.of(new ArrayList<>(Collections.nCopies(paths.size(), value.get())));
+        // repeat #path options times (if no paths, then just provide a single result)
+        return Optional.of(new ArrayList<>(Collections.nCopies(Math.max(1,paths.size()), value.get())));
       }
 
-      var valueList = new ArrayList<>(paths.size());
-      for(var path : paths){
-        // path dependent result, construct on a per-path basis
-        valueList.add(getPathDependentPropertyValue(outputProperty, pathOutputType, path).orElse(null));
+      // path dependent result, construct on a per-path basis, if no paths we assume empty result is desired, so use dummy path
+      var valueList = new ArrayList<>(Math.min(1,paths.size()));
+      if(paths.isEmpty()){
+        valueList.add(getPathDependentPropertyValue(outputProperty, pathOutputType, dummyPath).orElse(null));
+      }else{
+        paths.forEach(p -> valueList.add(getPathDependentPropertyValue(outputProperty, pathOutputType, p).orElse(null)));
       }
       return Optional.of(valueList);
 

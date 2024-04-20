@@ -151,7 +151,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
         for (var odMultiPathIterator = odPaths.get().iterator(); odMultiPathIterator.hasNext();) {
           var odMultiPaths = odMultiPathIterator.next();
 
-          if (!outputConfiguration.isPersistZeroFlow() || (odMultiPaths == null || odMultiPaths.isEmpty())) {
+          if (!outputConfiguration.isPersistZeroFlow() && (odMultiPaths == null || odMultiPaths.isEmpty())) {
             continue;
           }
 
