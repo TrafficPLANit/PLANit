@@ -75,6 +75,7 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * If no match is found  an empty option is returned
    *
    * @param outputProperty to collect
+   * @param pathOutputType that is applied (identifies what the ids are used in path strings)
    * @param path to use
    * @return result (if any match)
    */
