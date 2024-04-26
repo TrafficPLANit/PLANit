@@ -14,6 +14,8 @@ import org.goplanit.utils.exceptions.PlanItException;
  */
 public interface OutputTypeAdapter {
 
+  public static String PROPERTY_NOT_AVAILABLE = "N/A";
+
   /**
    * Return the output type corresponding to this output adapter
    * 

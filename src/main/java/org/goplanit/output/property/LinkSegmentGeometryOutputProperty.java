@@ -3,9 +3,9 @@ package org.goplanit.output.property;
 import org.goplanit.output.enums.DataType;
 import org.goplanit.utils.unit.Unit;
 
-public final class DownstreamNodeLocationOutputProperty extends OutputProperty {
+public final class LinkSegmentGeometryOutputProperty extends OutputProperty {
 
-  public static final String NAME = "Downstream Node Location";
+  public static final String NAME = "Link Segment Geometry";
 
   @Override
   public String getName() {
@@ -24,7 +24,7 @@ public final class DownstreamNodeLocationOutputProperty extends OutputProperty {
 
   @Override
   public OutputPropertyType getOutputPropertyType() {
-    return OutputPropertyType.DOWNSTREAM_NODE_LOCATION;
+    return OutputPropertyType.LINK_SEGMENT_GEOMETRY;
   }
 
   @Override

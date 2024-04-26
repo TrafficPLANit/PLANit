@@ -24,10 +24,11 @@ import org.goplanit.utils.exceptions.PlanItException;
  * <li>CALCULATED_SPEED</li>
  * <li>DENSITY</li>
  * <li>LINK_SEGMENT_XML_ID</li>
+ * <li>LINK_SEGMENT_GEOMETRY</li>
  * <li>UPSTREAM_NODE_XML_ID</li>
- * <li>UPSTREAM_NODE_LOCATION</li>
+ * <li>UPSTREAM_NODE_GEOMETRY</li>
  * <li>DOWNSTREAM_NODE_XML_ID</li>
- * <li>DOWNSTREAM_NODE_LOCATION</li>
+ * <li>DOWNSTREAM_NODE_GEOMETRY</li>
  * <li>CAPACITY_PER_LANE</li>
  * <li>LINK_COST</li>
  * <li>MAXIMUM_SPEED</li>
@@ -157,73 +158,42 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
   public boolean isOutputPropertyValid(OutputProperty baseOutputProperty) {
     switch (baseOutputProperty.getOutputPropertyType()) {
     case CALCULATED_SPEED:
-      return true;
     case CAPACITY_PER_LANE:
-      return true;
     case DENSITY:
-      return true;
     case DOWNSTREAM_NODE_EXTERNAL_ID:
-      return true;
     case DOWNSTREAM_NODE_XML_ID:
-      return true;
     case DOWNSTREAM_NODE_ID:
-      return true;
-    case DOWNSTREAM_NODE_LOCATION:
-      return true;
+    case DOWNSTREAM_NODE_GEOMETRY:
     case UPSTREAM_NODE_EXTERNAL_ID:
-      return true;
     case UPSTREAM_NODE_XML_ID:
-      return true;
     case UPSTREAM_NODE_ID:
-      return true;
-    case UPSTREAM_NODE_LOCATION:
-      return true;
+    case UPSTREAM_NODE_GEOMETRY:
     case FLOW:
-      return true;
     case ITERATION_INDEX:
-      return true;
     case LENGTH:
-      return true;
     case LINK_SEGMENT_COST:
-      return true;
-    case LINK_SEGMENT_TYPE_ID:
-      return true;
+     case LINK_SEGMENT_TYPE_ID:
     case LINK_SEGMENT_TYPE_NAME:
-      return true;
     case LINK_SEGMENT_TYPE_XML_ID:
-      return true;
     case LINK_SEGMENT_EXTERNAL_ID:
-      return true;
     case LINK_SEGMENT_XML_ID:
-      return true;
     case LINK_SEGMENT_ID:
-      return true;
+    case LINK_SEGMENT_GEOMETRY:
     case MAXIMUM_DENSITY:
-      return true;
     case MAXIMUM_SPEED:
-      return true;
     case MODE_EXTERNAL_ID:
-      return true;
     case MODE_XML_ID:
-      return true;
     case MODE_ID:
-      return true;
     case NUMBER_OF_LANES:
-      return true;
     case RUN_ID:
-      return true;
     case TIME_PERIOD_EXTERNAL_ID:
-      return true;
     case TIME_PERIOD_XML_ID:
-      return true;
     case TIME_PERIOD_ID:
-      return true;
     case VC_RATIO:
-      return true;
     case COST_TIMES_FLOW:
       return true;
     default:
-      LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Link output.  This will be ignored");
+      LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an output property, which is inappropriate for Link output.  This will be ignored");
     }
     return false;
   }

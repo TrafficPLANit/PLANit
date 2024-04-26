@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import org.goplanit.output.formatter.OutputFormatter;
 import org.goplanit.output.property.OutputProperty;
+import org.goplanit.utils.graph.Edge;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.GraphEntities;
@@ -19,18 +21,31 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
 public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends OutputTypeAdapter {
 
   /**
-   * collect location as string representation from vertex
+   * collect geometry from vertex
    * 
-   * @param vertex to extract location for
-   * @return node location
+   * @param vertex to extract geometry from
+   * @return the geometry
    */
-  public static Optional<String> getVertexLocationAsString(Vertex vertex) {
-    Point position = vertex.getPosition();
-    if (position == null) {
-      return Optional.of(OutputFormatter.NOT_SPECIFIED);
-    } else {
-      return Optional.of(position.getCoordinate().x + "-" + position.getCoordinate().y);
+  public static Optional<?> getVertexGeometry(Vertex vertex) {
+    if(vertex == null){
+      return Optional.of(PROPERTY_NOT_AVAILABLE);
     }
+    var position = vertex.getPosition();
+    return position != null ? Optional.of(position) : Optional.of(PROPERTY_NOT_AVAILABLE);
+  }
+
+  /**
+   * collect geometry from edge
+   *
+   * @param edge to extract geometry from
+   * @return the geometry
+   */
+  public static Optional<?> getEdgeGeometry(Edge edge) {
+    if(edge == null){
+      return Optional.of(PROPERTY_NOT_AVAILABLE);
+    }
+    var geometry = edge.getGeometry();
+    return geometry != null ? Optional.of( geometry) : Optional.of(PROPERTY_NOT_AVAILABLE);
   }
 
   /**
@@ -71,11 +86,13 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
    * 
    * @param linkSegment LinkSegment object containing the required data
    * @return the location of the downstream node
-   * @throws PlanItException thrown if the location could not be retrieved
    */
-  public default Optional<String> getDownstreamNodeLocation(T linkSegment) throws PlanItException {
+  public default Optional<?> getDownstreamNodeGeometry(T linkSegment) {
+    if(linkSegment == null){
+      return Optional.of(PROPERTY_NOT_AVAILABLE);
+    }
     Vertex downstreamVertex = linkSegment.getDownstreamVertex();
-    return getVertexLocationAsString(downstreamVertex);
+    return getVertexGeometry(linkSegment.getDownstreamVertex());
   }
 
   /**
@@ -83,9 +100,8 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
    * 
    * @param linkSegment LinkSegment object containing the required data
    * @return the length of the current link segment
-   * @throws PlanItException thrown if there is an error
    */
-  public default Optional<Double> getLength(T linkSegment) throws PlanItException {
+  public default Optional<Double> getLength(T linkSegment) {
     return Optional.of(linkSegment.getParentLink().getLengthKm());
   }
 
@@ -94,9 +110,8 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
    * 
    * @param linkSegment LinkSegment object containing the required data
    * @return the external Id of the current link segment
-   * @throws PlanItException thrown if there is an error
    */
-  public default Optional<String> getLinkSegmentExternalId(T linkSegment) throws PlanItException {
+  public default Optional<String> getLinkSegmentExternalId(T linkSegment) {
     return Optional.of(linkSegment.getExternalId());
   }
 
@@ -105,9 +120,8 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
    * 
    * @param linkSegment LinkSegment object containing the required data
    * @return the XML Id of the current link segment
-   * @throws PlanItException thrown if there is an error
    */
-  public default Optional<String> getLinkSegmentXmlId(T linkSegment) throws PlanItException {
+  public default Optional<String> getLinkSegmentXmlId(T linkSegment) {
     return Optional.of(linkSegment.getXmlId());
   }
 
@@ -116,10 +130,22 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
    * 
    * @param linkSegment LinkSegment object containing the required data
    * @return the Id of the current link segment
-   * @throws PlanItException thrown if there is an error
    */
-  public default Optional<Long> getLinkSegmentId(T linkSegment) throws PlanItException {
+  public default Optional<Long> getLinkSegmentId(T linkSegment){
     return Optional.of(linkSegment.getId());
+  }
+
+  /**
+   * Returns the location of the link segment
+   *
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the geometry
+   */
+  public default Optional<?> getLinkSegmentGeometry(T linkSegment) {
+    if(linkSegment == null){
+      Optional.of(PROPERTY_NOT_AVAILABLE);
+    }
+    return getEdgeGeometry(linkSegment.getParentLink());
   }
 
   /**
@@ -127,9 +153,8 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
    * 
    * @param linkSegment LinkSegment object containing the required data
    * @return the number of lanes of the current link
-   * @throws PlanItException thrown if there is an error
    */
-  public default Optional<Integer> getNumberOfLanes(T linkSegment) throws PlanItException {
+  public default Optional<Integer> getNumberOfLanes(T linkSegment){
     return Optional.of(linkSegment.getNumberOfLanes());
   }
 
@@ -138,9 +163,8 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
    * 
    * @param linkSegment LinkSegment object containing the required data
    * @return the external Id of the upstream node
-   * @throws PlanItException thrown if there is an error
    */
-  public default Optional<String> getUpstreamNodeExternalId(T linkSegment) throws PlanItException {
+  public default Optional<String> getUpstreamNodeExternalId(T linkSegment){
     return Optional.of(linkSegment.getUpstreamVertex().getExternalId());
   }
 
@@ -149,9 +173,8 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
    * 
    * @param linkSegment LinkSegment object containing the required data
    * @return the XML Id of the upstream node
-   * @throws PlanItException thrown if there is an error
    */
-  public default Optional<String> getUpstreamNodeXmlId(T linkSegment) throws PlanItException {
+  public default Optional<String> getUpstreamNodeXmlId(T linkSegment){
     return Optional.of(linkSegment.getUpstreamVertex().getXmlId());
   }
 
@@ -160,11 +183,13 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
    * 
    * @param linkSegment LinkSegment object containing the required data
    * @return the location of the upstream node
-   * @throws PlanItException thrown if there is an error
    */
-  public default Optional<String> getUpstreamNodeLocation(T linkSegment) throws PlanItException {
+  public default Optional<?> getUpstreamNodeGeometry(T linkSegment) {
+    if(linkSegment == null){
+      Optional.of(PROPERTY_NOT_AVAILABLE);
+    }
     Vertex upstreamVertex = linkSegment.getUpstreamVertex();
-    return getVertexLocationAsString(upstreamVertex);
+    return getVertexGeometry(upstreamVertex);
   }
 
   /**

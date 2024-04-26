@@ -53,8 +53,8 @@ public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> e
       case DOWNSTREAM_NODE_ID:
         result = getDownstreamNodeId(linkSegment);
         break;
-      case DOWNSTREAM_NODE_LOCATION:
-        result = getDownstreamNodeLocation(linkSegment);
+      case DOWNSTREAM_NODE_GEOMETRY:
+        result = getDownstreamNodeGeometry(linkSegment);
         break;
       case LENGTH:
         result = getLength(linkSegment);
@@ -64,6 +64,9 @@ public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> e
         break;
       case LINK_SEGMENT_XML_ID:
         result = getLinkSegmentXmlId(linkSegment);
+        break;
+      case LINK_SEGMENT_GEOMETRY:
+        result = getLinkSegmentGeometry(linkSegment);
         break;
       case LINK_SEGMENT_ID:
         result = getLinkSegmentId(linkSegment);
@@ -80,8 +83,8 @@ public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> e
       case UPSTREAM_NODE_ID:
         result = getUpstreamNodeId(linkSegment);
         break;
-      case UPSTREAM_NODE_LOCATION:
-        result = getUpstreamNodeLocation(linkSegment);
+      case UPSTREAM_NODE_GEOMETRY:
+        result = getUpstreamNodeGeometry(linkSegment);
         break;
       default:
       }

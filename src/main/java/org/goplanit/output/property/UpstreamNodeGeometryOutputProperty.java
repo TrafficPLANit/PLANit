@@ -3,9 +3,9 @@ package org.goplanit.output.property;
 import org.goplanit.output.enums.DataType;
 import org.goplanit.utils.unit.Unit;
 
-public final class UpstreamNodeLocationOutputProperty extends OutputProperty {
+public final class UpstreamNodeGeometryOutputProperty extends OutputProperty {
 
-  public static final String NAME = "Upstream Node Location";
+  public static final String NAME = "Upstream Node Geometry";
 
   @Override
   public String getName() {
@@ -24,7 +24,7 @@ public final class UpstreamNodeLocationOutputProperty extends OutputProperty {
 
   @Override
   public OutputPropertyType getOutputPropertyType() {
-    return OutputPropertyType.UPSTREAM_NODE_LOCATION;
+    return OutputPropertyType.UPSTREAM_NODE_GEOMETRY;
   }
 
   @Override

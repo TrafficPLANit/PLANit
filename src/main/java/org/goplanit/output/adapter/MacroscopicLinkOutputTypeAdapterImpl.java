@@ -73,7 +73,8 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOu
    * @return the value of the specified output property (or an Exception message if an error occurs)
    */
   @Override
-  public Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode, TimePeriod timePeriod) {
+  public Optional<?> getLinkSegmentOutputPropertyValue(
+      OutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode, TimePeriod timePeriod) {
     try {
       Optional<?> value = super.getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (value.isPresent()) {
@@ -99,6 +100,8 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOu
         return getLinkSegmentTypeId(linkSegment);
       case LINK_SEGMENT_TYPE_XML_ID:
         return getLinkSegmentTypeXmlId(linkSegment);
+      case LINK_SEGMENT_GEOMETRY:
+          return getLinkSegmentGeometry(linkSegment);
       default:
         return Optional.empty();
       }

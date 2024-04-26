@@ -176,7 +176,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param modalNetworkSegmentCosts segment costs for the network
    * @throws PlanItException thrown if there is an error
    */
-  private void executeTimePeriodAndMode(final Mode mode, final TimePeriod timePeriod, final ModeData currentModeData, final double[] modalNetworkSegmentCosts)
+  private void executeTimePeriodAndMode(
+      final Mode mode, final TimePeriod timePeriod, final ModeData currentModeData, final double[] modalNetworkSegmentCosts)
       throws PlanItException {
 
     final var shortestPathAlgorithm = new ShortestPathDijkstra(modalNetworkSegmentCosts, getTotalNumberOfNetworkVertices());
@@ -230,7 +231,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
           /* update skim and path data if needed */
 
-          updateODOutputData(skimMatrixMap, currentOriginZone, currentDestinationZone, shortestPathResult);
+          updateOdOutputData(skimMatrixMap, currentOriginZone, currentDestinationZone, shortestPathResult);
           updatePathOutputData(mode, odPaths, currentOriginZone, currentDestinationZone, shortestPathResult);
         }
       }
@@ -315,7 +316,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param currentDestinationZone current destination zone
    * @param shortestPathResult     costs for the shortest path results for the specified mode and origin-any destination
    */
-  private void updateODOutputData(
+  private void updateOdOutputData(
       final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone, final ShortestPathResult shortestPathResult) {
 
     if (getOutputManager().isOutputTypeActive(OutputType.OD)) {
