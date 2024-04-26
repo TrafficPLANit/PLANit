@@ -10,6 +10,7 @@ import org.goplanit.output.formatter.OutputFormatter;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.output.property.OutputPropertyType;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 
 /**
  * Class which holds arrays of output property values, identified by arrays of output keys
@@ -66,7 +67,6 @@ public class MultiKeyPlanItData {
     case BOOLEAN:
       return (key instanceof Boolean);
     case SRSNAME:
-      return (key instanceof String);
     case STRING:
       return (key instanceof String);
     default:
@@ -87,7 +87,7 @@ public class MultiKeyPlanItData {
     }
     for (int i = 0; i < outputKeyProperties.length; i++) {
       if (!isValueTypeCorrect(keyValues[i], outputKeyProperties[i].getDataType())) {
-        LOGGER.warning("output key in position " + (i + 1) + " is of the wrong type.");
+        LOGGER.warning(String.format("output key in position %d is of the wrong type.", i+1));
         return false;
       }
     }
@@ -99,13 +99,13 @@ public class MultiKeyPlanItData {
    *
    * @param outputKeyProperties   OutputProperty types of keys
    * @param outputValueProperties OutputProperty types of values
-   * @throws PlanItException thrown if there is an error
    */
-  private void init(final OutputProperty[] outputKeyProperties, final OutputProperty[] outputValueProperties) throws PlanItException {
-    PlanItException.throwIf(outputKeyProperties.length > 5, "Attempted to register too many output property keys.  The maximum number allowed is 5");
+  private void init(final OutputProperty[] outputKeyProperties, final OutputProperty[] outputValueProperties){
+    PlanItRunTimeException.throwIf(
+        outputKeyProperties.length > 5, "Attempted to register too many output property keys.  The maximum number allowed is 5");
 
-    multiKeyMap = new MultiKeyMap<Object, Object[]>();
-    singleKeyMap = new HashedMap<Object, Object[]>();
+    multiKeyMap = new MultiKeyMap<>();
+    singleKeyMap = new HashedMap<>();
 
     this.outputKeyProperties = outputKeyProperties;
     this.outputValueProperties = outputValueProperties;
@@ -116,9 +116,8 @@ public class MultiKeyPlanItData {
    *
    * @param outputKeyProperties   OutputProperty types of keys
    * @param outputValueProperties OutputProperty types of values
-   * @throws PlanItException thrown if there is an error
    */
-  public MultiKeyPlanItData(final OutputProperty[] outputKeyProperties, final OutputProperty... outputValueProperties) throws PlanItException {
+  public MultiKeyPlanItData(final OutputProperty[] outputKeyProperties, final OutputProperty... outputValueProperties){
     init(outputKeyProperties, outputValueProperties);
   }
 
@@ -216,17 +215,19 @@ public class MultiKeyPlanItData {
    *
    * @param outputValues array storing the data values
    * @param keyValues    array storing the key values to specify a row
-   * @throws PlanItException thrown if there is an error
    */
-  public void putRow(final Object[] outputValues, final Object... keyValues) throws PlanItException {
-    PlanItException.throwIf(keyValues.length != outputKeyProperties.length, "Wrong number of keys used in call to MultiKeyPlanItData");
-    PlanItException.throwIf(outputValues.length != outputValueProperties.length, "Wrong number of property values used in call to MultiKeyPlanItData");
-
-    for (int i = 0; i < outputValueProperties.length; i++) {
-      PlanItException.throwIf((!isValueTypeCorrect(outputValues[i], outputValueProperties[i].getDataType())) && (!outputValues[i].equals(OutputFormatter.NOT_SPECIFIED)),
-          String.format("Property in position %d in setRowValues() is of the wrong type", i));
+  public void putRow(final Object[] outputValues, final Object... keyValues){
+    if(keyValues.length != outputKeyProperties.length){
+      throw new PlanItRunTimeException("Wrong number of keys used in call to MultiKeyPlanItData");
     }
-    PlanItException.throwIf(!isKeyValuesValid(keyValues), "Call to setRowValues() with one or more keys of the wrong type");
+    if(outputValues.length != outputValueProperties.length){
+      throw new PlanItRunTimeException("Wrong number of property values used in call to MultiKeyPlanItData");
+    }
+    for (int i = 0; i < outputValueProperties.length; i++) {
+      if((!isValueTypeCorrect(outputValues[i], outputValueProperties[i].getDataType())) && (!outputValues[i].equals(OutputFormatter.NOT_SPECIFIED))){
+        throw new PlanItRunTimeException("Property in position %d in setRowValues() is of the wrong type", i);
+      }
+    }
 
     switch (outputKeyProperties.length) {
     case 1:

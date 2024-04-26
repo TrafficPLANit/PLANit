@@ -28,8 +28,8 @@ public interface OutputTypeAdapter {
    * 
    * @param subOutputTypeEnum, allowed to be null, in that case it is assumed there does not exist a suboutputtype for this output type
    * @return iterationIndexForData
-   * @throws PlanItException thrown if exception
    */
-  public abstract Optional<Integer> getIterationIndexForSubOutputType(final SubOutputTypeEnum subOutputTypeEnum) throws PlanItException;
+  public abstract Optional<Integer> getIterationIndexForSubOutputType(
+      final SubOutputTypeEnum subOutputTypeEnum);
 
 }

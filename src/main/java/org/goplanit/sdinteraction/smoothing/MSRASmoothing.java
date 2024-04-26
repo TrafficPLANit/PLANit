@@ -130,9 +130,6 @@ public class MSRASmoothing extends IterationBasedSmoothing {
       beta = previousBeta + gammaStep;
     }
     this.stepSize = 1.0 / Math.max(1, Math.abs(beta));
-    if(badIteration){
-      LOGGER.warning(String.format("*************** STEPSIZE: %.4f *******************", stepSize));
-    }
   }
 
   /**
@@ -190,7 +187,7 @@ public class MSRASmoothing extends IterationBasedSmoothing {
    * @param previousIterationReferenceValue previous reference value to use
    * @param currentIterationReferenceValue current reference value to use
    */
-  public void updateBadIteration(double previousIterationReferenceValue, double currentIterationReferenceValue) {
+  public void updateIsBadIteration(double previousIterationReferenceValue, double currentIterationReferenceValue) {
     badIteration = previousIterationReferenceValue/currentIterationReferenceValue < badIterationThreshold;
     isBadIterationFlagUpdated = true;
   }
@@ -226,5 +223,8 @@ public class MSRASmoothing extends IterationBasedSmoothing {
 
   public void setBadIterationThreshold(double badIterationThreshold) {
     this.badIterationThreshold = badIterationThreshold;
+  }
+  public void logStepSize() {
+    LOGGER.info(String.format("*************** STEPSIZE: %.4f *******************", stepSize));
   }
 }

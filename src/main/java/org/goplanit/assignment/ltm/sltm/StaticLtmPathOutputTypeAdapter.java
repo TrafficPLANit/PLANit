@@ -2,17 +2,10 @@ package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.assignment.TrafficAssignment;
 import org.goplanit.od.path.OdMultiPaths;
-import org.goplanit.od.path.OdPathMatrix;
-import org.goplanit.output.adapter.MacroscopicLinkOutputTypeAdapterImpl;
 import org.goplanit.output.adapter.PathOutputTypeAdapterImpl;
 import org.goplanit.output.enums.OutputType;
-import org.goplanit.output.property.OutputProperty;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.time.TimePeriod;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -48,7 +41,7 @@ public class StaticLtmPathOutputTypeAdapter extends PathOutputTypeAdapterImpl {
    * @return the OD path object
    */
   @Override
-  public Optional<OdMultiPaths<?,?>> getOdMultiPaths(Mode mode) {
-    return null;
+  public Optional<OdMultiPaths<?, ?>> getOdMultiPaths(Mode mode) {
+    return Optional.of(((StaticLtmPathStrategy) getAssignment().getStrategy()).getOdMultiPaths(mode));
   }
 }

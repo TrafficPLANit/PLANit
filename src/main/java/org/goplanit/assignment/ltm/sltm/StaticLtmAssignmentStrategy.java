@@ -2,12 +2,14 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.BitSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.loading.SplittingRateData;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
+import org.goplanit.demands.Demands;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
@@ -18,6 +20,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.CentroidVertex;
@@ -25,6 +28,7 @@ import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.utils.zoning.Zone;
 
 /**
@@ -56,9 +60,6 @@ public abstract class StaticLtmAssignmentStrategy {
    * Network loading to use
    */
   private StaticLtmNetworkLoading networkLoading;
-
-  /** OD demands used */
-  private OdDemands odDemands;
 
   /** static LTM specific settings to use */
   private final StaticLtmSettings settings;
@@ -129,21 +130,13 @@ public abstract class StaticLtmAssignmentStrategy {
   }
 
   /**
-   * Get od demands used
-   * 
+   * Get od demands used for a given mode in the current time period
+   *
+   * @param mode to use
    * @return odDemands used
    */
-  protected OdDemands getOdDemands() {
-    return this.odDemands;
-  }
-
-  /**
-   * set od demand used
-   * 
-   * @param odDemands to use
-   */
-  protected void setOdDemands(final OdDemands odDemands) {
-    this.odDemands = odDemands;
+  protected OdDemands getOdDemands(Mode mode) {
+    return getLoading().getOdDemands(mode);
   }
 
   /**
@@ -188,18 +181,19 @@ public abstract class StaticLtmAssignmentStrategy {
 
   /**
    * Verify convergence progress and if insufficient attempt to activate one or more extensions to overcome convergence difficulties
-   * 
+   *
+   * @param mode to use
    * @param networkLoading               to verify progress on
    * @param networkLoadingIterationIndex we are at
    */
-  protected void verifyNetworkLoadingConvergenceProgress(StaticLtmNetworkLoading networkLoading, int networkLoadingIterationIndex) {
+  protected void verifyNetworkLoadingConvergenceProgress(Mode mode, StaticLtmNetworkLoading networkLoading, int networkLoadingIterationIndex) {
     /*
      * whenever the current form of the solution method does not suffice, we move to the next extension which attempts to be more cautious and has a higher likelihood of finding a
      * solution at the cost of slower convergence, so whenever we are not yet stuck, we try to avoid activating these extensions.
      */
     if (!networkLoading.isConverging()) {
       // dependent on whether we are modelling physical queues or not and where we started with settings
-      boolean changedScheme = networkLoading.activateNextExtension(true);
+      boolean changedScheme = networkLoading.activateNextExtension(mode,true);
       if (!changedScheme) {
         LOGGER.warning(
             String.format("%sDetected network loading is not converging as expected (internal loading iteration %d) - unable to activate further extensions, consider aborting",
@@ -210,29 +204,30 @@ public abstract class StaticLtmAssignmentStrategy {
 
   /**
    * Perform a network loading based on the current assignment state
-   * 
+   *
+   * @param mode to use
    */
-  protected void executeNetworkLoading() {
+  protected void executeNetworkLoading(Mode mode) {
 
     /* for now, we do not consider path choice, we conduct a one-shot all-or-nothing network loading */
     int networkLoadingIterationIndex = 0;
-    getLoading().stepZeroIterationInitialisation(getSettings().isDetailedLogging());
+    getLoading().stepZeroIterationInitialisation(mode, getSettings().isDetailedLogging());
     do {
 
       /* verify if progress is being made and if not activate extensions as deemed adequate */
-      verifyNetworkLoadingConvergenceProgress(getLoading(), networkLoadingIterationIndex);
+      verifyNetworkLoadingConvergenceProgress(mode, getLoading(), networkLoadingIterationIndex);
 
       /* STEP 1 - Splitting rates update before sending flow update */
-      getLoading().stepOneSplittingRatesUpdate();
+      getLoading().stepOneSplittingRatesUpdate(mode);
 
       /* STEP 2 - Sending flow update (including node model update) */
-      getLoading().stepTwoInflowSendingFlowUpdate();
+      getLoading().stepTwoInflowSendingFlowUpdate(mode);
 
       /* STEP 3 - Splitting rates update before receiving flow update */
-      getLoading().stepThreeSplittingRateUpdate();
+      getLoading().stepThreeSplittingRateUpdate(mode);
 
       /* STEP 4 - Receiving flow update */
-      getLoading().stepFourOutflowReceivingFlowUpdate();
+      getLoading().stepFourOutflowReceivingFlowUpdate(mode);
 
       /* STEP 5 - Network loading convergence */
     } while (!getLoading().stepFiveCheckNetworkLoadingConvergence(networkLoadingIterationIndex++));
@@ -252,9 +247,8 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param updateOnlyPotentiallyBlockingNodeCosts flag indicating if only the costs of the entry link segments of potentially blocking nodes are to be updated, or all link segment
    *                                               costs are to be updated
    * @param costsToUpdate                          the network wide costs to update (fully or partially), this is an output
-   * @throws PlanItException thrown if error
    */
-  protected void executeNetworkCostsUpdate(Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts, double[] costsToUpdate) throws PlanItException {
+  protected void executeNetworkCostsUpdate(Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts, double[] costsToUpdate){
 
     final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
@@ -387,14 +381,13 @@ public abstract class StaticLtmAssignmentStrategy {
   /**
    * Invoked before start of equilibrating a new time period
    * 
-   * @param timePeriod to initialise for
-   * @param mode       to initialise for
-   * @param odDemands  to use
+   * @param timePeriod  to initialise for
+   * @param modes       to initialise for
+   * @param demands     to use
    */
-  public void updateTimePeriod(final TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) {
+  public void updateTimePeriod(final TimePeriod timePeriod, final Set<Mode> modes, final Demands demands) {
     this.networkLoading = createNetworkLoading();
-    this.networkLoading.initialiseInputs(mode, odDemands, getTransportNetwork());
-    setOdDemands(odDemands);
+    this.networkLoading.initialiseInputs(timePeriod, modes, demands, getTransportNetwork());
   }
 
   /**
@@ -411,11 +404,13 @@ public abstract class StaticLtmAssignmentStrategy {
 
   /**
    * Create the initial solution to start the equilibration process with
-   * 
-   * @param initialLinkSegmentCosts to use
-   * @param iterationIndex to use
+   *
+   * @param mode the mode to create initialise solution for
+   * @param odZones odZones of the time period and assignment
+   * @param initialLinkSegmentCosts to use for this mode
+   * @param iterationIndex          to use
    */
-  public abstract void createInitialSolution(double[] initialLinkSegmentCosts, int iterationIndex);
+  public abstract void createInitialSolution(Mode mode, OdZones odZones, double[] initialLinkSegmentCosts, int iterationIndex);
 
   /**
    * Perform a single iteration where we perform a loading and then an equilibration step resulting in updated costs

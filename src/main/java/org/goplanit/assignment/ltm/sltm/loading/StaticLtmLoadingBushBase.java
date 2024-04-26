@@ -9,6 +9,7 @@ import org.goplanit.assignment.ltm.sltm.PasManager;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.Mode;
 
 /**
  * The bush based network loading scheme for sLTM - base class
@@ -61,11 +62,12 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
   /**
    * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns on nodes that are potentially blocking to reduce
    * computational overhead.
-   * 
+   *
+   * @param mode unused
    * @return acceptedTurnFlows (on potentially blocking nodes) where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
    */
   @Override
-  protected MultiKeyMap<Object, Double> networkLoadingTurnFlowUpdate() {
+  protected MultiKeyMap<Object, Double> networkLoadingTurnFlowUpdate(Mode mode) {
    
     /* update network turn flows (and sending flows if POINT_QUEUE_BASIC) by performing a network loading
      * on all bushes using the bush-splitting rates (and updating the bush turn sending flows in the process, so they remain consistent
@@ -87,13 +89,14 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * {@inheritDoc}
    */
   @Override
-  protected void networkLoadingLinkSegmentSendingFlowUpdate() {
+  protected void networkLoadingLinkSegmentSendingFlowUpdate(Mode mode) {
         
     /* configure to only update all link segment sending flows */
     boolean updateTurnAcceptedFlows = false;
     boolean updateSendingFlowDuringLoading = true;
     boolean updateOutflows = false;
-    var bushFlowUpdateConsumer = createBushFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows);
+    var bushFlowUpdateConsumer =
+        createBushFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows);
     
     /* execute */
     executeNetworkLoadingUpdate(bushFlowUpdateConsumer);
@@ -103,7 +106,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * {@inheritDoc}
    */
   @Override
-  protected void networkLoadingLinkSegmentSendingflowOutflowUpdate() {
+  protected void networkLoadingLinkSegmentSendingflowOutflowUpdate(Mode mode) {
         
     /* configure to only update all link segment sending flows */
     boolean updateTurnAcceptedFlows = false;

@@ -1,7 +1,7 @@
 package org.goplanit.output.enums;
 
 /**
- * Enumeration of possible Id types used to identify a Path
+ * Enumeration of possible Id types used to identify a Path when writing it out
  * 
  * @author gman6028
  *

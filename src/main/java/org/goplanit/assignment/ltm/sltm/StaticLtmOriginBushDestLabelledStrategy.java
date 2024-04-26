@@ -9,6 +9,7 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.OdZone;
@@ -91,15 +92,16 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
 
   /**
    * Create origin bushes for all origins with non-zero flow to any destination, remaining entries in raw array will be null and theya re placed in the array by zone id
-   * 
+   *
+   * @param mode to use
    * @return created origin bushes
    */
   @Override
-  protected OriginBush[] createEmptyBushes() {
+  protected OriginBush[] createEmptyBushes(Mode mode) {
     Zoning zoning = getTransportNetwork().getZoning();
     OriginBush[] originBushes = new OriginBush[(int) zoning.getNumberOfCentroids()];
 
-    OdDemands odDemands = getOdDemands();
+    OdDemands odDemands = getOdDemands(mode);
     for (var origin : zoning.getOdZones()) {
       var originVertex = findCentroidVertex(origin);
       for (var destination : zoning.getOdZones()) {

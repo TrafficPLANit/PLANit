@@ -1,5 +1,6 @@
 package org.goplanit.output.property;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import org.goplanit.output.enums.DataType;
@@ -168,6 +169,17 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
    */
   public static OutputProperty of(OutputPropertyType outputProperty) {
     return of(outputProperty.value());
+  }
+
+  /**
+   * Utility method to verify if any of the provided output properties are of the provided type
+   *
+   * @param outputProperties to check
+   * @param type to check
+   * @return true if present, false, otherwise
+   */
+  public static boolean containsPropertyOfType(OutputProperty[] outputProperties, OutputPropertyType type){
+    return Arrays.stream(outputProperties).anyMatch(op -> op.getOutputPropertyType().equals(type));
   }
 
 }

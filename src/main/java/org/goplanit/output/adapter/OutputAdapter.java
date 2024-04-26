@@ -43,7 +43,7 @@ public class OutputAdapter {
    */
   public OutputAdapter(TrafficAssignment trafficAssignment) {
     this.trafficAssignment = trafficAssignment;
-    outputTypeAdapters = new HashMap<OutputType, OutputTypeAdapter>();
+    outputTypeAdapters = new HashMap<>();
   }
 
   /**
@@ -136,6 +136,16 @@ public class OutputAdapter {
    */
   public OutputTypeAdapter getOutputTypeAdapter(OutputType outputType) {
     return outputTypeAdapters.get(outputType);
+  }
+
+  /**
+   * Verify if an adapter for given type is available
+   *
+   * @param outputType to verify
+   * @return true if present, false otherwise
+   */
+  public boolean hasOutputTypeAdapter(OutputType outputType) {
+    return getOutputTypeAdapter(outputType) != null;
   }
 
   /**

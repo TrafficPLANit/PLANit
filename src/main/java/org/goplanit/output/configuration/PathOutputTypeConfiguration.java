@@ -1,6 +1,8 @@
 package org.goplanit.output.configuration;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -43,16 +45,18 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
   /**
    * Enumeration to specify the type of object to be recorded in the paths
    */
-  private PathOutputIdentificationType pathIdType;
+  private PathOutputIdentificationType pathStringIdType;
 
   /**
    * Determine how an origin-destination cell is being identified in the output formatter
-   * 
+   * todo: replace with enum, int is ugly
+   *
    * @param outputKeyProperties array of output key property types
    * @return the value of the identification type determined
    */
-  private int findIdentificationMethod(OutputProperty[] outputKeyProperties) {
-    Set<OutputPropertyType> outputKeyPropertyList = Arrays.stream(outputKeyProperties).map(op -> op.getOutputPropertyType()).collect(Collectors.toSet());
+  private int findOdIdentificationMethod(OutputProperty[] outputKeyProperties) {
+    Set<OutputPropertyType> outputKeyPropertyList =
+        Arrays.stream(outputKeyProperties).map(OutputProperty::getOutputPropertyType).collect(Collectors.toSet());
     if (outputKeyPropertyList.contains(OutputPropertyType.ORIGIN_ZONE_ID) && outputKeyPropertyList.contains(OutputPropertyType.DESTINATION_ZONE_ID)) {
       return ORIGIN_DESTINATION_ID_IDENTIFICATION;
     }
@@ -72,57 +76,69 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    */
   public PathOutputTypeConfiguration(){
     super(OutputType.PATH);
+    initialiseDefaultOutputProperties();
+    pathStringIdType = PathOutputIdentificationType.LINK_SEGMENT_XML_ID;
+  }
+
+  /**
+   * Set the default output properties for the path output configuration
+   */
+  private void initialiseDefaultOutputProperties() {
     // add default output properties
+
+    // keys - Note that path id is a key since there may be multiple paths per origin-destination-mode-time period combination
     addProperty(OutputPropertyType.PATH_ID);
     addProperty(OutputPropertyType.TIME_PERIOD_XML_ID);
     addProperty(OutputPropertyType.MODE_XML_ID);
     addProperty(OutputPropertyType.ORIGIN_ZONE_XML_ID);
     addProperty(OutputPropertyType.DESTINATION_ZONE_XML_ID);
+
+    // value
     addProperty(OutputPropertyType.PATH_STRING);
-    pathIdType = PathOutputIdentificationType.LINK_SEGMENT_XML_ID;
   }
 
   /**
    * Validate whether the specified list of keys is valid, and if it is return only the keys which will be used
    * 
-   * @param outputKeyProperties array of output key property types
+   * @param originalOutputKeyProperties array of output key property types
    * @return array of keys to be used (null if the list is not valid)
    */
   @Override
-  public OutputProperty[] validateAndFilterKeyProperties(OutputProperty[] outputKeyProperties) {
-    OutputProperty[] outputKeyPropertiesArray = null;
-    boolean valid = false;
+  public OutputProperty[] validateAndFilterKeyProperties(OutputProperty[] originalOutputKeyProperties) {
+    //TODO: ugly code, rewriting the output properties, should be done nicer at some point
+
+    List<OutputProperty> filteredOutputKeyProperties = new ArrayList<>(3);
+    boolean valid = true;
     try {
-      switch (findIdentificationMethod(outputKeyProperties)) {
+      switch (findOdIdentificationMethod(originalOutputKeyProperties)) {
       case ORIGIN_DESTINATION_ID_IDENTIFICATION:
-        outputKeyPropertiesArray = new OutputProperty[2];
-        outputKeyPropertiesArray[0] = OutputProperty.of(OutputPropertyType.ORIGIN_ZONE_ID);
-        outputKeyPropertiesArray[1] = OutputProperty.of(OutputPropertyType.DESTINATION_ZONE_ID);
-        valid = true;
+        filteredOutputKeyProperties.add(OutputProperty.of(OutputPropertyType.ORIGIN_ZONE_ID));
+        filteredOutputKeyProperties.add(OutputProperty.of(OutputPropertyType.DESTINATION_ZONE_ID));
         break;
       case ORIGIN_DESTINATION_XML_ID_IDENTIFICATION:
-        outputKeyPropertiesArray = new OutputProperty[2];
-        outputKeyPropertiesArray[0] = OutputProperty.of(OutputPropertyType.ORIGIN_ZONE_XML_ID);
-        outputKeyPropertiesArray[1] = OutputProperty.of(OutputPropertyType.DESTINATION_ZONE_XML_ID);
-        valid = true;
+        filteredOutputKeyProperties.add(OutputProperty.of(OutputPropertyType.ORIGIN_ZONE_XML_ID));
+        filteredOutputKeyProperties.add(OutputProperty.of(OutputPropertyType.DESTINATION_ZONE_XML_ID));
         break;
       case ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION:
-        outputKeyPropertiesArray = new OutputProperty[2];
-        outputKeyPropertiesArray[0] = OutputProperty.of(OutputPropertyType.ORIGIN_ZONE_EXTERNAL_ID);
-        outputKeyPropertiesArray[1] = OutputProperty.of(OutputPropertyType.DESTINATION_ZONE_EXTERNAL_ID);
-        valid = true;
+        filteredOutputKeyProperties.add(OutputProperty.of(OutputPropertyType.ORIGIN_ZONE_EXTERNAL_ID));
+        filteredOutputKeyProperties.add(OutputProperty.of(OutputPropertyType.DESTINATION_ZONE_EXTERNAL_ID));
         break;
       default:
         LOGGER.warning("configured keys cannot identify origin-destination cell in the skim matrix");
+        valid = false;
+        filteredOutputKeyProperties = null;
       }
     } catch (Exception e) {
+      valid = false;
       LOGGER.warning(e.getMessage());
       LOGGER.warning("Invalid keys encountered for identifying path data");
     }
-    if (valid) {
-      return outputKeyPropertiesArray;
+
+    /* keep the path id key if present */
+    if (valid && OutputProperty.containsPropertyOfType(originalOutputKeyProperties,OutputPropertyType.PATH_ID)) {
+      filteredOutputKeyProperties.add(OutputProperty.of(OutputPropertyType.PATH_ID));
     }
-    return null;
+    return filteredOutputKeyProperties.toArray(new OutputProperty[filteredOutputKeyProperties.size()]);
   }
 
   /**
@@ -132,7 +148,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    * @throws PlanItException thrown if there is an error
    */
   public void setPathIdentificationType(PathOutputIdentificationType pathIdType) throws PlanItException {
-    this.pathIdType = pathIdType;
+    this.pathStringIdType = pathIdType;
   }
 
   /**
@@ -141,7 +157,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    * @return the path id type
    */
   public PathOutputIdentificationType getPathIdentificationType() {
-    return pathIdType;
+    return pathStringIdType;
   }
 
   /**
@@ -166,13 +182,13 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     case ORIGIN_ZONE_XML_ID:
     case ORIGIN_ZONE_ID:
     case RUN_ID:
-    case PATH_ID:
     case TIME_PERIOD_EXTERNAL_ID:
     case TIME_PERIOD_XML_ID:
     case TIME_PERIOD_ID:
+    case PATH_ID:
       return true;
     default:
-      LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Path output.  This will be ignored");
+      LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an output property, which is inappropriate for Path output.  This will be ignored");
     }
     return false;
   }

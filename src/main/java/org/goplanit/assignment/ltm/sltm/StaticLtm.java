@@ -4,7 +4,6 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -14,7 +13,6 @@ import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmStrategyConjugateBush
 import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
@@ -22,7 +20,6 @@ import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.reflection.ReflectionUtils;
@@ -97,12 +94,10 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * Initialize time period assigment and construct the network loading instance to use
    *
    * @param timePeriod the time period
-   * @param mode       covered by this time period
-   * @param odDemands  to use during this loading
+   * @param modes    used in this time period
    * @return simulationData initialised for time period
-   * @throws PlanItException thrown if there is an error
    */
-  private StaticLtmSimulationData initialiseTimePeriod(TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) throws PlanItException {
+  private StaticLtmSimulationData initialiseTimePeriod(TimePeriod timePeriod, final Set<Mode> modes) {
 
     /* register new time period on costs */
     getPhysicalCost().updateTimePeriod(timePeriod);
@@ -110,17 +105,22 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
     // TODO no support for exogenous initial cost yet
 
-    assignmentStrategy.updateTimePeriod(timePeriod, mode, odDemands);
+    var simulationData = new StaticLtmSimulationData(timePeriod, modes, getTotalNumberOfNetworkSegments());
+    assignmentStrategy.updateTimePeriod(timePeriod, modes, getDemands());
 
-    /* compute costs on all link segments to start with */
-    boolean updateOnlyPotentiallyBlockingNodeCosts = false;
-    double[] initialLinkSegmentCosts = new double[getTotalNumberOfNetworkSegments()];
-    assignmentStrategy.executeNetworkCostsUpdate(mode, updateOnlyPotentiallyBlockingNodeCosts, initialLinkSegmentCosts);
-    var simulationData = new StaticLtmSimulationData(timePeriod, List.of(mode), getTotalNumberOfNetworkSegments());
-    simulationData.setLinkSegmentTravelTimePcuH(mode, initialLinkSegmentCosts);
+    /* for now only a single mode is supported (although written for more), todo: https://github.com/TrafficPLANit/PLANit/issues/112 */
+    for(var mode : simulationData.getSupportedModes()){
 
-    /* create initial solution as starting point for equilibration */
-    assignmentStrategy.createInitialSolution(initialLinkSegmentCosts, simulationData.getIterationIndex());
+      /* compute costs on all link segments to start with */
+      boolean updateOnlyPotentiallyBlockingNodeCosts = false;
+      double[] initialLinkSegmentCosts = new double[getTotalNumberOfNetworkSegments()];
+      assignmentStrategy.executeNetworkCostsUpdate(mode, updateOnlyPotentiallyBlockingNodeCosts, initialLinkSegmentCosts);
+      simulationData.setLinkSegmentTravelTimePcuH(mode, initialLinkSegmentCosts);
+
+      /* create initial solution as starting point for equilibration */
+      assignmentStrategy.createInitialSolution(
+          mode, getZoning().getOdZones(), initialLinkSegmentCosts, simulationData.getIterationIndex());
+    }
 
     return simulationData;
   }
@@ -130,19 +130,16 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * 
    * @param timePeriod to execute traffic assignment for
    * @param modes      used for time period
-   * @throws PlanItException thrown if error
    */
-  private void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
+  private void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes){
 
-    if (modes.size() != 1) {
+    /* prep */
+    this.simulationData = initialiseTimePeriod(timePeriod, modes);
+    if (simulationData.getSupportedModes().size() != 1) {
       LOGGER.warning(
           String.format("%ssLTM only supports a single mode for now, found %s, aborting assignment for time period %s", LoggingUtils.runIdPrefix(getId()), timePeriod.getXmlId()));
       return;
     }
-
-    /* prep */
-    Mode theMode = modes.iterator().next();
-    this.simulationData = initialiseTimePeriod(timePeriod, theMode, getDemands().get(theMode, timePeriod));
 
     boolean convergedOrStop = false;
     Calendar iterationStartTime = Calendar.getInstance();
@@ -154,7 +151,10 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       if (smoothing instanceof IterationBasedSmoothing) {
         ((IterationBasedSmoothing) smoothing).updateIteration(simulationData.getIterationIndex());
         if(smoothing instanceof MSRASmoothing) {
-          ((MSRASmoothing)smoothing).updateBadIteration(getGapFunction().getPreviousGap(), getGapFunction().getGap());
+          ((MSRASmoothing)smoothing).updateIsBadIteration(getGapFunction().getPreviousGap(), getGapFunction().getGap());
+          if(settings.isDetailedLogging() && ((MSRASmoothing)smoothing).isBadIteration()){
+            ((MSRASmoothing)smoothing).logStepSize();
+          }
         }
         smoothing.updateStepSize();
       }
@@ -162,21 +162,23 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       assignmentStrategy.getLoading().resetIteration();
 
       /* LOADING UPDATE + PATH/BUSH UPDATE */
-      double[] prevCosts = getIterationData().getLinkSegmentTravelTimePcuH(theMode);
-      double[] costsToUpdate = Arrays.copyOf(prevCosts, prevCosts.length);
-      boolean success = assignmentStrategy.performIteration(theMode, prevCosts, costsToUpdate, simulationData.getIterationIndex());
-      if (!success) {
-        LOGGER.severe("Unable to continue PLANit sLTM run, aborting");
-        break;
+      for(var mode : simulationData.getSupportedModes()) {
+        double[] prevCosts = getIterationData().getLinkSegmentTravelTimePcuH(mode);
+        double[] costsToUpdate = Arrays.copyOf(prevCosts, prevCosts.length);
+        boolean success = assignmentStrategy.performIteration(mode, prevCosts, costsToUpdate, simulationData.getIterationIndex());
+        if (!success) {
+          LOGGER.severe("Unable to continue PLANit sLTM run, aborting");
+          break;
+        }
+        // COST UPDATE
+        getIterationData().setLinkSegmentTravelTimePcuH(mode, costsToUpdate);
       }
-      // COST UPDATE
-      getIterationData().setLinkSegmentTravelTimePcuH(theMode, costsToUpdate);
 
       // CONVERGENCE CHECK
       convergedOrStop = assignmentStrategy.hasConverged(getGapFunction(), simulationData.getIterationIndex());
 
       // PERSIST
-      persistIterationResults(timePeriod, theMode, convergedOrStop);
+      persistIterationResults(convergedOrStop);
 
       iterationStartTime = logBasicIterationInformation(iterationStartTime, getGapFunction());
     } while (!convergedOrStop);
@@ -186,15 +188,13 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   /**
    * Persist the results for this iteration. In case the results require additional actions because the loading has been optimised this is adjusted here before persisting
    * 
-   * @param timePeriod to use
-   * @param theMode    to use
    * @param converged  true when converged, false otherwise
-   * @throws PlanItException thrown when error
    */
-  private void persistIterationResults(TimePeriod timePeriod, Mode theMode, boolean converged) throws PlanItException {
-    var modes = Set.of(theMode);
+  private void persistIterationResults(boolean converged){
+    var timePeriod = simulationData.getTimePeriod();
+    var modes = simulationData.getSupportedModes();
     if (getOutputManager().isAnyOutputPersisted(timePeriod, modes, converged)) {
-      assignmentStrategy.getLoading().stepSixFinaliseForPersistence();
+      assignmentStrategy.getLoading().stepSixFinaliseForPersistence(modes.iterator().next());
       getOutputManager().persistOutputData(timePeriod, modes, converged);
 
       if(isActivateDetailedLogging()) {
@@ -236,7 +236,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     for (final TimePeriod timePeriod : timePeriods) {
       Calendar startTime = Calendar.getInstance();
       final Calendar initialStartTime = startTime;
-      LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.timePeriodPrefix(timePeriod) + timePeriod.toString());
+      LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.timePeriodPrefix(timePeriod) + timePeriod);
       executeTimePeriod(timePeriod, getDemands().getRegisteredModesForTimePeriod(timePeriod));
       LOGGER.info(LoggingUtils.runIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
     }
@@ -459,6 +459,15 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   @Override
   public double[] getLinkSegmentOutflowsPcuHour() {
     return this.assignmentStrategy.getLoading().getCurrentOutflowsPcuH();
+  }
+
+  /**
+   * Access to modes supported for the current time period
+   *
+   * @return supported modes
+   */
+  public Set<Mode> getSupportedModes() {
+    return simulationData.getSupportedModes();
   }
 
   /**

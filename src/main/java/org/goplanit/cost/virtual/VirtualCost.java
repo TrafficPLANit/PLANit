@@ -26,7 +26,6 @@ public interface VirtualCost extends Cost<ConnectoidSegment> {
    * @param virtualNetwork the cost pertains to
    * @param mode           the mode these costs pertain to
    * @param costToFill     array of link segment costs identified by the link segment's internal id
-   * @throws PlanItException thrown if error
    */
-  public void populateWithCost(final VirtualNetwork virtualNetwork, Mode mode, double[] costToFill) throws PlanItException;
+  public void populateWithCost(final VirtualNetwork virtualNetwork, Mode mode, double[] costToFill);
 }

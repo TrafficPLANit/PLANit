@@ -32,7 +32,8 @@ public abstract class OutputTypeConfiguration {
    * @return array containing the relevant OutputProperty objects
    */
   private OutputProperty[] getOutputPropertyArray(Function<OutputProperty, Boolean> test) {
-    OutputProperty[] outputPropertyArray = outputProperties.stream().filter(baseOutputProperty -> test.apply(baseOutputProperty)).toArray(OutputProperty[]::new);
+    OutputProperty[] outputPropertyArray =
+        outputProperties.stream().filter(test::apply).toArray(OutputProperty[]::new);
     return outputPropertyArray;
   }
 
@@ -147,6 +148,10 @@ public abstract class OutputTypeConfiguration {
    */
   public boolean removeProperty(OutputPropertyType outputProperty) throws PlanItException {
     OutputProperty baseOutputProperty = OutputProperty.of(outputProperty);
+    if(baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY)){
+      LOGGER.warning(String.format(
+          "Removing column %s that is typically used as an index from output configuration, may result in non-unique output", outputProperty));
+    }
     if (outputProperties.contains(baseOutputProperty)) {
       return outputProperties.remove(baseOutputProperty);
     }
@@ -178,9 +183,8 @@ public abstract class OutputTypeConfiguration {
    * @return array of output key properties used in the LinkOutputAdapter
    */
   public OutputProperty[] getOutputKeyProperties() {
-    return getOutputPropertyArray(baseOutputProperty -> {
-      return baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY);
-    });
+    return getOutputPropertyArray(
+        baseOutputProperty -> baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY));
   }
 
   /**
@@ -191,9 +195,8 @@ public abstract class OutputTypeConfiguration {
    * @return array of output value properties used in the LinkOutputAdapter
    */
   public OutputProperty[] getOutputValueProperties() {
-    return getOutputPropertyArray(baseOutputProperty -> {
-      return !baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY);
-    });
+    return getOutputPropertyArray(
+        baseOutputProperty -> !baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY));
   }
 
   /**

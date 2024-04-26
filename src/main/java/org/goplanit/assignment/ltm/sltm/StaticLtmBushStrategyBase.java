@@ -15,6 +15,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
 
 import java.util.*;
@@ -206,10 +207,11 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
   /**
    * Let derived implementations create the empty bushes as desired before populating them
-   * 
+   *
+   * @param mode to use
    * @return created empty bushes suitable for this strategy
    */
-  protected abstract B[] createEmptyBushes();
+  protected abstract B[] createEmptyBushes(Mode mode);
 
   /**
    * Initialise the sLTM bush by including the relevant DAGs based on available demand and bush layout. When equal costs are found between alternative paths OD demand is to be
@@ -235,15 +237,15 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
   /**
    * Initialise bushes. Find shortest bush for each origin and add the links, flow, and destination labelling to the bush
-   * 
+   *
+   * @param mode to use
    * @param linkSegmentCosts costs to use
-   * @throws PlanItException thrown when error
    */
-  protected void initialiseBushes(final double[] linkSegmentCosts) throws PlanItException {
+  protected void initialiseBushes(Mode mode, final double[] linkSegmentCosts) throws PlanItException {
     final var shortestBushAlgorithm = createNetworkShortestBushAlgo(linkSegmentCosts);
 
     Zoning zoning = getTransportNetwork().getZoning();
-    OdDemands odDemands = getOdDemands();
+    OdDemands odDemands = getOdDemands(mode);
     for (int index = 0; index < bushes.length; ++index) {
       B bush = bushes[index];
       if (bush == null) {
@@ -302,14 +304,14 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    *
    */
   @Override
-  public void createInitialSolution(double[] initialLinkSegmentCosts, int iterationIndex) {
+  public void createInitialSolution(Mode mode, OdZones odZones, double[] initialLinkSegmentCosts, int iterationIndex) {
     try {
 
       /* delegate to concrete implementation */
       if (this.bushes == null || this.bushes.length == 0) {
-        this.bushes = createEmptyBushes();
+        this.bushes = createEmptyBushes(mode);
       }
-      initialiseBushes(initialLinkSegmentCosts);
+      initialiseBushes(mode, initialLinkSegmentCosts);
 
       /* update loading with information */
       getLoading().setBushes(bushes);
@@ -341,7 +343,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       
       /* 1 - NETWORK LOADING - UPDATE ALPHAS - USE BUSH SPLITTING RATES (i-1) -  MODE AGNOSTIC FOR NOW */
       {
-        executeNetworkLoading();
+        executeNetworkLoading(theMode);
       }
              
       /* 2 - NETWORK COST UPDATE + UPDATE NETWORK REALISED COST GAP */
@@ -372,7 +374,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         Collection<Pas> updatedPass = shiftFlows(theMode);      
         
         if(getSettings().isDetailedLogging()) {
-          var newUsedPass = new ArrayList<Pas>(newPass);
+          var newUsedPass = new ArrayList<>(newPass);
           newUsedPass.retainAll(updatedPass);
           newUsedPass.forEach( p -> LOGGER.info(String.format("Created new PAS and applied flow shift on it: %s", p.toString()))); 
         }

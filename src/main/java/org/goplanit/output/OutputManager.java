@@ -81,9 +81,8 @@ public class OutputManager {
    * @param timePeriod the current time period whose results are being saved
    * @param modes      Set of modes for the current assignment
    * @param converged  true if the assignment has converged
-   * @throws PlanItException thrown if there is an error
    */
-  public void persistOutputData(final TimePeriod timePeriod, final Set<Mode> modes, final boolean converged) throws PlanItException {
+  public void persistOutputData(final TimePeriod timePeriod, final Set<Mode> modes, final boolean converged) {
     for (OutputType outputType : outputConfiguration.getActivatedOutputTypes()) {
       OutputTypeConfiguration outputTypeConfiguration = outputConfiguration.getOutputTypeConfiguration(outputType);
       if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
@@ -104,7 +103,7 @@ public class OutputManager {
    * @param converged  true if the assignment has converged
    * @return true when anything is persisted, false otherwise
    */
-  public boolean isAnyOutputPersisted(final TimePeriod timePeriod, final Set<Mode> modes, final boolean converged) {
+  public boolean isAnyOutputPersisted(final TimePeriod timePeriod, final Collection<Mode> modes, final boolean converged) {
     if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
       for (OutputFormatter outputFormatter : outputFormatters) {
         if (converged || outputFormatter.canHandleMultipleIterations()) {
@@ -141,11 +140,11 @@ public class OutputManager {
    */
   public void registerOutputTypeAdapter(OutputTypeAdapter outputTypeAdapter) {
     if (outputAdapter == null) {
-      LOGGER.warning(String.format("Output adapter not available to register type on, ignored registration of %s instance", outputTypeAdapter.getClass().getCanonicalName()));
+      LOGGER.severe(String.format("Output adapter not available to register type on, ignored registration of %s instance", outputTypeAdapter.getClass().getCanonicalName()));
       return;
     }
     if (outputTypeAdapter == null) {
-      LOGGER.warning("Output type adapter that is registered is null, ignored");
+      LOGGER.severe("Output type adapter for type %d is null, unable to register, ignored");
       return;
     }
     outputAdapter.registerOutputTypeAdapter(outputTypeAdapter.getOutputType(), outputTypeAdapter);
@@ -251,6 +250,10 @@ public class OutputManager {
     /* sub type output adapters */
     for (OutputTypeConfiguration otc : getRegisteredOutputTypeConfigurations()) {
       final OutputTypeAdapter outputTypeAdapter = trafficAssignment.createOutputTypeAdapter(otc.getOutputType());
+      if(outputTypeAdapter == null) {
+        LOGGER.severe(String.format("Output type adapter for type %s on traffic assignment (%s) not available, unable to register, ignored", otc.getOutputType(), trafficAssignment.getClass().getCanonicalName()));
+        continue;
+      }
       registerOutputTypeAdapter(outputTypeAdapter);
     }
   }

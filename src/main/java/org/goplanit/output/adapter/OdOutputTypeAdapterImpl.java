@@ -9,6 +9,7 @@ import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.enums.SubOutputTypeEnum;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.od.OdDataIterator;
 import org.goplanit.utils.time.TimePeriod;
@@ -98,8 +99,8 @@ public abstract class OdOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
    * all other od information is based on the actual iteration index and will return i
    */
   @Override
-  public Optional<Integer> getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) throws PlanItException {
-    PlanItException.throwIf(!(outputTypeEnum instanceof OdSkimSubOutputType), "Incorrect outputType enum found when collecting iteration index");
+  public Optional<Integer> getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) {
+    PlanItRunTimeException.throwIf(!(outputTypeEnum instanceof OdSkimSubOutputType), "Incorrect outputType enum found when collecting iteration index");
 
     int iterationIndex = getAssignment().getIterationIndex();
     switch ((OdSkimSubOutputType) outputTypeEnum) {
@@ -112,7 +113,7 @@ public abstract class OdOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
     case NONE:
       return Optional.of(iterationIndex);
     default:
-      throw new PlanItException("Unknown ODSkimOutputType enum encountered when collecting iteration index");
+      throw new PlanItRunTimeException("Unknown ODSkimOutputType enum encountered when collecting iteration index");
     }
   }
 

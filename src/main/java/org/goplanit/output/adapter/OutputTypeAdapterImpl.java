@@ -90,7 +90,7 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
       default:
         return Optional.empty();
       }
-    } catch (PlanItException e) {
+    } catch (Exception e) {
       return Optional.of(e.getMessage());
     }
 
@@ -121,7 +121,7 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
    * are only revealed in the next iteration this method should be overridden
    */
   @Override
-  public Optional<Integer> getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) throws PlanItException {
+  public Optional<Integer> getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) {
     return Optional.of(trafficAssignment.getIterationIndex());
   }
 

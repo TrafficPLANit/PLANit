@@ -16,6 +16,7 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
 import org.goplanit.zoning.Zoning;
@@ -61,10 +62,11 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
 
   /**
    * Create initial conjugate (destination based) empty bushes
-   * 
+   *
+   * @param mode to use
    * @return created empty bushes suitable for this strategy
    */
-  protected ConjugateDestinationBush[] createEmptyBushes() {
+  protected ConjugateDestinationBush[] createEmptyBushes(Mode mode) {
 
     // TODO: we now create this mapping twice, see #initialiseBush, not efficient
     var centroid2ConjugateNodeMapping = conjugateVirtualNetwork.createCentroidToConjugateNodeMapping();
@@ -72,7 +74,7 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
     Zoning zoning = getTransportNetwork().getZoning();
     ConjugateDestinationBush[] conjugateBushes = new ConjugateDestinationBush[(int) zoning.getNumberOfCentroids()];
 
-    OdDemands odDemands = getOdDemands();
+    OdDemands odDemands = getOdDemands(mode);
     for (var destination : zoning.getOdZones()) {
       ConjugateDestinationBush bush = null;
       for (var origin : zoning.getOdZones()) {

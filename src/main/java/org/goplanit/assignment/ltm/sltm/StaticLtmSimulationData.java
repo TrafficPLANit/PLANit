@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
 
 import org.goplanit.assignment.SimulationData;
 import org.goplanit.utils.mode.Mode;
@@ -23,6 +24,9 @@ public class StaticLtmSimulationData extends SimulationData {
   /** the currently active time period */
   private TimePeriod timePeriod;
 
+  /** the supported mode for the time period */
+  private Set<Mode> supportedModes;
+
   /**
    * Constructor
    * 
@@ -30,9 +34,10 @@ public class StaticLtmSimulationData extends SimulationData {
    * @param supportedModes            used by the simulation
    * @param numberOfTotalLinkSegments used to correctly initialise the size of the internal data arrays for link segment data
    */
-  public StaticLtmSimulationData(final TimePeriod timePeriod, Collection<Mode> supportedModes, long numberOfTotalLinkSegments) {
+  public StaticLtmSimulationData(final TimePeriod timePeriod, Set<Mode> supportedModes, long numberOfTotalLinkSegments) {
     super();
     this.timePeriod = timePeriod;
+    this.supportedModes = supportedModes;
     this.modeLinkSegmentCost = new double[supportedModes.size()][(int) numberOfTotalLinkSegments];
   }
 
@@ -51,6 +56,7 @@ public class StaticLtmSimulationData extends SimulationData {
     } else {
       this.modeLinkSegmentCost = null;
     }
+    this.supportedModes = simulationData.supportedModes;
   }
 
   // GETTERS/SETTERS
@@ -82,6 +88,15 @@ public class StaticLtmSimulationData extends SimulationData {
    */
   public TimePeriod getTimePeriod() {
     return timePeriod;
+  }
+
+  /**
+   * Active modes
+   *
+   * @return supported modes in time period
+   */
+  public Set<Mode> getSupportedModes(){
+    return this.supportedModes;
   }
 
   /**

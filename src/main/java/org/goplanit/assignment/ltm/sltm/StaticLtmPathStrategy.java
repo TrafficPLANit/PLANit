@@ -27,6 +27,7 @@ import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.path.PathUtils;
 import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
 
 import java.util.*;
@@ -47,9 +48,6 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
   /** initial capacity used for list of paths per OD */
   private static final int INITIAL_PER_OD_PATH_CAPACITY = 3;
-
-  /** odPaths to track */
-  private final OdMultiPaths<StaticLtmDirectedPath, ArrayList<StaticLtmDirectedPath>> odMultiPaths;
 
   /** List of filters in form of predicates to apply when checking if a newly created path is eligible for inclusion in the set */
   List<BiPredicate<ManagedDirectedPath, Collection<? extends ManagedDirectedPath>>> sLtmPathFilters = new ArrayList<>();
@@ -125,19 +123,21 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
   /**
    * Create the od paths based on provided costs. Only create paths for od pairs with non-zero flow.
-   * 
+   *
+   * @param mode related to the provided costs
    * @param currentSegmentCosts costs to use for the shortest path algorithm
    * @return newly created odPaths
    */
-  private OdPaths<StaticLtmDirectedPath> createOdPaths(final double[] currentSegmentCosts) {
-    final ShortestPathOneToAll shortestPathAlgorithm = new ShortestPathDijkstra(currentSegmentCosts, getTransportNetwork().getNumberOfVerticesAllLayers());
+  private OdPaths<StaticLtmDirectedPath> createOdPaths(Mode mode, final double[] currentSegmentCosts) {
+    final ShortestPathOneToAll shortestPathAlgorithm =
+        new ShortestPathDijkstra(currentSegmentCosts, getTransportNetwork().getNumberOfVerticesAllLayers());
 
     ManagedDirectedPathFactory pathFactory = new ManagedDirectedPathFactoryImpl(getIdGroupingToken());
     var newOdShortestPaths = new OdPathsHashed<>(
             getIdGroupingToken(), StaticLtmDirectedPath.class, getTransportNetwork().getZoning().getOdZones());
 
     Zoning zoning = getTransportNetwork().getZoning();
-    OdDemands odDemands = getOdDemands();
+    OdDemands odDemands = getOdDemands(mode);
     for (var origin : zoning.getOdZones()) {
       var originVertex = findCentroidVertex(origin);
       var oneToAllResult = shortestPathAlgorithm.executeOneToAll(originVertex);
@@ -194,7 +194,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
     //1. get absolute and perceived costs for all paths
     double[] currAbsolutePathCosts = PathUtils.computeEdgeSegmentAdditiveValues(odPaths, currLinkSegmentsCosts);
-    double[] currCostRelatedPathProbabilities = odPaths.stream().map( p -> p.getPathChoiceProbability()).mapToDouble(v -> v).toArray();
+    double[] currCostRelatedPathProbabilities = odPaths.stream().map(StaticLtmDirectedPath::getPathChoiceProbability).mapToDouble(v -> v).toArray();
     double[] currPerceivedPathCosts = stochasticPathChoice.computePerceivedPathCosts(currAbsolutePathCosts, currCostRelatedPathProbabilities, demand, applyExpTransform);
 
     // sort values and construct indices of sorted values. We do this to base our pairwise probability shifts on
@@ -296,7 +296,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       var proposedLowCostDemand = currLowCostDemand + newtonStep;
       var proposedHighCostDemand = currHighCostDemand - newtonStep;
 
-      if(origin.getId() == 0 && destination.getId() == 2){
+      if(getSettings().hasTrackOdsForLogging() && getSettings().isTrackOdForLogging(origin,destination)){
         LOGGER.info(String.format(" [%d] -> [%d] ---- demand (%.8f, %.8f) ----Step proposed: %.8f, Step applied: %.8f)", highCostPathIndex, lowCostPathIndex,currLowCostDemand, currHighCostDemand, newtonStep, smoothing.execute(currLowCostDemand, proposedLowCostDemand)-currLowCostDemand));
       }
 
@@ -321,7 +321,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       ++pairIndex;
     }
 
-    pathsToRemove.forEach(p -> odPaths.remove(p));
+    pathsToRemove.forEach(odPaths::remove);
 
   }
 
@@ -330,8 +330,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * @return path choice component
    */
   protected PathChoice getPathChoice(){
-    var pathChoice = (PathChoice) getTrafficAssignmentComponent(PathChoice.class);
-    return pathChoice;
+    return getTrafficAssignmentComponent(PathChoice.class);
   }
 
   /** create a path based network loading for this solution scheme */
@@ -361,11 +360,6 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
           final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
-    this.odMultiPaths =
-            new OdMultiPathsHashed<StaticLtmDirectedPath, ArrayList<StaticLtmDirectedPath>>(
-                    getIdGroupingToken(),
-                    ArrayList.class,
-                    getTransportNetwork().getZoning().getOdZones());
 
     // initialise path filtering setup
     initialiseSltmPathFilters();
@@ -375,22 +369,26 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * {@inheritDoc}
    */
   @Override
-  public void createInitialSolution(double[] initialLinkSegmentCosts, int iterationIndex) {
+  public void createInitialSolution(Mode mode, OdZones odZones, double[] initialLinkSegmentCosts, int iterationIndex) {
     try {
-      /* create initial paths */
-      final var newOdPaths = createOdPaths(initialLinkSegmentCosts);
+      /* register multi-paths container on loading with initial paths included*/
+      var odMultiPathsForMode = new OdMultiPathsHashed<StaticLtmDirectedPath, ArrayList<StaticLtmDirectedPath>>(
+          getIdGroupingToken(), ArrayList.class, odZones);
+      getLoading().setOdMultiPaths(mode, odMultiPathsForMode);
 
-      /* initialise OD multi-path hash containers and set path probability to 1*/
-      getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
+      /* create initial single-path for each OD */
+      final var newOdPaths = createOdPaths(mode, initialLinkSegmentCosts);
+
+      /* populate OD multi-path container with single-path and set path probability to 1*/
+      getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
               (o, d, demand) -> {
                 var odMultiPathList = new ArrayList<StaticLtmDirectedPath>(INITIAL_PER_OD_PATH_CAPACITY);
                 var initialOdPath = newOdPaths.getValue(o, d);
                 initialOdPath.setPathChoiceProbability(1); // set current probability to 100%
                 odMultiPathList.add(initialOdPath);         // add to path set
-                odMultiPaths.setValue(o, d, odMultiPathList);
+                odMultiPathsForMode.setValue(o, d, odMultiPathList);
               });
 
-      getLoading().updateOdPaths(odMultiPaths);
     } catch (Exception e) {
       LOGGER.severe(String.format("Unable to create paths for initial solution of path-based sLTM %s", getAssignmentId()));
     }
@@ -400,18 +398,18 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * {@inheritDoc}
    */
   @Override
-  public boolean performIteration(final Mode theMode, final double[] prevCosts, final double[] costsToUpdate, int iterationIndex) {
+  public boolean performIteration(final Mode mode, final double[] prevCosts, final double[] costsToUpdate, int iterationIndex) {
 
     try {
       /* NETWORK LOADING - MODE AGNOSTIC FOR NOW */
-      executeNetworkLoading();
+      executeNetworkLoading(mode);
 
       /* COST UPDATE */
       boolean updateOnlyPotentiallyBlockingNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-      this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
+      this.executeNetworkCostsUpdate(mode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
 
       /* DERIVATIVES per link segment (so we can construct newton step) */
-      double[] dCostDFlow = this.constructLinkBasedDCostDFlow(theMode, updateOnlyPotentiallyBlockingNodeCosts);
+      double[] dCostDFlow = this.constructLinkBasedDCostDFlow(mode, updateOnlyPotentiallyBlockingNodeCosts);
 
       // prep
       final var smoothing = getSmoothing();
@@ -423,12 +421,12 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       }
 
       /* EXPAND OD PATH SETS WHEN ELIGIBLE NEW PATH FOUND */
-      final OdPaths<StaticLtmDirectedPath> newOdPaths = (iterationIndex < 50) ? createOdPaths(costsToUpdate) : null;
-
-      getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
+      final OdPaths<StaticLtmDirectedPath> newOdPaths = (iterationIndex < 50) ? createOdPaths(mode, costsToUpdate) : null;
+      final var odMultiPathsForMode = getOdMultiPaths(mode);
+      getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
               (o, d, demand) -> {
 
-                var odPaths =  odMultiPaths.getValue(o, d);
+                var odPaths =  odMultiPathsForMode.getValue(o, d);
 
                 boolean newPathAdded = false;
                 if(newOdPaths != null) {
@@ -499,12 +497,13 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   }
 
   /**
-   * Access to current od multi-paths
+   * Access to current od multi-paths for a given mode
    *
-   * @return the current od multi-paths
+   * @param mode to use
+   * @return the current od multi-paths for the given mode
    */
-  public OdMultiPaths getOdMultiPaths(){
-    return odMultiPaths;
+  public OdMultiPaths<StaticLtmDirectedPath,? extends List<StaticLtmDirectedPath>> getOdMultiPaths(Mode mode){
+    return getLoading().getOdMultiPaths(mode);
   }
 
 
