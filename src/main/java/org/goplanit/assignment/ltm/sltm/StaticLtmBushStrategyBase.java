@@ -241,7 +241,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * @param mode to use
    * @param linkSegmentCosts costs to use
    */
-  protected void initialiseBushes(Mode mode, final double[] linkSegmentCosts) throws PlanItException {
+  protected void initialiseBushes(Mode mode, final double[] linkSegmentCosts){
     final var shortestBushAlgorithm = createNetworkShortestBushAlgo(linkSegmentCosts);
 
     Zoning zoning = getTransportNetwork().getZoning();
@@ -317,7 +317,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       getLoading().setBushes(bushes);
       getLoading().setPasManager(this.pasManager);
 
-    } catch (PlanItException e) {
+    } catch (Exception e) {
       LOGGER.severe(String.format("Unable to create initial bushes for sLTM %d", getAssignmentId()));
     }
   }
