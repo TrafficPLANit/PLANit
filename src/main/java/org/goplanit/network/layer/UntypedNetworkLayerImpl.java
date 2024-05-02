@@ -184,4 +184,17 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
     ((ManagedIdEntities<E>) this.directedGraph.getEdges()).reset();
     ((ManagedIdEntities<S>) this.directedGraph.getEdgeSegments()).reset();
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @SuppressWarnings("unchecked")
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    var newId = super.recreateManagedIds(tokenId);
+    ((ManagedIdEntities<V>) this.directedGraph.getVertices()).recreateIds(true);
+    ((ManagedIdEntities<E>) this.directedGraph.getEdges()).recreateIds(true);
+    ((ManagedIdEntities<S>) this.directedGraph.getEdgeSegments()).recreateIds(true);
+    return newId;
+  }
 }

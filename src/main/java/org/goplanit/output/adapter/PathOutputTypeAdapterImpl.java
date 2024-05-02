@@ -1,12 +1,5 @@
 package org.goplanit.output.adapter;
 
-import java.sql.Array;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import org.goplanit.assignment.TrafficAssignment;
 import org.goplanit.od.path.OdMultiPathIterator;
 import org.goplanit.output.enums.OutputType;
@@ -16,8 +9,12 @@ import org.goplanit.path.ManagedDirectedPathImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.path.ManagedDirectedPath;
-import org.goplanit.utils.path.SimpleDirectedPath;
 import org.goplanit.utils.time.TimePeriod;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Top-level abstract class which defines the common methods required by Path output type adapters

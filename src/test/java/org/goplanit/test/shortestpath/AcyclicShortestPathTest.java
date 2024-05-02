@@ -158,7 +158,7 @@ public class AcyclicShortestPathTest {
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(8), zoneB, 0);      
       
       transportNetwork = new TransportModelNetwork(network, zoning);
-      transportNetwork.integrateTransportNetworkViaConnectoids();
+      transportNetwork.integrateTransportNetworkViaConnectoids(false);
       var zone2VertexMapping = transportNetwork.createZoneToCentroidVertexMapping(true, false);
           
       // costs

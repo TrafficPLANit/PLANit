@@ -333,7 +333,7 @@ public class CustomPlanItProject {
    * @throws PlanItException required for subclasses which override this method and generate an exception before the runs start
    */
   public void executeAllTrafficAssignments() throws PlanItException {
-    Set<TrafficAssignment> failedAssignments = new HashSet<TrafficAssignment>();
+    Set<TrafficAssignment> failedAssignments = new HashSet<>();
 
     if (assignmentBuilders.isEmpty()) {
       LOGGER.warning(LoggingUtils.projectPrefix(this.id) + "No assignment registered on project, execution ended prematurely");

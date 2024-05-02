@@ -8,6 +8,7 @@ import org.goplanit.network.layer.physical.UntypedPhysicalLayerImpl;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
+import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.*;
@@ -177,6 +178,16 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
   public void resetChildManagedIdEntities() {
     super.resetChildManagedIdEntities();
     this.linkSegmentTypes.reset();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    var newId = super.recreateManagedIds(tokenId);
+    getLinkSegmentTypes().recreateIds(true);
+    return newId;
   }
 
   /**

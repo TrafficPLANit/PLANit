@@ -155,7 +155,7 @@ public class KShortestPathTest {
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().getByXmlId("H"), zoneB, 0.1);
 
       transportNetwork = new TransportModelNetwork(network, zoning);
-      transportNetwork.integrateTransportNetworkViaConnectoids();
+      transportNetwork.integrateTransportNetworkViaConnectoids(false);
       zone2CentroidVertexMapping = transportNetwork.createZoneToCentroidVertexMapping(true, false);
 
       // costs

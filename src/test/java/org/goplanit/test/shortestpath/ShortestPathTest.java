@@ -176,7 +176,7 @@ public class ShortestPathTest {
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(24), zoneE, 0);
       
       transportNetwork = new TransportModelNetwork(network, zoning);
-      transportNetwork.integrateTransportNetworkViaConnectoids();
+      transportNetwork.integrateTransportNetworkViaConnectoids(false);
       zone2CentroidVertexMapping = transportNetwork.createZoneToCentroidVertexMapping(true, false);
           
       // costs

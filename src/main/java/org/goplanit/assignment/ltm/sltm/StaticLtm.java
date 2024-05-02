@@ -216,10 +216,12 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
   /**
    * Initialise the components before we start any assignment + create the assignment strategy (bush or path based)
+   *
+   * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all internal managed ids of transport model network components (links, nodes, connectoids etc.), when false do not.
    */
   @Override
-  protected void initialiseBeforeExecution() throws PlanItException {
-    super.initialiseBeforeExecution();
+  protected void initialiseBeforeExecution(boolean resetAndRecreateManagedIds) throws PlanItException {
+    super.initialiseBeforeExecution(resetAndRecreateManagedIds);
     this.assignmentStrategy = createAssignmentStrategy();
     assignmentStrategy.verifyComponentCompatibility();
     LOGGER.info(String.format("%sstrategy: %s", LoggingUtils.runIdPrefix(getId()), assignmentStrategy.getDescription()));

@@ -2,6 +2,7 @@ package org.goplanit.assignment;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.algorithmb.AlgorithmB;
@@ -74,6 +75,9 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * The demand to use
    */
   private Demands demands = null;
+
+  /** track how often this assignment was run (usually only once) */
+  private LongAdder executionCounter = new LongAdder();
 
   /* TRAFFIC ASSIGNMENT COMPONENTS */
 
@@ -155,12 +159,13 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
 
   /**
    * Initialize the transport network by combining the physical and virtual components
-   * 
+   *
+   * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all internal managed ids of transport model network components (links, nodes, connectoids etc.), when false do not.
    * @throws PlanItException thrown if there is an error
    */
-  protected void createTransportNetwork() throws PlanItException {
+  protected void createTransportNetwork(boolean resetAndRecreateManagedIds) throws PlanItException {
     transportNetwork = new TransportModelNetwork(physicalNetwork, zoning);
-    transportNetwork.integrateTransportNetworkViaConnectoids();
+    transportNetwork.integrateTransportNetworkViaConnectoids(resetAndRecreateManagedIds);
     if (getTransportNetwork().getNumberOfEdgeSegmentsAllLayers() > Integer.MAX_VALUE) {
       throw new PlanItException("currently assignment internals expect to be castable to int, but max value is exceeded for link segments");
     }
@@ -193,24 +198,26 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
 
   /**
    * detach the virtual and physical transport network again
-   * 
+   *
+   * @param resetManagedIds when true rest managed ids for those entities that are reset/cleared, when false do not
    * @throws PlanItException thrown if there is an error
    */
-  protected void disbandTransportNetwork() throws PlanItException {
+  protected void disbandTransportNetwork(boolean resetManagedIds) throws PlanItException {
     // Disconnect here since the physical network might be reused in a different
     // assignment
-    transportNetwork.removeVirtualNetworkFromPhysicalNetwork();
+    transportNetwork.removeVirtualNetworkFromPhysicalNetwork(resetManagedIds);
   }
 
   /**
    * Initialize all relevant traffic assignment components before execution of the assignment commences
    *
+   * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all internal managed ids of transport model network components (links, nodes, connectoids etc.), when false do not.
    * @throws PlanItException thrown if there is an error
    */
-  protected void initialiseBeforeExecution() throws PlanItException {
+  protected void initialiseBeforeExecution(boolean resetAndRecreateManagedIds) throws PlanItException {
     // verify validity
     checkForEmptyComponents();
-    createTransportNetwork();
+    createTransportNetwork(resetAndRecreateManagedIds);
     /* check components, including the transport network that just has been created */
     verifyComponentCompatibility();
 
@@ -229,14 +236,15 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
 
   /**
    * Finalize all relevant traffic assignment components after execution of the assignment has ended
-   * 
+   *
    * @throws PlanItException thrown if there is an error
    */
   protected void finalizeAfterExecution() throws PlanItException {
 
     outputManager.finaliseAfterSimulation();
 
-    disbandTransportNetwork();
+    // syncing of managed ids is currently chosen to be handled upon starting the assignment, not when done.
+    disbandTransportNetwork(false);
   }
 
   /**
@@ -345,13 +353,17 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
 
     LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surround(this.getClass().getSimpleName(), '-', 17));
 
-    initialiseBeforeExecution();
+    // make sure all internal ids are aligned and contiguous (especially if one does multiple runs this is needed)
+    // todo: could be made more intelligent if we know there is no risk of internal ids not being aligned, for now always recreate to avoid issues for multi-runs
+    boolean resetAndRecreatedManagedIds = true;
+    initialiseBeforeExecution(resetAndRecreatedManagedIds);
 
     executeEquilibration();
 
     finalizeAfterExecution();
 
     LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surround(this.getClass().getSimpleName(), '-', 17));
+    executionCounter.increment();
   }
 
   /**
@@ -381,7 +393,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
 
     // disband the transport network, this is considered internal state
     try {
-      disbandTransportNetwork();
+      disbandTransportNetwork(true);
     } catch (PlanItException e) {
       LOGGER.severe(String.format("Unable to reset assignment %s, transport network could not be disbanded", getXmlId()));
     }

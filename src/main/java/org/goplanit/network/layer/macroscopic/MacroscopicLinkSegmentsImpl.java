@@ -2,12 +2,15 @@ package org.goplanit.network.layer.macroscopic;
 
 import org.goplanit.mode.ModesImpl;
 import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentFactory;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.physical.Node;
 
 import java.util.function.BiConsumer;
 
@@ -63,6 +66,19 @@ public class MacroscopicLinkSegmentsImpl extends ManagedGraphEntitiesImpl<Macros
   @Override
   public MacroscopicLinkSegmentFactory getFactory() {
     return linkSegmentFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * todo: this method should ideally exist in a linkSegments container class rather than this more specific one
+   */
+  @Override
+  public void recreateIds(boolean resetManagedIdClass) {
+    /* always reset the additional link segment id class */
+    IdGenerator.reset(getFactory().getIdGroupingToken(), LinkSegment.LINK_SEGMENT_ID_CLASS);
+
+    super.recreateIds(resetManagedIdClass);
   }
 
   /**

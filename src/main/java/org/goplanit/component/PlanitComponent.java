@@ -7,6 +7,7 @@ import org.goplanit.component.event.PlanitComponentEvent;
 import org.goplanit.component.event.PlanitComponentEventType;
 import org.goplanit.component.event.PlanitComponentListener;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
@@ -188,5 +189,12 @@ public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializabl
    */
   public IdGroupingToken getIdGroupingToken() {
     return tokenId;
+  }
+
+  /**
+   * Recreate managed ids of the component (if supported). If not supported a PlanitRunTimeException is thrown
+   */
+  public void recreateManagedIds() {
+    throw new PlanItRunTimeException("recreateManagedIds not supported by", this.getClass().getCanonicalName());
   }
 }

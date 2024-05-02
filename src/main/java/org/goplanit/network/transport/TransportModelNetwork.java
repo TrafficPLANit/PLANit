@@ -240,14 +240,25 @@ public class TransportModelNetwork {
   }
 
   /**
-   * Integrate physical and virtual links within od zones (undirected connectoid access node and centroid)
+   * Integrate physical and virtual links within od zones (undirected connectoid access node and centroid). One may want to
+   * recreate all managed ids when there is a possibility this is not the first and only call to this method. This to ensure
+   * they are contiguous and start at zero if the transport model network is used for assignment that relies on a contiguous numbering. If network
+   * is only used once, it can be ignored (set to false)
+   *
+   * @param resetAndRecreateManagedIds when true, reset and then recreate all internal managed ids of transport model network components (links, nodes, connectoids etc.), when false do not.
    * @return return transport model network integration was performed on to allow chaining
    */
-  public TransportModelNetwork integrateTransportNetworkViaConnectoids(){
+  public TransportModelNetwork integrateTransportNetworkViaConnectoids(boolean resetAndRecreateManagedIds){
     LOGGER.info(String.format("Integrating physical network %d (XML id %s) with zoning %d (XML id %s)", infrastructureNetwork.getId(),
         infrastructureNetwork.getXmlId() != null ? infrastructureNetwork.getXmlId() : "N/A", zoning.getId(), zoning.getXmlId() != null ? zoning.getXmlId() : "N/A"));
 
     VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
+    if(resetAndRecreateManagedIds){
+      LOGGER.info("Recreating internal contiguous ids for network and zoning");
+      infrastructureNetwork.recreateManagedIds();
+      virtualNetwork.recreateManagedIds(false); // reset of underlying managed id class (edge,vertex) already happened in network
+    }
+
     var centroidVertexFactory = virtualNetwork.getCentroidVertices().getFactory();
     var connectoidEdgeFactory = virtualNetwork.getConnectoidEdges().getFactory();
     var connectoidSegmentFactory = virtualNetwork.getConnectoidSegments().getFactory();
@@ -338,14 +349,20 @@ public class TransportModelNetwork {
   /**
    * Remove the edges and edge segments on the vertices of both virtual and physical networks
    *
+   * @param resetManagedIds when true rest managed ids for those entities that are reset/cleared, when false do not
    */
-  public void removeVirtualNetworkFromPhysicalNetwork() {
+  public void removeVirtualNetworkFromPhysicalNetwork(boolean resetManagedIds) {
     for (ConnectoidEdge connectoidEdge : zoning.getVirtualNetwork().getConnectoidEdges()) {
       disconnectVerticesFromEdge(connectoidEdge);
     }
 
     /* clear out contents */
-    zoning.getVirtualNetwork().clear();
+    if(resetManagedIds){
+      zoning.getVirtualNetwork().reset();
+    }else{
+      zoning.getVirtualNetwork().clear();
+    }
+
   }
 
   /**

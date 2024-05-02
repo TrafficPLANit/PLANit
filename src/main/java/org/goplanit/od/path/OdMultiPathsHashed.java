@@ -63,7 +63,7 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends List<T>
             origin -> other.zones.forEach(
                     destination -> other.odHashed.values().forEach(
                             original -> {
-                              // create empty collectio of same type as original
+                              // create empty collection of same type as original
                               final U newCollecctionInstance =
                                       (U) ReflectionUtils.createInstance(original.getClass().getCanonicalName(), original.size());
                               // add all entries to the new container
