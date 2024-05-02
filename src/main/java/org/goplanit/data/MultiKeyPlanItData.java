@@ -11,6 +11,7 @@ import org.goplanit.output.property.OutputProperty;
 import org.goplanit.output.property.OutputPropertyType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * Class which holds arrays of output property values, identified by arrays of output keys
@@ -48,27 +49,28 @@ public class MultiKeyPlanItData {
   }
 
   /**
-   * Validate type of a key object
+   * Validate type of some instance
    *
-   * @param key  the key object
+   * @param value  the value
    * @param type the required type of the key object
    * @return true if the key is valid, false otherwise
    */
-  private boolean isValueTypeCorrect(final Object key, final DataType type) {
+  private boolean isValueTypeCorrect(final Object value, final DataType type) {
     switch (type) {
     case DOUBLE:
-      return (key instanceof Double);
+      return (value instanceof Double);
     case FLOAT:
-      return (key instanceof Float);
+      return (value instanceof Float);
     case INTEGER:
-      return (key instanceof Integer);
+      return (value instanceof Integer);
     case LONG:
-      return (key instanceof Long);
+      return (value instanceof Long);
     case BOOLEAN:
-      return (key instanceof Boolean);
+      return (value instanceof Boolean);
     case SRSNAME:
+      return (value instanceof Geometry);
     case STRING:
-      return (key instanceof String);
+      return (value instanceof String);
     default:
       return false;
     }
@@ -85,6 +87,7 @@ public class MultiKeyPlanItData {
       LOGGER.warning("incorrect number of key values in call to RevisedMemoryOutputFormatter");
       return false;
     }
+
     for (int i = 0; i < outputKeyProperties.length; i++) {
       if (!isValueTypeCorrect(keyValues[i], outputKeyProperties[i].getDataType())) {
         LOGGER.warning(String.format("output key in position %d is of the wrong type.", i+1));
@@ -224,8 +227,9 @@ public class MultiKeyPlanItData {
       throw new PlanItRunTimeException("Wrong number of property values used in call to MultiKeyPlanItData");
     }
     for (int i = 0; i < outputValueProperties.length; i++) {
-      if((!isValueTypeCorrect(outputValues[i], outputValueProperties[i].getDataType())) && (!outputValues[i].equals(OutputFormatter.NOT_SPECIFIED))){
-        throw new PlanItRunTimeException("Property in position %d in setRowValues() is of the wrong type", i);
+      if(!outputValues[i].equals(OutputFormatter.NOT_AVAILABLE) && !isValueTypeCorrect(outputValues[i], outputValueProperties[i].getDataType())){
+        throw new PlanItRunTimeException("Property %s of type %s in position %d in setRowValues() is of the wrong value type",
+                outputValueProperties[i].getName(), outputValueProperties[i].getDataType(), i);
       }
     }
 

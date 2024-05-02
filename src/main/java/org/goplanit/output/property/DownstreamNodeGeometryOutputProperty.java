@@ -29,7 +29,7 @@ public final class DownstreamNodeGeometryOutputProperty extends OutputProperty {
 
   @Override
   public OutputPropertyPriority getColumnPriority() {
-    return OutputPropertyPriority.INPUT_PRIORITY;
+    return OutputPropertyPriority.RESULT_PRIORITY;
   }
 
 }

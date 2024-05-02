@@ -4,6 +4,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.path.ManagedDirectedPath;
+import org.locationtech.jts.geom.Geometry;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -141,5 +142,10 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
   @Override
   public EdgeSegment getLastSegment() {
     return wrappedPath.getLastSegment();
+  }
+
+  @Override
+  public Geometry createGeometry() {
+    return wrappedPath.createGeometry();
   }
 }

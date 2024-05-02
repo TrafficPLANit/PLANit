@@ -6,6 +6,7 @@ import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.SimpleDirectedPathImpl;
+import org.locationtech.jts.geom.Geometry;
 
 import java.util.Collection;
 import java.util.Deque;
@@ -143,6 +144,11 @@ public class ManagedDirectedPathImpl extends ExternalIdAbleImpl implements Manag
   @Override
   public EdgeSegment getLastSegment() {
     return this.path.getLastSegment();
+  }
+
+  @Override
+  public Geometry createGeometry() {
+    return this.path.createGeometry();
   }
 
   /**

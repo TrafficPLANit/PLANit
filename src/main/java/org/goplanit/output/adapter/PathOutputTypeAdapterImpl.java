@@ -86,6 +86,8 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
         return PathOutputTypeAdapter.getPathAsString(path, pathOutputType);
       case PATH_ID:
         return PathOutputTypeAdapter.getPathId(path);
+      case PATH_GEOMETRY:
+        return PathOutputTypeAdapter.getPathGeometry(path);
       default:
         return Optional.of(String.format("Tried to find property of %s which is not applicable for OD path", outputProperty.getName()));
     }

@@ -178,6 +178,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     case MODE_XML_ID:
     case MODE_ID:
     case PATH_STRING:
+    case PATH_GEOMETRY:
     case ORIGIN_ZONE_EXTERNAL_ID:
     case ORIGIN_ZONE_XML_ID:
     case ORIGIN_ZONE_ID:

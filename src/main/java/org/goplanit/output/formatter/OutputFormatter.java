@@ -3,6 +3,7 @@ package org.goplanit.output.formatter;
 import java.util.Set;
 
 import org.goplanit.output.adapter.OutputAdapter;
+import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.configuration.OutputConfiguration;
 import org.goplanit.output.configuration.OutputTypeConfiguration;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -20,7 +21,7 @@ public interface OutputFormatter {
   /**
    * Constant to report that an output value has not been set
    */
-  public static final String NOT_SPECIFIED = "Not Specified";
+  public static final String NOT_AVAILABLE = OutputTypeAdapter.PROPERTY_NOT_AVAILABLE;
 
   /**
    * Default output formatter supported by PLANit from PLANitIO repository

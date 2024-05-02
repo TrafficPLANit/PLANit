@@ -15,6 +15,7 @@ import org.goplanit.utils.od.OdDataIterator;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.PathUtils;
 import org.goplanit.utils.time.TimePeriod;
+import org.locationtech.jts.geom.LineString;
 
 /**
  * Output type adapter interface for paths
@@ -132,6 +133,20 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
       return Optional.of(-1l);
     }
     return Optional.of(path.getId());
+  }
+
+  /**
+   * Return the geometry of the path in the form of a path string
+   *
+   * @param path to extract geometry from
+   * @return path geometry
+   */
+  static Optional<?> getPathGeometry(ManagedDirectedPath path) {
+    if(path == null){
+      return Optional.of(PROPERTY_NOT_AVAILABLE);
+    }
+    var geometry = path.createGeometry();
+    return geometry != null ? Optional.of( geometry) : Optional.of(PROPERTY_NOT_AVAILABLE);
   }
 
   /**
