@@ -72,9 +72,9 @@ public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> e
       case LINK_SEGMENT_XML_ID:
         result = getLinkSegmentXmlId(linkSegment);
         break;
-        case LINK_SEGMENT_GEOMETRY:
-          result = getLinkSegmentGeometry(
-                  linkSegment, CONSTRUCT_LINK_SEGMENT_GEOMETRY_FROM_NODES_IF_UNAVAILABLE, FORCE_TRAVEL_DIRECTION);
+      case LINK_SEGMENT_GEOMETRY:
+        result = getLinkSegmentGeometry(
+                linkSegment, CONSTRUCT_LINK_SEGMENT_GEOMETRY_FROM_NODES_IF_UNAVAILABLE, FORCE_TRAVEL_DIRECTION);
         break;
       case LINK_SEGMENT_ID:
         result = getLinkSegmentId(linkSegment);

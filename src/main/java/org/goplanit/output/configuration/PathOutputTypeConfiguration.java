@@ -177,8 +177,6 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     case MODE_EXTERNAL_ID:
     case MODE_XML_ID:
     case MODE_ID:
-    case PATH_STRING:
-    case PATH_GEOMETRY:
     case ORIGIN_ZONE_EXTERNAL_ID:
     case ORIGIN_ZONE_XML_ID:
     case ORIGIN_ZONE_ID:
@@ -187,6 +185,8 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     case TIME_PERIOD_XML_ID:
     case TIME_PERIOD_ID:
     case PATH_ID:
+    case PATH_STRING:
+    case PATH_GEOMETRY:
       return true;
     default:
       LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an output property, which is inappropriate for Path output.  This will be ignored");

@@ -169,10 +169,12 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
     case UPSTREAM_NODE_ID:
     case UPSTREAM_NODE_GEOMETRY:
     case FLOW:
+    case INFLOW:
+    case OUTFLOW:
     case ITERATION_INDEX:
     case LENGTH:
     case LINK_SEGMENT_COST:
-     case LINK_SEGMENT_TYPE_ID:
+    case LINK_SEGMENT_TYPE_ID:
     case LINK_SEGMENT_TYPE_NAME:
     case LINK_SEGMENT_TYPE_XML_ID:
     case LINK_SEGMENT_EXTERNAL_ID:

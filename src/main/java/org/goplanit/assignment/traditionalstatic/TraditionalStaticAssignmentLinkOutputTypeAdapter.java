@@ -150,13 +150,9 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
       case CALCULATED_SPEED:
         value = getCalculatedSpeed(linkSegment, mode);
         break;
-      case FLOW:
-        value = getFlow(linkSegment, mode);
-        break;
       case INFLOW:
-        value = getFlow(linkSegment, mode);
-        break;
       case OUTFLOW:
+      case FLOW:
         value = getFlow(linkSegment, mode);
         break;
       case LINK_SEGMENT_COST:
