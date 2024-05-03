@@ -2,15 +2,14 @@ package org.goplanit.output.adapter;
 
 import java.util.Optional;
 
-import org.goplanit.output.formatter.OutputFormatter;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.graph.Edge;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Point;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.graph.EdgeUtils;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * Interface defining the methods required for a link output adapter
@@ -37,14 +36,19 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
   /**
    * collect geometry from edge
    *
-   * @param edge to extract geometry from
+   * @param edge                                    to extract geometry from
+   * @param constructGeometryFromNodesIfUnavailable   when true and no internal geometry is available, attempt to construct from node locations
+   * @param constructInAbDirection when true and constructGeometryFromNodesIfUnavailable==true then we construct the geometry in AB direction otherwise in BA direction
    * @return the geometry
    */
-  public static Optional<?> getEdgeGeometry(Edge edge) {
+  public static Optional<?> getEdgeGeometry(Edge edge, boolean constructGeometryFromNodesIfUnavailable, boolean constructInAbDirection) {
     if(edge == null){
       return Optional.of(PROPERTY_NOT_AVAILABLE);
     }
     var geometry = edge.getGeometry();
+    if(geometry == null && constructGeometryFromNodesIfUnavailable){
+      geometry = EdgeUtils.createLineStringFromVertexLocations(edge, constructInAbDirection);
+    }
     return geometry != null ? Optional.of( geometry) : Optional.of(PROPERTY_NOT_AVAILABLE);
   }
 
@@ -138,14 +142,27 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
   /**
    * Returns the location of the link segment
    *
-   * @param linkSegment LinkSegment object containing the required data
+   * @param linkSegment                               linkSegment object containing the required data
+   * @param constructGeometryFromNodesIfUnavailable   when true and no internal geometry is available, attempt to construct from node locations
+   * @param forceSegmentDirection when true, we force the geometry to be provided in the travel direction of the segment, when false keep
    * @return the geometry
    */
-  public default Optional<?> getLinkSegmentGeometry(T linkSegment) {
+  public default Optional<?> getLinkSegmentGeometry(T linkSegment, boolean constructGeometryFromNodesIfUnavailable, boolean forceSegmentDirection) {
     if(linkSegment == null){
       Optional.of(PROPERTY_NOT_AVAILABLE);
     }
-    return getEdgeGeometry(linkSegment.getParentLink());
+    var collectedEdgeGeometry = getEdgeGeometry(linkSegment.getParentLink(), constructGeometryFromNodesIfUnavailable, linkSegment.isDirectionAb());
+
+    /* force geometry to be in travel direction of segment if configrued as such */
+    boolean mayNeedReversal = linkSegment.getParentLink().hasGeometry(); // only when geometry is not constructed from nodes we may need to reverse
+    boolean collectedEdgeGeometryValid = collectedEdgeGeometry.isPresent() && (collectedEdgeGeometry.get() instanceof Geometry);
+    if(mayNeedReversal && forceSegmentDirection && collectedEdgeGeometryValid){
+      boolean reverseGeometry = linkSegment.getParentLink().isGeometryInAbDirection() != linkSegment.isDirectionAb();
+      if(reverseGeometry){
+        collectedEdgeGeometry = Optional.of(((Geometry)collectedEdgeGeometry.get()).reverse());
+      }
+    }
+    return collectedEdgeGeometry;
   }
 
   /**

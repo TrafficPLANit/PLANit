@@ -21,6 +21,13 @@ public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> e
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(UntypedLinkOutputTypeAdapterImpl.class.getCanonicalName());
 
+  /** in case a link (segment) has no geometry of its own, we can choose to construct it by creating a line between the two node
+   * locations if possible. This is switched on by default */
+  protected static final boolean CONSTRUCT_LINK_SEGMENT_GEOMETRY_FROM_NODES_IF_UNAVAILABLE = true;
+
+  /** in case a link (segment)'s geometry does not run in the direction of travel, force it to be via this flag in the output */
+  protected static final boolean FORCE_TRAVEL_DIRECTION = true;
+
   /**
    * Constructor
    * 
@@ -65,8 +72,9 @@ public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> e
       case LINK_SEGMENT_XML_ID:
         result = getLinkSegmentXmlId(linkSegment);
         break;
-      case LINK_SEGMENT_GEOMETRY:
-        result = getLinkSegmentGeometry(linkSegment);
+        case LINK_SEGMENT_GEOMETRY:
+          result = getLinkSegmentGeometry(
+                  linkSegment, CONSTRUCT_LINK_SEGMENT_GEOMETRY_FROM_NODES_IF_UNAVAILABLE, FORCE_TRAVEL_DIRECTION);
         break;
       case LINK_SEGMENT_ID:
         result = getLinkSegmentId(linkSegment);

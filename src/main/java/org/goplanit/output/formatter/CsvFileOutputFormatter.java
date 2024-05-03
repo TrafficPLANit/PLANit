@@ -155,6 +155,11 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
             continue;
           }
 
+          // skip intra-zonal paths results
+          if(odMultiPathIterator.getCurrentOrigin().equals(odMultiPathIterator.getCurrentDestination())){
+            continue;
+          }
+
           /* obtain the col vectors for each property, where the number of eventual rows is the # entries in each col vector
            * which is the same for each property, namely how many paths there are for the given OD  */
           List<? extends List<?>> colVectorValues = outputProperties.stream()

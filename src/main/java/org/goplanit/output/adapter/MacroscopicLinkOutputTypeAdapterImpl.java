@@ -100,8 +100,6 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOu
         return getLinkSegmentTypeId(linkSegment);
       case LINK_SEGMENT_TYPE_XML_ID:
         return getLinkSegmentTypeXmlId(linkSegment);
-      case LINK_SEGMENT_GEOMETRY:
-          return getLinkSegmentGeometry(linkSegment);
       default:
         return Optional.empty();
       }

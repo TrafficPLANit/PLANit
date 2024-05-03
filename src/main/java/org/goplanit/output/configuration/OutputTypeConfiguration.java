@@ -129,6 +129,17 @@ public abstract class OutputTypeConfiguration {
   }
 
   /**
+   * Add output properties to be included in the output files
+   *
+   * @param outputProperties enumeration value specifying which output property to be included in the output files
+   */
+  public void addProperties(OutputPropertyType... outputProperties) {
+    for(var property : outputProperties){
+      addProperty(property);
+    }
+  }
+
+  /**
    * Remove an output property from the list of properties to be included in the output file
    * 
    * @param propertyClassName class name of the property to be removed
