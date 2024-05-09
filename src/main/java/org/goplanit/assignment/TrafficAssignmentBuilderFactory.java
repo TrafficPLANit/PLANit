@@ -38,7 +38,8 @@ public class TrafficAssignmentBuilderFactory {
       return new StaticLtmTrafficAssignmentBuilder(projectToken, inputBuilder, theDemands, theZoning, theNetwork);
 
     } else {
-      throw new PlanItException(String.format("Unable to construct builder for given trafficAssignmentType %s", trafficAssignmentType));
+      throw new PlanItException(
+              "Unable to construct builder for given trafficAssignmentType %s", trafficAssignmentType);
     }
   }
 }

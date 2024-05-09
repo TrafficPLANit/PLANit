@@ -24,7 +24,7 @@ public abstract class ChoiceModel extends PlanitComponent<ChoiceModel> implement
   private static final long serialVersionUID = -4578323513280128464L;
 
   /** the scaling factor used to scale the utilities/cost */
-  private double scalingFactor = DEFAULT_SCALING_FACTOR;
+  protected double scalingFactor = DEFAULT_SCALING_FACTOR;
 
   /**
    * Constructor
@@ -134,8 +134,9 @@ public abstract class ChoiceModel extends PlanitComponent<ChoiceModel> implement
   @Override
   public Map<String, String> collectSettingsAsKeyValueMap() {
     var keyValueMap = new HashMap<String, String>();
-    var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(this, i -> Modifier.isProtected(i) && !Modifier.isStatic(i));
-    privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
+    var protectedFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(
+            ChoiceModel.class, this, i -> Modifier.isProtected(i) && !Modifier.isStatic(i));
+    protectedFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
     return keyValueMap;
   }
 

@@ -1,4 +1,4 @@
-package org.goplanit.test.sltm;
+package org.goplanit.test.sltm.bush;
 
 import java.util.logging.Logger;
 
@@ -14,7 +14,6 @@ import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -22,7 +21,6 @@ import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
-import org.goplanit.utils.network.layer.physical.Links;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
 import org.goplanit.utils.zoning.OdZones;

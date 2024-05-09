@@ -250,11 +250,15 @@ public class CustomPlanItProject {
    * @return the traffic assignment configurator object
    * @throws PlanItException thrown if there is an error
    */
-  public TrafficAssignmentConfigurator<? extends TrafficAssignment> createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands,
-      final Zoning theZoning, final LayeredNetwork<?, ?> theNetwork) throws PlanItException {
+  public TrafficAssignmentConfigurator<? extends TrafficAssignment> createAndRegisterTrafficAssignment(
+          final String trafficAssignmentType,
+          final Demands theDemands,
+          final Zoning theZoning,
+          final LayeredNetwork<?, ?> theNetwork) throws PlanItException {
 
-    TrafficAssignmentBuilder<?> taBuilder = TrafficAssignmentBuilderFactory.createBuilder(trafficAssignmentType, projectToken, inputBuilderListener, theDemands, theZoning,
-        theNetwork);
+    TrafficAssignmentBuilder<?> taBuilder =
+            TrafficAssignmentBuilderFactory.createBuilder(
+                    trafficAssignmentType, projectToken, inputBuilderListener, theDemands, theZoning, theNetwork);
     assignmentBuilders.addTrafficAssignmentBuilder(taBuilder);
 
     /*

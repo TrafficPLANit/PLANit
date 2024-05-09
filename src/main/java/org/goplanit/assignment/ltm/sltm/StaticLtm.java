@@ -137,7 +137,8 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     this.simulationData = initialiseTimePeriod(timePeriod, modes);
     if (simulationData.getSupportedModes().size() != 1) {
       LOGGER.warning(
-          String.format("%ssLTM only supports a single mode for now, found %s, aborting assignment for time period %s", LoggingUtils.runIdPrefix(getId()), timePeriod.getXmlId()));
+          String.format("%ssLTM only supports a single mode for now, found %d, aborting assignment for time period %s",
+                  LoggingUtils.runIdPrefix(getId()), simulationData.getSupportedModes().size(), timePeriod.getXmlId()));
       return;
     }
 

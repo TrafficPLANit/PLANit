@@ -1,4 +1,4 @@
-package org.goplanit.test.sltm;
+package org.goplanit.test.sltm.bush;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author markr
  *
  */
-public class sLtmAssignmentMultiOdTest {
+public class sLtmAssignmentBushMultiOdTest {
 
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
@@ -148,7 +148,7 @@ public class sLtmAssignmentMultiOdTest {
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
-      LOGGER = Logging.createLogger(sLtmAssignmentMultiOdTest.class);
+      LOGGER = Logging.createLogger(sLtmAssignmentBushMultiOdTest.class);
     }
   }
 

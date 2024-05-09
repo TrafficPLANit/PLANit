@@ -516,9 +516,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @param outputType          value of output type key
    * @param outputValueProperty the output value property whose position is required
    * @return the position of the output value property
-   * @throws PlanItException thrown if the output property type is not in the output value property array
    */
-  public int getPositionOfOutputValueProperty(final OutputType outputType, final OutputPropertyType outputValueProperty) throws PlanItException {
+  public int getPositionOfOutputValueProperty(final OutputType outputType, final OutputPropertyType outputValueProperty){
     Set<MultiKey<?>> keySet = timeModeOutputTypeIterationDataMap.keySet();
     for (MultiKey<?> multiKey : keySet) {
       Object[] keys = multiKey.getKeys();
@@ -531,7 +530,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
         return multiKeyPlanItData.getPositionOfOutputValueProperty(outputValueProperty);
       }
     }
-    throw new PlanItException("Value property " + outputType.name() + " could not be found in the MemoryOutputFormatter");
+    throw new PlanItRunTimeException("Value property " + outputType.name() + " could not be found in the MemoryOutputFormatter");
   }
 
   /**
@@ -540,9 +539,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @param outputType        value of output type key
    * @param outputKeyProperty the output key property whose position is required
    * @return the position of the output key property
-   * @throws PlanItException thrown if the output property type is not in the output key property array
    */
-  public int getPositionOfOutputKeyProperty(final OutputType outputType, final OutputPropertyType outputKeyProperty) throws PlanItException {
+  public int getPositionOfOutputKeyProperty(final OutputType outputType, final OutputPropertyType outputKeyProperty){
     Set<MultiKey<?>> keySet = timeModeOutputTypeIterationDataMap.keySet();
     for (MultiKey<?> multiKey : keySet) {
       Object[] keys = multiKey.getKeys();
@@ -555,7 +553,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
         return multiKeyPlanItData.getPositionOfOutputKeyProperty(outputKeyProperty);
       }
     }
-    throw new PlanItException("Key property " + outputType.name() + " could not be found in the MemoryOutputFormatter");
+    throw new PlanItRunTimeException("Key property " + outputType.name() + " could not be found in the MemoryOutputFormatter");
   }
 
 }

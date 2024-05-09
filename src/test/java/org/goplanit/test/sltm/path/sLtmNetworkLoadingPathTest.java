@@ -1,4 +1,4 @@
-package org.goplanit.test.sltm;
+package org.goplanit.test.sltm.path;
 
 import java.util.logging.Logger;
 
@@ -17,8 +17,6 @@ import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoiceConfigurator;
-import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
-import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -28,7 +26,6 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
-import org.goplanit.utils.path.PathUtils;
 import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.AfterAll;
@@ -46,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author markr
  *
  */
-public class sLtmNetworkLoadingTest {
+public class sLtmNetworkLoadingPathTest {
 
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
@@ -63,7 +60,7 @@ public class sLtmNetworkLoadingTest {
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
-      LOGGER = Logging.createLogger(sLtmNetworkLoadingTest.class);
+      LOGGER = Logging.createLogger(sLtmNetworkLoadingPathTest.class);
     }
   }
 

@@ -1,6 +1,4 @@
-package org.goplanit.test.sltm;
-
-import java.util.logging.Logger;
+package org.goplanit.test.sltm.bush;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
@@ -35,6 +33,8 @@ import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 
+import java.util.logging.Logger;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author markr
  *
  */
-public class sLtmAssignmentSingleOdTest1 {
+public class sLtmAssignmentBushSingleOdTest1 {
 
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
@@ -105,7 +105,7 @@ public class sLtmAssignmentSingleOdTest1 {
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
-      LOGGER = Logging.createLogger(sLtmAssignmentSingleOdTest1.class);
+      LOGGER = Logging.createLogger(sLtmAssignmentBushSingleOdTest1.class);
     }
   }
 
@@ -227,40 +227,6 @@ public class sLtmAssignmentSingleOdTest1 {
     }
   }
   //@formatter:on
-
-  /**
-   * Test sLTM path-based assignment on above network for a point queue model
-   */
-  @Test
-  public void sLtmPointQueuePathBasedAssignmentTest() {
-    try {
-
-      /* OD DEMANDS 8000 A->A` */
-      Demands demands = createDemands();
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sLTMBuilder.getConfigurator().activateDetailedLogging(true);
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.PATH_BASED);
-
-      /* PATH CHOICE - STOCHASTIC */
-      final var suePathChoice = (StochasticPathChoiceConfigurator) sLTMBuilder.getConfigurator().createAndRegisterPathChoice(PathChoice.STOCHASTIC);
-      {
-        /* Weibit for path choice */
-        var choiceModel = suePathChoice.createAndRegisterChoiceModel(ChoiceModel.WEIBIT);
-        choiceModel.setScalingFactor(1); // we go for rather muddled perceived cost to differentiate from deterministic result
-        // by not setting a fixed od path set (suePathChoice.setFixedOdPathMatrix(...)), it is assumed we want a dynamic path set
-      }
-
-      StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.execute();
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM network loading");
-    }
-  }
 
   /**
    * Test sLTM bush-origin based assignment on above network for a point queue model

@@ -1,4 +1,4 @@
-package org.goplanit.test.sltm;
+package org.goplanit.test.sltm.bush;
 
 import java.util.logging.Logger;
 
@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author markr
  *
  */
-public class sLtmAssignmentGridTest {
+public class sLtmAssignmentBushGridTest {
 
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
@@ -160,7 +160,7 @@ public class sLtmAssignmentGridTest {
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
-      LOGGER = Logging.createLogger(sLtmAssignmentGridTest.class);
+      LOGGER = Logging.createLogger(sLtmAssignmentBushGridTest.class);
     }
   }
 
@@ -378,7 +378,7 @@ public class sLtmAssignmentGridTest {
    * Test sLTM bush-destination-based assignment on grid based network with demand causing some queues
    */
   @Test
-  public void sLtmPointQueueBushDetinationBasedAssignmentWithQueueTest() {
+  public void sLtmPointQueueBushDestinationBasedAssignmentWithQueueTest() {
     try {
 
       Demands demands = createDemands();

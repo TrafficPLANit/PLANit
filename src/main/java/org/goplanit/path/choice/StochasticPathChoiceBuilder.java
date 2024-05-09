@@ -1,16 +1,16 @@
 package org.goplanit.path.choice;
 
-import java.util.logging.Logger;
-
-import org.goplanit.component.PlanitComponentFactory;
-import org.goplanit.input.InputBuilderListener;
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.choice.ChoiceModelConfigurator;
+import org.goplanit.component.PlanitComponentFactory;
+import org.goplanit.input.InputBuilderListener;
 import org.goplanit.path.filter.PathFilter;
 import org.goplanit.path.filter.PathFilterConfigurator;
 import org.goplanit.utils.builder.Configurator;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
+
+import java.util.logging.Logger;
 
 /**
  * All path choice instances are built using this or a derived version of this builder
@@ -67,6 +67,10 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
     StochasticPathChoiceConfigurator configurator = ((StochasticPathChoiceConfigurator) getConfigurator());
 
     // create choice model component
+    if (configurator.getChoiceModel() == null) {
+      // apply default MNL choice model if no choice model was configured
+      configurator.createAndRegisterChoiceModel(ChoiceModel.MNL);
+    }
     if (configurator.getChoiceModel() != null) {
       var choiceModel = createChoiceModelInstance(configurator.getChoiceModel());
       configurator.getChoiceModel().configure(choiceModel);

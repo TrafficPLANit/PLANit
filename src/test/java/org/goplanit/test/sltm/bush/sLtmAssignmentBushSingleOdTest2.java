@@ -1,6 +1,4 @@
-package org.goplanit.test.sltm;
-
-import java.util.logging.Logger;
+package org.goplanit.test.sltm.bush;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
@@ -14,7 +12,6 @@ import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -33,6 +30,8 @@ import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 
+import java.util.logging.Logger;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -42,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author markr
  *
  */
-public class sLtmAssignmentSingleOdTest2 {
+public class sLtmAssignmentBushSingleOdTest2 {
 
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
@@ -135,7 +134,7 @@ public class sLtmAssignmentSingleOdTest2 {
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
-      LOGGER = Logging.createLogger(sLtmAssignmentSingleOdTest2.class);
+      LOGGER = Logging.createLogger(sLtmAssignmentBushSingleOdTest2.class);
     }
   }
 

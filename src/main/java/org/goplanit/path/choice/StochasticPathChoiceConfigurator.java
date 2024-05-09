@@ -13,8 +13,6 @@ import org.goplanit.utils.exceptions.PlanItException;
  * @author markr
  */
 public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<StochasticPathChoice> {
-  
-  private static final String SET_OD_PATH_MATRIX = "setOdPathMatrix";
 
   private static final String SET_REMOVE_PATH_PROBABILITY_THRESHOLD = "setRemovePathPobabilityThreshold";
     
@@ -48,9 +46,8 @@ public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<Sto
    * 
    * @param choiceModelType name of the class to be instantiated
    * @return the logit choice model that is registered
-   * @throws PlanItException thrown if error
    */
-  public ChoiceModelConfigurator<? extends ChoiceModel> createAndRegisterChoiceModel(final String choiceModelType) throws PlanItException {
+  public ChoiceModelConfigurator<? extends ChoiceModel> createAndRegisterChoiceModel(final String choiceModelType){
     this.choiceModelConfigurator = ChoiceModelConfiguratorFactory.createConfigurator(choiceModelType);
     return choiceModelConfigurator;
   }

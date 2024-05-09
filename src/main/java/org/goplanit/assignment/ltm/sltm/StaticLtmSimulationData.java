@@ -4,7 +4,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
+import org.goplanit.assignment.ModalSkimMatrixData;
 import org.goplanit.assignment.SimulationData;
+import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -27,6 +29,9 @@ public class StaticLtmSimulationData extends SimulationData {
   /** the supported mode for the time period */
   private Set<Mode> supportedModes;
 
+  /** track skim matrix data (if any) */
+  private ModalSkimMatrixData skimMatrixData;
+
   /**
    * Constructor
    * 
@@ -39,6 +44,7 @@ public class StaticLtmSimulationData extends SimulationData {
     this.timePeriod = timePeriod;
     this.supportedModes = supportedModes;
     this.modeLinkSegmentCost = new double[supportedModes.size()][(int) numberOfTotalLinkSegments];
+    this.skimMatrixData = new ModalSkimMatrixData();
   }
 
   /**
@@ -57,6 +63,7 @@ public class StaticLtmSimulationData extends SimulationData {
       this.modeLinkSegmentCost = null;
     }
     this.supportedModes = simulationData.supportedModes;
+    this.skimMatrixData = simulationData.skimMatrixData.shallowClone();
   }
 
   // GETTERS/SETTERS
@@ -126,6 +133,18 @@ public class StaticLtmSimulationData extends SimulationData {
       int numLinkSegments = modeLinkSegmentCost[0].length;
       modeLinkSegmentCost = new double[modeLinkSegmentCost.length][numLinkSegments];
     }
+
+    if(skimMatrixData != null) {
+      this.skimMatrixData.reset();
+    }
   }
 
+  /**
+   * Access to container class for skim matrices by mode
+   *
+   * @return skim matrices data
+   */
+  public ModalSkimMatrixData getSkimMatrixData() {
+    return skimMatrixData;
+  }
 }

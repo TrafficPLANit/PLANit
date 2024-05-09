@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.path.filter.PathFilter;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.path.SimpleDirectedPath;
 import org.goplanit.utils.reflection.ReflectionUtils;
 
@@ -179,15 +180,26 @@ public class StochasticPathChoice extends PathChoice {
    */
   @Override
   public Map<String, String> collectSettingsAsKeyValueMap() {
-    var keyValueMap = new HashMap<String, String>();
+
+    // choice model component
+    var choiceModelSettingsMap = choiceModel.collectSettingsAsKeyValueMap();
+    if (choiceModelSettingsMap != null) {
+      String componentPrefix = LoggingUtils.runIdPrefix(getId()) +
+              LoggingUtils.surroundwithBrackets(this.getClass().getSimpleName()) +
+                      LoggingUtils.surroundwithBrackets(choiceModel.getClass().getSimpleName());
+      choiceModelSettingsMap.forEach((k, v) -> LOGGER.info(componentPrefix + k + " " + v));
+    }
+
 
     // locals
+    var keyValueMap = new HashMap<String, String>();
+
     var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(this, i -> Modifier.isPrivate(i) && !Modifier.isStatic(i));
     privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
 
     // transitives
     keyValueMap.putAll(pathFilters.collectSettingsAsKeyValueMap());
-    keyValueMap.putAll(choiceModel.collectSettingsAsKeyValueMap());
+
     return keyValueMap;
   }
 

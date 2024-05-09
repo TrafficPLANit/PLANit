@@ -15,7 +15,7 @@ public class SimulationData {
    * Constructor
    */
   public SimulationData() {
-    reset();
+    this.reset();
   }
 
   /**

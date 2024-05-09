@@ -36,15 +36,14 @@ public class MultiKeyPlanItData {
    * @param outputProperties the output property array
    * @param outputProperty   the output property
    * @return the position of the output property in the output property array
-   * @throws PlanItException thrown if the output property type is not in the output property array
    */
-  private int getPositionOfOutputProperty(final OutputProperty[] outputProperties, final OutputPropertyType outputProperty) throws PlanItException {
+  private int getPositionOfOutputProperty(final OutputProperty[] outputProperties, final OutputPropertyType outputProperty){
     for (int i = 0; i < outputProperties.length; i++) {
       if (outputProperties[i].getOutputPropertyType().equals(outputProperty)) {
         return i;
       }
     }
-    throw new PlanItException(
+    throw new PlanItRunTimeException(
         "Tried to locate a property of type " + OutputProperty.of(outputProperty).getName() + " which has not been registered in MultiKeyPlanItData");
   }
 
@@ -304,9 +303,8 @@ public class MultiKeyPlanItData {
    *
    * @param outputValueProperty the output value property
    * @return the position of the output value property in the output values property array
-   * @throws PlanItException thrown if the output property type is not in the output values property array
    */
-  public int getPositionOfOutputValueProperty(final OutputPropertyType outputValueProperty) throws PlanItException {
+  public int getPositionOfOutputValueProperty(final OutputPropertyType outputValueProperty) {
     return getPositionOfOutputProperty(outputValueProperties, outputValueProperty);
   }
 
@@ -315,9 +313,8 @@ public class MultiKeyPlanItData {
    *
    * @param outputKeyProperty the output value property
    * @return the position of the output key property in the output keys property array
-   * @throws PlanItException thrown if the output property type is not in the output keys property array
    */
-  public int getPositionOfOutputKeyProperty(final OutputPropertyType outputKeyProperty) throws PlanItException {
+  public int getPositionOfOutputKeyProperty(final OutputPropertyType outputKeyProperty){
     return getPositionOfOutputProperty(outputKeyProperties, outputKeyProperty);
   }
 
