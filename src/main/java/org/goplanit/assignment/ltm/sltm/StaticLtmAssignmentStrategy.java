@@ -15,12 +15,12 @@ import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.od.skim.OdSkimMatrix;
+import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.CentroidVertex;
@@ -438,4 +438,16 @@ public abstract class StaticLtmAssignmentStrategy {
   public void verifyComponentCompatibility() {
     // optional for derived classes
   }
+
+  /**
+   * Based on the current state of network costs and routing, construct an OD skim matric for the
+   * given type of skimming and mode
+   *
+   * @param odSkimOutputType the type of skim
+   * @param mode             mode to create for
+   * @param iterationData   data to use such as link segment travel times
+   * @return skimMatrix the created matrix, null if it could not be created
+   */
+  public abstract OdSkimMatrix createOdSkimMatrix(
+          OdSkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData);
 }

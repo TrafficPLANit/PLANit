@@ -196,7 +196,8 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   }
 
   /**
-   * Persist the results for this iteration. In case the results require additional actions because the loading has been optimised this is adjusted here before persisting
+   * Persist the results for this iteration. In case the results require additional actions because the loading has been
+   * optimised this is adjusted here before persisting
    * 
    * @param converged  true when converged, false otherwise
    */
@@ -204,6 +205,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     var timePeriod = simulationData.getTimePeriod();
     var modes = simulationData.getSupportedModes();
     if (getOutputManager().isAnyOutputPersisted(timePeriod, modes, converged)) {
+
       assignmentStrategy.getLoading().stepSixFinaliseForPersistence(modes.iterator().next());
       getOutputManager().persistOutputData(timePeriod, modes, converged);
 
@@ -294,6 +296,16 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   }
 
   /**
+   * Access to the assigment strategy. Only to be used by output adapter to access
+   * or create results for persistence
+   *
+   * @return assignment strategy
+   */
+  public StaticLtmAssignmentStrategy getAssignmentStrategy(){
+    return assignmentStrategy;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -312,7 +324,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       outputTypeAdapter = new StaticLtmLinkOutputTypeAdapter(outputType, this);
       break;
     case OD:
-      // NOT YET SUPPORTED
+      outputTypeAdapter = new StaticLtmOdOutputTypeAdapter(outputType, this);
       break;
     case PATH:
       if(settings.getSltmType() != StaticLtmType.PATH_BASED){
@@ -350,7 +362,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     throw new PlanItRunTimeException("Deep clone not yet implemented");
   }
 
-  // GETTERS/SETTERS
+  // CONFIGURATOR GETTERS/SETTERS
 
   /**
    * Verify to enable link storage constraints or not
@@ -377,15 +389,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    */
   public void setActivateDetailedLogging(boolean flag) {
     settings.setDetailedLogging(flag);
-  }
-
-  /**
-   * Verify if bush based assignment is applied or not
-   * 
-   * @return true when activated, false otherwise
-   */
-  public boolean isActivateBushBased() {
-    return settings.isBushBased();
   }
 
   /**
@@ -471,15 +474,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   @Override
   public double[] getLinkSegmentOutflowsPcuHour() {
     return this.assignmentStrategy.getLoading().getCurrentOutflowsPcuH();
-  }
-
-  /**
-   * Access to modes supported for the current time period
-   *
-   * @return supported modes
-   */
-  public Set<Mode> getSupportedModes() {
-    return simulationData.getSupportedModes();
   }
 
   /**

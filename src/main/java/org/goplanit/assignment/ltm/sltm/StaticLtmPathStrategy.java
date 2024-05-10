@@ -7,7 +7,6 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.choice.logit.BoundedMultinomialLogit;
 import org.goplanit.cost.CostUtils;
-import org.goplanit.cost.physical.FreeFlowLinkTravelTimeCost;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -17,10 +16,13 @@ import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.od.path.OdMultiPathsHashed;
 import org.goplanit.od.path.OdPaths;
 import org.goplanit.od.path.OdPathsHashed;
+import org.goplanit.od.skim.OdSkimMatrix;
+import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoice;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
+import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
@@ -28,6 +30,7 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.path.PathUtils;
+import org.goplanit.utils.path.SimpleDirectedPath;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
@@ -59,6 +62,38 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   private static final BiPredicate<ManagedDirectedPath, Collection<? extends ManagedDirectedPath>> NEW_PATH_NOT_EQUAL_TO_EXISTING_PATHS =
           (newPath, existingOdPaths) -> existingOdPaths.stream().noneMatch(
                   existingPath -> ((StaticLtmDirectedPath)existingPath).getLinkSegmentsOnlyHashCode() == ((StaticLtmDirectedPath)newPath).getLinkSegmentsOnlyHashCode());
+
+  /**
+   * Create an OD cost skim
+   *
+   * @param mode mode to create skim for
+   * @param iterationData data to use, containing link segment costs
+   * @return created kim matrix
+   */
+  private OdSkimMatrix createOdCostSkimMatrix(Mode mode, StaticLtmSimulationData iterationData) {
+    var odPaths = getOdMultiPaths(mode);
+    var odZones = getTransportNetwork().getZoning().getOdZones();
+    var skimMatrix = new OdSkimMatrix(odZones, OdSkimSubOutputType.COST);
+    var linkSegmentCosts = iterationData.getLinkSegmentTravelTimePcuH(mode);
+
+    odZones.forEachOriginDestination( (o,d) -> {
+      var currOdPaths = odPaths.getValue(o,d);
+
+      /* cost unknown if no paths exist */
+      // todo: create shortest path between OD based on latest cost if this is desirable
+      if(currOdPaths == null || currOdPaths.isEmpty()){
+        skimMatrix.setValue(o,d, Double.NaN);
+        return;
+      }
+
+      double[] currAbsolutePathCosts = PathUtils.computeEdgeSegmentAdditiveValues(currOdPaths, linkSegmentCosts);
+      double[] currCostRelatedPathProbabilities = currOdPaths.stream().map(StaticLtmDirectedPath::getPathChoiceProbability).mapToDouble(v -> v).toArray();
+
+      double weightedOdCost = ArrayUtils.dotProduct(currAbsolutePathCosts, currCostRelatedPathProbabilities, currAbsolutePathCosts.length);
+      skimMatrix.setValue(o,d, weightedOdCost);
+    });
+    return skimMatrix;
+  }
 
   /**
    * Initialise the sLTM compatible path filters combining the user defined and sLTM default filters
@@ -400,14 +435,14 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * {@inheritDoc}
    */
   @Override
-  public boolean performIteration(final Mode mode, final double[] prevCosts, final double[] costsToUpdate, final StaticLtmSimulationData simulationData) {
+  public boolean performIteration(
+          final Mode mode, final double[] prevCosts, final double[] costsToUpdate, final StaticLtmSimulationData simulationData) {
 
     try {
       /* NETWORK LOADING - MODE AGNOSTIC FOR NOW */
       executeNetworkLoading(mode);
 
-      /* COST UPDATE
-      * TODO: */
+      /* COST UPDATE */
       boolean updateOnlyPotentiallyBlockingNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
       if(updateOnlyPotentiallyBlockingNodeCosts && simulationData.isInitialCostsAppliedInFirstIteration(mode) && simulationData.isFirstIteration()){
         /* initial costs will be inconsistent with loading performed in first iteration, recalculate all link segment costs for free flow conditions first
@@ -417,7 +452,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       }
       this.executeNetworkCostsUpdate(mode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
 
-      /* DERIVATIVES per link segment (so we can construct newton step) */
+      /* DERIVATIVES per link segment (so we can construct Newton step) */
       double[] dCostDFlow = this.constructLinkBasedDCostDFlow(mode, updateOnlyPotentiallyBlockingNodeCosts);
 
       // prep
@@ -504,6 +539,26 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       throw new PlanItRunTimeException("Path-based sLTM assignment currently only supports Stochastic Path Choice, but found %s", pathChoice.getComponentType());
     }
 
+  }
+
+  /**
+   * After each iteration this method can be used to construct on-the-fly skim matrices
+   *
+   * @param odSkimOutputType the type of skim
+   * @param mode             mode to create for
+   * @param iterationData   data to use such as link segment travel times
+   * @return created skim matrix, null if not supported
+   */
+  @Override
+  public OdSkimMatrix createOdSkimMatrix(OdSkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData) {
+    switch (odSkimOutputType){
+      case COST:
+        return createOdCostSkimMatrix(mode, iterationData);
+      default:
+        LOGGER.severe(String.format(
+                "Unknown OD skim type to create in sLTM path-based fr mode (%s), ignored", mode.getIdsAsString() ));
+    }
+    return null;
   }
 
   /**

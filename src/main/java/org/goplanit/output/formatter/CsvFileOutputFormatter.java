@@ -19,6 +19,7 @@ import org.goplanit.output.property.OutputProperty;
 import org.goplanit.output.property.OutputPropertyType;
 import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
@@ -99,7 +100,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
         for (OdSkimMatrixIterator odMatrixIterator = odSkimMatrix.get().iterator(); odMatrixIterator.hasNext();) {
           odMatrixIterator.next();
           Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getOdOutputPropertyValue(odCostProperty, odMatrixIterator, mode, timePeriod);
-          cost.orElseThrow(() -> new PlanItException("cost could not be retrieved when persisting"));
+          if(!cost.isPresent()) {
+            throw new PlanItRunTimeException("Cost could not be retrieved when persisting");
+          }
 
           if (outputConfiguration.isPersistZeroFlow() || cost.get() > Precision.EPSILON_6) {
             List<Object> rowValues = outputProperties.stream()

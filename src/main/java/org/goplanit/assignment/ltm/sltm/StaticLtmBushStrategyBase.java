@@ -11,6 +11,8 @@ import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.od.skim.OdSkimMatrix;
+import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -433,6 +435,16 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     PlanItRunTimeException.throwIf(!(gapFunction instanceof PathBasedGapFunction),
             "%s bush based Static LTM currently requires PAS compatible PathBasedRelative gap function, but found %s", gapFunction.getClass().getCanonicalName());
 
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdSkimMatrix createOdSkimMatrix(OdSkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData) {
+    LOGGER.warning(String.format("OD Skim matrix support not yet available in %s for type % and mode (%s)",
+            this.getClass().getCanonicalName(), odSkimOutputType, mode.getIdsAsString()));
+    return null;
   }
 
 }

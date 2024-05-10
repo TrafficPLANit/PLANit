@@ -45,7 +45,10 @@ public class StaticLtmOdOutputTypeAdapter extends OdOutputTypeAdapterImpl {
    * @return the OD skim matrix
    */
   public Optional<OdSkimMatrix> getOdSkimMatrix(OdSkimSubOutputType odSkimOutputType, Mode mode) {
-    return Optional.of(getAssignment().getIterationData().getSkimMatrixData().getOdSkimMatrix(odSkimOutputType, mode));
+    var skimMatrix = getAssignment().getAssignmentStrategy().createOdSkimMatrix(odSkimOutputType, mode, getAssignment().getIterationData());
+    //todo: see if we need skim matrix data --> can probably be removed give we create this on the fly
+    //var odSkimMatrix = getAssignment().getIterationData().getSkimMatrixData().getOdSkimMatrix(odSkimOutputType, mode);
+    return skimMatrix!=null ? Optional.of(skimMatrix) : Optional.empty();
   }
 
 }
