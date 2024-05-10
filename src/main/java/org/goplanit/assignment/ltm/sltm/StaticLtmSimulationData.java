@@ -3,6 +3,8 @@ package org.goplanit.assignment.ltm.sltm;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import org.goplanit.assignment.ModalSkimMatrixData;
 import org.goplanit.assignment.SimulationData;
@@ -17,6 +19,15 @@ import org.goplanit.utils.time.TimePeriod;
  *
  */
 public class StaticLtmSimulationData extends SimulationData {
+
+  private static final Logger LOGGER = Logger.getLogger(StaticLtmSimulationData.class.getCanonicalName());
+
+  /**
+   * Track whether initial costs were applied to construct initial solution. If so, we may need to
+   * recalculate link segment costs after first iteration even if some links/nodes are not blocking otherwise
+   * they remain inconsistent with actual link costs.
+   */
+  private final TreeMap<Mode, Boolean> initialCostsAppliedInFirstIteration;
 
   /**
    * Track the mode link segment costs in a 2d raw array where the first dimension is based on mode id while the second uses the link segment id to place the cost
@@ -45,6 +56,9 @@ public class StaticLtmSimulationData extends SimulationData {
     this.supportedModes = supportedModes;
     this.modeLinkSegmentCost = new double[supportedModes.size()][(int) numberOfTotalLinkSegments];
     this.skimMatrixData = new ModalSkimMatrixData();
+
+    this.initialCostsAppliedInFirstIteration = new TreeMap<>();
+    supportedModes.forEach(m -> initialCostsAppliedInFirstIteration.put(m, false));
   }
 
   /**
@@ -64,6 +78,8 @@ public class StaticLtmSimulationData extends SimulationData {
     }
     this.supportedModes = simulationData.supportedModes;
     this.skimMatrixData = simulationData.skimMatrixData.shallowClone();
+
+    this.initialCostsAppliedInFirstIteration = new TreeMap<>(simulationData.initialCostsAppliedInFirstIteration);
   }
 
   // GETTERS/SETTERS
@@ -137,6 +153,10 @@ public class StaticLtmSimulationData extends SimulationData {
     if(skimMatrixData != null) {
       this.skimMatrixData.reset();
     }
+
+    if(supportedModes != null && initialCostsAppliedInFirstIteration!=null) {
+      supportedModes.forEach(m -> initialCostsAppliedInFirstIteration.put(m, false));
+    }
   }
 
   /**
@@ -146,5 +166,26 @@ public class StaticLtmSimulationData extends SimulationData {
    */
   public ModalSkimMatrixData getSkimMatrixData() {
     return skimMatrixData;
+  }
+
+  /**
+   * Indicate initial costs were applied to all link segments when initialising
+   * @param mode they were applied for
+   * @param flag flag
+   */
+  public void setInitialCostsAppliedInFirstIteration(Mode mode, boolean flag) {
+    if(!supportedModes.contains(mode)){
+      LOGGER.severe("Mode used for initial costs that is not available on simulation, ignored");
+      return;
+    }
+    initialCostsAppliedInFirstIteration.put(mode, flag);
+  }
+
+  /**
+   * Verify if initial costs were applied to all link segments when initialising
+   * @param mode they were applied for
+   */
+  public boolean isInitialCostsAppliedInFirstIteration(Mode mode) {
+    return initialCostsAppliedInFirstIteration.containsKey(mode) && initialCostsAppliedInFirstIteration.get(mode);
   }
 }

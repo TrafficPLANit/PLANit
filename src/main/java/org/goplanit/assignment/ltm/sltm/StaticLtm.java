@@ -104,14 +104,12 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     getPhysicalCost().updateTimePeriod(timePeriod);
     getVirtualCost().updateTimePeriod(timePeriod);
 
-    // TODO no support for exogenous initial cost yet
-
     var simulationData = new StaticLtmSimulationData(timePeriod, modes, getTotalNumberOfNetworkSegments());
     assignmentStrategy.updateTimePeriod(timePeriod, modes, getDemands());
 
 
     /* for now only a single mode is supported (although written for more), todo: https://github.com/TrafficPLANit/PLANit/issues/112 */
-    for(var mode : simulationData.getSupportedModes()){
+    for(var mode : modes){
       /* construct costs on all link segments to start with */
 
       /* empty entries for all link segments by mode */
@@ -121,6 +119,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       /* physical component (including initial costs if present)*/
       if(populateWithPhysicalInitialCostIfAvailable(mode, timePeriod, getUsedNetworkLayer().getLinkSegments(), initialLinkSegmentCosts)) {
         LOGGER.info(String.format("%sPrepared sLTM initial costs for traffic assignment time period (%s)",LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
+        simulationData.setInitialCostsAppliedInFirstIteration(mode, true);
       }else{
         LOGGER.info(String.format("%sNo initial costs for traffic assignment time period (%s), utilising free flow costs",LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
         CostUtils.populateModalPhysicalLinkSegmentCosts(mode, getPhysicalCost(), getInfrastructureNetwork(), initialLinkSegmentCosts);
@@ -176,7 +175,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       for(var mode : simulationData.getSupportedModes()) {
         double[] prevCosts = getIterationData().getLinkSegmentTravelTimePcuH(mode);
         double[] costsToUpdate = Arrays.copyOf(prevCosts, prevCosts.length);
-        boolean success = assignmentStrategy.performIteration(mode, prevCosts, costsToUpdate, simulationData.getIterationIndex());
+        boolean success = assignmentStrategy.performIteration(mode, prevCosts, costsToUpdate, simulationData);
         if (!success) {
           LOGGER.severe("Unable to continue PLANit sLTM run, aborting");
           break;

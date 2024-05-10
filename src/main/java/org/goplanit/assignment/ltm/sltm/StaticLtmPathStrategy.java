@@ -6,6 +6,8 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.choice.logit.BoundedMultinomialLogit;
+import org.goplanit.cost.CostUtils;
+import org.goplanit.cost.physical.FreeFlowLinkTravelTimeCost;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -245,8 +247,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       double highCostPathDAbsoluteCostDFlow = PathUtils.computeEdgeSegmentAdditiveValues(highCostPath, dCostDFlow); // high cost path based sum of dCostdFlow
 
       // 4. identify non-overlapping links between low and high cost as flow shifts only impact those links
-      //todo: make configurable as this is a costly exercise and for large networks setting this to false can improve convergence as steps becomes more conservative by definition
-      boolean onlyConsiderNonOverlappingLinks = false;
+      //todo: make configurable as this is a costly exercise yet for situations with paths sharing bottlenecks close to origin it is important to consider
+      boolean onlyConsiderNonOverlappingLinks = true;
       if(onlyConsiderNonOverlappingLinks){
         int[] overlappingIndices = PathUtils.getOverlappingPathLinkIndices(lowCostPath, highCostPath);
         for(var overlappingLinkIndex : overlappingIndices){
@@ -398,14 +400,21 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * {@inheritDoc}
    */
   @Override
-  public boolean performIteration(final Mode mode, final double[] prevCosts, final double[] costsToUpdate, int iterationIndex) {
+  public boolean performIteration(final Mode mode, final double[] prevCosts, final double[] costsToUpdate, final StaticLtmSimulationData simulationData) {
 
     try {
       /* NETWORK LOADING - MODE AGNOSTIC FOR NOW */
       executeNetworkLoading(mode);
 
-      /* COST UPDATE */
+      /* COST UPDATE
+      * TODO: */
       boolean updateOnlyPotentiallyBlockingNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
+      if(updateOnlyPotentiallyBlockingNodeCosts && simulationData.isInitialCostsAppliedInFirstIteration(mode) && simulationData.isFirstIteration()){
+        /* initial costs will be inconsistent with loading performed in first iteration, recalculate all link segment costs for free flow conditions first
+        * and then for those that need tracking override with flow based costs */
+        CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
+                mode, getInfrastructureNetwork().getLayerByMode(mode).getLinkSegments(), costsToUpdate);
+      }
       this.executeNetworkCostsUpdate(mode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
 
       /* DERIVATIVES per link segment (so we can construct newton step) */
@@ -421,7 +430,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       }
 
       /* EXPAND OD PATH SETS WHEN ELIGIBLE NEW PATH FOUND */
-      final OdPaths<StaticLtmDirectedPath> newOdPaths = (iterationIndex < 50) ? createOdPaths(mode, costsToUpdate) : null;
+      // todo: add option to no longer create paths based on information
+      final OdPaths<StaticLtmDirectedPath> newOdPaths = createOdPaths(mode, costsToUpdate);
       final var odMultiPathsForMode = getOdMultiPaths(mode);
       getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
               (o, d, demand) -> {

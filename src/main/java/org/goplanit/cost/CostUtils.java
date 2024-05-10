@@ -133,4 +133,13 @@ public class CostUtils {
     return segmentCosts;
   }
 
+  /**
+   * Simple convenience method to populate a raw cost array with free flow link segment costs for a given model
+   * @param mode to use
+   * @param linkSegments to apply to
+   * @param costArray to fill
+   */
+  public static void populateModalFreeFlowPhysicalLinkSegmentCosts(Mode mode, MacroscopicLinkSegments linkSegments, double[] costArray) {
+    linkSegments.populateFreeFlowTravelTimeHourPerLinkSegment(mode, costArray);
+  }
 }

@@ -69,4 +69,13 @@ public class SimulationData {
     this.iterationIndex = 0;
   }
 
+  /**
+   * Verify if we're in the first iteration (not considering initial solution), so we're checking against the iteration
+   * index being 1.
+   *
+   * @return true when iteration==1, false otherwise
+   */
+  public boolean isFirstIteration() {
+    return iterationIndex == 1;
+  }
 }

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.goplanit.cost.CostUtils;
 import org.goplanit.interactor.LinkVolumeAccessee;
 import org.goplanit.interactor.LinkVolumeAccessor;
 import org.goplanit.network.LayeredNetwork;
@@ -301,7 +302,7 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     /* pre-compute the free flow travel times */
     freeFlowTravelTimePerLinkSegment = new double[network.getModes().size()][(int) networkLayer.getLinkSegments().size()];
     for (var mode : network.getModes()) {
-      freeFlowTravelTimePerLinkSegment[(int) mode.getId()] = networkLayer.getLinkSegments().getFreeFlowTravelTimeHourPerLinkSegment(mode);
+      CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(mode, networkLayer.getLinkSegments(), freeFlowTravelTimePerLinkSegment[(int) mode.getId()]);
     }
 
     /* explicitly set BPR parameters for each mode/segment combination */
