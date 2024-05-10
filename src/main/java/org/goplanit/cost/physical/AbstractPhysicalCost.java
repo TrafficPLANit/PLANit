@@ -6,9 +6,12 @@ import java.util.logging.Logger;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -41,24 +44,6 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
    */
   public AbstractPhysicalCost(AbstractPhysicalCost abstractPhysicalCost, boolean deepCopy) {
     super(abstractPhysicalCost, deepCopy);
-  }
-
-  /**
-   * Invoker expects (mode specific ) costs in passed in array to be filled, where each entry signifies a link segment by its id. This allows for more efficient implementations
-   * than having to revert to one by one updates. It does however require network information hence its placement here where via the initialiseBeforeSimulation, the network is
-   * provided
-   * 
-   * @param layer these cost pertain to
-   * @param mode          the mode these costs pertain to
-   * @param costToFill    array of link segment costs identified by the link segment's internal id
-   */
-  public void populateWithCost(final UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> layer, Mode mode, double[] costToFill) {
-    if(layer.getLinkSegments().isEmpty()){
-      LOGGER.warning("No link segments found in provided network layer, unable to populate link segment costs");
-    }
-    for (var linkSegment : layer.getLinkSegments()) {
-      costToFill[(int) linkSegment.getId()] = getGeneralisedCost(mode, linkSegment);
-    }
   }
 
   /**

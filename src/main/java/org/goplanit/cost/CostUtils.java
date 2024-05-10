@@ -1,12 +1,16 @@
 package org.goplanit.cost;
 
 import org.goplanit.cost.physical.AbstractPhysicalCost;
+import org.goplanit.cost.physical.PhysicalCost;
+import org.goplanit.cost.physical.initial.InitialModesLinkSegmentCost;
 import org.goplanit.cost.virtual.VirtualCost;
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.zoning.Zoning;
@@ -78,8 +82,23 @@ public class CostUtils {
    * @param network physical network
    * @param costArray to fill
    */
-  public static void populateModalPhysicalLinkSegmentCosts(Mode mode, AbstractPhysicalCost physicalCost, UntypedPhysicalNetwork network, double[] costArray) {
+  public static void populateModalPhysicalLinkSegmentCosts(
+          Mode mode, AbstractPhysicalCost physicalCost, UntypedPhysicalNetwork<?,?> network, double[] costArray) {
     physicalCost.populateWithCost((UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment>) network.getLayerByMode(mode), mode, costArray);
+  }
+
+  /**
+   * Populate part of cost array with physical link segment costs based on the concrete cost class, for a given mode
+   *
+   * @param mode to use
+   * @param physicalCost to apply to physical part of network
+   * @param linkSegments physical link segments to consider
+   * @param costArray to fill
+   */
+  @SuppressWarnings("unchecked")
+  public static <T extends GraphEntities<? extends MacroscopicLinkSegment>> void populateModalPhysicalLinkSegmentCosts(
+          Mode mode, PhysicalCost<MacroscopicLinkSegment> physicalCost, T linkSegments, double[] costArray) {
+    physicalCost.populateWithCost((GraphEntities<MacroscopicLinkSegment>)linkSegments, mode, costArray);
   }
 
   /**
@@ -91,7 +110,7 @@ public class CostUtils {
    * @param network physical network
    * @return generalised cost array by link segment id
    */
-  public static double[] createAndPopulateModalSegmentCost(Mode mode, AbstractPhysicalCost physicalCost, UntypedPhysicalNetwork network){
+  public static double[] createAndPopulateModalSegmentCost(Mode mode, AbstractPhysicalCost physicalCost, UntypedPhysicalNetwork<?,?> network){
     double[] segmentCosts =createEmptyLinkSegmentCostArray(network);
     populateModalPhysicalLinkSegmentCosts(mode, physicalCost, network, segmentCosts);
     return segmentCosts;
@@ -113,4 +132,5 @@ public class CostUtils {
     populateModalPhysicalLinkSegmentCosts(mode, physicalCost, network, segmentCosts);
     return segmentCosts;
   }
+
 }

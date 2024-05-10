@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.StaticTrafficAssignment;
-import org.goplanit.cost.Cost;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.interactor.LinkVolumeAccessee;
@@ -34,7 +33,6 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.path.ManagedDirectedPath;
@@ -372,64 +370,6 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   }
 
   /**
-   * Initialize the link segment costs from the InitialLinkSegmentCost that is not time period specific
-   *
-   * This method is called during the first iteration of the simulation.
-   *
-   * @param mode                  current mode of travel
-   * @param segmentCostToPopulate array to store the costs in
-   * @return false if the initial costs cannot be set for this mode, true otherwise
-   * @throws PlanItException thrown if there is an error
-   */
-  private boolean populateToInitialCost(final Mode mode, final double[] segmentCostToPopulate) throws PlanItException {
-    if (this.initialLinkSegmentCostTimePeriodAgnostic == null || !this.initialLinkSegmentCostTimePeriodAgnostic.isSegmentCostsSetForMode(mode)) {
-      return false;
-    }
-    populateCost(this.initialLinkSegmentCostTimePeriodAgnostic, mode, segmentCostToPopulate);
-    return true;
-  }
-
-  /**
-   * Initialize the link segment costs from the InitialLinkSegmentCost of passed in time period. If there is no initial cost available for the timp eriod we set the default initial
-   * cost if it is present.
-   *
-   * This method is called during the first iteration of the simulation.
-   *
-   * @param mode                  current mode of travel
-   * @param timePeriod            current time period
-   * @param segmentCostToPopulate array to store the current segment costs
-   * @return false if the initial costs cannot be set for this mode, true otherwise
-   * @throws PlanItException thrown if there is an error
-   */
-  private boolean populateToInitialCost(final Mode mode, final TimePeriod timePeriod, final double[] segmentCostToPopulate) throws PlanItException {
-    final var initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod);
-    if (initialLinkSegmentCostForTimePeriod == null || !initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
-      return populateToInitialCost(mode, segmentCostToPopulate);
-    }
-    populateCost(initialLinkSegmentCostForTimePeriod, mode, segmentCostToPopulate);
-    return true;
-  }
-
-  /**
-   * Set the link segment costs
-   * 
-   * Cost set to POSITIVE_INFINITY for any mode which is forbidden along a link segment
-   *
-   * @param cost            Cost object used to calculate the cost*
-   * @param mode            current mode of travel
-   * @param costsToPopulate array to store the current segment costs
-   */
-  private void populateCost(Cost<MacroscopicLinkSegment> cost, final Mode mode, final double[] costsToPopulate) {
-    for (var linkSegment : networkLayer.getLinkSegments()) {
-      double currentSegmentCost = cost.getGeneralisedCost(mode, linkSegment);
-      if (currentSegmentCost < 0.0) {
-        throw new PlanItRunTimeException(String.format("link segment cost is negative for link segment %d (id: %d)", linkSegment.getExternalId(), linkSegment.getId()));
-      }
-      costsToPopulate[(int) linkSegment.getId()] = currentSegmentCost;
-    }
-  }
-
-  /**
    * Initialize the modal link segment costs before the first iteration.
    *
    * This method uses initial link segment costs if they have been input, otherwise these are calculated from zero start values
@@ -437,16 +377,15 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param mode       current mode
    * @param timePeriod current time period
    * @return array containing link costs for each link segment
-   * @throws PlanItException thrown if there is an error
    */
-  private double[] initialiseLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
+  private double[] initialiseLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) {
     final double[] currentSegmentCosts = CostUtils.createEmptyLinkSegmentCostArray(getInfrastructureNetwork(), getZoning());
 
     /* virtual component */
     CostUtils.populateModalVirtualLinkSegmentCosts(mode, getVirtualCost(), getZoning().getVirtualNetwork(), currentSegmentCosts);
 
     /* physical component */
-    if(populateToInitialCost(mode, timePeriod, currentSegmentCosts)) {
+    if(populateWithPhysicalInitialCostIfAvailable(mode, timePeriod, networkLayer.getLinkSegments(), currentSegmentCosts)) {
       return currentSegmentCosts;
     } else {
       CostUtils.populateModalPhysicalLinkSegmentCosts(mode, getPhysicalCost(), getInfrastructureNetwork(), currentSegmentCosts);

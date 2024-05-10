@@ -1,6 +1,5 @@
 package org.goplanit.test.sltm.path;
 
-import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
@@ -8,9 +7,6 @@ import org.goplanit.assignment.ltm.sltm.StaticLtmType;
 import org.goplanit.choice.logit.BoundedMultinomialLogitConfigurator;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
-import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.od.demand.OdDemandMatrix;
-import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.path.choice.PathChoice;
@@ -19,24 +15,12 @@ import org.goplanit.choice.ChoiceModel;
 import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.test.sltm.sLtmAssignmentMultiDestinationTestBase;
-import org.goplanit.utils.id.IdGenerator;
-import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.mode.PredefinedModeType;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
-import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.layer.physical.Nodes;
 import org.goplanit.utils.path.PathUtils;
-import org.goplanit.utils.zoning.OdZones;
-import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
 
 import java.util.logging.Logger;
 
@@ -53,7 +37,7 @@ public class sLtmAssignmentPathBasedMultiDestinationTest extends sLtmAssignmentM
   /** the logger */
   private static Logger LOGGER = null;
 
-  private void testStochasticOutputs(StaticLtm sLTM, String logitModel) {
+  private void testStochasticLinkOutputs(StaticLtm sLTM, String logitModel) {
     double outflow0 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
     double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
@@ -222,7 +206,7 @@ public class sLtmAssignmentPathBasedMultiDestinationTest extends sLtmAssignmentM
       sLTM.setActivateDetailedLogging(false);
       sLTM.execute();
 
-      testStochasticOutputs(sLTM, ChoiceModel.WEIBIT);
+      testStochasticLinkOutputs(sLTM, ChoiceModel.WEIBIT);
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -280,6 +264,8 @@ public class sLtmAssignmentPathBasedMultiDestinationTest extends sLtmAssignmentM
 
       /* OUTPUT CONFIG */
       configurator.activateOutput(OutputType.LINK);
+      configurator.activateOutput(OutputType.PATH);
+      configurator.activateOutput(OutputType.OD);
       configurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       /* GAP AND CONVERGENCE */
@@ -291,7 +277,8 @@ public class sLtmAssignmentPathBasedMultiDestinationTest extends sLtmAssignmentM
       sLTM.setActivateDetailedLogging(false);
       sLTM.execute();
 
-      testStochasticOutputs(sLTM, ChoiceModel.BOUNDED_MNL);
+      testStochasticLinkOutputs(sLTM, ChoiceModel.BOUNDED_MNL);
+
 
     } catch (Exception e) {
       e.printStackTrace();

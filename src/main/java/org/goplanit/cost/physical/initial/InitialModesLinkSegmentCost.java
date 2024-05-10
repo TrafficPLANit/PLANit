@@ -5,15 +5,17 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.cost.Cost;
+import org.goplanit.cost.physical.PhysicalCost;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 
 /**
- * Wrapper around all initial costs per link segment per mode. Used by InitialLinkSegmentCost to store costs per time period, or agnostic to a time period
+ * Wrapper around all initial (physical) costs per link segment per mode.
+ * Used by InitialLinkSegmentCost to store costs per time period, or agnostic to a time period
  * 
  * @author markr
  */
-public class InitialModesLinkSegmentCost implements Cost<MacroscopicLinkSegment> {
+public class InitialModesLinkSegmentCost implements PhysicalCost<MacroscopicLinkSegment> {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(InitialModesLinkSegmentCost.class.getCanonicalName());
@@ -80,7 +82,7 @@ public class InitialModesLinkSegmentCost implements Cost<MacroscopicLinkSegment>
   public void setSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment, final double cost) {
 
     if (!costPerModeAndLinkSegment.containsKey(mode)) {
-      costPerModeAndLinkSegment.put(mode, new HashMap<Long, Double>());
+      costPerModeAndLinkSegment.put(mode, new HashMap<>());
     }
     costPerModeAndLinkSegment.get(mode).put(linkSegment.getId(), cost);
   }
@@ -97,7 +99,7 @@ public class InitialModesLinkSegmentCost implements Cost<MacroscopicLinkSegment>
   public void setSegmentCost(final Mode mode, final long linkSegmentId, final double cost) {
 
     if (!costPerModeAndLinkSegment.containsKey(mode)) {
-      costPerModeAndLinkSegment.put(mode, new HashMap<Long, Double>());
+      costPerModeAndLinkSegment.put(mode, new HashMap<>());
     }
     costPerModeAndLinkSegment.get(mode).put(linkSegmentId, cost);
   }

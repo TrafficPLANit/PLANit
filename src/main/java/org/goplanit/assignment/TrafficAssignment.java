@@ -10,13 +10,15 @@ import org.goplanit.assignment.ltm.eltm.EventBasedLtm;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.goplanit.component.PlanitComponent;
+import org.goplanit.cost.Cost;
+import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
+import org.goplanit.cost.physical.PhysicalCost;
 import org.goplanit.cost.physical.initial.InitialModesLinkSegmentCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.demands.Demands;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
-import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.TopologicalLayerNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
 import org.goplanit.network.transport.TransportModelNetwork;
@@ -29,7 +31,9 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.zoning.Zoning;
 
@@ -161,17 +165,10 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * Initialize the transport network by combining the physical and virtual components
    *
    * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all internal managed ids of transport model network components (links, nodes, connectoids etc.), when false do not.
-   * @throws PlanItException thrown if there is an error
    */
-  protected void createTransportNetwork(boolean resetAndRecreateManagedIds) throws PlanItException {
+  protected void createTransportNetwork(boolean resetAndRecreateManagedIds) {
     transportNetwork = new TransportModelNetwork(physicalNetwork, zoning);
     transportNetwork.integrateTransportNetworkViaConnectoids(resetAndRecreateManagedIds);
-    if (getTransportNetwork().getNumberOfEdgeSegmentsAllLayers() > Integer.MAX_VALUE) {
-      throw new PlanItException("currently assignment internals expect to be castable to int, but max value is exceeded for link segments");
-    }
-    if (getTransportNetwork().getNumberOfVerticesAllLayers() > Integer.MAX_VALUE) {
-      throw new PlanItException("currently assignment internals expect to be castable to int, but max value is exceeded for vertices");
-    }
   }
 
   /**
@@ -192,9 +189,74 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
     return getTransportNetwork().getNumberOfVerticesAllLayers();
   }
 
-  // Public
+  // Protected
 
-  // Public abstract methods
+//  /**
+//   * Set the link segment costs based on the provided Cost configuration on the raw link segment cost array
+//   *
+//   * Cost set to POSITIVE_INFINITY for any mode which is forbidden along a link segment
+//   *
+//   * @param cost            Cost object used to calculate the cost
+//   * @param mode            current mode of travel
+//   * @param linkSegments    physical link segments available
+//   * @param costsToPopulate array to store the current segment costs
+//   */
+//  protected void populatePhysicalLinkSegmentCost(
+//          PhysicalCost<MacroscopicLinkSegment> cost, final Mode mode, MacroscopicLinkSegments linkSegments, final double[] costsToPopulate) {
+//    CostUtils.populateModalPhysicalLinkSegmentCosts();
+//
+//    for (var linkSegment : linkSegments) {
+//      double currentSegmentCost = cost.getGeneralisedCost(mode, linkSegment);
+//      if (currentSegmentCost < 0.0) {
+//        throw new PlanItRunTimeException(String.format("Link segment cost is negative for link segment %d (id: %d)", linkSegment.getExternalId(), linkSegment.getId()));
+//      }
+//      costsToPopulate[(int) linkSegment.getId()] = currentSegmentCost;
+//    }
+//  }
+
+  /**
+   * Initialize the link segment costs from the InitialLinkSegmentCost that is not time period specific
+   * <p>
+   * This method is called during the first iteration of the simulation.
+   *
+   * @param mode                  current mode of travel
+   * @param linkSegments          physical link segments to use
+   * @param segmentCostToPopulate array to store the costs in
+   * @return false if the initial costs cannot be set for this mode, true otherwise
+   */
+  protected boolean populateWithTimePeriodAgnosticInitialCostIfAvailable(final Mode mode, MacroscopicLinkSegments linkSegments, final double[] segmentCostToPopulate) {
+    if (this.initialLinkSegmentCostTimePeriodAgnostic == null || !this.initialLinkSegmentCostTimePeriodAgnostic.isSegmentCostsSetForMode(mode)) {
+      return false;
+    }
+    CostUtils.populateModalPhysicalLinkSegmentCosts(
+            mode, this.initialLinkSegmentCostTimePeriodAgnostic, linkSegments, segmentCostToPopulate);
+    return true;
+  }
+
+  /**
+   * Initialize the link segment costs from the InitialLinkSegmentCost of passed in time period. If there is no initial cost available for the timp eriod we set the default initial
+   * cost if it is present.
+   * <p>
+   * This method is called during the first iteration of the simulation.
+   *
+   * @param mode                  current mode of travel
+   * @param timePeriod            current time period
+   * @param linkSegments          physical link segments to use
+   * @param segmentCostToPopulate array to store the current segment costs
+   * @return false if the initial costs cannot be set for this mode, true otherwise
+   */
+  protected boolean populateWithPhysicalInitialCostIfAvailable(
+          final Mode mode, final TimePeriod timePeriod, MacroscopicLinkSegments linkSegments, final double[] segmentCostToPopulate) {
+
+    final var initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod);
+    if (initialLinkSegmentCostForTimePeriod == null || !initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
+      return populateWithTimePeriodAgnosticInitialCostIfAvailable(mode, linkSegments, segmentCostToPopulate);
+    }
+
+    CostUtils.populateModalPhysicalLinkSegmentCosts(
+            mode, initialLinkSegmentCostForTimePeriod, linkSegments, segmentCostToPopulate);
+    return true;
+  }
 
   /**
    * detach the virtual and physical transport network again
@@ -280,16 +342,16 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
 
   // Public abstract methods
 
-  /** short hand to choose traditional static assignment as assignment type */
+  /** shorthand to choose traditional static assignment as assignment type */
   public static String TRADITIONAL_STATIC_ASSIGNMENT = TraditionalStaticAssignment.class.getCanonicalName();
 
-  /** short hand to choose algorithmB as assignment type */
+  /** shorthand to choose algorithmB as assignment type */
   public static String ALGORITHM_B = AlgorithmB.class.getCanonicalName();
 
-  /** short hand to choose eLTM as assignment type */
+  /** shorthand to choose eLTM as assignment type */
   public static String ELTM = EventBasedLtm.class.getCanonicalName();
 
-  /** short hand to choose sLTM as assignment type */
+  /** shorthand to choose sLTM as assignment type */
   public static String SLTM = StaticLtm.class.getCanonicalName();
 
   /**
@@ -317,8 +379,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
     this.zoning         = deepCopy ? other.zoning.deepClone()           : other.zoning.shallowClone();
 
     this.trafficAssignmentComponents = new HashMap<>();
-    other.trafficAssignmentComponents.entrySet().forEach(
-            entry -> trafficAssignmentComponents.put(entry.getKey(), deepCopy ? entry.getValue().deepClone() : entry.getValue()));
+    other.trafficAssignmentComponents.forEach(
+            (key, value) -> trafficAssignmentComponents.put(key, deepCopy ? value.deepClone() : value));
 
     // primitive container wrapper, so clone equates to deep clone
     this.initialLinkSegmentCostTimePeriodAgnostic = other.initialLinkSegmentCostTimePeriodAgnostic.shallowClone();
@@ -529,10 +591,9 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   /**
    * Set the physical cost where in case the cost is an InteractorAccessor will trigger an event to get access to the required data via requesting an InteractorAccessee
    *
-   * @param <LS> type of link segment
    * @param physicalCost the physical cost object for the current assignment
    */
-  public <LS extends MacroscopicLinkSegment> void setPhysicalCost(final AbstractPhysicalCost physicalCost) {
+  public void setPhysicalCost(final AbstractPhysicalCost physicalCost) {
     logRegisteredComponentName(physicalCost, true);
     registerComponent(AbstractPhysicalCost.class, physicalCost);
   }

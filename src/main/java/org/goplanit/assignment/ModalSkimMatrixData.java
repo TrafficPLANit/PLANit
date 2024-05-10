@@ -74,7 +74,9 @@ public final class ModalSkimMatrixData {
   }
 
   /**
-   * reset to initial emptry state for given mode
+   * reset to initial empty state for given mode
+   *
+   * @param mode to reset for
    */
   public void reset(Mode mode) {
     if(!modalSkimMatrixMap.containsKey(mode)) {

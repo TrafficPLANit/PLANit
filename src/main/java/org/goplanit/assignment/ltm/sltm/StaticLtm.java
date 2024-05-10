@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.LtmAssignment;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmStrategyConjugateBush;
+import org.goplanit.cost.CostUtils;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.network.MacroscopicNetwork;
@@ -108,13 +109,22 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     var simulationData = new StaticLtmSimulationData(timePeriod, modes, getTotalNumberOfNetworkSegments());
     assignmentStrategy.updateTimePeriod(timePeriod, modes, getDemands());
 
+
     /* for now only a single mode is supported (although written for more), todo: https://github.com/TrafficPLANit/PLANit/issues/112 */
     for(var mode : simulationData.getSupportedModes()){
+      /* construct costs on all link segments to start with */
 
-      /* compute costs on all link segments to start with */
-      boolean updateOnlyPotentiallyBlockingNodeCosts = false;
-      double[] initialLinkSegmentCosts = new double[getTotalNumberOfNetworkSegments()];
-      assignmentStrategy.executeNetworkCostsUpdate(mode, updateOnlyPotentiallyBlockingNodeCosts, initialLinkSegmentCosts);
+      /* empty entries for all link segments by mode */
+      final double[] initialLinkSegmentCosts = CostUtils.createEmptyLinkSegmentCostArray(getInfrastructureNetwork(), getZoning());
+      /* virtual component */
+      CostUtils.populateModalVirtualLinkSegmentCosts(mode, getVirtualCost(), getZoning().getVirtualNetwork(), initialLinkSegmentCosts);
+      /* physical component (including initial costs if present)*/
+      if(populateWithPhysicalInitialCostIfAvailable(mode, timePeriod, getUsedNetworkLayer().getLinkSegments(), initialLinkSegmentCosts)) {
+        LOGGER.info(String.format("%sPrepared sLTM initial costs for traffic assignment time period (%s)",LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
+      }else{
+        LOGGER.info(String.format("%sNo initial costs for traffic assignment time period (%s), utilising free flow costs",LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
+        CostUtils.populateModalPhysicalLinkSegmentCosts(mode, getPhysicalCost(), getInfrastructureNetwork(), initialLinkSegmentCosts);
+      }
       simulationData.setLinkSegmentTravelTimePcuH(mode, initialLinkSegmentCosts);
 
       /* create initial solution as starting point for equilibration */
