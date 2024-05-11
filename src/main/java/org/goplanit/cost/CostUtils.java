@@ -90,6 +90,7 @@ public class CostUtils {
   /**
    * Populate part of cost array with physical link segment costs based on the concrete cost class, for a given mode
    *
+   * @param <T> concrete type of link segments
    * @param mode to use
    * @param physicalCost to apply to physical part of network
    * @param linkSegments physical link segments to consider

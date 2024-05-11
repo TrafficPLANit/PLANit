@@ -183,7 +183,9 @@ public class StaticLtmSimulationData extends SimulationData {
 
   /**
    * Verify if initial costs were applied to all link segments when initialising
+   *
    * @param mode they were applied for
+   * @return true when applied, false otherwise
    */
   public boolean isInitialCostsAppliedInFirstIteration(Mode mode) {
     return initialCostsAppliedInFirstIteration.containsKey(mode) && initialCostsAppliedInFirstIteration.get(mode);
