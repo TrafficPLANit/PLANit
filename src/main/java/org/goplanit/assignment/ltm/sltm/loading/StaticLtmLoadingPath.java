@@ -7,6 +7,7 @@ import org.goplanit.assignment.ltm.sltm.consumer.*;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.physical.Movement;
 
 import java.util.HashMap;
 import java.util.List;
@@ -102,7 +103,8 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     boolean updateSendingFlows = !isIterativeSendingFlowUpdateActivated();
     boolean updateOutflows = false;
     PathTurnFlowUpdateConsumer pathTurnFlowUpdateConsumer =
-            (PathTurnFlowUpdateConsumer) createPathFlowUpdateConsumer(mode, updateTurnAcceptedFlows, updateSendingFlows, updateOutflows);
+            (PathTurnFlowUpdateConsumer) createPathFlowUpdateConsumer(
+                    mode, updateTurnAcceptedFlows, updateSendingFlows, updateOutflows);
     
     /* execute */
     getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathTurnFlowUpdateConsumer);

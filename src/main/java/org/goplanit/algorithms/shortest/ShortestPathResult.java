@@ -28,7 +28,8 @@ public interface ShortestPathResult extends ShortestResult{
    * @param destination the specified destination vertex
    * @return the path that is created, when no path could be extracted null is returned
    */
-  public abstract <T extends SimpleDirectedPath> T createPath(final DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination);
+  public abstract <T extends SimpleDirectedPath> T createPath(
+          final DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination);
 
   /**
    * Create the path from the provided origin to a specified destination vertex, using the results available. The path builder is used to create the instance of the path.

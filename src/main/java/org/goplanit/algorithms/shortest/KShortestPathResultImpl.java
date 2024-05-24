@@ -100,6 +100,9 @@ public class KShortestPathResultImpl implements KShortestPathResult {
     return pathFactory.createNew(kShortestRawPathsWithCost.get(getCurrentKShortestPathIndex()).first());
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Deque<EdgeSegment> createRawPath(DirectedVertex origin, DirectedVertex destination) {
     if(!validateOriginDestination(origin, destination)){

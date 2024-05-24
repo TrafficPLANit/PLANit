@@ -41,7 +41,8 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
    * @param nextEdgeSegmentByVertex the next edge segment for each vertex (by id)
    * @param searchType              used (one-to-all, all-to-one, etc)
    */
-  protected ShortestPathResultGeneralised(double[] vertexMeasuredCost, EdgeSegment[] nextEdgeSegmentByVertex, ShortestSearchType searchType) {
+  protected ShortestPathResultGeneralised(
+          double[] vertexMeasuredCost, EdgeSegment[] nextEdgeSegmentByVertex, ShortestSearchType searchType) {
     super(vertexMeasuredCost, searchType);
     this.nextEdgeSegmentByVertex = nextEdgeSegmentByVertex;
   }
@@ -50,7 +51,8 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
    * {@inheritDoc}
    */
   @Override
-  public <T extends SimpleDirectedPath> T createPath(final DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
+  public <T extends SimpleDirectedPath> T createPath(
+          final DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
     // create path
     var rawPath = createRawPath(origin, destination);
     if(rawPath == null){

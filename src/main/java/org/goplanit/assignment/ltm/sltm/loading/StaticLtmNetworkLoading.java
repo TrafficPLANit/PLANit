@@ -25,6 +25,7 @@ import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.pcu.PcuCapacitated;
@@ -521,7 +522,7 @@ public abstract class StaticLtmNetworkLoading {
    * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns on nodes that are tracked or activated to reduce
    * computational overhead.
    *
-   * @param mode to use
+   * @param mode                    to use
    * @return acceptedTurnFlows (on potentially blocking nodes) where multikey comprises entry and exit edge segment and value is the accepted turn flow v_ab
    */
   protected abstract MultiKeyMap<Object, Double> networkLoadingTurnFlowUpdate(Mode mode);
@@ -709,15 +710,16 @@ public abstract class StaticLtmNetworkLoading {
   //@formatter:off
   /**
    * Perform splitting rate update (before sending flow update) of the network loading:
-   * 
+   * <p>
    * 1. Update inflows via network loading Eq. (3)
-   * 2. Update splitting rates Eq. (6),(4) 
+   * 2. Update splitting rates Eq. (6),(4)
    * (Extension B)
    * 3. If not first iteration then update splitting rates, Eq. (13)
    *
-   * @param mode to use
+   * @param mode                    to use
+   * @param segmentPair2MovementMap mapping from segments to movements
    */
-  public void stepOneSplittingRatesUpdate(Mode mode) {
+  public void stepOneSplittingRatesUpdate(Mode mode, MultiKeyMap<Object,Movement> segmentPair2MovementMap) {
     if(this.solutionScheme.isPhysicalQueue()) {
       LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.runIdPrefix(runId)));
     }
@@ -975,7 +977,7 @@ public abstract class StaticLtmNetworkLoading {
       
       /* conduct full network loading to ensure all variables are available based on most recent route choice results */
       {
-        stepOneSplittingRatesUpdate(mode);
+        stepOneSplittingRatesUpdate(mode, segmentPair2MovementMap);
         stepTwoInflowSendingFlowUpdate(mode);
         stepThreeSplittingRateUpdate(mode);
         stepFourOutflowReceivingFlowUpdate(mode);

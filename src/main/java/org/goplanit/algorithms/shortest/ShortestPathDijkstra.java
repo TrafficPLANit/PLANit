@@ -45,7 +45,8 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised implements Sho
    * @param shortestNextEdgeSegmentConsumer to apply to a new shortest edge segment found for a given vertex
    * @return shortest path results which, depending on search type, can take on various derived forms of this base result class
    */
-  private ShortestPathResult dijkstraExecute(ShortestSearchType searchType, DirectedVertex startVertex, Consumer<EdgeSegment> shortestNextEdgeSegmentConsumer) {
+  private ShortestPathResult dijkstraExecute(
+          ShortestSearchType searchType, DirectedVertex startVertex, Consumer<EdgeSegment> shortestNextEdgeSegmentConsumer) {
     this.currentSource = startVertex;
     this.shortestEdgeSegmentOfVertex = new EdgeSegment[numberOfVertices];
 
@@ -104,6 +105,8 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised implements Sho
    */
   @Override
   public ShortestPathResult executeAllToOne(DirectedVertex currentDestination) {
-    return dijkstraExecute(ShortestSearchType.ALL_TO_ONE, currentDestination, es -> shortestEdgeSegmentOfVertex[(int) es.getUpstreamVertex().getId()] = es);
+    return dijkstraExecute(
+            ShortestSearchType.ALL_TO_ONE,
+            currentDestination, es -> shortestEdgeSegmentOfVertex[(int) es.getUpstreamVertex().getId()] = es);
   }
 }

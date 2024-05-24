@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.loading.SplittingRateData;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
@@ -23,6 +24,7 @@ import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
@@ -74,6 +76,9 @@ public abstract class StaticLtmAssignmentStrategy {
 
   /** have a mapping between zone and connectoid to the layer by means of its centroid vertex */
   private Map<Zone, CentroidVertex> zone2VertexMapping;
+
+  /** have a mapping between link segment from and to towards a movement (two keys) */
+  private MultiKeyMap<Object, Movement> segmentPair2MovementMap;
 
   /**
    * The transport model network used
@@ -218,7 +223,7 @@ public abstract class StaticLtmAssignmentStrategy {
       verifyNetworkLoadingConvergenceProgress(mode, getLoading(), networkLoadingIterationIndex);
 
       /* STEP 1 - Splitting rates update before sending flow update */
-      getLoading().stepOneSplittingRatesUpdate(mode);
+      getLoading().stepOneSplittingRatesUpdate(mode, segmentPair2MovementMap);
 
       /* STEP 2 - Sending flow update (including node model update) */
       getLoading().stepTwoInflowSendingFlowUpdate(mode);
@@ -376,6 +381,9 @@ public abstract class StaticLtmAssignmentStrategy {
     /* construct mapping from OdZone to centroidVertex which is needed for path finding among other things, where we get an OD but need to find a path from
      * centroid vertex to centroid vertex */
     this.zone2VertexMapping = transportModelNetwork.createZoneToCentroidVertexMapping(true /*include OdZones */, false /* exclude transfer zones */);
+
+    this.segmentPair2MovementMap = new MultiKeyMap<Object, Movement>();
+    getTransportNetwork().getMovements().stream().forEach(m -> segmentPair2MovementMap.put(m.getSegmentFrom(), m.getSegmentTo(), m));
   }
 
   /**

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.LtmAssignment;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmStrategyConjugateBush;
 import org.goplanit.cost.CostUtils;
@@ -23,6 +24,7 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -62,20 +64,32 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * @return created strategy, null if unsupported type is set
    */
   private StaticLtmAssignmentStrategy createAssignmentStrategy() {
+
     /* create the assignment solution to apply */
+    StaticLtmAssignmentStrategy strategy;
     switch (settings.getSltmType()) {
       case ORIGIN_BUSH_BASED:
-        return new StaticLtmOriginBushDestLabelledStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+        strategy =  new StaticLtmOriginBushDestLabelledStrategy(
+                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+        break;
       case DESTINATION_BUSH_BASED:
-        return new StaticLtmDestinationBushStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+        strategy =  new StaticLtmDestinationBushStrategy(
+                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+        break;
       case CONJUGATE_DESTINATION_BUSH_BASED:
-        return new StaticLtmStrategyConjugateBush(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+        strategy =  new StaticLtmStrategyConjugateBush(
+                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+        break;
       case PATH_BASED:
-        return new StaticLtmPathStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);        
+        strategy = new StaticLtmPathStrategy(
+                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+        break;
       default:
         LOGGER.warning(String.format("Unsupported static LTM type chosen %s, aborting",settings.getSltmType()));
-        return null;
+        strategy = null;
     }
+
+    return strategy;
   }
 
   /**

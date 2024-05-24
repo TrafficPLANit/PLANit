@@ -187,6 +187,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         Double currOdDemand = odDemands.getValue(origin, destination);
         if (currOdDemand != null && currOdDemand > 0) {
           var destinationVertex = findCentroidVertex(destination);
+          // todo: create a special factory for the new movement based paths replacing current staticLtmDirectedPaths
           var path = oneToAllResult.createPath(pathFactory, originVertex, destinationVertex);
           if (path == null) {
             LOGGER.warning(String.format("%sUnable to create path for OD (%s,%s) with non-zero demand (%.2f)", LoggingUtils.runIdPrefix(getAssignmentId()), origin.getXmlId(),

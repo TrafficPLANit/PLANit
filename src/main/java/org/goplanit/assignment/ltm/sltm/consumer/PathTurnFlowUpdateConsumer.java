@@ -8,6 +8,7 @@ import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.od.path.OdPaths;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.network.layer.physical.Movement;
 
 /**
  * Consumer to apply during path based turn flow update for each combination of origin, destination, and demand
@@ -99,4 +100,7 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
     return dataConfig.getAcceptedTurnFlows();
   }
 
+  public void setSegmentPairToMovementMapping(MultiKeyMap<Object, Movement> segmentPair2MovementMap) {
+    MultiKeyMap<Object, Movement> segmentPair2MovementMap
+  }
 }
