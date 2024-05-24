@@ -20,6 +20,7 @@ import org.goplanit.demands.Demands;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.TopologicalLayerNetwork;
+import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.output.OutputManager;
@@ -63,7 +64,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   /**
    * network to use
    */
-  private TopologicalLayerNetwork<?, ?> physicalNetwork = null;
+  private UntypedPhysicalNetwork<?, ?> physicalNetwork = null;
 
   /**
    * The transport network to use which is an adaptor around the physical network and the zoning
@@ -478,7 +479,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    *
    * @param physicalNetwork the network object for the current assignment
    */
-  public void setInfrastructureNetwork(final TopologicalLayerNetwork<?, ?> physicalNetwork) {
+  public void setInfrastructureNetwork(final UntypedPhysicalNetwork<?, ?> physicalNetwork) {
     logRegisteredComponentName(physicalNetwork, true);
     this.physicalNetwork = physicalNetwork;
   }
@@ -488,7 +489,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    *
    * @return physical network for the current assignment
    */
-  public TopologicalLayerNetwork<?, ?> getInfrastructureNetwork() {
+  public UntypedPhysicalNetwork<?, ?> getInfrastructureNetwork() {
     return this.physicalNetwork;
   }
 

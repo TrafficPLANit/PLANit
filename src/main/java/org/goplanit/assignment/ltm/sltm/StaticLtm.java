@@ -235,6 +235,15 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   @Override
   protected void initialiseBeforeExecution(boolean resetAndRecreateManagedIds) throws PlanItException {
     super.initialiseBeforeExecution(resetAndRecreateManagedIds);
+
+    /* make sure movements have been generated so we can track data on movement level where it is efficient to do so */
+    if(!getTransportNetwork().hasPermissibleMovements()){
+      getTransportNetwork().generatePermissibleMovements();
+      LOGGER.info(String.format(
+              "%sGenerated %d permissible movements to track turn flows for",
+              LoggingUtils.runIdPrefix(getId()), getTransportNetwork().getMovements().size()));
+    }
+
     this.assignmentStrategy = createAssignmentStrategy();
     assignmentStrategy.verifyComponentCompatibility();
     LOGGER.info(String.format("%sstrategy: %s", LoggingUtils.runIdPrefix(getId()), assignmentStrategy.getDescription()));

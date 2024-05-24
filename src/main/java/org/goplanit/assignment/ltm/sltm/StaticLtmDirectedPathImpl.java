@@ -1,6 +1,7 @@
 package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.path.ManagedDirectedPath;
@@ -37,7 +38,7 @@ public class StaticLtmDirectedPathImpl implements StaticLtmDirectedPath {
   public StaticLtmDirectedPathImpl(ManagedDirectedPath pathToWrap) {
     this.currentPathChoiceProbability = 0;
     this.linkSegmentsOnlyHashCode = java.util.Arrays.hashCode(
-            IterableUtils.asStream(IterableUtils.toIterable(pathToWrap.iterator())).mapToLong( e -> e.getId()).toArray());
+            IterableUtils.asStream(IterableUtils.toIterable(pathToWrap.iterator())).mapToLong(IdAble::getId).toArray());
     this.wrappedPath = pathToWrap;
   }
 

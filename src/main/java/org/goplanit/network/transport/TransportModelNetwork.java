@@ -7,11 +7,14 @@ import java.util.stream.Collectors;
 
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.TopologicalLayerNetwork;
+import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
+import org.goplanit.network.layer.physical.MovementsImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.network.layer.physical.Movements;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.*;
@@ -22,8 +25,11 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 
 /**
- * Entire transport network that is being modeled including both the physical and virtual aspects of it as well as the zoning. It acts as a wrapper unifying the two components
- * during the assignment stage
+ * Entire transport network that is being modeled including both the physical and virtual aspects of it as well as the zoning.
+ * It acts as a wrapper unifying the two components during the assignment stage.
+ * <p>
+ *   It also tracks movements if the user desired to generate those
+ * </p>
  * 
  * @author markr
  *
@@ -44,12 +50,17 @@ public class TransportModelNetwork {
   /**
    * Holds the infrastructure road network that is being modelled
    */
-  protected final TopologicalLayerNetwork<?, ?> infrastructureNetwork;
+  protected final UntypedPhysicalNetwork<?, ?> infrastructureNetwork;
 
   /**
    * Holds the zoning structure and virtual transport network interfacing with the physical network
    */
   protected final Zoning zoning;
+
+  /**
+   * Optional container to fill with all permissible movements in the transport network
+   */
+  protected final Movements movements;
 
   /**
    * Add Edge to both vertices
@@ -234,9 +245,10 @@ public class TransportModelNetwork {
    * @param infrastructureNetwork the network used to generate this TransportNetwork
    * @param zoning                the Zoning used to generate this TransportNetwork
    */
-  public TransportModelNetwork(TopologicalLayerNetwork<?, ?> infrastructureNetwork, Zoning zoning) {
+  public TransportModelNetwork(UntypedPhysicalNetwork<?, ?> infrastructureNetwork, Zoning zoning) {
     this.infrastructureNetwork = infrastructureNetwork;
     this.zoning = zoning;
+    this.movements = new MovementsImpl(infrastructureNetwork.getIdGroupingToken());
   }
 
   /**
@@ -370,7 +382,7 @@ public class TransportModelNetwork {
    * 
    * @return physicalNetwork
    */
-  public TopologicalLayerNetwork<?, ?> getInfrastructureNetwork() {
+  public UntypedPhysicalNetwork<?, ?> getInfrastructureNetwork() {
     return infrastructureNetwork;
   }
 
@@ -404,5 +416,54 @@ public class TransportModelNetwork {
         cVertex ->
             (OdZones && (cVertex.getParent().getParentZone() instanceof OdZone)) || (transferZones && (cVertex.getParent().getParentZone() instanceof TransferZone))).collect(
                 Collectors.toMap(cVertex -> cVertex.getParent().getParentZone(), cVertex -> cVertex));
+  }
+
+  /**
+   * Optional tracking of all permissible movements in the transport network.
+   * When calling this method any existing movements will be removed from the container and the ids are reset.
+   * <p>
+   *   Call this method after integration has been complete to ensure movements are also created for all connectoid segments
+   *   attached to physical nodes
+   * </p>
+   * <p>
+   *   No movements are created on origins/destination centroids, since no complete movement can be constructed for those
+   * </p>
+   * TODO: this does not properly support layers yet, so it is assumed we want movements across all layers without attaching layer information to the movements themselves
+   */
+  public void generatePermissibleMovements() {
+    movements.reset();
+    for(var layer : getInfrastructureNetwork().getTransportLayers()){
+      for(var node : layer.getNodes()){
+        for(var entrySegment : node.getEntryEdgeSegments()){
+          for(var exitSegment : node.getEntryEdgeSegments()){
+
+            // never allow u-turn movement
+            if(entrySegment.hasOppositeDirectionSegment() && entrySegment.getOppositeDirectionSegment() == exitSegment){
+              continue;
+            }
+
+            movements.getFactory().registerNew(entrySegment, exitSegment);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Verify if movements have been generated and are non-empty
+   *
+   * @return true when present, false otherwise
+   */
+  public boolean hasPermissibleMovements(){
+    return !movements.isEmpty();
+  }
+
+  /**
+   * Access to movements container (which may be empty if no movements have been generated)
+   *
+   * @return movements container
+   */
+  public Movements getMovements(){
+    return movements;
   }
 }
