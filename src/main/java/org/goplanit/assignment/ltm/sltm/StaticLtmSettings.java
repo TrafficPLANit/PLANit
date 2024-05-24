@@ -1,11 +1,13 @@
 package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.utils.id.IdMapperType;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.zoning.OdZone;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -23,6 +25,16 @@ public class StaticLtmSettings {
 
   /** flag indicating if detailed logging is enabled */
   private Boolean detailedLogging = null;
+
+  /** gap epsilon used to identify network loading convergence on flow acceptance factors and main gap indicator for
+   *  iterative schedule of sLTM in basic setup */
+  private Double networkLoadingFlowAcceptanceGapEpsilon = DEFAULT_NETWORK_LOADING_GAP_EPSILON;
+
+  /** gap epsilon which is only relevant when using extended iterative schedule of sLTM */
+  private Double networkLoadingSendingFlowGapEpsilon = DEFAULT_NETWORK_LOADING_GAP_EPSILON;
+
+  /** gap epsilon which is only relevant when using extended iterative schedule of sLTM */
+  private Double networkLoadingReceivingFlowGapEpsilon = DEFAULT_NETWORK_LOADING_GAP_EPSILON;
 
   /**
    * Track ods in this container for extended logging (if any)
@@ -45,6 +57,9 @@ public class StaticLtmSettings {
 
   /** default setting for enforcing a flow proportional solution when possible */
   public static boolean ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT = false;
+
+  /** default network loading gap epsilon to apply */
+  public static double DEFAULT_NETWORK_LOADING_GAP_EPSILON = 0.001;
 
   /**
    * Provide OD pair to track extended logging for during assignment for debugging purposes.
@@ -139,7 +154,31 @@ public class StaticLtmSettings {
   
   public StaticLtmType getSltmType() {
     return this.sLtmType;
-  }  
+  }
+
+  public Double getNetworkLoadingFlowAcceptanceGapEpsilon() {
+    return networkLoadingFlowAcceptanceGapEpsilon;
+  }
+
+  public void setNetworkLoadingFlowAcceptanceGapEpsilon(Double networkLoadingFlowAcceptanceGapEpsilon) {
+    this.networkLoadingFlowAcceptanceGapEpsilon = networkLoadingFlowAcceptanceGapEpsilon;
+  }
+
+  public Double getNetworkLoadingSendingFlowGapEpsilon() {
+    return networkLoadingSendingFlowGapEpsilon;
+  }
+
+  public void setNetworkLoadingSendingFlowGapEpsilon(Double networkLoadingSendingFlowGapEpsilon) {
+    this.networkLoadingSendingFlowGapEpsilon = networkLoadingSendingFlowGapEpsilon;
+  }
+
+  public Double getNetworkLoadingReceivingFlowGapEpsilon() {
+    return networkLoadingReceivingFlowGapEpsilon;
+  }
+
+  public void setNetworkLoadingReceivingFlowGapEpsilon(Double networkLoadingReceivingFlowGapEpsilon) {
+    this.networkLoadingReceivingFlowGapEpsilon = networkLoadingReceivingFlowGapEpsilon;
+  }
 
   public Boolean isEnforceMaxEntropyFlowSolution() {
     return enforceMaxEntropyFlowSolution;

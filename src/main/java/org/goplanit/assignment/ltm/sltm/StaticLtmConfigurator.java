@@ -46,6 +46,12 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
   private static final String ACTIVATE_DETAILED_LOGGING = "setActivateDetailedLogging";
 
+  private static final String SET_NETWORKLOADING_FLOW_ACCEPTANCE_GAP_EPSILON = "setNetworkLoadingFlowAcceptanceGapEpsilon";
+
+  private static final String SET_NETWORKLOADING_SENDING_FLOW_GAP_EPSILON = "setNetworkLoadingSendingFlowGapEpsilon";
+
+  private static final String SET_NETWORKLOADING_RECEIVING_FLOW_GAP_EPSILON = "setNetworkLoadingReceivingFlowGapEpsilon";
+
   private static final String SET_TYPE = "setType";
 
   private static final String ACTIVATE_ENFORCE_MAX_ENTROPY_FLOW_DISTRIBUTION = "setEnforceMaxEntropyFlowSolution";
@@ -72,6 +78,9 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
     disableLinkStorageConstraints(DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
     activateDetailedLogging(DEFAULT_ACTIVATE_DETAILED_LOGGING);
+    setNetworkLoadingFlowAcceptanceGapEpsilon(StaticLtmSettings.DEFAULT_NETWORK_LOADING_GAP_EPSILON);
+    setNetworkLoadingSendingFlowGapEpsilon(StaticLtmSettings.DEFAULT_NETWORK_LOADING_GAP_EPSILON);
+    setNetworkLoadingReceivingFlowGapEpsilon(StaticLtmSettings.DEFAULT_NETWORK_LOADING_GAP_EPSILON);
 
     setType(DEFAULT_SLTM_TYPE);
     createAndRegisterPathChoice(PathChoice.STOCHASTIC);
@@ -106,6 +115,60 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
    */
   public void activateDetailedLogging(boolean flag) {
     registerDelayedMethodCall(ACTIVATE_DETAILED_LOGGING, flag);
+  }
+
+  /**
+   * Collect the gap epsilon set for network loading iterative sub procedure for determining the flow acceptance factors
+   *
+   * @return epsilon
+   */
+  public Double getNetworkLoadingFlowAcceptanceGapEpsilon() {
+    return getTypedFirstParameterOfDelayedMethodCall(SET_NETWORKLOADING_FLOW_ACCEPTANCE_GAP_EPSILON);
+  }
+
+  /**
+   * Set the gap epsilon set for network loading iterative sub procedure for determining the flow acceptance factors
+   *
+   * @param networkLoadingFlowAcceptanceGapEpsilon to use
+   */
+  public void setNetworkLoadingFlowAcceptanceGapEpsilon(Double networkLoadingFlowAcceptanceGapEpsilon) {
+    registerDelayedMethodCall(SET_NETWORKLOADING_FLOW_ACCEPTANCE_GAP_EPSILON, networkLoadingFlowAcceptanceGapEpsilon);
+  }
+
+  /**
+   * Collect the gap epsilon set for network loading iterative sub procedure for determining the sending flows
+   *
+   * @return epsilon
+   */
+  public Double getNetworkLoadingSendingFlowGapEpsilon() {
+    return getTypedFirstParameterOfDelayedMethodCall(SET_NETWORKLOADING_SENDING_FLOW_GAP_EPSILON);
+  }
+
+  /**
+   * Set the gap epsilon set for network loading iterative sub procedure for determining the sending flows
+   *
+   * @param networkLoadingSendingFlowGapEpsilon to use
+   */
+  public void setNetworkLoadingSendingFlowGapEpsilon(Double networkLoadingSendingFlowGapEpsilon) {
+    registerDelayedMethodCall(SET_NETWORKLOADING_SENDING_FLOW_GAP_EPSILON, networkLoadingSendingFlowGapEpsilon);
+  }
+
+  /**
+   * Collect the gap epsilon set for network loading iterative sub procedure for determining the receiving flows
+   *
+   * @return epsilon
+   */
+  public Double getNetworkLoadingReceivingFlowGapEpsilon() {
+    return getTypedFirstParameterOfDelayedMethodCall(SET_NETWORKLOADING_RECEIVING_FLOW_GAP_EPSILON);
+  }
+
+  /**
+   * Set the gap epsilon set for network loading iterative sub procedure for determining the receiving flows
+   *
+   * @param networkLoadingReceivingFlowGapEpsilon to use
+   */
+  public void setNetworkLoadingReceivingFlowGapEpsilon(Double networkLoadingReceivingFlowGapEpsilon) {
+    registerDelayedMethodCall(SET_NETWORKLOADING_SENDING_FLOW_GAP_EPSILON, networkLoadingReceivingFlowGapEpsilon);
   }
 
   /**

@@ -23,7 +23,6 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.CentroidVertex;
@@ -663,9 +662,11 @@ public abstract class StaticLtmNetworkLoading {
 
     /* gap functions used */
     this.flowAcceptanceGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
+    flowAcceptanceGapFunction.getStopCriterion().setEpsilon(getSettings().getNetworkLoadingFlowAcceptanceGapEpsilon());
     this.sendingFlowGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
+    sendingFlowGapFunction.getStopCriterion().setEpsilon(getSettings().getNetworkLoadingSendingFlowGapEpsilon());
     this.receivingFlowGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
-   
+    receivingFlowGapFunction.getStopCriterion().setEpsilon(getSettings().getNetworkLoadingReceivingFlowGapEpsilon());
   }
   
   //@formatter:off

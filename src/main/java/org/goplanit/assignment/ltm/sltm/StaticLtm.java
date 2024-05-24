@@ -129,6 +129,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       /* create initial solution as starting point for equilibration */
       assignmentStrategy.createInitialSolution(
           mode, getZoning().getOdZones(), initialLinkSegmentCosts, simulationData.getIterationIndex());
+      LOGGER.info("Created initial solution, proceeding with iterative procedure");
     }
 
     return simulationData;
@@ -364,101 +365,72 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
   // CONFIGURATOR GETTERS/SETTERS
 
-  /**
-   * Verify to enable link storage constraints or not
-   * 
-   * @return true when enabled, false otherwise
-   */
+  // pass on to settings
   public boolean isDisableLinkStorageConstraints() {
     return settings.isDisableStorageConstraints();
   }
 
-  /**
-   * Set the flag indicating link storage constraints are active or not
-   * 
-   * @param flag when true activate, when false disable
-   */
+  // pass on to settings
   public void setDisableLinkStorageConstraints(boolean flag) {
     settings.setDisableStorageConstraints(flag);
   }
 
-  /**
-   * Set the flag indicating link storage constraints are active or not
-   * 
-   * @param flag when true activate, when false disable
-   */
+  // pass on to settings
   public void setActivateDetailedLogging(boolean flag) {
     settings.setDetailedLogging(flag);
   }
 
-  /**
-   * Set the flag indicating what type of bush based assignment is to be applied
-   * 
-   * @param type to use
-   */
+  // pass on to settings
   public void setType(StaticLtmType type) {
     settings.setSltmType(type);
   }
 
-  /**
-   * Collect the flag indicating link storage constraints are active or not
-   * 
-   * @return flag when true activated, when false disabled
-   */
+  // pass on to settings
   public boolean isActivateDetailedLogging() {
     return settings.isDetailedLogging();
   }
 
-  /**
-   * Collect the flag indicating to enforce max entropy flow solution is active or not
-   * 
-   * @return flag when true activated, when false disabled
-   */
+  // pass on to settings
   public boolean isEnforceMaxEntropyFlowSolution() {
     return settings.isEnforceMaxEntropyFlowSolution();
   }
 
-  /**
-   * Provide OD pair to track extended logging for during assignment for debugging purposes.
-   * (currently only supported for path based sLTM assignment)
-   *
-   * @param originId origin id in idType form
-   * @param destinationId origin id in idType form
-   */
+  // pass on to settings
   public void addTrackOdForLoggingById(Integer originId, Integer destinationId){
     settings.addTrackOdForLoggingById(originId, destinationId);
   }
 
-  /**
-   * Provide OD pair to track extended logging for during assignment for debugging purposes.
-   * (currently only supported for path based sLTM assignment)
-   *
-   * @param originId origin id in idType form
-   * @param destinationId origin id in idType form
-   */
+  // pass on to settings
   public void addTrackOdForLoggingByXmlId(String originId, String destinationId){
     settings.addTrackOdForLoggingByXmlId(originId, destinationId);
   }
 
-  /**
-   * Provide OD pair to track extended logging for during assignment for debugging purposes.
-   * (currently only supported for path based sLTM assignment)
-   *
-   * @param originId origin id in idType form
-   * @param destinationId origin id in idType form
-   */
+  // pass on to settings
   public void addTrackOdForLoggingByExternalId(String originId, String destinationId){
     settings.addTrackOdForLoggingByExternalId(originId, destinationId);
   }
 
-  /**
-   * Set the flag indicating to enforce max entropy flow solution is active or not
-   * 
-   * @param enforceMaxEntropyFlowSolution set flag to enforce max entropy solution
-   */
+  // pass on to settings
   public void setEnforceMaxEntropyFlowSolution(boolean enforceMaxEntropyFlowSolution) {
     settings.setEnforceMaxEntropyFlowSolution(enforceMaxEntropyFlowSolution);
   }
+
+  // pass on to settings
+  public void setNetworkLoadingFlowAcceptanceGapEpsilon(Double networkLoadingFlowAcceptanceGapEpsilon) {
+    this.settings.setNetworkLoadingFlowAcceptanceGapEpsilon(networkLoadingFlowAcceptanceGapEpsilon);
+  }
+
+  // pass on to settings
+  public void setNetworkLoadingSendingFlowGapEpsilon(Double networkLoadingSendingFlowGapEpsilon) {
+    this.settings.setNetworkLoadingSendingFlowGapEpsilon(networkLoadingSendingFlowGapEpsilon);
+  }
+
+  // pass on to settings
+  public void setNetworkLoadingReceivingFlowGapEpsilon(Double networkLoadingReceivingFlowGapEpsilon) {
+    this.settings.setNetworkLoadingReceivingFlowGapEpsilon(networkLoadingReceivingFlowGapEpsilon);
+  }
+
+  // OVERRIDES
 
   /**
    * {@inheritDoc}

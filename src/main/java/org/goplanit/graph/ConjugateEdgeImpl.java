@@ -10,7 +10,7 @@ import org.goplanit.utils.misc.Pair;
 import org.locationtech.jts.geom.LineString;
 
 /**
- * ConjugateEdge class connecting two conjugate vertices. ORiginal pair of adjacent edges is also provided
+ * ConjugateEdge class connecting two conjugate vertices. Original pair of adjacent edges is also provided
  *
  * @author markr
  *
