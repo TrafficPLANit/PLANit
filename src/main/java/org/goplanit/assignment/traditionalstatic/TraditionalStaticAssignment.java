@@ -66,7 +66,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   private MacroscopicNetworkLayerImpl networkLayer;
 
   /** to generate paths we use a path factory that is configured to generate appropriate ids */
-  private ManagedDirectedPathFactory localPathFactory;
+  private ManagedDirectedPathFactoryImpl localPathFactory;
 
   /** have a mapping between zone and connectoid to the layer by means of its centroid vertex */
   private Map<OdZone, CentroidVertex> zone2VertexMapping;

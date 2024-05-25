@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.path.ManagedDirectedPath;
 
 /**
@@ -29,4 +30,10 @@ public interface StaticLtmDirectedPath extends ManagedDirectedPath {
     return getLinkSegmentsOnlyHashCode() == toCompare.getLinkSegmentsOnlyHashCode();
   }
 
+  /**
+   * Access to raw movement array
+   *
+   * @return movements
+   */
+  public abstract Movement[] getMovements();
 }

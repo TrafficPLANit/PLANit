@@ -77,7 +77,7 @@ public abstract class StaticLtmAssignmentStrategy {
   /** have a mapping between zone and connectoid to the layer by means of its centroid vertex */
   private Map<Zone, CentroidVertex> zone2VertexMapping;
 
-  /** have a mapping between link segment from and to towards a movement (two keys) */
+  /** have a mapping between two link segments (keys) - from and to - towards a movement*/
   private MultiKeyMap<Object, Movement> segmentPair2MovementMap;
 
   /**
@@ -96,6 +96,14 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   protected MacroscopicNetwork getInfrastructureNetwork() {
     return (MacroscopicNetwork) getTransportNetwork().getInfrastructureNetwork();
+  }
+
+  /**
+   * Access to segment to movement mapping
+   * @return segmentToMovement mapping
+   */
+  protected MultiKeyMap<Object, Movement> getSegmentToMovementMapping(){
+    return segmentPair2MovementMap;
   }
 
   /**
@@ -223,7 +231,7 @@ public abstract class StaticLtmAssignmentStrategy {
       verifyNetworkLoadingConvergenceProgress(mode, getLoading(), networkLoadingIterationIndex);
 
       /* STEP 1 - Splitting rates update before sending flow update */
-      getLoading().stepOneSplittingRatesUpdate(mode, segmentPair2MovementMap);
+      getLoading().stepOneSplittingRatesUpdate(mode);
 
       /* STEP 2 - Sending flow update (including node model update) */
       getLoading().stepTwoInflowSendingFlowUpdate(mode);
@@ -369,8 +377,13 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param settings              the sLTM settings to use
    * @param taComponents          to use
    */
-  public StaticLtmAssignmentStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
+  public StaticLtmAssignmentStrategy(
+      final IdGroupingToken idGroupingToken,
+      long assignmentId,
+      final TransportModelNetwork transportModelNetwork,
+      final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
+
     this.transportModelNetwork = transportModelNetwork;
     this.assignmentId = assignmentId;
     this.idGroupingToken = idGroupingToken;

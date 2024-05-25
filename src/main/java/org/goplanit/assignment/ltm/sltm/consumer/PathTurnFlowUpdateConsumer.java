@@ -36,15 +36,19 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
   /**
    * Apply the flow to the turn (and update link sending flow if required)
    * 
-   * @param prevSegment         of turn
-   * @param currentSegment      of turn
+   * @param movement         the movement
    * @param turnSendingFlowPcuH sending flow rate of turn
    * @return accepted flow rate of turn after applying link acceptance factor
    */
   @Override
-  protected double applySingleFlowUpdate(final EdgeSegment prevSegment, final EdgeSegment currentSegment, final double turnSendingFlowPcuH) {
+  protected double applySingleFlowUpdate(final Movement movement, final double turnSendingFlowPcuH) {
 
-    if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(currentSegment.getUpstreamVertex())) {
+    if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(movement.getSegmentTo().getUpstreamVertex())) {
+
+      // ********************************************************************************************
+      //TODO: LEFt OFF HERE CONVERT THE BELOW TO MOVEMENT BASED INCLUDING DATA STRUCTURE WHERE NEEDED
+      // ********************************************************************************************
+
       int prevSegmentId = (int) prevSegment.getId();
 
       /* s_a = u_a where we only need to update the sending flows of tracked turns */
@@ -100,7 +104,4 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
     return dataConfig.getAcceptedTurnFlows();
   }
 
-  public void setSegmentPairToMovementMapping(MultiKeyMap<Object, Movement> segmentPair2MovementMap) {
-    MultiKeyMap<Object, Movement> segmentPair2MovementMap
-  }
 }

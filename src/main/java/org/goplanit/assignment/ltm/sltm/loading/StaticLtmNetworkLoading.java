@@ -717,9 +717,8 @@ public abstract class StaticLtmNetworkLoading {
    * 3. If not first iteration then update splitting rates, Eq. (13)
    *
    * @param mode                    to use
-   * @param segmentPair2MovementMap mapping from segments to movements
    */
-  public void stepOneSplittingRatesUpdate(Mode mode, MultiKeyMap<Object,Movement> segmentPair2MovementMap) {
+  public void stepOneSplittingRatesUpdate(Mode mode) {
     if(this.solutionScheme.isPhysicalQueue()) {
       LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.runIdPrefix(runId)));
     }
@@ -977,7 +976,7 @@ public abstract class StaticLtmNetworkLoading {
       
       /* conduct full network loading to ensure all variables are available based on most recent route choice results */
       {
-        stepOneSplittingRatesUpdate(mode, segmentPair2MovementMap);
+        stepOneSplittingRatesUpdate(mode);
         stepTwoInflowSendingFlowUpdate(mode);
         stepThreeSplittingRateUpdate(mode);
         stepFourOutflowReceivingFlowUpdate(mode);

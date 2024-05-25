@@ -169,7 +169,9 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     final ShortestPathOneToAll shortestPathAlgorithm =
         new ShortestPathDijkstra(currentSegmentCosts, getTransportNetwork().getNumberOfVerticesAllLayers());
 
-    ManagedDirectedPathFactory pathFactory = new ManagedDirectedPathFactoryImpl(getIdGroupingToken());
+    StaticLtmDirectedPathFactory pathFactory =
+        new StaticLtmDirectedPathFactory(getIdGroupingToken(), getSegmentToMovementMapping() );
+
     var newOdShortestPaths = new OdPathsHashed<>(
             getIdGroupingToken(), StaticLtmDirectedPath.class, getTransportNetwork().getZoning().getOdZones());
 
@@ -188,14 +190,13 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         if (currOdDemand != null && currOdDemand > 0) {
           var destinationVertex = findCentroidVertex(destination);
           // todo: create a special factory for the new movement based paths replacing current staticLtmDirectedPaths
-          var path = oneToAllResult.createPath(pathFactory, originVertex, destinationVertex);
-          if (path == null) {
+          var sltmPath = oneToAllResult.createPath(pathFactory, originVertex, destinationVertex);
+          if (sltmPath == null) {
             LOGGER.warning(String.format("%sUnable to create path for OD (%s,%s) with non-zero demand (%.2f)", LoggingUtils.runIdPrefix(getAssignmentId()), origin.getXmlId(),
                 destination.getXmlId(), currOdDemand));
             continue;
           }
-          var sLtmPath = new StaticLtmDirectedPathImpl(path);
-          newOdShortestPaths.setValue(origin, destination, sLtmPath);
+          newOdShortestPaths.setValue(origin, destination, sltmPath);
         }
       }
     }

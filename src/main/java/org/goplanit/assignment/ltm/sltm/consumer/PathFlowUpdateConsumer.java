@@ -7,6 +7,7 @@ import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.utils.functionalinterface.TriConsumer;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.zoning.OdZone;
 
 /**
@@ -34,12 +35,11 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
   /**
    * Apply the flow to the turn (and update link sending flow if required)
    * 
-   * @param prevSegment         of turn
-   * @param currentSegment      of turn
+   * @param movement         the movement
    * @param turnSendingFlowPcuH sending flow rate of turn
    * @return accepted flow rate of turn after applying link acceptance factor
    */
-  protected abstract double applySingleFlowUpdate(final EdgeSegment prevSegment, final EdgeSegment currentSegment, final double turnSendingFlowPcuH);
+  protected abstract double applySingleFlowUpdate(final Movement movement, final double turnSendingFlowPcuH);
 
   /**
    * Apply the flow to a final path segment (and update link sending flow if required) which has no outgoing edge segment on the turn
@@ -71,17 +71,14 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
     for (StaticLtmDirectedPath odPath : odPaths) {
       double acceptedPathFlowRate = odDemand * odPath.getPathChoiceProbability();
 
-      /* turn */
-      var edgeSegmentIter = odPath.iterator();
-      var previousEdgeSegment = edgeSegmentIter.next();
-      EdgeSegment currEdgeSegment = null;
-      while (edgeSegmentIter.hasNext()) {
-        currEdgeSegment = edgeSegmentIter.next();
-        acceptedPathFlowRate = applySingleFlowUpdate(previousEdgeSegment, currEdgeSegment, acceptedPathFlowRate);
-        previousEdgeSegment = currEdgeSegment;
+      /* movement iterator */
+      var movementArray = odPath.getMovements();
+      for(var movement : movementArray){
+        acceptedPathFlowRate = applySingleFlowUpdate(movement, acceptedPathFlowRate);
       }
 
-      applyPathFinalSegmentFlowUpdate(currEdgeSegment, acceptedPathFlowRate);
+      applyPathFinalSegmentFlowUpdate(movementArray[movementArray.length-1].getSegmentTo(), acceptedPathFlowRate);
+
     }
   }
 }
