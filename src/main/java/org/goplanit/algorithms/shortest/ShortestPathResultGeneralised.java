@@ -58,7 +58,7 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
     if(rawPath == null){
       return null;
     }
-    return pathFactory.createNew(createRawPath(origin, destination));
+    return pathFactory.createNew(rawPath);
   }
 
   @Override

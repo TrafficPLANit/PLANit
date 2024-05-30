@@ -168,7 +168,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
    * @param networkLoadingReceivingFlowGapEpsilon to use
    */
   public void setNetworkLoadingReceivingFlowGapEpsilon(Double networkLoadingReceivingFlowGapEpsilon) {
-    registerDelayedMethodCall(SET_NETWORKLOADING_SENDING_FLOW_GAP_EPSILON, networkLoadingReceivingFlowGapEpsilon);
+    registerDelayedMethodCall(SET_NETWORKLOADING_RECEIVING_FLOW_GAP_EPSILON, networkLoadingReceivingFlowGapEpsilon);
   }
 
   /**

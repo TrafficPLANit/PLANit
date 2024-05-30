@@ -147,9 +147,16 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
             identifyDestinationCoordinateReferenceSystem(userDefinedDestinationCrs, destinationCountry, sourceCrs);
     PlanItRunTimeException.throwIfNull(identifiedDestinationCrs, "Destination Coordinate Reference System is null, this is not allowed");
 
+    if(identifiedDestinationCrs != null){
+      LOGGER.info(String.format("CRS set to: %s", identifiedDestinationCrs.getName()));
+    }
+
     /* configure crs transformer if required, to be able to convert geometries to preferred CRS while writing */
     if(!identifiedDestinationCrs.equals(sourceCrs)) {
       destinationCrsTransformer = PlanitJtsUtils.findMathTransform(sourceCrs, identifiedDestinationCrs);
+      LOGGER.info(String.format("Geometries will be converted from source CRS (%s) to destination CRS (%s) during writing", sourceCrs.getName(), identifiedDestinationCrs.getName()));
+    }else{
+      LOGGER.info("Source CRS same as destination CRS, no transformation applied during writing");
     }
 
     setDestinationCoordinateReferenceSystem(identifiedDestinationCrs);

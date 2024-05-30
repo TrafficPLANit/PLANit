@@ -3,6 +3,7 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.network.layer.physical.Movement;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -23,14 +24,13 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
   /**
    * For each entry segment update the in(sending)flow (and outflow if so specified)
    * 
-   * @param prevSegment         to use
-   * @param currentSegment      to use
+   * @param movement         to use
    * @param turnSendingFlowPcuH to use
    */
   @Override
-  protected double applySingleFlowUpdate(final EdgeSegment prevSegment, final EdgeSegment currentSegment, double turnSendingFlowPcuH) {
+  protected double applySingleFlowUpdate(final Movement movement, double turnSendingFlowPcuH) {
     /* u_a: update inflow for link segment */
-    int prevSegmentId = (int) prevSegment.getId();
+    int prevSegmentId = (int) movement.getSegmentFrom().getId();
     dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
 
     /* v_ap = u_bp = alpha_a*...*f_p  */
@@ -44,7 +44,7 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
   }
 
   /**
-   * Apply final path flow on last segment that otherwise would not have been updated in the turn based {@link #applySingleFlowUpdate(EdgeSegment, EdgeSegment, double)}
+   * Apply final path flow on last segment that otherwise would not have been updated in the turn based {@link #applySingleFlowUpdate(Movement, double)}
    * 
    * @param lastEdgeSegment      to use
    * @param acceptedPathFlowRate to use

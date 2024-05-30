@@ -45,7 +45,7 @@ public class StaticLtmDirectedPathIterator implements Iterator<EdgeSegment> {
 
   @Override
   public EdgeSegment next() {
-    if(index < maxIndex){
+    if(index <= maxIndex){
       return thePath[index++].getSegmentFrom();
     }else if(!finalSegmentDone){
       finalSegmentDone = true;

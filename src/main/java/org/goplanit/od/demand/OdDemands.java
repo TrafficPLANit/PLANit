@@ -67,4 +67,26 @@ public interface OdDemands extends OdData<Double> {
     return shallowClone();
   }
 
+  /**
+   * Option to apply stochastic rounding to all entries.
+   * <p> All values between zero and upperBound are eligible for rounding. We draw a uniform random number
+   * between 0 and upperbound, if the drawn value is lower than the value at hand it is rounded to the upper bound, otherwise
+   * it is truncated to zero.
+   * </p>
+   * <p>
+   *   this approach ensures the  average across all rounded values remains largely unchanged while reducing the number
+   *   of non-zero entries in the data, potentially speeding up the algorithms using them
+   * </p>
+   *
+   * @param upperBound all values below or equal to the upperbound are considered for rounding
+   * @param seed to use
+   */
+  public abstract void applyStochasticRounding(double upperBound, int seed);
+
+  /**
+   * Sum all demands
+   *
+   * @return sum of all demands
+   */
+  public abstract double sum();
 }

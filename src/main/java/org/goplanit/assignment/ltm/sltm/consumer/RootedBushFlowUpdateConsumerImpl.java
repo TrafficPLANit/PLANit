@@ -8,6 +8,7 @@ import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.assignment.ltm.sltm.RootedLabelledBush;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.zoning.OdZone;
@@ -27,6 +28,9 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
 
   /** data and configuration used for a flow update by derived classes */
   protected T dataConfig;
+
+  /** be able to convert entry/exit segment to their corresponding movement */
+  private final MultiKeyMap<Object,Movement> segmentPair2MovementMap;
 
   /**
    * Initialise the bush sending flows for the bush's root exit edge segments to bootstrap the loading for this bush
@@ -60,14 +64,13 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
    * Register the bush accepted turn flow to the turn if required. Default implementation does nothing but provide a hook for derived classes that do require to do something with
    * turn accepted flows
    * 
-   * @param prevSegment          of turn
+   * @param movement          the movement
    * @param prevLabel            at hand
-   * @param currentSegment       of turn
    * @param currLabel            at hand
    * @param turnAcceptedFlowPcuH sending flow rate of turn
    */
-  protected void applyAcceptedTurnFlowUpdate(final EdgeSegment prevSegment, final BushFlowLabel prevLabel, final EdgeSegment currentSegment, final BushFlowLabel currLabel,
-      double turnAcceptedFlowPcuH) {
+  protected void applyAcceptedTurnFlowUpdate(
+          final Movement movement, final BushFlowLabel prevLabel, final BushFlowLabel currLabel, double turnAcceptedFlowPcuH) {
     // default implementation does nothing but provide a hook for derived classes that do require to do something with turn accepted flows
   }
 
@@ -75,9 +78,12 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
    * Constructor
    * 
    * @param dataConfig to use
+   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
+   *  to splitting rate data format
    */
-  public RootedBushFlowUpdateConsumerImpl(final T dataConfig) {
+  public RootedBushFlowUpdateConsumerImpl(final T dataConfig, MultiKeyMap<Object,Movement> segmentPair2MovementMap) {
     this.dataConfig = dataConfig;
+    this.segmentPair2MovementMap = segmentPair2MovementMap;
   }
 
   /**
@@ -179,7 +185,8 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
                 bushSendingFlows.put(exitSegment, exitLabel, exitLabelFlowToUpdate);
 
                 /* update turn accepted flows as per derived class implementation (or do nothing) */
-                applyAcceptedTurnFlowUpdate(entrySegment, entrylabel, exitSegment, exitLabel, turnAcceptedFlow);
+                applyAcceptedTurnFlowUpdate(
+                        segmentPair2MovementMap.get(entrySegment, exitSegment), entrylabel, exitLabel, turnAcceptedFlow);
               }
             }
           }

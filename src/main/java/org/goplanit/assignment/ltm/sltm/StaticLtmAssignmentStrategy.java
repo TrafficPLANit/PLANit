@@ -248,10 +248,12 @@ public abstract class StaticLtmAssignmentStrategy {
 
   /**
    * Factory method to create the desired network loading
-   * 
+   *
+   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
+   *  to splitting rate data format
    * @return network loading for this solution approach
    */
-  protected abstract StaticLtmNetworkLoading createNetworkLoading();
+  protected abstract StaticLtmNetworkLoading createNetworkLoading(MultiKeyMap<Object, Movement> segmentPair2MovementMap);
 
   /**
    * Perform an update of the network wide costs where a partial update is applied in case only potentially blocking nodes are updated during the loading
@@ -395,8 +397,10 @@ public abstract class StaticLtmAssignmentStrategy {
      * centroid vertex to centroid vertex */
     this.zone2VertexMapping = transportModelNetwork.createZoneToCentroidVertexMapping(true /*include OdZones */, false /* exclude transfer zones */);
 
-    this.segmentPair2MovementMap = new MultiKeyMap<Object, Movement>();
-    getTransportNetwork().getMovements().stream().forEach(m -> segmentPair2MovementMap.put(m.getSegmentFrom(), m.getSegmentTo(), m));
+    /* construct mapping from entry/exit segment to movement which is currently needed for quick conversion of turn flows to splitting rates
+     * during loading at the expense of more memory usage.
+     */
+    this.segmentPair2MovementMap = transportModelNetwork.createEntryExitSegmentToMovementMapping();
   }
 
   /**
@@ -407,7 +411,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param demands     to use
    */
   public void updateTimePeriod(final TimePeriod timePeriod, final Set<Mode> modes, final Demands demands) {
-    this.networkLoading = createNetworkLoading();
+    this.networkLoading = createNetworkLoading(segmentPair2MovementMap);
     this.networkLoading.initialiseInputs(timePeriod, modes, demands, getTransportNetwork());
   }
 

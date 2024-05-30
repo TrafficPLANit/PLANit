@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushRooted;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -15,6 +16,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.network.layer.physical.Movement;
 
 /**
  * Base implementation to support a rooted bush based solution for sLTM
@@ -239,12 +241,14 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
 
   /**
    * Create bush based network loading implementation
-   * 
+   *
+   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
+   *  to splitting rate data format
    * @return created loading implementation supporting bush-based approach
    */
   @Override
-  protected StaticLtmLoadingBushRooted createNetworkLoading() {
-    return new StaticLtmLoadingBushRooted(getIdGroupingToken(), getAssignmentId(), getSettings());
+  protected StaticLtmLoadingBushRooted createNetworkLoading(MultiKeyMap<Object, Movement> segmentPair2MovementMap) {
+    return new StaticLtmLoadingBushRooted(getIdGroupingToken(), getAssignmentId(), segmentPair2MovementMap, getSettings());
   }
 
   /**

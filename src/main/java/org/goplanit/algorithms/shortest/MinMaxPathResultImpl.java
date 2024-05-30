@@ -17,19 +17,19 @@ import java.util.Deque;
 public class MinMaxPathResultImpl implements MinMaxPathResult {
 
   /**
-   * Track the state regarding whether or not to return min or max path information
+   * Track the state regarding whether to return min or max path information
    */
   private boolean minPathState;
 
   /**
    * tracking min path results
    */
-  private ShortestPathResultGeneralised minPathResult;
+  private final ShortestPathResultGeneralised minPathResult;
 
   /**
    * tracking max path results
    */
-  private ShortestPathResultGeneralised maxPathResult;
+  private final ShortestPathResultGeneralised maxPathResult;
 
   /**
    * Constructor

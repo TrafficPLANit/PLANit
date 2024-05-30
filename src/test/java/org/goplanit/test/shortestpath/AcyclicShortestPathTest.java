@@ -65,7 +65,7 @@ public class AcyclicShortestPathTest {
   private Centroid centroidA;
   private Centroid centroidB;
 
-  private ManagedDirectedPathFactory pathFactory;
+  private ManagedDirectedPathFactory<ManagedDirectedPath> pathFactory;
 
   @BeforeAll
   public static void setUp() throws Exception {
@@ -82,7 +82,7 @@ public class AcyclicShortestPathTest {
   //@formatter:off
   @BeforeEach
   public void intialise() {
-    // construct the network. The is the same network as in shortest path algorithm integration tests
+    // construct the network. This is the same network as in shortest path algorithm integration tests
     //
     //
     //
@@ -124,8 +124,8 @@ public class AcyclicShortestPathTest {
       //horizontal links
       for(int linkRowIndex = 0;linkRowIndex<=gridSize;++linkRowIndex) {
         for(int linkColIndex = 1;linkColIndex<=gridSize;++linkColIndex) {
-          Node nodeA = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex-1);
-          Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex);
+          Node nodeA = networkLayer.getNodes().get((long) linkRowIndex*(gridSize+1) + linkColIndex-1);
+          Node nodeB = networkLayer.getNodes().get((long) linkRowIndex*(gridSize+1) + linkColIndex);
           // all links are 1 km in length and move from left to right         
           MacroscopicLink link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
@@ -136,8 +136,8 @@ public class AcyclicShortestPathTest {
       for(int linkRowIndex = 1;linkRowIndex<=gridSize;++linkRowIndex) {
         for(int linkColIndex = 0;linkColIndex<=gridSize;++linkColIndex) {
           // all links are 1 km in length
-          Node nodeA = networkLayer.getNodes().get((linkRowIndex-1)*(gridSize+1)+linkColIndex);
-          Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1)+linkColIndex);
+          Node nodeA = networkLayer.getNodes().get((long) (linkRowIndex-1)*(gridSize+1)+linkColIndex);
+          Node nodeB = networkLayer.getNodes().get((long) linkRowIndex*(gridSize+1)+linkColIndex);
           MacroscopicLink link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
         }  
@@ -223,33 +223,33 @@ public class AcyclicShortestPathTest {
 
         // vertex 0 should occur before 1,3
         if (vertex.getId() == 1 || vertex.getId() == 3) {
-          assertTrue(processed.contains(0l));
+          assertTrue(processed.contains(0L));
         }
 
         // vertex 1 should occur before 2,5
         if (vertex.getId() == 2 || vertex.getId() == 5) {
-          assertTrue(processed.contains(1l));
+          assertTrue(processed.contains(1L));
         }
 
         // vertex 3 should occur before 4,6
         if (vertex.getId() == 4 || vertex.getId() == 6) {
-          assertTrue(processed.contains(3l));
+          assertTrue(processed.contains(3L));
         }
 
         // vertex 4 should occur before 5,7
         if (vertex.getId() == 5 || vertex.getId() == 7) {
-          assertTrue(processed.contains(4l));
+          assertTrue(processed.contains(4L));
         }
 
         // vertex 6 should occur before 7
         if (vertex.getId() == 7) {
-          assertTrue(processed.contains(6l));
+          assertTrue(processed.contains(6L));
         }
 
         // vertex 5 and 7 should occur before 8
         if (vertex.getId() == 8) {
-          assertTrue(processed.contains(5l));
-          assertTrue(processed.contains(7l));
+          assertTrue(processed.contains(5L));
+          assertTrue(processed.contains(7L));
         }
 
         processed.add(vertex.getId());
@@ -275,33 +275,33 @@ public class AcyclicShortestPathTest {
 
         // vertex 0 should occur before 1,3
         if (vertex.getId() == 1 || vertex.getId() == 3) {
-          assertTrue(processed.contains(0l));
+          assertTrue(processed.contains(0L));
         }
 
         // vertex 1 should occur before 2,5
         if (vertex.getId() == 2 || vertex.getId() == 5) {
-          assertTrue(processed.contains(1l));
+          assertTrue(processed.contains(1L));
         }
 
         // vertex 3 should occur before 4,6
         if (vertex.getId() == 4 || vertex.getId() == 6) {
-          assertTrue(processed.contains(3l));
+          assertTrue(processed.contains(3L));
         }
 
         // vertex 4 should occur before 5,7
         if (vertex.getId() == 5 || vertex.getId() == 7) {
-          assertTrue(processed.contains(4l));
+          assertTrue(processed.contains(4L));
         }
 
         // vertex 6 should occur before 7
         if (vertex.getId() == 7) {
-          assertTrue(processed.contains(6l));
+          assertTrue(processed.contains(6L));
         }
 
         // vertex 5 and 7 should occur before 8
         if (vertex.getId() == 8) {
-          assertTrue(processed.contains(5l));
-          assertTrue(processed.contains(7l));
+          assertTrue(processed.contains(5L));
+          assertTrue(processed.contains(7L));
         }
 
         processed.add(vertex.getId());

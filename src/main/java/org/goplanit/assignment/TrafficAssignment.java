@@ -1,25 +1,17 @@
 package org.goplanit.assignment;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.LongAdder;
-import java.util.logging.Logger;
-
 import org.goplanit.assignment.algorithmb.AlgorithmB;
 import org.goplanit.assignment.ltm.eltm.EventBasedLtm;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.goplanit.component.PlanitComponent;
-import org.goplanit.cost.Cost;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
-import org.goplanit.cost.physical.PhysicalCost;
 import org.goplanit.cost.physical.initial.InitialModesLinkSegmentCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.demands.Demands;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
-import org.goplanit.network.TopologicalLayerNetwork;
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
 import org.goplanit.network.transport.TransportModelNetwork;
@@ -33,10 +25,14 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.zoning.Zoning;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.logging.Logger;
 
 /**
  * Traffic assignment class which simultaneously is responsible for the loading hence it is also considered as a traffic assignment component of this type

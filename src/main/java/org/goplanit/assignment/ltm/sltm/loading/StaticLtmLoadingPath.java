@@ -29,7 +29,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
   /**
    * Od Paths registered by mode
    */
-  private Map<Mode, OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>>> odMultiPathsByMode;
+  private final Map<Mode, OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>>> odMultiPathsByMode;
 
   //@formatter:off
 
@@ -57,7 +57,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     if (updateOutflows) {
       this.inFlowOutflowData.resetOutflows();
     }    
-    
+
     /* link update only */
     if (!updateTurnAcceptedFlows) {
       NetworkFlowUpdateData dataConfig = null;
@@ -68,21 +68,25 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
         /* sending flow update only */
         dataConfig = new NetworkFlowUpdateData(sendingFlowData, networkLoadingFactorData); 
       }
+
       return new PathLinkFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode));
     }    
         
     /* turns + optional links update */
     if(updateTurnAcceptedFlows) {
+      int numMovements = getTransportNetwork().getMovements().size();
       NetworkTurnFlowUpdateData dataConfig = null;
-      if (updateSendingFlows) {           
+
+      if (updateSendingFlows) {
         if (updateOutflows) {
           LOGGER.warning("Network flow updates using paths cannot update turn accepted flows and outflows, this is not yet supported");
           return null;
         } else {        
-          dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), sendingFlowData, splittingRateData, networkLoadingFactorData);
+          dataConfig = new NetworkTurnFlowUpdateData(
+                  isTrackAllNodeTurnFlows(), sendingFlowData, splittingRateData, networkLoadingFactorData, numMovements);
         }
       }else {
-        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), splittingRateData, networkLoadingFactorData);
+        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), splittingRateData, networkLoadingFactorData, numMovements);
       }
       return new PathTurnFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode));
     }
@@ -95,7 +99,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * {@inheritDoc}
    */
   @Override
-  protected MultiKeyMap<Object, Double> networkLoadingTurnFlowUpdate(Mode mode) {
+  protected double[] networkLoadingTurnFlowUpdate(Mode mode) {
     
     /* when one-shot sending flow update in step-2 of the algorithm is active, the sending flows are to be updated during the update here, 
      * otherwise not. In the latter case it is taken care of by step-2 in the solution algorithm via the iterative procedure */
@@ -154,10 +158,12 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * 
    * @param idToken      to use
    * @param assignmentId to use
+   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
+   *  to splitting rate data format
    * @param settings to use
    */
-  public StaticLtmLoadingPath(IdGroupingToken idToken, long assignmentId, final StaticLtmSettings settings) {
-    super(idToken, assignmentId, settings);
+  public StaticLtmLoadingPath(IdGroupingToken idToken, long assignmentId, MultiKeyMap<Object, Movement> segmentPair2MovementMap, final StaticLtmSettings settings) {
+    super(idToken, assignmentId, segmentPair2MovementMap, settings);
     this.odMultiPathsByMode = new HashMap<>();
   }
 

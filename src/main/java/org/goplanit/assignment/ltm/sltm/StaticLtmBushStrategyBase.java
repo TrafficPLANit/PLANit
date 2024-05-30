@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
@@ -17,6 +18,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
 
@@ -285,11 +287,13 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
   /**
    * Create bush based network loading implementation
-   * 
+   *
+   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
+   *  to splitting rate data format
    * @return created loading implementation supporting bush-based approach
    */
   @Override
-  protected abstract StaticLtmLoadingBushBase<B> createNetworkLoading();
+  protected abstract StaticLtmLoadingBushBase<B> createNetworkLoading(MultiKeyMap<Object, Movement> segmentPair2MovementMap);
 
   /**
    * {@inheritDoc}

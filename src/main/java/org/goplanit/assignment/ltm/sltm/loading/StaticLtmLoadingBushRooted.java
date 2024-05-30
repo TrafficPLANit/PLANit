@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm.loading;
 
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.RootedLabelledBush;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
@@ -10,6 +11,7 @@ import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
 import org.goplanit.assignment.ltm.sltm.consumer.RootedBushFlowUpdateConsumerImpl;
 import org.goplanit.assignment.ltm.sltm.consumer.RootedBushTurnFlowUpdateConsumer;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.layer.physical.Movement;
 
 /**
  * The rooted bush based network loading scheme for sLTM
@@ -26,7 +28,8 @@ public class StaticLtmLoadingBushRooted extends StaticLtmLoadingBushBase<RootedL
    * {@inheritDoc}
    */
   @Override
-  protected BushFlowUpdateConsumer<RootedLabelledBush> createBushFlowUpdateConsumer(boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows) {
+  protected BushFlowUpdateConsumer<RootedLabelledBush> createBushFlowUpdateConsumer(
+          boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows) {
     if (!updateSendingFlows && !updateTurnAcceptedFlows) {
       LOGGER.warning("Network flow updates using bushes must either updating link sending flows or turn accepted flows, neither are selected");
       return null;
@@ -39,8 +42,9 @@ public class StaticLtmLoadingBushRooted extends StaticLtmLoadingBushBase<RootedL
       this.inFlowOutflowData.resetOutflows();
     }
 
-    /* link based only */
     if (!updateTurnAcceptedFlows) {
+
+      /* link based only */
       NetworkFlowUpdateData dataConfig = null;
       if (updateOutflows) {
         /* sending + outflow update only */
@@ -49,30 +53,31 @@ public class StaticLtmLoadingBushRooted extends StaticLtmLoadingBushBase<RootedL
         /* sending flow update only */
         dataConfig = new NetworkFlowUpdateData(sendingFlowData, networkLoadingFactorData);
       }
-      return new RootedBushFlowUpdateConsumerImpl<NetworkFlowUpdateData>(dataConfig);
-    }
+      return new RootedBushFlowUpdateConsumerImpl<NetworkFlowUpdateData>(dataConfig, segmentPair2MovementMap);
 
-    /* turn based + optional link based */
-    if (updateTurnAcceptedFlows) {
+    }else{
+
+      /* turn based + optional link based */
+      int numMovements = getTransportNetwork().getMovements().size();
       NetworkTurnFlowUpdateData dataConfig = null;
+
       if (updateSendingFlows) {
         if (updateOutflows) {
           LOGGER.warning("Network flow updates using bushes cannot update turn accepted flows and outflows, this is not yet supported");
           return null;
         } else {
-          dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), sendingFlowData, splittingRateData, networkLoadingFactorData);
+          dataConfig = new NetworkTurnFlowUpdateData(
+                  isTrackAllNodeTurnFlows(), sendingFlowData, splittingRateData, networkLoadingFactorData, numMovements);
         }
       } else if (updateOutflows) {
         LOGGER.warning("Network flow updates using bushes must either updating link sending flows and otuflows, or just turn accepted flows, neither are selected");
         return null;
       } else {
-        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), splittingRateData, networkLoadingFactorData);
+        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), splittingRateData, networkLoadingFactorData, numMovements);
       }
-      return new RootedBushTurnFlowUpdateConsumer(dataConfig);
+      return new RootedBushTurnFlowUpdateConsumer(dataConfig, segmentPair2MovementMap);
     }
 
-    LOGGER.warning("Invalid network flow update requested for bush absed laoding");
-    return null;
   }
 
   /**
@@ -80,10 +85,13 @@ public class StaticLtmLoadingBushRooted extends StaticLtmLoadingBushBase<RootedL
    * 
    * @param idToken      to use
    * @param assignmentId to use
+   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
+   *  to splitting rate data format
    * @param settings     to use
    */
-  public StaticLtmLoadingBushRooted(IdGroupingToken idToken, long assignmentId, final StaticLtmSettings settings) {
-    super(idToken, assignmentId, settings);
+  public StaticLtmLoadingBushRooted(
+          IdGroupingToken idToken, long assignmentId, MultiKeyMap<Object, Movement> segmentPair2MovementMap, final StaticLtmSettings settings) {
+    super(idToken, assignmentId, segmentPair2MovementMap, settings);
   }
 
 }

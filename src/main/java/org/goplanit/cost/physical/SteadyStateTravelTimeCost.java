@@ -107,8 +107,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
       if (Precision.smaller(outflowRatePcuHour, inflowRatePcuHour)) {
 
         if (!Precision.positive(outflowRatePcuHour)) {
-          LOGGER.warning(String.format("Link segment %s (%d) appears to have no outflow while positive inflow (%.2f) -> infinite travel time, this is unlikely",
-              linkSegment.getXmlId(), linkSegment.getId(), inflowRatePcuHour));
+          LOGGER.warning(String.format("Link segment (%s) appears to have no outflow while positive inflow (%.2f) -> infinite travel time, this is unlikely",
+              linkSegment.getIdsAsString(), inflowRatePcuHour));
           return Double.POSITIVE_INFINITY;
         }
 

@@ -57,7 +57,8 @@ public class ConjugateBushTurnFlowUpdateConsumer extends ConjugateBushFlowUpdate
    * 
    * @return accepted turn flows
    */
-  public MultiKeyMap<Object, Double> getAcceptedTurnFlows() {
+  @Override
+  public double[] getAcceptedTurnFlows() {
     return dataConfig.getAcceptedTurnFlows();
   }
 }

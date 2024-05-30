@@ -3,6 +3,7 @@ package org.goplanit.assignment.ltm.sltm.conjugate;
 import java.util.Collection;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestBushResult;
 import org.goplanit.assignment.ltm.sltm.Pas;
@@ -18,6 +19,7 @@ import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
 import org.goplanit.zoning.Zoning;
 
@@ -152,12 +154,14 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
 
   /**
    * Create conjugate bush based network loading implementation
-   * 
+   *
+   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
+   *  to splitting rate data format
    * @return created loading implementation supporting bush-based approach
    */
   @Override
-  protected StaticLtmLoadingBushConjugate createNetworkLoading() {
-    return new StaticLtmLoadingBushConjugate(getIdGroupingToken(), getAssignmentId(), getSettings());
+  protected StaticLtmLoadingBushConjugate createNetworkLoading(MultiKeyMap<Object, Movement> segmentPair2MovementMap) {
+    return new StaticLtmLoadingBushConjugate(getIdGroupingToken(), getAssignmentId(), segmentPair2MovementMap, getSettings());
   }
 
   /**

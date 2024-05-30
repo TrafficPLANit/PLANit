@@ -7,6 +7,7 @@ import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingFactorData;
 import org.goplanit.assignment.ltm.sltm.loading.SendingFlowData;
 import org.goplanit.assignment.ltm.sltm.loading.SplittingRateData;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.network.layer.physical.Movement;
 
 /**
  * Base class to aid updating of the network turn flows during loading. Derived classes can apply a path or bush based approach to this update for example. This class stores the
@@ -44,24 +45,18 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
   protected final boolean trackAllNodeTurnFlows;
 
   /**
-   * The output of this update that can be collected after execution. They key of this map is forged from an entry and exit segment
+   * The output of this update that can be collected after execution. the turn flows are indexed by their movement id
    */
-  protected final MultiKeyMap<Object, Double> acceptedTurnFlows;
+  protected final double[] acceptedTurnFlows;
 
   /**
    * add to accepted turn flows
    * 
-   * @param entrySegment  to use
-   * @param exitSegment   to use
+   * @param movement  the movement to use
    * @param flowToAddPcuH to add
    */
-  protected void addToAcceptedTurnFlows(final EdgeSegment entrySegment, final EdgeSegment exitSegment, double flowToAddPcuH) {
-    Double currentAcceptedTurnFlow = acceptedTurnFlows.get(entrySegment, exitSegment);
-    if (currentAcceptedTurnFlow == null) {
-      acceptedTurnFlows.put(entrySegment, exitSegment, flowToAddPcuH);
-    } else {
-      acceptedTurnFlows.put(entrySegment, exitSegment, currentAcceptedTurnFlow + flowToAddPcuH);
-    }
+  protected void addToAcceptedTurnFlows(final Movement movement, double flowToAddPcuH) {
+    acceptedTurnFlows[(int)movement.getId()] += flowToAddPcuH;
   }
 
   /**
@@ -71,11 +66,16 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
    * @param sendingFlowData          to use
    * @param splittingRateData        to use
    * @param networkLoadingFactorData to use
+   * @param numMovements the number of movements available in the layer/network used
    */
-  public NetworkTurnFlowUpdateData(final boolean trackAllNodeTurnFlows, SendingFlowData sendingFlowData, final SplittingRateData splittingRateData,
-      NetworkLoadingFactorData networkLoadingFactorData) {
+  public NetworkTurnFlowUpdateData(
+          final boolean trackAllNodeTurnFlows,
+          SendingFlowData sendingFlowData,
+          final SplittingRateData splittingRateData,
+          NetworkLoadingFactorData networkLoadingFactorData,
+          final int numMovements) {
     super(sendingFlowData, networkLoadingFactorData);
-    this.acceptedTurnFlows = new MultiKeyMap<Object, Double>();
+    this.acceptedTurnFlows = new double[numMovements];
     this.splittingRateData = splittingRateData;
 
     /* see class description on why we use these flags */
@@ -88,10 +88,15 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
    * @param trackAllNodeTurnFlows    flag indicating where or not to track all node turn flows
    * @param splittingRateData        to use
    * @param networkLoadingFactorData to use
+   * @param numMovements the number of movements available in the layer/network used
    */
-  public NetworkTurnFlowUpdateData(final boolean trackAllNodeTurnFlows, final SplittingRateData splittingRateData, NetworkLoadingFactorData networkLoadingFactorData) {
+  public NetworkTurnFlowUpdateData(
+          final boolean trackAllNodeTurnFlows,
+          final SplittingRateData splittingRateData,
+          NetworkLoadingFactorData networkLoadingFactorData,
+          final int numMovements) {
     super(networkLoadingFactorData);
-    this.acceptedTurnFlows = new MultiKeyMap<>();
+    this.acceptedTurnFlows = new double[numMovements];
     this.splittingRateData = splittingRateData;
 
     /* see class description on why we use these flags */
@@ -99,11 +104,11 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
   }
 
   /**
-   * Access to the result, the accepted turn flows, where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
+   * Access to the result, the accepted turn flows, where key is the movement id and value is the accepted turn flow v_ab
    * 
    * @return accepted turn flows
    */
-  public MultiKeyMap<Object, Double> getAcceptedTurnFlows() {
+  public double[] getAcceptedTurnFlows() {
     return this.acceptedTurnFlows;
   }
 }

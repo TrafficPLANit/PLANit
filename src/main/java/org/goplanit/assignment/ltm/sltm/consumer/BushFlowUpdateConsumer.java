@@ -14,11 +14,11 @@ import org.goplanit.assignment.ltm.sltm.Bush;
 public interface BushFlowUpdateConsumer<B extends Bush> extends Consumer<B> {
 
   /**
-   * The found accepted turn flows by the combined entry-exit segment.
+   * The found accepted turn flows by movement id.
    * 
    * @return accepted turn flows
    */
-  public default MultiKeyMap<Object, Double> getAcceptedTurnFlows() {
+  public default double[] getAcceptedTurnFlows() {
     // TODO: ugly should be refactored
     // when (Derived) consumer is turn based this can be overridden to provide results
     return null;

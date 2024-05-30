@@ -1,6 +1,4 @@
-package org.goplanit.test.sltm.bush;
-
-import java.util.logging.Logger;
+package org.goplanit.test.sltm.path;
 
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
@@ -17,7 +15,9 @@ import org.goplanit.test.sltm.sLtmAssignmentGridTestBase;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
@@ -28,6 +28,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.logging.Logger;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -37,9 +39,9 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author markr
  *
  */
-public class sLtmAssignmentBushGridTest extends sLtmAssignmentGridTestBase {
+public class sLtmAssignmentPathGridTest extends sLtmAssignmentGridTestBase {
 
-  private final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("sLtmAssignmentBushGridTest");
+  private final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("sLtmAssignmentPathGridTest");
 
   /** the logger */
   private static Logger LOGGER = null;
@@ -95,8 +97,13 @@ public class sLtmAssignmentBushGridTest extends sLtmAssignmentGridTestBase {
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
-      LOGGER = Logging.createLogger(sLtmAssignmentBushGridTest.class);
+      LOGGER = Logging.createLogger(sLtmAssignmentPathGridTest.class);
     }
+  }
+
+  @BeforeEach
+  public void intialise() {
+    super.intialiseNetworkAndZoning(testToken);
   }
 
   /**
@@ -107,17 +114,12 @@ public class sLtmAssignmentBushGridTest extends sLtmAssignmentGridTestBase {
     Logging.closeLogger(LOGGER);
   }
 
-  @BeforeEach
-  public void intialise() {
-    super.intialiseNetworkAndZoning(testToken);
-  }
-
   /**
-   * Test sLTM bush-origin-based assignment on grid based network which should result in an even spread across uncongested links in the final solution. In this test we do not enforce a
-   * max entropy flow distribution as the initial distribution is more intuitive to test for.
+   * Test sLTM path-based assignment on grid based network which should result in an even spread across uncongested links
+   * in the final solution.
    */
   @Test
-  public void sLtmPointQueueBushOriginBasedAssignmentNoQueueTest() {
+  public void sLtmPointQueuePathAssignmentNoQueueTest() {
     try {
 
       Demands demands = createDemands(testToken);
@@ -131,77 +133,39 @@ public class sLtmAssignmentBushGridTest extends sLtmAssignmentGridTestBase {
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      var sLtmConf = ((StaticLtmConfigurator) sLTMBuilder.getConfigurator());
+      sLtmConf.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      sLtmConf.activateDetailedLogging(true);
       
-      /* ORIGIN BASED */
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.ORIGIN_BUSH_BASED);
-      sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
+      /* PATH BASED */
+      sLtmConf.setType(StaticLtmType.PATH_BASED);
 
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+      sLtmConf.activateOutput(OutputType.LINK);
+      sLtmConf.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+
+      sLtmConf.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A", "A``"));
+      sLtmConf.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A`", "A```"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.setActivateDetailedLogging(true);
+
       sLTM.execute();
 
       testOutflowsNoQueue(sLTM);
 
     } catch (Exception e) {
       e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
+      fail("Error when testing sLTM path based grid assignment");
     }
   }
 
 
   /**
-   * Test sLTM bush-destination-based assignment on grid based network which should result in an even spread across uncongested links in the final solution. In this test we do not enforce a
-   * max entropy flow distribution as the initial distribution is more intuitive to test for.
+   * Test sLTM path based assignment on grid based network with demand causing some queues
    */
   @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentNoQueueTest() {
-    try {
-
-      Demands demands = createDemands(testToken);
-
-      /* OD DEMANDS 3600 A->A``, 3600 A->A``` (1800 pcu/h for two hours) */
-      OdZones odZones = zoning.getOdZones();
-      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
-      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 1800.0);
-      odDemands.setValue(odZones.getByXmlId("A`"), odZones.getByXmlId("A```"), 1800.0);
-      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      
-      /* ORIGIN BASED */
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.DESTINATION_BUSH_BASED);
-      sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
-
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-
-      StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.setActivateDetailedLogging(true);
-      sLTM.execute();
-
-      testOutflowsNoQueue(sLTM);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
-    }
-  }  
-
-  /**
-   * Test sLTM bush-origin-based assignment on grid based network with demand causing some queues
-   */
-  @Test
-  public void sLtmPointQueueBushOriginBasedAssignmentWithQueueTest() {
+  public void sLtmPointQueuePathBasedAssignmentWithQueueTest() {
     try {
 
       Demands demands = createDemands(testToken);
@@ -215,14 +179,16 @@ public class sLtmAssignmentBushGridTest extends sLtmAssignmentGridTestBase {
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      var sLtmConf = ((StaticLtmConfigurator) sLTMBuilder.getConfigurator());
+      sLtmConf.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      sLtmConf.activateDetailedLogging(false);
+      
+      /* PATH BASED */
+      sLtmConf.setType(StaticLtmType.PATH_BASED);
+      sLtmConf.activateMaxEntropyFlowDistribution(true);
 
-      /* ORIGIN BASED */
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).setType(StaticLtmType.ORIGIN_BUSH_BASED);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateMaxEntropyFlowDistribution(true);
-
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+      sLtmConf.activateOutput(OutputType.LINK);
+      sLtmConf.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
@@ -234,49 +200,8 @@ public class sLtmAssignmentBushGridTest extends sLtmAssignmentGridTestBase {
 
     } catch (Exception e) {
       e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
+      fail("Error when testing sLTM path based grid assignment");
     }
   }
-
-  /**
-   * Test sLTM bush-destination-based assignment on grid based network with demand causing some queues
-   */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentWithQueueTest() {
-    try {
-
-      Demands demands = createDemands(testToken);
-
-      /* OD DEMANDS 3600 A->A``, 3600 A->A``` */
-      OdZones odZones = zoning.getOdZones();
-      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
-      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 3600.0);
-      odDemands.setValue(odZones.getByXmlId("A`"), odZones.getByXmlId("A```"), 3600.0);
-      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      
-      /* DESTINATION BASED */
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).setType(StaticLtmType.DESTINATION_BUSH_BASED);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateMaxEntropyFlowDistribution(true);
-
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-
-      StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.setActivateDetailedLogging(true);
-      sLTM.execute();
-
-      testOutflowsQueue(sLTM);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
-    }
-  }  
 
 }

@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathOneToAll;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
@@ -18,19 +19,18 @@ import org.goplanit.od.path.OdPaths;
 import org.goplanit.od.path.OdPathsHashed;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.enums.OdSkimSubOutputType;
-import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoice;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.path.ManagedDirectedPath;
-import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.path.PathUtils;
-import org.goplanit.utils.path.SimpleDirectedPath;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
@@ -38,6 +38,7 @@ import org.goplanit.zoning.Zoning;
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -62,6 +63,20 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   private static final BiPredicate<ManagedDirectedPath, Collection<? extends ManagedDirectedPath>> NEW_PATH_NOT_EQUAL_TO_EXISTING_PATHS =
           (newPath, existingOdPaths) -> existingOdPaths.stream().noneMatch(
                   existingPath -> ((StaticLtmDirectedPath)existingPath).getLinkSegmentsOnlyHashCode() == ((StaticLtmDirectedPath)newPath).getLinkSegmentsOnlyHashCode());
+
+  /**
+   * Convenience method for logging tracked Od paths, only log when od is tracked
+   *
+   * @param origin at hand
+   * @param destination at hand
+   * @param path path to log if tracked
+   */
+  private void logTrackedOdPath(OdZone origin, OdZone destination, StaticLtmDirectedPath path) {
+    if(getSettings().hasTrackOdsForLogging() && getSettings().isTrackOdForLogging(origin, destination)) {
+      LOGGER.info(String.format("-------------------- [ Origin (%s) Destination (%s) ]-------------------------------", origin.getIdsAsString(), destination.getIdsAsString()));
+      LOGGER.info(String.format("new path added - path nodes: %s", IterableUtils.asStream(path).map(e -> "(" + e.getDownstreamVertex().getIdsAsString() + ")").collect(Collectors.joining(","))));
+    }
+  }
 
   /**
    * Create an OD cost skim
@@ -189,7 +204,6 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         Double currOdDemand = odDemands.getValue(origin, destination);
         if (currOdDemand != null && currOdDemand > 0) {
           var destinationVertex = findCentroidVertex(destination);
-          // todo: create a special factory for the new movement based paths replacing current staticLtmDirectedPaths
           var sltmPath = oneToAllResult.createPath(pathFactory, originVertex, destinationVertex);
           if (sltmPath == null) {
             LOGGER.warning(String.format("%sUnable to create path for OD (%s,%s) with non-zero demand (%.2f)", LoggingUtils.runIdPrefix(getAssignmentId()), origin.getXmlId(),
@@ -224,7 +238,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
           StochasticPathChoice stochasticPathChoice, Smoothing smoothing, PathBasedGapFunction gapFunction,
           double demand){
 
-    if(odPaths.size() == 1){
+    if(odPaths.size() == 1 && !(getSettings().hasTrackOdsForLogging() && getSettings().isTrackOdForLogging(origin, destination))){
       return;
     }
 
@@ -372,10 +386,15 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     return getTrafficAssignmentComponent(PathChoice.class);
   }
 
-  /** create a path based network loading for this solution scheme */
+  /** create a path based network loading for this solution scheme
+   *
+   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
+   *  to splitting rate data format
+   * @return created path based loading
+   */
   @Override
-  protected StaticLtmLoadingPath createNetworkLoading() {
-    return new StaticLtmLoadingPath(getIdGroupingToken(), getAssignmentId(), getSettings());
+  protected StaticLtmLoadingPath createNetworkLoading(MultiKeyMap<Object, Movement> segmentPair2MovementMap) {
+    return new StaticLtmLoadingPath(getIdGroupingToken(), getAssignmentId(), segmentPair2MovementMap, getSettings());
   }
 
   /**
@@ -426,12 +445,14 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                 initialOdPath.setPathChoiceProbability(1); // set current probability to 100%
                 odMultiPathList.add(initialOdPath);         // add to path set
                 odMultiPathsForMode.setValue(o, d, odMultiPathList);
+                logTrackedOdPath(o, d, initialOdPath);
               });
 
     } catch (Exception e) {
       LOGGER.severe(String.format("Unable to create paths for initial solution of path-based sLTM %s", getAssignmentId()));
     }
   }
+
 
   /**
    * {@inheritDoc}
@@ -484,6 +505,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                     // valid new path, add to set
                     odPaths.add(newOdPath);
                     newPathAdded = true;
+
+                    logTrackedOdPath(o, d, newOdPath);
                   }
                 }
 

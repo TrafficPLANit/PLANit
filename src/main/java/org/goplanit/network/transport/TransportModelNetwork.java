@@ -1,12 +1,7 @@
 package org.goplanit.network.transport;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.network.LayeredNetwork;
-import org.goplanit.network.TopologicalLayerNetwork;
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.goplanit.network.layer.physical.MovementsImpl;
@@ -14,6 +9,8 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.layer.physical.Movements;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
@@ -23,6 +20,11 @@ import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Entire transport network that is being modeled including both the physical and virtual aspects of it as well as the zoning.
@@ -40,11 +42,15 @@ public class TransportModelNetwork {
   private static final Logger LOGGER = Logger.getLogger(TransportModelNetwork.class.getCanonicalName());
 
   /**
-   * log info on transport model network assuming it has integrated virtual and physical network it reports on the connectoid edges and segments to do so
+   * log info on transport model network assuming it has integrated virtual and physical network it reports
+   * on the connectoid edges and segments to do so.
    */
   private void logInfo() {
     LOGGER.info(String.format("#OD connectoid edges: %d", getVirtualNetwork().getConnectoidEdges().size()));
     LOGGER.info(String.format("#OD connectoid segments: %d", getVirtualNetwork().getConnectoidSegments().size()));
+    if(!movements.isEmpty()){
+      LOGGER.info(String.format("#Movements: %d", getMovements().size()));
+    }
   }
 
   /**
@@ -419,6 +425,17 @@ public class TransportModelNetwork {
   }
 
   /**
+   * Create a (new) mapping from entry/sexit segment combinations to their movement (if any)
+   *
+   * @return mapping that was created
+   */
+  public MultiKeyMap<Object, Movement> createEntryExitSegmentToMovementMapping(){
+    MultiKeyMap<Object, Movement> entryExitSegment2MovementMap = new MultiKeyMap<>();
+    getMovements().stream().forEach( m -> entryExitSegment2MovementMap.put(m.getSegmentFrom(), m.getSegmentTo(), m));
+    return entryExitSegment2MovementMap;
+  }
+
+  /**
    * Optional tracking of all permissible movements in the transport network.
    * When calling this method any existing movements will be removed from the container and the ids are reset.
    * <p>
@@ -435,7 +452,7 @@ public class TransportModelNetwork {
     for(var layer : getInfrastructureNetwork().getTransportLayers()){
       for(var node : layer.getNodes()){
         for(var entrySegment : node.getEntryEdgeSegments()){
-          for(var exitSegment : node.getEntryEdgeSegments()){
+          for(var exitSegment : node.getExitLinkSegments()){
 
             // never allow u-turn movement
             if(entrySegment.hasOppositeDirectionSegment() && entrySegment.getOppositeDirectionSegment() == exitSegment){

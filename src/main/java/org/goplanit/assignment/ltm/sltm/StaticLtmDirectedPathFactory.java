@@ -31,7 +31,7 @@ public class StaticLtmDirectedPathFactory extends ManagedIdEntityFactoryImpl<Sta
    * @return movement array
    */
   private Movement[] getMovements(Deque<? extends EdgeSegment> edgeSegments) {
-    Movement[] movements = new Movement[edgeSegments.size()];
+    Movement[] movements = new Movement[edgeSegments.size()-1];
 
     int index = 0;
     var edgeSegmentIter = edgeSegments.iterator();
@@ -44,7 +44,6 @@ public class StaticLtmDirectedPathFactory extends ManagedIdEntityFactoryImpl<Sta
       }
       movements[index++] = movement;
       prevSegment = edgeSegment;
-
     }
     return movements;
   }

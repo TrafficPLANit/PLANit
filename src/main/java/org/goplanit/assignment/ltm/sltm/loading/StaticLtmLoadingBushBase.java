@@ -68,7 +68,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * @return acceptedTurnFlows (on potentially blocking nodes) where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
    */
   @Override
-  protected MultiKeyMap<Object, Double> networkLoadingTurnFlowUpdate(Mode mode) {
+  protected double[] networkLoadingTurnFlowUpdate(Mode mode) {
    
     /* update network turn flows (and sending flows if POINT_QUEUE_BASIC) by performing a network loading
      * on all bushes using the bush-splitting rates (and updating the bush turn sending flows in the process, so they remain consistent
@@ -134,10 +134,12 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * 
    * @param idToken      to use
    * @param assignmentId to use
+   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
+   *  to splitting rate data format
    * @param settings to use
    */
-  public StaticLtmLoadingBushBase(IdGroupingToken idToken, long assignmentId, final StaticLtmSettings settings) {
-    super(idToken, assignmentId, settings);
+  public StaticLtmLoadingBushBase(IdGroupingToken idToken, long assignmentId, MultiKeyMap<Object,Movement> segmentPair2MovementMap, final StaticLtmSettings settings) {
+    super(idToken, assignmentId, segmentPair2MovementMap, settings);
   }
   
   /** The bushes to use when a loading update is requested

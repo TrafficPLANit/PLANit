@@ -2,10 +2,12 @@ package org.goplanit.assignment.ltm.sltm.loading;
 
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.layer.physical.Movement;
 
 /**
  * The conjugate rooted bush based network loading scheme for sLTM
@@ -78,10 +80,12 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
    * 
    * @param idToken      to use
    * @param assignmentId to use
+   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
+   *  to splitting rate data format
    * @param settings     to use
    */
-  public StaticLtmLoadingBushConjugate(IdGroupingToken idToken, long assignmentId, final StaticLtmSettings settings) {
-    super(idToken, assignmentId, settings);
+  public StaticLtmLoadingBushConjugate(IdGroupingToken idToken, long assignmentId, MultiKeyMap<Object, Movement> segmentPair2MovementMap, final StaticLtmSettings settings) {
+    super(idToken, assignmentId, segmentPair2MovementMap, settings);
   }
 
 }

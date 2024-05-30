@@ -43,13 +43,9 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
   @Override
   protected double applySingleFlowUpdate(final Movement movement, final double turnSendingFlowPcuH) {
 
-    if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(movement.getSegmentTo().getUpstreamVertex())) {
+    if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(movement.getCentreVertex())) {
 
-      // ********************************************************************************************
-      //TODO: LEFt OFF HERE CONVERT THE BELOW TO MOVEMENT BASED INCLUDING DATA STRUCTURE WHERE NEEDED
-      // ********************************************************************************************
-
-      int prevSegmentId = (int) prevSegment.getId();
+      int prevSegmentId = (int) movement.getSegmentFrom().getId();
 
       /* s_a = u_a where we only need to update the sending flows of tracked turns */
       if (dataConfig.isSendingflowsUpdate()) {
@@ -58,7 +54,7 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
 
       /* v_ap = u_bp = alpha_a*...*f_p where we implicitly consider all preceding alphas (flow acceptance factors) up to now */
       double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
-      dataConfig.addToAcceptedTurnFlows(prevSegment, currentSegment, acceptedTurnFlowPcuH);
+      dataConfig.addToAcceptedTurnFlows(movement, acceptedTurnFlowPcuH);
 
       /* v_a = SUM(v_ap) (only when enabled) */
       if (dataConfig.isOutflowsUpdate()) {
@@ -100,7 +96,7 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
    * 
    * @return accepted turn flows
    */
-  public MultiKeyMap<Object, Double> getAcceptedTurnFlows() {
+  public double[] getAcceptedTurnFlows() {
     return dataConfig.getAcceptedTurnFlows();
   }
 
