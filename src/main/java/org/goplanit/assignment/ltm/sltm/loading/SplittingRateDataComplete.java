@@ -16,7 +16,7 @@ import org.ojalgo.array.Array1D;
  * @author markr
  *
  */
-public class SplittingRateDataComplete implements SplittingRateData {
+public class SplittingRateDataComplete extends SplittingRateDataBase implements SplittingRateData {
 
   /** logger to use */
   @SuppressWarnings("unused")
@@ -43,21 +43,24 @@ public class SplittingRateDataComplete implements SplittingRateData {
 
   /**
    * Constructor
-   * 
+   *
+   * @param numberOfVertices
    * @param numberOfLinkSegments in the network
    */
-  public SplittingRateDataComplete(long numberOfLinkSegments) {
-    super();
+  public SplittingRateDataComplete(int numberOfVertices, long numberOfLinkSegments) {
+    super(numberOfVertices);
     this.splittingRates = new Object[(int) numberOfLinkSegments];
-    this.activatedNodes = new TreeSet<DirectedVertex>();
+    this.activatedNodes = new TreeSet<>();
   }
 
   /**
-   * Activate a node so we are able to track its splitting rates (and turn flows) during loading. It is regarded as both tracked and potentially blocking
+   * Activate a node so we are able to track its splitting rates (and turn flows) during loading.
+   * It is regarded as both tracked and potentially blocking
    * 
    * @param trackedNode to start tracking turn flows and splitting rates for
    */
-  public void activateNode(DirectedVertex trackedNode) {
+  @Override
+  public void registerTrackedNode(DirectedVertex trackedNode) {
     int numberOfExitLinkSegments = trackedNode.getNumberOfExitEdgeSegments();
     activatedNodes.add(trackedNode);
     for (var entrySegment : trackedNode.getEntryEdgeSegments()) {
@@ -72,6 +75,7 @@ public class SplittingRateDataComplete implements SplittingRateData {
   public boolean isPotentiallyBlocking(DirectedVertex nodeToVerify) {
     return activatedNodes.contains(nodeToVerify); // when tracked assumed potentially blocking
   }
+
 
   /**
    * {@inheritDoc}

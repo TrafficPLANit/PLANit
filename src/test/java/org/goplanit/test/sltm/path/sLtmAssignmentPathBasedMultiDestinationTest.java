@@ -274,7 +274,7 @@ public class sLtmAssignmentPathBasedMultiDestinationTest extends sLtmAssignmentM
 
       /* BUILD AND EXECUTE */
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.setActivateDetailedLogging(false);
+      sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
       testStochasticLinkOutputs(sLTM, ChoiceModel.BOUNDED_MNL);

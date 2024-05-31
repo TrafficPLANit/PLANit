@@ -31,14 +31,14 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
   protected double applySingleFlowUpdate(final Movement movement, double turnSendingFlowPcuH) {
     /* u_a: update inflow for link segment */
     int prevSegmentId = (int) movement.getSegmentFrom().getId();
-    dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
+    this.dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
 
     /* v_ap = u_bp = alpha_a*...*f_p  */
     double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
 
     /* v_a = SUM(v_ap) (only when enabled) */
     if (dataConfig.isOutflowsUpdate()) {
-      dataConfig.outFlows[prevSegmentId] += acceptedTurnFlowPcuH;
+      this.dataConfig.outFlows[prevSegmentId] += acceptedTurnFlowPcuH;
     }
     return acceptedTurnFlowPcuH;
   }

@@ -57,9 +57,9 @@ public class InflowOutflowData extends LinkSegmentData {
   }
 
   /**
-   * access to the tracked inflows
+   * access to the tracked outflows
    * 
-   * @return inflows
+   * @return outflows
    */
   public double[] getOutflows() {
     return this.outflowsFlowsPcuH;

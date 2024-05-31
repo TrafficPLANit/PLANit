@@ -52,6 +52,7 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
         dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
       }
 
+
       /* v_ap = u_bp = alpha_a*...*f_p where we implicitly consider all preceding alphas (flow acceptance factors) up to now */
       double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
       dataConfig.addToAcceptedTurnFlows(movement, acceptedTurnFlowPcuH);

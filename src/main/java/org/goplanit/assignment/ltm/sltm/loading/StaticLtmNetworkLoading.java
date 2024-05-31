@@ -164,19 +164,34 @@ public abstract class StaticLtmNetworkLoading {
    *
    * @return created splittingRateData class
    */
-  private SplittingRateData createSplittingRateData() {
+  private SplittingRateData createSplittingRateData(SplittingRateData prevIterationSplittingRateData) {
 
+    int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
+    SplittingRateData newSplittingRateData = null;
     /* POINT QUEUE BASIC */
     if (!isTrackAllNodeTurnFlows()) {
-      return new SplittingRateDataPartial(getTransportNetwork().getNumberOfVerticesAllLayers());
+      splittingRateData = new SplittingRateDataPartial(numberOfVertices);
     }
     /* OTHER, e.g. physical queues and advanced point queue model */
     else if (!this.solutionScheme.equals(StaticLtmLoadingScheme.NONE)) {
-      return new SplittingRateDataComplete(this.inFlowOutflowData.getInflows().length);
+      splittingRateData = new SplittingRateDataComplete(numberOfVertices, this.inFlowOutflowData.getInflows().length);
     }
 
-    LOGGER.severe("Unable to create correct splitting rate tracking data class");
-    return null;
+    if(splittingRateData == null){
+      LOGGER.severe("Unable to create correct splitting rate tracking data class");
+      return null;
+    }
+
+    /* make sure we correctly identify prev iteration potentially blocking nodes, so we know what costs to update when a node
+     * switches from blocking to non-blocking (in those cases it is no longer blocked so information may not be tracked yet
+     * costs on its adjacent links will change, so we still need to compute costs for those links
+     * TODO: move all potentially blocking information from splitting rate data to its own data class?
+     */
+    if(prevIterationSplittingRateData != null){
+      splittingRateData.initialisePrevIterationData(prevIterationSplittingRateData);
+    }
+
+    return splittingRateData;
   }
 
   /**
@@ -195,11 +210,14 @@ public abstract class StaticLtmNetworkLoading {
      * if we changed our approach during the last iteration -> we replaced the splitting rate data as well. When we start the new iteration with another approach, we first recreate
      * the appropriate splitting rate data consistent with the current approach again and activate the correct tracked, potentially blocking nodes in the process
      */
-    boolean initialiseTrackedNodes = false;
-    if (!prevIterationFinalSolutionScheme.equals(getActivatedSolutionScheme())) {
-      this.splittingRateData = createSplittingRateData();
-      initialiseTrackedNodes = true;
-    }
+    boolean initialiseTrackedNodes = true;
+    this.splittingRateData = createSplittingRateData(splittingRateData);
+//    if (!prevIterationFinalSolutionScheme.equals(getActivatedSolutionScheme())) {
+//      this.splittingRateData = createSplittingRateData(splittingRateData);
+//      initialiseTrackedNodes = true;
+//    }else{
+//      this.splittingRateData.initialisePrevIterationData(splittingRateData);
+//    }
 
     if (initialiseTrackedNodes) {
       if (isTrackAllNodeTurnFlows()) {
@@ -241,16 +259,11 @@ public abstract class StaticLtmNetworkLoading {
         for (var exitSegment : node.getExitEdgeSegments()) {
           /* assume no u-turn flow allowed */
           if (entrySegment.getParent().idEquals(exitSegment.getParent())) {
+            index++;
             continue;
           }
 
           var movement = segmentPair2MovementMap.get(entrySegment, exitSegment);
-          if(entrySegment.getId() == 10689L){
-            int bla = 4;
-          }
-          if(exitSegment.getId() == 1194L){
-            int bla = 4;
-          }
           Double acceptedTurnFlow = acceptedTurnFlows[(int) movement.getId()];
           if (acceptedTurnFlow == null) {
             acceptedTurnFlow = 0.0;
@@ -519,19 +532,17 @@ public abstract class StaticLtmNetworkLoading {
    * @param sendingFlowsPcuH to use
    */
   protected void activateAllUsedNodeSplittingRates(MacroscopicNetworkLayer layer, double[] sendingFlowsPcuH) {
-    // TODO: not great that we cast to implementation, would be better to use polymorphism to solve this by adding a register option on interface
-    SplittingRateDataComplete extendedSplittingRates = (SplittingRateDataComplete) this.splittingRateData;
     for (MacroscopicLinkSegment linkSegment : layer.getLinkSegments()) {
       if (Precision.positive(sendingFlowsPcuH[(int) linkSegment.getId()])) {
-        extendedSplittingRates.activateNode(linkSegment.getUpstreamNode());
+        this.splittingRateData.registerTrackedNode(linkSegment.getUpstreamNode());
       }
     }
     /* also add nodes of eligible connectoid segments (when they are not centroids) */
     for (ConnectoidSegment connectoidSegment : getTransportNetwork().getZoning().getVirtualNetwork().getConnectoidSegments()) {
       if (Precision.positive(sendingFlowsPcuH[(int) connectoidSegment.getId()])) {
         /* activate both nodes, succeeding segments might not be available */
-        extendedSplittingRates.activateNode(connectoidSegment.getUpstreamVertex());
-        extendedSplittingRates.activateNode(connectoidSegment.getDownstreamVertex());
+        this.splittingRateData.registerTrackedNode(connectoidSegment.getUpstreamVertex());
+        this.splittingRateData.registerTrackedNode(connectoidSegment.getDownstreamVertex());
       }
     }
   }
@@ -619,7 +630,9 @@ public abstract class StaticLtmNetworkLoading {
     var inCapacities = Array1D.PRIMITIVE64.makeZero(numEntrySegments);
     int index = 0;
     for (var entryEdgeSegment : node.getEntryEdgeSegments()) {
-      inCapacities.set(index++, Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH()));
+      inCapacities.set(
+              index++,
+              Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH()));
     }
   
     /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
@@ -645,7 +658,8 @@ public abstract class StaticLtmNetworkLoading {
   
     /* Kappa(s,r,phi) : node model update */
     try {
-      var nodeModel = new TampereNodeModel(new TampereNodeModelInput(new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingFlows));
+      var nodeModel = new TampereNodeModel(new TampereNodeModelInput(
+              new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingFlows));
       Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
         
       /* delegate to consumer */
@@ -1008,8 +1022,9 @@ public abstract class StaticLtmNetworkLoading {
       this.sendingFlowGapFunction.getStopCriterion().setMaxIterations(originalMaxIterations);
     }
     
-    /* Do one final loading updating inflows and outflows simultaneously to ensure consistency in flows across network as local updates on sending/receiving and
-     * in/outflows might otherwise cause slight discrepancies in final result that look strange, e.g., outflow>inflow etc.
+    /* Do one final loading updating inflows and outflows simultaneously to ensure consistency in flows across network
+     * as local updates on sending/receiving and in/outflows might otherwise cause slight discrepancies in final result
+     * that look strange, e.g., outflow>inflow etc.
      */
     {
       networkLoadingLinkSegmentSendingflowOutflowUpdate(mode);

@@ -206,8 +206,9 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
           var destinationVertex = findCentroidVertex(destination);
           var sltmPath = oneToAllResult.createPath(pathFactory, originVertex, destinationVertex);
           if (sltmPath == null) {
-            LOGGER.warning(String.format("%sUnable to create path for OD (%s,%s) with non-zero demand (%.2f)", LoggingUtils.runIdPrefix(getAssignmentId()), origin.getXmlId(),
-                destination.getXmlId(), currOdDemand));
+            LOGGER.warning(String.format("%sUnable to create path for OD [ o - (%s), d - (%s)] with non-zero demand (%.2f)",
+                    LoggingUtils.runIdPrefix(getAssignmentId()), origin.getIdsAsString(), destination.getIdsAsString(), currOdDemand));
+            oneToAllResult.createPath(pathFactory, originVertex, destinationVertex);
             continue;
           }
           newOdShortestPaths.setValue(origin, destination, sltmPath);

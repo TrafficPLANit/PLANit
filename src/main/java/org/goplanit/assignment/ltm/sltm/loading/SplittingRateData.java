@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
+import java.util.BitSet;
 import java.util.TreeSet;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -21,6 +22,13 @@ import org.ojalgo.array.Array1D;
 public interface SplittingRateData {
 
   /**
+   * Initialise the prevIteration splitting rate data on this instance based on the data from the previous iteration
+   *
+   * @param prevIterationSplittingRateData to use
+   */
+  public abstract void initialisePrevIterationData(SplittingRateData prevIterationSplittingRateData);
+
+  /**
    * Verify if node is registered as being tracked with splitting rates
    * 
    * @param nodeToVerify the node to verify
@@ -37,11 +45,26 @@ public interface SplittingRateData {
   public abstract boolean isPotentiallyBlocking(DirectedVertex nodeToVerify);
 
   /**
+   * Verify if node is registered as potentially blocking in previous iteration
+   *
+   * @param nodeToVerify the node to verify
+   * @return true when registered as potentially blocking in previous iteration, false otherwise
+   */
+  public abstract boolean isPrevIterationPotentiallyBlocking(DirectedVertex nodeToVerify);
+
+  /**
    * Collect all registered potentially blocking nodes
    * 
    * @return registered potentially blocking nodes
    */
   public abstract TreeSet<DirectedVertex> getTrackedNodes();
+
+  /**
+   * Register a node for tracking and make sue splitting rates are available
+   *
+   * @param node to register
+   */
+  public abstract void registerTrackedNode(final DirectedVertex node);
 
   /**
    * Obtain the downstream splitting rates of given node entry segment (can be modified)
@@ -81,6 +104,11 @@ public interface SplittingRateData {
   public abstract void resetPotentiallyBlockingNodes();
 
   /**
+   * Reset registered potentially blocking nodes
+   */
+  public abstract void resetPrevIterationPotentiallyBlockingNodes();
+
+  /**
    * Reset splitting rate data
    */
   public abstract void resetSplittingRates();
@@ -91,6 +119,8 @@ public interface SplittingRateData {
   public default void reset() {
     resetTrackedNodes();
     resetPotentiallyBlockingNodes();
+    resetPrevIterationPotentiallyBlockingNodes();
     resetSplittingRates();
   }
+
 }

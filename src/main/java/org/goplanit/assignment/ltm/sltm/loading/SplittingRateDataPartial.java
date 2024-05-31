@@ -16,7 +16,7 @@ import org.ojalgo.array.Array1D;
  * @author markr
  *
  */
-public class SplittingRateDataPartial implements SplittingRateData {
+public class SplittingRateDataPartial extends SplittingRateDataBase implements SplittingRateData {
 
   /**
    * Nodes that are tracked to maintain their splitting rates available which might or might not be also potentially blocking
@@ -42,7 +42,10 @@ public class SplittingRateDataPartial implements SplittingRateData {
   private void registerSplittingRates(DirectedVertex potentiallyBlockingNode, EdgeSegment entrySegment) {
     var result = splittingRates.get(potentiallyBlockingNode, entrySegment);
     if (result == null) {
-      splittingRates.put(potentiallyBlockingNode, entrySegment, Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.getNumberOfExitEdgeSegments()));
+      splittingRates.put(
+              potentiallyBlockingNode,
+              entrySegment,
+              Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.getNumberOfExitEdgeSegments()));
     }
   }
 
@@ -52,7 +55,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
    * @param numberOfVertices to expect at most
    */
   public SplittingRateDataPartial(int numberOfVertices) {
-    super();
+    super(numberOfVertices);
     this.trackedNodes = new TreeSet<>();
     this.potentiallyBlockingNodes = new BitSet(numberOfVertices);
   }
@@ -72,16 +75,17 @@ public class SplittingRateDataPartial implements SplittingRateData {
   }
 
   /**
-   * Register a node so we are able to track its splitting rates (and turn flows) during loading
-   * 
-   * @param trackNode node to track splitting rates and (turn) sending flows for
+   *
+   * {@inheritDoc}
    */
+  @Override
   public void registerTrackedNode(final DirectedVertex trackNode) {
     if (!trackedNodes.contains(trackNode)) {
       trackedNodes.add(trackNode);
-      for (var entrySegment : trackNode.getEntryEdgeSegments()) {
+    }
+
+    for (var entrySegment : trackNode.getEntryEdgeSegments()) {
         registerSplittingRates(trackNode, entrySegment);
-      }
     }
   }
 

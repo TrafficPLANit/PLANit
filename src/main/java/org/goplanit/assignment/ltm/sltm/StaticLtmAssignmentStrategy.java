@@ -4,6 +4,8 @@ import java.util.BitSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.loading.SplittingRateData;
@@ -68,11 +70,6 @@ public abstract class StaticLtmAssignmentStrategy {
 
   /** the user configured traffic assignment components used */
   private final TrafficAssignmentComponentAccessee taComponents;
-
-  /**
-   * Track which nodes were potentially blocking in previous iteration to ensure costs are updated for these nodes even when they are no longer blocking in the current iteration
-   */
-  private final BitSet prevIterationPotentiallyBlocking;
 
   /** have a mapping between zone and connectoid to the layer by means of its centroid vertex */
   private Map<Zone, CentroidVertex> zone2VertexMapping;
@@ -273,26 +270,29 @@ public abstract class StaticLtmAssignmentStrategy {
       MacroscopicNetworkLayer networkLayer = getInfrastructureNetwork().getLayerByMode(theMode);
       VirtualNetwork virtualLayer = getTransportNetwork().getZoning().getVirtualNetwork();
 
-      /* only update when node is both (flow) tracked as well as potentially blocking */
-      boolean currentlyPotentiallyBlocking = false;
-      for (var trackedFlowNode : splittingRateData.getTrackedNodes()) {
-        currentlyPotentiallyBlocking = splittingRateData.isPotentiallyBlocking(trackedFlowNode);
-        if (!currentlyPotentiallyBlocking && !prevIterationPotentiallyBlocking.get((int) trackedFlowNode.getId())) {
-          continue;
+      /* Cost can only change (under triangular FD) when:
+       * - node is (tracked as well as) potentially blocking or
+       * - switching states between blocking/not blocking over iteration
+       * */
+      Stream.concat(networkLayer.getNodes().stream(),virtualLayer.getCentroidVertices().stream()).forEach( node ->
+      {
+        boolean currentlyPotentiallyBlocking = splittingRateData.isPotentiallyBlocking(node);
+        boolean prevIterationPotentiallyBlocking = splittingRateData.isPrevIterationPotentiallyBlocking(node);
+        if (!currentlyPotentiallyBlocking && !prevIterationPotentiallyBlocking) {
+          return;
         }
 
         /* entry segments */
         final var layerSegments = networkLayer.getLinkSegments();
         final var virtualLayerSegments = virtualLayer.getConnectoidSegments();
-        trackedFlowNode.getEntryEdgeSegments().forEach(es -> {
+        node.getEntryEdgeSegments().forEach(es -> {
           if(layerSegments.containsKey(es.getId())){
             costsToUpdate[(int) es.getId()] = physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) es);
           }else if(virtualLayerSegments.containsKey(es.getId())){
             costsToUpdate[(int) es.getId()] = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es);
           }
         });
-        prevIterationPotentiallyBlocking.set((int) trackedFlowNode.getId(), currentlyPotentiallyBlocking);
-      }
+      });
     }
     /* OTHER -> all nodes (and attached links) are updated, update all costs */
     else {
@@ -334,9 +334,11 @@ public abstract class StaticLtmAssignmentStrategy {
 
       /* only update when node is both (flow) tracked as well as potentially blocking */
       boolean currentlyPotentiallyBlocking = false;
+      boolean prevIterationPotentiallyBlocking = false;
       for (var trackedFlowNode : splittingRateData.getTrackedNodes()) {
         currentlyPotentiallyBlocking = splittingRateData.isPotentiallyBlocking(trackedFlowNode);
-        if (!currentlyPotentiallyBlocking && !prevIterationPotentiallyBlocking.get((int) trackedFlowNode.getId())) {
+        prevIterationPotentiallyBlocking = splittingRateData.isPrevIterationPotentiallyBlocking(trackedFlowNode);
+        if (!currentlyPotentiallyBlocking && !prevIterationPotentiallyBlocking) {
           continue;
         }
 
@@ -391,7 +393,6 @@ public abstract class StaticLtmAssignmentStrategy {
     this.idGroupingToken = idGroupingToken;
     this.settings = settings;
     this.taComponents = taComponents;
-    this.prevIterationPotentiallyBlocking = new BitSet(transportModelNetwork.getNumberOfVerticesAllLayers());
 
     /* construct mapping from OdZone to centroidVertex which is needed for path finding among other things, where we get an OD but need to find a path from
      * centroid vertex to centroid vertex */
