@@ -44,7 +44,7 @@ public class SplittingRateDataComplete extends SplittingRateDataBase implements 
   /**
    * Constructor
    *
-   * @param numberOfVertices
+   * @param numberOfVertices in the network
    * @param numberOfLinkSegments in the network
    */
   public SplittingRateDataComplete(int numberOfVertices, long numberOfLinkSegments) {

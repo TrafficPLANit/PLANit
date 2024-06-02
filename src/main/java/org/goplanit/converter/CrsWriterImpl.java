@@ -29,7 +29,7 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
   private MathTransform destinationCrsTransformer = null;
 
 
-  /** transform the coordinate absed on the destination transformer
+  /** transform the coordinate based on the destination transformer
    * @param coordinate to transform
    * @return transformed coordinate
    */
@@ -46,7 +46,7 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
     return null;
   }
 
-  /** Transform the coordinate absed on the destination transformer
+  /** Transform the coordinate based on the destination transformer
    *
    * @param coordinates to transform
    * @return transformed coordinates (if no conversion is required, input is returned
@@ -75,7 +75,7 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
    * If no such mapping exists, we return the fallback option that must be provided.
    *
    * @param overwriteCrs this Crs takes precedence and is returned if present
-   * @param countryName  extract appropriate Crs based on countryname if overwriteCrs is not provided
+   * @param countryName  extract appropriate Crs based on country name if overwriteCrs is not provided
    * @param fallBackCrs  returned when none of the two other options yielded a result
    * @return crs for destination
    */
