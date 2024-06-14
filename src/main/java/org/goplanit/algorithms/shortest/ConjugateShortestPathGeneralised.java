@@ -10,8 +10,7 @@ import org.goplanit.utils.network.virtual.ConjugateConnectoidNodes;
 /**
  * Conjugate version of shortest path algorithm. The only difference is found in that the original network edge segment costs are now obtained on the turn level, where each
  * conjugate edge segment (turn) collects its cost by means of its incoming original edge segment. Note that for the final turn this means the last edge segemnt's cost is missed
- * which is compensated for at the end
- * 
+ * which is compensated for at the end.
  * In its current form, it assumes a macroscopic network and macroscopic link segments to operate on
  * 
  * @author markr

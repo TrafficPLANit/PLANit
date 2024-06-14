@@ -16,12 +16,14 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * A* shortest path algorithm
- * 
+ * <p>
  * A* shortest path is a one-to-one implementation of the shortest path algorithm based on the generalized costs on each link segment (edge). The costs should be provided upon
  * instantiation and are reused whenever a One-To-One execution conditional on the chosen source node is performed.
- * 
+ * </p>
+ * <p>
  * In its current form, it assumes a macroscopic network and macroscopic link segments to operate on
- * 
+ * </p>
+ *
  * @author markr
  *
  */

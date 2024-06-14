@@ -10,11 +10,13 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
  * Dijkstra's shortest path algorithm
- * 
+ * <p>
  * Dijkstra's shortest path is a one-to-all (or all-to-one) implementation of the shortest path algorithm based on the generalized costs on each link segment (edge). The costs
  * should be provided upon instantiation and are reused whenever an execution conditional on the chosen source/destination node is performed.
- * 
+ * </p>
+ * <p>
  * In its current form, it assumes a macroscopic network and macroscopic link segments to operate on
+ * </p>
  * 
  * @author markr
  *

@@ -13,13 +13,15 @@ import org.goplanit.utils.misc.Pair;
 
 /**
  * Dijkstra's shortest path algorithm
- * 
+ * <p>
  * Dijkstra's shortest path is a one-to-all implementation of the shortest path algorithm based on the generalized costs on each link segment (edge). The costs should be provided
  * upon instantiation and are reused whenever a One-To-All execution conditional on the chosen source node is performed. Note that while it is one-to-all the direction of the
  * search can be inverted such that it effectively becomes an all-to-one search.
- * 
+ * </p>
+ * <p>
  * In its current form, it assumes a macroscopic network and macroscopic link segments to operate on
- * 
+ * </p>
+ *
  * @author markr
  *
  */
@@ -83,11 +85,8 @@ public class ShortestPathGeneralised {
     // track measured cost for each vertex
     final double[] vertexMeasuredCost = new double[numberOfVertices];
     Arrays.fill(vertexMeasuredCost, Double.MAX_VALUE);
-    // precedingVertex for each vertex (used to reconstruct path)
-    EdgeSegment[] nextEdgeSegmentByVertex = new EdgeSegment[numberOfVertices];
-    Arrays.fill(nextEdgeSegmentByVertex, null);
 
-    var openVertices = new PriorityQueue<Pair<DirectedVertex, Double>>(numberOfVertices, pairSecondComparator);
+    var openVertices = new PriorityQueue<>(numberOfVertices, pairSecondComparator);
     initialiseOpenVertices(openVertices, vertexMeasuredCost);
 
     // collect cheapest cost and expand the vertex if not already visited

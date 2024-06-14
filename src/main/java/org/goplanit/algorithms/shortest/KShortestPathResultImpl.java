@@ -26,16 +26,15 @@ public class KShortestPathResultImpl implements KShortestPathResult {
   private int currentK;
 
   /** the k-shortest paths in raw form with their associated path costs */
-  private List<Pair<Deque<EdgeSegment>, Double>> kShortestRawPathsWithCost;
+  private final List<Pair<Deque<EdgeSegment>, Double>> kShortestRawPathsWithCost;
 
-  private DirectedVertex origin;
+  private final DirectedVertex origin;
 
-  private DirectedVertex destination;
+  private final DirectedVertex destination;
 
   private boolean validateOriginDestination(DirectedVertex origin, DirectedVertex destination){
     if(!origin.idEquals(this.origin) || !destination.idEquals(this.destination)){
-      LOGGER.warning(String.format(
-              "Origin and/or destination do not match the origin-destination this k-shortest path result is configured for"));
+      LOGGER.warning("Origin and/or destination do not match the origin-destination this k-shortest path result is configured for");
       return false;
     }
     return true;
@@ -60,7 +59,7 @@ public class KShortestPathResultImpl implements KShortestPathResult {
    */
   @Override
   public void chooseKShortestPathIndex(int k) {
-    if(k>=kShortestRawPathsWithCost.size()){
+    if(k >= kShortestRawPathsWithCost.size()){
       LOGGER.warning(String.format(
               "Chosen a k index (%d) for k-shortest path that is larger than the max index given the available shortest paths, truncating to max index of %d", k, kShortestRawPathsWithCost.size()-1));
       k = kShortestRawPathsWithCost.size()-1;
@@ -82,7 +81,7 @@ public class KShortestPathResultImpl implements KShortestPathResult {
   @Override
   public <T extends SimpleDirectedPath> List<T> createPaths(DirectedPathFactory<T> pathFactory) {
     var kShortestPaths = new ArrayList<T>(kShortestRawPathsWithCost.size());
-    for(int currK=0; currK<kShortestRawPathsWithCost.size(); ++currK){
+    for(int currK=0; currK < kShortestRawPathsWithCost.size(); ++currK){
       chooseKShortestPathIndex(currK);
       kShortestPaths.add(createPath(pathFactory, origin, destination));
     }

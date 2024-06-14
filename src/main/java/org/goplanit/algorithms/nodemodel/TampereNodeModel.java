@@ -15,17 +15,17 @@ import org.ojalgo.function.aggregator.Aggregator;
 
 /**
  * General First order node model implementation as proposed by Tampere et al. (2011). Here we utilise the algorithm description as presented in Bliemer et al. (2014).
- * 
+ *
  * Each run of this node model requires two inputs, the mapping of the network to the local node and the
- * 
+ *
  * Paper References:
  * <ul>
  * <li>Tampère, C. M. J., Corthout, R., Cattrysse, D., &amp; Immers, L. H. (2011). A generic class of first order node models for dynamic macroscopic simulation of traffic flows.
- * Transportation Research Part B: Methodological, 45(1), 289–309. https://doi.org/10.1016/j.trb.2010.06.004</li>
+ * Transportation Research Part B: Methodological, 45(1), 289–309. <a href="https://doi.org/10.1016/j.trb.2010.06.004">doi.org/10.1016/j.trb.2010.06.004</a></li>
  * <li>Bliemer, M. C. J., Raadsen, M. P. H., Smits, E.-S., Zhou, B., &amp; Bell, M. G. H. (2014). Quasi-dynamic traffic assignment with residual point queues incorporating a first
- * order node model. Transportation Research Part B: Methodological, 68, 363–384. https://doi.org/10.1016/j.trb.2014.07.001</li>
+ * order node model. Transportation Research Part B: Methodological, 68, 363–384. <a href="https://doi.org/10.1016/j.trb.2014.07.001">doi.org/10.1016/j.trb.2014.07.001</a></li>
  * </ul>
- * 
+ *
  * @author markr
  */
 public class TampereNodeModel implements NodeModel {
@@ -198,7 +198,6 @@ public class TampereNodeModel implements NodeModel {
 
   /**
    * Remove all turn sending flows from provided in-link from remaining receiving flows (whichever out-link they go to) for a demand constrained in link
-   * 
    * R_b' = R_b'-t_ab' for all out links b' t_ab' = 0 (to ensure the turn flows are not accidentally reused when updating lambda in next iteration)
    * 
    * @param inLinkSegmentIndex the inLink to base the reduction on
@@ -209,7 +208,6 @@ public class TampereNodeModel implements NodeModel {
 
   /**
    * Remove all accepted turn sending flows (by scaling with flow acceptance factor) from provided in-link from remaining receiving flows (whichever out-link they go to)
-   * 
    * R_b' = R_b'-alpha_a*t_ab' for all out links b' t_ab' = 0 (to ensure the turn flows are not accidentally reused when updating lambda in next iteration)
    * 
    * @param inLinkSegmentIndex   the inLink to base the reduction on

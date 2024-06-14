@@ -3,23 +3,22 @@ package org.goplanit.algorithms.shortest;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.network.layer.physical.Node;
 
 import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * Yen's K-shortest path algorithm + efficiency imprvements to avoid recomputing potential shortest paths when possible
+ * Yen's K-shortest path algorithm + efficiency improvements to avoid recomputing potential shortest paths when possible
  * (Yen, Jin Y. (Jul 1971). "Finding the k Shortest Loopless Paths in a Network". Management Science. 17 (11): 712–716. doi:10.1287/mnsc.17.11.712)
  *<p>
- * See also https://en.wikipedia.org/wiki/Yen%27s_algorithm#cite_note-yenksp2-2
+ * See also <a href="https://en.wikipedia.org/wiki/Yen%27s_algorithm#cite_note-yenksp2-2">k-shortest path by Yen</a>
  * </p>
  * <p>
  * Yen's K-shortest path algorithm does not allow for cycles which makes it suitable for path choice. It is however costly
  * to run, especially without any additional constraints on these paths and using Dijkstra for all intermediate path searches.
  * However, it is easy to understand and a good benchmark implementation for other more sophisticated approaches.
  * </p>
- * 
+ *
  * @author markr
  *
  */
@@ -28,9 +27,9 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ShortestPathKShortestYen.class.getCanonicalName());
 
-  private ShortestPathOneToAll oneToAllBootStrapSearch;
+  private final ShortestPathOneToAll oneToAllBootStrapSearch;
 
-  private ShortestPathOneToOne oneToOnePerOriginSearch;
+  private final ShortestPathOneToOne oneToOnePerOriginSearch;
 
   /** track previous origin used, so we can reuse bootstrap result of the one-to-all */
   private DirectedVertex prevOrigin;
@@ -39,7 +38,7 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
   private ShortestPathResult prevOneToAllResult;
 
   /** k in k-shortest */
-  private int numShortestPaths;
+  private final int numShortestPaths;
 
   /**
    * Access individual costs for edge segments to efficiently build up path cosy during k-shortest path
@@ -61,14 +60,20 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
    * @param excludedLinksThreshold break condition upon which we terminate search if we reach threshold (inclusive, e.g., when container has x entries and threshold is x we stop)
    */
   private static void excludeExitLinkSegmentsFromCoincidingRootPaths(
-          TreeSet<EdgeSegment> excludedLinksToPopulate, int forkNodeIndex, ArrayList<Pair<Deque<EdgeSegment>, Double>> kShortestRawPathsWithCost, int excludedLinksThreshold) {
+          TreeSet<EdgeSegment> excludedLinksToPopulate,
+          int forkNodeIndex,
+          ArrayList<Pair<Deque<EdgeSegment>, Double>> kShortestRawPathsWithCost,
+          int excludedLinksThreshold) {
+
     var lastestKShortestPath = kShortestRawPathsWithCost.get(kShortestRawPathsWithCost.size()-1).first();
     int numFoundKShortestPaths = kShortestRawPathsWithCost.size();
     for(int p = 0; p < numFoundKShortestPaths-1 ; ++p){
+
       var pathP = kShortestRawPathsWithCost.get(p).first();
       var pathPIterUpToFork = pathP.iterator();
       EdgeSegment pathPIterCurrSegment = pathPIterUpToFork.next();
       var kMin1IterUpToFork = lastestKShortestPath.iterator();
+
       int indexUpToForkNode = 0;
       while(indexUpToForkNode < forkNodeIndex){
         if(pathPIterUpToFork.hasNext() && !(kMin1IterUpToFork.next().idEquals(pathPIterCurrSegment))){
@@ -77,6 +82,7 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
         ++indexUpToForkNode;
         pathPIterCurrSegment = pathPIterUpToFork.next();
       }
+
       boolean coincidesUpToForkNode = indexUpToForkNode==forkNodeIndex;
       if(coincidesUpToForkNode && pathPIterUpToFork.hasNext()){
         /* exclude the link adjacent (exiting) the fork node on the path for our current potential shortest path  */
@@ -107,7 +113,7 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
   /**
    * Construct k-shortest paths from source node to sink based on directed LinkSegment edges.
    * <p>
-   *   find all forknode alternative shortest paths related to the k-1 shortest path in the set by starting at each node
+   *   find all fork node alternative shortest paths related to the k-1 shortest path in the set by starting at each node
    *   of the previous shortest path and excluding the adjacent links of that node from consideration when they have
    *   been used in ANY preceding shortest path. Continue to find paths until all fork nodes are exhausted, after which
    *   the single shortest alternative found is chosen as the next k-shortest path. It is added to the set and then
@@ -133,11 +139,14 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
    * @return shortest path result that can be used to extract paths
    */
   @Override
-  public KShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination, Set<? extends EdgeSegment> bannedSegments) {
-    /* only recompute bootstrap result if origin changes - one-to-all so it is available for all destinations at once */
+  public KShortestPathResult executeOneToOne(
+          DirectedVertex origin, DirectedVertex destination, Set<? extends EdgeSegment> bannedSegments) {
+    /* only recompute bootstrap result if origin changes - one-to-all, so it is available for all destinations at once */
     var oneToAll =  prevOneToAllResult;
     if(!origin.idEquals(prevOrigin)){
       oneToAll = oneToAllBootStrapSearch.executeOneToAll(origin);
+      prevOneToAllResult = oneToAll;
+      prevOrigin = origin;
     }
 
     /* k-shortest (raw) paths found so far and their associated cost + shortest path as initial entry*/
@@ -203,7 +212,7 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
           continue;
         }
 
-        /****************** EXCLUDE non-eligible exit segments *****************************************************************/
+        // ***************** EXCLUDE non-eligible exit segments ****************************************************************
         excludedLinks.clear();
         {
           // banned segments are always excluded
@@ -234,14 +243,14 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
           }
         }
 
-        /****************** DO ONE-TO-ONE ALTERNATIVE PATH SEARCH *****************************************************************/
+        // ***************** DO ONE-TO-ONE ALTERNATIVE PATH SEARCH ***************************************************************
         var oneToOnePerOriginResult = oneToOnePerOriginSearch.executeOneToOne(currForkSegment.getUpstreamVertex(), destination, excludedLinks);
         var oneToOneRawPath = oneToOnePerOriginResult.createRawPath(currForkSegment.getUpstreamVertex(), destination);
         if(oneToOneRawPath == null){
           continue;
         }
 
-        /**************** CONSTRUCT NEW POTENTIAL K_SHORTEST PATH *** *****************************************************************/
+        // *************** CONSTRUCT NEW POTENTIAL K_SHORTEST PATH *** ************************************************************
         var potentialKShortestPath = new LinkedList<>(currPotentialShortestPath);
         potentialKShortestPath.addAll(oneToOneRawPath);
         /* combine cost up to fork + fork to destination to get full path cost */
@@ -252,7 +261,7 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
         potentialShortestPathAlternatives.get(potentialKShortestPathCost).add(Pair.of(currForkNode, potentialKShortestPath));
       }
 
-      /**************** CHOOSE NEXT K_SHORTEST PATH FROM POTENTIAL OPTIONS********************************************************/
+      // *************** CHOOSE NEXT K_SHORTEST PATH FROM POTENTIAL OPTIONS********************************************************
       if(potentialShortestPathAlternatives.isEmpty()){
         break;
       }
@@ -270,6 +279,7 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
       }
       kShortestRawPathsWithCost.add(Pair.of(foundKShortestPath, foundKShortestPathWithEqualMinCostEntry.getKey()));
     }
+    
     return new KShortestPathResultImpl(origin, destination, kShortestRawPathsWithCost);
   }
 

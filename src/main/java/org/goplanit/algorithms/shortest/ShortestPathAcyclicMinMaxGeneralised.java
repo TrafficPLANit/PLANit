@@ -10,9 +10,10 @@ import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 
 /**
  * Build a min/max shortest path tree for a given start vertex based on the configuration used. This implementation requires an acyclic network representation such that the
- * vertices can - and already are - topologically sorted. If the provided topological sorted list of vertices is incorrect undefined behaviour will occurs.
+ * vertices can - and already are - topologically sorted. If the provided topological sorted list of vertices is incorrect undefined behaviour will occur.
  * <p>
  * Obtaining a topologically sorted list of vertices for a given acyclic (sub)graph can be generated via the functionality on the AcyclicSubGraph implementation
+ * </p>
  * 
  * @author markr
  *

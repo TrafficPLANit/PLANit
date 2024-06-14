@@ -1,6 +1,5 @@
 package org.goplanit.algorithms.shortest;
 
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.path.DirectedPathFactory;
 import org.goplanit.utils.path.SimpleDirectedPath;
 
