@@ -206,7 +206,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double[] outflows = accessee.getLinkSegmentOutflowsPcuHour();
     for (var linkSegment : layer.getLinkSegments()) {
       int linkSegmentId = (int) linkSegment.getLinkSegmentId();
-      costToFill[linkSegmentId] = computeTravelTime(linkSegment, linkSegmentFundamentalDiagrams[linkSegmentId], inflows[linkSegmentId], outflows[linkSegmentId]);
+      costToFill[linkSegmentId] = computeTravelTime(
+              linkSegment, linkSegmentFundamentalDiagrams[linkSegmentId], inflows[linkSegmentId], outflows[linkSegmentId]);
     }
   }
 

@@ -1,11 +1,9 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.BitSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.loading.SplittingRateData;
@@ -233,11 +231,11 @@ public abstract class StaticLtmAssignmentStrategy {
       /* STEP 2 - Sending flow update (including node model update) */
       getLoading().stepTwoInflowSendingFlowUpdate(mode);
 
-      /* STEP 3 - Splitting rates update before receiving flow update */
+      /* STEP 3 - Splitting rates update before receiving flow update (ony for physical queues) */
       getLoading().stepThreeSplittingRateUpdate(mode);
 
       /* STEP 4 - Receiving flow update */
-      getLoading().stepFourOutflowReceivingFlowUpdate(mode);
+      getLoading().stepFourOutflowAndReceivingFlowUpdate(mode);
 
       /* STEP 5 - Network loading convergence */
     } while (!getLoading().stepFiveCheckNetworkLoadingConvergence(networkLoadingIterationIndex++));
@@ -332,7 +330,7 @@ public abstract class StaticLtmAssignmentStrategy {
 
     if (updateOnlyPotentiallyBlockingNodeCosts) {
 
-      /* only update when node is both (flow) tracked as well as potentially blocking */
+      /* only update when node is both (flow) tracked and potentially blocking */
       boolean currentlyPotentiallyBlocking = false;
       boolean prevIterationPotentiallyBlocking = false;
       for (var trackedFlowNode : splittingRateData.getTrackedNodes()) {
@@ -359,13 +357,13 @@ public abstract class StaticLtmAssignmentStrategy {
       /* virtual cost */
       for (var linkSegment : virtualLayerSegments) {
         boolean congested = acceptanceFactors[(int) linkSegment.getId()] < 1;
-        linkBasedDCostDFlow[(int) linkSegment.getId()] = virtualCost.getDTravelTimeDFlow(congested, theMode, linkSegment);
+        linkBasedDCostDFlow[(int) linkSegment.getId()] = virtualCost.getDTravelTimeDFlow(!congested, theMode, linkSegment);
       }
 
       /* physical cost */
       for (var linkSegment : physicalLayerSegments) {
         boolean congested = acceptanceFactors[(int) linkSegment.getId()] < 1;
-        linkBasedDCostDFlow[(int) linkSegment.getId()] = physicalCost.getDTravelTimeDFlow(congested, theMode, linkSegment);
+        linkBasedDCostDFlow[(int) linkSegment.getId()] = physicalCost.getDTravelTimeDFlow(!congested, theMode, linkSegment);
       }
     }
 

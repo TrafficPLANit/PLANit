@@ -73,8 +73,9 @@ public abstract class StaticLtmNetworkLoading {
   // SIMULATION DATA //
 
   /**
-   * initialise the way the solution scheme is applied. Which in case of storage constraints is the basic decomposition scheme described in Raadsen and Bliemer (2021), and if
-   * storage constraints are disabled, it the basic point queue model described in Bliemer et al (2014). Both solution schemes can be altered in case they do not converge by
+   * initialise the way the solution scheme is applied. Which in case of storage constraints is the basic decomposition
+   * scheme described in Raadsen and Bliemer (2021), and if storage constraints are disabled, it the basic point queue
+   * model described in Bliemer et al (2014). Both solution schemes can be altered in case they do not converge by
    * activating various extensions see also {@link #activateNextExtension(Mode, boolean)}
    * 
    * @boolean logSolutionScheme when true log the set solution scheme, when false do not
@@ -82,8 +83,18 @@ public abstract class StaticLtmNetworkLoading {
   private void initialiseStaticLtmSolutionSchemeApproach(boolean logSolutionScheme) {
     if (getSettings().isDisableStorageConstraints()) {
       solutionScheme = StaticLtmLoadingScheme.POINT_QUEUE_BASIC;
+      if(getSettings().getNetworkLoadingInitialScheme() != StaticLtmLoadingScheme.NONE){
+        var invalid = LoggingUtils.logWarningIf(LOGGER, "chosen initial solution scheme incompatible with point queue based loading",
+                getSettings().getNetworkLoadingInitialScheme(), s -> !s.isPointQueue());
+        solutionScheme = invalid ? solutionScheme : getSettings().getNetworkLoadingInitialScheme();
+      }
     } else {
       solutionScheme = StaticLtmLoadingScheme.PHYSICAL_QUEUE_BASIC;
+      if(getSettings().getNetworkLoadingInitialScheme() != StaticLtmLoadingScheme.NONE){
+        var invalid = LoggingUtils.logWarningIf(LOGGER, "chosen initial solution scheme incompatible with physical queue based loading",
+                getSettings().getNetworkLoadingInitialScheme(), s -> !s.isPhysicalQueue());
+        solutionScheme = invalid ? solutionScheme : getSettings().getNetworkLoadingInitialScheme();
+      }
     }
 
     if (logSolutionScheme) {
@@ -167,7 +178,6 @@ public abstract class StaticLtmNetworkLoading {
   private SplittingRateData createSplittingRateData(SplittingRateData prevIterationSplittingRateData) {
 
     int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
-    SplittingRateData newSplittingRateData = null;
     /* POINT QUEUE BASIC */
     if (!isTrackAllNodeTurnFlows()) {
       splittingRateData = new SplittingRateDataPartial(numberOfVertices);
@@ -207,8 +217,9 @@ public abstract class StaticLtmNetworkLoading {
     }
 
     /*
-     * if we changed our approach during the last iteration -> we replaced the splitting rate data as well. When we start the new iteration with another approach, we first recreate
-     * the appropriate splitting rate data consistent with the current approach again and activate the correct tracked, potentially blocking nodes in the process
+     * if we changed our approach during the last iteration -> we replaced the splitting rate data as well.
+     * When we start the new iteration with another approach, we first recreate the appropriate splitting rate data
+     * consistent with the current approach again and activate the correct tracked, potentially blocking nodes in the process
      */
     boolean initialiseTrackedNodes = true;
     this.splittingRateData = createSplittingRateData(splittingRateData);
@@ -484,8 +495,9 @@ public abstract class StaticLtmNetworkLoading {
   }
 
   /**
-   * Verify if the sending flows are updated iteratively and locally in the Step 2 sending flow update. when not updated iteratively, only a single update is performed before doing
-   * another loading consistent with Bliemer et al. (2014). When updated iteratively, the solution scheme presented in Raadsen and Bliemer (2021) is active.
+   * Verify if the sending flows are updated iteratively and locally in the Step 2 sending flow update. when not updated
+   * iteratively, only a single update is performed before doing another loading consistent with Bliemer et al. (2014).
+   * When updated iteratively, the solution scheme presented in Raadsen and Bliemer (2021) is active.
    * 
    * @return true when not in POINT_QUEUE_BASIC scheme, false otherwise
    */
@@ -885,7 +897,7 @@ public abstract class StaticLtmNetworkLoading {
    *
    * @param mode to use
    */
-  public void stepFourOutflowReceivingFlowUpdate(Mode mode) {
+  public void stepFourOutflowAndReceivingFlowUpdate(Mode mode) {
     /* update the outflows and receiving flows */      
 
     /* for now */
@@ -1015,7 +1027,7 @@ public abstract class StaticLtmNetworkLoading {
         stepOneSplittingRatesUpdate(mode);
         stepTwoInflowSendingFlowUpdate(mode);
         stepThreeSplittingRateUpdate(mode);
-        stepFourOutflowReceivingFlowUpdate(mode);
+        stepFourOutflowAndReceivingFlowUpdate(mode);
       }
       
       /* post */

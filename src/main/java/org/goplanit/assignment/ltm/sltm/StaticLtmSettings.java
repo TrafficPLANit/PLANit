@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.zoning.OdZone;
 
@@ -35,6 +36,11 @@ public class StaticLtmSettings {
 
   /** gap epsilon which is only relevant when using extended iterative schedule of sLTM */
   private Double networkLoadingReceivingFlowGapEpsilon = DEFAULT_NETWORK_LOADING_GAP_EPSILON;
+
+  /** allow user to override the initial solution scheme to apply, no default because if not configured the default
+   *  depends on whether starage constraints are activated or not.
+   */
+  private StaticLtmLoadingScheme initialSltmLoadingScheme = StaticLtmLoadingScheme.NONE;
 
   /**
    * Track ods in this container for extended logging (if any)
@@ -186,6 +192,27 @@ public class StaticLtmSettings {
 
   public void setEnforceMaxEntropyFlowSolution(Boolean enforceMaxEntropyFlowSolution) {
     this.enforceMaxEntropyFlowSolution = enforceMaxEntropyFlowSolution;
+  }
+
+  /**
+   * Get the chosen  initial SLTM loading scheme to start with. If not explicitly overwritten this method returns
+   * {@code  StaticLtmLoadingScheme.NONE}, otherwise the value set. If not overwritten the loading will choose the appropriate
+   * initial scheme depending on configuration.
+   *
+   * @return loading scheme if set explicitly
+   */
+  public StaticLtmLoadingScheme getNetworkLoadingInitialScheme() {
+    return initialSltmLoadingScheme;
+  }
+
+  /**
+   * Set a specific initial SLTM loading scheme to start with. Should be compatible with the storage constraints approach
+   * chosen, i.e., you cannot set it to point queue when storage constraints are active.
+   *
+   * @param initialSltmLoadingScheme scheme to start with
+   */
+  public void setNetworkLoadingInitialScheme(StaticLtmLoadingScheme initialSltmLoadingScheme) {
+    this.initialSltmLoadingScheme = initialSltmLoadingScheme;
   }
 
   /**

@@ -279,7 +279,7 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
       }
       kShortestRawPathsWithCost.add(Pair.of(foundKShortestPath, foundKShortestPathWithEqualMinCostEntry.getKey()));
     }
-    
+
     return new KShortestPathResultImpl(origin, destination, kShortestRawPathsWithCost);
   }
 

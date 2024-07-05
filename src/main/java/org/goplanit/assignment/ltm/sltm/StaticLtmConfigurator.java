@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.algorithms.nodemodel.NodeModel;
 import org.goplanit.assignment.ltm.LtmConfigurator;
+import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.cost.physical.PhysicalCost;
 import org.goplanit.cost.virtual.VirtualCost;
 import org.goplanit.gap.GapFunction;
@@ -51,6 +52,8 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
   private static final String SET_NETWORKLOADING_SENDING_FLOW_GAP_EPSILON = "setNetworkLoadingSendingFlowGapEpsilon";
 
   private static final String SET_NETWORKLOADING_RECEIVING_FLOW_GAP_EPSILON = "setNetworkLoadingReceivingFlowGapEpsilon";
+
+  private static final String SET_NETWORKLOADING_INITIAL_SCHEME = "setNetworkLoadingInitialScheme";
 
   private static final String SET_TYPE = "setType";
 
@@ -169,6 +172,27 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
    */
   public void setNetworkLoadingReceivingFlowGapEpsilon(Double networkLoadingReceivingFlowGapEpsilon) {
     registerDelayedMethodCall(SET_NETWORKLOADING_RECEIVING_FLOW_GAP_EPSILON, networkLoadingReceivingFlowGapEpsilon);
+  }
+
+  /**
+   * Set a specific initial SLTM loading scheme to start with. Should be compatible with the storage constraints approach
+   * chosen, i.e., you cannot set it to point queue when storage constraints are active.
+   *
+   * @param initialScheme scheme to start with
+   */
+  public void setNetworkLoadingInitialScheme(StaticLtmLoadingScheme initialScheme) {
+    registerDelayedMethodCall(SET_NETWORKLOADING_INITIAL_SCHEME, initialScheme);
+  }
+
+  /**
+   * Get the chosen  initial SLTM loading scheme to start with. If not explicitly overwritten this method returns
+   * {@code  StaticLtmLoadingScheme.NONE}, otherwise the value set. If not overwritten the loading will choose the appropriate
+   * initial scheme depending on configuration.
+   *
+   * @return loading scheme if set explicitly
+   */
+  public StaticLtmLoadingScheme getNetworkLoadingInitialScheme() {
+    return (StaticLtmLoadingScheme) getTypedFirstParameterOfDelayedMethodCall(SET_NETWORKLOADING_RECEIVING_FLOW_GAP_EPSILON);
   }
 
   /**

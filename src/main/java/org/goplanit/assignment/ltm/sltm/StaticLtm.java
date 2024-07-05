@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.LtmAssignment;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmStrategyConjugateBush;
+import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
@@ -451,6 +452,16 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   // pass on to settings
   public void setNetworkLoadingReceivingFlowGapEpsilon(Double networkLoadingReceivingFlowGapEpsilon) {
     this.settings.setNetworkLoadingReceivingFlowGapEpsilon(networkLoadingReceivingFlowGapEpsilon);
+  }
+
+  // pass on to setting
+  public StaticLtmLoadingScheme getNetworkLoadingInitialScheme() {
+    return this.settings.getNetworkLoadingInitialScheme();
+  }
+
+  // pass on to setting
+  public void setNetworkLoadingInitialScheme(StaticLtmLoadingScheme initialSltmLoadingScheme) {
+    this.settings.setNetworkLoadingInitialScheme(initialSltmLoadingScheme);
   }
 
   // OVERRIDES

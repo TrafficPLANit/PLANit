@@ -70,6 +70,9 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
     var odPaths = odMultiPaths.getValue(origin, destination);
     for (StaticLtmDirectedPath odPath : odPaths) {
       double acceptedPathFlowRate = odDemand * odPath.getPathChoiceProbability();
+      if(Double.compare(Double.NaN, acceptedPathFlowRate)==0) {
+        System.out.println(String.format("acceptedPathFlowRate: %.1f", acceptedPathFlowRate));
+      }
 
       /* movement iterator */
       var movementArray = odPath.getMovements();

@@ -234,9 +234,14 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * @param demand the od demand across all paths of this od
    */
   private void updateOdPathProbabilities(
-          OdZone origin, OdZone destination, List<StaticLtmDirectedPath> odPaths, boolean newPathAdded,
+          OdZone origin,
+          OdZone destination,
+          List<StaticLtmDirectedPath> odPaths,
+          boolean newPathAdded,
           double[] currLinkSegmentsCosts, double[] dCostDFlow,
-          StochasticPathChoice stochasticPathChoice, Smoothing smoothing, PathBasedGapFunction gapFunction,
+          StochasticPathChoice stochasticPathChoice,
+          Smoothing smoothing,
+          PathBasedGapFunction gapFunction,
           double demand){
 
     if(odPaths.size() == 1 && !(getSettings().hasTrackOdsForLogging() && getSettings().isTrackOdForLogging(origin, destination))){
@@ -338,7 +343,11 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       if(newtonStepDenominator < 0){
         LOGGER.severe("Negative step denominator, should never happen!");
         newtonStepDenominator = 0.0;
+      }else if(Double.isNaN(newtonStepDenominator) || Double.isInfinite(newtonStepDenominator)){
+        LOGGER.severe(String.format("step denominator is %.2f, should never happen!", newtonStepDenominator));
+        newtonStepDenominator = 0.0;
       }
+
       //   cost_high - step * dCost_high/d_Flow_high = cost_low - step * dCost_low/d_Flow_low
       //   rewrite towards step: step =  (cost_high - cost_low)/((dCost_high/d_Flow_high)+(dCost_low/d_Flow_low))
       double newtonStep = Math.min(currHighCostDemand,
@@ -351,7 +360,9 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       var proposedHighCostDemand = currHighCostDemand - newtonStep;
 
       if(getSettings().hasTrackOdsForLogging() && getSettings().isTrackOdForLogging(origin,destination)){
-        LOGGER.info(String.format(" [%d] -> [%d] ---- demand (%.8f, %.8f) ----Step proposed: %.8f, Step applied: %.8f)", highCostPathIndex, lowCostPathIndex,currLowCostDemand, currHighCostDemand, newtonStep, smoothing.execute(currLowCostDemand, proposedLowCostDemand)-currLowCostDemand));
+        LOGGER.info(String.format(" [%d] -> [%d] ---- highcost path: abscost/dflow = %.8f, lowcost path abscost/dflow = %.8f)", highCostPathIndex, lowCostPathIndex, highCostPathDAbsoluteCostDFlow, lowCostPathDAbsoluteCostDFlow));
+        LOGGER.info(String.format(" [%d] -> [%d] ---- highcost path: perccost/dflow = %.8f, lowcost path perccost/dflow = %.8f)", highCostPathIndex, lowCostPathIndex, highCostPathDenominator, lowCostPathDenominator));
+        LOGGER.info(String.format(" [%d] -> [%d] ---- demand (%.8f, %.8f) ----Step proposed: %.8f, Step applied: %.8f)", highCostPathIndex, lowCostPathIndex, currLowCostDemand, currHighCostDemand, newtonStep, smoothing.execute(currLowCostDemand, proposedLowCostDemand)-currLowCostDemand));
       }
 
       double newLowCostPathProbability = Math.min(1, smoothing.execute(currLowCostDemand, proposedLowCostDemand)/demand);
@@ -468,7 +479,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
       /* COST UPDATE */
       boolean updateOnlyPotentiallyBlockingNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-      if(updateOnlyPotentiallyBlockingNodeCosts && simulationData.isInitialCostsAppliedInFirstIteration(mode) && simulationData.isFirstIteration()){
+      if(simulationData.isInitialCostsAppliedInFirstIteration(mode) && simulationData.isFirstIteration()){
         /* initial costs will be inconsistent with loading performed in first iteration, recalculate all link segment costs for free flow conditions first
         * and then for those that need tracking override with flow based costs */
         CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
