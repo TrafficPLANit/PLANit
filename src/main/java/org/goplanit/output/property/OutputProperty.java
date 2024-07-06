@@ -175,11 +175,34 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
    * Utility method to verify if any of the provided output properties are of the provided type
    *
    * @param outputProperties to check
-   * @param type to check
-   * @return true if present, false, otherwise
+   * @param type(s) to check
+   * @return true if at least one property matches with one of the types to check against, false, otherwise
    */
-  public static boolean containsPropertyOfType(OutputProperty[] outputProperties, OutputPropertyType type){
-    return Arrays.stream(outputProperties).anyMatch(op -> op.getOutputPropertyType().equals(type));
+  public static boolean containsPropertyOfType(OutputProperty[] outputProperties, OutputPropertyType... type){
+    return Arrays.stream(outputProperties).anyMatch(op ->
+        Arrays.stream(type).anyMatch(t -> t.equals(op.getOutputPropertyType())));
+  }
+
+  /**
+   * Utility method to verify if any of the provided output properties contain any ID type for the time period (ID, XML_ID, EXTERNAL_ID)
+   *
+   * @param outputProperties to check
+   * @return true if at least one property matches with a time period id type
+   */
+  public static boolean containsAnyTimePeriodIdType(OutputProperty[] outputProperties){
+    return containsPropertyOfType(
+        outputProperties, OutputPropertyType.TIME_PERIOD_XML_ID, OutputPropertyType.TIME_PERIOD_ID, OutputPropertyType.TIME_PERIOD_EXTERNAL_ID);
+  }
+
+  /**
+   * Utility method to verify if any of the provided output properties contain any ID type for the mode (ID, XML_ID, EXTERNAL_ID)
+   *
+   * @param outputProperties to check
+   * @return true if at least one property matches with a mode id type
+   */
+  public static boolean containsAnyModeIdType(OutputProperty[] outputProperties){
+    return containsPropertyOfType(
+        outputProperties, OutputPropertyType.MODE_XML_ID, OutputPropertyType.MODE_ID, OutputPropertyType.MODE_EXTERNAL_ID);
   }
 
 }

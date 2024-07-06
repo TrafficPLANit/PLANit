@@ -182,11 +182,11 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    */
   public BaseOutputFormatter(IdGroupingToken groupId) {
     this.id = IdGenerator.generateId(groupId, BaseOutputFormatter.class);
-    this.outputKeyProperties = new HashMap<OutputType, OutputProperty[]>();
-    this.outputValueProperties = new HashMap<OutputType, OutputProperty[]>();
+    this.outputKeyProperties = new HashMap<>();
+    this.outputValueProperties = new HashMap<>();
     this.outputTimeUnit = DEFAULT_TIME_UNIT;
-    this.outputTypeValuesLocked = new HashMap<OutputType, Boolean>();
-    this.outputTypeKeysLocked = new HashMap<OutputType, Boolean>();
+    this.outputTypeValuesLocked = new HashMap<>();
+    this.outputTypeKeysLocked = new HashMap<>();
     for (OutputType outputType : OutputType.values()) {
       this.outputTypeValuesLocked.put(outputType, false);
       this.outputTypeKeysLocked.put(outputType, false);
@@ -234,10 +234,10 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 
     // Each output type configuration can contain multiple suboutputypes (or not). We collect the
     // iteration reference (which might be different from the simulation iteration, and the
-    // (sub)outputtype combination before proceeding with the actual persisting
+    // (sub)output type combination before proceeding with the actual persisting
     var outputTypeIterationInformation = new HashMap<OutputTypeEnum, Integer>();
     if (outputTypeConfiguration.hasActiveSubOutputTypes()) {
-      // subdivided in suboutputtypes, each having their own file and possible a different reference
+      // subdivided in suboutput types, each having their own file and possible a different reference
       // iteration index
       Set<SubOutputTypeEnum> subOutputTypes = outputTypeConfiguration.getActiveSubOutputTypes();
       for (SubOutputTypeEnum subOutputTypeEnum : subOutputTypes) {
