@@ -527,8 +527,11 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     case PATH:
       outputTypeAdapter = new TraditionalStaticPathOutputTypeAdapter(outputType, this);
       break;
+    case SIMULATION:
+      outputTypeAdapter = new TraditionalStaticSimulationOutputTypeAdapter(outputType, this);
+      break;
     default:
-      LOGGER.warning(LoggingUtils.runIdPrefix(getId()) + outputType.value() + " has not been defined yet.");
+      LOGGER.warning(LoggingUtils.runIdPrefix(getId()) + outputType.value() + " output type adapter has not been defined yet.");
     }
     return outputTypeAdapter;
   }

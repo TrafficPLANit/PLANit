@@ -117,8 +117,11 @@ public class OutputConfiguration {
     case PATH:
       createdOutputTypeConfiguration = new PathOutputTypeConfiguration();
       break;
+    case SIMULATION:
+      createdOutputTypeConfiguration = new SimulationOutputTypeConfiguration();
+      break;
     default:
-      LOGGER.warning(outputType.value() + " has not been defined yet.");
+      LOGGER.warning(outputType.value() + " output type configuration has not been defined yet.");
     }
 
     if (createdOutputTypeConfiguration != null) {

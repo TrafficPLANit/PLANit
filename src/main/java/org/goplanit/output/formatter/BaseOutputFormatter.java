@@ -264,19 +264,24 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
       int iterationIndex = entry.getValue();
       switch (outputType) {
       case GENERAL:
-        writeGeneralResultsForCurrentTimePeriod(outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+        writeGeneralResultsForCurrentTimePeriod(
+            outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
         break;
       case LINK:
-        writeLinkResultsForCurrentTimePeriod(outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+        writeLinkResultsForCurrentTimePeriod(
+            outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
         break;
       case OD:
-        writeOdResultsForCurrentTimePeriod(outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+        writeOdResultsForCurrentTimePeriod(
+            outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
         break;
       case SIMULATION:
-        writeSimulationResultsForCurrentTimePeriod(outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+        writeSimulationResultsForCurrentTimePeriod(
+            outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
         break;
       case PATH:
-        writePathResultsForCurrentTimePeriod(outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+        writePathResultsForCurrentTimePeriod(
+            outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
         break;
       }
       lockOutputProperties(outputType);

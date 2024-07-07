@@ -357,6 +357,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       }
       outputTypeAdapter = new StaticLtmPathOutputTypeAdapter(outputType, this);
       break;
+    case SIMULATION:
+      outputTypeAdapter = new StaticLtmSimulationOutputTypeAdapter(outputType, this);
+      break;
     default:
       LOGGER.warning(String.format("%s%s is not supported yet", LoggingUtils.runIdPrefix(getId()), outputType.value()));
     }

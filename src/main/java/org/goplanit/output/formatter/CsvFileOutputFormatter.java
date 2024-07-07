@@ -5,10 +5,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.od.skim.OdSkimMatrix.OdSkimMatrixIterator;
-import org.goplanit.output.adapter.MacroscopicLinkOutputTypeAdapter;
-import org.goplanit.output.adapter.OdOutputTypeAdapter;
-import org.goplanit.output.adapter.OutputAdapter;
-import org.goplanit.output.adapter.PathOutputTypeAdapter;
+import org.goplanit.output.adapter.*;
 import org.goplanit.output.configuration.OutputConfiguration;
 import org.goplanit.output.configuration.OutputTypeConfiguration;
 import org.goplanit.output.configuration.PathOutputTypeConfiguration;
@@ -36,7 +33,7 @@ import java.util.stream.Collectors;
 /**
  * Class containing common methods required by classes which write results to CSV output files
  * 
- * @author gman6028
+ * @author gman6028, markr
  *
  */
 public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
@@ -60,6 +57,53 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   }
 
   /**
+   * Write output values to the Link CSV file for the current iteration
+   *
+   * @param outputConfiguration     output configuration
+   * @param outputTypeConfiguration the current output type configuration
+   * @param currentOutputType       the output type
+   * @param outputAdapter           output adapter for the current output type
+   * @param modes                   Set of modes for the current assignment
+   * @param timePeriod              the current time period
+   * @param csvPrinter              CSVPrinter object to record results for this iteration
+   * @return PlanItException thrown if the CSV file cannot be created or written to
+   */
+  protected PlanItException writeSimulationResultsForCurrentTimePeriodToCsvPrinter(
+      OutputConfiguration outputConfiguration,
+      OutputTypeConfiguration outputTypeConfiguration,
+      OutputTypeEnum currentOutputType,
+      OutputAdapter outputAdapter,
+      Set<Mode> modes,
+      TimePeriod timePeriod,
+      CSVPrinter csvPrinter) {
+    try {
+      PlanItException.throwIf(!(currentOutputType instanceof OutputType), "currentOutputType not compatible with simulation output");
+      OutputType outputType = (OutputType) currentOutputType;
+
+      var simulationOutputTypeAdapter = (SimulationOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+      SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
+
+      for (Mode mode : modes) {
+        // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+        // the current mode's conversion factor
+        VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
+
+        List<Object> rowValues = outputProperties.stream()
+            .map(outputProperty -> simulationOutputTypeAdapter.getSimulationOutputPropertyValue(
+                outputProperty, mode, timePeriod).orElse(null))
+            .map(OutputUtils::formatObject).collect(Collectors.toList());
+        csvPrinter.printRecord(rowValues);
+      }
+    } catch (PlanItException e) {
+      return e;
+    } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
+      return new PlanItException("Error when writing simulation results for current time period in CSVOutputFileformatter", e);
+    }
+    return null;
+  }
+
+  /**
    * Write output values to the OD CSV file for the current iteration
    * 
    * @param outputConfiguration     output configuration
@@ -72,8 +116,14 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
   @SuppressWarnings("unchecked")
-  protected PlanItException writeOdResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
+  protected PlanItException writeOdResultsForCurrentTimePeriodToCsvPrinter(
+      OutputConfiguration outputConfiguration,
+      OutputTypeConfiguration outputTypeConfiguration,
+      OutputTypeEnum currentOutputType,
+      OutputAdapter outputAdapter,
+      Set<Mode> modes,
+      TimePeriod timePeriod,
+      CSVPrinter csvPrinter) {
     try {
       // main type information
       OdOutputTypeAdapter odOutputTypeAdapter = (OdOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputTypeConfiguration.getOutputType());
@@ -173,7 +223,8 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
           /* transpose the column vectors, e.g., [[1,2,3,4],["a","b","c","d"]] -> [[1,"a"],[2,"b"],[3,"c"],[4,"d"]], and format each value
            * the latter being the actual rows to persist */
-          var rowsValues = ListUtils.transpose((List<? extends List<Object>>) colVectorValues, OutputUtils::formatObject);
+          var rowsValues =
+              ListUtils.transpose((List<? extends List<Object>>) colVectorValues, OutputUtils::formatObject);
 
           // now persist per row
           for(var rowValue : rowsValues){
@@ -266,14 +317,14 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   /**
    * Add a new name of the CSV output file for a specified output type
    * 
-   * @param currentoutputType the specified output type
+   * @param currentOutputType the specified output type
    * @param csvFileName       the name of the output file to be added
    */
-  public void addCsvFileNamePerOutputType(OutputTypeEnum currentoutputType, String csvFileName) {
-    if (!csvFileNameMap.containsKey(currentoutputType)) {
-      csvFileNameMap.put(currentoutputType, new ArrayList<>());
+  public void addCsvFileNamePerOutputType(OutputTypeEnum currentOutputType, String csvFileName) {
+    if (!csvFileNameMap.containsKey(currentOutputType)) {
+      csvFileNameMap.put(currentOutputType, new ArrayList<>());
     }
-    csvFileNameMap.get(currentoutputType).add(csvFileName);
+    csvFileNameMap.get(currentOutputType).add(csvFileName);
   }
 
 }

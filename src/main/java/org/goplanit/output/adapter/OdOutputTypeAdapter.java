@@ -114,6 +114,7 @@ public interface OdOutputTypeAdapter extends OutputTypeAdapter {
    * @param timePeriod     the current time period
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
-  public abstract Optional<?> getOdOutputPropertyValue(OutputProperty outputProperty, final OdDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod);
+  public abstract Optional<?> getOdOutputPropertyValue(
+      OutputProperty outputProperty, final OdDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod);
 
 }
