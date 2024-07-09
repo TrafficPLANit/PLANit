@@ -85,7 +85,7 @@ public class OutputManager {
   public void persistOutputData(final TimePeriod timePeriod, final Set<Mode> modes, final boolean converged) {
     for (OutputType outputType : outputConfiguration.getActivatedOutputTypes()) {
       OutputTypeConfiguration outputTypeConfiguration = outputConfiguration.getOutputTypeConfiguration(outputType);
-      if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
+      if (converged || !outputConfiguration.isPersistOnlyFinalIteration(outputType)) {
         for (OutputFormatter outputFormatter : outputFormatters) {
           if (converged || outputFormatter.canHandleMultipleIterations()) {
             outputFormatter.persist(timePeriod, modes, outputConfiguration, outputTypeConfiguration, outputAdapter);
@@ -103,7 +103,7 @@ public class OutputManager {
    * @param converged  true if the assignment has converged
    * @return true when anything is persisted, false otherwise
    */
-  public boolean isAnyOutputPersisted(final TimePeriod timePeriod, final Collection<Mode> modes, final boolean converged) {
+  public boolean isPersistAnyOutput(final TimePeriod timePeriod, final Collection<Mode> modes, final boolean converged) {
     if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
       for (OutputFormatter outputFormatter : outputFormatters) {
         if (converged || outputFormatter.canHandleMultipleIterations()) {
@@ -118,7 +118,7 @@ public class OutputManager {
    * Factory method to create an output configuration for a given type
    * 
    * @param outputType the output type to register the configuration for
-   * @return outputTypeconfiguration the output type configuration that has been newly registered
+   * @return outputType configuration the output type configuration that has been newly registered
    */
   public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType){
     return outputConfiguration.createAndRegisterOutputTypeConfiguration(outputType);

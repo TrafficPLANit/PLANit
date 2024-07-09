@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.LtmAssignment;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmStrategyConjugateBush;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
@@ -25,7 +24,6 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -220,7 +218,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   private void persistIterationResults(boolean converged){
     var timePeriod = simulationData.getTimePeriod();
     var modes = simulationData.getSupportedModes();
-    if (getOutputManager().isAnyOutputPersisted(timePeriod, modes, converged)) {
+    if (getOutputManager().isPersistAnyOutput(timePeriod, modes, converged)) {
 
       assignmentStrategy.getLoading().stepSixFinaliseForPersistence(modes.iterator().next());
       getOutputManager().persistOutputData(timePeriod, modes, converged);

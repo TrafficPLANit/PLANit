@@ -22,8 +22,10 @@ import org.goplanit.utils.unit.Unit;
  */
 public abstract class OutputTypeConfiguration {
 
-  /** the logger */
-  protected static final Logger LOGGER = Logger.getLogger(OutputTypeConfiguration.class.getCanonicalName());
+  /**
+   * Default for persisting final iteration
+   */
+  public static final boolean PERSIST_ONLY_FINAL_ITERATION = true;
 
   /**
    * Filters output properties in the OutputAdapter and outputs them as an array
@@ -36,6 +38,14 @@ public abstract class OutputTypeConfiguration {
         outputProperties.stream().filter(test::apply).toArray(OutputProperty[]::new);
     return outputPropertyArray;
   }
+
+  /** the logger */
+  protected static final Logger LOGGER = Logger.getLogger(OutputTypeConfiguration.class.getCanonicalName());
+
+  /**
+   * persisting final iteration only or not
+   */
+  protected boolean persistOnlyFinalIteration = PERSIST_ONLY_FINAL_ITERATION;
 
   /**
    * The output type being used with the current instance - this must be set in each concrete class which extends OutputTypeConfiguration
@@ -244,5 +254,24 @@ public abstract class OutputTypeConfiguration {
       outputProperty.setUnitOverride(overrideUnits);
     }
   }
+
+  /**
+   * Set whether only the final iteration will be recorded or all iterations
+   *
+   * @param persistOnlyFinalIteration true if only the final iteration will be recorded
+   */
+  public void setPersistOnlyFinalIteration(boolean persistOnlyFinalIteration) {
+    this.persistOnlyFinalIteration = persistOnlyFinalIteration;
+  }
+
+  /**
+   * Returns whether only the final iteration will be recorded
+   *
+   * @return true if only the final iteration will be recorded, false otherwise
+   */
+  public boolean isPersistOnlyFinalIteration() {
+    return persistOnlyFinalIteration;
+  }
+
 
 }

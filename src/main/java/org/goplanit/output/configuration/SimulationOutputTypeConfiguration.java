@@ -25,7 +25,8 @@ import java.util.stream.Collectors;
  * <li>ITERATION_INDEX</li>
  * <li>ROUTE_CHOICE_CONVERGENCE_GAP</li>
  * </ul>
- * 
+ *
+ * By default, each iteration is persisted (unlike link and od data for example)
  * 
  * @author markr
  *
@@ -43,6 +44,10 @@ public class SimulationOutputTypeConfiguration extends OutputTypeConfiguration {
   public SimulationOutputTypeConfiguration(){
     super(OutputType.SIMULATION);
     initialiseDefaultOutputProperties();
+
+    /*  simulation info by default is of most use when recorded each iteration as usually we have just a
+        single value for each property per iteration */
+    setPersistOnlyFinalIteration(false);
   }
 
   /**
@@ -113,7 +118,8 @@ public class SimulationOutputTypeConfiguration extends OutputTypeConfiguration {
     case ROUTE_CHOICE_CONVERGENCE_GAP:
       return true;
     default:
-      LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an output property, which is inappropriate for Simulation output. This will be ignored");
+      LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an output property, which is " +
+              "inappropriate for Simulation output. This will be ignored");
     }
     return false;
   }
