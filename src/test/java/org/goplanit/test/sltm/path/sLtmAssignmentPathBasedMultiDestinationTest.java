@@ -229,6 +229,9 @@ public class sLtmAssignmentPathBasedMultiDestinationTest extends sLtmAssignmentM
       configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       configurator.activateDetailedLogging(false);
 
+      /* no relative scaling factors */
+      configurator.setActivateRelativeScalingFactor(false);
+
       /* PATH BASED */
       configurator.setType(StaticLtmType.PATH_BASED);
 

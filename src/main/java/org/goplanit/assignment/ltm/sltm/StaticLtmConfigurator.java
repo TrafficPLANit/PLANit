@@ -65,6 +65,12 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
   private static final String ADD_TRACK_OD_FOR_LOGGING_EXTERNAL_ID = "addTrackOdForLoggingByExternalId";
 
+  private static final String SET_DISABLE_PATH_GENERATION_AFTER_ITERATION = "setDisablePathGenerationAfterIteration";
+
+  private static final String SET_ACTIVATE_RELATIVE_SCALING_FACTOR = "setActivateRelativeScalingFactor";
+
+  public static final String SET_DISABLE_RELATIVE_SCALING_FACTOR_UPDATE_AFTER_ITERATION = "setDisableRelativeScalingFactorUpdateAfterIteration";
+
   /**
    * Constructor
    * 
@@ -218,28 +224,12 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
   }
 
   /**
-   * choose a particular path choice implementation
-   *
-   * @param pathChoiceType type to choose
-   * @return path choice configurator
-   * @throws PlanItException thrown if error
-   */
-  @Override
-  public PathChoiceConfigurator<? extends PathChoice> createAndRegisterPathChoice(final String pathChoiceType) throws PlanItException {
-    if(getType() != StaticLtmType.PATH_BASED){
-      setType(StaticLtmType.PATH_BASED);
-      LOGGER.info(String.format("PathChoice activated, this requires sLTM type to be path based, switching to type: %s", getType()));
-    }
-    return super.createAndRegisterPathChoice(pathChoiceType);
-  }
-
-  /**
    * (De)Activate the bush based max entropy flow solution. If switched off, any equal cost solution for a PAS is considered correct, when switched on an attempt is made to obtain
    * unique equal flow distribution if possible. The latter is computationally more costly but results in unique solution.
    * <p>
    *   Only relevant for bush-based approach
    * </p>
-   * 
+   *
    * @param flag to set
    */
   public void activateMaxEntropyFlowDistribution(boolean flag) {
@@ -271,5 +261,90 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
     }
     Arrays.stream(odPairs).forEach( p -> registerDelayedMethodCall(delayedCall, p.first(), p.second()));
   }
+
+  /**
+   * the iteration after which we disable path generation
+   * <p>
+   * Path based only option
+   * </p>
+   * @return disablePathGenerationAfterIteration iteration number used
+   */
+  public Integer getDisablePathGenerationAfterIteration() {
+    return (Integer) getFirstParameterOfDelayedMethodCall(SET_DISABLE_PATH_GENERATION_AFTER_ITERATION);
+  }
+
+  /**
+   * choose iteration after which we disable path generation, if not set default is applied
+   * <p>
+   * Path based only option
+   * </p>
+   * @param disablePathGenerationAfterIteration choose iteration after which we disable path generation
+   */
+  public void setDisablePathGenerationAfterIteration(Integer disablePathGenerationAfterIteration) {
+    registerDelayedMethodCall(SET_DISABLE_PATH_GENERATION_AFTER_ITERATION, disablePathGenerationAfterIteration);
+  }
+
+  /**
+   * Choose whether scaling factor of path choice is to be made relative to the minimum cost
+   * on each OD
+   * <p>
+   * Path based only option
+   * </p>
+   * @param flag to set
+   */
+  public void setActivateRelativeScalingFactor(Boolean flag){
+    registerDelayedMethodCall(SET_ACTIVATE_RELATIVE_SCALING_FACTOR, flag);
+  }
+
+  /**
+   * Check whether scaling factor of path choice is to be made relative to the minimum cost
+   * on each OD
+   * <p>
+   * Path based only option
+   * </p>
+   * @return flag set
+   */
+  public Boolean isActivateRelativeScalingFactor(){
+    return (Boolean) getFirstParameterOfDelayedMethodCall(SET_ACTIVATE_RELATIVE_SCALING_FACTOR);
+  }
+
+  /**
+   * If relative scaling factor is active, disable updating it each iteration after the given iteration
+   * <p>
+   * Path based only option
+   * </p>
+   * @param disableRelativeScalingFactorUpdateAfterIteration iteration to disable relative scaling factor update after
+   */
+  public void setDisableRelativeScalingFactorUpdateAfterIteration(Integer disableRelativeScalingFactorUpdateAfterIteration){
+    registerDelayedMethodCall(SET_DISABLE_RELATIVE_SCALING_FACTOR_UPDATE_AFTER_ITERATION, disableRelativeScalingFactorUpdateAfterIteration);
+  }
+
+  /**
+   * Check setting regarding when relative scaling factor update would be disabled if active
+   * <p>
+   * Path based only option
+   * </p>
+   * @return iteration set
+   */
+  public Integer getDisableRelativeScalingFactorUpdateAfterIteration(){
+    return (Integer) getFirstParameterOfDelayedMethodCall(SET_DISABLE_RELATIVE_SCALING_FACTOR_UPDATE_AFTER_ITERATION);
+  }
+
+  /**
+   * choose a particular path choice implementation
+   *
+   * @param pathChoiceType type to choose
+   * @return path choice configurator
+   * @throws PlanItException thrown if error
+   */
+  @Override
+  public PathChoiceConfigurator<? extends PathChoice> createAndRegisterPathChoice(final String pathChoiceType) throws PlanItException {
+    if(getType() != StaticLtmType.PATH_BASED){
+      setType(StaticLtmType.PATH_BASED);
+      LOGGER.info(String.format("PathChoice activated, this requires sLTM type to be path based, switching to type: %s", getType()));
+    }
+    return super.createAndRegisterPathChoice(pathChoiceType);
+  }
+
 
 }

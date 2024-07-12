@@ -6,8 +6,8 @@ import org.goplanit.utils.math.Precision;
 import java.util.logging.Logger;
 
 /**
- * Gap function generalised from the SUE gap function in Bliemer et al. (2014) who sum each origin-destination path based cost multiplied by its
- * assigned path flow and divide it by the least cost path multiplied by the total o-d flow.
+ * Gap function generalised from the SUE gap function in Bliemer et al. (2014) who sum each origin-destination path based
+ * (perceived) cost multiplied by its assigned path flow and divide it by the least cost path multiplied by the total o-d flow.
  * 
  * @author markr
  *

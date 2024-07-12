@@ -16,6 +16,9 @@ public class MSRASmoothingConfigurator extends SmoothingConfigurator<MSRASmoothi
   /** method name for setting bad iteration threshold on actual instance */
   public static final String SET_BAD_ITERATION_THRESHOLD = "setBadIterationThreshold";
 
+  /** method name for setting lambda activation on actual instance */
+  public static final String SET_ACTIVATE_LAMBDA = "setActivateLambda";
+
   /**
    * Constructor
    *
@@ -58,6 +61,19 @@ public class MSRASmoothingConfigurator extends SmoothingConfigurator<MSRASmoothi
    */
   public void setKappaStep(double kappaStep) {
     registerDelayedMethodCall(SET_KAPPA_STEP, kappaStep);
+  }
+
+  /**
+   * Get the lambda flag
+   *
+   * @return kappaStep the kappa step
+   */
+  public Boolean isActivateLambda() {
+    return (Boolean) getFirstParameterOfDelayedMethodCall(SET_ACTIVATE_LAMBDA);
+  }
+
+  public void setActivateLambda(Boolean activateLambda) {
+    registerDelayedMethodCall(SET_ACTIVATE_LAMBDA, activateLambda);
   }
 
   /**

@@ -80,8 +80,9 @@ public interface OdDemands extends OdData<Double> {
    *
    * @param upperBound all values below or equal to the upperbound are considered for rounding
    * @param seed to use
+   * @param logstats when true log stats on rounding applied, otherwise not
    */
-  public abstract void applyStochasticRounding(double upperBound, int seed);
+  public abstract void applyStochasticRounding(double upperBound, int seed, boolean logstats);
 
   /**
    * Sum all demands

@@ -10,7 +10,10 @@ import org.ojalgo.function.UnaryFunction;
 import org.ojalgo.function.aggregator.Aggregator;
 import org.ojalgo.random.Random1D;
 
+import java.util.LongSummaryStatistics;
 import java.util.Random;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.logging.Logger;
 
 /**
  * This class handles the OD demand matrix.
@@ -19,6 +22,9 @@ import java.util.Random;
  *
  */
 public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDemands {
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(OdDemandMatrix.class.getCanonicalName());
 
   /**
    * Wrapper around primitive matrix iterator
@@ -100,20 +106,34 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
    * {@inheritDoc}
    */
   @Override
-  public void applyStochasticRounding(double upperBound, int seed) {
+  public void applyStochasticRounding(double upperBound, int seed, boolean logstats) {
     final var rand = new Random(seed);
 
+    LongAdder roundedKeptCount = new LongAdder();
+    LongAdder notRoundedKeptCount = new LongAdder();
+    LongAdder nonZeroCount = new LongAdder();
+    LongAdder totalCount = new LongAdder();
     var stochasticallyRoundUnary = new UnaryFunction<Double>() {
 
       private double stochasticallyRounded(double arg){
+        totalCount.increment();
         if(arg <= 0.0){
           return arg;
         }else if(arg > upperBound){
+          nonZeroCount.increment();
+          notRoundedKeptCount.increment();
           return arg;
+        }else{
+          nonZeroCount.increment();
         }
 
         double draw = rand.nextDouble() * upperBound;
-        return draw < arg ? upperBound : 0.0;
+        if(draw < arg ){
+          roundedKeptCount.increment();
+          return upperBound;
+        }else{
+          return 0.0;
+        }
       }
 
       @Override
@@ -128,6 +148,19 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
     };
 
     matrixContainer.modifyAll(stochasticallyRoundUnary);
+
+    if(logstats) {
+      LOGGER.info(String.format(
+              "Stochastic rounding applied - total entries: %d, original non-zero: %d (%.2f%%), new-non-zero: %d (%.2f%%) [not-rounded-kept: %d, rounded-kept: %d,  rounded-zero: %d]",
+              totalCount.intValue(),
+              nonZeroCount.intValue(),
+              nonZeroCount.intValue() / totalCount.doubleValue(),
+              notRoundedKeptCount.intValue() + roundedKeptCount.intValue(),
+              (notRoundedKeptCount.intValue() + roundedKeptCount.intValue()) / totalCount.doubleValue(),
+              notRoundedKeptCount.intValue(),
+              roundedKeptCount.intValue(),
+              (nonZeroCount.intValue() - notRoundedKeptCount.intValue()) - roundedKeptCount.longValue()));
+    }
   }
 
   @Override

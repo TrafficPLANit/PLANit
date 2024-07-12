@@ -11,6 +11,7 @@ import org.goplanit.choice.ChoiceModel;
 import org.goplanit.path.filter.PathFilter;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.od.OdData;
 import org.goplanit.utils.path.SimpleDirectedPath;
 import org.goplanit.utils.reflection.ReflectionUtils;
 
@@ -97,12 +98,15 @@ public class StochasticPathChoice extends PathChoice {
    * @param applyExpTransform indicate to exp transform or not
    * @return perceived path costs for each path
    */
-  public double[] computePerceivedPathCosts(final double[] absolutePathCosts, final double[] pathProbabilities, final Double odDemand, boolean applyExpTransform) {
+  public double[] computePerceivedPathCosts(
+          final double[] absolutePathCosts, final double[] pathProbabilities, final Double odDemand, boolean applyExpTransform) {
+
     final var numPaths = absolutePathCosts.length;
     var perceivedPathCosts = new double[numPaths];
     for(int index = 0; index < absolutePathCosts.length; ++ index){
       double pathDemand = pathProbabilities[index] * odDemand;
-      perceivedPathCosts[index] = choiceModel.computePerceivedCost(absolutePathCosts, index, pathProbabilities[index] * odDemand, applyExpTransform);
+      perceivedPathCosts[index] =
+              choiceModel.computePerceivedCost(absolutePathCosts, index, pathDemand, applyExpTransform);
     }
     return  perceivedPathCosts;
   }

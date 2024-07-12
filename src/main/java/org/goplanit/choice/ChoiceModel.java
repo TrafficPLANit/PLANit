@@ -4,11 +4,13 @@ import java.io.Serializable;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.goplanit.choice.logit.BoundedMultinomialLogit;
 import org.goplanit.choice.weibit.Weibit;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.choice.logit.MultinomialLogit;
+import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.reflection.ReflectionUtils;
 
@@ -22,6 +24,8 @@ public abstract class ChoiceModel extends PlanitComponent<ChoiceModel> implement
 
   /** generated UID */
   private static final long serialVersionUID = -4578323513280128464L;
+
+  private static final Logger LOGGER = Logger.getLogger(ChoiceModel.class.getCanonicalName());
 
   /** the scaling factor used to scale the utilities/cost */
   protected double scalingFactor = DEFAULT_SCALING_FACTOR;
@@ -95,9 +99,41 @@ public abstract class ChoiceModel extends PlanitComponent<ChoiceModel> implement
   public static final String BOUNDED_MNL = BoundedMultinomialLogit.class.getCanonicalName();
 
 
-
   /** default scaling factor applied */
-  public static final double DEFAULT_SCALING_FACTOR = 1.0;
+  public static final double DEFAULT_SCALING_FACTOR = 5.0;
+
+  /**
+   * Based on provided costs of alternatives, create a scaling factor for each entry based on
+   * the original scaling factor divided by the minimum cost entry (assumes the original scaling factor is normalised
+   * to one cost unit). A high scaling factor means closer to All-Or-Nothing choice, a low scaling factor means closer
+   * to uniform choice (cost indiferent)
+   * <p>
+   *   rel_scaling_Factor_alt_i = scaling_factor * 1/min_cost_all_alts
+   * </p>
+   * <p>
+   *   Example 1: if the minimum cost is 3, then we make the scaling less aggressive: origin_scale/3, e.g., on longer
+   *   routes travellers tolerate a higher difference in cost and still take a less optimal route it the thinking.
+   * </p>
+   * <p>
+   *   Example 2: if the minimum cost is 0.02, then we make the scaling more aggressive: origin_scale/0.02, e.g., on shorter
+   *   routes travellers tolerate only a small difference in cost to consider a less optimal route it the thinking.
+   * </p>
+   *
+   * @param alternativeCosts to create relative scaling factors for
+   * @return relative scaling factor computed
+   */
+  public double computeRelativeScalingFactorGivenMinimumAlternativeCost(double[] alternativeCosts){
+    var minimumCost = ArrayUtils.getMinimum(alternativeCosts);
+    if(minimumCost <= 0){
+      LOGGER.warning("Unable to scale due to minimum cost being zero, ignoreing entry");
+    }
+    if(Double.isNaN(minimumCost ) || Double.isInfinite(minimumCost )){
+      LOGGER.warning("Unable to scale due to minimum cost being NaN or infinite, ignoring entry");
+    }
+
+    /* scalingFactor * 1/min_cost : implies re-scaling from single unit to the OD reference cost */
+    return getScalingFactor()/minimumCost;
+  }
 
 
   /** Scaling factor

@@ -465,6 +465,36 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     this.settings.setNetworkLoadingInitialScheme(initialSltmLoadingScheme);
   }
 
+  // pass on to settings
+  public Integer getDisablePathGenerationAfterIteration() {
+    return this.settings.getDisablePathGenerationAfterIteration();
+  }
+
+  // pass on to settings
+  public void setDisablePathGenerationAfterIteration(Integer disablePathGenerationAfterIteration) {
+    this.settings.setDisablePathGenerationAfterIteration(disablePathGenerationAfterIteration);
+  }
+
+  // pass on to settings
+  public void setActivateRelativeScalingFactor(Boolean flag){
+    this.settings.setActivateRelativeScalingFactor(flag);
+  }
+
+  // pass on to settings
+  public Boolean isActivateRelativeScalingFactor(){
+    return this.settings.isActivateRelativeScalingFactor();
+  }
+
+  // pass on to settings
+  public void setDisableRelativeScalingFactorUpdateAfterIteration(Integer disableRelativeScalingFactorUpdateAfterIteration){
+    this.settings.setDisableRelativeScalingFactorUpdateAfterIteration(disableRelativeScalingFactorUpdateAfterIteration);
+  }
+
+  // pass on to settings
+  public Integer getDisableRelativeScalingFactorUpdateAfterIteration(){
+    return this.settings.getDisableRelativeScalingFactorUpdateAfterIteration();
+  }
+
   // OVERRIDES
 
   /**

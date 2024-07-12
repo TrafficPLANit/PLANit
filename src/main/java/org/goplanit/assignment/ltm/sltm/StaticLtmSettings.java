@@ -37,6 +37,13 @@ public class StaticLtmSettings {
   /** gap epsilon which is only relevant when using extended iterative schedule of sLTM */
   private Double networkLoadingReceivingFlowGapEpsilon = DEFAULT_NETWORK_LOADING_GAP_EPSILON;
 
+  /** disable generation of any new paths after given iteration */
+  private Integer disablePathGenerationAfterIteration = DEFAULT_DISABLE_PATH_GENERATION_AFTER_ITERATION;
+
+  private boolean relativeScalingFactorActive = DEFAULT_RELATIVE_SCALING_FACTOR_ACTIVE;
+
+  private Integer disableRelativeScalingFactorUpdateAfterIteration = DEFAULT_DISABLE_RELATIVE_SCALING_FACTOR_AFTER_ITERATION;
+
   /** allow user to override the initial solution scheme to apply, no default because if not configured the default
    *  depends on whether starage constraints are activated or not.
    */
@@ -66,6 +73,16 @@ public class StaticLtmSettings {
 
   /** default network loading gap epsilon to apply */
   public static double DEFAULT_NETWORK_LOADING_GAP_EPSILON = 0.001;
+
+  /** default for disabling path generation after a certain iteration */
+  public static int DEFAULT_DISABLE_PATH_GENERATION_AFTER_ITERATION = Integer.MAX_VALUE;
+
+  /** default for activating relative scaling factor path choice ODs */
+  public static boolean DEFAULT_RELATIVE_SCALING_FACTOR_ACTIVE = true;
+
+  /** default for disabling relative scaling factor update after a certain iteration */
+  public static int DEFAULT_DISABLE_RELATIVE_SCALING_FACTOR_AFTER_ITERATION = 20;
+
 
   /**
    * Provide OD pair to track extended logging for during assignment for debugging purposes.
@@ -97,6 +114,8 @@ public class StaticLtmSettings {
     this.sLtmType = staticLtmSettings.sLtmType;
     this.detailedLogging = staticLtmSettings.detailedLogging.booleanValue();
     this.disableStorageConstraints = staticLtmSettings.disableStorageConstraints.booleanValue();
+
+    // bush based setting
     this.enforceMaxEntropyFlowSolution = staticLtmSettings.enforceMaxEntropyFlowSolution.booleanValue();
   }
 
@@ -186,14 +205,6 @@ public class StaticLtmSettings {
     this.networkLoadingReceivingFlowGapEpsilon = networkLoadingReceivingFlowGapEpsilon;
   }
 
-  public Boolean isEnforceMaxEntropyFlowSolution() {
-    return enforceMaxEntropyFlowSolution;
-  }
-
-  public void setEnforceMaxEntropyFlowSolution(Boolean enforceMaxEntropyFlowSolution) {
-    this.enforceMaxEntropyFlowSolution = enforceMaxEntropyFlowSolution;
-  }
-
   /**
    * Get the chosen  initial SLTM loading scheme to start with. If not explicitly overwritten this method returns
    * {@code  StaticLtmLoadingScheme.NONE}, otherwise the value set. If not overwritten the loading will choose the appropriate
@@ -281,6 +292,88 @@ public class StaticLtmSettings {
       }
     }
     return false;
+  }
+
+  ///********************
+  /// BUSH BASED SETTINGS
+  ///********************
+
+  /**
+   * Bush based only option
+   * TODO: split out in separate settings time permitting
+   * @return enforceMaxEntropyFlowSolution flag set
+   */
+  public Boolean isEnforceMaxEntropyFlowSolution() {
+    return enforceMaxEntropyFlowSolution;
+  }
+
+  /**
+   * Bush based only option
+   * TODO: split out in separate settings time permitting
+   * @param enforceMaxEntropyFlowSolution when true force max entropy based approach
+   */
+  public void setEnforceMaxEntropyFlowSolution(Boolean enforceMaxEntropyFlowSolution) {
+    this.enforceMaxEntropyFlowSolution = enforceMaxEntropyFlowSolution;
+  }
+
+  ///********************
+  /// PATH BASED SETTINGS
+  ///********************
+
+  /**
+   * Path based only option
+   * TODO: split out in separate settings time permitting
+   * @return disablePathGenerationAfterIteration iteration number used
+   */
+  public Integer getDisablePathGenerationAfterIteration() {
+    return disablePathGenerationAfterIteration;
+  }
+
+  /**
+   * Path based only option. choose iteration after which we disable path generation
+   * TODO: split out in separate settings time permitting
+   * @param disablePathGenerationAfterIteration choose iteration after which we disable path generation
+   */
+  public void setDisablePathGenerationAfterIteration(Integer disablePathGenerationAfterIteration) {
+    this.disablePathGenerationAfterIteration = disablePathGenerationAfterIteration;
+  }
+
+  /**
+   * Path based only option. Choose whether scaling factor of path choice is to be made relative to the minimum cost
+   * on each OD
+   * TODO: split out in separate settings time permitting
+   * @param flag to set
+   */
+  public void setActivateRelativeScalingFactor(Boolean flag){
+    this.relativeScalingFactorActive = flag;
+  }
+
+  /**
+   * Path based only option. Check whether scaling factor of path choice is to be made relative to the minimum cost
+   * on each OD
+   * TODO: split out in separate settings time permitting
+   * @return flag set
+   */
+  public Boolean isActivateRelativeScalingFactor(){
+    return relativeScalingFactorActive;
+  }
+
+  /**
+   * Path based only option. If relative scaling factor is active, disable updating it each iteration after the given iteration
+   * TODO: split out in separate settings time permitting
+   * @param disableRelativeScalingFactorUpdateAfterIteration iteration to disable relative scaling factor update after
+   */
+  public void setDisableRelativeScalingFactorUpdateAfterIteration(Integer disableRelativeScalingFactorUpdateAfterIteration){
+    this.disableRelativeScalingFactorUpdateAfterIteration = disableRelativeScalingFactorUpdateAfterIteration;
+  }
+
+  /**
+   * Path based only option. Check setting regarding when relative scaling factor update would be disabled if active
+   * TODO: split out in separate settings time permitting
+   * @return iteration set
+   */
+  public Integer getDisableRelativeScalingFactorUpdateAfterIteration(){
+    return this.disableRelativeScalingFactorUpdateAfterIteration;
   }
 
 }
