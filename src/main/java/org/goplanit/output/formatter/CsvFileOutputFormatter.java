@@ -47,6 +47,16 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   protected final Map<OutputTypeEnum, List<String>> csvFileNameMap;
 
   /**
+   * Based on the output type configuration generate the CSV header
+   * @param outputTypeConfiguration to use
+   * @return CSV header as list of strings
+   */
+  protected static List<String> generateCsvHeader(final OutputTypeConfiguration outputTypeConfiguration){
+    return outputTypeConfiguration.getOutputProperties().stream().map(
+        OutputProperty::getName).collect(Collectors.toList());
+  }
+
+  /**
    * Constructor
    * 
    * @param groupId, contiguous id generation within this group for instances of this class
@@ -302,15 +312,17 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   /**
    * Open the CSV output file and write the headers to it
    * 
-   * @param outputTypeConfiguration the current output type configuration
    * @param csvFileName             the name of the CSV output file
    * @return the CSVPrinter object (output values will be written to this in subsequent rows)
    * @throws Exception thrown if there is an error opening the file
    */
-  protected CSVPrinter openCsvFileAndWriteHeaders(OutputTypeConfiguration outputTypeConfiguration, String csvFileName) throws Exception {
-    CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(csvFileName), CSVFormat.Builder.create(CSVFormat.DEFAULT).setIgnoreSurroundingSpaces(true).build());
-    List<String> headerValues = outputTypeConfiguration.getOutputProperties().stream().map(OutputProperty::getName).collect(Collectors.toList());
-    csvPrinter.printRecord(headerValues);
+  protected CSVPrinter createCsvPrinter(String csvFileName) throws Exception {
+
+    CSVPrinter csvPrinter =
+        new CSVPrinter(
+            new FileWriter(csvFileName),
+            CSVFormat.Builder.create(CSVFormat.DEFAULT).setIgnoreSurroundingSpaces(true).build());
+
     return csvPrinter;
   }
 

@@ -204,7 +204,11 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    */
   @Override
   public void persist(
-      TimePeriod timePeriod, Set<Mode> modes, OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter) {
+      TimePeriod timePeriod,
+      Set<Mode> modes,
+      OutputConfiguration outputConfiguration,
+      OutputTypeConfiguration outputTypeConfiguration,
+      OutputAdapter outputAdapter) {
 
     OutputType outputType = outputTypeConfiguration.getOutputType();
     OutputProperty[] outputValuePropertyArray = outputTypeConfiguration.getOutputValueProperties();

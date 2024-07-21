@@ -65,9 +65,8 @@ public interface OutputFormatter {
    * 
    * @param outputConfiguration OutputTypeConfiguration for the assignment to be saved
    * @param outputAdapter       the outputAdapter
-   * @throws PlanItException thrown if there is an error
    */
-  public void finaliseAfterSimulation(OutputConfiguration outputConfiguration, OutputAdapter outputAdapter) throws PlanItException;
+  public void finaliseAfterSimulation(OutputConfiguration outputConfiguration, OutputAdapter outputAdapter);
 
   /**
    * Flag to indicate whether an implementation can handle multiple iterations

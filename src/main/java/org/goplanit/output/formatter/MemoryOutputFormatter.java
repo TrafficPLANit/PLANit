@@ -403,10 +403,9 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * 
    * @param outputConfiguration OutputConfiguration of the assignment
    * @param outputAdapter       the outputAdapter
-   * @throws PlanItException thrown if there is an error
    */
   @Override
-  public void finaliseAfterSimulation(OutputConfiguration outputConfiguration, OutputAdapter outputAdapter) throws PlanItException {
+  public void finaliseAfterSimulation(OutputConfiguration outputConfiguration, OutputAdapter outputAdapter){
     // do nothing
   }
 

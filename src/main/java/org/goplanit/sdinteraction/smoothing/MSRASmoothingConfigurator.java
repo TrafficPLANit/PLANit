@@ -66,7 +66,7 @@ public class MSRASmoothingConfigurator extends SmoothingConfigurator<MSRASmoothi
   /**
    * Get the lambda flag
    *
-   * @return kappaStep the kappa step
+   * @return activateLambda flag
    */
   public Boolean isActivateLambda() {
     return (Boolean) getFirstParameterOfDelayedMethodCall(SET_ACTIVATE_LAMBDA);

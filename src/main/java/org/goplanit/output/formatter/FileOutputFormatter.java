@@ -42,8 +42,15 @@ public abstract class FileOutputFormatter extends BaseOutputFormatter {
    * @return the name of the output file in absolute form
    * @throws PlanItException thrown if the output directory cannot be opened
    */
-  protected String generateAbsoluteOutputFileName(String outputDirectory, String nameRoot, String nameExtension, TimePeriod timePeriod, OutputType outputType, long runId, int iteration)
-      throws PlanItException {
+  protected static String generateAbsoluteOutputFileName(
+      String outputDirectory,
+      String nameRoot,
+      String nameExtension,
+      TimePeriod timePeriod,
+      OutputType outputType,
+      long runId,
+      int iteration)  throws PlanItException {
+
     try {
       Path outputDirPath = Path.of(outputDirectory).toAbsolutePath();
       if (!Files.isDirectory(outputDirPath)) {

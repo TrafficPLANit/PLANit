@@ -37,20 +37,6 @@ public class SimulationOutputTypeConfiguration extends OutputTypeConfiguration {
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());
 
   /**
-   * Constructor
-   *
-   * Define the default output properties here.
-   */
-  public SimulationOutputTypeConfiguration(){
-    super(OutputType.SIMULATION);
-    initialiseDefaultOutputProperties();
-
-    /*  simulation info by default is of most use when recorded each iteration as usually we have just a
-        single value for each property per iteration */
-    setPersistOnlyFinalIteration(false);
-  }
-
-  /**
    * Set the default output properties for the path output configuration
    */
   private void initialiseDefaultOutputProperties() {
@@ -63,6 +49,20 @@ public class SimulationOutputTypeConfiguration extends OutputTypeConfiguration {
 
     // value
     addProperty(OutputPropertyType.ROUTE_CHOICE_CONVERGENCE_GAP);
+  }
+
+  /**
+   * Constructor
+   *
+   * Define the default output properties here.
+   */
+  public SimulationOutputTypeConfiguration(){
+    super(OutputType.SIMULATION);
+    initialiseDefaultOutputProperties();
+
+    /*  simulation info by default is of most use when recorded each iteration as usually we have just a
+        single value for each property per iteration, so persist all iterations as the default */
+    setPersistOnlyFinalIteration(false);
   }
 
   /**
