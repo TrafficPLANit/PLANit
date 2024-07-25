@@ -84,15 +84,19 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * Initialize the output key properties for the specified output type configuration
    * 
    * @param outputTypeConfiguration the specified output type configuration
+   * @return success when false, the output type should be disabled as it cannot be persisted correctly
    */
-  private void initializeKeyProperties(OutputTypeConfiguration outputTypeConfiguration) {
+  private boolean initializeKeyProperties(OutputTypeConfiguration outputTypeConfiguration) {
     OutputProperty[] outputKeyPropertyArray = outputTypeConfiguration.getOutputKeyProperties();
     OutputType outputType = outputTypeConfiguration.getOutputType();
     OutputProperty[] outputKeyPropertiesArray = outputTypeConfiguration.validateAndFilterKeyProperties(outputKeyPropertyArray);
 
-    PlanItRunTimeException.throwIf(
-        outputKeyPropertiesArray == null, "Key properties invalid for OutputType " + outputType.value() + " not correctly defined");
+    if(outputKeyPropertiesArray == null) {
+      LOGGER.warning("No output key properties defined or invalid, for OutputType " + outputType.value());
+      return false;
+    }
     outputKeyProperties.put(outputType, outputKeyPropertiesArray);
+    return true;
   }
 
   /**
@@ -227,7 +231,12 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
     }
 
     if (!outputTypeKeysLocked.get(outputType)) {
-      initializeKeyProperties(outputTypeConfiguration);
+      boolean success = initializeKeyProperties(outputTypeConfiguration);
+      if(!success){
+        LOGGER.warning("Ignoring OutputType: [" + outputType.value() + "] for persistence");
+        outputConfiguration.deregisterOutputTypeConfiguration(outputType);
+        return;
+      }
     }
 
     if(!outputAdapter.hasOutputTypeAdapter(outputType)){
