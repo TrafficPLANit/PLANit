@@ -188,8 +188,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @param iterationIndex          the iterationIndex we are persisting for
    */
   @Override
-  protected void writeSimulationResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) {
+  protected void writeSimulationResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex) {
     //LOGGER.warning("memory Output for OutputType SIMULATION has not been implemented yet");
   }
 

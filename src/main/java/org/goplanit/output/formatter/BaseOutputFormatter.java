@@ -120,8 +120,14 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * @param timePeriod              current time period
    * @param iterationIndex          current iteration index
    */
-  protected abstract void writeLinkResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex);
+  protected abstract void writeLinkResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex);
 
   /**
    * Write General results for the current time period to the CSV file
@@ -134,8 +140,14 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * @param timePeriod              current time period
    * @param iterationIndex          current iteration index
    */
-  protected abstract void writeGeneralResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex);
+  protected abstract void writeGeneralResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex);
 
   /**
    * Write Origin-Destination results for the time period to the CSV file
@@ -148,8 +160,14 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * @param timePeriod              current time period
    * @param iterationIndex          current iteration index
    */
-  protected abstract void writeOdResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex);
+  protected abstract void writeOdResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex);
 
   /**
    * Write Simulation results for the current time period to the CSV file
@@ -162,8 +180,14 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * @param timePeriod              current time period
    * @param iterationIndex          current iteration index
    */
-  protected abstract void writeSimulationResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex);
+  protected abstract void writeSimulationResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex);
 
   /**
    * Write OD Path results for the time period to the CSV file
@@ -176,8 +200,14 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * @param timePeriod              current time period
    * @param iterationIndex          current iteration index
    */
-  protected abstract void writePathResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex);
+  protected abstract void writePathResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex);
 
   /**
    * Constructor
