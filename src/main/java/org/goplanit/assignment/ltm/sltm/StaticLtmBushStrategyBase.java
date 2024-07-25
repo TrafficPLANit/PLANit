@@ -137,7 +137,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    */
   protected void updateGap(final PathBasedGapFunction gapFunction, final Pas pas, double s1SendingFlow, double s2SendingFlow) {
     gapFunction.increaseMinimumPathCosts(pas.getAlternativeLowCost(), (s1SendingFlow + s2SendingFlow));
-    gapFunction.increaseAbsolutePathGap(pas.getAlternativeHighCost(), pas.getAlternativeLowCost(), s2SendingFlow);
+    gapFunction.increaseAbsolutePathGap(pas.getAlternativeHighCost(),  s2SendingFlow, pas.getAlternativeLowCost());
   }
 
   /**
@@ -413,7 +413,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    */
   @Override
   public boolean hasConverged(GapFunction gapFunction, int iterationIndex) {
-    // TODO Auto-generated method stub
     boolean converged = super.hasConverged(gapFunction, iterationIndex);
     if (converged && getSettings().isEnforceMaxEntropyFlowSolution()) {
       converged = isSolutionFlowEntropyMaximised(gapFunction.getStopCriterion().getEpsilon());

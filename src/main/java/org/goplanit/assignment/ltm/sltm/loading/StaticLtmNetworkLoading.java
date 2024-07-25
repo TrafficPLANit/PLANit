@@ -787,7 +787,7 @@ public abstract class StaticLtmNetworkLoading {
   
   //@formatter:off
   /**
-   * Perform splitting rate update (before sending flow update) of the network loading:
+   * Perform inflow and sending flow update:
    * 
    * 1. Update node model to compute new inflows, Eq. (5)
    * 2. Update next sending flows via inflows, Eq. (7)

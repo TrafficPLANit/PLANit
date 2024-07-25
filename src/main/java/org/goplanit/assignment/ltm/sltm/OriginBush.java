@@ -125,7 +125,7 @@ public class OriginBush extends RootedLabelledBush {
   @Override
   public String toString() {
     String result = super.toString();
-    return "Bush: origin zone: " + getOrigin().getXmlId() + "\n" + result;
+    return "Bush: origin zone: " + getOrigin().getIdsAsString() + "\n" + result;
   }
 
   /**

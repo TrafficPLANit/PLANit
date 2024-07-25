@@ -133,6 +133,8 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
     /* register on existing PAS (if available) otherwise create new PAS */
     Pas exitingPas = pasManager.findExistingPas(s1, s2);
     if (exitingPas != null) {
+      //todo: it could be that this pass was discarded earlier as suitable, perhaps we should
+      //      do this check here again, and if it is not sufficiently attractive discard it?
       exitingPas.registerBush(bush);
       return null;
     }

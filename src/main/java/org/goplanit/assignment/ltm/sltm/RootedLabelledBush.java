@@ -437,7 +437,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * 
    * @param referenceVertex                to start breadth first search from as it is the point of coincidence of the alternative path (via labelled vertices) and bush
    * @param alternativeSubpathVertexLabels indicating the shortest (network) path at the reference vertex but not part of the bush at that point (different edge segment used)
-   * @return vertex at which the two paths coincided again and the map to extract the path from the this vertex to the reference vertex that was found using the breadth-first
+   * @return vertex at which the two paths coincided again and the map to extract the path from this vertex to the reference vertex that was found using the breadth-first
    *         method
    */
   public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpath(DirectedVertex referenceVertex, final short[] alternativeSubpathVertexLabels) {
@@ -445,7 +445,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     Map<DirectedVertex, EdgeSegment> processedVertices = new TreeMap<>();
 
     /*
-     * Construct results in same direction as shortest path search, so So, for one-to-all regular search, we construct results where we have for each vertex its upstream segment,
+     * Construct results in same direction as shortest path search. So, for one-to-all regular search, we construct results where we have for each vertex its upstream segment,
      * while for all-to-one we have the downstream segment for each vertex
      */
     final boolean invertNextDirection = true;
@@ -574,6 +574,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
         return 0;
       }
 
+      //todo: believe entry and exit labels are always sycned currently (based on destination), so could be simplified?
       var exitSegmentExitLabelSplittingRates = bushData.getSplittingRates(entrySegment, entryLabel);
       double remainingSubPathSendingFlow = 0;
       for (var exitLabel : exitLabels) {

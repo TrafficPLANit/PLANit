@@ -23,10 +23,11 @@ import org.goplanit.utils.id.IdGroupingToken;
 
 /**
  * 
- * An acyclic sub graph contains a subset of the full graph without cycles. The active subset of the graph is tracked by explicitly registering edge segments. Edge segments are by
- * definition directed.
+ * An acyclic sub graph contains a subset of the full graph without cycles. The active subset of the graph is tracked by
+ * explicitly registering edge segments. Edge segments are by definition directed.
  * 
- * Whenever edge segments are added it is verified that no cycles are created. Also each edge segment that is added must connect to the existing subgraph's contents
+ * Whenever edge segments are added it is verified that no cycles are created. Also, each edge segment that is added
+ * must connect to the existing subgraph's contents.
  * 
  * 
  * @author markr
@@ -168,8 +169,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
   }
 
   /**
-   * While traversing the graph recursively, preVisit is invoked BEFORE exploring a vertex further. In this implementation, the preVisit simply increments the counter and updates
-   * the preVisit variable on the vertex data. See also Gupta et al. 2008
+   * While traversing the graph recursively, preVisit is invoked BEFORE exploring a vertex further. In this implementation,
+   * the preVisit simply increments the counter and updates the preVisit variable on the vertex data. See also Gupta et al. 2008
    * 
    * @param vertexData data of the vertex
    * @param counter    track the progress of traversing the graph, increment by one

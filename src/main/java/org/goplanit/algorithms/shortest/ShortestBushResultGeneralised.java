@@ -63,8 +63,8 @@ public class ShortestBushResultGeneralised extends ShortestResultGeneralised imp
     var dag = new ACyclicSubGraphImpl(idToken, endSearchVertex, isInverted(), numberOfEdgeSegments);
 
     // extract bush -> backwards to root
-    TreeSet<Vertex> openVertices = new TreeSet<Vertex>();
-    Set<Vertex> processedVertices = new HashSet<Vertex>();
+    TreeSet<Vertex> openVertices = new TreeSet<>();
+    Set<Vertex> processedVertices = new HashSet<>();
     openVertices.add(startSearchVertex);
     while (!openVertices.isEmpty()) {
       var currVertex = openVertices.first();

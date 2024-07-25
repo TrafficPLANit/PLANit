@@ -93,9 +93,10 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
   @Override
   public void accept(final RootedLabelledBush bush) {
     /*
-     * track bush sending flows propagated from the origin. Note: We cannot use the bush's own turn sending flows because we are performing a network loading based on the most
-     * recent bush's splitting rates, we only use the bush's sending flows for bush flow shifts. The bush's sending flows are updated AFTER the network loading is complete
-     * (converged) by using the network reduction factors
+     * track bush sending flows propagated from the origin. Note: We cannot use the bush's own turn sending flows
+     * because we are performing a network loading based on the most recent bush's splitting rates, we only use
+     * the bush's sending flows for bush flow shifts. The bush's sending flows are updated AFTER the network loading
+     * is complete (converged) by using the network reduction factors
      */
 
     /* key is segment+label, value is sending flow */

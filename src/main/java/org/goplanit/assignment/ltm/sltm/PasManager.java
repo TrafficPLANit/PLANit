@@ -20,7 +20,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 
 /**
- * Container class for tracking all unique PASs indexed by their last (merge) vertex
+ * Container class for tracking all unique PASs indexed by their relevant reference vertex
  * 
  * @author markr
  *

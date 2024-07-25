@@ -205,7 +205,8 @@ public class PasFlowShiftOriginBasedDestLabelledExecutor extends PasFlowShiftExe
     final var s2 = pas.getAlternative(false);
     final var s1 = pas.getAlternative(true);
 
-    /* prep - origin */
+    /* prep - origin: use accepted flows at end of s2 because that is the best way to disentangle from other partially overlapping flows, then we
+    *  can use it to determine the proportion of flow by label which is needed to apply the flow shift correctly */
     var s2DestinationLabelledAcceptedFlows = determineUsedLabelAcceptedFlows(origin, s2, flowAcceptanceFactors);
 
     /*
@@ -235,6 +236,7 @@ public class PasFlowShiftOriginBasedDestLabelledExecutor extends PasFlowShiftExe
       double s2StartLabeledFlowShift = -currLabelPortion * bushFlowShift;
       double s2FinalLabeledFlowShift = executeBushDestinationLabeledFlowShift(origin, entrySegment, currLabel, s2StartLabeledFlowShift, s2, flowAcceptanceFactors);
 
+      //todo: end is not correct because end is the one over the final merge, not last segment on alternative?
       LOGGER.info(String.format("** S2 SHIFT: dest-label %d, shift-link [start,end]: [%.10f, %.10f]", currLabel.getLabelId(), s2StartLabeledFlowShift, s2FinalLabeledFlowShift));
 
       /* shift flow across final merge for S2 */
@@ -258,6 +260,7 @@ public class PasFlowShiftOriginBasedDestLabelledExecutor extends PasFlowShiftExe
       double s1StartLabeledFlowShift = currLabelPortion * bushFlowShift;
       double s1FinalLabeledFlowShift = executeBushDestinationLabeledFlowShift(origin, entrySegment, currLabel, s1StartLabeledFlowShift, s1, flowAcceptanceFactors);
 
+      //todo: end is not correct because end is the one over the final merge, not last segment on alternative?
       LOGGER.info(String.format("** S1 SHIFT: dest-label %d, shift-link [start,end]: [%.10f, %.10f]", currLabel.getLabelId(), s1StartLabeledFlowShift, s1FinalLabeledFlowShift));
 
       /* shift flow across final merge for S1 based on findings in s2 */

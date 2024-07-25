@@ -16,7 +16,8 @@ import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
 
 /**
- * Implementation to support an orgin-based bush (destination labelled) solution for sLTM. Memory and computationally inferior to destination based implementation.
+ * Implementation to support an orgin-based bush (destination labelled) solution for sLTM.
+ * Memory and computationally inferior to destination based implementation.
  * 
  * @author markr
  *

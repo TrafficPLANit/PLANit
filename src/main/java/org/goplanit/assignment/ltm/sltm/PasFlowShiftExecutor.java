@@ -493,7 +493,7 @@ public abstract class PasFlowShiftExecutor {
           double bushS2Portion = bushEntrySegmentS2Flow / totalEntrySegmentS2Flow;
           double entrySegmentPasflowShift = proposedProportionalPasflowShift * bushS2Portion;
 
-          LOGGER.info(String.format("** Entry segment (" + entrySegment.toString() + ") - Zone (" + bush.getRootZoneVertex().getXmlId() + ") - start flow shift: %.10f",
+          LOGGER.info(String.format("** Entry segment (" + entrySegment.toString() + ") - Zone vertex (" + bush.getRootZoneVertex().getIdsAsString() + ") - start flow shift: %.10f",
               entrySegmentPasflowShift));
 
           /* perform the flow shift for the current bush and its attributed portion */

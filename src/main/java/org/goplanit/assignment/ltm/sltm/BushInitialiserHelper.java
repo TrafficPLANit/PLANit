@@ -105,8 +105,8 @@ public class BushInitialiserHelper {
   }
 
   /**
-   * Helper method to register tracking information on passed in containers to start tracking new unfinished PASs starting at the provided (diverge) vertex. Create alternatives for
-   * each available exit segment of the vertex on the DAG
+   * Helper method to register tracking information on passed in containers to start tracking new unfinished PASs starting
+   * at the provided (diverge) vertex. Create alternatives for each available exit segment of the vertex on the DAG
    * 
    * @param pasDivergeVertex                           starting vertex of new unfinished PAS(s)
    * @param currentDestinationDag                      to identify used exit edge segments
@@ -115,7 +115,9 @@ public class BushInitialiserHelper {
    */
   private static void addNewUnfinishedPass(final DirectedVertex pasDivergeVertex, final ACyclicSubGraph currentDestinationDag,
       Map<EdgeSegment, Map<DirectedVertex, Integer>> edgeSegmentPasOriginVertexAlternativeIndex, Map<DirectedVertex, List<List<EdgeSegment>>> originVertexAlternatives) {
-    /* new PAS(s) start here, flow splits, create and register exit edge segments as start of alternatives for new diverge leading to PAS(s) when merging later */
+
+    /* new PAS(s) start here, flow splits, create and register exit edge segments as start of alternatives for new diverge
+       leading to PAS(s) when merging later */
     var pasAlternatives = new ArrayList<List<EdgeSegment>>();
     originVertexAlternatives.put(pasDivergeVertex, pasAlternatives); // track from vertex
     for (var exitSegment : pasDivergeVertex.getExitEdgeSegments()) {
@@ -250,7 +252,7 @@ public class BushInitialiserHelper {
   }
 
   /**
-   * Execute the initialisation by ensuring the correct flow is added to the bush for the given od dag and it related demand.
+   * Execute the initialisation by ensuring the correct flow is added to the bush for the given od dag and its related demand.
    * 
    * @param originVertex   to start with, expected to be the centroid of the od's origin. It is expected the iterator proceeds in downstream direction until reaching the
    *                       destination

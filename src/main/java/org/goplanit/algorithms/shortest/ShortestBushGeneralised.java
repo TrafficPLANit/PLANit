@@ -10,13 +10,16 @@ import org.goplanit.utils.math.Precision;
 /**
  * Shortest bush algorithm.
  * <p>
- * Shortest bush algorithm is a one-to-all/all-to-one implementation (depending on configuration) of all (equal cost) implicit shortest bush comprising of all equal cost paths
- * based on the generalised costs on each link segment (edge). It is identical to Dijkstra's shortest path algorithm except that it creates a bush rooted at the start vertex
- * towards the destination vertex, where each node stores all its equal cheapest predecessor nodes from which the bush can be extracted when traversing it in reverse order.
+ * Shortest bush algorithm is a one-to-all/all-to-one implementation (depending on configuration) of all (equal cost)
+ * implicit shortest bush comprising of all equal cost paths based on the generalised costs on each link segment (edge).
+ * It is identical to Dijkstra's shortest path algorithm except that it creates a bush rooted at the start vertex towards
+ * the destination vertex, where each node stores all its equal cheapest predecessor nodes from which the bush can be
+ * extracted when traversing it in reverse order.
  * </p>
  * <p>
- * when configured as one-to-all, the result is to be traversed in reverse direction (destination to origin) to obtian apth information, whereas in all-to-one form the result is
- * traversed from origin to destination (as the search itself is reversed in that case). In its current form, it assumes a macroscopic network and macroscopic link segments to
+ * when configured as one-to-all, the result is to be traversed in reverse direction (destination to origin) to obtain
+ * path information, whereas in all-to-one form the result is traversed from origin to destination (as the search itself
+ * is reversed in that case). In its current form, it assumes a macroscopic network and macroscopic link segments to
  * operate on
  * </p>
  * 
