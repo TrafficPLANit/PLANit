@@ -6,12 +6,10 @@ import java.util.logging.Logger;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.assignment.ltm.sltm.RootedLabelledBush;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
-import org.goplanit.utils.zoning.OdZone;
 
 /**
  * Base Consumer to apply during bush based network loading flow update for each origin bush
@@ -33,12 +31,13 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
   private final MultiKeyMap<Object,Movement> segmentPair2MovementMap;
 
   /**
-   * Initialise the bush sending flows for the bush's root exit edge segments to bootstrap the loading for this bush
+   * Initialise the bush sending flows for the bush's origins' exit edge segments to bootstrap the loading for this bush.
+   * This is irrespective whether the bush is inverted and runs from destination to origins or the other way around
    * 
    * @param bush             at hand
    * @param bushSendingFlows to populate as a starting point for the bush loading
    */
-  private void initialiseRootExitSegmentSendingFlows(final RootedLabelledBush bush, final MultiKeyMap<Object, Double> bushSendingFlows) {
+  private void initialiseOriginExitSegmentSendingFlows(final RootedLabelledBush bush, final MultiKeyMap<Object, Double> bushSendingFlows) {
     Set<CentroidVertex> originVertices = bush.getOriginVertices();
     for (var originVertex : originVertices) {
       double totalOriginsSendingFlow = 0;
@@ -103,15 +102,15 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
     MultiKeyMap<Object, Double> bushSendingFlows = new MultiKeyMap<>();
 
     /* get topological sorted vertices to process */
-    var vertexIter = bush.getTopologicalIterator(true /* od-direction */);
+    var vertexIter = bush.isInverted() ? bush.getInvertedTopologicalIterator() : bush.getTopologicalIterator();
     if (vertexIter == null) {
       LOGGER.severe(String.format("Topologically sorted bush not available, this shouldn't happen, skip"));
       return;
     }
     var currVertex = vertexIter.next();
 
-    /* initialise root vertex outgoing edge sending flows */
-    initialiseRootExitSegmentSendingFlows(bush, bushSendingFlows);
+    /* initialise origin vertex outgoing edge sending flows */
+    initialiseOriginExitSegmentSendingFlows(bush, bushSendingFlows);
 
     /* pass over bush in topological order propagating flow from origin */
     while (vertexIter.hasNext()) {

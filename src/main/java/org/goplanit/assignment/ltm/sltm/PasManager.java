@@ -172,35 +172,37 @@ public class PasManager {
   }  
 
   /**
-   * Extract a subpath in the form of a raw edge segment array in downstream direction based on the shortest path result provided. Since the path tree is in reverse direction, the
-   * array is filled from the back, i.e.,if there is spare capacity the front of the array would be empty.
+   * Extract a subpath in the form of a raw edge segment array in downstream direction based on the shortest path result
+   * provided. Since the path tree is in reverse direction, the array is filled from the back, i.e.,if there is spare
+   * capacity the front of the array would be empty.
    * 
-   * @param closestToSearchRoot       vertex in relation to searchResult tree
-   * @param furthestFromSearchRoot    vertex in relation to searchResult tree
+   * @param closestToSearchRoot       vertex in relation to searchResult tree chosen root
+   * @param furthestFromSearchRoot    vertex in relation to searchResult tree chosen root
    * @param searchResultTree          to extract path from, tree's direction is automatically accounted for
    * @param arrayLength               to use for the to be created array which should be at least as long as the path that is to be extracted
    * @param truncateArray             flag indicating to truncate the subpath array in case the front of the array is not fully used due to the existence of spare capacity
    * @return created array in downstream direction, null if no path could be found
    */
-  public static EdgeSegment[] createSubpathArrayFrom(final DirectedVertex closestToSearchRoot, final DirectedVertex furthestFromSearchRoot, final ShortestPathResult searchResultTree, int arrayLength,
+  public static EdgeSegment[] createSubpathArrayFrom(
+      final DirectedVertex closestToSearchRoot,
+      final DirectedVertex furthestFromSearchRoot,
+      final ShortestPathResult searchResultTree,
+      int arrayLength,
       boolean truncateArray) {
+
+    // Note: result tree is traversed in reversed order of the search itself
+    // 1) one-to-all (search not inverted) --> traverse result tree backwards from destination to origin
+    //                                     --> extract path needs to be added in reverse to go in travel direction
+    // 2) all-to-one (search inverted) --> traverse tree backwards from origin to destination
+    //                                 --> extract path already in correct travel direction
 
     EdgeSegment currEdgeSegment = null;
     EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
     DirectedVertex currVertex = furthestFromSearchRoot;
-
-    /*
-     * depending on the search direction, i.e., the direction of the to-be extract segments, we revert the way we add them to the resulting array to obtain the correct final
-     * direction of edge segments in downstream direction
-     */
     boolean searchInverted = searchResultTree.getSearchType().isInverted();
     
     /* run from end to start backward while adding in reverse to final array, unless search was inverted, then we go from start to end */
-    int index = arrayLength - 1;
-    if (searchInverted) {
-      index = 0;
-    }
-
+    int index = searchInverted ? 0 : arrayLength - 1;
     do {
 
       currEdgeSegment = searchResultTree.getNextEdgeSegmentForVertex(currVertex);
@@ -230,31 +232,45 @@ public class PasManager {
   }
 
   /**
-   * Extract a subpath in the form of a raw edge segment array in downstream direction based on the breadth-first (BF) search result provided. This search result is expected to be constructed from the regular shortest path result 
-   * which direction depends on the search type. the BF search results are expected to be provided in the SAME direction as the search itself (unlike shortestXResults which are in the opposite direction), i.e., if the search was one-to-all (not inverted)
-   * then the bf results are also provided in the downstream direction, whereas all-to-one is in the opposite direction.
+   * Extract a subpath in the form of a raw edge segment array in downstream direction based on the breadth-first (BF)
+   * search result provided. This search result is expected to be constructed from the regular shortest path result
+   * which direction depends on the search type. the BF search results are expected to be provided in the SAME direction
+   * as the search itself (unlike shortestXResults which are in the opposite direction), i.e., if the search was
+   * one-to-all (not inverted) then the bf results are also provided in the downstream direction, whereas all-to-one is
+   * in the opposite direction.
    * 
    * @param closestToSearchRoot         vertex in relation to searchResult tree
    * @param furthestFromSearchRoot      vertex in relation to searchResult tree
-   * @param shortestSearchType          shortestSearchType used to obtain inverted search result, i.e., when on-to-all inverted search result is in downstream direction, when all-to-one in upstream direction
-   * @param invertedBfSearchResultTree  to extract path from, tree is in inverted direction compared to regular search tree result, i.e., one-to-all search result is normally in upstream direction, here it is in downstream direction etc.
-   * @param arrayLength                 to use for the to be created array which should be at least as long as the path that is to be extracted
-   * @param truncateArray               flag indicating to truncate the subpath array in case the back of the array is not fully used due to the existence of spare capacity
+   * @param shortestSearchType          shortestSearchType used to obtain inverted search result, i.e., when on-to-all
+   *                                    inverted search result is in downstream direction, when all-to-one in upstream direction
+   * @param invertedBfSearchResultTree  to extract path from, tree is in inverted direction compared to regular search
+   *                                    tree result, i.e., one-to-all search result is normally in upstream direction,
+   *                                    here it is in downstream direction etc.
+   * @param arrayLength                 to use for the to be created array which should be at least as long as the path
+   *                                    that is to be extracted
+   * @param truncateArray               flag indicating to truncate the subpath array in case the back of the array is
+   *                                    not fully used due to the existence of spare capacity
    * @return created array always in downstream direction, null if no path could be found
    */
-  public static EdgeSegment[] createSubpathArrayFrom(DirectedVertex closestToSearchRoot, DirectedVertex furthestFromSearchRoot, ShortestSearchType shortestSearchType, Map<DirectedVertex, EdgeSegment> invertedBfSearchResultTree, int arrayLength,
-      boolean truncateArray) {
+  public static EdgeSegment[] createSubpathArrayFrom(
+        DirectedVertex closestToSearchRoot,
+        DirectedVertex furthestFromSearchRoot,
+        ShortestSearchType shortestSearchType,
+        Map<DirectedVertex, EdgeSegment> invertedBfSearchResultTree,
+        int arrayLength,
+        boolean truncateArray) {
 
     /*
-     * depending on the original search direction, i.e., the direction of the to-be extract segments, we revert the way we add them to the resulting array to obtain the correct final
-     * direction of edge segments in downstream direction
+     * depending on the original search direction, i.e., the direction of the to-be extract segments, we revert the way
+     * we add them to the resulting array to obtain the correct final direction of edge segments in downstream direction
      */
     boolean searchInverted = shortestSearchType.isInverted();
     
     EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
     EdgeSegment currEdgeSegment = null;
     
-    /* search utils yields lambda based on search type for searching, not result traversal, we traverse results, so we should invert. However, our provided results are inverted already, so double inversion makes that we should not invert */
+    /* search utils yields lambda based on search type for searching, not result traversal, we traverse results, so we
+     * should invert. However, our provided results are inverted already, so double inversion makes that we should not invert */
     var getNextVertex = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(shortestSearchType);
     
     /* run from end to start backward while adding in reverse to final array, unless search was inverted, then we go from start to end */

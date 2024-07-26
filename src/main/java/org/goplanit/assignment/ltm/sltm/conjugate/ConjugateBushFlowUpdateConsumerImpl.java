@@ -93,7 +93,7 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
     MultiKeyMap<Object, Double> bushSendingFlows = new MultiKeyMap<>();
 
     /* get topological sorted vertices to process */
-    var conjugateVertexIter = bush.getTopologicalIterator(true /* od-direction */);
+    var conjugateVertexIter = bush.getInvertedTopologicalIterator();
     if (conjugateVertexIter == null) {
       LOGGER.severe(String.format("Topologically sorted bush not available, this shouldn't happen, skip"));
       return;

@@ -17,8 +17,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 public interface ShortestBushResult extends ShortestResult {
 
   /**
-   * Create a bush in the form of a directed acyclic subgraph of its parent network (layer) for a given origin-destination vertex. The direction of the result is inherited from the
-   * search itself, so if the search was inverted, the dag has an inverted root etc.
+   * Create a bush in the form of a directed acyclic subgraph of its parent network (layer) for a given origin-destination vertex.
+   * The direction of the result is inherited from the search itself, so if the search was inverted, the dag has an inverted root etc.
    * 
    * @param idToken     to use for the Acyclic subgraph's id generation
    * @param origin      to use

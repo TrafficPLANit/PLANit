@@ -15,7 +15,6 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.Movement;
 
 /**
@@ -30,26 +29,28 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategyRootLabelled.class.getCanonicalName());
 
   /**
-   * Check if an existing PAS exists that terminates at the given bush vertex. If so, it is considered a match when:
+   * Check if an existing PAS exists that terminates/starts (Depending on bush config) at the given bush vertex. If so,
+   * it is considered a match when:
    * <ul>
    * <li>The cheap alternative ends with a link segment that is not part of the bush (Assumed true, to be checked beforehand)</li>
    * <li>The expensive alternative overlaps with the bush (has non-zero flow)</li>
    * <li>It is considered an improvement, i.e., effective based on the settings in terms of cost and flow</li>
+   * </ul>
    * 
    * When this holds, accept this PAS as a decent enough alternative to the true shortest path (which its cheaper segment might or might not overlap with, as long as it is close
    * enough to the potential reduced cost we'll take it to avoid exponential growth of PASs)
    * 
    * @param bush        to consider
-   * @param mergeVertex where we identified a potential reduced cost compared to current bush
+   * @param reducedCostVertex where we identified a potential reduced cost compared to current bush
    * @param reducedCost between the shorter path and current shortest path in the bush
    * 
    * @return true when a match is found and bush is newly registered on a PAS, false otherwise
    */
-  private boolean extendBushWithSuitableExistingPas(final RootedLabelledBush bush, final DirectedVertex mergeVertex, final double reducedCost) {
+  private boolean extendBushWithSuitableExistingPas(final RootedLabelledBush bush, final DirectedVertex reducedCostVertex, final double reducedCost) {
 
     boolean bushFlowThroughMergeVertex = false;
-    for (var entrySegment : mergeVertex.getEntryEdgeSegments()) {
-      for (var exitSegment : mergeVertex.getExitEdgeSegments()) {
+    for (var entrySegment : reducedCostVertex.getEntryEdgeSegments()) {
+      for (var exitSegment : reducedCostVertex.getExitEdgeSegments()) {
         if (bush.containsTurnSendingFlow(entrySegment, exitSegment)) {
           bushFlowThroughMergeVertex = true;
           break;
@@ -62,12 +63,12 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
 
     if (!bushFlowThroughMergeVertex) {
       // TODO: when we find this condition never occurs (and it shouldn't, remove the above checks as they are costly)
-      LOGGER.warning(String.format("Explored vertex %s for existing PAS match even though bush has no flow passing through it. This should not happen", mergeVertex.getXmlId()));
+      LOGGER.warning(String.format("Explored vertex %s for existing PAS match even though bush has no flow passing through it. This should not happen", reducedCostVertex.getXmlId()));
       return false;
     }
 
     double[] alphas = getLoading().getCurrentFlowAcceptanceFactors();
-    Pas effectivePas = pasManager.findFirstSuitableExistingPas(bush, mergeVertex, alphas, reducedCost);
+    Pas effectivePas = pasManager.findFirstSuitableExistingPas(bush, reducedCostVertex, alphas, reducedCost);
     if (effectivePas == null) {
       return false;
     }
@@ -94,15 +95,15 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    */
   private Pas extendBushWithNewPas(final RootedLabelledBush bush, final DirectedVertex reducedCostVertex, final ShortestPathResult networkMinPaths) {
 
-    /* Label all vertices on shortest path root-reducedCostVertex as -1, and PAS merge Vertex itself as 1 */
+    /* Label all vertices on shortest path root-reducedCostVertex as -1, and PAS reference vertex itself as 1 */
     final short[] alternativeSegmentVertexLabels = new short[getTransportNetwork().getNumberOfVerticesAllLayers()];
     alternativeSegmentVertexLabels[(int) reducedCostVertex.getId()] = 1;
     int numShortestPathEdgeSegments = networkMinPaths.forEachNextEdgeSegment(bush.getRootVertex(), reducedCostVertex,
         (edgeSegment) -> alternativeSegmentVertexLabels[(int) networkMinPaths.getNextVertexForEdgeSegment(edgeSegment).getId()] = -1);
 
-    /* Use labels to identify when it coincides again with bush (closer to root) */
-    Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> highCostSegment = bush.findBushAlternativeSubpath(reducedCostVertex, alternativeSegmentVertexLabels);
-    if (highCostSegment == null) {
+    /* Identify when it coincides again with bush (closer to root) using back link tree BF search */
+    var highCostSubPathResultPair = bush.findBushAlternativeSubpathByBackLinkTree(reducedCostVertex, alternativeSegmentVertexLabels);
+    if (highCostSubPathResultPair == null) {
       /* likely cycle detected on bush for merge vertex, unable to identify higher cost segment for NEW PAS, log issue */
       LOGGER.info(String.format("Unable to create new PAS for bush rooted at vertex %s, despite shorter path found on network to vertex %s", bush.getRootVertex().getXmlId(),
           reducedCostVertex.getXmlId()));
@@ -111,10 +112,12 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
 
     /* create the PAS and register origin bush on it */
     boolean truncateSpareArrayCapacity = true;
-    var coincideCloserToRootVertex = highCostSegment.first();
+    var coincideCloserToRootVertex = highCostSubPathResultPair.first();
+    Map<DirectedVertex, EdgeSegment> backLinkTreeAsMap = highCostSubPathResultPair.second();
 
     /* S1 */
-    EdgeSegment[] s1 = PasManager.createSubpathArrayFrom(coincideCloserToRootVertex, reducedCostVertex, networkMinPaths, numShortestPathEdgeSegments, truncateSpareArrayCapacity);
+    EdgeSegment[] s1 = PasManager.createSubpathArrayFrom(
+            coincideCloserToRootVertex, reducedCostVertex, networkMinPaths, numShortestPathEdgeSegments, truncateSpareArrayCapacity);
     var cycleInducingSegment = bush.determineIntroduceCycle(s1);
     if (cycleInducingSegment != null) {
       /*
@@ -127,8 +130,8 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
     }
 
     /* S2 */
-    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(coincideCloserToRootVertex, reducedCostVertex, bush.getShortestSearchType(), highCostSegment.second(),
-        highCostSegment.second().size(), truncateSpareArrayCapacity);
+    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(
+            coincideCloserToRootVertex, reducedCostVertex, bush.getShortestSearchType(), backLinkTreeAsMap, highCostSubPathResultPair.second().size(), truncateSpareArrayCapacity);
 
     /* register on existing PAS (if available) otherwise create new PAS */
     Pas exitingPas = pasManager.findExistingPas(s1, s2);
@@ -170,22 +173,24 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         continue;
       }
 
-      /* within-bush min/max-paths */
+      /* within-bush min/max-paths - searched from root in designated direction (inverted if ALL-TO-ONE, i.e., root is destination) */
       var minMaxPaths = bush.computeMinMaxShortestPaths(linkSegmentCosts, this.getTransportNetwork().getNumberOfVerticesAllLayers());
       if (minMaxPaths == null) {
         LOGGER.severe(String.format("Unable to obtain min-max paths for bush, this shouldn't happen, skip updateBushPass"));
         continue;
       }
 
-      /* network min-paths */
+      /* network min-paths - searched in designated direction (inverted if ALL-TO-ONE, so it is compatible with bush where destination is root) */
       var networkMinPaths = networkShortestPathAlgo.execute(bush.getShortestSearchType(), bush.getRootVertex());
       if (networkMinPaths == null) {
         LOGGER.severe(String.format("Unable to obtain network min paths for bush, this shouldn't happen, skip updateBushPass"));
         continue;
       }
 
-      /* find (new) matching PASs */
-      for (var bushVertexIter = bush.getDirectedVertexIterator(); bushVertexIter.hasNext();) {
+      /* find (new) matching PASs - start with new PAS close to origins exploration first
+       *  todo: this is a choice, could choose differently but we check all so likely not very influential */
+      var bushVertexIter = bush.isInverted() ? bush.getInvertedTopologicalIterator() : bush.getTopologicalIterator();
+      for (;bushVertexIter.hasNext();) {
         DirectedVertex bushVertex = bushVertexIter.next();
 
         EdgeSegment reducedCostSegment = networkMinPaths.getNextEdgeSegmentForVertex(bushVertex);

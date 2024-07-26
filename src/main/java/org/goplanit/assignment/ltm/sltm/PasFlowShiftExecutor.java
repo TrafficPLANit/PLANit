@@ -57,7 +57,9 @@ public abstract class PasFlowShiftExecutor {
    * @param edgeSegment  to use
    * @return dTravelTimedFlow or 0 if not possible to compute (with warning)
    */
-  private static double getDTravelTimeDFlow(Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, EdgeSegment edgeSegment) {
+  private static double getDTravelTimeDFlow(
+          Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, EdgeSegment edgeSegment) {
+
     if (edgeSegment instanceof MacroscopicLinkSegment) {
       return physicalCost.getDTravelTimeDFlow(false, theMode, (MacroscopicLinkSegment) edgeSegment);
     } else if (edgeSegment instanceof ConnectoidSegment) {
@@ -65,6 +67,7 @@ public abstract class PasFlowShiftExecutor {
     } else {
       LOGGER.severe(String.format("Unsupported edge segment (%s) to obtain derivative of cost towards flow from", edgeSegment.getXmlId()));
     }
+
     return 0;
   }
 
@@ -108,6 +111,14 @@ public abstract class PasFlowShiftExecutor {
       } else if (mostRestrictingOutSegment.idEquals(pas.getFirstEdgeSegment(false))) {
         firstS2CongestedLinkSegment = entrySegment;
       }
+      //todo 1: if neither is most restricting, then there is no point in updating this PAS! Shifting flow
+      // between the two does not change the bargaining power of the actual most restricting turn.
+      // this is not dealt with yet
+
+      //todo 2: if one is most restricting and other is not, then the other probably has a positive impact here
+      // (negative derivative, as in increasing flow will decrease cost, because it is taken away from most restrictive).
+      // Nothing is done with that either
+
     }
     return Pair.of(firstS1CongestedLinkSegment, firstS2CongestedLinkSegment);
   }

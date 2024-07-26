@@ -15,11 +15,13 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.CentroidVertex;
 
 /**
- * A rooted bush is an acyclic directed graph comprising of implicit paths along a network. It has a single root which can be any vertex with only outgoing edge segments. while
- * acyclic its direction can be either be in up or downstream direction compared to the super network it is situated on.
+ * A rooted bush is an acyclic directed graph comprising implicit paths along a network. It has a root which can be any
+ * vertex with only outgoing edge segments (or ingoing ones if it is an inverted bushed), so
+ * while acyclic its direction can be either be in up or downstream direction compared to the super network it is situated on.
  * <p>
- * The vertices in the bush represent link segments in the physical network, whereas each edge represents a turn from one link to another. This way each splitting rate uniquely
- * relates to a single turn and all outgoing edges of a vertex represent all turns of a node's incoming link
+ * The vertices in the bush represent link segments in the physical network, whereas each edge represents a turn from
+ * one link to another. This way each splitting rate uniquely relates to a single turn and all outgoing edges of a
+ * vertex represent all turns of a node's incoming link
  * 
  * @author markr
  *
@@ -33,24 +35,24 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   /** the directed acyclic subgraph representation of the bush, pertaining solely to the topology */
   private final UntypedACyclicSubGraph<V, ES> dag;
 
-  /** the origin demands (PCU/h) of the bush all representing a root (starting point) within the DAG */
+  /** the origin demands (PCU/h) of the bush this may or may not be at the root (depending on whether we root in origin or destination) */
   protected Map<CentroidVertex, Double> originDemandsPcuH;
 
   /** token for id generation unique within this bush */
   protected final IdGroupingToken bushGroupingToken;
 
   /** track if underlying acyclic graph is modified, if so, an update of the topological sort is required flagged by this member */
-  protected boolean requireTopologicalSortUpdate = false;
+  protected boolean requireTopologicalSortUpdate = true;
 
   /**
    * Track origin demands for bush
    *
-   * @param originCentroidVertex to set
+   * @param originDemandCentroidVertex to set
    * @param demandPcuH demand to set
    */
-  protected void addOriginDemandPcuH(CentroidVertex originCentroidVertex, double demandPcuH) {
-    double currentDemandPcuH = this.originDemandsPcuH.getOrDefault(originCentroidVertex, 0.0);
-    this.originDemandsPcuH.put(originCentroidVertex, currentDemandPcuH + demandPcuH);
+  protected void addOriginDemandPcuH(CentroidVertex originDemandCentroidVertex, double demandPcuH) {
+    double currentDemandPcuH = this.originDemandsPcuH.getOrDefault(originDemandCentroidVertex, 0.0);
+    this.originDemandsPcuH.put(originDemandCentroidVertex, currentDemandPcuH + demandPcuH);
   }
 
   /**
@@ -74,11 +76,10 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * Constructor
    *
    * @param idToken    the token to base the id generation on
-   * @param rootVertex the root vertex of the bush which can be the end or starting point depending whether or not direction is inverted
    * @param inverted   when true bush ends at root vertex and all other vertices precede it, when false the root is the starting point and all other vertices succeed it
    * @param dag        to use for the subgraph representation
    */
-  public RootedBush(final IdGroupingToken idToken, DirectedVertex rootVertex, boolean inverted, UntypedACyclicSubGraph<V, ES> dag) {
+  public RootedBush(final IdGroupingToken idToken, boolean inverted, UntypedACyclicSubGraph<V, ES> dag) {
     this.dag = dag;
     this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, dag.getId());
     this.originDemandsPcuH = new HashMap<>();

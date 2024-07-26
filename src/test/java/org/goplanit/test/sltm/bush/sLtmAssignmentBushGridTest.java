@@ -113,8 +113,9 @@ public class sLtmAssignmentBushGridTest extends sLtmAssignmentGridTestBase {
   }
 
   /**
-   * Test sLTM bush-origin-based assignment on grid based network which should result in an even spread across uncongested links in the final solution. In this test we do not enforce a
-   * max entropy flow distribution as the initial distribution is more intuitive to test for.
+   * Test sLTM bush-origin-based assignment on grid based network which should result in an even spread across uncongested links
+   * in the final solution. In this test we do not enforce a max entropy flow distribution as the initial distribution
+   * is more intuitive to test for.
    */
   @Test
   public void sLtmPointQueueBushOriginBasedAssignmentNoQueueTest() {

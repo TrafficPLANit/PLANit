@@ -54,7 +54,8 @@ public class ShortestBushResultGeneralised extends ShortestResultGeneralised imp
    * {@inheritDoc}
    */
   @Override
-  public ACyclicSubGraph createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex origin, final DirectedVertex destination) {
+  public ACyclicSubGraph createDirectedAcyclicSubGraph(
+          final IdGroupingToken idToken, final DirectedVertex origin, final DirectedVertex destination) {
 
     var startEndPair = getStartEndVertexForResultTraversal(origin, destination);
     DirectedVertex startSearchVertex = startEndPair.first();

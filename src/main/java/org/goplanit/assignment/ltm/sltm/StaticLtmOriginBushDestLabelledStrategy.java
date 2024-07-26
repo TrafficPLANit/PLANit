@@ -34,25 +34,26 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
    * 
    * @param originBush   to populate
    * @param destination  to use
-   * @param oDDemandPcuH to use
+   * @param odDemandPcuH to use
    * @param odDag        to use
    * 
    */
-  private void initialiseBushForDestination(final OriginBush originBush, final OdZone destination, final Double oDDemandPcuH, final ACyclicSubGraph odDag) {
+  private void initialiseBushForDestination(
+          final OriginBush originBush, final OdZone destination, final Double odDemandPcuH, final ACyclicSubGraph odDag) {
 
     /* destination label to use (can be reused across bushes) */
     final BushFlowLabel currentLabel = destinationLabels[(int) destination.getOdZoneId()];
 
-    /* get topological sorted vertices to process */
-    var vertexIter = odDag.getTopologicalIterator(true /* update */);
+    /* get topological sorted vertices to process from origin-to-destination in direction of dag, so do not invert iterator*/
+    var vertexIter = odDag.getTopologicalIterator(true, false);
     var currVertex = vertexIter.next();
-    if (!(currVertex instanceof CentroidVertex)) {
+    if (!(currVertex instanceof CentroidVertex) && originBush.getRootZoneVertex().equals(currVertex)) {
       LOGGER.warning("Root vertex is not a centroid vertex, should not happen");
       return;
     }
 
     var helper = BushInitialiserHelper.create(originBush, odDag, pasManager, getSettings().isDetailedLogging());
-    helper.executeOdBushInitialisation(currVertex, oDDemandPcuH, vertexIter, currentLabel);
+    helper.executeOdBushInitialisation(currVertex, odDemandPcuH, vertexIter, currentLabel);
   }
 
   /**

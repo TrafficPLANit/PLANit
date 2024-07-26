@@ -636,7 +636,7 @@ public abstract class StaticLtmNetworkLoading {
     int numExitSegments = node.getNumberOfExitEdgeSegments();
   
     // TODO: not computationally efficient, capacities are recomputed every time and construction of
-    // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
+    // TODO: turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
   
     /* C_a : in Array1D form, capped to maximum physical capacity in case we are dealing with connectoid with infinite capacity */
     var inCapacities = Array1D.PRIMITIVE64.makeZero(numEntrySegments);
@@ -790,7 +790,7 @@ public abstract class StaticLtmNetworkLoading {
    * Perform inflow and sending flow update:
    * 
    * 1. Update node model to compute new inflows, Eq. (5)
-   * 2. Update next sending flows via inflows, Eq. (7)
+   * 2. Update next sending flows via inflows, Eq. (7) (this is local propagation compared to network full loading of previous step)
    * 3. Compute gap,  then update sending flows to next sending flows
    * 4. If converged continue, otherwise continue go back to Step 2-(1).
    * 5. Update storage capacity factors, Eq. (11)

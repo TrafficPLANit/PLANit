@@ -62,7 +62,8 @@ public class DestinationBush extends RootedLabelledBush {
   public MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
 
     /* build min/max path tree */
-    var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(getDag(), requireTopologicalSortUpdate, linkSegmentCosts, totalTransportNetworkVertices);
+    var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(
+            getDag(), requireTopologicalSortUpdate, linkSegmentCosts, totalTransportNetworkVertices);
     try {
       return minMaxBushPaths.executeAllToOne(getRootVertex());
     } catch (Exception e) {
@@ -83,8 +84,18 @@ public class DestinationBush extends RootedLabelledBush {
    * {@inheritDoc}
    */
   @Override
-  public Iterator<DirectedVertex> getTopologicalIterator(boolean originDestinationDirection) {
-    return getDag().getTopologicalIterator(requireTopologicalSortUpdate, originDestinationDirection /* reverse for od direction since dag is destination to origin oriented */);
+  public Iterator<DirectedVertex> getTopologicalIterator() {
+    boolean invertDirection = false; /* do not invert direction, dag is in d-o direction */
+    return getDag().getTopologicalIterator(requireTopologicalSortUpdate, invertDirection);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Iterator<DirectedVertex> getInvertedTopologicalIterator() {
+    boolean invertDirection = true; /* do invert direction, dag is in o-d direction */
+    return getDag().getTopologicalIterator(requireTopologicalSortUpdate, invertDirection);
   }
 
   /**
@@ -127,16 +138,6 @@ public class DestinationBush extends RootedLabelledBush {
    */
   public CentroidVertex getDestination() {
     return this.destination;
-  }
-
-  /**
-   * add origin demand for this origin bush
-   *
-   * @param originCentroidVertex to add for
-   * @param demandPcuH demand to add
-   */
-  public void addOriginDemandPcuH(CentroidVertex originCentroidVertex, double demandPcuH) {
-    super.addOriginDemandPcuH(originCentroidVertex, demandPcuH);
   }
 
 }

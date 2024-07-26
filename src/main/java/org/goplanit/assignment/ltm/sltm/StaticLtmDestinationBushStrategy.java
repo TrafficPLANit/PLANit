@@ -35,17 +35,20 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    * @param destinationBush  to populate
    * @param  originCentroidVertex     to use
    * @param oDDemandPcuH     to use
-   * @param odDag            to use
+   * @param destinationOriginInvertedDag            to use
    * @param destinationLabel dummy destination label to use
    * 
    */
-  private void initialiseBushForOrigin(final DestinationBush destinationBush, final CentroidVertex originCentroidVertex, final Double oDDemandPcuH, final ACyclicSubGraph odDag,
-                                       BushFlowLabel destinationLabel) {
+  private void initialiseBushForOrigin(
+          final DestinationBush destinationBush,
+          final CentroidVertex originCentroidVertex,
+          final Double oDDemandPcuH,
+          final ACyclicSubGraph destinationOriginInvertedDag,
+          BushFlowLabel destinationLabel) {
 
-    /* get topological sorted vertices to process (starting at destination) */
-    boolean descendingIterator = true;
-    /* reverse iterate so we go from origin(s) to single destination */
-    var vertexIter = odDag.getTopologicalIterator(true /* update */, descendingIterator);
+    /* get topological sorted vertices to process from origin-to-destination in direction of odDag, so invert iterator since it runs
+       from destination to origin currently */
+    var vertexIter = destinationOriginInvertedDag.getTopologicalIterator(true, true);
 
     /* proceed until we arrive at our origin */
     DirectedVertex currVertex = null;
@@ -53,7 +56,11 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
       currVertex = vertexIter.next();
     }
 
-    var helper = BushInitialiserHelper.create(destinationBush, odDag, pasManager, getSettings().isDetailedLogging());
+    /* re-use the general approach which populates the bush from origin-to-destination direction, hence the fiddling to
+     * to reorganise the dag to traverse it this way rather than the inverted setup (d-to-o) it has by default)
+     * todo: when we remove the origin-based implementation revisit this perhaps
+     */
+    var helper = BushInitialiserHelper.create(destinationBush, destinationOriginInvertedDag, pasManager, getSettings().isDetailedLogging());
     helper.executeOdBushInitialisation(currVertex, oDDemandPcuH, vertexIter, destinationLabel);
   }
 
@@ -66,7 +73,8 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    * @param shortestBushAlgorithm to use
    */
   @Override
-  protected void initialiseBush(RootedLabelledBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
+  protected void initialiseBush(
+          RootedLabelledBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
     var destinationVertex = ((DestinationBush) bush).getDestination();
     var destination = (OdZone) destinationVertex.getParent().getParentZone();
     ShortestBushResult allToOneResult = null;
@@ -86,14 +94,16 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
 
         /* initialise bush with this origin shortest path(s) */
         var originCentroidVertex = findCentroidVertex(origin);
-        var originDag = allToOneResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), findCentroidVertex(origin), destinationVertex);
-        if (originDag.isEmpty()) {
+        var destinationOriginInvertedDag =
+                allToOneResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), originCentroidVertex, destinationVertex);
+        if (destinationOriginInvertedDag.isEmpty()) {
           LOGGER.severe(String.format("Unable to create bush connection(s) from origin (%s) to destination %s", origin.getXmlId(), destination.getXmlId()));
           continue;
         }
 
+        // destination bush has root in destination, but still tracks origin demands that it uses
         bush.addOriginDemandPcuH(originCentroidVertex, currOdDemand);
-        initialiseBushForOrigin((DestinationBush) bush, originCentroidVertex, currOdDemand, originDag, dummyLabel);
+        initialiseBushForOrigin((DestinationBush) bush, originCentroidVertex, currOdDemand, destinationOriginInvertedDag, dummyLabel);
       }
     }
   }

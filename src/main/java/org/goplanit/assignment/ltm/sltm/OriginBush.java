@@ -9,7 +9,6 @@ import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.CentroidVertex;
-import org.goplanit.utils.zoning.OdZone;
 
 /**
  * An origin bush is an acyclic directed graph comprising of implicit paths along a network rooted at a single origin to all destination with non-zero flow. Demand on the bush is
@@ -91,8 +90,18 @@ public class OriginBush extends RootedLabelledBush {
    * {@inheritDoc}
    */
   @Override
-  public Iterator<DirectedVertex> getTopologicalIterator(boolean originDestinationDirection) {
-    return getDag().getTopologicalIterator(requireTopologicalSortUpdate, !originDestinationDirection /* do not invert direction, dag is in od direction */ );
+  public Iterator<DirectedVertex> getTopologicalIterator() {
+    boolean invertDirection = false; /* do not invert direction, dag is in o-d direction */
+    return getDag().getTopologicalIterator(requireTopologicalSortUpdate, invertDirection);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Iterator<DirectedVertex> getInvertedTopologicalIterator() {
+    boolean invertDirection = true; /* do invert direction, dag is in d-o direction */
+    return getDag().getTopologicalIterator(requireTopologicalSortUpdate, invertDirection);
   }
 
   /**

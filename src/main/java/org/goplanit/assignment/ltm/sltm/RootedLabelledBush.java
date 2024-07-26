@@ -95,7 +95,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
   public RootedLabelledBush(final IdGroupingToken idToken, DirectedVertex rootVertex, boolean inverted, long maxSubGraphEdgeSegments) {
-    super(idToken, rootVertex, inverted, new ACyclicSubGraphImpl(idToken, rootVertex, inverted, (int) maxSubGraphEdgeSegments));
+    super(idToken, inverted, new ACyclicSubGraphImpl(idToken, rootVertex, inverted, (int) maxSubGraphEdgeSegments));
     this.bushData = new LabelledBushTurnData();
   }
 
@@ -437,16 +437,17 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * 
    * @param referenceVertex                to start breadth first search from as it is the point of coincidence of the alternative path (via labelled vertices) and bush
    * @param alternativeSubpathVertexLabels indicating the shortest (network) path at the reference vertex but not part of the bush at that point (different edge segment used)
-   * @return vertex at which the two paths coincided again and the map to extract the path from this vertex to the reference vertex that was found using the breadth-first
+   * @return vertex at which the two paths coincided again and the map (back link tree effectively) to extract the path from this vertex to the reference vertex that was found using the breadth-first
    *         method
    */
-  public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpath(DirectedVertex referenceVertex, final short[] alternativeSubpathVertexLabels) {
+  public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpathByBackLinkTree(DirectedVertex referenceVertex, final short[] alternativeSubpathVertexLabels) {
     Deque<Pair<DirectedVertex, EdgeSegment>> openVertexQueue = new ArrayDeque<>(30);
     Map<DirectedVertex, EdgeSegment> processedVertices = new TreeMap<>();
 
     /*
-     * Construct results in same direction as shortest path search. So, for one-to-all regular search, we construct results where we have for each vertex its upstream segment,
-     * while for all-to-one we have the downstream segment for each vertex
+     * Construct results in same direction as shortest path search. So, for one-to-all regular search, we construct results
+     * where we have for each vertex its upstream segment, while for all-to-one we have the downstream segment for each vertex both
+     * go "back" towards the root of the bush
      */
     final boolean invertNextDirection = true;
     final var getNextEdgeSegments = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(this, invertNextDirection);
@@ -574,7 +575,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
         return 0;
       }
 
-      //todo: believe entry and exit labels are always sycned currently (based on destination), so could be simplified?
+      //todo: believe entry and exit labels are always synced currently (based on destination), so could be simplified?
       var exitSegmentExitLabelSplittingRates = bushData.getSplittingRates(entrySegment, entryLabel);
       double remainingSubPathSendingFlow = 0;
       for (var exitLabel : exitLabels) {
@@ -705,8 +706,8 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   @Override
   public void syncToNetworkFlows(double[] flowAcceptanceFactors) {
 
-    /* get topological sorted vertices to process */
-    var vertexIter = getTopologicalIterator(true /* od-direction */);
+    /* get topological sorted vertices to process always in origin-destination direction */
+    var vertexIter = isInverted() ? getInvertedTopologicalIterator() : getTopologicalIterator();
     if (vertexIter == null) {
       LOGGER.severe(String.format("Topologically sorted vertices on bush not available, this shouldn't happen, skip turn flow update"));
       return;

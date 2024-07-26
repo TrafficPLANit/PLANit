@@ -26,8 +26,8 @@ import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
 import org.goplanit.utils.zoning.OdZone;
 
 /**
- * A conjugate rooted bush is an acyclic directed graph comprising of implicit paths along a conjugate network, i.e. turn based network (conjugate edge segments). It has a single
- * root based on the original network, i.e. in the ocnjugate network it can represent multiple conjugate nodes since conjugate nodes are edges/edgeSegments on the original network
+ * A conjugate rooted bush is an acyclic directed graph comprising implicit paths along a conjugate network, i.e. turn based network (conjugate edge segments). It has a single
+ * root based on the original network, i.e. in the conjugate network it can represent multiple conjugate nodes since conjugate nodes are edges/edgeSegments on the original network
  * leading to this vertex.
  * <p>
  * The conjugate edge segments in the conjugate bush represent pairs of original link segments, i.e. turns in the physical network
@@ -87,7 +87,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * @param maxSubGraphTurns The maximum number of conjugate edge segments, i.e. turns, the conjugate bush can at most register given the parent network it is a subset of
    */
   public ConjugateDestinationBush(final IdGroupingToken idToken, final CentroidVertex destination, ConjugateConnectoidNode rootVertex, int maxSubGraphTurns) {
-    super(idToken, rootVertex, true /* inverted */, new ConjugateACyclicSubGraphImpl(idToken, rootVertex, true /* inverted */, maxSubGraphTurns));
+    super(idToken, true /* inverted */, new ConjugateACyclicSubGraphImpl(idToken, rootVertex, true /* inverted */, maxSubGraphTurns));
     this.bushData = new ConjugateBushTurnData();
     this.destination = destination;
   }
@@ -119,15 +119,14 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     return null;
   }
 
-  /**
-   * Collect an iterator over topologically sorted bush in origin-destination or destination-origin direction. Depending on the derived bush implementation this might require
-   * inverting the iteration direction. Hence it is an abstract method here
-   * 
-   * @param originDestinationDirection when true, iterator runs topological order from origin towards destinatino, when false, they other way around
-   * @return iterator over topologically ordered bush vertices
-   */
   @Override
-  public Iterator<ConjugateDirectedVertex> getTopologicalIterator(boolean originDestinationDirection) {
+  public Iterator<ConjugateDirectedVertex> getTopologicalIterator() {
+    // TODO: not rewritten yet
+    return null;
+  }
+
+  @Override
+  public Iterator<ConjugateDirectedVertex> getInvertedTopologicalIterator() {
     // TODO: not rewritten yet
     return null;
   }
@@ -511,8 +510,8 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   @Override
   public void syncToNetworkFlows(double[] originalNetworkFlowAcceptanceFactors) {
 
-    /* get topological sorted vertices to process */
-    var conjugateVertexIter = getTopologicalIterator(true /* od-direction */);
+    /* get topological sorted vertices to process from origin to destination*/
+    var conjugateVertexIter = getInvertedTopologicalIterator();
     if (conjugateVertexIter == null) {
       LOGGER.severe(String.format("Topologically sorted vertices on bush not available, this shouldn't happen, skip turn flow update"));
       return;

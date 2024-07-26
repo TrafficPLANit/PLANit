@@ -21,7 +21,7 @@ public class BushInitialiserHelper {
   private final RootedLabelledBush bush;
 
   /** to use to initialise bush */
-  private final ACyclicSubGraph odDag;
+  private final ACyclicSubGraph rootedDag;
 
   /** pas manager to use */
   private final PasManager pasManager;
@@ -227,13 +227,14 @@ public class BushInitialiserHelper {
    * Constructor
    * 
    * @param bush       to (further) initialise
-   * @param odDag      to add to bush as initial supported DAG
+   * @param rootedDag      to add to bush as initial supported DAG
    * @param pasManager to use
    * @param logNewPass when true log new PASs, otherwise not
    */
-  protected BushInitialiserHelper(final RootedLabelledBush bush, final ACyclicSubGraph odDag, final PasManager pasManager, boolean logNewPass) {
+  protected BushInitialiserHelper(
+          final RootedLabelledBush bush, final ACyclicSubGraph rootedDag, final PasManager pasManager, boolean logNewPass) {
     this.bush = bush;
-    this.odDag = odDag;
+    this.rootedDag = rootedDag;
     this.pasManager = pasManager;
     this.logNewPass = logNewPass;
   }
@@ -242,17 +243,21 @@ public class BushInitialiserHelper {
    * Factory method for bush initialiser
    * 
    * @param bush  to use
-   * @param odDag to use
+   * @param rootedDag to use
    * @param pasManager to use
    * @param logNewPass when true new pass are logged, when false not
    * @return created helper
    */
-  public static BushInitialiserHelper create(final RootedLabelledBush bush, final ACyclicSubGraph odDag, final PasManager pasManager, boolean logNewPass) {
-    return new BushInitialiserHelper(bush, odDag, pasManager, logNewPass);
+  public static BushInitialiserHelper create(
+          final RootedLabelledBush bush, final ACyclicSubGraph rootedDag, final PasManager pasManager, boolean logNewPass) {
+    return new BushInitialiserHelper(bush, rootedDag, pasManager, logNewPass);
   }
 
   /**
    * Execute the initialisation by ensuring the correct flow is added to the bush for the given od dag and its related demand.
+   * <p>
+   *   It is assumed we are given an iterator that runs from the origin towards destination(s) at all times here
+   * </p>
    * 
    * @param originVertex   to start with, expected to be the centroid of the od's origin. It is expected the iterator proceeds in downstream direction until reaching the
    *                       destination
@@ -260,11 +265,15 @@ public class BushInitialiserHelper {
    * @param vertexIter     flag indicating if new pass are to be logged
    * @param entryExitLabel to use
    */
-  public void executeOdBushInitialisation(DirectedVertex originVertex, final Double oDDemandPcuH, final Iterator<DirectedVertex> vertexIter, BushFlowLabel entryExitLabel) {
+  public void executeOdBushInitialisation(
+          DirectedVertex originVertex,
+          final Double oDDemandPcuH,
+          final Iterator<DirectedVertex> vertexIter,
+          BushFlowLabel entryExitLabel) {
 
     /* initialise starting flows on initial vertex */
     Map<EdgeSegment, Double> odDagFlows = new HashMap<>();
-    int numUsedOdExitSegments = odDag.getNumberOfEdgeSegments(originVertex, true /* exit segments */);
+    int numUsedOdExitSegments = rootedDag.getNumberOfEdgeSegments(originVertex, true /* exit segments */);
     for (var exitEdgeSegment : originVertex.getExitEdgeSegments()) {
       odDagFlows.put(exitEdgeSegment, oDDemandPcuH / numUsedOdExitSegments);
     }
@@ -273,9 +282,11 @@ public class BushInitialiserHelper {
     Map<DirectedVertex, List<List<EdgeSegment>>> originVertexAlternatives = new HashMap<>();
     Map<EdgeSegment, Map<DirectedVertex, Integer>> edgeSegmentPasOriginVertexAlternativeIndex = new HashMap<>();
 
+    /* pass using topological ordering to propagate o-d flow and initialising labels from origin
+     * NOTE: this pushes from the origin downstream in DAG type of topological way
+     */
     DirectedVertex currVertex;
-    /* pass over destination DAG in (reverse) topological order propagating o-d flow and initialising labels from origin */
-    List<EdgeSegment> entrySegmentsWithUnfinishedPas = new ArrayList<EdgeSegment>(5);
+    List<EdgeSegment> entrySegmentsWithUnfinishedPas = new ArrayList<>(5);
     while (vertexIter.hasNext()) {
       currVertex = vertexIter.next();
 
@@ -283,7 +294,7 @@ public class BushInitialiserHelper {
       double vertexOdSendingFlow = 0;
       entrySegmentsWithUnfinishedPas.clear();
       for (var entryEdgeSegment : currVertex.getEntryEdgeSegments()) {
-        if (odDag.containsEdgeSegment(entryEdgeSegment)) {
+        if (rootedDag.containsEdgeSegment(entryEdgeSegment)) {
           Double entrySegmentSendingFlow = odDagFlows.get(entryEdgeSegment);
           if (entrySegmentSendingFlow == null) {
             continue;
@@ -301,17 +312,17 @@ public class BushInitialiserHelper {
         finishInitialBushPassAtMerge(entrySegmentsWithUnfinishedPas, originVertexAlternatives, edgeSegmentPasOriginVertexAlternativeIndex);
       }
 
-      numUsedOdExitSegments = odDag.getNumberOfEdgeSegments(currVertex, true /* exit segments */);
+      numUsedOdExitSegments = rootedDag.getNumberOfEdgeSegments(currVertex, true /* exit segments */);
       double proportionalOdExitFlow = vertexOdSendingFlow / numUsedOdExitSegments;
 
       for (var entrySegment : currVertex.getEntryEdgeSegments()) {
-        if (!odDag.containsEdgeSegment(entrySegment)) {
+        if (!rootedDag.containsEdgeSegment(entrySegment)) {
           continue;
         }
 
         int numUsedExits = 0;
         for (var exitSegment : currVertex.getExitEdgeSegments()) {
-          if (odDag.containsEdgeSegment(exitSegment)) {
+          if (rootedDag.containsEdgeSegment(exitSegment)) {
             /* update bush flow */
             bush.addTurnSendingFlow(entrySegment, entryExitLabel, exitSegment, entryExitLabel, proportionalOdExitFlow);
             odDagFlows.put(exitSegment, proportionalOdExitFlow);
@@ -327,7 +338,7 @@ public class BushInitialiserHelper {
 
         if (numUsedExits > 1 && !originVertexAlternatives.containsKey(currVertex)) {
           /* new PAS(s) start here, flow splits, create and register exit edge segments as start of alternatives for new diverge leading to PAS(s) when merging later */
-          addNewUnfinishedPass(currVertex, odDag, edgeSegmentPasOriginVertexAlternativeIndex, originVertexAlternatives);
+          addNewUnfinishedPass(currVertex, rootedDag, edgeSegmentPasOriginVertexAlternativeIndex, originVertexAlternatives);
         }
       }
     }
