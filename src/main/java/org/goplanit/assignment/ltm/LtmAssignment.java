@@ -10,6 +10,7 @@ import org.goplanit.supply.network.nodemodel.NodeModelComponent;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.time.TimePeriod;
 
 /**
  * Link Transmission Model implementation base implementation for network loading based on LTM network loading paradigm.
@@ -26,6 +27,13 @@ public abstract class LtmAssignment extends TrafficAssignment {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(LtmAssignment.class.getCanonicalName());
+
+  /** track most recent time period that is being simulated */
+  protected TimePeriod mostRecentTimePeriod = null;
+
+  protected void setTimePeriod(TimePeriod timePeriod){
+    this.mostRecentTimePeriod = timePeriod;
+  }
 
   /**
    * The used network layer
@@ -81,6 +89,16 @@ public abstract class LtmAssignment extends TrafficAssignment {
    */
   protected LtmAssignment(final LtmAssignment other, boolean deepCopy) {
     super(other, deepCopy);
+  }
+
+  /**
+   * Provide access to current/most recently simulated time period
+   *
+   * @return time period
+   */
+  @Override
+  public TimePeriod getTimePeriod() {
+    return this.mostRecentTimePeriod;
   }
 
   /**

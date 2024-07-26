@@ -9,6 +9,7 @@ import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.time.TimePeriod;
 
 /**
  * Event based Link Transmission Model implementation (eLTM) for network loading using a capacity constrained (Deterministic) assignment

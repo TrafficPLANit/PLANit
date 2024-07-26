@@ -75,42 +75,35 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param outputAdapter           output adapter for the current output type
    * @param modes                   Set of modes for the current assignment
    * @param timePeriod              the current time period
-   * @param csvPrinter              CSVPrinter object to record results for this iteration
-   * @return PlanItException thrown if the CSV file cannot be created or written to
    */
-  protected PlanItException writeSimulationResultsForCurrentTimePeriodToCsvPrinter(
+  protected Map<Mode, List<Object>> constructSimulationResultsForCurrentTimePeriod(
       OutputConfiguration outputConfiguration,
       OutputTypeConfiguration outputTypeConfiguration,
       OutputTypeEnum currentOutputType,
       OutputAdapter outputAdapter,
       Set<Mode> modes,
-      TimePeriod timePeriod,
-      CSVPrinter csvPrinter) {
-    try {
-      PlanItException.throwIf(!(currentOutputType instanceof OutputType), "currentOutputType not compatible with simulation output");
-      OutputType outputType = (OutputType) currentOutputType;
+      TimePeriod timePeriod) {
 
-      var simulationOutputTypeAdapter = (SimulationOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
-      SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
+    PlanItRunTimeException.throwIf(!(currentOutputType instanceof OutputType), "currentOutputType not compatible with simulation output");
+    var rowValuesByMode = new TreeMap<Mode, List<Object>>();
 
-      for (Mode mode : modes) {
-        // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
-        // the current mode's conversion factor
-        VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
+    OutputType outputType = (OutputType) currentOutputType;
 
-        List<Object> rowValues = outputProperties.stream()
-            .map(outputProperty -> simulationOutputTypeAdapter.getSimulationOutputPropertyValue(
-                outputProperty, mode, timePeriod).orElse(null))
-            .map(OutputUtils::formatObject).collect(Collectors.toList());
-        csvPrinter.printRecord(rowValues);
-      }
-    } catch (PlanItException e) {
-      return e;
-    } catch (Exception e) {
-      LOGGER.severe(e.getMessage());
-      return new PlanItException("Error when writing simulation results for current time period in CSVOutputFileformatter", e);
+    var simulationOutputTypeAdapter = (SimulationOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+    SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
+
+    for (Mode mode : modes) {
+      // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+      // the current mode's conversion factor
+      VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
+
+      List<Object> rowValues = outputProperties.stream()
+          .map(outputProperty -> simulationOutputTypeAdapter.getSimulationOutputPropertyValue(
+              outputProperty, mode, timePeriod).orElse(null))
+          .map(OutputUtils::formatObject).collect(Collectors.toList());
+      rowValuesByMode.put(mode, rowValues);
     }
-    return null;
+    return rowValuesByMode;
   }
 
   /**
@@ -165,11 +158,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
           }
 
           if (outputConfiguration.isPersistZeroFlow() || cost.get() > Precision.EPSILON_6) {
-            List<Object> rowValues = outputProperties.stream()
-                .map(outputProperty -> odOutputTypeAdapter.getOdOutputPropertyValue(
-                        outputProperty, odMatrixIterator, mode, timePeriod).orElse(null))
-                .map(OutputUtils::formatObject).collect(Collectors.toList());
-            csvPrinter.printRecord(rowValues);
+            csvPrinter.printRecord(
+                    outputProperties.stream().map(outputProperty -> odOutputTypeAdapter.getOdOutputPropertyValue(
+                            outputProperty, odMatrixIterator, mode, timePeriod).orElse(null)).map(OutputUtils::formatObject));
           }
         }
       }
@@ -288,11 +279,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
               flowPositive.orElseThrow(() -> new PlanItException("unable to determine if flow is positive on link segment"));
 
               if (outputConfiguration.isPersistZeroFlow() || flowPositive.get()) {
-                List<Object> rowValues = outputProperties.stream()
-                    .map(outputProperty -> linkOutputTypeAdapter.getLinkSegmentOutputPropertyValue(
-                            outputProperty, linkSegment, mode, timePeriod).orElse(null))
-                    .map(OutputUtils::formatObject).collect(Collectors.toList());
-                csvPrinter.printRecord(rowValues);
+                csvPrinter.printRecord(outputProperties.stream().map(outputProperty ->
+                                linkOutputTypeAdapter.getLinkSegmentOutputPropertyValue(
+                                        outputProperty, linkSegment, mode, timePeriod).orElse(null)).map(OutputUtils::formatObject));
               }
             }
           }

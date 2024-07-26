@@ -111,7 +111,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * @param modes    used in this time period
    * @return simulationData initialised for time period
    */
-  private StaticLtmSimulationData initialiseTimePeriod(TimePeriod timePeriod, final Set<Mode> modes) {
+  private StaticLtmSimulationData initialiseTimePeriodSpecificData(TimePeriod timePeriod, final Set<Mode> modes) {
 
     /* register new time period on costs */
     getPhysicalCost().updateTimePeriod(timePeriod);
@@ -157,7 +157,8 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   private void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes){
 
     /* prep */
-    this.simulationData = initialiseTimePeriod(timePeriod, modes);
+    setTimePeriod(timePeriod);
+    this.simulationData = initialiseTimePeriodSpecificData(timePeriod, modes);
     if (simulationData.getSupportedModes().size() != 1) {
       LOGGER.warning(
           String.format("%ssLTM only supports a single mode for now, found %d, aborting assignment for time period %s",
