@@ -36,7 +36,6 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.path.ManagedDirectedPath;
-import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.Zone;
@@ -120,7 +119,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param modes      set of modes covered by this assignment
    * @throws PlanItException thrown if there is an error
    */
-  private void initialiseTimePeriod(TimePeriod timePeriod, final Set<Mode> modes) throws PlanItException {
+  private void initialiseTimePeriodSpecificData(TimePeriod timePeriod, final Set<Mode> modes) throws PlanItException {
     simulationData = new TraditionalStaticAssignmentSimulationData(getIdGroupingToken());
     simulationData.setIterationIndex(0);
     simulationData.getModeSpecificData().clear();
@@ -412,8 +411,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    */
   @Override
   protected void executeTimePeriod(final TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
-
-    initialiseTimePeriod(timePeriod, modes);
+    initialiseTimePeriodSpecificData(timePeriod, modes);
 
     // full reset
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());

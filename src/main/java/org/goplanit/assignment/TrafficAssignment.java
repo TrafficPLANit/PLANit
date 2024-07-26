@@ -300,7 +300,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    */
   protected void finalizeAfterExecution() throws PlanItException {
 
-    outputManager.finaliseAfterSimulation();
+    outputManager.finaliseAfterSimulation(getTimePeriod(), getIterationIndex());
 
     // syncing of managed ids is currently chosen to be handled upon starting the assignment, not when done.
     disbandTransportNetwork(false);
@@ -392,6 +392,13 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * @return current iteration index
    */
   public abstract int getIterationIndex();
+
+  /**
+   * Collect the current time period of the simulation
+   *
+   * @return current time period
+   */
+  public abstract TimePeriod getTimePeriod();
 
   /**
    * Create the output type adapter for the current output type, specifically tailored towards the assignment type that we are builing

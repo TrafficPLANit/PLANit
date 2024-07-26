@@ -66,12 +66,14 @@ public class OutputManager {
 
   /**
    * Allows the output manager to finalise itself and any of its registered output formatters to after the simulation ended
-   * 
+   *
+   * @param timePeriod the last time period used before simulation ended
+   * @param iterationIndex the last iteration index of the last time period used before the simulation eneded
    * @throws PlanItException thrown if there is an error
    */
-  public void finaliseAfterSimulation() throws PlanItException {
+  public void finaliseAfterSimulation(TimePeriod timePeriod, int iterationIndex) throws PlanItException {
     for (OutputFormatter outputFormatter : outputFormatters) {
-      outputFormatter.finaliseAfterSimulation(outputConfiguration, outputAdapter);
+      outputFormatter.finaliseAfterSimulation(outputConfiguration, outputAdapter, timePeriod, iterationIndex);
     }
   }
 

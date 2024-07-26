@@ -409,9 +409,12 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * 
    * @param outputConfiguration OutputConfiguration of the assignment
    * @param outputAdapter       the outputAdapter
+   * @param timePeriod the last time period used before simulation ended
+   * @param iterationIndex the last iteration index of the last time period used before the simulation eneded
    */
   @Override
-  public void finaliseAfterSimulation(OutputConfiguration outputConfiguration, OutputAdapter outputAdapter){
+  public void finaliseAfterSimulation(
+          OutputConfiguration outputConfiguration, OutputAdapter outputAdapter, TimePeriod timePeriod, int iterationIndex){
     // do nothing
   }
 

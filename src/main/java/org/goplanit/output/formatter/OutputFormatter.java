@@ -65,8 +65,11 @@ public interface OutputFormatter {
    * 
    * @param outputConfiguration OutputTypeConfiguration for the assignment to be saved
    * @param outputAdapter       the outputAdapter
+   * @param timePeriod the last time period used before simulation ended
+   * @param iterationIndex the last iteration index of the last time period used before the simulation eneded
    */
-  public void finaliseAfterSimulation(OutputConfiguration outputConfiguration, OutputAdapter outputAdapter);
+  public void finaliseAfterSimulation(
+          OutputConfiguration outputConfiguration, OutputAdapter outputAdapter, TimePeriod timePeriod, int iterationIndex);
 
   /**
    * Flag to indicate whether an implementation can handle multiple iterations
