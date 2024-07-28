@@ -89,7 +89,7 @@ public abstract class SimulationOutputTypeAdapterImpl extends OutputTypeAdapterI
       // try output type independent results
       Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (!value.isPresent()) {
-        // try non-simulation specific results
+        // try simulation specific results
         value = getSimulationDependentPropertyValue(outputProperty);
       }
 

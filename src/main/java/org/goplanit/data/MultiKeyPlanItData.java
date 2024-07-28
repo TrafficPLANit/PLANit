@@ -226,8 +226,9 @@ public class MultiKeyPlanItData {
       throw new PlanItRunTimeException("Wrong number of property values used in call to MultiKeyPlanItData");
     }
     for (int i = 0; i < outputValueProperties.length; i++) {
-      if(!outputValues[i].equals(OutputFormatter.NOT_AVAILABLE) && !isValueTypeCorrect(outputValues[i], outputValueProperties[i].getDataType())){
-        throw new PlanItRunTimeException("Property %s of type %s in position %d in setRowValues() is of the wrong value type",
+      if(!outputValues[i].equals(OutputFormatter.NOT_AVAILABLE) &&
+          !isValueTypeCorrect(outputValues[i], outputValueProperties[i].getDataType())){
+        throw new PlanItRunTimeException("Property: [%s] of type [%s] in position %d in setRowValues() is of the wrong value type",
                 outputValueProperties[i].getName(), outputValueProperties[i].getDataType(), i);
       }
     }

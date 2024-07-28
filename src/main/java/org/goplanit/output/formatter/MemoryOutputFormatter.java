@@ -13,10 +13,7 @@ import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
 import org.goplanit.od.path.OdMultiPathIterator;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.od.skim.OdSkimMatrix.OdSkimMatrixIterator;
-import org.goplanit.output.adapter.MacroscopicLinkOutputTypeAdapter;
-import org.goplanit.output.adapter.OdOutputTypeAdapter;
-import org.goplanit.output.adapter.OutputAdapter;
-import org.goplanit.output.adapter.PathOutputTypeAdapter;
+import org.goplanit.output.adapter.*;
 import org.goplanit.output.configuration.OutputConfiguration;
 import org.goplanit.output.configuration.OutputTypeConfiguration;
 import org.goplanit.output.configuration.PathOutputTypeConfiguration;
@@ -138,11 +135,17 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @param mode                the current mode
    * @param timePeriod          the current time period
    */
-  private void updateOutputAndKeyValuesForOd(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys,
-      OdDataIterator<?> odDataIterator, OdOutputTypeAdapter odOutputTypeAdapter, Mode mode, TimePeriod timePeriod) {
-    updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-      return odOutputTypeAdapter.getOdOutputPropertyValue(label, odDataIterator, mode, timePeriod).get();
-    });
+  private void updateOutputAndKeyValuesForOd(
+      MultiKeyPlanItData multiKeyPlanItData,
+      OutputProperty[] outputProperties,
+      OutputProperty[] outputKeys,
+      OdDataIterator<?> odDataIterator, OdOutputTypeAdapter odOutputTypeAdapter,
+      Mode mode,
+      TimePeriod timePeriod) {
+
+    updateOutputAndKeyValues(
+        multiKeyPlanItData, outputProperties, outputKeys,
+        (label) -> odOutputTypeAdapter.getOdOutputPropertyValue(label, odDataIterator, mode, timePeriod).get());
   }
 
   /**
@@ -177,6 +180,29 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   }
 
   /**
+   * Update output and key values for Simulation data (for a single iteration)
+   *
+   * @param multiKeyPlanItData    multikey data object to store values
+   * @param outputProperties      OutputProperty array of result types to be recorded
+   * @param outputKeys            OutputProperty array of key types to be recorded
+   * @param simulationOutputTypeAdapter PathOutputTypeAdapter to provide methods to get the property values
+   * @param mode                  the current mode
+   * @param timePeriod            the current time period
+   */
+  private void updateOutputAndKeyValuesForSimulation(
+      MultiKeyPlanItData multiKeyPlanItData,
+      OutputProperty[] outputProperties,
+      OutputProperty[] outputKeys,
+      SimulationOutputTypeAdapter simulationOutputTypeAdapter,
+      Mode mode,
+      TimePeriod timePeriod) {
+
+    updateOutputAndKeyValues(
+        multiKeyPlanItData, outputProperties, outputKeys,
+        (label) -> simulationOutputTypeAdapter.getSimulationOutputPropertyValue(label, mode, timePeriod).get());
+  }
+
+  /**
    * Write Simulation results for the current time period to the CSV file
    * 
    * @param outputConfiguration     output configuration
@@ -196,7 +222,21 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
           Set<Mode> modes,
           TimePeriod timePeriod,
           int iterationIndex) {
-    //LOGGER.warning("memory Output for OutputType SIMULATION has not been implemented yet");
+    // for simulation data we assume no sub-output types exist (yet), hence this check to make sure we can
+    // cast safely
+    PlanItRunTimeException.throwIf(!(currentOutputType instanceof OutputType) && currentOutputType == OutputType.SIMULATION,
+        "currentOutputTypeEnum is not compatible with outputTypeConfiguration");
+
+    OutputType outputType = (OutputType) currentOutputType;
+    OutputProperty[] outputProperties = outputValueProperties.get(outputType);
+    OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
+    SimulationOutputTypeAdapter simulationOutputTypeAdapter = (SimulationOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+
+    for (Mode mode : modes) {
+      MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
+      updateOutputAndKeyValuesForSimulation(multiKeyPlanItData, outputProperties, outputKeys, simulationOutputTypeAdapter, mode, timePeriod);
+      timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
+    }
   }
 
   /**

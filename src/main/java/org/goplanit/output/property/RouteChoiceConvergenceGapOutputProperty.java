@@ -24,7 +24,7 @@ public final class RouteChoiceConvergenceGapOutputProperty extends OutputPropert
 
   @Override
   public DataType getDataType() {
-    return DataType.FLOAT;
+    return DataType.DOUBLE;
   }
 
   @Override
