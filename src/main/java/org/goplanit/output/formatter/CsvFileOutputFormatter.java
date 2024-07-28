@@ -75,6 +75,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param outputAdapter           output adapter for the current output type
    * @param modes                   Set of modes for the current assignment
    * @param timePeriod              the current time period
+   * @return results in memory model form
    */
   protected Map<Mode, List<Object>> constructSimulationResultsForCurrentTimePeriod(
       OutputConfiguration outputConfiguration,

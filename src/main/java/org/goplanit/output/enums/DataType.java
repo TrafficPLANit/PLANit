@@ -75,6 +75,7 @@ public enum DataType {
    * Create comparator for precision based data type using a double based precision approach
    *
    * @param dataType to use
+   * @param epsilon to apply
    * @return comparator created
    */
   public static Comparator<Object> getPrecisionComparator(DataType dataType, double epsilon) {
