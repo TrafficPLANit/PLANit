@@ -1,10 +1,6 @@
 package org.goplanit.network.layer.macroscopic;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
@@ -222,4 +218,24 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
     return sb.toString();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    AccessGroupPropertiesImpl that = (AccessGroupPropertiesImpl) o;
+    return Objects.equals(maxSpeedKmH, that.maxSpeedKmH) &&
+            Objects.equals(criticalSpeedKmH, that.criticalSpeedKmH) &&
+            Objects.equals(supportedModes, that.supportedModes);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(maxSpeedKmH, criticalSpeedKmH, supportedModes);
+  }
 }
