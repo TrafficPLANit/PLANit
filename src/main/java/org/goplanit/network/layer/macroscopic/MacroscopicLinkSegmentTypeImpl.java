@@ -321,10 +321,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   }
 
   /**
-   * Verify if other is functionally identical, so excluding name, and id fields
-   * but considering all other fields with meaning
-   *
-   * @return true if functionally equal, false otherwise
+   * {@inheritDoc}
    */
   @Override
   public boolean isFunctionalEqual(MacroscopicLinkSegmentType other){
