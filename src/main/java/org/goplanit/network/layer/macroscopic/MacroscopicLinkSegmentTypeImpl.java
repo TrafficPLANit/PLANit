@@ -1,11 +1,6 @@
 package org.goplanit.network.layer.macroscopic;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.ExternalIdAbleImpl;
@@ -323,6 +318,21 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     }
     this.modeAccessProperties.put(accessMode, accessGroupProperties);
     accessGroupProperties.addAccessMode(accessMode);
+  }
+
+  /**
+   * Verify if other is functionally identical, so excluding name, and id fields
+   * but considering all other fields with meaning
+   *
+   * @return true if functionally equal, false otherwise
+   */
+  @Override
+  public boolean isFunctionalEqual(MacroscopicLinkSegmentType other){
+    return
+        Objects.equals(getExplicitCapacityPerLaneOrDefault(), other.getExplicitCapacityPerLaneOrDefault()) &&
+        Objects.equals(getExplicitMaximumDensityPerLaneOrDefault(), other.getExplicitMaximumDensityPerLaneOrDefault()) &&
+        Objects.equals(getAllowedModes(), other.getAllowedModes()) &&
+        getAllowedModes().stream().allMatch( m -> Objects.equals(getAccessProperties(m), other.getAccessProperties(m)));
   }
 
   /**
