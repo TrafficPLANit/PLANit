@@ -87,8 +87,8 @@ public class sLtmAssignmentMultiDestinationTestBase {
     // Demand AA'  = 4000
     // Demand AA'' = 4000
     //
-    // [0,1,4,5,12] = 8000 capacity
-    // [2,4,6,8,9,13] = 4000 capacity
+    // [0,1,5,12] = 8000 capacity
+    // [2,4,6,8,9,13,14] = 4000 capacity
     // [9,10] = 3000 capacity
     // [3,7,11] = 1500 capacity
     // 
