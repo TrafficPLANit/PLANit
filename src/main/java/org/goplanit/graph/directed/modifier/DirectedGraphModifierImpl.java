@@ -52,7 +52,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
   @Override
   protected void fireEvent(EventListener eventListener, Event event) {
     if (event.getType() instanceof DirectedGraphModifierEventType) {
-      DirectedGraphModifierListener.class.cast(eventListener).onDirectedGraphModificationEvent(DirectedGraphModificationEvent.class.cast(event));
+      ((DirectedGraphModifierListener) eventListener).onDirectedGraphModificationEvent(DirectedGraphModificationEvent.class.cast(event));
     } else {
       graphModifier.fireEvent(eventListener, event);
     }
@@ -182,7 +182,6 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    */
   @Override
   public void removeSubGraph(Set<? extends DirectedVertex> subGraphToRemove) {
-    UntypedDirectedGraph<?, ?, ?> directedGraph = getUntypedDirectedGraph();
 
     /* remove the edge segment portion of the directed subgraph from the actual directed graph and fire event(s)*/
     for (DirectedVertex directedVertex : subGraphToRemove) {

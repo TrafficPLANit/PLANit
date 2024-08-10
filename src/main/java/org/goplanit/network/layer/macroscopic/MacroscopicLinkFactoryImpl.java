@@ -50,6 +50,9 @@ public class MacroscopicLinkFactoryImpl extends GraphEntityFactoryImpl<Macroscop
     super(groupIdToken, macroscopicLinks);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public MacroscopicLinkImpl<Node, MacroscopicLinkSegment> registerNew() {
     MacroscopicLinkImpl<Node, MacroscopicLinkSegment> newLink = new MacroscopicLinkImpl<>(getIdGroupingToken());
@@ -69,6 +72,8 @@ public class MacroscopicLinkFactoryImpl extends GraphEntityFactoryImpl<Macroscop
 
     var newLink = registerNew();
     newLink.setLengthKm(lengthKm);
+    newLink.setVertexA(nodeA);
+    newLink.setVertexB(nodeB);
     if (registerOnNodes) {
       nodeA.addEdge(newLink);
       nodeB.addEdge(newLink);

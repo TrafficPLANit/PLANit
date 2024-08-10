@@ -13,7 +13,6 @@ import java.util.function.Function;
  */
 public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
 
-
   /** track PLANit entities by something else than their internal id via this map */
   protected final CustomIndexTracker sourceIdTracker;
 
@@ -40,8 +39,8 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
   }
 
   /**
-   * register a new source id tracker (empty) where a function is used to extract the source id from the entity and the class is used unique identifier for the underlying tracking
-   * container
+   * register a new source id tracker (empty) where a function is used to extract the source id from the entity and
+   * the class is used unique identifier for the underlying tracking container
    *
    * @param <K>        key type used
    * @param <V>        value type used
@@ -53,8 +52,8 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
   }
 
   /**
-   * register a new source id tracker (empty) where a function is used to extract the source id from the entity and the class is used unique identifier for the underlying tracking
-   * container
+   * register a new source id tracker (empty) where a function is used to extract the source id from the entity
+   * and the class is used unique identifier for the underlying tracking container
    *
    * @param <K>              key type used
    * @param <V>              value type used
@@ -62,7 +61,8 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
    * @param valueToKey       function mapping value to key
    * @param addToSourceIdMap add all entities in iterable to the newly created source id map upon creation
    */
-  protected <K, V> void initialiseSourceIdMap(Class<V> clazz, final Function<V, K> valueToKey, Iterable<V> addToSourceIdMap) {
+  protected <K, V> void initialiseSourceIdMap(
+      Class<V> clazz, final Function<V, K> valueToKey, Iterable<V> addToSourceIdMap) {
     sourceIdTracker.initialiseEntityContainer(clazz, valueToKey, addToSourceIdMap);
   }
 

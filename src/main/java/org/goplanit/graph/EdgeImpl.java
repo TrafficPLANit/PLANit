@@ -29,12 +29,12 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
   /**
    * Vertex A
    */
-  private V vertexA = null;
+  private V vertexA;
 
   /**
    * Vertex B
    */
-  private V vertexB = null;
+  private V vertexB;
 
   /**
    * The line geometry of this link if set
@@ -230,8 +230,10 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
    *
    * @param vertexB to set
    */
-  public void setVertexB(V vertexB) {
-    this.vertexB = vertexB;
+  @SuppressWarnings("unchecked")
+  @Override
+  public void setVertexB(Vertex vertexB) {
+    this.vertexB = (V) vertexB;
   }
 
   /**
@@ -239,8 +241,10 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
    *
    * @param vertexA to set
    */
-  public void setVertexA(V vertexA) {
-    this.vertexA = vertexA;
+  @SuppressWarnings("unchecked")
+  @Override
+  public void setVertexA(Vertex vertexA) {
+    this.vertexA = (V)vertexA;
   }
 
   /**
@@ -272,11 +276,11 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
     if (vertexToReplaceWith != null) {
       if (getVertexA() != null && vertexToReplace.getId() == getVertexA().getId()) {
         removeVertex(vertexToReplace);
-        setVertexA((V) vertexToReplaceWith);
+        setVertexA(vertexToReplaceWith);
         vertexReplaced = true;
       } else if (getVertexB() != null && vertexToReplace.getId() == getVertexB().getId()) {
         removeVertex(vertexToReplace);
-        setVertexB((V) vertexToReplaceWith);
+        setVertexB(vertexToReplaceWith);
         vertexReplaced = true;
       }
     }

@@ -73,10 +73,10 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    */
   protected Set<Vertex> processSubNetworkVertex(Vertex referenceVertex) {
     PlanItRunTimeException.throwIfNull(referenceVertex, "provided reference vertex is null when identifying its subnetwork, thisis not allowed");
-    Set<Vertex> subNetworkVertices = new HashSet<Vertex>();
+    Set<Vertex> subNetworkVertices = new HashSet<>();
     subNetworkVertices.add(referenceVertex);
 
-    Set<Vertex> verticesToExplore = new HashSet<Vertex>();
+    Set<Vertex> verticesToExplore = new HashSet<>();
     verticesToExplore.add(referenceVertex);
     Iterator<Vertex> vertexIter = verticesToExplore.iterator();
     while (vertexIter.hasNext()) {
@@ -183,8 +183,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   public void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
 
     Map<Integer, LongAdder> removedDanglingNetworksBySize = new HashMap<>();
-    Set<Vertex> remainingVertices = new HashSet<Vertex>(theGraph.getVertices().size());
-    theGraph.getVertices().forEach(vertex -> remainingVertices.add(vertex));
+    Set<Vertex> remainingVertices = new HashSet<>(theGraph.getVertices().size());
+    theGraph.getVertices().forEach(remainingVertices::add);
     Map<Vertex, Integer> identifiedSubNetworkSizes = new HashMap<Vertex, Integer>();
 
     while (remainingVertices.iterator().hasNext()) {
