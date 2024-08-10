@@ -12,8 +12,8 @@ import org.goplanit.utils.misc.CloneUtils;
 import org.locationtech.jts.geom.LineString;
 
 /**
- * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry additional information for each
- * particular direction of the edge.
+ * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in
+ * a particular direction which may carry additional information for each particular direction of the edge.
  *
  * @author markr
  *
@@ -57,21 +57,12 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
   protected Double lengthInKm;
 
   /**
-   * set vertex B
-   * 
-   * @param vertexB to set
+   * Constructor for empty edge, use with care
+   *
+   * @param groupId, contiguous id generation within this group for instances of this class
    */
-  protected void setVertexB(V vertexB) {
-    this.vertexB = vertexB;
-  }
-
-  /**
-   * set vertex A
-   * 
-   * @param vertexA to set
-   */
-  protected void setVertexA(V vertexA) {
-    this.vertexA = vertexA;
+  protected EdgeImpl(final IdGroupingToken groupId) {
+    this(groupId, null, null);
   }
 
   /**
@@ -184,7 +175,7 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
   @Override
   public void addInputProperty(final String key, final Object value) {
     if (inputProperties == null) {
-      inputProperties = new HashMap<String, Object>();
+      inputProperties = new HashMap<>();
     }
     inputProperties.put(key, value);
   }
@@ -232,6 +223,24 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
   @Override
   public V getVertexB() {
     return vertexB;
+  }
+
+  /**
+   * set vertex B. Use with care.
+   *
+   * @param vertexB to set
+   */
+  public void setVertexB(V vertexB) {
+    this.vertexB = vertexB;
+  }
+
+  /**
+   * set vertex A. Use with care
+   *
+   * @param vertexA to set
+   */
+  public void setVertexA(V vertexA) {
+    this.vertexA = vertexA;
   }
 
   /**

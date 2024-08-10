@@ -75,7 +75,17 @@ public class LinkImpl<N extends DirectedVertex, LS extends EdgeSegment> extends 
   }
 
   /**
-   * Constructor which injects link length directly
+   * Constructor for empty link, use with care
+   *
+   * @param groupId, contiguous id generation within this group for instances of this class
+   */
+  protected LinkImpl(final IdGroupingToken groupId) {
+    super(groupId);
+    setLinkId(generateLinkId(groupId));
+  }
+
+  /**
+   * Constructor which injects nodes directly
    *
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param nodeA    the first node in the link

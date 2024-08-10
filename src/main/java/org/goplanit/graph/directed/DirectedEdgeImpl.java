@@ -35,7 +35,16 @@ public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment> 
   private ES edgeSegmentBa = null;
 
   /**
-   * Constructor which injects link lengths directly
+   * Constructor for empty directed edge, use with care
+   *
+   * @param groupId, contiguous id generation within this group for instances of this class
+   */
+  protected DirectedEdgeImpl(final IdGroupingToken groupId) {
+    super(groupId);
+  }
+
+  /**
+   * Constructor which injects vertices directly
    *
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param vertexA  first vertex in the link

@@ -1,14 +1,10 @@
 package org.goplanit.network.layer.macroscopic;
 
-import org.goplanit.graph.directed.DirectedEdgeImpl;
 import org.goplanit.network.layer.physical.LinkImpl;
 import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.physical.Link;
 
 import java.util.logging.Logger;
 
@@ -38,7 +34,16 @@ public class MacroscopicLinkImpl<N extends DirectedVertex, LS extends Macroscopi
   }
 
   /**
-   * Constructor which injects link length directly
+   * Constructor for empty link. Use with care
+   *
+   * @param groupId, contiguous id generation within this group for instances of this class
+   */
+  protected MacroscopicLinkImpl(final IdGroupingToken groupId) {
+    super(groupId);
+  }
+
+  /**
+   * Constructor which injects nodes directly
    *
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param nodeA    the first node in the link
@@ -49,7 +54,7 @@ public class MacroscopicLinkImpl<N extends DirectedVertex, LS extends Macroscopi
   }
 
   /**
-   * Constructor which injects link length directly
+   * Constructor which injects nodes and link length directly
    *
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param nodeA    the first node in the link
