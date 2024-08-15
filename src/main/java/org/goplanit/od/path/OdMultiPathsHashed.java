@@ -88,6 +88,14 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends List<T>
    * {@inheritDoc}
    */
   @Override
+  public long determineTotalPaths() {
+    return odHashed.values().stream().mapToLong(List::size).sum();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public OdMultiPathsHashed<T, U> shallowClone() {
     return new OdMultiPathsHashed<>(this, false);
   }

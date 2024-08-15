@@ -63,6 +63,14 @@ public class OdPathsHashed<T extends ManagedDirectedPath> extends OdHashedImpl<T
    * {@inheritDoc}
    */
   @Override
+  public long determineTotalPaths() {
+    return odHashed.values().size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public OdPathsHashedIterator<T> iterator() {
     return new OdPathsHashedIterator<>(this);
   }

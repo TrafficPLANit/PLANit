@@ -195,7 +195,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
     case COST_TIMES_FLOW:
       return true;
     default:
-      LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an output property, which is inappropriate for Link output.  This will be ignored");
+      LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an output property, not registered for Link output.  This will be ignored");
     }
     return false;
   }

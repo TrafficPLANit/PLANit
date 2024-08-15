@@ -182,7 +182,7 @@ public class OdOutputTypeConfiguration extends OutputTypeConfiguration {
     case TIME_PERIOD_ID:
       return true;
     default:
-      LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an output property, which is inappropriate for Origin-Destination output. This will be ignored");
+      LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an output property, not registered for Origin-Destination output. This will be ignored");
     }
     return false;
   }

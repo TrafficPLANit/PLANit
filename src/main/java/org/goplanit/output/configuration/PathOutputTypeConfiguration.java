@@ -189,7 +189,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     case PATH_GEOMETRY:
       return true;
     default:
-      LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an output property, which is inappropriate for Path output.  This will be ignored");
+      LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an output property, not registered for Path output.  This will be ignored");
     }
     return false;
   }

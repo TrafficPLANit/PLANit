@@ -58,6 +58,14 @@ public class OdPathMatrix extends OdNonPrimitiveMatrix<ManagedDirectedPath> impl
    * {@inheritDoc}
    */
   @Override
+  public long determineTotalPaths() {
+    return determineNonNullCells();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public OdPathMatrixIterator iterator() {
     return new OdPathMatrixIterator(this);
   }

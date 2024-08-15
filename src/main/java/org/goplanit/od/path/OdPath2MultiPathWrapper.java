@@ -146,6 +146,14 @@ public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends Li
    * {@inheritDoc}
    */
   @Override
+  public long determineTotalPaths() {
+    return odSinglePaths.determineTotalPaths();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public OdPath2MultiPathWrapper<T, U> shallowClone() {
     return new OdPath2MultiPathWrapper<>(this, false);
   }

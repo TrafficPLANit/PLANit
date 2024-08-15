@@ -14,6 +14,14 @@ import org.goplanit.utils.path.ManagedDirectedPath;
 public interface OdPaths<T extends ManagedDirectedPath> extends OdData<T> {
 
   /**
+   * The total number of paths currently registered.
+   * (likely computed on the fly)
+   *
+   * @return total number of paths
+   */
+  long determineTotalPaths();
+
+  /**
    * Returns an iterator which can iterate through all the origin-destinations and provide a path for each
    *
    * @return iterator through all the origin-destination cells
@@ -31,4 +39,6 @@ public interface OdPaths<T extends ManagedDirectedPath> extends OdData<T> {
    * @return deep copy
    */
   public OdPaths<T> deepClone();
+
+
 }

@@ -3,7 +3,6 @@ package org.goplanit.od.path;
 import org.goplanit.utils.od.OdData;
 import org.goplanit.utils.path.ManagedDirectedPath;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -21,6 +20,14 @@ public interface OdMultiPaths<U extends ManagedDirectedPath,T extends List<U>> e
    *
    * @return iterator through all the origin-destination cells
    */
-  public OdMultiPathIterator<U, T> iterator();
+  public abstract OdMultiPathIterator<U, T> iterator();
+
+  /**
+   * The total number of paths currently registered.
+   * (likely computed on the fly)
+   *
+   * @return total number of paths
+   */
+  public abstract long determineTotalPaths();
 
 }

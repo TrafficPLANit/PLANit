@@ -106,21 +106,23 @@ public class SimulationOutputTypeConfiguration extends OutputTypeConfiguration {
   @Override
   public boolean isOutputPropertyValid(OutputProperty baseOutputProperty) {
     switch (baseOutputProperty.getOutputPropertyType()) {
-
-    case ITERATION_INDEX:
-    case MODE_EXTERNAL_ID:
-    case MODE_XML_ID:
-    case MODE_ID:
-    case RUN_ID:
-    case TIME_PERIOD_EXTERNAL_ID:
-    case TIME_PERIOD_XML_ID:
-    case TIME_PERIOD_ID:
-    case ROUTE_CHOICE_CONVERGENCE_GAP:
+      case ITERATION_INDEX:
+      case MODE_EXTERNAL_ID:
+      case MODE_XML_ID:
+      case MODE_ID:
+      case RUN_ID:
+      case TIME_PERIOD_EXTERNAL_ID:
+      case TIME_PERIOD_XML_ID:
+      case TIME_PERIOD_ID:
+      case ROUTE_CHOICE_CONVERGENCE_GAP:
       case ROUTE_CHOICE_ITERATION_RUN_TIME:
-      return true;
-    default:
-      LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an output property, which is " +
-              "inappropriate for Simulation output. This will be ignored");
+      case PATH_COUNT:
+      case PATHS_ADDED:
+      case PATHS_REMOVED:
+        return true;
+      default:
+        LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an output property, not registered " +
+                "for Simulation output. This will be ignored");
     }
     return false;
   }

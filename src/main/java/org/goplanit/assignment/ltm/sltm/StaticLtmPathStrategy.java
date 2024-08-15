@@ -28,6 +28,7 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.od.OdData;
@@ -54,7 +55,6 @@ import java.util.stream.IntStream;
  */
 public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
-  /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmPathStrategy.class.getCanonicalName());
 
   // when false, seems to work better with MNL, but others bounded/weibit not tested properly, true should be more stable
@@ -64,18 +64,14 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   /** initial capacity used for list of paths per OD */
   private static final int INITIAL_PER_OD_PATH_CAPACITY = 3;
 
-  /** List of filters in form of predicates to apply when checking if a newly created path is eligible for inclusion in the set */
-  List<BiPredicate<ManagedDirectedPath, Collection<? extends ManagedDirectedPath>>> sLtmPathFilters = new ArrayList<>();
-
-  /** when relative scaling factors are used, they are stored here, so they can be fed to the choice model at the
-   * appropriate time */
-  protected final Map<Mode, OdData<Double>> odRelativeScalingFactorsByMode = new TreeMap<>();
-
   /** standard filter on newly created paths checking the path is not equal to any existing path in the set.
    * Note we assume that all provided paths are of type StaticLtmDirectedPath, if not the call will crash */
   private static final BiPredicate<ManagedDirectedPath, Collection<? extends ManagedDirectedPath>> NEW_PATH_NOT_EQUAL_TO_EXISTING_PATHS =
           (newPath, existingOdPaths) -> existingOdPaths.stream().noneMatch(
                   existingPath -> ((StaticLtmDirectedPath)existingPath).getLinkSegmentsOnlyHashCode() == ((StaticLtmDirectedPath)newPath).getLinkSegmentsOnlyHashCode());
+
+  /** track number of added and removed paths per iteration through this pair */
+  private final Pair<LongAdder, LongAdder> addedRemovedPathCounters = Pair.of(new LongAdder(), new LongAdder());
 
   /**
    * Convenience method for logging tracked Od paths, only log when od is tracked
@@ -142,6 +138,13 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       stochasticPathChoice.getPathFilter().forEach( f -> sLtmPathFilters.add(f));
     }
   }
+
+  /** List of filters in form of predicates to apply when checking if a newly created path is eligible for inclusion in the set */
+  protected List<BiPredicate<ManagedDirectedPath, Collection<? extends ManagedDirectedPath>>> sLtmPathFilters = new ArrayList<>();
+
+  /** when relative scaling factors are used, they are stored here, so they can be fed to the choice model at the
+   * appropriate time */
+  protected final Map<Mode, OdData<Double>> odRelativeScalingFactorsByMode = new TreeMap<>();
 
   /**
    * Update gap. gap function where we update the GAP based on path cost discrepancy following Bliemer et al 2014 gap function
@@ -328,21 +331,22 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   }
 
   /**
-   *  Per Od update of path probabilities based on available cost information. Assuming link additive costs and stochastic path choice
-   *  approach.
+   * Per Od update of path probabilities based on available cost information. Assuming link additive costs and stochastic path choice
+   * approach.
    *
-   * @param origin the origin
-   * @param destination the destination
-   * @param odPaths paths available for OD
-   * @param newPathAdded flag indicating if a new path was appended to odPaths for this iteration
+   * @param origin                the origin
+   * @param destination           the destination
+   * @param odPaths               paths available for OD
+   * @param newPathAdded          flag indicating if a new path was appended to odPaths for this iteration
    * @param currLinkSegmentsCosts absolute costs per link
-   * @param dCostDFlow derivative of cost towards flow at present on a per link basis
-   * @param stochasticPathChoice SUE path choice to be applied
-   * @param smoothing smoothing to be applied to found newton step
-   * @param gapFunction to track gap for this iteration to be updated for this OD
-   * @param demand the od demand across all paths of this od
+   * @param dCostDFlow            derivative of cost towards flow at present on a per link basis
+   * @param stochasticPathChoice  SUE path choice to be applied
+   * @param smoothing             smoothing to be applied to found newton step
+   * @param gapFunction           to track gap for this iteration to be updated for this OD
+   * @param demand                the od demand across all paths of this od
+   * @return removedPaths (if any)
    */
-  private void updateOdPathProbabilities(
+  private List<StaticLtmDirectedPath> updateOdPathProbabilities(
           OdZone origin,
           OdZone destination,
           List<StaticLtmDirectedPath> odPaths,
@@ -355,7 +359,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
           double demand){
 
     if(odPaths.size() == 1 && !(getSettings().hasTrackOdsForLogging() && getSettings().isTrackOdForLogging(origin, destination))){
-      return;
+      return null;
     }
 
     // get absolute and perceived costs for all paths
@@ -519,6 +523,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     }
 
     pathsToRemove.forEach(odPaths::remove);
+    return pathsToRemove;
 
   }
 
@@ -550,6 +555,22 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   }
 
   /**
+   * Access to added paths counter for persistence
+   * @return added paths counter
+   */
+  protected LongAdder getAddedPathsCounter(){
+    return addedRemovedPathCounters.first();
+  }
+
+  /**
+   * Access to removed paths counter for persistence
+   * @return added paths counter
+   */
+  protected LongAdder getRemovedPathsCounter(){
+    return addedRemovedPathCounters.second();
+  }
+
+  /**
    * Constructor
    * 
    * @param idGroupingToken       to use
@@ -559,7 +580,10 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * @param taComponents          to use for access to user configured assignment components
    */
   public StaticLtmPathStrategy(
-          final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
+          final IdGroupingToken idGroupingToken,
+          long assignmentId,
+          final TransportModelNetwork transportModelNetwork,
+          final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
 
@@ -644,7 +668,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       boolean stopPathGeneration = simulationData.getIterationIndex() > getSettings().getDisablePathGenerationAfterIteration();
       final OdPaths<StaticLtmDirectedPath> newOdPaths = stopPathGeneration ? null : createOdPaths(mode, costsToUpdate);
       final var odMultiPathsForMode = getOdMultiPaths(mode);
-      final LongAdder numNewPaths = new LongAdder();
+      addedRemovedPathCounters.both(LongAdder::reset);
       final LongAdder numTotalPaths = new LongAdder();
       final LongAdder numOdsWithDemand = new LongAdder();
       getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
@@ -662,7 +686,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                     // valid new path, add to set
                     odPaths.add(newOdPath);
                     newPathAdded = true;
-                    numNewPaths.increment();
+                    addedRemovedPathCounters.first().increment(); // added += 1
 
                     logTrackedOdPath(o, d, newOdPath);
                   }
@@ -672,8 +696,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                         relativeScalingFactors!= null ? relativeScalingFactors.getValue(o, d) : choiceModel.getScalingFactor();
                 choiceModel.setScalingFactor(odScalingFactor);
 
-                /* redistribute flows given current OD pathset */
-                this.updateOdPathProbabilities(
+                /* redistribute flows given current OD path set */
+                var removedPaths = this.updateOdPathProbabilities(
                         o, d, odPaths,
                         newPathAdded,
                         costsToUpdate,
@@ -682,13 +706,15 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                         smoothing,
                         gapFunction,
                         demand);
-
+                if(removedPaths!=null) {
+                  addedRemovedPathCounters.second().add(removedPaths.size()); // removed += #removed
+                }
                 numTotalPaths.add(odPaths.size());
               });
       if(getSettings().isDetailedLogging()){
         if(!stopPathGeneration){
-          LOGGER.info(String.format("Total paths: %d (newly added paths %d) - average paths per non-zero OD: %.2f",
-                  numTotalPaths.longValue(), numNewPaths.longValue(), numTotalPaths.longValue()/(double)numOdsWithDemand.longValue()));
+          LOGGER.info(String.format("Total paths: %d (added %d, removed %d) - average paths per non-zero OD: %.2f",
+                  numTotalPaths.longValue(), addedRemovedPathCounters.first().longValue(), addedRemovedPathCounters.second().longValue(), numTotalPaths.longValue()/(double)numOdsWithDemand.longValue()));
         }
         LOGGER.info("Iteration path choice update complete");
       }
