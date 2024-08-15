@@ -35,6 +35,7 @@ public abstract class SimulationOutputTypeAdapterImpl extends OutputTypeAdapterI
   /**
    *  Access to current total path count (if relevant)
    *
+   * @param mode to use
    * @return total path count
    */
   protected Optional<?> getTotalPathCount(Mode mode) {
@@ -44,6 +45,7 @@ public abstract class SimulationOutputTypeAdapterImpl extends OutputTypeAdapterI
   /**
    *  Access to current added path count (if relevant)
    *
+   * @param mode to use
    * @return added path count
    */
   protected Optional<?> getAddedPathCount(Mode mode) {
@@ -53,6 +55,7 @@ public abstract class SimulationOutputTypeAdapterImpl extends OutputTypeAdapterI
   /**
    *  Access to current removed path count (if relevant)
    *
+   * @param mode to use
    * @return removed path count
    */
   protected Optional<?> getRemovedPathCount(Mode mode) {
@@ -70,7 +73,7 @@ public abstract class SimulationOutputTypeAdapterImpl extends OutputTypeAdapterI
   protected Optional<?> getSimulationIndependentPropertyValue(
           OutputProperty outputProperty) {
 
-    Optional<?> value = null;
+    Optional<?> value;
     switch (outputProperty.getOutputPropertyType()) {
       default:
         value = Optional.empty();

@@ -70,6 +70,8 @@ public class SimulationData {
 
   /**
    * Access to run times tracker
+   *
+   * @return tracker
    */
   public RunTimesTracker getRunTimesTracker(){
     return runTimesTracker;
@@ -77,6 +79,8 @@ public class SimulationData {
 
   /**
    * perform shallow clone
+   *
+   * @return copy
    */
   public SimulationData shallowClone() {
     return new SimulationData(this, false);
@@ -84,6 +88,8 @@ public class SimulationData {
 
   /**
    * perform deep clone
+   *
+   * @return copy
    */
   public SimulationData deepClone() {
     return new SimulationData(this, true);
