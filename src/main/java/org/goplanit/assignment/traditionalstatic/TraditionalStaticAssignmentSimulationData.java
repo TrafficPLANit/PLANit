@@ -16,6 +16,7 @@ import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.time.RunTimesTracker;
 import org.goplanit.utils.zoning.OdZones;
 
 /**
@@ -52,6 +53,13 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   private ModalSkimMatrixData modalSkimMatrixData;
 
   /**
+   * Initialise what types of run times we will be tracking for traditional static assignment
+   */
+  private void initialiseRunTimeTracker() {
+    getRunTimesTracker().registerNew(RunTimesTracker.GENERAL);
+  }
+
+  /**
    * Constructor
    * 
    * @param groupId contiguous id generation within this group for instances of this class
@@ -62,6 +70,8 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     this.modalNetworkSegmentCostsMap = new HashMap<>();
     this.modalSkimMatrixData = new ModalSkimMatrixData();
     this.modalOdPathMatrixMap = new HashMap<>();
+
+    initialiseRunTimeTracker();
   }
 
   /**

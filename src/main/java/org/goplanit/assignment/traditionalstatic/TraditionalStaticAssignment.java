@@ -36,6 +36,7 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.path.ManagedDirectedPath;
+import org.goplanit.utils.time.RunTimesTracker;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.Zone;
@@ -418,11 +419,12 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     dualityGapFunction.reset();
 
     boolean converged = false;
+    var runTimeTracker = getIterationData().getRunTimesTracker().get(RunTimesTracker.GENERAL);
     Calendar iterationStartTime = Calendar.getInstance();
-
     while (!converged) {
       // iteration reset
       dualityGapFunction.resetIteration();
+      runTimeTracker.resetIterationTime();
 
       // prep smoothing for this iteration
       var smoothing = getSmoothing();
@@ -453,9 +455,15 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       // TODO: questionable if we should update iteration index before logging/persistence/convergence check... see if we can change this
       // which would seem more logical
       dualityGapFunction.computeGap();
-      simulationData.incrementIterationIndex();
-      iterationStartTime = logBasicIterationInformation(iterationStartTime, dualityGapFunction.getMeasuredNetworkCost(), dualityGapFunction.getGap());
 
+      // FINALISE ITERATION - collect stats for persistence, and reset timings (so that we still on average take persistence time cost into account)
+      simulationData.incrementIterationIndex();
+      var iterationEndTime = logBasicIterationInformation(
+              iterationStartTime, dualityGapFunction.getMeasuredNetworkCost(), dualityGapFunction.getGap());
+      runTimeTracker.addTimeInMillis(iterationEndTime.getTimeInMillis() - iterationStartTime.getTimeInMillis());
+      iterationStartTime = iterationEndTime;
+
+      // PERSIST
       for (var mode : modes) {
         final double[] modalLinkSegmentCosts = collectModalLinkSegmentCosts(mode);
         simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);

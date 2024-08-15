@@ -8,6 +8,7 @@ import org.goplanit.output.adapter.SimulationOutputTypeAdapterImpl;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.reflection.ReflectionUtils;
+import org.goplanit.utils.time.RunTimesTracker;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +22,16 @@ import java.util.Optional;
  *
  */
 public class TraditionalStaticSimulationOutputTypeAdapter extends SimulationOutputTypeAdapterImpl {
+
+  /**
+   * Access to run time tracking per iteration for persistence
+   *
+   * @return run time for latest route choice iteration
+   */
+  @Override
+  protected Optional<?> getRouteChoiceIterationRunTime() {
+    return Optional.of(getAssignment().getIterationData().getRunTimesTracker().get(RunTimesTracker.GENERAL).getIterationTimeInMillis());
+  }
 
   /**
    * {@inheritDoc}
