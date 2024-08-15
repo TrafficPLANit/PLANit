@@ -114,7 +114,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         return;
       }
 
-      double[] currAbsolutePathCosts = PathUtils.computeEdgeSegmentAdditiveValues(currOdPaths, linkSegmentCosts);
+      double[] currAbsolutePathCosts = PathUtils.computeEdgeSegmentsSummedValue(currOdPaths, linkSegmentCosts);
       double[] currCostRelatedPathProbabilities = currOdPaths.stream().map(StaticLtmDirectedPath::getPathChoiceProbability).mapToDouble(v -> v).toArray();
 
       double weightedOdCost = ArrayUtils.dotProduct(currAbsolutePathCosts, currCostRelatedPathProbabilities, currAbsolutePathCosts.length);
@@ -222,7 +222,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
               double relativeScalingFactor = ((StochasticPathChoice) getPathChoice()).getChoiceModel().getScalingFactor();
 
               if(odPaths.size()>1) {
-                var odPathCosts = PathUtils.computeEdgeSegmentAdditiveValues(modeOdMultiPaths.getValue(o, d), linkSegmentCosts);
+                var odPathCosts = PathUtils.computeEdgeSegmentsSummedValue(modeOdMultiPaths.getValue(o, d), linkSegmentCosts);
                 relativeScalingFactor = sueChoiceModel.computeRelativeScalingFactorGivenMinimumAlternativeCost(odPathCosts);
 
                 if (APPLY_EXP_TRANSFORM && relativeScalingFactor > maxRelScalingFactorUnderExpTransform) {
@@ -263,6 +263,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       final var newOdPaths = createOdPaths(mode, initialLinkSegmentCosts);
 
       /* populate OD multi-path container with single-path and set path probability to 1*/
+      LongAdder numPaths = new LongAdder();
       getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
               (o, d, demand) -> {
                 var odMultiPathList = new ArrayList<StaticLtmDirectedPath>(INITIAL_PER_OD_PATH_CAPACITY);
@@ -271,9 +272,11 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                 odMultiPathList.add(initialOdPath);         // add to path set
                 odMultiPathsForMode.setValue(o, d, odMultiPathList);
                 logTrackedOdPath(o, d, initialOdPath);
-
+                numPaths.increment();
               });
-
+      if(getSettings().isDetailedLogging()){
+        LOGGER.info(String.format("Created single initial path for %d ODs with non-zero demand",numPaths.longValue()));
+      }
     } catch (Exception e) {
       LOGGER.severe(String.format("Unable to create paths for initial solution of path-based sLTM %s", getAssignmentId()));
     }
@@ -355,8 +358,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       return;
     }
 
-    //1. get absolute and perceived costs for all paths
-    double[] currAbsolutePathCosts = PathUtils.computeEdgeSegmentAdditiveValues(odPaths, currLinkSegmentsCosts);
+    // get absolute and perceived costs for all paths
+    double[] currAbsolutePathCosts = PathUtils.computeEdgeSegmentsSummedValue(odPaths, currLinkSegmentsCosts);
     double[] currCostRelatedPathProbabilities =
             odPaths.stream().map(StaticLtmDirectedPath::getPathChoiceProbability).mapToDouble(v -> v).toArray();
     double[] currPerceivedPathCosts = stochasticPathChoice.computePerceivedPathCosts(
@@ -366,7 +369,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     var currPerceivedPathCostsSortedIndices = IntStream.range(0,currPerceivedPathCosts.length).boxed().sorted(
             Comparator.comparingDouble(i -> currPerceivedPathCosts[i])).mapToInt(e -> e).toArray();
 
-    //8. update gap as it currently stands before commencing new iteration with new probabilities
+    // update gap as it currently stands before commencing new iteration with new probabilities
     int lowestCostPathIndex = currPerceivedPathCostsSortedIndices[0];
     int highestCostPathIndex = currPerceivedPathCostsSortedIndices[currPerceivedPathCosts.length - 1];
     double perceivedCostUpperBoundForGap = currPerceivedPathCosts[highestCostPathIndex];
@@ -408,8 +411,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       double highCostPathCurrPerceivedCost = currPerceivedPathCosts[highCostPathIndex];
 
       //3. determine link based derivatives to inform step size for both low and high cost path (on link level) - absolute cost component only
-      double lowCostPathDAbsoluteCostDFlow = PathUtils.computeEdgeSegmentAdditiveValues(lowCostPath, dCostDFlow);
-      double highCostPathDAbsoluteCostDFlow = PathUtils.computeEdgeSegmentAdditiveValues(highCostPath, dCostDFlow); // high cost path based sum of dCostdFlow
+      double lowCostPathDAbsoluteCostDFlow = PathUtils.computeEdgeSegmentsSummedValue(lowCostPath, dCostDFlow);
+      double highCostPathDAbsoluteCostDFlow = PathUtils.computeEdgeSegmentsSummedValue(highCostPath, dCostDFlow); // high cost path based sum of dCostdFlow
 
       // 4. identify non-overlapping links between low and high cost as flow shifts only impact those links
       //todo: make configurable as this is a costly exercise yet for situations with paths sharing bottlenecks close to origin it is important to consider
@@ -435,6 +438,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       // low cost path based dPerceivedCost/dFlow this required the derivative of the perceived cost related to the applied path choice model
       double lowCostPathDenominator = stochasticPathChoice.getChoiceModel().computeDPerceivedCostDFlow(
               dpCostdFlows,  absCosts, 1 /*low cost */,lowCostPath.getPathChoiceProbability() * demand, APPLY_EXP_TRANSFORM);
+
       // BOUND ENFORCEMENT - Part II
       // derivative of low cost path should never be steeper than that of the high-cost path (if it exists). In certain edge cases this may occur due to very low demands. In that case
       // we truncate to the high cost derivative as an upper bound
@@ -466,6 +470,22 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
               newtonStepDenominator != 0.0 ?
                       (highCostPathCurrPerceivedCost - lowCostPathCurrPerceivedCost) / newtonStepDenominator :
                       currHighCostDemand);
+
+      //todo: needs work, when we apply this this in a way replaces the smoothing, so we should not do both, or make the smoothing
+      // self regulating in a different way (pivot around 1 rather than ebcome smaller and smaller)
+      {
+       /*// BOUND ENFORCEMENT - Part III
+      // Because step is done on OD level and it is unlikely this is the only OD utilising the links on this path, we
+      // scale back our step based on the proportion of the Path's link flow vs the total links' flow. this should ensure
+      // that across all flow shifts combined we end up with a correct total step
+      boolean scaleNewtonStep = true;
+      if(scaleNewtonStep){
+        double averageTotalFlow = (PathUtils.computeEdgeSegmentsAverageValue(highCostPath, this.getLoading().getCurrentInflowsPcuH()) +
+                PathUtils.computeEdgeSegmentsAverageValue(lowCostPath, this.getLoading().getCurrentInflowsPcuH())/2);
+        newtonStep *= Math.max(0.3,Math.min(1,demand/averageTotalFlow));
+        //LOGGER.info(String.format("SCALING: %.2f OD %.2f TOTAL_AV: %.2f",(currHighCostDemand+currLowCostDemand)/averageTotalFlow, demand, averageTotalFlow));
+      }*/
+      }
 
       // 7. Apply smoothing to step (capped at overall demand in case no derivatives were available for both options)
       var proposedLowCostDemand = currLowCostDemand + newtonStep;
@@ -625,10 +645,13 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       final OdPaths<StaticLtmDirectedPath> newOdPaths = stopPathGeneration ? null : createOdPaths(mode, costsToUpdate);
       final var odMultiPathsForMode = getOdMultiPaths(mode);
       final LongAdder numNewPaths = new LongAdder();
+      final LongAdder numTotalPaths = new LongAdder();
+      final LongAdder numOdsWithDemand = new LongAdder();
       getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
               (o, d, demand) -> {
 
                 var odPaths =  odMultiPathsForMode.getValue(o, d);
+                numOdsWithDemand.increment();
 
                 boolean newPathAdded = false;
                 if(newOdPaths != null) {
@@ -659,12 +682,15 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
                         smoothing,
                         gapFunction,
                         demand);
+
+                numTotalPaths.add(odPaths.size());
               });
       if(getSettings().isDetailedLogging()){
         if(!stopPathGeneration){
-          LOGGER.info(String.format("Added %d new paths", numNewPaths.longValue()));
+          LOGGER.info(String.format("Total paths: %d (newly added paths %d) - average paths per non-zero OD: %.2f",
+                  numTotalPaths.longValue(), numNewPaths.longValue(), numTotalPaths.longValue()/(double)numOdsWithDemand.longValue()));
         }
-        LOGGER.info(String.format("Iteration path choice update complete", numNewPaths.longValue()));
+        LOGGER.info("Iteration path choice update complete");
       }
 
     } catch (Exception e) {

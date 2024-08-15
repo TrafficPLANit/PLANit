@@ -143,10 +143,10 @@ public class MSRASmoothing extends IterationBasedSmoothing {
     }else if(isBadIteration()){
       beta = previousBeta + kappaStep;
     }else{
-      beta = previousBeta + gammaStep;
+      beta = Math.max(1,previousBeta + gammaStep);
     }
     this.stepSize = 1.0 / Math.max(1, Math.pow(Math.abs(beta),lambdaPower));
-    LOGGER.info(String.format("Stepsize: %.2f",stepSize));
+    LOGGER.info(String.format("Stepsize: %.2f  (lambda=%.2f beta=%.2f)",stepSize, lambdaPower, beta));
   }
 
   /**

@@ -124,7 +124,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
         filteredOutputKeyProperties.add(OutputProperty.of(OutputPropertyType.DESTINATION_ZONE_EXTERNAL_ID));
         break;
       default:
-        LOGGER.warning("configured keys cannot identify origin-destination cell in the skim matrix");
+        LOGGER.warning("Configured keys cannot identify origin-destination cell in the skim matrix");
         valid = false;
         filteredOutputKeyProperties = null;
       }

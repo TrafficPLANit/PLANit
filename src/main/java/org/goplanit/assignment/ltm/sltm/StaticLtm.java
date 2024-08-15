@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.LtmAssignment;
@@ -225,9 +226,10 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       getOutputManager().persistOutputData(timePeriod, modes, converged);
 
       if(isActivateDetailedLogging()) {
-        LOGGER.info(String.format("** INFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentInflowsPcuH())));
-        LOGGER.info(String.format("** OUTFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentOutflowsPcuH())));
-        LOGGER.info(String.format("** ALPHA: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentFlowAcceptanceFactors())));
+        Function<double[],double[]> truncate100Entries = original -> Arrays.copyOf(original, Math.min(original.length, 100));
+        LOGGER.info(String.format("** INFLOW (0-100): %s", Arrays.toString(truncate100Entries.apply(assignmentStrategy.getLoading().getCurrentInflowsPcuH()))));
+        LOGGER.info(String.format("** OUTFLOW (0-100): %s", Arrays.toString(truncate100Entries.apply(assignmentStrategy.getLoading().getCurrentOutflowsPcuH()))));
+        LOGGER.info(String.format("** ALPHA (0-100): %s", Arrays.toString(truncate100Entries.apply(assignmentStrategy.getLoading().getCurrentFlowAcceptanceFactors()))));
       }
     }
   }

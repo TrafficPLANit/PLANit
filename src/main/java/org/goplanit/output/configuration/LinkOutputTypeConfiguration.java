@@ -136,7 +136,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
         valid = true;
         break;
       default:
-        LOGGER.warning("configured keys cannot identify link segments");
+        LOGGER.warning("Configured keys cannot identify link segments");
       }
     } catch (Exception e) {
       LOGGER.warning(e.getMessage());

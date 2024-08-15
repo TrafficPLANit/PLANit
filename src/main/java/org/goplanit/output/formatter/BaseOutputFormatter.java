@@ -264,7 +264,6 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
       boolean success = initializeKeyProperties(outputTypeConfiguration);
       if(!success){
         LOGGER.warning("Ignoring OutputType: [" + outputType.value() + "] for persistence");
-        outputConfiguration.deregisterOutputTypeConfiguration(outputType);
         return;
       }
     }
@@ -293,7 +292,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
       }
     } else {
       // regular approach, single output type with single iteration reference
-      Optional<Integer> iterationIndex = outputAdapter.getOutputTypeAdapter(outputType).getIterationIndexForSubOutputType(null);
+      Optional<Integer> iterationIndex = adapter.getIterationIndexForSubOutputType(null);
       if (iterationIndex.isEmpty()) {
         throw new PlanItRunTimeException("Iteration index could not be retrieved when persisting");
       }
@@ -302,7 +301,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 
     // Each unique combination of (sub)output type (configuration), its iteration index, and related
     // data is now relayed to the appropriate methods
-    for (Map.Entry<OutputTypeEnum, Integer> entry : outputTypeIterationInformation.entrySet()) {
+    for (var entry : outputTypeIterationInformation.entrySet()) {
       OutputTypeEnum currentOutputTypeEnum = entry.getKey();
       int iterationIndex = entry.getValue();
       switch (outputType) {

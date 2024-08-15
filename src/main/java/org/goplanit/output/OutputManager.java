@@ -86,7 +86,12 @@ public class OutputManager {
    */
   public void persistOutputData(final TimePeriod timePeriod, final Set<Mode> modes, final boolean converged) {
     for (OutputType outputType : outputConfiguration.getActivatedOutputTypes()) {
+
       OutputTypeConfiguration outputTypeConfiguration = outputConfiguration.getOutputTypeConfiguration(outputType);
+      if(!outputTypeConfiguration.hasActiveOutputProperties()){
+        continue;
+      }
+
       if (converged || !outputConfiguration.isPersistOnlyFinalIteration(outputType)) {
         for (OutputFormatter outputFormatter : outputFormatters) {
           if (converged || outputFormatter.canHandleMultipleIterations()) {

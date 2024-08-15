@@ -1,5 +1,6 @@
 package org.goplanit.output.configuration;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -12,6 +13,7 @@ import org.goplanit.output.property.OutputProperty;
 import org.goplanit.output.property.OutputPropertyPriority;
 import org.goplanit.output.property.OutputPropertyType;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.unit.Unit;
 
 /**
@@ -274,4 +276,12 @@ public abstract class OutputTypeConfiguration {
   }
 
 
+  /**
+   * Verify if any output properties are current active for persistence
+   *
+   * @return true if any are present, false otherwise
+   */
+  public boolean hasActiveOutputProperties() {
+    return !CollectionUtils.nullOrEmpty(this.outputProperties);
+  }
 }
