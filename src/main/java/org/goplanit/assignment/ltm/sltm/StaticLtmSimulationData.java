@@ -10,6 +10,7 @@ import org.goplanit.assignment.ModalSkimMatrixData;
 import org.goplanit.assignment.SimulationData;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.time.RunTimesTracker;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -44,6 +45,14 @@ public class StaticLtmSimulationData extends SimulationData {
   private ModalSkimMatrixData skimMatrixData;
 
   /**
+   * Initialise what types of run times we will be tracking for sLTM
+   */
+  private void initialiseRunTimeTracker() {
+    getRunTimesTracker().registerNew(RunTimesTracker.GENERAL);
+  }
+
+
+  /**
    * Constructor
    * 
    * @param timePeriod                currently in action
@@ -59,15 +68,17 @@ public class StaticLtmSimulationData extends SimulationData {
 
     this.initialCostsAppliedInFirstIteration = new TreeMap<>();
     supportedModes.forEach(m -> initialCostsAppliedInFirstIteration.put(m, false));
+
+    initialiseRunTimeTracker();
   }
 
   /**
-   * Copy Constructor
+   * Copy Constructor for shallow copy
    * 
    * @param simulationData to copy
    */
   public StaticLtmSimulationData(final StaticLtmSimulationData simulationData) {
-    super(simulationData);
+    super(simulationData, false);
     if (simulationData.modeLinkSegmentCost.length > 0) {
       this.modeLinkSegmentCost = new double[simulationData.modeLinkSegmentCost.length][simulationData.modeLinkSegmentCost[0].length];
       for (int index = 0; index < simulationData.modeLinkSegmentCost.length; ++index) {

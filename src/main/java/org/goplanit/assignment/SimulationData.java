@@ -1,5 +1,7 @@
 package org.goplanit.assignment;
 
+import org.goplanit.utils.time.RunTimesTracker;
+
 /**
  * General simulation data that only are available during simulation
  * 
@@ -12,6 +14,11 @@ public class SimulationData {
   private int iterationIndex;
 
   /**
+   * Provide support to track run times
+   */
+  private RunTimesTracker runTimesTracker = RunTimesTracker.create();
+
+  /**
    * Constructor
    */
   public SimulationData() {
@@ -22,10 +29,16 @@ public class SimulationData {
    * Copy constructor
    * 
    * @param simulationData to copy
+   * @param deepCopy flag
    */
-  protected SimulationData(final SimulationData simulationData) {
+  protected SimulationData(final SimulationData simulationData, boolean deepCopy) {
     super();
     this.iterationIndex = simulationData.iterationIndex;
+    if(!deepCopy) {
+      this.runTimesTracker = simulationData.runTimesTracker.shallowClone();
+    }else{
+      this.runTimesTracker = simulationData.runTimesTracker.deepClone();
+    }
   }
 
   /**
@@ -56,10 +69,24 @@ public class SimulationData {
   }
 
   /**
-   * {@inheritDoc}
+   * Access to run times tracker
+   */
+  public RunTimesTracker getRunTimesTracker(){
+    return runTimesTracker;
+  }
+
+  /**
+   * perform shallow clone
    */
   public SimulationData shallowClone() {
-    return new SimulationData(this);
+    return new SimulationData(this, false);
+  }
+
+  /**
+   * perform deep clone
+   */
+  public SimulationData deepClone() {
+    return new SimulationData(this, true);
   }
 
   /**
@@ -67,6 +94,7 @@ public class SimulationData {
    */
   public void reset() {
     this.iterationIndex = 0;
+    runTimesTracker.reset();
   }
 
   /**

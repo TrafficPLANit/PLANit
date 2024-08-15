@@ -80,7 +80,7 @@ public interface MacroscopicLinkOutputTypeAdapter extends UntypedLinkOutputTypeA
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<String> getDownstreamNodeExternalId(MacroscopicLinkSegment linkSegment) throws PlanItException {
-    return Optional.of(((Vertex) linkSegment.getDownstreamVertex()).getExternalId());
+    return Optional.of(linkSegment.getDownstreamVertex().getExternalId());
   }
 
   /**

@@ -26,6 +26,16 @@ import java.util.Optional;
 public abstract class SimulationOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements SimulationOutputTypeAdapter {
 
   /**
+   *  Access to rotue choice iteration run time
+   *
+   * @return run time for latest rotue choice iteration
+   */
+  protected Optional<?> getRouteChoiceIterationRunTime() {
+    // stub implementation so unspporting deriving assignments won't crash when activated
+    return Optional.of("N/A");
+  }
+
+  /**
    * Collect output property values that do not depend on simulation information directly.
    * If no match is found  an empty option is returned (currently always)
    *
@@ -56,6 +66,8 @@ public abstract class SimulationOutputTypeAdapterImpl extends OutputTypeAdapterI
     switch (outputProperty.getOutputPropertyType()) {
       case ROUTE_CHOICE_CONVERGENCE_GAP:
         return SimulationOutputTypeAdapter.getRouteChoiceConvergenceGap(getAssignment().getGapFunction());
+      case ROUTE_CHOICE_ITERATION_RUN_TIME:
+        return getRouteChoiceIterationRunTime();
       default:
         return Optional.of(String.format("Tried to find property of %s which is not applicable for Simulation output", outputProperty.getName()));
     }
@@ -90,7 +102,7 @@ public abstract class SimulationOutputTypeAdapterImpl extends OutputTypeAdapterI
       Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (!value.isPresent()) {
         // try simulation specific results
-        value = getSimulationDependentPropertyValue(outputProperty);
+        value = getSimulationIndependentPropertyValue(outputProperty);
       }
 
       if (value.isPresent()) {

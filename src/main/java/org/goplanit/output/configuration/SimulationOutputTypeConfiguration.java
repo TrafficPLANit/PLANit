@@ -116,6 +116,7 @@ public class SimulationOutputTypeConfiguration extends OutputTypeConfiguration {
     case TIME_PERIOD_XML_ID:
     case TIME_PERIOD_ID:
     case ROUTE_CHOICE_CONVERGENCE_GAP:
+      case ROUTE_CHOICE_ITERATION_RUN_TIME:
       return true;
     default:
       LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an output property, which is " +

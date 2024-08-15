@@ -26,6 +26,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.reflection.ReflectionUtils;
+import org.goplanit.utils.time.RunTimesTracker;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -92,18 +93,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     return strategy;
   }
 
-  /**
-   * Record some basic iteration information such as duration and gap
-   *
-   * @param startTime  the original start time of the iteration
-   * @param gapFunction the duality gap at the end of the iteration
-   * @return the time (in ms) at the end of the iteration for profiling purposes only
-   */
-  private Calendar logBasicIterationInformation(final Calendar startTime, final GapFunction gapFunction) {
-    final Calendar currentTime = Calendar.getInstance();
-    LOGGER.info(String.format("%sGap: %.10f (%d ms)", createLoggingPrefix(getIterationIndex()), gapFunction.getGap(), currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
-    return currentTime;
-  }
 
   /**
    * Initialize time period assigment and construct the network loading instance to use
@@ -160,6 +149,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* prep */
     setTimePeriod(timePeriod);
     this.simulationData = initialiseTimePeriodSpecificData(timePeriod, modes);
+    var runTimeTracker = getIterationData().getRunTimesTracker().get(RunTimesTracker.GENERAL);
     if (simulationData.getSupportedModes().size() != 1) {
       LOGGER.warning(
           String.format("%ssLTM only supports a single mode for now, found %d, aborting assignment for time period %s",
@@ -169,9 +159,10 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
     boolean convergedOrStop = false;
     Calendar iterationStartTime = Calendar.getInstance();
-
     /* ASSIGNMENT LOOP */
     do {
+      runTimeTracker.resetIterationTime();
+
       simulationData.incrementIterationIndex();
       var smoothing = getSmoothing();
       if (smoothing instanceof IterationBasedSmoothing) {
@@ -203,10 +194,17 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       // CONVERGENCE CHECK
       convergedOrStop = assignmentStrategy.hasConverged(getGapFunction(), simulationData.getIterationIndex());
 
+      var iterationEndTime = Calendar.getInstance();
+      var iterationRunTime = iterationEndTime.getTimeInMillis() - iterationStartTime.getTimeInMillis();
+      runTimeTracker.addTimeInMillis(iterationRunTime);
+      iterationStartTime = iterationEndTime;
+
       // PERSIST
       persistIterationResults(convergedOrStop);
 
-      iterationStartTime = logBasicIterationInformation(iterationStartTime, getGapFunction());
+      LOGGER.info(String.format("%sGap: %.10f (%d ms)",
+              createLoggingPrefix(getIterationIndex()), getGapFunction().getGap(), iterationRunTime));
+
     } while (!convergedOrStop);
 
   }

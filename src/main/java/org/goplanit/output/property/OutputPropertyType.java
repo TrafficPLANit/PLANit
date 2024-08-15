@@ -53,6 +53,7 @@ public enum OutputPropertyType {
   TIME_PERIOD_XML_ID("org.goplanit.output.property.TimePeriodXmlIdOutputProperty"), 
   TIME_PERIOD_EXTERNAL_ID("org.goplanit.output.property.TimePeriodExternalIdOutputProperty"),
   ROUTE_CHOICE_CONVERGENCE_GAP("org.goplanit.output.property.RouteChoiceConvergenceGapOutputProperty"),
+  ROUTE_CHOICE_ITERATION_RUN_TIME("org.goplanit.output.property.RouteChoiceIterationRunTimeOutputProperty"),
   RUN_ID("org.goplanit.output.property.RunIdOutputProperty"),
   PATH_GEOMETRY("org.goplanit.output.property.PathGeometryOutputProperty"),
   PATH_ID("org.goplanit.output.property.PathIdOutputProperty"),
