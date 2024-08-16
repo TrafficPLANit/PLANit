@@ -11,6 +11,7 @@ import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
+import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.test.sltm.sLtmAssignmentGridTestBase;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
@@ -178,8 +179,10 @@ public class sLtmAssignmentPathGridTest extends sLtmAssignmentGridTestBase {
       demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
 
       /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+      StaticLtmTrafficAssignmentBuilder sLTMBuilder =
+              new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       var sLtmConf = ((StaticLtmConfigurator) sLTMBuilder.getConfigurator());
+      sLtmConf.createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
       sLtmConf.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       sLtmConf.activateDetailedLogging(false);
       

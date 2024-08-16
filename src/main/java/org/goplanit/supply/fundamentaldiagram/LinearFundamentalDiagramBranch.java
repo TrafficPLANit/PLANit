@@ -79,7 +79,17 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    * {@inheritDoc}
    */
   @Override
-  public double getFlowTangent(double flowPcuHour) {
+  public double getdFlowdDensityAtFlow(double flowPcuHour) {
+    return getCharateristicWaveSpeedKmHour();
+  }
+
+  /**
+   * The dFlow/dDensity given a particular density
+   *
+   * @param densityPcuKm to use
+   * @return tangent at density
+   */
+  public double getdFlowdDensityAtDensity(double densityPcuKm) {
     return getCharateristicWaveSpeedKmHour();
   }
 
@@ -107,6 +117,14 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    */
   @Override
   public LinearFundamentalDiagramBranch shallowClone() {
+    return new LinearFundamentalDiagramBranch(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinearFundamentalDiagramBranch deepClone() {
     return new LinearFundamentalDiagramBranch(this);
   }
 

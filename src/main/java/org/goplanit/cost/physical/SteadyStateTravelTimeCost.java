@@ -253,7 +253,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   }
 
   /**
-   * First Derivative towards inflowRate. HypocriticalDelay is FD dependent. HyperCritical delay equates to (timePeriod duration/2) * (1/outflowRate).
+   * First Derivative towards inflowRate. HypocriticalDelay is FD dependent. HyperCritical delay equates to
+   * (timePeriod duration/2) * (1/outflowRate).
    * 
    * {@inheritDoc}
    */

@@ -1,8 +1,5 @@
 package org.goplanit.supply.fundamentaldiagram;
 
-import java.util.Map;
-import java.util.logging.Logger;
-
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
@@ -10,13 +7,16 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 
+import java.util.Map;
+import java.util.logging.Logger;
+
 /**
- * Newell fundamental diagram traffic component
+ * Quadratic-Linear fundamental diagram traffic component
  *
  * @author markr
  *
  */
-public class NewellFundamentalDiagramComponent extends FundamentalDiagramComponent {
+public class QuadraticLinearFundamentalDiagramComponent extends FundamentalDiagramComponent {
 
   /** generated UID */
   private static final long serialVersionUID = -3166623064510413929L;
@@ -24,50 +24,55 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
   /**
    * Logger to use
    */
-  private static final Logger LOGGER = Logger.getLogger(NewellFundamentalDiagramComponent.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(QuadraticLinearFundamentalDiagramComponent.class.getCanonicalName());
 
   /**
-   * Factory method based on link segment type
-   *
-   * @param lsType to use
-   * @param mode mode to use
-   * @return created FD
+   * {@inheritDoc}
    */
   @Override
-  protected NewellFundamentalDiagram createFundamentalDiagramByLinkSegmentType(MacroscopicLinkSegmentType lsType, Mode mode) {
+  protected QuadraticLinearFundamentalDiagram createFundamentalDiagramByLinkSegmentType(
+          MacroscopicLinkSegmentType lsType, Mode mode) {
 
-    NewellFundamentalDiagram newellFd;
-    double modeSpeed = lsType.getMaximumSpeedKmH(mode);
+    // free speed:      use explicitly set or mode speed limit
+    double modeFreeSpeedForType = lsType.getMaximumSpeedKmH(mode);
+    // critical speed:  use explicitly set or minimum of mode speed limit and default critical speed
+    var modeCriticalSpeed = lsType.getCriticalSpeedKmH(mode);
+
+    QuadraticLinearFundamentalDiagram qlFd;
     if (!lsType.isExplicitMaximumDensityPerLaneSet() && !lsType.isExplicitCapacityPerLaneSet()) {
-      /* use free speed to create Newell FD with inferred capacity */
-      newellFd = new NewellFundamentalDiagram(modeSpeed);
+      /* use free speed/critical speed to create FD with inferred capacity */
+      qlFd = new QuadraticLinearFundamentalDiagram(modeFreeSpeedForType, modeCriticalSpeed);
     } else if (!lsType.isExplicitMaximumDensityPerLaneSet()) {
       /* capacity is explicitly overwritten, so use that as well, use default for jam density */
-      newellFd = new NewellFundamentalDiagram(
-              modeSpeed, lsType.getExplicitCapacityPerLane(), lsType.getExplicitMaximumDensityPerLaneOrDefault());
+      qlFd = new QuadraticLinearFundamentalDiagram(
+              modeFreeSpeedForType,
+              modeCriticalSpeed,
+              lsType.getExplicitCapacityPerLane(),
+              lsType.getExplicitMaximumDensityPerLaneOrDefault());
     } else {
       /* only jam density set, use that */
-      newellFd = new NewellFundamentalDiagram(modeSpeed, lsType.getExplicitMaximumDensityPerLane());
+      qlFd = new QuadraticLinearFundamentalDiagram(
+              modeFreeSpeedForType, modeCriticalSpeed, lsType.getExplicitMaximumDensityPerLane());
     }
-    return newellFd;
+    return qlFd;
   }
 
   /**
    * Constructor
-   * 
+   *
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  public NewellFundamentalDiagramComponent(final IdGroupingToken groupId) {
+  public QuadraticLinearFundamentalDiagramComponent(final IdGroupingToken groupId) {
     super(groupId);
   }
 
   /**
    * Copy constructor
-   * 
+   *
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public NewellFundamentalDiagramComponent(final NewellFundamentalDiagramComponent other, boolean deepCopy) {
+  public QuadraticLinearFundamentalDiagramComponent(final QuadraticLinearFundamentalDiagramComponent other, boolean deepCopy) {
     super(other, deepCopy);
   }
 
@@ -75,16 +80,16 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
    * {@inheritDoc}
    */
   @Override
-  public NewellFundamentalDiagramComponent shallowClone() {
-    return new NewellFundamentalDiagramComponent(this, false);
+  public QuadraticLinearFundamentalDiagramComponent shallowClone() {
+    return new QuadraticLinearFundamentalDiagramComponent(this, false);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public NewellFundamentalDiagramComponent deepClone() {
-    return new NewellFundamentalDiagramComponent(this, true);
+  public QuadraticLinearFundamentalDiagramComponent deepClone() {
+    return new QuadraticLinearFundamentalDiagramComponent(this, true);
   }
 
   /**

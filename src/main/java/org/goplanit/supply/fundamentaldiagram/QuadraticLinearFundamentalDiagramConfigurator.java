@@ -1,18 +1,23 @@
 package org.goplanit.supply.fundamentaldiagram;
 
-import org.goplanit.utils.builder.Configurator;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 
 /**
- * Base class for all fundamental diagram configurator implementations
+ * Configurator for Quadratic-Linear fundamental diagram implementation. We allow one to overwrite the capacity and
+ * maximum densities used for each FD but not the free speed, since the free speed is a physical value that is a given.
+ * Note that a change on the link segment level takes precedence over a change on the link segment type, i.e., the most specific
+ * overwrite is used in the final fundamental diagram applied on the link segment.
+ * <p>
+ * In absence of a capacity, the capacity is computed by the point of intersection of the free flow branch and
+ * congested branch, which for Newell is defined by only the free flow speed, maximum density and intersection points
+ * with the x-axis (density=0), by explicitly setting the capacity or moving the maximum density point the FD will adjust its
+ * backward wave speed to accommodate any change comapred to the default computed capacity/maximum density.
+ * </p>
  * 
  * @author markr
- *
- * @param <T> fundamental diagram type
  */
-public class FundamentalDiagramConfigurator<T extends FundamentalDiagramComponent> extends Configurator<T> {
+public class QuadraticLinearFundamentalDiagramConfigurator extends FundamentalDiagramConfigurator<QuadraticLinearFundamentalDiagramComponent> {
 
   private static final String SET_CAPACITY_LINK_SEGMENT = "setCapacityLinkSegmentPcuHourLane";
 
@@ -24,15 +29,15 @@ public class FundamentalDiagramConfigurator<T extends FundamentalDiagramComponen
 
   /**
    * Constructor
-   * 
-   * @param instanceType to configure on
+   *
    */
-  public FundamentalDiagramConfigurator(Class<T> instanceType) {
-    super(instanceType);
+  protected QuadraticLinearFundamentalDiagramConfigurator() {
+    super(QuadraticLinearFundamentalDiagramComponent.class);
   }
 
   /**
-   * Set the capacity in pcu/h/lane to use for the Newell FD for a given link segment.
+   * Set the capacity in pcu/h/lane to use for the Newell FD for a given link segment. This only impacts the backward
+   * wave speed used to keep the FD viable.
    *
    * @param linkSegment         the specified link segment
    * @param capacityPcuHourLane to use
@@ -43,7 +48,8 @@ public class FundamentalDiagramConfigurator<T extends FundamentalDiagramComponen
   }
 
   /**
-   * Set the maximum density in pcu/km/lane to use for the Newell FD for a given link segment.
+   * Set the maximum density in pcu/km/lane to use for the Newell FD for a given link segment. This only impacts
+   * the backward wave speed used to keep the FD viable. one to change the capacity.
    *
    * @param linkSegment         the specified link segment
    * @param maxDensityPcuKmLane to use
@@ -54,7 +60,7 @@ public class FundamentalDiagramConfigurator<T extends FundamentalDiagramComponen
   }
 
   /**
-   * Set the capacity in pcu/h/lane to use for the Newell FD for a given link segment type.
+   * Set the capacity in pcu/h/lane to use for the Newell FD for a given link segment type. This only impacts the backward wave speed used to keep the FD viable.
    *
    * @param linkSegmentType     the specified link segment type
    * @param capacityPcuHourLane to use
@@ -66,6 +72,7 @@ public class FundamentalDiagramConfigurator<T extends FundamentalDiagramComponen
 
   /**
    * Set the maximum density in pcu/km/lane to use for the Newell FD for a given link segment type.
+   * This only impacts the backward wave speed used to keep the FD viable. one to change the capacity.
    *
    * @param linkSegmentType     the specified link segment type
    * @param maxDensityPcuKmLane to use
@@ -73,17 +80,6 @@ public class FundamentalDiagramConfigurator<T extends FundamentalDiagramComponen
   public void setMaximumDensityLinkSegmentTypePcuKmLane(
           final MacroscopicLinkSegmentType linkSegmentType, final double maxDensityPcuKmLane) {
     registerDelayedMethodCall(SET_MAXIMUM_DENSITY_LINK_SEGMENT_TYPE, linkSegmentType, maxDensityPcuKmLane);
-  }
-
-  /**
-   * Needed to avoid issues with generics, although it should be obvious that T extends FundamentalDiagram
-   * 
-   * @param fundamentalDiagram the instance to configure
-   */
-  @SuppressWarnings("unchecked")
-  @Override
-  public void configure(FundamentalDiagramComponent fundamentalDiagram){
-    super.configure((T) fundamentalDiagram);
   }
 
 }

@@ -10,21 +10,6 @@ import org.goplanit.utils.macroscopic.MacroscopicConstants;
 public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
 
   //@formatter:off
-  /**
-   * Compute the backward wave speed that goes with a given capacity keeping all other variables the same
-   * 
-   * @param capacityPcuHour to compute backward wave speed for ceteris paribus
-   * @return proposed backward wave speed
-   */
-  protected double computeBackwardWaveSpeedForCapacity(double capacityPcuHour) {
-    /*
-     * capacity = (k_crit-k_jam)*backwardwavespeed 
-     * backwardwavespeed = (k_crit-k_jam)/capacity
-     */
-    double newCriticalDensity = getFreeFlowBranch().getDensityPcuKm(capacityPcuHour);
-    double jamDensity = getCongestedBranch().getDensityPcuKm(0);
-    return capacityPcuHour/(newCriticalDensity - jamDensity);
-  }
 
   /**
    * Constructor using all defaults except for the free speed to apply

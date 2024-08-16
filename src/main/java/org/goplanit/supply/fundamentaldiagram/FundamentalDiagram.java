@@ -1,8 +1,9 @@
 package org.goplanit.supply.fundamentaldiagram;
 
 /**
- * The base interface for the Fundamental Diagram component type. Also specifies all out-of-the-box supported fundamental diagrams supported directly by PLANit and available for
- * users to create and register on their chosen compatible assignments.
+ * The base interface for the Fundamental Diagram component type. Also specifies all out-of-the-box supported
+ * fundamental diagrams supported directly by PLANit and available for users to create and register on their
+ * chosen compatible assignments.
  * 
  * @author markr
  *
@@ -13,6 +14,43 @@ public interface FundamentalDiagram {
    * shorthand for Newell fundamental diagram class type
    */
   public static final String NEWELL = NewellFundamentalDiagramComponent.class.getCanonicalName();
+
+  /**
+   * shorthand for quadratic linear fundamental diagram class type
+   */
+  public static final String QUADRATIC_LINEAR = QuadraticLinearFundamentalDiagramComponent.class.getCanonicalName();
+
+  /**
+   * Compute capacity point where the two linear lines intersect.
+   *
+   * knowing criticalSpeed * criticalDensity = -backwardWaveSpeed * (jamDensity - criticalDensity) rewrite to
+   * criticalDensity = (-backwardWaveSpeed * jamDensity)/(criticalSpeed + backwardWaveSpeed) we then obtain capacity
+   * via criticalDensity * criticalSpeed
+   *
+   * @param criticalSpeed speed to use
+   * @param backwardWaveSpeed wave speed to use
+   * @param jamDensity to use
+   * @return inferred capacity at point of intersection
+   */
+  public static double computeCapacityFor(double criticalSpeed, double backwardWaveSpeed, double jamDensity) {
+    var inferredCriticalDensity = (-backwardWaveSpeed * jamDensity)/(criticalSpeed + backwardWaveSpeed);
+    return inferredCriticalDensity * criticalSpeed;
+  }
+
+  /**
+   * Compute the backward wave speed that goes with a given critical and jam density
+   * <p>
+   *   backward wave speed = capacity/(criticalDensity-jamDensity)
+   * </p>
+   *
+   * @param capacityPcuHour
+   * @param criticalDensity to use
+   * @param jamDensity to use
+   * @return proposed backward wave speed
+   */
+  public static double computeBackwardWaveSpeedFor(double capacityPcuHour, double criticalDensity, double jamDensity) {
+    return capacityPcuHour/(criticalDensity - jamDensity);
+  }
 
   /**
    * Free flow branch of the FD
@@ -54,8 +92,9 @@ public interface FundamentalDiagram {
   }
 
   /**
-   * A fundamental diagram is based on a limited number of double variables to define it. In case we want to use the same FD for extremely similar variables we can use this relaxed
-   * hash code that ensures that for the given precision level identical hashes are created even if the underlying floating point variables differ beyond this precision.
+   * A fundamental diagram is based on a limited number of double variables to define it. In case we want to use the
+   * same FD for extremely similar variables we can use this relaxed hash code that ensures that for the given
+   * precision level identical hashes are created even if the underlying floating point variables differ beyond this precision.
    * 
    * @param scale indicating how many decimals to consider, e.g., 2 considers 2 decimals for precision
    * @return created relaxed hash code

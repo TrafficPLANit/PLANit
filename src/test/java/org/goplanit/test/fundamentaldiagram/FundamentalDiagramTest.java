@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.logging.Logging;
 import org.goplanit.supply.fundamentaldiagram.NewellFundamentalDiagram;
+import org.goplanit.supply.fundamentaldiagram.QuadraticLinearFundamentalDiagram;
 import org.goplanit.utils.macroscopic.MacroscopicConstants;
 import org.goplanit.utils.math.Precision;
 import org.junit.jupiter.api.AfterAll;
@@ -51,7 +52,7 @@ public class FundamentalDiagramTest {
   //@formatter:on
 
   /**
-   * Test sLTM network loading on above network
+   * Test triangular FD
    */
   @Test
   public void NewellfundamentalDiagramTest() {
@@ -74,8 +75,8 @@ public class FundamentalDiagramTest {
       assertEquals(expectedCapacity, computedCapacity, Precision.EPSILON_6);
 
       /*
-       * now make some changes: set maximum density to half way point between current critical density and maximum density: should result in the same backward wave speed but
-       * reduced capacity
+       * now make some changes: set maximum density to halfway point between current critical density and maximum density:
+       * should result in the same backward wave speed but reduced capacity
        */
       double criticalDensity = computedCapacity / freeSpeed;
       newellFd.setMaximumDensityPcuKmHour(MacroscopicConstants.DEFAULT_MAX_DENSITY_PCU_KM_LANE - (criticalDensity / 2));
@@ -84,8 +85,9 @@ public class FundamentalDiagramTest {
       assertEquals(newellFd.getCongestedBranch().getCharateristicWaveSpeedKmHour(), MacroscopicConstants.DEFAULT_BACKWARD_WAVE_SPEED_KM_HOUR, Precision.EPSILON_6);
 
       /*
-       * now make some changes compared to original: Halve the capacity: should result in critical density moved forward (less) to half of what it was and therefore with the max
-       * density remaining the same, the backward wave speed is -newCapacity/(maxDensity-(oldCriticalDensity/2))
+       * now make some changes compared to original: Halve the capacity: should result in critical density moved forward
+       * (less) to half of what it was and therefore with the max density remaining the same, the backward wave speed
+       * is -newCapacity/(maxDensity-(oldCriticalDensity/2))
        */
       newellFd.setMaximumDensityPcuKmHour(MacroscopicConstants.DEFAULT_MAX_DENSITY_PCU_KM_LANE);
       double halvedCapacity = expectedCapacity / 2;
@@ -100,6 +102,65 @@ public class FundamentalDiagramTest {
     } catch (Exception e) {
       e.printStackTrace();
       fail("Error when testing Newell Fundamental Diagram");
+    }
+  }
+
+  /**
+   * Test QL FD
+   */
+  @Test
+  public void QuadraticLinearFundamentalDiagramTest() {
+    try {
+
+      /* create symmetric FD for testing purposes */
+      final double freeSpeed = MacroscopicConstants.SPEED_100_KMH;
+      final double speedAtCapacity = MacroscopicConstants.SPEED_80_KMH;
+      final double capacity = MacroscopicConstants.CAPACITY_2000_PCU_HOUR_LANE;
+      final double jamDensity = MacroscopicConstants.DEFAULT_MAX_DENSITY_PCU_KM_LANE;
+
+      var qlFd = new QuadraticLinearFundamentalDiagram(freeSpeed, speedAtCapacity, capacity, jamDensity);
+      var criticalDensity = qlFd.getCapacityFlowPcuHour()/speedAtCapacity;
+      var alpha = (speedAtCapacity/capacity) * (freeSpeed - speedAtCapacity);
+
+      // general
+      assertEquals(qlFd.getMaximumDensityPcuKm(), jamDensity, Precision.EPSILON_6);
+      assertEquals(freeSpeed, qlFd.getMaximumSpeedKmHour(), Precision.EPSILON_6);
+      assertEquals(alpha, qlFd.getAlpha(), Precision.EPSILON_6);
+
+      // free flow branch
+      assertEquals(0, qlFd.getFreeFlowBranch().getDensityPcuKm(0), Precision.EPSILON_6);
+      assertEquals(freeSpeed, qlFd.getFreeFlowBranch().getSpeedKmHourAtZeroFlow(), Precision.EPSILON_6);
+      assertEquals(criticalDensity, qlFd.getFreeFlowBranch().getDensityPcuKm(capacity), Precision.EPSILON_6);
+      assertEquals(capacity, qlFd.getFreeFlowBranch().getFlowPcuHour(criticalDensity), Precision.EPSILON_6);
+      assertEquals(speedAtCapacity, qlFd.getFreeFlowBranch().getFlowPcuHour(criticalDensity)/criticalDensity, Precision.EPSILON_6);
+
+      // congested branch
+      assertEquals(MacroscopicConstants.DEFAULT_MAX_DENSITY_PCU_KM_LANE, qlFd.getCongestedBranch().getDensityPcuKm(0), Precision.EPSILON_6);
+      assertEquals(0, qlFd.getCongestedBranch().getFlowPcuHour(MacroscopicConstants.DEFAULT_MAX_DENSITY_PCU_KM_LANE), Precision.EPSILON_6);
+      assertEquals(speedAtCapacity, qlFd.getCongestedBranch().getFlowPcuHour(criticalDensity)/criticalDensity, Precision.EPSILON_6);
+
+      // derivatives
+      double tangentAtCapacity = freeSpeed - 2 * alpha * criticalDensity; // derivative towards density of flow-density function
+      assert(tangentAtCapacity < speedAtCapacity);
+      assertEquals(tangentAtCapacity, qlFd.getFreeFlowBranch().getdFlowdDensityAtFlow(capacity), Precision.EPSILON_6);
+      assertEquals(freeSpeed, qlFd.getFreeFlowBranch().getdFlowdDensityAtFlow(0), Precision.EPSILON_6);
+      assertEquals(qlFd.getCongestedBranch().getCharateristicWaveSpeedKmHour(), qlFd.getCongestedBranch().getdFlowdDensityAtFlow(capacity), Precision.EPSILON_6);
+      assertEquals(qlFd.getCongestedBranch().getCharateristicWaveSpeedKmHour(), qlFd.getCongestedBranch().getdFlowdDensityAtFlow(0), Precision.EPSILON_6);
+
+      /*
+       * now make some changes: reduce capacity to half and check other results
+       */
+      double halfCapacity = qlFd.getCapacityFlowPcuHour()/2.0;
+      qlFd.setCapacityPcuHour(halfCapacity);
+      criticalDensity = halfCapacity/speedAtCapacity;
+
+      assertEquals(freeSpeed, qlFd.getMaximumSpeedKmHour(), Precision.EPSILON_6);
+      assertEquals(halfCapacity, qlFd.getFreeFlowBranch().getFlowPcuHour(criticalDensity), Precision.EPSILON_6);
+      assertEquals(halfCapacity/criticalDensity, speedAtCapacity, Precision.EPSILON_6);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      fail("Error when testing QL Fundamental Diagram");
     }
   }
 

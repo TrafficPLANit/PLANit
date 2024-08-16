@@ -54,6 +54,7 @@ import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.goplanit.supply.fundamentaldiagram.NewellFundamentalDiagramComponent;
+import org.goplanit.supply.fundamentaldiagram.QuadraticLinearFundamentalDiagramComponent;
 import org.goplanit.supply.network.nodemodel.NodeModelComponent;
 import org.goplanit.supply.network.nodemodel.TampereNodeModelComponent;
 import org.goplanit.supply.networkloading.NetworkLoading;
@@ -135,6 +136,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(FixedConnectoidTravelTimeCost.class);
     registerPlanitComponentType(SpeedConnectoidTravelTimeCost.class);
     registerPlanitComponentType(NewellFundamentalDiagramComponent.class);
+    registerPlanitComponentType(QuadraticLinearFundamentalDiagramComponent.class);
     registerPlanitComponentType(TampereNodeModelComponent.class);
     registerPlanitComponentType(StochasticPathChoice.class);
     registerPlanitComponentType(MultinomialLogit.class);
@@ -180,7 +182,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @param newPlanitComponent the PLANit component being created
    * @param parameters         parameter object array to be used by the event
    */
-  private <T extends PlanitComponent<?>> void dispatchPopulatePlanitComponentEvent(final T newPlanitComponent, final Object[] parameters) {
+  private <T extends PlanitComponent<?>> void dispatchPopulatePlanitComponentEvent(
+          final T newPlanitComponent, final Object[] parameters) {
 
     /* when possible use more specific event for user friendly access to event content on listeners */
     /* TODO: type check parameters and issue message when not correct */

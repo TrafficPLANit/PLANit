@@ -32,8 +32,10 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
   protected FundamentalDiagramComponent createFundamentalDiagramComponentInstance(final MacroscopicNetworkLayer macroscopicNetworkLayer) throws PlanItException {
     var fundamentalDiagramComponentFactory = new PlanitComponentFactory<FundamentalDiagramComponent>(FundamentalDiagramComponent.class);
     fundamentalDiagramComponentFactory.addListener(getInputBuilderListener());
-    return fundamentalDiagramComponentFactory.create(getConfigurator().getFundamentalDiagram().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() },
-        new Object[] { macroscopicNetworkLayer });
+    return fundamentalDiagramComponentFactory.create(
+            getConfigurator().getFundamentalDiagram().getClassTypeToConfigure().getCanonicalName(),
+            new Object[] { getGroupIdToken() },
+            new Object[] { macroscopicNetworkLayer });
   }
 
   /**
@@ -60,6 +62,9 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
 
     /* Fundamental diagram sub component */
     if (getConfigurator().getFundamentalDiagram() != null) {
+      // todo: refactor configuration of FD to
+      //  postpone initialisation until after configuration (.configure) is called because now nothing can be configured
+      //  without redoing the creation of FDs, ideally this is combined
       var fundamentalDiagramComponent = createFundamentalDiagramComponentInstance(ltmAssignmentInstance.getUsedNetworkLayer());
       getConfigurator().getFundamentalDiagram().configure(fundamentalDiagramComponent);
       ltmAssignmentInstance.setFundamentalDiagram(fundamentalDiagramComponent);

@@ -21,6 +21,19 @@ public abstract class FundamentalDiagramImpl implements FundamentalDiagram {
   private final FundamentalDiagramBranch congestedBranch;
 
   /**
+   * Compute the backward wave speed that goes with a given capacity keeping all other variables the same
+   *
+   * @param capacityPcuHour to compute backward wave speed for ceteris paribus
+   * @return proposed backward wave speed
+   */
+  protected double computeBackwardWaveSpeedForCapacity(double capacityPcuHour) {
+    return FundamentalDiagram.computeBackwardWaveSpeedFor(
+            capacityPcuHour,
+            getFreeFlowBranch().getDensityPcuKm(capacityPcuHour),
+            getCongestedBranch().getDensityPcuKm(0));
+  }
+
+  /**
    * Constructor
    * 
    * @param freeFlowBranch  to use
@@ -40,8 +53,8 @@ public abstract class FundamentalDiagramImpl implements FundamentalDiagram {
   public FundamentalDiagramImpl(final FundamentalDiagramImpl fundamentalDiagramImpl, boolean deepCopy) {
     super();
     /* deep copy makes an actual copy, otherwise we just reuse existing references */
-    this.freeFlowBranch = deepCopy ? fundamentalDiagramImpl.freeFlowBranch.shallowClone() : fundamentalDiagramImpl.freeFlowBranch;
-    this.congestedBranch = deepCopy ? fundamentalDiagramImpl.congestedBranch.shallowClone() : fundamentalDiagramImpl.congestedBranch;
+    this.freeFlowBranch = deepCopy ? fundamentalDiagramImpl.freeFlowBranch.deepClone() : fundamentalDiagramImpl.freeFlowBranch;
+    this.congestedBranch = deepCopy ? fundamentalDiagramImpl.congestedBranch.deepClone() : fundamentalDiagramImpl.congestedBranch;
   }
 
   /**

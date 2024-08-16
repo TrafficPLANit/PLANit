@@ -125,8 +125,8 @@ public class ShortestPathTest {
       //horizontal links
       for(int linkRowIndex = 0;linkRowIndex<=gridSize;++linkRowIndex) {
         for(int linkColIndex = 1;linkColIndex<=gridSize;++linkColIndex) {
-          Node nodeA = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex-1);
-          Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex);
+          Node nodeA = networkLayer.getNodes().get((long)linkRowIndex*(gridSize+1) + linkColIndex-1);
+          Node nodeB = networkLayer.getNodes().get((long)linkRowIndex*(gridSize+1) + linkColIndex);
           // all links are 1 km in length          
           var link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
@@ -138,8 +138,8 @@ public class ShortestPathTest {
       for(int linkRowIndex = 1;linkRowIndex<=gridSize;++linkRowIndex) {
         for(int linkColIndex = 0;linkColIndex<=gridSize;++linkColIndex) {
           // all links are 1 km in length
-          Node nodeA = networkLayer.getNodes().get((linkRowIndex-1)*(gridSize+1)+linkColIndex);
-          Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1)+linkColIndex);
+          Node nodeA = networkLayer.getNodes().get((long)(linkRowIndex-1)*(gridSize+1)+linkColIndex);
+          Node nodeB = networkLayer.getNodes().get((long)linkRowIndex*(gridSize+1)+linkColIndex);
           var link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, false, true);
