@@ -24,9 +24,10 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
  * relaxed hash codes. If a duplicate it registered it is simply discarded and the related link segment is attached
  * to the already present fundamental diagram in the pool
  * <p>
- *   Any user configured overrides are applied AFTER the initialisation of the FDs based on the network's link segment types.
- *   This means these overrides needs not be taen into account during this process. The component applies the impact on-the
- *   fly and after the initialisation directly.
+ *   Any overrides using PLANit network entities directly are to be invoked  AFTER the initialisation of the FDs
+ *   and from within PLANit itself (that is what they are available). Any settings carried over from a user directly
+ *   (via a configurator) are to be considered separate and as part of the initialisation (not yet implemented).
+ *   These two should interactions should be kept separate.
  * </p>
  *
  * @author markr
