@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author markr
  *
  */
-public class sLtmNetworkLoadingPathTest {
+public class SLtmNetworkLoadingPathTest {
 
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
@@ -60,7 +60,7 @@ public class sLtmNetworkLoadingPathTest {
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
-      LOGGER = Logging.createLogger(sLtmNetworkLoadingPathTest.class);
+      LOGGER = Logging.createLogger(SLtmNetworkLoadingPathTest.class);
     }
   }
 

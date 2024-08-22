@@ -19,7 +19,7 @@ public final class RouteChoiceConvergenceGapOutputProperty extends OutputPropert
    * impose a high precision of 14 decimals
    *
    * @param value the value to be output
-   * @return
+   * @return formatted value
    */
   public String formatValue(Object value) {
     return decimalFormat.format(value);

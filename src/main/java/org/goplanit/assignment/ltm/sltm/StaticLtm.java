@@ -202,7 +202,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       // PERSIST
       persistIterationResults(convergedOrStop);
 
-      LOGGER.info(String.format("%sGap: %.14f (%d ms)",
+      LOGGER.info(String.format("%sGap: %.15f (%d ms)",
               createLoggingPrefix(getIterationIndex()), getGapFunction().getGap(), iterationRunTime));
 
     } while (!convergedOrStop);

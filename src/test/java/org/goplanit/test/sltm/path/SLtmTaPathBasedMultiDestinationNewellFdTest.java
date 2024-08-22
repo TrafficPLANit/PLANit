@@ -14,6 +14,7 @@ import org.goplanit.path.choice.StochasticPathChoiceConfigurator;
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
+import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.test.sltm.sLtmAssignmentMultiDestinationTestBase;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.path.PathUtils;
@@ -27,12 +28,13 @@ import java.util.logging.Logger;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test the sLTM assignment basic functionality (route choice) with multiple destinations for a single origin
+ * Test the sLTM assignment basic functionality (route choice) with multiple destinations for a single origin using
+ * a triangular shaped fundamental diagram
  * 
  * @author markr
  *
  */
-public class sLtmAssignmentPathBasedMultiDestinationTest extends sLtmAssignmentMultiDestinationTestBase {
+public class SLtmTaPathBasedMultiDestinationNewellFdTest extends sLtmAssignmentMultiDestinationTestBase {
 
   /** the logger */
   private static Logger LOGGER = null;
@@ -127,7 +129,7 @@ public class sLtmAssignmentPathBasedMultiDestinationTest extends sLtmAssignmentM
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
-      LOGGER = Logging.createLogger(sLtmAssignmentPathBasedMultiDestinationTest.class);
+      LOGGER = Logging.createLogger(SLtmTaPathBasedMultiDestinationNewellFdTest.class);
     }
   }
 
@@ -158,6 +160,7 @@ public class sLtmAssignmentPathBasedMultiDestinationTest extends sLtmAssignmentM
       /* sLTM - POINT QUEUE */
       var sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       var configurator = sLTMBuilder.getConfigurator();
+      configurator.createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
       configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       configurator.activateDetailedLogging(false);
 
@@ -168,12 +171,14 @@ public class sLtmAssignmentPathBasedMultiDestinationTest extends sLtmAssignmentM
       var smoothingConfig = (MSRASmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.MSRA);
       // we can even use it with negatives as it ismade  foolproof, this makes it possible to keep going back to more aggressive
       // steps which for some approaches such as Weibit appears to be beneficial
-      smoothingConfig.setKappaStep(0.5);
-      smoothingConfig.setGammaStep(-0.02);
-      smoothingConfig.setBadIterationThreshold(1);
+      smoothingConfig.setActivateLambda(true);
+      smoothingConfig.setKappaStep(0.8);
+      smoothingConfig.setGammaStep(0.01);
+      smoothingConfig.setBadIterationThreshold(0.99);
 
       /* PATH CHOICE - STOCHASTIC */
       final var suePathChoice = (StochasticPathChoiceConfigurator) configurator.createAndRegisterPathChoice(PathChoice.STOCHASTIC);
+      configurator.setActivateRelativeScalingFactor(false);
       {
         /* Weibit for path choice */
         var choiceModel = suePathChoice.createAndRegisterChoiceModel(ChoiceModel.WEIBIT);
@@ -226,6 +231,7 @@ public class sLtmAssignmentPathBasedMultiDestinationTest extends sLtmAssignmentM
       /* sLTM - POINT QUEUE */
       var sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       var configurator = sLTMBuilder.getConfigurator();
+      configurator.createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
       configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       configurator.activateDetailedLogging(false);
 
@@ -239,8 +245,9 @@ public class sLtmAssignmentPathBasedMultiDestinationTest extends sLtmAssignmentM
       var smoothingConfig = (MSRASmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.MSRA);
       // again "abusing" the self-regulating average to keep searching for the most aggressive step-size rather than reducing it by definition
       // this seems to work better to reach convergence
-      smoothingConfig.setKappaStep(0.3);
-      smoothingConfig.setGammaStep(-0.015);
+      smoothingConfig.setActivateLambda(true);
+      smoothingConfig.setKappaStep(1);
+      smoothingConfig.setGammaStep(0.05);
       smoothingConfig.setBadIterationThreshold(0.99);
 
       /* PATH CHOICE - STOCHASTIC */
