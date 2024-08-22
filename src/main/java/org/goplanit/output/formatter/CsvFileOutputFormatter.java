@@ -99,9 +99,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
 
       List<Object> rowValues = outputProperties.stream()
-          .map(outputProperty -> simulationOutputTypeAdapter.getSimulationOutputPropertyValue(
-              outputProperty, mode, timePeriod).orElse(null))
-          .map(OutputUtils::formatObject).collect(Collectors.toList());
+          .map(outputProperty ->
+                  outputProperty.formatValue(simulationOutputTypeAdapter.getSimulationOutputPropertyValue(
+              outputProperty, mode, timePeriod))).collect(Collectors.toList());
       rowValuesByMode.put(mode, rowValues);
     }
     return rowValuesByMode;
@@ -160,8 +160,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
           if (outputConfiguration.isPersistZeroFlow() || cost.get() > Precision.EPSILON_6) {
             csvPrinter.printRecord(
-                    outputProperties.stream().map(outputProperty -> odOutputTypeAdapter.getOdOutputPropertyValue(
-                            outputProperty, odMatrixIterator, mode, timePeriod).orElse(null)).map(OutputUtils::formatObject));
+                    outputProperties.stream().map(outputProperty ->
+                            outputProperty.formatValue(odOutputTypeAdapter.getOdOutputPropertyValue(
+                            outputProperty, odMatrixIterator, mode, timePeriod))));
           }
         }
       }
@@ -217,16 +218,16 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
           /* obtain the col vectors for each property, where the number of eventual rows is the # entries in each col vector
            * which is the same for each property, namely how many paths there are for the given OD  */
-          List<? extends List<?>> colVectorValues = outputProperties.stream()
-              .map(outputProperty -> pathOutputTypeAdapter
-                  .getPathOutputPropertyValue(
-                          outputProperty, odMultiPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType()).orElse(null))
-              .collect(Collectors.toList());
-
-          /* transpose the column vectors, e.g., [[1,2,3,4],["a","b","c","d"]] -> [[1,"a"],[2,"b"],[3,"c"],[4,"d"]], and format each value
-           * the latter being the actual rows to persist */
-          var rowsValues =
-              ListUtils.transpose((List<? extends List<Object>>) colVectorValues, OutputUtils::formatObject);
+          List<List<Object>> colVectorValues = new ArrayList<>(outputProperties.size());
+          for(var outputProperty: outputProperties){
+            List<Object> colVector = (List<Object>) pathOutputTypeAdapter.getPathOutputPropertyValue(
+                    outputProperty, odMultiPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType()).orElse(null);
+            if(colVector != null) {
+              colVector.replaceAll(outputProperty::formatValue);
+            }
+            colVectorValues.add(colVector);
+          }
+          var rowsValues = ListUtils.transpose(colVectorValues);
 
           // now persist per row
           for(var rowValue : rowsValues){
@@ -281,8 +282,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
               if (outputConfiguration.isPersistZeroFlow() || flowPositive.get()) {
                 csvPrinter.printRecord(outputProperties.stream().map(outputProperty ->
+                        outputProperty.formatValue(
                                 linkOutputTypeAdapter.getLinkSegmentOutputPropertyValue(
-                                        outputProperty, linkSegment, mode, timePeriod).orElse(null)).map(OutputUtils::formatObject));
+                                        outputProperty, linkSegment, mode, timePeriod))));
               }
             }
           }
@@ -294,7 +296,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       return e;
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
-      return new PlanItException("Error when writing link results for current time period in CSVOutputFileformatter", e);
+      return new PlanItException("Error when writing link results for current time period in CSVOutputFileFormatter", e);
     }
     return null;
   }

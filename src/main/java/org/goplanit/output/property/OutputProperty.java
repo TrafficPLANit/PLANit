@@ -1,19 +1,23 @@
 package org.goplanit.output.property;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.goplanit.output.enums.DataType;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.unit.Unit;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * Template for output property classes which can be included in the output files.
- * 
+ * <p>
  * All concrete output property classes must be final and extend this class.
+ * </p>
  * 
- * @author gman6028
+ * @author gman6028, markr
  *
  */
 public abstract class OutputProperty implements Comparable<OutputProperty> {
@@ -21,8 +25,51 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(OutputProperty.class.getCanonicalName());
 
+  private static final DecimalFormat DEFAULT_FORMAT_NUM_DECIMALS = new DecimalFormat("#.#");
+
+  static {
+    DEFAULT_FORMAT_NUM_DECIMALS.setMaximumFractionDigits(7);
+    DEFAULT_FORMAT_NUM_DECIMALS.setMinimumFractionDigits(1);
+  }
+
   /** the override units */
   private Unit overrideUnits = null;
+
+
+  /** Formats an object for legigible printing,
+   * if a double or float, outputs value based on {@link #DEFAULT_FORMAT_NUM_DECIMALS}, if null empty string is created,
+   * if a geometry then the geometry is converted to a string
+   *
+   * @param value the value to be output
+   * @return the formatted output
+   */
+  public Object formatValue(Optional<?> value) {
+    return formatValue(value.orElse(null));
+  }
+
+   /** Formats a value for this property type for legigible printing if so deemed helpful.
+    * <p>
+    * if a double or float, outputs value based on {@link #DEFAULT_FORMAT_NUM_DECIMALS}, if null empty string is created,
+    * if a geometry then the geometry is converted to a string
+    </p>
+    *
+    * @param value the value to be output
+    * @return the formatted output
+    */
+  public Object formatValue(Object value) {
+    if (value == null) {
+      return "";
+    } else if (value instanceof Double) {
+      return DEFAULT_FORMAT_NUM_DECIMALS.format((double) value);
+    } else if (value instanceof Float) {
+      return DEFAULT_FORMAT_NUM_DECIMALS.format((float) value);
+    } else if (value instanceof Geometry) {
+      /* geometry needs conversion to string for it to be writeable */
+      return value.toString();
+    }else {
+      return value;
+    }
+  }
 
   /**
    * Returns the name of the output property
