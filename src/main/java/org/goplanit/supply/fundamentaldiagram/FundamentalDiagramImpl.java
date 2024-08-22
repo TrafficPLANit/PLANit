@@ -27,7 +27,7 @@ public abstract class FundamentalDiagramImpl implements FundamentalDiagram {
    * @return proposed backward wave speed
    */
   protected double computeBackwardWaveSpeedForCapacity(double capacityPcuHour) {
-    return FundamentalDiagram.computeBackwardWaveSpeedFor(
+    return FundamentalDiagramUtils.computeBackwardWaveSpeedKmHFor(
             capacityPcuHour,
             getFreeFlowBranch().getDensityPcuKm(capacityPcuHour),
             getCongestedBranch().getDensityPcuKm(0));

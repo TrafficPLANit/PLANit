@@ -21,38 +21,6 @@ public interface FundamentalDiagram {
   public static final String QUADRATIC_LINEAR = QuadraticLinearFundamentalDiagramComponent.class.getCanonicalName();
 
   /**
-   * Compute capacity point where the two linear lines intersect.
-   *
-   * knowing criticalSpeed * criticalDensity = -backwardWaveSpeed * (jamDensity - criticalDensity) rewrite to
-   * criticalDensity = (-backwardWaveSpeed * jamDensity)/(criticalSpeed + backwardWaveSpeed) we then obtain capacity
-   * via criticalDensity * criticalSpeed
-   *
-   * @param criticalSpeed speed to use
-   * @param backwardWaveSpeed wave speed to use
-   * @param jamDensity to use
-   * @return inferred capacity at point of intersection
-   */
-  public static double computeCapacityFor(double criticalSpeed, double backwardWaveSpeed, double jamDensity) {
-    var inferredCriticalDensity = (-backwardWaveSpeed * jamDensity)/(criticalSpeed + backwardWaveSpeed);
-    return inferredCriticalDensity * criticalSpeed;
-  }
-
-  /**
-   * Compute the backward wave speed that goes with a given critical and jam density
-   * <p>
-   *   backward wave speed = capacity/(criticalDensity-jamDensity)
-   * </p>
-   *
-   * @param capacityPcuHour
-   * @param criticalDensity to use
-   * @param jamDensity to use
-   * @return proposed backward wave speed
-   */
-  public static double computeBackwardWaveSpeedFor(double capacityPcuHour, double criticalDensity, double jamDensity) {
-    return capacityPcuHour/(criticalDensity - jamDensity);
-  }
-
-  /**
    * Free flow branch of the FD
    * 
    * @return free flow branch

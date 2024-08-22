@@ -1,6 +1,7 @@
 package org.goplanit.supply.fundamentaldiagram;
 
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.macroscopic.MacroscopicConstants;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
@@ -30,7 +31,7 @@ public class QuadraticLinearFundamentalDiagramComponent extends FundamentalDiagr
    * {@inheritDoc}
    */
   @Override
-  protected QuadraticLinearFundamentalDiagram createFundamentalDiagramByLinkSegmentType(
+  protected FundamentalDiagram createFundamentalDiagramByLinkSegmentType(
           MacroscopicLinkSegmentType lsType, Mode mode) {
 
     // free speed:      use explicitly set or mode speed limit
@@ -38,23 +39,24 @@ public class QuadraticLinearFundamentalDiagramComponent extends FundamentalDiagr
     // critical speed:  use explicitly set or minimum of mode speed limit and default critical speed
     var modeCriticalSpeed = lsType.getCriticalSpeedKmH(mode);
 
-    QuadraticLinearFundamentalDiagram qlFd;
-    if (!lsType.isExplicitMaximumDensityPerLaneSet() && !lsType.isExplicitCapacityPerLaneSet()) {
-      /* use free speed/critical speed to create FD with inferred capacity */
-      qlFd = new QuadraticLinearFundamentalDiagram(modeFreeSpeedForType, modeCriticalSpeed);
-    } else if (!lsType.isExplicitMaximumDensityPerLaneSet()) {
-      /* capacity is explicitly overwritten, so use that as well, use default for jam density */
-      qlFd = new QuadraticLinearFundamentalDiagram(
+    double maxDensity = lsType.getExplicitMaximumDensityPerLaneOrDefault();
+    double capacity = lsType.isExplicitCapacityPerLaneSet() ? lsType.getExplicitCapacityPerLane() :
+            FundamentalDiagramUtils.computeCapacityPcuHLaneFrom(
+                    modeCriticalSpeed, MacroscopicConstants.DEFAULT_BACKWARD_WAVE_SPEED_KM_HOUR, maxDensity);
+
+    // when free flow branch is in fact not quadratic but linear revert to triangular FD
+    if(Precision.greaterEqual(modeCriticalSpeed, modeFreeSpeedForType, Precision.EPSILON_3)){
+      return new NewellFundamentalDiagram(
+              modeFreeSpeedForType,
+              capacity,
+              maxDensity);
+    }
+
+    return new QuadraticLinearFundamentalDiagram(
               modeFreeSpeedForType,
               modeCriticalSpeed,
-              lsType.getExplicitCapacityPerLane(),
-              lsType.getExplicitMaximumDensityPerLaneOrDefault());
-    } else {
-      /* only jam density set, use that */
-      qlFd = new QuadraticLinearFundamentalDiagram(
-              modeFreeSpeedForType, modeCriticalSpeed, lsType.getExplicitMaximumDensityPerLane());
-    }
-    return qlFd;
+              capacity,
+              maxDensity);
   }
 
   /**

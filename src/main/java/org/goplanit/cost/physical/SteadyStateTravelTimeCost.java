@@ -48,7 +48,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    */
   private double[] freeFlowTravelTimePerLinkSegment = null;
 
-  /** tracking fundamental diagrams per link segment for performance reasons */
+  /** tracking fundamental diagrams per link segment for performance reasons
+   * todo: should be supported by mode eventually, in case there is a need to have separate FDs per mode */
   private FundamentalDiagram[] linkSegmentFundamentalDiagrams = null;
 
   /**
@@ -96,15 +97,17 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double hypoCriticalDelay = 0;
     double hyperCriticalDelay = 0;
 
+    double inflowPcuHLane = inflowRatePcuHour/linkSegment.getNumberOfLanes();
+    double outflowPcuHLane = outflowRatePcuHour/linkSegment.getNumberOfLanes();
     if (Precision.positive(inflowRatePcuHour)) {
       /* hypo critical delay */
       if (!fd.getFreeFlowBranch().isLinear()) {
         // hypocritical delay = hypocritical travel time - minimum travel time
-        hypoCriticalDelay = (linkSegment.getParentLink().getLengthKm() / fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflowRatePcuHour)) - freeFlowTravelTime;
+        hypoCriticalDelay = (linkSegment.getParentLink().getLengthKm() / fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflowPcuHLane)) - freeFlowTravelTime;
       }
 
       /* average hyper critical delay */
-      if (Precision.smaller(outflowRatePcuHour, inflowRatePcuHour)) {
+      if (Precision.smaller(outflowPcuHLane, inflowPcuHLane)) {
 
         if (!Precision.positive(outflowRatePcuHour)) {
           LOGGER.warning(String.format("Link segment (%s) appears to have no outflow while positive inflow (%.2f) -> infinite travel time, this is unlikely",
@@ -113,7 +116,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
         }
 
         // hyperCriticalDelay = (excess inflow rate * 1/2* duration)/outflow rate)
-        hyperCriticalDelay = ((inflowRatePcuHour - outflowRatePcuHour) * 0.5 * currentTimePeriodHours / outflowRatePcuHour);
+        hyperCriticalDelay = ((inflowPcuHLane - outflowPcuHLane) * 0.5 * currentTimePeriodHours / outflowPcuHLane);
       }
     }
 
@@ -260,31 +263,32 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    */
   @Override
   public double getDTravelTimeDFlow(boolean uncongested, Mode mode, MacroscopicLinkSegment linkSegment) {
-    double outflowRatePcuH = accessee.getLinkSegmentOutflowPcuHour(linkSegment);
 
     int linkSegmentId = (int) linkSegment.getLinkSegmentId();
     FundamentalDiagram fd = linkSegmentFundamentalDiagrams[linkSegmentId];
 
+    double hypoDerivative = 0.0;
+    double hyperDerivative = 0.0;
+
     /* hypo critical delay derivative */
-    if (uncongested) {
-      if (fd.getFreeFlowBranch().isLinear()) {
-        // 0 -> linear free flow branch
-        return 0.0;
-      } else {
-        LOGGER.severe("Steady state travel time implementation does not yet support derivative of hypocritical delay on non-linear uncongested FD branches");
-        throw new RuntimeException("Unable to continue due to error in Steady State travel time cost computation");
-      }
+    if (!fd.getFreeFlowBranch().isLinear()) {
+        hypoDerivative = linkSegment.getLengthKm() / fd.getFreeFlowBranch().getDSpeedDFlowAtFlow(
+                accessee.getLinkSegmentInflowPcuHour(linkSegment));
     }
+
     /* hyperCriticalDelay derivative */
-    else {
+    if(!uncongested) {
+      double outflowRatePcuH = accessee.getLinkSegmentOutflowPcuHour(linkSegment);
       if (Precision.positive(outflowRatePcuH)) {
         /* congested derivative (T/2)*(1/v) */
-        return 0.5 * currentTimePeriodHours / outflowRatePcuH;
+        hyperDerivative =  0.5 * currentTimePeriodHours / outflowRatePcuH;
       } else {
         /* avoid division by zero, if no outflow rate but congested, it is undesirable to use this link, we return infinity */
         return Double.POSITIVE_INFINITY;
       }
     }
+
+    return hypoDerivative + hyperDerivative;
   }
 
   /**

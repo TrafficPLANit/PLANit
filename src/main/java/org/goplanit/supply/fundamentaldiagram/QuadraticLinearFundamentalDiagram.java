@@ -32,7 +32,7 @@ public class QuadraticLinearFundamentalDiagram extends FundamentalDiagramImpl {
    * @param criticalSpeed to use
    */
   public QuadraticLinearFundamentalDiagram(double freeSpeedKmHour, double criticalSpeed) {
-    this(freeSpeedKmHour, criticalSpeed, MacroscopicConstants.DEFAULT_EMPTY_DENSITY_PCU_HOUR_LANE);
+    this(freeSpeedKmHour, criticalSpeed, MacroscopicConstants.DEFAULT_MAX_DENSITY_PCU_KM_LANE);
   }
 
   /**
@@ -45,7 +45,8 @@ public class QuadraticLinearFundamentalDiagram extends FundamentalDiagramImpl {
   public QuadraticLinearFundamentalDiagram(double freeSpeedKmHour, double criticalSpeed, double jamDensityPcuKm) {
     this(freeSpeedKmHour,
             criticalSpeed,
-            FundamentalDiagram.computeCapacityFor(criticalSpeed, MacroscopicConstants.DEFAULT_BACKWARD_WAVE_SPEED_KM_HOUR, jamDensityPcuKm),
+            FundamentalDiagramUtils.computeCapacityPcuHLaneFrom(
+                    criticalSpeed, MacroscopicConstants.DEFAULT_BACKWARD_WAVE_SPEED_KM_HOUR, jamDensityPcuKm),
             jamDensityPcuKm);
   }
 

@@ -84,20 +84,8 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
    */
   @Override
   public double getCapacityFlowPcuHour() {
-    /* capacity = (k_crit-0)*maxspeed
-     * capacity = (k_crit-k_jam)*backwardwavespeed
-     * so:
-     * (k_crit-0)*maxspeed = (k_crit-k_jam)*backwardwavespeed
-     * k_crit(maxspeed -backwardwavespeed) = -k_jam *backwardwavespeed
-     * k_crit = -(k_jam *backwardwavespeed)/(maxspeed -backwardwavespeed)
-     * capacity = k_crit * maxspeed  
-     */
-    double maxSpeed = getMaximumSpeedKmHour();
-    double backwardWaveSpeed = getCongestedBranch().getCharateristicWaveSpeedKmHour();
-    double kCrit = -((getMaximumDensityPcuKm()*backwardWaveSpeed)
-                    / 
-                    (maxSpeed - backwardWaveSpeed));
-    return kCrit * maxSpeed;
+    return FundamentalDiagramUtils.computeCapacityPcuHLaneFrom(
+            getMaximumSpeedKmHour(), getCongestedBranch().getCharacteristicWaveSpeedKmHour(), getMaximumDensityPcuKm());
   }
 
   /**

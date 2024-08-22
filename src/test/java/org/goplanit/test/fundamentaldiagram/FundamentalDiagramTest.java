@@ -82,7 +82,7 @@ public class FundamentalDiagramTest {
       newellFd.setMaximumDensityPcuKmHour(MacroscopicConstants.DEFAULT_MAX_DENSITY_PCU_KM_LANE - (criticalDensity / 2));
       assertEquals(freeSpeed, newellFd.getMaximumSpeedKmHour(), Precision.EPSILON_6);
       assertEquals(expectedCapacity * 3 / 4, newellFd.getCapacityFlowPcuHour(), Precision.EPSILON_6);
-      assertEquals(newellFd.getCongestedBranch().getCharateristicWaveSpeedKmHour(), MacroscopicConstants.DEFAULT_BACKWARD_WAVE_SPEED_KM_HOUR, Precision.EPSILON_6);
+      assertEquals(newellFd.getCongestedBranch().getCharacteristicWaveSpeedKmHour(), MacroscopicConstants.DEFAULT_BACKWARD_WAVE_SPEED_KM_HOUR, Precision.EPSILON_6);
 
       /*
        * now make some changes compared to original: Halve the capacity: should result in critical density moved forward
@@ -97,7 +97,7 @@ public class FundamentalDiagramTest {
       assertEquals(newellFd.getMaximumDensityPcuKm(), MacroscopicConstants.DEFAULT_MAX_DENSITY_PCU_KM_LANE, Precision.EPSILON_6);
       double newCriticalDensity = criticalDensity / 2;
       double deltaCongestedBranchDensity = MacroscopicConstants.DEFAULT_MAX_DENSITY_PCU_KM_LANE - newCriticalDensity;
-      assertEquals(newellFd.getCongestedBranch().getCharateristicWaveSpeedKmHour(), -halvedCapacity / deltaCongestedBranchDensity, Precision.EPSILON_6);
+      assertEquals(newellFd.getCongestedBranch().getCharacteristicWaveSpeedKmHour(), -halvedCapacity / deltaCongestedBranchDensity, Precision.EPSILON_6);
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -140,12 +140,26 @@ public class FundamentalDiagramTest {
       assertEquals(speedAtCapacity, qlFd.getCongestedBranch().getFlowPcuHour(criticalDensity)/criticalDensity, Precision.EPSILON_6);
 
       // derivatives
-      double tangentAtCapacity = freeSpeed - 2 * alpha * criticalDensity; // derivative towards density of flow-density function
-      assert(tangentAtCapacity < speedAtCapacity);
-      assertEquals(tangentAtCapacity, qlFd.getFreeFlowBranch().getdFlowdDensityAtFlow(capacity), Precision.EPSILON_6);
-      assertEquals(freeSpeed, qlFd.getFreeFlowBranch().getdFlowdDensityAtFlow(0), Precision.EPSILON_6);
-      assertEquals(qlFd.getCongestedBranch().getCharateristicWaveSpeedKmHour(), qlFd.getCongestedBranch().getdFlowdDensityAtFlow(capacity), Precision.EPSILON_6);
-      assertEquals(qlFd.getCongestedBranch().getCharateristicWaveSpeedKmHour(), qlFd.getCongestedBranch().getdFlowdDensityAtFlow(0), Precision.EPSILON_6);
+      {
+        // derivative towards density of flow-density function
+        double tangentAtCapacity = freeSpeed - 2 * alpha * criticalDensity;
+        assert(tangentAtCapacity < speedAtCapacity);
+        assertEquals(tangentAtCapacity, qlFd.getFreeFlowBranch().getDFlowDDensityAtFlow(capacity), Precision.EPSILON_6);
+        assertEquals(freeSpeed, qlFd.getFreeFlowBranch().getDFlowDDensityAtFlow(0), Precision.EPSILON_6);
+        assertEquals(qlFd.getCongestedBranch().getCharacteristicWaveSpeedKmHour(), qlFd.getCongestedBranch().getDFlowDDensityAtFlow(capacity), Precision.EPSILON_6);
+        assertEquals(qlFd.getCongestedBranch().getCharacteristicWaveSpeedKmHour(), qlFd.getCongestedBranch().getDFlowDDensityAtFlow(0), Precision.EPSILON_6);
+
+        // derivative of speed towards flow/density
+
+        // for linear branch should be fixed and zero
+        assertEquals(0, qlFd.getCongestedBranch().getDSpeedDDensityAtDensity(criticalDensity));
+        assertEquals(qlFd.getCongestedBranch().getDSpeedDDensityAtDensity(jamDensity),qlFd.getCongestedBranch().getDSpeedDDensityAtDensity(criticalDensity));
+        // for quadratic branch should be fixed and non-zero such that it shifts from free speed to critical speed over the span of 0-critical density
+        double expectedSpeedDerivative = -(freeSpeed - qlFd.getFreeFlowBranch().getSpeedKmHourByFlow(capacity))/(criticalDensity - 0);
+        assertEquals(qlFd.getFreeFlowBranch().getDSpeedDFlowAtFlow(0),expectedSpeedDerivative);
+        assertEquals(qlFd.getFreeFlowBranch().getDSpeedDFlowAtFlow(0),qlFd.getFreeFlowBranch().getDSpeedDFlowAtFlow(criticalDensity));
+      }
+
 
       /*
        * now make some changes: reduce capacity to half and check other results

@@ -1,12 +1,15 @@
 package org.goplanit.supply.fundamentaldiagram;
 
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.HashUtils;
 
 import java.text.NumberFormat;
+import java.util.logging.Logger;
 
 /**
  * A quadratic uncongested fundamental diagram branch implementation based on Bliemer and Raadsen (2019), e.g.,
- * <a href="https://doi.org/10.1016/j.trb.2018.01.001">Bliemer, M. C. J., & Raadsen, M. P. H. (2019). Continuous-time general link transmission model with simplified fanning,
+ * <a href="https://doi.org/10.1016/j.trb.2018.01.001">Bliemer, M. C. J., and Raadsen, M. P. H. (2019). Continuous-time general link transmission model with simplified fanning,
  * Part I: Theory and link model formulation. Transportation Research Part B: Methodological, 126, 442–470</a>
  *
  * <p>
@@ -24,6 +27,8 @@ import java.text.NumberFormat;
  *
  */
 public class QuadraticFreeFlowFundamentalDiagramBranch implements FundamentalDiagramBranch {
+
+  private static final Logger LOGGER = Logger.getLogger(QuadraticFreeFlowFundamentalDiagramBranch.class.getCanonicalName());
 
   /** the alpha parameter derived from physical parameters */
   private double alpha;
@@ -43,6 +48,10 @@ public class QuadraticFreeFlowFundamentalDiagramBranch implements FundamentalDia
    * Note that alpha = (critical_speed/capacity_per_lane) * (wave_speed_max - critical_speed)
    */
   private void updateAlpha() {
+    if(Precision.greaterEqual(criticalSpeedKmHour, maxWaveSpeedKmHour)){
+      LOGGER.severe(String.format(
+              "Quadratic free flow branch of FD cannot have free speed (%.2f) equal or smaller than critical speed (%.2f)", maxWaveSpeedKmHour, criticalSpeedKmHour));
+    }
     alpha = (criticalSpeedKmHour /capacityPerLanePerHour) * (maxWaveSpeedKmHour - criticalSpeedKmHour);
   }
 
@@ -116,6 +125,11 @@ public class QuadraticFreeFlowFundamentalDiagramBranch implements FundamentalDia
     this.capacityPerLanePerHour = capacityPerLanePerHour;
     this.criticalSpeedKmHour = criticalSpeedKmHour;
 
+    if(Precision.greaterEqual(criticalSpeedKmHour, maxWaveSpeedKmHour, Precision.EPSILON_3)){
+      throw new PlanItRunTimeException("Cannot create a quadratic free flow branch when critical speed is the same " +
+              "or larger than free speed, abort");
+    }
+
     updateAlpha();
   }
 
@@ -163,25 +177,66 @@ public class QuadraticFreeFlowFundamentalDiagramBranch implements FundamentalDia
    *
    * <p>
    *   dFlow/dDensity = take derivative of density function (dq/dk=wave_speed_max - 2 * alpha * DENSITY) and
-   *   rewrite to flow -->
+   *   rewrite to flow
    * </p>
    *
    * @param flowPcuHour to use
    * @return tangent of flow
    */
   @Override
-  public double getdFlowdDensityAtFlow(double flowPcuHour) {
-    return getdFlowdDensityAtDensity(getDensityPcuKm(flowPcuHour));
+  public double getDFlowDDensityAtFlow(double flowPcuHour) {
+    return getDFlowDDensityAtDensity(getDensityPcuKm(flowPcuHour));
   }
 
   /**
    * The dFlow/dDensity given a particular density
    *
+   * <p>
+   *   dFlow/dDensity = take derivative of density function (dq/dk=wave_speed_max - 2 * alpha * DENSITY)
+   * </p>
+   *
    * @param densityPcuKm to use
    * @return tangent at density
    */
-  public double getdFlowdDensityAtDensity(double densityPcuKm) {
+  @Override
+  public double getDFlowDDensityAtDensity(double densityPcuKm) {
     return maxWaveSpeedKmHour - 2 * alpha * densityPcuKm;
+  }
+
+  /**
+   * The dSpeed/dFlow given a particular flow. We can reuse {@link #getDSpeedDDensityAtDensity(double)} since in this
+   * case the derivative is fixed and independent of the density (or flow), we use the result directly, i.e., -alpha.
+   *
+   * @param flowPcuHour to use (not needed for QL fd)
+   */
+  @Override
+  public double getDSpeedDFlowAtFlow(double flowPcuHour) {
+    return -getAlpha();
+  }
+
+  /**
+   * The dSpeed/dDensity given a particular density
+   * <p>
+   *   Quadratic uncongested branch as a flow density relationship:
+   *    flow = (wave_speed_max - (DENSITY * alpha)) * DENSITY,
+   *      with,
+   *      alpha = (critical_speed/capacity_per_lane) * (wave_speed_max - critical_speed)
+   * </p>
+   * <p>
+   *   since flow = speed * density, the above suggests that the speed density function can be described by
+   *   speed = (wave_speed_max - (DENSITY * alpha)).
+   * </p>
+   * <p>
+   *   the dSpeed/dDensity is simply -alpha, with alpha = (critical_speed/capacity_per_lane) * (wave_speed_max - critical_speed)
+   *   so the derivative is fixed but non-zero
+   * </p>
+   *
+   * @param densityPcuKm to use (not needed for QL fd)
+   * @return derivative of speed towards density for a given density
+   */
+  @Override
+  public double getDSpeedDDensityAtDensity(double densityPcuKm) {
+    return -getAlpha();
   }
 
   /**

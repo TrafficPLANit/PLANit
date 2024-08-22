@@ -64,7 +64,7 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    */
   @Override
   public double getFlowPcuHour(double densityPcuKm) {
-    return (densityPcuKm - densityAtZeroFlowPcuKm) * getCharateristicWaveSpeedKmHour();
+    return (densityPcuKm - densityAtZeroFlowPcuKm) * getCharacteristicWaveSpeedKmHour();
   }
 
   /**
@@ -72,15 +72,15 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    */
   @Override
   public double getDensityPcuKm(double flowPcuHour) {
-    return densityAtZeroFlowPcuKm + (flowPcuHour / getCharateristicWaveSpeedKmHour());
+    return densityAtZeroFlowPcuKm + (flowPcuHour / getCharacteristicWaveSpeedKmHour());
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public double getdFlowdDensityAtFlow(double flowPcuHour) {
-    return getCharateristicWaveSpeedKmHour();
+  public double getDFlowDDensityAtFlow(double flowPcuHour) {
+    return getCharacteristicWaveSpeedKmHour();
   }
 
   /**
@@ -89,8 +89,27 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    * @param densityPcuKm to use
    * @return tangent at density
    */
-  public double getdFlowdDensityAtDensity(double densityPcuKm) {
-    return getCharateristicWaveSpeedKmHour();
+  @Override
+  public double getDFlowDDensityAtDensity(double densityPcuKm) {
+    return getCharacteristicWaveSpeedKmHour();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getDSpeedDFlowAtFlow(double flowPcuHour) {
+    // speed is fixed
+    return 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getDSpeedDDensityAtDensity(double densityPcuKm) {
+    // speed is fixed
+    return 0;
   }
 
   /**
@@ -98,7 +117,7 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    * 
    * @return wave speed
    */
-  public double getCharateristicWaveSpeedKmHour() {
+  public double getCharacteristicWaveSpeedKmHour() {
     return characteristicWaveSpeedKmHour;
   }
 
@@ -133,7 +152,7 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    */
   @Override
   public double getSpeedKmHourAtZeroFlow() {
-    return getCharateristicWaveSpeedKmHour();
+    return getCharacteristicWaveSpeedKmHour();
   }
 
   /**
@@ -141,7 +160,7 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    */
   @Override
   public double getSpeedKmHourAtZeroDensity() {
-    return getCharateristicWaveSpeedKmHour();
+    return getCharacteristicWaveSpeedKmHour();
   }
 
   /**

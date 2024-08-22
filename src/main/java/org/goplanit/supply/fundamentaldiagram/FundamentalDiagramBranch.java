@@ -73,7 +73,7 @@ public interface FundamentalDiagramBranch {
    * @param flowPcuHour to use
    * @return tangent at flow
    */
-  public abstract double getdFlowdDensityAtFlow(double flowPcuHour);
+  public abstract double getDFlowDDensityAtFlow(double flowPcuHour);
 
   /**
    * The dFlow/dDensity given a particular density
@@ -81,7 +81,23 @@ public interface FundamentalDiagramBranch {
    * @param densityPcuKm to use
    * @return tangent at density
    */
-  public abstract double getdFlowdDensityAtDensity(double densityPcuKm);
+  public abstract double getDFlowDDensityAtDensity(double densityPcuKm);
+
+  /**
+   * The dSpeed/dFlow given a particular flow
+   *
+   * @param flowPcuHour to use
+   * @return tangent at flowPcuHour
+   */
+  public abstract double getDSpeedDFlowAtFlow(double flowPcuHour);
+
+  /**
+   * The dSpeed/dFlow given a particular density
+   *
+   * @param densityPcuKm to use
+   * @return tangent at densityPcuKm
+   */
+  public abstract double getDSpeedDDensityAtDensity(double densityPcuKm);
 
   /**
    * A fundamental diagram branch is based on a limited number of double variables to define it. In case we want to reuse the same branch for extremely similar variables, then we

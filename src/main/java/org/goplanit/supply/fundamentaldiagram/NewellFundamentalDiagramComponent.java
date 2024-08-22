@@ -42,7 +42,9 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
       /* use free speed to create Newell FD with inferred capacity */
       newellFd = new NewellFundamentalDiagram(modeSpeed);
     } else if (!lsType.isExplicitMaximumDensityPerLaneSet()) {
-      /* capacity is explicitly overwritten, so use that as well, use default for jam density */
+      /* capacity is explicitly overwritten, so use that as well, use default for jam density,
+      * we do not use default capacity since it is expected that inferring capacity from free speed and jam density is
+      * more accurate */
       newellFd = new NewellFundamentalDiagram(
               modeSpeed, lsType.getExplicitCapacityPerLane(), lsType.getExplicitMaximumDensityPerLaneOrDefault());
     } else {
