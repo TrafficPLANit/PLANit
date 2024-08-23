@@ -83,10 +83,10 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
           return null;
         } else {        
           dataConfig = new NetworkTurnFlowUpdateData(
-                  isTrackAllNodeTurnFlows(), sendingFlowData, splittingRateData, networkLoadingFactorData, numMovements);
+                  isTrackAllNodeTurnFlowsDuringLoading(), sendingFlowData, splittingRateData, networkLoadingFactorData, numMovements);
         }
       }else {
-        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), splittingRateData, networkLoadingFactorData, numMovements);
+        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlowsDuringLoading(), splittingRateData, networkLoadingFactorData, numMovements);
       }
       return new PathTurnFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode));
     }

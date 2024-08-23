@@ -5,6 +5,7 @@ import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
+import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.gap.GapFunction;
@@ -78,7 +79,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       }
 
       /* untouched PAS (no flows shifted yet) in this iteration */
-      boolean pasFlowShifted = pasFlowShifter.run(theMode, physicalCost, virtualCost, networkLoading, factor);
+      boolean pasFlowShifted = pasFlowShifter.run(
+              theMode, physicalCost, virtualCost, networkLoading, factor);
       if (pasFlowShifted) {
         flowShiftedPass.add(pas);
 
@@ -354,16 +356,24 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
              
       /* 2 - NETWORK COST UPDATE + UPDATE NETWORK REALISED COST GAP */
       {
-        boolean updateOnlyPotentiallyBlockingNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
+        boolean updateOnlyPotentiallyBlockingNodeCosts = isUpdateOnlyPotentiallyBlockingNodeCosts();
+        if(simulationData.isFirstIteration() && updateOnlyPotentiallyBlockingNodeCosts && simulationData.isInitialCostsAppliedInFirstIteration(theMode)){
+          /* initial costs will be inconsistent with loading performed in first iteration, recalculate all link segment costs for free flow conditions first
+           * and then for those that need tracking override with flow based costs */
+          CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
+                  theMode, getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments(), costsToUpdate);
+        }
         this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
         
         /* PAS COST UPDATE*/
         pasManager.updateCosts(costsToUpdate);      
-                          
-        LOGGER.info(String.format("** ALPHA: %s", Arrays.toString(getLoading().getCurrentFlowAcceptanceFactors())));
-        LOGGER.info(String.format("** COSTS: %s", Arrays.toString(costsToUpdate)));
-        LOGGER.info(String.format("** INFLOW: %s", Arrays.toString(getLoading().getCurrentInflowsPcuH())));
-        LOGGER.info(String.format("** OUTFLOW: %s", Arrays.toString(getLoading().getCurrentOutflowsPcuH())));
+
+        if(getSettings().isDetailedLogging()){
+          LOGGER.info(String.format("** ALPHA: %s", Arrays.toString(getLoading().getCurrentFlowAcceptanceFactors())));
+          LOGGER.info(String.format("** COSTS: %s", Arrays.toString(costsToUpdate)));
+          LOGGER.info(String.format("** INFLOW: %s", Arrays.toString(getLoading().getCurrentInflowsPcuH())));
+          LOGGER.info(String.format("** OUTFLOW: %s", Arrays.toString(getLoading().getCurrentOutflowsPcuH())));
+        }
       }
       
       /* 3 - BUSH LOADING - SYNC BUSH TURN FLOWS - USE NETWORK LOADING ALPHAS - MODE AGNOSTIC FOR NOW */

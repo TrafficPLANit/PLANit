@@ -19,6 +19,7 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
+import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
@@ -70,10 +71,10 @@ public abstract class StaticLtmAssignmentStrategy {
   private final TrafficAssignmentComponentAccessee taComponents;
 
   /** have a mapping between zone and connectoid to the layer by means of its centroid vertex */
-  private Map<Zone, CentroidVertex> zone2VertexMapping;
+  private final Map<Zone, CentroidVertex> zone2VertexMapping;
 
   /** have a mapping between two link segments (keys) - from and to - towards a movement*/
-  private MultiKeyMap<Object, Movement> segmentPair2MovementMap;
+  private final MultiKeyMap<Object, Movement> segmentPair2MovementMap;
 
   /**
    * The transport model network used
@@ -163,8 +164,15 @@ public abstract class StaticLtmAssignmentStrategy {
    * @return smoothing component
    */
   protected Smoothing getSmoothing(){
-    var smoothing = (Smoothing) getTrafficAssignmentComponent(Smoothing.class);
-    return smoothing;
+    return getTrafficAssignmentComponent(Smoothing.class);
+  }
+
+  /**
+   * Convenience access to fundamental diagram component
+   * @return fundamental diagram component
+   */
+  protected FundamentalDiagramComponent getFundamentalDiagramComponent(){
+    return getTrafficAssignmentComponent(FundamentalDiagramComponent.class);
   }
 
   /**
@@ -176,6 +184,20 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   protected <T> boolean hasTrafficAssignmentComponent(final Class<T> taComponentClassKey) {
     return taComponents.hasTrafficAssignmentComponent(taComponentClassKey);
+  }
+
+  /**
+   * We can simplify the cost update by only considering a subset of links connected to potentially blocked
+   * nodes. This is checked via this method.
+   * <p>
+   *   eligible for subset of node updates only when we have no storage constraints activated (no physical queues/spillback) AND
+   *   we have linear free flow branches on all fundamental diagrams (cost is flow independent on non-blocked links
+   * </p>
+   * @return true when we can use subset, false otherwise
+   */
+  protected boolean isUpdateOnlyPotentiallyBlockingNodeCosts() {
+    return !getLoading().getActivatedSolutionScheme().isPhysicalQueue() &&
+        !getFundamentalDiagramComponent().hasAnyNonLinearFreeFlowBranchFundamentalDiagrams();
   }
 
   /** map zone to centroid vertex
@@ -258,7 +280,8 @@ public abstract class StaticLtmAssignmentStrategy {
    *                                               costs are to be updated
    * @param costsToUpdate                          the network wide costs to update (fully or partially), this is an output
    */
-  protected void executeNetworkCostsUpdate(Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts, double[] costsToUpdate){
+  protected void executeNetworkCostsUpdate(
+          Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts, double[] costsToUpdate){
 
     final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
@@ -294,6 +317,13 @@ public abstract class StaticLtmAssignmentStrategy {
     }
     /* OTHER -> all nodes (and attached links) are updated, update all costs */
     else {
+
+      /* make sure that all links have the full flow information populated to support cost computation, since the loading
+       * may track only a subset of links even when costs require all information, e.g., when using non-linear FD the costs
+       * require all information to determine step, but loading does not since route choice is fixed during loading
+       * todo costly and maybe not necessary for part of what is done in this method, could be revisited for optimisation later
+       */
+      getLoading().stepSixFinaliseForAnalysis(theMode);
 
       /* virtual cost */
       virtualCost.populateWithCost(getTransportNetwork().getVirtualNetwork(), theMode, costsToUpdate);

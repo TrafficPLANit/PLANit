@@ -117,14 +117,14 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
   /**
    * Execute a flow shift on a given bush for the given entry+PAS alternative. This does not move flow through the final merge vertex but does flow through the initial diverge.
    * 
-   * @param origin                bush at hand
+   * @param bush                bush at hand
    * @param entrySegment          entry segment for the initial turn leading into the pasSegment
    * @param flowShiftPcuH         to execute (assumed to be correctly proportioned in relation to other bushes and labels within bush for this PAS)
    * @param pasSegment            to update on bush
    * @param flowAcceptanceFactors to use when updating the flows
    * @return sending flow on last edge segment of the PAS alternative after the flow shift (considering encountered reductions)
    */
-  private double executeBushPasFlowShift(final RootedLabelledBush origin, final EdgeSegment entrySegment, double flowShiftPcuH,
+  private double executeBushPasFlowShift(final RootedLabelledBush bush, final EdgeSegment entrySegment, double flowShiftPcuH,
                                          final EdgeSegment[] pasSegment, final double[] flowAcceptanceFactors) {
 
     /* initial turn into pas segment */
@@ -132,7 +132,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
     EdgeSegment currentSegment = entrySegment;
     var nextSegment = pasSegment[index];
 
-    executeTurnFlowShift(origin, entrySegment, nextSegment, flowShiftPcuH);
+    executeTurnFlowShift(bush, entrySegment, nextSegment, flowShiftPcuH);
     flowShiftPcuH *= flowAcceptanceFactors[(int) entrySegment.getId()];
 
     /* pas alternative itself */
@@ -140,7 +140,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
       currentSegment = nextSegment;
       nextSegment = pasSegment[index];
 
-      executeTurnFlowShift(origin, currentSegment, nextSegment, flowShiftPcuH);
+      executeTurnFlowShift(bush, currentSegment, nextSegment, flowShiftPcuH);
       flowShiftPcuH *= flowAcceptanceFactors[(int) currentSegment.getId()];
     }
 

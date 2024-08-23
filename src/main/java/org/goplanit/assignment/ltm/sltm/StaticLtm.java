@@ -13,7 +13,6 @@ import org.goplanit.assignment.ltm.LtmAssignment;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmStrategyConjugateBush;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.cost.CostUtils;
-import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.output.adapter.OutputTypeAdapter;
@@ -220,7 +219,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     var modes = simulationData.getSupportedModes();
     if (getOutputManager().isPersistAnyOutput(timePeriod, modes, converged)) {
 
-      assignmentStrategy.getLoading().stepSixFinaliseForPersistence(modes.iterator().next());
+      assignmentStrategy.getLoading().stepSixFinaliseForAnalysis(modes.iterator().next());
       getOutputManager().persistOutputData(timePeriod, modes, converged);
 
       if(isActivateDetailedLogging()) {

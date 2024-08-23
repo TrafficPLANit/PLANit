@@ -103,29 +103,31 @@ public abstract class StaticLtmNetworkLoading {
   }
 
   /**
-   * Whenever we want to activate or track all node turn flows, either because of a change in solution approach, or to be able to persist the results network wide this method
-   * ensures that the link segment sending flows are re-initialised (across the whole network) and that for each node the splitting rate data is ready to be updated
+   * Whenever we want to activate or track all node turn flows, either because of a change in solution approach, or to
+   * be able to persist the results network wide this method ensures that the link segment sending flows are
+   * re-initialised (across the whole network) and that for each node the splitting rate data is ready to be updated
    *
    * @param mode to use
    */
   private void initialiseTrackAllNodeTurnFlows(Mode mode) {
     /*
-     * sending flows must be re-initialised since otherwise the sending flows of earlier non-tracked nodes have been reset to zero during earlier loading iterations, now they must
-     * be available for all tracked nodes, so we reinitialise by conducting a full initialisation based on paths and most recent flow acceptance factors
+     * sending flows must be re-initialised since otherwise the sending flows of earlier non-tracked nodes have been
+     * reset to zero during earlier loading iterations, now they must be available for all tracked nodes, so we
+     * reinitialise by conducting a full initialisation based on paths and most recent flow acceptance factors
      */
     initialiseSendingFlows(mode);
 
     /*
-     * Splitting rates must be re-initialised in this approach as well, a different splitting rate data is created based on updated solution scheme Change from using only a small
-     * subset of nodes with splitting rates to tracking splitting rates for all used nodes
+     * Splitting rates must be re-initialised in this approach as well, a different splitting rate data is
+     * created based on updated solution scheme Change from using only a small subset of nodes with splitting rates
+     * to tracking splitting rates for all used nodes
      */
     initialiseNodeSplittingRateStatus();
   }
 
   /**
-   * Initialise sending flows via
-   * 
-   * update link in/outflows via network loading Eq. (3)-(4) in paper Initial sending flows: s_a=u_a for all link segments a
+   * Initialise sending flows via network loading Eq. (3)-(4) in paper Initial sending flows: s_a=u_a for all link
+   * segments.
    *
    * @param mode to use
    */
@@ -179,7 +181,7 @@ public abstract class StaticLtmNetworkLoading {
 
     int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
     /* POINT QUEUE BASIC */
-    if (!isTrackAllNodeTurnFlows()) {
+    if (!isTrackAllNodeTurnFlowsDuringLoading()) {
       splittingRateData = new SplittingRateDataPartial(numberOfVertices);
     }
     /* OTHER, e.g. physical queues and advanced point queue model */
@@ -231,7 +233,7 @@ public abstract class StaticLtmNetworkLoading {
 //    }
 
     if (initialiseTrackedNodes) {
-      if (isTrackAllNodeTurnFlows()) {
+      if (isTrackAllNodeTurnFlowsDuringLoading()) {
         /*
          * OTHER, e.g. physical queues and advanced point queue model all nodes are to be considered so we must activate them all (track and mark potentially blocking)
          */
@@ -248,7 +250,7 @@ public abstract class StaticLtmNetworkLoading {
      * When not all nodes are already activated, i.e. marked tracked and potentially blocking, identify which ones of the currently tracked nodes are also potentially blocking (not
      * all tracked nodes need to be potentially blocking)
      */
-    if (!isTrackAllNodeTurnFlows()) {
+    if (!isTrackAllNodeTurnFlowsDuringLoading()) {
       updatePotentiallyBlockingNodes(this.networkLayer, this.sendingFlowData.getCurrentSendingFlows());
     }
   }
@@ -502,15 +504,6 @@ public abstract class StaticLtmNetworkLoading {
    * @return true when not in POINT_QUEUE_BASIC scheme, false otherwise
    */
   protected boolean isIterativeSendingFlowUpdateActivated() {
-    return !solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-  }
-
-  /**
-   * Verify if all turn flows are to be tracked during loading.
-   * 
-   * @return false when POINT_QUEUE_BASIC solution scheme is active, true otherwise
-   */
-  protected boolean isTrackAllNodeTurnFlows() {
     return !solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
   }
 
@@ -994,25 +987,28 @@ public abstract class StaticLtmNetworkLoading {
   }
   
   /**
-   * When loading has converged, outputs might be persisted for (intermediate) iterations. Since the loading does not always
-   * track the entire network for performance reasons. This method can be invoked before persisting results to populate the gaps
-   * (if any) regarding for example link in and outflows that might otherwise not be available, e.g. in the POINT_QUEUE_BASIC loading scheme
-   * only potentially blocking nodes and their immediate links might be tracked on the network level. Whereas if we want to see the results of this
-   * iteration, we would want the full inflows/outflows on all links in the network. This is what this methods ensure with minimal overhead.
+   * When loading has converged, outputs might be persisted or used for cost calculations, i.e., analysis. Since the
+   * loading does not always track the entire network for performance reasons, this method can be invoked before
+   * this analysis/data is required to fill the gaps (if any) regarding for example link in and outflows that might
+   * otherwise not be available, e.g. in the POINT_QUEUE_BASIC loading scheme under a triangular FD as then only
+   * potentially blocking nodes and their immediate adjacent links and their data are tracked on the network level.
+   * Whereas if we want to see the results of this iteration, we would want the full inflows/outflows on all links
+   * in the network.
    * <p>
-   * This is potentially costly, so ideally no intermediate results are persisted in such cases.
+   * This is somewhat costly since one additional pass over the network loading may be triggered.
+   * </p>
    *
    * @param mode to use
    */
-  public void stepSixFinaliseForPersistence(Mode mode) {
+  public void stepSixFinaliseForAnalysis(Mode mode) {
     
     /*
      * Persistence requires all network data available, when not tracking entire network during loading
      * we must now switch to full network tracking for persistence purpose. 
      */
-    if (!isTrackAllNodeTurnFlows()) {
+    if (!isTrackAllNodeTurnFlowsDuringLoading()) {
       
-      /* tracks all node turn flows*/
+      /* triggers tracking all node turn flows for loading steps */
       this.solutionScheme = StaticLtmLoadingScheme.POINT_QUEUE_ADVANCED;
       
       /* prep: force single iteration on sending flow/inflow update */
@@ -1044,6 +1040,15 @@ public abstract class StaticLtmNetworkLoading {
       LinkSegmentData.copyTo(sendingFlowData.getCurrentSendingFlows(), inFlowOutflowData.getInflows());
       inFlowOutflowData.limitOutflowsToCapacity(networkLayer.getLinkSegments());
     }
+  }
+
+  /**
+   * Verify if all turn flows are to be/being tracked during loading.
+   *
+   * @return false when POINT_QUEUE_BASIC solution scheme is active, true otherwise
+   */
+  public boolean isTrackAllNodeTurnFlowsDuringLoading() {
+    return !solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
   }
 
   /** Verify if we are still converging

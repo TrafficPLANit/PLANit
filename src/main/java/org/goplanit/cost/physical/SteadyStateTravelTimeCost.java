@@ -256,8 +256,9 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   }
 
   /**
-   * First Derivative towards inflowRate. HypocriticalDelay is FD dependent. HyperCritical delay equates to
-   * (timePeriod duration/2) * (1/outflowRate).
+   * First Derivative towards inflowRate.
+   * <p>HypocriticalDelay is FD dependent</p>
+   * <p>HyperCritical delay equates to (timePeriod duration/2) * (1/outflowRate)</p>
    * 
    * {@inheritDoc}
    */
@@ -272,8 +273,12 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
 
     /* hypo critical delay derivative */
     if (!fd.getFreeFlowBranch().isLinear()) {
-        hypoDerivative = linkSegment.getLengthKm() / fd.getFreeFlowBranch().getDSpeedDFlowAtFlow(
-                accessee.getLinkSegmentInflowPcuHour(linkSegment));
+      // since tt = L/speed(flow) and speed(flow) is unknown function of ff branch, we must apply chain rule to find derivative
+      // so d_tt/d_flow = -L/speed(flow)^2 * dspeed/dflow
+      var ffBranch = fd.getFreeFlowBranch();
+      double inflowPerLane = accessee.getLinkSegmentInflowPcuHour(linkSegment)/linkSegment.getNumberOfLanes();
+      hypoDerivative = (-linkSegment.getLengthKm() / Math.pow(ffBranch.getSpeedKmHourByFlow(inflowPerLane), 2))
+                        * ffBranch.getDSpeedDFlowAtFlow(inflowPerLane);
     }
 
     /* hyperCriticalDelay derivative */

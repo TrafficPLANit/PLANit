@@ -50,6 +50,8 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   /** track fundamental diagram registered per link segment type */
   private final Map<MacroscopicLinkSegmentType, FundamentalDiagram> linkSegmentTypeFundamentalDiagrams;
 
+  /** track if there exist any nonlinear free flow branches across all Fds */
+  private boolean anyNonLinearFreeFlowBranch;
 
   /**
    * Add the passed in FD as a new unique FD if it is not already present based on relaxed hash code identification.
@@ -65,6 +67,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
       usedFd = uniqueFundamentalDiagrams.get(relaxedHash);
     } else {
       uniqueFundamentalDiagrams.put(relaxedHash, usedFd);
+      anyNonLinearFreeFlowBranch = anyNonLinearFreeFlowBranch || !usedFd.getFreeFlowBranch().isLinear();
     }
     return usedFd;
   }
@@ -257,6 +260,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
     this.uniqueFundamentalDiagrams = new HashMap<>();
     this.linkSegmentFundamentalDiagrams = new HashMap<>();
     this.linkSegmentTypeFundamentalDiagrams = new HashMap<>();
+    this.anyNonLinearFreeFlowBranch = false;
   }
 
   /**
@@ -270,7 +274,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
 
     this.uniqueFundamentalDiagrams = new HashMap<>();
     other.uniqueFundamentalDiagrams.forEach((key1, value1) ->
-            uniqueFundamentalDiagrams.put(key1, deepCopy ? value1.deepClone() : value1));
+            registerUniqueFundamentalDiagram(deepCopy ? value1.deepClone() : value1));
 
       this.linkSegmentFundamentalDiagrams = new HashMap<>();
       this.linkSegmentTypeFundamentalDiagrams = new HashMap<>();
@@ -386,6 +390,15 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
       linkSegmentFundamentalDiagrams[(int) linkSegment.getLinkSegmentId()] = get(linkSegment);
     }
     return linkSegmentFundamentalDiagrams;
+  }
+
+  /**
+   * Check if any of the available fundamental diagrams has a non-linear free flow branch
+   *
+   * @return true if exists, false otherwise
+   */
+  public boolean hasAnyNonLinearFreeFlowBranchFundamentalDiagrams(){
+    return this.anyNonLinearFreeFlowBranch;
   }
 
   /**

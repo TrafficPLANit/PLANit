@@ -4,7 +4,6 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathOneToAll;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
-import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.choice.logit.BoundedMultinomialLogit;
 import org.goplanit.cost.CostUtils;
@@ -25,6 +24,7 @@ import org.goplanit.path.choice.StochasticPathChoice;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.LoggingUtils;
@@ -43,6 +43,7 @@ import org.goplanit.zoning.Zoning;
 import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -418,11 +419,35 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       double lowCostPathDAbsoluteCostDFlow = PathUtils.computeEdgeSegmentsSummedValue(lowCostPath, dCostDFlow);
       double highCostPathDAbsoluteCostDFlow = PathUtils.computeEdgeSegmentsSummedValue(highCostPath, dCostDFlow); // high cost path based sum of dCostdFlow
 
-      // 4. identify non-overlapping links between low and high cost as flow shifts only impact those links
-      //todo: make configurable as this is a costly exercise yet for situations with paths sharing bottlenecks close to origin it is important to consider
+      // 4a. identify first bottleneck on each path and only consider anything before that point
+      //     dampen with smoothing so portion of after the bottleneck is still considered (which will reduce step size)
+      //todo: make configurable as this is a costly exercise
+      boolean reduceConsiderationAfterFirstBottleneck = true;
+      int[] lowCostExcludedLinkSegmentIds = null;
+      int[] highCostExcludedLinkSegmentIds = null;
+      if(reduceConsiderationAfterFirstBottleneck){
+        final Predicate<EdgeSegment> isBottleneck = ls -> getLoading().getCurrentFlowAcceptanceFactors()[(int)ls.getId()] < 1;
+        lowCostExcludedLinkSegmentIds = PathUtils.getLinkSegmentIndicesAfterInitialMatch(lowCostPath, isBottleneck);
+        if(lowCostExcludedLinkSegmentIds != null) {
+          for (var linkSegmentIdToExclude : lowCostExcludedLinkSegmentIds) {
+            lowCostPathDAbsoluteCostDFlow -= smoothing.execute(dCostDFlow[linkSegmentIdToExclude], 0);
+          }
+        }
+        highCostExcludedLinkSegmentIds = PathUtils.getLinkSegmentIndicesAfterInitialMatch(highCostPath, isBottleneck);
+        if(highCostExcludedLinkSegmentIds != null) {
+          for (var linkSegmentIdToExclude : highCostExcludedLinkSegmentIds) {
+            highCostPathDAbsoluteCostDFlow -= smoothing.execute(dCostDFlow[linkSegmentIdToExclude], 0);
+          }
+        }
+      }
+      Long lowCostPathStopAt = lowCostExcludedLinkSegmentIds!=null ? (long)lowCostExcludedLinkSegmentIds[0] : null;
+      Long highCostPathStopAt = highCostExcludedLinkSegmentIds!=null ? (long)highCostExcludedLinkSegmentIds[0] : null;
+
+      // 4b. identify non-overlapping links between low and high cost as flow shifts only impact those links
+      //todo: make configurable as this is a costly exercise
       boolean onlyConsiderNonOverlappingLinks = true;
       if(onlyConsiderNonOverlappingLinks){
-        int[] overlappingIndices = PathUtils.getOverlappingPathLinkIndices(lowCostPath, highCostPath);
+        int[] overlappingIndices = PathUtils.getOverlappingPathLinkIndices(lowCostPath,lowCostPathStopAt, highCostPath, highCostPathStopAt);
         for(var overlappingLinkIndex : overlappingIndices){
           lowCostPathDAbsoluteCostDFlow -= dCostDFlow[overlappingLinkIndex];
           highCostPathDAbsoluteCostDFlow -= dCostDFlow[overlappingLinkIndex];
@@ -432,26 +457,33 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       // For linear free flow branches of an FD,the dcost/dflow on uncongested links is zero -> when high cost non-overlapping path solely comprise such links
       // this results in very high steps. To somewhat soften this and reduce likelihood of overstepping (flip-flopping), we enforce that the dcost/dflow of the high cost
       // path is at least is as high as the lowest cost path's dcost dflow as a lower bound
-      highCostPathDAbsoluteCostDFlow = Math.max(lowCostPathDAbsoluteCostDFlow,highCostPathDAbsoluteCostDFlow);
+      //highCostPathDAbsoluteCostDFlow = Math.max(lowCostPathDAbsoluteCostDFlow,highCostPathDAbsoluteCostDFlow);
 
       // 5. determine path based derivatives dcost/dflow (on perceived cost) utilising absolute cost derivatives and functional form of SUE function
       double[] dpCostdFlows = {highCostPathDAbsoluteCostDFlow, lowCostPathDAbsoluteCostDFlow};
       double[] absCosts = {currAbsolutePathCosts[highCostPathIndex], currAbsolutePathCosts[lowCostPathIndex]};
+
+      var currHighCostDemand = highCostPath.getPathChoiceProbability() * demand;
+      var currLowCostDemand = lowCostPath.getPathChoiceProbability() * demand;
       double highCostPathDenominator = stochasticPathChoice.getChoiceModel().computeDPerceivedCostDFlow(
-              dpCostdFlows, absCosts, 0 /*high cost */, highCostPath.getPathChoiceProbability() * demand, APPLY_EXP_TRANSFORM);
+              dpCostdFlows,
+              absCosts, 0 /*high cost */,
+              currHighCostDemand,
+              APPLY_EXP_TRANSFORM);
+
       // low cost path based dPerceivedCost/dFlow this required the derivative of the perceived cost related to the applied path choice model
       double lowCostPathDenominator = stochasticPathChoice.getChoiceModel().computeDPerceivedCostDFlow(
-              dpCostdFlows,  absCosts, 1 /*low cost */,lowCostPath.getPathChoiceProbability() * demand, APPLY_EXP_TRANSFORM);
+              dpCostdFlows,
+              absCosts, 1 /*low cost */,
+              currLowCostDemand > 0 ? currLowCostDemand : Math.max(1,currHighCostDemand), // when not known, use proxy until it has demand and make sure it does not affect step negatively by making it equal or higher than high cost demand
+              APPLY_EXP_TRANSFORM);
 
       // BOUND ENFORCEMENT - Part II
       // derivative of low cost path should never be steeper than that of the high-cost path (if it exists). In certain edge cases this may occur due to very low demands. In that case
       // we truncate to the high cost derivative as an upper bound
-      if(highCostPathDenominator > 0) {
-        lowCostPathDenominator = Math.min(lowCostPathDenominator, highCostPathDenominator);
-      }
-
-      var currHighCostDemand = highCostPath.getPathChoiceProbability() * demand;
-      var currLowCostDemand = lowCostPath.getPathChoiceProbability() * demand;
+//      if(highCostPathDenominator > 0) {
+//        lowCostPathDenominator = Math.min(lowCostPathDenominator, highCostPathDenominator);
+//      }
 
       //6. NEWTON STEP: analytical equilibration of two paths based on their current cost and first derivative to determine flows/probabilities for i+1
       //   (adapted from Olga Perederieieva (2015) thesis)
@@ -637,16 +669,14 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       executeNetworkLoading(mode);
 
       /* COST UPDATE */
-      boolean updateOnlyPotentiallyBlockingNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-      {
-        if(simulationData.isInitialCostsAppliedInFirstIteration(mode) && simulationData.isFirstIteration()){
-          /* initial costs will be inconsistent with loading performed in first iteration, recalculate all link segment costs for free flow conditions first
-           * and then for those that need tracking override with flow based costs */
-          CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
-                  mode, getInfrastructureNetwork().getLayerByMode(mode).getLinkSegments(), costsToUpdate);
-        }
-        this.executeNetworkCostsUpdate(mode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
+      boolean updateOnlyPotentiallyBlockingNodeCosts = isUpdateOnlyPotentiallyBlockingNodeCosts();
+      if(updateOnlyPotentiallyBlockingNodeCosts && simulationData.isInitialCostsAppliedInFirstIteration(mode) && simulationData.isFirstIteration()){
+        /* initial costs will be inconsistent with loading performed in first iteration, recalculate all link segment costs for free flow conditions first
+         * and then for those that need tracking override with flow based costs */
+        CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
+                mode, getInfrastructureNetwork().getLayerByMode(mode).getLinkSegments(), costsToUpdate);
       }
+      this.executeNetworkCostsUpdate(mode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
 
       /* DERIVATIVES per link segment (so we can construct Newton step) */
       double[] dCostDFlow = this.constructLinkBasedDCostDFlow(mode, updateOnlyPotentiallyBlockingNodeCosts);

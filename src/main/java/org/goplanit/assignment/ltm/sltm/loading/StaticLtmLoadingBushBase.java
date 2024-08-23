@@ -57,7 +57,8 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * @param updateOutflows           flag indicating if the link outflows are to be updated by this consumer
    * @return created flow update consumer
    */
-  protected abstract BushFlowUpdateConsumer<B> createBushFlowUpdateConsumer(boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows);
+  protected abstract BushFlowUpdateConsumer<B> createBushFlowUpdateConsumer(
+          boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows);
 
   //@formatter:off
   /**
@@ -77,7 +78,8 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
     boolean updateTurnAcceptedFlows = true;
     boolean updateSendingFlowDuringLoading = !isIterativeSendingFlowUpdateActivated();
     boolean updateOutflows = false;
-    var bushTurnFlowUpdateConsumer = createBushFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows);    
+    var bushTurnFlowUpdateConsumer = createBushFlowUpdateConsumer(
+            updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows);
     
     /* execute */
     executeNetworkLoadingUpdate(bushTurnFlowUpdateConsumer);
@@ -171,7 +173,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
       return;
     }
     /* only when not all turn flows are tracked, we must expand the tracked nodes, otherwise they are already available */
-    if(!isTrackAllNodeTurnFlows()) {
+    if(!isTrackAllNodeTurnFlowsDuringLoading()) {
       var pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.getSplittingRateData();
       boolean lowCostSegment = true;
       newPas.forEachVertex(lowCostSegment, (v) -> {

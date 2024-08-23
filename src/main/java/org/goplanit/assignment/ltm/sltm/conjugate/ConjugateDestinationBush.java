@@ -194,7 +194,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
   /**
    * Add turn sending flow to the bush. In case the turn does not yet exist on the bush it is newly registered. If it does exist and there is already flow present, the provided
-   * flow is added to it. If by adding the flow (can be negative) the turn no longer has any flow, it is rmeoved if allowed
+   * flow is added to it. If by adding the flow (can be negative) the turn no longer has any flow, it is removed if allowed
    * 
    * @param turn             the turn
    * @param addFlowPcuH      to add

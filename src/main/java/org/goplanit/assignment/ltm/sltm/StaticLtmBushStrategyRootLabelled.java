@@ -85,15 +85,16 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
   }
 
   /**
-   * Try to create a new PAS for the given bush and the provided merge vertex. If a new PAS can be created given that it is considered sufficiently effective the origin is
-   * registered on it.
+   * Try to create a new PAS for the given bush and the provided merge vertex. If a new PAS can be created given that
+   * it is considered sufficiently effective the bush is registered on it.
    * 
    * @param bush              to identify new PAS for
    * @param reducedCostVertex to use for creating the PAS as a cheaper path to the root exists at this vertex
    * @param networkMinPaths   the current network shortest path tree
    * @return new created PAS if successfully created, null otherwise
    */
-  private Pas extendBushWithNewPas(final RootedLabelledBush bush, final DirectedVertex reducedCostVertex, final ShortestPathResult networkMinPaths) {
+  private Pas extendBushWithNewPas(
+          final RootedLabelledBush bush, final DirectedVertex reducedCostVertex, final ShortestPathResult networkMinPaths) {
 
     /* Label all vertices on shortest path root-reducedCostVertex as -1, and PAS reference vertex itself as 1 */
     final short[] alternativeSegmentVertexLabels = new short[getTransportNetwork().getNumberOfVerticesAllLayers()];
@@ -134,11 +135,11 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
             coincideCloserToRootVertex, reducedCostVertex, bush.getShortestSearchType(), backLinkTreeAsMap, highCostSubPathResultPair.second().size(), truncateSpareArrayCapacity);
 
     /* register on existing PAS (if available) otherwise create new PAS */
-    Pas exitingPas = pasManager.findExistingPas(s1, s2);
-    if (exitingPas != null) {
+    Pas existingPas = pasManager.findExistingPas(s1, s2);
+    if (existingPas != null) {
       //todo: it could be that this pass was discarded earlier as suitable, perhaps we should
       //      do this check here again, and if it is not sufficiently attractive discard it?
-      exitingPas.registerBush(bush);
+      existingPas.registerBush(bush);
       return null;
     }
 

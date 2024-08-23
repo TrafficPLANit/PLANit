@@ -113,14 +113,16 @@ public class MultinomialLogit extends ChoiceModel {
    * @return perceived dCost/dflow
    */
   @Override
-  public double computeDPerceivedCostDFlow(double[] dAbsoluteCostDFlows, double[] absoluteCosts, int index, double demand, boolean applyExpTransform) {
+  public double computeDPerceivedCostDFlow(
+          double[] dAbsoluteCostDFlows, double[] absoluteCosts, int index, double demand, boolean applyExpTransform) {
     return computeDPerceivedCostDFlow(dAbsoluteCostDFlows[index], absoluteCosts[index], demand, applyExpTransform);
   }
 
-  public double computeDPerceivedCostDFlow(double dAbsoluteCostDFlow, double absoluteCost, double demand, boolean applyExpTransform) {
+  public double computeDPerceivedCostDFlow(
+          double dAbsoluteCostDFlow, double absoluteCost, double demand, boolean applyExpTransform) {
 
     if(demand <= 0){
-      LOGGER.fine("Negative demand found, can't compute perceived cost (always zero), truncating to 10^-12");
+      LOGGER.warning("Negative or zero reference demand found, can't compute DPerceivedCostDFlow cost (always zero), truncating to 10^-12");
       demand = Precision.EPSILON_12;
     }
 

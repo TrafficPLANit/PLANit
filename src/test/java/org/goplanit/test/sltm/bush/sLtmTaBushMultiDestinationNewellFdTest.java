@@ -1,42 +1,20 @@
 package org.goplanit.test.sltm.bush;
 
-import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
 import org.goplanit.assignment.ltm.sltm.StaticLtmType;
-import org.goplanit.choice.ChoiceModel;
-import org.goplanit.choice.logit.BoundedMultinomialLogitConfigurator;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
-import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.od.demand.OdDemandMatrix;
-import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
-import org.goplanit.path.choice.PathChoice;
-import org.goplanit.path.choice.StochasticPathChoiceConfigurator;
-import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
-import org.goplanit.sdinteraction.smoothing.Smoothing;
+import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.test.sltm.sLtmAssignmentMultiDestinationTestBase;
-import org.goplanit.utils.id.IdGenerator;
-import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.mode.PredefinedModeType;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
-import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.layer.physical.Nodes;
-import org.goplanit.utils.path.PathUtils;
-import org.goplanit.utils.zoning.OdZones;
-import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
 
 import java.util.logging.Logger;
 
@@ -48,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author markr
  *
  */
-public class sLtmAssignmentBushMultiDestinationTest extends sLtmAssignmentMultiDestinationTestBase {
+public class sLtmTaBushMultiDestinationNewellFdTest extends sLtmAssignmentMultiDestinationTestBase {
 
   /** the logger */
   private static Logger LOGGER = null;
@@ -60,7 +38,7 @@ public class sLtmAssignmentBushMultiDestinationTest extends sLtmAssignmentMultiD
   @BeforeAll
   public static void setUp() throws Exception {
     if (LOGGER == null) {
-      LOGGER = Logging.createLogger(sLtmAssignmentBushMultiDestinationTest.class);
+      LOGGER = Logging.createLogger(sLtmTaBushMultiDestinationNewellFdTest.class);
     }
   }
 
@@ -155,14 +133,15 @@ public class sLtmAssignmentBushMultiDestinationTest extends sLtmAssignmentMultiD
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sLTMBuilder.getConfigurator().activateDetailedLogging(false);
+      var configurator = sLTMBuilder.getConfigurator();
+      configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      configurator.activateDetailedLogging(false);
       
       /* ORIGIN BASED */
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.ORIGIN_BUSH_BASED);
+      configurator.setType(StaticLtmType.ORIGIN_BUSH_BASED);
 
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+      configurator.activateOutput(OutputType.LINK);
+      configurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
@@ -180,6 +159,7 @@ public class sLtmAssignmentBushMultiDestinationTest extends sLtmAssignmentMultiD
 
   /**
    * Test sLTM bush-destination-based assignment on above network for a point queue model
+   * <p>Triangular (Newell) FD used</p>
    */
   @Test
   public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
@@ -189,20 +169,20 @@ public class sLtmAssignmentBushMultiDestinationTest extends sLtmAssignmentMultiD
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      var sLtmConfig = sLTMBuilder.getConfigurator();
-      sLtmConfig.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sLtmConfig.activateDetailedLogging(false);
+      var configurator = sLTMBuilder.getConfigurator();
+      configurator.createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
+      configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      configurator.activateDetailedLogging(false);
       
       /* DESTINATION BASED */
-      sLtmConfig.setType(StaticLtmType.DESTINATION_BUSH_BASED);
+      configurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);
 
-      sLtmConfig.activateOutput(OutputType.LINK);
-      sLtmConfig.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+      configurator.activateOutput(OutputType.LINK);
+      configurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
       testDeterministicOutputs(sLTM);

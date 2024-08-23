@@ -67,13 +67,13 @@ public class StaticLtmLoadingBushRooted extends StaticLtmLoadingBushBase<RootedL
           return null;
         } else {
           dataConfig = new NetworkTurnFlowUpdateData(
-                  isTrackAllNodeTurnFlows(), sendingFlowData, splittingRateData, networkLoadingFactorData, numMovements);
+                  isTrackAllNodeTurnFlowsDuringLoading(), sendingFlowData, splittingRateData, networkLoadingFactorData, numMovements);
         }
       } else if (updateOutflows) {
         LOGGER.warning("Network flow updates using bushes must either updating link sending flows and otuflows, or just turn accepted flows, neither are selected");
         return null;
       } else {
-        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), splittingRateData, networkLoadingFactorData, numMovements);
+        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlowsDuringLoading(), splittingRateData, networkLoadingFactorData, numMovements);
       }
       return new RootedBushTurnFlowUpdateConsumer(dataConfig, segmentPair2MovementMap);
     }

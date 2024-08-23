@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -29,6 +30,9 @@ public class Pas {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(Pas.class.getCanonicalName());
 
+  //todo: replace with something better, now used for easy tracking of passes during debugging
+  private static final LongAdder pasIdCreator = new LongAdder();
+
   /** cheap PA segment s1 in downstream direction*/
   private EdgeSegment[] s1;
 
@@ -44,13 +48,17 @@ public class Pas {
   /** registered origin bushes */
   private final Set<RootedLabelledBush> registeredBushes;
 
+  private long pasId;
+
   /**
    * Constructor
    * 
    * @param s1 cheap subpath
    * @param s2 expensive subpath
+   * @param pasId for debugging
    */
-  private Pas(final EdgeSegment[] s1, final EdgeSegment[] s2) {
+  private Pas(final EdgeSegment[] s1, final EdgeSegment[] s2, long pasId) {
+    this.pasId = pasId;
     this.s1 = s1;
     this.s2 = s2;
     this.registeredBushes = new HashSet<>();
@@ -90,7 +98,8 @@ public class Pas {
       LOGGER.warning("Unable to create new PAS, one or both alternative segments are null");
       return null;
     }
-    return new Pas(s1, s2);
+    pasIdCreator.increment();
+    return new Pas(s1, s2, pasIdCreator.longValue());
   }
 
   /**
@@ -118,6 +127,9 @@ public class Pas {
    * @return true when newly added, false, when already present
    */
   public boolean registerBush(final RootedLabelledBush bush) {
+//    if(pasId == 1353 ){
+//      int bla = 4;
+//    }
     return registeredBushes.add(bush);
   }
 
@@ -457,7 +469,7 @@ public class Pas {
    */
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder(String.format("(%d)", pasId));
 
     Consumer<EdgeSegment> consumer = (ls) -> {
       if (ls == null) {

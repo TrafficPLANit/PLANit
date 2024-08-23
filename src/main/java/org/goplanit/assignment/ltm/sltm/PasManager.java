@@ -335,7 +335,8 @@ public class PasManager {
   }
 
   /**
-   * create a new PAS for the given cheap and expensive paired alternative segments (subpaths) and register the origin bush on it that was responsible for creating it
+   * create a new PAS for the given cheap and expensive paired alternative segments (subpaths) and register the origin
+   * bush on it that was responsible for creating it
    * 
    * @param bush responsible for triggering the creation of this PAS
    * @param s1         cheap alternative segment

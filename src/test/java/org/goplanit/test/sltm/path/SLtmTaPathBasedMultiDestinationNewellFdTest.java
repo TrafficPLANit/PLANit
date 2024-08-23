@@ -243,8 +243,7 @@ public class SLtmTaPathBasedMultiDestinationNewellFdTest extends sLtmAssignmentM
 
       /* MSRA */
       var smoothingConfig = (MSRASmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.MSRA);
-      // again "abusing" the self-regulating average to keep searching for the most aggressive step-size rather than reducing it by definition
-      // this seems to work better to reach convergence
+      // "abusing" the self-regulating average to keep searching for the most aggressive step-size rather than reducing it by definition
       smoothingConfig.setActivateLambda(true);
       smoothingConfig.setKappaStep(1);
       smoothingConfig.setGammaStep(0.05);
