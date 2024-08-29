@@ -1,10 +1,10 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import org.apache.commons.collections4.Predicate;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
-import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
@@ -17,6 +17,7 @@ import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
@@ -38,14 +39,35 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategyBase.class.getCanonicalName());
 
   /**
+   * Knowing which edge segments no longer have flow for the given bushes, we must deregister all these bushes from
+   * any other PASs on which they reside that also utilise these link segments as it is no longer possible to traverse
+   * them on the bush with non-zero flow.
+   *
+   * @param bushRemovedLinkSegments to consider
+   */
+  private void removeBushesFromMatchingPass(
+          Map<EdgeSegment, Set<RootedLabelledBush>> bushRemovedLinkSegments) {
+
+    for(var entry : bushRemovedLinkSegments.entrySet()){
+      // check if any edge segment of pas is matching with the link segment removed from the bush
+      Predicate<Pas> pasPredicate = p -> p.anyMatch(es -> es.idEquals(entry.getKey()), true);
+      for(var bush : entry.getValue()){
+        pasManager.removeBushFromPasIf(bush, pasPredicate);
+      }
+    }
+  }
+
+  /**
    * Shift flows based on the registered PASs and their origins.
-   * 
-   * @param theMode to use
+   *
+   * @param theMode        to use
+   * @param simulationData to use
    * @return all PASs where non-zero flow was shifted on
    */
-  private Collection<Pas> shiftFlows(final Mode theMode) {
+  private Collection<Pas> shiftFlows(
+          final Mode theMode, final StaticLtmSimulationData simulationData) {
     equalFlowDistributedPass.clear();
-    var flowShiftedPass = new ArrayList<Pas>((int) pasManager.getNumberOfPass());
+    var flowShiftedPass = new ArrayList<Pas>((int) this.pasManager.getNumberOfPass());
     var passWithoutOrigins = new ArrayList<Pas>();
 
     var networkLoading = getLoading();
@@ -53,12 +75,13 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
 
-    /**
+    /*
      * Sort all PAss by their reduced cost ensuring we shift flows from the most attractive shift towards the least where we exclude all link segments of a processed PAS such that
      * no other PASs are allowed to shift flows if they overlap to avoid using inconsistent costs after a flow shift to or from a link segment
      */
-    BitSet linkSegmentsUsed = new BitSet(networkLoading.getCurrentInflowsPcuH().length);
-    Collection<Pas> sortedPass = pasManager.getPassSortedByReducedCost();
+    //todo: do not use bitset here, it is superslow while checking in the below loop
+    Collection<EdgeSegment> linkSegmentsUsed = new ArrayList<>(1000);
+    Collection<Pas> sortedPass = this.pasManager.getPassSortedByReducedCost();
 
     double factor = 1;
     for (Pas pas : sortedPass) {
@@ -74,8 +97,25 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       }
 
       updateGap(gapFunction, pas, pasFlowShifter.getS1SendingFlow(), pasFlowShifter.getS2SendingFlow());
-      if (pas.containsAny(linkSegmentsUsed)) {
-        continue;
+
+      // todo: should probably also check on entry segments to avoid overlap or cycles, this is not yet done!
+      {
+        /* cannot do overlapping PASs without network loading update, so skip those for now */
+        if (pas.containsAny(linkSegmentsUsed)) {
+          continue;
+        }
+        /* cannot do PASs that have conflicting (opposite) direction links compared to earlier processed PASs in this loop,
+         * this can happen if multiple PASs were identified for the first time as potentially eligible for a bush, but
+         * they contain opposing link segments, if one has been applied, then the next triggers this check and we should
+         * skip it */
+        if (pas.containsAnyOppositeDirection(linkSegmentsUsed)) {
+          // if the opposite direction is present on the bush due to earlier pas shift, then do not execute, if none of the
+          // bushes overlap with the previous pas that was applied that contained the opposite direction then we can
+          // still safely proceed
+          // todo the above explained portion of this check is not yet implemented, but could improve convergence per loading, now we are very conservative by
+          //  always skipping even if bushes between the two PASs are not overlapping at all
+          continue;
+        }
       }
 
       /* untouched PAS (no flows shifted yet) in this iteration */
@@ -95,21 +135,29 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         }
 
         /* s1 */
-        pas.forEachEdgeSegment(true /* low cost */, (es) -> linkSegmentsUsed.set((int) es.getId()));
+        pas.forEachEdgeSegment(true /* low cost */, linkSegmentsUsed::add);
         /* s2 */
-        pas.forEachEdgeSegment(false /* high cost */, (es) -> linkSegmentsUsed.set((int) es.getId()));
-
-        pasFlowShifter.getUsedCongestedEntrySegments().forEach(es -> linkSegmentsUsed.set((int) es.getId()));
+        pas.forEachEdgeSegment(false /* high cost */, linkSegmentsUsed::add);
+        /* s1/s2 entry segments */
+        linkSegmentsUsed.addAll(pasFlowShifter.getUsedCongestedEntrySegments());
 
         /* when s2 no longer used on any bush - mark PAS for overall removal */
         if (!pas.hasRegisteredBushes()) {
           passWithoutOrigins.add(pas);
         }
+
+        /* If due to flow shifting some bushes have removed edges due to zero flow remaining
+         * then we must remove these bushes from other pass that 1) have this bush registered, and 2) have
+         * the link segment present that no longer has any flow on the bush. */
+         if(pasFlowShifter.hasAnyBushRemovedLinkSegments()){
+           Map<EdgeSegment, Set<RootedLabelledBush>> bushRemovedLinkSegments = pasFlowShifter.getBushRemovedLinkSegments();
+           removeBushesFromMatchingPass(bushRemovedLinkSegments);
+         }
       }
     }
 
     if (!passWithoutOrigins.isEmpty()) {
-      passWithoutOrigins.forEach((pas) -> pasManager.removePas(pas, getSettings().isDetailedLogging()));
+      passWithoutOrigins.forEach((pas) -> this.pasManager.removePas(pas, getSettings().isDetailedLogging()));
     }
     return flowShiftedPass;
   }
@@ -346,7 +394,11 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * @return true when iteration could be successfully completed, false otherwise
    */
   @Override
-  public boolean performIteration(final Mode theMode, final double[] prevCosts, double[] costsToUpdate, final StaticLtmSimulationData simulationData) {
+  public boolean performIteration(
+          final Mode theMode,
+          final double[] prevCosts,
+          double[] costsToUpdate,
+          final StaticLtmSimulationData simulationData) {
     try {
       
       /* 1 - NETWORK LOADING - UPDATE ALPHAS - USE BUSH SPLITTING RATES (i-1) -  MODE AGNOSTIC FOR NOW */
@@ -387,7 +439,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         Collection<Pas> newPass = updateBushPass(costsToUpdate);            
               
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
-        Collection<Pas> updatedPass = shiftFlows(theMode);      
+        Collection<Pas> updatedPass = shiftFlows(theMode, simulationData);
         
         if(getSettings().isDetailedLogging()) {
           var newUsedPass = new ArrayList<>(newPass);

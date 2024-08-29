@@ -139,6 +139,9 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
     if (existingPas != null) {
       //todo: it could be that this pass was discarded earlier as suitable, perhaps we should
       //      do this check here again, and if it is not sufficiently attractive discard it?
+      if(getSettings().isDetailedLogging()) {
+        LOGGER.warning(String.format("Using existing PAS (%d) while asking for new pas to be created, possibly existing PAS was discarded as not suitable before...", existingPas.pasId));
+      }
       existingPas.registerBush(bush);
       return null;
     }
@@ -175,7 +178,8 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
       }
 
       /* within-bush min/max-paths - searched from root in designated direction (inverted if ALL-TO-ONE, i.e., root is destination) */
-      var minMaxPaths = bush.computeMinMaxShortestPaths(linkSegmentCosts, this.getTransportNetwork().getNumberOfVerticesAllLayers());
+      var minMaxPaths = bush.computeMinMaxShortestPaths(
+              linkSegmentCosts, this.getTransportNetwork().getNumberOfVerticesAllLayers());
       if (minMaxPaths == null) {
         LOGGER.severe(String.format("Unable to obtain min-max paths for bush, this shouldn't happen, skip updateBushPass"));
         continue;
@@ -200,7 +204,8 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         }
         double reducedCost = minMaxPaths.getCostToReach(bushVertex) - networkMinPaths.getCostToReach(bushVertex);
 
-        /* when bush does not contain the reduced cost edge segment (or the opposite direction which would cause a cycle) consider it */
+        /* when bush does not contain the reduced cost edge segment (or the opposite direction which would cause a cycle)
+         * consider it */
         if (reducedCost > 0 && !bush.containsAnyEdgeSegmentOf(reducedCostSegment.getParent())) {
 
           boolean matchFound = extendBushWithSuitableExistingPas(bush, bushVertex, reducedCost);

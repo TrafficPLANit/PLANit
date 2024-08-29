@@ -4,10 +4,7 @@ import static org.goplanit.utils.math.Precision.EPSILON_12;
 import static org.goplanit.utils.math.Precision.equal;
 import static org.goplanit.utils.math.Precision.smaller;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -47,6 +44,9 @@ public abstract class PasFlowShiftExecutor {
    * between s1 and s2 should be made equal.
    */
   boolean towardsEqualAlternativeFlowDistribution;
+
+  /** track any removed edge segments as a result of a flow shift on a bush level */
+  private Map<EdgeSegment, Set<RootedLabelledBush>> removedEdgeSegmentsForBushes = new TreeMap<>();
 
   /**
    * obtain derivative of cost towards flow for given segment, all parameters mut be non-null
@@ -487,14 +487,14 @@ public abstract class PasFlowShiftExecutor {
       }
 
       /* flow shift based on entry segment - PAS combination */
-      double proposedPasflowShift = determineEntrySegmentFlowShift(
+      double proposedPasFlowShift = determineEntrySegmentFlowShift(
               entrySegment, theMode, physicalCost, virtualCost, networkLoading);
-      if (Math.abs(proposedPasflowShift) == 0) {
+      if (Math.abs(proposedPasFlowShift) == 0) {
         continue;
       }
 
       double entrySegmentPortion = totalEntrySegmentS2Flow / totalS2SendingFlow;
-      double proposedProportionalPasflowShift = proposedPasflowShift * entrySegmentPortion * factor;
+      double proposedProportionalPasflowShift = proposedPasFlowShift * entrySegmentPortion * factor;
 
       /* test for eligibility to reduce to zero flow along S2 */
       activatePasS2RemovalIf(Precision.greaterEqual(proposedProportionalPasflowShift, totalEntrySegmentS2Flow, EPSILON)
@@ -512,35 +512,38 @@ public abstract class PasFlowShiftExecutor {
       }
 
       for (var bush : pas.getRegisteredBushes()) {
-        if (bush.containsTurnSendingFlow(entrySegment, pas.getFirstEdgeSegment(false))) {
+        // only consider entry segments where there is flow present to shift.
+        if (!bush.containsTurnSendingFlow(entrySegment, pas.getFirstEdgeSegment(false))) {
+          continue;
+        }
 
-          final Map<EdgeSegment, Pair<Double, Double>> bushEntrySegmentS1S2Flows = bushEntrySegmentS1S2SendingFlows.get(bush);
-          var bushEntrySegmentS2Flow = bushEntrySegmentS1S2Flows.get(entrySegment).second();
+        final Map<EdgeSegment, Pair<Double, Double>> bushEntrySegmentS1S2Flows = bushEntrySegmentS1S2SendingFlows.get(bush);
+        var bushEntrySegmentS2Flow = bushEntrySegmentS1S2Flows.get(entrySegment).second();
 
-          /*
-           * In case of multiple used bushes for this entry segment -> we cannot let proposed shifts be executed in full because cost is affected and therefore succeeding entries
-           * would "overshoot". Hence we apply proposed shift proportionally to contribution to total flow along PAS
-           */
-          double bushS2Portion = bushEntrySegmentS2Flow / totalEntrySegmentS2Flow;
-          double entrySegmentPasflowShift = proposedProportionalPasflowShift * bushS2Portion;
+        /*
+         * In case of multiple used bushes for this entry segment -> we cannot let proposed shifts be executed in full because cost is affected and therefore succeeding entries
+         * would "overshoot". Hence, we apply proposed shift proportionally to contribution to total flow along PAS
+         */
+        double bushS2Portion = bushEntrySegmentS2Flow / totalEntrySegmentS2Flow;
+        double entrySegmentPasflowShift = proposedProportionalPasflowShift * bushS2Portion;
 
-          if(settings.isDetailedLogging()) {
-            LOGGER.info(String.format("** Entry segment (" + entrySegment.toString() + ") - Zone vertex (" + bush.getRootZoneVertex().getIdsAsString() + ") - start flow shift: %.10f",
-                    entrySegmentPasflowShift));
-          }
+        if(settings.isDetailedLogging()) {
+          LOGGER.info(String.format(
+                  "** Entry segment (%s) - Zone vertex (%s) - start flow shift: %.10f",
+                  entrySegment, bush.getRootZoneVertex().getIdsAsString(), entrySegmentPasflowShift));
+        }
 
-          /* perform the flow shift for the current bush and its attributed portion */
-          executeBushFlowShift(bush, entrySegment, entrySegmentPasflowShift, networkLoading.getCurrentFlowAcceptanceFactors());
-          flowShifted = true;
+        /* perform the flow shift for the current bush and its attributed portion */
+        executeBushFlowShift(bush, entrySegment, entrySegmentPasflowShift, networkLoading.getCurrentFlowAcceptanceFactors());
+        flowShifted = true;
 
-          if (smaller(networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()], 1, EPSILON)) {
-            usedCongestedEntryEdgeSegments.add(entrySegment);
-          }
+        if (smaller(networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()], 1, EPSILON)) {
+          usedCongestedEntryEdgeSegments.add(entrySegment);
+        }
 
-          if (isPasS2RemovalAllowed()) {
-            /* no flow remaning on S2 for bush, unregister */
-            bushEntrySegmentS1S2Flows.remove(entrySegment);
-          }
+        if (isPasS2RemovalAllowed()) {
+          /* no flow remaining on S2 for bush, unregister */
+          bushEntrySegmentS1S2Flows.remove(entrySegment);
         }
       }
     }
@@ -601,6 +604,39 @@ public abstract class PasFlowShiftExecutor {
    */
   public Set<EdgeSegment> getUsedCongestedEntrySegments() {
     return this.usedCongestedEntryEdgeSegments;
+  }
+
+  /**
+   * Verify if any edge segments have been removed by a bush as a result of the PAS flow shift
+   *
+   * @return true if confirmed, false otherwise
+   */
+  public boolean hasAnyBushRemovedLinkSegments() {
+    return removedEdgeSegmentsForBushes != null && !removedEdgeSegmentsForBushes.isEmpty();
+  }
+
+  /**
+   * access bushes that have removed the given link segment due to a flow shift
+   *
+   * @return tracked findings or empty map
+   */
+  public Map<EdgeSegment, Set<RootedLabelledBush>> getBushRemovedLinkSegments() {
+    return removedEdgeSegmentsForBushes;
+  }
+
+  /**
+   * access bushes that have removed the given link segment due to a flow shift
+   *
+   * @param linkSegment to check for
+   * @return tracked findings or empty list
+   */
+  public Set<RootedLabelledBush> getBushRemovedLinkSegments(EdgeSegment linkSegment) {
+    var bushes = removedEdgeSegmentsForBushes.get(linkSegment);
+    if(bushes == null){
+      bushes = new TreeSet<>();
+      removedEdgeSegmentsForBushes.put(linkSegment, bushes);
+    }
+    return bushes;
   }
 
 }

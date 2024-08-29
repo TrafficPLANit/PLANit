@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.Predicate;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
@@ -573,8 +574,8 @@ public class PasManager {
    */
   public Collection<Pas> getPassSortedByReducedCost() {
     var sortedList = new ArrayList<Pas>((int) getNumberOfPass());
-    forEachPas((pas) -> sortedList.add(pas));
-    Collections.sort(sortedList, PAS_REDUCED_COST_COMPARATOR);
+    forEachPas(sortedList::add);
+    sortedList.sort(PAS_REDUCED_COST_COMPARATOR);
     return sortedList;
   }
 
@@ -600,7 +601,26 @@ public class PasManager {
       numPass += pass.size();
     }
     return numPass;
+  }
 
+  /**
+   * Remove bushes from Pass on which the bush is currently registered and the predicate provided holds
+   *
+   * @param bush to check
+   * @param pasPredicate to apply
+   * @return number of pass from which the bush has been removed
+   */
+  public int removeBushFromPasIf(RootedLabelledBush bush, Predicate<Pas> pasPredicate) {
+    int countRemovals = 0;
+    for (var pass : passByVertex.values()) {
+      for( var pas : pass){
+        if(pas.hasRegisteredBush(bush) && pasPredicate.evaluate(pas)){
+          pas.removeBush(bush);
+          ++countRemovals;
+        }
+      }
+    }
+    return countRemovals;
   }
 
   /* GETTERS - SETTERS */

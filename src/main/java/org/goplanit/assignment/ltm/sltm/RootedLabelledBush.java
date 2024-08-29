@@ -24,7 +24,7 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 
 /**
- * A rooted bush is an acyclic directed graph comprising of implicit paths along a network. It has a single root which can be any vertex with only outgoing edge segments. while
+ * A rooted bush is an acyclic directed graph comprising implicit paths along a network. It has a single root which can be any vertex with only outgoing edge segments. while
  * acyclic its direction can be either be in up or downstream direction compared to the super network it is situated on.
  * <p>
  * The vertices in the bush represent link segments in the physical network, whereas each edge represents a turn from one link to another. This way each splitting rate uniquely
@@ -404,6 +404,16 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    */
   public boolean containsEdgeSegment(EdgeSegment edgeSegment) {
     return getDag().containsEdgeSegment(edgeSegment);
+  }
+
+  /**
+   * Verify if the bush contains the given edge segment
+   *
+   * @param edgeSegmentId to verify
+   * @return true when present, false otherwise
+   */
+  public boolean containsEdgeSegment(long edgeSegmentId) {
+    return getDag().containsEdgeSegment(edgeSegmentId);
   }
 
   /**

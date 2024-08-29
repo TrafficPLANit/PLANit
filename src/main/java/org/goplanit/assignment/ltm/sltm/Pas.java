@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.ShortestPathResult;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
@@ -48,7 +49,7 @@ public class Pas {
   /** registered origin bushes */
   private final Set<RootedLabelledBush> registeredBushes;
 
-  private long pasId;
+  protected long pasId;
 
   /**
    * Constructor
@@ -127,7 +128,7 @@ public class Pas {
    * @return true when newly added, false, when already present
    */
   public boolean registerBush(final RootedLabelledBush bush) {
-//    if(pasId == 1353 ){
+//    if(pasId == 5 ){
 //      int bla = 4;
 //    }
     return registeredBushes.add(bush);
@@ -259,22 +260,44 @@ public class Pas {
   }
 
   /**
+   * See if any of the edge segments of an alternative matches the predicate
+   *
+   * @param pred test to apply
+   * @param lowCost      when true check with low cost alternative otherwise high cost
+   * @return true when match is found on any, false otherwise
+   */
+  public boolean anyMatch(Predicate<EdgeSegment> pred, boolean lowCost) {
+    EdgeSegment[] alternative = lowCost ? s1 : s2;
+    EdgeSegment currEdgeSegment;
+    for (int index = alternative.length - 1; index >= 0; --index) {
+      currEdgeSegment = alternative[index];
+      if(pred.test(currEdgeSegment)){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Check if any of the set link segments is present on the indicated alternative
    * 
    * @param linkSegments where we verify against set link segments
    * @param lowCost      when true check with low cost alternative otherwise high cost
    * @return true when overlapping, false otherwise
    */
-  public boolean containsAny(final BitSet linkSegments, boolean lowCost) {
-    EdgeSegment[] alternative = lowCost ? s1 : s2;
-    EdgeSegment currEdgeSegment = null;
-    for (int index = alternative.length - 1; index >= 0; --index) {
-      currEdgeSegment = alternative[index];
-      if (linkSegments.get((int) currEdgeSegment.getId())) {
-        return true;
-      }
-    }
-    return false;
+  public boolean containsAny(final Collection<EdgeSegment> linkSegments, boolean lowCost) {
+    return anyMatch(linkSegments::contains, lowCost);
+  }
+
+  /**
+   * Check if any of the set link segments is present on the indicated alternative in opposite direction
+   *
+   * @param linkSegments where we verify against set link segments
+   * @param lowCost      when true check with low cost alternative otherwise high cost
+   * @return true when overlapping in opposite direction, false otherwise
+   */
+  public boolean containsAnyOppositeDirection(final  Collection<EdgeSegment> linkSegments, boolean lowCost) {
+    return anyMatch(es -> linkSegments.contains(es.getOppositeDirectionSegment()), lowCost);
   }
 
   /**
@@ -283,8 +306,18 @@ public class Pas {
    * @param linkSegments where we verify against set link segments
    * @return true when overlapping, false otherwise
    */
-  public boolean containsAny(final BitSet linkSegments) {
+  public boolean containsAny(final Collection<EdgeSegment> linkSegments) {
     return containsAny(linkSegments, true) || containsAny(linkSegments, false);
+  }
+
+  /**
+   * Check if any of the set link segments is present on either alternative as an opposite link
+   *
+   * @param linkSegments where we verify against set link segments
+   * @return true when overlapping in opposite direction, false otherwise
+   */
+  public boolean containsAnyOppositeDirection(final  Collection<EdgeSegment> linkSegments) {
+    return containsAnyOppositeDirection(linkSegments, true) || containsAnyOppositeDirection(linkSegments, false);
   }
 
   /**

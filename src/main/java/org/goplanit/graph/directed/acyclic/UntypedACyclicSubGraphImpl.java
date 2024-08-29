@@ -321,7 +321,15 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
     if (edgeSegment == null) {
       return false;
     }
-    return registeredLinkSegments.get((int) edgeSegment.getId());
+    return containsEdgeSegment(edgeSegment.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean containsEdgeSegment(long edgeSegmentId) {
+    return registeredLinkSegments.get((int) edgeSegmentId);
   }
 
   /**

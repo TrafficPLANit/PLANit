@@ -32,11 +32,21 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
    * @param flowShiftPcuH turn flow shift to apply by adding this flow to the turn
    * @return new turn flow after shift
    */
-  private double executeTurnFlowShift(RootedLabelledBush bush, EdgeSegment turnEntry, EdgeSegment turnExit, double flowShiftPcuH) {
-    double newTurnFlow = bush.addTurnSendingFlow(turnEntry, dummyLabel, turnExit, dummyLabel, flowShiftPcuH, isPasS2RemovalAllowed());
-    if (isPasS2RemovalAllowed() && !Precision.positive(newTurnFlow, EPSILON) && !Precision.positive(bush.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
+  private double executeTurnFlowShift(
+          RootedLabelledBush bush, EdgeSegment turnEntry, EdgeSegment turnExit, double flowShiftPcuH) {
+
+    double newTurnFlow = bush.addTurnSendingFlow(
+            turnEntry, dummyLabel, turnExit, dummyLabel, flowShiftPcuH, isPasS2RemovalAllowed());
+    if (isPasS2RemovalAllowed() && !Precision.positive(newTurnFlow, EPSILON) &&
+            !Precision.positive(bush.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
       /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
       bush.removeTurn(turnEntry, turnExit);
+      if(bush.getSendingFlowPcuH(turnEntry) <= 0.0) {
+        getBushRemovedLinkSegments(turnEntry).add(bush);
+      }
+      if(bush.getSendingFlowPcuH(turnExit) <= 0.0) {
+        getBushRemovedLinkSegments(turnExit).add(bush);
+      }
       newTurnFlow = 0.0;
     }
     return newTurnFlow;
@@ -50,7 +60,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
    * @param s2MergeExitSplittingRates splitting rates to use with multi-key (exit segment, label)
    * @return exitShiftedSendingFlows  found exit segment flows
    */
-  private double[] executeBushS2FlowShiftEndMerge(RootedLabelledBush bush, double s2FinalFlowShift, MultiKeyMap<Object, Double> s2MergeExitSplittingRates) {
+  private double[] executeBushS2FlowShiftEndMerge(
+          RootedLabelledBush bush, double s2FinalFlowShift, MultiKeyMap<Object, Double> s2MergeExitSplittingRates) {
 
     var exitShiftedSendingFlows = new double[pasMergeVertexNumExitSegments];
     /* remove shifted flows through final merge towards exit segments proportionally, to later add to s1 turns through merge */
@@ -74,6 +85,13 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
           if (isPasS2RemovalAllowed() && !Precision.positive(newturnFlow, EPSILON) && !Precision.positive(bush.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
             /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
             bush.removeTurn(lastS2Segment, exitSegment);
+            /* track for further processing, so we can deregister bush on other PASs with these links */
+            if(bush.getSendingFlowPcuH(lastS2Segment) <= 0.0) {
+              getBushRemovedLinkSegments(lastS2Segment).add(bush);
+            }
+            if(bush.getSendingFlowPcuH(exitSegment) <= 0.0) {
+              getBushRemovedLinkSegments(exitSegment).add(bush);
+            }
           }
 
           /* track so we can attribute it to s1 segment later */
@@ -132,7 +150,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
     EdgeSegment currentSegment = entrySegment;
     var nextSegment = pasSegment[index];
 
-    executeTurnFlowShift(bush, entrySegment, nextSegment, flowShiftPcuH);
+    var remainingFlow = executeTurnFlowShift(bush, entrySegment, nextSegment, flowShiftPcuH);
     flowShiftPcuH *= flowAcceptanceFactors[(int) entrySegment.getId()];
 
     /* pas alternative itself */
@@ -150,7 +168,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
   /**
    * {@inheritDoc}
    */
-  protected void executeBushFlowShift(RootedLabelledBush bush, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
+  protected void executeBushFlowShift(
+          RootedLabelledBush bush, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
     /* prep - pas */
     final var s2 = pas.getAlternative(false);
     final var s1 = pas.getAlternative(true);
