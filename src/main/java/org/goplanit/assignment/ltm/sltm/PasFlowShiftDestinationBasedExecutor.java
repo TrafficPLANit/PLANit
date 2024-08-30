@@ -187,10 +187,12 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
       var s2MergeExitSplittingRates = bush.getSplittingRates(pas.getLastEdgeSegment(false /* high cost */), dummyLabel);
 
       double s2StartLabeledFlowShift = -bushFlowShift;
-      double s2FinalLabeledFlowShift = executeBushPasFlowShift(bush, entrySegment, s2StartLabeledFlowShift, s2, flowAcceptanceFactors);
+      double s2FinalLabeledFlowShift =
+              executeBushPasFlowShift(bush, entrySegment, s2StartLabeledFlowShift, s2, flowAcceptanceFactors);
 
       /* shift flow across final merge for S2 */
-      double[] bushS2MergeExitShiftedSendingFlows =executeBushS2FlowShiftEndMerge(bush, s2FinalLabeledFlowShift, s2MergeExitSplittingRates);
+      double[] bushS2MergeExitShiftedSendingFlows =
+              executeBushS2FlowShiftEndMerge(bush, s2FinalLabeledFlowShift, s2MergeExitSplittingRates);
 
     /* convert flows to portions by label */
     ArrayUtils.divideBySum(bushS2MergeExitShiftedSendingFlows, 0);

@@ -20,6 +20,8 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.pcu.PcuCapacitated;
+import org.goplanit.sdinteraction.smoothing.Smoothing;
+
 import org.ojalgo.array.Array1D;
 
 /**
@@ -101,15 +103,19 @@ public abstract class PasFlowShiftExecutor {
     if (smaller(entrySegmentAlpha, 1, EPSILON)) {
 
       /*
-       * entry segment congested - derivative is only sensitive to most restricted out link, which pertains to one of the PAS alternatives (or none). Identify which. We can then
-       * assume that the shift does not impact other directions than the most restricting one if and only if no other congested link segments other than the entry segment is
-       * congested
+       * entry segment congested - derivative is only sensitive to most restricted out link, which pertains to one of
+       * the PAS alternatives (or none). Identify which. We can then assume that the shift does not impact other
+       * directions than the most restricting one if and only if no other congested link segments other than the
+       * entry segment is congested
        */
       EdgeSegment mostRestrictingOutSegment = identifyMostRestrictingOutEdgeSegment(entrySegment, networkLoading);
       if (mostRestrictingOutSegment.idEquals(pas.getFirstEdgeSegment(true))) {
         firstS1CongestedLinkSegment = entrySegment;
       } else if (mostRestrictingOutSegment.idEquals(pas.getFirstEdgeSegment(false))) {
         firstS2CongestedLinkSegment = entrySegment;
+      }else{
+        LOGGER.warning("TODO: neither movement most restricting on PAS entry segment, flow shift has no impact, should be " +
+                "ignored but is not (yet), consider implementing!");
       }
       //todo 1: if neither is most restricting, then there is no point in updating this PAS! Shifting flow
       // between the two does not change the bargaining power of the actual most restricting turn.
@@ -455,7 +461,7 @@ public abstract class PasFlowShiftExecutor {
    * @param physicalCost   to use
    * @param virtualCost    to use
    * @param networkLoading to use
-   * @param factor         to apply to flow shift
+   * @param smoothing         to apply to flow shift
    * @return true when flow is shifted, false otherwise
    */
   public boolean run(
@@ -463,7 +469,7 @@ public abstract class PasFlowShiftExecutor {
           AbstractPhysicalCost physicalCost,
           AbstractVirtualCost virtualCost,
           StaticLtmLoadingBushBase<?> networkLoading,
-          double factor) {
+          Smoothing smoothing) {
 
     double totalS2SendingFlow = getS2SendingFlow();
     if(settings.isDetailedLogging()) {
@@ -494,7 +500,8 @@ public abstract class PasFlowShiftExecutor {
       }
 
       double entrySegmentPortion = totalEntrySegmentS2Flow / totalS2SendingFlow;
-      double proposedProportionalPasflowShift = proposedPasFlowShift * entrySegmentPortion * factor;
+      double proposedProportionalPasflowShift =
+              smoothing.executeRefZero(proposedPasFlowShift * entrySegmentPortion);
 
       /* test for eligibility to reduce to zero flow along S2 */
       activatePasS2RemovalIf(Precision.greaterEqual(proposedProportionalPasflowShift, totalEntrySegmentS2Flow, EPSILON)

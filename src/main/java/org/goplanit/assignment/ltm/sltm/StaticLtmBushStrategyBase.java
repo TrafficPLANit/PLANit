@@ -83,7 +83,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     Collection<EdgeSegment> linkSegmentsUsed = new ArrayList<>(1000);
     Collection<Pas> sortedPass = this.pasManager.getPassSortedByReducedCost();
 
-    double factor = 1;
     for (Pas pas : sortedPass) {
 
       var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
@@ -120,7 +119,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
       /* untouched PAS (no flows shifted yet) in this iteration */
       boolean pasFlowShifted = pasFlowShifter.run(
-              theMode, physicalCost, virtualCost, networkLoading, factor);
+              theMode, physicalCost, virtualCost, networkLoading, getSmoothing());
       if (pasFlowShifted) {
         flowShiftedPass.add(pas);
 

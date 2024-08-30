@@ -81,6 +81,16 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
   public abstract void updateStepSize();
 
   /**
+   * Apply smoothing based on the proposed value, current step size, and assumed previous value of zero
+   *
+   * @param proposedValue proposed value
+   * @return smoothedValue smoothed value
+   */
+  public double executeRefZero(double proposedValue){
+    return execute(0, proposedValue);
+  }
+
+  /**
    * Apply smoothing based on the current step size
    *
    * @param previousValue previous value
