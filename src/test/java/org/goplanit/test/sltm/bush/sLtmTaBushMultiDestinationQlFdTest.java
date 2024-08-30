@@ -8,6 +8,9 @@ import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
+import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.test.sltm.sLtmAssignmentMultiDestinationTestBase;
 import org.goplanit.utils.math.Precision;
@@ -141,6 +144,8 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       
       /* DESTINATION BASED */
       configurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);
+      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      fixedStepSmoothing.setStepSize(1);
 
       configurator.activateOutput(OutputType.LINK);
       configurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));

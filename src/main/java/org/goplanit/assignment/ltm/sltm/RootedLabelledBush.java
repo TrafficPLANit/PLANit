@@ -182,36 +182,44 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     //todo: suspect this might get quite costly for large networks. Maybe we need more indexing on topological ordering
     //      to make this faster?
 
-    // idea: we follow topological order of bush and if the new alternative introduces a cycle then for a give segment
+    // idea: we follow topological order of bush and if the new alternative introduces a cycle then for a given segment
     // we would find the topological location of the start vertex, pass the end vertex in the process, find the start
     // vertex, then cotninue to look for the end vertex that never comes, and as such it introduces a cycle.
     int altIndex = 0;
+    final int maxAltIndex = alternative.length-1;
     DirectedVertex currAlternativeVertex = alternative[altIndex].getUpstreamVertex();
     var topologicalIter = isInverted() ?  getInvertedTopologicalIterator() : getTopologicalIterator();
     DirectedVertex currOrderedVertex;
     boolean isOrdered = false;
+
     while(topologicalIter.hasNext()){
       currOrderedVertex = topologicalIter.next();
       if(!currOrderedVertex.idEquals(currAlternativeVertex)){
         continue;
       }
 
-      if(altIndex == alternative.length-1){
-        var newAlternativeVertex = alternative[altIndex].getDownstreamVertex();
-        if(currAlternativeVertex.idEquals(newAlternativeVertex)){
-          isOrdered = true;
-          break;
-        }
-        currAlternativeVertex = newAlternativeVertex;
-        continue;
-      }
-
-      var nextSegment = alternative[++altIndex];
-      if (nextSegment == null) {
-        LOGGER.severe(String.format("Alternative's edge segment at position %d on array is null, this shouldn't happen", altIndex));
+      if(altIndex == maxAltIndex && currAlternativeVertex.idEquals(alternative[altIndex].getDownstreamVertex())){
+        // all vertices reachable in order up until the last vertex of the alternative
+        isOrdered = true;
         break;
       }
-      currAlternativeVertex = nextSegment.getUpstreamVertex();
+
+      // todo also costly
+      // check all adjacent edges of vertex to see if it could close a loop (i.e., node is part of bush)
+      // if so then consider the vertex, if not then move to next of alternative
+      EdgeSegment nextSegment = null;
+      boolean nextCoincidingVertexFound;
+      do{
+        if(altIndex < maxAltIndex){
+          nextSegment = alternative[++altIndex];
+          currAlternativeVertex = nextSegment.getUpstreamVertex();
+        }else if(altIndex == maxAltIndex){
+          currAlternativeVertex = alternative[maxAltIndex].getDownstreamVertex();
+          break;
+        }
+        nextCoincidingVertexFound = containsAnyEdgeSegmentOf(currAlternativeVertex);
+      }while(!nextCoincidingVertexFound);
+
     }
 
     if(!isOrdered){
@@ -453,6 +461,21 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   public boolean containsAnyEdgeSegmentOf(DirectedEdge edge) {
     for (var edgeSegment : edge.getEdgeSegments()) {
       if (getDag().containsEdgeSegment(edgeSegment)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Verify if the bush contains any edge segment attached to the vertex
+   *
+   * @param vertex to verify
+   * @return true when an edge segment of the vertex is registered, false otherwise
+   */
+  public boolean containsAnyEdgeSegmentOf(DirectedVertex vertex) {
+    for (var edge : vertex.getEdges()) {
+      if (containsAnyEdgeSegmentOf(edge)) {
         return true;
       }
     }

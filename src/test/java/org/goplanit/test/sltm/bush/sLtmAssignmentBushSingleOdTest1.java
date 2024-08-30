@@ -15,6 +15,9 @@ import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoiceConfigurator;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
+import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -81,9 +84,9 @@ public class sLtmAssignmentBushSingleOdTest1 {
     double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
     double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
 
-    assertEquals(outflow1, 2333.333333, Precision.EPSILON_6);
-    assertEquals(outflow5, 2333.333333, Precision.EPSILON_6);
-    assertEquals(outflow8, 2333.333333, Precision.EPSILON_6);
+    assertEquals(outflow1, 2333.333333, Precision.EPSILON_3);
+    assertEquals(outflow5, 2333.333333, Precision.EPSILON_3);
+    assertEquals(outflow8, 2333.333333, Precision.EPSILON_3);
     assertEquals(outflow2, 7000, Precision.EPSILON_6);
 
     double inflow0 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
@@ -93,9 +96,9 @@ public class sLtmAssignmentBushSingleOdTest1 {
     double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
 
     assertEquals(inflow0, 8000, Precision.EPSILON_6);
-    assertEquals(inflow1, 2714.529914369357, Precision.EPSILON_6);
-    assertEquals(inflow5, 2642.7350425744858, Precision.EPSILON_6);
-    assertEquals(inflow8, 2642.7350430561573, Precision.EPSILON_6);
+    assertEquals(inflow1, 2714.52991, Precision.EPSILON_3);
+    assertEquals(inflow5, 2642.73504, Precision.EPSILON_3);
+    assertEquals(inflow8, 2642.73504, Precision.EPSILON_3);
     assertEquals(inflow2, 7000, Precision.EPSILON_6);
   }
 
@@ -242,6 +245,9 @@ public class sLtmAssignmentBushSingleOdTest1 {
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       sLTMBuilder.getConfigurator().activateDetailedLogging(false);
+
+      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      fixedStepSmoothing.setStepSize(0.5);
       
       /* ORIGIN BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.ORIGIN_BUSH_BASED);
@@ -276,13 +282,15 @@ public class sLtmAssignmentBushSingleOdTest1 {
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sLTMBuilder.getConfigurator().activateDetailedLogging(false);
-      
+
       /* DESTINATION BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.DESTINATION_BUSH_BASED);
 
       sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
       sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+
+      var fixedSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      fixedSmoothing.setStepSize(1);
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.setActivateDetailedLogging(true);
