@@ -171,8 +171,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
 
     final var networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
 
-    for (int index = 0; index < bushes.length; ++index) {
-      RootedLabelledBush bush = bushes[index];
+    for (RootedLabelledBush bush : bushes) {
       if (bush == null) {
         continue;
       }
@@ -195,7 +194,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
       /* find (new) matching PASs - start with new PAS close to origins exploration first
        *  todo: this is a choice, could choose differently but we check all so likely not very influential */
       var bushVertexIter = bush.isInverted() ? bush.getInvertedTopologicalIterator() : bush.getTopologicalIterator();
-      for (;bushVertexIter.hasNext();) {
+      for (; bushVertexIter.hasNext(); ) {
         DirectedVertex bushVertex = bushVertexIter.next();
 
         EdgeSegment reducedCostSegment = networkMinPaths.getNextEdgeSegmentForVertex(bushVertex);

@@ -171,26 +171,54 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * Verify if adding the sub-path edge segments would introduce a cycle in this bush
    * 
    * @param alternative to verify
-   * @return edge segment that would introduces a cycle, null otherwise
+   * @return edge segment that would introduce a cycle, null otherwise
    */
   public EdgeSegment determineIntroduceCycle(EdgeSegment[] alternative) {
     if (alternative == null) {
       LOGGER.severe("Cannot verify if edge segments introduce cycle when parameters are null");
       return null;
     }
-    EdgeSegment currSegment = null;
-    for (int index = 0; index < alternative.length; ++index) {
-      EdgeSegment currEdgeSegment = alternative[index];
-      if (currEdgeSegment == null) {
-        LOGGER.severe(String.format("Alternative's edge segment at position %d on array is null, this shouldn't happen", index));
+
+    //todo: suspect this might get quite costly for large networks. Maybe we need more indexing on topological ordering
+    //      to make this faster?
+
+    // idea: we follow topological order of bush and if the new alternative introduces a cycle then for a give segment
+    // we would find the topological location of the start vertex, pass the end vertex in the process, find the start
+    // vertex, then cotninue to look for the end vertex that never comes, and as such it introduces a cycle.
+    int altIndex = 0;
+    DirectedVertex currAlternativeVertex = alternative[altIndex].getUpstreamVertex();
+    var topologicalIter = isInverted() ?  getInvertedTopologicalIterator() : getTopologicalIterator();
+    DirectedVertex currOrderedVertex;
+    boolean isOrdered = false;
+    while(topologicalIter.hasNext()){
+      currOrderedVertex = topologicalIter.next();
+      if(!currOrderedVertex.idEquals(currAlternativeVertex)){
+        continue;
+      }
+
+      if(altIndex == alternative.length-1){
+        var newAlternativeVertex = alternative[altIndex].getDownstreamVertex();
+        if(currAlternativeVertex.idEquals(newAlternativeVertex)){
+          isOrdered = true;
+          break;
+        }
+        currAlternativeVertex = newAlternativeVertex;
+        continue;
+      }
+
+      var nextSegment = alternative[++altIndex];
+      if (nextSegment == null) {
+        LOGGER.severe(String.format("Alternative's edge segment at position %d on array is null, this shouldn't happen", altIndex));
         break;
       }
-      currSegment = alternative[index].getOppositeDirectionSegment();
-      if (currSegment != null && containsEdgeSegment(currSegment)) {
-        return alternative[index];
-      }
+      currAlternativeVertex = nextSegment.getUpstreamVertex();
     }
-    return null;
+
+    if(!isOrdered){
+      return alternative[altIndex];
+    }else {
+      return null;
+    }
   }
 
   /**

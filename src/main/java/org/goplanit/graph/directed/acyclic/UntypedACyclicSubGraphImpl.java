@@ -112,7 +112,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    * @return true when acyclic, false otherwise
    */
   @SuppressWarnings("unchecked")
-  private boolean traverseRecursively(DirectedVertex vertex, BitSet visited, LongAdder counter, Deque<V> topologicalOrder) {
+  private boolean traverseRecursively(
+          DirectedVertex vertex, BitSet visited, LongAdder counter, Deque<V> topologicalOrder) {
     visited.set((int) vertex.getId());
 
     AcyclicVertexData vertexData = getVertexData(vertex);

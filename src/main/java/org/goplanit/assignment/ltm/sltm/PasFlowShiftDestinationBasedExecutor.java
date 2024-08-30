@@ -142,15 +142,19 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
    * @param flowAcceptanceFactors to use when updating the flows
    * @return sending flow on last edge segment of the PAS alternative after the flow shift (considering encountered reductions)
    */
-  private double executeBushPasFlowShift(final RootedLabelledBush bush, final EdgeSegment entrySegment, double flowShiftPcuH,
-                                         final EdgeSegment[] pasSegment, final double[] flowAcceptanceFactors) {
+  private double executeBushPasFlowShift(
+          final RootedLabelledBush bush,
+          final EdgeSegment entrySegment,
+          double flowShiftPcuH,
+          final EdgeSegment[] pasSegment,
+          final double[] flowAcceptanceFactors) {
 
     /* initial turn into pas segment */
     int index = 0;
     EdgeSegment currentSegment = entrySegment;
     var nextSegment = pasSegment[index];
 
-    var remainingFlow = executeTurnFlowShift(bush, entrySegment, nextSegment, flowShiftPcuH);
+    executeTurnFlowShift(bush, entrySegment, nextSegment, flowShiftPcuH);
     flowShiftPcuH *= flowAcceptanceFactors[(int) entrySegment.getId()];
 
     /* pas alternative itself */
@@ -198,7 +202,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
      * Update S1 by shifting flow proportionally along encountered flow compositions matching with the PAS/origin/alternative
      */
       double s1StartLabeledFlowShift = bushFlowShift;
-      double s1FinalLabeledFlowShift = executeBushPasFlowShift(bush, entrySegment, s1StartLabeledFlowShift, s1, flowAcceptanceFactors);
+      double s1FinalLabeledFlowShift = executeBushPasFlowShift(
+              bush, entrySegment, s1StartLabeledFlowShift, s1, flowAcceptanceFactors);
 
       /* shift flow across final merge for S1 based on findings in s2 */
       executeBushS1FlowShiftEndMerge(bush, s1FinalLabeledFlowShift, bushS2MergeExitShiftedSplittingRates);
