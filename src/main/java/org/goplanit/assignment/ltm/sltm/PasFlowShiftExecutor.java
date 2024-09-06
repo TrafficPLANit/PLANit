@@ -7,7 +7,11 @@ import static org.goplanit.utils.math.Precision.smaller;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import net.sf.geographiclib.Accumulator;
 import org.goplanit.assignment.ltm.sltm.consumer.NMRCollectMostRestrictingTurnConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
@@ -51,14 +55,87 @@ public abstract class PasFlowShiftExecutor {
   private Map<EdgeSegment, Set<RootedLabelledBush>> removedEdgeSegmentsForBushes = new TreeMap<>();
 
   /**
+   * obtain derivative of cost towards flow for given alternative, all parameters mut be non-null
+   *
+   * @param theMode      to use
+   * @param networkLoading to use
+   * @param physicalCost to use
+   * @param virtualCost  to use
+   * @param entrySegment  PAS entry segment at hand
+   * @return dTravelTimedFlow or 0 if not possible to compute (with warning)
+   */
+  private double getDTravelTimeDFlow(
+          final Mode theMode,
+          final StaticLtmLoadingBushBase<?> networkLoading,
+          final AbstractPhysicalCost physicalCost,
+          final AbstractVirtualCost virtualCost,
+          final EdgeSegment entrySegment,
+          boolean isLowCostAlternative) {
+
+    // workaround to ensure that hypocritical delay does not get counted (added in loop again to yield 0), since it is shared and
+    // guaranteed to not change cost with a flow shift between the two alternatives.
+    double dTravelTimeDFlow = 0.0;
+    if (entrySegment instanceof MacroscopicLinkSegment) {
+      dTravelTimeDFlow = -physicalCost.getDTravelTimeDFlow(true, theMode, (MacroscopicLinkSegment) entrySegment);
+    } else if (entrySegment instanceof ConnectoidSegment) {
+      dTravelTimeDFlow = -virtualCost.getDTravelTimeDFlow(true, theMode, (ConnectoidSegment) entrySegment);
+    } else {
+      LOGGER.severe(String.format("Unsupported edge segment (%s) to obtain derivative of cost towards flow from", entrySegment.getIdsAsString()));
+    }
+
+    var s1Base = this.pas.getAlternative(isLowCostAlternative);
+    int index = -1;
+    while(index < s1Base.length){
+      var currSegment = index<0 ? entrySegment : s1Base[index];
+
+      double currDTravelTimeDFlow = 0.0;
+      boolean unCongested = networkLoading.getCurrentFlowAcceptanceFactors()[(int) currSegment.getId()] >= 1;
+      if (currSegment instanceof MacroscopicLinkSegment) {
+        currDTravelTimeDFlow = physicalCost.getDTravelTimeDFlow(unCongested, theMode, (MacroscopicLinkSegment) currSegment);
+      } else if (currSegment instanceof ConnectoidSegment) {
+        currDTravelTimeDFlow = virtualCost.getDTravelTimeDFlow(unCongested, theMode, (ConnectoidSegment) currSegment);
+      } else {
+        LOGGER.severe(String.format("Unsupported edge segment (%s) to obtain derivative of cost towards flow from", currSegment.getIdsAsString()));
+      }
+
+      dTravelTimeDFlow += currDTravelTimeDFlow;
+
+      if(!unCongested){
+        // not entry segment -> always stop since bottleneck means no more flow change beyond here.
+        if(!currSegment.idEquals(entrySegment)){
+          break;
+        }
+
+        // entry segment...
+
+        EdgeSegment mostRestrictingOutSegment = identifyMostRestrictingOutEdgeSegment(entrySegment, networkLoading);
+        if (mostRestrictingOutSegment.idEquals(pas.getFirstEdgeSegment(isLowCostAlternative))) {
+          //stop if flow shift causes NO change in downstream flow on alternative
+          break;
+        } else if (mostRestrictingOutSegment.idEquals(pas.getFirstEdgeSegment(!isLowCostAlternative))) {
+          // shift improves flow beyond bottleneck in favour of this alternative, continue
+          dTravelTimeDFlow = 0.0;
+        }else{
+          LOGGER.warning("TODO: neither movement most restricting on PAS entry segment, flow shift has no impact, should be " +
+                  "ignored but is not (yet), consider implementing!");
+          break;
+        }
+      }
+      ++index;
+    }
+    return dTravelTimeDFlow;
+  }
+
+  /**
    * obtain derivative of cost towards flow for given segment, all parameters mut be non-null
-   * 
+   *
    * @param theMode      to use
    * @param physicalCost to use
    * @param virtualCost  to use
    * @param edgeSegment  to use
    * @return dTravelTimedFlow or 0 if not possible to compute (with warning)
    */
+  @Deprecated(forRemoval = true)
   private static double getDTravelTimeDFlow(
           Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, EdgeSegment edgeSegment) {
 
@@ -130,45 +207,59 @@ public abstract class PasFlowShiftExecutor {
   }
 
   /**
-   * Determine the adjusted flow shift by taking the proposed flow shift (s2 sending flow) and reduce it by a designated amount based on the difference between the PAS alternative
-   * costs and the assumed s1 slack flow (flow estimated to switch from uncongested to congested on the PAS's S1 (low cost) segment)
+   * Determine the adjusted flow shift by taking the proposed upper bound and reduce it by a
+   * designated amount based on the difference between the PAS alternative costs and the provided
+   * upperbound reference. When below the minimum allowed number proceed regardless without adjustment.
+   *
+   * @param proposedFlowShift to use
+   * @param upperBoundShift that is ideally the maximum
+   * @param minimumAllowedShift to use
+   * @return adjusted proposed flow shift (if any)
+   */
+  private double adjustFlowShiftBasedOnUpperBound(
+          double proposedFlowShift, double upperBoundShift, double minimumAllowedShift) {
+
+    if (proposedFlowShift <= upperBoundShift) {
+      return proposedFlowShift;
+    }
+
+    /*
+     * when approaching equilibrium, small shifts should be fully executed, otherwise it takes
+     * forever to converge. With such small flows chances have decreased that overshooting
+     * and triggering a different state has a dramatic effect on the travel time derivative
+     */
+    if (Precision.smaller(proposedFlowShift, minimumAllowedShift)) {
+      return proposedFlowShift;
+    }
+
+    double assumedCongestedShift = proposedFlowShift - upperBoundShift;
+    double portion = (1 - pas.getAlternativeLowCost() / pas.getAlternativeHighCost());
+    return upperBoundShift + assumedCongestedShift * portion;
+  }
+
+  /**
+   * Determine the adjusted flow shift by taking the proposed flow shift (s2 sending flow) and reduce it by a
+   * designated amount based on the difference between the PAS alternative costs and the assumed s1
+   * slack flow (flow estimated to switch from uncongested to congested on the PAS's S1 (low cost) segment)
    * 
    * @param s1SlackFlow that is expected
    * @return adjusted proposed flow shift (if any)
    */
   private double adjustFlowShiftBasedOnS1SlackFlow(double proposedFlowShift, double s1SlackFlow) {
-    if (proposedFlowShift <= s1SlackFlow) {
-      return proposedFlowShift;
-    }
-
-    /*
-     * when approaching equilibrium, small shifts should be fully executed, otherwise it takes forever to converge. With such small flows chances have decreased that overshooting
-     * and triggering a different state has a dramatic effect on the travel time derivative
-     */
-    if (Precision.smaller(proposedFlowShift, 10)) {
-      return proposedFlowShift;
-    }
-
-    double assumedCongestedShift = proposedFlowShift - s1SlackFlow;
-    double portion = (1 - pas.getAlternativeLowCost() / pas.getAlternativeHighCost());
-    return s1SlackFlow + assumedCongestedShift * portion;
+    return adjustFlowShiftBasedOnUpperBound(proposedFlowShift, s1SlackFlow, 10);
   }
 
   /**
-   * Determine the adjusted flow shift by taking the proposed flow shift (s2 sending flow) and and it by a designated amount based on the difference between the PAS alternative
-   * costs and the assumed s2 slack flow (flow estimated to switch from congested to uncongested on the PAS's S2 (high cost) segment)
+   * Determine the adjusted flow shift by taking the proposed flow shift (s2 sending flow) and it by a
+   * designated amount based on the difference between the PAS alternative costs and the assumed
+   * s2 slack flow (flow estimated to switch from congested to uncongested on the PAS's S2
+   * (high cost) segment)
    * 
    * @param s2SlackFlow that is expected
    * @return adjusted proposed flow shift (if any)
    */
   private double adjustFlowShiftBasedOnS2SlackFlow(double proposedFlowShift, double s2SlackFlow) {
-    if (proposedFlowShift <= s2SlackFlow) {
-      return proposedFlowShift;
-    }
-
-    double assumedUncongestedShift = proposedFlowShift - s2SlackFlow;
-    double portion = (1 - pas.getAlternativeLowCost() / pas.getAlternativeHighCost());
-    return s2SlackFlow + assumedUncongestedShift * portion;
+    return adjustFlowShiftBasedOnUpperBound(proposedFlowShift, s2SlackFlow, 10);
   }
 
   /**
@@ -188,7 +279,8 @@ public abstract class PasFlowShiftExecutor {
     var lastAlternativeSegment = pas.getLastEdgeSegment(lowCost);
     double slackFlow = Double.POSITIVE_INFINITY;
 
-    Array1D<Double> splittingRates = networkLoading.getSplittingRateData().getSplittingRates(lastAlternativeSegment);
+    Array1D<Double> splittingRates =
+            networkLoading.getSplittingRateData().getSplittingRates(lastAlternativeSegment);
 
     int index = 0;
     int linkSegmentId = -1;
@@ -306,22 +398,38 @@ public abstract class PasFlowShiftExecutor {
           AbstractVirtualCost virtualCost,
           StaticLtmLoadingBushBase<?> networkLoading) {
 
-    /* get first congested edge segment that is affected when shifting flow, per alternative */
-    var firstCongestedSegmentPair = populateFirstCongestedEdgeSegmentOnPasAlternative(entrySegment, networkLoading);
-    EdgeSegment firstS1CongestedLinkSegment = firstCongestedSegmentPair.first();
-    EdgeSegment firstS2CongestedLinkSegment = firstCongestedSegmentPair.second();
-    boolean sharedCongestedEntry = (entrySegment == firstS1CongestedLinkSegment || entrySegment == firstS2CongestedLinkSegment);
-
-    /* obtain derivatives of travel time towards flow for ENTRY+PAS_alternatives and use them to determine the amount of flow to shift */
     double denominatorS2 = 0;
     double denominatorS1 = 0;
-    /* derivative of link cost based on first congested link */
-    if (firstS1CongestedLinkSegment != null) {
-      denominatorS1 = getDTravelTimeDFlow(theMode, physicalCost, virtualCost, firstS1CongestedLinkSegment);
+
+    /* get first congested edge segment that is affected when shifting flow, per alternative */
+    // todo: now done twice (also in new approach), inefficient do differently
+    var firstCongestedSegmentPair = populateFirstCongestedEdgeSegmentOnPasAlternative(entrySegment, networkLoading);
+    var firstS1CongestedLinkSegment = firstCongestedSegmentPair.first();
+    var firstS2CongestedLinkSegment = firstCongestedSegmentPair.second();
+
+//    // OLD - NEWELL ORIENTED
+//    {
+//      /* obtain derivatives of travel time towards flow for ENTRY+PAS_alternatives and use them to determine the amount of flow to shift */
+//
+//      /* derivative of link cost based on first congested link */
+//      if (firstS1CongestedLinkSegment != null) {
+//        denominatorS1 = getDTravelTimeDFlow(theMode, physicalCost, virtualCost, firstS1CongestedLinkSegment);
+//      }
+//      if (firstS2CongestedLinkSegment != null) {
+//        denominatorS2 = getDTravelTimeDFlow(theMode, physicalCost, virtualCost, firstS2CongestedLinkSegment);
+//      }
+//    }
+
+    // NEW - ANY FD
+    {
+      denominatorS1 =
+              getDTravelTimeDFlow(theMode, networkLoading, physicalCost, virtualCost, entrySegment, true);
+      denominatorS2 =
+              getDTravelTimeDFlow(theMode, networkLoading, physicalCost, virtualCost, entrySegment, false);
     }
-    if (firstS2CongestedLinkSegment != null) {
-      denominatorS2 = getDTravelTimeDFlow(theMode, physicalCost, virtualCost, firstS2CongestedLinkSegment);
-    }
+
+
+    boolean sharedCongestedEntry = (entrySegment == firstS1CongestedLinkSegment || entrySegment == firstS2CongestedLinkSegment);
 
     /* obtain PAS-entry segment sub-path sending flows */
     var s1S2SubPathSendingFlowPair = totalEntrySegmentS1S2Flow.get(entrySegment);
@@ -372,8 +480,8 @@ public abstract class PasFlowShiftExecutor {
 
         // VERIFY CROSSING OF DISCONTINUITY on S2 travel time function - adjust shift if so to mitigate effect
         if (firstS2CongestedLinkSegment != null) {
-          double s2SlackFlowEstimate = this.getS2SendingFlow() * (1 - networkLoading.getCurrentFlowAcceptanceFactors()[(int) firstS2CongestedLinkSegment.getId()]);
-          flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2SlackFlowEstimate);
+          double s2DeltaFlowToStateChangeEstimate = this.getS2SendingFlow() * (1 - networkLoading.getCurrentFlowAcceptanceFactors()[(int) firstS2CongestedLinkSegment.getId()]);
+          flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2DeltaFlowToStateChangeEstimate);
         }
       }
     }

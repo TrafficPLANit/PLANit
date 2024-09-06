@@ -276,9 +276,12 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
       // since tt = L/speed(flow) and speed(flow) is unknown function of ff branch, we must apply chain rule to find derivative
       // so d_tt/d_flow = -L/speed(flow)^2 * dspeed/dflow
       var ffBranch = fd.getFreeFlowBranch();
+      // adjust to compute per lane
       double inflowPerLane = accessee.getLinkSegmentInflowPcuHour(linkSegment)/linkSegment.getNumberOfLanes();
       hypoDerivative = (-linkSegment.getLengthKm() / Math.pow(ffBranch.getSpeedKmHourByFlow(inflowPerLane), 2))
                         * ffBranch.getDSpeedDFlowAtFlow(inflowPerLane);
+      // re-instate to link level again (a unit flow per lane is #lanes more impactful, so scale back by #lanes)
+      hypoDerivative /= linkSegment.getNumberOfLanes();
     }
 
     /* hyperCriticalDelay derivative */

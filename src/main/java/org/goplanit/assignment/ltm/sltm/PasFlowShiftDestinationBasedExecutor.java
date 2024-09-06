@@ -173,7 +173,11 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
    * {@inheritDoc}
    */
   protected void executeBushFlowShift(
-          RootedLabelledBush bush, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
+          RootedLabelledBush bush,
+          EdgeSegment entrySegment,
+          double bushFlowShift,
+          double[] flowAcceptanceFactors) {
+
     /* prep - pas */
     final var s2 = pas.getAlternative(false);
     final var s1 = pas.getAlternative(true);
@@ -218,7 +222,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
    * @param settings to use
    * @param dummyLabel used as only label for each destination bush
    */
-  protected PasFlowShiftDestinationBasedExecutor(final Pas pas, final StaticLtmSettings settings, final BushFlowLabel dummyLabel) {
+  protected PasFlowShiftDestinationBasedExecutor(
+          final Pas pas, final StaticLtmSettings settings, final BushFlowLabel dummyLabel) {
     super(pas, settings);
     this.dummyLabel = dummyLabel;
   }
