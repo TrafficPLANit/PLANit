@@ -495,6 +495,16 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     return this.settings.getDisableRelativeScalingFactorUpdateAfterIteration();
   }
 
+  // pass on to settings
+  public void setAllowOverlappingPasUpdate(Boolean flag){
+    this.settings.setAllowOverlappingPasUpdate(flag);
+  }
+
+  // pass on to settings
+  public Boolean isAllowOverlappingPasUpdate(){
+    return this.settings.isAllowOverlappingPasUpdate();
+  }
+
   // OVERRIDES
 
   /**

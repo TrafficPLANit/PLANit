@@ -180,7 +180,7 @@ public class sLtmTaBushMultiDestinationNewellFdTest extends sLtmAssignmentMultiD
       configurator.activateDetailedLogging(false);
 
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(1);
+      fixedStepSmoothing.setStepSize(0.5);
       
       /* DESTINATION BASED */
       configurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);

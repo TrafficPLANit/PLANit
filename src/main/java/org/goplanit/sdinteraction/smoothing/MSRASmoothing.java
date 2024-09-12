@@ -130,16 +130,14 @@ public class MSRASmoothing extends IterationBasedSmoothing {
     }
     isBadIterationFlagUpdated = false;
 
-    // Mark invention to over the iterations gradually reduce the impact of the beta on the stepsize by having a power
-    // smaller than 1 that we apply to it, think of it as a smart Polyak approach (needs some work)
-    double lambdaPower = 1.0;
+    double lambdaPower = 1;
     if(isActivateLambda()) {
-      lambdaPower = 1 / Math.max(1, Math.log10(getIteration()));
+      lambdaPower = 0.66;//1 / Math.max(1, Math.log10(getIteration()));
     }
 
     previousBeta = beta;
     if(getIteration() <=1){
-      beta = 2;
+      beta = 1;
     }else if(isBadIteration()){
       beta = previousBeta + kappaStep;
     }else{

@@ -520,6 +520,11 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     for (var nextSegment : nextEdgeSegments) {
       if (containsEdgeSegment(nextSegment) && alternativeSubpathVertexLabels[(int) referenceVertex.getId()] != -1) {
         openVertexQueue.add(Pair.of(getNextVertex.apply(nextSegment), nextSegment));
+
+        if(getSendingFlowPcuH(nextSegment) <= 0){
+          // when stable remove this check
+          LOGGER.severe("edge segment on bush has no flow, this shouldn't happen");
+        }
       }
     }
 
@@ -539,7 +544,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
       /* breadth-first loop for used turns that not yet have been processed */
       nextEdgeSegments = getNextEdgeSegments.apply(currentVertex);
       for (var nextSegment : nextEdgeSegments) {
-        if (containsEdgeSegment(nextSegment) && bushData.containsTurnSendingFlow(nextSegment, current.second())) {
+        if (containsEdgeSegment(nextSegment) && bushData.containsTurnSendingFlow(current.second(), nextSegment)) {
           var nextVertex = getNextVertex.apply(nextSegment);
           if (!processedVertices.containsKey(nextVertex)) {
             openVertexQueue.add(Pair.of(nextVertex, nextSegment));

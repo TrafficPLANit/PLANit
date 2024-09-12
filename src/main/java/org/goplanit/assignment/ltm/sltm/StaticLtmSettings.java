@@ -21,11 +21,26 @@ public class StaticLtmSettings {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmSettings.class.getCanonicalName());
 
+  /** allow user to override the initial solution scheme to apply, no default because if not configured the default
+   *  depends on whether starage constraints are activated or not.
+   */
+  private StaticLtmLoadingScheme initialSltmLoadingScheme = StaticLtmLoadingScheme.NONE;
+
+  /**
+   * Track ods in this container for extended logging (if any)
+   */
+  private Map<IdMapperType, Map<String, Set<String>>> trackedOds = new HashMap<>();
+
   /** flag indicating of storage constraints (spillback) are disabled */
   private Boolean disableStorageConstraints = null;
 
   /** flag indicating if detailed logging is enabled */
   private Boolean detailedLogging = null;
+
+  // USER SETTINGS
+
+  /** flag indicating the type of sLTM assignment to apply, bush or path based */
+  private StaticLtmType sLtmType = DEFAULT_SLTM_TYPE;
 
   /** gap epsilon used to identify network loading convergence on flow acceptance factors and main gap indicator for
    *  iterative schedule of sLTM in basic setup */
@@ -37,6 +52,9 @@ public class StaticLtmSettings {
   /** gap epsilon which is only relevant when using extended iterative schedule of sLTM */
   private Double networkLoadingReceivingFlowGapEpsilon = DEFAULT_NETWORK_LOADING_GAP_EPSILON;
 
+  // ---------------------- PATH BASED ONLY OPTIONS ----------------------------------------------------
+  // todo: refactor in separate implementation proper at some point
+
   /** disable generation of any new paths after given iteration */
   private Integer disablePathGenerationAfterIteration = DEFAULT_DISABLE_PATH_GENERATION_AFTER_ITERATION;
 
@@ -44,19 +62,13 @@ public class StaticLtmSettings {
 
   private Integer disableRelativeScalingFactorUpdateAfterIteration = DEFAULT_DISABLE_RELATIVE_SCALING_FACTOR_AFTER_ITERATION;
 
-  /** allow user to override the initial solution scheme to apply, no default because if not configured the default
-   *  depends on whether starage constraints are activated or not.
-   */
-  private StaticLtmLoadingScheme initialSltmLoadingScheme = StaticLtmLoadingScheme.NONE;
+  // ---------------------- BUSH BASED ONLY OPTIONS ----------------------------------------------------
+  // todo: refactor in separate implementation proper at some point
 
-  /**
-   * Track ods in this container for extended logging (if any)
-   */
-  private Map<IdMapperType, Map<String, Set<String>>> trackedOds = new HashMap<>();
-
-
-  /** flag indicating the type of sLTM assignment to apply, bush or path based */
-  private StaticLtmType sLtmType = DEFAULT_SLTM_TYPE;
+  /** indicating if we allow PASs to update even if another PAS in the same iteration overlapped to some
+   * extent and was updated already, when set to false convergence is more stable but slower and still may cause flip-flopping
+   * without smoothing, when true it is faster but will always require smoothing to avoid flip-flopping */
+  private boolean allowOverlappingPasUpdate = DEFAULT_ALLOW_OVERLAPPING_PAS_UPDATE;
 
   /**
    * flag indicating what to do when cost and derivative of cost on PAS alternative is equal, yet the flows are not. When false, this is considered a solution, when true an attempt
@@ -64,12 +76,20 @@ public class StaticLtmSettings {
    */
   private Boolean enforceMaxEntropyFlowSolution = ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT;
 
+  // PUBLIC DEFAULTS
+
   /** default setting for assignment is to apply a path based rather than an origin-based bush-based type of implementation*/
   //public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmType.DESTINATION_BUSH_BASED;
   public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmType.PATH_BASED;
 
   /** default setting for enforcing a flow proportional solution when possible */
   public static boolean ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT = false;
+
+  /** default setting indicating if we allow PASs to update even if another PAS in the same iteration overlapped to some
+   * extent and was updated already, when set to false convergence is more stable but slower and still may cause flip-flopping
+   * without smoothing, when true it is faster but will always require smoothing to avoid flip-flopping
+   */
+  public static boolean DEFAULT_ALLOW_OVERLAPPING_PAS_UPDATE = true;
 
   /** default network loading gap epsilon to apply */
   public static double DEFAULT_NETWORK_LOADING_GAP_EPSILON = 0.001;
@@ -376,4 +396,21 @@ public class StaticLtmSettings {
     return this.disableRelativeScalingFactorUpdateAfterIteration;
   }
 
+  /**
+   * Bush based only option. Check setting regarding flag on overlapping pas updates
+   * TODO: split out in separate settings time permitting
+   * @return flag set
+   */
+  public boolean isAllowOverlappingPasUpdate() {
+    return allowOverlappingPasUpdate;
+  }
+
+  /**
+   * Bush based only option. set flag regarding overlapping pas updates
+   * TODO: split out in separate settings time permitting
+   * @param flag to set
+   */
+  public void setAllowOverlappingPasUpdate(boolean flag) {
+    this.allowOverlappingPasUpdate = flag;
+  }
 }

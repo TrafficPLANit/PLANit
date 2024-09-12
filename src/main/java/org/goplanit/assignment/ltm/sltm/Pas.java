@@ -429,10 +429,10 @@ public class Pas {
   }
 
   /**
-   * Returns the difference between the cost of the high cost and the low cost segment normalised based on the total number of edge segments across both alternatives. Should always
-   * be larger than zero.
+   * Returns the difference between the cost of the high cost and the low cost segment normalised based on the length
+   * of the alternatives. Should always be larger than zero.
    * 
-   * @return (s2Cost - s2Cost)/(#numEdgeSegmentsS1+#numEdgeSegmentsS2)
+   * @return (s2Cost - s2Cost)/(length of s1 + s2)
    */
   public double getNormalisedReducedCost() {
     return (s2Cost - s1Cost) / (s1.length + s2.length);

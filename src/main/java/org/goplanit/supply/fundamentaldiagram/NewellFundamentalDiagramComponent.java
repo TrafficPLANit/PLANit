@@ -34,7 +34,8 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
    * @return created FD
    */
   @Override
-  protected NewellFundamentalDiagram createFundamentalDiagramByLinkSegmentType(MacroscopicLinkSegmentType lsType, Mode mode) {
+  protected NewellFundamentalDiagram createFundamentalDiagramByLinkSegmentType(
+          MacroscopicLinkSegmentType lsType, Mode mode) {
 
     NewellFundamentalDiagram newellFd;
     double modeSpeed = lsType.getMaximumSpeedKmH(mode);
@@ -47,9 +48,12 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
       * more accurate */
       newellFd = new NewellFundamentalDiagram(
               modeSpeed, lsType.getExplicitCapacityPerLane(), lsType.getExplicitMaximumDensityPerLaneOrDefault());
-    } else {
+    } else if(!lsType.isExplicitCapacityPerLaneSet()){
       /* only jam density set, use that */
       newellFd = new NewellFundamentalDiagram(modeSpeed, lsType.getExplicitMaximumDensityPerLane());
+    }else{
+      newellFd = new NewellFundamentalDiagram(
+              modeSpeed, lsType.getExplicitCapacityPerLane(), lsType.getExplicitMaximumDensityPerLane());
     }
     return newellFd;
   }

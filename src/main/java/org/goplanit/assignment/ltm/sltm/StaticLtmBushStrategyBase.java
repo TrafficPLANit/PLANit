@@ -25,6 +25,7 @@ import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
 
 import java.util.*;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
 /**
@@ -81,8 +82,9 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
      */
     //todo: do not use bitset here, it is superslow while checking in the below loop
     Collection<EdgeSegment> linkSegmentsUsed = new ArrayList<>(1000);
-    Collection<Pas> sortedPass = this.pasManager.getPassSortedByReducedCost();
+    Collection<Pas> sortedPass = this.pasManager.getPassSortedByReducedCost(PasManager.PAS_REDUCED_COST_PER_KM_COMPARATOR);
 
+    int numPas = sortedPass.size();
     for (Pas pas : sortedPass) {
 
       var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
@@ -97,8 +99,10 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
       updateGap(gapFunction, pas, pasFlowShifter.getS1SendingFlow(), pasFlowShifter.getS2SendingFlow());
 
-      // todo: should probably also check on entry segments to avoid overlap or cycles, this is not yet done!
+      if(!getSettings().isAllowOverlappingPasUpdate())
       {
+        // todo: should probably also check on entry segments to avoid overlap or cycles, this is not yet done!
+
         /* cannot do overlapping PASs without network loading update, so skip those for now */
         if (pas.containsAny(linkSegmentsUsed)) {
           continue;
@@ -158,6 +162,9 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     if (!passWithoutOrigins.isEmpty()) {
       passWithoutOrigins.forEach((pas) -> this.pasManager.removePas(pas, getSettings().isDetailedLogging()));
     }
+
+    long remainingPass = pasManager.getNumberOfPass();
+    LOGGER.info(String.format("Number of PASs available: %d (removed:%d, flow shifts performed: %d)", remainingPass, numPas-remainingPass, flowShiftedPass.size()));
     return flowShiftedPass;
   }
 

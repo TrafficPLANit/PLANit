@@ -85,17 +85,17 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
     assertEquals(outflow1, 4529.16, 1);
     assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow3, outflow2, Precision.EPSILON_3);
-    assertEquals(outflow4, 3752, 1);
+    assertEquals(outflow4, 3738, 1);
     assertEquals(outflow5, 3191.29, 1);
     assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow7, outflow6, Precision.EPSILON_3);
-    assertEquals(outflow8, 3748, 1);
+    assertEquals(outflow8, 3762, 1);
     assertEquals(outflow9, 3000.0, Precision.EPSILON_3);
     assertEquals(outflow10, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow11, outflow10, Precision.EPSILON_3);
     assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
-    assertEquals(outflow13, 2252, 1);
-    assertEquals(outflow14, 2248, 1);
+    assertEquals(outflow13, 2238, 1);
+    assertEquals(outflow14, 2262, 1);
 
     double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
@@ -144,6 +144,9 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       
       /* DESTINATION BASED */
       configurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);
+
+      // to test if it works without smoothing we disallow overlapping PAS updates and set step-size to 1
+      configurator.setAllowOverlappingPasUpdate(false);
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.FIXED_STEP);
       fixedStepSmoothing.setStepSize(1);
 

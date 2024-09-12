@@ -55,26 +55,38 @@ public class PasManager {
   private Function<Pas, DirectedVertex> getReferenceVertex;
 
   /** a comparator to compare PASs based on the reduced cost between their high and low cost segments */
-  private static final Comparator<Pas> PAS_REDUCED_COST_COMPARATOR;
+  public static final Comparator<Pas> PAS_REDUCED_COST_COMPARATOR;
+
+  /** a comparator to compare PASs based on the reduced cost per KM between their high and low cost segments */
+  public static final Comparator<Pas> PAS_REDUCED_COST_PER_KM_COMPARATOR;
   
   static {
     /*
-     * compare by normalised reduced cost in descending order (from high reduced cost to low reduced cost), use very high precision to make sure very small cost differences are
-     * still considered as much as possible. We use normalised cost to ensure that small PASs are not disadvantaged compared to overlapping larger PASs since the smaller the PAS
-     * the better the convergence so if anything they should be favoured and processed earlier
+     * compare by normalised reduced cost in descending order (from high reduced cost to low reduced cost), use very
+     * high precision to make sure very small cost differences are still considered as much as possible.
      */
-    PAS_REDUCED_COST_COMPARATOR = new Comparator<Pas>() {
-      @Override
-      public int compare(Pas p1, Pas p2) {
-        if (Precision.greater(p1.getReducedCost(), p2.getReducedCost(), Precision.EPSILON_15)) {
-          return -1;
-        } else if (Precision.smaller(p1.getReducedCost(), p2.getReducedCost(), Precision.EPSILON_15)) {
-          return 1;
-        } else {
-          return 0;
-        }
+    PAS_REDUCED_COST_COMPARATOR = (p1, p2) -> {
+      if (Precision.greater(p1.getReducedCost(), p2.getReducedCost(), Precision.EPSILON_15)) {
+        return -1;
+      } else if (Precision.smaller(p1.getReducedCost(), p2.getReducedCost(), Precision.EPSILON_15)) {
+        return 1;
+      } else {
+        return 0;
       }
-    };    
+    };
+
+    /* Normalised cost version to ensure that small PASs are not disadvantaged compared to overlapping larger PASs since the
+     * smaller the PAS the better the convergence so if anything they should be favoured and processed earlier
+     */
+    PAS_REDUCED_COST_PER_KM_COMPARATOR = (p1, p2) -> {
+      if (Precision.greater(p1.getNormalisedReducedCost(), p2.getNormalisedReducedCost(), Precision.EPSILON_15)) {
+        return -1;
+      } else if (Precision.smaller(p1.getNormalisedReducedCost(), p2.getNormalisedReducedCost(), Precision.EPSILON_15)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    };
   }
 
   /** flag for detailed logging */
@@ -572,10 +584,10 @@ public class PasManager {
    * 
    * @return sorted PAS queue in descending order, i.e., highest reduced cost first
    */
-  public Collection<Pas> getPassSortedByReducedCost() {
+  public Collection<Pas> getPassSortedByReducedCost(Comparator<Pas> pasComparator) {
     var sortedList = new ArrayList<Pas>((int) getNumberOfPass());
     forEachPas(sortedList::add);
-    sortedList.sort(PAS_REDUCED_COST_COMPARATOR);
+    sortedList.sort(pasComparator);
     return sortedList;
   }
 

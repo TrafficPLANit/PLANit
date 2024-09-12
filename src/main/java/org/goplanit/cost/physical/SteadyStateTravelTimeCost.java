@@ -9,6 +9,7 @@ import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
+import org.goplanit.supply.fundamentaldiagram.QuadraticLinearFundamentalDiagram;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;

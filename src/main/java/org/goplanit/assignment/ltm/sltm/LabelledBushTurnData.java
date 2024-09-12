@@ -424,6 +424,10 @@ public class LabelledBushTurnData {
     }
     for (var fromComposition : fromLabels) {
       for (var exitSegment : fromSegment.getDownstreamVertex().getExitEdgeSegments()) {
+        if(!exitSegment.idEquals(toSegment)){
+          continue;
+        }
+
         var toLabels = linkSegmentCompositionLabels.get(exitSegment);
         if (toLabels == null) {
           continue;

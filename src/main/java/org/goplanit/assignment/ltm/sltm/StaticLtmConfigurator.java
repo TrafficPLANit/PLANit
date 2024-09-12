@@ -34,6 +34,7 @@ import java.util.logging.Logger;
  * <li>disableLinkStorageConstraints: true</li>
  * <li>activateDetailedLogging: false</li>
  * <li>activateEnforceMaxEntropyFlowDistribution: false</li>
+ * <li>allowOverlappingPasUpdate: true</li>
  * </ul>
  * 
  * @author markr
@@ -57,19 +58,27 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
   private static final String SET_TYPE = "setType";
 
-  private static final String ACTIVATE_ENFORCE_MAX_ENTROPY_FLOW_DISTRIBUTION = "setEnforceMaxEntropyFlowSolution";
-
   private static final String ADD_TRACK_OD_FOR_LOGGING_ID = "addTrackOdForLoggingById";
 
   private static final String ADD_TRACK_OD_FOR_LOGGING_XML_ID = "addTrackOdForLoggingByXmlId";
 
   private static final String ADD_TRACK_OD_FOR_LOGGING_EXTERNAL_ID = "addTrackOdForLoggingByExternalId";
 
+  // ---------------------- PATH BASED ONLY OPTIONS ----------------------------------------------------
+  // todo: refactor in separate implementation proper at some point
+
   private static final String SET_DISABLE_PATH_GENERATION_AFTER_ITERATION = "setDisablePathGenerationAfterIteration";
 
   private static final String SET_ACTIVATE_RELATIVE_SCALING_FACTOR = "setActivateRelativeScalingFactor";
 
   public static final String SET_DISABLE_RELATIVE_SCALING_FACTOR_UPDATE_AFTER_ITERATION = "setDisableRelativeScalingFactorUpdateAfterIteration";
+
+  // ---------------------- BUSH BASED ONLY OPTIONS ----------------------------------------------------
+  // todo: refactor in separate implementation proper at some point
+
+  private static final String ACTIVATE_ENFORCE_MAX_ENTROPY_FLOW_DISTRIBUTION = "setEnforceMaxEntropyFlowSolution";
+
+  private static final String ALLOW_OVERLAPPING_PAS_UPDATE = "setAllowOverlappingPasUpdate";
 
   /**
    * Constructor
@@ -90,6 +99,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
     setNetworkLoadingFlowAcceptanceGapEpsilon(StaticLtmSettings.DEFAULT_NETWORK_LOADING_GAP_EPSILON);
     setNetworkLoadingSendingFlowGapEpsilon(StaticLtmSettings.DEFAULT_NETWORK_LOADING_GAP_EPSILON);
     setNetworkLoadingReceivingFlowGapEpsilon(StaticLtmSettings.DEFAULT_NETWORK_LOADING_GAP_EPSILON);
+    setAllowOverlappingPasUpdate(StaticLtmSettings.DEFAULT_ALLOW_OVERLAPPING_PAS_UPDATE);
 
     setType(DEFAULT_SLTM_TYPE);
     createAndRegisterPathChoice(PathChoice.STOCHASTIC);
@@ -328,6 +338,28 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
    */
   public Integer getDisableRelativeScalingFactorUpdateAfterIteration(){
     return (Integer) getFirstParameterOfDelayedMethodCall(SET_DISABLE_RELATIVE_SCALING_FACTOR_UPDATE_AFTER_ITERATION);
+  }
+
+  /**
+   * Check setting regarding regarding flag on overlapping pas updates
+   * <p>
+   * Bush based only option
+   * </p>
+   * @return flag set
+   */
+  public boolean isAllowOverlappingPasUpdate() {
+    return (Boolean) getFirstParameterOfDelayedMethodCall(ALLOW_OVERLAPPING_PAS_UPDATE);
+  }
+
+  /**
+   * Set setting regarding regarding flag on overlapping pas updates
+   * <p>
+   * Bush based only option
+   * </p>
+   * @param flag set
+   */
+  public void setAllowOverlappingPasUpdate(Boolean flag) {
+    registerDelayedMethodCall(ALLOW_OVERLAPPING_PAS_UPDATE, flag);
   }
 
   /**
