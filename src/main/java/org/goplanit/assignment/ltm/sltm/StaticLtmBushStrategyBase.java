@@ -317,6 +317,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         LOGGER.info(bush.toString());
       }
     }
+    LOGGER.info(String.format("Initialised with %d PASs", pasManager.getNumberOfPass()));
+    LOGGER.info("TODO: Consider removing initialisation with PASs as it is not complete and side effect of initialisation");
   }
 
   /**
@@ -442,7 +444,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */     
       {
         /* (NEW) PAS MATCHING FOR BUSHES */
-        Collection<Pas> newPass = updateBushPass(costsToUpdate);            
+        Collection<Pas> newPass = updateBushPass(costsToUpdate);
+        LOGGER.info(String.format("%d PASs known (%d new potential PASs)", pasManager.getNumberOfPass(), newPass.size()));
               
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
         Collection<Pas> updatedPass = shiftFlows(theMode, simulationData);
@@ -460,7 +463,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       
     }catch(Exception e) {
       LOGGER.severe(e.getMessage());
-      LOGGER.severe("Unable to complete sLTM iteration");
+      LOGGER.severe("Unable to complete sLTM iteration, print stack trace when enabling detailed logging");
       if(getSettings().isDetailedLogging()) {
         e.printStackTrace();
       }

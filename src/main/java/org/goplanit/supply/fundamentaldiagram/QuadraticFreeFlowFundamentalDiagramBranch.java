@@ -128,6 +128,9 @@ public class QuadraticFreeFlowFundamentalDiagramBranch implements FundamentalDia
     if(Precision.greaterEqual(criticalSpeedKmHour, maxWaveSpeedKmHour, Precision.EPSILON_3)){
       throw new PlanItRunTimeException("Cannot create a quadratic free flow branch when critical speed is the same " +
               "or larger than free speed, abort");
+    }else if(Precision.smallerEqual(criticalSpeedKmHour*2, maxWaveSpeedKmHour , Precision.EPSILON_3)){
+      throw new PlanItRunTimeException("Cannot create a quadratic free flow branch when critical speed is more (equal) " +
+              "than half the free speed as it causes zero/negative derivatives and bends backwards within free flow branch, abort");
     }
 
     updateAlpha();

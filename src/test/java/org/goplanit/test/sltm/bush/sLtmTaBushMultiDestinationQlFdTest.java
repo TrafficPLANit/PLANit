@@ -140,7 +140,7 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       var configurator = sLTMBuilder.getConfigurator();
       configurator.createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
       configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      configurator.activateDetailedLogging(false);
+      configurator.activateDetailedLogging(true);
       
       /* DESTINATION BASED */
       configurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);

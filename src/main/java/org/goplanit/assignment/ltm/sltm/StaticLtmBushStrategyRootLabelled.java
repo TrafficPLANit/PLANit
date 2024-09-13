@@ -125,7 +125,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
        * this can happen if the merge vertex can only be reached by traversing the bush in opposite direction of existing edge segment on the bush. In which case, an alternative
        * PAS further upstream should be considered, now identify this and ignore PAS as it is sub-optimal and cycle inducing
        */
-      LOGGER.fine(String.format("Newly identified PAS alternative for bush rooted at vertex (%s) would introduce cycle on low cost alternative (edge segment %s), ignore",
+      LOGGER.info(String.format("Newly identified PAS alternative for bush rooted at vertex (%s) would introduce cycle on low cost alternative (edge segment %s), ignore",
           bush.getRootVertex().toString(), cycleInducingSegment.getXmlId()));
       return null;
     }
@@ -191,12 +191,14 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         continue;
       }
 
-      /* find (new) matching PASs - start with new PAS close to origins exploration first
+      /* find (new) matching PASs - start with new PAS close to origin exploration first
        *  todo: this is a choice, could choose differently but we check all so likely not very influential */
       var bushVertexIter = bush.isInverted() ? bush.getInvertedTopologicalIterator() : bush.getTopologicalIterator();
       for (; bushVertexIter.hasNext(); ) {
         DirectedVertex bushVertex = bushVertexIter.next();
-
+        if(bushVertex.getId()==12){
+          int bla = 4;
+        }
         EdgeSegment reducedCostSegment = networkMinPaths.getNextEdgeSegmentForVertex(bushVertex);
         if (reducedCostSegment == null) {
           continue;

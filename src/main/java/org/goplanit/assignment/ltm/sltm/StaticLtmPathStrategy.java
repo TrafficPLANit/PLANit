@@ -751,7 +751,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
-      LOGGER.severe("Unable to complete sLTM iteration");
+      LOGGER.severe("Unable to complete sLTM iteration, print stack trace when enabling detailed logging");
       if (getSettings().isDetailedLogging()) {
         e.printStackTrace();
       }

@@ -179,46 +179,111 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
       return null;
     }
 
-    //todo: suspect this might get quite costly for large networks. Maybe we need more indexing on topological ordering
-    //      to make this faster?
+    // to see if a cycle is introduced for adding an edge segment not yet on a bush between (u,v)
+    // there must be no path available on the bush between (v) and (u).
 
-    // idea: we follow topological order of bush and if the new alternative introduces a cycle then for a given segment
-    // we would find the topological location of the start vertex, pass the end vertex in the process, find the start
-    // vertex, then cotninue to look for the end vertex that never comes, and as such it introduces a cycle.
+    // 1. until we get to the starting point of the alternative, all vertices before that
+    //    cannot introduce a cycle when the alternative intersects with them after diverging.
+    // 2. while traversing the alternative, each vertex (v) we encounter that reattaches to the bush after
+    //    diverging causes a cycle if it can reach any vertex in the cycleIntroducing vertices. this set
+    //    contains any preceding vertex on the alternative up till the current point (all (u)s).
+    //    if such a reattaching vertex however can reach any non cycle introducing vertices we know it won't introduce
+    //    a cycle (because it reattaches earlier than (u) so it can't be reached, this saves time in the BFS
+    Set<DirectedVertex> cycleIntroducingVertices = new HashSet<>();
+    Set<DirectedVertex> noCycleIntroducingVertices = new HashSet<>();
+
     int altIndex = 0;
     final int maxAltIndex = alternative.length-1;
     DirectedVertex currAlternativeVertex = alternative[altIndex].getUpstreamVertex();
-    var topologicalIter = isInverted() ?  getInvertedTopologicalIterator() : getTopologicalIterator();
+    cycleIntroducingVertices.add(currAlternativeVertex);
     DirectedVertex currOrderedVertex;
-    boolean isOrdered = false;
 
-    while(topologicalIter.hasNext()){
+    boolean guaranteedNoCycle = false;
+    boolean guaranteedCycle = false;
+    var topologicalIter = isInverted() ?  getTopologicalIterator() : getInvertedTopologicalIterator();
+    while(topologicalIter.hasNext()) {
       currOrderedVertex = topologicalIter.next();
-      if(!currOrderedVertex.idEquals(currAlternativeVertex)){
-        continue;
+      if (!currOrderedVertex.idEquals(currAlternativeVertex)) {
+        // register all preceding vertices as non-cycle introducing up to a first match to hopefully save some time in BFS
+        noCycleIntroducingVertices.add(currOrderedVertex);
+        break;
       }
+    }
 
-      if(altIndex == maxAltIndex && currAlternativeVertex.idEquals(alternative[altIndex].getDownstreamVertex())){
-        // all vertices reachable in order up until the last vertex of the alternative
-        isOrdered = true;
+    // now traverse the alternative and whenever it touches the bush, verify no path back to any preceding
+    // vertices can be found
+    EdgeSegment nextSegment = null;
+    boolean nextCoincidingVertexFound;
+    do{
+      if(altIndex < maxAltIndex){
+        nextSegment = alternative[++altIndex];
+        currAlternativeVertex = nextSegment.getUpstreamVertex();
+      }else if(altIndex == maxAltIndex){
+        currAlternativeVertex = alternative[maxAltIndex].getDownstreamVertex();
         break;
       }
 
-      // todo also costly
-      // check all adjacent edges of vertex to see if it could close a loop (i.e., node is part of bush)
-      // if so then consider the vertex, if not then move to next of alternative
-      EdgeSegment nextSegment = null;
-      boolean nextCoincidingVertexFound;
-      do{
-        if(altIndex < maxAltIndex){
-          nextSegment = alternative[++altIndex];
-          currAlternativeVertex = nextSegment.getUpstreamVertex();
-        }else if(altIndex == maxAltIndex){
-          currAlternativeVertex = alternative[maxAltIndex].getDownstreamVertex();
-          break;
-        }
-        nextCoincidingVertexFound = containsAnyEdgeSegmentOf(currAlternativeVertex);
-      }while(!nextCoincidingVertexFound);
+      nextCoincidingVertexFound = containsAnyEdgeSegmentOf(currAlternativeVertex);
+      boolean potentialCycle = nextCoincidingVertexFound && !noCycleIntroducingVertices.contains(currAlternativeVertex);
+      if(potentialCycle) {
+        // touching - possible cycle
+
+        // todo: process result if match is on cycle introducing vertices --> not allowed, otherwise continue
+        //  as later segment could still introduce a cycle
+        Pair<Integer, DirectedVertex> vertexMatchPair =
+                getDag().bfsToReachableVertexPartition(currAlternativeVertex, cycleIntroducingVertices, noCycleIntroducingVertices);
+
+      }
+      if(!nextCoincidingVertexFound) {
+        cycleIntroducingVertices.add(currAlternativeVertex);
+      }
+
+      // as long as alternative
+    }while(!nextCoincidingVertexFound);
+
+
+    // old and too simple
+//    {
+//    //todo: suspect this might get quite costly for large networks. Maybe we need more indexing on topological ordering
+//    //      to make this faster?
+//
+//    // idea: we follow topological order of bush and if the new alternative introduces a cycle then for a given segment
+//    // we would find the topological location of the start vertex, pass the end vertex in the process, find the start
+//    // vertex, then continue to look for the end vertex that never comes, and as such it introduces a cycle.
+//    int altIndex = 0;
+//    final int maxAltIndex = alternative.length-1;
+//    DirectedVertex currAlternativeVertex = alternative[altIndex].getUpstreamVertex();
+//    var topologicalIter = isInverted() ?  getInvertedTopologicalIterator() : getTopologicalIterator();
+//    DirectedVertex currOrderedVertex;
+//    boolean isOrdered = false;
+//
+//    while(topologicalIter.hasNext()){
+//      currOrderedVertex = topologicalIter.next();
+//      if(!currOrderedVertex.idEquals(currAlternativeVertex)){
+//        continue;
+//      }
+//
+//      if(altIndex == maxAltIndex && currAlternativeVertex.idEquals(alternative[altIndex].getDownstreamVertex())){
+//        // all vertices reachable in order up until the last vertex of the alternative
+//        isOrdered = true;
+//        break;
+//      }
+//
+//      // todo also costly
+//      // check all adjacent edges of vertex to see if it could close a loop (i.e., node is part of bush)
+//      // if so then consider the vertex, if not then move to next of alternative
+//      EdgeSegment nextSegment = null;
+//      boolean nextCoincidingVertexFound;
+//      do{
+//        if(altIndex < maxAltIndex){
+//          nextSegment = alternative[++altIndex];
+//          currAlternativeVertex = nextSegment.getUpstreamVertex();
+//        }else if(altIndex == maxAltIndex){
+//          currAlternativeVertex = alternative[maxAltIndex].getDownstreamVertex();
+//          break;
+//        }
+//        nextCoincidingVertexFound = containsAnyEdgeSegmentOf(currAlternativeVertex);
+//      }while(!nextCoincidingVertexFound);
 
     }
 
@@ -501,7 +566,8 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @return vertex at which the two paths coincided again and the map (back link tree effectively) to extract the path from this vertex to the reference vertex that was found using the breadth-first
    *         method
    */
-  public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpathByBackLinkTree(DirectedVertex referenceVertex, final short[] alternativeSubpathVertexLabels) {
+  public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpathByBackLinkTree(
+          DirectedVertex referenceVertex, final short[] alternativeSubpathVertexLabels) {
     Deque<Pair<DirectedVertex, EdgeSegment>> openVertexQueue = new ArrayDeque<>(30);
     Map<DirectedVertex, EdgeSegment> processedVertices = new TreeMap<>();
 

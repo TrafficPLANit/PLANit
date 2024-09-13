@@ -60,7 +60,8 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
      * to reorganise the dag to traverse it this way rather than the inverted setup (d-to-o) it has by default)
      * todo: when we remove the origin-based implementation revisit this perhaps
      */
-    var helper = BushInitialiserHelper.create(destinationBush, destinationOriginInvertedDag, pasManager, getSettings().isDetailedLogging());
+    var helper = BushInitialiserHelper.create(
+            destinationBush, destinationOriginInvertedDag, pasManager, getSettings().isDetailedLogging());
     helper.executeOdBushInitialisation(currVertex, oDDemandPcuH, vertexIter, destinationLabel);
   }
 
@@ -103,7 +104,8 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
 
         // destination bush has root in destination, but still tracks origin demands that it uses
         bush.addOriginDemandPcuH(originCentroidVertex, currOdDemand);
-        initialiseBushForOrigin((DestinationBush) bush, originCentroidVertex, currOdDemand, destinationOriginInvertedDag, dummyLabel);
+        initialiseBushForOrigin(
+                (DestinationBush) bush, originCentroidVertex, currOdDemand, destinationOriginInvertedDag, dummyLabel);
       }
     }
   }
