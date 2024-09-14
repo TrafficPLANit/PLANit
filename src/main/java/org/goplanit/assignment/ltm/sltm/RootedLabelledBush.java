@@ -1,14 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -157,7 +149,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
           continue;
         }
         var nextVertex = getNextVertex.apply(nextSegment);
-        sb.append(nextSegment.getXmlId() + ",");
+        sb.append(nextSegment.getXmlId()).append(",");
         if (processed.contains(nextVertex)) {
           continue;
         }
@@ -220,9 +212,8 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
       if(altIndex < maxAltIndex){
         nextSegment = alternative[++altIndex];
         currAlternativeVertex = nextSegment.getUpstreamVertex();
-      }else if(altIndex == maxAltIndex){
+      }else if(altIndex++ == maxAltIndex){
         currAlternativeVertex = alternative[maxAltIndex].getDownstreamVertex();
-        break;
       }
 
       nextCoincidingVertexFound = containsAnyEdgeSegmentOf(currAlternativeVertex);
@@ -230,70 +221,29 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
       if(potentialCycle) {
         // touching - possible cycle
 
-        // todo: process result if match is on cycle introducing vertices --> not allowed, otherwise continue
-        //  as later segment could still introduce a cycle
-        var vertexMatchPair =
-                getDag().bfsToReachableVertexPartition(currAlternativeVertex, cycleIntroducingVertices, noCycleIntroducingVertices);
+        // see if adding alternative segment would introduce cycle via BFS search
+        var result = getDag().breadthFirstSearch(
+            currAlternativeVertex,
+            false,
+            (v, prevEs) -> cycleIntroducingVertices.contains(v) || noCycleIntroducingVertices.contains(v));
+        if( result == null || result.first() == null){
+          LOGGER.severe("BFS for cycle detection should always succeed, but failed this shouldn't happen");
+          return alternative[0]; // something went wrong, pretend cycle is introduced to be safe
+        }
+        if(noCycleIntroducingVertices.contains(result.first())){
+          // no cycle - keep going
+        }else if(cycleIntroducingVertices.contains(result.first())){
+          // cycle - get edge segment on alternative that caused the cycle if it were to be added
+          return Arrays.stream(alternative).filter(es -> es.getDownstreamVertex().idEquals(result.first())).findFirst().get();
+        }else{
+          LOGGER.severe("BFS for cycle detection has a result but vertex found could not be identified, this shouldn't happen");
+          return alternative[0]; // something went wrong, pretend cycle is introduced to be safe
+        }
 
       }
-      if(!nextCoincidingVertexFound) {
-        cycleIntroducingVertices.add(currAlternativeVertex);
-      }
-
-      // as long as alternative
-    }while(!nextCoincidingVertexFound);
-
-
-    // old and too simple
-//    {
-//    //todo: suspect this might get quite costly for large networks. Maybe we need more indexing on topological ordering
-//    //      to make this faster?
-//
-//    // idea: we follow topological order of bush and if the new alternative introduces a cycle then for a given segment
-//    // we would find the topological location of the start vertex, pass the end vertex in the process, find the start
-//    // vertex, then continue to look for the end vertex that never comes, and as such it introduces a cycle.
-//    int altIndex = 0;
-//    final int maxAltIndex = alternative.length-1;
-//    DirectedVertex currAlternativeVertex = alternative[altIndex].getUpstreamVertex();
-//    var topologicalIter = isInverted() ?  getInvertedTopologicalIterator() : getTopologicalIterator();
-//    DirectedVertex currOrderedVertex;
-//    boolean isOrdered = false;
-//
-//    while(topologicalIter.hasNext()){
-//      currOrderedVertex = topologicalIter.next();
-//      if(!currOrderedVertex.idEquals(currAlternativeVertex)){
-//        continue;
-//      }
-//
-//      if(altIndex == maxAltIndex && currAlternativeVertex.idEquals(alternative[altIndex].getDownstreamVertex())){
-//        // all vertices reachable in order up until the last vertex of the alternative
-//        isOrdered = true;
-//        break;
-//      }
-//
-//      // todo also costly
-//      // check all adjacent edges of vertex to see if it could close a loop (i.e., node is part of bush)
-//      // if so then consider the vertex, if not then move to next of alternative
-//      EdgeSegment nextSegment = null;
-//      boolean nextCoincidingVertexFound;
-//      do{
-//        if(altIndex < maxAltIndex){
-//          nextSegment = alternative[++altIndex];
-//          currAlternativeVertex = nextSegment.getUpstreamVertex();
-//        }else if(altIndex == maxAltIndex){
-//          currAlternativeVertex = alternative[maxAltIndex].getDownstreamVertex();
-//          break;
-//        }
-//        nextCoincidingVertexFound = containsAnyEdgeSegmentOf(currAlternativeVertex);
-//      }while(!nextCoincidingVertexFound);
-
-//    }
-//
-//    if(!isOrdered){
-//      return alternative[altIndex];
-//    }else {
-//      return null;
-//    }
+      cycleIntroducingVertices.add(currAlternativeVertex);
+    }while(altIndex <= maxAltIndex);
+    // done, no cycle
     return null;
   }
 
