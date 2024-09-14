@@ -591,7 +591,8 @@ public class PasManager {
 
   /**
    * Construct a priority queue based on the PASs reduced cost, i.e., difference between their high and low cost segments in descending order.
-   * 
+   *
+   * @param pasComparator to use
    * @return sorted PAS queue in descending order, i.e., highest reduced cost first
    */
   public Collection<Pas> getPassSortedByReducedCost(Comparator<Pas> pasComparator) {

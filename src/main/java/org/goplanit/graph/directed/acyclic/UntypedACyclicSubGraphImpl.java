@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
@@ -20,6 +22,7 @@ import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
 
 /**
  * 
@@ -362,7 +365,6 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
     if (!isConnectedToAnySubgraphEdgeSegment((V) edgeSegment.getUpstreamVertex())) {
       removeVertexData((V) edgeSegment.getUpstreamVertex());
     }
-
   }
 
   /**

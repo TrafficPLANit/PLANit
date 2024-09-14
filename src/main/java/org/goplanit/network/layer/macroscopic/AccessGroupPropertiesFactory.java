@@ -24,7 +24,8 @@ public class AccessGroupPropertiesFactory {
    * @param accessModes      these properties relate to
    * @return created properties
    */
-  public static AccessGroupProperties create(final double maxSpeedKmH, final double criticalSpeedKmH, final Mode... accessModes) {
+  public static AccessGroupProperties create(
+      final double maxSpeedKmH, final double criticalSpeedKmH, final Mode... accessModes) {
     return new AccessGroupPropertiesImpl(maxSpeedKmH, criticalSpeedKmH, accessModes);
   }
 
@@ -36,7 +37,8 @@ public class AccessGroupPropertiesFactory {
    * @param accessModes      these properties relate to
    * @return created properties
    */
-  public static AccessGroupProperties create(final double maxSpeedKmH, final double criticalSpeedKmH, final Collection<Mode> accessModes) {
+  public static AccessGroupProperties create(
+      final double maxSpeedKmH, final double criticalSpeedKmH, final Collection<Mode> accessModes) {
     return new AccessGroupPropertiesImpl(maxSpeedKmH, criticalSpeedKmH, accessModes);
   }
 

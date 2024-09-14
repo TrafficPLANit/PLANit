@@ -9,6 +9,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -230,7 +232,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
 
         // todo: process result if match is on cycle introducing vertices --> not allowed, otherwise continue
         //  as later segment could still introduce a cycle
-        Pair<Integer, DirectedVertex> vertexMatchPair =
+        var vertexMatchPair =
                 getDag().bfsToReachableVertexPartition(currAlternativeVertex, cycleIntroducingVertices, noCycleIntroducingVertices);
 
       }
@@ -285,13 +287,14 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
 //        nextCoincidingVertexFound = containsAnyEdgeSegmentOf(currAlternativeVertex);
 //      }while(!nextCoincidingVertexFound);
 
-    }
-
-    if(!isOrdered){
-      return alternative[altIndex];
-    }else {
-      return null;
-    }
+//    }
+//
+//    if(!isOrdered){
+//      return alternative[altIndex];
+//    }else {
+//      return null;
+//    }
+    return null;
   }
 
   /**
@@ -548,18 +551,22 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   }
 
   /**
-   * The alternative subpath is provided through link segment labels of value -1. The point at which they coincide with the bush is indicated with label 1 at the given reference
-   * vertex (passed in). Here we do a breadth-first search on the bush in the direction towards its root to find a location the alternative path reconnects to the bush, which, at
-   * the latest, should be at the root and at the earliest directly at the next vertex compared to the reference vertex.
+   * The alternative subpath is provided through link segment labels of value -1. The point at which they coincide
+   * with the bush is indicated with label 1 at the given reference vertex (passed in). Here we do a
+   * breadth-first search on the bush in the direction towards its root to find a location the alternative path
+   * reconnects to the bush, which, at the latest, should be at the root and at the earliest directly at the next
+   * vertex compared to the reference vertex.
    * <p>
-   * Note that the breadth-first approach is a choice not a necessity but the underlying idea is that a shorter PAS (which is likely to be found) is used by more origins and
-   * therefore more useful to explore than a really long PAS. This is preferred - in the original TAPAS - over simply backtracking along either the shortest or longest path of the
-   * min-max tree which would also be viable options,a s would a depth-first search.
+   * Note that the breadth-first approach is a choice not a necessity but the underlying idea is that a shorter
+   * PAS (which is likely to be found) is used by more origins and therefore more useful to explore than a really
+   * long PAS. This is preferred - in the original TAPAS - over simply backtracking along either the shortest or
+   * longest path of the min-max tree which would also be viable options,a s would a depth-first search.
    * <p>
-   * Consider implementing various strategies here in order to explore what works best but for now we adopt a breadth-first search
+   * Consider implementing various strategies here in order to explore what works best but for now we adopt a
+   * breadth-first search
    * <p>
-   * The returned map contains the next edge segment for each vertex, from the vertex closer to the bush root to the reference vertex where for the reference vertex the edge
-   * segment remains null
+   * The returned map contains the next edge segment for each vertex, from the vertex closer to the bush root
+   * to the reference vertex where for the reference vertex the edge segment remains null
    * 
    * @param referenceVertex                to start breadth first search from as it is the point of coincidence of the alternative path (via labelled vertices) and bush
    * @param alternativeSubpathVertexLabels indicating the shortest (network) path at the reference vertex but not part of the bush at that point (different edge segment used)
@@ -568,66 +575,41 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    */
   public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpathByBackLinkTree(
           DirectedVertex referenceVertex, final short[] alternativeSubpathVertexLabels) {
-    Deque<Pair<DirectedVertex, EdgeSegment>> openVertexQueue = new ArrayDeque<>(30);
-    Map<DirectedVertex, EdgeSegment> processedVertices = new TreeMap<>();
 
-    /*
-     * Construct results in same direction as shortest path search. So, for one-to-all regular search, we construct results
-     * where we have for each vertex its upstream segment, while for all-to-one we have the downstream segment for each vertex both
-     * go "back" towards the root of the bush
-     */
-    final boolean invertNextDirection = true;
-    final var getNextEdgeSegments = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(this, invertNextDirection);
-    final var getNextVertex = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(this, invertNextDirection);
+    // cannot use the segment that is part of the cheapest option marked out with -1
+    Predicate<EdgeSegment> initialInclusionCondition = es ->
+        alternativeSubpathVertexLabels[(int) referenceVertex.getId()] != -1;
 
-    /* start with eligible edge segments of reference vertex except alternative labelled segment */
-    processedVertices.put(referenceVertex, null);
-    var nextEdgeSegments = getNextEdgeSegments.apply(referenceVertex);
-    for (var nextSegment : nextEdgeSegments) {
-      if (containsEdgeSegment(nextSegment) && alternativeSubpathVertexLabels[(int) referenceVertex.getId()] != -1) {
-        openVertexQueue.add(Pair.of(getNextVertex.apply(nextSegment), nextSegment));
+    // only consider turns with positive flow on bush
+    BiPredicate<EdgeSegment, EdgeSegment> regularInclusionCondition = bushData::containsTurnSendingFlow;
 
-        if(getSendingFlowPcuH(nextSegment) <= 0){
-          // when stable remove this check
-          LOGGER.severe("edge segment on bush has no flow, this shouldn't happen");
-        }
-      }
-    }
+    // terminate when shortest path reconnects to the bush
+    BiPredicate<DirectedVertex, EdgeSegment> terminationCondition = (v, prevEs) ->
+        alternativeSubpathVertexLabels[(int) v.getId()] == -1;
 
-    while (!openVertexQueue.isEmpty()) {
-      Pair<DirectedVertex, EdgeSegment> current = openVertexQueue.pop();
-      var currentVertex = current.first();
-      if (processedVertices.containsKey(currentVertex)) {
-        continue;
-      }
+    // when bush is inverted, shortest path search runs from root outward and backlinks run in graph direction
+    //   so do not invert BFS to create backlinks consistent with that approach
+    // when not inverted, shortest path search runs from root outward and backlinks run opposite graph direction
+    //   so invert BFS to create backlinks consistent with that approach
+    boolean invertBfs = !this.isInverted();
 
-      if (alternativeSubpathVertexLabels[(int) currentVertex.getId()] == -1) {
-        /* first point of coincidence with alternative labelled path */
-        processedVertices.put(currentVertex, current.second());
-        return Pair.of(current.first(), processedVertices);
-      }
-
-      /* breadth-first loop for used turns that not yet have been processed */
-      nextEdgeSegments = getNextEdgeSegments.apply(currentVertex);
-      for (var nextSegment : nextEdgeSegments) {
-        if (containsEdgeSegment(nextSegment) && bushData.containsTurnSendingFlow(current.second(), nextSegment)) {
-          var nextVertex = getNextVertex.apply(nextSegment);
-          if (!processedVertices.containsKey(nextVertex)) {
-            openVertexQueue.add(Pair.of(nextVertex, nextSegment));
-          }
-        }
-      }
-
-      processedVertices.put(currentVertex, current.second());
-    }
+    // perform BFS
+    var result = getDag().breadthFirstSearch(
+        referenceVertex,
+        invertBfs,
+        initialInclusionCondition,
+        regularInclusionCondition,
+        terminationCondition);
 
     /*
      * no result could be found, only possible when cycle is detected before reaching origin Not sure this will actually happen, so created warning to check, when it does happen
      * investigate and see if this expected behaviour (if so remove statement). this would equate to finding a vertex marked with a '1' in Xie & Xie, which I do not do because I
      * don't think it is needed, but I might be wrong.
      */
-    LOGGER.warning(String.format("Cycle found when finding alternative subpath on bush merging at vertex %s", referenceVertex.getXmlId()));
-    return null;
+    if(result== null || result.first() == null) {
+      LOGGER.warning(String.format("Cycle found when finding alternative subpath on bush merging at vertex %s", referenceVertex.getXmlId()));
+    }
+    return result;
   }
 
   /**

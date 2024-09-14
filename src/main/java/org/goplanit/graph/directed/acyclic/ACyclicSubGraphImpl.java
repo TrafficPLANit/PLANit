@@ -1,11 +1,15 @@
 package org.goplanit.graph.directed.acyclic;
 
+import java.util.Map;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
 
 /**
  * 

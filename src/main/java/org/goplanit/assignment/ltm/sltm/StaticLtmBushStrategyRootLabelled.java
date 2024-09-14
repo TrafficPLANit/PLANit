@@ -103,15 +103,16 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         (edgeSegment) -> alternativeSegmentVertexLabels[(int) networkMinPaths.getNextVertexForEdgeSegment(edgeSegment).getId()] = -1);
 
     /* Identify when it coincides again with bush (closer to root) using back link tree BF search */
-    var highCostSubPathResultPair = bush.findBushAlternativeSubpathByBackLinkTree(reducedCostVertex, alternativeSegmentVertexLabels);
-    if (highCostSubPathResultPair == null) {
+    var highCostSubPathResultPair =
+        bush.findBushAlternativeSubpathByBackLinkTree(reducedCostVertex, alternativeSegmentVertexLabels);
+    if (highCostSubPathResultPair == null || highCostSubPathResultPair.first() == null) {
       /* likely cycle detected on bush for merge vertex, unable to identify higher cost segment for NEW PAS, log issue */
       LOGGER.info(String.format("Unable to create new PAS for bush rooted at vertex %s, despite shorter path found on network to vertex %s", bush.getRootVertex().getXmlId(),
           reducedCostVertex.getXmlId()));
       return null;
     }
 
-    /* create the PAS and register origin bush on it */
+    /* create the PAS and register bush on it */
     boolean truncateSpareArrayCapacity = true;
     var coincideCloserToRootVertex = highCostSubPathResultPair.first();
     Map<DirectedVertex, EdgeSegment> backLinkTreeAsMap = highCostSubPathResultPair.second();
@@ -132,7 +133,12 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
 
     /* S2 */
     EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(
-            coincideCloserToRootVertex, reducedCostVertex, bush.getShortestSearchType(), backLinkTreeAsMap, highCostSubPathResultPair.second().size(), truncateSpareArrayCapacity);
+        coincideCloserToRootVertex,
+        reducedCostVertex,
+        bush.getShortestSearchType(),
+        backLinkTreeAsMap,
+        highCostSubPathResultPair.second().size(),
+        truncateSpareArrayCapacity);
 
     /* register on existing PAS (if available) otherwise create new PAS */
     Pas existingPas = pasManager.findExistingPas(s1, s2);
