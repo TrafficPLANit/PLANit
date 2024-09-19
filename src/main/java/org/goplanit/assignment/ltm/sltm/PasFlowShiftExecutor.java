@@ -615,7 +615,10 @@ public abstract class PasFlowShiftExecutor {
     while (iter.hasNext()) {
       var bush = iter.next();
       final Map<EdgeSegment, Pair<Double, Double>> entrySegmentS1S2Flows = bushEntrySegmentS1S2SendingFlows.get(bush);
-      if (entrySegmentS1S2Flows != null && entrySegmentS1S2Flows.isEmpty()) {
+      if (entrySegmentS1S2Flows != null && entrySegmentS1S2Flows.values().stream().noneMatch(p -> p.second() > 0 )) {
+        if(bush.getDag().getId()==7){
+          LOGGER.info(String.format("Removing bush from PAS %s, no more s2 flow left", pas));
+        }
         iter.remove();
       }
     }

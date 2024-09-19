@@ -196,8 +196,8 @@ public class LabelledBushTurnData {
       turnSendingFlow = 0.0;
     }else if(!Precision.positive(turnSendingFlow)) {
       if (allowTurnRemoval) {
-        //LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
-        //    turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
+//        LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
+//            turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
         removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
         return false;
       }else if(turnSendingFlow < 0){
@@ -512,20 +512,22 @@ public class LabelledBushTurnData {
   }
 
   /**
-   * Collect the bush splitting rates for a given incoming edge segment and entry label. If no flow exits, no splitting rates are returned in the map
+   * Collect the bush splitting rates for a given incoming edge segment and entry label. If no flow exits,
+   * no splitting rates are returned in the map
    * 
    * @param fromSegment to use
    * @param fromLabel   to use
-   * @return splitting rates in multikey map where the key is the combination of exit segment and exit label and the value is the portion of the entry segment entry label flow
-   *         directed to it
+   * @return splitting rates in multikey map where the key is the combination of exit segment and exit label
+   * and the value is the portion of the entry segment entry label flow directed to it
    */
   public MultiKeyMap<Object, Double> getSplittingRates(EdgeSegment fromSegment, BushFlowLabel fromLabel) {
     var exitEdgeSegments = fromSegment.getDownstreamVertex().getExitEdgeSegments();
 
     /*
-     * Note: flow/label removal below threshold is done when shifting flows. Splitting rates just follow so no precision threshold applied here
+     * Note: flow/label removal below threshold is done when shifting flows. Splitting rates just follow so no
+     * precision threshold applied here
      */
-    MultiKeyMap<Object, Double> splittingRatesByExitSegmentLabel = new MultiKeyMap<Object, Double>();
+    MultiKeyMap<Object, Double> splittingRatesByExitSegmentLabel = new MultiKeyMap<>();
     double totalSendingFlow = getTotalSendingFlowFromPcuH(fromSegment, fromLabel);
     if (totalSendingFlow <= 0) {
       return splittingRatesByExitSegmentLabel;

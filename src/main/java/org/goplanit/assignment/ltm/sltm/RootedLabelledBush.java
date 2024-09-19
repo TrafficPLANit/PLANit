@@ -163,6 +163,9 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
 
   /**
    * Verify if adding the sub-path edge segments would introduce a cycle in this bush
+   * TODO: very costly operation as it may traverses entire bush --> find a way to bake in some more information
+   *  in the topological sorting to track more information to make this much quicker, e.g., track the ordering indices
+   *  and allow for direct lookup of index of vertices so we can start directly at the alternative....
    * 
    * @param alternative to verify
    * @return edge segment that would introduce a cycle, null otherwise
@@ -200,28 +203,42 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
       if (!currOrderedVertex.idEquals(currAlternativeVertex)) {
         // register all preceding vertices as non-cycle introducing up to a first match to hopefully save some time in BFS
         noCycleIntroducingVertices.add(currOrderedVertex);
+      }else{
         break;
       }
     }
 
     // now traverse the alternative and whenever it touches the bush, verify no path back to any preceding
     // vertices can be found
-    EdgeSegment nextSegment = null;
-    boolean nextCoincidingVertexFound;
+    EdgeSegment nextSegment = alternative[altIndex];
+    EdgeSegment currSegment = alternative[altIndex];
+    boolean currCoincidingVertexFound;
+    boolean currLocalNoCycle;
     do{
       if(altIndex < maxAltIndex){
+        currSegment = nextSegment;
         nextSegment = alternative[++altIndex];
         currAlternativeVertex = nextSegment.getUpstreamVertex();
       }else if(altIndex++ == maxAltIndex){
+        currSegment = nextSegment;
+        nextSegment = null;
         currAlternativeVertex = alternative[maxAltIndex].getDownstreamVertex();
       }
 
-      nextCoincidingVertexFound = containsAnyEdgeSegmentOf(currAlternativeVertex);
-      boolean potentialCycle = nextCoincidingVertexFound && !noCycleIntroducingVertices.contains(currAlternativeVertex);
-      if(potentialCycle) {
-        // touching - possible cycle
+      currCoincidingVertexFound = containsAnyEdgeSegmentOf(currAlternativeVertex);
+      boolean directCycle = currSegment.getOppositeDirectionSegment()!=null && containsEdgeSegment(currSegment.getOppositeDirectionSegment());
+      if(directCycle){
+        // direct cycle detected since opposite direction already present, abort
+        return currSegment;
+      }
 
-        // see if adding alternative segment would introduce cycle via BFS search
+      // check for potential more complex cycle by closing a loop other than direct opposite link
+      currLocalNoCycle = noCycleIntroducingVertices.contains(currAlternativeVertex);
+      boolean potentialCycle = currCoincidingVertexFound && !currLocalNoCycle;
+      if(potentialCycle) {
+        // touching - possible complex cycle
+
+        // see if adding alternative segment would introduce cycle via BFS search to reach a cycle introducing vertex
         var result = getDag().breadthFirstSearch(
             currAlternativeVertex,
             false,
@@ -234,15 +251,18 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
           // no cycle - keep going
         }else if(cycleIntroducingVertices.contains(result.first())){
           // cycle - get edge segment on alternative that caused the cycle if it were to be added
-          return Arrays.stream(alternative).filter(es -> es.getDownstreamVertex().idEquals(result.first())).findFirst().get();
+          return Arrays.stream(alternative).filter(es -> es.anyVertexMatches(v -> v.idEquals(result.first()))).findFirst().get();
         }else{
           LOGGER.severe("BFS for cycle detection has a result but vertex found could not be identified, this shouldn't happen");
           return alternative[0]; // something went wrong, pretend cycle is introduced to be safe
         }
-
       }
+
       cycleIntroducingVertices.add(currAlternativeVertex);
-    }while(altIndex <= maxAltIndex);
+      if(currCoincidingVertexFound) {
+        noCycleIntroducingVertices.remove(currAlternativeVertex); // by considering alternative it would now close a cycle when downstream segments could reach it
+      }
+    }while((altIndex-1) <= maxAltIndex);
     // done, no cycle
     return null;
   }
@@ -274,7 +294,12 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @param allowTurnRemoval when true we remove turn when no flow remains after adding (negative) flow, when false, we only change the flow to zero but the bush is not adjusted
    * @return new labelled turn sending flow after adding given flow
    */
-  public double addTurnSendingFlow(final EdgeSegment from, final BushFlowLabel fromLabel, final EdgeSegment to, final BushFlowLabel toLabel, double addFlowPcuH,
+  public double addTurnSendingFlow(
+          final EdgeSegment from,
+          final BushFlowLabel fromLabel,
+          final EdgeSegment to,
+          final BushFlowLabel toLabel,
+          double addFlowPcuH,
       boolean allowTurnRemoval) {
 
     if (addFlowPcuH > 0) {
@@ -774,6 +799,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     var vertexIter = isInverted() ? getInvertedTopologicalIterator() : getTopologicalIterator();
     if (vertexIter == null) {
       LOGGER.severe(String.format("Topologically sorted vertices on bush not available, this shouldn't happen, skip turn flow update"));
+      LOGGER.info(String.format("Bush at risk: %s", this));
       return;
     }
     var currVertex = vertexIter.next();

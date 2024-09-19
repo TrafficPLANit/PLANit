@@ -281,7 +281,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
 
     for (Entry<V, AcyclicVertexData> vertexEntry : this.vertexData.entrySet()) {
       if (!visited.get((int) vertexEntry.getKey().getId())) {
-        LOGGER.warning(String.format("Topological sort applied, but some vertices not connected to a root of the acyclic graph (%d), unable to determine sorting order", getId()));
+        LOGGER.warning(String.format(
+                "Topological sort applied, but found vertex (%s) not connected to a root of the acyclic graph (%d), unable to determine sorting order", vertexEntry.getKey().getIdsAsString(), getId()));
         return null;
       }
     }
@@ -308,6 +309,9 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
       return;
     }
 
+    if(getId() == 7 && !registeredLinkSegments.get((int) edgeSegment.getId())){
+      LOGGER.info(String.format("adding edge segment %s to dag %d", edgeSegment.getIdsAsString(), getId()));
+    }
     registeredLinkSegments.set((int) edgeSegment.getId());
     if (!vertexData.containsKey(edgeSegment.getUpstreamVertex())) {
       vertexData.put((V) edgeSegment.getUpstreamVertex(), new AcyclicVertexData());
@@ -358,6 +362,9 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
   @SuppressWarnings("unchecked")
   @Override
   public void removeEdgeSegment(E edgeSegment) {
+    if(getId() == 7 && registeredLinkSegments.get((int) edgeSegment.getId())){
+      LOGGER.info(String.format("removing edge segment %s from dag %d", edgeSegment.getIdsAsString(), getId()));
+    }
     registeredLinkSegments.set((int) edgeSegment.getId(), false);
     if (!isConnectedToAnySubgraphEdgeSegment((V) edgeSegment.getDownstreamVertex())) {
       removeVertexData((V) edgeSegment.getDownstreamVertex());

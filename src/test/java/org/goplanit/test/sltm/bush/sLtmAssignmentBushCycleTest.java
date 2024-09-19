@@ -14,6 +14,8 @@ import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
+import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -32,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -94,10 +97,11 @@ public class sLtmAssignmentBushCycleTest {
   @BeforeEach
   public void intialise() {
     // construct the network.
+    // Both demands are 2000
     //
     //          ---*A''(7)
-    // (4)   8 /   | 10
-    // o------/    o(5)
+    // (4) 8 (B) /   | 10 (B)
+    // o------/     o(5)
     // |           |
     // ^ 7         ^ 9
     // |(3)   6    |(2) 5 
@@ -105,12 +109,12 @@ public class sLtmAssignmentBushCycleTest {
     // 1\ \___>3_  ^ 4   (6)
     //   \       \ | 
     //  (0)o---o>--o(1)
-    //    ^  2a  2b
+    //    ^  2a  2b(B)
     //    |0
     // (8)* A
     //
     // cycle occurs in destination based for vertices (3)->(1)->(2)->(3)
-    // Bottlenecks: 10, 8 (500 veh/h), 2b (100) others (2000 veh/h)
+    // Bottlenecks (b): 10, 8 (500 veh/h), 2b (100) others (2000 veh/h)
     
     try {
       // local CRS in meters
@@ -228,42 +232,58 @@ public class sLtmAssignmentBushCycleTest {
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sLTMBuilder.getConfigurator().activateDetailedLogging(false);
+      var sltmConfigurator = sLTMBuilder.getConfigurator();
+      sltmConfigurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      sltmConfigurator.activateDetailedLogging(false);
 
       /* DESTINATION BASED */
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.DESTINATION_BUSH_BASED);
+      sltmConfigurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);
 
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+      //todo: if this option is set to true we see why this does not work when a PAS overlaps with a previously updated PAS
+      // here PAS 1-3/2a-2b shifts 450 flow, then PAS 7-8/3-4-9-10 shifts 1450 flow but it can't because the 1450 is only available
+      // at the start of the PAS due to the 450 being added by the previous flow shift for 1-3. It vanishes after on 4,9,10 because
+      // we have not done a loading update. this causes all flow to be removed on 3->4,4->9 and the bush becomes invalid.
+      //
+      // solution -> each PAS update should also perform local loading update for all its bushes
+      sltmConfigurator.setAllowOverlappingPasUpdate(false);
+
+      var smoothing = (MSRASmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.MSRA);
+      smoothing.setActivateLambda(true);
+
+      sltmConfigurator.activateOutput(OutputType.LINK);
+      sltmConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.setActivateDetailedLogging(true);
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(100);
       sLTM.execute();
 
-//      double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
-//      double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
-//      double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
-//      double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
-//
-//      assertEquals(outflow1, 2333.333333, Precision.EPSILON_6);
-//      assertEquals(outflow5, 2333.333333, Precision.EPSILON_6);
-//      assertEquals(outflow8, 2333.333333, Precision.EPSILON_6);
-//      assertEquals(outflow2, 7000, Precision.EPSILON_6);
-//
-//      double inflow0 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
-//      double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
-//      double inflow5 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
-//      double inflow8 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
-//      double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
-//
-//      assertEquals(inflow0, 8000, Precision.EPSILON_6);
-//      assertEquals(inflow1, 2714.529914369357, Precision.EPSILON_6);
-//      assertEquals(inflow5, 2642.7350425744858, Precision.EPSILON_6);
-//      assertEquals(inflow8, 2642.7350430561573, Precision.EPSILON_6);
-//      assertEquals(inflow2, 7000, Precision.EPSILON_6);
+      double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+      double outflow2a = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2a").getLinkSegmentAb());
+      double outflow2b = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2b").getLinkSegmentAb());
+      double outflow3 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("3").getLinkSegmentAb());
+      double outflow4 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
+      double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+      double outflow6 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("6").getLinkSegmentAb());
+      double outflow7 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("7").getLinkSegmentAb());
+      double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+      double outflow9 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
+      double outflow10 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("10").getLinkSegmentAb());
+
+      assertEquals(outflow1, 1900.0, Precision.EPSILON_6);
+      assertEquals(outflow2a, 100.0, Precision.EPSILON_6);
+      assertEquals(outflow2b, 100.0, Precision.EPSILON_6);
+      assertEquals(outflow3, 0, Precision.EPSILON_6);
+      assertEquals(outflow4, 100, Precision.EPSILON_6);
+      assertEquals(outflow5, 1961.5, 1);
+      assertEquals(outflow6, 61.5, 1);
+      assertEquals(outflow7, 500, Precision.EPSILON_6);
+      assertEquals(outflow8, 500, Precision.EPSILON_6);
+      assertEquals(outflow9, 500, Precision.EPSILON_6);
+      assertEquals(outflow10, 500, Precision.EPSILON_6);
+
+      //todo add checks for inflows
 
     } catch (Exception e) {
       e.printStackTrace();
