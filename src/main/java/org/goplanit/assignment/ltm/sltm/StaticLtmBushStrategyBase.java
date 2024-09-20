@@ -80,8 +80,20 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     final Map<Pas, PasFlowShiftExecutor> pasExecutors = new HashMap<>();
     this.pasManager.forEachPas( pas -> {
             var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
-            pasFlowShifter.stepOneDetermineS1S2EntrySendingFlows();
+            pasFlowShifter.updateS1S2EntrySendingFlows();
             pasExecutors.put(pas, pasFlowShifter);
+    });
+
+    // STEP2: determine the proposed flow shift for each PAS as if it were performing
+    //  its flow shift in isolation
+    final Map<Pas, Map<EdgeSegment, Double>> pasProposedFlowShifts = new HashMap<>();
+    this.pasManager.forEachPas( pas -> {
+      var pasFlowShifter = pasExecutors.get(pas);
+      if (pasFlowShifter.getS2SendingFlow() > 0) {
+        Map<EdgeSegment, Double> flowShifts = pasFlowShifter.determineProposedFlowShiftByEntrySegment(
+            theMode, physicalCost, virtualCost, networkLoading);
+        pasProposedFlowShifts.put(pas, flowShifts);
+      }
     });
 
     // flow based comparator
@@ -134,13 +146,19 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
           //  always skipping even if bushes between the two PASs are not overlapping at all
           continue;
         }
+      }else{
+        // The sending flows at the start of the PAS may have been affected by other PASs updates since they were
+        // identified earlier.
+        // NOTE: we must use the original ones to determine the proposed flow shifts because that it the only one
+        // consistent with network loading (if we'd use these for that, then we may get too high values causing problems)
+        pasFlowShifter.updateS1S2EntrySendingFlows();
       }
 
       LOGGER.info(String.format("APPLIED* (%s): reduced cost multiplied with s2 flow: %.2f", pas, pas.getReducedCost() * pasFlowShifter.getS2SendingFlow()));
 
       /* untouched PAS (no flows shifted yet) in this iteration */
       boolean pasFlowShifted = pasFlowShifter.run(
-              theMode, physicalCost, virtualCost, networkLoading, getSmoothing());
+          pasProposedFlowShifts.get(pas), theMode, physicalCost, virtualCost, networkLoading, getSmoothing());
       if (pasFlowShifted) {
         flowShiftedPass.add(pas);
 
