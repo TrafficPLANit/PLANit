@@ -105,14 +105,16 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   }
 
   /**
-   * Compute the min-max path tree rooted in location depending on underlying dag configuration of derived implementation and given the provided (network wide) costs. The provided
-   * costs are at the network level so should contain all the segments active in the bush
+   * Compute the min-max path tree rooted in location depending on underlying dag configuration of derived
+   * implementation and given the provided (network wide) costs. The provided costs are at the network level
+   * so should contain all the segments active in the bush
    * 
    * @param linkSegmentCosts              to use
    * @param totalTransportNetworkVertices needed to be able to create primitive array recording the (partial) subgraph backward link segment results (efficiently)
    * @return minMaxPathResult, null if unable to complete
    */
-  public abstract MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices);
+  public abstract MinMaxPathResult computeMinMaxShortestPaths(
+          final double[] linkSegmentCosts, final int totalTransportNetworkVertices);
 
   /**
    * {@inheritDoc}

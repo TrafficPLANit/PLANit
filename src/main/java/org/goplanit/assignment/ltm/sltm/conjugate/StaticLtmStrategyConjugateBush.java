@@ -175,12 +175,13 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
   /**
    * Based on provided original network link segment costs see if we can update the existing collection of PASs
    *
+   * @param mode to use
    * @param linkSegmentCosts to use
    * @return newly created PASs
    * @throws PlanItException thrown if error
    */
   @Override
-  protected Collection<Pas> updateBushPass(double[] linkSegmentCosts) throws PlanItException {
+  protected Collection<Pas> updateBushPass(Mode mode, double[] linkSegmentCosts) throws PlanItException {
     // TODO: not yet implemented for conjugate, take inspiration from "normal" implementation
     return null;
   }

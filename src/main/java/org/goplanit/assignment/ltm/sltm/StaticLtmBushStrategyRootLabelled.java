@@ -9,13 +9,17 @@ import java.util.logging.Logger;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushRooted;
+import org.goplanit.gap.GapFunction;
+import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 
 /**
  * Base implementation to support a rooted bush based solution for sLTM
@@ -166,18 +170,18 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    * Note that in order to extend the bushes we run a shortest path rooted at each bush's origin, since this is costly, we utilise the result also to update the min-cost gap for
    * each OD which requires the min-cost from each origin to each destination which is what the shortest path trees provide. The updating of the network's actual costs occurs
    * elsewhere
-   * 
+   *
+   * @param mode to use
    * @param linkSegmentCosts to use to construct min-max path three rooted at each bush's origin
    * @return newly created PASs (empty if no new PASs were created)
    * @throws PlanItException thrown if error
    */
   @Override
-  protected Collection<Pas> updateBushPass(final double[] linkSegmentCosts) throws PlanItException {
+  protected Collection<Pas> updateBushPass(Mode mode, final double[] linkSegmentCosts) throws PlanItException {
 
     List<Pas> newPass = new ArrayList<>();
 
     final var networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
-
     for (RootedLabelledBush bush : bushes) {
       if (bush == null) {
         continue;

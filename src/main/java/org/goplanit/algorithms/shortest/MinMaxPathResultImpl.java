@@ -57,6 +57,14 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    * {@inheritDoc}
    */
   @Override
+  public boolean isMinPathState() {
+    return this.minPathState;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public <T extends SimpleDirectedPath> T createPath(DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
     return minPathState ? minPathResult.createPath(pathFactory, origin, destination) : maxPathResult.createPath(pathFactory, origin, destination);
   }

@@ -26,7 +26,6 @@ import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
 
 import java.util.*;
-import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
 /**
@@ -76,11 +75,12 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
 
+    // STEP 1: PAS original sending flows per alternative
     // prep flow shifting to allow for ordering based on PAS flows
     final Map<Pas, PasFlowShiftExecutor> pasExecutors = new HashMap<>();
     this.pasManager.forEachPas( pas -> {
             var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
-            pasFlowShifter.initialise();
+            pasFlowShifter.stepOneDetermineS1S2EntrySendingFlows();
             pasExecutors.put(pas, pasFlowShifter);
     });
 
@@ -97,7 +97,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       }
     };
 
-    /* Sort all PAss absed on comparator */
+    /* Sort all PAss based on comparator */
     Collection<EdgeSegment> linkSegmentsUsed = new HashSet<>(100);
     Collection<Pas> sortedPass = this.pasManager.getPassSortedByReducedCost(PAS_REDUCED_COST_BY_FLOW_COMPARATOR);
 
@@ -218,11 +218,12 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   /**
    * Update the PASs for bushes given the network costs and current bushes DAGs
    *
+   * @param mode to use
    * @param linkSegmentCosts to use
    * @return newly created PASs
    * @throws PlanItException thrown if error
    */
-  protected abstract Collection<Pas> updateBushPass(final double[] linkSegmentCosts) throws PlanItException;
+  protected abstract Collection<Pas> updateBushPass(Mode mode, final double[] linkSegmentCosts) throws PlanItException;
 
   /**
    * Constructor
@@ -425,7 +426,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */     
       {
         /* (NEW) PAS MATCHING FOR BUSHES */
-        Collection<Pas> newPass = updateBushPass(costsToUpdate);
+        Collection<Pas> newPass = updateBushPass(theMode, costsToUpdate);
         LOGGER.info(String.format("%d PASs known (%d new potential PASs)", pasManager.getNumberOfPass(), newPass.size()));
               
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */

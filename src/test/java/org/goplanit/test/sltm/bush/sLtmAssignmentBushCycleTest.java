@@ -239,13 +239,14 @@ public class sLtmAssignmentBushCycleTest {
       /* DESTINATION BASED */
       sltmConfigurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);
 
-      //todo: if this option is set to true we see why this does not work when a PAS overlaps with a previously updated PAS
-      // here PAS 1-3/2a-2b shifts 450 flow, then PAS 7-8/3-4-9-10 shifts 1450 flow but it can't because the 1450 is only available
-      // at the start of the PAS due to the 450 being added by the previous flow shift for 1-3. It vanishes after on 4,9,10 because
-      // we have not done a loading update. this causes all flow to be removed on 3->4,4->9 and the bush becomes invalid.
+      //todo: due to cycle the alternative that is a reduced cost for A'->A'' can't be added but it is needed
+      // to converge. Now the algorithm thinks it has converged because the two available PASs have finished but
+      // in realityit hasn't.
+      // ALSO: this is not truly a cycle because there is no flow circulating from the point of view of turns
+      // so moving to a conjugate representation would solve this.
       //
       // solution -> each PAS update should also perform local loading update for all its bushes
-      sltmConfigurator.setAllowOverlappingPasUpdate(false);
+      sltmConfigurator.setAllowOverlappingPasUpdate(true);
 
       var smoothing = (MSRASmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.MSRA);
       smoothing.setActivateLambda(true);

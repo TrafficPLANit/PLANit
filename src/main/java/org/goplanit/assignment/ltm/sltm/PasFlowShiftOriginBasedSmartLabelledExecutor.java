@@ -634,8 +634,8 @@ public class PasFlowShiftOriginBasedSmartLabelledExecutor extends PasFlowShiftEx
    * Initialise by determining the desired flows along each subpath (on the network level) + identify the label chains along the PAS
    */
   @Override
-  public void initialise() {
-    super.initialise();
+  public void stepOneDetermineS1S2EntrySendingFlows() {
+    super.stepOneDetermineS1S2EntrySendingFlows();
 
     var s2 = pas.getAlternative(false /* high cost */);
     var s1 = pas.getAlternative(true /* low cost */);
