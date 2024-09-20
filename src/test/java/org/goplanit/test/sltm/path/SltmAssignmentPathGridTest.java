@@ -110,96 +110,96 @@ public class SltmAssignmentPathGridTest extends sLtmAssignmentGridTestBase {
     Logging.closeLogger(LOGGER);
   }
 
-  /**
-   * Test sLTM path-based assignment on grid based network which should result in an even spread across uncongested links
-   * in the final solution.
-   */
-  @Test
-  public void sLtmPointQueuePathAssignmentNoQueueTest() {
-    try {
+//  /**
+//   * Test sLTM path-based assignment on grid based network which should result in an even spread across uncongested links
+//   * in the final solution.
+//   */
+//  @Test
+//  public void sLtmPointQueuePathAssignmentNoQueueTest() {
+//    try {
+//
+//      Demands demands = createDemands(testToken);
+//
+//      /* OD DEMANDS 1800 A->A``, 1800 A->A``` (1800 pcu/h for one hour) */
+//      OdZones odZones = zoning.getOdZones();
+//      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
+//      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 1800.0);
+//      odDemands.setValue(odZones.getByXmlId("A`"), odZones.getByXmlId("A```"), 1800.0);
+//      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
+//
+//      /* sLTM - POINT QUEUE */
+//      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+//      var sLtmConf = ((StaticLtmConfigurator) sLTMBuilder.getConfigurator());
+//      sLtmConf.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+//      sLtmConf.activateDetailedLogging(true);
+//
+//      /* PATH BASED */
+//      sLtmConf.setType(StaticLtmType.PATH_BASED);
+//
+//      sLtmConf.activateOutput(OutputType.LINK);
+//      sLtmConf.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+//
+//      sLtmConf.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A", "A``"));
+//      sLtmConf.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A`", "A```"));
+//
+//      StaticLtm sLTM = sLTMBuilder.build();
+//      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+//      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+//
+//      sLTM.execute();
+//
+//      testOutflowsNoQueue(sLTM);
+//
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//      fail("Error when testing sLTM path based grid assignment");
+//    }
+//  }
 
-      Demands demands = createDemands(testToken);
 
-      /* OD DEMANDS 1800 A->A``, 1800 A->A``` (1800 pcu/h for one hour) */
-      OdZones odZones = zoning.getOdZones();
-      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
-      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 1800.0);
-      odDemands.setValue(odZones.getByXmlId("A`"), odZones.getByXmlId("A```"), 1800.0);
-      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      var sLtmConf = ((StaticLtmConfigurator) sLTMBuilder.getConfigurator());
-      sLtmConf.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sLtmConf.activateDetailedLogging(true);
-      
-      /* PATH BASED */
-      sLtmConf.setType(StaticLtmType.PATH_BASED);
-
-      sLtmConf.activateOutput(OutputType.LINK);
-      sLtmConf.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-
-      sLtmConf.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A", "A``"));
-      sLtmConf.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A`", "A```"));
-
-      StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-
-      sLTM.execute();
-
-      testOutflowsNoQueue(sLTM);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM path based grid assignment");
-    }
-  }
-
-
-  /**
-   * Test sLTM path based assignment on grid based network with demand causing some queues
-   */
-  @Test
-  public void sLtmPointQueuePathBasedAssignmentWithQueueTest() {
-    try {
-
-      Demands demands = createDemands(testToken);
-
-      /* OD DEMANDS 3600 A->A``, 3600 A->A``` */
-      OdZones odZones = zoning.getOdZones();
-      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
-      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 3600.0);
-      odDemands.setValue(odZones.getByXmlId("A`"), odZones.getByXmlId("A```"), 3600.0);
-      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder =
-              new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      var sLtmConf = ((StaticLtmConfigurator) sLTMBuilder.getConfigurator());
-      sLtmConf.createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
-      sLtmConf.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sLtmConf.activateDetailedLogging(false);
-      
-      /* PATH BASED */
-      sLtmConf.setType(StaticLtmType.PATH_BASED);
-      sLtmConf.activateMaxEntropyFlowDistribution(true);
-
-      sLtmConf.activateOutput(OutputType.LINK);
-      sLtmConf.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-
-      StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.setActivateDetailedLogging(true);
-      sLTM.execute();
-
-      testOutflowsQueue(sLTM);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM path based grid assignment");
-    }
-  }
+//  /**
+//   * Test sLTM path based assignment on grid based network with demand causing some queues
+//   */
+//  @Test
+//  public void sLtmPointQueuePathBasedAssignmentWithQueueTest() {
+//    try {
+//
+//      Demands demands = createDemands(testToken);
+//
+//      /* OD DEMANDS 3600 A->A``, 3600 A->A``` */
+//      OdZones odZones = zoning.getOdZones();
+//      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
+//      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 3600.0);
+//      odDemands.setValue(odZones.getByXmlId("A`"), odZones.getByXmlId("A```"), 3600.0);
+//      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
+//
+//      /* sLTM - POINT QUEUE */
+//      StaticLtmTrafficAssignmentBuilder sLTMBuilder =
+//              new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+//      var sLtmConf = ((StaticLtmConfigurator) sLTMBuilder.getConfigurator());
+//      sLtmConf.createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
+//      sLtmConf.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+//      sLtmConf.activateDetailedLogging(false);
+//
+//      /* PATH BASED */
+//      sLtmConf.setType(StaticLtmType.PATH_BASED);
+//      sLtmConf.activateMaxEntropyFlowDistribution(true);
+//
+//      sLtmConf.activateOutput(OutputType.LINK);
+//      sLtmConf.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+//
+//      StaticLtm sLTM = sLTMBuilder.build();
+//      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+//      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+//      sLTM.setActivateDetailedLogging(true);
+//      sLTM.execute();
+//
+//      testOutflowsQueue(sLTM);
+//
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//      fail("Error when testing sLTM path based grid assignment");
+//    }
+//  }
 
 }

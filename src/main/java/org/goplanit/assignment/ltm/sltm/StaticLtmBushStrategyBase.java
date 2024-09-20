@@ -19,6 +19,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.zoning.OdZones;
@@ -67,7 +68,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    */
   private Collection<Pas> shiftFlows(
           final Mode theMode, final StaticLtmSimulationData simulationData) {
-    equalFlowDistributedPass.clear();
     var flowShiftedPass = new ArrayList<Pas>((int) this.pasManager.getNumberOfPass());
     var passWithoutOrigins = new ArrayList<Pas>();
 
@@ -76,19 +76,34 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
 
-    /*
-     * Sort all PAss by their reduced cost ensuring we shift flows from the most attractive shift towards the least where we exclude all link segments of a processed PAS such that
-     * no other PASs are allowed to shift flows if they overlap to avoid using inconsistent costs after a flow shift to or from a link segment
-     */
-    //todo: do not use bitset here, it is superslow while checking in the below loop
-    Collection<EdgeSegment> linkSegmentsUsed = new ArrayList<>(1000);
-    Collection<Pas> sortedPass = this.pasManager.getPassSortedByReducedCost(PasManager.PAS_REDUCED_COST_PER_KM_COMPARATOR);
+    // prep flow shifting to allow for ordering based on PAS flows
+    final Map<Pas, PasFlowShiftExecutor> pasExecutors = new HashMap<>();
+    this.pasManager.forEachPas( pas -> {
+            var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
+            pasFlowShifter.initialise();
+            pasExecutors.put(pas, pasFlowShifter);
+    });
+
+    // flow based comparator
+    final Comparator<Pas> PAS_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
+      double p1Cost = p1.getReducedCost() * pasExecutors.get(p1).getS2SendingFlow();
+      double p2Cost = p2.getReducedCost() * pasExecutors.get(p2).getS2SendingFlow();
+      if (Precision.greater(p1Cost, p2Cost, Precision.EPSILON_15)) {
+        return -1;
+      } else if (Precision.smaller(p1Cost, p2Cost, Precision.EPSILON_15)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    };
+
+    /* Sort all PAss absed on comparator */
+    Collection<EdgeSegment> linkSegmentsUsed = new HashSet<>(100);
+    Collection<Pas> sortedPass = this.pasManager.getPassSortedByReducedCost(PAS_REDUCED_COST_BY_FLOW_COMPARATOR);
 
     int numPas = sortedPass.size();
     for (Pas pas : sortedPass) {
-
-      var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
-      pasFlowShifter.initialise(); // to be able to collect pas sending flows for gap
+      var pasFlowShifter = pasExecutors.get(pas);
 
       if (!(pasFlowShifter.getS2SendingFlow() > 0)) {
         /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial overlapping S2 segments) */
@@ -121,28 +136,18 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         }
       }
 
+      LOGGER.info(String.format("APPLIED* (%s): reduced cost multiplied with s2 flow: %.2f", pas, pas.getReducedCost() * pasFlowShifter.getS2SendingFlow()));
+
       /* untouched PAS (no flows shifted yet) in this iteration */
       boolean pasFlowShifted = pasFlowShifter.run(
               theMode, physicalCost, virtualCost, networkLoading, getSmoothing());
       if (pasFlowShifted) {
         flowShiftedPass.add(pas);
 
-        /*
-         * When flow is shifted we disallow overlapping other PASs to shift flow in this iteration as cost is likely to change. However, when flow is shifted to maximise entropy,
-         * it means cost is already equal, and is expected to not be affected by shift. Hence, in that case we do not disallow other PASs to shift flow and do not mark the PASs
-         * link segments as "used".
-         */
-        if (pasFlowShifter.isTowardsEqualAlternativeFlowDistribution()) {
-          equalFlowDistributedPass.add(pas);
-          continue;
-        }
-
         /* s1 */
         pas.forEachEdgeSegment(true /* low cost */, linkSegmentsUsed::add);
         /* s2 */
         pas.forEachEdgeSegment(false /* high cost */, linkSegmentsUsed::add);
-        /* s1/s2 entry segments */
-        linkSegmentsUsed.addAll(pasFlowShifter.getUsedCongestedEntrySegments());
 
         /* when s2 no longer used on any bush - mark PAS for overall removal */
         if (!pas.hasRegisteredBushes()) {
@@ -168,14 +173,15 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     return flowShiftedPass;
   }
 
-  /** tracked bushes (with non-zero demand) */
+  /**
+   * tracked bushes (with non-zero demand)
+   */
   protected B[] bushes;
 
-  /** track all unique PASs */
+  /**
+   * track all unique PASs
+   */
   protected final PasManager pasManager;
-
-  /** track all PASs where we are attempting to distribute flow equally to obtain unique solution under unequal flow but equal cost/cost-derivative */
-  protected Set<Pas> equalFlowDistributedPass;
 
   /**
    * Update gap. modified path based gap function where we update the GAP based on PAS cost discrepancy.
@@ -185,7 +191,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * minimumCost PAS : s1 cost * SUM(s1 sending flow, s2 sending flow), measuredAbsoluteCostGap PAS: s2 sending flow * (s2 cost - s1 cost)
    * <p>
    * Sum the above over all PASs. Note that PASs can (partially) overlap, so the measured cost does likely not add up to the network cost
-   * 
+   *
    * @param gapFunction   to use
    * @param pas           to compute for
    * @param s1SendingFlow of the PAS s1 segment
@@ -211,7 +217,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
   /**
    * Update the PASs for bushes given the network costs and current bushes DAGs
-   * 
+   *
    * @param linkSegmentCosts to use
    * @return newly created PASs
    * @throws PlanItException thrown if error
@@ -219,31 +225,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   protected abstract Collection<Pas> updateBushPass(final double[] linkSegmentCosts) throws PlanItException;
 
   /**
-   * Verify if solution is flow proportional
-   * 
-   * @param gapEpsilon to use
-   * @return true when flow proportional, false otherwise
-   */
-  protected boolean isSolutionFlowEntropyMaximised(double gapEpsilon) {
-    StringBuilder remainingPassToMaximiseEntropy = new StringBuilder("PASs not at max entropy: \n");
-    boolean entryFound = false;
-    for (var pas : this.equalFlowDistributedPass) {
-      entryFound = true;
-      remainingPassToMaximiseEntropy.append("PAS - ");
-      remainingPassToMaximiseEntropy.append(pas.toString());
-      remainingPassToMaximiseEntropy.append("\n");
-    }
-    if (entryFound && getSettings().isDetailedLogging()) {
-      LOGGER.info(remainingPassToMaximiseEntropy.toString());
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
    * Constructor
-   * 
+   *
    * @param idGroupingToken       to use for internal managed ids
    * @param assignmentId          of parent assignment
    * @param transportModelNetwork to use
@@ -262,7 +245,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     this.pasManager = new PasManager(registerPassByDiverge);
 
     this.pasManager.setDetailedLogging(settings.isDetailedLogging());
-    this.equalFlowDistributedPass = new HashSet<>();
   }
 
   /**
@@ -278,7 +260,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * split proportionally
    * <p>
    * Add the edge segments to the bush and update the turn sending flow accordingly.
-   * 
+   *
    * @param bush                  to use
    * @param zoning                to use
    * @param odDemands             to use
@@ -288,7 +270,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @param pas      to create flow shift executor for
    * @param settings to use
    * @return created executor
@@ -298,7 +280,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   /**
    * Initialise bushes. Find shortest bush for each origin and add the links, flow, and destination labelling to the bush
    *
-   * @param mode to use
+   * @param mode             to use
    * @param linkSegmentCosts costs to use
    */
   protected void initialiseBushes(Mode mode, final double[] linkSegmentCosts){
@@ -323,7 +305,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
   /**
    * Create a network wide shortest bush algorithm based on provided costs
-   * 
+   *
    * @param linkSegmentCosts to use
    * @return one-to-all shortest bush algorithm
    */
@@ -334,7 +316,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
   /**
    * Create a network wide Dijkstra shortest path algorithm based on provided costs
-   * 
+   *
    * @param linkSegmentCosts to use
    * @return Dijkstra shortest path algorithm
    */
@@ -347,7 +329,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * Create bush based network loading implementation
    *
    * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
-   *  to splitting rate data format
+   *                                to splitting rate data format
    * @return created loading implementation supporting bush-based approach
    */
   @Override
@@ -365,7 +347,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   /**
    * {@inheritDoc}
    * Create initial bushes, where for each origin the bush is initialised with the shortest path only
-   *
    */
   @Override
   public void createInitialSolution(Mode mode, OdZones odZones, double[] initialLinkSegmentCosts, int iterationIndex) {
@@ -485,12 +466,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   @Override
   public boolean hasConverged(GapFunction gapFunction, int iterationIndex) {
     boolean converged = super.hasConverged(gapFunction, iterationIndex);
-    if (converged && getSettings().isEnforceMaxEntropyFlowSolution()) {
-      converged = isSolutionFlowEntropyMaximised(gapFunction.getStopCriterion().getEpsilon());
-      if(!converged) {
-        LOGGER.info("cost convergence: yes - yet one or more PASs flow distribution is not entropy maximised - overall convergence: no");
-      }
-    }
     return converged;
   }
 

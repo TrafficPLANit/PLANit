@@ -321,8 +321,10 @@ public class StaticLtmSettings {
   /**
    * Bush based only option
    * TODO: split out in separate settings time permitting
+   * @deprecated not supported properly do not use
    * @return enforceMaxEntropyFlowSolution flag set
    */
+  @Deprecated
   public Boolean isEnforceMaxEntropyFlowSolution() {
     return enforceMaxEntropyFlowSolution;
   }
@@ -330,8 +332,10 @@ public class StaticLtmSettings {
   /**
    * Bush based only option
    * TODO: split out in separate settings time permitting
+   * @deprecated not supported properly do not use
    * @param enforceMaxEntropyFlowSolution when true force max entropy based approach
    */
+  @Deprecated
   public void setEnforceMaxEntropyFlowSolution(Boolean enforceMaxEntropyFlowSolution) {
     this.enforceMaxEntropyFlowSolution = enforceMaxEntropyFlowSolution;
   }

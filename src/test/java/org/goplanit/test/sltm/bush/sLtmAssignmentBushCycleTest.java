@@ -99,7 +99,7 @@ public class sLtmAssignmentBushCycleTest {
     // construct the network.
     // Both demands are 2000
     //
-    //          ---*A''(7)
+    //            ---*A''(7)
     // (4) 8 (B) /   | 10 (B)
     // o------/     o(5)
     // |           |

@@ -490,7 +490,8 @@ public class Pas {
     }
 
     var objPas = (Pas) obj;
-    if (Arrays.equals(objPas.s1, this.s1) && Arrays.equals(objPas.s2, this.s2)) {
+    if (this.pasId == ((Pas) obj).pasId &&
+            Arrays.equals(objPas.s1, this.s1) && Arrays.equals(objPas.s2, this.s2)) {
       return true;
     }
 
@@ -502,7 +503,7 @@ public class Pas {
    */
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder(String.format("(%d)", pasId));
+    final StringBuilder sb = new StringBuilder(String.format(" (%d)", pasId));
 
     Consumer<EdgeSegment> consumer = (ls) -> {
       if (ls == null) {
