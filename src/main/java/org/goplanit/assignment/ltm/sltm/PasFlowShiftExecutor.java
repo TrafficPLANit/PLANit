@@ -369,7 +369,6 @@ public abstract class PasFlowShiftExecutor {
     denominatorS2 =
             getDTravelTimeDFlow(theMode, networkLoading, physicalCost, virtualCost, false);
 
-
     /* obtain PAS-entry segment sub-path sending flows */
     var s1S2SubPathSendingFlowPair = totalEntrySegmentS1S2Flow.get(entrySegment);
     double s1WithEntrySendingFlow = s1S2SubPathSendingFlowPair.first();
@@ -425,7 +424,7 @@ public abstract class PasFlowShiftExecutor {
           var refSegment = pasEntrySegmentCongested ? entrySegment : firstS2CongestedLinkSegment;
           double s2DeltaFlowToStateChangeEstimate = -1;
           s2DeltaFlowToStateChangeEstimate =
-                  this.getS2SendingFlow() *
+                  networkLoading.getCurrentInflowsPcuH()[(int) refSegment.getId()] *
                           (1 - networkLoading.getCurrentFlowAcceptanceFactors()[(int) refSegment.getId()]);
           flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2DeltaFlowToStateChangeEstimate);
         }

@@ -242,20 +242,19 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
         var result = getDag().breadthFirstSearch(
             currAlternativeVertex,
             false,
-            (v, prevEs) -> cycleIntroducingVertices.contains(v) || noCycleIntroducingVertices.contains(v));
-        if( result == null || result.first() == null){
-          LOGGER.severe("BFS for cycle detection should always succeed, but failed this shouldn't happen");
-          return alternative[0]; // something went wrong, pretend cycle is introduced to be safe
-        }
-        if(noCycleIntroducingVertices.contains(result.first())){
-          // no cycle - keep going
+            (es) -> true,
+            (prevEs,es) -> !noCycleIntroducingVertices.contains(es.getUpstreamVertex()), // do not explore beyond vertices that are known to not yield cycle
+            (v, prevEs) -> cycleIntroducingVertices.contains(v));
+        if(result == null){
+          LOGGER.severe("BFS for cycle detection has no result, this shouldn't happen");
+          return alternative[0]; // pretend cycle is found to not break
         }else if(cycleIntroducingVertices.contains(result.first())){
           // cycle - get edge segment on alternative that caused the cycle if it were to be added
           return Arrays.stream(alternative).filter(es -> es.anyVertexMatches(v -> v.idEquals(result.first()))).findFirst().get();
-        }else{
-          LOGGER.severe("BFS for cycle detection has a result but vertex found could not be identified, this shouldn't happen");
-          return alternative[0]; // something went wrong, pretend cycle is introduced to be safe
+        }else if(result.first() != null){
+          LOGGER.severe("found BFS result for cycle detection but it is not cycle introducing, this shouldn't happen");
         }
+        // no cycle could be detected continue
       }
 
       cycleIntroducingVertices.add(currAlternativeVertex);
