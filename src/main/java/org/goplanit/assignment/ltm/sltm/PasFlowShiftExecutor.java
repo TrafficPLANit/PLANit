@@ -41,6 +41,9 @@ public abstract class PasFlowShiftExecutor {
   /** track any removed edge segments as a result of a flow shift on a bush level */
   private final Map<EdgeSegment, Set<RootedLabelledBush>> removedEdgeSegmentsForBushes = new TreeMap<>();
 
+  /** track any removed edge segments as a result of a flow shift on a bush level */
+  private final Map<EdgeSegment, Set<RootedLabelledBush>> addedEdgeSegmentsForBushes = new TreeMap<>();
+
   /**
    * Verify if entry segment is congested
    *
@@ -663,12 +666,30 @@ public abstract class PasFlowShiftExecutor {
   }
 
   /**
-   * access bushes that have removed the given link segment due to a flow shift
+   * Verify if any edge segments have been added by a bush as a result of the PAS flow shift
+   *
+   * @return true if confirmed, false otherwise
+   */
+  public boolean hasAnyBushAddedLinkSegments() {
+    return addedEdgeSegmentsForBushes != null && !addedEdgeSegmentsForBushes.isEmpty();
+  }
+
+  /**
+   * access bushes that have removed link segments due to a flow shift
    *
    * @return tracked findings or empty map
    */
   public Map<EdgeSegment, Set<RootedLabelledBush>> getBushRemovedLinkSegments() {
     return removedEdgeSegmentsForBushes;
+  }
+
+  /**
+   * access bushes that have added link segments due to a flow shift
+   *
+   * @return tracked findings or empty map
+   */
+  public Map<EdgeSegment, Set<RootedLabelledBush>> getBushAddedLinkSegments() {
+    return addedEdgeSegmentsForBushes;
   }
 
   /**
@@ -678,12 +699,43 @@ public abstract class PasFlowShiftExecutor {
    * @return tracked findings or empty list
    */
   public Set<RootedLabelledBush> getBushRemovedLinkSegments(EdgeSegment linkSegment) {
-    var bushes = removedEdgeSegmentsForBushes.get(linkSegment);
-    if(bushes == null){
-      bushes = new TreeSet<>();
-      removedEdgeSegmentsForBushes.put(linkSegment, bushes);
-    }
+    var bushes =
+        removedEdgeSegmentsForBushes.computeIfAbsent(linkSegment, k -> new TreeSet<>());
     return bushes;
+  }
+
+  /**
+   * access bushes that have added the given link segment due to a flow shift
+   *
+   * @param linkSegment to check for
+   * @return tracked findings or empty list
+   */
+  public Set<RootedLabelledBush> getBushAddedLinkSegments(EdgeSegment linkSegment) {
+    var bushes =
+        addedEdgeSegmentsForBushes.computeIfAbsent(linkSegment, k -> new TreeSet<>());
+    return bushes;
+  }
+
+  /**
+   * Mark segment as removed from bush due to flow shift
+   *
+   * @param bush to use
+   * @param linkSegment to register
+   */
+  public void addBushRemovedLinkSegment(
+      RootedLabelledBush bush, EdgeSegment linkSegment){
+    getBushRemovedLinkSegments(linkSegment).add(bush);
+  }
+
+  /**
+   * Mark segment as added to bush due to flow shift
+   *
+   * @param bush to use
+   * @param linkSegment to register
+   */
+  public void addBushAddedLinkSegment(
+      RootedLabelledBush bush, EdgeSegment linkSegment){
+    getBushAddedLinkSegments(linkSegment).add(bush);
   }
 
 }

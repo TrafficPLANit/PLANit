@@ -279,8 +279,8 @@ public class Pas {
   }
 
   /**
-   * Check if any of the set link segments is present on the indicated alternative
-   * 
+   * Check if any of the set vertices is present on the indicated alternative
+   *
    * @param linkSegments where we verify against set link segments
    * @param lowCost      when true check with low cost alternative otherwise high cost
    * @return true when overlapping, false otherwise

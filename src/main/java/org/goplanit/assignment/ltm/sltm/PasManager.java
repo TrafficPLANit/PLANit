@@ -1,24 +1,17 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.logging.Logger;
-
-import org.apache.commons.collections4.Predicate;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
+
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.logging.Logger;
 
 /**
  * Container class for tracking all unique PASs indexed by their relevant reference vertex
@@ -637,7 +630,7 @@ public class PasManager {
     int countRemovals = 0;
     for (var pass : passByVertex.values()) {
       for( var pas : pass){
-        if(pas.hasRegisteredBush(bush) && pasPredicate.evaluate(pas)){
+        if(pas.hasRegisteredBush(bush) && pasPredicate.test(pas)){
           pas.removeBush(bush);
           ++countRemovals;
         }

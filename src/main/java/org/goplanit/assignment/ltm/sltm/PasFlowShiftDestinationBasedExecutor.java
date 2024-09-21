@@ -35,17 +35,30 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
   private double executeTurnFlowShift(
           RootedLabelledBush bush, EdgeSegment turnEntry, EdgeSegment turnExit, double flowShiftPcuH) {
 
+    // track what edge segments were added to what bush, so we can (in case of overlapping PAS update allowance)
+    // flag if additional cycle checks are needed for subsequent PASs that may not be compatible with this current
+    // PAS that we chose to prefer over those later ones
+    if(Precision.positive(flowShiftPcuH)){
+      if(!bush.containsEdgeSegment(turnEntry.getId())){
+        addBushAddedLinkSegment(bush, turnEntry);
+      }
+      if(!bush.containsEdgeSegment(turnEntry.getId())){
+        addBushAddedLinkSegment(bush, turnEntry);
+      }
+    }
+
     double newTurnFlow = bush.addTurnSendingFlow(
             turnEntry, dummyLabel, turnExit, dummyLabel, flowShiftPcuH, isPasS2RemovalAllowed());
+
     if (isPasS2RemovalAllowed() && !Precision.positive(newTurnFlow, EPSILON) &&
             !Precision.positive(bush.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
       /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
       bush.removeTurn(turnEntry, turnExit);
-      if(bush.getSendingFlowPcuH(turnEntry) <= 0.0) {
-        getBushRemovedLinkSegments(turnEntry).add(bush);
+      if(bush.getSendingFlowPcuH(turnEntry) <= EPSILON) {
+        addBushRemovedLinkSegment(bush, turnEntry);
       }
-      if(bush.getSendingFlowPcuH(turnExit) <= 0.0) {
-        getBushRemovedLinkSegments(turnExit).add(bush);
+      if(bush.getSendingFlowPcuH(turnExit) <= EPSILON) {
+        addBushRemovedLinkSegment(bush, turnEntry);
       }
       newTurnFlow = 0.0;
     }
@@ -87,10 +100,10 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
             bush.removeTurn(lastS2Segment, exitSegment);
             /* track for further processing, so we can deregister bush on other PASs with these links */
             if(bush.getSendingFlowPcuH(lastS2Segment) <= 0.0) {
-              getBushRemovedLinkSegments(lastS2Segment).add(bush);
+              addBushRemovedLinkSegment(bush, lastS2Segment);
             }
             if(bush.getSendingFlowPcuH(exitSegment) <= 0.0) {
-              getBushRemovedLinkSegments(exitSegment).add(bush);
+              addBushRemovedLinkSegment(bush, exitSegment);
             }
           }
 
@@ -154,7 +167,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
     EdgeSegment currentSegment = entrySegment;
     var nextSegment = pasSegment[index];
 
-    executeTurnFlowShift(bush, entrySegment, nextSegment, flowShiftPcuH);
+    executeTurnFlowShift(bush, currentSegment, nextSegment, flowShiftPcuH);
     flowShiftPcuH *= flowAcceptanceFactors[(int) entrySegment.getId()];
 
     /* pas alternative itself */

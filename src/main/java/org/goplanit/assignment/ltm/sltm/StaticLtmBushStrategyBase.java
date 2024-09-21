@@ -1,6 +1,5 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import org.apache.commons.collections4.Predicate;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
@@ -17,6 +16,7 @@ import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -26,6 +26,7 @@ import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 /**
@@ -46,7 +47,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    *
    * @param bushRemovedLinkSegments to consider
    */
-  private void removeBushesFromMatchingPass(
+  private void deregisterBushesWithRemovedSegmentsFromMatchingPass(
           Map<EdgeSegment, Set<RootedLabelledBush>> bushRemovedLinkSegments) {
 
     for(var entry : bushRemovedLinkSegments.entrySet()){
@@ -59,14 +60,77 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   }
 
   /**
+   * If a bush has added link segments due to shifted flows then we must remove this bush from all other
+   * PASs that 1) have this bush registered AND 2) have been NEWLY added in this iteration ONLY IF the new
+   * PAS would introduce a cycle based on the newly added link segments. This is what is checked here and if found
+   * to cause a cycle then deregistration of the bush from the new PAS is performed immediately.
+   *
+   * <p>
+   *   Existing PASs need not checking because
+   *   this PAS that added the segments has been vetted against those implicitly by checking the original bush.
+   *   (can only occur with overlapping pas update)
+   * </p>
+   *
+   * @param bushAddedLinkSegments to consider
+   * @param newPass that need to be checked
+   */
+  private void deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(
+      Map<EdgeSegment, Set<RootedLabelledBush>> bushAddedLinkSegments, Collection<Pas> newPass) {
+    if(newPass == null || newPass.isEmpty()){
+      return;
+    }
+
+    // convert to vertices
+    Map<DirectedVertex, Set<RootedLabelledBush>> touchedVertices = new TreeMap<>();
+    Set<RootedLabelledBush> touchedBushes = new TreeSet<>();
+    bushAddedLinkSegments.forEach( (es, bs) -> {
+        touchedVertices.computeIfAbsent(es.getUpstreamVertex(), k -> new TreeSet<>()).addAll(bs);
+        touchedVertices.computeIfAbsent(es.getDownstreamVertex(), k -> new TreeSet<>()).addAll(bs);
+        touchedBushes.addAll(bs);
+    });
+
+    // lambda to see if an edge segment of a pas alternative has any overlapping vertices with the
+    // bushAddedLinkSegments provided. If so it yields true
+    final Predicate<EdgeSegment> anyVertexMatches = es ->
+            bushAddedLinkSegments.keySet().stream().anyMatch(
+                esAdded -> esAdded.hasAnyVertex(es.getUpstreamVertex(), es.getDownstreamVertex()));
+
+    // only consider new PASs that have overlapping vertices and on which any of the bushes is registered before
+    // attempting to...
+    newPass.stream().filter(
+        pas ->
+            pas.anyMatch(anyVertexMatches, true) &&
+                pas.anyMatch(anyVertexMatches, false)).forEach(
+            potentialOverlappingPas -> {
+
+              //...find the matching vertices specifically and then isolate the set of bushes that go with them
+              //TODO --> LEFT OFF HERE
+
+              //touchedBushes.stream().anyMatch(pas::hasRegisteredBush)
+            });
+
+
+//      if( (currNewPas.anyMatch(es -> es.getParent().getXmlId().equals("17"), true) || currNewPas.anyMatch(es -> es.getParent().getXmlId().equals("17"), false))
+//          &&
+//          currNewPas.getRegisteredBushes().stream().anyMatch(b -> b.getDag().getId()==18)){
+//        var bush = currNewPas.getRegisteredBushes().stream().filter(b -> b.getDag().getId()==18).findFirst().get();
+//        int bla = 4;
+//    }
+  }
+
+  /**
    * Shift flows based on the registered PASs and their origins.
    *
    * @param theMode        to use
    * @param simulationData to use
+   * @param newPass only used to deregister bush from new Pass pre-emptively in case we flag a cycle if it were to be
+   *                used due to the current PAS adding link segments to the bush as a result of the flow shift
    * @return all PASs where non-zero flow was shifted on
    */
   private Collection<Pas> shiftFlows(
-          final Mode theMode, final StaticLtmSimulationData simulationData) {
+          final Mode theMode,
+          final StaticLtmSimulationData simulationData,
+          final Collection<Pas> newPass) {
     var flowShiftedPass = new ArrayList<Pas>((int) this.pasManager.getNumberOfPass());
     var passWithoutOrigins = new ArrayList<Pas>();
 
@@ -76,7 +140,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
 
     // STEP 1: PAS original sending flows per alternative
-    // prep flow shifting to allow for ordering based on PAS flows
+    // prep flow shifting to allow for ordering based on PAS flows and then construct proposed flow shifts based
+    // on these network loading consistent PAS sending flows
     final Map<Pas, PasFlowShiftExecutor> pasExecutors = new HashMap<>();
     this.pasManager.forEachPas( pas -> {
             var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
@@ -118,7 +183,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       var pasFlowShifter = pasExecutors.get(pas);
 
       if (!(pasFlowShifter.getS2SendingFlow() > 0)) {
-        /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial overlapping S2 segments) */
+        /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial
+         * overlapping S2 segments) */
         pas.removeAllRegisteredBushes();
         passWithoutOrigins.add(pas);
         continue;
@@ -149,22 +215,9 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       }else{
         // The sending flows at the start of the PAS may have been affected by other PASs updates since they were
         // identified earlier.
-        // NOTE: we must use the original ones to determine the proposed flow shifts because that it the only one
+        // NOTE: we must use the original ones to determine the proposed flow shifts because that is the only one
         // consistent with network loading (if we'd use these for that, then we may get too high values causing problems)
         pasFlowShifter.updateS1S2EntrySendingFlows();
-
-        //todo: we now pre-emptively must deregister bushes that had edges added by previous PASs which may cause
-        //      cycles for this PAS. If so, remove the bush from this PAS
-        if( (pas.anyMatch(es -> es.getParent().getXmlId().equals("17"), true) || pas.anyMatch(es -> es.getParent().getXmlId().equals("17"), false))
-                &&
-                pas.getRegisteredBushes().stream().anyMatch(b -> b.getDag().getId()==18)){
-          var bush = pas.getRegisteredBushes().stream().filter(b -> b.getDag().getId()==18).findFirst().get();
-          int bla = 4;
-
-          // todo idea to do this --> track all vertices touched by added edge segments for each bush, if a NEWLY registered
-          //  bush on a pas shares any of those we need to check explicitly whether this PAS will introduce cycles
-          //  for cycles --> this also requires tracking which bushes were newly registered
-        }
       }
 
       LOGGER.info(String.format("APPLIED* (%s): reduced cost multiplied with s2 flow: %.2f", pas, pas.getReducedCost() * pasFlowShifter.getS2SendingFlow()));
@@ -190,8 +243,16 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
          * the link segment present that no longer has any flow on the bush. */
          if(pasFlowShifter.hasAnyBushRemovedLinkSegments()){
            Map<EdgeSegment, Set<RootedLabelledBush>> bushRemovedLinkSegments = pasFlowShifter.getBushRemovedLinkSegments();
-           removeBushesFromMatchingPass(bushRemovedLinkSegments);
+           deregisterBushesWithRemovedSegmentsFromMatchingPass(bushRemovedLinkSegments);
          }
+         /* conversely if a bush has added link segments due to shifted flows then we must remove this bush from all other
+          * PASs that 1) have this bush registered 2) have been NEWLY added in this iteration. Existing PASs are fine because
+          * this PAS that added the segments has been vetted against those implicitly by checking the original bush.
+          * (can only occur with overlapping pas update) */
+        if(pasFlowShifter.hasAnyBushAddedLinkSegments() && getSettings().isAllowOverlappingPasUpdate()){
+          Map<EdgeSegment, Set<RootedLabelledBush>> bushAddedLinkSegments = pasFlowShifter.getBushRemovedLinkSegments();
+          deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(bushAddedLinkSegments, newPass);
+        }
       }
     }
 
@@ -461,7 +522,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         LOGGER.info(String.format("%d PASs known (%d new potential PASs)", pasManager.getNumberOfPass(), newPass.size()));
               
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
-        Collection<Pas> updatedPass = shiftFlows(theMode, simulationData);
+        Collection<Pas> updatedPass = shiftFlows(theMode, simulationData, newPass);
         
         if(getSettings().isDetailedLogging()) {
           var newUsedPass = new ArrayList<>(newPass);
