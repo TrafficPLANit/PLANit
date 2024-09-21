@@ -152,6 +152,19 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         // NOTE: we must use the original ones to determine the proposed flow shifts because that it the only one
         // consistent with network loading (if we'd use these for that, then we may get too high values causing problems)
         pasFlowShifter.updateS1S2EntrySendingFlows();
+
+        //todo: we now pre-emptively must deregister bushes that had edges added by previous PASs which may cause
+        //      cycles for this PAS. If so, remove the bush from this PAS
+        if( (pas.anyMatch(es -> es.getParent().getXmlId().equals("17"), true) || pas.anyMatch(es -> es.getParent().getXmlId().equals("17"), false))
+                &&
+                pas.getRegisteredBushes().stream().anyMatch(b -> b.getDag().getId()==18)){
+          var bush = pas.getRegisteredBushes().stream().filter(b -> b.getDag().getId()==18).findFirst().get();
+          int bla = 4;
+
+          // todo idea to do this --> track all vertices touched by added edge segments for each bush, if a NEWLY registered
+          //  bush on a pas shares any of those we need to check explicitly whether this PAS will introduce cycles
+          //  for cycles --> this also requires tracking which bushes were newly registered
+        }
       }
 
       LOGGER.info(String.format("APPLIED* (%s): reduced cost multiplied with s2 flow: %.2f", pas, pas.getReducedCost() * pasFlowShifter.getS2SendingFlow()));

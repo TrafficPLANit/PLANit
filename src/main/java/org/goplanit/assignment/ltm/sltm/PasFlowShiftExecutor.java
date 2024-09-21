@@ -553,6 +553,10 @@ public abstract class PasFlowShiftExecutor {
 
       double entrySegmentPortion = totalEntrySegmentS2Flow / totalS2SendingFlow;
 
+      //todo: since we now truncate proposed flow shift to minimum of original sending flow
+      //  smoothing it will reduce it further and may hamper removals of pass
+      //  perhaps we should just track the original sending flow and take the minimum after this check
+      //  but this requires more book keeping
       double smoothedProportionalPasflowShift =
               smoothing.executeRefZero(proposedPasFlowShift * entrySegmentPortion);
 
