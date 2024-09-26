@@ -194,6 +194,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         LOGGER.severe(String.format("Unable to obtain min-max paths for bush, this shouldn't happen, skip updateBushPass"));
         continue;
       }
+      minMaxPaths.setMinPathState(false);
 
       /* network min-paths - searched in designated direction (inverted if ALL-TO-ONE, so it is compatible with bush where destination is root) */
       var networkMinPaths = networkShortestPathAlgo.execute(bush.getShortestSearchType(), bush.getRootVertex());
@@ -211,6 +212,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         if (reducedCostSegment == null) {
           continue;
         }
+
         double reducedCost = minMaxPaths.getCostToReach(bushVertex) - networkMinPaths.getCostToReach(bushVertex);
 
         /* when bush does not contain the reduced cost edge segment (or the opposite direction which would cause a cycle)
