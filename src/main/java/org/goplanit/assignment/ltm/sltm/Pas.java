@@ -128,9 +128,9 @@ public class Pas {
    * @return true when newly added, false, when already present
    */
   public boolean registerBush(final RootedLabelledBush bush) {
-    if(pasId == 75 && bush.getDag().getId()==18 ){
-      int bla = 4;
-    }
+//    if(pasId == 75 && bush.getDag().getId()==17 ){
+//      int bla = 4;
+//    }
     return registeredBushes.add(bush);
   }
 

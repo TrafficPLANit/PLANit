@@ -80,15 +80,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       return;
     }
 
-    // convert to vertices
-    Map<DirectedVertex, Set<RootedLabelledBush>> touchedVertices = new TreeMap<>();
-    Set<RootedLabelledBush> touchedBushes = new TreeSet<>();
-    bushAddedLinkSegments.forEach( (es, bs) -> {
-        touchedVertices.computeIfAbsent(es.getUpstreamVertex(), k -> new TreeSet<>()).addAll(bs);
-        touchedVertices.computeIfAbsent(es.getDownstreamVertex(), k -> new TreeSet<>()).addAll(bs);
-        touchedBushes.addAll(bs);
-    });
-
     // lambda to see if an edge segment of a pas alternative has any overlapping vertices with the
     // bushAddedLinkSegments provided. If so it yields true
     final Predicate<EdgeSegment> anyVertexMatches = es ->
@@ -97,25 +88,37 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
     // only consider new PASs that have overlapping vertices and on which any of the bushes is registered before
     // attempting to...
-    newPass.stream().filter(
-        pas ->
-            pas.anyMatch(anyVertexMatches, true) &&
-                pas.anyMatch(anyVertexMatches, false)).forEach(
-            potentialOverlappingPas -> {
+    final var pasAlternativeTypes = List.of(true, false); // low/high cost
+    for(var newPas : newPass){
+      for(var alternativeType : pasAlternativeTypes){
 
-              //...find the matching vertices specifically and then isolate the set of bushes that go with them
-              //TODO --> LEFT OFF HERE
+        if(!newPas.anyMatch(anyVertexMatches, alternativeType)){
+          continue;
+        }
+        var pasBushes = newPas.getRegisteredBushes();
+        for(var pasBush : pasBushes){
 
-              //touchedBushes.stream().anyMatch(pas::hasRegisteredBush)
-            });
+          // debugging
+          if( (newPas.anyMatch(es -> es.getParent().getXmlId().equals("17"), true) || newPas.anyMatch(es -> es.getParent().getXmlId().equals("17"), false))
+                  &&
+                  newPas.getRegisteredBushes().stream().anyMatch(b -> b.getDag().getId()==18)){
+            var bush18 = newPas.getRegisteredBushes().stream().filter(b -> b.getDag().getId()==18).findFirst().get();
+            int bla = 4;
+          }
 
+          if(pasBush.determineIntroduceCycle(newPas.getAlternative(alternativeType))==null){
+            // no cycle, it is fine do nothing
+            continue;
+          }
 
-//      if( (currNewPas.anyMatch(es -> es.getParent().getXmlId().equals("17"), true) || currNewPas.anyMatch(es -> es.getParent().getXmlId().equals("17"), false))
-//          &&
-//          currNewPas.getRegisteredBushes().stream().anyMatch(b -> b.getDag().getId()==18)){
-//        var bush = currNewPas.getRegisteredBushes().stream().filter(b -> b.getDag().getId()==18).findFirst().get();
-//        int bla = 4;
-//    }
+          // CYCLE! if we were to consider this new PAS, deregister bush since another new PASs added segments make it
+          //        invalid to for now on this bush
+          newPas.removeBush(pasBush);
+          break;
+        }
+      }
+    }
+
   }
 
   /**
@@ -132,12 +135,17 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
           final StaticLtmSimulationData simulationData,
           final Collection<Pas> newPass) {
     var flowShiftedPass = new ArrayList<Pas>((int) this.pasManager.getNumberOfPass());
-    var passWithoutOrigins = new ArrayList<Pas>();
+    var passWithoutBush = new ArrayList<Pas>();
 
     var networkLoading = getLoading();
     var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
     var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
+
+    // track remaining new PASs that have not been processed (only used when overlapping PAS updates are allowed to
+    // minimise the on-the-fly checking required for possible cycle introducing conflicts due to overlapping PAS updates)
+    final Map<Long, Pas> unprocessedNewPass = new TreeMap<>();
+    newPass.forEach(p -> unprocessedNewPass.put(p.pasId, p));
 
     // STEP 1: PAS original sending flows per alternative
     // prep flow shifting to allow for ordering based on PAS flows and then construct proposed flow shifts based
@@ -150,16 +158,29 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     });
 
     // STEP2: determine the proposed flow shift for each PAS as if it were performing
-    //  its flow shift in isolation
+    //  its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
     final Map<Pas, Map<EdgeSegment, Double>> pasProposedFlowShifts = new HashMap<>();
     this.pasManager.forEachPas( pas -> {
       var pasFlowShifter = pasExecutors.get(pas);
-      if (pasFlowShifter.getS2SendingFlow() > 0) {
-        Map<EdgeSegment, Double> flowShifts = pasFlowShifter.determineProposedFlowShiftByEntrySegment(
-            theMode, physicalCost, virtualCost, networkLoading);
-        pasProposedFlowShifts.put(pas, flowShifts);
+
+      if (!(pasFlowShifter.getS2SendingFlow() > 0)) {
+        /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial
+         * overlapping S2 segments) */
+        pas.removeAllRegisteredBushes();
+        passWithoutBush.add(pas);
+        return;
       }
+
+      updateGap(gapFunction, pas, pasFlowShifter.getS1SendingFlow(), pasFlowShifter.getS2SendingFlow());
+
+      Map<EdgeSegment, Double> flowShifts = pasFlowShifter.determineProposedFlowShiftByEntrySegment(
+          theMode, physicalCost, virtualCost, networkLoading);
+      pasProposedFlowShifts.put(pas, flowShifts);
     });
+    if (!passWithoutBush.isEmpty()) {
+      passWithoutBush.forEach((pas) -> this.pasManager.removePas(pas, getSettings().isDetailedLogging()));
+    }
+    passWithoutBush.clear();
 
     // flow based comparator
     final Comparator<Pas> PAS_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
@@ -174,23 +195,21 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       }
     };
 
-    /* Sort all PAss based on comparator */
+    /* STEP 3: Sort all remaining PAss based on comparator */
     Collection<EdgeSegment> linkSegmentsUsed = new HashSet<>(100);
     Collection<Pas> sortedPass = this.pasManager.getPassSortedByReducedCost(PAS_REDUCED_COST_BY_FLOW_COMPARATOR);
 
     int numPas = sortedPass.size();
+    Pas prevProcessedPas = null;
     for (Pas pas : sortedPass) {
-      var pasFlowShifter = pasExecutors.get(pas);
 
-      if (!(pasFlowShifter.getS2SendingFlow() > 0)) {
-        /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial
-         * overlapping S2 segments) */
-        pas.removeAllRegisteredBushes();
-        passWithoutOrigins.add(pas);
-        continue;
+      // do here because some process flows get cut-off in loop, so only in next entry we can finalise previous
+      if(prevProcessedPas!=null) {
+        unprocessedNewPass.remove(prevProcessedPas.pasId);
       }
+      prevProcessedPas = pas;
 
-      updateGap(gapFunction, pas, pasFlowShifter.getS1SendingFlow(), pasFlowShifter.getS2SendingFlow());
+      var pasFlowShifter = pasExecutors.get(pas);
 
       if(!getSettings().isAllowOverlappingPasUpdate())
       {
@@ -220,7 +239,17 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         pasFlowShifter.updateS1S2EntrySendingFlows();
       }
 
-      LOGGER.info(String.format("APPLIED* (%s): reduced cost multiplied with s2 flow: %.2f", pas, pas.getReducedCost() * pasFlowShifter.getS2SendingFlow()));
+      if (!(pasFlowShifter.getS2SendingFlow() > 0)) { // todo: this piece of code is duplication from line 166 -> consolidate
+        /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial
+         * overlapping S2 segments) */
+        pas.removeAllRegisteredBushes();
+        passWithoutBush.add(pas);
+        continue;
+      }
+
+      if(getSettings().isDetailedLogging()) {
+        LOGGER.info(String.format("APPLIED* (%s): reduced cost multiplied with s2 flow: %.2f", pas, pas.getReducedCost() * pasFlowShifter.getS2SendingFlow()));
+      }
 
       /* untouched PAS (no flows shifted yet) in this iteration */
       boolean pasFlowShifted = pasFlowShifter.run(
@@ -235,7 +264,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
         /* when s2 no longer used on any bush - mark PAS for overall removal */
         if (!pas.hasRegisteredBushes()) {
-          passWithoutOrigins.add(pas);
+          passWithoutBush.add(pas);
         }
 
         /* If due to flow shifting some bushes have removed edges due to zero flow remaining
@@ -250,14 +279,14 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
           * this PAS that added the segments has been vetted against those implicitly by checking the original bush.
           * (can only occur with overlapping pas update) */
         if(pasFlowShifter.hasAnyBushAddedLinkSegments() && getSettings().isAllowOverlappingPasUpdate()){
-          Map<EdgeSegment, Set<RootedLabelledBush>> bushAddedLinkSegments = pasFlowShifter.getBushRemovedLinkSegments();
-          deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(bushAddedLinkSegments, newPass);
+          Map<EdgeSegment, Set<RootedLabelledBush>> bushAddedLinkSegments = pasFlowShifter.getBushAddedLinkSegments();
+          deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(bushAddedLinkSegments, unprocessedNewPass.values());
         }
       }
     }
 
-    if (!passWithoutOrigins.isEmpty()) {
-      passWithoutOrigins.forEach((pas) -> this.pasManager.removePas(pas, getSettings().isDetailedLogging()));
+    if (!passWithoutBush.isEmpty()) {
+      passWithoutBush.forEach((pas) -> this.pasManager.removePas(pas, getSettings().isDetailedLogging()));
     }
 
     long remainingPass = pasManager.getNumberOfPass();
@@ -310,7 +339,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   /**
    * Update the PASs for bushes given the network costs and current bushes DAGs
    *
-   * @param mode to use
+   * @param mode             to use
    * @param linkSegmentCosts to use
    * @return newly created PASs
    * @throws PlanItException thrown if error
@@ -519,7 +548,9 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       {
         /* (NEW) PAS MATCHING FOR BUSHES */
         Collection<Pas> newPass = updateBushPass(theMode, costsToUpdate);
-        LOGGER.info(String.format("%d PASs known (%d new potential PASs)", pasManager.getNumberOfPass(), newPass.size()));
+        if(getSettings().isDetailedLogging()) {
+          LOGGER.info(String.format("%d PASs known (%d new potential PASs)", pasManager.getNumberOfPass(), newPass.size()));
+        }
               
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
         Collection<Pas> updatedPass = shiftFlows(theMode, simulationData, newPass);

@@ -309,8 +309,11 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
       return;
     }
 
-    if(getId() == 7 && !registeredLinkSegments.get((int) edgeSegment.getId())){
-      LOGGER.info(String.format("adding edge segment %s to dag %d", edgeSegment.getIdsAsString(), getId()));
+    if(getId() == 17 && !registeredLinkSegments.get((int) edgeSegment.getId())){
+      LOGGER.info(String.format("adding edge segment (%s) to dag %d", edgeSegment.getIdsAsString(), getId()));
+//      if(edgeSegment.getXmlId().equals("17-AB")){
+//        int bla = 4;
+//      }
     }
     registeredLinkSegments.set((int) edgeSegment.getId());
     if (!vertexData.containsKey(edgeSegment.getUpstreamVertex())) {

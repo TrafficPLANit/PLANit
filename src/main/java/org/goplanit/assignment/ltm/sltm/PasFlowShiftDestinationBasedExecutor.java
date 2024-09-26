@@ -35,6 +35,12 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
   private double executeTurnFlowShift(
           RootedLabelledBush bush, EdgeSegment turnEntry, EdgeSegment turnExit, double flowShiftPcuH) {
 
+//    if(bush.getDag().getId() == 17 && (!bush.getDag().containsEdgeSegment(turnEntry) || !bush.getDag().containsEdgeSegment(turnExit))){
+//      if(turnEntry.getXmlId().equals("17-AB") || turnExit.getXmlId().equals("17-AB")){
+//        int bla = 4;
+//      }
+//    }
+
     // track what edge segments were added to what bush, so we can (in case of overlapping PAS update allowance)
     // flag if additional cycle checks are needed for subsequent PASs that may not be compatible with this current
     // PAS that we chose to prefer over those later ones
@@ -42,8 +48,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
       if(!bush.containsEdgeSegment(turnEntry.getId())){
         addBushAddedLinkSegment(bush, turnEntry);
       }
-      if(!bush.containsEdgeSegment(turnEntry.getId())){
-        addBushAddedLinkSegment(bush, turnEntry);
+      if(!bush.containsEdgeSegment(turnExit.getId())){
+        addBushAddedLinkSegment(bush, turnExit);
       }
     }
 
