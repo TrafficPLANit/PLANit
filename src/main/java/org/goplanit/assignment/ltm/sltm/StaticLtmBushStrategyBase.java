@@ -186,8 +186,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
     // flow based comparator
     final Comparator<Pas> PAS_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
-      double p1Cost = p1.getReducedCost() * pasExecutors.get(p1).getS2SendingFlow();
-      double p2Cost = p2.getReducedCost() * pasExecutors.get(p2).getS2SendingFlow();
+      double p1Cost = p1.getNormalisedReducedCost() * pasExecutors.get(p1).getS2SendingFlow();
+      double p2Cost = p2.getNormalisedReducedCost() * pasExecutors.get(p2).getS2SendingFlow();
       if (Precision.greater(p1Cost, p2Cost, Precision.EPSILON_15)) {
         return -1;
       } else if (Precision.smaller(p1Cost, p2Cost, Precision.EPSILON_15)) {
