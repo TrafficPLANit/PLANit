@@ -37,7 +37,8 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
    * @param bush             at hand
    * @param bushSendingFlows to populate as a starting point for the bush loading
    */
-  private void initialiseOriginExitSegmentSendingFlows(final RootedLabelledBush bush, final MultiKeyMap<Object, Double> bushSendingFlows) {
+  private void initialiseOriginExitSegmentSendingFlows(
+          final RootedLabelledBush bush, final MultiKeyMap<Object, Double> bushSendingFlows) {
     Set<CentroidVertex> originVertices = bush.getOriginVertices();
     for (var originVertex : originVertices) {
       double totalOriginsSendingFlow = 0;
@@ -52,8 +53,8 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
         }
       }
 
-      if (Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(originVertex))) {
-        LOGGER.severe(String.format("bush specific origin's (%s) travel demand (%.2f pcu/h) not equal to total flow (%.2f pcu/h) placed on bush root, this shouldn't happen",
+      if (Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(originVertex), Precision.EPSILON_3)) {
+        LOGGER.severe(String.format("bush specific origin's (%s) travel demand (%.8f pcu/h) not equal to total flow (%.8f pcu/h) placed on bush root, this shouldn't happen",
             originVertex.getParent().getParentZone().getXmlId(), bush.getOriginDemandPcuH(originVertex), totalOriginsSendingFlow));
       }
     }

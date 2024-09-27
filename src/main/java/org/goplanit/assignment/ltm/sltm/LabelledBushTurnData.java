@@ -256,7 +256,9 @@ public class LabelledBushTurnData {
     var toLabels = linkSegmentCompositionLabels.get(toEdgeSegment);
     if (fromLabels != null && toLabels != null) {
       fromLabels.forEach(
-          fromComposition -> toLabels.forEach(toComposition -> compositionTurnSendingFlows.removeMultiKey(fromEdgeSegment, fromComposition, toEdgeSegment, toComposition)));
+          fromComposition -> toLabels.forEach(
+                  toComposition -> compositionTurnSendingFlows.removeMultiKey(
+                          fromEdgeSegment, fromComposition, toEdgeSegment, toComposition)));
     }
     pruneCompositionLabels(fromEdgeSegment.getDownstreamVertex());
   }

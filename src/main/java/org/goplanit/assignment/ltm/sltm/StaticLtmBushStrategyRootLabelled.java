@@ -108,7 +108,8 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
 
     /* Identify when it coincides again with bush (closer to root) using back link tree BF search */
     var highCostSubPathResultPair =
-        bush.findBushAlternativeSubpathByBackLinkTree(reducedCostVertex, alternativeSegmentVertexLabels);
+        bush.findBushAlternativeSubpathByBackLinkTree(
+                reducedCostVertex, networkMinPaths.getNextEdgeSegmentForVertex(reducedCostVertex), alternativeSegmentVertexLabels);
     if (highCostSubPathResultPair == null || highCostSubPathResultPair.first() == null) {
       /* likely cycle detected on bush for merge vertex, unable to identify higher cost segment for NEW PAS, log issue */
       LOGGER.info(String.format("Unable to create new PAS for bush rooted at vertex %s, despite shorter path found on network to vertex %s", bush.getRootVertex().getXmlId(),
@@ -151,7 +152,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
       //todo: it could be that this pass was discarded earlier as suitable, perhaps we should
       //      do this check here again, and if it is not sufficiently attractive discard it?
       if(getSettings().isDetailedLogging()) {
-        LOGGER.warning(String.format("Using existing PAS (%d) while asking for new pas to be created, possibly existing PAS was discarded as not suitable before...", existingPas.pasId));
+        LOGGER.warning(String.format("Using existing PAS (%s) while asking for new pas to be created, possibly existing PAS was discarded as not suitable before...", existingPas));
       }
       existingPas.registerBush(bush);
       return null;
@@ -214,36 +215,49 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         }
 
         double reducedCost = minMaxPaths.getCostToReach(bushVertex) - networkMinPaths.getCostToReach(bushVertex);
-
-        /* when bush does not contain the reduced cost edge segment (or the opposite direction which would cause a cycle)
-         * consider it */
-        if (reducedCost > 0 && !bush.containsAnyEdgeSegmentOf(reducedCostSegment.getParent())) {
-
-          boolean matchFound = extendBushWithSuitableExistingPas(bush, bushVertex, reducedCost);
-          if (matchFound) {
-            continue;
-          }
-
-          /* no suitable match, attempt creating an entirely new PAS */
-          Pas newPas = extendBushWithNewPas(bush, bushVertex, networkMinPaths);
-          if (newPas == null) {
-            continue;
-          }
-
-          newPass.add(newPas);
-          newPas.updateCost(linkSegmentCosts);
-
-          // BRANCH SHIFT
-          {
-            // NOTE: since we will perform an update on all PASs it seems illogical to also explicitly register the required branch shifts
-            // since they will be carried out regardless. Hence we do not log a warning nor implement the branch shift until it appears necessary
-
-            /* no suitable new or existing PAS could be found given the conditions applied, do a branch shift instead */
-            // LOGGER.info("No existing/new PAS found that satisfies flow/cost effective conditions for origin bush %s, consider branch shift - not yet implemented");
-            // TODO: currently not implemented yet -> requires shifting flow on existing bush with the given vertex as the end point
-          }
-
+        if(reducedCost <= 0){
+          continue;
         }
+
+        if(minMaxPaths.getNextEdgeSegmentForVertex(bushVertex).equals(networkMinPaths.getNextEdgeSegmentForVertex(bushVertex))){
+          // not the location that they split paths, so should not be creating the start point of PAS here
+          continue;
+        }
+
+        /* when bush does not contain the opposite direction which would cause a cycle it is worth checking */
+        boolean viableSearch =
+                reducedCostSegment.getOppositeDirectionSegment()==null || !bush.containsEdgeSegment(reducedCostSegment.getOppositeDirectionSegment());
+        if (!viableSearch) {
+          // preferred alternative cannot be added due to bush triggering a cycle if we would
+          // todo: check what happens when terminate because if this gets still triggered then we have not technically
+          //  converged and we have a problem...
+          continue;
+        }
+
+        boolean matchFound = extendBushWithSuitableExistingPas(bush, bushVertex, reducedCost);
+        if (matchFound) {
+          continue;
+        }
+
+        /* no suitable match, attempt creating an entirely new PAS */
+        Pas newPas = extendBushWithNewPas(bush, bushVertex, networkMinPaths);
+        if (newPas == null) {
+          continue;
+        }
+
+        newPass.add(newPas);
+        newPas.updateCost(linkSegmentCosts);
+
+        // BRANCH SHIFT
+        {
+          // NOTE: since we will perform an update on all PASs it seems illogical to also explicitly register the required branch shifts
+          // since they will be carried out regardless. Hence we do not log a warning nor implement the branch shift until it appears necessary
+
+          /* no suitable new or existing PAS could be found given the conditions applied, do a branch shift instead */
+          // LOGGER.info("No existing/new PAS found that satisfies flow/cost effective conditions for origin bush %s, consider branch shift - not yet implemented");
+          // TODO: currently not implemented yet -> requires shifting flow on existing bush with the given vertex as the end point
+        }
+
       }
     }
     return newPass;

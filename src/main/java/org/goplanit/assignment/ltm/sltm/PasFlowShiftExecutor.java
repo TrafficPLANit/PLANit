@@ -61,8 +61,8 @@ public abstract class PasFlowShiftExecutor {
       var bush = iter.next();
       final Map<EdgeSegment, Pair<Double, Double>> entrySegmentS1S2Flows = bushEntrySegmentS1S2SendingFlows.get(bush);
       if (entrySegmentS1S2Flows != null && entrySegmentS1S2Flows.values().stream().noneMatch(p -> p.second() > 0 )) {
-        if(bush.getDag().getId()==7){
-          LOGGER.info(String.format("Removing bush from PAS %s, no more s2 flow left", pas));
+        if(bush.getDag().getId() == 11){
+          LOGGER.info(String.format("DEBUG Removing bush from PAS %s, no more s2 flow left", pas));
         }
         iter.remove();
       }
@@ -335,6 +335,7 @@ public abstract class PasFlowShiftExecutor {
   protected PasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings) {
     this.pas = pas;
     this.settings = settings;
+    this.totalEntrySegmentS1S2Flow = new HashMap<>();
     this.bushEntrySegmentS1S2SendingFlows = new HashMap<>();
     this.usedCongestedEntryEdgeSegments = new HashSet<>();
     this.pasMergeVertexNumExitSegments = pas.getMergeVertex().getNumberOfExitEdgeSegments();
@@ -369,6 +370,10 @@ public abstract class PasFlowShiftExecutor {
           AbstractPhysicalCost physicalCost,
           AbstractVirtualCost virtualCost,
           StaticLtmLoadingBushBase<?> networkLoading) {
+
+    if(settings.isDetailedLogging()){
+      LOGGER.info("PAS: " + pas);
+    }
 
     double denominatorS2 = 0;
     double denominatorS1 = 0;
@@ -456,7 +461,8 @@ public abstract class PasFlowShiftExecutor {
     var s2 = pas.getAlternative(false /* high cost */);
     var s1 = pas.getAlternative(true /* low cost */);
 
-    totalEntrySegmentS1S2Flow = new HashMap<>();
+    totalEntrySegmentS1S2Flow.clear();
+    bushEntrySegmentS1S2SendingFlows.clear();
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {
       totalEntrySegmentS1S2Flow.put(entrySegment, Pair.of(0.0, 0.0));
       for (var bush : pas.getRegisteredBushes()) {
@@ -537,7 +543,8 @@ public abstract class PasFlowShiftExecutor {
     }
 
     if (!Precision.positive(totalS2SendingFlow)) {
-      LOGGER.warning("no flow on S2 segment of selected PAS, PAS should not exist anymore, this shouldn't happen");
+      // todo: in case of overlapping pas updates this may happen, maybe more elegant way of deaing with it though
+      //LOGGER.warning("no flow on S2 segment of selected PAS, PAS should not exist anymore, this shouldn't happen");
     }
 
     boolean flowShifted = false;

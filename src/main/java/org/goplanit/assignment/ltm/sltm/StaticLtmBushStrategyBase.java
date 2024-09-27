@@ -52,7 +52,9 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
     for(var entry : bushRemovedLinkSegments.entrySet()){
       // check if any edge segment of pas is matching with the link segment removed from the bush
-      Predicate<Pas> pasPredicate = p -> p.anyMatch(es -> es.idEquals(entry.getKey()), true);
+      Predicate<Pas> pasPredicate = p ->
+              p.anyMatch(es -> es.idEquals(entry.getKey()), true) ||
+                      p.anyMatch(es -> es.idEquals(entry.getKey()), false);;
       for(var bush : entry.getValue()){
         pasManager.removeBushFromPasIf(bush, pasPredicate);
       }
@@ -99,12 +101,12 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         for(var pasBush : pasBushes){
 
           // debugging
-          if( (newPas.anyMatch(es -> es.getParent().getXmlId().equals("17"), true) || newPas.anyMatch(es -> es.getParent().getXmlId().equals("17"), false))
-                  &&
-                  newPas.getRegisteredBushes().stream().anyMatch(b -> b.getDag().getId()==18)){
-            var bush18 = newPas.getRegisteredBushes().stream().filter(b -> b.getDag().getId()==18).findFirst().get();
-            int bla = 4;
-          }
+//          if( (newPas.anyMatch(es -> es.getParent().getXmlId().equals("17"), true) || newPas.anyMatch(es -> es.getParent().getXmlId().equals("17"), false))
+//                  &&
+//                  newPas.getRegisteredBushes().stream().anyMatch(b -> b.getDag().getId() == 16)){
+//            var bushthe = newPas.getRegisteredBushes().stream().filter(b -> b.getDag().getId() == 16).findFirst().get();
+//            int bla = 4;
+//          }
 
           if(pasBush.determineIntroduceCycle(newPas.getAlternative(alternativeType))==null){
             // no cycle, it is fine do nothing
@@ -549,7 +551,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         /* (NEW) PAS MATCHING FOR BUSHES */
         Collection<Pas> newPass = updateBushPass(theMode, costsToUpdate);
         if(getSettings().isDetailedLogging()) {
-          LOGGER.info(String.format("%d PASs known (%d new potential PASs)", pasManager.getNumberOfPass(), newPass.size()));
+          LOGGER.info(String.format("%d PASs known (including %d new potential PASs)", pasManager.getNumberOfPass(), newPass.size()));
         }
               
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
@@ -562,8 +564,11 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         }
         /* Remove unused new PASs, in case no flow shift is applied due to overlap with PAS with higher reduced cost 
          * In this case, the new PAS is not used and is to be removed identical to how existing PASs are removed during flow shifts when they no longer carry flow*/
+        if(getSettings().isDetailedLogging()){
+          LOGGER.info("Removing unused/non-flow shifted (in this iteration) new PASs");
+        }
         newPass.removeAll(updatedPass);
-        newPass.forEach( pas -> pasManager.removePas(pas, false));
+        newPass.forEach( pas -> pasManager.removePas(pas, getSettings().isDetailedLogging()));
       }
       
     }catch(Exception e) {

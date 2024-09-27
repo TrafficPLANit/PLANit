@@ -545,16 +545,20 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * to the reference vertex where for the reference vertex the edge segment remains null
    * 
    * @param referenceVertex                to start breadth first search from as it is the point of coincidence of the alternative path (via labelled vertices) and bush
+   * @param forbiddenInitialSegment        the first segment of the shortest path segment from the root, that we cannot use
+   *                                       otherwise this alternative is partly overlapping
    * @param alternativeSubpathVertexLabels indicating the shortest (network) path at the reference vertex but not part of the bush at that point (different edge segment used)
    * @return vertex at which the two paths coincided again and the map (back link tree effectively) to extract the path from this vertex to the reference vertex that was found using the breadth-first
    *         method
    */
   public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpathByBackLinkTree(
-          DirectedVertex referenceVertex, final short[] alternativeSubpathVertexLabels) {
+          DirectedVertex referenceVertex, EdgeSegment forbiddenInitialSegment, final short[] alternativeSubpathVertexLabels) {
 
-    // cannot use the segment that is part of the cheapest option marked out with -1
-    Predicate<EdgeSegment> initialInclusionCondition = es ->
-        alternativeSubpathVertexLabels[(int) referenceVertex.getId()] != -1;
+    // cannot use the initial segment that is part of the cheapest option.
+    // Note that we cannot check for the -1 marking here because it is possible that the shortest alternative loops
+    // around and the alternative we are looking is exactly 1 link long starting at vertex marked with 1 and ending at vertex marked -1
+    // so actual initial rival edge segment is needed for exclusion
+    Predicate<EdgeSegment> initialInclusionCondition = es -> !es.equals(forbiddenInitialSegment);
 
     // only consider turns with positive flow on bush
     BiPredicate<EdgeSegment, EdgeSegment> regularInclusionCondition = bushData::containsTurnSendingFlow;
