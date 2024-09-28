@@ -152,7 +152,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
       //      do this check here again, and if it is not sufficiently attractive discard it?
       if(getSettings().isDetailedLogging() || isDestinationTrackedForLogging(bush)) {
         LOGGER.warning(String.format("Using existing PAS (%s) for bush (%s) while asking for new pas to be created, " +
-            "possibly existing PAS was discarded as not suitable before...", existingPas, bush));
+            "possibly existing PAS was discarded as not suitable before...", existingPas, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
       }
       existingPas.registerBush(bush);
       return null;
@@ -175,7 +175,6 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    * @param mode to use
    * @param linkSegmentCosts to use to construct min-max path three rooted at each bush's origin
    * @return newly created PASs (empty if no new PASs were created)
-   * @throws PlanItException thrown if error
    */
   @Override
   protected Collection<Pas> updateBushPass(Mode mode, final double[] linkSegmentCosts){
@@ -252,7 +251,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         newPass.add(newPas);
         newPas.updateCost(linkSegmentCosts);
         if(isDestinationTrackedForLogging(bush)){
-          LOGGER.info(String.format("Registered new PAS (%s) on bush (%s)", newPass, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+          LOGGER.info(String.format("Registered new PAS (%s) on bush (%s)", newPas, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
 
         // BRANCH SHIFT

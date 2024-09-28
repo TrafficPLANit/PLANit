@@ -128,12 +128,6 @@ public class Pas {
    * @return true when newly added, false, when already present
    */
   public boolean registerBush(final RootedLabelledBush bush) {
-    if( /*pasId == 75 &&*/ bush.getDag().getId() == 11 &&
-            (anyMatch(es -> es.getXmlId().equals("37-BA"), true) ||
-                    anyMatch(es -> es.getXmlId().equals("37-BA"), false)) &&
-            !registeredBushes.contains(bush)){
-      int bla = 4;
-    }
     return registeredBushes.add(bush);
   }
 

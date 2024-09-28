@@ -35,12 +35,6 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
   private double executeTurnFlowShift(
           RootedLabelledBush bush, EdgeSegment turnEntry, EdgeSegment turnExit, double flowShiftPcuH) {
 
-    if(bush.getDag().getId() == 11){
-      if(turnEntry.getXmlId().equals("37-BA") || turnExit.getXmlId().equals("37-BA")){
-        int bla = 4;
-      }
-    }
-
     // track what edge segments were added to what bush, so we can (in case of overlapping PAS update allowance)
     // flag if additional cycle checks are needed for subsequent PASs that may not be compatible with this current
     // PAS that we chose to prefer over those later ones
@@ -53,7 +47,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
       }
     }
     // when we are reducing flow (negative flow shift) and the turn entry was removed
-    // altogether, then we can safely remove all turn sending flow. This avoids rounding issues
+    // altogether, then we should remove all turn sending flow. By explicitly setting this value we avoid rounding issues
     // and ensures that high cost segment flows get removed in its entirety when we no longer route flow through them
     else if(!bush.containsEdgeSegment(turnEntry)){
       flowShiftPcuH = -bush.getTurnSendingFlow(
@@ -67,12 +61,6 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
     // so we do not get into trouble with precision...
     if (isPasS2RemovalAllowed() && !Precision.positive(newTurnFlow, EPSILON) &&
             !Precision.positive(bush.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
-
-      if(bush.getDag().getId() == 11 && turnEntry.hasXmlId() && turnExit.hasXmlId()){
-        if(turnEntry.getXmlId().equals("37-BA") || turnExit.getXmlId().equals("37-BA")){
-          int bla = 4;
-        }
-      }
 
       /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
       bush.removeTurn(turnEntry, turnExit);

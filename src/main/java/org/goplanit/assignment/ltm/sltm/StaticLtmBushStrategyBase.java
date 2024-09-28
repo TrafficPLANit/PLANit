@@ -100,14 +100,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         var pasBushes = newPas.getRegisteredBushes();
         for(var pasBush : pasBushes){
 
-          // debugging
-//          if( (newPas.anyMatch(es -> es.getParent().getXmlId().equals("17"), true) || newPas.anyMatch(es -> es.getParent().getXmlId().equals("17"), false))
-//                  &&
-//                  newPas.getRegisteredBushes().stream().anyMatch(b -> b.getDag().getId() == 16)){
-//            var bushthe = newPas.getRegisteredBushes().stream().filter(b -> b.getDag().getId() == 16).findFirst().get();
-//            int bla = 4;
-//          }
-
           if(pasBush.determineIntroduceCycle(newPas.getAlternative(alternativeType))==null){
             // no cycle, it is fine do nothing
             continue;
@@ -250,7 +242,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
       /* untouched PAS (no flows shifted yet) in this iteration */
       boolean pasFlowShifted = pasFlowShifter.run(
-          pasProposedFlowShifts.get(pas), theMode, physicalCost, virtualCost, networkLoading, getSmoothing(), getSettings());
+          pasProposedFlowShifts.get(pas), theMode, physicalCost, virtualCost, networkLoading, getSmoothing());
       if (pasFlowShifted) {
         flowShiftedPass.add(pas);
 
@@ -559,13 +551,11 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
         Collection<Pas> updatedPass = shiftFlows(theMode, simulationData, newPass);
 
-        if(getSettings().isDetailedLogging()) {
-          var newUsedPass = new ArrayList<>(newPass);
-          newUsedPass.retainAll(updatedPass);
-          long remainingPass = pasManager.getNumberOfPass();
-          LOGGER.info(String.format("#PASs before %d, after %d (new(used): %d, flow shifts performed: %d)",
-              numOriginalPass, remainingPass, newUsedPass.size(), updatedPass.size()));
-        }
+        var newUsedPass = new ArrayList<>(newPass);
+        newUsedPass.retainAll(updatedPass);
+        long remainingPass = pasManager.getNumberOfPass();
+        LOGGER.info(String.format("Flow shifts performed: %d ---- [#PASs: before %d, after %d, newly added and used: %d]",
+            updatedPass.size(), numOriginalPass, remainingPass, newUsedPass.size()));
 
         /* Remove unused new PASs, in case no flow shift is applied due to overlap with PAS with higher reduced cost
          * In this case, the new PAS is not used and is to be removed identical to how existing PASs are removed during flow shifts when they no longer carry flow*/

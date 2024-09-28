@@ -309,12 +309,6 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
       return;
     }
 
-    if(getId() == 11 && !registeredLinkSegments.get((int) edgeSegment.getId())){
-      LOGGER.info(String.format("adding edge segment (%s) to dag %d", edgeSegment.getIdsAsString(), getId()));
-      if(edgeSegment.getXmlId().equals("37-BA")){
-        int bla = 4;
-      }
-    }
     registeredLinkSegments.set((int) edgeSegment.getId());
     if (!vertexData.containsKey(edgeSegment.getUpstreamVertex())) {
       vertexData.put((V) edgeSegment.getUpstreamVertex(), new AcyclicVertexData());
@@ -365,9 +359,6 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
   @SuppressWarnings("unchecked")
   @Override
   public void removeEdgeSegment(E edgeSegment) {
-    if(getId() == 11 && registeredLinkSegments.get((int) edgeSegment.getId())){
-      LOGGER.info(String.format("removing edge segment %s from dag %d", edgeSegment.getIdsAsString(), getId()));
-    }
     registeredLinkSegments.set((int) edgeSegment.getId(), false);
     if (!isConnectedToAnySubgraphEdgeSegment((V) edgeSegment.getDownstreamVertex())) {
       removeVertexData((V) edgeSegment.getDownstreamVertex());

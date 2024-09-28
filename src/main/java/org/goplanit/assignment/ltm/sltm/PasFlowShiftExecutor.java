@@ -59,32 +59,30 @@ public abstract class PasFlowShiftExecutor {
   /**
    * Convenience method to check if we need to perform added logging for destination
    *
-   * @param settings to use
    * @return true when destination is tracked for logging
    */
-  private boolean isDestinationTrackedForLogging(StaticLtmSettings settings, RootedLabelledBush bush) {
+  private boolean isDestinationTrackedForLogging(RootedLabelledBush bush) {
     return settings.isTrackDestinationForLogging((OdZone) bush.getRootZoneVertex().getParent().getParentZone());
   }
 
   /**
    * Convenience method to check if we need to perform added logging for destination
    *
-   * @param settings to use
    * @return true when destination is tracked for logging
    */
-  private boolean isDestinationTrackedForLogging(StaticLtmSettings settings) {
+  private boolean isDestinationTrackedForLogging() {
     return settings.hasTrackOdsForLogging() &&
-        pas.getRegisteredBushes().stream().anyMatch(b -> isDestinationTrackedForLogging(settings, b));
+        pas.getRegisteredBushes().stream().anyMatch(this::isDestinationTrackedForLogging);
   }
 
-  private void removeZeroFlowS2Bushes(StaticLtmSettings settings) {
+  private void removeZeroFlowS2Bushes() {
     var iter = pas.getRegisteredBushes().iterator();
     while (iter.hasNext()) {
       var bush = iter.next();
       final Map<EdgeSegment, Pair<Double, Double>> entrySegmentS1S2Flows = bushEntrySegmentS1S2SendingFlows.get(bush);
       if (entrySegmentS1S2Flows != null && entrySegmentS1S2Flows.values().stream().noneMatch(p -> p.second() > 0 )) {
-        if(isDestinationTrackedForLogging(settings)){
-          LOGGER.info(String.format("Removing bush (%s) from PAS %s, no more s2 flow left",
+        if(isDestinationTrackedForLogging(bush)){
+          LOGGER.info(String.format("      Removing bush (%s) from PAS %s, no more s2 flow left",
               bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), pas));
         }
         iter.remove();
@@ -530,7 +528,6 @@ public abstract class PasFlowShiftExecutor {
    * @param virtualCost        to use
    * @param networkLoading     to use
    * @param smoothing          to apply to flow shift
-   * @param settings           to use
    * @return true when flow is shifted, false otherwise
    */
   public boolean run(
@@ -539,10 +536,10 @@ public abstract class PasFlowShiftExecutor {
       AbstractPhysicalCost physicalCost,
       AbstractVirtualCost virtualCost,
       StaticLtmLoadingBushBase<?> networkLoading,
-      Smoothing smoothing, StaticLtmSettings settings) {
+      Smoothing smoothing) {
 
     double totalS2SendingFlow = getS2SendingFlow();
-    if(isDestinationTrackedForLogging(settings)) {
+    if(isDestinationTrackedForLogging()) {
       LOGGER.info("*Execute PAS FLOW shift " + pas + "S2 Sending flow: " + totalS2SendingFlow + " cost-diff: " + pas.getReducedCost());
 //      LOGGER.info("s1 alphas: "+
 //              Arrays.stream(pas.getAlternative(true)).map(es -> String.format("%s:%.2f",
@@ -585,8 +582,8 @@ public abstract class PasFlowShiftExecutor {
           || Precision.greaterEqual(PAS_MIN_S2_FLOW_THRESHOLD, totalEntrySegmentS2Flow, EPSILON));
       if (isPasS2RemovalAllowed()) {
 
-        if(isDestinationTrackedForLogging(settings)) {
-          LOGGER.info(String.format("** Allow removal, proposed shift %.10f exceeds available s2 sending flow %.10f", smoothedProportionalPasflowShift, totalEntrySegmentS2Flow));
+        if(isDestinationTrackedForLogging()) {
+          LOGGER.info(String.format("*Allow removal --> proposed shift %.10f exceeds s2 sending flow %.10f", smoothedProportionalPasflowShift, totalEntrySegmentS2Flow));
         }
 
         /* remove this entry segment from the PAS when done as no flow remains on high cost segment */
@@ -611,7 +608,7 @@ public abstract class PasFlowShiftExecutor {
         double bushS2Portion = bushEntrySegmentS2Flow / totalEntrySegmentS2Flow;
         double entrySegmentBushPasflowShift = smoothedProportionalPasflowShift * bushS2Portion;
 
-        if(isDestinationTrackedForLogging(settings, bush)) {
+        if(isDestinationTrackedForLogging(bush)) {
           LOGGER.info(String.format(
                   "     bush (%s) - flow shift: %.10f on entry segment (%s)",
               bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), entrySegmentBushPasflowShift, entrySegment.getIdsAsString()));
@@ -634,7 +631,7 @@ public abstract class PasFlowShiftExecutor {
     }
 
     /* remove zero-flow S2 bushes from PAS */
-    removeZeroFlowS2Bushes(settings);
+    removeZeroFlowS2Bushes();
 
     return flowShifted;
   }
@@ -742,6 +739,11 @@ public abstract class PasFlowShiftExecutor {
    */
   public void addBushRemovedLinkSegment(
       RootedLabelledBush bush, EdgeSegment linkSegment){
+    if(settings.hasTrackOdsForLogging() && isDestinationTrackedForLogging(bush)){
+      LOGGER.info(String.format(
+          "           Removed link segment (%s) from bush (%s)",
+          linkSegment.getIdsAsString(), bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+    }
     getBushRemovedLinkSegments(linkSegment).add(bush);
   }
 
@@ -753,6 +755,11 @@ public abstract class PasFlowShiftExecutor {
    */
   public void addBushAddedLinkSegment(
       RootedLabelledBush bush, EdgeSegment linkSegment){
+    if(settings.hasTrackOdsForLogging() && isDestinationTrackedForLogging(bush)){
+      LOGGER.info(String.format(
+          "           Added link segment (%s) to bush (%s)",
+          linkSegment.getIdsAsString(), bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+    }
     getBushAddedLinkSegments(linkSegment).add(bush);
   }
 
