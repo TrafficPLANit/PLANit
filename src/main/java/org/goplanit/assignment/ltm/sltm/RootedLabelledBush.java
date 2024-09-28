@@ -41,7 +41,9 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @param subPathArray       to extract path from
    * @return sendingFlowPcuH between index and end vertex following the sub-path
    */
-  private double determineSubPathSendingFlow(double subPathSendingFlow, BushFlowLabel label, int index, final EdgeSegment[] subPathArray) {
+  private double determineSubPathSendingFlow(
+      double subPathSendingFlow, BushFlowLabel label, int index, final EdgeSegment[] subPathArray) {
+
     var currEdgeSegment = subPathArray[index++];
     if (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
       var nextEdgeSegment = subPathArray[index];
@@ -90,7 +92,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    */
   public RootedLabelledBush(final IdGroupingToken idToken, DirectedVertex rootVertex, boolean inverted, long maxSubGraphEdgeSegments) {
     super(new ACyclicSubGraphImpl(idToken, rootVertex, inverted, (int) maxSubGraphEdgeSegments));
-    this.bushData = new LabelledBushTurnData();
+    this.bushData = new LabelledBushTurnData(this);
   }
 
   /**
@@ -847,7 +849,8 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
               Double bushExitSegmentLabelSplittingRate = splittingRates.get(exitSegment, exitLabel);
               if (bushExitSegmentLabelSplittingRate != null && Precision.positive(bushExitSegmentLabelSplittingRate)) {
                 double bushTurnLabeledAcceptedFlow = entryLabelAcceptedFlow * bushExitSegmentLabelSplittingRate;
-                bushData.setTurnSendingFlow(entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow, AllowTurnRemoval);
+                bushData.setTurnSendingFlow(
+                    entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow, AllowTurnRemoval);
               }
             }
           }

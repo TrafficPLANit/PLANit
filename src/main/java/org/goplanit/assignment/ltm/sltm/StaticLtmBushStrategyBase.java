@@ -567,9 +567,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     }catch(Exception e) {
       LOGGER.severe(e.getMessage());
       LOGGER.severe("Unable to complete sLTM iteration, print stack trace when enabling detailed logging");
-      if(getSettings().isDetailedLogging()) {
-        e.printStackTrace();
-      }
+      e.printStackTrace();
       return false;
     }
     return true;

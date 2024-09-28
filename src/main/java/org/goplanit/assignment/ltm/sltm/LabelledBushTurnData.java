@@ -17,7 +17,9 @@ import org.goplanit.utils.zoning.Centroid;
 /**
  * Track the turn based data of a bush.
  * <p>
- * For now we only track turn sending flows to minimise bookkeeping and memory usage, splitting rates are deduced from the turn sending flows when needed.
+ * For now we only track turn sending flows to minimise bookkeeping and memory usage, splitting rates are deduced
+ * from the turn sending flows when needed.
+ * </p>
  * 
  * @author markr
  *
@@ -27,12 +29,13 @@ public class LabelledBushTurnData {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(LabelledBushTurnData.class.getCanonicalName());
 
-  // TODO not supported yet, but container is there
   /** track which composition labels are registered on each link segment */
   private final HashMap<EdgeSegment, TreeSet<BushFlowLabel>> linkSegmentCompositionLabels;
 
   /** track known bush turn sending flows s_ab by the combined key of incoming (and composition) outgoing (and composition) link segments */
   private final MultiKeyMap<Object, Double> compositionTurnSendingFlows;
+
+  private final RootedLabelledBush parent;
 
   /**
    * Based on the currently registered link segment composition labels, assess if all are still present by means of checking if at least a flow is registered for each composition
@@ -121,7 +124,8 @@ public class LabelledBushTurnData {
    * @param toComposition   label of turn
    * @param turnSendingFlow flow of turn
    */
-  private void registerLabelledTurnSendingFlow(EdgeSegment fromSegment, BushFlowLabel fromComposition, EdgeSegment toSegment, BushFlowLabel toComposition, double turnSendingFlow) {
+  private void registerLabelledTurnSendingFlow(
+      EdgeSegment fromSegment, BushFlowLabel fromComposition, EdgeSegment toSegment, BushFlowLabel toComposition, double turnSendingFlow) {
     compositionTurnSendingFlows.put(fromSegment, fromComposition, toSegment, toComposition, turnSendingFlow);
     registerEdgeSegmentCompositionLabel(fromSegment, fromComposition);
     registerEdgeSegmentCompositionLabel(toSegment, toComposition);
@@ -138,7 +142,8 @@ public class LabelledBushTurnData {
    * @param newToLabel   label to replace flow with
    * @return the amount of flow that was relabelled
    */
-  private double relabel(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel, BushFlowLabel newFromLabel,
+  private double relabel(
+      EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel, BushFlowLabel newFromLabel,
       BushFlowLabel newToLabel) {
 
     double flowToRelabel = getTurnSendingFlowPcuH(fromSegment, oldFromLabel, toSegment, oldToLabel);
@@ -153,9 +158,10 @@ public class LabelledBushTurnData {
    * Constructor
    * 
    */
-  LabelledBushTurnData() {
-    this.compositionTurnSendingFlows = new MultiKeyMap<Object, Double>();
-    this.linkSegmentCompositionLabels = new HashMap<EdgeSegment, TreeSet<BushFlowLabel>>();
+  LabelledBushTurnData(RootedLabelledBush bush) {
+    this.parent = bush;
+    this.compositionTurnSendingFlows = new MultiKeyMap<>();
+    this.linkSegmentCompositionLabels = new HashMap<>();
   }
 
   /**
@@ -166,6 +172,7 @@ public class LabelledBushTurnData {
    */
   public LabelledBushTurnData(LabelledBushTurnData other, boolean deepCopy) {
     this.compositionTurnSendingFlows = other.compositionTurnSendingFlows.clone();
+    this.parent = other.parent;
 
     this.linkSegmentCompositionLabels = new HashMap<>();
     for( var entry : other.linkSegmentCompositionLabels.entrySet()) {
@@ -188,7 +195,12 @@ public class LabelledBushTurnData {
    * @param allowTurnRemoval when true we allow for removal of turn/edge segment flow labels when no flow remains, when false we keep labelling regardless of the remaining flow
    * @return true when turn has any labelled turn sending flow left after setting flow, false when labelled turn sending flow no longer exists
    */
-  public boolean setTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition, double turnSendingFlow,
+  public boolean setTurnSendingFlow(
+      final EdgeSegment fromSegment,
+      BushFlowLabel fromComposition,
+      final EdgeSegment toSegment,
+      BushFlowLabel toComposition,
+      double turnSendingFlow,
       boolean allowTurnRemoval) {
 
     if (Double.isNaN(turnSendingFlow)) {
@@ -196,13 +208,16 @@ public class LabelledBushTurnData {
       turnSendingFlow = 0.0;
     }else if(!Precision.positive(turnSendingFlow)) {
       if (allowTurnRemoval) {
-//        LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
-//            turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
+//        if(parent.getDag().getId() == 10) {
+//          LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f) on bush (%s), remove entry for label (%s,%s)",
+//              fromSegment.getXmlId(), toSegment.getXmlId(), turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), fromComposition.getLabelId(), toComposition.getLabelId()));
+//        }
         removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
         return false;
       }else if(turnSendingFlow < 0){
-         LOGGER.warning(String.format("** Turn (%s to %s) sending flow negative (%.9f), this is not allowed, reset to 0.0 for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
-            turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
+         LOGGER.warning(String.format(
+             "** Turn (%s to %s) sending flow negative (%.9f) on bush (%s), this is not allowed, reset to 0.0 for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
+            turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), fromComposition.getLabelId(), toComposition.getLabelId()));
         turnSendingFlow = 0.0;
         return false;
       }
@@ -223,7 +238,8 @@ public class LabelledBushTurnData {
    * @param flowPcuH  to add
    * @return the new labelled turn sending flow after adding the given flow
    */
-  public double addTurnSendingFlow(final EdgeSegment from, BushFlowLabel fromLabel, final EdgeSegment to, BushFlowLabel toLabel, double flowPcuH) {
+  public double addTurnSendingFlow(
+      final EdgeSegment from, BushFlowLabel fromLabel, final EdgeSegment to, BushFlowLabel toLabel, double flowPcuH) {
     return addTurnSendingFlow(from, fromLabel, to, toLabel, flowPcuH, false);
   }
 
@@ -238,7 +254,14 @@ public class LabelledBushTurnData {
    * @param allowTurnRemoval when true we allow for removal of turn/edge segment flow labels when no flow remains, when false we keep labelling regardless of the remaining flow
    * @return the new labelled turn sending flow after adding the given flow
    */
-  public double addTurnSendingFlow(final EdgeSegment from, BushFlowLabel fromLabel, final EdgeSegment to, BushFlowLabel toLabel, double flowPcuH, boolean allowTurnRemoval) {
+  public double addTurnSendingFlow(
+      final EdgeSegment from,
+      BushFlowLabel fromLabel,
+      final EdgeSegment to,
+      BushFlowLabel toLabel,
+      double flowPcuH,
+      boolean allowTurnRemoval) {
+
     Double newSendingFlow = flowPcuH + getTurnSendingFlowPcuH(from, fromLabel, to, toLabel);
     boolean hasRemainingFlow = setTurnSendingFlow(from, fromLabel, to, toLabel, newSendingFlow, allowTurnRemoval);
     newSendingFlow = hasRemainingFlow ? newSendingFlow : 0.0;

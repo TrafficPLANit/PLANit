@@ -8,7 +8,6 @@ import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.virtual.CentroidVertex;
-import org.goplanit.utils.zoning.Centroid;
 
 /**
  * Track turn based data of a bush.
@@ -26,6 +25,8 @@ public class BushTurnData {
   /** track known bush turn sending flows s_ab by the combined key of incoming outgoing link segments */
   private final MultiKeyMap<Object, Double> compositionTurnSendingFlows;
 
+  private RootedLabelledBush parentBush;
+
   /**
    * Register sending flow on the container
    * 
@@ -41,7 +42,8 @@ public class BushTurnData {
    * Constructor
    * 
    */
-  BushTurnData() {
+  BushTurnData(RootedLabelledBush parent) {
+    this.parentBush = parent;
     this.compositionTurnSendingFlows = new MultiKeyMap<>();
   }
 
@@ -51,6 +53,7 @@ public class BushTurnData {
    * @param bushTurnData to copy
    */
   public BushTurnData(BushTurnData bushTurnData) {
+    this.parentBush = bushTurnData.parentBush;
     this.compositionTurnSendingFlows = bushTurnData.compositionTurnSendingFlows.clone();
   }
 
@@ -63,7 +66,8 @@ public class BushTurnData {
    * @param allowTurnRemoval when true we allow for removal of turn/edge segment when no flow remains, when false we keep regardless of the remaining flow
    * @return true when turn has any turn sending flow left after setting flow, false when turn sending flow no longer exists
    */
-  public boolean setTurnSendingFlow(final EdgeSegment fromSegment, final EdgeSegment toSegment, double turnSendingFlow, boolean allowTurnRemoval) {
+  public boolean setTurnSendingFlow(
+      final EdgeSegment fromSegment, final EdgeSegment toSegment, double turnSendingFlow, boolean allowTurnRemoval) {
 
     if (Double.isNaN(turnSendingFlow)) {
       LOGGER.severe("Turn (%s to %s) sending flow is NAN, shouldn't happen - consider identifying issue as turn flow cannot be updated properly, reset to 0.0 flow");
@@ -74,7 +78,8 @@ public class BushTurnData {
         return false;
       } else if (turnSendingFlow < 0) {
         LOGGER.warning(
-            String.format("** Turn (%s to %s) sending flow negative (%.9f), this is not allowed, reset to 0.0 ", fromSegment.getXmlId(), toSegment.getXmlId(), turnSendingFlow));
+            String.format("** Turn (%s to %s) sending flow negative (%.9f) on bush (%s), this is not allowed, reset to 0.0 ",
+                fromSegment.getXmlId(), toSegment.getXmlId(), turnSendingFlow, parentBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         turnSendingFlow = 0.0;
         return false;
       }

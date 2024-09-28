@@ -124,7 +124,8 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
         int entrySegmentId = (int) entrySegment.getId();
         var usedLabels = bush.getFlowCompositionLabels(entrySegment);
         if (usedLabels == null) {
-          LOGGER.severe(String.format("Edge segment %s on bush, but no flow labels present, this shouldn't happen", entrySegment.getXmlId()));
+          LOGGER.severe(String.format("Edge segment %s on bush (%s), but no flow labels present, this shouldn't happen",
+              entrySegment.getXmlId(), ((CentroidVertex)bush.getRootVertex()).getParent().getParentZone().getIdsAsString()));
           continue;
         }
 
@@ -134,7 +135,10 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
 
           Double bushLinkLabelSendingFlow = bushSendingFlows.get(entrySegment, entrylabel);
           if (bushLinkLabelSendingFlow == null) {
-            LOGGER.severe(String.format("No link sending flow found for segment %s and label %d, this shouldn't happen", entrySegment.getXmlId(), entrylabel.getLabelId()));
+            LOGGER.severe(String.format(
+                "No link sending flow found for segment %s and label %d on bush(%s), this shouldn't happen",
+                entrySegment.getXmlId(), entrylabel.getLabelId(),
+                ((CentroidVertex)bush.getRootVertex()).getParent().getParentZone().getIdsAsString()));
             continue;
           }
 
@@ -166,7 +170,9 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
 
             var exitLabels = bush.getFlowCompositionLabels(exitSegment);
             if (exitLabels == null) {
-              LOGGER.severe(String.format("Edge segment %s on bush, but no flow labels present, this shouldn't happen", exitSegment.getXmlId()));
+              LOGGER.severe(String.format("Edge segment %s on bush (%s), but no flow labels present, this shouldn't happen",
+                  exitSegment.getXmlId(),
+                  ((CentroidVertex)bush.getRootVertex()).getParent().getParentZone().getIdsAsString()));
               continue;
             }
 

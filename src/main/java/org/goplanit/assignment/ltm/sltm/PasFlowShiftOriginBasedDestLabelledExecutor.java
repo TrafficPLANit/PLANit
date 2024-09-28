@@ -36,8 +36,8 @@ public class PasFlowShiftOriginBasedDestLabelledExecutor extends PasFlowShiftExe
    * @return new labelled turn flow after shift
    */
   private double executeTurnFlowShift(RootedLabelledBush origin, EdgeSegment turnEntry, EdgeSegment turnExit, BushFlowLabel label, double flowShiftPcuH) {
-    double newLabelledTurnFlow = origin.addTurnSendingFlow(turnEntry, label, turnExit, label, flowShiftPcuH, isPasS2RemovalAllowed());
-    if (isPasS2RemovalAllowed() && !Precision.positive(newLabelledTurnFlow, EPSILON) && !Precision.positive(origin.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
+    double newLabelledTurnFlow = origin.addTurnSendingFlow(turnEntry, label, turnExit, label, flowShiftPcuH, isPasS2RemovalActivated());
+    if (isPasS2RemovalActivated() && !Precision.positive(newLabelledTurnFlow, EPSILON) && !Precision.positive(origin.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
       /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
       origin.removeTurn(turnEntry, turnExit);
       newLabelledTurnFlow = 0.0;
@@ -118,8 +118,8 @@ public class PasFlowShiftOriginBasedDestLabelledExecutor extends PasFlowShiftExe
 
           /* remove flow for s2 */
           double s2FlowShift = s2FinalLabeledFlowShift * labeledSplittingRate;
-          double newLabelledTurnFlow = origin.addTurnSendingFlow(lastS2Segment, destinationLabel, exitSegment, destinationLabel, s2FlowShift, isPasS2RemovalAllowed());
-          if (isPasS2RemovalAllowed() && !Precision.positive(newLabelledTurnFlow, EPSILON) && !Precision.positive(origin.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
+          double newLabelledTurnFlow = origin.addTurnSendingFlow(lastS2Segment, destinationLabel, exitSegment, destinationLabel, s2FlowShift, isPasS2RemovalActivated());
+          if (isPasS2RemovalActivated() && !Precision.positive(newLabelledTurnFlow, EPSILON) && !Precision.positive(origin.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
             /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
             origin.removeTurn(lastS2Segment, exitSegment);
           }

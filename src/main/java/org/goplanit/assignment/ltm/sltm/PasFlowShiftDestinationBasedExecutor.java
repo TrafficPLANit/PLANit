@@ -5,6 +5,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.IterableUtils;
 
 /**
  * Functionality to conduct a PAS flow shift based on underlying destination based bush approach. A destination-based bush approach no longer requires labelling and should therefore outperform
@@ -46,24 +47,43 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
         addBushAddedLinkSegment(bush, turnExit);
       }
     }
-    // when we are reducing flow (negative flow shift) and the turn entry was removed
-    // altogether, then we should remove all turn sending flow. By explicitly setting this value we avoid rounding issues
-    // and ensures that high cost segment flows get removed in its entirety when we no longer route flow through them
-    else if(!bush.containsEdgeSegment(turnEntry)){
-      flowShiftPcuH = -bush.getTurnSendingFlow(
-              turnEntry, dummyLabel, turnExit, dummyLabel);
+    // when we are reducing flow (negative flow shift) --> avoid rounding issues, ugly but necessary...
+    else {
+
+      // ...and the turn entry link segment was removed from the bush in
+      // the previous shift then we should remove all turn sending flow. By explicitly setting this value we avoid rounding issues
+      // and ensures that high cost segment flows get removed in its entirety when we no longer route flow through them
+      if(!bush.containsEdgeSegment(turnEntry)){
+        flowShiftPcuH = -bush.getTurnSendingFlow(
+            turnEntry, dummyLabel, turnExit, dummyLabel);
+      }
+      double totalSendingFlowIntoExit = IterableUtils.asStream(turnExit.getUpstreamVertex().getEntryEdgeSegments()).mapToDouble(
+          es -> bush.getTurnSendingFlow(es, dummyLabel, turnExit, dummyLabel)).sum();
+      if(totalSendingFlowIntoExit<=0){
+        // dangling segment with no more entering flow, meaning that due to rounding ALL residual exiting turn flow
+        // should be removed even if it exceeds the flow shift
+        flowShiftPcuH = Math.min(flowShiftPcuH,-bush.getSendingFlowPcuH(turnExit));
+        if(flowShiftPcuH > Precision.EPSILON_3){
+          LOGGER.severe(String.format("Found dangling edge segment on bush (%s) with ghost flow exceeding non-trivial amount, " +
+              "this shouldn't happen", bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+        }
+      }
     }
 
     double newTurnFlow = bush.addTurnSendingFlow(
-            turnEntry, dummyLabel, turnExit, dummyLabel, flowShiftPcuH, isPasS2RemovalAllowed());
+            turnEntry, dummyLabel, turnExit, dummyLabel, flowShiftPcuH, isPasS2RemovalActivated());
 
     //todo make sure that when very close to zero we remove all flow on the high cost segment somehow
     // so we do not get into trouble with precision...
-    if (isPasS2RemovalAllowed() && !Precision.positive(newTurnFlow, EPSILON) &&
+    if (isPasS2RemovalActivated() && !Precision.positive(newTurnFlow, EPSILON) &&
             !Precision.positive(bush.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
 
       /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
       bush.removeTurn(turnEntry, turnExit);
+      if(isDestinationTrackedForLogging(bush)){
+        LOGGER.info(String.format("     [No more flow --> Removed turn: FROM (%s) TO (%s) from bush (%s)]", turnEntry.getIdsAsString(), turnExit.getIdsAsString(), bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+      }
+
       if(!bush.containsEdgeSegment(turnEntry)) {
         addBushRemovedLinkSegment(bush, turnEntry);
       }
@@ -104,8 +124,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
 
           /* remove flow for s2 */
           double s2FlowShift = s2FinalFlowShift * splittingRate;
-          double newturnFlow = bush.addTurnSendingFlow(lastS2Segment, dummyLabel, exitSegment, dummyLabel, s2FlowShift, isPasS2RemovalAllowed());
-          if (isPasS2RemovalAllowed() && !Precision.positive(newturnFlow, EPSILON) && !Precision.positive(bush.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
+          double newturnFlow = bush.addTurnSendingFlow(lastS2Segment, dummyLabel, exitSegment, dummyLabel, s2FlowShift, isPasS2RemovalActivated());
+          if (isPasS2RemovalActivated() && !Precision.positive(newturnFlow, EPSILON) && !Precision.positive(bush.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
             /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
             bush.removeTurn(lastS2Segment, exitSegment);
             /* track for further processing, so we can deregister bush on other PASs with these links */
