@@ -5,10 +5,7 @@ import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.zoning.OdZone;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -313,6 +310,26 @@ public class StaticLtmSettings {
     }
     return false;
   }
+
+  /**
+   * Check if a given destination is marked for extended logging or not
+   *
+   * @param destinationZone destination to check
+   * @return true when tracked, false otherwise
+   */
+  public boolean isTrackDestinationForLogging(OdZone destinationZone){
+    /* try each id type which has registered zones, if available... */
+    for(var entry : trackedOds.entrySet()){
+      var odsForType = entry.getValue();
+      /* verify id destination is registered for any origin */
+      var destinationIdForType = destinationZone.getIdAsString(entry.getKey());
+      if(odsForType.values().stream().flatMap(Collection::stream).anyMatch(dId -> dId.equals(destinationIdForType))){
+        return true;
+      }
+    }
+    return false;
+  }
+
 
   ///********************
   /// BUSH BASED SETTINGS

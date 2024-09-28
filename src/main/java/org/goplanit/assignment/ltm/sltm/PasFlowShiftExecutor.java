@@ -13,6 +13,7 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.pcu.PcuCapacitated;
+import org.goplanit.utils.zoning.OdZone;
 import org.ojalgo.array.Array1D;
 
 import java.util.*;
@@ -55,14 +56,36 @@ public abstract class PasFlowShiftExecutor {
     return smaller(loading.getCurrentFlowAcceptanceFactors()[(int) segment.getId()], 1, EPSILON_9);
   }
 
-  private void removeZeroFlowS2Bushes() {
+  /**
+   * Convenience method to check if we need to perform added logging for destination
+   *
+   * @param settings to use
+   * @return true when destination is tracked for logging
+   */
+  private boolean isDestinationTrackedForLogging(StaticLtmSettings settings, RootedLabelledBush bush) {
+    return settings.isTrackDestinationForLogging((OdZone) bush.getRootZoneVertex().getParent().getParentZone());
+  }
+
+  /**
+   * Convenience method to check if we need to perform added logging for destination
+   *
+   * @param settings to use
+   * @return true when destination is tracked for logging
+   */
+  private boolean isDestinationTrackedForLogging(StaticLtmSettings settings) {
+    return settings.hasTrackOdsForLogging() &&
+        pas.getRegisteredBushes().stream().anyMatch(b -> isDestinationTrackedForLogging(settings, b));
+  }
+
+  private void removeZeroFlowS2Bushes(StaticLtmSettings settings) {
     var iter = pas.getRegisteredBushes().iterator();
     while (iter.hasNext()) {
       var bush = iter.next();
       final Map<EdgeSegment, Pair<Double, Double>> entrySegmentS1S2Flows = bushEntrySegmentS1S2SendingFlows.get(bush);
       if (entrySegmentS1S2Flows != null && entrySegmentS1S2Flows.values().stream().noneMatch(p -> p.second() > 0 )) {
-        if(bush.getDag().getId() == 11){
-          LOGGER.info(String.format("DEBUG Removing bush from PAS %s, no more s2 flow left", pas));
+        if(isDestinationTrackedForLogging(settings)){
+          LOGGER.info(String.format("Removing bush (%s) from PAS %s, no more s2 flow left",
+              bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), pas));
         }
         iter.remove();
       }
@@ -371,10 +394,6 @@ public abstract class PasFlowShiftExecutor {
           AbstractVirtualCost virtualCost,
           StaticLtmLoadingBushBase<?> networkLoading) {
 
-    if(settings.isDetailedLogging()){
-      LOGGER.info("PAS: " + pas);
-    }
-
     double denominatorS2 = 0;
     double denominatorS1 = 0;
 
@@ -394,21 +413,12 @@ public abstract class PasFlowShiftExecutor {
     double slackFlowEstimate = determinePasAlternativeSlackFlow(networkLoading, true);
     if (!pasCostEqual && smaller(denominatorS2,EPSILON) && smaller(denominatorS2, EPSILON)) {
 
-      LOGGER.info("** uncongested - derivatives of zero - unequal cost - towards S1");
       /* s1 & S2 UNCONGESTED - no derivative estimate possible (denominator zero) */
       /* move all towards cheaper alternative limited by slack + delta */
       /* obtain PAS-entry segment sub-path sending flows */
       double proposedFlowShift = Math.min(s2TotalEntrySendingFlow - 10, slackFlowEstimate) + 10;
       return adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, slackFlowEstimate);
 
-    }
-
-    if (settings.isDetailedLogging()) {
-      if (pasCostEqual) {
-        LOGGER.info("** one or both alternatives congested - towards S1 - near equal cost (<10^-12)");
-      } else {
-        LOGGER.info("** one or both alternatives congested - towards S1 - unequal cost");
-      }
     }
 
     /* s1 and/or s2 congested - derivative based flow shift possible */
@@ -511,35 +521,35 @@ public abstract class PasFlowShiftExecutor {
    * alternatives BUT the most restricting one might be linked to one of those. If so then we should shift towards the other! This does not exist yet. If neither is the most
    * restricting then revert to situation where we shift as if uncongested as it has no impact. So, split flow shift and execution to per incoming link rather than combining them
    * as we do in run!! Later we can optimise possibly
-   * 
+   * <p>
    * Each PAS per bush is split in x PASs where x is the number of used in links for each bush
    *
    * @param proposedFlowShifts proposed shifts per entry segment
-   * @param theMode        to use
-   * @param physicalCost   to use
-   * @param virtualCost    to use
-   * @param networkLoading to use
-   * @param smoothing         to apply to flow shift
+   * @param theMode            to use
+   * @param physicalCost       to use
+   * @param virtualCost        to use
+   * @param networkLoading     to use
+   * @param smoothing          to apply to flow shift
+   * @param settings           to use
    * @return true when flow is shifted, false otherwise
    */
   public boolean run(
-          Map<EdgeSegment, Double> proposedFlowShifts,
-          Mode theMode,
-          AbstractPhysicalCost physicalCost,
-          AbstractVirtualCost virtualCost,
-          StaticLtmLoadingBushBase<?> networkLoading,
-          Smoothing smoothing) {
+      Map<EdgeSegment, Double> proposedFlowShifts,
+      Mode theMode,
+      AbstractPhysicalCost physicalCost,
+      AbstractVirtualCost virtualCost,
+      StaticLtmLoadingBushBase<?> networkLoading,
+      Smoothing smoothing, StaticLtmSettings settings) {
 
     double totalS2SendingFlow = getS2SendingFlow();
-    if(settings.isDetailedLogging()) {
-      LOGGER.info("******************* PAS FLOW shift " + pas.toString() + "S2 Sending flow: " + totalS2SendingFlow + " cost-diff: " + pas.getReducedCost()
-              + " *****************************");
-      LOGGER.info("s1 alphas: "+
-              Arrays.stream(pas.getAlternative(true)).map(es -> String.format("%s:%.2f",
-                      es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[(int) es.getId()])).collect(Collectors.joining(",")));
-      LOGGER.info("s2 alphas: "+
-              Arrays.stream(pas.getAlternative(false)).map(es -> String.format("%s:%.2f",
-                      es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[(int) es.getId()])).collect(Collectors.joining(",")));
+    if(isDestinationTrackedForLogging(settings)) {
+      LOGGER.info("*Execute PAS FLOW shift " + pas + "S2 Sending flow: " + totalS2SendingFlow + " cost-diff: " + pas.getReducedCost());
+//      LOGGER.info("s1 alphas: "+
+//              Arrays.stream(pas.getAlternative(true)).map(es -> String.format("%s:%.2f",
+//                      es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[(int) es.getId()])).collect(Collectors.joining(",")));
+//      LOGGER.info("s2 alphas: "+
+//              Arrays.stream(pas.getAlternative(false)).map(es -> String.format("%s:%.2f",
+//                      es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[(int) es.getId()])).collect(Collectors.joining(",")));
     }
 
     if (!Precision.positive(totalS2SendingFlow)) {
@@ -575,7 +585,7 @@ public abstract class PasFlowShiftExecutor {
           || Precision.greaterEqual(PAS_MIN_S2_FLOW_THRESHOLD, totalEntrySegmentS2Flow, EPSILON));
       if (isPasS2RemovalAllowed()) {
 
-        if(settings.isDetailedLogging()) {
+        if(isDestinationTrackedForLogging(settings)) {
           LOGGER.info(String.format("** Allow removal, proposed shift %.10f exceeds available s2 sending flow %.10f", smoothedProportionalPasflowShift, totalEntrySegmentS2Flow));
         }
 
@@ -601,14 +611,15 @@ public abstract class PasFlowShiftExecutor {
         double bushS2Portion = bushEntrySegmentS2Flow / totalEntrySegmentS2Flow;
         double entrySegmentBushPasflowShift = smoothedProportionalPasflowShift * bushS2Portion;
 
-        if(settings.isDetailedLogging()) {
+        if(isDestinationTrackedForLogging(settings, bush)) {
           LOGGER.info(String.format(
-                  "** Entry segment (%s) - Zone vertex (%s) - start flow shift: %.10f",
-                  entrySegment, bush.getRootZoneVertex().getIdsAsString(), entrySegmentBushPasflowShift));
+                  "     bush (%s) - flow shift: %.10f on entry segment (%s)",
+              bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), entrySegmentBushPasflowShift, entrySegment.getIdsAsString()));
         }
 
         /* perform the flow shift for the current bush and its attributed portion */
-        executeBushFlowShift(bush, entrySegment, entrySegmentBushPasflowShift, networkLoading.getCurrentFlowAcceptanceFactors());
+        executeBushFlowShift(
+            bush, entrySegment, entrySegmentBushPasflowShift, networkLoading.getCurrentFlowAcceptanceFactors());
         flowShifted = true;
 
         if (isCongested(networkLoading, entrySegment)) {
@@ -623,7 +634,7 @@ public abstract class PasFlowShiftExecutor {
     }
 
     /* remove zero-flow S2 bushes from PAS */
-    removeZeroFlowS2Bushes();
+    removeZeroFlowS2Bushes(settings);
 
     return flowShifted;
   }

@@ -16,7 +16,9 @@ import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
@@ -390,15 +392,18 @@ public class sLtmAssignmentBushMultiOdTest {
       fixedStepSmoothing.setStepSize(0.5);
       
       /* DESTINATION BASED */
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.DESTINATION_BUSH_BASED);
+      var slTMConfigurator = sLTMBuilder.getConfigurator();
+      slTMConfigurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);
 
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+      slTMConfigurator.activateOutput(OutputType.LINK);
+      slTMConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+
+      slTMConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.setActivateDetailedLogging(true);
+      sLTM.setActivateDetailedLogging(false);
       sLTM.execute();
 
       testOutputs(sLTM);

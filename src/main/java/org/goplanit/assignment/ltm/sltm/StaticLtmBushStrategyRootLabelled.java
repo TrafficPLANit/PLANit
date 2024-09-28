@@ -9,8 +9,6 @@ import java.util.logging.Logger;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushRooted;
-import org.goplanit.gap.GapFunction;
-import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -19,7 +17,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
-import org.goplanit.utils.network.virtual.CentroidVertex;
+import org.goplanit.utils.zoning.OdZone;
 
 /**
  * Base implementation to support a rooted bush based solution for sLTM
@@ -48,9 +46,10 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    * @param reducedCostVertex where we identified a potential reduced cost compared to current bush
    * @param reducedCost between the shorter path and current shortest path in the bush
    * 
-   * @return true when a match is found and bush is newly registered on a PAS, false otherwise
+   * @return PAS when a match is found and null otherwise (PAS is already registered as part of this call)
    */
-  private boolean extendBushWithSuitableExistingPas(final RootedLabelledBush bush, final DirectedVertex reducedCostVertex, final double reducedCost) {
+  private Pas extendBushWithSuitableExistingPas(
+      final RootedLabelledBush bush, final DirectedVertex reducedCostVertex, final double reducedCost) {
 
     boolean bushFlowThroughMergeVertex = false;
     for (var entrySegment : reducedCostVertex.getEntryEdgeSegments()) {
@@ -68,13 +67,13 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
     if (!bushFlowThroughMergeVertex) {
       // TODO: when we find this condition never occurs (and it shouldn't, remove the above checks as they are costly)
       LOGGER.warning(String.format("Explored vertex %s for existing PAS match even though bush has no flow passing through it. This should not happen", reducedCostVertex.getXmlId()));
-      return false;
+      return null;
     }
 
     double[] alphas = getLoading().getCurrentFlowAcceptanceFactors();
     Pas effectivePas = pasManager.findFirstSuitableExistingPas(bush, reducedCostVertex, alphas, reducedCost);
     if (effectivePas == null) {
-      return false;
+      return null;
     }
 
     /*
@@ -85,7 +84,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
     if (newlyRegistered && getSettings().isDetailedLogging()) {
       LOGGER.info(String.format("%s %s added to PAS %s", bush.isInverted() ? "Destination" : "Origin", bush.getRootZoneVertex().getXmlId(), effectivePas.toString()));
     }
-    return true;
+    return effectivePas;
   }
 
   /**
@@ -151,8 +150,9 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
     if (existingPas != null) {
       //todo: it could be that this pass was discarded earlier as suitable, perhaps we should
       //      do this check here again, and if it is not sufficiently attractive discard it?
-      if(getSettings().isDetailedLogging()) {
-        LOGGER.warning(String.format("Using existing PAS (%s) while asking for new pas to be created, possibly existing PAS was discarded as not suitable before...", existingPas));
+      if(getSettings().isDetailedLogging() || isDestinationTrackedForLogging(bush)) {
+        LOGGER.warning(String.format("Using existing PAS (%s) for bush (%s) while asking for new pas to be created, " +
+            "possibly existing PAS was discarded as not suitable before...", existingPas, bush));
       }
       existingPas.registerBush(bush);
       return null;
@@ -178,7 +178,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    * @throws PlanItException thrown if error
    */
   @Override
-  protected Collection<Pas> updateBushPass(Mode mode, final double[] linkSegmentCosts) throws PlanItException {
+  protected Collection<Pas> updateBushPass(Mode mode, final double[] linkSegmentCosts){
 
     List<Pas> newPass = new ArrayList<>();
 
@@ -189,6 +189,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
       }
 
       /* within-bush min/max-paths - searched from root in designated direction (inverted if ALL-TO-ONE, i.e., root is destination) */
+      //todo: we do not yet account for if the path is used --> we should because we will likely get unused max cost paths now!
       var minMaxPaths = bush.computeMinMaxShortestPaths(
               linkSegmentCosts, this.getTransportNetwork().getNumberOfVerticesAllLayers());
       if (minMaxPaths == null) {
@@ -234,8 +235,11 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
           continue;
         }
 
-        boolean matchFound = extendBushWithSuitableExistingPas(bush, bushVertex, reducedCost);
-        if (matchFound) {
+        Pas existingRegisteredPas = extendBushWithSuitableExistingPas(bush, bushVertex, reducedCost);
+        if (existingRegisteredPas != null) {
+          if(isDestinationTrackedForLogging(bush)){
+            LOGGER.info(String.format("Registered suitable existing PAS (%s) on bush (%s)", existingRegisteredPas, bush));
+          }
           continue;
         }
 
@@ -247,6 +251,9 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
 
         newPass.add(newPas);
         newPas.updateCost(linkSegmentCosts);
+        if(isDestinationTrackedForLogging(bush)){
+          LOGGER.info(String.format("Registered new PAS (%s) on bush (%s)", newPass, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+        }
 
         // BRANCH SHIFT
         {

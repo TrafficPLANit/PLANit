@@ -89,7 +89,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
   public RootedLabelledBush(final IdGroupingToken idToken, DirectedVertex rootVertex, boolean inverted, long maxSubGraphEdgeSegments) {
-    super(idToken, inverted, new ACyclicSubGraphImpl(idToken, rootVertex, inverted, (int) maxSubGraphEdgeSegments));
+    super(new ACyclicSubGraphImpl(idToken, rootVertex, inverted, (int) maxSubGraphEdgeSegments));
     this.bushData = new LabelledBushTurnData();
   }
 

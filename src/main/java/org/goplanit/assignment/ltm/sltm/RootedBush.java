@@ -75,11 +75,9 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   /**
    * Constructor
    *
-   * @param idToken    the token to base the id generation on
-   * @param inverted   when true bush ends at root vertex and all other vertices precede it, when false the root is the starting point and all other vertices succeed it
    * @param dag        to use for the subgraph representation
    */
-  public RootedBush(final IdGroupingToken idToken, boolean inverted, UntypedACyclicSubGraph<V, ES> dag) {
+  public RootedBush(UntypedACyclicSubGraph<V, ES> dag) {
     this.dag = dag;
     this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, dag.getId());
     this.originDemandsPcuH = new HashMap<>();
@@ -107,7 +105,8 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * @param totalTransportNetworkVertices needed to be able to create primitive array recording the (partial) subgraph backward link segment results (efficiently)
    * @return minMaxPathResult, null if unable to complete
    */
-  public abstract MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices);
+  public abstract MinMaxPathResult computeMinMaxShortestPaths(
+      final double[] linkSegmentCosts, final int totalTransportNetworkVertices);
 
   /**
    * {@inheritDoc}

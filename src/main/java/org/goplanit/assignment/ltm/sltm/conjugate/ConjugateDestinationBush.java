@@ -87,7 +87,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * @param maxSubGraphTurns The maximum number of conjugate edge segments, i.e. turns, the conjugate bush can at most register given the parent network it is a subset of
    */
   public ConjugateDestinationBush(final IdGroupingToken idToken, final CentroidVertex destination, ConjugateConnectoidNode rootVertex, int maxSubGraphTurns) {
-    super(idToken, true /* inverted */, new ConjugateACyclicSubGraphImpl(idToken, rootVertex, true /* inverted */, maxSubGraphTurns));
+    super(new ConjugateACyclicSubGraphImpl(idToken, rootVertex, true /* inverted */, maxSubGraphTurns));
     this.bushData = new ConjugateBushTurnData();
     this.destination = destination;
   }

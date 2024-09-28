@@ -16,12 +16,12 @@ import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
 
@@ -201,7 +201,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     Collection<EdgeSegment> linkSegmentsUsed = new HashSet<>(100);
     Collection<Pas> sortedPass = this.pasManager.getPassSortedByReducedCost(PAS_REDUCED_COST_BY_FLOW_COMPARATOR);
 
-    int numPas = sortedPass.size();
     Pas prevProcessedPas = null;
     for (Pas pas : sortedPass) {
 
@@ -249,13 +248,9 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         continue;
       }
 
-      if(getSettings().isDetailedLogging()) {
-        LOGGER.info(String.format("APPLIED* (%s): reduced cost multiplied with s2 flow: %.2f", pas, pas.getReducedCost() * pasFlowShifter.getS2SendingFlow()));
-      }
-
       /* untouched PAS (no flows shifted yet) in this iteration */
       boolean pasFlowShifted = pasFlowShifter.run(
-          pasProposedFlowShifts.get(pas), theMode, physicalCost, virtualCost, networkLoading, getSmoothing());
+          pasProposedFlowShifts.get(pas), theMode, physicalCost, virtualCost, networkLoading, getSmoothing(), getSettings());
       if (pasFlowShifted) {
         flowShiftedPass.add(pas);
 
@@ -291,8 +286,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       passWithoutBush.forEach((pas) -> this.pasManager.removePas(pas, getSettings().isDetailedLogging()));
     }
 
-    long remainingPass = pasManager.getNumberOfPass();
-    LOGGER.info(String.format("Number of PASs available: %d (removed:%d, flow shifts performed: %d)", remainingPass, numPas-remainingPass, flowShiftedPass.size()));
     return flowShiftedPass;
   }
 
@@ -305,6 +298,11 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * track all unique PASs
    */
   protected final PasManager pasManager;
+
+  protected boolean isDestinationTrackedForLogging(B bush) {
+    return getSettings().hasTrackOdsForLogging() &&
+        getSettings().isTrackDestinationForLogging((OdZone) bush.getRootZoneVertex().getParent().getParentZone());
+  }
 
   /**
    * Update gap. modified path based gap function where we update the GAP based on PAS cost discrepancy.
@@ -357,7 +355,11 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
    */
-  protected StaticLtmBushStrategyBase(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
+  protected StaticLtmBushStrategyBase(
+      final IdGroupingToken idGroupingToken,
+      long assignmentId,
+      final TransportModelNetwork transportModelNetwork,
+      final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
 
@@ -412,14 +414,13 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
     Zoning zoning = getTransportNetwork().getZoning();
     OdDemands odDemands = getOdDemands(mode);
-    for (int index = 0; index < bushes.length; ++index) {
-      B bush = bushes[index];
+    for (B bush : bushes) {
       if (bush == null) {
         continue;
       }
       initialiseBush(bush, zoning, odDemands, shortestBushAlgorithm);
 
-      if (bush != null && getSettings().isDetailedLogging()) {
+      if (isDestinationTrackedForLogging(bush)) {
         LOGGER.info(bush.toString());
       }
     }
@@ -549,6 +550,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */     
       {
         /* (NEW) PAS MATCHING FOR BUSHES */
+        long numOriginalPass = pasManager.getNumberOfPass();
         Collection<Pas> newPass = updateBushPass(theMode, costsToUpdate);
         if(getSettings().isDetailedLogging()) {
           LOGGER.info(String.format("%d PASs known (including %d new potential PASs)", pasManager.getNumberOfPass(), newPass.size()));
@@ -556,19 +558,20 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
               
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
         Collection<Pas> updatedPass = shiftFlows(theMode, simulationData, newPass);
-        
+
         if(getSettings().isDetailedLogging()) {
           var newUsedPass = new ArrayList<>(newPass);
           newUsedPass.retainAll(updatedPass);
-          newUsedPass.forEach( p -> LOGGER.info(String.format("Created new PAS and applied flow shift on it: %s", p.toString()))); 
+          long remainingPass = pasManager.getNumberOfPass();
+          LOGGER.info(String.format("#PASs before %d, after %d (new(used): %d, flow shifts performed: %d)",
+              numOriginalPass, remainingPass, newUsedPass.size(), updatedPass.size()));
         }
-        /* Remove unused new PASs, in case no flow shift is applied due to overlap with PAS with higher reduced cost 
+
+        /* Remove unused new PASs, in case no flow shift is applied due to overlap with PAS with higher reduced cost
          * In this case, the new PAS is not used and is to be removed identical to how existing PASs are removed during flow shifts when they no longer carry flow*/
-        if(getSettings().isDetailedLogging()){
-          LOGGER.info("Removing unused/non-flow shifted (in this iteration) new PASs");
-        }
         newPass.removeAll(updatedPass);
         newPass.forEach( pas -> pasManager.removePas(pas, getSettings().isDetailedLogging()));
+
       }
       
     }catch(Exception e) {
