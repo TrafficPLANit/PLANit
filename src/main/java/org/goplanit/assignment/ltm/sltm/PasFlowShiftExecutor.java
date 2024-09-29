@@ -553,6 +553,10 @@ public abstract class PasFlowShiftExecutor {
       //LOGGER.warning("no flow on S2 segment of selected PAS, PAS should not exist anymore, this shouldn't happen");
     }
 
+    //--------------- CURRENTLY FOR DEBUGGING ------------------------------------
+    // idea --> construct current situation to compare to how we constructed proposed and s2 flows consistent with loading
+    //          to be used to determine best way forward to ensure flow shifts do not cause problems when distributing
+    //          over entry segments and bushes that have been changed as part of other (partially) overlapping PASs
     double totalProposedFlowShift = 0;
     //todo: for now just use this to monitor any discrepancies between original distribution and current with overlapping PASs for debugging
     Map<Bush, Map<EdgeSegment, Double>> bushEntrySegments2UpdatedFlow = new TreeMap<>();
