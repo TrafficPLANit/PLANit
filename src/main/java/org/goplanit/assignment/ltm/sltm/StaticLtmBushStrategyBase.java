@@ -224,12 +224,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
           //  always skipping even if bushes between the two PASs are not overlapping at all
           continue;
         }
-      }else{
-        // The sending flows at the start of the PAS may have been affected by other PASs updates since they were
-        // identified earlier.
-        // NOTE: we must use the original ones to determine the proposed flow shifts because that is the only one
-        // consistent with network loading (if we'd use these for that, then we may get too high values causing problems)
-        pasFlowShifter.updateS1S2EntrySendingFlows();
       }
 
       if (!(pasFlowShifter.getS2SendingFlow() > 0)) { // todo: this piece of code is duplication from line 166 -> consolidate

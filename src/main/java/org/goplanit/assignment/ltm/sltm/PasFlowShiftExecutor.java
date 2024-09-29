@@ -537,7 +537,7 @@ public abstract class PasFlowShiftExecutor {
       StaticLtmLoadingBushBase<?> networkLoading,
       Smoothing smoothing) {
 
-    double totalS2SendingFlow = getS2SendingFlow();
+    double totalS2SendingFlow = getS2SendingFlow(); // consistent with original loading
     if(isDestinationTrackedForLogging()) {
       LOGGER.info("*FLOW SHIFT on PAS:" + pas + " - S2 Sending flow: " + totalS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
 //      LOGGER.info("s1 alphas: "+
@@ -553,7 +553,25 @@ public abstract class PasFlowShiftExecutor {
       //LOGGER.warning("no flow on S2 segment of selected PAS, PAS should not exist anymore, this shouldn't happen");
     }
 
-    double totalProposedFlowShift = proposedFlowShifts.values().stream().mapToDouble(d -> d).sum();
+    double totalProposedFlowShift = 0;
+    //todo: for now just use this to monitor any discrepancies between original distribution and current with overlapping PASs for debugging
+    Map<Bush, Map<EdgeSegment, Double>> bushEntrySegments2UpdatedFlow = new TreeMap<>();
+    for( var entryShiftPair : proposedFlowShifts.entrySet()){
+      var entrySegment = entryShiftPair.getKey();
+      totalProposedFlowShift += entryShiftPair.getValue();
+      for (var bush : pas.getRegisteredBushes()) {
+        if (!bush.containsEdgeSegment(entrySegment)) {
+          continue;
+        }
+        bushEntrySegments2UpdatedFlow.computeIfAbsent(bush, b -> new TreeMap<>());
+        bushEntrySegments2UpdatedFlow.get(bush).put(
+            entrySegment, bush.determineSubPathSendingFlow(entrySegment, pas.getAlternative(false)));
+      }
+    }
+    double currentS2SendingFlow = bushEntrySegments2UpdatedFlow.values().stream().flatMap(e -> e.values().stream()).mapToDouble(e -> e).sum();
+    // truncate to what is available due to overlapping previous shifts taking some of the available flow away
+    totalProposedFlowShift = Math.min(totalProposedFlowShift, currentS2SendingFlow);
+
     activatePasS2RemovalIf(Precision.greaterEqual(Math.max(1,totalProposedFlowShift), totalS2SendingFlow, EPSILON));
 
     boolean flowShifted = false;
@@ -610,10 +628,6 @@ public abstract class PasFlowShiftExecutor {
          * In case of multiple used bushes for this entry segment -> we cannot let proposed shifts be executed in full because cost is affected and therefore succeeding entries
          * would "overshoot". Hence, we apply proposed shift proportionally to contribution to total flow along PAS
          */
-        ALL WRONG --> these proportions no longer make sense when we do overlapping updates, should be
-            consistent with the proposedflowshifts which we need to extend with bushes by entry segment
-            note that s2 flow can be increased/decrease due to other changes but we want original loading consistent
-            splits
         double bushS2Portion = bushEntrySegmentS2Flow / totalEntrySegmentS2Flow;
         double entrySegmentBushPasflowShift = smoothedProportionalPasflowShift * bushS2Portion;
 
