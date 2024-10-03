@@ -53,9 +53,15 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
       // ...and the turn entry link segment was removed from the bush in
       // the previous shift then we should remove all turn sending flow. By explicitly setting this value we avoid rounding issues
       // and ensures that high cost segment flows get removed in its entirety when we no longer route flow through them
+      // todo: now that we explicitly check for this earlier, this should not be necessary anymore!
       if(!bush.containsEdgeSegment(turnEntry)){
-        flowShiftPcuH = -bush.getTurnSendingFlow(
+        var availableFlow = bush.getTurnSendingFlow(
             turnEntry, dummyLabel, turnExit, dummyLabel);
+        if(availableFlow > -flowShiftPcuH) {
+          LOGGER.severe(String.format("Found need to sync flow shift to remove all flow due to absence of turn entry" +
+              "this shouldn't happen, syncing regardless", bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+        }
+        flowShiftPcuH = availableFlow; // sync
       }
       double totalSendingFlowIntoExit = IterableUtils.asStream(turnExit.getUpstreamVertex().getEntryEdgeSegments()).mapToDouble(
           es -> bush.getTurnSendingFlow(es, dummyLabel, turnExit, dummyLabel)).sum();
@@ -124,6 +130,14 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
 
           /* remove flow for s2 */
           double s2FlowShift = s2FinalFlowShift * splittingRate;
+
+          // precision sync like in regular flow shift
+          double currentFlow = bush.getTurnSendingFlow(lastS2Segment, dummyLabel, exitSegment, dummyLabel);
+          if(currentFlow + s2FlowShift < 0){
+            double diff= currentFlow + s2FlowShift;
+            s2FlowShift = -currentFlow; // sync to available flow
+          }
+
           double newturnFlow = bush.addTurnSendingFlow(lastS2Segment, dummyLabel, exitSegment, dummyLabel, s2FlowShift);
           if (!Precision.positive(newturnFlow, EPSILON) && !Precision.positive(bush.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
             /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
@@ -199,12 +213,15 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
 
     double currentFlow = bush.getTurnSendingFlow(currentSegment, dummyLabel, nextSegment, dummyLabel);
     if(Precision.negative(currentFlow + flowShiftPcuH)){
-      int bla = 4;
+      double diff= currentFlow + flowShiftPcuH;
+      flowShiftPcuH = -currentFlow; // sync to available flow
     }
     double newFlow = executeTurnFlowShift(bush, currentSegment, nextSegment, flowShiftPcuH);
     double appliedFlowShift = newFlow-currentFlow;
-    if(Precision.smaller(appliedFlowShift, flowShiftPcuH, Precision.EPSILON_6)){
-      int bla = 4;
+    if(Precision.notEqual(Math.abs(appliedFlowShift), Math.abs(flowShiftPcuH))){
+      double diff= currentFlow + flowShiftPcuH;
+      flowShiftPcuH = appliedFlowShift;
+      LOGGER.severe("sync shouldn't trigger");
     }
     flowShiftPcuH *= flowAcceptanceFactors[(int) entrySegment.getId()];
 
@@ -214,14 +231,16 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
       nextSegment = pasSegment[index];
 
       currentFlow = bush.getTurnSendingFlow(currentSegment, dummyLabel, nextSegment, dummyLabel);
-      if(Precision.negative(currentFlow + flowShiftPcuH)){
-        int bla = 4;
+      if(currentFlow + flowShiftPcuH < 0){
+        double diff= currentFlow + flowShiftPcuH;
+        flowShiftPcuH = -currentFlow; // sync to available flow
       }
       newFlow = executeTurnFlowShift(bush, currentSegment, nextSegment, flowShiftPcuH);
       appliedFlowShift = newFlow-currentFlow;
       if(Precision.notEqual(Math.abs(appliedFlowShift), Math.abs(flowShiftPcuH))){
-        int bla = 4;
+        double diff= currentFlow + flowShiftPcuH;
         flowShiftPcuH = appliedFlowShift;
+        LOGGER.severe("sync shouldn't trigger");
       }
       flowShiftPcuH *= flowAcceptanceFactors[(int) currentSegment.getId()];
     }
