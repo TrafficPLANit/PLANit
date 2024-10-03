@@ -140,8 +140,11 @@ public class PasFlowShiftOriginBasedDestLabelledExecutor extends PasFlowShiftExe
    * @param s1FinalLabeledFlowShift                   the flow shift applied so far up to the final merge
    * @param destinationLabelExitSegmentSplittingRates the splitting rates to apply towards the available exit segments for the given exit label
    */
-  private void executeBushDestinationLabeledS1FlowShiftEndMerge(RootedLabelledBush origin, BushFlowLabel destinationLabel, double s1FinalLabeledFlowShift,
-                                                                double[] destinationLabelExitSegmentSplittingRates) {
+  private void executeBushDestinationLabeledS1FlowShiftEndMerge(
+      RootedLabelledBush origin,
+      BushFlowLabel destinationLabel,
+      double s1FinalLabeledFlowShift,
+      double[] destinationLabelExitSegmentSplittingRates) {
 
     /* add shifted flows through final merge towards exit segments proportionally based on labeled exit usage */
     if (pas.getMergeVertex().hasExitEdgeSegments()) {
@@ -155,7 +158,9 @@ public class PasFlowShiftOriginBasedDestLabelledExecutor extends PasFlowShiftExe
           double s1FlowShift = s1FinalLabeledFlowShift * splittingRate;
           double newLabelledTurnFlow = origin.addTurnSendingFlow(lastS1Segment, destinationLabel, exitSegment, destinationLabel, s1FlowShift);
           if (!Precision.positive(newLabelledTurnFlow, EPSILON)) {
-            LOGGER.severe("Flow shift towards cheaper S1 alternative should always result in non-negative remaining flow, but this was not found, this shouldn't happen");
+            LOGGER.severe(String.format(
+                "Flow shift towards cheaper S1 alternative on turn [from (%s), to (%s)] should result in non-negative remaining flow, but this was not found, this shouldn't happen",
+                lastS1Segment.getIdsAsString(), exitSegment.getIdsAsString()));
           }
         }
         ++index;

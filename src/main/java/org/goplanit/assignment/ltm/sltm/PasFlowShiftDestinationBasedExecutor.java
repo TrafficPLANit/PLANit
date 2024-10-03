@@ -57,11 +57,11 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
       if(!bush.containsEdgeSegment(turnEntry)){
         var availableFlow = bush.getTurnSendingFlow(
             turnEntry, dummyLabel, turnExit, dummyLabel);
-        if(availableFlow > -flowShiftPcuH) {
-          LOGGER.severe(String.format("Found need to sync flow shift to remove all flow due to absence of turn entry" +
-              "this shouldn't happen, syncing regardless", bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+        if(Precision.greater(availableFlow, -flowShiftPcuH, Precision.EPSILON_3)) {
+          LOGGER.severe(String.format("adding %.6f to flow shift (%.10f) to empty already removed link when removing turn flow",
+              availableFlow + flowShiftPcuH, -availableFlow, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
-        flowShiftPcuH = availableFlow; // sync
+        flowShiftPcuH = -availableFlow; // sync
       }
       double totalSendingFlowIntoExit = IterableUtils.asStream(turnExit.getUpstreamVertex().getEntryEdgeSegments()).mapToDouble(
           es -> bush.getTurnSendingFlow(es, dummyLabel, turnExit, dummyLabel)).sum();
@@ -181,7 +181,9 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
           double s1FlowShift = s1FinalFlowShift * splittingRate;
           double newLabelledTurnFlow = bush.addTurnSendingFlow(lastS1Segment, dummyLabel, exitSegment, dummyLabel, s1FlowShift);
           if (!Precision.positive(newLabelledTurnFlow, EPSILON)) {
-            LOGGER.severe("Flow shift towards cheaper S1 alternative should always result in non-negative remaining flow, but this was not found, this shouldn't happen");
+            LOGGER.severe(String.format(
+                "Flow shift of (%.12f) towards cheaper S1 alternative on turn [from (%s), to (%s)] should result in non-negative flow, but found %.12f, this shouldn't happen",
+                s1FlowShift, lastS1Segment.getIdsAsString(), exitSegment.getIdsAsString(), newLabelledTurnFlow));
           }
         }
         ++index;
