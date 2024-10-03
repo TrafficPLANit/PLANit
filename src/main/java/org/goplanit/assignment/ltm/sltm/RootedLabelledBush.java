@@ -272,21 +272,6 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
 
   /**
    * Add turn sending flow to the bush. In case the turn does not yet exist on the bush it is newly registered. If it does exist and there is already flow present, the provided
-   * flow is added to it. If by adding the flow (can be negative) the turn no longer has any flow, nor labels nor the turn itself is removed
-   * 
-   * @param from        from segment of the turn
-   * @param fromLabel   to use
-   * @param to          to segment of the turn
-   * @param toLabel     to use
-   * @param addFlowPcuH to add
-   * @return new labelled turn sending flow after adding given flow
-   */
-  public double addTurnSendingFlow(final EdgeSegment from, final BushFlowLabel fromLabel, final EdgeSegment to, final BushFlowLabel toLabel, double addFlowPcuH) {
-    return addTurnSendingFlow(from, fromLabel, to, toLabel, addFlowPcuH, false);
-  }
-
-  /**
-   * Add turn sending flow to the bush. In case the turn does not yet exist on the bush it is newly registered. If it does exist and there is already flow present, the provided
    * flow is added to it. If by adding the flow (can be negative) the turn no longer has any flow, the labels are removed
    * 
    * @param from             from segment of the turn
@@ -294,7 +279,6 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @param to               to segment of the turn
    * @param toLabel          to use
    * @param addFlowPcuH      to add
-   * @param allowTurnRemoval when true we remove turn when no flow remains after adding (negative) flow, when false, we only change the flow to zero but the bush is not adjusted
    * @return new labelled turn sending flow after adding given flow
    */
   public double addTurnSendingFlow(
@@ -302,8 +286,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
           final BushFlowLabel fromLabel,
           final EdgeSegment to,
           final BushFlowLabel toLabel,
-          double addFlowPcuH,
-      boolean allowTurnRemoval) {
+          double addFlowPcuH) {
 
     if (addFlowPcuH > 0) {
       if (!containsEdgeSegment(from)) {
@@ -323,7 +306,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
         requireTopologicalSortUpdate = true;
       }
     }
-    return bushData.addTurnSendingFlow(from, fromLabel, to, toLabel, addFlowPcuH, allowTurnRemoval);
+    return bushData.addTurnSendingFlow(from, fromLabel, to, toLabel, addFlowPcuH);
   }
 
   /**
@@ -812,7 +795,6 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     var currVertex = vertexIter.next();
 
     /* pass over bush in topological order updating turn sending flows based on flow acceptance factors */
-    final boolean AllowTurnRemoval = false;
     while (vertexIter.hasNext()) {
       currVertex = vertexIter.next();
       for (var entrySegment : currVertex.getEntryEdgeSegments()) {
@@ -850,7 +832,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
               if (bushExitSegmentLabelSplittingRate != null && Precision.positive(bushExitSegmentLabelSplittingRate)) {
                 double bushTurnLabeledAcceptedFlow = entryLabelAcceptedFlow * bushExitSegmentLabelSplittingRate;
                 bushData.setTurnSendingFlow(
-                    entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow, AllowTurnRemoval);
+                    entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow);
               }
             }
           }

@@ -389,7 +389,7 @@ public class sLtmAssignmentBushMultiOdTest {
       sLTMBuilder.getConfigurator().activateDetailedLogging(false);
 
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(0.5);
+      fixedStepSmoothing.setStepSize(0.2);
       
       /* DESTINATION BASED */
       var slTMConfigurator = sLTMBuilder.getConfigurator();
@@ -398,7 +398,9 @@ public class sLtmAssignmentBushMultiOdTest {
       slTMConfigurator.activateOutput(OutputType.LINK);
       slTMConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
-      slTMConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
+
+      slTMConfigurator.setAllowOverlappingPasUpdate(true);
+      slTMConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"), Pair.of("A","A``"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);

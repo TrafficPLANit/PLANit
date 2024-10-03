@@ -71,11 +71,11 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
     }
 
     double newTurnFlow = bush.addTurnSendingFlow(
-            turnEntry, dummyLabel, turnExit, dummyLabel, flowShiftPcuH, isPasS2RemovalActivated());
+            turnEntry, dummyLabel, turnExit, dummyLabel, flowShiftPcuH);
 
     //todo make sure that when very close to zero we remove all flow on the high cost segment somehow
     // so we do not get into trouble with precision...
-    if (isPasS2RemovalActivated() && !Precision.positive(newTurnFlow, EPSILON) &&
+    if (!Precision.positive(newTurnFlow, EPSILON) &&
             !Precision.positive(bush.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
 
       /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
@@ -124,8 +124,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
 
           /* remove flow for s2 */
           double s2FlowShift = s2FinalFlowShift * splittingRate;
-          double newturnFlow = bush.addTurnSendingFlow(lastS2Segment, dummyLabel, exitSegment, dummyLabel, s2FlowShift, isPasS2RemovalActivated());
-          if (isPasS2RemovalActivated() && !Precision.positive(newturnFlow, EPSILON) && !Precision.positive(bush.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
+          double newturnFlow = bush.addTurnSendingFlow(lastS2Segment, dummyLabel, exitSegment, dummyLabel, s2FlowShift);
+          if (!Precision.positive(newturnFlow, EPSILON) && !Precision.positive(bush.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
             /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
             bush.removeTurn(lastS2Segment, exitSegment);
             /* track for further processing, so we can deregister bush on other PASs with these links */
@@ -197,7 +197,15 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
     EdgeSegment currentSegment = entrySegment;
     var nextSegment = pasSegment[index];
 
-    executeTurnFlowShift(bush, currentSegment, nextSegment, flowShiftPcuH);
+    double currentFlow = bush.getTurnSendingFlow(currentSegment, dummyLabel, nextSegment, dummyLabel);
+    if(Precision.negative(currentFlow + flowShiftPcuH)){
+      int bla = 4;
+    }
+    double newFlow = executeTurnFlowShift(bush, currentSegment, nextSegment, flowShiftPcuH);
+    double appliedFlowShift = newFlow-currentFlow;
+    if(Precision.smaller(appliedFlowShift, flowShiftPcuH, Precision.EPSILON_6)){
+      int bla = 4;
+    }
     flowShiftPcuH *= flowAcceptanceFactors[(int) entrySegment.getId()];
 
     /* pas alternative itself */
@@ -205,7 +213,16 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
       currentSegment = nextSegment;
       nextSegment = pasSegment[index];
 
-      executeTurnFlowShift(bush, currentSegment, nextSegment, flowShiftPcuH);
+      currentFlow = bush.getTurnSendingFlow(currentSegment, dummyLabel, nextSegment, dummyLabel);
+      if(Precision.negative(currentFlow + flowShiftPcuH)){
+        int bla = 4;
+      }
+      newFlow = executeTurnFlowShift(bush, currentSegment, nextSegment, flowShiftPcuH);
+      appliedFlowShift = newFlow-currentFlow;
+      if(Precision.notEqual(Math.abs(appliedFlowShift), Math.abs(flowShiftPcuH))){
+        int bla = 4;
+        flowShiftPcuH = appliedFlowShift;
+      }
       flowShiftPcuH *= flowAcceptanceFactors[(int) currentSegment.getId()];
     }
 

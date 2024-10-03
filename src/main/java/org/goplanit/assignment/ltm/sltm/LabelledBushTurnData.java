@@ -192,7 +192,6 @@ public class LabelledBushTurnData {
    * @param toSegment        of turn
    * @param toComposition    of turn flow
    * @param turnSendingFlow  to update
-   * @param allowTurnRemoval when true we allow for removal of turn/edge segment flow labels when no flow remains, when false we keep labelling regardless of the remaining flow
    * @return true when turn has any labelled turn sending flow left after setting flow, false when labelled turn sending flow no longer exists
    */
   public boolean setTurnSendingFlow(
@@ -200,47 +199,29 @@ public class LabelledBushTurnData {
       BushFlowLabel fromComposition,
       final EdgeSegment toSegment,
       BushFlowLabel toComposition,
-      double turnSendingFlow,
-      boolean allowTurnRemoval) {
+      double turnSendingFlow) {
 
     if (Double.isNaN(turnSendingFlow)) {
       LOGGER.severe("Turn (%s to %s) sending flow is NAN, shouldn't happen - consider identifying issue as turn flow cannot be updated properly, reset to 0.0 flow");
       turnSendingFlow = 0.0;
     }else if(!Precision.positive(turnSendingFlow)) {
-      if (allowTurnRemoval) {
 //        if(parent.getDag().getId() == 10) {
 //          LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f) on bush (%s), remove entry for label (%s,%s)",
 //              fromSegment.getXmlId(), toSegment.getXmlId(), turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), fromComposition.getLabelId(), toComposition.getLabelId()));
 //        }
         removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
         return false;
-      }else if(turnSendingFlow < 0){
-         LOGGER.warning(String.format(
-             "** Turn (%s to %s) sending flow negative (%.9f) on bush (%s), this is not allowed, reset to 0.0 for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
-            turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), fromComposition.getLabelId(), toComposition.getLabelId()));
-        turnSendingFlow = 0.0;
-        return false;
-      }
+    }else if(turnSendingFlow < 0){
+       LOGGER.warning(String.format(
+           "** Turn (%s to %s) sending flow negative (%.9f) on bush (%s), this is not allowed, removing turn flow for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
+          turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), fromComposition.getLabelId(), toComposition.getLabelId()));
+      removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
+      return false;
     }
 
     registerLabelledTurnSendingFlow(fromSegment, fromComposition, toSegment, toComposition, turnSendingFlow);
     return true;
 
-  }
-
-  /**
-   * Add turn sending flow for a given turn (can be negative), turn will not be removed if no flow remains
-   * 
-   * @param from      of turn
-   * @param fromLabel of turn flow
-   * @param to        of turn
-   * @param toLabel   of turn flow
-   * @param flowPcuH  to add
-   * @return the new labelled turn sending flow after adding the given flow
-   */
-  public double addTurnSendingFlow(
-      final EdgeSegment from, BushFlowLabel fromLabel, final EdgeSegment to, BushFlowLabel toLabel, double flowPcuH) {
-    return addTurnSendingFlow(from, fromLabel, to, toLabel, flowPcuH, false);
   }
 
   /**
@@ -251,7 +232,6 @@ public class LabelledBushTurnData {
    * @param to               of turn
    * @param toLabel          of turn flow
    * @param flowPcuH         to add
-   * @param allowTurnRemoval when true we allow for removal of turn/edge segment flow labels when no flow remains, when false we keep labelling regardless of the remaining flow
    * @return the new labelled turn sending flow after adding the given flow
    */
   public double addTurnSendingFlow(
@@ -259,11 +239,10 @@ public class LabelledBushTurnData {
       BushFlowLabel fromLabel,
       final EdgeSegment to,
       BushFlowLabel toLabel,
-      double flowPcuH,
-      boolean allowTurnRemoval) {
+      double flowPcuH) {
 
     Double newSendingFlow = flowPcuH + getTurnSendingFlowPcuH(from, fromLabel, to, toLabel);
-    boolean hasRemainingFlow = setTurnSendingFlow(from, fromLabel, to, toLabel, newSendingFlow, allowTurnRemoval);
+    boolean hasRemainingFlow = setTurnSendingFlow(from, fromLabel, to, toLabel, newSendingFlow);
     newSendingFlow = hasRemainingFlow ? newSendingFlow : 0.0;
     return newSendingFlow;
   }
