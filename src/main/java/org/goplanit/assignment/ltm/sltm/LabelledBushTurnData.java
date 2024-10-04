@@ -199,24 +199,32 @@ public class LabelledBushTurnData {
       BushFlowLabel fromComposition,
       final EdgeSegment toSegment,
       BushFlowLabel toComposition,
-      double turnSendingFlow) {
+      double turnSendingFlow,
+      boolean force) {
 
     if (Double.isNaN(turnSendingFlow)) {
       LOGGER.severe("Turn (%s to %s) sending flow is NAN, shouldn't happen - consider identifying issue as turn flow cannot be updated properly, reset to 0.0 flow");
       turnSendingFlow = 0.0;
-    }else if(!Precision.positive(turnSendingFlow)) {
+    }else if(!force){
+      // not forced, so apply some additional checking in situation of low flows and negative flows
+      // note forced may be helpful for small positive flows that otherwise would be regarded as zero flow with the below checks
+      if(!Precision.positive(turnSendingFlow)) {
+      // when negative flow but extremely close to zero, remove the turn flow and accept
+
 //        if(parent.getDag().getId() == 10) {
 //          LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f) on bush (%s), remove entry for label (%s,%s)",
 //              fromSegment.getXmlId(), toSegment.getXmlId(), turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), fromComposition.getLabelId(), toComposition.getLabelId()));
 //        }
         removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
         return false;
-    }else if(turnSendingFlow < 0){
-       LOGGER.warning(String.format(
-           "** Turn (%s to %s) sending flow negative (%.9f) on bush (%s), this is not allowed, removing turn flow for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
-          turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), fromComposition.getLabelId(), toComposition.getLabelId()));
-      removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
-      return false;
+      }else if(turnSendingFlow < 0) {
+        // too negative, warn user as this is unexpected behaviour possibly beyond a rounding situation
+        LOGGER.warning(String.format(
+                "** Turn (%s to %s) sending flow negative (%.9f) on bush (%s), this is not allowed, removing turn flow for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
+                turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), fromComposition.getLabelId(), toComposition.getLabelId()));
+        removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
+        return false;
+      }
     }
 
     registerLabelledTurnSendingFlow(fromSegment, fromComposition, toSegment, toComposition, turnSendingFlow);
@@ -242,7 +250,7 @@ public class LabelledBushTurnData {
       double flowPcuH) {
 
     Double newSendingFlow = flowPcuH + getTurnSendingFlowPcuH(from, fromLabel, to, toLabel);
-    boolean hasRemainingFlow = setTurnSendingFlow(from, fromLabel, to, toLabel, newSendingFlow);
+    boolean hasRemainingFlow = setTurnSendingFlow(from, fromLabel, to, toLabel, newSendingFlow, flowPcuH>0);
     newSendingFlow = hasRemainingFlow ? newSendingFlow : 0.0;
     return newSendingFlow;
   }

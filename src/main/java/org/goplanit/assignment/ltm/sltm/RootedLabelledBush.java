@@ -846,7 +846,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
               if (bushExitSegmentLabelSplittingRate != null && Precision.positive(bushExitSegmentLabelSplittingRate)) {
                 double bushTurnLabeledAcceptedFlow = entryLabelAcceptedFlow * bushExitSegmentLabelSplittingRate;
                 bushData.setTurnSendingFlow(
-                    entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow);
+                    entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow, true);
               }
             }
           }
