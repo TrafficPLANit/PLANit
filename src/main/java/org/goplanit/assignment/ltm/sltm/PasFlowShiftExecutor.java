@@ -610,9 +610,9 @@ public abstract class PasFlowShiftExecutor {
 
         // only consider entry segments where there is flow present to shift.
         if (!bush.containsTurnSendingFlow(entrySegment, pas.getFirstEdgeSegment(false)) || guaranteedBushEntrySegmentS2SendingFlow <= 0) {
-//          if(bush.determineSubPathSendingFlow(entrySegment, pas.getAlternative(false)) > 0){
-//            LOGGER.severe(String.format("Thought PAS (%s) s2 to have no flow, but upon checking flow present for bush (%s)", pas, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-//          }
+          if(isDestinationTrackedForLogging() && guaranteedBushEntrySegmentS2SendingFlow > 0){
+            LOGGER.severe(String.format("Thought PAS (%s) s2 to have no flow, but upon checking flow present for bush (%s), this shouldn't happen", pas, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+          }
           continue;
         }
 

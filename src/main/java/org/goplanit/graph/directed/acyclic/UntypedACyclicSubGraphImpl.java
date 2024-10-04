@@ -14,12 +14,14 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
+import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
@@ -283,6 +285,12 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
       if (!visited.get((int) vertexEntry.getKey().getId())) {
         LOGGER.warning(String.format(
                 "Topological sort applied, but found vertex (%s) not connected to a root of the acyclic graph (%d), unable to determine sorting order", vertexEntry.getKey().getIdsAsString(), getId()));
+        LOGGER.info(String.format(
+            "Vertex (%s) connected to following edges: %s",
+            vertexEntry.getKey().getIdsAsString(), vertexEntry.getKey().getEdges().stream().map(e ->"(" + e.getIdsAsString()+")").collect(Collectors.joining(","))));
+        LOGGER.info(String.format(
+            "Vertex (%s) connected to following edge segments on DAG: %s",
+            vertexEntry.getKey().getIdsAsString(), vertexEntry.getKey().streamEdgeSegments().filter(this::containsEdgeSegment).map(e ->"(" + e.getIdsAsString()+")").collect(Collectors.joining(","))));
         return null;
       }
     }

@@ -74,7 +74,7 @@ public class LabelledBushTurnData {
             if (labelledTurnFlow == null) {
               continue;
             }
-            if (Precision.positive(labelledTurnFlow)) {
+            if (labelledTurnFlow > 0) {
               remainingEntryLabels.add(entryComposition);
               identifiedExitCompositionLabels.add(exitComposition);
             } else {

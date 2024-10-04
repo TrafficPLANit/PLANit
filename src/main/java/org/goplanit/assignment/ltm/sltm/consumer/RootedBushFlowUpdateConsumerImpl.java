@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
+import org.goplanit.assignment.ltm.sltm.DestinationBush;
 import org.goplanit.assignment.ltm.sltm.RootedLabelledBush;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.physical.Movement;
@@ -109,7 +110,7 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
     /* get topological sorted vertices to process */
     var vertexIter = bush.isInverted() ? bush.getInvertedTopologicalIterator() : bush.getTopologicalIterator();
     if (vertexIter == null) {
-      LOGGER.severe(String.format("Topologically sorted bush not available, this shouldn't happen, skip"));
+      LOGGER.severe(String.format("Topologically sorted bush (%s) not available, this shouldn't happen", ((DestinationBush)bush).getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
       return;
     }
     var currVertex = vertexIter.next();
