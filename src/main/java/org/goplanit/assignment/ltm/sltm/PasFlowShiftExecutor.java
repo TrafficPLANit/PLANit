@@ -589,7 +589,7 @@ public abstract class PasFlowShiftExecutor {
       if (Precision.greaterEqual(smoothedProportionalPasflowShift, guaranteedEntrySegmentS2SendingFlow, EPSILON_3)) {
 
         if(isDestinationTrackedForLogging()) {
-          LOGGER.info(String.format("     [Allowing removal --> proposed shift %.10f may exceed s2 sending flow %.10f on entry segment (%s)]",
+          LOGGER.info(String.format("     [removal --> shift %.10f may exceed s2 sending flow %.10f, entry segment (%s)]",
                   smoothedProportionalPasflowShift, guaranteedEntrySegmentS2SendingFlow, entrySegment.getIdsAsString()));
         }
 
@@ -627,14 +627,16 @@ public abstract class PasFlowShiftExecutor {
           entrySegmentBushPasflowShift = guaranteedBushEntrySegmentS2SendingFlow; // make sure we ride the bush s2 PAS from all remaining flow by setting a high value
           if(isDestinationTrackedForLogging(bush)) {
             LOGGER.info(String.format(
-                    "     S2 flow on bush nearing zero --> FLOW SHIFT UPLIFT --> Attempted flow shift=%.10f) - entry segment (%s) - bush (%s)",
-                    entrySegmentBushPasflowShift, entrySegment.getIdsAsString(), bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+                    "     S2 flow bush near zero -> FLOW SHIFT UPLIFT -> Attempted flow shift=%.10f) - entry segment (%s) - alpha: %.2f - bush (%s)",
+                    entrySegmentBushPasflowShift, entrySegment.getIdsAsString(),
+                networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()], bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
           }
         }else{
           if(isDestinationTrackedForLogging(bush)) {
             LOGGER.info(String.format(
-                    "     Flow shift: %.10f (available flow %.10f) - entry segment (%s) - bush (%s)",
-                    entrySegmentBushPasflowShift, guaranteedBushEntrySegmentS2SendingFlow, entrySegment.getIdsAsString(), bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+                    "     Flow shift: %.10f (available flow %.10f) - entry segment (%s) - alpha: %.2f - bush (%s)",
+                    entrySegmentBushPasflowShift, guaranteedBushEntrySegmentS2SendingFlow, entrySegment.getIdsAsString(),
+                    networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()], bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
           }
         }
 

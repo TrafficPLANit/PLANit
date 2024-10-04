@@ -332,8 +332,11 @@ public class PasFlowShiftOriginBasedSmartLabelledExecutor extends PasFlowShiftEx
    * @param usedLabelSplittingRates the splitting rates to apply per used label towards the available exit segments where the key is the exit label and the value the splitting
    *                                rates towards each exit
    */
-  private void executeBushLabeledS1FlowShiftEndMerge(RootedLabelledBush origin, BushFlowLabel finalSegmentLabel, double s1FinalLabeledFlowShift,
-                                                     Map<BushFlowLabel, double[]> usedLabelSplittingRates) {
+  private void executeBushLabeledS1FlowShiftEndMerge(
+      RootedLabelledBush origin,
+      BushFlowLabel finalSegmentLabel,
+      double s1FinalLabeledFlowShift,
+      Map<BushFlowLabel, double[]> usedLabelSplittingRates) {
 
     EdgeSegment lastS1Segment = pas.getLastEdgeSegment(true /* low cost */);
 
@@ -350,7 +353,9 @@ public class PasFlowShiftOriginBasedSmartLabelledExecutor extends PasFlowShiftEx
             double s1FlowShift = s1FinalLabeledFlowShift * splittingRate;
             double newLabelledTurnFlow = origin.addTurnSendingFlow(lastS1Segment, finalSegmentLabel, exitSegment, exitLabel, s1FlowShift);
             if (!Precision.positive(newLabelledTurnFlow, EPSILON)) {
-              LOGGER.severe("Flow shift towards cheaper S1 alternative should always result in non-negative remaining flow, but this was not found, this shouldn't happen");
+              LOGGER.severe(String.format(
+                  "Flow shift of (%.12f) towards cheaper S1 alternative on turn [from (%s), to (%s)] should result in non-negative flow, but found %.12f, this shouldn't happen",
+                  s1FlowShift, lastS1Segment.getIdsAsString(), exitSegment.getIdsAsString(), newLabelledTurnFlow));
             }
           }
           ++index;
@@ -416,8 +421,11 @@ public class PasFlowShiftOriginBasedSmartLabelledExecutor extends PasFlowShiftEx
    * @param divergeProportionsByTurnLabels portions to apply for each entrysegment-entrylabel given the to be shifted flow for a given exitlabel towards S1 initial segment
    * @param flowAcceptanceFactors          to use
    */
-  private void executeBushLabeledS1FlowShiftStartDiverge(RootedLabelledBush origin, BushFlowLabel startSegmentLabel, double s1StartLabeledFlowShift,
-                                                         MultiKeyMap<Object, Double> divergeProportionsByTurnLabels, final double[] flowAcceptanceFactors) {
+  private void executeBushLabeledS1FlowShiftStartDiverge(
+      RootedLabelledBush origin,
+      BushFlowLabel startSegmentLabel,
+      double s1StartLabeledFlowShift,
+      MultiKeyMap<Object, Double> divergeProportionsByTurnLabels, final double[] flowAcceptanceFactors) {
 
     EdgeSegment firstS1Segment = pas.getFirstEdgeSegment(true /* low cost */);
 
@@ -439,7 +447,9 @@ public class PasFlowShiftOriginBasedSmartLabelledExecutor extends PasFlowShiftEx
 
           double newLabelledTurnFlow = origin.addTurnSendingFlow(entrySegment, entryLabel, firstS1Segment, startSegmentLabel, s1DivergeEntryLabeledFlowShift);
           if (!Precision.positive(newLabelledTurnFlow, EPSILON)) {
-            LOGGER.severe("Flow shift towards cheaper S1 alternative should always result in non-negative remaining flow, but this was not found, this shouldn't happen");
+            LOGGER.severe(String.format(
+                "Flow shift towards cheaper S1 alternative on turn [from (%s), to (%s)] should result in non-negative remaining flow, but this was not found, this shouldn't happen",
+                entrySegment.getIdsAsString(), firstS1Segment.getIdsAsString()));
           }
         }
       }
