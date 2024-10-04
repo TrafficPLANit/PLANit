@@ -15,6 +15,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.zoning.OdZone;
@@ -94,9 +95,10 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    * @param bush              to identify new PAS for
    * @param reducedCostVertex to use for creating the PAS as a cheaper path to the root exists at this vertex
    * @param networkMinPaths   the current network shortest path tree
-   * @return new created PAS if successfully created, null otherwise
+   * @return new created PAS if successfully created, null otherwise, the boolean indicates if it indeed is a brand new PAS
+   *  or for some reason we still reused an existing one
    */
-  private Pas extendBushWithNewPas(
+  private Pair<Pas, Boolean> extendBushWithNewPas(
           final RootedLabelledBush bush, final DirectedVertex reducedCostVertex, final ShortestPathResult networkMinPaths) {
 
     /* Label all vertices on shortest path root-reducedCostVertex as -1, and PAS reference vertex itself as 1 */
@@ -155,14 +157,14 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
             "possibly existing PAS was discarded as not suitable before...", existingPas, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
       }
       existingPas.registerBush(bush);
-      return null;
+      return Pair.of(existingPas, false);
     }
 
     /* New pas */
     Pas pas = pasManager.createAndRegisterNewPas(bush, s1, s2);
     /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
     getLoading().activateNodeTrackingFor(pas);
-    return pas;
+    return Pair.of(pas, true);
   }
 
   /**
@@ -174,12 +176,14 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    *
    * @param mode to use
    * @param linkSegmentCosts to use to construct min-max path three rooted at each bush's origin
-   * @return newly created PASs (empty if no new PASs were created)
+   * @return newly created PASs and existing pass with newly registered bushes on them  (empty if no new PASs were created or newly assigned))
    */
   @Override
-  protected Collection<Pas> updateBushPass(Mode mode, final double[] linkSegmentCosts){
+  protected Pair<Collection<Pas>, Collection<Pas>> updateBushPass(Mode mode, final double[] linkSegmentCosts){
 
+    //todo --> should be sets
     List<Pas> newPass = new ArrayList<>();
+    List<Pas> existingPassWithNewBushes = new ArrayList<>();
 
     final var networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
     for (RootedLabelledBush bush : bushes) {
@@ -205,7 +209,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
       }
 
       /* find (new) matching PASs - start with new PAS close to origin exploration first
-       *  todo: this is a choice, could choose differently but we check all so likely not very influential */
+       *  todo: this is a choice, could choose differently and going with close to destination seems safer */
       var bushVertexIter = bush.isInverted() ? bush.getInvertedTopologicalIterator() : bush.getTopologicalIterator();
       for (; bushVertexIter.hasNext(); ) {
         DirectedVertex bushVertex = bushVertexIter.next();
@@ -239,15 +243,21 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
           if(isDestinationTrackedForLogging(bush)){
             LOGGER.info(String.format("Registered suitable existing PAS (%s) on bush (%s)", existingRegisteredPas, bush));
           }
+          existingPassWithNewBushes.add(existingRegisteredPas);
           continue;
         }
 
         /* no suitable match, attempt creating an entirely new PAS */
-        Pas newPas = extendBushWithNewPas(bush, bushVertex, networkMinPaths);
-        if (newPas == null) {
+        var foundPasPair = extendBushWithNewPas(bush, bushVertex, networkMinPaths);
+        if (foundPasPair == null) {
+          continue;
+        }else if(!foundPasPair.second() /* registered on existing pas rather than new */){
+          existingPassWithNewBushes.add(foundPasPair.first());
           continue;
         }
 
+        // truly new PAS
+        var newPas = foundPasPair.first();
         newPass.add(newPas);
         newPas.updateCost(linkSegmentCosts);
         if(isDestinationTrackedForLogging(bush)){
@@ -266,7 +276,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
 
       }
     }
-    return newPass;
+    return Pair.of(newPass,existingPassWithNewBushes);
   }
 
   /**

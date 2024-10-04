@@ -191,25 +191,25 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     //    if such a reattaching vertex however can reach any non cycle introducing vertices we know it won't introduce
     //    a cycle (because it reattaches earlier than (u) so it can't be reached, this saves time in the BFS
     Set<DirectedVertex> cycleIntroducingVertices = new HashSet<>();
-    Set<DirectedVertex> noCycleIntroducingVertices = new HashSet<>();
+    Map<DirectedVertex, Integer> topoTraversedVertices = new HashMap<>();
 
     int altIndex = 0;
     final int maxAltIndex = alternative.length-1;
-    DirectedVertex currAlternativeVertex = alternative[altIndex].getUpstreamVertex();
-    cycleIntroducingVertices.add(currAlternativeVertex);
+    DirectedVertex currAltVertex = alternative[altIndex].getUpstreamVertex();
+    cycleIntroducingVertices.add(currAltVertex);
     DirectedVertex currOrderedVertex;
 
-    boolean guaranteedNoCycle = false;
-    boolean guaranteedCycle = false;
     var topologicalIter = isInverted() ?  getTopologicalIterator() : getInvertedTopologicalIterator();
+    int index = 0;
     while(topologicalIter.hasNext()) {
       currOrderedVertex = topologicalIter.next();
-      if (!currOrderedVertex.idEquals(currAlternativeVertex)) {
+      if (!currOrderedVertex.idEquals(currAltVertex)) {
         // register all preceding vertices as non-cycle introducing up to a first match to hopefully save some time in BFS
-        noCycleIntroducingVertices.add(currOrderedVertex);
+        topoTraversedVertices.put(currOrderedVertex, index);
       }else{
         break;
       }
+      ++index;
     }
 
     // now traverse the alternative and whenever it touches the bush, verify no path back to any preceding
@@ -218,36 +218,50 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     EdgeSegment currSegment = alternative[altIndex];
     boolean currCoincidingVertexFound;
     boolean currLocalNoCycle;
+    int maxAllowedTopologicalIndex = Integer.MAX_VALUE;
     do{
       if(altIndex < maxAltIndex){
         currSegment = nextSegment;
         nextSegment = alternative[++altIndex];
-        currAlternativeVertex = nextSegment.getUpstreamVertex();
+        currAltVertex = nextSegment.getUpstreamVertex();
       }else if(altIndex++ == maxAltIndex){
         currSegment = nextSegment;
         nextSegment = null;
-        currAlternativeVertex = alternative[maxAltIndex].getDownstreamVertex();
+        currAltVertex = alternative[maxAltIndex].getDownstreamVertex();
       }
 
-      currCoincidingVertexFound = containsAnyEdgeSegmentOf(currAlternativeVertex);
+      currCoincidingVertexFound = containsAnyEdgeSegmentOf(currAltVertex);
       boolean directCycle = currSegment.getOppositeDirectionSegment()!=null && containsEdgeSegment(currSegment.getOppositeDirectionSegment());
       if(directCycle){
         // direct cycle detected since opposite direction already present, abort
         return currSegment;
       }
 
-      // check for potential more complex cycle by closing a loop other than direct opposite link
-      currLocalNoCycle = noCycleIntroducingVertices.contains(currAlternativeVertex);
-      boolean potentialCycle = currCoincidingVertexFound && !currLocalNoCycle;
+      boolean guaranteedNoCycle = false;
+      boolean ableToDirectlyVerifyCycle = topoTraversedVertices.containsKey(currAltVertex);
+      if(ableToDirectlyVerifyCycle){
+        if(topoTraversedVertices.get(currAltVertex) < maxAllowedTopologicalIndex){
+          // when curr vertex has a more restricting location in the topological order, then reduce the index so that we ensure we do
+          // not allow any connections to a vertex that occurs later, i.e, closing a loop. For now it means no cycle though
+          // because it should be smaller each time
+          maxAllowedTopologicalIndex = topoTraversedVertices.get(currAltVertex);
+          guaranteedNoCycle = true;
+        }else{
+          return currSegment;
+        }
+      }
+
+
+      boolean potentialCycle = currCoincidingVertexFound && !guaranteedNoCycle;
       if(potentialCycle) {
         // touching - possible complex cycle
 
         // see if adding alternative segment would introduce cycle via BFS search to reach a cycle introducing vertex
         var result = getDag().breadthFirstSearch(
-            currAlternativeVertex,
+            currAltVertex,
             false,
             (es) -> true,
-            (prevEs,es) -> !noCycleIntroducingVertices.contains(es.getUpstreamVertex()), // do not explore beyond vertices that are known to not yield cycle
+            (prevEs,es) -> !topoTraversedVertices.containsKey(es.getUpstreamVertex()), // do not explore beyond vertices that we can check in main loop via index more efficiently
             (v, prevEs) -> cycleIntroducingVertices.contains(v));
         if(result == null){
           LOGGER.severe("BFS for cycle detection has no result, this shouldn't happen");
@@ -261,9 +275,9 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
         // no cycle could be detected continue
       }
 
-      cycleIntroducingVertices.add(currAlternativeVertex);
+      cycleIntroducingVertices.add(currAltVertex);
       if(currCoincidingVertexFound) {
-        noCycleIntroducingVertices.remove(currAlternativeVertex); // by considering alternative it would now close a cycle when downstream segments could reach it
+        topoTraversedVertices.remove(currAltVertex); // by considering alternative it would now close a cycle when downstream segments could reach it
       }
     }while((altIndex-1) <= maxAltIndex);
     // done, no cycle
@@ -291,16 +305,16 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     if (addFlowPcuH > 0) {
       if (!containsEdgeSegment(from)) {
         if (containsEdgeSegment(from.getOppositeDirectionSegment())) {
-          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
-              from.getXmlId(), to.getXmlId(), from.getXmlId()));
+          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s)where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
+              from.getXmlId(), to.getXmlId(), getRootZoneVertex().getParent().getParentZone().getIdsAsString(), from.getXmlId()));
         }
         getDag().addEdgeSegment(from);
         requireTopologicalSortUpdate = true;
       }
       if (!containsEdgeSegment(to)) {
         if (containsEdgeSegment(to.getOppositeDirectionSegment())) {
-          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
-              from.getXmlId(), to.getXmlId(), to.getXmlId()));
+          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s) where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
+              from.getXmlId(), to.getXmlId(), getRootZoneVertex().getParent().getParentZone().getIdsAsString(), to.getXmlId()));
         }
         getDag().addEdgeSegment(to);
         requireTopologicalSortUpdate = true;

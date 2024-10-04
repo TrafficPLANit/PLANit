@@ -45,6 +45,10 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
       for (var originExit : originVertex.getExitEdgeSegments()) {
         if (bush.containsEdgeSegment(originExit)) {
           var usedLabels = bush.getFlowCompositionLabels(originExit);
+          if(usedLabels == null){
+            LOGGER.severe(String.format("No labels found on exit segment (%s) despite bush containing segment, this shouldn't happen", originExit.getIdsAsString()));
+            continue;
+          }
           for (var usedLabel : usedLabels) {
             double sendingFlow = bush.getSendingFlowPcuH(originExit, usedLabel);
             bushSendingFlows.put(originExit, usedLabel, sendingFlow);

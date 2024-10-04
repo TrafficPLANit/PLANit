@@ -17,6 +17,7 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.physical.Movement;
@@ -178,10 +179,9 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
    * @param mode to use
    * @param linkSegmentCosts to use
    * @return newly created PASs
-   * @throws PlanItException thrown if error
    */
   @Override
-  protected Collection<Pas> updateBushPass(Mode mode, double[] linkSegmentCosts) throws PlanItException {
+  protected Pair<Collection<Pas>, Collection<Pas>> updateBushPass(Mode mode, double[] linkSegmentCosts){
     // TODO: not yet implemented for conjugate, take inspiration from "normal" implementation
     return null;
   }

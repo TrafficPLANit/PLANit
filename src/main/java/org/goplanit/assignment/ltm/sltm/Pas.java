@@ -500,7 +500,7 @@ public class Pas {
    */
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder(String.format(" (%d)", pasId));
+    final StringBuilder sb = new StringBuilder(String.format(" (id: %d) -", pasId));
 
     Consumer<EdgeSegment> consumer = (ls) -> {
       if (ls == null) {

@@ -503,7 +503,10 @@ public class PasManager {
    * @return pas found, null if no suitable candidates exist
    */
   public Pas findFirstSuitableExistingPas(
-          final RootedLabelledBush bush, final DirectedVertex referenceVertex, double[] flowAcceptanceFactors, double reducedCost) {
+          final RootedLabelledBush bush,
+          final DirectedVertex referenceVertex,
+          double[] flowAcceptanceFactors,
+          double reducedCost) {
 
     /* verify potential PASs */
     var potentialPass = getPassByReferenceVertex(referenceVertex);
