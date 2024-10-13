@@ -353,14 +353,58 @@ public abstract class PasFlowShiftExecutor {
 
   /**
    * Perform the flow shift for a given bush. Delegate to concrete class implementation
+   *
+   * @param bush                      to perform shift for
+   * @param entrySegment              entry segment at hand to apply flow shift for
+   * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entrysegment combination
+   * @param flowAcceptanceFactors     to use
+   * @return end merge splitting rates of s2 to be used in s1 flow shift
+   */
+  protected abstract Map<BushFlowLabel, double[]> executeBushS2FlowShift(
+          final RootedLabelledBush bush,
+          final EdgeSegment entrySegment,
+          double bushEntrySegmentFlowShift,
+          final double[] flowAcceptanceFactors);
+
+  /**
+   * Perform the flow shift for a given bush. Delegate to concrete class implementation
+   *
+   * @param bush                      to perform shift for
+   * @param entrySegment              entry segment at hand to apply flow shift for
+   * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entrysegment combination
+   * @param flowAcceptanceFactors     to use
+   * @param endMergeSplittingRates    end merge splitting rates of s2 to be used in s1 flow shift
+   */
+  protected abstract void executeBushS1FlowShift(
+          final RootedLabelledBush bush,
+          final EdgeSegment entrySegment,
+          double bushEntrySegmentFlowShift,
+          final double[] flowAcceptanceFactors,
+          Map<BushFlowLabel, double[]> endMergeSplittingRates);
+
+  /**
+   * Perform the flow shift for a given bush. Delegate to concrete class implementation
    * 
    * @param bush                      to perform shift for
    * @param entrySegment              entry segment at hand to apply flow shift for
    * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entrysegment combination
    * @param flowAcceptanceFactors     to use
+   * @deprecated to be replaced by separate calls
    */
-  protected abstract void executeBushFlowShift(
-          final RootedLabelledBush bush, final EdgeSegment entrySegment, double bushEntrySegmentFlowShift, final double[] flowAcceptanceFactors);
+  @Deprecated
+  public void executeBushFlowShift(
+          final RootedLabelledBush bush,
+          final EdgeSegment entrySegment,
+          double bushEntrySegmentFlowShift,
+          final double[] flowAcceptanceFactors){
+
+    /* shift flows for S2 */
+    var bushS2MergeExitSplittingRates =
+            executeBushS2FlowShift(bush, entrySegment, bushEntrySegmentFlowShift, flowAcceptanceFactors);
+    /* shift flows for S1 */
+    executeBushS1FlowShift(bush, entrySegment, bushEntrySegmentFlowShift, flowAcceptanceFactors, bushS2MergeExitSplittingRates);
+
+  }
 
   /**
    * For the given PAS-entrysegment determine the flow shift to apply from the high cost to the low cost segment. Depending on the state of the segments we utilise their
@@ -514,7 +558,7 @@ public abstract class PasFlowShiftExecutor {
    * @param smoothing          to apply to flow shift
    * @return true when flow is shifted, false otherwise
    */
-  public boolean run(
+  public boolean performS2FlowShift(
       Map<EdgeSegment, Double> proposedFlowShifts,
       Mode theMode,
       AbstractPhysicalCost physicalCost,

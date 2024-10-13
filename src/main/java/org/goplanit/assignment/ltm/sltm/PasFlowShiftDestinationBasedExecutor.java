@@ -1,11 +1,14 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.IterableUtils;
+import org.goplanit.utils.misc.Pair;
 
 /**
  * Functionality to conduct a PAS flow shift based on underlying destination based bush approach. A destination-based bush approach no longer requires labelling and should therefore outperform
@@ -253,7 +256,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
   /**
    * {@inheritDoc}
    */
-  protected void executeBushFlowShift(
+  @Override
+  protected TreeMap<BushFlowLabel, double[]> executeBushS2FlowShift(
           RootedLabelledBush bush,
           EdgeSegment entrySegment,
           double bushFlowShift,
@@ -261,39 +265,72 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
 
     /* prep - pas */
     final var s2 = pas.getAlternative(false);
-    final var s1 = pas.getAlternative(true);
 
     /*
      * ------------------------------------------------- S2 FLOW SHIFT ----------------------------------------------------------------------------------------------------------
      * Update S2 by shifting flow proportionally along encountered flow compositions matching with the PAS/origin/alternative
      */
 
-      /* obtain splitting rates before flow shift in case turns/edges are removed on S2, then splitting rate information is lost while required for final merge afterwards */
-      var s2MergeExitSplittingRates = bush.getSplittingRates(pas.getLastEdgeSegment(false /* high cost */), dummyLabel);
+    /* obtain splitting rates before flow shift in case turns/edges are removed on S2, then splitting rate information is lost while required for final merge afterwards */
+    var s2MergeExitSplittingRates = bush.getSplittingRates(pas.getLastEdgeSegment(false /* high cost */), dummyLabel);
 
-      double s2StartLabeledFlowShift = -bushFlowShift;
-      double s2FinalLabeledFlowShift =
-              executeBushPasFlowShift(bush, entrySegment, s2StartLabeledFlowShift, s2, flowAcceptanceFactors);
+    double s2StartLabeledFlowShift = -bushFlowShift;
+    double s2FinalLabeledFlowShift =
+            executeBushPasFlowShift(bush, entrySegment, s2StartLabeledFlowShift, s2, flowAcceptanceFactors);
 
-      /* shift flow across final merge for S2 */
-      double[] bushS2MergeExitShiftedSendingFlows =
-              executeBushS2FlowShiftEndMerge(bush, s2FinalLabeledFlowShift, s2MergeExitSplittingRates);
+    /* shift flow across final merge for S2 */
+    double[] bushS2MergeExitShiftedSendingFlows =
+            executeBushS2FlowShiftEndMerge(bush, s2FinalLabeledFlowShift, s2MergeExitSplittingRates);
 
     /* convert flows to portions by label */
-    ArrayUtils.divideBySum(bushS2MergeExitShiftedSendingFlows, 0);
-    var bushS2MergeExitShiftedSplittingRates = bushS2MergeExitShiftedSendingFlows;
-    bushS2MergeExitShiftedSendingFlows = null;
+    TreeMap<BushFlowLabel, double[]> bushS2MergeExitSplittingRates= new TreeMap<>();
+    bushS2MergeExitSplittingRates.put(dummyLabel, ArrayUtils.divideBySum(bushS2MergeExitShiftedSendingFlows, 0));
+    return bushS2MergeExitSplittingRates;
+  }
 
-    /*
-     * ------------------------------------------------- S1 FLOW SHIFT ----------------------------------------------------------------------------------------------------------
-     * Update S1 by shifting flow proportionally along encountered flow compositions matching with the PAS/origin/alternative
-     */
-      double s1StartLabeledFlowShift = bushFlowShift;
-      double s1FinalLabeledFlowShift = executeBushPasFlowShift(
-              bush, entrySegment, s1StartLabeledFlowShift, s1, flowAcceptanceFactors);
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void executeBushS1FlowShift(
+          RootedLabelledBush bush,
+          EdgeSegment entrySegment,
+          double bushFlowShift,
+          double[] flowAcceptanceFactors,
+          Map<BushFlowLabel, double[]> mergeExitSplittingRates) {
 
-      /* shift flow across final merge for S1 based on findings in s2 */
-      executeBushS1FlowShiftEndMerge(bush, s1FinalLabeledFlowShift, bushS2MergeExitShiftedSplittingRates);
+    var s1 = pas.getAlternative(true);
+    if(mergeExitSplittingRates.size()>1){
+      LOGGER.severe("more than one label encountered on destination based bush, should not happen");
+    }
+
+
+    double s1FinalLabeledFlowShift = executeBushPasFlowShift(
+            bush,
+            entrySegment,
+            bushFlowShift,
+            s1,
+            flowAcceptanceFactors);
+
+    /* shift flow across final merge for S1 based on findings in s2 */
+    executeBushS1FlowShiftEndMerge(bush, s1FinalLabeledFlowShift, mergeExitSplittingRates.values().stream().findFirst().get());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void executeBushFlowShift(
+          RootedLabelledBush bush,
+          EdgeSegment entrySegment,
+          double bushFlowShift,
+          double[] flowAcceptanceFactors) {
+
+    /* shift flows for S2 */
+    var bushS2MergeExitSplittingRates =
+            executeBushS2FlowShift(bush, entrySegment, bushFlowShift, flowAcceptanceFactors);
+    /* shift flows for S1 */
+    executeBushS1FlowShift(bush, entrySegment, bushFlowShift, flowAcceptanceFactors, bushS2MergeExitSplittingRates);
   }
 
   /**
