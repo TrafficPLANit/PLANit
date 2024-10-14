@@ -231,43 +231,6 @@ public class sLtmAssignmentBushSingleOdTest1 {
   }
   //@formatter:on
 
-  /**
-   * Test sLTM bush-origin based assignment on above network for a point queue model
-   */
-  @Test
-  public void sLtmPointQueueBushOriginBasedAssignmentTest() {
-    try {
-
-      /* OD DEMANDS 8000 A->A` */
-      Demands demands = createDemands();
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sLTMBuilder.getConfigurator().activateDetailedLogging(false);
-
-      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(0.5);
-      
-      /* ORIGIN BASED */
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.ORIGIN_BUSH_BASED);
-
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-
-      StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.setActivateDetailedLogging(true);
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.execute();
-
-      testOutputs(sLTM);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
-    }
-  }
 
   /**
    * Test sLTM bush-destination based assignment on above network for a point queue model

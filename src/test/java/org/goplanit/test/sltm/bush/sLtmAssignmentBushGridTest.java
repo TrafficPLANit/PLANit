@@ -115,50 +115,6 @@ public class sLtmAssignmentBushGridTest extends sLtmAssignmentGridTestBase {
   }
 
   /**
-   * Test sLTM bush-origin-based assignment on grid based network which should result in an even spread across uncongested links
-   * in the final solution. In this test we do not enforce a max entropy flow distribution as the initial distribution
-   * is more intuitive to test for.
-   */
-  @Test
-  public void sLtmPointQueueBushOriginBasedAssignmentNoQueueTest() {
-    try {
-
-      Demands demands = createDemands(testToken);
-
-      /* OD DEMANDS 1800 A->A``, 1800 A->A``` (1800 pcu/h for one hour) */
-      OdZones odZones = zoning.getOdZones();
-      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
-      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 1800.0);
-      odDemands.setValue(odZones.getByXmlId("A`"), odZones.getByXmlId("A```"), 1800.0);
-      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      
-      /* ORIGIN BASED */
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.ORIGIN_BUSH_BASED);
-      sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
-
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-
-      StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.setActivateDetailedLogging(true);
-      sLTM.execute();
-
-      testOutflowsNoQueue(sLTM);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
-    }
-  }
-
-
-  /**
    * Test sLTM bush-destination-based assignment on grid based network which should result in an even spread across uncongested links in the final solution. In this test we do not enforce a
    * max entropy flow distribution as the initial distribution is more intuitive to test for.
    */

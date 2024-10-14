@@ -9,7 +9,6 @@ package org.goplanit.assignment.ltm.sltm;
 public enum StaticLtmType {
 
   PATH_BASED,
-  ORIGIN_BUSH_BASED,
   DESTINATION_BUSH_BASED,
   CONJUGATE_DESTINATION_BUSH_BASED;
 }

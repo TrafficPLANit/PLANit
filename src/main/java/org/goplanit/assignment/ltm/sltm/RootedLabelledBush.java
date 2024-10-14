@@ -45,6 +45,12 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
       double subPathSendingFlow, BushFlowLabel label, int index, final EdgeSegment[] subPathArray) {
 
     var currEdgeSegment = subPathArray[index++];
+
+    // in case due to other local flow reductions the link flow has become lower than the NL consistent
+    // flow following the path and applying alphas and splitting rates, cap to this more restricting avalable flow instead
+    double linkRestrictedSubPathSendingFlow =
+            Math.min(subPathSendingFlow, bushData.getTotalSendingFlowFromPcuH(currEdgeSegment, label));
+
     if (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
       var nextEdgeSegment = subPathArray[index];
 
@@ -60,7 +66,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
         if (currSplittingRate == null || currSplittingRate <= 0) {
           continue;
         }
-        remainingSubPathSendingFlow += subPathSendingFlow * currSplittingRate;
+        remainingSubPathSendingFlow += linkRestrictedSubPathSendingFlow * currSplittingRate;
       }
 
       return determineSubPathSendingFlow(remainingSubPathSendingFlow, label, index, subPathArray);

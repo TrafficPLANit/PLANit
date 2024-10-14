@@ -151,8 +151,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
     // track remaining new or bush-updated PASs that have not been processed (only used when overlapping PAS updates are allowed to
     // minimise the on-the-fly checking required for possible cycle introducing conflicts due to overlapping PAS updates)
-    final Map<Long, Pas> unprocessedNewOrUpdatedPass = new TreeMap<>();
-    newAndUpdatedPass.<Collection<Pas>>both(c -> c.forEach(p -> unprocessedNewOrUpdatedPass.put(p.pasId, p)));
+    final Map<Long, Pas> unprocessedNewOrUpdatedPassS2Update = new TreeMap<>();
+    newAndUpdatedPass.<Collection<Pas>>both(c -> c.forEach(p -> unprocessedNewOrUpdatedPassS2Update.put(p.pasId, p)));
 
     // STEP 1: PAS original sending flows per alternative
     // prep flow shifting to allow for ordering based on PAS flows and then construct proposed flow shifts based
@@ -206,15 +206,34 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     Collection<EdgeSegment> linkSegmentsUsed = new HashSet<>(100);
     Collection<Pas> sortedPass = this.pasManager.getPassSortedByReducedCost(PAS_REDUCED_COST_BY_FLOW_COMPARATOR);
 
+    // prune conflicting PASs for each bush based on which one is deemed more important
+    for (Pas pas : sortedPass) {
+      var pasFlowShifter = pasExecutors.get(pas);
+      unprocessedNewOrUpdatedPassS2Update.remove(pas.pasId);
+      /* If a bush is going to add link segments on S1 due flows being shifted from S2 then: we must
+       * remove this bush from all other PASs that 1) have this bush registered 2) have been NEWLY added in this iteration IF
+       * these other PASs would introduce a cycle given the newly added link segments on S1 identified here.
+       * Existing PASs are fine because this PAS that added the segments has been vetted against those implicitly by
+       * checking the original bush. (can only occur with overlapping pas update)
+       * todo: We perform this pruning BEFORE the actual flow shift at the moment because cycle detection still relies
+       *  on topological ordering being up to date, doing it after S2 update and before S1 update is not possible anymore
+       *  because bush may be temporarily invalid due to removed link segments. We also can't wait until after the S1 update
+       *  because then some cycle introducing bushes would already have removed flow from S2. Therefore we do it here.
+       *  Note: once we have replace cycle detection with a cost based approach we can move it to after S2 update again.
+       *
+       * */
+      Map<EdgeSegment, Set<RootedLabelledBush>> s1MissingLinkSegments = pasFlowShifter.findS1MissingLinkSegmentsByBush();
+      if (getSettings().isAllowOverlappingPasUpdate() && s1MissingLinkSegments != null && !s1MissingLinkSegments.isEmpty()) {
+        deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(s1MissingLinkSegments, unprocessedNewOrUpdatedPassS2Update.values());
+      }
+    }
+
+    // S2 ------------------ remove flow
+    //
+    //
     List<Pair<Pas,Double>> pasRemovedHighCostFlows = new ArrayList<>(sortedPass.size());
     Pas prevProcessedPas = null;
     for (Pas pas : sortedPass) {
-
-      // do here because some process flows get cut-off in loop, so only in next entry we can finalise previous
-      if(prevProcessedPas!=null) {
-        unprocessedNewOrUpdatedPass.remove(prevProcessedPas.pasId);
-      }
-      prevProcessedPas = pas;
 
       var pasFlowShifter = pasExecutors.get(pas);
 
@@ -271,63 +290,18 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
            Map<EdgeSegment, Set<RootedLabelledBush>> bushRemovedLinkSegments = pasFlowShifter.getBushRemovedLinkSegments();
            deregisterBushesWithRemovedSegmentsFromMatchingPass(bushRemovedLinkSegments);
          }
-         /* conversely if a bush has added link segments due to shifted flows then we must remove this bush from all other
-          * PASs that 1) have this bush registered 2) have been NEWLY added in this iteration. Existing PASs are fine because
-          * this PAS that added the segments has been vetted against those implicitly by checking the original bush.
-          * (can only occur with overlapping pas update) */
-        if(pasFlowShifter.hasAnyBushAddedLinkSegments() && getSettings().isAllowOverlappingPasUpdate()){
-          Map<EdgeSegment, Set<RootedLabelledBush>> bushAddedLinkSegments = pasFlowShifter.getBushAddedLinkSegments();
-          deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(bushAddedLinkSegments, unprocessedNewOrUpdatedPass.values());
-        }
       }
     }
 
-    for (var entry : pasRemovedHighCostFlows) {
-      Pas pas = entry.first();
-      double removedHighCostSendingFlow = entry.second();
-
-      // do here because some process flows get cut-off in loop, so only in next entry we can finalise previous
-      if(prevProcessedPas!=null) {
-        unprocessedNewOrUpdatedPass.remove(prevProcessedPas.pasId);
-      }
-      prevProcessedPas = pas;
-
+    // S1 ------------------ add flow
+    //
+    //
+    for (var pas : flowShiftedPass) {
       var pasFlowShifter = pasExecutors.get(pas);
 
-
-
-      /* untouched PAS (no flows shifted yet) in this iteration */
-      boolean pasFlowShifted = pasFlowShifter.performS2FlowShift(
-              pasProposedFlowShifts.get(pas), theMode, physicalCost, virtualCost, networkLoading, getSmoothing());
-      if (pasFlowShifted) {
-        flowShiftedPass.add(pas);
-
-        /* s1 */
-        pas.forEachEdgeSegment(true /* low cost */, linkSegmentsUsed::add);
-        /* s2 */
-        pas.forEachEdgeSegment(false /* high cost */, linkSegmentsUsed::add);
-
-        /* when s2 no longer used on any bush - mark PAS for overall removal */
-        if (!pas.hasRegisteredBushes()) {
-          passWithoutBush.add(pas);
-        }
-
-        /* If due to flow shifting some bushes have removed edges due to zero flow remaining
-         * then we must remove these bushes from other pass that 1) have this bush registered, and 2) have
-         * the link segment present that no longer has any flow on the bush. */
-        if(pasFlowShifter.hasAnyBushRemovedLinkSegments()){
-          Map<EdgeSegment, Set<RootedLabelledBush>> bushRemovedLinkSegments = pasFlowShifter.getBushRemovedLinkSegments();
-          deregisterBushesWithRemovedSegmentsFromMatchingPass(bushRemovedLinkSegments);
-        }
-        /* conversely if a bush has added link segments due to shifted flows then we must remove this bush from all other
-         * PASs that 1) have this bush registered 2) have been NEWLY added in this iteration. Existing PASs are fine because
-         * this PAS that added the segments has been vetted against those implicitly by checking the original bush.
-         * (can only occur with overlapping pas update) */
-        if(pasFlowShifter.hasAnyBushAddedLinkSegments() && getSettings().isAllowOverlappingPasUpdate()){
-          Map<EdgeSegment, Set<RootedLabelledBush>> bushAddedLinkSegments = pasFlowShifter.getBushAddedLinkSegments();
-          deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(bushAddedLinkSegments, unprocessedNewOrUpdatedPass.values());
-        }
-      }
+      /* now we start adding flows that were removed from S2 during the previous phase. How much flow, is tracked on the
+      * flow shifter internally */
+      pasFlowShifter.performS1FlowShift(theMode, networkLoading);
     }
 
     if (!passWithoutBush.isEmpty()) {

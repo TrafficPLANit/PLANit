@@ -124,44 +124,6 @@ public class sLtmTaBushMultiDestinationNewellFdTest extends sLtmAssignmentMultiD
     assertEquals(outflow12, inflow13 + inflow14, Precision.EPSILON_6);
   }
 
-//  /**
-//   * Test sLTM bush-origin-based assignment on above network for a point queue model
-//   */
-//  @Test
-//  public void sLtmPointQueueBushOriginBasedAssignmentTest() {
-//    try {
-//
-//      Demands demands = createDemands(4000);
-//
-//      /* sLTM - POINT QUEUE */
-//      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-//      var configurator = sLTMBuilder.getConfigurator();
-//      configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-//      configurator.activateDetailedLogging(false);
-//
-//      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-//      fixedStepSmoothing.setStepSize(1);
-//
-//      /* ORIGIN BASED */
-//      configurator.setType(StaticLtmType.ORIGIN_BUSH_BASED);
-//
-//      configurator.activateOutput(OutputType.LINK);
-//      configurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-//
-//      StaticLtm sLTM = sLTMBuilder.build();
-//      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-//      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-//      sLTM.setActivateDetailedLogging(true);
-//      sLTM.execute();
-//
-//      testDeterministicOutputs(sLTM);
-//
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//      fail("Error when testing sLTM bush based assignment");
-//    }
-//  }
-
   /**
    * Test sLTM bush-destination-based assignment on above network for a point queue model
    * <p>Triangular (Newell) FD used</p>

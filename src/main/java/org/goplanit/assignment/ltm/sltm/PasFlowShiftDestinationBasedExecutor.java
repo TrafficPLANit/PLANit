@@ -61,8 +61,9 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
         var availableFlow = bush.getTurnSendingFlow(
             turnEntry, dummyLabel, turnExit, dummyLabel);
         if(Precision.greater(availableFlow, -flowShiftPcuH, Precision.EPSILON_3)) {
-          LOGGER.severe(String.format("adding %.6f to flow shift (%.10f) to empty already removed link when removing turn flow",
-              availableFlow + flowShiftPcuH, -availableFlow, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+          LOGGER.severe(String.format("adding %.6f to flow shift (%.10f) to empty already removed turn (from: %s, to: %s) when removing turn flow" +
+                          "from bush (%s)",
+              availableFlow + flowShiftPcuH, -availableFlow, turnEntry.getIdsAsString(), turnExit.getIdsAsString(), bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
         flowShiftPcuH = -availableFlow; // sync
       }
@@ -257,7 +258,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
    * {@inheritDoc}
    */
   @Override
-  protected TreeMap<BushFlowLabel, double[]> executeBushS2FlowShift(
+  protected double[] executeBushS2FlowShift(
           RootedLabelledBush bush,
           EdgeSegment entrySegment,
           double bushFlowShift,
@@ -282,10 +283,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
     double[] bushS2MergeExitShiftedSendingFlows =
             executeBushS2FlowShiftEndMerge(bush, s2FinalLabeledFlowShift, s2MergeExitSplittingRates);
 
-    /* convert flows to portions by label */
-    TreeMap<BushFlowLabel, double[]> bushS2MergeExitSplittingRates= new TreeMap<>();
-    bushS2MergeExitSplittingRates.put(dummyLabel, ArrayUtils.divideBySum(bushS2MergeExitShiftedSendingFlows, 0));
-    return bushS2MergeExitSplittingRates;
+    /* convert flows to splitting rates  */
+    return ArrayUtils.divideBySum(bushS2MergeExitShiftedSendingFlows, 0);
   }
 
   /**
@@ -297,13 +296,9 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
           EdgeSegment entrySegment,
           double bushFlowShift,
           double[] flowAcceptanceFactors,
-          Map<BushFlowLabel, double[]> mergeExitSplittingRates) {
+          double[] mergeExitSplittingRates) {
 
     var s1 = pas.getAlternative(true);
-    if(mergeExitSplittingRates.size()>1){
-      LOGGER.severe("more than one label encountered on destination based bush, should not happen");
-    }
-
 
     double s1FinalLabeledFlowShift = executeBushPasFlowShift(
             bush,
@@ -313,24 +308,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
             flowAcceptanceFactors);
 
     /* shift flow across final merge for S1 based on findings in s2 */
-    executeBushS1FlowShiftEndMerge(bush, s1FinalLabeledFlowShift, mergeExitSplittingRates.values().stream().findFirst().get());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected void executeBushFlowShift(
-          RootedLabelledBush bush,
-          EdgeSegment entrySegment,
-          double bushFlowShift,
-          double[] flowAcceptanceFactors) {
-
-    /* shift flows for S2 */
-    var bushS2MergeExitSplittingRates =
-            executeBushS2FlowShift(bush, entrySegment, bushFlowShift, flowAcceptanceFactors);
-    /* shift flows for S1 */
-    executeBushS1FlowShift(bush, entrySegment, bushFlowShift, flowAcceptanceFactors, bushS2MergeExitSplittingRates);
+    executeBushS1FlowShiftEndMerge(bush, s1FinalLabeledFlowShift, mergeExitSplittingRates);
   }
 
   /**

@@ -68,10 +68,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* create the assignment solution to apply */
     StaticLtmAssignmentStrategy strategy;
     switch (settings.getSltmType()) {
-      case ORIGIN_BUSH_BASED:
-        strategy =  new StaticLtmOriginBushDestLabelledStrategy(
-                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
-        break;
       case DESTINATION_BUSH_BASED:
         strategy =  new StaticLtmDestinationBushStrategy(
                 getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
