@@ -46,15 +46,11 @@ public class RootedBushTurnFlowUpdateConsumer extends RootedBushFlowUpdateConsum
    * Track the turn accepted flows when they are classified as being tracked during network loading, otherwise do nothing
    * 
    * @param movement          the movement (turn)
-   * @param prevLabel            at hand
-   * @param currLabel            at hand
    * @param turnAcceptedFlowPcuH to use
    */
   @Override
   protected void applyAcceptedTurnFlowUpdate(
           final Movement movement,
-          final BushFlowLabel prevLabel,
-          final BushFlowLabel currLabel,
           double turnAcceptedFlowPcuH) {
     if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(movement.getCentreVertex())) {
       dataConfig.addToAcceptedTurnFlows(movement, turnAcceptedFlowPcuH); // network level

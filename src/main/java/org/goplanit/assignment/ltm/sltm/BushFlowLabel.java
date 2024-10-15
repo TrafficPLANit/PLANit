@@ -11,6 +11,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
+@Deprecated
 public class BushFlowLabel implements Comparable<BushFlowLabel> {
 
   /**

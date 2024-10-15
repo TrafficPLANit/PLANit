@@ -26,9 +26,6 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmDestinationBushStrategy.class.getCanonicalName());
 
-  /** single dummy label used throughout for destination bushes */
-  private final BushFlowLabel dummyLabel;
-
   /**
    * Populate with initial demand for given OD and shortest bush DAG
    * 
@@ -36,15 +33,13 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    * @param  originCentroidVertex     to use
    * @param oDDemandPcuH     to use
    * @param destinationOriginInvertedDag            to use
-   * @param destinationLabel dummy destination label to use
    * 
    */
   private void initialiseBushForOrigin(
           final DestinationBush destinationBush,
           final CentroidVertex originCentroidVertex,
           final Double oDDemandPcuH,
-          final ACyclicSubGraph destinationOriginInvertedDag,
-          BushFlowLabel destinationLabel) {
+          final ACyclicSubGraph destinationOriginInvertedDag) {
 
     /* get topological sorted vertices to process from origin-to-destination in direction of odDag, so invert iterator since it runs
        from destination to origin currently */
@@ -62,7 +57,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
      */
     var helper = BushInitialiserHelper.create(
             destinationBush, destinationOriginInvertedDag, pasManager, getSettings().isDetailedLogging());
-    helper.executeOdBushInitialisation(currVertex, oDDemandPcuH, vertexIter, destinationLabel);
+    helper.executeOdBushInitialisation(currVertex, oDDemandPcuH, vertexIter);
   }
 
   /**
@@ -105,7 +100,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
         // destination bush has root in destination, but still tracks origin demands that it uses
         bush.addOriginDemandPcuH(originCentroidVertex, currOdDemand);
         initialiseBushForOrigin(
-                (DestinationBush) bush, originCentroidVertex, currOdDemand, destinationOriginInvertedDag, dummyLabel);
+                (DestinationBush) bush, originCentroidVertex, currOdDemand, destinationOriginInvertedDag);
       }
     }
   }
@@ -147,7 +142,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    */
   @Override
   protected PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings) {
-    return new PasFlowShiftDestinationBasedExecutor(pas, settings, dummyLabel);
+    return new PasFlowShiftDestinationBasedExecutor(pas, settings);
   }
 
   /**
@@ -162,10 +157,6 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
   public StaticLtmDestinationBushStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork,
       final StaticLtmSettings settings, final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
-
-    /* no labels needed for destination bush, but for now, we use a single label for all flow to be able to keep using current implementation that relies on it */
-    /* TODO: remove labelling once it works */
-    this.dummyLabel = BushFlowLabel.create(getIdGroupingToken(), "dummy");
   }
 
   /**
@@ -173,7 +164,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    */
   @Override
   public String getDescription() {
-    return "Destination-based Bush (single dummy label)";
+    return "Destination-based Bush";
   }
 
 }

@@ -17,6 +17,7 @@ import org.goplanit.utils.network.virtual.CentroidVertex;
  * @author markr
  *
  */
+@Deprecated
 public class BushTurnData {
 
   /** logger to use */

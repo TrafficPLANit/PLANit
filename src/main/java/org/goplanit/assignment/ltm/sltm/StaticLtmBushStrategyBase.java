@@ -94,7 +94,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     for(var newPas : newPass){
       Set<B> toBeDeregisteredBushes = null;
       for(var alternativeType : pasAlternativeTypes){
-
         if(!newPas.anyMatch(anyVertexMatches, alternativeType)){
           continue;
         }
@@ -224,7 +223,11 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
        * */
       Map<EdgeSegment, Set<RootedLabelledBush>> s1MissingLinkSegments = pasFlowShifter.findS1MissingLinkSegmentsByBush();
       if (getSettings().isAllowOverlappingPasUpdate() && s1MissingLinkSegments != null && !s1MissingLinkSegments.isEmpty()) {
+
+        // temporary add segments so cycle detection will take them into account, remove afterwards.
+        s1MissingLinkSegments.forEach( (es, bushes) -> bushes.forEach( b -> b.getDag().addEdgeSegment(es)));
         deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(s1MissingLinkSegments, unprocessedNewOrUpdatedPassS2Update.values());
+        s1MissingLinkSegments.forEach( (es, bushes) -> bushes.forEach( b -> b.getDag().removeEdgeSegment(es)));
       }
     }
 
@@ -236,6 +239,11 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     for (Pas pas : sortedPass) {
 
       var pasFlowShifter = pasExecutors.get(pas);
+
+      if(pas.pasId == 54L && simulationData.getIterationIndex()>=7){
+        int blA = 4;
+      }
+
 
       if(!getSettings().isAllowOverlappingPasUpdate())
       {

@@ -263,13 +263,11 @@ public class BushInitialiserHelper {
    *                       destination
    * @param oDDemandPcuH   to use for the origin vertex
    * @param vertexIter     flag indicating if new pass are to be logged
-   * @param entryExitLabel to use
    */
   public void executeOdBushInitialisation(
           DirectedVertex originVertex,
           final Double oDDemandPcuH,
-          final Iterator<DirectedVertex> vertexIter,
-          BushFlowLabel entryExitLabel) {
+          final Iterator<DirectedVertex> vertexIter) {
 
     /* initialise starting flows on initial vertex */
     Map<EdgeSegment, Double> odDagFlows = new HashMap<>();
@@ -324,7 +322,7 @@ public class BushInitialiserHelper {
         for (var exitSegment : currVertex.getExitEdgeSegments()) {
           if (rootedDag.containsEdgeSegment(exitSegment)) {
             /* update bush flow */
-            bush.addTurnSendingFlow(entrySegment, entryExitLabel, exitSegment, entryExitLabel, proportionalOdExitFlow);
+            bush.addTurnSendingFlow(entrySegment, exitSegment, proportionalOdExitFlow);
             odDagFlows.put(exitSegment, proportionalOdExitFlow);
             ++numUsedExits;
 

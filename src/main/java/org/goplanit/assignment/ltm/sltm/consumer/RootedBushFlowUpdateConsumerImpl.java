@@ -1,12 +1,15 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.assignment.ltm.sltm.DestinationBush;
 import org.goplanit.assignment.ltm.sltm.RootedLabelledBush;
+import org.goplanit.utils.arrays.ArrayUtils;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.virtual.CentroidVertex;
@@ -39,29 +42,22 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
    * @param bushSendingFlows to populate as a starting point for the bush loading
    */
   private void initialiseOriginExitSegmentSendingFlows(
-          final RootedLabelledBush bush, final MultiKeyMap<Object, Double> bushSendingFlows) {
+          final RootedLabelledBush bush, final TreeMap<EdgeSegment, Double> bushSendingFlows) {
     Set<CentroidVertex> originVertices = bush.getOriginVertices();
     for (var originVertex : originVertices) {
       double totalOriginsSendingFlow = 0;
       for (var originExit : originVertex.getExitEdgeSegments()) {
         if (bush.containsEdgeSegment(originExit)) {
-          var usedLabels = bush.getFlowCompositionLabels(originExit);
-          if(usedLabels == null){
-            LOGGER.severe(String.format("No labels found on exit segment (%s) despite bush containing segment, this shouldn't happen", originExit.getIdsAsString()));
-            continue;
-          }
-          for (var usedLabel : usedLabels) {
-            double sendingFlow = bush.getSendingFlowPcuH(originExit, usedLabel);
-            bushSendingFlows.put(originExit, usedLabel, sendingFlow);
+            double sendingFlow = bush.getSendingFlowPcuH(originExit);
+            bushSendingFlows.put(originExit, sendingFlow);
             totalOriginsSendingFlow += sendingFlow;
           }
         }
-      }
 
-      if (Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(originVertex), Precision.EPSILON_3)) {
-        LOGGER.severe(String.format("bush specific origin's (%s) travel demand (%.8f pcu/h) not equal to total flow (%.8f pcu/h) placed on bush root, this shouldn't happen",
-            originVertex.getParent().getParentZone().getXmlId(), bush.getOriginDemandPcuH(originVertex), totalOriginsSendingFlow));
-      }
+        if (Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(originVertex), Precision.EPSILON_3)) {
+          LOGGER.severe(String.format("bush specific origin's (%s) travel demand (%.8f pcu/h) not equal to total flow (%.8f pcu/h) placed on bush root, this shouldn't happen",
+              originVertex.getParent().getParentZone().getXmlId(), bush.getOriginDemandPcuH(originVertex), totalOriginsSendingFlow));
+        }
     }
   }
 
@@ -70,12 +66,10 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
    * turn accepted flows
    * 
    * @param movement          the movement
-   * @param prevLabel            at hand
-   * @param currLabel            at hand
    * @param turnAcceptedFlowPcuH sending flow rate of turn
    */
   protected void applyAcceptedTurnFlowUpdate(
-          final Movement movement, final BushFlowLabel prevLabel, final BushFlowLabel currLabel, double turnAcceptedFlowPcuH) {
+          final Movement movement, double turnAcceptedFlowPcuH) {
     // default implementation does nothing but provide a hook for derived classes that do require to do something with turn accepted flows
   }
 
@@ -104,8 +98,8 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
      * is complete (converged) by using the network reduction factors
      */
 
-    /* key is segment+label, value is sending flow */
-    MultiKeyMap<Object, Double> bushSendingFlows = new MultiKeyMap<>();
+    /* key is segment, value is sending flow */
+    TreeMap<EdgeSegment, Double> bushSendingFlows = new TreeMap<>();
 
     /* get topological sorted vertices to process */
     var vertexIter = bush.isInverted() ? bush.getInvertedTopologicalIterator() : bush.getTopologicalIterator();
@@ -127,85 +121,68 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
         }
 
         int entrySegmentId = (int) entrySegment.getId();
-        var usedLabels = bush.getFlowCompositionLabels(entrySegment);
-        if (usedLabels == null) {
-          LOGGER.severe(String.format("Edge segment %s on bush (%s), but no flow labels present, this shouldn't happen",
-              entrySegment.getXmlId(), ((CentroidVertex)bush.getRootVertex()).getParent().getParentZone().getIdsAsString()));
+
+        Double bushLinkSendingFlow = bushSendingFlows.get(entrySegment);
+        if (bushLinkSendingFlow == null) {
+          LOGGER.severe(String.format(
+              "No link sending flow found for segment %s on bush(%s), this shouldn't happen",
+              entrySegment.getXmlId(),
+              ((CentroidVertex)bush.getRootVertex()).getParent().getParentZone().getIdsAsString()));
           continue;
         }
 
-        double totalEntryAcceptedFlow = 0;
-        double totalExitAcceptedFlow = 0;
-        for (var entrylabel : usedLabels) {
+        /* v^o_a = s^o_a * alpha_a */
+        double alpha = dataConfig.flowAcceptanceFactors[entrySegmentId];
+        double bushEntryAcceptedFlow = bushLinkSendingFlow * alpha;
 
-          Double bushLinkLabelSendingFlow = bushSendingFlows.get(entrySegment, entrylabel);
-          if (bushLinkLabelSendingFlow == null) {
-            LOGGER.severe(String.format(
-                "No link sending flow found for segment %s and label %d on bush(%s), this shouldn't happen",
-                entrySegment.getXmlId(), entrylabel.getLabelId(),
-                ((CentroidVertex)bush.getRootVertex()).getParent().getParentZone().getIdsAsString()));
-            continue;
-          }
-
-          /* v^o_a = s^o_a * alpha_a */
-          double alpha = dataConfig.flowAcceptanceFactors[entrySegmentId];
-          double bushEntryAcceptedFlow = bushLinkLabelSendingFlow * alpha;
-          totalEntryAcceptedFlow += bushEntryAcceptedFlow;
-
-          /* s_a = SUM(u^o_a) (only when enabled) */
-          if (dataConfig.isSendingflowsUpdate()) {
-            dataConfig.sendingFlows[entrySegmentId] += bushLinkLabelSendingFlow;
-          }
-
-          /* v_a = SUM(v^o_a) (only when enabled) */
-          if (dataConfig.isOutflowsUpdate()) {
-            dataConfig.outFlows[entrySegmentId] += bushEntryAcceptedFlow;
-          }
-
-          /* bush splitting rates by [exit segment, exit label] as key */
-          MultiKeyMap<Object, Double> splittingRates = bush.getSplittingRates(entrySegment, entrylabel);
-          if (splittingRates == null || splittingRates.isEmpty()) {
-            continue;
-          }
-
-          for (var exitSegment : currVertex.getExitEdgeSegments()) {
-            if (!bush.containsEdgeSegment(exitSegment)) {
-              continue;
-            }
-
-            var exitLabels = bush.getFlowCompositionLabels(exitSegment);
-            if (exitLabels == null) {
-              LOGGER.severe(String.format("Edge segment %s on bush (%s), but no flow labels present, this shouldn't happen",
-                  exitSegment.getXmlId(),
-                  ((CentroidVertex)bush.getRootVertex()).getParent().getParentZone().getIdsAsString()));
-              continue;
-            }
-
-            for (var exitLabel : exitLabels) {
-              Double splittingRate = splittingRates.get(exitSegment, exitLabel);
-              if (splittingRate != null && splittingRate > 0) {
-                /* v^o_ab = v^o_a * phi_ab */
-                double turnAcceptedFlow = bushEntryAcceptedFlow * splittingRate;
-                totalExitAcceptedFlow += turnAcceptedFlow;
-
-                Double exitLabelFlowToUpdate = bushSendingFlows.get(exitSegment, exitLabel);
-                if (exitLabelFlowToUpdate == null) {
-                  exitLabelFlowToUpdate = turnAcceptedFlow;
-                } else {
-                  exitLabelFlowToUpdate += turnAcceptedFlow;
-                }
-                bushSendingFlows.put(exitSegment, exitLabel, exitLabelFlowToUpdate);
-
-                /* update turn accepted flows as per derived class implementation (or do nothing) */
-                applyAcceptedTurnFlowUpdate(
-                        segmentPair2MovementMap.get(entrySegment, exitSegment), entrylabel, exitLabel, turnAcceptedFlow);
-              }
-            }
-          }
+        /* s_a = SUM(u^o_a) (only when enabled) */
+        if (dataConfig.isSendingflowsUpdate()) {
+          dataConfig.sendingFlows[entrySegmentId] += bushLinkSendingFlow;
         }
-        if (Precision.notEqual(totalEntryAcceptedFlow, totalExitAcceptedFlow) && !(entrySegment instanceof ConnectoidSegment)) {
-          LOGGER.severe(String.format("Accepted (labelled) out flow %.10f on edge segment (%s) not equal to flow (%.10f) assigned to (labelled) turns, this shouldn't happen",
-              totalEntryAcceptedFlow, entrySegment.getXmlId(), totalExitAcceptedFlow));
+
+        /* v_a = SUM(v^o_a) (only when enabled) */
+        if (dataConfig.isOutflowsUpdate()) {
+          dataConfig.outFlows[entrySegmentId] += bushEntryAcceptedFlow;
+        }
+
+        /* bush splitting rates by [exit segment, exit label] as key */
+        double[] splittingRates = bush.getSplittingRates(entrySegment);
+        if (splittingRates == null || ArrayUtils.sumOf(splittingRates) <= 0.0) {
+          continue;
+        }
+
+        int splittingRateIndex = 0;
+        double totalExitAcceptedFlow = 0;
+        for (var exitSegment : currVertex.getExitEdgeSegments()) {
+          if (!bush.containsEdgeSegment(exitSegment)) {
+            ++splittingRateIndex;
+            continue;
+          }
+
+          double splittingRate = splittingRates[splittingRateIndex];
+          if (splittingRate > 0) {
+            /* v^o_ab = v^o_a * phi_ab */
+            double turnAcceptedFlow = bushEntryAcceptedFlow * splittingRate;
+            totalExitAcceptedFlow += turnAcceptedFlow;
+
+            Double exitFlowToUpdate = bushSendingFlows.get(exitSegment);
+            if (exitFlowToUpdate == null) {
+              exitFlowToUpdate = turnAcceptedFlow;
+            } else {
+              exitFlowToUpdate += turnAcceptedFlow;
+            }
+            bushSendingFlows.put(exitSegment, exitFlowToUpdate);
+
+            /* update turn accepted flows as per derived class implementation (or do nothing) */
+            applyAcceptedTurnFlowUpdate(
+                    segmentPair2MovementMap.get(entrySegment, exitSegment), turnAcceptedFlow);
+          }
+          ++splittingRateIndex;
+        }
+
+        if (Precision.notEqual(bushEntryAcceptedFlow, totalExitAcceptedFlow) && !(entrySegment instanceof ConnectoidSegment)) {
+          LOGGER.severe(String.format("Accepted out flow %.10f on edge segment (%s) not equal to flow (%.10f) assigned to (labelled) turns, this shouldn't happen",
+                  bushEntryAcceptedFlow, entrySegment.getXmlId(), totalExitAcceptedFlow));
         }
       }
     }

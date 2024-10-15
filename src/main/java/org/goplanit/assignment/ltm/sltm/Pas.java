@@ -1,12 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -62,7 +56,7 @@ public class Pas {
     this.pasId = pasId;
     this.s1 = s1;
     this.s2 = s2;
-    this.registeredBushes = new HashSet<>();
+    this.registeredBushes = new TreeSet<>();
   }
 
   /**

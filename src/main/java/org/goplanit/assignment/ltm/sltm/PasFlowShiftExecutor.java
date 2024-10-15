@@ -654,19 +654,6 @@ public abstract class PasFlowShiftExecutor {
       }
 
       double smoothedProportionalPasflowShift = smoothing.executeRefZero(proposedPasFlowShift);
-
-      /*test for eligibility to reduce to zero flow along S2 */
-      if (Precision.greaterEqual(smoothedProportionalPasflowShift, guaranteedEntrySegmentS2SendingFlow, EPSILON_3)) {
-
-        if(isDestinationTrackedForLogging()) {
-          LOGGER.info(String.format("     [removal --> shift %.10f may exceed s2 sending flow %.10f, entry segment (%s)]",
-                  smoothedProportionalPasflowShift, guaranteedEntrySegmentS2SendingFlow, entrySegment.getIdsAsString()));
-        }
-
-        /* truncate to guaranteed available S2 flow */
-        smoothedProportionalPasflowShift = guaranteedEntrySegmentS2SendingFlow;
-      }
-
       for (var bush : pas.getRegisteredBushes()) {
         double nlConsistentBushEntrySegmentS2Flow = bushEntrySegmentS1S2SendingFlows.get(bush).getOrDefault(entrySegment,Pair.of(0.0, 0.0)).second();
         double currentBushEntrySegmentS2Flow = bushEntrySegments2UpdatedFlow.get(bush).getOrDefault(entrySegment,0.0);
@@ -684,6 +671,18 @@ public abstract class PasFlowShiftExecutor {
          */
         double bushS2Portion = guaranteedBushEntrySegmentS2SendingFlow / guaranteedEntrySegmentS2SendingFlow;
         double entrySegmentBushPasflowShift = smoothedProportionalPasflowShift * bushS2Portion;
+
+        /*test for eligibility to reduce to zero flow along S2 */
+        if (Precision.greaterEqual(entrySegmentBushPasflowShift, guaranteedBushEntrySegmentS2SendingFlow, EPSILON_3)) {
+
+          if(isDestinationTrackedForLogging(bush)) {
+            LOGGER.info(String.format("     [removal --> shift %.10f may exceed s2 sending flow %.10f, entry segment (%s)]",
+                    smoothedProportionalPasflowShift, guaranteedEntrySegmentS2SendingFlow, entrySegment.getIdsAsString()));
+          }
+
+          /* truncate to guaranteed available S2 flow */
+          entrySegmentBushPasflowShift = guaranteedBushEntrySegmentS2SendingFlow;
+        }
 
         if(guaranteedBushEntrySegmentS2SendingFlow < EPSILON_3){
           entrySegmentBushPasflowShift = guaranteedBushEntrySegmentS2SendingFlow; // make sure we ride the bush s2 PAS from all remaining flow by setting a high value

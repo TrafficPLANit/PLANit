@@ -18,14 +18,16 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 
 /**
- * A rooted bush is an acyclic directed graph comprising implicit paths along a network. It has a single root which can be any vertex with only outgoing edge segments. while
- * acyclic its direction can be either be in up or downstream direction compared to the super network it is situated on.
+ * A rooted bush is an acyclic directed graph comprising implicit paths along a network. It has a single root which
+ * can be any vertex with only outgoing edge segments. while acyclic its direction can be either be in up or
+ * downstream direction compared to the super network it is situated on.
  * <p>
- * The vertices in the bush represent link segments in the physical network, whereas each edge represents a turn from one link to another. This way each splitting rate uniquely
- * relates to a single turn and all outgoing edges of a vertex represent all turns of a node's incoming link
+ * The vertices in the bush represent link segments in the physical network, whereas each edge represents a turn
+ * from one link to another. This way each splitting rate uniquely relates to a single turn and all outgoing edges
+ * of a vertex represent all turns of a node's incoming link
  * 
  * @author markr
- *
+ *TODO: should be no more distinction between this and a rootedbush after label removal
  */
 public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, EdgeSegment> {
 
@@ -42,36 +44,29 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @return sendingFlowPcuH between index and end vertex following the sub-path
    */
   private double determineSubPathSendingFlow(
-      double subPathSendingFlow, BushFlowLabel label, int index, final EdgeSegment[] subPathArray) {
+      double subPathSendingFlow, int index, final EdgeSegment[] subPathArray) {
+    if(subPathSendingFlow <= 0.0){
+      return subPathSendingFlow;
+    }
 
     var currEdgeSegment = subPathArray[index++];
 
     // in case due to other local flow reductions the link flow has become lower than the NL consistent
     // flow following the path and applying alphas and splitting rates, cap to this more restricting avalable flow instead
     double linkRestrictedSubPathSendingFlow =
-            Math.min(subPathSendingFlow, bushData.getTotalSendingFlowFromPcuH(currEdgeSegment, label));
+            Math.min(subPathSendingFlow, bushData.getTotalSendingFlowFromPcuH(currEdgeSegment));
 
     if (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
       var nextEdgeSegment = subPathArray[index];
 
-      var exitLabels = getFlowCompositionLabels(nextEdgeSegment);
-      if (exitLabels == null) {
-        return 0;
+      var currSplittingRate = bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
+      if (currSplittingRate <= 0) {
+          return 0.0;
       }
-
-      var exitSegmentExitLabelSplittingRates = bushData.getSplittingRates(currEdgeSegment, label);
-      double remainingSubPathSendingFlow = 0;
-      for (var exitLabel : exitLabels) {
-        Double currSplittingRate = exitSegmentExitLabelSplittingRates.get(nextEdgeSegment, exitLabel);
-        if (currSplittingRate == null || currSplittingRate <= 0) {
-          continue;
-        }
-        remainingSubPathSendingFlow += linkRestrictedSubPathSendingFlow * currSplittingRate;
-      }
-
-      return determineSubPathSendingFlow(remainingSubPathSendingFlow, label, index, subPathArray);
+      double remainingSubPathSendingFlow = linkRestrictedSubPathSendingFlow * currSplittingRate;
+      return determineSubPathSendingFlow(remainingSubPathSendingFlow, index, subPathArray);
     }
-    return subPathSendingFlow;
+    return linkRestrictedSubPathSendingFlow;
   }
 
   /**
@@ -295,23 +290,19 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * flow is added to it. If by adding the flow (can be negative) the turn no longer has any flow, the labels are removed
    * 
    * @param from             from segment of the turn
-   * @param fromLabel        to use
    * @param to               to segment of the turn
-   * @param toLabel          to use
    * @param addFlowPcuH      to add
    * @return new labelled turn sending flow after adding given flow
    */
   public double addTurnSendingFlow(
           final EdgeSegment from,
-          final BushFlowLabel fromLabel,
           final EdgeSegment to,
-          final BushFlowLabel toLabel,
           double addFlowPcuH) {
 
     if (addFlowPcuH > 0) {
       if (!containsEdgeSegment(from)) {
         if (containsEdgeSegment(from.getOppositeDirectionSegment())) {
-          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s)where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
+          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s) where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
               from.getXmlId(), to.getXmlId(), getRootZoneVertex().getParent().getParentZone().getIdsAsString(), from.getXmlId()));
         }
         getDag().addEdgeSegment(from);
@@ -326,7 +317,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
         requireTopologicalSortUpdate = true;
       }
     }
-    return bushData.addTurnSendingFlow(from, fromLabel, to, toLabel, addFlowPcuH);
+    return bushData.addTurnSendingFlow(from, to, addFlowPcuH);
   }
 
   /**
@@ -341,19 +332,6 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   }
 
   /**
-   * Collect bush turn sending flow (if any)
-   * 
-   * @param from      to use
-   * @param fromLabel to filter by
-   * @param to        to use
-   * @param toLabel   to filter by
-   * @return sending flow, zero if unknown
-   */
-  public double getTurnSendingFlow(final EdgeSegment from, final BushFlowLabel fromLabel, final EdgeSegment to, final BushFlowLabel toLabel) {
-    return bushData.getTurnSendingFlowPcuH(from, fromLabel, to, toLabel);
-  }
-
-  /**
    * Collect the sending flow of an edge segment in the bush, if not present, zero flow is returned
    * 
    * @param edgeSegment to collect sending flow for
@@ -361,17 +339,6 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    */
   public double getSendingFlowPcuH(final EdgeSegment edgeSegment) {
     return bushData.getTotalSendingFlowFromPcuH(edgeSegment);
-  }
-
-  /**
-   * Collect the sending flow of an edge segment in the bush but only for the specified label, if not present, zero flow is returned
-   * 
-   * @param edgeSegment      to collect sending flow for
-   * @param compositionLabel to filter by
-   * @return bush sending flow on edge segment
-   */
-  public double getSendingFlowPcuH(EdgeSegment edgeSegment, BushFlowLabel compositionLabel) {
-    return bushData.getTotalSendingFlowFromPcuH(edgeSegment, compositionLabel);
   }
 
   /**
@@ -386,19 +353,6 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   }
 
   /**
-   * Verify if the provided turn has any registered sending flow for the given label combination
-   * 
-   * @param from      to use
-   * @param fromLabel to use
-   * @param to        to use
-   * @param toLabel   to use
-   * @return true when turn sending flow is present, false otherwise
-   */
-  public boolean containsTurnSendingFlow(EdgeSegment from, BushFlowLabel fromLabel, EdgeSegment to, BushFlowLabel toLabel) {
-    return bushData.getTurnSendingFlowPcuH(from, fromLabel, to, toLabel) > 0;
-  }
-
-  /**
    * Collect the bush splitting rate on the given turn
    * 
    * @param from to use
@@ -410,19 +364,6 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   }
 
   /**
-   * Collect the bush splitting rate on the given turn for a given label. This might be 0, or 1, but cna also be something in between in case the label splits off in multiple
-   * directions
-   * 
-   * @param entrySegment   to use
-   * @param exitSegment    to use
-   * @param entryExitLabel label to be used for both entry and exit of the turn
-   * @return found splitting rate, in case the turn is not used, 0 is returned
-   */
-  public double getSplittingRate(EdgeSegment entrySegment, EdgeSegment exitSegment, BushFlowLabel entryExitLabel) {
-    return bushData.getSplittingRate(entrySegment, exitSegment, entryExitLabel);
-  }
-
-  /**
    * Collect the bush splitting rates for a given incoming edge segment. If entry segment has no flow, zero splitting rates are returned for all turns
    * 
    * @param entrySegment to use
@@ -430,18 +371,6 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    */
   public double[] getSplittingRates(final EdgeSegment entrySegment) {
     return bushData.getSplittingRates(entrySegment);
-  }
-
-  /**
-   * Collect the bush splitting rates for a given incoming edge segment and entry label. If no flow exits, no splitting rate is provided in the returned map
-   * 
-   * @param entrySegment to use
-   * @param entryLabel   to use
-   * @return splitting rates in multikeymap where the key is the combination of exit segment and exit label and the value is the portion of the entry segment entry label flow
-   *         directed to it
-   */
-  public MultiKeyMap<Object, Double> getSplittingRates(final EdgeSegment entrySegment, final BushFlowLabel entryLabel) {
-    return bushData.getSplittingRates(entrySegment, entryLabel);
   }
 
   /**
@@ -477,7 +406,8 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
       return true;
     }
 
-    LOGGER.warning(String.format("Unable to remove edge segment %s from bush (origin %s) unless it has no flow", edgeSegment.getXmlId()));
+    LOGGER.warning(String.format(
+            "Unable to remove edge segment %s from bush (origin %s) unless it has no flow", edgeSegment.getXmlId()));
     return false;
   }
 
@@ -606,7 +536,8 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @param subPathMap  to extract path from
    * @return sendingFlowPcuH between start and end vertex following the found sub-path
    */
-  public double computeSubPathSendingFlow(final DirectedVertex startVertex, final DirectedVertex endVertex, final Map<DirectedVertex, EdgeSegment> subPathMap) {
+  public double computeSubPathSendingFlow(
+          final DirectedVertex startVertex, final DirectedVertex endVertex, final Map<DirectedVertex, EdgeSegment> subPathMap) {
     EdgeSegment nextEdgeSegment = subPathMap.get(startVertex);
     double subPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(nextEdgeSegment);
 
@@ -633,7 +564,8 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @param linkSegmentAcceptanceFactors the acceptance factor to apply along the path, indexed by link segment id
    * @return acceptedFlowPcuH between start and end vertex following the sub-path
    */
-  public double computeSubPathAcceptedFlow(final DirectedVertex startVertex, final DirectedVertex endVertex, final EdgeSegment[] subPathArray,
+  public double computeSubPathAcceptedFlow(
+          final DirectedVertex startVertex, final DirectedVertex endVertex, final EdgeSegment[] subPathArray,
       final double[] linkSegmentAcceptanceFactors) {
 
     int index = 0;
@@ -644,7 +576,9 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     while (index < subPathArray.length && Precision.positive(subPathAcceptedFlowPcuH)) {
       currEdgeSegment = nextEdgeSegment;
       nextEdgeSegment = subPathArray[index++];
-      subPathAcceptedFlowPcuH *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment) * linkSegmentAcceptanceFactors[(int) currEdgeSegment.getId()];
+      subPathAcceptedFlowPcuH *=
+              bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment) *
+                      linkSegmentAcceptanceFactors[(int) currEdgeSegment.getId()];
     }
     subPathAcceptedFlowPcuH *= linkSegmentAcceptanceFactors[(int) nextEdgeSegment.getId()];
 
@@ -652,8 +586,9 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   }
 
   /**
-   * Determine the sending flow between origin,destination vertex using the subpath given by the segment + subPathArray in order from start to finish. We utilise the initial
-   * sending flow on the entry segment as the base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
+   * Determine the sending flow between origin,destination vertex using the subpath given by the segment +
+   * subPathArray in order from start to finish. We utilise the initial sending flow on the entry segment as the
+   * base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
    *
    * @param entrySegment to start subpath from
    * @param subPathArray to append to entry segment to extract path from
@@ -662,141 +597,17 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   public double determineSubPathSendingFlow(EdgeSegment entrySegment, EdgeSegment[] subPathArray) {
 
     int index = 0;
-    var usedEntryLabels = getFlowCompositionLabels(entrySegment);
     double subPathSendingFlow = 0;
-    for (var entryLabel : usedEntryLabels) {
-      double labelSendingFlow = bushData.getTotalSendingFlowFromPcuH(entrySegment, entryLabel);
 
-      /* determine flow from entry segment into initial segment, from there on recursively traverse sub-path */
-      var initialSubPathEdgeSegment = subPathArray[index];
-      var exitLabels = getFlowCompositionLabels(initialSubPathEdgeSegment);
-      if (exitLabels == null) {
-        return 0;
-      }
-
-      //todo: believe entry and exit labels are always synced currently (based on destination), so could be simplified?
-      var exitSegmentExitLabelSplittingRates = bushData.getSplittingRates(entrySegment, entryLabel);
-      double remainingSubPathSendingFlow = 0;
-      for (var exitLabel : exitLabels) {
-        Double currSplittingRate = exitSegmentExitLabelSplittingRates.get(initialSubPathEdgeSegment, exitLabel);
-        if (currSplittingRate == null || currSplittingRate <= 0) {
-          continue;
-        }
-        remainingSubPathSendingFlow += labelSendingFlow * currSplittingRate;
-      }
-
-      labelSendingFlow = determineSubPathSendingFlow(remainingSubPathSendingFlow, entryLabel, index, subPathArray);
-      subPathSendingFlow += labelSendingFlow;
+    /* determine flow from entry segment into initial segment, from there on recursively traverse sub-path */
+    var initialSubPathEdgeSegment = subPathArray[index];
+    double currSplittingRate = bushData.getSplittingRate(entrySegment, initialSubPathEdgeSegment);
+    if (currSplittingRate <= 0) {
+        return subPathSendingFlow;
     }
-
+    double remainingSubPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(entrySegment) * currSplittingRate;
+    subPathSendingFlow = determineSubPathSendingFlow(remainingSubPathSendingFlow, index, subPathArray);
     return subPathSendingFlow;
-  }
-
-  /**
-   * Find out the portion of the origin attributed flow on the segment that belongs to each available flow composition label proportional to the total flow across all provided
-   * labels on this same segment
-   * 
-   * @param edgeSegment              to determine the label rates for
-   * @param pasFlowCompositionLabels to determine relative proportions for based on total flow across provided labels on the link segment
-   * @return the rates at hand for each found composition label
-   */
-  public TreeMap<BushFlowLabel, Double> determineProportionalFlowCompositionRates(final EdgeSegment edgeSegment, final Set<BushFlowLabel> pasFlowCompositionLabels) {
-    double totalSendingFlow = 0;
-    var rateMap = new TreeMap<BushFlowLabel, Double>();
-    for (var label : pasFlowCompositionLabels) {
-      double labelFlow = bushData.getTotalSendingFlowFromPcuH(edgeSegment, label);
-      rateMap.put(label, labelFlow);
-      totalSendingFlow += labelFlow;
-    }
-
-    for (var entry : rateMap.entrySet()) {
-      entry.setValue(entry.getValue() / totalSendingFlow);
-    }
-
-    return rateMap;
-  }
-
-  /**
-   * The labels present for the given segment
-   * 
-   * @param edgeSegment to collect composition labels for
-   * @return the flow composition labels found
-   */
-  public TreeSet<BushFlowLabel> getFlowCompositionLabels(EdgeSegment edgeSegment) {
-    return bushData.getFlowCompositionLabels(edgeSegment);
-  }
-
-  /**
-   * The first of the flow composition labels present on the given segment. If no lables are present null is returned
-   * 
-   * @param edgeSegment to collect composition labels for
-   * @return the flow composition labels found
-   */
-  public BushFlowLabel getFirstFlowCompositionLabel(EdgeSegment edgeSegment) {
-    return hasFlowCompositionLabel(edgeSegment) ? bushData.getFlowCompositionLabels(edgeSegment).first() : null;
-  }
-
-  /**
-   * Verify if the edge segment has any flow composition labels registered on it
-   * 
-   * @param edgeSegment to verify
-   * @return true when present, false otherwise
-   */
-  public boolean hasFlowCompositionLabel(final EdgeSegment edgeSegment) {
-    return bushData.hasFlowCompositionLabel(edgeSegment);
-  }
-
-  /**
-   * Verify if the edge segment has the flow composition label provided
-   * 
-   * @param edgeSegment      to verify
-   * @param compositionLabel to verify
-   * @return true when present, false otherwise
-   */
-  public boolean hasFlowCompositionLabel(final EdgeSegment edgeSegment, final BushFlowLabel compositionLabel) {
-    return bushData.hasFlowCompositionLabel(edgeSegment, compositionLabel);
-  }
-
-  /**
-   * Relabel existing flow from one composition from-to combination to a new from-to label
-   * 
-   * @param fromSegment    from segment of turn
-   * @param oldFromLabel   from composition label to replace
-   * @param toSegment      to segment of turn
-   * @param oldToLabel     to composition label to replace
-   * @param newFromToLabel label to replace flow with
-   * @return the amount of flow that was relabelled
-   */
-  public double relabel(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel, BushFlowLabel newFromToLabel) {
-    return bushData.relabel(fromSegment, oldFromLabel, toSegment, oldToLabel, newFromToLabel);
-  }
-
-  /**
-   * Relabel the from label of existing flow from one composition from-to combination to a new from-to label
-   * 
-   * @param fromSegment  from segment of turn
-   * @param oldFromLabel from composition label to replace
-   * @param toSegment    to segment of turn
-   * @param toLabel      to composition label
-   * @param newFromLabel label to replace flow with
-   * @return the amount of flow that was relabelled
-   */
-  public double relabelFrom(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel toLabel, BushFlowLabel newFromLabel) {
-    return bushData.relabelFrom(fromSegment, oldFromLabel, toSegment, toLabel, newFromLabel);
-  }
-
-  /**
-   * Relabel the to label of existing flow from one composition from-to combination to a new from-to label
-   * 
-   * @param fromSegment from segment of turn
-   * @param fromLabel   from composition label
-   * @param toSegment   to segment of turn
-   * @param oldToLabel  to composition label to replace
-   * @param newToLabel  label to replace flow with
-   * @return the amount of flow that was relabelled
-   */
-  public double relabelTo(EdgeSegment fromSegment, BushFlowLabel fromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel, BushFlowLabel newToLabel) {
-    return bushData.relabelTo(fromSegment, fromLabel, toSegment, oldToLabel, newToLabel);
   }
 
   /**
@@ -822,40 +633,27 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
           continue;
         }
 
-        /* if flow has fallen below threshold due to queues, remove from bush */
-        var usedLabels = getFlowCompositionLabels(entrySegment);
-        if (usedLabels == null) {
-          continue;
-        }
+        double entryAcceptedFlow = bushData.getTotalAcceptedFlowToPcuH(entrySegment, flowAcceptanceFactors);
+        double[] splittingRates = getSplittingRates(entrySegment);
 
-        for (var entrylabel : usedLabels) {
-          double entryLabelAcceptedFlow = bushData.getTotalAcceptedFlowToPcuH(entrySegment, entrylabel, flowAcceptanceFactors);
-
-          /*
-           * bush splitting rates by [exit segment, exit label] as key - splitting rates are computed based on turn flows but placed in new map. so once we have the splitting rates
-           * in this map, we can safely update the turn flows without affecting these splitting rates
-           */
-          MultiKeyMap<Object, Double> splittingRates = getSplittingRates(entrySegment, entrylabel);
-
-          for (var exitSegment : currVertex.getExitEdgeSegments()) {
-            if (!containsEdgeSegment(exitSegment)) {
-              continue;
-            }
-
-            var exitLabels = getFlowCompositionLabels(exitSegment);
-            if (exitLabels == null) {
-              continue;
-            }
-
-            for (var exitLabel : exitLabels) {
-              Double bushExitSegmentLabelSplittingRate = splittingRates.get(exitSegment, exitLabel);
-              if (bushExitSegmentLabelSplittingRate != null && Precision.positive(bushExitSegmentLabelSplittingRate)) {
-                double bushTurnLabeledAcceptedFlow = entryLabelAcceptedFlow * bushExitSegmentLabelSplittingRate;
-                bushData.setTurnSendingFlow(
-                    entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow, true);
-              }
-            }
+        int splittingRateIndex = 0;
+        for (var exitSegment : currVertex.getExitEdgeSegments()) {
+          if (!containsEdgeSegment(exitSegment)) {
+            ++splittingRateIndex;
+            continue;
           }
+
+          double bushExitSegmentSplittingRate = splittingRates[splittingRateIndex];
+          if (Precision.positive(bushExitSegmentSplittingRate)) {
+            double bushTurnLabeledAcceptedFlow = entryAcceptedFlow * bushExitSegmentSplittingRate;
+            bushData.setTurnSendingFlow(
+                entrySegment, exitSegment, bushTurnLabeledAcceptedFlow, true);
+          }else if(bushExitSegmentSplittingRate > 0){
+            LOGGER.warning(String.format(
+                    "Minute splitting rate found on turn from (%s) to (%s) on bush %s, ignored, but should probably be dealt with properly!",
+                    entrySegment.getIdsAsString(), exitSegment.getIdsAsString(), this.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+          }
+          ++splittingRateIndex;
         }
       }
     }
