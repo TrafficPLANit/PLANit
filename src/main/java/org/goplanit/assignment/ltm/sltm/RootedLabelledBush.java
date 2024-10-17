@@ -2,20 +2,26 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.*;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
+import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.network.virtual.CentroidVertex;
+import org.goplanit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * A rooted bush is an acyclic directed graph comprising implicit paths along a network. It has a single root which
@@ -35,38 +41,45 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   private static final Logger LOGGER = Logger.getLogger(RootedLabelledBush.class.getCanonicalName());
 
   /**
-   * Determine the sending flow between origin,destination vertex using the subpath given by the subPathArray in order from start to finish. We utilise the initial sending flow on
-   * the indexed segment and label as the base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
+   * Determine the sending flow between origin,destination vertex using the subpath given by the subPathArray in
+   * order from start to finish. We utilise the initial sending flow on the indexed segment and label as the base
+   * flow which is then followed along the subpath through the bush splitting rates up to the final link segment
    * 
-   * @param subPathSendingFlow to start with
+   * @param subPathAcceptedFlow accepted flow so far
+   * @param compoundedFlowAcceptanceScalingFactor combined multiplied alphas so far
    * @param index              offset to start in array with
-   * @param subPathArray       to extract path from
+   * @param flowAcceptanceFactors to use
+   * @param subPathArray       to extract path from*
    * @return sendingFlowPcuH between index and end vertex following the sub-path
    */
   private double determineSubPathSendingFlow(
-      double subPathSendingFlow, int index, final EdgeSegment[] subPathArray) {
-    if(subPathSendingFlow <= 0.0){
-      return subPathSendingFlow;
+      double subPathAcceptedFlow,
+      double compoundedFlowAcceptanceScalingFactor,
+      int index,
+      double[] flowAcceptanceFactors,
+      final EdgeSegment[] subPathArray) {
+    if(subPathAcceptedFlow <= 0.0){
+      return subPathAcceptedFlow;
     }
 
     var currEdgeSegment = subPathArray[index++];
 
-    // in case due to other local flow reductions the link flow has become lower than the NL consistent
-    // flow following the path and applying alphas and splitting rates, cap to this more restricting avalable flow instead
-    double linkRestrictedSubPathSendingFlow =
-            Math.min(subPathSendingFlow, bushData.getTotalSendingFlowFromPcuH(currEdgeSegment));
-
-    if (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
+    if (index < subPathArray.length && Precision.positive(subPathAcceptedFlow)) {
       var nextEdgeSegment = subPathArray[index];
 
-      var currSplittingRate = bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
-      if (currSplittingRate <= 0) {
-          return 0.0;
-      }
-      double remainingSubPathSendingFlow = linkRestrictedSubPathSendingFlow * currSplittingRate;
-      return determineSubPathSendingFlow(remainingSubPathSendingFlow, index, subPathArray);
+      var currSendingFlow = bushData.getTurnSendingFlowPcuH(currEdgeSegment, nextEdgeSegment);
+      // restrict by what is following our subpath
+      double subPathSendingFlow = Math.min(subPathAcceptedFlow, currSendingFlow);
+      double flowAcceptanceFactor = flowAcceptanceFactors[(int)currEdgeSegment.getId()];
+      return determineSubPathSendingFlow(
+              subPathSendingFlow * flowAcceptanceFactor,
+              compoundedFlowAcceptanceScalingFactor * flowAcceptanceFactor,
+              index,
+              flowAcceptanceFactors,
+              subPathArray);
     }
-    return linkRestrictedSubPathSendingFlow;
+    // done, rescale to original sending flow using reciprocal of compounded flow acceptance factors
+    return subPathAcceptedFlow * 1/(compoundedFlowAcceptanceScalingFactor);
   }
 
   /**
@@ -528,33 +541,6 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   }
 
   /**
-   * Determine the sending flow between origin,destination vertex using the subpath given by the subPathMap, where each vertex provides its exit segment. This is used to traverse
-   * the subpath and extract the portion of the sending flow currently known at the bushes startVertex provided to the end vertex
-   * 
-   * @param startVertex to use
-   * @param endVertex   to use
-   * @param subPathMap  to extract path from
-   * @return sendingFlowPcuH between start and end vertex following the found sub-path
-   */
-  public double computeSubPathSendingFlow(
-          final DirectedVertex startVertex, final DirectedVertex endVertex, final Map<DirectedVertex, EdgeSegment> subPathMap) {
-    EdgeSegment nextEdgeSegment = subPathMap.get(startVertex);
-    double subPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(nextEdgeSegment);
-
-    if (Precision.positive(subPathSendingFlow)) {
-      var currEdgeSegment = nextEdgeSegment;
-      nextEdgeSegment = subPathMap.get(currEdgeSegment.getDownstreamVertex());
-      do {
-        subPathSendingFlow *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
-        currEdgeSegment = nextEdgeSegment;
-        nextEdgeSegment = subPathMap.get(currEdgeSegment.getDownstreamVertex());
-      } while (nextEdgeSegment != null && Precision.positive(subPathSendingFlow));
-    }
-
-    return subPathSendingFlow;
-  }
-
-  /**
    * Determine the accepted flow between origin,destination vertex using the subpath given by the subPathArray in order from start to finish. We utilise the initial sending flow on
    * the first segment as the base flow which is then reduced by the splitting rates and acceptance factor up to and including the final link segment
    * 
@@ -594,21 +580,24 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @param subPathArray to append to entry segment to extract path from
    * @return sendingFlowPcuH between start and end vertex following the sub-path
    */
-  public double determineSubPathSendingFlow(EdgeSegment entrySegment, EdgeSegment[] subPathArray) {
+  public double determineSubPathSendingFlow(
+          EdgeSegment entrySegment, EdgeSegment[] subPathArray, double[] flowAcceptanceFactors) {
 
     int index = 0;
-    double subPathSendingFlow = 0;
 
     /* determine flow from entry segment into initial segment, from there on recursively traverse sub-path */
     var initialSubPathEdgeSegment = subPathArray[index];
-    double currSplittingRate = bushData.getSplittingRate(entrySegment, initialSubPathEdgeSegment);
-    if (currSplittingRate <= 0) {
+    double subPathSendingFlow = bushData.getTurnSendingFlowPcuH(entrySegment, initialSubPathEdgeSegment);
+    if (subPathSendingFlow <= 0) {
         return subPathSendingFlow;
     }
-    double remainingSubPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(entrySegment) * currSplittingRate;
-    subPathSendingFlow = determineSubPathSendingFlow(remainingSubPathSendingFlow, index, subPathArray);
+    double flowAcceptanceFactor = flowAcceptanceFactors[(int)entrySegment.getId()];
+    subPathSendingFlow = determineSubPathSendingFlow(
+            subPathSendingFlow * flowAcceptanceFactor, flowAcceptanceFactor, index, flowAcceptanceFactors, subPathArray);
     return subPathSendingFlow;
   }
+
+
 
   /**
    * {@inheritDoc}
@@ -616,21 +605,11 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   @Override
   public void syncToNetworkFlows(double[] flowAcceptanceFactors) {
 
-    /* get topological sorted vertices to process always in origin-destination direction */
-    var vertexIter = isInverted() ? getInvertedTopologicalIterator() : getTopologicalIterator();
-    if (vertexIter == null) {
-      LOGGER.severe(String.format("Topologically sorted vertices on bush not available, this shouldn't happen, skip turn flow update"));
-      LOGGER.info(String.format("Bush at risk: %s", this));
-      return;
-    }
-    var currVertex = vertexIter.next();
-
-    /* pass over bush in topological order updating turn sending flows based on flow acceptance factors */
-    while (vertexIter.hasNext()) {
-      currVertex = vertexIter.next();
+    /* traverse form origin->destination */
+    forEachTopologicalSortedVertex(isInverted(), currVertex -> {
       for (var entrySegment : currVertex.getEntryEdgeSegments()) {
         if (!containsEdgeSegment(entrySegment)) {
-          continue;
+          continue; // next vertex
         }
 
         double entryAcceptedFlow = bushData.getTotalAcceptedFlowToPcuH(entrySegment, flowAcceptanceFactors);
@@ -647,7 +626,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
           if (Precision.positive(bushExitSegmentSplittingRate)) {
             double bushTurnLabeledAcceptedFlow = entryAcceptedFlow * bushExitSegmentSplittingRate;
             bushData.setTurnSendingFlow(
-                entrySegment, exitSegment, bushTurnLabeledAcceptedFlow, true);
+                    entrySegment, exitSegment, bushTurnLabeledAcceptedFlow, true);
           }else if(bushExitSegmentSplittingRate > 0){
             LOGGER.warning(String.format(
                     "Minute splitting rate found on turn from (%s) to (%s) on bush %s, ignored, but should probably be dealt with properly!",
@@ -656,7 +635,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
           ++splittingRateIndex;
         }
       }
-    }
+    });
   }
 
   /**

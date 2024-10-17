@@ -240,7 +240,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
       var pasFlowShifter = pasExecutors.get(pas);
 
-      if(pas.pasId == 54L && simulationData.getIterationIndex()>=7){
+      if(pas.pasId == 620L && simulationData.getIterationIndex()>=12){
         int blA = 4;
       }
 
@@ -480,6 +480,22 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   }
 
   /**
+   * To avoid bushes keeping low flow links occupied and limiting options to use links or opposite links
+   * more efficiently, we will remove very low flow links from each bush, implicitly shifting this flow to
+   * higher usage branches.
+   *
+   * @param flowThreshold any links with flow below this threshold will be implictly branch shifted
+   */
+  protected void performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors) {
+    for (B bush : bushes) {
+      if(bush == null){
+        continue;
+      }
+      bush.performLowFlowBranchShifts(flowThreshold, flowAcceptanceFactors, isDestinationTrackedForLogging(bush));
+    }
+  }
+
+  /**
    * Create bush based network loading implementation
    *
    * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
@@ -600,6 +616,11 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
          * In this case, the new PAS is not used and is to be removed identical to how existing PASs are removed during flow shifts when they no longer carry flow*/
         justNewPass.removeAll(updatedPass);
         justNewPass.forEach( pas -> pasManager.removePas(pas, getSettings().isDetailedLogging()));
+      }
+
+      /* 5 - perform low flow branch shifts */
+      {
+        performLowFlowBranchShifts(0.1, getLoading().getCurrentFlowAcceptanceFactors());
       }
       
     }catch(Exception e) {

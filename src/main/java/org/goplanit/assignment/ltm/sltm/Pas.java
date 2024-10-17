@@ -187,7 +187,8 @@ public class Pas {
    * @return when non-negative the segment is overlapping with the PAS, where the value indicates the accepted flow on this sub-path for the bush (with sendinf flow at start as
    *         base demand)
    */
-  public double computeOverlappingAcceptedFlow(RootedLabelledBush bush, boolean lowCost, double[] linkSegmentFlowAcceptanceFactors) {
+  public double computeOverlappingAcceptedFlow(
+          RootedLabelledBush bush, boolean lowCost, double[] linkSegmentFlowAcceptanceFactors) {
     EdgeSegment[] alternative = lowCost ? s1 : s2;
     return bush.computeSubPathAcceptedFlow(getDivergeVertex(), getMergeVertex(), alternative, linkSegmentFlowAcceptanceFactors);
   }

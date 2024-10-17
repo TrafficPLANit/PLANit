@@ -545,6 +545,14 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public void performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging){
+    //todo
+    LOGGER.severe("NOT YET IMPLEMENTED");
+  }
+
+  /**
    * Verify if empty
    * 
    * @return true when empty, false otherwise

@@ -6,6 +6,7 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
+import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
@@ -590,6 +591,8 @@ public abstract class PasFlowShiftExecutor {
       StaticLtmLoadingBushBase<?> networkLoading,
       Smoothing smoothing) {
 
+    double totalProposedFlowShift = proposedFlowShifts.values().stream().mapToDouble(d->d).sum();
+
     // reset and repopulate the actually s2 shifted(removed) flow which is needed to later perform the equivalent s1 flow shifts (by adding)
     flowShiftedS2BushData.clear();
 
@@ -599,17 +602,13 @@ public abstract class PasFlowShiftExecutor {
       //LOGGER.warning("no flow on S2 segment of selected PAS, PAS should not exist anymore, this shouldn't happen");
     }
 
-    //--------------- CURRENTLY FOR DEBUGGING ------------------------------------
-    // idea --> construct current situation to compare to how we constructed proposed and s2 flows consistent with loading
-    //          to be used to determine best way forward to ensure flow shifts do not cause problems when distributing
-    //          over entry segments and bushes that have been changed as part of other (partially) overlapping PASs
-    double totalProposedFlowShift = 0;
-    //todo: for now just use this to monitor any discrepancies between original distribution and current with overlapping PASs for debugging
+    //--------------- UPDATE SENDING FLOWS THROUGH ALTERNATIVE ------------------------------------
+    // sub path sending flows current (which is likely different and lower than the ones consistent with loading due to S2 flow shifts
+    // performed on other PASs
     Map<Bush, Map<EdgeSegment, Double>> bushEntrySegments2UpdatedFlow = new TreeMap<>();
-    for( var entryShiftPair : proposedFlowShifts.entrySet()){
-      var entrySegment = entryShiftPair.getKey();
-      totalProposedFlowShift += entryShiftPair.getValue();
-      for (var bush : pas.getRegisteredBushes()) {
+    for (var bush : pas.getRegisteredBushes()) {
+      for( var entryShiftPair : proposedFlowShifts.entrySet()){
+        var entrySegment = entryShiftPair.getKey();
         if (!bush.containsEdgeSegment(entrySegment)) {
           continue;
         }
@@ -617,15 +616,62 @@ public abstract class PasFlowShiftExecutor {
         bushEntrySegments2UpdatedFlow.get(bush).put(
             entrySegment, bush.determineSubPathSendingFlow(entrySegment, pas.getAlternative(false)));
       }
+      // it is possible that due to earlier flow shifts even the local subpath sending flow is not restrictive enough due
+      // to flows being removed halfway through the PAS instead of at the entry. If so, we need to work out by how much we
+      // should reduce the entry segment flows to attribute this further reduction proportionally
+      // 1. determine the minimum available link flow on any high cost link (excluding entry) accounting for alphas
+      double minimumAvailableS2Flow = Integer.MAX_VALUE;
+      double acceptanceScalingFactor = 1;
+      EdgeSegment previousSegment = null;
+      for(var currEdgeSegment : pas.getAlternative(false)){
+        if(previousSegment!=null){
+          acceptanceScalingFactor =
+                  acceptanceScalingFactor/networkLoading.getCurrentFlowAcceptanceFactors()[(int)previousSegment.getId()];
+        }
+        double scaledMinimumFlow = acceptanceScalingFactor * bush.bushData.getTotalSendingFlowFromPcuH(currEdgeSegment);
+        minimumAvailableS2Flow =
+                Math.min(minimumAvailableS2Flow,scaledMinimumFlow);
+        previousSegment = currEdgeSegment;
+      }
+      //2. if this minimum flow is smaller than the updated sub path sending flow, then a NL inconsistency WITHIN the PAS has occurred
+      //   (this on top of any NL inconsistency that occurred upstream and is already captured in the above update)
+      //   if so, we must scale back the sub path sending flows further which should then trigger a pas removal still but one
+      //   where flows are proportionally removed across all entry segments
+      double[] entrySegmentAcceptedFlowIntoS2 = bushEntrySegments2UpdatedFlow.get(bush).entrySet().stream().mapToDouble(
+              entry -> entry.getValue() * networkLoading.getCurrentFlowAcceptanceFactors()[(int)entry.getKey().getId()]).toArray();
+      double combinedSendingFlowOnS2InitialSegment = ArrayUtils.sumOf(entrySegmentAcceptedFlowIntoS2);
+      if(Precision.smaller(minimumAvailableS2Flow, combinedSendingFlowOnS2InitialSegment)){
+        // 3. determine the split of this flow across the entry segments
+        double[] s2InitialSegmentFlowDistribution = ArrayUtils.divideBy(entrySegmentAcceptedFlowIntoS2, combinedSendingFlowOnS2InitialSegment, 0);
+        // 4. now use this split multiplied with the minimum to get absolute available flow and then work backwards
+        //    to entry segment sending flow by taking reciprocal of alpha on entry segment. This is the final allowed
+        //    proportional available sending flow on the subpath that we use
+        double[] entrySegmentUpscalingFactors = bushEntrySegments2UpdatedFlow.get(bush).keySet().stream().mapToDouble(
+                entrySegment -> 1/networkLoading.getCurrentFlowAcceptanceFactors()[(int)entrySegment.getId()]).toArray();
+        double[] s2InitialSegmentEntrySegmentAcceptedFlows =
+                ArrayUtils.multiplyBy(s2InitialSegmentFlowDistribution, minimumAvailableS2Flow);
+        double[] s2EntrySegmentMaximumSendingFlows =
+                ArrayUtils.multiplyElementWise(s2InitialSegmentEntrySegmentAcceptedFlows, entrySegmentUpscalingFactors);
+        int index = 0;
+        for(var entry : bushEntrySegments2UpdatedFlow.get(bush).entrySet()){
+          entry.setValue(s2EntrySegmentMaximumSendingFlows[index++]);
+        }
+      }
     }
+
     double currentS2SendingFlow = bushEntrySegments2UpdatedFlow.values().stream().flatMap(e -> e.values().stream()).mapToDouble(e -> e).sum();
-    // truncate to what is available due to overlapping previous shifts taking some of the available flow away
-    totalProposedFlowShift = totalProposedFlowShift;
+
+    if (Precision.greater(totalProposedFlowShift, currentS2SendingFlow, EPSILON_3)) {
+      if(isDestinationTrackedForLogging()) {
+        LOGGER.info(String.format("[removal --> proposed shift %.10f exceeds s2 sending flow %.10f]",
+                totalProposedFlowShift, currentS2SendingFlow));
+      }
+    }
 
     // if earlier shifts have reduced available flow, capture in factor, so we remain in feasible shifting region
     double s2FlowAvailabilityFactor = Math.min(1,currentS2SendingFlow/networkLoadingConsistentS2SendingFlow);
     // minimum of current and original is what we now is available as it is a minimum
-    double guaranteedS2SendingFlow = Math.min(currentS2SendingFlow, networkLoadingConsistentS2SendingFlow);
+    double guaranteedS2SendingFlow = currentS2SendingFlow; //Math.min(currentS2SendingFlow, networkLoadingConsistentS2SendingFlow);
 
     if(isDestinationTrackedForLogging()) {
       LOGGER.info("* S2 FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + "(NL consistent: " + networkLoadingConsistentS2SendingFlow+") - cost-diff: " + pas.getReducedCost());
@@ -641,7 +687,7 @@ public abstract class PasFlowShiftExecutor {
       double nlConsistentEntrySegmentS2Flow = getTotalEntrySegmentSendingFlow(entrySegment, false);
       double currentEntrySegmentS2Flow = bushEntrySegments2UpdatedFlow.values().stream().map(
               entry -> entry.getOrDefault(entrySegment,0.0)).mapToDouble(d->d).sum();
-      double guaranteedEntrySegmentS2SendingFlow = Math.min(nlConsistentEntrySegmentS2Flow, currentEntrySegmentS2Flow);
+      double guaranteedEntrySegmentS2SendingFlow = currentEntrySegmentS2Flow; //Math.min(nlConsistentEntrySegmentS2Flow, currentEntrySegmentS2Flow);
       if ( guaranteedEntrySegmentS2SendingFlow <= 0.0) {
         /* remove this entry segment from the PAS when done as no flow remains on high cost segment */
         pas.getRegisteredBushes().forEach(b -> bushEntrySegmentS1S2SendingFlows.get(b).remove(entrySegment));
@@ -654,10 +700,22 @@ public abstract class PasFlowShiftExecutor {
       }
 
       double smoothedProportionalPasflowShift = smoothing.executeRefZero(proposedPasFlowShift);
+      /*test for eligibility to reduce to zero flow along S2 */
+      if (Precision.greaterEqual(smoothedProportionalPasflowShift, guaranteedEntrySegmentS2SendingFlow, EPSILON_3)) {
+
+        if(isDestinationTrackedForLogging()) {
+          LOGGER.info(String.format("     [removal --> shift %.10f equal or higher than s2 sending flow %.10f, entry segment (%s)]",
+                  smoothedProportionalPasflowShift, guaranteedEntrySegmentS2SendingFlow, entrySegment.getIdsAsString()));
+        }
+
+        /* truncate to guaranteed available S2 flow */
+        smoothedProportionalPasflowShift = guaranteedEntrySegmentS2SendingFlow;
+      }
+
       for (var bush : pas.getRegisteredBushes()) {
         double nlConsistentBushEntrySegmentS2Flow = bushEntrySegmentS1S2SendingFlows.get(bush).getOrDefault(entrySegment,Pair.of(0.0, 0.0)).second();
         double currentBushEntrySegmentS2Flow = bushEntrySegments2UpdatedFlow.get(bush).getOrDefault(entrySegment,0.0);
-        double guaranteedBushEntrySegmentS2SendingFlow = Math.min(nlConsistentBushEntrySegmentS2Flow, currentBushEntrySegmentS2Flow);
+        double guaranteedBushEntrySegmentS2SendingFlow = currentBushEntrySegmentS2Flow; //Math.min(nlConsistentBushEntrySegmentS2Flow, currentBushEntrySegmentS2Flow);
 
         // only consider entry segments where there is still flow present to shift (may happen due to
         if (!bush.containsTurnSendingFlow(entrySegment, pas.getFirstEdgeSegment(false)) || guaranteedBushEntrySegmentS2SendingFlow <= 0) {
@@ -671,18 +729,6 @@ public abstract class PasFlowShiftExecutor {
          */
         double bushS2Portion = guaranteedBushEntrySegmentS2SendingFlow / guaranteedEntrySegmentS2SendingFlow;
         double entrySegmentBushPasflowShift = smoothedProportionalPasflowShift * bushS2Portion;
-
-        /*test for eligibility to reduce to zero flow along S2 */
-        if (Precision.greaterEqual(entrySegmentBushPasflowShift, guaranteedBushEntrySegmentS2SendingFlow, EPSILON_3)) {
-
-          if(isDestinationTrackedForLogging(bush)) {
-            LOGGER.info(String.format("     [removal --> shift %.10f may exceed s2 sending flow %.10f, entry segment (%s)]",
-                    smoothedProportionalPasflowShift, guaranteedEntrySegmentS2SendingFlow, entrySegment.getIdsAsString()));
-          }
-
-          /* truncate to guaranteed available S2 flow */
-          entrySegmentBushPasflowShift = guaranteedBushEntrySegmentS2SendingFlow;
-        }
 
         if(guaranteedBushEntrySegmentS2SendingFlow < EPSILON_3){
           entrySegmentBushPasflowShift = guaranteedBushEntrySegmentS2SendingFlow; // make sure we ride the bush s2 PAS from all remaining flow by setting a high value

@@ -282,8 +282,10 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
             executeBushS2FlowShiftEndMerge(bush, s2FinalLabeledFlowShift, s2MergeExitSplittingRates);
 
     var endMergeSplittingRates = ArrayUtils.divideBySum(bushS2MergeExitShiftedSendingFlows, 0);
-    if(ArrayUtils.sumOf(endMergeSplittingRates) < 1){
-      LOGGER.warning("Sum of splitting rates at any segment should always be 1, but it is not, this shouldn't happen");
+    if(Precision.smaller(ArrayUtils.sumOf(endMergeSplittingRates),1, Precision.EPSILON_6)){
+      LOGGER.warning(String.format(
+              "Sum of splitting rates at any segment should always be 1 on bush %s, but it is not, this shouldn't happen",
+              bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
     }
     /* convert flows to splitting rates  */
     return endMergeSplittingRates;

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
@@ -65,12 +66,49 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   }
 
   /**
+   * Traverse a bush in topological order, invert traversal of root is inverted
+   *
+   * @param invertIterator when true invert iterator direction
+   * @param vertexConsumer to apply to each vertex
+   */
+  @Override
+  public void forEachTopologicalSortedVertex(boolean invertIterator, Consumer<DirectedVertex> vertexConsumer) {
+
+    /* get topological sorted vertices to process in indicated direction */
+    var vertexIter = invertIterator ? getInvertedTopologicalIterator() : getTopologicalIterator();
+    if (vertexIter == null) {
+      LOGGER.severe(String.format("Topologically sorted vertices on bush not available, this shouldn't happen, skip vertex traversal"));
+      LOGGER.info(String.format("Bush at risk: %s", this));
+      return;
+    }
+    var currVertex = vertexIter.next();
+
+    /* pass over bush in topological order updating turn sending flows based on flow acceptance factors */
+    while (vertexIter.hasNext()) {
+      currVertex = vertexIter.next();
+      vertexConsumer.accept(currVertex);
+    }
+  }
+
+  /**
    * Conduct an update of the bush turn flows based on the network flow acceptance factors by conducting a bush DAG loading and updating the turn sending flows from the root, i.e.,
    * scale them back with the flow acceptance factor whenever one is encountered.
    *
    * @param flowAcceptanceFactors to use
    */
   public abstract void syncToNetworkFlows(double[] flowAcceptanceFactors);
+
+  /**
+   * To avoid bushes keeping low flow links occupied and limiting options to use links or opposite links
+   * more efficiently, we will remove very low flow links from each bush, implicitly shifting this flow to
+   * higher usage branches.
+   *
+   * @param flowThreshold any links with flow below this threshold will be implicitly branch shifted
+   * @param flowAcceptanceFactors edge segment flow acceptance factors indexed by internal id
+   * @param detailedLogging when true log what branch shifted links are affected
+   */
+  public abstract void performLowFlowBranchShifts(
+          double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging);
 
   /**
    * Constructor
@@ -180,4 +218,5 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * @return root zone
    */
   protected abstract CentroidVertex getRootZoneVertex();
+
 }

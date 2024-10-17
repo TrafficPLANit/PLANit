@@ -55,8 +55,8 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
         }
 
         if (Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(originVertex), Precision.EPSILON_3)) {
-          LOGGER.severe(String.format("bush specific origin's (%s) travel demand (%.8f pcu/h) not equal to total flow (%.8f pcu/h) placed on bush root, this shouldn't happen",
-              originVertex.getParent().getParentZone().getXmlId(), bush.getOriginDemandPcuH(originVertex), totalOriginsSendingFlow));
+          LOGGER.severe(String.format("bush (%s) origin's (%s) travel demand (%.8f pcu/h) not equal to total flow (%.8f pcu/h), this shouldn't happen",
+                  ((DestinationBush)bush).getRootZoneVertex().getParent().getParentZone().getIdsAsString(), originVertex.getParent().getParentZone().getXmlId(), bush.getOriginDemandPcuH(originVertex), totalOriginsSendingFlow));
         }
     }
   }
