@@ -133,10 +133,10 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
         double currentFlow = bush.getTurnSendingFlow(lastS2Segment, exitSegment);
         if(currentFlow + s2FlowShift < 0){
           double diff= currentFlow + s2FlowShift;
-          s2FlowShift = -currentFlow; // sync to available flow
           if(Math.abs(diff)>1){
             int bla = 4;
           }
+          s2FlowShift = -currentFlow; // sync to available flow
         }
 
         double newturnFlow = bush.addTurnSendingFlow(lastS2Segment, exitSegment, s2FlowShift);

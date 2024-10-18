@@ -147,8 +147,13 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
 
         /* bush splitting rates by [exit segment, exit label] as key */
         double[] splittingRates = bush.getSplittingRates(entrySegment);
+        double splittingRateTotal = ArrayUtils.sumOf(splittingRates);
         if (splittingRates == null || ArrayUtils.sumOf(splittingRates) <= 0.0) {
           continue;
+        }
+
+        if(Precision.smaller(splittingRateTotal, 1, Precision.EPSILON_6)){
+          LOGGER.severe("Splitting rates do not add up to 100%, this shouldn't happen");
         }
 
         int splittingRateIndex = 0;
@@ -181,8 +186,8 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
         }
 
         if (Precision.notEqual(bushEntryAcceptedFlow, totalExitAcceptedFlow) && !(entrySegment instanceof ConnectoidSegment)) {
-          LOGGER.severe(String.format("Accepted out flow %.10f on edge segment (%s) not equal to flow (%.10f) assigned to (labelled) turns, this shouldn't happen",
-                  bushEntryAcceptedFlow, entrySegment.getXmlId(), totalExitAcceptedFlow));
+          LOGGER.severe(String.format("Accepted out flow %.10f on edge segment (%s) not equal to flow (%.10f) assigned to turns on bush %s, this shouldn't happen",
+                  bushEntryAcceptedFlow, entrySegment.getXmlId(), totalExitAcceptedFlow, ((DestinationBush)bush).getDestination().getParent().getParentZone().getIdsAsString()));
         }
       }
     }

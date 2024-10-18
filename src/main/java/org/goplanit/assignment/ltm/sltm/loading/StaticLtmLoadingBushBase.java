@@ -128,7 +128,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    */
   @Override
   protected void activateEligibleSplittingRateTrackedNodes() {
-    this.pasManager.forEachPas( (pas) -> activateNodeTrackingFor(pas));
+    this.pasManager.forEachPas( this::activateNodeTrackingFor);
   }
 
   /**

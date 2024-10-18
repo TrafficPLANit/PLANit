@@ -78,8 +78,14 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
               flowAcceptanceFactors,
               subPathArray);
     }
+
+    // restrict by what is left going out of the segment (in rare cases this can be restricting due to
+    // flow being removed at outgoing turns as a starting point of a PAS for example
+    double totalSendingFlowLastSubPathSegment = getSendingFlowPcuH(subPathArray[subPathArray.length-1]);
+    double restrictedSubPathAcceptedFlow = Math.min(subPathAcceptedFlow, totalSendingFlowLastSubPathSegment);
+
     // done, rescale to original sending flow using reciprocal of compounded flow acceptance factors
-    return subPathAcceptedFlow * 1/(compoundedFlowAcceptanceScalingFactor);
+    return restrictedSubPathAcceptedFlow * 1/(compoundedFlowAcceptanceScalingFactor);
   }
 
   /**
@@ -396,10 +402,13 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     bushData.removeTurn(fromEdgeSegment, toEdgeSegment);
     // LOGGER.info(String.format("Removing turn (%s,%s) from bush", fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId()));
 
-    if (!Precision.positive(getSendingFlowPcuH(fromEdgeSegment))) {
+    // we remove if no more flow gets sent out (unless it is a sink, i.e., destination in which case we never remove it)
+    if (!Precision.positive(getSendingFlowPcuH(fromEdgeSegment))
+            && !(fromEdgeSegment.getDownstreamVertex() instanceof CentroidVertex)) {
       removeEdgeSegment(fromEdgeSegment);
     }
-    if (!Precision.positive(getSendingFlowPcuH(toEdgeSegment))) {
+    if (!Precision.positive(getSendingFlowPcuH(toEdgeSegment))
+            && !(toEdgeSegment.getDownstreamVertex() instanceof CentroidVertex)) {
       removeEdgeSegment(toEdgeSegment);
     }
     requireTopologicalSortUpdate = true;
@@ -569,6 +578,32 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     subPathAcceptedFlowPcuH *= linkSegmentAcceptanceFactors[(int) nextEdgeSegment.getId()];
 
     return subPathAcceptedFlowPcuH;
+  }
+
+  /**
+   * Determine the sending flow between origin,destination vertex using the subpath given by the segment +
+   * subPathArray in order from start to finish.
+   *
+   * @param subPathArray to append to entry segment to extract path from
+   * @return sendingFlowPcuH between start and end vertex following the sub-path
+   */
+  public double determineSubPathSendingFlow(EdgeSegment[] subPathArray, double[] flowAcceptanceFactors) {
+
+    int index = 0;
+
+    /* determine flow on initial segment, from there on recursively traverse sub-path */
+    var initialSubPathEdgeSegment = subPathArray[index];
+    // must use minimum of incoming and outgoing flows because they maybe inconsistent due to overlapping other PASs
+    // in case the subpath is only one link we should consider both to avoid not overestimating flow
+    double subPathSendingFlow = Math.min(
+            bushData.getTotalAcceptedFlowToPcuH(initialSubPathEdgeSegment, flowAcceptanceFactors),
+            bushData.getTotalSendingFlowFromPcuH(initialSubPathEdgeSegment));
+    if (subPathSendingFlow <= 0) {
+      return subPathSendingFlow;
+    }
+    subPathSendingFlow = determineSubPathSendingFlow(
+            subPathSendingFlow, 1, index, flowAcceptanceFactors, subPathArray);
+    return subPathSendingFlow;
   }
 
   /**

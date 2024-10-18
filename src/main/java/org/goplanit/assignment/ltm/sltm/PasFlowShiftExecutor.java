@@ -9,6 +9,7 @@ import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
@@ -501,8 +502,10 @@ public abstract class PasFlowShiftExecutor {
   /**
    * Determining the currently available desired flows along each subpath
    * (utilising the current state of the bush level)
+   *
+   * @param flowAcceptanceFactors to use
    */
-  public void updateS1S2EntrySendingFlows() {
+  public void updateS1S2EntrySendingFlows(double[] flowAcceptanceFactors) {
     /* determine the network flow on the high cost subpath */
 
     var s2 = pas.getAlternative(false /* high cost */);
@@ -517,9 +520,9 @@ public abstract class PasFlowShiftExecutor {
         bushEntrySegmentS1S2SendingFlows.putIfAbsent(bush, new HashMap<>());
         var entrySegmentS1S2SendingFlows = bushEntrySegmentS1S2SendingFlows.get(bush);
 
-        double s2BushSendingFlow = bush.determineSubPathSendingFlow(entrySegment, s2);
+        double s2BushSendingFlow = bush.determineSubPathSendingFlow(entrySegment, s2, flowAcceptanceFactors);
 
-        double s1BushSendingFlow = bush.determineSubPathSendingFlow(entrySegment, s1);
+        double s1BushSendingFlow = bush.determineSubPathSendingFlow(entrySegment, s1, flowAcceptanceFactors);
 
         entrySegmentS1S2SendingFlows.put(entrySegment, Pair.of(s1BushSendingFlow, s2BushSendingFlow));
       }
@@ -607,57 +610,103 @@ public abstract class PasFlowShiftExecutor {
     // performed on other PASs
     Map<Bush, Map<EdgeSegment, Double>> bushEntrySegments2UpdatedFlow = new TreeMap<>();
     for (var bush : pas.getRegisteredBushes()) {
-      for( var entryShiftPair : proposedFlowShifts.entrySet()){
-        var entrySegment = entryShiftPair.getKey();
-        if (!bush.containsEdgeSegment(entrySegment)) {
-          continue;
-        }
-        bushEntrySegments2UpdatedFlow.computeIfAbsent(bush, b -> new TreeMap<>());
-        bushEntrySegments2UpdatedFlow.get(bush).put(
-            entrySegment, bush.determineSubPathSendingFlow(entrySegment, pas.getAlternative(false)));
+      double subPathSendingFlow = bush.determineSubPathSendingFlow(
+              pas.getAlternative(false), networkLoading.getCurrentFlowAcceptanceFactors());
+      var initialS2Segment = pas.getAlternative(false)[0];
+
+      double[] entrySegmentAcceptedFlowIntoS2 = IterableUtils.asStream(
+              initialS2Segment.getUpstreamVertex().getEntryEdgeSegments()).mapToDouble(
+              entrySegment -> bush.getTurnSendingFlow(entrySegment, initialS2Segment) *
+                      networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()]).toArray();
+      // determine the split of this flow across the entry segments on the S2 initial segment to obtain per entry portion
+      double[] s2InitialSegmentFlowDistribution = ArrayUtils.divideBySum(entrySegmentAcceptedFlowIntoS2, 0);
+      double[] s2EntrySegmentMaximumAvailableAcceptedFlowOnInitialS2Segment =
+              ArrayUtils.multiplyBy(s2InitialSegmentFlowDistribution, subPathSendingFlow, true);
+      // 4. now work backwards to entry segment sending flow by taking reciprocal of alpha on entry segment. This is
+      // the final allowed proportional available sending flow on the subpath that we use
+      double[] entrySegmentUpscalingFactors = IterableUtils.asStream(
+              initialS2Segment.getUpstreamVertex().getEntryEdgeSegments()).mapToDouble(
+              entrySegment -> 1 / networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()]).toArray();
+      double[] s2EntrySegmentSubPathSendingFlows =
+              ArrayUtils.multiplyElementWise(
+                      s2EntrySegmentMaximumAvailableAcceptedFlowOnInitialS2Segment, entrySegmentUpscalingFactors);
+      int index = 0;
+      var currBushEntrySegmentSendingFlow = new TreeMap<EdgeSegment, Double>();
+      for (var entrySegment : initialS2Segment.getUpstreamVertex().getEntryEdgeSegments()) {
+        currBushEntrySegmentSendingFlow.put(entrySegment, s2EntrySegmentSubPathSendingFlows[index++]);
       }
-      // it is possible that due to earlier flow shifts even the local subpath sending flow is not restrictive enough due
-      // to flows being removed halfway through the PAS instead of at the entry. If so, we need to work out by how much we
-      // should reduce the entry segment flows to attribute this further reduction proportionally
-      // 1. determine the minimum available link flow on any high cost link (excluding entry) accounting for alphas
-      double minimumAvailableS2Flow = Integer.MAX_VALUE;
-      double acceptanceScalingFactor = 1;
-      EdgeSegment previousSegment = null;
-      for(var currEdgeSegment : pas.getAlternative(false)){
-        if(previousSegment!=null){
-          acceptanceScalingFactor =
-                  acceptanceScalingFactor/networkLoading.getCurrentFlowAcceptanceFactors()[(int)previousSegment.getId()];
-        }
-        double scaledMinimumFlow = acceptanceScalingFactor * bush.bushData.getTotalSendingFlowFromPcuH(currEdgeSegment);
-        minimumAvailableS2Flow =
-                Math.min(minimumAvailableS2Flow,scaledMinimumFlow);
-        previousSegment = currEdgeSegment;
-      }
-      //2. if this minimum flow is smaller than the updated sub path sending flow, then a NL inconsistency WITHIN the PAS has occurred
-      //   (this on top of any NL inconsistency that occurred upstream and is already captured in the above update)
-      //   if so, we must scale back the sub path sending flows further which should then trigger a pas removal still but one
-      //   where flows are proportionally removed across all entry segments
-      double[] entrySegmentAcceptedFlowIntoS2 = bushEntrySegments2UpdatedFlow.get(bush).entrySet().stream().mapToDouble(
-              entry -> entry.getValue() * networkLoading.getCurrentFlowAcceptanceFactors()[(int)entry.getKey().getId()]).toArray();
-      double combinedSendingFlowOnS2InitialSegment = ArrayUtils.sumOf(entrySegmentAcceptedFlowIntoS2);
-      if(Precision.smaller(minimumAvailableS2Flow, combinedSendingFlowOnS2InitialSegment)){
-        // 3. determine the split of this flow across the entry segments
-        double[] s2InitialSegmentFlowDistribution = ArrayUtils.divideBy(entrySegmentAcceptedFlowIntoS2, combinedSendingFlowOnS2InitialSegment, 0);
-        // 4. now use this split multiplied with the minimum to get absolute available flow and then work backwards
-        //    to entry segment sending flow by taking reciprocal of alpha on entry segment. This is the final allowed
-        //    proportional available sending flow on the subpath that we use
-        double[] entrySegmentUpscalingFactors = bushEntrySegments2UpdatedFlow.get(bush).keySet().stream().mapToDouble(
-                entrySegment -> 1/networkLoading.getCurrentFlowAcceptanceFactors()[(int)entrySegment.getId()]).toArray();
-        double[] s2InitialSegmentEntrySegmentAcceptedFlows =
-                ArrayUtils.multiplyBy(s2InitialSegmentFlowDistribution, minimumAvailableS2Flow);
-        double[] s2EntrySegmentMaximumSendingFlows =
-                ArrayUtils.multiplyElementWise(s2InitialSegmentEntrySegmentAcceptedFlows, entrySegmentUpscalingFactors);
-        int index = 0;
-        for(var entry : bushEntrySegments2UpdatedFlow.get(bush).entrySet()){
-          entry.setValue(s2EntrySegmentMaximumSendingFlows[index++]);
-        }
-      }
+      bushEntrySegments2UpdatedFlow.put(bush, currBushEntrySegmentSendingFlow);
     }
+
+    // OLD
+//
+//
+//
+//
+//      // now determine the distribution across entry segments taking acceptance factors into initial segment into account
+//      for( var entryShiftPair : proposedFlowShifts.entrySet()) {
+//        var entrySegment = entryShiftPair.getKey();
+//        if (!bush.containsEdgeSegment(entrySegment)) {
+//          continue;
+//        }
+//        bush.getTurnSendingFlow(entrySegment, initialS2Segment);
+//      }
+//
+//
+//
+//
+//      for( var entryShiftPair : proposedFlowShifts.entrySet()){
+//        var entrySegment = entryShiftPair.getKey();
+//        if (!bush.containsEdgeSegment(entrySegment)) {
+//          continue;
+//        }
+//        bushEntrySegments2UpdatedFlow.computeIfAbsent(bush, b -> new TreeMap<>());
+//        bushEntrySegments2UpdatedFlow.get(bush).put(
+//            entrySegment, bush.determineSubPathSendingFlow(
+//                    entrySegment, pas.getAlternative(false), networkLoading.getCurrentFlowAcceptanceFactors()));
+//      }
+//      // it is possible that due to earlier flow shifts even the local subpath sending flow is not restrictive enough due
+//      // to flows being removed halfway through the PAS instead of at the entry. If so, we need to work out by how much we
+//      // should reduce the entry segment flows to attribute this further reduction proportionally
+//      // 1. determine the minimum available link flow on any high cost link (excluding entry) accounting for alphas
+//      double minimumAvailableS2Flow = Integer.MAX_VALUE;
+//      double acceptanceScalingFactor = 1;
+//      EdgeSegment previousSegment = null;
+//      for(var currEdgeSegment : pas.getAlternative(false)){
+//        if(previousSegment!=null){
+//          acceptanceScalingFactor =
+//                  acceptanceScalingFactor/networkLoading.getCurrentFlowAcceptanceFactors()[(int)previousSegment.getId()];
+//        }
+//        double scaledMinimumFlow = acceptanceScalingFactor * bush.bushData.getTotalSendingFlowFromPcuH(currEdgeSegment);
+//        minimumAvailableS2Flow =
+//                Math.min(minimumAvailableS2Flow,scaledMinimumFlow);
+//        previousSegment = currEdgeSegment;
+//      }
+//      //2. if this minimum flow is smaller than the updated sub path sending flow, then a NL inconsistency WITHIN the PAS has occurred
+//      //   (this on top of any NL inconsistency that occurred upstream and is already captured in the above update)
+//      //   if so, we must scale back the sub path sending flows further which should then trigger a pas removal still but one
+//      //   where flows are proportionally removed across all entry segments
+//      double[] entrySegmentAcceptedFlowIntoS2 = bushEntrySegments2UpdatedFlow.get(bush).entrySet().stream().mapToDouble(
+//              entry -> entry.getValue() * networkLoading.getCurrentFlowAcceptanceFactors()[(int)entry.getKey().getId()]).toArray();
+//      double combinedSendingFlowOnS2InitialSegment = ArrayUtils.sumOf(entrySegmentAcceptedFlowIntoS2);
+//      if(Precision.smaller(minimumAvailableS2Flow, combinedSendingFlowOnS2InitialSegment)){
+//        // 3. determine the split of this flow across the entry segments
+//        double[] s2InitialSegmentFlowDistribution = ArrayUtils.divideBy(entrySegmentAcceptedFlowIntoS2, combinedSendingFlowOnS2InitialSegment, 0);
+//        // 4. now use this split multiplied with the minimum to get absolute available flow and then work backwards
+//        //    to entry segment sending flow by taking reciprocal of alpha on entry segment. This is the final allowed
+//        //    proportional available sending flow on the subpath that we use
+//        double[] entrySegmentUpscalingFactors = bushEntrySegments2UpdatedFlow.get(bush).keySet().stream().mapToDouble(
+//                entrySegment -> 1/networkLoading.getCurrentFlowAcceptanceFactors()[(int)entrySegment.getId()]).toArray();
+//        double[] s2InitialSegmentEntrySegmentAcceptedFlows =
+//                ArrayUtils.multiplyBy(s2InitialSegmentFlowDistribution, minimumAvailableS2Flow);
+//        double[] s2EntrySegmentMaximumSendingFlows =
+//                ArrayUtils.multiplyElementWise(s2InitialSegmentEntrySegmentAcceptedFlows, entrySegmentUpscalingFactors);
+//        int index = 0;
+//        for(var entry : bushEntrySegments2UpdatedFlow.get(bush).entrySet()){
+//          entry.setValue(s2EntrySegmentMaximumSendingFlows[index++]);
+//        }
+//      }
+//    }
 
     double currentS2SendingFlow = bushEntrySegments2UpdatedFlow.values().stream().flatMap(e -> e.values().stream()).mapToDouble(e -> e).sum();
 

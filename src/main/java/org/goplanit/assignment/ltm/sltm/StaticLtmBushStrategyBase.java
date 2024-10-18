@@ -68,25 +68,19 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * to cause a cycle then deregistration of the bush from the new PAS is performed immediately.
    *
    * <p>
-   *   Existing PASs need not checking because
-   *   this PAS that added the segments has been vetted against those implicitly by checking the original bush.
-   *   (can only occur with overlapping pas update)
+   * Existing PASs need not checking because
+   * this PAS that added the segments has been vetted against those implicitly by checking the original bush.
+   * (can only occur with overlapping pas update)
    * </p>
    *
-   * @param bushAddedLinkSegments to consider
    * @param newPass that need to be checked
+   * @return set of deregistered bushes
    */
-  private void deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(
-      Map<EdgeSegment, Set<RootedLabelledBush>> bushAddedLinkSegments, Collection<Pas> newPass) {
+  private Set<B> deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(Collection<Pas> newPass) {
+    Set<B> allDeregisteredBushes = new TreeSet<>();
     if(newPass == null || newPass.isEmpty()){
-      return;
+      return allDeregisteredBushes;
     }
-
-    // lambda to see if an edge segment of a pas alternative has any overlapping vertices with the
-    // bushAddedLinkSegments provided. If so it yields true
-    final Predicate<EdgeSegment> anyVertexMatches = es ->
-            bushAddedLinkSegments.keySet().stream().anyMatch(
-                esAdded -> esAdded.hasAnyVertex(es.getUpstreamVertex(), es.getDownstreamVertex()));
 
     // only consider new PASs that have overlapping vertices and on which any of the bushes is registered before
     // attempting to...
@@ -94,9 +88,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     for(var newPas : newPass){
       Set<B> toBeDeregisteredBushes = null;
       for(var alternativeType : pasAlternativeTypes){
-        if(!newPas.anyMatch(anyVertexMatches, alternativeType)){
-          continue;
-        }
         var pasBushes = newPas.getRegisteredBushes();
         for(var pasBush : pasBushes){
 
@@ -121,9 +112,15 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       }
       if(toBeDeregisteredBushes!=null){
         toBeDeregisteredBushes.forEach(b -> newPas.removeBush((RootedLabelledBush) b));
+        if(allDeregisteredBushes == null){
+          allDeregisteredBushes = toBeDeregisteredBushes;
+        }else{
+          allDeregisteredBushes.addAll(toBeDeregisteredBushes);
+        }
       }
     }
 
+    return allDeregisteredBushes;
   }
 
   /**
@@ -159,7 +156,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     final Map<Pas, PasFlowShiftExecutor> pasExecutors = new HashMap<>();
     this.pasManager.forEachPas( pas -> {
             var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
-            pasFlowShifter.updateS1S2EntrySendingFlows();
+            pasFlowShifter.updateS1S2EntrySendingFlows(networkLoading.getCurrentFlowAcceptanceFactors());
             pasExecutors.put(pas, pasFlowShifter);
     });
 
@@ -206,6 +203,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     Collection<Pas> sortedPass = this.pasManager.getPassSortedByReducedCost(PAS_REDUCED_COST_BY_FLOW_COMPARATOR);
 
     // prune conflicting PASs for each bush based on which one is deemed more important
+    Map<EdgeSegment, Set<RootedLabelledBush>> s1MissingLinkSegments = new TreeMap<>();
     for (Pas pas : sortedPass) {
       var pasFlowShifter = pasExecutors.get(pas);
       unprocessedNewOrUpdatedPassS2Update.remove(pas.pasId);
@@ -221,15 +219,20 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
        *  Note: once we have replace cycle detection with a cost based approach we can move it to after S2 update again.
        *
        * */
-      Map<EdgeSegment, Set<RootedLabelledBush>> s1MissingLinkSegments = pasFlowShifter.findS1MissingLinkSegmentsByBush();
-      if (getSettings().isAllowOverlappingPasUpdate() && s1MissingLinkSegments != null && !s1MissingLinkSegments.isEmpty()) {
-
-        // temporary add segments so cycle detection will take them into account, remove afterwards.
-        s1MissingLinkSegments.forEach( (es, bushes) -> bushes.forEach( b -> b.getDag().addEdgeSegment(es)));
-        deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(s1MissingLinkSegments, unprocessedNewOrUpdatedPassS2Update.values());
-        s1MissingLinkSegments.forEach( (es, bushes) -> bushes.forEach( b -> b.getDag().removeEdgeSegment(es)));
+      var pasS1MissingLinkSegments = pasFlowShifter.findS1MissingLinkSegmentsByBush();
+      if (getSettings().isAllowOverlappingPasUpdate() && pasS1MissingLinkSegments != null && !pasS1MissingLinkSegments.isEmpty()) {
+        pasS1MissingLinkSegments.forEach((k,v) -> s1MissingLinkSegments.computeIfAbsent(k,e -> new TreeSet<>()).addAll(v));
+        // temporary add segments so cycle detection will take them into account.
+        pasS1MissingLinkSegments.forEach( (es, bushes) -> bushes.forEach( b -> b.getDag().addEdgeSegment(es)));
+        var deregisteredBushes = deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(unprocessedNewOrUpdatedPassS2Update.values());
+        // for those bushes that were deregistered because the PAS causes a cycle, the PAS will not be processed so its missing link
+        // segments should be removed directly, otherwise we keep them until we have checked all.
+        pasS1MissingLinkSegments.forEach((es, bushes) -> bushes.stream().filter(deregisteredBushes::contains).forEach(
+                b -> b.getDag().removeEdgeSegment(es)));
       }
     }
+    // remove all temporarily added link segments that were used for cycle detection as they do not carry any flow (yet)
+    s1MissingLinkSegments.forEach( (es, bushes) -> bushes.forEach( b -> b.getDag().removeEdgeSegment(es)));
 
     // S2 ------------------ remove flow
     //
@@ -240,7 +243,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
       var pasFlowShifter = pasExecutors.get(pas);
 
-      if(pas.pasId == 620L && simulationData.getIterationIndex()>=12){
+      if(pas.pasId == 571L && simulationData.getIterationIndex()>=12){
         int blA = 4;
       }
 
