@@ -153,68 +153,64 @@ public class DestinationBush extends RootedLabelledBush {
 
         // check if any preceding link flow was removed as a result of a threshold violation (see below).
         // if so, propagate this removal of flow before assessing if link is eligible for removal
-        boolean initiateNewShift = false;
-        boolean potentiallyContinueExistingShift = false;
-        double removedExitSegmentIncomingFlow = 0;
+         double removedExitSegmentIncomingFlow = 0;
         if(!removedTurnFlows.isEmpty()){
           for (var entrySegment : currVertex.getEntryEdgeSegments()) {
             if(removedTurnFlows.keySet().stream().noneMatch(e -> e.getKey(1).equals(entrySegment)) ||
                     !containsTurnSendingFlow(entrySegment, exitSegment)){
               continue;
             }
-            // a) collect the removed entry link flow
-            double removedTurnSendingFlow = removedTurnFlows.entrySet().stream().filter(
-                    e -> e.getKey().getKey(1).equals(entrySegment)).mapToDouble(
-                            Map.Entry::getValue).sum();
-            if(removedTurnSendingFlow<=0){
-              continue;
-            }
-
-            //todo -> move this down and trigger only when it is a required continuation (where the link gets removed
-            // but we do not initiate a new one, then we do this
-            // otherwise we can stop propagating because it is no longer important
-            {
-              double splittingRate = getSplittingRate(entrySegment, exitSegment);
-              removedTurnFlows.put(entrySegment, exitSegment, removedTurnSendingFlow * removedTurnFlow);
-
-              if (detailedLogging) {
-                LOGGER.info(String.format(
-                    "Implicit branch shift for too low flows: shifted edge segment (%s) flow: %.10f) from exit link (%s) to other exit link (%s) from bush (%s)",
-                    entrySegment.getIdsAsString(),
-                    turnFlow * splittingRate,
-                    exitSegment.getIdsAsString(),
-                    altExitSegment.getIdsAsString(),
-                    getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-              }
-              // given that we know ENTRY segment was removed its outgoing turn (flows) must now be removed as well
-              removeTurn(entrySegment,exitSegment);
-            }
-            potentiallyContinueExistingShift = true;
+            // incoming flow removed into this exit as a result of branch shift, mark as potentially continuing
+             removedExitSegmentIncomingFlow += removedTurnFlows.entrySet().stream().filter(
+                e -> e.getKey().getKey(1).equals(entrySegment)).mapToDouble(
+                Map.Entry::getValue).sum();
+            break;
           }
         }
 
-        // the remaining total sending flow on the exit segment (adjusted with any removed upstream flow)
+        // test for eligibility of removal based on thetotal sending flow on the exit segment
+        // (adjusted with any removed upstream flow)
         double totalInflowPcuH = bushData.getTotalAcceptedFlowToPcuH(exitSegment, flowAcceptanceFactors);
-        if(totalInflowPcuH >= flowThreshold) {
-          continue;
-        }
 
-        if(totalInflowPcuH < flowThreshold){
-          //already some flow removed from an entry link, check no new flow has been merged into this link from other
-          // incoming links, because if so, we must treat this like a new branch shift and flip the flag back
+        // check if (new) flow has been merged into this link from other
+        // incoming links, because if so, we have a new branch shift (possibly in addition to a continuing one)
+        boolean initiateNewShift = false;
+        if( (totalInflowPcuH - removedExitSegmentIncomingFlow) < flowThreshold) {
+
           initiateNewShift = IterableUtils.asStream(currVertex.getEntryEdgeSegments()).filter(
               es -> removedTurnFlows.keySet().stream().noneMatch(k -> k.getKey(1).equals(es))).anyMatch(
               es -> containsTurnSendingFlow(es, exitSegment));
-        }else if(potentiallyContinueExistingShift){
-          // not continuing, just remove the turns but do not track removal propagation any further
-          //todo
-          continue;
-        }else{
+        }else if(removedExitSegmentIncomingFlow > 0 /* but above threshold for removal*/){
+          // continuing but without tracking required because too much flow remains on exit segment despite removed
+          // incoming flow, so just remove the turns from removed entry segments into this exit to finalise the shift
+          // but do not track removal propagation any further because it is not required (no dangling links can occur)
+          for (var entrySegment : currVertex.getEntryEdgeSegments()) {
+            if (removedTurnFlows.keySet().stream().noneMatch(e -> e.getKey(1).equals(entrySegment)) ||
+                !containsTurnSendingFlow(entrySegment, exitSegment)) {
+              continue;
+            }
+            removeTurn(entrySegment, exitSegment);
+            if (detailedLogging) {
+              LOGGER.info(String.format(
+                  "Finalising branch shift; link with above threshold flow encountered : removed turn from edge segment (%s) to  (%s) from bush (%s)",
+                  entrySegment.getIdsAsString(),
+                  exitSegment.getIdsAsString(),
+                  getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+            }
+          }
           continue;
         }
 
-
-
+        // safety --> we can only initiate an implicit shift if there is an alternative flow into another exit segment available
+        // if not then we cannot remove this flow for an implicit shift to another branch, so check this availability
+        var alternativeUsedExitSegmentFlows = IterableUtils.asStream(exitSegment.getUpstreamVertex().getExitEdgeSegments()).filter(
+            es -> es != exitSegment).map(es -> Pair.of(es, bushData.getTotalAcceptedFlowToPcuH(es, flowAcceptanceFactors))).collect(Collectors.toList());
+        if (initiateNewShift && alternativeUsedExitSegmentFlows.stream().mapToDouble(Pair::second).sum() <= 0) {
+          // no other branch available to reallocate flow to, so we must maintain this flow despite it being low
+          // this can happen 1) halfway along a corridor with alphas < 1 such that flow reduces below threshold halfway but without an
+          // option to divert.
+          continue;
+        }
 
 //        // special case, if no flow exits the link, we are at a destination, in which case sending flow is always zero
 //        // so sending flow is not a good indicator, instead we utilise the more costly accepted flow into the link instead
@@ -226,29 +222,12 @@ public class DestinationBush extends RootedLabelledBush {
 //          }
 //        }
 
-
-
-
-        // safety --> we can only initiate an implicit shift if there is an alternative flow into another exit segment available
-        // if not then we cannot remove this flow for an implicit shift to another branch, so check this availability
-        var alternativeUsedExitSegmentFlows = IterableUtils.asStream(exitSegment.getUpstreamVertex().getExitEdgeSegments()).filter(
-                es -> es != exitSegment).map(es -> Pair.of(es, bushData.getTotalAcceptedFlowToPcuH(es, flowAcceptanceFactors))).collect(Collectors.toList());
-        if(initiateNewShift && alternativeUsedExitSegmentFlows.stream().mapToDouble(Pair::second).sum()<=0){
-          // no other branch available to reallocate flow to, so we must maintain this flow despite it being low
-          // this can happen 1) halfway along a corridor with alphas < 1 such that flow reduces below threshold halfway but without an
-          // option to divert.
-          continue;
-        }
-
-        // candidate with "too low" flow found --> perform implicit branch shift
+        // OUTCOME:
+        // continuing an existing or initiating a new branch shift on threshold compliant segment that is to be removed...
 
         //remove edge segment explicitly, because otherwise it may not be removed if it still
         // has sending flow, but we can only deal with that later, so do it explicitly
         getDag().removeEdgeSegment(exitSegment);
-
-
-        // new shift initiated, so remove all incoming flows into the link segment and redistribute this flow to
-        // other exits
 
         for (var entrySegment : currVertex.getEntryEdgeSegments()) {
           double turnFlow = getTurnSendingFlow(entrySegment, exitSegment);
@@ -256,12 +235,9 @@ public class DestinationBush extends RootedLabelledBush {
             continue;
           }
 
-          // remove turn flow.
+          // remove turn coming into this exit segment.
           removeTurn(entrySegment,exitSegment);
 
-          if(potentiallyContinueExistingShift){
-            //todo -> put the removal it from above here now for further propagation including splitting rates etc.
-          }
           if(initiateNewShift) {
             // It may be that some entry segments have no current other used exit turns, while others do.
             // We therefore use the general distribution across exit segments as a proxy and shift
@@ -275,28 +251,39 @@ public class DestinationBush extends RootedLabelledBush {
             for (var altExitSegment : currVertex.getExitEdgeSegments()) {
               var splittingRate = altExitSegmentFlowSplittingRates.getOrDefault(altExitSegment, 0.0);
               if (splittingRate > 0) {
-                double removedTurnFlow = turnFlow * splittingRate;
-                addTurnSendingFlow(entrySegment, altExitSegment, turnFlow * splittingRate);
-
-                //2. propagate removal of the link's flow in case it should lead to downstream removal of more link segments which
-                //   may be required to avoid dangling links within the bush
-                //   Note: since we are removing turns on-the-fly which affects the topological order, we should not create another
-                //         topological iterator at this point as the bush's state is in flux and may be invalid temporarily. therefore
-                //         we will track the to be removed flow as we go and deal with it while traversing the bush instead
-                removedTurnFlows.put(entrySegment, exitSegment, removedTurnFlow);
+                double shiftedTurnFlow = turnFlow * splittingRate;
+                addTurnSendingFlow(entrySegment, altExitSegment, shiftedTurnFlow);
 
                 if (detailedLogging) {
                   LOGGER.info(String.format(
-                      "Implicit branch shift for too low flows: shifted edge segment (%s) flow: %.10f) from exit link (%s) to other exit link (%s) from bush (%s)",
+                      "%s branch shift for too low flows: shifted edge segment (%s) flow: %.10f) from exit link (%s) to other exit link (%s) from bush (%s)",
+                      removedExitSegmentIncomingFlow > 0 ? "Continue + initiate additional" : "Initiate",
                       entrySegment.getIdsAsString(),
-                      turnFlow * splittingRate,
+                      shiftedTurnFlow,
                       exitSegment.getIdsAsString(),
                       altExitSegment.getIdsAsString(),
                       getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
                 }
               }
             }
+          }else if(removedExitSegmentIncomingFlow > 0){
+            //  continuing existing branch shift, but not initiating a new one, which will continue tracking of the removed flows
+            if (detailedLogging) {
+              LOGGER.info(String.format(
+                  "Continuing Implicit branch shift: shifted flow: %.10f, from edge segment (%s) to other exit segment (%s) from bush (%s)",
+                  turnFlow,
+                  entrySegment.getIdsAsString(),
+                  exitSegment.getIdsAsString(),
+                  getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+            }
           }
+
+          // finalise by propagating removed link's flow in case it should lead to downstream removal of more link segments which
+          //   may be required to avoid dangling links within the bush
+          //   Note: since we are removing turns on-the-fly which affects the topological order, we should not create another
+          //         topological iterator at this point as the bush's state is in flux and may be invalid temporarily. therefore
+          //         we will track the to be removed flow as we go and deal with it while traversing the bush instead
+          removedTurnFlows.put(entrySegment, exitSegment, turnFlow);
         }
       }
     });
