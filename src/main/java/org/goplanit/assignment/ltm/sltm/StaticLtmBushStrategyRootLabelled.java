@@ -162,6 +162,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
 
     /* New pas */
     Pas pas = pasManager.createAndRegisterNewPas(bush, s1, s2);
+
     /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
     getLoading().activateNodeTrackingFor(pas);
     return Pair.of(pas, true);

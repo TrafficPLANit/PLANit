@@ -180,7 +180,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
         boolean success = assignmentStrategy.performIteration(mode, prevCosts, costsToUpdate, simulationData);
         if (!success) {
           LOGGER.severe("Unable to continue PLANit sLTM run, aborting");
-          break;
+          throw new PlanItRunTimeException("Aborting PLANit assignment");
         }
         // COST UPDATE
         getIterationData().setLinkSegmentTravelTimePcuH(mode, costsToUpdate);

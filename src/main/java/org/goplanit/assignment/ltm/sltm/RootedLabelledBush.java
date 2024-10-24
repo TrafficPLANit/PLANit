@@ -12,6 +12,7 @@ import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
 import org.goplanit.utils.arrays.ArrayUtils;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -220,11 +221,15 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     DirectedVertex currOrderedVertex;
 
     var topologicalIter = isInverted() ?  getTopologicalIterator() : getInvertedTopologicalIterator();
+    if(topologicalIter == null){
+      throw new PlanItRunTimeException("Unable to obtain topological iterator for bush (%s), this should not happen",
+              getRootZoneVertex().getParent().getParentZone().getIdsAsString());
+    }
     int index = 0;
     while(topologicalIter.hasNext()) {
       currOrderedVertex = topologicalIter.next();
       if (!currOrderedVertex.idEquals(currAltVertex)) {
-        // register all preceding vertices as non-cycle introducing up to a first match to hopefully save some time in BFS
+        // register all preceding vertices as traversed up to a first match
         topoTraversedVertices.put(currOrderedVertex, index);
       }else{
         break;
@@ -281,7 +286,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
             currAltVertex,
             false,
             (es) -> true,
-            (prevEs,es) -> !topoTraversedVertices.containsKey(es.getUpstreamVertex()), // do not explore beyond vertices that we can check in main loop via index more efficiently
+            (prevEs,es) -> true,
             (v, prevEs) -> cycleIntroducingVertices.contains(v));
         if(result == null){
           LOGGER.severe("BFS for cycle detection has no result, this shouldn't happen");
