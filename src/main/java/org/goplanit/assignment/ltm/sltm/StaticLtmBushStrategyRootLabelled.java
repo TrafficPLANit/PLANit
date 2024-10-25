@@ -113,8 +113,9 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
                 reducedCostVertex, networkMinPaths.getNextEdgeSegmentForVertex(reducedCostVertex), alternativeSegmentVertexLabels);
     if (highCostSubPathResultPair == null || highCostSubPathResultPair.first() == null) {
       /* likely cycle detected on bush for merge vertex, unable to identify higher cost segment for NEW PAS, log issue */
-      LOGGER.info(String.format("Unable to create new PAS for bush rooted at vertex %s, despite shorter path found on network to vertex %s", bush.getRootVertex().getXmlId(),
-          reducedCostVertex.getXmlId()));
+      LOGGER.info(String.format(
+              "Unable to create new PAS for bush rooted at vertex %s, despite shorter path found on network to vertex %s",
+              bush.getRootVertex().getXmlId(), reducedCostVertex.getXmlId()));
       return null;
     }
 

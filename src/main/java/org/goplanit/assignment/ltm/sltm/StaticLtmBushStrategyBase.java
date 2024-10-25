@@ -432,7 +432,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    *                          of the flow shift
    * @return all PASs where non-zero flow was shifted on
    */
-  private Collection<Pas> shiftFlows(
+  private Collection<Pas> shiftPasFlows(
           final Mode theMode,
           final StaticLtmSimulationData simulationData,
           final Pair<Collection<Pas>,Collection<Pas>> newAndUpdatedPass) {
@@ -644,7 +644,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    *
    * @param flowThreshold any links with flow below this threshold will be implictly branch shifted
    */
-  protected void performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors) {
+  protected void performLowFlowBushBranchShifts(double flowThreshold, double[] flowAcceptanceFactors) {
     int numShifts = 0;
     for (B bush : bushes) {
 
@@ -773,7 +773,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         }
               
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
-        Collection<Pas> updatedPass = shiftFlows(theMode, simulationData, newAndUpdatedPass);
+        Collection<Pas> updatedPass = shiftPasFlows(theMode, simulationData, newAndUpdatedPass);
 
         var justNewPass = newAndUpdatedPass.first();
         var newPassWithShiftedFlows = new ArrayList<>(justNewPass);
@@ -788,9 +788,9 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         justNewPass.forEach( pas -> pasManager.removePas(pas, getSettings().isDetailedLogging()));
       }
 
-      /* 5 - perform low flow branch shifts */
+      /* 5 - perform low flow branch shifts on the bush level */
       {
-        performLowFlowBranchShifts(0.1, getLoading().getCurrentFlowAcceptanceFactors());
+        performLowFlowBushBranchShifts(0.1, getLoading().getCurrentFlowAcceptanceFactors());
       }
       
     }catch(Exception e) {
