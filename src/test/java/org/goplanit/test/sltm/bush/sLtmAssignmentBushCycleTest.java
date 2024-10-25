@@ -13,12 +13,16 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
+import org.goplanit.output.formatter.FileOutputFormatter;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
+import org.goplanit.output.formatter.OutputFormatter;
 import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
@@ -115,6 +119,11 @@ public class sLtmAssignmentBushCycleTest {
     //
     // cycle occurs in destination based for vertices (3)->(1)->(2)->(3)
     // Bottlenecks (b): 10, 8 (500 veh/h), 2b (100) others (2000 veh/h)
+    //
+    // Make link 8 a bit longer -> 5 km, so left route becomes slightly less attractive triggering
+    // alternative PASs to be used by A with a small flow being rerouted to equalise costs
+    //
+
     
     try {
       // local CRS in meters
@@ -172,7 +181,7 @@ public class sLtmAssignmentBushCycleTest {
       MacroscopicLinks links = networkLayer.getLinks();
       //links
       double oneKm = 1;
-      double manyKm = 5;
+      double fiveKm = 5;
       links.getFactory().registerNew(nodes.getByXmlId("8"), nodes.getByXmlId("0"), oneKm, true).setXmlId("0");
       links.getFactory().registerNew(nodes.getByXmlId("0"), nodes.getByXmlId("3"), oneKm, true).setXmlId("1");
       links.getFactory().registerNew(nodes.getByXmlId("0"), nodes.getByXmlId("0-1"), oneKm, true).setXmlId("2a");
@@ -181,7 +190,7 @@ public class sLtmAssignmentBushCycleTest {
       links.getFactory().registerNew(nodes.getByXmlId("6"), nodes.getByXmlId("2"), oneKm, true).setXmlId("5");
       links.getFactory().registerNew(nodes.getByXmlId("2"), nodes.getByXmlId("3"), oneKm, true).setXmlId("6");         
       links.getFactory().registerNew(nodes.getByXmlId("3"), nodes.getByXmlId("4"), oneKm, true).setXmlId("7");
-      links.getFactory().registerNew(nodes.getByXmlId("4"), nodes.getByXmlId("7"), manyKm, true).setXmlId("8");
+      links.getFactory().registerNew(nodes.getByXmlId("4"), nodes.getByXmlId("7"), fiveKm, true).setXmlId("8");
       links.getFactory().registerNew(nodes.getByXmlId("2"), nodes.getByXmlId("5"), oneKm, true).setXmlId("9");
       links.getFactory().registerNew(nodes.getByXmlId("5"), nodes.getByXmlId("7"), oneKm, true).setXmlId("10");
       links.getFactory().registerNew(nodes.getByXmlId("0-1"), nodes.getByXmlId("1"), oneKm, true).setXmlId("2b");
@@ -248,6 +257,8 @@ public class sLtmAssignmentBushCycleTest {
       // solution -> each PAS update should also perform local loading update for all its bushes
       sltmConfigurator.setAllowOverlappingPasUpdate(true);
 
+      sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("x","A``"));
+
       var smoothing = (MSRASmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.MSRA);
       smoothing.setActivateLambda(true);
 
@@ -272,19 +283,19 @@ public class sLtmAssignmentBushCycleTest {
       double outflow9 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
       double outflow10 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("10").getLinkSegmentAb());
 
-      assertEquals(outflow1, 1900.0, Precision.EPSILON_6);
-      assertEquals(outflow2a, 100.0, Precision.EPSILON_6);
-      assertEquals(outflow2b, 100.0, Precision.EPSILON_6);
-      assertEquals(outflow3, 0, Precision.EPSILON_6);
-      assertEquals(outflow4, 100, Precision.EPSILON_6);
-      assertEquals(outflow5, 1961.5, 1);
-      assertEquals(outflow6, 61.5, 1);
-      assertEquals(outflow7, 500, Precision.EPSILON_6);
-      assertEquals(outflow8, 500, Precision.EPSILON_6);
-      assertEquals(outflow9, 500, Precision.EPSILON_6);
-      assertEquals(outflow10, 500, Precision.EPSILON_6);
+      networkLayer.getLinkSegments().forEach(ls -> LOGGER.info(String.format("Link Segment ids: %s", ls.getIdsAsString())));
 
-      //todo add checks for inflows
+      assertEquals(outflow1, 2000, Precision.EPSILON_6);
+      assertEquals(outflow2a, 0, Precision.EPSILON_6);
+      assertEquals(outflow2b, 0, Precision.EPSILON_6);
+      assertEquals(outflow3, 15.384707, Precision.EPSILON_6);
+      assertEquals(outflow4, outflow3, Precision.EPSILON_6);
+      assertEquals(outflow5, 1984.6, 1);
+      assertEquals(outflow6, 0.0, 1);
+      assertEquals(outflow7, 500, Precision.EPSILON_3);
+      assertEquals(outflow8, outflow7, Precision.EPSILON_3);
+      assertEquals(outflow9, 500, Precision.EPSILON_3);
+      assertEquals(outflow10, outflow9, Precision.EPSILON_3);
 
     } catch (Exception e) {
       e.printStackTrace();

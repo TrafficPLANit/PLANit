@@ -218,12 +218,12 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   /**
    * Create and Register virtual link cost function to determine travel time
    *
-   * @param virtualTraveltimeCostFunctionType the type of cost function to be created
+   * @param virtualTravelTimeCostFunctionType the type of cost function to be created
    * @return the cost function created
-   * @throws PlanItException thrown if there is an error
    */
-  public VirtualCostConfigurator<? extends AbstractVirtualCost> createAndRegisterVirtualCost(final String virtualTraveltimeCostFunctionType) throws PlanItException {
-    virtualCostConfigurator = VirtualCostConfiguratorFactory.createConfigurator(virtualTraveltimeCostFunctionType);
+  public VirtualCostConfigurator<? extends AbstractVirtualCost> createAndRegisterVirtualCost(
+          final String virtualTravelTimeCostFunctionType) {
+    virtualCostConfigurator = VirtualCostConfiguratorFactory.createConfigurator(virtualTravelTimeCostFunctionType);
     return virtualCostConfigurator;
   }
 

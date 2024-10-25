@@ -490,11 +490,23 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * @param flowThreshold any links with flow below this threshold will be implictly branch shifted
    */
   protected void performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors) {
+    int numShifts = 0;
     for (B bush : bushes) {
+
       if(bush == null){
         continue;
       }
-      bush.performLowFlowBranchShifts(flowThreshold, flowAcceptanceFactors, isDestinationTrackedForLogging(bush));
+
+      boolean shiftPerformed =
+              bush.performLowFlowBranchShifts(
+                      flowThreshold, flowAcceptanceFactors, isDestinationTrackedForLogging(bush));
+      if(shiftPerformed){
+        ++numShifts;
+      }
+    }
+
+    if(getSettings().isDetailedLogging()){
+      LOGGER.info(String.format("Performed %d low flow branch shifts", numShifts));
     }
   }
 

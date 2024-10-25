@@ -23,6 +23,7 @@ import org.goplanit.output.formatter.OutputFormatterFactory;
 import org.goplanit.path.OdPathSets;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
@@ -330,13 +331,11 @@ public class CustomPlanItProject {
   }
 
   /**
-   * Execute all registered traffic assignments
-   *
-   * Top-level error recording is done in this class. If several traffic assignments are registered and one fails, we record its error and continue with the next assignment.
-   *
-   * @throws PlanItException required for subclasses which override this method and generate an exception before the runs start
+   * Execute all registered traffic assignments.
+   * Top-level error recording is done in this class. If several traffic assignments are registered and one fails,
+   * we record its error and continue with the next assignment.
    */
-  public void executeAllTrafficAssignments() throws PlanItException {
+  public void executeAllTrafficAssignments(){
     Set<TrafficAssignment> failedAssignments = new HashSet<>();
 
     if (assignmentBuilders.isEmpty()) {
@@ -360,9 +359,9 @@ public class CustomPlanItProject {
     }
 
     if (!failedAssignments.isEmpty()) {
-      String failedAssignmentMessage = "the following assignments failed:";
-      failedAssignments.forEach(ta -> failedAssignmentMessage.concat(" ").concat(String.valueOf(ta.getId())));
-      throw new PlanItException(failedAssignmentMessage);
+      String failedAssignmentMessage = "the following assignments failed: ";
+      failedAssignments.forEach(ta -> failedAssignmentMessage.concat(String.valueOf(ta.getId())));
+      throw new PlanItRunTimeException(failedAssignmentMessage);
     }
   }
 

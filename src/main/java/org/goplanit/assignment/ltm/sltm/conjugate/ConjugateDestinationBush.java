@@ -23,7 +23,6 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
-import org.goplanit.utils.zoning.OdZone;
 
 /**
  * A conjugate rooted bush is an acyclic directed graph comprising implicit paths along a conjugate network, i.e. turn based network (conjugate edge segments). It has a single
@@ -546,10 +545,12 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
   /**
    * {@inheritDoc}
+   *
    */
-  public void performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging){
+  public boolean performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging){
     //todo
     LOGGER.severe("NOT YET IMPLEMENTED");
+    return false;
   }
 
   /**

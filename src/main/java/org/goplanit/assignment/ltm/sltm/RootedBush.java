@@ -103,11 +103,12 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * more efficiently, we will remove very low flow links from each bush, implicitly shifting this flow to
    * higher usage branches.
    *
-   * @param flowThreshold any links with flow below this threshold will be implicitly branch shifted
+   * @param flowThreshold         any links with flow below this threshold will be implicitly branch shifted
    * @param flowAcceptanceFactors edge segment flow acceptance factors indexed by internal id
-   * @param detailedLogging when true log what branch shifted links are affected
+   * @param detailedLogging       when true log what branch shifted links are affected
+   * @return true when a low flow branch shift was performed, false otherwise
    */
-  public abstract void performLowFlowBranchShifts(
+  public abstract boolean performLowFlowBranchShifts(
           double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging);
 
   /**

@@ -4,19 +4,16 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
-import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.virtual.CentroidVertex;
-import org.goplanit.utils.zoning.OdZone;
 
 /**
  * A destination bush is an (inverted) acyclic directed graph rooted at many origins going to a single destination representing all implicit paths along a network to the given
@@ -131,8 +128,9 @@ public class DestinationBush extends RootedLabelledBush {
 
   /**
    * {@inheritDoc}
+   *
    */
-  public void performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging){
+  public boolean performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging){
 
     // entry exit segment
     final MultiKeyMap<Object, Double> removedTurnFlows = new MultiKeyMap<>();
@@ -321,13 +319,7 @@ public class DestinationBush extends RootedLabelledBush {
       }
     });
 
-//    if(detailedLogging && !removedTurnFlows.isEmpty()){
-//      LOGGER.info(String.format(
-//              "Applied implicit branch shift for too low flows: Removed link segments (%s) from bush (%s)",
-//              removedTurnFlows.keySet().stream().map(es -> "["+es.getIdsAsString()+"]").collect(Collectors.joining(",")),
-//              getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-//
-//    }
+    return !removedTurnFlows.isEmpty();
   }
 
 
