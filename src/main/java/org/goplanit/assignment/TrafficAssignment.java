@@ -98,7 +98,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
     var settingsMap = component.collectSettingsAsKeyValueMap();
     if (settingsMap != null) {
       String componentPrefix = LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surroundwithBrackets(component.getClass().getSimpleName());
-      settingsMap.forEach((k, v) -> LOGGER.info(componentPrefix + k + " " + v));
+      settingsMap.forEach((k, v) -> LOGGER.info(componentPrefix + k + ": " + v));
     }
   }
 

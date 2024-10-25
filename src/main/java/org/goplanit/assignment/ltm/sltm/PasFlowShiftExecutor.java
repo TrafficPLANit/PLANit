@@ -500,13 +500,13 @@ public abstract class PasFlowShiftExecutor {
   }
 
   /**
-   * Determining the currently available desired flows along each subpath
-   * (utilising the current state of the bush level)
+   * Determining the currently available desired flows along both the high and low-cost alternatives.
+   * this should be done before any flow shifts have been conducted because otherwise the Network Loading
+   * acceptance factors and current bush flows are no longer consistent.
    *
    * @param flowAcceptanceFactors to use
    */
-  public void updateS1S2EntrySendingFlows(double[] flowAcceptanceFactors) {
-    /* determine the network flow on the high cost subpath */
+  public void stepOneDetermineNetworkLoadingConsistentS1S2EntrySendingFlows(double[] flowAcceptanceFactors) {
 
     var s2 = pas.getAlternative(false /* high cost */);
     var s1 = pas.getAlternative(true /* low cost */);

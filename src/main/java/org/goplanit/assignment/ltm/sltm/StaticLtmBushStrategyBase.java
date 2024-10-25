@@ -124,69 +124,111 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   }
 
   /**
-   * Shift flows based on the registered PASs and their origins.
-   *
-   * @param theMode        to use
-   * @param simulationData to use
-   * @param newAndUpdatedPass only used to deregister bush from new/updated Pass pre-emptively in case we flag a cycle
-   *                          if it were to be used due to the current PAS adding link segments to the bush as a result
-   *                          of the flow shift
-   * @return all PASs where non-zero flow was shifted on
+   * FLOW SHIFTING - STEP 1: PAS original sending flows per alternative:
+   * 1) create executor and
+   * 2) prep flow shifting to allow for ordering based on PAS flows and then construct proposed flow shifts based
+   * on these network loading consistent PAS sending flows
+   * @return PAS flow shifters with network loading s1 s2 sending flows initialised
    */
-  private Collection<Pas> shiftFlows(
-          final Mode theMode,
-          final StaticLtmSimulationData simulationData,
-          final Pair<Collection<Pas>,Collection<Pas>> newAndUpdatedPass) {
-    var flowShiftedPass = new ArrayList<Pas>((int) this.pasManager.getNumberOfPass());
-    var passWithoutBush = new ArrayList<Pas>();
+  private Map<Pas, PasFlowShiftExecutor> flowShiftingStepOneCreatePasFlowShiftersWithLoadingS1S2SendingFlows() {
+    final Map<Pas, PasFlowShiftExecutor> pasExecutors = new HashMap<>();
+    this.pasManager.forEachPas( pas -> {
 
-    var networkLoading = getLoading();
+      // create flow shifter
+      var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
+
+      // determine PAS alternative s1 and s2 sending flows
+      pasFlowShifter.stepOneDetermineNetworkLoadingConsistentS1S2EntrySendingFlows(
+              getLoading().getCurrentFlowAcceptanceFactors());
+
+      // register for further processing
+      pasExecutors.put(pas, pasFlowShifter);
+    });
+    return pasExecutors;
+  }
+
+  /**
+   * FLOW SHIFTING - STEP2: Based on current NL flows, if we have any PASs without any S2 flow, deregister bushes,
+   * remove pas from manager, and remove from flow shift executors as they are no longer relevant
+   *
+   * TODO: verify if this ever happens still in new algorithm setting, if not can be removed
+   * @param pasExecutors to update and check for
+   * @return number of removed PASs due to no remaining flow on s2 alternative
+   */
+  private int flowShiftingStepTwoRemovePassWithoutRemainingFlow(Map<Pas, PasFlowShiftExecutor> pasExecutors) {
+    var passWithoutBush = new ArrayList<Pas>();
+    this.pasManager.forEachPas( pas -> {
+
+      var pasFlowShifter = pasExecutors.get(pas);
+
+      /* PAS is redundant, no more flow remaining --> mark for removal */
+      if (!(pasFlowShifter.getS2SendingFlow() > 0) || !pas.hasRegisteredBushes()) {
+        pas.removeAllRegisteredBushes();
+        passWithoutBush.add(pas);
+      }
+
+    });
+
+    // remove from pas manager and pas flow shift executors
+    if (!passWithoutBush.isEmpty()) {
+      passWithoutBush.forEach((pas) -> {
+        this.pasManager.removePas(pas, getSettings().isDetailedLogging());
+        pasExecutors.remove(pas);
+      });
+
+    }
+
+    int numRemovedPASs = passWithoutBush.size();
+    if(getSettings().isDetailedLogging()){
+      LOGGER.info(String.format(
+              "Removed %d PASs that were found to have no remaining flow on their high cost segment - Before flow shifting", numRemovedPASs));
+    }
+    return numRemovedPASs;
+  }
+
+  /**
+   * FLOW SHIFTING - STEP3: determine the proposed flow shift for each PAS as if it were performing
+   * its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
+   *
+   * @param theMode to use
+   * @param pasExecutors to use
+   * @return proposed flow shifts per PAS per entry segment of the PAS
+   */
+  private Map<Pas, Map<EdgeSegment, Double>> flowShiftingStepThreeDetermineProposedFlowShiftAndUpdateGap(
+          Mode theMode, Map<Pas, PasFlowShiftExecutor> pasExecutors) {
+
+    // result to populate
+    final Map<Pas, Map<EdgeSegment, Double>> pasProposedFlowShifts = new HashMap<>();
+
+    // prep
     var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
     var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
 
-    // track remaining new or bush-updated PASs that have not been processed (only used when overlapping PAS updates are allowed to
-    // minimise the on-the-fly checking required for possible cycle introducing conflicts due to overlapping PAS updates)
-    final Map<Long, Pas> unprocessedNewOrUpdatedPassS2Update = new TreeMap<>();
-    newAndUpdatedPass.<Collection<Pas>>both(c -> c.forEach(p -> unprocessedNewOrUpdatedPassS2Update.put(p.pasId, p)));
-
-    // STEP 1: PAS original sending flows per alternative
-    // prep flow shifting to allow for ordering based on PAS flows and then construct proposed flow shifts based
-    // on these network loading consistent PAS sending flows
-    final Map<Pas, PasFlowShiftExecutor> pasExecutors = new HashMap<>();
-    this.pasManager.forEachPas( pas -> {
-            var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
-            pasFlowShifter.updateS1S2EntrySendingFlows(networkLoading.getCurrentFlowAcceptanceFactors());
-            pasExecutors.put(pas, pasFlowShifter);
-    });
-
-    // STEP2: determine the proposed flow shift for each PAS as if it were performing
-    //  its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
-    final Map<Pas, Map<EdgeSegment, Double>> pasProposedFlowShifts = new HashMap<>();
+    // update gap and determine proposed flow shift per PAS
     this.pasManager.forEachPas( pas -> {
       var pasFlowShifter = pasExecutors.get(pas);
-
-      if (!(pasFlowShifter.getS2SendingFlow() > 0) || !pas.hasRegisteredBushes()) {
-        /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial
-         * overlapping S2 segments) */
-        pas.removeAllRegisteredBushes();
-        passWithoutBush.add(pas);
-        return;
-      }
 
       updateGap(gapFunction, pas, pasFlowShifter.getS1SendingFlow(), pasFlowShifter.getS2SendingFlow());
 
       Map<EdgeSegment, Double> flowShifts = pasFlowShifter.determineProposedFlowShiftByEntrySegment(
-          theMode, physicalCost, virtualCost, networkLoading);
+              theMode, physicalCost, virtualCost, getLoading());
       pasProposedFlowShifts.put(pas, flowShifts);
     });
-    if (!passWithoutBush.isEmpty()) {
-      passWithoutBush.forEach((pas) -> this.pasManager.removePas(pas, getSettings().isDetailedLogging()));
-    }
-    passWithoutBush.clear();
 
-    // flow based comparator
-    final Comparator<Pas> PAS_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
+    return pasProposedFlowShifts;
+  }
+
+  /**
+   * FLOW SHIFTING - STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based
+   * on relevant criterion.
+   * @param pasExecutors to use for retrieving PAS information used in sorting
+   * @return sorted PASs in descending order of importance
+   */
+  private Collection<Pas> flowShiftingStepFourOrderPassInDescendingOrder(Map<Pas, PasFlowShiftExecutor> pasExecutors) {
+
+    // normalised cost * flow based comparator
+    final Comparator<Pas> PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
       double p1Cost = p1.getNormalisedReducedCost() * pasExecutors.get(p1).getS2SendingFlow();
       double p2Cost = p2.getNormalisedReducedCost() * pasExecutors.get(p2).getS2SendingFlow();
       if (Precision.greater(p1Cost, p2Cost, Precision.EPSILON_15)) {
@@ -198,9 +240,31 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       }
     };
 
-    /* STEP 3: Sort all remaining PAss based on comparator */
-    Collection<EdgeSegment> linkSegmentsUsed = new HashSet<>(100);
-    Collection<Pas> sortedPass = this.pasManager.getPassSortedByReducedCost(PAS_REDUCED_COST_BY_FLOW_COMPARATOR);
+    /* Sort all remaining PAss based on comparator */
+    return this.pasManager.getPassSortedByReducedCost(PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR);
+  }
+
+  /** STEP5: Any new PASs that were identified may be in conflict with each other regarding introducing cycles. Using
+   * the established ordering, we verify if a conflict exists between such newly identified PASs (adding both would
+   * introduce a cycle). If so, remove one of the two PASs from the affected bush where the higher priority new PAS
+   * is kept and the lower priority one discarded (for such a bush)
+   * <p>
+   *   Note that this check is needed, because during the creation of new PASs we can only verify if it would not
+   *   introduce a cycle in relatino to the existing bush(es), if the s1 alternative would add segments to the bush this
+   *   is only established after shifts are performed. Also we do not know the ordering at that point so we can't
+   *   determine which new PAS is more favourable on a network level.
+   * </p>
+   */
+  private void flowShiftingStepFiveRemoveConflictingNewPass(
+          Collection<Pas> sortedPass,
+          Map<Pas, PasFlowShiftExecutor> pasExecutors,
+          Pair<Collection<Pas>, Collection<Pas>> newAndUpdatedPass) {
+
+    // track remaining new or bush-updated PASs that have not been processed (only used when overlapping PAS updates
+    // are allowed to minimise the on-the-fly checking required for possible cycle introducing conflicts due to
+    // overlapping PAS updates)
+    final Map<Long, Pas> unprocessedNewOrUpdatedPassS2Update = new TreeMap<>();
+    newAndUpdatedPass.<Collection<Pas>>both(c -> c.forEach(p -> unprocessedNewOrUpdatedPassS2Update.put(p.pasId, p)));
 
     // prune conflicting PASs for each bush based on which one is deemed more important
     Map<EdgeSegment, Set<RootedLabelledBush>> s1MissingLinkSegments = new TreeMap<>();
@@ -222,6 +286,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       var pasS1MissingLinkSegments = pasFlowShifter.findS1MissingLinkSegmentsByBush();
       if (getSettings().isAllowOverlappingPasUpdate() && pasS1MissingLinkSegments != null && !pasS1MissingLinkSegments.isEmpty()) {
         pasS1MissingLinkSegments.forEach((k,v) -> s1MissingLinkSegments.computeIfAbsent(k,e -> new TreeSet<>()).addAll(v));
+
         // temporary add segments so cycle detection will take them into account.
         pasS1MissingLinkSegments.forEach( (es, bushes) -> bushes.forEach( b -> b.getDag().addEdgeSegment(es)));
         var deregisteredBushes = deregisterBushesWithAddedSegmentsFromNewPassCausingCycles(unprocessedNewOrUpdatedPassS2Update.values());
@@ -233,21 +298,36 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     }
     // remove all temporarily added link segments that were used for cycle detection as they do not carry any flow (yet)
     s1MissingLinkSegments.forEach( (es, bushes) -> bushes.forEach( b -> b.getDag().removeEdgeSegment(es)));
+  }
 
-    // S2 ------------------ remove flow
-    //
-    //
-    List<Pair<Pas,Double>> pasRemovedHighCostFlows = new ArrayList<>(sortedPass.size());
-    Pas prevProcessedPas = null;
+  /**
+   * FLOW_SHIFTING STEP6 : S2 flow shifts, remove proposed flows when possible from high cost S2 alternatives
+   * for sorted PASs
+   *
+   * @param theMode to use
+   * @param sortedPass list of sorted PASs in processing order
+   * @param pasExecutors flow shift executors for each PAS
+   * @param pasProposedFlowShifts proposed shifts per PAS
+   * @return list of PASs with shifted flows, and PASs with no flow remaining (the latter may also be listed as flow
+   * shifted since, after the shift it may be that it has no more flow left, then it appears in both lists)
+   */
+  private Pair<ArrayList<Pas>, ArrayList<Pas>> flowShiftingStepSixPerformS2FlowShifts(
+          Mode theMode,
+          Collection<Pas> sortedPass,
+          Map<Pas, PasFlowShiftExecutor> pasExecutors,
+          Map<Pas, Map<EdgeSegment, Double>> pasProposedFlowShifts) {
+
+    Collection<EdgeSegment> linkSegmentsUsed = new HashSet<>(100);
+
+    var flowShiftedPass = new ArrayList<Pas>((int) this.pasManager.getNumberOfPass());
+    var passWithoutBush = new ArrayList<Pas>();
+
+    var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
+    var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
+
     for (Pas pas : sortedPass) {
 
       var pasFlowShifter = pasExecutors.get(pas);
-
-      if(pas.pasId == 571L && simulationData.getIterationIndex()>=12){
-        int blA = 4;
-      }
-
-
       if(!getSettings().isAllowOverlappingPasUpdate())
       {
         // todo: should probably also check on entry segments to avoid overlap or cycles, this is not yet done!
@@ -280,7 +360,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
       /* untouched PAS (no flows shifted yet) in this iteration */
       boolean pasFlowShifted = pasFlowShifter.performS2FlowShift(
-          pasProposedFlowShifts.get(pas), theMode, physicalCost, virtualCost, networkLoading, getSmoothing());
+              pasProposedFlowShifts.get(pas), theMode, physicalCost, virtualCost, getLoading(), getSmoothing());
       if (pasFlowShifted) {
         flowShiftedPass.add(pas);
 
@@ -297,27 +377,102 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         /* If due to flow shifting some bushes have removed edges due to zero flow remaining
          * then we must remove these bushes from other pass that 1) have this bush registered, and 2) have
          * the link segment present that no longer has any flow on the bush. */
-         if(pasFlowShifter.hasAnyBushRemovedLinkSegments()){
-           Map<EdgeSegment, Set<RootedLabelledBush>> bushRemovedLinkSegments = pasFlowShifter.getBushRemovedLinkSegments();
-           deregisterBushesWithRemovedSegmentsFromMatchingPass(bushRemovedLinkSegments);
-         }
+        if(pasFlowShifter.hasAnyBushRemovedLinkSegments()){
+          Map<EdgeSegment, Set<RootedLabelledBush>> bushRemovedLinkSegments = pasFlowShifter.getBushRemovedLinkSegments();
+          deregisterBushesWithRemovedSegmentsFromMatchingPass(bushRemovedLinkSegments);
+        }
       }
     }
 
-    // S1 ------------------ add flow
-    //
-    //
+    return Pair.of(flowShiftedPass, passWithoutBush);
+  }
+
+  /**
+   * FLOW_SHIFTING STEP7 - S1 shifting: Add the S2 removed flow to the low cost S1 segment now that the executor
+   * has logged for each PAS exactly how much flow could be shifted (this may differ from the proposed due to
+   * overlap between PASs and is stored on the executors). Thsi is then added on a per PAS bases in order that it was
+   * removed.
+   *
+   * @param theMode to use
+   * @param flowShiftedPass PASs that has flows removed in order of removal
+   * @param pasExecutors to use
+   */
+  private void flowShiftingStepSevenPerformS1FlowShifts(Mode theMode, Collection<Pas> flowShiftedPass, Map<Pas, PasFlowShiftExecutor> pasExecutors) {
     for (var pas : flowShiftedPass) {
       var pasFlowShifter = pasExecutors.get(pas);
-
-      /* now we start adding flows that were removed from S2 during the previous phase. How much flow, is tracked on the
-      * flow shifter internally */
-      pasFlowShifter.performS1FlowShift(theMode, networkLoading);
+      pasFlowShifter.performS1FlowShift(theMode, getLoading());
     }
+  }
 
+  /**
+   * Finalise flow shifting by deregistering bushes and PAs that have no more flow on their S2 alternatives
+   * after finalising all shifts
+   *
+   * @param passWithoutBush to consider
+   */
+  private void flowShiftingStepEightFinalise(ArrayList<Pas> passWithoutBush) {
     if (!passWithoutBush.isEmpty()) {
       passWithoutBush.forEach((pas) -> this.pasManager.removePas(pas, getSettings().isDetailedLogging()));
     }
+
+    int numRemovedPASs = passWithoutBush.size();
+    if(getSettings().isDetailedLogging()){
+      LOGGER.info(String.format(
+              "Removed %d PASs that were found to have no remaining flow on their high cost segment - After flow shifting", numRemovedPASs));
+    }
+  }
+
+  /**
+   * Shift flows based on the registered PASs and their origins.
+   *
+   * @param theMode           to use
+   * @param simulationData    to use
+   * @param newAndUpdatedPass only used to deregister bush from new/updated Pass pre-emptively in case we flag a cycle
+   *                          if it were to be used due to the current PAS adding link segments to the bush as a result
+   *                          of the flow shift
+   * @return all PASs where non-zero flow was shifted on
+   */
+  private Collection<Pas> shiftFlows(
+          final Mode theMode,
+          final StaticLtmSimulationData simulationData,
+          final Pair<Collection<Pas>,Collection<Pas>> newAndUpdatedPass) {
+
+    // STEP 1: PAS original sending flows per alternative
+    final Map<Pas, PasFlowShiftExecutor> pasExecutors =
+            flowShiftingStepOneCreatePasFlowShiftersWithLoadingS1S2SendingFlows();
+
+    // STEP2: Based on current NL flows, if we have any PASs without any S2 flow, deregister bushes, remove pas
+    // from manager, and remove from flow shift executors as they are no longer relevant
+    flowShiftingStepTwoRemovePassWithoutRemainingFlow(pasExecutors);
+
+    // STEP3: determine the proposed flow shift for each PAS as if it were performing
+    //  its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
+    final Map<Pas, Map<EdgeSegment, Double>> pasProposedFlowShifts =
+            flowShiftingStepThreeDetermineProposedFlowShiftAndUpdateGap(theMode, pasExecutors);
+
+    // STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based on relevant
+    // criterion.
+    Collection<Pas> sortedPass = flowShiftingStepFourOrderPassInDescendingOrder(pasExecutors);
+
+    // STEP5: Any new PASs that were identified may be in conflict with each other regarding introducing cycles. Using
+    // the established ordering, we verify if a conflict exists and if it does remove cylce introducing PASs from the
+    // affected bush where the higher priority new PAS is kept and the lower priority one discarded (for such a bush)
+    flowShiftingStepFiveRemoveConflictingNewPass(sortedPass, pasExecutors, newAndUpdatedPass);
+
+    // STEP6 : S2 flow shifts
+    // Remove proposed flows when possible from high cost S2 alternatives for sorted PASs
+    var flowShiftedAndObsoletePass = flowShiftingStepSixPerformS2FlowShifts(
+            theMode, sortedPass, pasExecutors, pasProposedFlowShifts);
+    ArrayList<Pas> flowShiftedPass = flowShiftedAndObsoletePass.first();
+    ArrayList<Pas> passWithoutBush = flowShiftedAndObsoletePass.second();
+
+    // STEP7 : S1 flow shifts
+    // Add removed S2 flows to low cost S1 segments for sorted PASs
+    flowShiftingStepSevenPerformS1FlowShifts(theMode, flowShiftedPass, pasExecutors);
+
+    // STEP8 : Finalise
+    // dispose of PASs that no longer have S2 flows
+    flowShiftingStepEightFinalise(passWithoutBush);
 
     return flowShiftedPass;
   }
