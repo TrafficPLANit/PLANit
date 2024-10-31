@@ -1,9 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -108,7 +105,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * @param detailedLogging       when true log what branch shifted links are affected
    * @return true when a low flow branch shift was performed, false otherwise
    */
-  public abstract boolean performLowFlowBranchShifts(
+  public abstract TreeSet<EdgeSegment> performLowFlowBranchShifts(
           double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging);
 
   /**

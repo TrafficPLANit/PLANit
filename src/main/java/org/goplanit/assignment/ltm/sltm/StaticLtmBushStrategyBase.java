@@ -56,7 +56,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
               p.anyMatch(es -> es.idEquals(entry.getKey()), true) ||
                       p.anyMatch(es -> es.idEquals(entry.getKey()), false);;
       for(var bush : entry.getValue()){
-        pasManager.removeBushFromPasIf(bush, pasPredicate);
+        pasManager.removeBushFromPasIf(bush, pasPredicate, true);
       }
     }
   }
@@ -270,7 +270,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     Map<EdgeSegment, Set<RootedLabelledBush>> s1MissingLinkSegments = new TreeMap<>();
     for (Pas pas : sortedPass) {
       var pasFlowShifter = pasExecutors.get(pas);
-      unprocessedNewOrUpdatedPassS2Update.remove(pas.pasId);
+
       /* If a bush is going to add link segments on S1 due flows being shifted from S2 then: we must
        * remove this bush from all other PASs that 1) have this bush registered 2) have been NEWLY added in this iteration IF
        * these other PASs would introduce a cycle given the newly added link segments on S1 identified here.
@@ -295,6 +295,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         pasS1MissingLinkSegments.forEach((es, bushes) -> bushes.stream().filter(deregisteredBushes::contains).forEach(
                 b -> b.getDag().removeEdgeSegment(es)));
       }
+      unprocessedNewOrUpdatedPassS2Update.remove(pas.pasId);
     }
     // remove all temporarily added link segments that were used for cycle detection as they do not carry any flow (yet)
     s1MissingLinkSegments.forEach( (es, bushes) -> bushes.forEach( b -> b.getDag().removeEdgeSegment(es)));
@@ -646,19 +647,40 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    */
   protected void performLowFlowBushBranchShifts(double flowThreshold, double[] flowAcceptanceFactors) {
     int numShifts = 0;
+    Map<EdgeSegment, Set<B>> removedSegmentsForBushes = new TreeMap<>();
     for (B bush : bushes) {
 
       if(bush == null){
         continue;
       }
 
-      boolean shiftPerformed =
+      var removedEdgeSegments =
               bush.performLowFlowBranchShifts(
                       flowThreshold, flowAcceptanceFactors, isDestinationTrackedForLogging(bush));
-      if(shiftPerformed){
-        ++numShifts;
+      if(removedEdgeSegments==null || removedEdgeSegments.isEmpty()){
+        continue;
+      }
+
+      ++numShifts;
+      // signal that this bush should be removed from any PAS that utilises the removed edge segment on S1/S2
+      for(var removedSegment : removedEdgeSegments){
+        removedSegmentsForBushes.computeIfAbsent(removedSegment, es -> new TreeSet<>()).add(bush);
       }
     }
+
+    // deregister bushes from PASs that have edge segments that were removed for that bush as a result of the branch shift
+    this.pasManager.forEachPas( pas -> {
+      for(var removedSegmentsEntry : removedSegmentsForBushes.entrySet()){
+        if(pas.getRegisteredBushes().stream().noneMatch(b -> removedSegmentsEntry.getValue().contains(b))){
+          continue;
+        }
+        // potential for removing one or more bushes but only if removed segment(s) overlap with the PAS
+        if(pas.containsEdgeSegment(removedSegmentsEntry.getKey())){
+          // overlap found, remove bush from PAS since it is no longer valid
+          pas.removeBushes((Collection<RootedLabelledBush>) removedSegmentsEntry.getValue());
+        }
+      }
+    });
 
     if(getSettings().isDetailedLogging()){
       LOGGER.info(String.format("Performed %d low flow branch shifts", numShifts));
@@ -790,7 +812,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
       /* 5 - perform low flow branch shifts on the bush level */
       {
-        performLowFlowBushBranchShifts(0.1, getLoading().getCurrentFlowAcceptanceFactors());
+        performLowFlowBushBranchShifts(0.01, getLoading().getCurrentFlowAcceptanceFactors());
       }
       
     }catch(Exception e) {

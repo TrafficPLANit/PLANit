@@ -24,6 +24,7 @@ import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 
 /**
@@ -146,6 +147,12 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
            */
           isAcyclic = false;
           LOGGER.warning(String.format("Cycle detected in supposed acyclic graph at vertex %s, terminating", nextVertex.getXmlId()));
+          LOGGER.warning(String.format("vertex adjacent to following entry segments %s",
+                  IterableUtils.asStream(nextVertex.getEntryEdgeSegments()).filter(this::containsEdgeSegment).map(
+                          es -> "["+es.getIdsAsString()+"]").collect(Collectors.joining(","))));
+          LOGGER.warning(String.format("vertex adjacent to following exit segments %s",
+                  IterableUtils.asStream(nextVertex.getExitEdgeSegments()).filter(this::containsEdgeSegment).map(
+                          es -> "["+es.getIdsAsString()+"]").collect(Collectors.joining(","))));
         } /*
            * else { do nothing, valid but downstream vertex already exhausted, so no need to explore further }
            */

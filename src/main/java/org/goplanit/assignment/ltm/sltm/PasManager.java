@@ -85,54 +85,6 @@ public class PasManager {
   /** flag for detailed logging */
   private boolean detailedLogging = DETAILED_LOGGING;
 
-  /**
-   * Use the accepted flow on the bush from start-to-end of PAS high cost segment and make sure it exceeds NU * total
-   * accepted flow (on the bush at hand) on the final edge segment of the PAS high cost segment. This is an adaptation
-   * from Bar-Gera who uses the minimum across all high cost segments on the bush, but since we are capacitated this
-   * won't be representative. So instead we use the portion of the total flow on the final segment that belongs to the
-   * high-cost sub-path present on the bush instead.
-   * <p>
-   * the rationale here is that we should only consider the PAS as effective for this bush, i.e., consider it for
-   * inclusion - if a decent amount of flow leading to the end point of this PAS comes from the high cost segment of
-   * this PAS which would allow for a decent chunk of the flow to be shifted to the low cost segment. If not,
-   * it would not improve this bush much if we would consider it.
-   * </p>
-   * 
-   * @param pas                   under consideration for a bush
-   * @param bush            the accepted flow found on the bush traversing the high cost PAS and reaching the end vertex (including final alpha) of the PAS
-   * @param flowAcceptanceFactors the accepted flow found passing through the final vertex of the PAS from the origin of the bush, i.e., all sub-paths to this vertex
-   * @return true when considered effective, false otherwise
-   */
-  private boolean isFlowEffective(Pas pas, RootedLabelledBush bush, double[] flowAcceptanceFactors) {
-    boolean lowCostPath = true;
-    /* usage of high cost segment on bush */
-    double s2SubPathAcceptedFlowOnBush = pas.computeOverlappingAcceptedFlow(bush, !lowCostPath, flowAcceptanceFactors);
-    /* usage of segment arriving at merge vertex in bush */
-    EdgeSegment s2LastEdgeSegment = pas.getLastEdgeSegment(!lowCostPath);
-    double s2LastSegmentSendingFlowOnBush = bush.getSendingFlowPcuH(s2LastEdgeSegment);
-    double s2LastSegmentAcceptedFlowOnBush = s2LastSegmentSendingFlowOnBush * flowAcceptanceFactors[(int) s2LastEdgeSegment.getId()];
-
-    return Precision.greater(s2SubPathAcceptedFlowOnBush, NU * s2LastSegmentAcceptedFlowOnBush);
-  }
-
-  /**
-   * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both {@link #isCostEffective(double, double, double)} and
-   * {@link #isFlowEffective(Pas, RootedLabelledBush, double[])}
-   * 
-   * @param pas                   to use
-   * @param bush            to use
-   * @param flowAcceptanceFactors to use
-   * @param reducedCost           to use
-   * @return true when considered effective, false otherwise
-   */
-  private boolean isPasEffectiveForBush(Pas pas, RootedLabelledBush bush, double[] flowAcceptanceFactors, double reducedCost) {
-    /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound of the reduced cost */
-    return isCostEffective(
-            pas.getAlternativeHighCost(), pas.getAlternativeLowCost(), reducedCost)
-            &&
-            isFlowEffective(pas, bush, flowAcceptanceFactors);
-  }
-  
   /** Based on the reference vertex relative to the PAS we obtain the correct vertex from a list of edge segments that are assumed to represent a PAS alternative
    * 
    * @param alternative to collect from
@@ -182,7 +134,73 @@ public class PasManager {
    */
   public static boolean isCostEffective(double alternativeHighCost, double alternativeLowCost, double reducedCost) {
     return Precision.greater(alternativeHighCost - alternativeLowCost, MU * reducedCost);
-  }  
+  }
+
+  /**
+   * Use the accepted flow on the bush from start-to-end of PAS high cost segment and make sure it exceeds NU * total
+   * accepted flow (on the bush at hand) on the final edge segment of the PAS high cost segment. This is an adaptation
+   * from Bar-Gera who uses the minimum across all high cost segments on the bush, but since we are capacitated this
+   * won't be representative. So instead we use the portion of the total flow on the final segment that belongs to the
+   * high-cost sub-path present on the bush instead.
+   * <p>
+   * the rationale here is that we should only consider the PAS as effective for this bush, i.e., consider it for
+   * inclusion - if a decent amount of flow leading to the end point of this PAS comes from the high cost segment of
+   * this PAS which would allow for a decent chunk of the flow to be shifted to the low cost segment. If not,
+   * it would not improve this bush much if we would consider it.
+   * </p>
+   * <p>
+   *   UPDATE OCT 2024: found that using accepted flow on last segment is not a good choice due to alphas algon the way
+   *   We can achieve our objective using sending flows at the start of the PAS instead and compare it against the portion
+   *   that follows the pas in full. this is the same concept, but one that makes way more sense in a capacitated environment
+   * </p>
+   *
+   * @param pas                   under consideration for a bush
+   * @param bush            the accepted flow found on the bush traversing the high cost PAS and reaching the end vertex (including final alpha) of the PAS
+   * @param flowAcceptanceFactors the accepted flow found passing through the final vertex of the PAS from the origin of the bush, i.e., all sub-paths to this vertex
+   * @return true when considered effective, false otherwise
+   */
+  public static boolean isFlowEffective(Pas pas, RootedLabelledBush bush, double[] flowAcceptanceFactors) {
+
+
+    // OLD based on accepted flow
+//    boolean highCostPath = true;
+//    /* usage of high cost segment on bush */
+//    double s2SubPathAcceptedFlowOnBush = pas.computeOverlappingAcceptedFlow(bush, highCostPath, flowAcceptanceFactors);
+//    /* usage of segment arriving at merge vertex in bush */
+//    EdgeSegment s2LastEdgeSegment = pas.getLastEdgeSegment(highCostPath);
+//    double s2LastSegmentSendingFlowOnBush = bush.getSendingFlowPcuH(s2LastEdgeSegment);
+//    double s2LastSegmentAcceptedFlowOnBush =
+//            s2LastSegmentSendingFlowOnBush * flowAcceptanceFactors[(int) s2LastEdgeSegment.getId()];
+//
+//    return Precision.greater(s2SubPathAcceptedFlowOnBush, NU * s2LastSegmentAcceptedFlowOnBush);
+
+    // NEW based on sending flow
+    double s2FullSubPathSendingFlowOnBush = bush.determineSubPathSendingFlow(
+            pas.getAlternative(false), flowAcceptanceFactors);
+    /* general usage of high cost initial segment in bush (irrespective whether the flow follows the high-cost path)*/
+    EdgeSegment s2InitialEdgeSegment = pas.getFirstEdgeSegment(false);
+    double s2InitialSegmentSendingFlowOnBush = bush.getSendingFlowPcuH(s2InitialEdgeSegment);
+    return Precision.greater(s2FullSubPathSendingFlowOnBush, NU * s2InitialSegmentSendingFlowOnBush);
+  }
+
+  /**
+   * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both {@link #isCostEffective(double, double, double)} and
+   * {@link #isFlowEffective(Pas, RootedLabelledBush, double[])}
+   *
+   * @param pas                   to use
+   * @param bush            to use
+   * @param flowAcceptanceFactors to use
+   * @param reducedCost           to use
+   * @return true when considered effective, false otherwise
+   */
+  public static boolean isPasEffectiveForBush(
+          Pas pas, RootedLabelledBush bush, double[] flowAcceptanceFactors, double reducedCost) {
+    /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound of the reduced cost */
+    return isCostEffective(
+            pas.getAlternativeHighCost(), pas.getAlternativeLowCost(), reducedCost)
+            &&
+            isFlowEffective(pas, bush, flowAcceptanceFactors);
+  }
 
   /**
    * Extract a subpath in the form of a raw edge segment array in downstream direction based on the shortest path result
@@ -550,7 +568,7 @@ public class PasManager {
         continue;
       }
 
-      /* deemed effective, now ensure it does not introduce cycles */
+      /* deemed effective, now ensure it does not introduce cycles given current state of the bush */
       if (bush.determineIntroduceCycle(pas.getAlternative(true)) != null) {
         continue;
       }
@@ -629,15 +647,30 @@ public class PasManager {
    * @param pasPredicate to apply
    * @return number of pass from which the bush has been removed
    */
-  public int removeBushFromPasIf(RootedLabelledBush bush, Predicate<Pas> pasPredicate) {
+  public int removeBushFromPasIf(
+          RootedLabelledBush bush, Predicate<Pas> pasPredicate, boolean removeUnusedPass) {
     int countRemovals = 0;
+    List<Pas> passWithoutBush = null; //todo: make set when pas is comaprable
     for (var pass : passByVertex.values()) {
       for( var pas : pass){
-        if(pas.hasRegisteredBush(bush) && pasPredicate.test(pas)){
-          pas.removeBush(bush);
-          ++countRemovals;
+        if(pas.hasRegisteredBush(bush)){
+          if(pasPredicate.test(pas)) {
+            pas.removeBush(bush);
+            ++countRemovals;
+          }
+        }
+
+        // clean-up PASs if they have no bushes anymore
+        if(removeUnusedPass && !pas.hasRegisteredBush(bush)){
+          if (passWithoutBush == null) {
+            passWithoutBush = new ArrayList<>();
+          }
+          passWithoutBush.add(pas);
         }
       }
+    }
+    if(passWithoutBush!=null && !passWithoutBush.isEmpty()){
+      passWithoutBush.forEach(p -> removePas(p, true));
     }
     return countRemovals;
   }

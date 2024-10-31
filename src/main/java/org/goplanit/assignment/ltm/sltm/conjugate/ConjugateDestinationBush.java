@@ -1,9 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
@@ -545,12 +542,11 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
   /**
    * {@inheritDoc}
-   *
    */
-  public boolean performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging){
+  public TreeSet<EdgeSegment> performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging){
     //todo
     LOGGER.severe("NOT YET IMPLEMENTED");
-    return false;
+    return null;
   }
 
   /**

@@ -165,8 +165,8 @@ public class Pas {
    * 
    * @param bushes to remove
    */
-  public void removeBushes(List<RootedLabelledBush> bushes) {
-    bushes.forEach((bush) -> removeBush(bush));
+  public void removeBushes(Collection<RootedLabelledBush> bushes) {
+    bushes.forEach(this::removeBush);
   }
 
   /**
@@ -310,6 +310,27 @@ public class Pas {
    */
   public boolean containsAnyOppositeDirection(final  Collection<EdgeSegment> linkSegments) {
     return containsAnyOppositeDirection(linkSegments, true) || containsAnyOppositeDirection(linkSegments, false);
+  }
+
+  /**
+   * Check if given link segment is present on either alternative
+   *
+   * @param linkSegment where we verify against alternative link segments
+   * @return true when present, false otherwise
+   */
+  public boolean containsEdgeSegment(EdgeSegment linkSegment) {
+    return containsEdgeSegment(linkSegment, true) || containsEdgeSegment(linkSegment, false);
+  }
+
+  /**
+   * Check if given link segment is present on either high or low cost alternative
+   *
+   * @param linkSegment where we verify against alternative link segments
+   * @param lowCost when true check against low cost alternative, otherwise the high cost alternative
+   * @return true when present, false otherwise
+   */
+  public boolean containsEdgeSegment(EdgeSegment linkSegment, boolean lowCost) {
+    return anyMatch(es -> es.equals(linkSegment), lowCost);
   }
 
   /**

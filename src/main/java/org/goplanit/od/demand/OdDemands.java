@@ -3,6 +3,8 @@ package org.goplanit.od.demand;
 import java.util.function.BiConsumer;
 
 import org.goplanit.utils.functionalinterface.TriConsumer;
+import org.goplanit.utils.id.IdMapperType;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.od.OdData;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.OdZones;
@@ -90,4 +92,18 @@ public interface OdDemands extends OdData<Double> {
    * @return sum of all demands
    */
   public abstract double sum();
+
+  /**
+   * Remove all destinations except the exceptions provided
+   *
+   * @param destinations to keep
+   */
+  public abstract void removeAllDestinationsExcept(final OdZone... destinations);
+
+  /**
+   * Remove all origins except the exceptions provided
+   *
+   * @param origins to keep
+   */
+  public abstract void removeAllOriginsExcept(final OdZone... origins);
 }

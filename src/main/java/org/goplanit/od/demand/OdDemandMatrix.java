@@ -1,8 +1,11 @@
 package org.goplanit.od.demand;
 
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.IdMapperType;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.od.OdPrimitiveMatrix;
 import org.goplanit.utils.od.OdPrimitiveMatrixIterator;
+import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.OdZones;
 import org.ojalgo.OjAlgoUtils;
 import org.ojalgo.array.Array2D;
@@ -10,6 +13,7 @@ import org.ojalgo.function.UnaryFunction;
 import org.ojalgo.function.aggregator.Aggregator;
 import org.ojalgo.random.Random1D;
 
+import java.util.Arrays;
 import java.util.LongSummaryStatistics;
 import java.util.Random;
 import java.util.concurrent.atomic.LongAdder;
@@ -44,7 +48,12 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
    * @param zones holds the zones defined in the network
    */
   public OdDemandMatrix(OdZones zones) {
-    super(OdDemandMatrix.class, IdGroupingToken.collectGlobalToken(), Double.class, zones, Array2D.PRIMITIVE32.makeZero(zones.size(), zones.size()));
+    super(OdDemandMatrix.class,
+            IdGroupingToken.collectGlobalToken(),
+            Double.class,
+            zones,
+            Array2D.PRIMITIVE32.makeZero(zones.size(),
+            zones.size()));
   }
 
   /**
@@ -163,9 +172,36 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public double sum() {
     return matrixContainer.aggregateRange(0, matrixContainer.count(), Aggregator.SUM);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeAllDestinationsExcept(final OdZone... destinations) {
+    getOdZones().forEach(destination -> {
+      if(Arrays.stream(destinations).noneMatch(d -> d.equals(destination))) {
+        matrixContainer.fillColumn(destination.getId(), 0.0);
+      }
+    });
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeAllOriginsExcept(OdZone... origins) {
+    getOdZones().forEach(origin -> {
+      if(Arrays.stream(origins).noneMatch(o -> o.equals(origin))) {
+        matrixContainer.fillRow(origin.getId(), 0.0);
+      }
+    });
   }
 
 }

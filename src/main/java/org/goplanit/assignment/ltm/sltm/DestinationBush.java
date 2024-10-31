@@ -128,12 +128,15 @@ public class DestinationBush extends RootedLabelledBush {
 
   /**
    * {@inheritDoc}
-   *
    */
-  public boolean performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging){
+  public TreeSet<EdgeSegment> performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging){
 
-    // entry exit segment
+    // removed turn flows with multikey being entry and exit segment
     final MultiKeyMap<Object, Double> removedTurnFlows = new MultiKeyMap<>();
+    // a removed turn flow does not mean a removed edge segment necessarily (as we avoid performing a full bush update
+    // as a result, so track removed edge segments separately. We do so because removed edge segments allow us to deregister
+    // bushes from PASs that have this edge segment (but after branch shift this bush is no longer eleigible for the PAS)
+    final TreeSet<EdgeSegment> removedEdgeSegments = new TreeSet<>();
 
     /* traverse form origin->destination */
     forEachTopologicalSortedVertex(isInverted(), currVertex -> {
@@ -217,22 +220,13 @@ public class DestinationBush extends RootedLabelledBush {
           continue;
         }
 
-//        // special case, if no flow exits the link, we are at a destination, in which case sending flow is always zero
-//        // so sending flow is not a good indicator, instead we utilise the more costly accepted flow into the link instead
-//        // and redo the check
-//        if (ArrayUtils.sumOf(bushData.getSplittingRates(exitSegment)) <= 0) {
-//          totalInflowPcuH = bushData.getTotalAcceptedFlowToPcuH(exitSegment, flowAcceptanceFactors);
-//          if (totalInflowPcuH >= flowThreshold) {
-//            continue;
-//          }
-//        }
-
-        // OUTCOME:
-        // continuing an existing or initiating a new branch shift on threshold compliant segment that is to be removed...
+        // WHEN REACING THIS POINT WE ARE: continuing an existing or initiating a new branch shift on threshold compliant
+        // segment that is to be removed...
 
         //remove edge segment explicitly, because otherwise it may not be removed if it still
         // has sending flow, but we can only deal with that later, so do it explicitly
         getDag().removeEdgeSegment(lowFlowSegment);
+        removedEdgeSegments.add(lowFlowSegment);
 
         for (var entrySegment : currVertex.getEntryEdgeSegments()) {
           double turnFlow = getTurnSendingFlow(entrySegment, lowFlowSegment);
@@ -297,9 +291,10 @@ public class DestinationBush extends RootedLabelledBush {
 
       }
 
-      // finalise bu removal of preceding incoming turns from removed segments but without further tracking/removal required
+      // finalise by removal of preceding incoming turns from removed segments but without further tracking/removal required
       // because too much flow remains on exit segment despite removed incoming flow, so just remove the turns from removed
-      // entry segments into this exit to finalise the shift but do not track removal propagation any further because it is not required (no dangling links can occur
+      // entry segments into this exit to finalise the shift but do not track removal propagation any further because
+      // it is not required (no dangling links can occur)
       for (var nonCandidateWithPrecedingLowFlowremoval : exitSegmentsToTerminateTrackingButFinaliseUpstreamRemovals) {
         for (var entrySegment : currVertex.getEntryEdgeSegments()) {
           if (removedTurnFlows.keySet().stream().noneMatch(e -> e.getKey(1).equals(entrySegment)) ||
@@ -319,7 +314,7 @@ public class DestinationBush extends RootedLabelledBush {
       }
     });
 
-    return !removedTurnFlows.isEmpty();
+    return removedEdgeSegments;
   }
 
 
