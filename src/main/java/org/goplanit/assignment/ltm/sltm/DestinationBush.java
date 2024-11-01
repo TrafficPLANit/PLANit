@@ -314,6 +314,10 @@ public class DestinationBush extends RootedLabelledBush {
       }
     });
 
+    if (detailedLogging && !removedEdgeSegments.isEmpty()) {
+      removedEdgeSegments.forEach( es -> LOGGER.info(String.format(
+              "Branch shift removed edge segment (%s)",es.getIdsAsString())));
+    }
     return removedEdgeSegments;
   }
 

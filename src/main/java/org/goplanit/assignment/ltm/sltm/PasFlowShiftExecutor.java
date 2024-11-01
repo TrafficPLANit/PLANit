@@ -638,84 +638,14 @@ public abstract class PasFlowShiftExecutor {
       bushEntrySegments2UpdatedFlow.put(bush, currBushEntrySegmentSendingFlow);
     }
 
-    // OLD
-//
-//
-//
-//
-//      // now determine the distribution across entry segments taking acceptance factors into initial segment into account
-//      for( var entryShiftPair : proposedFlowShifts.entrySet()) {
-//        var entrySegment = entryShiftPair.getKey();
-//        if (!bush.containsEdgeSegment(entrySegment)) {
-//          continue;
-//        }
-//        bush.getTurnSendingFlow(entrySegment, initialS2Segment);
-//      }
-//
-//
-//
-//
-//      for( var entryShiftPair : proposedFlowShifts.entrySet()){
-//        var entrySegment = entryShiftPair.getKey();
-//        if (!bush.containsEdgeSegment(entrySegment)) {
-//          continue;
-//        }
-//        bushEntrySegments2UpdatedFlow.computeIfAbsent(bush, b -> new TreeMap<>());
-//        bushEntrySegments2UpdatedFlow.get(bush).put(
-//            entrySegment, bush.determineSubPathSendingFlow(
-//                    entrySegment, pas.getAlternative(false), networkLoading.getCurrentFlowAcceptanceFactors()));
-//      }
-//      // it is possible that due to earlier flow shifts even the local subpath sending flow is not restrictive enough due
-//      // to flows being removed halfway through the PAS instead of at the entry. If so, we need to work out by how much we
-//      // should reduce the entry segment flows to attribute this further reduction proportionally
-//      // 1. determine the minimum available link flow on any high cost link (excluding entry) accounting for alphas
-//      double minimumAvailableS2Flow = Integer.MAX_VALUE;
-//      double acceptanceScalingFactor = 1;
-//      EdgeSegment previousSegment = null;
-//      for(var currEdgeSegment : pas.getAlternative(false)){
-//        if(previousSegment!=null){
-//          acceptanceScalingFactor =
-//                  acceptanceScalingFactor/networkLoading.getCurrentFlowAcceptanceFactors()[(int)previousSegment.getId()];
-//        }
-//        double scaledMinimumFlow = acceptanceScalingFactor * bush.bushData.getTotalSendingFlowFromPcuH(currEdgeSegment);
-//        minimumAvailableS2Flow =
-//                Math.min(minimumAvailableS2Flow,scaledMinimumFlow);
-//        previousSegment = currEdgeSegment;
-//      }
-//      //2. if this minimum flow is smaller than the updated sub path sending flow, then a NL inconsistency WITHIN the PAS has occurred
-//      //   (this on top of any NL inconsistency that occurred upstream and is already captured in the above update)
-//      //   if so, we must scale back the sub path sending flows further which should then trigger a pas removal still but one
-//      //   where flows are proportionally removed across all entry segments
-//      double[] entrySegmentAcceptedFlowIntoS2 = bushEntrySegments2UpdatedFlow.get(bush).entrySet().stream().mapToDouble(
-//              entry -> entry.getValue() * networkLoading.getCurrentFlowAcceptanceFactors()[(int)entry.getKey().getId()]).toArray();
-//      double combinedSendingFlowOnS2InitialSegment = ArrayUtils.sumOf(entrySegmentAcceptedFlowIntoS2);
-//      if(Precision.smaller(minimumAvailableS2Flow, combinedSendingFlowOnS2InitialSegment)){
-//        // 3. determine the split of this flow across the entry segments
-//        double[] s2InitialSegmentFlowDistribution = ArrayUtils.divideBy(entrySegmentAcceptedFlowIntoS2, combinedSendingFlowOnS2InitialSegment, 0);
-//        // 4. now use this split multiplied with the minimum to get absolute available flow and then work backwards
-//        //    to entry segment sending flow by taking reciprocal of alpha on entry segment. This is the final allowed
-//        //    proportional available sending flow on the subpath that we use
-//        double[] entrySegmentUpscalingFactors = bushEntrySegments2UpdatedFlow.get(bush).keySet().stream().mapToDouble(
-//                entrySegment -> 1/networkLoading.getCurrentFlowAcceptanceFactors()[(int)entrySegment.getId()]).toArray();
-//        double[] s2InitialSegmentEntrySegmentAcceptedFlows =
-//                ArrayUtils.multiplyBy(s2InitialSegmentFlowDistribution, minimumAvailableS2Flow);
-//        double[] s2EntrySegmentMaximumSendingFlows =
-//                ArrayUtils.multiplyElementWise(s2InitialSegmentEntrySegmentAcceptedFlows, entrySegmentUpscalingFactors);
-//        int index = 0;
-//        for(var entry : bushEntrySegments2UpdatedFlow.get(bush).entrySet()){
-//          entry.setValue(s2EntrySegmentMaximumSendingFlows[index++]);
-//        }
-//      }
-//    }
-
     double currentS2SendingFlow = bushEntrySegments2UpdatedFlow.values().stream().flatMap(e -> e.values().stream()).mapToDouble(e -> e).sum();
 
-    if (Precision.greater(totalProposedFlowShift, currentS2SendingFlow, EPSILON_3)) {
-      if(isDestinationTrackedForLogging()) {
-        LOGGER.info(String.format("[removal --> proposed shift %.10f exceeds s2 sending flow %.10f]",
-                totalProposedFlowShift, currentS2SendingFlow));
-      }
-    }
+//    if (Precision.greater(totalProposedFlowShift, currentS2SendingFlow, EPSILON_3)) {
+//      if(isDestinationTrackedForLogging()) {
+//        LOGGER.info(String.format("[removal --> proposed shift %.10f exceeds s2 sending flow %.10f]",
+//                totalProposedFlowShift, currentS2SendingFlow));
+//      }
+//    }
 
     // if earlier shifts have reduced available flow, capture in factor, so we remain in feasible shifting region
     double s2FlowAvailabilityFactor = Math.min(1,currentS2SendingFlow/networkLoadingConsistentS2SendingFlow);
@@ -724,12 +654,12 @@ public abstract class PasFlowShiftExecutor {
 
     if(isDestinationTrackedForLogging()) {
       LOGGER.info("* S2 FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + "(NL consistent: " + networkLoadingConsistentS2SendingFlow+") - cost-diff: " + pas.getReducedCost());
-      LOGGER.info("s1 alphas: "+
-              Arrays.stream(pas.getAlternative(true)).map(es -> String.format("%s:%.2f",
-                      es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[(int) es.getId()])).collect(Collectors.joining(",")));
-      LOGGER.info("s2 alphas: "+
-              Arrays.stream(pas.getAlternative(false)).map(es -> String.format("%s:%.2f",
-                      es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[(int) es.getId()])).collect(Collectors.joining(",")));
+//      LOGGER.info("s1 alphas: "+
+//              Arrays.stream(pas.getAlternative(true)).map(es -> String.format("%s:%.2f",
+//                      es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[(int) es.getId()])).collect(Collectors.joining(",")));
+//      LOGGER.info("s2 alphas: "+
+//              Arrays.stream(pas.getAlternative(false)).map(es -> String.format("%s:%.2f",
+//                      es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[(int) es.getId()])).collect(Collectors.joining(",")));
     }
 
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {
@@ -790,9 +720,9 @@ public abstract class PasFlowShiftExecutor {
         }else{
           if(isDestinationTrackedForLogging(bush)) {
             LOGGER.info(String.format(
-                    "     Flow shift: %.10f (available flow %.10f) - entry segment (%s) - alpha: %.2f - bush (%s)",
+                    "     Shift: %.9f (available flow %.9f) on entry (%s) - bush (%s) - entry alpha: %.2f -",
                     entrySegmentBushPasflowShift, guaranteedBushEntrySegmentS2SendingFlow, entrySegment.getIdsAsString(),
-                    networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()], bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+                    bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()]));
           }
         }
 
@@ -824,9 +754,9 @@ public abstract class PasFlowShiftExecutor {
    * @param networkLoading to apply
    */
   public void performS1FlowShift(Mode theMode, StaticLtmLoadingBushBase<?> networkLoading) {
-    if(flowShiftedS2BushData.values().stream().flatMap(e -> e.keySet().stream()).anyMatch(this::isDestinationTrackedForLogging)) {
-      LOGGER.info(String.format("* S1 FLOW SHIFT on PAS: %s", pas));
-    }
+//    if(flowShiftedS2BushData.values().stream().flatMap(e -> e.keySet().stream()).anyMatch(this::isDestinationTrackedForLogging)) {
+//      LOGGER.info(String.format("* S1 FLOW SHIFT on PAS: %s", pas));
+//    }
 
     for (var entry : flowShiftedS2BushData.entrySet()) {
       var entrySegment = entry.getKey();
@@ -834,13 +764,13 @@ public abstract class PasFlowShiftExecutor {
         var bush = bushFlowEntry.getKey();
         var flowShiftData = bushFlowEntry.getValue();
 
-        if(isDestinationTrackedForLogging(bush)) {
-          LOGGER.info(String.format("        Flow to shift: %.4f - entry segment (%s) - alpha: %.2f - bush (%s)",
-                  flowShiftData.getS2Flowshifted(),
-                  entrySegment.getIdsAsString(),
-                  networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()],
-                  bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-        }
+//        if(isDestinationTrackedForLogging(bush)) {
+//          LOGGER.info(String.format("        Flow to shift: %.4f - entry segment (%s) - alpha: %.2f - bush (%s)",
+//                  flowShiftData.getS2Flowshifted(),
+//                  entrySegment.getIdsAsString(),
+//                  networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()],
+//                  bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+//        }
 
         executeBushS1FlowShift(
                 bush,

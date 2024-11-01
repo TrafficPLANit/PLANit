@@ -812,7 +812,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
       /* 5 - perform low flow branch shifts on the bush level */
       {
-        performLowFlowBushBranchShifts(0.01, getLoading().getCurrentFlowAcceptanceFactors());
+        performLowFlowBushBranchShifts(0.00, getLoading().getCurrentFlowAcceptanceFactors());
       }
       
     }catch(Exception e) {

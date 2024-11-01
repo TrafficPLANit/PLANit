@@ -650,7 +650,7 @@ public class PasManager {
   public int removeBushFromPasIf(
           RootedLabelledBush bush, Predicate<Pas> pasPredicate, boolean removeUnusedPass) {
     int countRemovals = 0;
-    List<Pas> passWithoutBush = null; //todo: make set when pas is comaprable
+    List<Pas> passWithoutBush = null; //todo: make set when pas is comparable
     for (var pass : passByVertex.values()) {
       for( var pas : pass){
         if(pas.hasRegisteredBush(bush)){
@@ -661,7 +661,7 @@ public class PasManager {
         }
 
         // clean-up PASs if they have no bushes anymore
-        if(removeUnusedPass && !pas.hasRegisteredBush(bush)){
+        if(removeUnusedPass && !pas.hasRegisteredBushes()){
           if (passWithoutBush == null) {
             passWithoutBush = new ArrayList<>();
           }

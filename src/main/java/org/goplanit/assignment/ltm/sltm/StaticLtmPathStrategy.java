@@ -394,6 +394,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
     if(getSettings().hasTrackOdsForLogging() && getSettings().isTrackOdForLogging(origin, destination)){
       LOGGER.info(String.format("-------------------- [ Origin (%s) Destination (%s) ]-------------------------------", origin.getIdsAsString(), destination.getIdsAsString()));
+      odPaths.forEach(p -> LOGGER.info(String.format("path:                 %s", p)));
       LOGGER.info(String.format("absolute costs:                 %s", Arrays.toString(currAbsolutePathCosts)));
       LOGGER.info(String.format("perceived costs:                %s", Arrays.toString(currPerceivedPathCosts)));
       LOGGER.info(String.format("perceived costs (no transform): %s", Arrays.toString(stochasticPathChoice.computePerceivedPathCosts(currAbsolutePathCosts, currCostRelatedPathProbabilities, demand, !APPLY_EXP_TRANSFORM))));

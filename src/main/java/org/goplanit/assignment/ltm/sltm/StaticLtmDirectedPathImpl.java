@@ -179,4 +179,14 @@ public class StaticLtmDirectedPathImpl extends ExternalIdAbleImpl implements Sta
   public Geometry createGeometry() {
     return EdgeSegmentUtils.createGeometryFrom(iterator());
   }
+
+  @Override
+  public String toString(){
+    var sb = new StringBuilder();
+    // id
+    sb.append("Path [").append(getIdsAsString()).append("] - segments: ");
+    // edge segments
+    this.forEach(es -> sb.append("("+ es.getIdsAsString() + ") "));
+    return sb.toString();
+  }
 }

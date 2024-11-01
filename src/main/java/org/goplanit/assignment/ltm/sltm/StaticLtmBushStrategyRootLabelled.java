@@ -279,8 +279,6 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         newPass.add(newPas);
         newPas.updateCost(linkSegmentCosts);
         if(isDestinationTrackedForLogging(bush)){
-
-
           LOGGER.info(String.format("Registered new PAS (%s) on bush (%s)", newPas, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
 
