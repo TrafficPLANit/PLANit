@@ -24,6 +24,7 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.time.RunTimesTracker;
 import org.goplanit.utils.time.TimePeriod;
@@ -517,6 +518,16 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   @Override
   public double[] getLinkSegmentOutflowsPcuHour() {
     return this.assignmentStrategy.getLoading().getCurrentOutflowsPcuH();
+  }
+
+  /**
+   * Provide access to the last known unconstrained flows in PCU/H for the given macroscopic link segment
+   *
+   * @param linkSegment to collect unconstrained flows for
+   * @return unconstrained flows in pcu/h
+   */
+  public double getLinkSegmentUnconstrainedFlowPcuHour(MacroscopicLinkSegment linkSegment) {
+    return this.assignmentStrategy.getLoading().getUnconstrainedFlowsPcuHour()[(int)linkSegment.getId()];
   }
 
   /**

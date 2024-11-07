@@ -37,17 +37,21 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
    * 
    * @param movement         the movement
    * @param turnSendingFlowPcuH sending flow rate of turn
+   * @param turnUnconstrainedFlowPcuH unconstrained flow rate of turn
    * @return accepted flow rate of turn after applying link acceptance factor
    */
-  protected abstract double applySingleFlowUpdate(final Movement movement, final double turnSendingFlowPcuH);
+  protected abstract double applySingleFlowUpdate(
+          final Movement movement, final double turnSendingFlowPcuH, final double turnUnconstrainedFlowPcuH);
 
   /**
    * Apply the flow to a final path segment (and update link sending flow if required) which has no outgoing edge segment on the turn
    * 
    * @param lastEdgeSegment      of path
    * @param acceptedPathFlowRate sending flow rate on last edge segment
+   * @param unconstrainedFlowPcuH unconstrained total demand on last edge segment
    */
-  protected abstract void applyPathFinalSegmentFlowUpdate(final EdgeSegment lastEdgeSegment, double acceptedPathFlowRate);
+  protected abstract void applyPathFinalSegmentFlowUpdate(
+          final EdgeSegment lastEdgeSegment, double acceptedPathFlowRate, final double unconstrainedFlowPcuH);
 
   /**
    * Constructor
@@ -56,7 +60,8 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
    * @param odMultiPaths    to use
    */
   public PathFlowUpdateConsumer(
-          final T dataConfig, final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths) {
+          final T dataConfig,
+          final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths) {
     this.dataConfig = dataConfig;
     this.odMultiPaths = odMultiPaths;
   }
@@ -69,18 +74,20 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
     /* path */
     var odPaths = odMultiPaths.getValue(origin, destination);
     for (StaticLtmDirectedPath odPath : odPaths) {
-      double acceptedPathFlowRate = odDemand * odPath.getPathChoiceProbability();
-      if(Double.compare(Double.NaN, acceptedPathFlowRate)==0) {
-        System.out.println(String.format("acceptedPathFlowRate: %.1f", acceptedPathFlowRate));
+      double pathDemand = odDemand * odPath.getPathChoiceProbability();
+      if(Double.compare(Double.NaN, pathDemand)==0) {
+        System.out.println(String.format("path demand: %.1f", pathDemand));
       }
 
       /* movement iterator */
+      double acceptedPathFlowRate = pathDemand;
       var movementArray = odPath.getMovements();
       for(var movement : movementArray){
-        acceptedPathFlowRate = applySingleFlowUpdate(movement, acceptedPathFlowRate);
+        acceptedPathFlowRate = applySingleFlowUpdate(movement, acceptedPathFlowRate, pathDemand);
       }
 
-      applyPathFinalSegmentFlowUpdate(movementArray[movementArray.length-1].getSegmentTo(), acceptedPathFlowRate);
+      applyPathFinalSegmentFlowUpdate(
+              movementArray[movementArray.length-1].getSegmentTo(), acceptedPathFlowRate, pathDemand);
 
     }
   }

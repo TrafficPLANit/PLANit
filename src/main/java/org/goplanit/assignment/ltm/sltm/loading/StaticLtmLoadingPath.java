@@ -42,10 +42,15 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * @param updateTurnAcceptedFlows   flag indicating if the turn accepted flows are to be updated by this consumer
    * @param updateSendingFlows        flag indicating if the link sending flow are to be updated by this consumer
    * @param updateOutflows            flag indicating if the link outflows are to be updated by this consumer
+   * @param updateUnconstrainedFlows  flag indicating if the link unconstrained flows are to be updated by this consumer
    * @return created flow update consumer
    */
   private PathFlowUpdateConsumer<?> createPathFlowUpdateConsumer(
-          Mode mode, boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows) {
+          Mode mode,
+          boolean updateTurnAcceptedFlows,
+          boolean updateSendingFlows,
+          boolean updateOutflows,
+          boolean updateUnconstrainedFlows) {
     if (!updateSendingFlows && !updateTurnAcceptedFlows) {
       LOGGER.warning("Network flow updates using paths must either updating link sending flows or turn accepted flows, neither are selected");
       return null;
@@ -56,17 +61,27 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     }
     if (updateOutflows) {
       this.inFlowOutflowData.resetOutflows();
-    }    
+    }
+    if(updateUnconstrainedFlows){
+      this.unconstrainedFlowData.reset();
+    }
+
+    //todo: spaghetti --> replace by one part checking on validity and then second part having a factory method that maps
+    // the flags to the data 1:1 and then creates the data object
 
     /* link update only */
     if (!updateTurnAcceptedFlows) {
       NetworkFlowUpdateData dataConfig = null;
       if (updateOutflows) {
-        /* sending + outflow update only */
-        dataConfig = new NetworkFlowUpdateData(sendingFlowData, inFlowOutflowData, networkLoadingFactorData);
+        /* sending + outflow update only (potentially unconstrained flows as well) */
+        dataConfig = updateUnconstrainedFlows ?
+                new NetworkFlowUpdateData(sendingFlowData, inFlowOutflowData, networkLoadingFactorData, unconstrainedFlowData):
+                new NetworkFlowUpdateData(sendingFlowData, inFlowOutflowData, networkLoadingFactorData);
       } else {
-        /* sending flow update only */
-        dataConfig = new NetworkFlowUpdateData(sendingFlowData, networkLoadingFactorData); 
+        /* sending flow update only (potentially unconstrained flows as well) */
+        dataConfig =  updateUnconstrainedFlows ?
+                new NetworkFlowUpdateData(sendingFlowData, networkLoadingFactorData, unconstrainedFlowData):
+                new NetworkFlowUpdateData(sendingFlowData, networkLoadingFactorData);
       }
 
       return new PathLinkFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode));
@@ -76,6 +91,12 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     if(updateTurnAcceptedFlows) {
       int numMovements = getTransportNetwork().getMovements().size();
       NetworkTurnFlowUpdateData dataConfig = null;
+
+      if (updateUnconstrainedFlows) {
+        LOGGER.warning("Network flow updates using paths cannot update turn accepted flows and unconstrained flows, " +
+                "this is not yet supported when creating the NetworkTurnFlowUpdateData class (functionally not an issue though)");
+        return null;
+      }
 
       if (updateSendingFlows) {
         if (updateOutflows) {
@@ -105,10 +126,10 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
      * otherwise not. In the latter case it is taken care of by step-2 in the solution algorithm via the iterative procedure */
     boolean updateTurnAcceptedFlows = true;
     boolean updateSendingFlows = !isIterativeSendingFlowUpdateActivated();
-    boolean updateOutflows = false;
+    boolean updateOutflows = false, updateUnconstrainedFlows = false;
     PathTurnFlowUpdateConsumer pathTurnFlowUpdateConsumer =
             (PathTurnFlowUpdateConsumer) createPathFlowUpdateConsumer(
-                    mode, updateTurnAcceptedFlows, updateSendingFlows, updateOutflows);
+                    mode, updateTurnAcceptedFlows, updateSendingFlows, updateOutflows, updateUnconstrainedFlows);
     
     /* execute */
     getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathTurnFlowUpdateConsumer);
@@ -121,10 +142,11 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
   @Override
   protected void networkLoadingLinkSegmentSendingFlowUpdate(Mode mode) {
     /* only update link sending flows */
-    boolean updateTurnAcceptedFlows = false, updateOutflows = false;
+    boolean updateTurnAcceptedFlows = false, updateOutflows = false, updateUnconstrainedFlows = false;
     boolean updateSendingFlows = true;   
     var pathLinkFlowUpdateConsumer = (PathLinkFlowUpdateConsumer)
-            createPathFlowUpdateConsumer(mode, updateTurnAcceptedFlows, updateSendingFlows, updateOutflows);
+            createPathFlowUpdateConsumer(
+                    mode, updateTurnAcceptedFlows, updateSendingFlows, updateOutflows, updateUnconstrainedFlows);
     
     /* execute */
     getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathLinkFlowUpdateConsumer);
@@ -134,12 +156,13 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * {@inheritDoc}
    */ 
   @Override
-  protected void networkLoadingLinkSegmentSendingflowOutflowUpdate(Mode mode) {
+  protected void networkLoadingSendingFlowOutflowUnconstrainedFlowUpdate(Mode mode) {
     /* update link sending flows and outflows */
     boolean updateTurnAcceptedFlows = false;
-    boolean updateSendingFlows = true, updateOutflows = true;
+    boolean updateSendingFlows = true, updateOutflows = true, updateUnconstrainedFlows = true;;
     var pathLinkFlowUpdateConsumer = (PathLinkFlowUpdateConsumer)
-            createPathFlowUpdateConsumer(mode, updateTurnAcceptedFlows, updateSendingFlows, updateOutflows);
+            createPathFlowUpdateConsumer(
+                    mode, updateTurnAcceptedFlows, updateSendingFlows, updateOutflows, updateUnconstrainedFlows);
     
     /* execute */
     getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathLinkFlowUpdateConsumer);

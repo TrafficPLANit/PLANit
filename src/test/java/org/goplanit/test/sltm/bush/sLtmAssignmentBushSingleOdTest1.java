@@ -100,6 +100,18 @@ public class sLtmAssignmentBushSingleOdTest1 {
     assertEquals(inflow5, 2642.73504, Precision.EPSILON_3);
     assertEquals(inflow8, 2642.73504, Precision.EPSILON_3);
     assertEquals(inflow2, 7000, Precision.EPSILON_6);
+
+    double demand0 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+    double demand1 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+    double demand5 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+    double demand8 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+    double demand2 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+
+    assertEquals(demand0, inflow0, Precision.EPSILON_6);
+    assertEquals(inflow1, demand1, Precision.EPSILON_3);
+    assertEquals(inflow5, demand5, Precision.EPSILON_3);
+    assertEquals(inflow8, demand8, Precision.EPSILON_3);
+    assertEquals(demand2, demand0, Precision.EPSILON_6);
   }
 
   /**
@@ -126,8 +138,8 @@ public class sLtmAssignmentBushSingleOdTest1 {
     // construct the network. 
     //
     // Inspired by the network in Raadsen and Bliemer (2021), but not identical since we use three separate links for the 
-    // alternative routes and capacities might be slightly different as well. Link 2 is the bottleneck with the middle route
-    // being shorter yet having the least capacity
+    // alternative routes and capacities might be slightly different as well. Link 2 (7k capacity) is the bottleneck
+    // with the middle route being shorter, all link shave 8k capacity and demand is 8k as well
     //
     //            4 *----->------* 5
     //              |     4      |

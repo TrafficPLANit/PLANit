@@ -73,7 +73,8 @@ public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentC
    * @return configurator
    * @throws PlanItException thrown if error
    */
-  public FundamentalDiagramConfigurator<? extends FundamentalDiagramComponent> createAndRegisterFundamentalDiagram(final String fundamentalDiagramType) throws PlanItException {
+  public FundamentalDiagramConfigurator<? extends FundamentalDiagramComponent> createAndRegisterFundamentalDiagram(
+          final String fundamentalDiagramType) throws PlanItException {
     fundamentalDiagramConfigurator = FundamentalDiagramConfiguratorFactory.createConfigurator(fundamentalDiagramType);
     return fundamentalDiagramConfigurator;
   }

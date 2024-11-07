@@ -144,6 +144,16 @@ public class sLtmAssignmentBushMultiOdTest {
     assertEquals(outflow9 + outflow11, inflow12, Precision.EPSILON_6);
     assertEquals(outflow10, inflow11, Precision.EPSILON_6);
     assertEquals(outflow12, inflow13 + inflow14, Precision.EPSILON_6);
+
+    double demand0 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+    double demand4 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
+    double demand8 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+    double demand15 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("15").getLinkSegmentAb());
+
+    assertEquals(demand15,4000, Precision.EPSILON_6);
+    assertEquals(demand0,demand15, Precision.EPSILON_6);
+    assertEquals(demand4,4000, Precision.EPSILON_6);
+    assertEquals(demand4,demand8, Precision.EPSILON_6);
   }
 
   /**
@@ -361,9 +371,8 @@ public class sLtmAssignmentBushMultiOdTest {
       slTMConfigurator.activateOutput(OutputType.LINK);
       slTMConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
-
       slTMConfigurator.setAllowOverlappingPasUpdate(true);
-      slTMConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"), Pair.of("A","A``"));
+      //slTMConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"), Pair.of("A","A``"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);

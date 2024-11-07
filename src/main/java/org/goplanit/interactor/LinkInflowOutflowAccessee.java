@@ -3,8 +3,8 @@ package org.goplanit.interactor;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
- * Link inflow/outflow accessee. Implementing classes provide access to their current link segments' inflow and outflow rates. In addition, it also requires access to the used
- * fundamental diagram
+ * Link inflow/outflow accessee. Implementing classes provide access to their current link segments' inflow and
+ * outflow rates. In addition, it also requires access to the used fundamental diagram
  * 
  * @author markr
  *

@@ -55,18 +55,23 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * @param updateTurnAcceptedFlows flag indicating if the turn accepted flows are to be updated by this consumer
    * @param updateSendingFlows      flag indicating if the link sending flow are to be updated by this consumer
    * @param updateOutflows           flag indicating if the link outflows are to be updated by this consumer
+   * @param updateUnconstrainedFlows flag indicating if the unconstrained link flows are to be tracked/updated by this consumer
    * @return created flow update consumer
    */
   protected abstract BushFlowUpdateConsumer<B> createBushFlowUpdateConsumer(
-          boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows);
+          boolean updateTurnAcceptedFlows,
+          boolean updateSendingFlows,
+          boolean updateOutflows,
+          boolean updateUnconstrainedFlows);
 
   //@formatter:off
   /**
-   * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns on nodes that are potentially blocking to reduce
-   * computational overhead.
+   * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns
+   * on nodes that are potentially blocking to reduce computational overhead.
    *
    * @param mode                    unused
-   * @return acceptedTurnFlows (on potentially blocking nodes) where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
+   * @return acceptedTurnFlows (on potentially blocking nodes) where key comprises a combined hash of entry and exit
+   * edge segment ids and value is the accepted turn flow v_ab
    */
   @Override
   protected double[] networkLoadingTurnFlowUpdate(Mode mode) {
@@ -78,8 +83,9 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
     boolean updateTurnAcceptedFlows = true;
     boolean updateSendingFlowDuringLoading = !isIterativeSendingFlowUpdateActivated();
     boolean updateOutflows = false;
+    boolean updateUnconstrainedFlows = false;
     var bushTurnFlowUpdateConsumer = createBushFlowUpdateConsumer(
-            updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows);
+            updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows, updateUnconstrainedFlows);
     
     /* execute */
     executeNetworkLoadingUpdate(bushTurnFlowUpdateConsumer);
@@ -98,8 +104,10 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
     boolean updateTurnAcceptedFlows = false;
     boolean updateSendingFlowDuringLoading = true;
     boolean updateOutflows = false;
+    boolean updateUnconstrainedFlows = false;
     var bushFlowUpdateConsumer =
-        createBushFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows);
+        createBushFlowUpdateConsumer(
+                updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows, updateUnconstrainedFlows);
     
     /* execute */
     executeNetworkLoadingUpdate(bushFlowUpdateConsumer);
@@ -109,13 +117,16 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * {@inheritDoc}
    */
   @Override
-  protected void networkLoadingLinkSegmentSendingflowOutflowUpdate(Mode mode) {
+  protected void networkLoadingSendingFlowOutflowUnconstrainedFlowUpdate(Mode mode) {
         
     /* configure to only update all link segment sending flows */
     boolean updateTurnAcceptedFlows = false;
     boolean updateSendingFlow = true;
     boolean updateOutflowFlow= true;
-    var bushFlowUpdateConsumer = createBushFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlow, updateOutflowFlow);
+    boolean updateUnconstrainedFlows = true;
+    var bushFlowUpdateConsumer =
+            createBushFlowUpdateConsumer(
+                    updateTurnAcceptedFlows, updateSendingFlow, updateOutflowFlow, updateUnconstrainedFlows);
     
     /* execute */
     executeNetworkLoadingUpdate(bushFlowUpdateConsumer);    

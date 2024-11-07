@@ -111,6 +111,8 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
 
     /* initialise origin vertex outgoing edge sending flows */
     initialiseOriginExitSegmentSendingFlows(bush, bushSendingFlows);
+    TreeMap<EdgeSegment, Double> bushUnconstrainedFlows =
+            dataConfig.isUnconstrainedFlowsUpdate() ? new TreeMap<>(bushSendingFlows) : null;
 
     /* pass over bush in topological order propagating flow from origin */
     while (vertexIter.hasNext()) {
@@ -140,6 +142,11 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
           dataConfig.sendingFlows[entrySegmentId] += bushLinkSendingFlow;
         }
 
+        if(dataConfig.isUnconstrainedFlowsUpdate()){
+          double bushLinkDemand = bushUnconstrainedFlows.get(entrySegment);
+          dataConfig.unconstrainedFlows[entrySegmentId] += bushLinkDemand;
+        }
+
         /* v_a = SUM(v^o_a) (only when enabled) */
         if (dataConfig.isOutflowsUpdate()) {
           dataConfig.outFlows[entrySegmentId] += bushEntryAcceptedFlow;
@@ -166,17 +173,19 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
 
           double splittingRate = splittingRates[splittingRateIndex];
           if (splittingRate > 0) {
+
             /* v^o_ab = v^o_a * phi_ab */
             double turnAcceptedFlow = bushEntryAcceptedFlow * splittingRate;
             totalExitAcceptedFlow += turnAcceptedFlow;
 
-            Double exitFlowToUpdate = bushSendingFlows.get(exitSegment);
-            if (exitFlowToUpdate == null) {
-              exitFlowToUpdate = turnAcceptedFlow;
-            } else {
-              exitFlowToUpdate += turnAcceptedFlow;
-            }
+            double exitFlowToUpdate = bushSendingFlows.getOrDefault(exitSegment, 0.0) + turnAcceptedFlow;
             bushSendingFlows.put(exitSegment, exitFlowToUpdate);
+
+            if(dataConfig.isUnconstrainedFlowsUpdate()){
+              double bushTurnDemand = bushUnconstrainedFlows.get(entrySegment) * splittingRate;
+              bushUnconstrainedFlows.put(exitSegment,
+                      bushUnconstrainedFlows.getOrDefault(exitSegment,0.0) + bushTurnDemand);
+            }
 
             /* update turn accepted flows as per derived class implementation (or do nothing) */
             applyAcceptedTurnFlowUpdate(
@@ -186,7 +195,8 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
         }
 
         if (Precision.notEqual(bushEntryAcceptedFlow, totalExitAcceptedFlow) && !(entrySegment instanceof ConnectoidSegment)) {
-          LOGGER.severe(String.format("Accepted out flow %.10f on edge segment (%s) not equal to flow (%.10f) assigned to turns on bush %s, this shouldn't happen",
+          LOGGER.severe(String.format("Accepted out flow %.10f on edge segment (%s) not equal to flow (%.10f) assigned " +
+                          "to turns on bush %s, this shouldn't happen",
                   bushEntryAcceptedFlow, entrySegment.getXmlId(), totalExitAcceptedFlow, ((DestinationBush)bush).getDestination().getParent().getParentZone().getIdsAsString()));
         }
       }

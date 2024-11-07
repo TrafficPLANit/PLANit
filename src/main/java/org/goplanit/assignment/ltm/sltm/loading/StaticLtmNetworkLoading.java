@@ -113,7 +113,7 @@ public abstract class StaticLtmNetworkLoading {
     /*
      * sending flows must be re-initialised since otherwise the sending flows of earlier non-tracked nodes have been
      * reset to zero during earlier loading iterations, now they must be available for all tracked nodes, so we
-     * reinitialise by conducting a full initialisation based on paths and most recent flow acceptance factors
+     * reinitialise by conducting a full initialisation based on paths/bushes and most recent flow acceptance factors
      */
     initialiseSendingFlows(mode);
 
@@ -406,6 +406,9 @@ public abstract class StaticLtmNetworkLoading {
   // SIMULATION DATA
 
   /** variables tracked for sending flow update step **/
+  protected UnconstrainedFlowData unconstrainedFlowData;
+
+  /** variables tracked for sending flow update step **/
   protected SendingFlowData sendingFlowData;
 
   /** variables tracked for receiving flow update step **/
@@ -570,12 +573,13 @@ public abstract class StaticLtmNetworkLoading {
   protected abstract void networkLoadingLinkSegmentSendingFlowUpdate(Mode mode);
 
   /**
-   * Conduct a network loading to compute updated current sending flow and outflow rates (without tracking turn flows).
-   * Used to finalize a loading after convergence to ensure consistency in flows that might be compromised during local updates
+   * Conduct a network loading to compute updated current sending flow, outflow rates, and unconstrained flows
+   * (without tracking turn flows). Used to finalize a loading after convergence to ensure consistency in flows
+   * that might be compromised during local updates
    *
    * @param mode to use
    */  
-  protected abstract void networkLoadingLinkSegmentSendingflowOutflowUpdate(Mode mode);
+  protected abstract void networkLoadingSendingFlowOutflowUnconstrainedFlowUpdate(Mode mode);
 
   /**
    * Let derived loading implementation initialise which nodes are to be tracked for network splitting rates, e.g.
@@ -698,6 +702,7 @@ public abstract class StaticLtmNetworkLoading {
     
     /* flow data defaults to zero unless explicitly set */
     this.sendingFlowData = new SendingFlowData(referenceEmptyArray);
+    this.unconstrainedFlowData = new UnconstrainedFlowData(referenceEmptyArray);
     this.receivingFlowData = new ReceivingFlowData(referenceEmptyArray);       
     this.inFlowOutflowData = new InflowOutflowData(referenceEmptyArray);
     
@@ -1017,7 +1022,7 @@ public abstract class StaticLtmNetworkLoading {
       
       /* update sending flows, inflows, outflows on all links with minimal overhead */
       initialiseTrackAllNodeTurnFlows(mode);
-      
+
       /* conduct full network loading to ensure all variables are available based on most recent route choice results */
       {
         stepOneSplittingRatesUpdate(mode);
@@ -1035,7 +1040,7 @@ public abstract class StaticLtmNetworkLoading {
      * that look strange, e.g., outflow>inflow etc.
      */
     {
-      networkLoadingLinkSegmentSendingflowOutflowUpdate(mode);
+      networkLoadingSendingFlowOutflowUnconstrainedFlowUpdate(mode);
       sendingFlowData.limitCurrentSendingFlowsToCapacity(networkLayer.getLinkSegments());
       LinkSegmentData.copyTo(sendingFlowData.getCurrentSendingFlows(), inFlowOutflowData.getInflows());
       inFlowOutflowData.limitOutflowsToCapacity(networkLayer.getLinkSegments());
@@ -1156,6 +1161,7 @@ public abstract class StaticLtmNetworkLoading {
   public void resetIteration() {
     /* flow data defaults to zero unless explicitly set */
     this.sendingFlowData.reset();
+    this.unconstrainedFlowData.reset();
     this.receivingFlowData.reset();       
     this.inFlowOutflowData.reset();        
     this.networkLoadingFactorData.reset();
@@ -1175,10 +1181,18 @@ public abstract class StaticLtmNetworkLoading {
   
   /** Access to most recent flow acceptance factors (alphas)
    * 
-   * @return flow acceptance factors
+   * @return flow acceptance factors indexed by link segment id
    */
   public final double[] getCurrentFlowAcceptanceFactors(){
     return this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
+  }
+
+  /** Access to most recent unconstrained flows
+   *
+   * @return unconstrained flows indexed by link segment id
+   */
+  public double[] getUnconstrainedFlowsPcuHour() {
+    return this.unconstrainedFlowData.getUnconstrainedFlows();
   }
   
   /** Collect the network's current splitting rate data

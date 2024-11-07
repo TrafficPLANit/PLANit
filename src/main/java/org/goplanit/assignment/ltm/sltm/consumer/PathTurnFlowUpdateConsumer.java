@@ -13,16 +13,21 @@ import org.goplanit.utils.network.layer.physical.Movement;
 /**
  * Consumer to apply during path based turn flow update for each combination of origin, destination, and demand
  * <p>
- * Depending on the configuration which in turn depends on the active solution scheme a slightly different approach is taken to this update where:
+ * Depending on the configuration which in turn depends on the active solution scheme a slightly different approach
+ * is taken to this update where:
  * <p>
- * POINT QUEUE BASIC: Also update the current sending flow. Only during basic point queue solution scheme, sending flows are NOT locally updated in the sending flow update step.
- * Therefore, sending flows of most links are not updated during this sending flow update because it only updates the sending flows of outgoing links of potentially blocking nodes.
- * When an incoming link of any node is not also an outgoing link of another potentially blocking node its sending flow remains the same even if it actually changes due to further
- * upstream changes in restrictions. In this approach this is only identified when we make sure the sending flows are updated during (this) loading on the path level. Hence, we
- * must update sending flows here.
+ * POINT QUEUE BASIC: Also update the current sending flow. Only during basic point queue solution scheme, sending
+ * flows are NOT locally updated in the sending flow update step. Therefore, sending flows of most links are not updated
+ * during this sending flow update because it only updates the sending flows of outgoing links of potentially blocking
+ * nodes. When an incoming link of any node is not also an outgoing link of another potentially blocking node its
+ * sending flow remains the same even if it actually changes due to further upstream changes in restrictions. In this
+ * approach this is only identified when we make sure the sending flows are updated during (this) loading on the path
+ * level. Hence, we must update sending flows here.
  * <p>
- * ANY OTHER SOLUTION APPROACH: Here we update all used nodes and sending flows are updated iteratively and locally propagated without the need of the loading in the sending flow
- * update. Therefore, there is no need to update the sending flows. On the other hand we now update the turn flows on all used nodes rather than only the potentially blocking ones.
+ * ANY OTHER SOLUTION APPROACH: Here we update all used nodes and sending flows are updated iteratively and locally
+ * propagated without the need of the loading in the sending flow update. Therefore, there is no need to update the
+ * sending flows. On the other hand we now update the turn flows on all used nodes rather than only the potentially
+ * blocking ones.
  * 
  * @author markr
  *
@@ -38,10 +43,12 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
    * 
    * @param movement         the movement
    * @param turnSendingFlowPcuH sending flow rate of turn
+   * @param turnUnconstrainedFlowPcuH unconstrained flow rate of turn
    * @return accepted flow rate of turn after applying link acceptance factor
    */
   @Override
-  protected double applySingleFlowUpdate(final Movement movement, final double turnSendingFlowPcuH) {
+  protected double applySingleFlowUpdate(
+          final Movement movement, final double turnSendingFlowPcuH, final double turnUnconstrainedFlowPcuH) {
 
     if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(movement.getCentreVertex())) {
 
@@ -52,8 +59,12 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
         dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
       }
 
+      if(dataConfig.isUnconstrainedFlowsUpdate()){
+        dataConfig.unconstrainedFlows[prevSegmentId] += turnUnconstrainedFlowPcuH;
+      }
 
-      /* v_ap = u_bp = alpha_a*...*f_p where we implicitly consider all preceding alphas (flow acceptance factors) up to now */
+      /* v_ap = u_bp = alpha_a*...*f_p where we implicitly consider all
+       * preceding alphas (flow acceptance factors) up to now */
       double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
       dataConfig.addToAcceptedTurnFlows(movement, acceptedTurnFlowPcuH);
 
@@ -69,15 +80,19 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
   }
 
   /**
-   * DO NOTHING - since this is a turn update and the final turn has no outgoing edge segment it is never tracked (because it does not exist), therefore, we can disregard updating
-   * the final segment flow in a turn flow update setting, even when tracking link segment sending flows (since this sending flow is never required as input to a node model update
-   * 
+   * Since this is a turn update and the final turn has no outgoing edge segment it is never tracked
+   * (because it does not exist), therefore, we can disregard updating the final segment flow in a turn flow
+   * update setting, even when tracking link segment sending flows (since this sending flow is never required as input
+   * to a node model update.
+   *
    * @param lastEdgeSegment      to use
    * @param acceptedPathFlowRate to use
+   * @param turnUnconstrainedFlowPcuH unconstrained flow rate of turn
    */
   @Override
-  protected void applyPathFinalSegmentFlowUpdate(final EdgeSegment lastEdgeSegment, double acceptedPathFlowRate) {
-    // do nothing
+  protected void applyPathFinalSegmentFlowUpdate(
+          final EdgeSegment lastEdgeSegment, double acceptedPathFlowRate, final double turnUnconstrainedFlowPcuH) {
+    //do nothing
   }
 
   /**

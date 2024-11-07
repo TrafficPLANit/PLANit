@@ -26,12 +26,18 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
    * 
    * @param movement         to use
    * @param turnSendingFlowPcuH to use
+   * @param turnUnconstrainedFlowPcuH unconstrained flow rate of turn
    */
   @Override
-  protected double applySingleFlowUpdate(final Movement movement, double turnSendingFlowPcuH) {
+  protected double applySingleFlowUpdate(
+          final Movement movement, double turnSendingFlowPcuH, final double turnUnconstrainedFlowPcuH) {
     /* u_a: update inflow for link segment */
     int prevSegmentId = (int) movement.getSegmentFrom().getId();
     this.dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
+
+    if(dataConfig.isUnconstrainedFlowsUpdate()){
+      dataConfig.unconstrainedFlows[prevSegmentId] += turnUnconstrainedFlowPcuH;
+    }
 
     /* v_ap = u_bp = alpha_a*...*f_p  */
     double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
@@ -44,14 +50,21 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
   }
 
   /**
-   * Apply final path flow on last segment that otherwise would not have been updated in the turn based {@link #applySingleFlowUpdate(Movement, double)}
+   * Apply final path flow on last segment that otherwise would not have been updated in the turn
+   * based {@link #applySingleFlowUpdate(Movement, double, double)}
    * 
    * @param lastEdgeSegment      to use
    * @param acceptedPathFlowRate to use
+   * @param turnUnconstrainedFlowPcuH unconstrained flow rate of turn
    */
   @Override
-  protected void applyPathFinalSegmentFlowUpdate(EdgeSegment lastEdgeSegment, double acceptedPathFlowRate) {
+  protected void applyPathFinalSegmentFlowUpdate(
+          EdgeSegment lastEdgeSegment, double acceptedPathFlowRate, final double turnUnconstrainedFlowPcuH) {
     dataConfig.sendingFlows[(int) lastEdgeSegment.getId()] += acceptedPathFlowRate;
+
+    if(dataConfig.isUnconstrainedFlowsUpdate()){
+      dataConfig.sendingFlows[(int) lastEdgeSegment.getId()] += turnUnconstrainedFlowPcuH;
+    }
   }
 
   /**

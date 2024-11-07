@@ -25,7 +25,8 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
    * {@inheritDoc}
    */
   @Override
-  protected BushFlowUpdateConsumer<ConjugateDestinationBush> createBushFlowUpdateConsumer(boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows) {
+  protected BushFlowUpdateConsumer<ConjugateDestinationBush> createBushFlowUpdateConsumer(
+          boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows, boolean updateUnconstrainedFlows) {
     // TODO: base on rooted bush loading
 //    if (!updateSendingFlows && !updateTurnAcceptedFlows) {
 //      LOGGER.warning("Network flow updates using bushes must either updating link sending flows or turn accepted flows, neither are selected");

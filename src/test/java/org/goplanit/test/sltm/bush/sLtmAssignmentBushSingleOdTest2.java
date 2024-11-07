@@ -128,6 +128,26 @@ public class sLtmAssignmentBushSingleOdTest2 {
     assertEquals(inflow7, 1972.649573691407, Precision.EPSILON_3);
     assertEquals(inflow8, inflow7, Precision.EPSILON_3);
     assertEquals(inflow9, inflow8, Precision.EPSILON_3);
+
+    double demand0 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+    double demand1 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+    double demand2 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+    double demand3 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("3").getLinkSegmentAb());
+    double demand4 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
+    double demand5 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+    double demand6 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("6").getLinkSegmentAb());
+    double demand7 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("7").getLinkSegmentAb());
+    double demand8 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+    double demand9 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
+
+    assertEquals(demand0, 8000, Precision.EPSILON_3);
+    assertEquals(demand4, demand5, Precision.EPSILON_3);
+    assertEquals(demand5, demand6, Precision.EPSILON_3);
+    assertEquals(demand1+demand4, demand0, Precision.EPSILON_3);
+    assertEquals(demand2 + demand7, demand0, Precision.EPSILON_3);
+    assertEquals(demand7, demand8, Precision.EPSILON_3);
+    assertEquals(demand8, demand9, Precision.EPSILON_3);
+    assertEquals(demand0, demand3, Precision.EPSILON_3);
   }
 
   /**

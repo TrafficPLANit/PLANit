@@ -106,6 +106,14 @@ public class SLtmTaPathBasedMultiDestinationQlFdTest extends sLtmAssignmentMulti
     assertEquals(outflow9 + outflow11, inflow12, Precision.EPSILON_3);
     assertEquals(outflow10, inflow11, Precision.EPSILON_3);
     assertEquals(outflow12, inflow13 + inflow14, Precision.EPSILON_3);
+
+    double demand0 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+    double demand4 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
+    double demand8 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+
+    assertEquals(demand0, 8000, Precision.EPSILON_3);
+    assertEquals(demand4, 4000, Precision.EPSILON_3);
+    assertEquals(demand8, demand4, Precision.EPSILON_3);
   }
 
   /**
