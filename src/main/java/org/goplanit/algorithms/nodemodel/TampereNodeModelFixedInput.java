@@ -147,7 +147,8 @@ public class TampereNodeModelFixedInput {
    * @param incomingLinkSegmentCapacities     to use
    * @param outgoingLinkSegmentReceivingFlows to use
    */
-  public TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities, Array1D<Double> outgoingLinkSegmentReceivingFlows) {
+  public TampereNodeModelFixedInput(
+          Array1D<Double> incomingLinkSegmentCapacities, Array1D<Double> outgoingLinkSegmentReceivingFlows) {
     this.incomingLinkSegmentCapacities = incomingLinkSegmentCapacities.copy();
     this.outgoingLinkSegmentReceivingFlows = outgoingLinkSegmentReceivingFlows.copy();
   }

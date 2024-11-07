@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushRooted;
-import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -20,7 +19,6 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
-import org.goplanit.utils.zoning.OdZone;
 
 /**
  * Base implementation to support a rooted bush based solution for sLTM
@@ -104,7 +102,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    * @return new created PAS if successfully created, null otherwise, the boolean indicates if it indeed is a brand new PAS
    * or for some reason we still reused an existing one
    */
-  private Pair<Pas, Boolean> extendBushWithNewPas(
+  private Pas extendBushWithNewPas(
           final RootedLabelledBush bush,
           final DirectedVertex reducedCostVertex,
           final ShortestPathResult networkMinPaths,
@@ -182,7 +180,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
 
     /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
     getLoading().activateNodeTrackingFor(pas);
-    return Pair.of(pas, true);
+    return pas;
   }
 
   /**
@@ -192,14 +190,15 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    * each OD which requires the min-cost from each origin to each destination which is what the shortest path trees provide. The updating of the network's actual costs occurs
    * elsewhere
    *
-   * @param mode               to use
-   * @param linkSegmentCosts   to use to construct min-max path three rooted at each bush's origin
-   * @param updateGap          flag
+   * @param mode             to use
+   * @param linkSegmentCosts to use to construct min-max path three rooted at each bush's origin
+   * @param updateGap        flag
+   * @param logAll           flag
    * @return newly created PASs and existing pass with newly registered bushes on them  (empty if no new PASs were created or newly assigned))
    */
   @Override
   protected Pair<Collection<Pas>, Collection<Pas>> updateBushPass(
-          Mode mode, final double[] linkSegmentCosts, boolean updateGap){
+          Mode mode, final double[] linkSegmentCosts, boolean updateGap, boolean logAll){
 
     double totalMinCost = 0; // track during bush traversal to get min OD costs based on shortest paths
     double totalRealisedCost = 0;
@@ -292,7 +291,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
 
         Pas existingRegisteredPas = extendBushWithSuitableExistingPas(bush, bushVertex, reducedCost);
         if (existingRegisteredPas != null) {
-          if(isDestinationTrackedForLogging(bush)){
+          if(isDestinationTrackedForLogging(bush) || logAll){
             LOGGER.info(String.format("Registered suitable existing PAS (%s) on bush (%s)", existingRegisteredPas, bush));
           }
           existingPassWithNewBushes.add(existingRegisteredPas);
@@ -300,19 +299,15 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         }
 
         /* no suitable match, attempt creating an entirely new PAS */
-        var foundPasPair = extendBushWithNewPas(bush, bushVertex, networkMinPaths, reducedCost, linkSegmentCosts);
-        if (foundPasPair == null) {
-          continue;
-        }else if(!foundPasPair.second() /* registered on existing pas rather than new */){
-          existingPassWithNewBushes.add(foundPasPair.first());
+        var newPas = extendBushWithNewPas(bush, bushVertex, networkMinPaths, reducedCost, linkSegmentCosts);
+        if (newPas == null) {
           continue;
         }
 
         // truly new PAS
-        var newPas = foundPasPair.first();
         newPass.add(newPas);
         newPas.updateCost(linkSegmentCosts);
-        if(isDestinationTrackedForLogging(bush)){
+        if(isDestinationTrackedForLogging(bush) || logAll){
           LOGGER.info(String.format("Registered new PAS (%s) on bush (%s)", newPas, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
 

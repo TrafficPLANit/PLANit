@@ -580,19 +580,17 @@ public abstract class PasFlowShiftExecutor {
    *
    * @param proposedFlowShifts proposed shifts per entry segment
    * @param theMode            to use
-   * @param physicalCost       to use
-   * @param virtualCost        to use
    * @param networkLoading     to use
    * @param smoothing          to apply to flow shift
+   * @param logAll             to use
    * @return true when flow is shifted, false otherwise
    */
   public boolean performS2FlowShift(
       Map<EdgeSegment, Double> proposedFlowShifts,
       Mode theMode,
-      AbstractPhysicalCost physicalCost,
-      AbstractVirtualCost virtualCost,
       StaticLtmLoadingBushBase<?> networkLoading,
-      Smoothing smoothing) {
+      Smoothing smoothing,
+      boolean logAll) {
 
     double totalProposedFlowShift = proposedFlowShifts.values().stream().mapToDouble(d->d).sum();
 
@@ -652,7 +650,7 @@ public abstract class PasFlowShiftExecutor {
     // minimum of current and original is what we now is available as it is a minimum
     double guaranteedS2SendingFlow = currentS2SendingFlow; //Math.min(currentS2SendingFlow, networkLoadingConsistentS2SendingFlow);
 
-    if(isDestinationTrackedForLogging()) {
+    if(isDestinationTrackedForLogging() || logAll) {
       LOGGER.info("* S2 FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + "(NL consistent: " + networkLoadingConsistentS2SendingFlow+") - cost-diff: " + pas.getReducedCost());
 //      LOGGER.info("s1 alphas: "+
 //              Arrays.stream(pas.getAlternative(true)).map(es -> String.format("%s:%.2f",
@@ -680,10 +678,10 @@ public abstract class PasFlowShiftExecutor {
 
       double smoothedProportionalPasflowShift = smoothing.executeRefZero(proposedPasFlowShift);
       /*test for eligibility to reduce to zero flow along S2 */
-      if (Precision.greaterEqual(smoothedProportionalPasflowShift, guaranteedEntrySegmentS2SendingFlow, EPSILON_3)) {
+      if (smoothedProportionalPasflowShift >= guaranteedEntrySegmentS2SendingFlow) {
 
-        if(isDestinationTrackedForLogging()) {
-          LOGGER.info(String.format("     [removal --> shift %.10f equal or higher than s2 sending flow %.10f, entry segment (%s)]",
+        if(isDestinationTrackedForLogging() || logAll) {
+          LOGGER.info(String.format("     [removal --> proposed shift %.10f equal or higher than s2 sending flow %.10f, entry segment (%s)]",
                   smoothedProportionalPasflowShift, guaranteedEntrySegmentS2SendingFlow, entrySegment.getIdsAsString()));
         }
 
@@ -710,15 +708,16 @@ public abstract class PasFlowShiftExecutor {
         double entrySegmentBushPasflowShift = smoothedProportionalPasflowShift * bushS2Portion;
 
         if(guaranteedBushEntrySegmentS2SendingFlow < EPSILON_3){
-          entrySegmentBushPasflowShift = guaranteedBushEntrySegmentS2SendingFlow; // make sure we ride the bush s2 PAS from all remaining flow by setting a high value
-          if(isDestinationTrackedForLogging(bush)) {
+          // make sure we rid the bush s2 PAS from all remaining flow by setting a high value
+          entrySegmentBushPasflowShift = guaranteedBushEntrySegmentS2SendingFlow;
+          if(isDestinationTrackedForLogging(bush) || logAll) {
             LOGGER.info(String.format(
                     "     S2 flow bush near zero -> FLOW SHIFT UPLIFT -> Attempted flow shift=%.10f) - entry segment (%s) - alpha: %.2f - bush (%s)",
                     entrySegmentBushPasflowShift, entrySegment.getIdsAsString(),
                 networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()], bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
           }
         }else{
-          if(isDestinationTrackedForLogging(bush)) {
+          if(isDestinationTrackedForLogging(bush) || logAll) {
             LOGGER.info(String.format(
                     "     Shift: %.9f (available flow %.9f) on entry (%s) - bush (%s) - entry alpha: %.2f -",
                     entrySegmentBushPasflowShift, guaranteedBushEntrySegmentS2SendingFlow, entrySegment.getIdsAsString(),
@@ -754,9 +753,9 @@ public abstract class PasFlowShiftExecutor {
    * @param networkLoading to apply
    */
   public void performS1FlowShift(Mode theMode, StaticLtmLoadingBushBase<?> networkLoading) {
-//    if(flowShiftedS2BushData.values().stream().flatMap(e -> e.keySet().stream()).anyMatch(this::isDestinationTrackedForLogging)) {
-//      LOGGER.info(String.format("* S1 FLOW SHIFT on PAS: %s", pas));
-//    }
+    if(flowShiftedS2BushData.values().stream().flatMap(e -> e.keySet().stream()).anyMatch(this::isDestinationTrackedForLogging)) {
+      LOGGER.info(String.format("* S1 FLOW SHIFT on PAS: %s", pas));
+    }
 
     for (var entry : flowShiftedS2BushData.entrySet()) {
       var entrySegment = entry.getKey();
@@ -764,13 +763,13 @@ public abstract class PasFlowShiftExecutor {
         var bush = bushFlowEntry.getKey();
         var flowShiftData = bushFlowEntry.getValue();
 
-//        if(isDestinationTrackedForLogging(bush)) {
-//          LOGGER.info(String.format("        Flow to shift: %.4f - entry segment (%s) - alpha: %.2f - bush (%s)",
-//                  flowShiftData.getS2Flowshifted(),
-//                  entrySegment.getIdsAsString(),
-//                  networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()],
-//                  bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-//        }
+        if(isDestinationTrackedForLogging(bush)) {
+          LOGGER.info(String.format("        Flow to shift: %.8f - entry segment (%s) - alpha: %.2f - bush (%s)",
+                  flowShiftData.getS2Flowshifted(),
+                  entrySegment.getIdsAsString(),
+                  networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()],
+                  bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+        }
 
         executeBushS1FlowShift(
                 bush,

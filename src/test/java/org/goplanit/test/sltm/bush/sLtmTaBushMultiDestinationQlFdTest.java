@@ -97,7 +97,7 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
     assertEquals(outflow11, outflow10, Precision.EPSILON_3);
     assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
     assertEquals(outflow13, 2239.733, 1);
-    assertEquals(outflow14, 2261, 1); 
+    assertEquals(outflow14, 2261, 1);
 
     double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());

@@ -20,12 +20,15 @@ public class TampereNodeModelInput {
    * @param turnSendingFlows the turn sending flows
    * @throws PlanItException thrown if error
    */
-  private void verifyInputs(TampereNodeModelFixedInput fixedInput, Array2D<Double> turnSendingFlows) throws PlanItException {
+  private void verifyInputs(
+          TampereNodeModelFixedInput fixedInput, Array2D<Double> turnSendingFlows) throws PlanItException {
     PlanItException.throwIf(fixedInput == null, "network mapping is null");
     PlanItException.throwIf(turnSendingFlows == null, "turn sending flows are null");
     PlanItException.throwIf(
-        turnSendingFlows.countRows() != fixedInput.getNumberOfIncomingLinkSegments() || turnSendingFlows.countColumns() != fixedInput.getNumberOfOutgoingLinkSegments(),
-        "Number of rows and/or columns in turn sending flows do not match the number of incoming and/or outgoing links in the node model mapping");
+        turnSendingFlows.countRows() != fixedInput.getNumberOfIncomingLinkSegments()
+                || turnSendingFlows.countColumns() != fixedInput.getNumberOfOutgoingLinkSegments(),
+        "Number of rows and/or columns in turn sending flows do not match the number of incoming " +
+                "and/or outgoing links in the node model mapping");
   }
 
   /**
@@ -38,7 +41,7 @@ public class TampereNodeModelInput {
     for (int inIndex = 0; inIndex < fixedInput.getNumberOfIncomingLinkSegments(); ++inIndex) {
       double inLinkSegmentCapacity = fixedInput.incomingLinkSegmentCapacities.get(inIndex);
       // Sum_b(s_ab)
-      double inLinkSendingFlow = turnSendingFlows.aggregateRow(inIndex, Aggregator.SUM).doubleValue();
+      double inLinkSendingFlow = turnSendingFlows.aggregateRow(inIndex, Aggregator.SUM);
       // lambda_a = C_a/Sum_b(s_ab)
       double lambdaIncomingLinkScalingFactor = 0.0;
       if (Precision.positive(inLinkSendingFlow)) {

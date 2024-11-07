@@ -300,10 +300,11 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * FLOW_SHIFTING STEP6 : S2 flow shifts, remove proposed flows when possible from high cost S2 alternatives
    * for sorted PASs
    *
-   * @param theMode to use
-   * @param sortedPass list of sorted PASs in processing order
-   * @param pasExecutors flow shift executors for each PAS
+   * @param theMode               to use
+   * @param sortedPass            list of sorted PASs in processing order
+   * @param pasExecutors          flow shift executors for each PAS
    * @param pasProposedFlowShifts proposed shifts per PAS
+   * @param simulationData        for debugging
    * @return list of PASs with shifted flows, and PASs with no flow remaining (the latter may also be listed as flow
    * shifted since, after the shift it may be that it has no more flow left, then it appears in both lists)
    */
@@ -311,15 +312,13 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
           Mode theMode,
           Collection<Pas> sortedPass,
           Map<Pas, PasFlowShiftExecutor> pasExecutors,
-          Map<Pas, Map<EdgeSegment, Double>> pasProposedFlowShifts) {
+          Map<Pas, Map<EdgeSegment, Double>> pasProposedFlowShifts,
+          StaticLtmSimulationData simulationData) {
 
     Collection<EdgeSegment> linkSegmentsUsed = new HashSet<>(100);
 
     var flowShiftedPass = new ArrayList<Pas>((int) this.pasManager.getNumberOfPass());
     var passWithoutBush = new ArrayList<Pas>();
-
-    var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
-    var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
 
     for (Pas pas : sortedPass) {
 
@@ -354,9 +353,12 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         continue;
       }
 
+      // debugging
+      boolean logAll = /*false;*/ simulationData.getIterationIndex()>=200;
+
       /* untouched PAS (no flows shifted yet) in this iteration */
       boolean pasFlowShifted = pasFlowShifter.performS2FlowShift(
-              pasProposedFlowShifts.get(pas), theMode, physicalCost, virtualCost, getLoading(), getSmoothing());
+              pasProposedFlowShifts.get(pas), theMode, getLoading(), getSmoothing(), logAll);
       if (pasFlowShifted) {
         flowShiftedPass.add(pas);
 
@@ -458,7 +460,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     // STEP6 : S2 flow shifts
     // Remove proposed flows when possible from high cost S2 alternatives for sorted PASs
     var flowShiftedAndObsoletePass = flowShiftingStepSixPerformS2FlowShifts(
-            theMode, sortedPass, pasExecutors, pasProposedFlowShifts);
+            theMode, sortedPass, pasExecutors, pasProposedFlowShifts, simulationData);
     ArrayList<Pas> flowShiftedPass = flowShiftedAndObsoletePass.first();
     ArrayList<Pas> passWithoutBush = flowShiftedAndObsoletePass.second();
 
@@ -524,13 +526,14 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   /**
    * Update the PASs for bushes given the network costs and current bushes DAGs
    *
-   * @param mode               to use
-   * @param linkSegmentCosts   to use
-   * @param updateGap          flag
+   * @param mode             to use
+   * @param linkSegmentCosts to use
+   * @param updateGap        flag
+   * @param logAll           flag
    * @return newly created PASs and exiting PAss with newly assigned bushes
    */
   protected abstract Pair<Collection<Pas>, Collection<Pas>> updateBushPass(
-          Mode mode, final double[] linkSegmentCosts, boolean updateGap);
+          Mode mode, final double[] linkSegmentCosts, boolean updateGap, boolean logAll);
 
   /**
    * Constructor
@@ -775,6 +778,14 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
           LOGGER.info(String.format("** INFLOW: %s", Arrays.toString(getLoading().getCurrentInflowsPcuH())));
           LOGGER.info(String.format("** OUTFLOW: %s", Arrays.toString(getLoading().getCurrentOutflowsPcuH())));
         }
+
+        // DEBUGGING
+        var alphas = getLoading().getCurrentFlowAcceptanceFactors();
+        for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
+          if(alphas[(int)ls.getId()]<0.999999999998){
+            LOGGER.info(String.format("** LINK (%s) - ALPHA: %.8f - Sending flow: %.2f", ls.getXmlId(), alphas[(int)ls.getId()], getLoading().getCurrentInflowsPcuH()[(int)ls.getId()]));
+          }
+        }
       }
       
       /* 3 - BUSH LOADING - SYNC BUSH TURN FLOWS - USE NETWORK LOADING ALPHAS - MODE AGNOSTIC FOR NOW */
@@ -784,10 +795,13 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */     
       {
+        // debugging
+        boolean logAll = /*false;*/ simulationData.getIterationIndex()>=200;
+
         /* (NEW) PAS MATCHING FOR BUSHES */
         long numOriginalPass = pasManager.getNumberOfPass();
         boolean updateGap = true; // we can cheaply determine gap while traversing bushes
-        var newAndUpdatedPass = updateBushPass(theMode, costsToUpdate, updateGap);
+        var newAndUpdatedPass = updateBushPass(theMode, costsToUpdate, updateGap, logAll);
         if(getSettings().isDetailedLogging()) {
           LOGGER.info(String.format("%d PASs known (including %d new and %d updated PASs)",
                   pasManager.getNumberOfPass(), newAndUpdatedPass.first().size(), newAndUpdatedPass.second().size()));
@@ -811,7 +825,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
       /* 5 - perform low flow branch shifts on the bush level */
       {
-        performLowFlowBushBranchShifts(0.00, getLoading().getCurrentFlowAcceptanceFactors());
+        performLowFlowBushBranchShifts(0.001, getLoading().getCurrentFlowAcceptanceFactors());
       }
       
     }catch(Exception e) {
