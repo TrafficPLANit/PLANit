@@ -87,17 +87,17 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
     assertEquals(outflow1, 4529.16, 1);
     assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow3, outflow2, Precision.EPSILON_3);
-    assertEquals(outflow4, 3742, 1);
+    assertEquals(outflow4, 3739.73, 1);
     assertEquals(outflow5, 3191.29, 1);
     assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow7, outflow6, Precision.EPSILON_3);
-    assertEquals(outflow8, 3758, 1);
+    assertEquals(outflow8, 3760.266, 1);
     assertEquals(outflow9, 3000.0, Precision.EPSILON_3);
     assertEquals(outflow10, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow11, outflow10, Precision.EPSILON_3);
     assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
-    assertEquals(outflow13, 2242, 1);
-    assertEquals(outflow14, 2258, 1);
+    assertEquals(outflow13, 2239.733, 1);
+    assertEquals(outflow14, 2261, 1);
 
     double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
@@ -142,7 +142,7 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       var configurator = sLTMBuilder.getConfigurator();
       configurator.createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
       configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      configurator.activateDetailedLogging(true);
+      configurator.activateDetailedLogging(false);
       
       /* DESTINATION BASED */
       configurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);
@@ -155,7 +155,7 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       configurator.activateOutput(OutputType.LINK);
       configurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
-      configurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"),Pair.of("A","A``"));
+      //configurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"),Pair.of("A","A``"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);

@@ -9,6 +9,9 @@ import java.util.logging.Logger;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushRooted;
+import org.goplanit.cost.physical.AbstractPhysicalCost;
+import org.goplanit.gap.GapFunction;
+import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -17,6 +20,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.zoning.OdZone;
 
 /**
  * Base implementation to support a rooted bush based solution for sLTM
@@ -188,12 +192,30 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    * each OD which requires the min-cost from each origin to each destination which is what the shortest path trees provide. The updating of the network's actual costs occurs
    * elsewhere
    *
-   * @param mode to use
-   * @param linkSegmentCosts to use to construct min-max path three rooted at each bush's origin
+   * @param mode               to use
+   * @param linkSegmentCosts   to use to construct min-max path three rooted at each bush's origin
+   * @param updateGap          flag
    * @return newly created PASs and existing pass with newly registered bushes on them  (empty if no new PASs were created or newly assigned))
    */
   @Override
-  protected Pair<Collection<Pas>, Collection<Pas>> updateBushPass(Mode mode, final double[] linkSegmentCosts){
+  protected Pair<Collection<Pas>, Collection<Pas>> updateBushPass(
+          Mode mode, final double[] linkSegmentCosts, boolean updateGap){
+
+    double totalMinCost = 0; // track during bush traversal to get min OD costs based on shortest paths
+    double totalRealisedCost = 0;
+    if(updateGap) {
+      // costs as they currently are utilising the unconstrained demand as a point of reference
+      for (var linkSegment : getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode).getLinkSegments()) {
+        double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
+        double linkCost = linkSegmentCosts[(int) linkSegment.getId()];
+        totalRealisedCost += linkCost * linkDemand;
+      }
+      for (var linkSegment : getTransportNetwork().getVirtualNetwork().getConnectoidSegments()) {
+        double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
+        double linkCost = linkSegmentCosts[(int) linkSegment.getId()];
+        totalRealisedCost += linkCost * linkDemand;
+      }
+    }
 
     //todo --> should be sets
     List<Pas> newPass = new ArrayList<>();
@@ -222,6 +244,18 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         LOGGER.severe(String.format(
                 "Unable to obtain network min paths for bush, this shouldn't happen, skip updateBushPass"));
         continue;
+      }
+
+      if(updateGap) {
+        // update/track total min cost across bushes(Ods) for gap calculation
+        var odDemands = getOdDemands(mode);
+        var destination = ((DestinationBush) bush).getDestination().getParent().getParentZone();
+        for (var originVertex : bush.getOriginVertices()) {
+          var origin = originVertex.getParent().getParentZone();
+          double odDemand = odDemands.getValue(origin, destination);
+          double minOdCost = networkMinPaths.getCostToReach(originVertex);
+          totalMinCost += minOdCost * odDemand;
+        }
       }
 
       /* find (new) matching PASs - start with new PAS close to origin exploration first
@@ -294,6 +328,15 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
 
       }
     }
+
+    if(updateGap){
+      var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
+      // both costs have already been normalised to demand so use unity to transfer as is
+      // ideally we'd use a link based gap but this is not ideal with the path absed implementation we also support for sLTM
+      gapFunction.increaseMinimumPathCosts(totalMinCost,1);
+      gapFunction.increaseAbsolutePathGap(totalRealisedCost, 1, totalMinCost);
+    }
+
     return Pair.of(newPass,existingPassWithNewBushes);
   }
 

@@ -115,7 +115,7 @@ public abstract class StaticLtmNetworkLoading {
      * reset to zero during earlier loading iterations, now they must be available for all tracked nodes, so we
      * reinitialise by conducting a full initialisation based on paths/bushes and most recent flow acceptance factors
      */
-    initialiseSendingFlows(mode);
+    initialiseSendingFlows(mode, true);
 
     /*
      * Splitting rates must be re-initialised in this approach as well, a different splitting rate data is
@@ -127,13 +127,16 @@ public abstract class StaticLtmNetworkLoading {
 
   /**
    * Initialise sending flows via network loading Eq. (3)-(4) in paper Initial sending flows: s_a=u_a for all link
-   * segments.
+   * segments. Optionally also update the unconstrained flow rates
    *
    * @param mode to use
    */
-  private void initialiseSendingFlows(Mode mode) {
+  private void initialiseSendingFlows(Mode mode, boolean updateUnconstrainedFlows) {
     this.sendingFlowData.resetCurrentSendingFlows();
-    networkLoadingLinkSegmentSendingFlowUpdate(mode);
+    if(updateUnconstrainedFlows){
+      this.unconstrainedFlowData.reset();
+    }
+    networkLoadingLinkSegmentSendingFlowUpdate(mode, updateUnconstrainedFlows);
     LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), this.sendingFlowData.getNextSendingFlows());
   }
 
@@ -566,20 +569,22 @@ public abstract class StaticLtmNetworkLoading {
   protected abstract double[] networkLoadingTurnFlowUpdate(Mode mode);
 
   /**
-   * Conduct a network loading to compute updated current sending flow rates (without tracking turn flows): Eq. (3)-(4) in paper
+   * Conduct a network loading to compute updated current sending flow rates
+   * (without tracking turn flows): Eq. (3)-(4) in paper. Optionally also update unconstrained flows as well
    *
    * @param mode to use
+   * @param updateUnconstrainedFlows flag
    */
-  protected abstract void networkLoadingLinkSegmentSendingFlowUpdate(Mode mode);
+  protected abstract void networkLoadingLinkSegmentSendingFlowUpdate(Mode mode, boolean updateUnconstrainedFlows);
 
   /**
-   * Conduct a network loading to compute updated current sending flow, outflow rates, and unconstrained flows
+   * Conduct a network loading to compute updated current sending flow, and outflow rates
    * (without tracking turn flows). Used to finalize a loading after convergence to ensure consistency in flows
    * that might be compromised during local updates
    *
    * @param mode to use
    */  
-  protected abstract void networkLoadingSendingFlowOutflowUnconstrainedFlowUpdate(Mode mode);
+  protected abstract void networkLoadingSendingFlowOutflowUpdate(Mode mode);
 
   /**
    * Let derived loading implementation initialise which nodes are to be tracked for network splitting rates, e.g.
@@ -738,7 +743,7 @@ public abstract class StaticLtmNetworkLoading {
     initialiseStaticLtmSolutionSchemeApproach(logSolutionScheme); 
                 
     /* 2. Initial sending flows via network loading Eq. (3)-(4) in paper: unconstrained network loading */
-    initialiseSendingFlows(mode);
+    initialiseSendingFlows(mode, true);
     
     /* Depending on the solution scheme we either track all used nodes in the network, or a subset. Either way these need to be 
      * activated/initialized before commencing the loading. This is done here. */
@@ -1040,7 +1045,7 @@ public abstract class StaticLtmNetworkLoading {
      * that look strange, e.g., outflow>inflow etc.
      */
     {
-      networkLoadingSendingFlowOutflowUnconstrainedFlowUpdate(mode);
+      networkLoadingSendingFlowOutflowUpdate(mode);
       sendingFlowData.limitCurrentSendingFlowsToCapacity(networkLayer.getLinkSegments());
       LinkSegmentData.copyTo(sendingFlowData.getCurrentSendingFlows(), inFlowOutflowData.getInflows());
       inFlowOutflowData.limitOutflowsToCapacity(networkLayer.getLinkSegments());

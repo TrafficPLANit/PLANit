@@ -140,9 +140,9 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * {@inheritDoc}
    */ 
   @Override
-  protected void networkLoadingLinkSegmentSendingFlowUpdate(Mode mode) {
+  protected void networkLoadingLinkSegmentSendingFlowUpdate(Mode mode, boolean updateUnconstrainedFlows) {
     /* only update link sending flows */
-    boolean updateTurnAcceptedFlows = false, updateOutflows = false, updateUnconstrainedFlows = false;
+    boolean updateTurnAcceptedFlows = false, updateOutflows = false;
     boolean updateSendingFlows = true;   
     var pathLinkFlowUpdateConsumer = (PathLinkFlowUpdateConsumer)
             createPathFlowUpdateConsumer(
@@ -156,10 +156,10 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * {@inheritDoc}
    */ 
   @Override
-  protected void networkLoadingSendingFlowOutflowUnconstrainedFlowUpdate(Mode mode) {
+  protected void networkLoadingSendingFlowOutflowUpdate(Mode mode) {
     /* update link sending flows and outflows */
-    boolean updateTurnAcceptedFlows = false;
-    boolean updateSendingFlows = true, updateOutflows = true, updateUnconstrainedFlows = true;;
+    boolean updateTurnAcceptedFlows = false, updateUnconstrainedFlows = false;
+    boolean updateSendingFlows = true, updateOutflows = true;
     var pathLinkFlowUpdateConsumer = (PathLinkFlowUpdateConsumer)
             createPathFlowUpdateConsumer(
                     mode, updateTurnAcceptedFlows, updateSendingFlows, updateOutflows, updateUnconstrainedFlows);

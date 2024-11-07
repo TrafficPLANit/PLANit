@@ -267,7 +267,7 @@ public class sLtmAssignmentBushCycleTest {
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.setActivateDetailedLogging(true);
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(100);
       sLTM.execute();
 
@@ -288,7 +288,7 @@ public class sLtmAssignmentBushCycleTest {
       assertEquals(outflow1, 2000, Precision.EPSILON_6);
       assertEquals(outflow2a, 0, Precision.EPSILON_6);
       assertEquals(outflow2b, 0, Precision.EPSILON_6);
-      assertEquals(outflow3, 15.384707, Precision.EPSILON_6);
+      assertEquals(outflow3, 15.3846156, Precision.EPSILON_6);
       assertEquals(outflow4, outflow3, Precision.EPSILON_6);
       assertEquals(outflow5, 1984.6, 1);
       assertEquals(outflow6, 0.0, 1);

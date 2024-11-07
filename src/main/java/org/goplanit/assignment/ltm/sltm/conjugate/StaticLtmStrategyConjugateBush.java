@@ -14,7 +14,6 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
@@ -176,12 +175,14 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
   /**
    * Based on provided original network link segment costs see if we can update the existing collection of PASs
    *
-   * @param mode to use
-   * @param linkSegmentCosts to use
+   * @param mode               to use
+   * @param linkSegmentCosts   to use
+   * @param updateGap          flag
    * @return newly created PASs
    */
   @Override
-  protected Pair<Collection<Pas>, Collection<Pas>> updateBushPass(Mode mode, double[] linkSegmentCosts){
+  protected Pair<Collection<Pas>, Collection<Pas>> updateBushPass(
+          Mode mode, double[] linkSegmentCosts, boolean updateGap){
     // TODO: not yet implemented for conjugate, take inspiration from "normal" implementation
     return null;
   }

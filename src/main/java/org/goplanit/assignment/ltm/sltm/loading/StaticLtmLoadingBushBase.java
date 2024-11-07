@@ -98,13 +98,12 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * {@inheritDoc}
    */
   @Override
-  protected void networkLoadingLinkSegmentSendingFlowUpdate(Mode mode) {
+  protected void networkLoadingLinkSegmentSendingFlowUpdate(Mode mode, boolean updateUnconstrainedFlows) {
         
     /* configure to only update all link segment sending flows */
     boolean updateTurnAcceptedFlows = false;
     boolean updateSendingFlowDuringLoading = true;
     boolean updateOutflows = false;
-    boolean updateUnconstrainedFlows = false;
     var bushFlowUpdateConsumer =
         createBushFlowUpdateConsumer(
                 updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows, updateUnconstrainedFlows);
@@ -117,13 +116,13 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * {@inheritDoc}
    */
   @Override
-  protected void networkLoadingSendingFlowOutflowUnconstrainedFlowUpdate(Mode mode) {
+  protected void networkLoadingSendingFlowOutflowUpdate(Mode mode) {
         
     /* configure to only update all link segment sending flows */
     boolean updateTurnAcceptedFlows = false;
     boolean updateSendingFlow = true;
     boolean updateOutflowFlow= true;
-    boolean updateUnconstrainedFlows = true;
+    boolean updateUnconstrainedFlows = false;
     var bushFlowUpdateConsumer =
             createBushFlowUpdateConsumer(
                     updateTurnAcceptedFlows, updateSendingFlow, updateOutflowFlow, updateUnconstrainedFlows);

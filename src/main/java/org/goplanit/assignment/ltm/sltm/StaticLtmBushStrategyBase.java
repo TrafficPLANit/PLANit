@@ -194,24 +194,19 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * @param pasExecutors to use
    * @return proposed flow shifts per PAS per entry segment of the PAS
    */
-  private Map<Pas, Map<EdgeSegment, Double>> flowShiftingStepThreeDetermineProposedFlowShiftAndUpdateGap(
+  private Map<Pas, Map<EdgeSegment, Double>> flowShiftingStepThreeDetermineProposedFlowShift(
           Mode theMode, Map<Pas, PasFlowShiftExecutor> pasExecutors) {
 
     // result to populate
     final Map<Pas, Map<EdgeSegment, Double>> pasProposedFlowShifts = new HashMap<>();
 
     // prep
-    var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
     var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
 
-    // update gap and determine proposed flow shift per PAS
+    // Determine proposed flow shift per PAS
     this.pasManager.forEachPas( pas -> {
-      var pasFlowShifter = pasExecutors.get(pas);
-
-      updateGap(gapFunction, pas, pasFlowShifter.getS1SendingFlow(), pasFlowShifter.getS2SendingFlow());
-
-      Map<EdgeSegment, Double> flowShifts = pasFlowShifter.determineProposedFlowShiftByEntrySegment(
+      var flowShifts = pasExecutors.get(pas).determineProposedFlowShiftByEntrySegment(
               theMode, physicalCost, virtualCost, getLoading());
       pasProposedFlowShifts.put(pas, flowShifts);
     });
@@ -449,7 +444,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     // STEP3: determine the proposed flow shift for each PAS as if it were performing
     //  its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
     final Map<Pas, Map<EdgeSegment, Double>> pasProposedFlowShifts =
-            flowShiftingStepThreeDetermineProposedFlowShiftAndUpdateGap(theMode, pasExecutors);
+            flowShiftingStepThreeDetermineProposedFlowShift(theMode, pasExecutors);
 
     // STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based on relevant
     // criterion.
@@ -493,24 +488,25 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         getSettings().isTrackDestinationForLogging((OdZone) bush.getRootZoneVertex().getParent().getParentZone());
   }
 
-  /**
-   * Update gap. modified path based gap function where we update the GAP based on PAS cost discrepancy.
-   * This is due to the impossibility of efficiently determining the network and
-   * minimum path costs in a capacity constrained bush based setting. Instead we:
-   * <p>
-   * minimumCost PAS : s1 cost * SUM(s1 sending flow, s2 sending flow), measuredAbsoluteCostGap PAS: s2 sending flow * (s2 cost - s1 cost)
-   * <p>
-   * Sum the above over all PASs. Note that PASs can (partially) overlap, so the measured cost does likely not add up to the network cost
-   *
-   * @param gapFunction   to use
-   * @param pas           to compute for
-   * @param s1SendingFlow of the PAS s1 segment
-   * @param s2SendingFlow of the PAS s2 segment
-   */
-  protected void updateGap(final PathBasedGapFunction gapFunction, final Pas pas, double s1SendingFlow, double s2SendingFlow) {
-    gapFunction.increaseMinimumPathCosts(pas.getAlternativeLowCost(), (s1SendingFlow + s2SendingFlow));
-    gapFunction.increaseAbsolutePathGap(pas.getAlternativeHighCost(),  s2SendingFlow, pas.getAlternativeLowCost());
-  }
+  // no longer used now that we do it based on unconstrained flow and link costs
+//  /**
+//   * Update gap. modified path based gap function where we update the GAP based on PAS cost discrepancy.
+//   * This is due to the impossibility of efficiently determining the network and
+//   * minimum path costs in a capacity constrained bush based setting. Instead we:
+//   * <p>
+//   * minimumCost PAS : s1 cost * SUM(s1 sending flow, s2 sending flow), measuredAbsoluteCostGap PAS: s2 sending flow * (s2 cost - s1 cost)
+//   * <p>
+//   * Sum the above over all PASs. Note that PASs can (partially) overlap, so the measured cost does likely not add up to the network cost
+//   *
+//   * @param gapFunction   to use
+//   * @param pas           to compute for
+//   * @param s1SendingFlow of the PAS s1 segment
+//   * @param s2SendingFlow of the PAS s2 segment
+//   */
+//  protected void updateGap(final PathBasedGapFunction gapFunction, final Pas pas, double s1SendingFlow, double s2SendingFlow) {
+//    gapFunction.increaseMinimumPathCosts(pas.getAlternativeLowCost(), (s1SendingFlow + s2SendingFlow));
+//    gapFunction.increaseAbsolutePathGap(pas.getAlternativeHighCost(),  s2SendingFlow, pas.getAlternativeLowCost());
+//  }
 
   /**
    * Based on the network loading results, update the bush' turn sending flows
@@ -528,11 +524,13 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   /**
    * Update the PASs for bushes given the network costs and current bushes DAGs
    *
-   * @param mode             to use
-   * @param linkSegmentCosts to use
+   * @param mode               to use
+   * @param linkSegmentCosts   to use
+   * @param updateGap          flag
    * @return newly created PASs and exiting PAss with newly assigned bushes
    */
-  protected abstract Pair<Collection<Pas>, Collection<Pas>> updateBushPass(Mode mode, final double[] linkSegmentCosts);
+  protected abstract Pair<Collection<Pas>, Collection<Pas>> updateBushPass(
+          Mode mode, final double[] linkSegmentCosts, boolean updateGap);
 
   /**
    * Constructor
@@ -788,7 +786,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       {
         /* (NEW) PAS MATCHING FOR BUSHES */
         long numOriginalPass = pasManager.getNumberOfPass();
-        var newAndUpdatedPass = updateBushPass(theMode, costsToUpdate);
+        boolean updateGap = true; // we can cheaply determine gap while traversing bushes
+        var newAndUpdatedPass = updateBushPass(theMode, costsToUpdate, updateGap);
         if(getSettings().isDetailedLogging()) {
           LOGGER.info(String.format("%d PASs known (including %d new and %d updated PASs)",
                   pasManager.getNumberOfPass(), newAndUpdatedPass.first().size(), newAndUpdatedPass.second().size()));
