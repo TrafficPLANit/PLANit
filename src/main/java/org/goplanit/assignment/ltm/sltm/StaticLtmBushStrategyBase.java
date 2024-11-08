@@ -190,12 +190,13 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * FLOW SHIFTING - STEP3: determine the proposed flow shift for each PAS as if it were performing
    * its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
    *
-   * @param theMode to use
-   * @param pasExecutors to use
+   * @param theMode        to use
+   * @param pasExecutors   to use
+   * @param simulationData to use
    * @return proposed flow shifts per PAS per entry segment of the PAS
    */
   private Map<Pas, Map<EdgeSegment, Double>> flowShiftingStepThreeDetermineProposedFlowShift(
-          Mode theMode, Map<Pas, PasFlowShiftExecutor> pasExecutors) {
+          Mode theMode, Map<Pas, PasFlowShiftExecutor> pasExecutors, StaticLtmSimulationData simulationData) {
 
     // result to populate
     final Map<Pas, Map<EdgeSegment, Double>> pasProposedFlowShifts = new HashMap<>();
@@ -203,11 +204,18 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     // prep
     var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
+    var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
+
+    // the closer we are to convergence the less agrressive we want to approach any possible discontinuity
+    // in the cost functions, i.e., when we switch traffic states from uncongested to congested or vice versa on
+    // any link as a result of flow shifts. This is factored in when computing the proposed flow shifts
+    // For now, we use the gap since a small gap means high dampening (multiplying a delta flow with small number)
+    var discontinuityDampeningFactor = gapFunction.getGap();
 
     // Determine proposed flow shift per PAS
     this.pasManager.forEachPas( pas -> {
       var flowShifts = pasExecutors.get(pas).determineProposedFlowShiftByEntrySegment(
-              theMode, physicalCost, virtualCost, getLoading());
+              theMode, physicalCost, virtualCost, getLoading(), discontinuityDampeningFactor);
       pasProposedFlowShifts.put(pas, flowShifts);
     });
 
@@ -354,7 +362,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       }
 
       // debugging
-      boolean logAll = /*false;*/ simulationData.getIterationIndex()>=200;
+      boolean logAll = false; //simulationData.getIterationIndex()>=200;
 
       /* untouched PAS (no flows shifted yet) in this iteration */
       boolean pasFlowShifted = pasFlowShifter.performS2FlowShift(
@@ -446,7 +454,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
     // STEP3: determine the proposed flow shift for each PAS as if it were performing
     //  its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
     final Map<Pas, Map<EdgeSegment, Double>> pasProposedFlowShifts =
-            flowShiftingStepThreeDetermineProposedFlowShift(theMode, pasExecutors);
+            flowShiftingStepThreeDetermineProposedFlowShift(theMode, pasExecutors, simulationData);
 
     // STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based on relevant
     // criterion.
@@ -796,7 +804,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */     
       {
         // debugging
-        boolean logAll = /*false;*/ simulationData.getIterationIndex()>=200;
+        boolean logAll = false; //simulationData.getIterationIndex()>=200;
 
         /* (NEW) PAS MATCHING FOR BUSHES */
         long numOriginalPass = pasManager.getNumberOfPass();
@@ -806,7 +814,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
           LOGGER.info(String.format("%d PASs known (including %d new and %d updated PASs)",
                   pasManager.getNumberOfPass(), newAndUpdatedPass.first().size(), newAndUpdatedPass.second().size()));
         }
-              
+
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
         Collection<Pas> updatedPass = shiftPasFlows(theMode, simulationData, newAndUpdatedPass);
 

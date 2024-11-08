@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -455,7 +456,7 @@ public class Pas {
    * Match first link segment of PAS segment to predicate provided
    * 
    * @param lowCostSegment when true apply on s1, otherwise on s2
-   * @param predicate      to test
+   * @param predicate      to test on a per segment basis
    * @return edge segment that matches, null if none matches
    */
   public EdgeSegment matchFirst(boolean lowCostSegment, Predicate<EdgeSegment> predicate) {
@@ -464,6 +465,32 @@ public class Pas {
       if (predicate.test(alternative[index])) {
         return alternative[index];
       }
+    }
+    return null;
+  }
+
+  /**
+   * Match first link segment of PAS segment to predicate provided, providing the next segment on the PAS as
+   * an additional point of reference. In case of the last segment, the next segment is set to null.
+   *
+   * @param lowCostSegment when true apply on s1, otherwise on s2
+   * @param predicate      to test on a per segment basis (providing next segment as second argument)
+   * @return edge segment that matches, null if none matches
+   */
+  public EdgeSegment matchFirst(boolean lowCostSegment, BiPredicate<EdgeSegment, EdgeSegment> predicate) {
+    EdgeSegment[] alternative = getAlternative(lowCostSegment);
+    int index = 0;
+    EdgeSegment currSegment = alternative[index++];
+    EdgeSegment nextSegment = null;
+    for (; index < alternative.length; ++index) {
+      nextSegment = alternative[index];
+      if (predicate.test(currSegment, nextSegment)) {
+        return currSegment;
+      }
+      currSegment = nextSegment;
+    }
+    if (predicate.test(currSegment, null)) {
+      return currSegment;
     }
     return null;
   }

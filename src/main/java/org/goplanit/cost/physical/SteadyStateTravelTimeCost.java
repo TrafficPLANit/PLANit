@@ -288,12 +288,13 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     /* hyperCriticalDelay derivative */
     if(!uncongested) {
       double outflowRatePcuH = accessee.getLinkSegmentOutflowPcuHour(linkSegment);
-      if (Precision.positive(outflowRatePcuH)) {
+      if (outflowRatePcuH>0) {
         /* congested derivative (T/2)*(1/v) */
         hyperDerivative =  0.5 * currentTimePeriodHours / outflowRatePcuH;
       } else {
-        /* avoid division by zero, if no outflow rate but congested, it is undesirable to use this link, we return infinity */
-        return Double.POSITIVE_INFINITY;
+        /* avoid division by zero, if no outflow rate but congested, it is undesirable to use this link
+        (if it has any flow), we return infinity, or let congested portion have no impact if empty*/
+        hyperDerivative = accessee.getLinkSegmentInflowPcuHour(linkSegment) > 0.0 ? Double.POSITIVE_INFINITY : 0;
       }
     }
 

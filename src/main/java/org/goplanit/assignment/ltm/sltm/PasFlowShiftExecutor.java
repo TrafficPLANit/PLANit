@@ -19,10 +19,8 @@ import org.goplanit.utils.zoning.OdZone;
 import org.ojalgo.array.Array1D;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static org.goplanit.utils.math.Precision.*;
 
@@ -33,6 +31,14 @@ import static org.goplanit.utils.math.Precision.*;
  *
  */
 public abstract class PasFlowShiftExecutor {
+
+  /**
+   * Threshold used to trigger derivatives based on congested situation even if we are not yet congested.
+   * This threshold is the difference between those two states on the segment level for that to happen,
+   * e.g. if capacity is 1000 and flow is 995, then with a threshold of 10 it would be treated as if it is congested
+   * w.r.t. derivative calculation. if te flow would be 985, it would not, and would be considered uncongested.
+   */
+  public static double UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH = 10;
 
   /**
    * Logger to use
@@ -50,14 +56,119 @@ public abstract class PasFlowShiftExecutor {
   Map<EdgeSegment, Map<RootedLabelledBush, BushEntryShiftedS2FlowData>> flowShiftedS2BushData = new TreeMap<>();
 
   /**
-   * Verify if entry segment is congested
+   * Verify if entry segment is congested.
    *
    * @param loading to use
    * @param segment to check
    * @return congested or not based on check
    */
   private static boolean isCongested(StaticLtmLoadingBushBase<?> loading, EdgeSegment segment){
-    return smaller(loading.getCurrentFlowAcceptanceFactors()[(int) segment.getId()], 1, EPSILON_9);
+    var acceptanceFactor = loading.getCurrentFlowAcceptanceFactors()[(int) segment.getId()];
+    return smaller(acceptanceFactor, 1, EPSILON_9);
+  }
+
+  /**
+   * Verify if segment is congested. Use threshold in case we want to be more circumspect when reaching
+   * congestion. For example when taking derivatives we may want to treat a segment as congested
+   * in case ANY non-uturn exit segment is congested to not overshoot any flow shift steps. The threshold considered is
+   * configurable. When set to zero only segments themselves with a flow acceptance factor smaller than one will be
+   * considered congested.
+   * <p>
+   *   TODO: would be better to use PAS splitting rates as input to determine which exist segment are actually relevant
+   *     but for now we just use the most restricting approach possible as a strtaing point, so any exit segment near
+   *     capacity will trigger the label congested on our segment if it falls within the threshold
+   * </p>
+   *
+   * @param loading to use
+   * @param segment to check
+   * @param nearCongestionIsCongestionThresholdPcuH threshold which will flag segment as congested when it approaches
+   *                                            congestion within this threshold.
+   * @return pair indicating what congestion was found - first argument indicates if segment itself is congested, second indicates
+   *  if any of its exit segments are near congestion based on threshold
+   */
+  private static Pair<Boolean, Boolean> isCongested(
+          StaticLtmLoadingBushBase<?> loading,
+          EdgeSegment segment,
+          double nearCongestionIsCongestionThresholdPcuH){
+
+    boolean realisedCongested = isCongested(loading, segment);
+    if(realisedCongested || nearCongestionIsCongestionThresholdPcuH <= 0.0){
+      return Pair.of(realisedCongested, realisedCongested);
+    }
+
+    // check if we are very close to congestion based on threshold, if it falls within threshold flag it as congestion
+    // as well
+    boolean nearCongested = false;
+    for(var potentialNextSegment : segment.getDownstreamVertex().getExitEdgeSegments()){
+
+      // u-turn is filtered out as it is deemed not a true candidate
+      if(potentialNextSegment.hasOppositeDirectionSegment() &&
+              potentialNextSegment.getOppositeDirectionSegment()==segment){
+        continue;
+      }
+
+      if(isNearCongested(loading, potentialNextSegment, nearCongestionIsCongestionThresholdPcuH)){
+        nearCongested = true;
+        break;
+      }
+    }
+
+    return Pair.of(realisedCongested, nearCongested);
+  }
+
+  /**
+   * Verify if segment is near congested using threshold.
+   *
+   * @param loading to use
+   * @param segment to check
+   * @param nearCongestionIsCongestionThresholdPcuH threshold which will flag segment as congested when it approaches
+   *                                            congestion within this threshold.
+   * @return near congested or not based on check
+   */
+  private static boolean isNearCongested(
+          StaticLtmLoadingBushBase<?> loading,
+          EdgeSegment segment,
+          double nearCongestionIsCongestionThresholdPcuH){
+
+    // check if we are very close to congestion based on threshold, if it falls within threshold flag it as congestion
+    // as well
+    var inflow = loading.getCurrentInflowsPcuH()[(int)segment.getId()];
+    var capacity = ((PcuCapacitated) segment).getCapacityOrDefaultPcuH();
+    var slackFlowToCapacity = Math.max(0, capacity - inflow);
+    return nearCongestionIsCongestionThresholdPcuH >= slackFlowToCapacity;
+  }
+
+  /**
+   * Verify if segment is congested. Use threshold in case we want to be more circumspect when reaching
+   * congestion. For example when taking derivatives we may want to treat a segment already as congested
+   * in case its next segment is very near to congestion. This to avoid overshooting any flow shift steps.
+   * The threshold considered is configurable. When set to zero only segments themselves with a flow
+   * acceptance factor smaller than one will be considered congested.
+   *
+   * @param loading to use
+   * @param segment to check
+   * @param nextEdgeSegment only relevant when threshold is set to non-zero, since if the next segment is near congestion
+   *                        only then the current segment will be labelled congested if the next segment falls within
+   *                        the threshold provided
+   * @param nearCongestionIsCongestionThresholdPcuH threshold which will flag segment as congested when it approaches
+   *                                            congestion within this threshold.
+   * @return congested or not based on check
+   */
+  private static boolean isCongested(
+          StaticLtmLoadingBushBase<?> loading,
+          EdgeSegment segment,
+          EdgeSegment nextEdgeSegment,
+          double nearCongestionIsCongestionThresholdPcuH){
+
+    boolean realisedCongested = isCongested(loading, segment);
+    if(realisedCongested || nearCongestionIsCongestionThresholdPcuH <= 0.0 || nextEdgeSegment == null){
+      return realisedCongested;
+    }
+
+    // check if we are very close to congestion based on threshold using next seegment, if it falls within
+    // threshold flag our current segment is deemed congested as well (we use next segment because reduction of flow
+    // then occurs on current segment not the next
+    return isNearCongested(loading, nextEdgeSegment, nearCongestionIsCongestionThresholdPcuH);
   }
 
   /**
@@ -121,15 +232,30 @@ public abstract class PasFlowShiftExecutor {
 
     var pasAlternative = this.pas.getAlternative(isLowCostAlternative);
     int index = 0;
-    while(index < pasAlternative.length){
-      var currSegment = pasAlternative[index];
+    var currSegment = pasAlternative[index++];
+    while(index <= pasAlternative.length){
+      var nextSegment = index<pasAlternative.length ? pasAlternative[index] : null;
+
+      boolean unCongested;
+      if(nextSegment == null){
+        // check all exit segments using threshold to apply to curr segment state
+        unCongested = !isCongested(
+                networkLoading, currSegment, UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH).anyMatch((Boolean e) -> e);
+      }else{
+        // check segment on congestion or near-congestion on next segment (using threshold)
+        unCongested = !isCongested(networkLoading, currSegment);
+        if(unCongested){
+          unCongested = !isNearCongested(networkLoading, nextSegment, UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH);
+        }
+      }
 
       double currDTravelTimeDFlow = 0.0;
-      boolean unCongested = !isCongested(networkLoading,currSegment);
       if (currSegment instanceof MacroscopicLinkSegment) {
-        currDTravelTimeDFlow = physicalCost.getDTravelTimeDFlow(unCongested, theMode, (MacroscopicLinkSegment) currSegment);
+        currDTravelTimeDFlow =
+                physicalCost.getDTravelTimeDFlow(unCongested, theMode, (MacroscopicLinkSegment) currSegment);
       } else if (currSegment instanceof ConnectoidSegment) {
-        currDTravelTimeDFlow = virtualCost.getDTravelTimeDFlow(unCongested, theMode, (ConnectoidSegment) currSegment);
+        currDTravelTimeDFlow =
+                virtualCost.getDTravelTimeDFlow(unCongested, theMode, (ConnectoidSegment) currSegment);
       } else {
         LOGGER.severe(String.format("Unsupported edge segment (%s) to obtain derivative of cost towards flow from", currSegment.getIdsAsString()));
       }
@@ -140,6 +266,7 @@ public abstract class PasFlowShiftExecutor {
         // no more flow change beyond here due to it being a bottleneck
         break;
       }
+      currSegment = nextSegment;
       ++index;
     }
     return dTravelTimeDFlow;
@@ -170,7 +297,8 @@ public abstract class PasFlowShiftExecutor {
   }
 
   /**
-   * Helper; based on the entry segment and current loading, recompute node model to identify most restricting out edge segment for this entry segment
+   * Helper; based on the entry segment and current loading, recompute node model to identify most restricting out
+   * edge segment for this entry segment
    * 
    * @param entrySegment   to use
    * @param networkLoading to use
@@ -178,31 +306,57 @@ public abstract class PasFlowShiftExecutor {
    */
   private static EdgeSegment identifyMostRestrictingOutEdgeSegment(
           EdgeSegment entrySegment, StaticLtmLoadingBushBase<?> networkLoading) {
-    var consumer = new NMRCollectMostRestrictingTurnConsumer(entrySegment); // collect most restricting turn for entry segment
+    // collect most restricting turn for entry segment
+    var consumer = new NMRCollectMostRestrictingTurnConsumer(entrySegment);
     StaticLtmNetworkLoading.performNodeModelUpdate(entrySegment.getDownstreamVertex(), consumer, networkLoading);
 
     EdgeSegment mostRestrictingOutSegment = consumer.getMostRestrictingOutSegment();
     if (mostRestrictingOutSegment == null) {
-      LOGGER.severe(String.format("Expected most restricting our segment to be present given that incoming segment (%s) is congested, but not found, this shouldn't happen",
+      LOGGER.severe(String.format("Expected most restricting our segment to be present given that " +
+                      "incoming segment (%s) is congested, but not found, this shouldn't happen",
           entrySegment.getXmlId()));
     }
     return mostRestrictingOutSegment;
   }
 
   /**
-   * Find first congested segment on PAS for either alternative
+   * Find first congested segment on PAS for either alternative, note that we do use some slack on when
+   * to consider something congested where we treat near capacity flows as congested already
    *
    * @param networkLoading to use
-   * @return found segments pair on low/high cost alternative, null entries when not congested
+   * @param lowCost flag indicating what alternative to apply
+   * @return found segments on alternative, null when not congested, second argument indicates whether it
+   *  is truly congested already (true), or near congestion (false) but within threshold applied
+   *
    */
-  private Pair<EdgeSegment, EdgeSegment> populateFirstCongestedEdgeSegmentOnPasAlternative(
-          final StaticLtmLoadingBushBase<?> networkLoading) {
+  private Pair<EdgeSegment, Boolean> populateFirstCongestedEdgeSegmentOnPasAlternative(
+          final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
 
-    Predicate<EdgeSegment> firstCongestedLinkSegment = es -> isCongested(networkLoading,es);
-    var firstS1CongestedLinkSegment = pas.matchFirst(true, /* low cost */ firstCongestedLinkSegment);
-    var firstS2CongestedLinkSegment = pas.matchFirst(false /* high cost */, firstCongestedLinkSegment);
+    EdgeSegment[] alternative = pas.getAlternative(lowCost);
+    int index = 0;
+    EdgeSegment currSegment = alternative[index++];
+    EdgeSegment nextSegment = null;
+    for (; index < alternative.length; ++index) {
+      nextSegment = alternative[index];
+      if (isCongested(networkLoading , currSegment)) {
+        return Pair.of(currSegment, true);
+      }else if(isNearCongested(networkLoading, nextSegment, UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH)){
+        return Pair.of(currSegment, false);
+      }
+      currSegment = nextSegment;
+    }
 
-    return Pair.of(firstS1CongestedLinkSegment, firstS2CongestedLinkSegment);
+    // treat last segment differently because we must consider all exist segments out of the PAS rather as we have no
+    // single next segment
+    // todo: check could be made better by considering s1+s2 splitting rates on last segment
+    var isCongestedResult =
+            isCongested(networkLoading,  currSegment, UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH);
+    if(isCongestedResult.first()){
+      return Pair.of(currSegment, true); // true congestion match
+    }else if(isCongestedResult.second()){
+      return Pair.of(currSegment, false); // near congestion match
+    }
+    return null;
   }
 
   /**
@@ -212,40 +366,42 @@ public abstract class PasFlowShiftExecutor {
    *
    * @param proposedFlowShift to use
    * @param upperBoundShift that is ideally the maximum
-   * @param minimumAllowedShift to use
+   * @param discontinuityDampeningFactor to use
    * @return adjusted proposed flow shift (if any)
    */
-  private double adjustFlowShiftBasedOnUpperBound(
-          double proposedFlowShift, double upperBoundShift, double minimumAllowedShift) {
+  private double adjustFlowShiftBasedOnSlackFlow(
+          double proposedFlowShift, double upperBoundShift, double discontinuityDampeningFactor) {
 
     if (proposedFlowShift <= upperBoundShift) {
       return proposedFlowShift;
     }
 
-    /*
-     * when approaching equilibrium, small shifts should be fully executed, otherwise it takes
-     * forever to converge. With such small flows chances have decreased that overshooting
-     * and triggering a different state has a dramatic effect on the travel time derivative
-     */
-    if (Precision.smaller(proposedFlowShift, minimumAllowedShift)) {
-      return proposedFlowShift;
-    }
+//    /*
+//     * when approaching equilibrium, small shifts should be fully executed, otherwise it takes
+//     * forever to converge. With such small flows chances have decreased that overshooting
+//     * and triggering a different state has a dramatic effect on the travel time derivative
+//     */
+//    if (Precision.smaller(proposedFlowShift, minimumAllowedShift)) {
+//      return proposedFlowShift;
+//    }
 
     double assumedCongestedShift = proposedFlowShift - upperBoundShift;
     double portion = (1 - pas.getAlternativeLowCost() / pas.getAlternativeHighCost());
-    return upperBoundShift + assumedCongestedShift * portion;
+    return upperBoundShift + assumedCongestedShift * Math.min(1,discontinuityDampeningFactor);
   }
 
   /**
    * Determine the adjusted flow shift by taking the proposed flow shift (s2 sending flow) and reduce it by a
    * designated amount based on the difference between the PAS alternative costs and the assumed s1
    * slack flow (flow estimated to switch from uncongested to congested on the PAS's S1 (low cost) segment)
-   * 
-   * @param s1SlackFlow that is expected
+   *
+   * @param s1SlackFlow                  that is expected
+   * @param discontinuityDampeningFactor to use
    * @return adjusted proposed flow shift (if any)
    */
-  private double adjustFlowShiftBasedOnS1SlackFlow(double proposedFlowShift, double s1SlackFlow) {
-    return adjustFlowShiftBasedOnUpperBound(proposedFlowShift, s1SlackFlow, 10);
+  private double adjustFlowShiftBasedOnS1SlackFlow(
+          double proposedFlowShift, double s1SlackFlow, double discontinuityDampeningFactor) {
+    return adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, s1SlackFlow, discontinuityDampeningFactor);
   }
 
   /**
@@ -255,10 +411,12 @@ public abstract class PasFlowShiftExecutor {
    * (high cost) segment)
    * 
    * @param s2SlackFlow that is expected
+   * @param discontinuityDampeningFactor to use
    * @return adjusted proposed flow shift (if any)
    */
-  private double adjustFlowShiftBasedOnS2SlackFlow(double proposedFlowShift, double s2SlackFlow) {
-    return adjustFlowShiftBasedOnUpperBound(proposedFlowShift, s2SlackFlow, 10);
+  private double adjustFlowShiftBasedOnS2SlackFlow(
+          double proposedFlowShift, double s2SlackFlow, double discontinuityDampeningFactor) {
+    return adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, s2SlackFlow, discontinuityDampeningFactor);
   }
 
   /**
@@ -268,7 +426,7 @@ public abstract class PasFlowShiftExecutor {
    * <p>
    * In the special case that it passes through (or directs to) a segment that is at capacity (due to for example one or more of its other in-links being congested), then we return
    * a slack capacity of zero.
-   * 
+   * </p>
    * 
    * @param networkLoading to collect outflow rates from
    * @param lowCost        when true determine for low cost alternative, when false for high cost alternative
@@ -280,6 +438,8 @@ public abstract class PasFlowShiftExecutor {
 
     Array1D<Double> splittingRates =
             networkLoading.getSplittingRateData().getSplittingRates(lastAlternativeSegment);
+    //todo: add in the splitting rates of the low cost segment, since any exit flow their will be moved to the high cost
+    // and distributed accordingly, so we cannot just consider the current state of the low cost here...
 
     int index = 0;
     int linkSegmentId = -1;
@@ -332,8 +492,6 @@ public abstract class PasFlowShiftExecutor {
   /** Track the desired sending flows for s1 and s2 per bush per entry segment */
   protected final Map<RootedLabelledBush, Map<EdgeSegment, Pair<Double, Double>>> bushEntrySegmentS1S2SendingFlows;
 
-  protected final Set<EdgeSegment> usedCongestedEntryEdgeSegments;
-
   /** store locally as it is costly-ish to compute */
   protected final int pasMergeVertexNumExitSegments;
 
@@ -353,7 +511,6 @@ public abstract class PasFlowShiftExecutor {
     this.pas = pas;
     this.settings = settings;
     this.bushEntrySegmentS1S2SendingFlows = new HashMap<>();
-    this.usedCongestedEntryEdgeSegments = new HashSet<>();
     this.pasMergeVertexNumExitSegments = pas.getMergeVertex().getNumberOfExitEdgeSegments();
   }
 
@@ -417,12 +574,13 @@ public abstract class PasFlowShiftExecutor {
    * derivatives of travel time towards flow to determine the optimal shift. In case one or both segments are uncongested, or the congestion occurs on the entry segment while the
    * cost on the PAS is already equal, we propose to shift as much flow as would yield an equal distribution between the alternatives (maximising entropy) in order to obtain a
    * unique solution under equal cost. would expect the segment to transition to congestion.
-   * 
-   * @param entrySegment   to use
-   * @param theMode        to use
-   * @param physicalCost   to use
-   * @param virtualCost    to use
-   * @param networkLoading to use
+   *
+   * @param entrySegment                 to use
+   * @param theMode                      to use
+   * @param physicalCost                 to use
+   * @param virtualCost                  to use
+   * @param networkLoading               to use
+   * @param discontinuityDampeningFactor to use in dampening any flow change in case of potential discontinuity crossing
    * @return amount of flow to shift
    */
   protected double determineEntrySegmentFlowShift(
@@ -430,15 +588,17 @@ public abstract class PasFlowShiftExecutor {
           Mode theMode,
           AbstractPhysicalCost physicalCost,
           AbstractVirtualCost virtualCost,
-          StaticLtmLoadingBushBase<?> networkLoading) {
+          StaticLtmLoadingBushBase<?> networkLoading,
+          double discontinuityDampeningFactor) {
 
     double denominatorS2 = 0;
     double denominatorS1 = 0;
 
     /* get first congested edge segment that is affected when shifting flow, per alternative */
-    var firstCongestedSegmentPair = populateFirstCongestedEdgeSegmentOnPasAlternative(networkLoading);
-    var firstS1CongestedLinkSegment = firstCongestedSegmentPair.first();
-    var firstS2CongestedLinkSegment = firstCongestedSegmentPair.second();
+    var s1FirstCongestedSegmentResult = populateFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true);
+    var s2FirstCongestedSegmentResult = populateFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false);
+    var firstS1CongestedSegment = s1FirstCongestedSegmentResult!= null ? s1FirstCongestedSegmentResult.first() : null;
+    var firstS2CongestedSegment = s2FirstCongestedSegmentResult!= null ? s2FirstCongestedSegmentResult.first() : null;
 
     denominatorS1 =
             getDTravelTimeDFlow(theMode, networkLoading, physicalCost, virtualCost, true);
@@ -455,8 +615,7 @@ public abstract class PasFlowShiftExecutor {
       /* move all towards cheaper alternative limited by slack + delta */
       /* obtain PAS-entry segment sub-path sending flows */
       double proposedFlowShift = Math.min(s2TotalEntrySendingFlow - 10, slackFlowEstimate) + 10;
-      return adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, slackFlowEstimate);
-
+      return adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, slackFlowEstimate, discontinuityDampeningFactor);
     }
 
     /* s1 and/or s2 congested - derivative based flow shift possible */
@@ -476,21 +635,38 @@ public abstract class PasFlowShiftExecutor {
       }
     }
 
-    boolean pasEntrySegmentCongested = isCongested(networkLoading, entrySegment);
-    // VERIFY CROSSING OF DISCONTINUITY on S1 travel time function - adjust shift if so to mitigate effect
-    if (firstS1CongestedLinkSegment == null && !pasEntrySegmentCongested) {
+    // VERIFY CROSSING OF DISCONTINUITY on S1  - adjust shift if so to mitigate effect
+    // This is triggered when S1 alternative segments are not congested yet, or near congestion, or the entry segment is
+    // not congested or near congestion
+    var pasEntrySegmentCongestedResult =
+            isCongested(networkLoading, entrySegment, UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH);
+    boolean pasEntrySegmentDirectlyCongested = pasEntrySegmentCongestedResult.first();
+    boolean pasEntrySegmentPotentialDiscontinuity = !pasEntrySegmentDirectlyCongested && pasEntrySegmentCongestedResult.second();
+    boolean pasS1PotentialDiscontinuity = !pasEntrySegmentDirectlyCongested &&
+            (firstS1CongestedSegment == null || !s1FirstCongestedSegmentResult.second());
+    if (pasEntrySegmentPotentialDiscontinuity || pasS1PotentialDiscontinuity) {
       /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
-      flowShift = adjustFlowShiftBasedOnS1SlackFlow(flowShift, slackFlowEstimate);
+      flowShift = adjustFlowShiftBasedOnS1SlackFlow(flowShift, slackFlowEstimate, discontinuityDampeningFactor);
     }
 
     // VERIFY CROSSING OF DISCONTINUITY on S2 travel time function - adjust shift if so to mitigate effect
-    if (firstS2CongestedLinkSegment != null || pasEntrySegmentCongested) {
-      var refSegment = pasEntrySegmentCongested ? entrySegment : firstS2CongestedLinkSegment;
+    if (firstS2CongestedSegment != null || pasEntrySegmentDirectlyCongested) {
+      var refSegment = pasEntrySegmentDirectlyCongested ? entrySegment : firstS2CongestedSegment;
       double s2DeltaFlowToStateChangeEstimate = -1;
+
+//      var turnExitSegment = identifyMostRestrictingOutEdgeSegment(refSegment, networkLoading);
+//      var criticalExitSplittingRate = networkLoading.getSplittingRateData().getSplittingRate(refSegment, turnExitSegment);
+
+      //TODO: this is not a good estimate since we now assume the link flow as a whole drives the queue, but it may be
+      // that a tiny portion on one turn is causing the full reduction factor while the majority of flow would sail through
+      // were it not for that small turn flow --> we must compute the discontinuity slack flow for each turn separate and
+      // then use the minimum
+      // looking at spreadsheet with small exampl it may not be enough either
+
       s2DeltaFlowToStateChangeEstimate =
               networkLoading.getCurrentInflowsPcuH()[(int) refSegment.getId()] *
                       (1 - networkLoading.getCurrentFlowAcceptanceFactors()[(int) refSegment.getId()]);
-      flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2DeltaFlowToStateChangeEstimate);
+      flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2DeltaFlowToStateChangeEstimate, discontinuityDampeningFactor);
     }
 
     // make sure we never shift more than flow than available
@@ -529,10 +705,12 @@ public abstract class PasFlowShiftExecutor {
     }
   }
 
-  public Map<EdgeSegment, Double> determineProposedFlowShiftByEntrySegment(Mode theMode,
-                                                                           AbstractPhysicalCost physicalCost,
-                                                                           AbstractVirtualCost virtualCost,
-                                                                           StaticLtmLoadingBushBase<?> networkLoading) {
+  public Map<EdgeSegment, Double> determineProposedFlowShiftByEntrySegment(
+          Mode theMode,
+          AbstractPhysicalCost physicalCost,
+          AbstractVirtualCost virtualCost,
+          StaticLtmLoadingBushBase<?> networkLoading,
+          double discontinuityDampeningFactor) {
 
     Map<EdgeSegment, Double> result = new TreeMap<>();
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {
@@ -541,7 +719,7 @@ public abstract class PasFlowShiftExecutor {
       if (totalEntrySegmentS2Flow > 0) {
         /* flow shift based on entry segment - PAS combination */
         proposedPasFlowShift = determineEntrySegmentFlowShift(
-            entrySegment, theMode, physicalCost, virtualCost, networkLoading);
+            entrySegment, theMode, physicalCost, virtualCost, networkLoading, discontinuityDampeningFactor);
       }
       result.put(entrySegment, proposedPasFlowShift);
     }
@@ -733,10 +911,6 @@ public abstract class PasFlowShiftExecutor {
         flowShiftedS2BushData.putIfAbsent(entrySegment, new TreeMap<>());
         flowShiftedS2BushData.get(entrySegment).put(
                 bush, new BushEntryShiftedS2FlowData(bush, entrySegment, entrySegmentBushPasflowShift, endMergeSplittingRates));
-
-        if (isCongested(networkLoading, entrySegment)) {
-          usedCongestedEntryEdgeSegments.add(entrySegment);
-        }
       }
     }
 
@@ -800,15 +974,6 @@ public abstract class PasFlowShiftExecutor {
   public double getS1SendingFlow() {
     return bushEntrySegmentS1S2SendingFlows.values().stream().flatMap(
             e -> e.values().stream()).mapToDouble(Pair::first).sum();
-  }
-
-  /**
-   * All used entry Segments that were found to be congested and a flow shift has been applied to
-   * 
-   * @return set of found edge segments
-   */
-  public Set<EdgeSegment> getUsedCongestedEntrySegments() {
-    return this.usedCongestedEntryEdgeSegments;
   }
 
   /**
