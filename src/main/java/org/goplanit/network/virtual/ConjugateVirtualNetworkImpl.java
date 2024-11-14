@@ -39,7 +39,8 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
   protected final VirtualNetwork originalVirtualNetwork;
 
   /**
-   * Reset and re-populate entire conjugate virtual network based on current state of original virtual network this is the conjugate of
+   * Reset and re-populate entire conjugate virtual network based on current state of original virtual network
+   * this is the conjugate of
    */
   protected void update() {
     reset();
@@ -57,11 +58,14 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
       }
       var conjugateNode = getConjugateConnectoidNodes().getFactory().registerNew(connectoidEdge);
 
-      /* create "fake" conjugate connectoid edge (where one of the two conjugate connectoid nodes has no original network equivalent but reflects a conjugate centroid) */
-      var conjugateEdge = getConjugateConnectoidEdges().getFactory().registerNew(conjugateDummyNode, conjugateNode, true, connectoidEdge);
+      /* create "fake" conjugate connectoid edge (where one of the two conjugate connectoid nodes has no original
+       * network equivalent but reflects a conjugate centroid) */
+      var conjugateEdge = getConjugateConnectoidEdges().getFactory().registerNew(
+              conjugateDummyNode, conjugateNode, true, connectoidEdge);
 
-      // create conjugate connectoid segments between the two nodes to create connectoid turn segments where either the incoming or outgoing original edge segment is null
-      // this ensures we can have a generic path search algorithm where we consistently use either incoming or outgoing original edge segment costs
+      // create conjugate connectoid segments between the two nodes to create connectoid turn segments where either
+      // the incoming or outgoing original edge segment is null this ensures we can have a generic path search
+      // algorithm where we consistently use either incoming or outgoing original edge segment costs
       getConjugateConnectoidEdgeSegments().getFactory().registerNew(conjugateEdge, true /* ab direction */, true);
       getConjugateConnectoidEdgeSegments().getFactory().registerNew(conjugateEdge, false /* ba direction */, true);
     }

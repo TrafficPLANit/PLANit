@@ -3,7 +3,9 @@ package org.goplanit.network.layer.physical;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.DirectedEdgeImpl;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.ConjugateLink;
@@ -33,7 +35,7 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
   /**
    * adjacent original directed edges represented by this conjugate
    */
-  protected final Pair<Link, Link> originalLinks;
+  protected final Pair<? extends DirectedEdge, ? extends DirectedEdge> originalEdges;
 
   /**
    * Copy constructor
@@ -43,7 +45,7 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    */
   protected ConjugateLinkImpl(ConjugateLinkImpl other, boolean deepCopy) {
     super(other, deepCopy);
-    this.originalLinks = other.originalLinks.copy();
+    this.originalEdges = other.originalEdges.copy();
   }
 
   /**
@@ -52,13 +54,17 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param nodeA    the first node in the link
    * @param nodeB    the second node in the link
-   * @param originalLink1 to use
-   * @param originalLink2 to use
+   * @param originalEdge1 to use
+   * @param originalEdge2 to use
    */
-  protected ConjugateLinkImpl(final IdGroupingToken groupId, final ConjugateDirectedVertex nodeA, final ConjugateDirectedVertex nodeB, final Link originalLink1,
-      final Link originalLink2) {
+  protected ConjugateLinkImpl(
+          final IdGroupingToken groupId,
+          final ConjugateDirectedVertex nodeA,
+          final ConjugateDirectedVertex nodeB,
+          final DirectedEdge originalEdge1,
+          final DirectedEdge originalEdge2) {
     super(groupId, nodeA, nodeB);
-    this.originalLinks = Pair.of(originalLink1, originalLink2);
+    this.originalEdges = Pair.of(originalEdge1, originalEdge2);
   }
 
   /**
@@ -123,8 +129,8 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    * {@inheritDoc}
    */
   @Override
-  public Pair<? extends Link, ? extends Link> getOriginalAdjacentEdges() {
-    return this.originalLinks;
+  public Pair<? extends DirectedEdge, ? extends DirectedEdge> getOriginalAdjacentEdges() {
+    return this.originalEdges;
   }
 
 }

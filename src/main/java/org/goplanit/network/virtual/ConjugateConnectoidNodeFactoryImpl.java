@@ -29,7 +29,7 @@ public class ConjugateConnectoidNodeFactoryImpl extends GraphEntityFactoryImpl<C
    */
   @Override
   public ConjugateConnectoidNode createNew(final ConnectoidEdge originalConnectoidEdge) {
-    return new ConjugateConnectoidNodeImpl(originalConnectoidEdge);
+    return new ConjugateConnectoidNodeImpl(originalConnectoidEdge, getIdGroupingToken());
   }
 
   /**

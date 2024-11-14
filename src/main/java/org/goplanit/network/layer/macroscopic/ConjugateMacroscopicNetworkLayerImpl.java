@@ -1,6 +1,8 @@
 package org.goplanit.network.layer.macroscopic;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -8,6 +10,7 @@ import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.layer.physical.ConjugateLinkSegmentsImpl;
 import org.goplanit.network.layer.physical.ConjugateLinksImpl;
 import org.goplanit.network.layer.physical.ConjugateNodesImpl;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
@@ -64,35 +67,37 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
     /* (link,link) -> conjugate link + conjugate link segments */
     for (Node node : originalLayer.getNodes()) {
 
-      var linkIter = node.<Link>getLinks().iterator();
-      while (linkIter.hasNext()) {
-        var link = linkIter.next();
-        var nextLinkIter = node.<Link>getLinks().iterator();
+      var edgeIter = node.getEdges().iterator();
+      while (edgeIter.hasNext()) {
+        var edge = edgeIter.next();
+        var nextEdgeIter = node.getEdges().iterator();
 
         /* move next link iter to first after link iter */
-        while (nextLinkIter.hasNext()) {
-          if (nextLinkIter.next().equals(link)) {
+        while (nextEdgeIter.hasNext()) {
+          if (nextEdgeIter.next().equals(edge)) {
             break;
           }
         }
-        if (linkIter.hasNext() && !nextLinkIter.hasNext()) {
-          LOGGER.warning("Unable to find next link while updating conjugate macroscopic network, this shouldn't happen, abort");
+        if (edgeIter.hasNext() && !nextEdgeIter.hasNext()) {
+          LOGGER.warning("Unable to find next link while updating conjugate macroscopic network, " +
+                  "this shouldn't happen, abort");
           return;
         }
 
         /* for all remaining next links after current link create combinations (and in both directions for segments) */
-        while (nextLinkIter.hasNext()) {
-          var nextLink = nextLinkIter.next();
+        while (nextEdgeIter.hasNext()) {
+          var nextEdge = nextEdgeIter.next();
 
-          ConjugateDirectedVertex conjugateVertexA = edgeToConjugateNode.get(link);
-          ConjugateDirectedVertex conjugateVertexB = edgeToConjugateNode.get(nextLink);
+          ConjugateDirectedVertex conjugateVertexA = edgeToConjugateNode.get(edge);
+          ConjugateDirectedVertex conjugateVertexB = edgeToConjugateNode.get(nextEdge);
           if ((conjugateVertexA == null || conjugateVertexB == null) && conjugateVirtualNetwork != null) {
             LOGGER.warning("Unable to obtain conjugate vertex for original link, this shouldn't happen, skip");
             continue;
           }
 
           /* conjugate link */
-          ConjugateLink conjugateLink = getConjugateLinks().getFactory().registerNew(conjugateVertexA, conjugateVertexB, true, link, nextLink);
+          ConjugateLink conjugateLink = getConjugateLinks().getFactory().registerNew(
+                  conjugateVertexA, conjugateVertexB, true, edge, nextEdge);
 
           /* conjugate link segments for conjugate link */
           boolean directionAb = true;

@@ -194,7 +194,8 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    * {@inheritDoc}
    */
   @Override
-  public ConjugateMacroscopicNetworkLayer createConjugate(final IdGroupingToken idToken, final ConjugateVirtualNetwork conjugateVirtualNetwork) {
+  public ConjugateMacroscopicNetworkLayer createConjugate(
+          final IdGroupingToken idToken, final ConjugateVirtualNetwork conjugateVirtualNetwork) {
     /* empty instance */
     var conjugateLayer = new ConjugateMacroscopicNetworkLayerImpl(idToken, this);
     /* update based on state of parent network */

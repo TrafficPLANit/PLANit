@@ -31,15 +31,6 @@ public class ConjugateConnectoidNodeImpl extends DirectedVertexImpl<ConjugateEdg
   /** original this conjugate represents */
   protected final ConnectoidEdge original;
 
-  /**
-   * Special case where the id is based on the original link and does not rely on generating based on token when recreating managed ids this should override the default behaviour
-   * of generating an id based on token
-   */
-  @Override
-  protected long generateAndSetId(IdGroupingToken tokenId) {
-    return original.getId();
-  }
-
   // Public
 
   /**
@@ -47,8 +38,8 @@ public class ConjugateConnectoidNodeImpl extends DirectedVertexImpl<ConjugateEdg
    * 
    * @param original original this conjugate represents
    */
-  protected ConjugateConnectoidNodeImpl(final ConnectoidEdge original) {
-    super(original.getId());
+  protected ConjugateConnectoidNodeImpl(final ConnectoidEdge original, final IdGroupingToken idToken) {
+    super(idToken);
     this.original = original;
   }
 

@@ -6,6 +6,7 @@ import org.goplanit.cost.physical.initial.InitialModesLinkSegmentCost;
 import org.goplanit.cost.virtual.VirtualCost;
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.mode.Mode;
@@ -40,7 +41,7 @@ public class CostUtils {
       //todo: eventually the costs should be tracked per layer as id numbering of link segments is only unique per layer, for now we crash in case someone tries
       throw new PlanItRunTimeException("Link segment cost array can only be created if physical network only has a single layer, multi-layer support has not yet been implemented");
     }
-    return new double[TransportModelNetwork.getNumberOfEdgeSegmentsAllLayers(network, zoning)];
+    return new double[TransportModelNetworkUtils.getNumberOfEdgeSegmentsAllLayers(network, zoning)];
   }
 
   /**
@@ -54,7 +55,7 @@ public class CostUtils {
       //todo: eventually the costs should be tracked per layer as id numbering of link segments is only unique per layer, for now we crash in case someone tries
       throw new PlanItRunTimeException("Link segment cost array can only be created if physical network only has a single layer, multi-layer support has not yet been implemented");
     }
-    return new double[TransportModelNetwork.getNumberOfPhysicalLinkSegmentsAllLayers(network)];
+    return new double[TransportModelNetworkUtils.getNumberOfPhysicalLinkSegmentsAllLayers(network)];
   }
 
   /**

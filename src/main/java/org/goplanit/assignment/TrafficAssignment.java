@@ -161,7 +161,9 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   /**
    * Initialize the transport network by combining the physical and virtual components
    *
-   * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all internal managed ids of transport model network components (links, nodes, connectoids etc.), when false do not.
+   * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all
+   *                                   internal managed ids of transport model network components
+   *                                   (links, nodes, connectoids etc.), when false do not.
    */
   protected void createTransportNetwork(boolean resetAndRecreateManagedIds) {
     transportNetwork = new TransportModelNetwork(physicalNetwork, zoning);

@@ -50,16 +50,22 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
    */
-  public StaticLtmStrategyConjugateBush(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork,
-      final StaticLtmSettings settings, final TrafficAssignmentComponentAccessee taComponents) {
+  public StaticLtmStrategyConjugateBush(
+          final IdGroupingToken idGroupingToken,
+          long assignmentId,
+          final TransportModelNetwork transportModelNetwork,
+          final StaticLtmSettings settings,
+          final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
 
     /* generate conjugate network - generate ids separate from other vertices/edges/segments by providing new token */
-    var token = IdGenerator.createIdGroupingToken("conjugate for network " + getInfrastructureNetwork().getId());
+    var token = IdGenerator.createIdGroupingToken(
+            "conjugate for network " + getInfrastructureNetwork().getId());
     
     /* generate conjugate virtual network - generate ids separate from other vertices/edges/segments by providing new token */
     this.conjugateVirtualNetwork = transportModelNetwork.getZoning().getVirtualNetwork().createConjugate(token);
-    this.conjugateNetworkLayer = getInfrastructureNetwork().getLayerByMode(getInfrastructureNetwork().getModes().getFirst()).createConjugate(token, conjugateVirtualNetwork);
+    this.conjugateNetworkLayer = getInfrastructureNetwork().getLayerByMode(
+            getInfrastructureNetwork().getModes().getFirst()).createConjugate(token, conjugateVirtualNetwork);
   }
 
   /**
