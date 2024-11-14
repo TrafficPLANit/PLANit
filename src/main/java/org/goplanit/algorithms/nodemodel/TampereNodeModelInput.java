@@ -34,7 +34,7 @@ public class TampereNodeModelInput {
   /**
    * Compute the capacity scaling factors for each in link segment
    */
-  private void computeInLinkSegmentCapacityScalingFactors() {
+  private void updateInLinkSegmentCapacityScalingFactors() {
     // copy existing turn sending flows as starting point for scaled flows
     capacityScalingFactors = Array1D.PRIMITIVE64.makeZero(fixedInput.getNumberOfIncomingLinkSegments());
 
@@ -43,7 +43,7 @@ public class TampereNodeModelInput {
       // Sum_b(s_ab)
       double inLinkSendingFlow = turnSendingFlows.aggregateRow(inIndex, Aggregator.SUM);
       // lambda_a = C_a/Sum_b(s_ab)
-      double lambdaIncomingLinkScalingFactor = 0.0;
+      double lambdaIncomingLinkScalingFactor = Double.MAX_VALUE;
       if (Precision.positive(inLinkSendingFlow)) {
         lambdaIncomingLinkScalingFactor = inLinkSegmentCapacity / inLinkSendingFlow;
       }
@@ -73,11 +73,8 @@ public class TampereNodeModelInput {
   public TampereNodeModelInput(TampereNodeModelFixedInput fixedInput, Array2D<Double> turnSendingFlows) throws PlanItException {
     verifyInputs(fixedInput, turnSendingFlows);
     this.fixedInput = fixedInput;
-    this.turnSendingFlows = turnSendingFlows;
     this.outgoingLinkSegmentReceivingFlows = fixedInput.outgoingLinkSegmentReceivingFlows;
-
-    // determine all lambda_a*t_ab , with lambda_a=C_a/Sum_b(t_ab)
-    computeInLinkSegmentCapacityScalingFactors();
+    replaceTurnSendingFlows(turnSendingFlows);
   }
 
   /**
@@ -88,7 +85,10 @@ public class TampereNodeModelInput {
    * @param outgoingLinkSegmentReceivingFlows the receiving flows
    * @throws PlanItException thrown if error
    */
-  public TampereNodeModelInput(TampereNodeModelFixedInput fixedInput, Array2D<Double> turnSendingFlows, Array1D<Double> outgoingLinkSegmentReceivingFlows) throws PlanItException {
+  public TampereNodeModelInput(
+          TampereNodeModelFixedInput fixedInput,
+          Array2D<Double> turnSendingFlows,
+          Array1D<Double> outgoingLinkSegmentReceivingFlows) throws PlanItException {
     this(fixedInput, turnSendingFlows);
     this.outgoingLinkSegmentReceivingFlows = outgoingLinkSegmentReceivingFlows;
   }
@@ -121,6 +121,17 @@ public class TampereNodeModelInput {
   }
 
   /**
+   * Replace the turn sending flows
+   *
+   * @param turnSendingFlows replacement turn sending flows
+   */
+  public void replaceTurnSendingFlows(Array2D<Double> turnSendingFlows) {
+    this.turnSendingFlows = turnSendingFlows;
+    // determine all lambda_a*t_ab , with lambda_a=C_a/Sum_b(t_ab)
+    updateInLinkSegmentCapacityScalingFactors();
+  }
+
+  /**
    * The receiving flows used
    * 
    * @return receiving flows used
@@ -128,4 +139,5 @@ public class TampereNodeModelInput {
   public Array1D<Double> getUsedReceivingFlows() {
     return outgoingLinkSegmentReceivingFlows;
   }
+
 }
