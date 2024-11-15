@@ -257,14 +257,22 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param csvPrinter              CSVPrinter object to record results for this iteration
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
-  protected PlanItException writeLinkResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
+  protected PlanItException writeLinkResultsForCurrentTimePeriodToCsvPrinter(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          CSVPrinter csvPrinter) {
     try {
-      PlanItException.throwIf(!(currentOutputType instanceof OutputType), "currentOutputType not compatible with link output");
+      PlanItException.throwIf(!(currentOutputType instanceof OutputType),
+              "currentOutputType not compatible with link output");
 
       OutputType outputType = (OutputType) currentOutputType;
 
-      MacroscopicLinkOutputTypeAdapter linkOutputTypeAdapter = (MacroscopicLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+      MacroscopicLinkOutputTypeAdapter linkOutputTypeAdapter =
+              (MacroscopicLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
 
       SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
       for (Mode mode : modes) {

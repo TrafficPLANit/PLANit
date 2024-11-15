@@ -14,7 +14,9 @@ import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
+import org.goplanit.network.transport.ConjugateTransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.network.transport.TransportModelNetworkImpl;
 import org.goplanit.output.OutputManager;
 import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
@@ -159,15 +161,32 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   protected abstract void verifyNetworkDemandZoningCompatibility() throws PlanItException;
 
   /**
+   * Assignments rely on a network representation. This network representation may be in regular form or in
+   * dual/conjugate form. this method provides which of the two is being created and provided to each
+   * implementation of the assignment.
+   * <p>
+   *   When creating the transport model network, the result of this call is provided to construct the correct
+   *   network type that feeds into the derived assignment calls afterwards
+   * </p>
+   *
+   * @return true when conjugate form is requried, false otherwise
+   */
+  protected abstract boolean isRequireConjugateNetwork();
+
+  /**
    * Initialize the transport network by combining the physical and virtual components
    *
    * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all
    *                                   internal managed ids of transport model network components
    *                                   (links, nodes, connectoids etc.), when false do not.
+   * @param conjugate                  when true, the transport model network created will be the conjugate
+   *                                   (or dual network) version of the "regular" transport model network
    */
-  protected void createTransportNetwork(boolean resetAndRecreateManagedIds) {
-    transportNetwork = new TransportModelNetwork(physicalNetwork, zoning);
-    transportNetwork.integrateTransportNetworkViaConnectoids(resetAndRecreateManagedIds);
+  protected void createTransportNetwork(boolean resetAndRecreateManagedIds, boolean conjugate) {
+    var theTransportNetwork = new TransportModelNetworkImpl(physicalNetwork, zoning);
+    theTransportNetwork.integrateTransportNetworkViaConnectoids(resetAndRecreateManagedIds);
+    transportNetwork = conjugate ?
+            theTransportNetwork.createConjugate() : theTransportNetwork;
   }
 
   /**
@@ -278,7 +297,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   protected void initialiseBeforeExecution(boolean resetAndRecreateManagedIds) throws PlanItException {
     // verify validity
     checkForEmptyComponents();
-    createTransportNetwork(resetAndRecreateManagedIds);
+    createTransportNetwork(resetAndRecreateManagedIds, isRequireConjugateNetwork());
     /* check components, including the transport network that just has been created */
     verifyComponentCompatibility();
 

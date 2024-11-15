@@ -31,7 +31,8 @@ public abstract class UntypedPhysicalNetworkLayersImpl<L extends UntypedPhysical
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper apply to each mapping from original to copy
    */
-  public UntypedPhysicalNetworkLayersImpl(UntypedPhysicalNetworkLayersImpl<L> other, boolean deepCopy, BiConsumer<L, L> mapper) {
+  public UntypedPhysicalNetworkLayersImpl(
+          UntypedPhysicalNetworkLayersImpl<L> other, boolean deepCopy, BiConsumer<L, L> mapper) {
     super(other,deepCopy, mapper);
   }
 

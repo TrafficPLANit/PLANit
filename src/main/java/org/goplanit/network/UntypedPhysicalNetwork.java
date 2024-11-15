@@ -56,11 +56,9 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
 
   /**
    * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the internal ids if needed
-   * 
-   * @throws PlanItException thrown if error
-   * 
+   *
    */
-  public void removeDanglingSubnetworks() throws PlanItException {
+  public void removeDanglingSubnetworks(){
     removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
   }
 
@@ -81,11 +79,11 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
    * {@inheritDoc}
    */
   @Override
-  public abstract UntypedPhysicalNetwork shallowClone();
+  public abstract UntypedPhysicalNetwork<L, LS> shallowClone();
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract UntypedPhysicalNetwork deepClone();
+  public abstract UntypedPhysicalNetwork<L, LS> deepClone();
 }

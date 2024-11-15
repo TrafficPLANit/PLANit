@@ -102,6 +102,15 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   }
 
   /**
+   * Do not require a conjugate form of network
+   * @return false
+   */
+  @Override
+  protected boolean isRequireConjugateNetwork() {
+    return false;
+  }
+
+  /**
    * Verify if a supported gap function is used
    */
   @Override

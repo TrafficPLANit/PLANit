@@ -45,8 +45,7 @@ public class TransportModelNetworkImpl implements TransportModelNetwork{
    * on the connectoid edges and segments to do so.
    */
   private void logInfo() {
-    LOGGER.info(String.format("#OD connectoid edges: %d", getVirtualNetwork().getConnectoidEdges().size()));
-    LOGGER.info(String.format("#OD connectoid segments: %d", getVirtualNetwork().getConnectoidSegments().size()));
+    getVirtualNetwork().logInfo("");
     if(!movements.isEmpty()){
       LOGGER.info(String.format("#Movements: %d", getMovements().size()));
     }
@@ -209,9 +208,9 @@ public class TransportModelNetworkImpl implements TransportModelNetwork{
       virtualNetwork.recreateManagedIds(false); // reset of underlying managed id class (edge,vertex) already happened in network
     }
 
-    var centroidVertexFactory = virtualNetwork.getCentroidVertices().getFactory();
-    var connectoidEdgeFactory = virtualNetwork.getConnectoidEdges().getFactory();
-    var connectoidSegmentFactory = virtualNetwork.getConnectoidSegments().getFactory();
+    var centroidVertexFactory = virtualNetwork.getLayer().getVertices().getFactory();
+    var connectoidEdgeFactory = virtualNetwork.getLayer().getConnectoidEdges().getFactory();
+    var connectoidSegmentFactory = virtualNetwork.getLayer().getConnectoidSegments().getFactory();
 
     var geoTools = new PlanitJtsCrsUtils(getInfrastructureNetwork().getCoordinateReferenceSystem());
 
@@ -254,34 +253,6 @@ public class TransportModelNetworkImpl implements TransportModelNetwork{
    * {@inheritDoc}
    */
   @Override
-  public int getNumberOfEdgeSegmentsAllLayers() {
-    // todo: move to interface if conjugate implementation also uses this
-    return TransportModelNetworkUtils.getNumberOfPhysicalLinkSegmentsAllLayers(getInfrastructureNetwork()) +
-            TransportModelNetworkUtils.getNumberOfConnectoidSegments(getZoning());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int getNumberOfPhysicalLinkSegmentsAllLayers() {
-    // todo: move to interface if conjugate implementation also uses this
-    return TransportModelNetworkUtils.getNumberOfPhysicalLinkSegmentsAllLayers(getInfrastructureNetwork());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int getNumberOfConnectoidSegments() {
-    // todo: move to interface if conjugate implementation also uses this
-    return getVirtualNetwork().getConnectoidSegments().size();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public int getNumberOfVerticesAllLayers() {
     // todo: move to interface if conjugate implementation also uses this
     return TransportModelNetworkUtils.getNumberOfVerticesAllLayers(getInfrastructureNetwork(), zoning);
@@ -291,17 +262,9 @@ public class TransportModelNetworkImpl implements TransportModelNetwork{
    * {@inheritDoc}
    */
   @Override
-  public int getNumberOfPhysicalNodesAllLayers() {
-    // todo: move to interface if conjugate implementation also uses this
-    return TransportModelNetworkUtils.getNumberOfPhysicalNodesAllLayers(getInfrastructureNetwork());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void removeVirtualNetworkFromPhysicalNetwork(boolean resetManagedIds) {
-    for (ConnectoidEdge connectoidEdge : getVirtualNetwork().getConnectoidEdges()) {
+    // todo: move to interface if conjugate implementation has same implementation
+    for (ConnectoidEdge connectoidEdge : getVirtualNetwork().getLayer().getConnectoidEdges()) {
       disconnectVerticesFromEdge(connectoidEdge);
     }
 
@@ -364,9 +327,26 @@ public class TransportModelNetworkImpl implements TransportModelNetwork{
 
   /**
    * {@inheritDoc}
+   * <p>
+   *   todo: should ideally check if it has been integrated with the zoning/virtual network already
+   *    for now assume this is the case, so we can integrate immediately here
+   * </p>
+   */
+  @Override
+  public ConjugateTransportModelNetwork createConjugate() {
+    var conjugateTransportModelNetwork = new ConjugateTransportModelNetwork(this);
+
+    // since conjugate network is always created new no need to recreate ids
+    conjugateTransportModelNetwork.integrateTransportNetworkViaConnectoids(false);
+    return conjugateTransportModelNetwork;
+  }
+
+  /**
+   * {@inheritDoc}
    */
   @Override
   public Movements getMovements(){
     return movements;
   }
+
 }

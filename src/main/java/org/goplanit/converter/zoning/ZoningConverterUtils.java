@@ -123,7 +123,7 @@ public class ZoningConverterUtils {
         isAvoidCrossTrafficForAccessModeOrAccessNodeWaitingAreaOverwritten(
             accessMode, waitingAreaSourceId, connectoidLocation, getOverwrittenWaitingAreaSourceId);
 
-    MacroscopicLinkSegment oneWayLinkSegment = accessLink.getLinkSegmentIfLinkIsOneWayForMode(accessMode);
+    LinkSegment oneWayLinkSegment = accessLink.getLinkSegmentIfLinkIsOneWayForMode(accessMode);
     if(mustAvoidCrossingTraffic && oneWayLinkSegment != null) {
       /* special case: one way link and internal existing coordinate chosen. If the upstream geometry of this coordinate (when extrapolated to the waiting area)
        * is on the wrong side of the waiting area, it would be discarded, yet it might be that a projected location closest to the waiting area would be valid
@@ -187,7 +187,12 @@ public class ZoningConverterUtils {
    * @return remaining links that are deemed eligible
    */
   public static Collection<MacroscopicLink> excludeLinksOnWrongSideOf(
-      Geometry location, Collection<MacroscopicLink> links, boolean isLeftHandDrive, Collection<? extends Mode> accessModes, PlanitJtsCrsUtils geoUtils) {
+      Geometry location,
+      Collection<MacroscopicLink> links,
+      boolean isLeftHandDrive,
+      Collection<? extends Mode> accessModes,
+      PlanitJtsCrsUtils geoUtils) {
+
     Collection<MacroscopicLink> matchedLinks = new HashSet<>(links);
     for(var link : links) {
       for(Mode accessMode : accessModes){
@@ -196,7 +201,7 @@ public class ZoningConverterUtils {
          * have no doors at the right side, e.g., travellers have to cross the road to get to the vehicle, which should not happen */
         boolean mustAvoidCrossingTraffic = ZoningConverterUtils.isAvoidCrossTrafficForAccessMode(accessMode);
 
-        MacroscopicLinkSegment oneWayLinkSegment = link.getLinkSegmentIfLinkIsOneWayForMode(accessMode);
+        LinkSegment oneWayLinkSegment = link.getLinkSegmentIfLinkIsOneWayForMode(accessMode);
         if(oneWayLinkSegment != null && mustAvoidCrossingTraffic) {
           /* use line geometry closest to connectoid location */
           LineSegment finalLineSegment = PlanitEntityGeoUtils.extractClosestLineSegmentToGeometryFromLinkSegment(location, oneWayLinkSegment, geoUtils);

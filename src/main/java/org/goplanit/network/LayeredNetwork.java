@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import org.goplanit.mode.ModesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.mode.PredefinedModeType;
@@ -85,6 +86,22 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
       this.transportLayers = (T) other.getTransportLayers().shallowClone();
     }
     this.transportLayers = (T) (deepCopy ? other.getTransportLayers().deepClone() : other.getTransportLayers().shallowClone());
+  }
+
+  /**
+   *
+   * {@inheritDoc}
+   */
+  @Override
+  public void logInfo(String prefix){
+    LOGGER.info(String.format(
+            "%s XML id %s (external id: %s) has %d layers",
+            prefix, getXmlId(), getExternalId(), getTransportLayers().size()));
+
+    /* for each layer log information regarding contents */
+    for(NetworkLayer networkLayer : getTransportLayers()) {
+      networkLayer.logInfo(LoggingUtils.networkLayerPrefix(networkLayer.getId()));
+    }
   }
 
   /**

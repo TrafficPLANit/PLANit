@@ -238,6 +238,17 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   }
 
   /**
+   * When we have a conjugate bush based approach the transport model network needs to be
+   * in conjugate form, otherwise not
+   *
+   * @return true when conjugate bush based, false otherwise
+   */
+  @Override
+  protected boolean isRequireConjugateNetwork() {
+    return settings.getSltmType() == StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED;
+  }
+
+  /**
    * Initialise the components before we start any assignment + create the assignment strategy (bush or path based)
    *
    * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all internal managed ids of transport model network components (links, nodes, connectoids etc.), when false do not.

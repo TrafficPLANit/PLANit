@@ -48,6 +48,11 @@ public class EventBasedLtm extends LtmAssignment {
   }
 
   @Override
+  protected boolean isRequireConjugateNetwork() {
+    return false;
+  }
+
+  @Override
   public void executeEquilibration() throws PlanItException {
     // TODO Auto-generated method stub
 

@@ -1,0 +1,312 @@
+package org.goplanit.network.virtual;
+
+import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
+import org.goplanit.network.layer.modifier.UntypedNetworkLayerModifierImpl;
+import org.goplanit.network.layer.physical.ConjugateNodesImpl;
+import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
+import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.PredefinedModeType;
+import org.goplanit.utils.network.layer.NetworkLayer;
+import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
+import org.goplanit.utils.network.layer.physical.ConjugateNode;
+import org.goplanit.utils.network.layer.physical.ConjugateNodes;
+import org.goplanit.utils.network.virtual.*;
+import org.locationtech.jts.geom.Envelope;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+
+/**
+ * Model free conjugate virtual network layer which is part of the conjugate virtual network and holds all the
+ * conjugate virtual infrastructure
+ *
+ * TODO: instead of extending UntypedDirectedGraphImpl, implement its interface and have a member to hide some inherited
+ *   methods (getEdges etc.), and then consolidate some methods copied from UntypedNetworkLayerImpl that for now have been
+ *   duplicated
+ * 
+ * @author markr
+ */
+public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetworkLayer {
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger((ConjugateVirtualNetworkLayerImpl.class.getCanonicalName()));
+
+  // Protected
+
+  protected UntypedDirectedGraphImpl<ConjugateNode, ConjugateConnectoidEdge, ConjugateConnectoidSegment> theGraph;
+
+  protected String externalId;
+
+  protected String xmlId;
+
+  /** the reference layer this conjugate layer is based on */
+  protected VirtualNetworkLayerImpl referenceLayer;
+
+  /**
+   * {@inheritDoc}
+   */
+  public Map<CentroidVertex, ConjugateConnectoidNode> createCentroidToConjugateNodeMapping() {
+    //TODO: see where needed and update to new structure
+    var mapping = new HashMap<CentroidVertex, ConjugateConnectoidNode>();
+//    for (ConjugateConnectoidNode conjugateNode : getConjugateConnectoidNodes()) {
+//      var originalEdge = conjugateNode.getOriginalEdge();
+//      if (originalEdge != null) {
+//        /* not dummy connected to original centroid */
+//        continue;
+//      }
+//
+//      /* found eligible dymmy conjugate, determine to what centroid it maps */
+//      var conjugateDummyEdge = conjugateNode.getEdges().iterator().next();
+//      var originalConnectoidEdge = (ConnectoidEdge) conjugateDummyEdge.getOriginalAdjacentEdges().getEarliestNonNull();
+//      if (originalConnectoidEdge == null) {
+//        LOGGER.severe(String.format("Conjugate connectoid dummy node's (%s) not connected to original centroid, this shouldn't happen", conjugateNode.getXmlId()));
+//      }
+//      /* set mapping */
+//      mapping.put(originalConnectoidEdge.getCentroidVertex(), conjugateNode);
+//    }
+    return mapping;
+  }
+
+  /**
+   * Update the layer by syncing it to the current non-conjugate reference layer
+   */
+  protected void update() {
+    reset();
+    //TODO: update this to work with new structure
+//    Map<DirectedVertex, ConjugateConnectoidNode> dummyConjugatePerZone = new HashMap<>();
+//
+//    /* connectoid edge -> conjugate connectoid node */
+//    for (var connectoidEdge : originalVirtualNetwork.getLayer().getConnectoidEdges()) {
+//
+//      var centroid = connectoidEdge.getCentroidVertex();
+//      var conjugateDummyNode = dummyConjugatePerZone.get(centroid);
+//      if (conjugateDummyNode == null) {
+//        conjugateDummyNode = getLayer().getVertices().getFactory().registerNew(null);
+//        dummyConjugatePerZone.put(centroid, conjugateDummyNode);
+//      }
+//      var conjugateNode = getConjugateConnectoidNodes().getFactory().registerNew(connectoidEdge);
+//
+//      /* create "fake" conjugate connectoid edge (where one of the two conjugate connectoid nodes has no original
+//       * network equivalent but reflects a conjugate centroid) */
+//      var conjugateEdge = getConjugateConnectoidEdges().getFactory().registerNew(
+//              conjugateDummyNode, conjugateNode, true, connectoidEdge);
+//
+//      // create conjugate connectoid segments between the two nodes to create connectoid turn segments where either
+//      // the incoming or outgoing original edge segment is null this ensures we can have a generic path search
+//      // algorithm where we consistently use either incoming or outgoing original edge segment costs
+//      getConjugateConnectoidEdgeSegments().getFactory().registerNew(conjugateEdge, true /* ab direction */, true);
+//      getConjugateConnectoidEdgeSegments().getFactory().registerNew(conjugateEdge, false /* ba direction */, true);
+//    }
+  }
+
+  /**
+   * Constructor
+   *
+   * @param tokenId contiguous id generation for instances of this class
+   * @param referenceLayer original layer
+   */
+  public ConjugateVirtualNetworkLayerImpl(final IdGroupingToken tokenId, VirtualNetworkLayerImpl referenceLayer) {
+    theGraph = new UntypedDirectedGraphImpl<>(
+            tokenId,
+            new ConjugateNodesImpl(tokenId),
+            new ConjugateConnectoidEdgesImpl(tokenId),
+            new ConjugateConnectoidSegmentsImpl(tokenId));
+
+    this.externalId = null;
+    this.xmlId = null;
+
+    this.referenceLayer = referenceLayer;
+  }
+
+  /**
+   * Copy constructor
+   *
+   * @param other to clone
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param connectoidEdgeMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param connectoidSegmentMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param conjugateNodeMapper to use for tracking mapping between original and copied entity (may be null)
+   */
+  protected ConjugateVirtualNetworkLayerImpl(
+      final ConjugateVirtualNetworkLayerImpl other,
+      boolean deepCopy,
+      GraphEntityDeepCopyMapper<ConjugateConnectoidEdge> connectoidEdgeMapper,
+      GraphEntityDeepCopyMapper<ConjugateConnectoidSegment> connectoidSegmentMapper,
+      GraphEntityDeepCopyMapper<ConjugateNode> conjugateNodeMapper) {
+    if(deepCopy){
+      //todo: verify this works as expected via super class - not tested
+      theGraph = other.theGraph.smartDeepClone(conjugateNodeMapper, connectoidEdgeMapper, connectoidSegmentMapper);
+    }else{
+      theGraph = other.theGraph;
+    }
+
+    this.xmlId = other.getXmlId();
+    this.externalId = other.getExternalId();
+
+    this.referenceLayer = other.referenceLayer; // not owned
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    getConnectoidSegments().reset();
+    getVertices().reset();
+    getConnectoidEdges().reset();
+  }
+
+  @Override
+  public long getId() {
+    return theGraph.getId();
+  }
+
+  @Override
+  public String getExternalId() {
+    return externalId;
+  }
+
+  @Override
+  public void setExternalId(String externalId) {
+    this.externalId = externalId;
+  }
+
+  @Override
+  public String getXmlId() {
+    return xmlId;
+  }
+
+  @Override
+  public void setXmlId(String xmlId) {
+    this.xmlId = xmlId;
+  }
+
+  @Override
+  public ConjugateConnectoidEdges getConnectoidEdges() {
+    return (ConjugateConnectoidEdges) theGraph.getEdges();
+  }
+
+  @Override
+  public ConjugateConnectoidSegments getConnectoidSegments() {
+    return (ConjugateConnectoidSegments) theGraph.getEdgeSegments();
+  }
+
+  @Override
+  public ConjugateNodes getVertices() {
+    return (ConjugateNodes) theGraph.getVertices();
+  }
+
+  @Override
+  public IdGroupingToken getLayerIdGroupingToken() {
+    return theGraph.getGraphIdGroupingToken();
+  }
+
+  @Override
+  public UntypedDirectedGraphLayerModifier<ConjugateNode, ConjugateConnectoidEdge, ConjugateConnectoidSegment> getLayerModifier() {
+    return new UntypedNetworkLayerModifierImpl<>(theGraph);
+  }
+
+  @Override
+  public void transform(
+          CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException {
+    try {
+      theGraph.transformGeometries(PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
+    } catch (Exception e) {
+      PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
+      throw new PlanItException(String.format("%s error during transformation of physical network %s CRS", NetworkLayer.createLayerLogPrefix(this), getXmlId()), e);
+    }
+  }
+
+  @Override
+  public Envelope createBoundingBox() {
+    if(getVertices().isEmpty()){
+      return null;
+    }
+
+    Envelope envelope = new Envelope(getVertices().iterator().next().getPosition().getCoordinate());
+    getVertices().forEach(v -> envelope.expandToInclude(v.getPosition().getCoordinate()));
+    return envelope;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateVirtualNetworkLayerImpl shallowClone() {
+    return new ConjugateVirtualNetworkLayerImpl(this, false, null, null, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateVirtualNetworkLayerImpl deepClone() {
+    return deepCloneWithMapping(
+            new GraphEntityDeepCopyMapper<>(),
+            new GraphEntityDeepCopyMapper<>(),
+            new GraphEntityDeepCopyMapper<>());
+  }
+
+  @Override
+  public boolean registerSupportedMode(Mode supportedMode) {
+    throw new PlanItRunTimeException("Not yet supported to be derived from physical network for now");
+  }
+
+  @Override
+  public boolean registerSupportedModes(Collection<Mode> supportedModes) {
+    throw new PlanItRunTimeException("Not yet supported to be derived from physical network for now");
+  }
+
+  @Override
+  public Collection<Mode> getSupportedModes() {
+    throw new PlanItRunTimeException("Not yet supported to be derived from physical network for now");
+  }
+
+  @Override
+  public boolean supportsPredefinedMode(PredefinedModeType predefinedModeType) {
+    throw new PlanItRunTimeException("Not yet supported to be derived from physical network for now");
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return theGraph.isEmpty();
+  }
+
+  @Override
+  public void logInfo(String prefix) {
+    LOGGER.info(String.format("%s#conjugate connectoid edges: %d", prefix, getConnectoidEdges().size()));
+    LOGGER.info(String.format("%s#conjugate connectoid segments: %d", prefix, getConnectoidSegments().size()));
+    LOGGER.info(String.format("%s#conjugate centroid vertices: %d", prefix, getVertices().size()));
+  }
+
+  @Override
+  public boolean validate() {
+    return theGraph.validate();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateVirtualNetworkLayerImpl deepCloneWithMapping(
+          GraphEntityDeepCopyMapper<ConjugateConnectoidEdge> connectoidEdgeMapper,
+          GraphEntityDeepCopyMapper<ConjugateConnectoidSegment> connectoidSegmentMapper,
+          GraphEntityDeepCopyMapper<ConjugateNode> conjugateNodeMapper) {
+    return new ConjugateVirtualNetworkLayerImpl(
+            this, true, connectoidEdgeMapper, connectoidSegmentMapper, conjugateNodeMapper);
+  }
+
+
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    return theGraph.recreateManagedIds(tokenId);
+  }
+
+}

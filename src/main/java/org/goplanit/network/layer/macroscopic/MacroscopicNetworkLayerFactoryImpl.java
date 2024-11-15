@@ -2,11 +2,12 @@ package org.goplanit.network.layer.macroscopic;
 
 import java.util.Arrays;
 
-import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.layers.ConjugateMacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.network.layers.ConjugateMacroscopicNetworkLayerFactory;
 import org.goplanit.utils.network.layers.MacroscopicNetworkLayerFactory;
 import org.goplanit.utils.network.layers.MacroscopicNetworkLayers;
 

@@ -78,21 +78,28 @@ public interface TransportModelNetwork {
    *
    * @return total number of physical and virtual edge segments
    */
-  public abstract int getNumberOfEdgeSegmentsAllLayers();
+  public default int getNumberOfEdgeSegmentsAllLayers(){
+    return TransportModelNetworkUtils.getNumberOfPhysicalLinkSegmentsAllLayers(getInfrastructureNetwork()) +
+            TransportModelNetworkUtils.getNumberOfConnectoidSegments(getVirtualNetwork());
+  }
 
   /**
    * Returns the total number of link segments available in this transport network across all eligible layers
    * 
    * @return the number of physical link segments in this network
    */
-  public abstract int getNumberOfPhysicalLinkSegmentsAllLayers();
+  public default int getNumberOfPhysicalLinkSegmentsAllLayers(){
+    return TransportModelNetworkUtils.getNumberOfPhysicalLinkSegmentsAllLayers(getInfrastructureNetwork());
+  }
 
   /**
    * Returns the total number of connectoid segments available in this transport network
    * 
    * @return the number of connectoid segments in this network
    */
-  public abstract int getNumberOfConnectoidSegments();
+  public default int getNumberOfConnectoidSegments(){
+    return getVirtualNetwork().getConnectoidSegments().size();
+  }
 
   /**
    * Returns the total physical vertices and centroid vertices (of od and/or transfer zones) in this transport network
@@ -106,7 +113,9 @@ public interface TransportModelNetwork {
    *
    * @return the number of physical nodes in this network
    */
-  public abstract int getNumberOfPhysicalNodesAllLayers();
+  public default int getNumberOfPhysicalNodesAllLayers(){
+    return TransportModelNetworkUtils.getNumberOfPhysicalNodesAllLayers(getInfrastructureNetwork());
+  }
 
   /**
    * Collect the physical network component of the transport network
@@ -120,7 +129,7 @@ public interface TransportModelNetwork {
    * 
    * @return virtualNetwork
    */
-  public abstract VirtualNetwork getVirtualNetwork();
+  public abstract UntypedVirtualNetwork<?> getVirtualNetwork();
 
   /**
    * Collect the zoning structure
@@ -137,7 +146,7 @@ public interface TransportModelNetwork {
    * @return mapping that was created
    */
   public default Map<Zone, CentroidVertex> createZoneToCentroidVertexMapping(boolean OdZones, boolean transferZones){
-    return getVirtualNetwork().getCentroidVertices().stream().filter(
+    return getVirtualNetwork().getLayer().getVertices().stream().filter(
         cVertex ->
             (OdZones && (cVertex.getParent().getParentZone() instanceof OdZone)) || (transferZones && (cVertex.getParent().getParentZone() instanceof TransferZone))).collect(
                 Collectors.toMap(cVertex -> cVertex.getParent().getParentZone(), cVertex -> cVertex));
@@ -169,4 +178,11 @@ public interface TransportModelNetwork {
    * @return movements container
    */
   public abstract Movements getMovements();
+
+  /**
+   * Retrieve conjugate version of this transport model network
+   *
+   * @return conjugate transport model network
+   */
+  public abstract ConjugateTransportModelNetwork createConjugate();
 }

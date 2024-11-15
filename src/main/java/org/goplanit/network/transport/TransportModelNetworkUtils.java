@@ -3,12 +3,14 @@ package org.goplanit.network.transport;
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.zoning.Zoning;
 
 public class TransportModelNetworkUtils {
 
   /**
-   * Returns the total number of edge segments available in this traffic assignment by combining the physical and non-physical link segments
+   * Returns the total number of edge segments available in this traffic assignment by combining the
+   * physical and non-physical link segments
    *
    * @param theNetwork to use
    * @param theZoning to use
@@ -19,13 +21,23 @@ public class TransportModelNetworkUtils {
   }
 
   /**
-   * Returns the total number of connectoid segments available in this transport network
+   * Returns the total number of connectoid segments available in the zoning's virtual network
    *
    * @param theZoning to use
-   * @return the number of connectoid segments in this network
+   * @return the number of connectoid segments
    */
   public static int getNumberOfConnectoidSegments(Zoning theZoning) {
     return theZoning.getVirtualNetwork().getConnectoidSegments().size();
+  }
+
+  /**
+   * Returns the total number of connectoid segments available based on virtual network
+   *
+   * @param virtualNetwork to use
+   * @return the number of connectoid segments in this network
+   */
+  public static int getNumberOfConnectoidSegments(VirtualNetwork virtualNetwork) {
+    return virtualNetwork.getConnectoidSegments().size();
   }
 
   /**

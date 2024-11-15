@@ -85,8 +85,8 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
       this.vertices = other.getVertices().deepCloneWithMapping(vertexMapper);
       this.edges    = other.getEdges().deepCloneWithMapping(edgesMapper);
 
-      EdgeUtils.updateEdgeVertices(edges, (V originalVertex) -> vertexMapper.getMapping(originalVertex), true);
-      VertexUtils.updateVertexEdges(vertices, (E originalEdge) -> edgesMapper.getMapping(originalEdge), true );
+      EdgeUtils.updateEdgeVertices(edges, vertexMapper::getMapping, true);
+      VertexUtils.updateVertexEdges(vertices, edgesMapper::getMapping, true );
     }else{
       this.edges    = other.getEdges().shallowClone();
       this.vertices = other.getVertices(). shallowClone();

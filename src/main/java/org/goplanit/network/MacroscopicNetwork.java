@@ -1,6 +1,5 @@
 package org.goplanit.network;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.HashedMap;
@@ -8,7 +7,6 @@ import org.goplanit.network.layer.macroscopic.MacroscopicGridNetworkLayerGenerat
 import org.goplanit.network.layers.MacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
-import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
@@ -61,15 +59,6 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
   protected MacroscopicNetwork(
       final MacroscopicNetwork other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<MacroscopicNetworkLayer> layerMapper) {
     super(other, deepCopy, modeMapper, layerMapper);
-  }
-
-  @Override
-  public void logInfo(String prefix) {
-    LOGGER.info(String.format("%s XML id %s (external id: %s) has %d layers", prefix, getXmlId(), getExternalId(), getTransportLayers().size()));
-    /* for each layer log information regarding contents */
-    for(NetworkLayer networkLayer : getTransportLayers()) {
-      networkLayer.logInfo(LoggingUtils.networkLayerPrefix(networkLayer.getId()));
-    }
   }
 
   /**
@@ -129,4 +118,17 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
     return new MacroscopicNetwork(this, true, new ManagedIdDeepCopyMapper<>(), new ManagedIdDeepCopyMapper<>());
   }
 
+  /**
+   * construct a conjugate macroscopic network based on this network
+   *
+   * @param token groupIdToken to use
+   * @return created conjugate Macroscopic network
+   */
+  public ConjugateMacroscopicNetwork createConjugate(IdGroupingToken token) {
+    // create instance
+    var conjugateNetwork = new ConjugateMacroscopicNetwork(token, this);
+    // create the actual conjugate network
+    conjugateNetwork.recreateFromReferenceNetwork();
+    return conjugateNetwork;
+  }
 }

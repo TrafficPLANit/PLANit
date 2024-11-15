@@ -6,12 +6,14 @@ import org.goplanit.utils.network.virtual.ConjugateConnectoidEdge;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidSegment;
 
 /**
- * Conjugate connectoid segment object representing conjugate of original network's adjacent connectoid segment pair, i.e. turn from or to a centroid with one of the original links being null
+ * Conjugate connectoid segment object representing conjugate of original network's adjacent connectoid
+ * segment pair, i.e. turn from or to a centroid with one of the original links being null
  *
  * @author markr
  *
  */
-public class ConjugateConnectoidSegmentImpl extends EdgeSegmentImpl<ConjugateConnectoidEdge> implements ConjugateConnectoidSegment {
+public class ConjugateConnectoidSegmentImpl extends
+        EdgeSegmentImpl<ConjugateConnectoidEdge> implements ConjugateConnectoidSegment {
 
   /** UID */
   private static final long serialVersionUID = -2965215852323364946L;
@@ -51,5 +53,11 @@ public class ConjugateConnectoidSegmentImpl extends EdgeSegmentImpl<ConjugateCon
   @Override
   public ConjugateConnectoidSegmentImpl deepClone() {
     return new ConjugateConnectoidSegmentImpl(this, true);
+  }
+
+  @Override
+  public long getConnectoidSegmentId() {
+    //todo!
+    return 0;
   }
 }

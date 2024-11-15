@@ -76,6 +76,13 @@ public abstract class Network extends PlanitComponent<Network> implements Serial
   }
 
   /**
+   * Verify if entire network is empty
+   *
+   * @return true if network is empty, false otherwise
+   */
+  public abstract boolean isEmpty();
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -90,10 +97,4 @@ public abstract class Network extends PlanitComponent<Network> implements Serial
    */
   public abstract void logInfo(String prefix);
 
-  /**
-   * Verify if entire network is empty
-   *
-   * @return true if network is empty, false otherwise
-   */
-  public abstract boolean isEmpty();
 }

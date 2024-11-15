@@ -10,7 +10,8 @@ import org.goplanit.utils.network.layers.MacroscopicNetworkLayers;
 import java.util.function.BiConsumer;
 
 /**
- * Implementation of container and factory to manager layers. In this network type, all layers are of the Macroscopic physical network type
+ * Implementation of container and factory to manager layers. In this network type, all layers are of the
+ * Macroscopic physical network type
  * 
  * @author markr
  *
@@ -47,7 +48,7 @@ public class MacroscopicNetworkLayersImpl extends UntypedPhysicalNetworkLayersIm
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicNetworkLayersImpl shallowClone() {
+  public MacroscopicNetworkLayersImpl shallowClone(){
     return new MacroscopicNetworkLayersImpl(this, false, null);
   }
 
@@ -63,7 +64,8 @@ public class MacroscopicNetworkLayersImpl extends UntypedPhysicalNetworkLayersIm
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicNetworkLayersImpl deepCloneWithMapping(BiConsumer<MacroscopicNetworkLayer, MacroscopicNetworkLayer> mapper) {
+  public MacroscopicNetworkLayersImpl deepCloneWithMapping(
+          BiConsumer<MacroscopicNetworkLayer, MacroscopicNetworkLayer> mapper) {
     return new MacroscopicNetworkLayersImpl(this, true, mapper);
   }
 

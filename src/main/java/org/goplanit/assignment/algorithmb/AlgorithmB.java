@@ -54,6 +54,11 @@ public class AlgorithmB extends StaticTrafficAssignment {
     // TODO Auto-generated method stub
   }
 
+  @Override
+  protected boolean isRequireConjugateNetwork() {
+    return false;
+  }
+
   /**
    * {@inheritDoc}
    */

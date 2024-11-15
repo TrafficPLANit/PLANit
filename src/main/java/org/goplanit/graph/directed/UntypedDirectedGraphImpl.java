@@ -39,7 +39,11 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
    * @param edges        to use
    * @param edgeSegments to use
    */
-  public UntypedDirectedGraphImpl(final IdGroupingToken groupToken, GraphEntities<V> vertices, GraphEntities<E> edges, GraphEntities<ES> edgeSegments) {
+  public UntypedDirectedGraphImpl(
+          final IdGroupingToken groupToken,
+          GraphEntities<V> vertices,
+          GraphEntities<E> edges,
+          GraphEntities<ES> edgeSegments) {
     super(groupToken, vertices, edges);
     this.edgeSegments = edgeSegments;
   }
@@ -76,8 +80,8 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
     // container class, so clone upon shallow copy
     if(deepCopy) {
       this.edgeSegments = directedGraphImpl.getEdgeSegments().deepCloneWithMapping(edgeSegmentMapper);
-      EdgeSegmentUtils.updateEdgeSegmentParentEdges(edgeSegments, (E originalEdge) -> edgeMapper.getMapping(originalEdge), true);
-      DirectedEdgeUtils.updateDirectedEdgeEdgeSegments(edges, (ES originalEdgeSegment) -> edgeSegmentMapper.getMapping(originalEdgeSegment), true);
+      EdgeSegmentUtils.updateEdgeSegmentParentEdges(edgeSegments, edgeMapper::getMapping, true);
+      DirectedEdgeUtils.updateDirectedEdgeEdgeSegments(edges, edgeSegmentMapper::getMapping, true);
     }else{
       this.edgeSegments = directedGraphImpl.getEdgeSegments().shallowClone();
     }
@@ -118,8 +122,11 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
    * @return created copy
    */
   public UntypedDirectedGraphImpl<V, E, ES> smartDeepClone(
-      GraphEntityDeepCopyMapper<V> vertexMapper, GraphEntityDeepCopyMapper<E> edgeMapper, GraphEntityDeepCopyMapper<ES> edgeSegmentMapper) {
-    return new UntypedDirectedGraphImpl<>(this, true, vertexMapper, edgeMapper, edgeSegmentMapper);
+      GraphEntityDeepCopyMapper<V> vertexMapper,
+      GraphEntityDeepCopyMapper<E> edgeMapper,
+      GraphEntityDeepCopyMapper<ES> edgeSegmentMapper) {
+    return new UntypedDirectedGraphImpl<>(
+            this, true, vertexMapper, edgeMapper, edgeSegmentMapper);
   }
 
 }

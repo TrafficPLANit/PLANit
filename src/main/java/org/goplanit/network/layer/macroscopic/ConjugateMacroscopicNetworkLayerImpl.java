@@ -1,8 +1,6 @@
 package org.goplanit.network.layer.macroscopic;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -10,7 +8,6 @@ import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.layer.physical.ConjugateLinkSegmentsImpl;
 import org.goplanit.network.layer.physical.ConjugateLinksImpl;
 import org.goplanit.network.layer.physical.ConjugateNodesImpl;
-import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
@@ -33,7 +30,9 @@ import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
  * @author markr
  *
  */
-public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImpl<ConjugateNode, ConjugateLink, ConjugateLinkSegment> implements ConjugateMacroscopicNetworkLayer {
+public class ConjugateMacroscopicNetworkLayerImpl extends
+        UntypedNetworkLayerImpl<ConjugateNode, ConjugateLink, ConjugateLinkSegment> implements
+        ConjugateMacroscopicNetworkLayer {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(ConjugateMacroscopicNetworkLayerImpl.class.getCanonicalName());
@@ -42,11 +41,12 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
   protected final MacroscopicNetworkLayer originalLayer;
 
   /**
-   * Reset and re-populate entire conjugate network layer based on current state of original layer this is the conjugate of
+   * Reset and re-populate entire conjugate network layer based on current state of original layer this is the
+   * conjugate of
    * 
    * @param conjugateVirtualNetwork to use when connecting to original connectoid edges/segments
    */
-  protected void update(ConjugateVirtualNetwork conjugateVirtualNetwork) {
+  protected void recreateFromReferenceLayer(ConjugateVirtualNetwork conjugateVirtualNetwork) {
     reset();
 
     /* link -> conjugate node */
@@ -58,7 +58,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
 
     /* also allow for connectoids to be available and connected to newly created conjugate links */
     if (conjugateVirtualNetwork != null) {
-      for (var conjugateConnectoidNode : conjugateVirtualNetwork.getConjugateConnectoidNodes()) {
+      for (var conjugateConnectoidNode : conjugateVirtualNetwork.getLayer().getVertices()) {
         var originalEdge = conjugateConnectoidNode.getOriginalEdge();
         edgeToConjugateNode.put(originalEdge, conjugateConnectoidNode);
       }
@@ -105,7 +105,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
           if (abPair.bothNotNull()) {
             getConjugateLinkSegments().getFactory().registerNew(conjugateLink, directionAb, true);
           }
-          directionAb = !directionAb;
+          directionAb = false;
           var baPair = conjugateLink.getOriginalAdjacentEdgeSegments(directionAb);
           if (baPair.bothNotNull()) {
             getConjugateLinkSegments().getFactory().registerNew(conjugateLink, directionAb, true);
