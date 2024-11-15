@@ -52,7 +52,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
     /* link -> conjugate node */
     Map<DirectedEdge, ConjugateDirectedVertex> edgeToConjugateNode = new HashMap<>();
     for (Link link : originalLayer.getLinks()) {
-      ConjugateNode conjugateNode = getConjugateNodes().getFactory().registerNew(link);
+      ConjugateNode conjugateNode = getNodes().getFactory().registerNew(link);
       edgeToConjugateNode.put(link, conjugateNode);
     }
 
@@ -96,19 +96,19 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
           }
 
           /* conjugate link */
-          ConjugateLink conjugateLink = getConjugateLinks().getFactory().registerNew(
+          ConjugateLink conjugateLink = getLinks().getFactory().registerNew(
                   conjugateVertexA, conjugateVertexB, true, edge, nextEdge);
 
           /* conjugate link segments for conjugate link */
           boolean directionAb = true;
           var abPair = conjugateLink.getOriginalAdjacentEdgeSegments(directionAb);
           if (abPair.bothNotNull()) {
-            getConjugateLinkSegments().getFactory().registerNew(conjugateLink, directionAb, true);
+            getLinkSegments().getFactory().registerNew(conjugateLink, directionAb, true);
           }
           directionAb = false;
           var baPair = conjugateLink.getOriginalAdjacentEdgeSegments(directionAb);
           if (baPair.bothNotNull()) {
-            getConjugateLinkSegments().getFactory().registerNew(conjugateLink, directionAb, true);
+            getLinkSegments().getFactory().registerNew(conjugateLink, directionAb, true);
           }
         }
       }
@@ -173,7 +173,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    * {@inheritDoc}
    */
   @Override
-  public ConjugateLinks getConjugateLinks() {
+  public ConjugateLinks getLinks() {
     return (ConjugateLinks) getDirectedGraph().getEdges();
   }
 
@@ -181,7 +181,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    * {@inheritDoc}
    */
   @Override
-  public ConjugateLinkSegments getConjugateLinkSegments() {
+  public ConjugateLinkSegments getLinkSegments() {
     return (ConjugateLinkSegments) getDirectedGraph().getEdgeSegments();
   }
 
@@ -189,7 +189,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    * {@inheritDoc}
    */
   @Override
-  public ConjugateNodes getConjugateNodes() {
+  public ConjugateNodes getNodes() {
     return (ConjugateNodes) getDirectedGraph().getVertices();
   }
 

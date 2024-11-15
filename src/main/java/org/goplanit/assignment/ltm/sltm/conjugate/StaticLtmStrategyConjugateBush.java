@@ -98,7 +98,7 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
             var rootConjugateConnectoidNode = centroid2ConjugateNodeMapping.get(destination.getCentroid());
             /* register new bush */
             bush = new ConjugateDestinationBush(conjugateNetworkLayer.getLayerIdGroupingToken(), destinationCentroidVertex, rootConjugateConnectoidNode,
-                conjugateNetworkLayer.getConjugateLinkSegments().size() + conjugateVirtualNetwork.getConjugateConnectoidEdgeSegments().size());
+                conjugateNetworkLayer.getLinkSegments().size() + conjugateVirtualNetwork.getConjugateConnectoidEdgeSegments().size());
             conjugateBushes[(int) destination.getOdZoneId()] = bush;
             break;
           }

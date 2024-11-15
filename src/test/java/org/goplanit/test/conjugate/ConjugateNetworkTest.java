@@ -137,7 +137,7 @@ public class ConjugateNetworkTest {
       /* use a different token to ensure vertices/edges/edgesegments count from zero again, if we use the same token, they would simply continue */
       ConjugateMacroscopicNetworkLayer conjugateLayer = networkLayer.createConjugate(conjugateTestToken, conjugateVirtualNetwork);
 
-      assertEquals(networkLayer.getLinks().size(), conjugateLayer.getConjugateNodes().size());
+      assertEquals(networkLayer.getLinks().size(), conjugateLayer.getNodes().size());
 
       /* physical conjugate network check */
       int totalEdgePairs = 0;
@@ -148,8 +148,8 @@ public class ConjugateNetworkTest {
         }
         totalEdgePairs += combinations;
       }
-      assertEquals(totalEdgePairs, conjugateLayer.getConjugateLinks().size());
-      assertEquals(totalEdgePairs * 2, conjugateLayer.getConjugateLinkSegments().size());
+      assertEquals(totalEdgePairs, conjugateLayer.getLinks().size());
+      assertEquals(totalEdgePairs * 2, conjugateLayer.getLinkSegments().size());
 
       /*
        * virtual conjugate network check (where we add a partial dummy turn around each centroid to enter/exit the virtual network. Therefore, we have a single conjugate edge + 2
