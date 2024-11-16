@@ -29,7 +29,7 @@ public class ConjugateNodeFactoryImpl extends GraphEntityFactoryImpl<ConjugateNo
    */
   @Override
   public ConjugateNode createNew(final Link originalLink) {
-    return new ConjugateNodeImpl(originalLink);
+    return new ConjugateNodeImpl(getIdGroupingToken(), originalLink);
   }
 
   /**

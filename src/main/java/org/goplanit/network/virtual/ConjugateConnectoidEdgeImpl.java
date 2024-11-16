@@ -4,10 +4,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.ConjugateDirectedEdgeImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidEdge;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidSegment;
-import org.goplanit.utils.network.virtual.ConnectoidEdge;
+import org.goplanit.utils.network.virtual.*;
 
 /**
  * Conjugate (non-directional) connectoid edge class connecting two conjugate nodes. This conjugate only partly exists in the original network to be able to comprise the initial
@@ -19,18 +16,41 @@ import org.goplanit.utils.network.virtual.ConnectoidEdge;
  * @author markr
  *
  */
-public class ConjugateConnectoidEdgeImpl extends ConjugateDirectedEdgeImpl<ConjugateConnectoidNode, ConjugateConnectoidSegment> implements ConjugateConnectoidEdge {
+public class ConjugateConnectoidEdgeImpl
+    extends ConjugateDirectedEdgeImpl<ConjugateConnectoidNode, ConjugateConnectoidSegment>
+    implements ConjugateConnectoidEdge {
 
   // Protected
-
-  /**
-   * Generated UID
-   */
-  private static final long serialVersionUID = -5253510472753048901L;
 
   /** the logger */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ConjugateConnectoidEdgeImpl.class.getCanonicalName());
+
+  /**
+   * unique internal identifier across connectoid edges
+   */
+  protected long conjugateConnectoidEdgeId;
+
+  /**
+   * Set the connectoidEdgeId
+   *
+   * @param conjugateConnectoidEdgeId to set
+   */
+  protected void setConjugateConnectoidEdgeId(long conjugateConnectoidEdgeId) {
+    this.conjugateConnectoidEdgeId = conjugateConnectoidEdgeId;
+  }
+
+  /**
+   * recreate the internal connectoid edge id and set it
+   *
+   * @param tokenId to use
+   * @return updated id
+   */
+  protected long recreateConjugateConnectoidEdgeId(IdGroupingToken tokenId) {
+    long newConnectoidEdgeId = ConnectoidEdge.generateConnectoidEdgeId(tokenId);
+    setConjugateConnectoidEdgeId(newConnectoidEdgeId);
+    return newConnectoidEdgeId;
+  }
 
   /**
    * Copy constructor
@@ -40,6 +60,7 @@ public class ConjugateConnectoidEdgeImpl extends ConjugateDirectedEdgeImpl<Conju
    */
   protected ConjugateConnectoidEdgeImpl(ConjugateConnectoidEdgeImpl other, boolean deepCopy) {
     super(other, deepCopy);
+    setConjugateConnectoidEdgeId(other.getConnectoidEdgeId());
   }
 
   /**
@@ -53,6 +74,34 @@ public class ConjugateConnectoidEdgeImpl extends ConjugateDirectedEdgeImpl<Conju
   protected ConjugateConnectoidEdgeImpl(final IdGroupingToken groupId, final ConjugateConnectoidNode nodeA, final ConjugateConnectoidNode nodeB,
       final ConnectoidEdge originalConnectoidEdge) {
     super(groupId, nodeA, nodeB, originalConnectoidEdge, null);
+    setConjugateConnectoidEdgeId(ConnectoidEdge.generateConnectoidEdgeId(groupId));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long getConnectoidEdgeId() {
+    return conjugateConnectoidEdgeId;
+  }
+
+  /**
+   * Recreate internal ids: id and connectoid edge id
+   *
+   * @return recreated id
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    recreateConjugateConnectoidEdgeId(tokenId);
+    return super.recreateManagedIds(tokenId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateConnectoidSegment registerConnectoidSegment(/*Conjugate*/ConnectoidSegment connectoidSegment, boolean directionAB) {
+    return (ConjugateConnectoidSegment) registerEdgeSegment(connectoidSegment, directionAB);
   }
 
   /**

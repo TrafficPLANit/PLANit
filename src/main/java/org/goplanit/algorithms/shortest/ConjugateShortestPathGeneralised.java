@@ -42,7 +42,7 @@ public class ConjugateShortestPathGeneralised extends ShortestPathGeneralised {
   @Override
   protected Double getEdgeSegmentCost(final EdgeSegment edgeSegment) {
     // TODO: costly, to collect, when cached it will be quicker
-    return edgeSegmentCosts[(int) ((ConjugateEdgeSegment) edgeSegment).getOriginalAdjcentEdgeSegments().first().getId()];
+    return edgeSegmentCosts[(int) ((ConjugateEdgeSegment) edgeSegment).getOriginalAdjacentEdgeSegments().first().getId()];
   }
 
   /**

@@ -71,7 +71,7 @@ public class ConjugateBushTurnData{
         removeTurn(turnSegment);
         return false;
       } else if (turnSendingFlow < 0) {
-        var originalEdgeSegments = turnSegment.getOriginalAdjcentEdgeSegments();
+        var originalEdgeSegments = turnSegment.getOriginalAdjacentEdgeSegments();
         LOGGER.warning(String.format("** Turn (%s to %s) sending flow negative (%.9f), this is not allowed, reset to 0.0 ", originalEdgeSegments.first().getXmlId(),
             originalEdgeSegments.second().getXmlId(), turnSendingFlow));
         turnSendingFlow = 0.0;
@@ -166,7 +166,7 @@ public class ConjugateBushTurnData{
     for (var turn : node.getEntryEdgeSegments()) {
       double s_ab = getTurnSendingFlowPcuH(turn);
 
-      var originalEntrySegment = turn.getOriginalAdjcentEdgeSegments().first();
+      var originalEntrySegment = turn.getOriginalAdjacentEdgeSegments().first();
       double v_ab = s_ab * originalNetworkSegmentFlowAcceptanceFactors[(int) originalEntrySegment.getId()];
       totalAcceptedFlow += v_ab;
     }
@@ -225,7 +225,7 @@ public class ConjugateBushTurnData{
     if (turnSendingFlow > 0) {
       double totalSendingFlow = getTotalSendingFlowFromPcuH(turnSegment.getUpstreamVertex());
       if (totalSendingFlow < turnSendingFlow) {
-        var originalPair = turnSegment.getOriginalAdjcentEdgeSegments();
+        var originalPair = turnSegment.getOriginalAdjacentEdgeSegments();
         LOGGER.severe(String.format("Total sending flow (%.10f) smaller than turn (%s,%s) sending flow (%.10f), this shouldn't happen", totalSendingFlow,
             originalPair.first().getXmlId(), originalPair.second().getXmlId(), turnSendingFlow));
       }

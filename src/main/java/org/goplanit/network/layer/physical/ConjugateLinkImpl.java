@@ -22,12 +22,9 @@ import org.locationtech.jts.geom.LineString;
  * @author markr
  *
  */
-public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex, ConjugateLinkSegment> implements ConjugateLink {
+public class ConjugateLinkImpl extends LinkImpl<ConjugateDirectedVertex, ConjugateLinkSegment> implements ConjugateLink {
 
   // Protected
-
-  /** UID */
-  private static final long serialVersionUID = 1017598997588544001L;
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(ConjugateLinkImpl.class.getCanonicalName());
@@ -74,7 +71,8 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    */
   @Override
   public double getLengthKm() {
-    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, collect those instead, negative infinity returned");
+    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, " +
+        "collect those instead, negative infinity returned");
     return Double.NEGATIVE_INFINITY;
   }
 
@@ -85,7 +83,8 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    */
   @Override
   public void setLengthKm(double lengthInKm) {
-    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, set those instead");
+    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, " +
+        "set those instead");
   }
 
   /**
@@ -95,7 +94,8 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    */
   @Override
   public LineString getGeometry() {
-    LOGGER.warning("Geometry of conjugate is combination of underlying original geometries, collect those instead, null returned");
+    LOGGER.warning("Geometry of conjugate is combination of underlying original geometries, " +
+        "collect those instead, null returned");
     return null;
   }
 

@@ -57,7 +57,7 @@ public abstract class StaticLtmAssignmentStrategy {
   /**
    * Transport model network used
    */
-  private final TransportModelNetwork transportModelNetwork;
+  private final TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> transportModelNetwork;
 
   /**
    * Network loading to use
@@ -81,7 +81,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * 
    * @return transport model network
    */
-  protected TransportModelNetwork getTransportNetwork() {
+  protected TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> getTransportNetwork() {
     return transportModelNetwork;
   }
 
@@ -295,7 +295,7 @@ public abstract class StaticLtmAssignmentStrategy {
        * - node is (tracked as well as) potentially blocking or
        * - switching states between blocking/not blocking over iteration
        * */
-      Stream.concat(networkLayer.getNodes().stream(),virtualLayer.getCentroidVertices().stream()).forEach( node ->
+      Stream.concat(networkLayer.getNodes().stream(),virtualLayer.getLayer().getVertices().stream()).forEach( node ->
       {
         boolean currentlyPotentiallyBlocking = splittingRateData.isPotentiallyBlocking(node);
         boolean prevIterationPotentiallyBlocking = splittingRateData.isPrevIterationPotentiallyBlocking(node);
@@ -305,7 +305,7 @@ public abstract class StaticLtmAssignmentStrategy {
 
         /* entry segments */
         final var layerSegments = networkLayer.getLinkSegments();
-        final var virtualLayerSegments = virtualLayer.getConnectoidSegments();
+        final var virtualLayerSegments = virtualLayer.getLayer().getConnectoidSegments();
         node.getEntryEdgeSegments().forEach(es -> {
           if(layerSegments.containsKey(es.getId())){
             costsToUpdate[(int) es.getId()] = physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) es);
@@ -356,7 +356,7 @@ public abstract class StaticLtmAssignmentStrategy {
     MacroscopicNetworkLayer networkLayer = getInfrastructureNetwork().getLayerByMode(theMode);
     final var physicalLayerSegments = networkLayer.getLinkSegments();
     VirtualNetwork virtualLayer = getTransportNetwork().getZoning().getVirtualNetwork();
-    final var virtualLayerSegments = virtualLayer.getConnectoidSegments();
+    final var virtualLayerSegments = virtualLayer.getLayer().getConnectoidSegments();
 
     if (updateOnlyPotentiallyBlockingNodeCosts) {
 

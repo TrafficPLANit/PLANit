@@ -1,13 +1,10 @@
 package org.goplanit.network.virtual;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.virtual.*;
 
 /**
@@ -54,17 +51,18 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
    * @param connectoidSegmentMapper to use for tracking mapping between original and copied entity (may be null)
    * @param conjugateNodeMapper to use for tracking mapping between original and copied entity (may be null)
    */
+  @SuppressWarnings("unchecked")
   protected ConjugateVirtualNetworkImpl(
           final ConjugateVirtualNetworkImpl other,
           boolean deepCopy,
           GraphEntityDeepCopyMapper<? extends ConjugateConnectoidEdge> connectoidEdgeMapper,
           GraphEntityDeepCopyMapper<? extends ConjugateConnectoidSegment> connectoidSegmentMapper,
-          GraphEntityDeepCopyMapper<? extends ConjugateNode> conjugateNodeMapper) {
+          GraphEntityDeepCopyMapper<? extends ConjugateConnectoidNode> conjugateNodeMapper) {
     this.conjugateVirtualLayer = deepCopy ?
             getLayer().deepCloneWithMapping(
                     (GraphEntityDeepCopyMapper<ConjugateConnectoidEdge>) connectoidEdgeMapper,
                     (GraphEntityDeepCopyMapper<ConjugateConnectoidSegment>) connectoidSegmentMapper,
-                    (GraphEntityDeepCopyMapper<ConjugateNode>) conjugateNodeMapper) :
+                    (GraphEntityDeepCopyMapper<ConjugateConnectoidNode>) conjugateNodeMapper) :
             getLayer().shallowClone();
 
     this.originalVirtualNetwork = other.originalVirtualNetwork;
@@ -109,10 +107,15 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
 
   @Override
   public ConjugateVirtualNetworkImpl deepCloneWithMapping(
-          GraphEntityDeepCopyMapper<? extends ConnectoidEdge> connectoidEdgeMapper,
-          GraphEntityDeepCopyMapper<? extends ConnectoidSegment> connectoidSegmentMapper,
-          GraphEntityDeepCopyMapper<? extends CentroidVertex> conjugateNodeMapper) {
-    return new ConjugateVirtualNetworkImpl(this, true,
-            connectoidEdgeMapper, connectoidSegmentMapper, conjugateNodeMapper);
+      GraphEntityDeepCopyMapper<? extends ConnectoidEdge> connectoidEdgeMapper,
+      GraphEntityDeepCopyMapper<? extends ConnectoidSegment> connectoidSegmentMapper,
+      GraphEntityDeepCopyMapper<? extends DirectedVertex> conjugateNodeMapper) {
+    return new ConjugateVirtualNetworkImpl(
+        this,
+        true,
+        (GraphEntityDeepCopyMapper<? extends ConjugateConnectoidEdge>) connectoidEdgeMapper,
+        (GraphEntityDeepCopyMapper<? extends ConjugateConnectoidSegment>) connectoidSegmentMapper,
+        (GraphEntityDeepCopyMapper<ConjugateConnectoidNode>)conjugateNodeMapper);
   }
+
 }

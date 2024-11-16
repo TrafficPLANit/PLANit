@@ -6,10 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -18,6 +15,7 @@ import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.network.transport.TransportModelNetworkImpl;
 import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
@@ -29,9 +27,11 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.zoning.Centroid;
+import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
 
@@ -53,7 +53,7 @@ public class AcyclicShortestPathTest {
   /** the logger */
   private static Logger LOGGER = null;
 
-  private TransportModelNetwork transportNetwork;
+  private TransportModelNetworkImpl transportNetwork;
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
   private Zoning zoning;
@@ -157,9 +157,10 @@ public class AcyclicShortestPathTest {
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(0), zoneA, 0);
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(8), zoneB, 0);      
       
-      transportNetwork = new TransportModelNetwork(network, zoning);
+      transportNetwork = new TransportModelNetworkImpl(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids(false);
-      var zone2VertexMapping = transportNetwork.createZoneToCentroidVertexMapping(true, false);
+      Map<OdZone, CentroidVertex> zone2VertexMapping =
+          (Map<OdZone, CentroidVertex>) transportNetwork.createZoneToCentroidVertexMapping(true, false);
           
       // costs
       linkSegmentCosts = new double[]
@@ -174,7 +175,9 @@ public class AcyclicShortestPathTest {
             
           };
       
-      assertEquals(networkLayer.getLinkSegments().size()+zoning.getVirtualNetwork().getConnectoidSegments().size(), transportNetwork.getNumberOfEdgeSegmentsAllLayers());
+      assertEquals(
+          networkLayer.getLinkSegments().size() + zoning.getVirtualNetwork().getLayer().getConnectoidSegments().size(),
+          transportNetwork.getNumberOfEdgeSegmentsAllLayers());
       
       // SUBGRAPH -> containing all link segments except the connectoids in the wrong direction      
       long totalEdgeSegments = transportNetwork.getNumberOfEdgeSegmentsAllLayers();
@@ -319,11 +322,13 @@ public class AcyclicShortestPathTest {
   public void minMaxPathTest() {
     try {
 
-      var zone2VertexMapping = transportNetwork.createZoneToCentroidVertexMapping(true, false);
+      Map<? extends Zone, CentroidVertex> zone2VertexMapping =
+          transportNetwork.createZoneToCentroidVertexMapping(true, false);
       var zoneACentroidVertex = zone2VertexMapping.get(centroidA.getParentZone());
       var zoneBCentroidVertex = zone2VertexMapping.get(centroidB.getParentZone());
 
-      var minMaxPathAlgo = new ShortestPathAcyclicMinMaxGeneralised(acyclicSubGraph, true /*update sort*/, linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
+      var minMaxPathAlgo = new ShortestPathAcyclicMinMaxGeneralised(
+          acyclicSubGraph, true /*update sort*/, linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
       var minMaxResult = minMaxPathAlgo.executeOneToAll(zoneACentroidVertex);
       
       // MIN PATH RESULT

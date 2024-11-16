@@ -1,20 +1,16 @@
 package org.goplanit.network.transport;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.network.LayeredNetwork;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.UntypedPhysicalNetwork;
-import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
-import org.goplanit.network.layer.physical.MovementsImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.network.layer.physical.Movement;
-import org.goplanit.utils.network.layer.physical.Movements;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.*;
-import org.goplanit.utils.zoning.*;
+import org.goplanit.utils.zoning.Connectoid;
+import org.goplanit.utils.zoning.DirectedConnectoid;
+import org.goplanit.utils.zoning.UndirectedConnectoid;
+import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
@@ -23,11 +19,10 @@ import org.locationtech.jts.geom.Polygon;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
- * Entire transport network that is being modeled including both the physical and virtual aspects of it as well as the zoning.
- * It acts as a wrapper unifying the two components during the assignment stage.
+ * Transport network implementation that is being modeled including both the physical and virtual aspects of it as
+ * well as the zoning. It acts as a wrapper unifying the two components during the assignment stage.
  * <p>
  *   It also tracks movements if the user desired to generate those
  * </p>
@@ -35,7 +30,9 @@ import java.util.stream.Collectors;
  * @author markr
  *
  */
-public class TransportModelNetworkImpl implements TransportModelNetwork{
+public class TransportModelNetworkImpl
+    extends UntypedTransportModelNetwork<UntypedPhysicalNetwork<?, ?>, VirtualNetwork>
+    implements TransportModelNetwork<UntypedPhysicalNetwork<?, ?>, VirtualNetwork>{
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(TransportModelNetworkImpl.class.getCanonicalName());
@@ -49,41 +46,6 @@ public class TransportModelNetworkImpl implements TransportModelNetwork{
     if(!movements.isEmpty()){
       LOGGER.info(String.format("#Movements: %d", getMovements().size()));
     }
-  }
-
-  /**
-   * Holds the infrastructure road network that is being modelled
-   */
-  protected final UntypedPhysicalNetwork<?, ?> infrastructureNetwork;
-
-  /**
-   * Holds the zoning structure and virtual transport network interfacing with the physical network
-   */
-  protected final Zoning zoning;
-
-  /**
-   * Optional container to fill with all permissible movements in the transport network
-   */
-  protected final Movements movements;
-
-  /**
-   * Add Edge to both vertices
-   *
-   * @param edge Edge to be added to upstream and downstream vertices
-   */
-  protected void connectVerticesToEdge(Edge edge) {
-    edge.getVertexA().addEdge(edge);
-    edge.getVertexB().addEdge(edge);
-  }
-
-  /**
-   * Remove Edge from both vertices
-   *
-   * @param edge Edge to be removed from upstream and downstream vertices
-   */
-  protected void disconnectVerticesFromEdge(Edge edge) {
-    edge.getVertexA().removeEdge(edge);
-    edge.getVertexB().removeEdge(edge);
   }
 
   // Public
@@ -187,10 +149,9 @@ public class TransportModelNetworkImpl implements TransportModelNetwork{
    * @param infrastructureNetwork the network used to generate this TransportNetwork
    * @param zoning                the Zoning used to generate this TransportNetwork
    */
-  public TransportModelNetworkImpl(UntypedPhysicalNetwork<?, ?> infrastructureNetwork, Zoning zoning) {
-    this.infrastructureNetwork = infrastructureNetwork;
-    this.zoning = zoning;
-    this.movements = new MovementsImpl(infrastructureNetwork.getIdGroupingToken());
+  public TransportModelNetworkImpl(
+      UntypedPhysicalNetwork<?, ?> infrastructureNetwork, Zoning zoning) {
+    super(infrastructureNetwork, zoning, zoning.getVirtualNetwork());
   }
 
   /**
@@ -251,82 +212,6 @@ public class TransportModelNetworkImpl implements TransportModelNetwork{
 
   /**
    * {@inheritDoc}
-   */
-  @Override
-  public int getNumberOfVerticesAllLayers() {
-    // todo: move to interface if conjugate implementation also uses this
-    return TransportModelNetworkUtils.getNumberOfVerticesAllLayers(getInfrastructureNetwork(), zoning);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void removeVirtualNetworkFromPhysicalNetwork(boolean resetManagedIds) {
-    // todo: move to interface if conjugate implementation has same implementation
-    for (ConnectoidEdge connectoidEdge : getVirtualNetwork().getLayer().getConnectoidEdges()) {
-      disconnectVerticesFromEdge(connectoidEdge);
-    }
-
-    /* clear out contents */
-    if(resetManagedIds){
-      getVirtualNetwork().reset();
-    }else{
-      getVirtualNetwork().clear();
-    }
-
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public UntypedPhysicalNetwork<?, ?> getInfrastructureNetwork() {
-    return infrastructureNetwork;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public VirtualNetwork getVirtualNetwork() {
-    return zoning.getVirtualNetwork();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Zoning getZoning() {
-    return zoning;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void generatePermissibleMovements() {
-    //todo: if conjugate implementation also uses this move to interface
-    movements.reset();
-    for(var layer : getInfrastructureNetwork().getTransportLayers()){
-      for(var node : layer.getNodes()){
-        for(var entrySegment : node.getEntryEdgeSegments()){
-          for(var exitSegment : node.getExitLinkSegments()){
-
-            // never allow u-turn movement
-            if(entrySegment.hasOppositeDirectionSegment() && entrySegment.getOppositeDirectionSegment() == exitSegment){
-              continue;
-            }
-
-            movements.getFactory().registerNew(entrySegment, exitSegment);
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * {@inheritDoc}
    * <p>
    *   todo: should ideally check if it has been integrated with the zoning/virtual network already
    *    for now assume this is the case, so we can integrate immediately here
@@ -334,19 +219,20 @@ public class TransportModelNetworkImpl implements TransportModelNetwork{
    */
   @Override
   public ConjugateTransportModelNetwork createConjugate() {
-    var conjugateTransportModelNetwork = new ConjugateTransportModelNetwork(this);
+    if(!(getInfrastructureNetwork() instanceof MacroscopicNetwork)){
+      LOGGER.warning("Unsupported infrastructure network type create conjugate network for, only " +
+          "Macroscopic networks currently supported");
+    }
+    if(getVirtualNetwork() == null){
+      LOGGER.warning("Virtual network must be available to be able to create conjugate but found null");
+    }
+    @SuppressWarnings("unchecked")
+    var conjugateTransportModelNetwork = new ConjugateTransportModelNetwork(
+        (TransportModelNetwork<MacroscopicNetwork,VirtualNetwork>)(TransportModelNetwork) this);
 
     // since conjugate network is always created new no need to recreate ids
     conjugateTransportModelNetwork.integrateTransportNetworkViaConnectoids(false);
     return conjugateTransportModelNetwork;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Movements getMovements(){
-    return movements;
   }
 
 }

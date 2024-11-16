@@ -15,6 +15,7 @@ import org.goplanit.assignment.ltm.sltm.consumer.NMRUpdateExitLinkInflowsConsume
 import org.goplanit.demands.Demands;
 import org.goplanit.gap.NormBasedGapFunction;
 import org.goplanit.gap.StopCriterion;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -28,6 +29,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.pcu.PcuCapacitated;
 import org.goplanit.utils.time.TimePeriod;
 import org.ojalgo.array.Array1D;
@@ -59,7 +61,7 @@ public abstract class StaticLtmNetworkLoading {
   private final long runId;
 
   /** transport network used */
-  private TransportModelNetwork network;
+  private TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportNetwork;
 
   /** the network layer used, currently only a single layer is supported */
   private MacroscopicNetworkLayer networkLayer;
@@ -156,7 +158,7 @@ public abstract class StaticLtmNetworkLoading {
       for (var linkSegment : networkLayer.getLinkSegments()) {
         currReceivingFlows[(int) linkSegment.getId()] = linkSegment.getCapacityOrDefaultPcuH();
       }
-      for (var connectoidSegment : network.getVirtualNetwork().getConnectoidSegments()) {
+      for (var connectoidSegment : transportNetwork.getVirtualNetwork().getLayer().getConnectoidSegments()) {
         currReceivingFlows[(int) connectoidSegment.getId()] = connectoidSegment.getCapacityOrDefaultPcuH();
       }
       LinkSegmentData.copyTo(currReceivingFlows, receivingFlowData.getNextReceivingFlows());
@@ -472,13 +474,13 @@ public abstract class StaticLtmNetworkLoading {
     }
     var theMode = modes.iterator().next();
 
-    if (network == null || network.getInfrastructureNetwork() == null ||
-        modes.stream().anyMatch( m -> network.getInfrastructureNetwork().getLayerByMode(m) == null)) {
+    if (transportNetwork == null || transportNetwork.getInfrastructureNetwork() == null ||
+        modes.stream().anyMatch( m -> transportNetwork.getInfrastructureNetwork().getLayerByMode(m) == null)) {
       LOGGER.severe("Network or network layer or mode of network layer not available for static LTM network loading");
       return false;
     }
 
-    if (!modes.stream().allMatch( m -> network.getInfrastructureNetwork().getLayerByMode(m) instanceof MacroscopicNetworkLayer)) {
+    if (!modes.stream().allMatch( m -> transportNetwork.getInfrastructureNetwork().getLayerByMode(m) instanceof MacroscopicNetworkLayer)) {
       LOGGER.severe("One or more network layers for mode not compatible, expected MacroscopicNetworkLayer");
       return false;
     }
@@ -499,7 +501,7 @@ public abstract class StaticLtmNetworkLoading {
    * @return transport model network
    */
   protected TransportModelNetwork getTransportNetwork() {
-    return network;
+    return transportNetwork;
   }
 
   /**
@@ -549,7 +551,7 @@ public abstract class StaticLtmNetworkLoading {
       }
     }
     /* also add nodes of eligible connectoid segments (when they are not centroids) */
-    for (ConnectoidSegment connectoidSegment : getTransportNetwork().getZoning().getVirtualNetwork().getConnectoidSegments()) {
+    for (ConnectoidSegment connectoidSegment : getTransportNetwork().getZoning().getVirtualNetwork().getLayer().getConnectoidSegments()) {
       if (Precision.positive(sendingFlowsPcuH[(int) connectoidSegment.getId()])) {
         /* activate both nodes, succeeding segments might not be available */
         this.splittingRateData.registerTrackedNode(connectoidSegment.getUpstreamVertex());
@@ -696,13 +698,13 @@ public abstract class StaticLtmNetworkLoading {
       final TimePeriod timePeriod, Set<Mode> modes, final Demands demands, final TransportModelNetwork network) {
     this.timePeriod = timePeriod;
     this.demands = demands;
-    this.network = network;
+    this.transportNetwork = network;
 
     validateInputs(modes);
     
     /* sLTM only uses a single layer and single mode for now */
     this.networkLayer =
-        ((MacroscopicNetworkLayer) this.network.getInfrastructureNetwork().getLayerByMode(modes.iterator().next()));
+        ((MacroscopicNetworkLayer) this.transportNetwork.getInfrastructureNetwork().getLayerByMode(modes.iterator().next()));
     double[] referenceEmptyArray = new double[network.getNumberOfEdgeSegmentsAllLayers()];
     
     /* flow data defaults to zero unless explicitly set */

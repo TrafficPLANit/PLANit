@@ -42,7 +42,9 @@ public class ConjugateConnectoidSegmentFactoryImpl extends GraphEntityFactoryImp
    * {@inheritDoc}
    */
   @Override
-  public ConjugateConnectoidSegmentImpl registerNew(final ConjugateConnectoidEdge parent, final boolean directionAb, boolean registerOnNodeAndLink) {
+  public ConjugateConnectoidSegmentImpl registerNew(
+      final ConjugateConnectoidEdge parent, final boolean directionAb, boolean registerOnNodeAndLink) {
+
     final var conjugateEdgeSegment = create(parent, directionAb);
     getGraphEntities().register(conjugateEdgeSegment);
 

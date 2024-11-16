@@ -16,7 +16,8 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
  * @author gman6028
  *
  */
-public abstract class PhysicalLinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements UntypedLinkOutputTypeAdapter<LinkSegment> {
+public abstract class PhysicalLinkOutputTypeAdapterImpl
+    extends OutputTypeAdapterImpl implements UntypedLinkOutputTypeAdapter<LinkSegment> {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(PhysicalLinkOutputTypeAdapterImpl.class.getCanonicalName());
@@ -38,11 +39,14 @@ public abstract class PhysicalLinkOutputTypeAdapterImpl extends OutputTypeAdapte
    */
   @Override
   public GraphEntities<LinkSegment> getPhysicalLinkSegments(long infrastructureLayerId) {
-    NetworkLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
+    NetworkLayer networkLayer =
+        getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
     if (networkLayer instanceof PhysicalLayer) {
       return ((PhysicalLayer) networkLayer).getLinkSegments();
     }
-    LOGGER.warning(String.format("Cannot collect physical link segments from infrastructure layer %s, as it is not a physical network layer", networkLayer.getXmlId()));
+    LOGGER.warning(String.format(
+        "Cannot collect physical link segments from infrastructure layer %s, as it is not a physical network layer",
+        networkLayer.getXmlId()));
     return null;
   }
 

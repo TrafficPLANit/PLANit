@@ -36,7 +36,7 @@ public class CostUtils {
    * @param zoning   to apply to virtual part of network
    * @return generalised cost array by link segment id
    */
-  public static double[] createEmptyLinkSegmentCostArray(UntypedPhysicalNetwork network, Zoning zoning){
+  public static double[] createEmptyLinkSegmentCostArray(UntypedPhysicalNetwork<?,?> network, Zoning zoning){
     if(network.getTransportLayers().size()>1){
       //todo: eventually the costs should be tracked per layer as id numbering of link segments is only unique per layer, for now we crash in case someone tries
       throw new PlanItRunTimeException("Link segment cost array can only be created if physical network only has a single layer, multi-layer support has not yet been implemented");
@@ -50,7 +50,7 @@ public class CostUtils {
    * @param network to use
    * @return generalised cost array by link segment id
    */
-  public static double[] createEmptyLinkSegmentCostArray(UntypedPhysicalNetwork network){
+  public static double[] createEmptyLinkSegmentCostArray(UntypedPhysicalNetwork<?,?> network){
     if(network.getTransportLayers().size()>1){
       //todo: eventually the costs should be tracked per layer as id numbering of link segments is only unique per layer, for now we crash in case someone tries
       throw new PlanItRunTimeException("Link segment cost array can only be created if physical network only has a single layer, multi-layer support has not yet been implemented");
@@ -67,10 +67,10 @@ public class CostUtils {
    * @param costArray to fill
    */
   public static void populateModalVirtualLinkSegmentCosts(Mode mode, VirtualCost virtualCost, VirtualNetwork virtualNetwork, double[] costArray){
-    if(virtualNetwork.getConnectoidSegments().isEmpty()){
+    if(virtualNetwork.getLayer().getConnectoidSegments().isEmpty()){
       LOGGER.warning("No connectoid segments found in provided virtual network, unable to populate connectoid segment costs");
     }
-    for (var currentSegment : virtualNetwork.getConnectoidSegments()) {
+    for (var currentSegment : virtualNetwork.getLayer().getConnectoidSegments()) {
       costArray[(int) currentSegment.getId()] = virtualCost.getGeneralisedCost(mode, currentSegment);
     }
   }

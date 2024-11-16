@@ -134,20 +134,25 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
       this.transferZones =        other.transferZones.deepCloneWithMapping(transferZoneMapper);
       this.transferZoneGroups =   other.transferZoneGroups.deepCloneWithMapping(transferZoneGroupMapper);
 
-      if(odZoneMapper != null) ConnectoidUtils.updateAccessZoneMapping(odConnectoids, (OdZone z) -> odZoneMapper.getMapping(z), true);
+      if(odZoneMapper != null){
+        ConnectoidUtils.updateAccessZoneMapping(odConnectoids, odZoneMapper::getMapping, true);
+      }
       if(transferZoneMapper != null){
-        ConnectoidUtils.updateAccessZoneMapping(transferConnectoids, (TransferZone z) -> transferZoneMapper.getMapping(z), true);
-        TransferZoneGroupUtils.updateTransferZoneMapping(transferZoneGroups, (TransferZone z) -> transferZoneMapper.getMapping(z), true);
+        ConnectoidUtils.updateAccessZoneMapping(transferConnectoids, transferZoneMapper::getMapping, true);
+        TransferZoneGroupUtils.updateTransferZoneMapping(transferZoneGroups, transferZoneMapper::getMapping, true);
       }
 
       var connectoidEdgeMapper = new GraphEntityDeepCopyMapper<ConnectoidEdge>();
       var connectoidEdgeSegmentMapper = new GraphEntityDeepCopyMapper<ConnectoidSegment>();
       var centroidVertexMapper = new GraphEntityDeepCopyMapper<CentroidVertex>();
-      this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(connectoidEdgeMapper, connectoidEdgeSegmentMapper, centroidVertexMapper);
+      this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(
+          connectoidEdgeMapper, connectoidEdgeSegmentMapper, centroidVertexMapper);
 
       // make sure centroid vertex's parent centroid is updated properly (this goes across zones that own  zone and centroids and virtual network, so done here)
-      var centroidMapper = centroidVertexMapper.stream().collect(Collectors.toMap(entry -> entry.getKey().getParent(), entry -> entry.getValue().getParent()));
-      CentroidVertexUtils.updateCentroidVertexCentroidMapping(virtualNetwork.getCentroidVertices(), (Centroid originalCentroid) -> centroidMapper.get(originalCentroid), true);
+      var centroidMapper = centroidVertexMapper.stream().collect(
+          Collectors.toMap(entry -> entry.getKey().getParent(), entry -> entry.getValue().getParent()));
+      CentroidVertexUtils.updateCentroidVertexCentroidMapping(
+          virtualNetwork.getLayer().getVertices(), centroidMapper::get, true);
 
     }else{
       this.odConnectoids =        other.odConnectoids.shallowClone();
@@ -173,7 +178,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     LOGGER.info(String.format("%s #od connectoids: %d", prefix, odConnectoids.size()));
     if (!transferZones.isEmpty()) {
       LOGGER.info(String.format("%s #transfer connectoids: %d", prefix, transferConnectoids.size()));
-      LOGGER.info(String.format("%s #transfer zones: %d", prefix, transferZones.size(), transferZones.getNumberOfCentroids()));
+      LOGGER.info(String.format("%s #transfer zones: %d (centroids %d)", prefix, transferZones.size(), transferZones.getNumberOfCentroids()));
       LOGGER.info(String.format("%s #transfer zone groups: %d", prefix, transferZoneGroups.size()));
     }
   }

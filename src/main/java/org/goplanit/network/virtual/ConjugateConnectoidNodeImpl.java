@@ -19,7 +19,8 @@ import org.goplanit.utils.network.virtual.ConnectoidEdge;
  * @author markr
  *
  */
-public class ConjugateConnectoidNodeImpl extends DirectedVertexImpl<ConjugateEdgeSegment> implements ConjugateConnectoidNode {
+public class ConjugateConnectoidNodeImpl
+    extends DirectedVertexImpl<ConjugateEdgeSegment> implements ConjugateConnectoidNode {
 
   /** UID */
   private static final long serialVersionUID = -6715134872902634906L;
@@ -28,8 +29,34 @@ public class ConjugateConnectoidNodeImpl extends DirectedVertexImpl<ConjugateEdg
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ConjugateConnectoidNodeImpl.class.getCanonicalName());
 
+  /**
+   * Unique (conjugate) node identifier
+   */
+  protected long conjugateNodeId;
+
   /** original this conjugate represents */
   protected final ConnectoidEdge original;
+
+  /**
+   * set the node id on this node
+   *
+   * @param nodeId to set
+   */
+  protected void setConjugateNodeId(long nodeId) {
+    this.conjugateNodeId = nodeId;
+  }
+
+  /**
+   * recreate the internal conjugate node id and set it
+   *
+   * @param tokenId to use
+   * @return the created node id
+   */
+  protected long recreateConjugateNodeId(IdGroupingToken tokenId) {
+    long newNodeId = generateNodeId(tokenId);
+    setConjugateNodeId(newNodeId);
+    return newNodeId;
+  }
 
   // Public
 
@@ -37,10 +64,12 @@ public class ConjugateConnectoidNodeImpl extends DirectedVertexImpl<ConjugateEdg
    * Conjugate connectoid node constructor. Relies on original connectoid edge to sync id with
    * 
    * @param original original this conjugate represents
+   * @param idToken to use
    */
   protected ConjugateConnectoidNodeImpl(final ConnectoidEdge original, final IdGroupingToken idToken) {
     super(idToken);
     this.original = original;
+    this.conjugateNodeId = generateNodeId(idToken);
   }
 
   /**
@@ -52,6 +81,44 @@ public class ConjugateConnectoidNodeImpl extends DirectedVertexImpl<ConjugateEdg
   protected ConjugateConnectoidNodeImpl(ConjugateConnectoidNodeImpl other, boolean deepCopy) {
     super(other, deepCopy);
     this.original = other.original;
+    setConjugateNodeId(other.getNodeId());
+    setName(other.getName());
+  }
+
+  @Override
+  public long getNodeId() {
+    return conjugateNodeId;
+  }
+
+  /**
+   * Provide name of original edge (if any)
+   * @return name
+   */
+  @Override
+  public String getName() {
+    return getOriginalEdge()!=null ? getOriginalEdge().getName() : null;
+  }
+
+  /**
+   * Not allowed to be set, derived from original edge ignored
+   *
+   * @param name of the node
+   */
+  @Override
+  public void setName(String name) {
+    LOGGER.warning("name cannot be set on conjugate node, it is derived from original edge, ignored");
+  }
+
+  /**
+   * Recreate id and node id
+   *
+   * @param tokenId to use
+   * @return created id (updated link Id is not returned)
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    recreateConjugateNodeId(tokenId);
+    return super.recreateManagedIds(tokenId);
   }
 
   // Protected

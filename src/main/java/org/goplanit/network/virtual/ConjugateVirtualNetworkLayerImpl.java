@@ -7,6 +7,8 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
+import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
@@ -40,7 +42,7 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
 
   // Protected
 
-  protected UntypedDirectedGraphImpl<ConjugateNode, ConjugateConnectoidEdge, ConjugateConnectoidSegment> theGraph;
+  protected UntypedDirectedGraphImpl<ConjugateConnectoidNode, ConjugateConnectoidEdge, ConjugateConnectoidSegment> theGraph;
 
   protected String externalId;
 
@@ -53,24 +55,9 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
    * {@inheritDoc}
    */
   public Map<CentroidVertex, ConjugateConnectoidNode> createCentroidToConjugateNodeMapping() {
-    //TODO: see where needed and update to new structure
     var mapping = new HashMap<CentroidVertex, ConjugateConnectoidNode>();
-//    for (ConjugateConnectoidNode conjugateNode : getConjugateConnectoidNodes()) {
-//      var originalEdge = conjugateNode.getOriginalEdge();
-//      if (originalEdge != null) {
-//        /* not dummy connected to original centroid */
-//        continue;
-//      }
-//
-//      /* found eligible dymmy conjugate, determine to what centroid it maps */
-//      var conjugateDummyEdge = conjugateNode.getEdges().iterator().next();
-//      var originalConnectoidEdge = (ConnectoidEdge) conjugateDummyEdge.getOriginalAdjacentEdges().getEarliestNonNull();
-//      if (originalConnectoidEdge == null) {
-//        LOGGER.severe(String.format("Conjugate connectoid dummy node's (%s) not connected to original centroid, this shouldn't happen", conjugateNode.getXmlId()));
-//      }
-//      /* set mapping */
-//      mapping.put(originalConnectoidEdge.getCentroidVertex(), conjugateNode);
-//    }
+    getVertices().stream().filter(ConjugateDirectedVertex::hasOriginalEdge).forEach(
+        cn -> mapping.put(cn.getCentroidVertex(), cn));
     return mapping;
   }
 
@@ -79,31 +66,31 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
    */
   protected void update() {
     reset();
-    //TODO: update this to work with new structure
-//    Map<DirectedVertex, ConjugateConnectoidNode> dummyConjugatePerZone = new HashMap<>();
-//
-//    /* connectoid edge -> conjugate connectoid node */
-//    for (var connectoidEdge : originalVirtualNetwork.getLayer().getConnectoidEdges()) {
-//
-//      var centroid = connectoidEdge.getCentroidVertex();
-//      var conjugateDummyNode = dummyConjugatePerZone.get(centroid);
-//      if (conjugateDummyNode == null) {
-//        conjugateDummyNode = getLayer().getVertices().getFactory().registerNew(null);
-//        dummyConjugatePerZone.put(centroid, conjugateDummyNode);
-//      }
-//      var conjugateNode = getConjugateConnectoidNodes().getFactory().registerNew(connectoidEdge);
-//
-//      /* create "fake" conjugate connectoid edge (where one of the two conjugate connectoid nodes has no original
-//       * network equivalent but reflects a conjugate centroid) */
-//      var conjugateEdge = getConjugateConnectoidEdges().getFactory().registerNew(
-//              conjugateDummyNode, conjugateNode, true, connectoidEdge);
-//
-//      // create conjugate connectoid segments between the two nodes to create connectoid turn segments where either
-//      // the incoming or outgoing original edge segment is null this ensures we can have a generic path search
-//      // algorithm where we consistently use either incoming or outgoing original edge segment costs
-//      getConjugateConnectoidEdgeSegments().getFactory().registerNew(conjugateEdge, true /* ab direction */, true);
-//      getConjugateConnectoidEdgeSegments().getFactory().registerNew(conjugateEdge, false /* ba direction */, true);
-//    }
+
+    Map<DirectedVertex, ConjugateConnectoidNode> dummyConjugateNodePerCentroidVertex = new HashMap<>();
+
+    /* connectoid edge -> conjugate connectoid node */
+    for (var connectoidEdge : getReferenceLayer().getConnectoidEdges()) {
+
+      var centroid = connectoidEdge.getCentroidVertex();
+      var conjugateDummyNode = dummyConjugateNodePerCentroidVertex.get(centroid);
+      if (conjugateDummyNode == null) {
+        conjugateDummyNode = getVertices().getFactory().registerNew(null);
+        dummyConjugateNodePerCentroidVertex.put(centroid, conjugateDummyNode);
+      }
+      var conjugateNode = getVertices().getFactory().registerNew(connectoidEdge);
+
+      /* create "fake" conjugate connectoid edge (where one of the two conjugate connectoid nodes has no original
+       * network equivalent but reflects a conjugate centroid) */
+      var conjugateEdge = getConnectoidEdges().getFactory().registerNew(
+              conjugateDummyNode, conjugateNode, true, connectoidEdge);
+
+      // create conjugate connectoid segments between the two nodes to create connectoid turn segments where either
+      // the incoming or outgoing original edge segment is null this ensures we can have a generic path search
+      // algorithm where we consistently use either incoming or outgoing original edge segment costs
+      getConnectoidSegments().getFactory().registerNew(conjugateEdge, true /* ab direction */, true);
+      getConnectoidSegments().getFactory().registerNew(conjugateEdge, false /* ba direction */, true);
+    }
   }
 
   /**
@@ -115,7 +102,7 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
   public ConjugateVirtualNetworkLayerImpl(final IdGroupingToken tokenId, VirtualNetworkLayerImpl referenceLayer) {
     theGraph = new UntypedDirectedGraphImpl<>(
             tokenId,
-            new ConjugateNodesImpl(tokenId),
+            new ConjugateConnectoidNodesImpl(tokenId),
             new ConjugateConnectoidEdgesImpl(tokenId),
             new ConjugateConnectoidSegmentsImpl(tokenId));
 
@@ -139,7 +126,7 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
       boolean deepCopy,
       GraphEntityDeepCopyMapper<ConjugateConnectoidEdge> connectoidEdgeMapper,
       GraphEntityDeepCopyMapper<ConjugateConnectoidSegment> connectoidSegmentMapper,
-      GraphEntityDeepCopyMapper<ConjugateNode> conjugateNodeMapper) {
+      GraphEntityDeepCopyMapper<ConjugateConnectoidNode> conjugateNodeMapper) {
     if(deepCopy){
       //todo: verify this works as expected via super class - not tested
       theGraph = other.theGraph.smartDeepClone(conjugateNodeMapper, connectoidEdgeMapper, connectoidSegmentMapper);
@@ -199,8 +186,13 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
   }
 
   @Override
-  public ConjugateNodes getVertices() {
-    return (ConjugateNodes) theGraph.getVertices();
+  public ConjugateConnectoidNodes getVertices() {
+    return (ConjugateConnectoidNodes) theGraph.getVertices();
+  }
+
+  @Override
+  public VirtualNetworkLayer getReferenceLayer() {
+    return referenceLayer;
   }
 
   @Override
@@ -209,7 +201,7 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
   }
 
   @Override
-  public UntypedDirectedGraphLayerModifier<ConjugateNode, ConjugateConnectoidEdge, ConjugateConnectoidSegment> getLayerModifier() {
+  public UntypedDirectedGraphLayerModifier<ConjugateConnectoidNode, ConjugateConnectoidEdge, ConjugateConnectoidSegment> getLayerModifier() {
     return new UntypedNetworkLayerModifierImpl<>(theGraph);
   }
 
@@ -298,7 +290,7 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
   public ConjugateVirtualNetworkLayerImpl deepCloneWithMapping(
           GraphEntityDeepCopyMapper<ConjugateConnectoidEdge> connectoidEdgeMapper,
           GraphEntityDeepCopyMapper<ConjugateConnectoidSegment> connectoidSegmentMapper,
-          GraphEntityDeepCopyMapper<ConjugateNode> conjugateNodeMapper) {
+          GraphEntityDeepCopyMapper<ConjugateConnectoidNode> conjugateNodeMapper) {
     return new ConjugateVirtualNetworkLayerImpl(
             this, true, connectoidEdgeMapper, connectoidSegmentMapper, conjugateNodeMapper);
   }

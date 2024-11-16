@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * @author markr
  *
  */
-public interface TransportModelNetwork {
+public interface TransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V extends UntypedVirtualNetwork<?>> {
 
   // Public
 
@@ -46,29 +46,31 @@ public interface TransportModelNetwork {
    * this method. This to ensure they are contiguous and start at zero if the transport model network is used for
    * assignment that relies on a contiguous numbering. If network is only used once, it can be ignored (set to false)
    *
-   * @param resetAndRecreateManagedIds when true, reset and then recreate all internal managed ids of transport model network components (links, nodes, connectoids etc.), when false do not.
+   * @param resetAndRecreateManagedIds when true, reset and then recreate all internal managed ids of transport
+   *                                   model network components (links, nodes, connectoids etc.), when false do not.
    * @return return transport model network integration was performed on to allow chaining
    */
-  public abstract TransportModelNetwork integrateTransportNetworkViaConnectoids(boolean resetAndRecreateManagedIds);
+  public abstract TransportModelNetwork<G,V> integrateTransportNetworkViaConnectoids(boolean resetAndRecreateManagedIds);
 
   /**
    * Remove the edges and edge segments on the vertices of both virtual and physical networks
    *
    * @param resetManagedIds when true rest managed ids for those entities that are reset/cleared, when false do not
    */
-  public abstract void removeVirtualNetworkFromPhysicalNetwork(boolean resetManagedIds);
+  public void removeVirtualNetworkFromPhysicalNetwork(boolean resetManagedIds);
 
   /**
    * Optional tracking of all permissible movements in the transport network.
    * When calling this method any existing movements will be removed from the container and the ids are reset.
    * <p>
-   *   Call this method after integration has been complete to ensure movements are also created for all connectoid segments
-   *   attached to physical nodes
+   *   Call this method after integration has been complete to ensure movements are also created for all
+   *   connectoid segments attached to physical nodes
    * </p>
    * <p>
-   *   No movements are created on origins/destination centroids, since no complete movement can be constructed for those
+   *   No movements are created on origins/destination centroids, since no complete movement can be
+   *   constructed for those
    * </p>
-   * TODO: this does not properly support layers yet, so it is assumed we want movements across all layers without attaching layer information to the movements themselves
+   * attaching layer information to the movements themselves
    */
   public abstract void generatePermissibleMovements();
 
@@ -79,8 +81,7 @@ public interface TransportModelNetwork {
    * @return total number of physical and virtual edge segments
    */
   public default int getNumberOfEdgeSegmentsAllLayers(){
-    return TransportModelNetworkUtils.getNumberOfPhysicalLinkSegmentsAllLayers(getInfrastructureNetwork()) +
-            TransportModelNetworkUtils.getNumberOfConnectoidSegments(getVirtualNetwork());
+    return getNumberOfPhysicalLinkSegmentsAllLayers() + getNumberOfConnectoidSegments();
   }
 
   /**
@@ -98,7 +99,7 @@ public interface TransportModelNetwork {
    * @return the number of connectoid segments in this network
    */
   public default int getNumberOfConnectoidSegments(){
-    return getVirtualNetwork().getConnectoidSegments().size();
+    return TransportModelNetworkUtils.getNumberOfConnectoidSegments(getVirtualNetwork());
   }
 
   /**
@@ -106,7 +107,9 @@ public interface TransportModelNetwork {
    * 
    * @return the total number of vertices
    */
-  public abstract int getNumberOfVerticesAllLayers();
+  public default int getNumberOfVerticesAllLayers(){
+    return TransportModelNetworkUtils.getNumberOfVerticesAllLayers(getInfrastructureNetwork(), getZoning());
+  }
 
   /**
    * Returns the total number of physical nodes available in this transport network across all eligible layers
@@ -122,14 +125,14 @@ public interface TransportModelNetwork {
    * 
    * @return physicalNetwork
    */
-  public abstract UntypedPhysicalNetwork<?, ?> getInfrastructureNetwork();
+  public abstract G getInfrastructureNetwork();
 
   /**
    * Collect the virtual network component of the transport network
    * 
    * @return virtualNetwork
    */
-  public abstract UntypedVirtualNetwork<?> getVirtualNetwork();
+  public abstract V getVirtualNetwork();
 
   /**
    * Collect the zoning structure
@@ -145,11 +148,12 @@ public interface TransportModelNetwork {
    * @param transferZones when true transferZones will be included in the mapping, not included otherwise
    * @return mapping that was created
    */
-  public default Map<Zone, CentroidVertex> createZoneToCentroidVertexMapping(boolean OdZones, boolean transferZones){
+  public default Map<? extends Zone, CentroidVertex> createZoneToCentroidVertexMapping(boolean OdZones, boolean transferZones){
     return getVirtualNetwork().getLayer().getVertices().stream().filter(
-        cVertex ->
-            (OdZones && (cVertex.getParent().getParentZone() instanceof OdZone)) || (transferZones && (cVertex.getParent().getParentZone() instanceof TransferZone))).collect(
-                Collectors.toMap(cVertex -> cVertex.getParent().getParentZone(), cVertex -> cVertex));
+        v -> v instanceof CentroidVertex).map(v -> ((CentroidVertex)v)).filter( // only centroid vertices
+          cv -> (OdZones && cv.getParent().getParentZone() instanceof OdZone) || // only those with matching zones
+              (transferZones && cv.getParent().getParentZone() instanceof TransferZone)).collect(
+                  Collectors.toMap( cv -> cv.getParent().getParentZone(), cv -> cv)); // as key value map
   }
 
   /**
@@ -159,7 +163,7 @@ public interface TransportModelNetwork {
    */
   public default MultiKeyMap<Object, Movement> createEntryExitSegmentToMovementMapping(){
     MultiKeyMap<Object, Movement> entryExitSegment2MovementMap = new MultiKeyMap<>();
-    getMovements().stream().forEach( m -> entryExitSegment2MovementMap.put(m.getSegmentFrom(), m.getSegmentTo(), m));
+    getMovements().forEach( m -> entryExitSegment2MovementMap.put(m.getSegmentFrom(), m.getSegmentTo(), m));
     return entryExitSegment2MovementMap;
   }
 

@@ -15,6 +15,7 @@ import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.interactor.LinkVolumeAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
+import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.path.OdPathMatrix;
 import org.goplanit.od.skim.OdSkimMatrix;
@@ -151,9 +152,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     /* construct mapping from OdZone to centroidVertex which is needed for path finding among other things, where we get an OD but need to find a path from
      * centroid vertex to centroid vertex */
-    this.zone2VertexMapping = getZoning().getVirtualNetwork().getCentroidVertices().stream().filter(
-        cVertex -> (cVertex.getParent().getParentZone() instanceof OdZone)).collect( // filter OdZones
-            Collectors.toMap(cVertex -> (OdZone) cVertex.getParent().getParentZone(), cVertex -> cVertex)); // map to zone
+    this.zone2VertexMapping =
+        (Map<OdZone, CentroidVertex>) getTransportNetwork().createZoneToCentroidVertexMapping(true, false);
 
     /* register new time period on costs */
     getPhysicalCost().updateTimePeriod(timePeriod);

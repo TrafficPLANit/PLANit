@@ -494,7 +494,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    *
    * @return TransportNetwork used in current assignment
    */
-  public TransportModelNetwork getTransportNetwork() {
+  public TransportModelNetwork<?,?> getTransportNetwork() {
     return transportNetwork;
   }
 

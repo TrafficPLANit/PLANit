@@ -1,19 +1,12 @@
 package org.goplanit.network.virtual;
 
 import org.goplanit.graph.directed.DirectedEdgeImpl;
-import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.geo.PlanitJtsCrsUtils;
-import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.CentroidVertex;
 import org.goplanit.utils.network.virtual.ConnectoidEdge;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
-import org.goplanit.utils.zoning.Centroid;
-import org.goplanit.utils.zoning.Connectoid;
 
 import java.util.logging.Logger;
 
@@ -38,16 +31,6 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl<DirectedVertex, EdgeSeg
   protected long connectoidEdgeId;
 
   /**
-   * Generate connectoid id
-   *
-   * @param tokenId contiguous id generation within this group for instances of this class
-   * @return id of connectoid edge
-   */
-  protected static long generateConnectoidEdgeId(final IdGroupingToken tokenId) {
-    return IdGenerator.generateId(tokenId, Connectoid.class);
-  }
-
-  /**
    * Set the connectoidEdgeId
    * 
    * @param connectoidEdgeId to set
@@ -63,7 +46,7 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl<DirectedVertex, EdgeSeg
    * @return updated id
    */
   protected long recreateConnectoidEdgeId(IdGroupingToken tokenId) {
-    long newConnectoidEdgeId = generateConnectoidEdgeId(tokenId);
+    long newConnectoidEdgeId = ConnectoidEdge.generateConnectoidEdgeId(tokenId);
     setConnectoidEdgeId(newConnectoidEdgeId);
     return newConnectoidEdgeId;
   }
@@ -78,7 +61,7 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl<DirectedVertex, EdgeSeg
    */
   protected ConnectoidEdgeImpl(final IdGroupingToken groupId, final CentroidVertex centroidA, final DirectedVertex vertexB, final double length) {
     super(groupId, centroidA, vertexB, length);
-    setConnectoidEdgeId(generateConnectoidEdgeId(groupId));
+    setConnectoidEdgeId(ConnectoidEdge.generateConnectoidEdgeId(groupId));
   }
 
   /**

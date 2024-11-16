@@ -20,10 +20,8 @@ import org.goplanit.utils.network.layer.physical.Link;
  * @author markr
  *
  */
-public class ConjugateNodeImpl extends DirectedVertexImpl<ConjugateLinkSegment> implements ConjugateNode {
+public class ConjugateNodeImpl extends NodeImpl<ConjugateLinkSegment> implements ConjugateNode {
 
-  /** UID */
-  private static final long serialVersionUID = 4196503072938986885L;
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -32,24 +30,15 @@ public class ConjugateNodeImpl extends DirectedVertexImpl<ConjugateLinkSegment> 
   /** original this conjugate represents */
   protected final Link original;
 
-  /**
-   * Special case where the id is based on the original link and does not rely on generating based on token when recreating managed ids this should override the default behaviour
-   * of generating an id based on token
-   */
-  @Override
-  protected long generateAndSetId(IdGroupingToken tokenId) {
-    return original.getId();
-  }
-
   // Public
 
   /**
-   * Conjugate Node constructor. Relies on original link to sync id with
+   * Conjugate Node constructor.
    * 
    * @param original original this conjugate represents
    */
-  protected ConjugateNodeImpl(final Link original) {
-    super(original.getId());
+  protected ConjugateNodeImpl(IdGroupingToken idToken, final Link original) {
+    super(idToken);
     this.original = original;
   }
 

@@ -3,6 +3,7 @@ package org.goplanit.network.transport;
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
+import org.goplanit.utils.network.virtual.UntypedVirtualNetwork;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.zoning.Zoning;
 
@@ -27,7 +28,7 @@ public class TransportModelNetworkUtils {
    * @return the number of connectoid segments
    */
   public static int getNumberOfConnectoidSegments(Zoning theZoning) {
-    return theZoning.getVirtualNetwork().getConnectoidSegments().size();
+    return getNumberOfConnectoidSegments(theZoning.getVirtualNetwork());
   }
 
   /**
@@ -36,8 +37,8 @@ public class TransportModelNetworkUtils {
    * @param virtualNetwork to use
    * @return the number of connectoid segments in this network
    */
-  public static int getNumberOfConnectoidSegments(VirtualNetwork virtualNetwork) {
-    return virtualNetwork.getConnectoidSegments().size();
+  public static int getNumberOfConnectoidSegments(UntypedVirtualNetwork<?> virtualNetwork) {
+    return virtualNetwork.getLayer().getConnectoidSegments().size();
   }
 
   /**

@@ -92,7 +92,7 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    */
   @Override
   public void populateWithCost(final VirtualNetwork virtualNetwork, final Mode mode, double[] costToFill){
-    for (var virtualSegment : virtualNetwork.getConnectoidSegments()) {
+    for (var virtualSegment : virtualNetwork.getLayer().getConnectoidSegments()) {
       costToFill[(int) virtualSegment.getId()] = getGeneralisedCost(mode, virtualSegment);
     }
   }

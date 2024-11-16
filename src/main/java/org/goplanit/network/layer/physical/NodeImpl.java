@@ -115,10 +115,10 @@ public class NodeImpl<LS extends EdgeSegment> extends DirectedVertexImpl<LS> imp
   }
 
   /**
-   * Recreate id and link id
+   * Recreate id and node id
    *
    * @param tokenId to use
-   * @return created id (updated link Id is not returned)
+   * @return created id (updated node id is not returned)
    */
   @Override
   public long recreateManagedIds(IdGroupingToken tokenId) {

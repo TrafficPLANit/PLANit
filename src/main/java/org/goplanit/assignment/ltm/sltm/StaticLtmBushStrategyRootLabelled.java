@@ -209,7 +209,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         double linkCost = linkSegmentCosts[(int) linkSegment.getId()];
         totalRealisedCost += linkCost * linkDemand;
       }
-      for (var linkSegment : getTransportNetwork().getVirtualNetwork().getConnectoidSegments()) {
+      for (var linkSegment : getTransportNetwork().getVirtualNetwork().getLayer().getConnectoidSegments()) {
         double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
         double linkCost = linkSegmentCosts[(int) linkSegment.getId()];
         totalRealisedCost += linkCost * linkDemand;

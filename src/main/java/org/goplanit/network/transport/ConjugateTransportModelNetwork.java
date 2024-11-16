@@ -3,6 +3,7 @@ package org.goplanit.network.transport;
 import org.goplanit.network.ConjugateMacroscopicNetwork;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.UntypedPhysicalNetwork;
+import org.goplanit.network.layer.physical.MovementsImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.*;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
  * @author markr
  *
  */
-public class ConjugateTransportModelNetwork implements TransportModelNetwork{
+public class ConjugateTransportModelNetwork extends UntypedTransportModelNetwork<ConjugateMacroscopicNetwork,ConjugateVirtualNetwork> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateTransportModelNetwork.class.getCanonicalName());
@@ -41,17 +42,7 @@ public class ConjugateTransportModelNetwork implements TransportModelNetwork{
   /**
    * Holds the reference regular transport model network in non-conjugate form
    */
-  protected final TransportModelNetwork referenceTransportModelNetwork;
-
-  /**
-   * Holds the conjugate infrastructure road network that is being modelled
-   */
-  protected final ConjugateMacroscopicNetwork conjugateInfrastructureNetwork;
-
-  /**
-   * Holds the conjugate virtual network that is being modelled
-   */
-  protected final ConjugateVirtualNetwork conjugateVirtualNetwork;
+  protected final TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> referenceTransportModelNetwork;
 
   /**
    * Create the conjugate physical network and its layers based on the reference network
@@ -82,7 +73,9 @@ public class ConjugateTransportModelNetwork implements TransportModelNetwork{
    *
    * @param referenceTransportModelNetwork the original TransportNetwork
    */
-  protected ConjugateTransportModelNetwork(TransportModelNetwork referenceTransportModelNetwork) {
+  protected ConjugateTransportModelNetwork(
+      TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> referenceTransportModelNetwork) {
+    super();
     this.referenceTransportModelNetwork = referenceTransportModelNetwork;
 
     /* generate conjugate network - generate ids separate from other vertices/edges/segments by providing new token */
@@ -90,11 +83,10 @@ public class ConjugateTransportModelNetwork implements TransportModelNetwork{
             "Conjugate for network " + getInfrastructureNetwork().getId());
 
     // create baseline conjugate versions without integrating them yet.
-
-    this.conjugateVirtualNetwork = createConjugateBaseVirtualNetwork(token);
-    this.conjugateInfrastructureNetwork =
-            createConjugatePhysicalNetwork(token, (MacroscopicNetwork) referenceTransportModelNetwork.getInfrastructureNetwork());
-
+    this.virtualNetwork = createConjugateBaseVirtualNetwork(token);
+    this.infrastructureNetwork =
+            createConjugatePhysicalNetwork(token, referenceTransportModelNetwork.getInfrastructureNetwork());
+    movements = new MovementsImpl(infrastructureNetwork.getIdGroupingToken());
   }
 
   /**
@@ -107,6 +99,7 @@ public class ConjugateTransportModelNetwork implements TransportModelNetwork{
   @Override
   public ConjugateTransportModelNetwork integrateTransportNetworkViaConnectoids(boolean resetAndRecreateManagedIds){
     // integrate as we would normally
+    // todo check if this works
     logInfo();
     return this;
   }
@@ -128,47 +121,6 @@ public class ConjugateTransportModelNetwork implements TransportModelNetwork{
       getVirtualNetwork().clear();
     }
 
-  }
-
-  /**
-   * Collect the physical network component of the transport network
-   *
-   * @return physicalNetwork
-   */
-  public ConjugateMacroscopicNetwork getInfrastructureNetwork() {
-    return conjugateInfrastructureNetwork;
-  }
-
-  /**
-   * Collect the conjugate virtual network component of the conjugate transport network
-   *
-   * @return virtualNetwork
-   */
-  public ConjugateVirtualNetwork getVirtualNetwork() {
-    return this.conjugateVirtualNetwork;
-  }
-
-  /**
-   * Collect the zoning structure
-   *
-   * @return zoning
-   */
-  public Zoning getZoning() {
-    return referenceTransportModelNetwork.getZoning();
-  }
-
-  /**
-   * Create a (new) mapping from zones (transfer and or OD) to their centroid vertex.
-   *
-   * @param OdZones when true OdZones will be included in the mapping, not included otherwise
-   * @param transferZones when true transferZones will be included in the mapping, not included otherwise
-   * @return mapping that was created
-   */
-  public Map<Zone, CentroidVertex> createZoneToCentroidVertexMapping(boolean OdZones, boolean transferZones){
-    return getZoning().getVirtualNetwork().getVertices().stream().filter(
-        cVertex ->
-            (OdZones && (cVertex.getParent().getParentZone() instanceof OdZone)) || (transferZones && (cVertex.getParent().getParentZone() instanceof TransferZone))).collect(
-                Collectors.toMap(cVertex -> cVertex.getParent().getParentZone(), cVertex -> cVertex));
   }
 
   /**
