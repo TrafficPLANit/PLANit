@@ -29,21 +29,10 @@ public class ConjugateEdgeSegmentImpl extends EdgeSegmentImpl<ConjugateDirectedE
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param parentEdge  parent edge of segment
    * @param directionAb direction of travel
-   * @param idClazz     to use
    */
-  protected ConjugateEdgeSegmentImpl(final IdGroupingToken groupId, final ConjugateDirectedEdge parentEdge, final boolean directionAb, final Class<ConjugateEdgeSegment> idClazz) {
-    super(groupId, parentEdge, directionAb, idClazz);
-  }
-
-  /**
-   * Constructor
-   *
-   * @param groupId     contiguous id generation within this group for instances of this class
-   * @param parentEdge  parent edge of segment
-   * @param directionAb direction of travel
-   */
-  protected ConjugateEdgeSegmentImpl(final IdGroupingToken groupId, final ConjugateDirectedEdge parentEdge, final boolean directionAb) {
-    this(groupId, parentEdge, directionAb, CONJUGATE_EDGE_SEGMENT_ID_CLASS);
+  protected ConjugateEdgeSegmentImpl(
+      final IdGroupingToken groupId, final ConjugateDirectedEdge parentEdge, final boolean directionAb) {
+    super(groupId, parentEdge, directionAb);
   }
 
   /**

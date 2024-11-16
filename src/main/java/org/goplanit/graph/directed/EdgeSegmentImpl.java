@@ -105,23 +105,12 @@ public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl imp
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param parentEdge  parent edge of segment
    * @param directionAb direction of travel
-   * @param idClazz     custom id class to use
    */
-  protected EdgeSegmentImpl(final IdGroupingToken groupId, final E parentEdge, final boolean directionAb, final Class<? extends EdgeSegment> idClazz) {
+  protected EdgeSegmentImpl(
+      final IdGroupingToken groupId, final E parentEdge, final boolean directionAb) {
     super(groupId, EDGE_SEGMENT_ID_CLASS);
     setParent(parentEdge);
     this.directionAb = directionAb;
-  }
-
-  /**
-   * Constructor
-   *
-   * @param groupId     contiguous id generation within this group for instances of this class
-   * @param parentEdge  parent edge of segment
-   * @param directionAb direction of travel
-   */
-  protected EdgeSegmentImpl(final IdGroupingToken groupId, final E parentEdge, final boolean directionAb) {
-    this(groupId, parentEdge, directionAb, EDGE_SEGMENT_ID_CLASS);
   }
 
   /**
