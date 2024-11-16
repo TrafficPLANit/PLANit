@@ -2,9 +2,18 @@ package org.goplanit.network.layer.physical;
 
 import org.goplanit.graph.directed.EdgeSegmentImpl;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.ConjugateLink;
-import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
+import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.physical.*;
+
+import java.util.Collection;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.logging.Logger;
 
 /**
  * Conjugate Link segment object representing conjugate of original network's adjacent link segment pair, i.e. turn
@@ -12,10 +21,13 @@ import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
  * @author markr
  *
  */
-public class ConjugateLinkSegmentImpl extends EdgeSegmentImpl<ConjugateLink> implements ConjugateLinkSegment {
+public class ConjugateLinkSegmentImpl extends LinkSegmentBase<ConjugateLink> implements ConjugateLinkSegment {
 
-  /** UID */
-  private static final long serialVersionUID = -2965215852323364946L;
+  //todo link segment base is not consistently implemented --> to fix this make linksegmentBase not abstract and implement
+  // all methods, the ones we do not have info on throw, since its derived classes (this and macroscopic link segment have their own
+  // implementation
+
+  private static final Logger LOGGER = Logger.getLogger(ConjugateLinkSegmentImpl.class.getCanonicalName());
 
   /**
    * Constructor
@@ -34,7 +46,8 @@ public class ConjugateLinkSegmentImpl extends EdgeSegmentImpl<ConjugateLink> imp
    * @param parent      parent link of segment
    * @param directionAb direction of travel
    */
-  protected ConjugateLinkSegmentImpl(final IdGroupingToken groupId, final ConjugateLink parent, final boolean directionAb) {
+  protected ConjugateLinkSegmentImpl(
+      final IdGroupingToken groupId, final ConjugateLink parent, final boolean directionAb) {
     super(groupId, parent, directionAb);
   }
 
@@ -46,6 +59,95 @@ public class ConjugateLinkSegmentImpl extends EdgeSegmentImpl<ConjugateLink> imp
    */
   protected ConjugateLinkSegmentImpl(ConjugateLinkSegmentImpl other, boolean deepCopy) {
     super(other, deepCopy);
+  }
+
+  @Override
+  public boolean isModeAllowed(Mode mode) {
+    LOGGER.warning("Allowed modes of conjugate link segment are not available, use non-conjugate counterpart");
+    return false;
+  }
+
+  @Override
+  public Set<Mode> getAllowedModes() {
+    LOGGER.warning("Allowed modes of conjugate link segment are not available, use non-conjugate counterpart");
+    return null;
+  }
+
+  @Override
+  public Set<Mode> getAllowedModesFrom(Collection<Mode> modes) {
+    LOGGER.warning("Allowed modes of conjugate link segment are not available, use non-conjugate counterpart");
+    return null;
+  }
+
+  @Override
+  public int getNumberOfLanes() {
+    LOGGER.warning("Number of lanes on conjugate link segment not available, use non-conjugate counterpart");
+    return -1;
+  }
+
+  @Override
+  public LinkSegment setNumberOfLanes(int numberOfLanes) {
+    LOGGER.warning("Number of lanes on conjugate link segment cannot be set, use non-conjugate counterpart");
+    return this;
+  }
+
+  @Override
+  public LinkSegment setPhysicalSpeedLimitKmH(double maximumSpeedKmH) {
+    LOGGER.warning("Speed limit on conjugate link segment cannot be set, use non-conjugate counterpart");
+    return this;
+  }
+
+  @Override
+  public double getPhysicalSpeedLimitKmH() {
+    LOGGER.warning("Speed limit on conjugate link segment not available, use non-conjugate counterpart");
+    return -1;
+  }
+
+  @Override
+  public ConjugateLinkSegmentImpl getOppositeDirectionSegment() {
+    return (ConjugateLinkSegmentImpl) ConjugateLinkSegment.super.getOppositeDirectionSegment();
+  }
+
+  @Override
+  public boolean hasOppositeDirectionSegment() {
+    return super.hasOppositeDirectionSegment();
+  }
+
+  @Override
+  public boolean isParentGeometryInSegmentDirection(boolean allowSingleVertexWithoutGeometry) {
+    return super.isParentGeometryInSegmentDirection(allowSingleVertexWithoutGeometry);
+  }
+
+  @Override
+  public boolean isAdjacent(EdgeSegment other, boolean allowUTurn) {
+    return super.isAdjacent(other, allowUTurn);
+  }
+
+  @Override
+  public double getLengthKm() {
+    LOGGER.warning("Length on conjugate link segment not available, use non-conjugate counterpart");
+    return -1;
+  }
+
+  @Override
+  public boolean hasGeometry() {
+    LOGGER.warning("Geometry on conjugate link segment not available, use non-conjugate counterpart");
+    return false;
+  }
+
+  @Override
+  public ConjugateLinkImpl getParentLink() {
+    return (ConjugateLinkImpl) super.getParentLink();
+  }
+
+  @Override
+  public ConjugateNode getUpstreamNode() {
+    return (ConjugateNode) super.getUpstreamNode();
+  }
+
+  @Override
+  public ConjugateNode getDownstreamNode() {
+    return (ConjugateNode) super.getDownstreamNode();
   }
 
   /**
