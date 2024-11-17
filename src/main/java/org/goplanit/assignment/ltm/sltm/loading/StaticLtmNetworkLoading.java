@@ -27,8 +27,8 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Movement;
-import org.goplanit.utils.network.virtual.CentroidVertex;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.pcu.PcuCapacitated;
 import org.goplanit.utils.time.TimePeriod;
@@ -932,7 +932,7 @@ public abstract class StaticLtmNetworkLoading {
           int index = (int)entryEdgeSegment.getId();
         
           /* storage_capacity_a = (L*FD^-1(v_a))/T) */
-          double storageCapacity = Double.POSITIVE_INFINITY; // TODO: entryLinkSegment.getParentLink().getLengthKm() * etc.;
+          double storageCapacity = Double.POSITIVE_INFINITY; // TODO: entryLinkSegment.getParent().getLengthKm() * etc.;
           /* r_a = min(C_a, v_a + storage_Capacity_a) */
           double receivingFlow = Math.min(((PcuCapacitated)entryEdgeSegment).getCapacityOrDefaultPcuH(), outflows[index] + storageCapacity);
           nextReceivingFlows[index] = receivingFlow;

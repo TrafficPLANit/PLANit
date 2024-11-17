@@ -11,13 +11,15 @@ import org.goplanit.utils.misc.Pair;
 import org.locationtech.jts.geom.LineString;
 
 /**
- * Conjugate Edge implementation class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry
+ * Conjugate Edge implementation class connecting two vertices via some geometry. Each edge has one or
+ * two underlying edge segments in a particular direction which may carry
  * additional information for each particular direction of the edge.
  *
  * @author markr
  *
  */
-public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES extends ConjugateEdgeSegment> extends DirectedEdgeImpl<V, ES> implements ConjugateDirectedEdge {
+public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES extends ConjugateEdgeSegment>
+    extends DirectedEdgeImpl<V, ES> implements ConjugateDirectedEdge {
 
   // Protected
 

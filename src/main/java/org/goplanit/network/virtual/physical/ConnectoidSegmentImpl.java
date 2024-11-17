@@ -1,11 +1,11 @@
-package org.goplanit.network.virtual;
+package org.goplanit.network.virtual.physical;
 
 import org.goplanit.graph.directed.EdgeSegmentImpl;
-import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.network.layer.physical.LinkSegmentImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.ConnectoidEdge;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 
 /**
  * The link segment that connects a zone to the physical network is not a physical link segment. However in order to be able to efficiently conduct path searches this connection
@@ -20,57 +20,20 @@ import org.goplanit.utils.network.virtual.ConnectoidSegment;
  * @author markr
  *
  */
-public class ConnectoidSegmentImpl extends EdgeSegmentImpl<ConnectoidEdge> implements ConnectoidSegment {
+public class ConnectoidSegmentImpl extends LinkSegmentImpl implements ConnectoidSegment {
 
   /** generated UID */
   private static final long serialVersionUID = 6462304338451088764L;
 
   /**
-   * unique internal identifier
-   */
-  private long connectoidSegmentId;
-
-  /**
-   * generate unique connectoid segment id
-   *
-   * @param groupId contiguous id generation within this group for instances of this class
-   * @return linkSegmentId
-   */
-  protected static long generateConnectoidSegmentId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, ConnectoidSegment.CONNECTOID_SEGMENT_ID_CLASS);
-  }
-
-  /**
-   * Set connectoid segment id
-   * 
-   * @param connectoidSegmentId to set
-   */
-  protected void setConnectoidSegmentId(long connectoidSegmentId) {
-    this.connectoidSegmentId = connectoidSegmentId;
-  }
-
-  /**
-   * recreate the internal connectoid segment id and set it
-   * 
-   * @param tokenId to use
-   * @return updated id
-   */
-  protected long recreateConnectoidSegmentId(IdGroupingToken tokenId) {
-    long newConnectoidSegmentId = generateConnectoidSegmentId(tokenId);
-    setConnectoidSegmentId(newConnectoidSegmentId);
-    return newConnectoidSegmentId;
-  }
-
-  /**
    * Constructor
    *
    * @param groupId     contiguous id generation within this group for instances of this class
-   * @param parentEdge  parent connectoid
+   * @param parentLink  parent
    * @param directionAb direction of travel
    */
-  protected ConnectoidSegmentImpl(final IdGroupingToken groupId, final ConnectoidEdge parentEdge, final boolean directionAb) {
-    super(groupId, parentEdge, directionAb);
-    setConnectoidSegmentId(generateConnectoidSegmentId(groupId));
+  protected ConnectoidSegmentImpl(final IdGroupingToken groupId, final ConnectoidLink parentLink, final boolean directionAb) {
+    super(groupId, parentLink, directionAb);
   }
 
   /**
@@ -81,7 +44,14 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl<ConnectoidEdge> imple
    */
   protected ConnectoidSegmentImpl(ConnectoidSegmentImpl other, boolean deepCopy) {
     super(other, deepCopy);
-    setConnectoidSegmentId(other.getConnectoidSegmentId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidLink getParent(){
+    return (ConnectoidLink) super.getParent();
   }
 
   // Public getters - setters
@@ -93,17 +63,9 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl<ConnectoidEdge> imple
    */
   @Override
   public long recreateManagedIds(IdGroupingToken tokenId) {
-    recreateConnectoidSegmentId(tokenId);
     return super.recreateManagedIds(tokenId);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getConnectoidSegmentId() {
-    return connectoidSegmentId;
-  }
 
   /**
    * {@inheritDoc}

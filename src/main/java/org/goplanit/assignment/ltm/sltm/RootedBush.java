@@ -10,7 +10,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 
 /**
  * A rooted bush is an acyclic directed graph comprising implicit paths along a network. It has a root which can be any

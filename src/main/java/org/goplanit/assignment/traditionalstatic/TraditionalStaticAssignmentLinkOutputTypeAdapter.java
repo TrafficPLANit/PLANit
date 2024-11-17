@@ -39,7 +39,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
     final int id = (int) linkSegment.getId();
     final double[] modalNetworkSegmentCosts = getAssignment().getIterationData().getModalLinkSegmentCosts(mode);
     final double travelTime = modalNetworkSegmentCosts[id];
-    final double length = linkSegment.getParentLink().getLengthKm();
+    final double length = linkSegment.getParent().getLengthKm();
     return Optional.of(length / travelTime);
   }
 

@@ -15,6 +15,10 @@ import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.network.virtual.*;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.CentroidVertexUtils;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
@@ -142,7 +146,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
         TransferZoneGroupUtils.updateTransferZoneMapping(transferZoneGroups, transferZoneMapper::getMapping, true);
       }
 
-      var connectoidEdgeMapper = new GraphEntityDeepCopyMapper<ConnectoidEdge>();
+      var connectoidEdgeMapper = new GraphEntityDeepCopyMapper<ConnectoidDirectedEdge>();
       var connectoidEdgeSegmentMapper = new GraphEntityDeepCopyMapper<ConnectoidSegment>();
       var centroidVertexMapper = new GraphEntityDeepCopyMapper<CentroidVertex>();
       this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(

@@ -1,29 +1,15 @@
 package org.goplanit.network.transport;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.UntypedPhysicalNetwork;
-import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
-import org.goplanit.network.layer.physical.MovementsImpl;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.geo.PlanitJtsCrsUtils;
-import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.layer.physical.Movements;
-import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.*;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.zoning.*;
 import org.goplanit.zoning.Zoning;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**

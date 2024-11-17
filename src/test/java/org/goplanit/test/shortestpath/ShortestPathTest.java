@@ -11,12 +11,13 @@ import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.network.transport.TransportModelNetworkImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.virtual.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
@@ -44,7 +45,7 @@ public class ShortestPathTest {
 
   private static final CoordinateReferenceSystem crs = CartesianAuthorityFactory.GENERIC_2D;
   private final IdGroupingToken idToken = IdGenerator.createIdGroupingToken(ShortestPathTest.class.getCanonicalName());
-  private TransportModelNetwork transportNetwork;
+  private TransportModelNetworkImpl transportNetwork;
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
   private Zoning zoning;
@@ -175,9 +176,10 @@ public class ShortestPathTest {
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(23), zoneD, 0);
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(24), zoneE, 0);
       
-      transportNetwork = new TransportModelNetwork(network, zoning);
+      transportNetwork = new TransportModelNetworkImpl(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids(false);
-      zone2CentroidVertexMapping = transportNetwork.createZoneToCentroidVertexMapping(true, false);
+      zone2CentroidVertexMapping =
+          (Map<Zone, CentroidVertex>) transportNetwork.createZoneToCentroidVertexMapping(true, false);
           
       // costs
       linkSegmentCosts = new double[]
@@ -199,7 +201,9 @@ public class ShortestPathTest {
             
           };
       
-      assertEquals(networkLayer.getLinkSegments().size()+zoning.getVirtualNetwork().getConnectoidSegments().size(), transportNetwork.getNumberOfEdgeSegmentsAllLayers());
+      assertEquals(
+          networkLayer.getLinkSegments().size()+zoning.getVirtualNetwork().getLayer().getConnectoidSegments().size(),
+          transportNetwork.getNumberOfEdgeSegmentsAllLayers());
       
     }catch(Exception e) {
       e.printStackTrace();

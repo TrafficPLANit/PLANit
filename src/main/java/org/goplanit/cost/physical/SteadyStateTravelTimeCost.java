@@ -104,7 +104,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
       /* hypo critical delay */
       if (!fd.getFreeFlowBranch().isLinear()) {
         // hypocritical delay = hypocritical travel time - minimum travel time
-        hypoCriticalDelay = (linkSegment.getParentLink().getLengthKm() / fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflowPcuHLane)) - freeFlowTravelTime;
+        hypoCriticalDelay =
+            (linkSegment.getParent().getLengthKm() / fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflowPcuHLane)) - freeFlowTravelTime;
       }
 
       /* average hyper critical delay */

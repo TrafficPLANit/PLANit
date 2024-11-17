@@ -13,7 +13,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.network.virtual.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 
 /**
  * A destination bush is an (inverted) acyclic directed graph rooted at many origins going to a single destination representing all implicit paths along a network to the given

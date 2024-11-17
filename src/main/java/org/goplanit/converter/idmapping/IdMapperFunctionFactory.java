@@ -4,7 +4,6 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.IdMapperType;
@@ -17,8 +16,9 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
-import org.goplanit.utils.network.virtual.ConnectoidEdge;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.service.routed.*;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.Connectoid;
@@ -84,8 +84,8 @@ public class IdMapperFunctionFactory {
         /* when present on link segment use that external id, otherwise try link */
         if (macroscopicLinkSegment.getExternalId() != null) {
           return String.format("%s", macroscopicLinkSegment.getExternalId());
-        } else if (macroscopicLinkSegment.getParentLink() != null && macroscopicLinkSegment.getParentLink().getExternalId() != null) {
-          return String.format("%s_%s", macroscopicLinkSegment.getParentLink().getExternalId(), macroscopicLinkSegment.isDirectionAb() ? "ab" : "ba");
+        } else if (macroscopicLinkSegment.getParent() != null && macroscopicLinkSegment.getParent().getExternalId() != null) {
+          return String.format("%s_%s", macroscopicLinkSegment.getParent().getExternalId(), macroscopicLinkSegment.isDirectionAb() ? "ab" : "ba");
         } else {
           LOGGER.severe(String.format("unable to map id for link, PLANit link segment external id not available or parent link missing (id:%d)", macroscopicLinkSegment.getId()));
           return "-1";
@@ -293,7 +293,17 @@ public class IdMapperFunctionFactory {
    * @return function that generates ConnectoidEdge ids
    */
   public static Function<? extends ExternalIdAble, String> createConnectoidEdgeIdMappingFunction(IdMapperType idMapper) {
-    return IdMappingUtils.createIdMappingFunction(ConnectoidEdge.class , idMapper);
+    return IdMappingUtils.createIdMappingFunction(ConnectoidDirectedEdge.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a ConnectoidEdge and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates ConnectoidEdge ids
+   */
+  public static Function<? extends ExternalIdAble, String> createConnectoidLinkIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(ConnectoidLink.class , idMapper);
   }
 
   /**

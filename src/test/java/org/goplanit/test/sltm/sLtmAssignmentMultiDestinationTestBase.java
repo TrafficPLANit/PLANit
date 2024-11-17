@@ -216,7 +216,7 @@ public class sLtmAssignmentMultiDestinationTestBase {
       linkSegmentFactory.registerNew(links.getByXmlId("12"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(16);
       linkSegmentFactory.registerNew(links.getByXmlId("13"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(8);
       linkSegmentFactory.registerNew(links.getByXmlId("14"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(8);
-      networkLayer.getLinkSegments().forEach(ls -> ls.setXmlId( ls.getParentLink().getXmlId() + (ls.isDirectionAb() ? "-AB" : "-BA")));
+      networkLayer.getLinkSegments().forEach(ls -> ls.setXmlId( ls.getParent().getXmlId() + (ls.isDirectionAb() ? "-AB" : "-BA")));
 
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
       zoning.getOdZones().getFactory().registerNew().setXmlId("A");

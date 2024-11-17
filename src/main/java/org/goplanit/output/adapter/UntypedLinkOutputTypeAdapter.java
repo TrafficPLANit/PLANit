@@ -106,7 +106,7 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
    * @return the length of the current link segment
    */
   public default Optional<Double> getLength(T linkSegment) {
-    return Optional.of(linkSegment.getParentLink().getLengthKm());
+    return Optional.of(linkSegment.getParent().getLengthKm());
   }
 
   /**
@@ -151,13 +151,13 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
     if(linkSegment == null){
       Optional.of(PROPERTY_NOT_AVAILABLE);
     }
-    var collectedEdgeGeometry = getEdgeGeometry(linkSegment.getParentLink(), constructGeometryFromNodesIfUnavailable, linkSegment.isDirectionAb());
+    var collectedEdgeGeometry = getEdgeGeometry(linkSegment.getParent(), constructGeometryFromNodesIfUnavailable, linkSegment.isDirectionAb());
 
-    /* force geometry to be in travel direction of segment if configrued as such */
-    boolean mayNeedReversal = linkSegment.getParentLink().hasGeometry(); // only when geometry is not constructed from nodes we may need to reverse
+    /* force geometry to be in travel direction of segment if configured as such */
+    boolean mayNeedReversal = linkSegment.getParent().hasGeometry(); // only when geometry is not constructed from nodes we may need to reverse
     boolean collectedEdgeGeometryValid = collectedEdgeGeometry.isPresent() && (collectedEdgeGeometry.get() instanceof Geometry);
     if(mayNeedReversal && forceSegmentDirection && collectedEdgeGeometryValid){
-      boolean reverseGeometry = linkSegment.getParentLink().isGeometryInAbDirection() != linkSegment.isDirectionAb();
+      boolean reverseGeometry = linkSegment.getParent().isGeometryInAbDirection() != linkSegment.isDirectionAb();
       if(reverseGeometry){
         collectedEdgeGeometry = Optional.of(((Geometry)collectedEdgeGeometry.get()).reverse());
       }

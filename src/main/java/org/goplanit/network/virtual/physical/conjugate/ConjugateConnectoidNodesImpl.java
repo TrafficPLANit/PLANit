@@ -1,10 +1,10 @@
-package org.goplanit.network.virtual;
+package org.goplanit.network.virtual.physical.conjugate;
 
 import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNodeFactory;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNodes;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNodeFactory;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNodes;
 
 import java.util.function.BiConsumer;
 

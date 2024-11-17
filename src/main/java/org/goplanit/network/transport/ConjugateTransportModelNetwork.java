@@ -2,19 +2,13 @@ package org.goplanit.network.transport;
 
 import org.goplanit.network.ConjugateMacroscopicNetwork;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.network.layer.physical.MovementsImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.*;
-import org.goplanit.utils.zoning.OdZone;
-import org.goplanit.utils.zoning.TransferZone;
-import org.goplanit.utils.zoning.Zone;
-import org.goplanit.zoning.Zoning;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 
-import java.util.Map;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Entire transport network in conjugate form including both the (conjugate) physical and (conjugate) virtual aspects
@@ -110,7 +104,7 @@ public class ConjugateTransportModelNetwork extends UntypedTransportModelNetwork
    * @param resetManagedIds when true rest managed ids for those entities that are reset/cleared, when false do not
    */
   public void removeVirtualNetworkFromPhysicalNetwork(boolean resetManagedIds) {
-    for (ConnectoidEdge connectoidEdge : getVirtualNetwork().getLayer().getConnectoidEdges()) {
+    for (ConnectoidDirectedEdge connectoidEdge : getVirtualNetwork().getLayer().getConnectoidLinks()) {
       disconnectVerticesFromEdge(connectoidEdge);
     }
 

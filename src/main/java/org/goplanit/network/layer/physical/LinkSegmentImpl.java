@@ -1,11 +1,14 @@
 package org.goplanit.network.layer.physical;
 
 import org.goplanit.graph.directed.EdgeSegmentImpl;
-import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
+
+import java.util.Set;
 
 /**
  * Link segment object representing physical links in the network and storing their properties
@@ -13,7 +16,7 @@ import org.goplanit.utils.network.layer.physical.Node;
  * @author gman6028, markr
  *
  */
-public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L> implements LinkSegment {
+public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
 
   /** generated UID */
   private static final long serialVersionUID = -4893553215218232006L;
@@ -49,7 +52,7 @@ public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L>
    * @return updated id
    */
   protected long recreateLinkSegmentId(IdGroupingToken tokenId) {
-    long newLinkSegmentId = generateLinkSegmentId(tokenId);
+    long newLinkSegmentId = LinkSegment.generateLinkSegmentId(tokenId);
     setLinkSegmentId(newLinkSegmentId);
     return newLinkSegmentId;
   }
@@ -60,7 +63,7 @@ public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L>
    * @param groupId,    contiguous id generation within this group for instances of this class
    * @param directionAB direction of travel
    */
-  protected LinkSegmentBase(final IdGroupingToken groupId, final boolean directionAB) {
+  protected LinkSegmentImpl(final IdGroupingToken groupId, final boolean directionAB) {
     this(groupId, null, directionAB);
   }
 
@@ -71,9 +74,9 @@ public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L>
    * @param parentLink  parent link of segment
    * @param directionAB direction of travel
    */
-  protected LinkSegmentBase(final IdGroupingToken groupId, final L parentLink, final boolean directionAB) {
+  protected LinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) {
     super(groupId, parentLink, directionAB);
-    setLinkSegmentId(generateLinkSegmentId(groupId));
+    setLinkSegmentId(LinkSegment.generateLinkSegmentId(groupId));
   }
 
   /**
@@ -82,7 +85,7 @@ public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L>
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected LinkSegmentBase(LinkSegmentBase<L> other, boolean deepCopy) {
+  protected LinkSegmentImpl(LinkSegmentImpl other, boolean deepCopy) {
     super(other, deepCopy);
     setLinkSegmentId(other.getLinkSegmentId());
     setNumberOfLanes(other.getNumberOfLanes());
@@ -108,6 +111,24 @@ public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L>
    * {@inheritDoc}
    */
   @Override
+  public boolean isModeAllowed(Mode mode) {
+    throw new PlanItRunTimeException("isModeAllowed must be implemented by derived class, as LinkSegmentImpl does not " +
+        "cater for modes via members");
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<Mode> getAllowedModes() {
+    throw new PlanItRunTimeException("getAllowedModes must be implemented by derived class, as LinkSegmentImpl " +
+        "does not cater for modes via members");
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public long getLinkSegmentId() {
     return linkSegmentId;
   }
@@ -120,8 +141,8 @@ public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L>
    * {@inheritDoc}
    */
   @Override
-  public L getParent() {
-    return super.getParent();
+  public Link getParent() {
+    return (Link) super.getParent();
   }
 
   /**
@@ -178,12 +199,16 @@ public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L>
    * {@inheritDoc}
    */
   @Override
-  public abstract LinkSegmentBase<L> shallowClone();
+  public LinkSegmentImpl shallowClone(){
+    return new LinkSegmentImpl(this, false);
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract LinkSegmentBase<L> deepClone();
+  public LinkSegmentImpl deepClone(){
+    return new LinkSegmentImpl(this, true);
+  }
 
 }

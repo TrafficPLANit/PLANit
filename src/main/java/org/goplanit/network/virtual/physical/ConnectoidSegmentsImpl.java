@@ -1,13 +1,10 @@
-package org.goplanit.network.virtual;
+package org.goplanit.network.virtual.physical;
 
 import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.virtual.ConnectoidEdge;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
-import org.goplanit.utils.network.virtual.ConnectoidSegmentFactory;
-import org.goplanit.utils.network.virtual.ConnectoidSegments;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegmentFactory;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegments;
 
 import java.util.function.BiConsumer;
 
@@ -71,9 +68,6 @@ public class ConnectoidSegmentsImpl extends ManagedGraphEntitiesImpl<ConnectoidS
    */
   @Override
   public void recreateIds(boolean resetManagedIdClass) {
-    /* always reset the additional connectoid segment id class */
-    IdGenerator.reset(getFactory().getIdGroupingToken(), ConnectoidSegment.CONNECTOID_SEGMENT_ID_CLASS);
-
     super.recreateIds(resetManagedIdClass);
   }
 

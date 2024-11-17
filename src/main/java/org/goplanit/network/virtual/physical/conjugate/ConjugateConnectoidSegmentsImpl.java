@@ -1,14 +1,11 @@
-package org.goplanit.network.virtual;
+package org.goplanit.network.virtual.physical.conjugate;
 
-import org.goplanit.network.layer.service.ServiceNodesImpl;
 import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
-import org.goplanit.utils.network.layer.service.ServiceNode;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidSegment;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidSegmentFactory;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidSegments;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegment;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegmentFactory;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegments;
 
 import java.util.function.BiConsumer;
 

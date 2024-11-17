@@ -14,6 +14,7 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
@@ -76,36 +77,38 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
    */
   protected ConjugateDestinationBush[] createEmptyBushes(Mode mode) {
 
-    // TODO: we now create this mapping twice, see #initialiseBush, not efficient
-    var centroid2ConjugateNodeMapping = conjugateVirtualNetwork.createCentroidToConjugateNodeMapping();
+    throw new PlanItRunTimeException("commented out original code --> fix the code to make it usable again");
 
-    Zoning zoning = getTransportNetwork().getZoning();
-    ConjugateDestinationBush[] conjugateBushes = new ConjugateDestinationBush[(int) zoning.getNumberOfCentroids()];
-
-    OdDemands odDemands = getOdDemands(mode);
-    for (var destination : zoning.getOdZones()) {
-      ConjugateDestinationBush bush = null;
-      for (var origin : zoning.getOdZones()) {
-        if (destination.idEquals(origin)) {
-          continue;
-        }
-
-        Double currOdDemand = odDemands.getValue(origin, destination);
-        if (currOdDemand != null && currOdDemand > 0) {
-          if (bush == null) {
-            /* collect conjugate root node for this conjugate destination bush */
-            var destinationCentroidVertex = findCentroidVertex(destination);
-            var rootConjugateConnectoidNode = centroid2ConjugateNodeMapping.get(destination.getCentroid());
-            /* register new bush */
-            bush = new ConjugateDestinationBush(conjugateNetworkLayer.getLayerIdGroupingToken(), destinationCentroidVertex, rootConjugateConnectoidNode,
-                conjugateNetworkLayer.getLinkSegments().size() + conjugateVirtualNetwork.getConjugateConnectoidEdgeSegments().size());
-            conjugateBushes[(int) destination.getOdZoneId()] = bush;
-            break;
-          }
-        }
-      }
-    }
-    return conjugateBushes;
+//    // TODO: we now create this mapping twice, see #initialiseBush, not efficient
+//    var centroid2ConjugateNodeMapping = conjugateVirtualNetwork.createCentroidToConjugateNodeMapping();
+//
+//    Zoning zoning = getTransportNetwork().getZoning();
+//    ConjugateDestinationBush[] conjugateBushes = new ConjugateDestinationBush[(int) zoning.getNumberOfCentroids()];
+//
+//    OdDemands odDemands = getOdDemands(mode);
+//    for (var destination : zoning.getOdZones()) {
+//      ConjugateDestinationBush bush = null;
+//      for (var origin : zoning.getOdZones()) {
+//        if (destination.idEquals(origin)) {
+//          continue;
+//        }
+//
+//        Double currOdDemand = odDemands.getValue(origin, destination);
+//        if (currOdDemand != null && currOdDemand > 0) {
+//          if (bush == null) {
+//            /* collect conjugate root node for this conjugate destination bush */
+//            var destinationCentroidVertex = findCentroidVertex(destination);
+//            var rootConjugateConnectoidNode = centroid2ConjugateNodeMapping.get(destination.getCentroid());
+//            /* register new bush */
+//            bush = new ConjugateDestinationBush(conjugateNetworkLayer.getLayerIdGroupingToken(), destinationCentroidVertex, rootConjugateConnectoidNode,
+//                conjugateNetworkLayer.getLinkSegments().size() + conjugateVirtualNetwork.getConjugateConnectoidEdgeSegments().size());
+//            conjugateBushes[(int) destination.getOdZoneId()] = bush;
+//            break;
+//          }
+//        }
+//      }
+//    }
+//    return conjugateBushes;
   }
 
   /**
@@ -113,40 +116,42 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
    */
   @Override
   protected void initialiseBush(ConjugateDestinationBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
-    // TODO: we now create this mapping twice, see #createEmptyBushes, not efficient
-    var centroid2ConjugateNodeMapping = conjugateVirtualNetwork.createCentroidToConjugateNodeMapping();
+    throw new PlanItRunTimeException("commented out original code --> fix the code to make it usable again");
 
-    var destinationCentroidVertex = bush.getRootZoneVertex();
-    var destination = destinationCentroidVertex.getParent().getParentZone();
-    ShortestBushResult allToOneResult = null;
-
-    for (var origin : zoning.getOdZones()) {
-      if (origin.idEquals(destinationCentroidVertex)) {
-        continue;
-      }
-
-      Double currOdDemand = odDemands.getValue(origin, destination);
-      if (currOdDemand != null && currOdDemand > 0) {
-
-        //TODO: not rewritten yet requires use of conjugate dags and conjugate shortest path algorithms based on original network costs
-        //TODO: CONTINUE HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-//        /* find all-to-one shortest paths */
-//        if (allToOneResult == null) {
-//          allToOneResult = shortestBushAlgorithm.executeAllToOne(destination.getCentroid());
-//        }
+//    // TODO: we now create this mapping twice, see #createEmptyBushes, not efficient
+//    var centroid2ConjugateNodeMapping = conjugateVirtualNetwork.createCentroidToConjugateNodeMapping();
 //
-//        /* initialise bush with this origin shortest path(s) */
-//        var originDag = allToOneResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), origin.getCentroid(), destination.getCentroid());
-//        if (originDag.isEmpty()) {
-//          LOGGER.severe(String.format("Unable to create bush connection(s) from origin (%s) to destination %s", origin.getXmlId(), destination.getXmlId()));
-//          continue;
-//        }
+//    var destinationCentroidVertex = bush.getRootZoneVertex();
+//    var destination = destinationCentroidVertex.getParent().getParentZone();
+//    ShortestBushResult allToOneResult = null;
 //
-//        bush.addOriginDemandPcuH(origin, currOdDemand);
-//        initialiseBushForOrigin(bush, origin, currOdDemand, originDag, dummyLabel);
-      }
-    }
+//    for (var origin : zoning.getOdZones()) {
+//      if (origin.idEquals(destinationCentroidVertex)) {
+//        continue;
+//      }
+//
+//      Double currOdDemand = odDemands.getValue(origin, destination);
+//      if (currOdDemand != null && currOdDemand > 0) {
+//
+//        //TODO: not rewritten yet requires use of conjugate dags and conjugate shortest path algorithms based on original network costs
+//        //TODO: CONTINUE HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//
+////        /* find all-to-one shortest paths */
+////        if (allToOneResult == null) {
+////          allToOneResult = shortestBushAlgorithm.executeAllToOne(destination.getCentroid());
+////        }
+////
+////        /* initialise bush with this origin shortest path(s) */
+////        var originDag = allToOneResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), origin.getCentroid(), destination.getCentroid());
+////        if (originDag.isEmpty()) {
+////          LOGGER.severe(String.format("Unable to create bush connection(s) from origin (%s) to destination %s", origin.getXmlId(), destination.getXmlId()));
+////          continue;
+////        }
+////
+////        bush.addOriginDemandPcuH(origin, currOdDemand);
+////        initialiseBushForOrigin(bush, origin, currOdDemand, originDag, dummyLabel);
+//      }
+//    }
   }
 
   /**

@@ -7,7 +7,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.network.virtual.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 
 /**
  * Track turn based data of a bush.

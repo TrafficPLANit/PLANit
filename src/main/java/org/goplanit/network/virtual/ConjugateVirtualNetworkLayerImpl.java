@@ -2,7 +2,9 @@ package org.goplanit.network.virtual;
 
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.layer.modifier.UntypedNetworkLayerModifierImpl;
-import org.goplanit.network.layer.physical.ConjugateNodesImpl;
+import org.goplanit.network.virtual.physical.conjugate.ConjugateConnectoidLinksImpl;
+import org.goplanit.network.virtual.physical.conjugate.ConjugateConnectoidNodesImpl;
+import org.goplanit.network.virtual.physical.conjugate.ConjugateConnectoidSegmentsImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsUtils;
@@ -14,9 +16,9 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
-import org.goplanit.utils.network.layer.physical.ConjugateNode;
-import org.goplanit.utils.network.layer.physical.ConjugateNodes;
 import org.goplanit.utils.network.virtual.*;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.physical.conjugate.*;
 import org.locationtech.jts.geom.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -42,7 +44,7 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
 
   // Protected
 
-  protected UntypedDirectedGraphImpl<ConjugateConnectoidNode, ConjugateConnectoidEdge, ConjugateConnectoidSegment> theGraph;
+  protected UntypedDirectedGraphImpl<ConjugateConnectoidNode, ConjugateConnectoidLink, ConjugateConnectoidSegment> theGraph;
 
   protected String externalId;
 
@@ -70,7 +72,7 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
     Map<DirectedVertex, ConjugateConnectoidNode> dummyConjugateNodePerCentroidVertex = new HashMap<>();
 
     /* connectoid edge -> conjugate connectoid node */
-    for (var connectoidEdge : getReferenceLayer().getConnectoidEdges()) {
+    for (var connectoidEdge : getReferenceLayer().getConnectoidLinks()) {
 
       var centroid = connectoidEdge.getCentroidVertex();
       var conjugateDummyNode = dummyConjugateNodePerCentroidVertex.get(centroid);
@@ -82,7 +84,7 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
 
       /* create "fake" conjugate connectoid edge (where one of the two conjugate connectoid nodes has no original
        * network equivalent but reflects a conjugate centroid) */
-      var conjugateEdge = getConnectoidEdges().getFactory().registerNew(
+      var conjugateEdge = this.getConnectoidLinks().getFactory().registerNew(
               conjugateDummyNode, conjugateNode, true, connectoidEdge);
 
       // create conjugate connectoid segments between the two nodes to create connectoid turn segments where either
@@ -103,7 +105,7 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
     theGraph = new UntypedDirectedGraphImpl<>(
             tokenId,
             new ConjugateConnectoidNodesImpl(tokenId),
-            new ConjugateConnectoidEdgesImpl(tokenId),
+            new ConjugateConnectoidLinksImpl(tokenId),
             new ConjugateConnectoidSegmentsImpl(tokenId));
 
     this.externalId = null;
@@ -117,19 +119,19 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
    *
    * @param other to clone
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
-   * @param connectoidEdgeMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param connectoidLinkMapper to use for tracking mapping between original and copied entity (may be null)
    * @param connectoidSegmentMapper to use for tracking mapping between original and copied entity (may be null)
    * @param conjugateNodeMapper to use for tracking mapping between original and copied entity (may be null)
    */
   protected ConjugateVirtualNetworkLayerImpl(
       final ConjugateVirtualNetworkLayerImpl other,
       boolean deepCopy,
-      GraphEntityDeepCopyMapper<ConjugateConnectoidEdge> connectoidEdgeMapper,
+      GraphEntityDeepCopyMapper<ConjugateConnectoidLink> connectoidLinkMapper,
       GraphEntityDeepCopyMapper<ConjugateConnectoidSegment> connectoidSegmentMapper,
       GraphEntityDeepCopyMapper<ConjugateConnectoidNode> conjugateNodeMapper) {
     if(deepCopy){
       //todo: verify this works as expected via super class - not tested
-      theGraph = other.theGraph.smartDeepClone(conjugateNodeMapper, connectoidEdgeMapper, connectoidSegmentMapper);
+      theGraph = other.theGraph.smartDeepClone(conjugateNodeMapper, connectoidLinkMapper, connectoidSegmentMapper);
     }else{
       theGraph = other.theGraph;
     }
@@ -147,7 +149,7 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
   public void reset() {
     getConnectoidSegments().reset();
     getVertices().reset();
-    getConnectoidEdges().reset();
+    this.getConnectoidLinks().reset();
   }
 
   @Override
@@ -176,8 +178,8 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
   }
 
   @Override
-  public ConjugateConnectoidEdges getConnectoidEdges() {
-    return (ConjugateConnectoidEdges) theGraph.getEdges();
+  public ConjugateConnectoidLinks getConnectoidLinks() {
+    return (ConjugateConnectoidLinks) theGraph.getEdges();
   }
 
   @Override
@@ -201,7 +203,7 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
   }
 
   @Override
-  public UntypedDirectedGraphLayerModifier<ConjugateConnectoidNode, ConjugateConnectoidEdge, ConjugateConnectoidSegment> getLayerModifier() {
+  public UntypedDirectedGraphLayerModifier<ConjugateConnectoidNode, ConjugateConnectoidLink, ConjugateConnectoidSegment> getLayerModifier() {
     return new UntypedNetworkLayerModifierImpl<>(theGraph);
   }
 
@@ -273,9 +275,9 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
 
   @Override
   public void logInfo(String prefix) {
-    LOGGER.info(String.format("%s#conjugate connectoid edges: %d", prefix, getConnectoidEdges().size()));
+    LOGGER.info(String.format("%s#conjugate connectoid links: %d", prefix, this.getConnectoidLinks().size()));
     LOGGER.info(String.format("%s#conjugate connectoid segments: %d", prefix, getConnectoidSegments().size()));
-    LOGGER.info(String.format("%s#conjugate centroid vertices: %d", prefix, getVertices().size()));
+    LOGGER.info(String.format("%s#conjugate nodes: %d", prefix, getVertices().size()));
   }
 
   @Override
@@ -288,11 +290,11 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
    */
   @Override
   public ConjugateVirtualNetworkLayerImpl deepCloneWithMapping(
-          GraphEntityDeepCopyMapper<ConjugateConnectoidEdge> connectoidEdgeMapper,
+          GraphEntityDeepCopyMapper<ConjugateConnectoidLink> connectoidLinkMapper,
           GraphEntityDeepCopyMapper<ConjugateConnectoidSegment> connectoidSegmentMapper,
           GraphEntityDeepCopyMapper<ConjugateConnectoidNode> conjugateNodeMapper) {
     return new ConjugateVirtualNetworkLayerImpl(
-            this, true, connectoidEdgeMapper, connectoidSegmentMapper, conjugateNodeMapper);
+            this, true, connectoidLinkMapper, connectoidSegmentMapper, conjugateNodeMapper);
   }
 
 

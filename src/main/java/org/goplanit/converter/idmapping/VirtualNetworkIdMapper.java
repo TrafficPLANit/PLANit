@@ -1,17 +1,9 @@
 package org.goplanit.converter.idmapping;
 
-import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.userclass.TravellerType;
-import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.IdMapperType;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
-import org.goplanit.utils.network.layer.physical.Link;
-import org.goplanit.utils.network.virtual.ConnectoidEdge;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
-import org.goplanit.utils.time.TimePeriod;
+import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 
 import java.util.function.Function;
 
@@ -26,7 +18,7 @@ public class VirtualNetworkIdMapper extends PlanitComponentIdMapper {
    */
   public VirtualNetworkIdMapper(IdMapperType type){
     super(type);
-    add(ConnectoidEdge.class, IdMapperFunctionFactory.createConnectoidEdgeIdMappingFunction(type));
+    add(ConnectoidLink.class, IdMapperFunctionFactory.createConnectoidEdgeIdMappingFunction(type));
     add(ConnectoidSegment.class, IdMapperFunctionFactory.createConnectoidSegmentIdMappingFunction(type));
     add(Vertex.class, IdMapperFunctionFactory.createVertexIdMappingFunction(type));
   }
@@ -43,8 +35,8 @@ public class VirtualNetworkIdMapper extends PlanitComponentIdMapper {
   /** get id mapper for links
    * @return id mapper
    */
-  public Function<ConnectoidEdge, String> getConnectoidEdgeIdMapper(){
-    return get(ConnectoidEdge.class);
+  public Function<ConnectoidLink, String> getConnectoidLinkIdMapper(){
+    return get(ConnectoidLink.class);
   }
 
   /** get id mapper for link segments

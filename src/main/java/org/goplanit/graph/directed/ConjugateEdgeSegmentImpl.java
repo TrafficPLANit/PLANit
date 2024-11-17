@@ -12,7 +12,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class ConjugateEdgeSegmentImpl extends EdgeSegmentImpl<ConjugateDirectedEdge> implements ConjugateEdgeSegment {
+public class ConjugateEdgeSegmentImpl extends EdgeSegmentImpl implements ConjugateEdgeSegment {
 
   /** UID */
   private static final long serialVersionUID = 8906736183855154599L;
@@ -53,6 +53,14 @@ public class ConjugateEdgeSegmentImpl extends EdgeSegmentImpl<ConjugateDirectedE
    */
   protected ConjugateEdgeSegmentImpl(ConjugateEdgeSegmentImpl other, boolean deepCopy) {
     super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateDirectedEdge getParent(){
+    return (ConjugateDirectedEdge) super.getParent();
   }
 
   /**

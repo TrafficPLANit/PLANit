@@ -14,7 +14,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl implements EdgeSegment {
+public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
 
   /** generated UID */
   private static final long serialVersionUID = -6521489123632246969L;
@@ -30,7 +30,7 @@ public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl imp
   /**
    * segment's parent edge
    */
-  private E parentEdge;
+  private DirectedEdge parentEdge;
 
   // Protected
 
@@ -107,7 +107,7 @@ public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl imp
    * @param directionAb direction of travel
    */
   protected EdgeSegmentImpl(
-      final IdGroupingToken groupId, final E parentEdge, final boolean directionAb) {
+      final IdGroupingToken groupId, final DirectedEdge parentEdge, final boolean directionAb) {
     super(groupId, EDGE_SEGMENT_ID_CLASS);
     setParent(parentEdge);
     this.directionAb = directionAb;
@@ -129,7 +129,7 @@ public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl imp
    * @param edgeSegmentImpl to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected EdgeSegmentImpl(EdgeSegmentImpl<E> edgeSegmentImpl, boolean deepCopy) {
+  protected EdgeSegmentImpl(EdgeSegmentImpl edgeSegmentImpl, boolean deepCopy) {
     super(edgeSegmentImpl, deepCopy);
     setParent(edgeSegmentImpl.getParent());
     this.directionAb = edgeSegmentImpl.directionAb;
@@ -151,7 +151,7 @@ public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl imp
    * {@inheritDoc}
    */
   @Override
-  public E getParent() {
+  public DirectedEdge getParent() {
     return this.parentEdge;
   }
 
@@ -165,7 +165,7 @@ public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl imp
       LOGGER.warning(String.format("Parent edge is null, unable to set on edge segment (id: %d)", getId()));
       return;
     }
-    this.parentEdge = (E) parentEdge;
+    this.parentEdge = parentEdge;
   }
 
   /**
@@ -180,16 +180,16 @@ public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl imp
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegmentImpl<E> shallowClone() {
-    return new EdgeSegmentImpl<>(this, false);
+  public EdgeSegmentImpl shallowClone() {
+    return new EdgeSegmentImpl(this, false);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegmentImpl<E> deepClone() {
-    return new EdgeSegmentImpl<>(this, true);
+  public EdgeSegmentImpl deepClone() {
+    return new EdgeSegmentImpl(this, true);
   }
 
   /**

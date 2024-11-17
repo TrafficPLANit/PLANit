@@ -18,8 +18,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.ConjugateNode;
-import org.goplanit.utils.network.virtual.CentroidVertex;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 
 /**
  * A conjugate rooted bush is an acyclic directed graph comprising implicit paths along a conjugate network, i.e. turn based network (conjugate edge segments). It has a single

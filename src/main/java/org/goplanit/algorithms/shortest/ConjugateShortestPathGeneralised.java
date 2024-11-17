@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNodes;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNodes;
 
 /**
  * Conjugate version of shortest path algorithm. The only difference is found in that the original network edge segment costs are now obtained on the turn level, where each

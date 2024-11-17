@@ -39,7 +39,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
     final int id = (int) linkSegment.getId();
     final double[] modalLinkSegmentsTravelTimeHour = getAssignment().getIterationData().getLinkSegmentTravelTimePcuH(mode);
     final double travelTimeHour = modalLinkSegmentsTravelTimeHour[id];
-    final double length = linkSegment.getParentLink().getLengthKm();
+    final double length = linkSegment.getParent().getLengthKm();
     return Optional.of(length / travelTimeHour);
   }
 

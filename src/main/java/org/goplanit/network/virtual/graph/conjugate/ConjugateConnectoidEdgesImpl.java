@@ -1,12 +1,11 @@
-package org.goplanit.network.virtual;
+package org.goplanit.network.virtual.graph.conjugate;
 
 import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidEdge;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidEdgeFactory;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidEdges;
-import org.goplanit.utils.network.virtual.ConnectoidEdge;
+import org.goplanit.utils.network.virtual.graph.conjugate.ConjugateConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.graph.conjugate.ConjugateConnectoidEdgeFactory;
+import org.goplanit.utils.network.virtual.graph.conjugate.ConjugateConnectoidEdges;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 
 import java.util.function.BiConsumer;
 
@@ -17,7 +16,8 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class ConjugateConnectoidEdgesImpl extends ManagedGraphEntitiesImpl<ConjugateConnectoidEdge> implements ConjugateConnectoidEdges {
+public class ConjugateConnectoidEdgesImpl
+    extends ManagedGraphEntitiesImpl<ConjugateConnectoidDirectedEdge> implements ConjugateConnectoidEdges {
 
   /** factory to use */
   private final ConjugateConnectoidEdgeFactory factory;
@@ -28,7 +28,7 @@ public class ConjugateConnectoidEdgesImpl extends ManagedGraphEntitiesImpl<Conju
    * @param groupId to use for creating ids for instances
    */
   public ConjugateConnectoidEdgesImpl(final IdGroupingToken groupId) {
-    super(ConjugateConnectoidEdge::getId, ConnectoidEdge.EDGE_ID_CLASS);
+    super(ConjugateConnectoidDirectedEdge::getId, ConnectoidDirectedEdge.EDGE_ID_CLASS);
     this.factory = new ConjugateConnectoidEdgeFactoryImpl(groupId, this);
   }
 
@@ -39,7 +39,7 @@ public class ConjugateConnectoidEdgesImpl extends ManagedGraphEntitiesImpl<Conju
    * @param factory               the factory to use
    */
   public ConjugateConnectoidEdgesImpl(final IdGroupingToken groupId, ConjugateConnectoidEdgeFactory factory) {
-    super(ConjugateConnectoidEdge::getId, ConnectoidEdge.EDGE_ID_CLASS);
+    super(ConjugateConnectoidDirectedEdge::getId, ConnectoidDirectedEdge.EDGE_ID_CLASS);
     this.factory = factory;
   }
 
@@ -50,7 +50,7 @@ public class ConjugateConnectoidEdgesImpl extends ManagedGraphEntitiesImpl<Conju
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper apply to each mapping from original to copy
    */
-  public ConjugateConnectoidEdgesImpl(ConjugateConnectoidEdgesImpl other, boolean deepCopy, BiConsumer<ConjugateConnectoidEdge,ConjugateConnectoidEdge> mapper) {
+  public ConjugateConnectoidEdgesImpl(ConjugateConnectoidEdgesImpl other, boolean deepCopy, BiConsumer<ConjugateConnectoidDirectedEdge, ConjugateConnectoidDirectedEdge> mapper) {
     super(other, deepCopy, mapper);
     this.factory =
             new ConjugateConnectoidEdgeFactoryImpl(other.factory.getIdGroupingToken(), this);
@@ -69,9 +69,6 @@ public class ConjugateConnectoidEdgesImpl extends ManagedGraphEntitiesImpl<Conju
    */
   @Override
   public void recreateIds(boolean resetManagedIdClass) {
-    /* always reset the additional connectoid edge id class */
-    IdGenerator.reset(getFactory().getIdGroupingToken(), ConnectoidEdge.CONNECTOID_EDGE_ID_CLASS);
-
     super.recreateIds(resetManagedIdClass);
   }
 
@@ -95,7 +92,7 @@ public class ConjugateConnectoidEdgesImpl extends ManagedGraphEntitiesImpl<Conju
    * {@inheritDoc}
    */
   @Override
-  public ConjugateConnectoidEdgesImpl deepCloneWithMapping(BiConsumer<ConjugateConnectoidEdge,ConjugateConnectoidEdge> mapper) {
+  public ConjugateConnectoidEdgesImpl deepCloneWithMapping(BiConsumer<ConjugateConnectoidDirectedEdge, ConjugateConnectoidDirectedEdge> mapper) {
     return new ConjugateConnectoidEdgesImpl(this, true, mapper);
   }
 

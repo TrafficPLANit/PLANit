@@ -503,7 +503,7 @@ public class ZoningConverterUtils {
         getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId.apply(waitingAreaSourceId) != null &&
         getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId.apply(waitingAreaSourceId).equals(accessLinkSourceId);
 
-    var accessLinkSegmentGeometry = accessLinkSegment.getParentLink().getGeometry();
+    var accessLinkSegmentGeometry = accessLinkSegment.getParent().getGeometry();
     /* exclude the extreme node at the upstream end because if this is access node, the preceding access link segment should be chosen */
     int startIndex = accessLinkSegment.isParentGeometryInSegmentDirection(false) ? 1 : 0;
     int endIndex = accessLinkSegment.isParentGeometryInSegmentDirection(false) ? accessLinkSegmentGeometry.getNumPoints()-1 : accessLinkSegmentGeometry.getNumPoints()-2;
@@ -537,7 +537,7 @@ public class ZoningConverterUtils {
     /* 3) too far, check if breaking the existing link in appropriate location instead would work */
     else{
       LinearLocation projectedLinLocOnLink = PlanitEntityGeoUtils.extractClosestProjectedLinearLocationToGeometryFromEdge(
-          waitingAreaGeometry, accessLinkSegment.getParentLink(), geoUtils);
+          waitingAreaGeometry, accessLinkSegment.getParent(), geoUtils);
 
       /* verify projected location is valid */
       Coordinate closestProjectedCoordinate = projectedLinLocOnLink.getCoordinate(accessLinkSegmentGeometry);

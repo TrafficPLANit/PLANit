@@ -2,24 +2,12 @@ package org.goplanit.network.transport;
 
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.network.layer.physical.MovementsImpl;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.geo.PlanitJtsCrsUtils;
-import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.network.layer.physical.Movements;
-import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.virtual.*;
-import org.goplanit.utils.zoning.Connectoid;
-import org.goplanit.utils.zoning.DirectedConnectoid;
-import org.goplanit.utils.zoning.UndirectedConnectoid;
-import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 import org.goplanit.zoning.Zoning;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -122,7 +110,7 @@ public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetw
   @Override
   public void removeVirtualNetworkFromPhysicalNetwork(boolean resetManagedIds) {
     // todo: move to interface if conjugate implementation has same implementation
-    for (ConnectoidEdge connectoidEdge : getVirtualNetwork().getLayer().getConnectoidEdges()) {
+    for (ConnectoidDirectedEdge connectoidEdge : getVirtualNetwork().getLayer().getConnectoidLinks()) {
       disconnectVerticesFromEdge(connectoidEdge);
     }
 

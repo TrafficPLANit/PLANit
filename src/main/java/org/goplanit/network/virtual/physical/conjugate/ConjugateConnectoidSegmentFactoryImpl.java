@@ -1,20 +1,21 @@
-package org.goplanit.network.virtual;
+package org.goplanit.network.virtual.physical.conjugate;
 
 import java.util.logging.Logger;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidEdge;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidSegment;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidSegmentFactory;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidSegments;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidLink;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegment;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegmentFactory;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegments;
 
 /**
  * Factory for creating conjugate connectoid segments on container
  * 
  * @author markr
  */
-public class ConjugateConnectoidSegmentFactoryImpl extends GraphEntityFactoryImpl<ConjugateConnectoidSegment> implements ConjugateConnectoidSegmentFactory {
+public class ConjugateConnectoidSegmentFactoryImpl
+    extends GraphEntityFactoryImpl<ConjugateConnectoidSegment> implements ConjugateConnectoidSegmentFactory {
 
   /** Logger to use */
   @SuppressWarnings("unused")
@@ -34,7 +35,7 @@ public class ConjugateConnectoidSegmentFactoryImpl extends GraphEntityFactoryImp
    * {@inheritDoc}
    */
   @Override
-  public ConjugateConnectoidSegmentImpl create(final ConjugateConnectoidEdge parent, final boolean directionAb) {
+  public ConjugateConnectoidSegmentImpl create(final ConjugateConnectoidLink parent, final boolean directionAb) {
     return new ConjugateConnectoidSegmentImpl(getIdGroupingToken(), parent, directionAb);
   }
 
@@ -43,7 +44,7 @@ public class ConjugateConnectoidSegmentFactoryImpl extends GraphEntityFactoryImp
    */
   @Override
   public ConjugateConnectoidSegmentImpl registerNew(
-      final ConjugateConnectoidEdge parent, final boolean directionAb, boolean registerOnNodeAndLink) {
+      final ConjugateConnectoidLink parent, final boolean directionAb, boolean registerOnNodeAndLink) {
 
     final var conjugateEdgeSegment = create(parent, directionAb);
     getGraphEntities().register(conjugateEdgeSegment);

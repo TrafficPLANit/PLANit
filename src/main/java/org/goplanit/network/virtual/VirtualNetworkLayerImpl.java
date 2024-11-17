@@ -2,27 +2,29 @@ package org.goplanit.network.virtual;
 
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.layer.modifier.UntypedNetworkLayerModifierImpl;
+import org.goplanit.network.virtual.graph.CentroidVerticesImpl;
+import org.goplanit.network.virtual.physical.ConnectoidLinksImpl;
+import org.goplanit.network.virtual.physical.ConnectoidSegmentsImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
 import org.goplanit.utils.network.virtual.*;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.CentroidVertices;
+import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
+import org.goplanit.utils.network.virtual.physical.ConnectoidLinks;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegments;
 import org.locationtech.jts.geom.Envelope;
-import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
 
 import java.util.Collection;
-import java.util.Map;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 /**
@@ -42,7 +44,7 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
 
   // Protected
 
-  protected UntypedDirectedGraphImpl<CentroidVertex, ConnectoidEdge, ConnectoidSegment> theGraph;
+  protected UntypedDirectedGraphImpl<CentroidVertex, ConnectoidLink, ConnectoidSegment> theGraph;
 
   protected String externalId;
 
@@ -57,7 +59,7 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
     this.theGraph = new UntypedDirectedGraphImpl<>(
             tokenId,
             new CentroidVerticesImpl(tokenId),
-            new ConnectoidEdgesImpl(tokenId),
+            new ConnectoidLinksImpl(tokenId),
             new ConnectoidSegmentsImpl(tokenId));
     this.externalId = null;
     this.xmlId = null;
@@ -75,7 +77,7 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
   protected VirtualNetworkLayerImpl(
       final VirtualNetworkLayerImpl other,
       boolean deepCopy,
-      GraphEntityDeepCopyMapper<ConnectoidEdge> connectoidEdgeMapper,
+      GraphEntityDeepCopyMapper<ConnectoidLink> connectoidEdgeMapper,
       GraphEntityDeepCopyMapper<ConnectoidSegment> connectoidSegmentMapper,
       GraphEntityDeepCopyMapper<CentroidVertex> centroidVertexMapper) {
     if(deepCopy){
@@ -128,7 +130,7 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
   public void reset() {
     getConnectoidSegments().reset();
     getVertices().reset();
-    getConnectoidEdges().reset();
+    getConnectoidLinks().reset();
   }
 
   @Override
@@ -152,8 +154,8 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
   }
 
   @Override
-  public ConnectoidEdges getConnectoidEdges() {
-    return (ConnectoidEdges) theGraph.getEdges();
+  public ConnectoidLinks getConnectoidLinks() {
+    return (ConnectoidLinks) theGraph.getEdges();
   }
 
   @Override
@@ -172,7 +174,7 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
   }
 
   @Override
-  public UntypedDirectedGraphLayerModifier<CentroidVertex, ConnectoidEdge, ConnectoidSegment> getLayerModifier() {
+  public UntypedDirectedGraphLayerModifier<CentroidVertex, ConnectoidLink, ConnectoidSegment> getLayerModifier() {
     return new UntypedNetworkLayerModifierImpl<>(theGraph);
   }
 
@@ -181,7 +183,7 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
    */
   @Override
   public void logInfo(String prefix) {
-    LOGGER.info(String.format("%s#connectoid edges: %d", prefix, getConnectoidEdges().size()));
+    LOGGER.info(String.format("%s#connectoid edges: %d", prefix, getConnectoidLinks().size()));
     LOGGER.info(String.format("%s#connectoid segments: %d", prefix, getConnectoidSegments().size()));
     LOGGER.info(String.format("%s#centroid vertices: %d", prefix, getVertices().size()));
   }
@@ -282,13 +284,13 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
    * {@inheritDoc}
    */
   @Override
-  public VirtualNetworkLayerImpl deepCloneWithMapping(GraphEntityDeepCopyMapper<ConnectoidEdge> connectoidEdgeMapper,
+  public VirtualNetworkLayerImpl deepCloneWithMapping(GraphEntityDeepCopyMapper<ConnectoidLink> connectoidLinkMapper,
                                                       GraphEntityDeepCopyMapper<ConnectoidSegment> connectoidSegmentMapper,
                                                       GraphEntityDeepCopyMapper<CentroidVertex> centroidVertexMapper) {
     return new VirtualNetworkLayerImpl(
             this,
             true,
-            connectoidEdgeMapper,
+        connectoidLinkMapper,
             connectoidSegmentMapper,
             centroidVertexMapper);
   }

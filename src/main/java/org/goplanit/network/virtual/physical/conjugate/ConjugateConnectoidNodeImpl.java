@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.goplanit.network.virtual;
+package org.goplanit.network.virtual.physical.conjugate;
 
 import java.util.Collection;
 import java.util.logging.Logger;
@@ -10,8 +10,8 @@ import org.goplanit.graph.directed.DirectedVertexImpl;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
-import org.goplanit.utils.network.virtual.ConnectoidEdge;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 
 /**
  * Conjugate node representation connected to one or more conjugate (entry and exit) conjugate links.
@@ -35,7 +35,7 @@ public class ConjugateConnectoidNodeImpl
   protected long conjugateNodeId;
 
   /** original this conjugate represents */
-  protected final ConnectoidEdge original;
+  protected final ConnectoidDirectedEdge original;
 
   /**
    * set the node id on this node
@@ -66,7 +66,7 @@ public class ConjugateConnectoidNodeImpl
    * @param original original this conjugate represents
    * @param idToken to use
    */
-  protected ConjugateConnectoidNodeImpl(final ConnectoidEdge original, final IdGroupingToken idToken) {
+  protected ConjugateConnectoidNodeImpl(final ConnectoidDirectedEdge original, final IdGroupingToken idToken) {
     super(idToken);
     this.original = original;
     this.conjugateNodeId = generateNodeId(idToken);
@@ -152,7 +152,7 @@ public class ConjugateConnectoidNodeImpl
    * {@inheritDoc}
    */
   @Override
-  public ConnectoidEdge getOriginalEdge() {
+  public ConnectoidDirectedEdge getOriginalEdge() {
     return original;
   }
 

@@ -60,7 +60,7 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
     if (getLegSegments() == null || getLegSegments().isEmpty()) {
       return false;
     } else {
-      return getLegSegments().stream().allMatch(ls -> ls.hasGeometry());
+      return getLegSegments().stream().allMatch(ServiceLegSegment::hasGeometry);
     }
   }
 
@@ -97,9 +97,9 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
       for (var linkSegment : legSegment.getPhysicalParentSegments()) {
         if (linkSegment.hasGeometry()) {
           if (envelope == null) {
-            envelope = linkSegment.getParentLink().createEnvelope();
+            envelope = linkSegment.getParent().createEnvelope();
           } else {
-            envelope.expandToInclude(linkSegment.getParentLink().createEnvelope());
+            envelope.expandToInclude(linkSegment.getParent().createEnvelope());
           }
         }
       }

@@ -1,11 +1,11 @@
-package org.goplanit.network.virtual;
+package org.goplanit.network.virtual.physical.conjugate;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNodeFactory;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNodes;
-import org.goplanit.utils.network.virtual.ConnectoidEdge;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNodeFactory;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNodes;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 
 /**
  * Factory for creating conjugate connectoid nodes on container.
@@ -28,7 +28,7 @@ public class ConjugateConnectoidNodeFactoryImpl extends GraphEntityFactoryImpl<C
    * {@inheritDoc}
    */
   @Override
-  public ConjugateConnectoidNode createNew(final ConnectoidEdge originalConnectoidEdge) {
+  public ConjugateConnectoidNode createNew(final ConnectoidDirectedEdge originalConnectoidEdge) {
     return new ConjugateConnectoidNodeImpl(originalConnectoidEdge, getIdGroupingToken());
   }
 
@@ -36,7 +36,7 @@ public class ConjugateConnectoidNodeFactoryImpl extends GraphEntityFactoryImpl<C
    * {@inheritDoc}
    */
   @Override
-  public ConjugateConnectoidNode registerNew(final ConnectoidEdge originalConnectoidEdge) {
+  public ConjugateConnectoidNode registerNew(final ConnectoidDirectedEdge originalConnectoidEdge) {
     final ConjugateConnectoidNode newEntity = createNew(originalConnectoidEdge);
     getGraphEntities().register(newEntity);
     return newEntity;

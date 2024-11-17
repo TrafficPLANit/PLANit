@@ -1,9 +1,8 @@
 package org.goplanit.cost.virtual;
 
 import org.goplanit.cost.Cost;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 
 /**

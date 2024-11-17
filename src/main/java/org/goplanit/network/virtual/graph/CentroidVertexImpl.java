@@ -1,11 +1,9 @@
-package org.goplanit.network.virtual;
+package org.goplanit.network.virtual.graph;
 
 import org.goplanit.graph.directed.DirectedVertexImpl;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.CentroidVertex;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.zoning.Centroid;
 import org.locationtech.jts.geom.Point;
 

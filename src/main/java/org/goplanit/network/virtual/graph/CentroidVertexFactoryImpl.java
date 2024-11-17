@@ -1,17 +1,11 @@
-package org.goplanit.network.virtual;
+package org.goplanit.network.virtual.graph;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
-import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.layer.physical.NodeFactory;
-import org.goplanit.utils.network.layer.physical.Nodes;
-import org.goplanit.utils.network.virtual.CentroidVertex;
-import org.goplanit.utils.network.virtual.CentroidVertexFactory;
-import org.goplanit.utils.network.virtual.CentroidVertices;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.CentroidVertexFactory;
+import org.goplanit.utils.network.virtual.graph.CentroidVertices;
 import org.goplanit.utils.zoning.Centroid;
-import org.locationtech.jts.geom.Point;
 
 /**
  * Factory for creating nodes on nodes container

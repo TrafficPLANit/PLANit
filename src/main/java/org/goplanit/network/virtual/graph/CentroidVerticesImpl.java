@@ -1,14 +1,10 @@
-package org.goplanit.network.virtual;
+package org.goplanit.network.virtual.graph;
 
 import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.layer.physical.NodeFactory;
-import org.goplanit.utils.network.virtual.CentroidVertex;
-import org.goplanit.utils.network.virtual.CentroidVertexFactory;
-import org.goplanit.utils.network.virtual.CentroidVertices;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.CentroidVertexFactory;
+import org.goplanit.utils.network.virtual.graph.CentroidVertices;
 
 import java.util.function.BiConsumer;
 

@@ -7,6 +7,11 @@ import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.virtual.*;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
+import org.goplanit.utils.network.virtual.physical.ConnectoidLinkFactory;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegmentFactory;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.UndirectedConnectoid;
@@ -54,32 +59,39 @@ public class TransportModelNetworkImpl
    * create and register the edge segments for the passed in connectoid edge, XML id set to id prefixed with "c_ab or c_ba".
    *
    * @param connectoidSegmentFactory  to create and register on
-   * @param connectoidEdge to process
+   * @param connectoidLink to process
    */
-  protected void createAndRegisterConnectoidEdgeSegments(ConnectoidSegmentFactory connectoidSegmentFactory, ConnectoidEdge connectoidEdge) {
-    var segment = connectoidSegmentFactory.registerNew(connectoidEdge, true);
+  protected void createAndRegisterConnectoidEdgeSegments(
+      ConnectoidSegmentFactory connectoidSegmentFactory, ConnectoidLink connectoidLink) {
+    var segment = connectoidSegmentFactory.registerNew(connectoidLink, true);
     segment.setXmlId("c_ab" + segment.getId());
-    segment = connectoidSegmentFactory.registerNew(connectoidEdge, false);
+    segment = connectoidSegmentFactory.registerNew(connectoidLink, false);
     segment.setXmlId("c_ba" + segment.getId());
-    connectVerticesToEdge(connectoidEdge);
+    connectVerticesToEdge(connectoidLink);
   }
 
   /**
    * Given context of centroid vertex and connectoid + access zone, we create the required connectoid edges and connected segments with the provided factories
    *
-   * @param connectoidEdgeFactory    factory to use
+   * @param connectoidLinkFactory    factory to use
    * @param connectoidSegmentFactory factory to use
    * @param centroidVertex           centroid vertex created for the access zone
    * @param accessZone               at hand for the current connectoid
    * @param connectoid               the connectoid at hand used to extract length to access zone
    * @param geoTools                 to use for geometry creation
    */
-  protected void createAndRegisterConnectoidEdgeAndEdgeSegments(
-      ConnectoidEdgeFactory connectoidEdgeFactory, ConnectoidSegmentFactory connectoidSegmentFactory, CentroidVertex centroidVertex, Zone accessZone, Connectoid connectoid, PlanitJtsCrsUtils geoTools) {
+  protected void createAndRegisterConnectoidLinkAndEdgeSegments(
+      ConnectoidLinkFactory connectoidLinkFactory,
+      ConnectoidSegmentFactory connectoidSegmentFactory,
+      CentroidVertex centroidVertex,
+      Zone accessZone,
+      Connectoid connectoid,
+      PlanitJtsCrsUtils geoTools) {
+
     double connectoidLength = connectoid.getLengthKm(accessZone).orElseThrow(
         () -> new PlanItRunTimeException("unable to retrieve length for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
     var connectoidEdge =
-        connectoidEdgeFactory.registerNew(centroidVertex, connectoid.getAccessVertex(), connectoidLength);
+        connectoidLinkFactory.registerNew(centroidVertex, connectoid.getAccessVertex(), connectoidLength);
     connectVerticesToEdge(connectoidEdge);
     createAndRegisterConnectoidEdgeSegments(connectoidSegmentFactory, connectoidEdge);
 
@@ -95,7 +107,7 @@ public class TransportModelNetworkImpl
    * @param geoTools                to use for geometry creation
    * @return true when successful, false otherwise
    */
-  private boolean populateConnectoidGeometry(ConnectoidEdge connectoidEdge, PlanitJtsCrsUtils geoTools) {
+  private boolean populateConnectoidGeometry(ConnectoidDirectedEdge connectoidEdge, PlanitJtsCrsUtils geoTools) {
     var centroidVertex = connectoidEdge.getCentroidVertex();
     var parentCentroid = centroidVertex.getParent();
 
@@ -170,7 +182,7 @@ public class TransportModelNetworkImpl
     }
 
     var centroidVertexFactory = virtualNetwork.getLayer().getVertices().getFactory();
-    var connectoidEdgeFactory = virtualNetwork.getLayer().getConnectoidEdges().getFactory();
+    var connectoidLinkFactory = virtualNetwork.getLayer().getConnectoidLinks().getFactory();
     var connectoidSegmentFactory = virtualNetwork.getLayer().getConnectoidSegments().getFactory();
 
     var geoTools = new PlanitJtsCrsUtils(getInfrastructureNetwork().getCoordinateReferenceSystem());
@@ -184,8 +196,8 @@ public class TransportModelNetworkImpl
           zone2CentroidVertexMapping.put(accessZone, centroidVertex);
         }
 
-        createAndRegisterConnectoidEdgeAndEdgeSegments(
-            connectoidEdgeFactory, connectoidSegmentFactory, centroidVertex, accessZone, undirectedConnectoid, geoTools);
+        createAndRegisterConnectoidLinkAndEdgeSegments(
+            connectoidLinkFactory, connectoidSegmentFactory, centroidVertex, accessZone, undirectedConnectoid, geoTools);
       }
     }
 
@@ -202,8 +214,8 @@ public class TransportModelNetworkImpl
         if (accessVertex == null) {
           throw new PlanItRunTimeException("No access vertex found for directed connectoid, this shouldn't happen");
         }
-        createAndRegisterConnectoidEdgeAndEdgeSegments(
-            connectoidEdgeFactory, connectoidSegmentFactory, centroidVertex, accessZone, directedConnectoid, geoTools);
+        createAndRegisterConnectoidLinkAndEdgeSegments(
+            connectoidLinkFactory, connectoidSegmentFactory, centroidVertex, accessZone, directedConnectoid, geoTools);
       }
     }
     logInfo();
@@ -228,7 +240,7 @@ public class TransportModelNetworkImpl
     }
     @SuppressWarnings("unchecked")
     var conjugateTransportModelNetwork = new ConjugateTransportModelNetwork(
-        (TransportModelNetwork<MacroscopicNetwork,VirtualNetwork>)(TransportModelNetwork) this);
+        (TransportModelNetwork<MacroscopicNetwork,VirtualNetwork>)(TransportModelNetwork<?,?>) this);
 
     // since conjugate network is always created new no need to recreate ids
     conjugateTransportModelNetwork.integrateTransportNetworkViaConnectoids(false);

@@ -8,13 +8,14 @@ import org.goplanit.algorithms.shortest.ShortestPathKShortestYen;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.network.transport.TransportModelNetworkImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.virtual.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.path.SimpleDirectedPathFactoryImpl;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
@@ -48,7 +49,7 @@ public class KShortestPathTest {
   private static final GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
 
   private final IdGroupingToken idToken = IdGenerator.createIdGroupingToken(KShortestPathTest.class.getCanonicalName());
-  private TransportModelNetwork transportNetwork;
+  private TransportModelNetworkImpl transportNetwork;
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
   private Zoning zoning;
@@ -154,9 +155,10 @@ public class KShortestPathTest {
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().getByXmlId("C"),  zoneA, 0.1);
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().getByXmlId("H"), zoneB, 0.1);
 
-      transportNetwork = new TransportModelNetwork(network, zoning);
+      transportNetwork = new TransportModelNetworkImpl(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids(false);
-      zone2CentroidVertexMapping = transportNetwork.createZoneToCentroidVertexMapping(true, false);
+      zone2CentroidVertexMapping =
+          (Map<Zone, CentroidVertex>) transportNetwork.createZoneToCentroidVertexMapping(true, false);
 
       // costs
       var linkSegments = networkLayer.getLinkSegments();

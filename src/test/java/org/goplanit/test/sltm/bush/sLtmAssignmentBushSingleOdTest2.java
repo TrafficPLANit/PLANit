@@ -272,7 +272,7 @@ public class sLtmAssignmentBushSingleOdTest2 {
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(6);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("8"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(4);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("9"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(4);
-      networkLayer.getLinkSegments().forEach(ls -> ls.setXmlId(""+ls.getParentLink().getId()));
+      networkLayer.getLinkSegments().forEach(ls -> ls.setXmlId(""+ls.getParent().getId()));
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
       zoning.getOdZones().getFactory().registerNew().setXmlId("A");
