@@ -5,6 +5,7 @@ import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
@@ -36,8 +37,7 @@ import java.util.logging.Logger;
  *
  */
 public class TransportModelNetworkImpl
-    extends UntypedTransportModelNetwork<UntypedPhysicalNetwork<?, ?>, VirtualNetwork>
-    implements TransportModelNetwork<UntypedPhysicalNetwork<?, ?>, VirtualNetwork>{
+    extends UntypedTransportModelNetwork<UntypedPhysicalNetwork<?, ?>, VirtualNetwork> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(TransportModelNetworkImpl.class.getCanonicalName());
@@ -230,7 +230,7 @@ public class TransportModelNetworkImpl
    * </p>
    */
   @Override
-  public ConjugateTransportModelNetwork createConjugate() {
+  public ConjugateTransportModelNetwork createConjugate(final IdGroupingToken idToken) {
     if(!(getInfrastructureNetwork() instanceof MacroscopicNetwork)){
       LOGGER.warning("Unsupported infrastructure network type create conjugate network for, only " +
           "Macroscopic networks currently supported");
@@ -239,7 +239,7 @@ public class TransportModelNetworkImpl
       LOGGER.warning("Virtual network must be available to be able to create conjugate but found null");
     }
     @SuppressWarnings("unchecked")
-    var conjugateTransportModelNetwork = new ConjugateTransportModelNetwork(
+    var conjugateTransportModelNetwork = new ConjugateTransportModelNetwork(idToken,
         (TransportModelNetwork<MacroscopicNetwork,VirtualNetwork>)(TransportModelNetwork<?,?>) this);
 
     // since conjugate network is always created new no need to recreate ids

@@ -1,21 +1,17 @@
 package org.goplanit.zoning;
 
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.zoning.Connectoid;
-import org.goplanit.utils.zoning.UndirectedConnectoid;
-import org.goplanit.utils.zoning.UndirectedConnectoidFactory;
-import org.goplanit.utils.zoning.UndirectedConnectoids;
-import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.zoning.*;
 
 /**
  * Factory for creating new undirected connectoids on container
  * 
  * @author markr
  */
-public class UndirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<UndirectedConnectoid> implements UndirectedConnectoidFactory {
+public class UndirectedConnectoidFactoryImpl
+        extends ManagedIdEntityFactoryImpl<UndirectedConnectoid> implements UndirectedConnectoidFactory {
 
   /** container to use */
   protected final UndirectedConnectoids undirectedConnectoids;
@@ -26,7 +22,8 @@ public class UndirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<
    * @param groupId               to use
    * @param undirectedConnectoids to use
    */
-  protected UndirectedConnectoidFactoryImpl(final IdGroupingToken groupId, final UndirectedConnectoids undirectedConnectoids) {
+  protected UndirectedConnectoidFactoryImpl(
+          final IdGroupingToken groupId, final UndirectedConnectoids undirectedConnectoids) {
     super(groupId);
     this.undirectedConnectoids = undirectedConnectoids;
   }

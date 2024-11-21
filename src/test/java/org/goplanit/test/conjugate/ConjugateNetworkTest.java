@@ -4,12 +4,16 @@ import java.util.logging.Logger;
 
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.network.transport.TransportModelNetworkImpl;
+import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.*;
 
@@ -27,8 +31,9 @@ public class ConjugateNetworkTest {
   private MacroscopicNetworkLayer networkLayer;
   private Zoning zoning;
 
+  private TransportModelNetwork<?, ?> transportModelNetwork;
+
   private final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("regularNetworkToken");
-  private final IdGroupingToken conjugateTestToken = IdGenerator.createIdGroupingToken("conjugateNetworkToken");
 
   /** the logger */
   private static Logger LOGGER = null;
@@ -134,7 +139,11 @@ public class ConjugateNetworkTest {
           networkLayer.getNodes().get(7),  zoning.getOdZones().getByXmlId("A``"), 0);
       zoning.getOdConnectoids().getFactory().registerNew(
           networkLayer.getNodes().get(11),  zoning.getOdZones().getByXmlId("A```"), 0);
-                      
+
+      // combine in overall network
+      transportModelNetwork = new TransportModelNetworkImpl(network, zoning);
+      transportModelNetwork.integrateTransportNetworkViaConnectoids(false);
+
     }catch(Exception e) {
       e.printStackTrace();
       Assertions.fail();
@@ -148,13 +157,14 @@ public class ConjugateNetworkTest {
   @Test
   public void conjugateNetworkTest() {
     try {
+      var conjugateTestToken = TransportModelNetworkUtils.generateDerivedConjugateIdGoupingToken(transportModelNetwork);
 
-      var conjugateVirtualNetwork = zoning.getVirtualNetwork().createConjugate(conjugateTestToken);
-      /* use a different token to ensure vertices/edges/edgesegments count from zero again, if we use the same token,
-       * they would simply continue */
-      ConjugateMacroscopicNetworkLayer conjugateLayer = networkLayer.createConjugate(conjugateTestToken, conjugateVirtualNetwork);
+      // create conjugate version of the network + virtual network
+      var conjugateTransportModelNetwork = transportModelNetwork.createConjugate(conjugateTestToken);
+      var conjugatePhysicalLayer = conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst();
+      var conjugateVirtualNetwork = conjugateTransportModelNetwork.getVirtualNetwork();
 
-      assertEquals(networkLayer.getLinks().size(), conjugateLayer.getNodes().size());
+      assertEquals(networkLayer.getLinks().size(), conjugatePhysicalLayer.getNodes().size());
 
       /* physical conjugate network check */
       int totalEdgePairs = 0;
@@ -165,8 +175,8 @@ public class ConjugateNetworkTest {
         }
         totalEdgePairs += combinations;
       }
-      assertEquals(totalEdgePairs, conjugateLayer.getLinks().size());
-      assertEquals(totalEdgePairs * 2, conjugateLayer.getLinkSegments().size());
+      assertEquals(totalEdgePairs, conjugatePhysicalLayer.getLinks().size());
+      assertEquals(totalEdgePairs * 2, conjugatePhysicalLayer.getLinkSegments().size());
 
       /*
        * virtual conjugate network check (where we add a partial dummy turn around each centroid to enter/exit the virtual network. Therefore, we have a single conjugate edge + 2

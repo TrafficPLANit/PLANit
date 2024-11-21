@@ -2,6 +2,8 @@ package org.goplanit.network.transport;
 
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
+import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.UntypedVirtualNetwork;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
@@ -64,7 +66,8 @@ public class TransportModelNetworkUtils {
    * @return the total number of vertices
    */
   public static int getNumberOfVerticesAllLayers(LayeredNetwork<?, ?> physicalNetwork, Zoning zoning) {
-    return zoning.getOdZones().getNumberOfCentroids() + zoning.getTransferZones().getNumberOfCentroids() + getNumberOfPhysicalNodesAllLayers(physicalNetwork);
+    return zoning.getOdZones().getNumberOfCentroids() +
+            zoning.getTransferZones().getNumberOfCentroids() + getNumberOfPhysicalNodesAllLayers(physicalNetwork);
   }
 
   /**
@@ -75,11 +78,21 @@ public class TransportModelNetworkUtils {
    */
   public static int getNumberOfPhysicalNodesAllLayers(LayeredNetwork<?, ?> theNetwork) {
     int totalPhysicalNodes = 0;
-    var networkLayers = theNetwork.getTransportLayers().<UntypedPhysicalLayer>getLayersOfType();
+    var networkLayers = theNetwork.getTransportLayers().<UntypedPhysicalLayer<?,?,?>>getLayersOfType();
     for (var layer : networkLayers) {
-      totalPhysicalNodes += layer.getNumberOfNodes();
+      totalPhysicalNodes += (int)layer.getNumberOfNodes();
     }
     return totalPhysicalNodes;
   }
 
+  /**
+   * Based on a given transport model network, generate an id grouping token for the conjugate version of this network
+   * embedding information about the original in the description
+   *
+   * @param transportModelNetwork to use as reference
+   */
+  public static IdGroupingToken generateDerivedConjugateIdGoupingToken(TransportModelNetwork<?,?> transportModelNetwork) {
+    return IdGenerator.createIdGroupingToken(
+            "Conjugate for original network " + transportModelNetwork.getInfrastructureNetwork().getId());
+  }
 }

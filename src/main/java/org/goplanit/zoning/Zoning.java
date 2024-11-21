@@ -311,7 +311,8 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    */
   @Override
   public Zoning shallowClone() {
-    return new Zoning(this, false, null, null, null, null, null);
+    return new Zoning(
+            this, false, null, null, null, null, null);
   }
 
   /**

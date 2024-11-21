@@ -70,6 +70,12 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
     reset();
 
     Map<DirectedVertex, ConjugateConnectoidNode> dummyConjugateNodePerCentroidVertex = new HashMap<>();
+    if(referenceLayer.isEmpty()){
+      LOGGER.warning("Reference layer of virtual conjugate layer is empty, unable to populate conjugate virtual " +
+              "layer, aborting update, consider integrating virtual network with physical network first through " +
+              "transport model network");
+      return;
+    }
 
     /* connectoid edge -> conjugate connectoid node */
     for (var connectoidEdge : getReferenceLayer().getConnectoidLinks()) {

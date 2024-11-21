@@ -2,6 +2,7 @@ package org.goplanit.network.transport;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.network.UntypedPhysicalNetwork;
+import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.layer.physical.Movements;
 import org.goplanit.utils.network.virtual.*;
@@ -172,7 +173,8 @@ public interface TransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V
   /**
    * Retrieve conjugate version of this transport model network
    *
+   * @param idToken to use for conjugate network id generation
    * @return conjugate transport model network
    */
-  public abstract ConjugateTransportModelNetwork createConjugate();
+  public abstract ConjugateTransportModelNetwork createConjugate(final IdGroupingToken idToken);
 }

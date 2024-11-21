@@ -57,11 +57,13 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
     }
 
     /* also allow for connectoids to be available and connected to newly created conjugate links */
-    if (conjugateVirtualNetwork != null) {
+    if (conjugateVirtualNetwork != null && !conjugateVirtualNetwork.isEmpty()) {
       for (var conjugateConnectoidNode : conjugateVirtualNetwork.getLayer().getVertices()) {
         var originalEdge = conjugateConnectoidNode.getOriginalEdge();
         edgeToConjugateNode.put(originalEdge, conjugateConnectoidNode);
       }
+    }else{
+      LOGGER.info("Conjugate virtual network is not available or empty, ignored in conjugate macroscopic network layer recreation");
     }
 
     /* (link,link) -> conjugate link + conjugate link segments */

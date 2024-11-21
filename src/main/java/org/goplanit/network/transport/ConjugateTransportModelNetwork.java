@@ -65,22 +65,19 @@ public class ConjugateTransportModelNetwork extends UntypedTransportModelNetwork
   /**
    * Constructor
    *
+   * @param idToken to use
    * @param referenceTransportModelNetwork the original TransportNetwork
    */
-  protected ConjugateTransportModelNetwork(
+  protected ConjugateTransportModelNetwork(final IdGroupingToken idToken,
       TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> referenceTransportModelNetwork) {
     super();
     this.referenceTransportModelNetwork = referenceTransportModelNetwork;
 
-    /* generate conjugate network - generate ids separate from other vertices/edges/segments by providing new token */
-    var token = IdGenerator.createIdGroupingToken(
-            "Conjugate for network " + getInfrastructureNetwork().getId());
-
     // create baseline conjugate versions without integrating them yet.
-    this.virtualNetwork = createConjugateBaseVirtualNetwork(token);
+    this.virtualNetwork = createConjugateBaseVirtualNetwork(idToken);
     this.infrastructureNetwork =
-            createConjugatePhysicalNetwork(token, referenceTransportModelNetwork.getInfrastructureNetwork());
-    movements = new MovementsImpl(infrastructureNetwork.getIdGroupingToken());
+            createConjugatePhysicalNetwork(idToken, referenceTransportModelNetwork.getInfrastructureNetwork());
+    movements = new MovementsImpl(idToken);
   }
 
   /**
@@ -119,10 +116,12 @@ public class ConjugateTransportModelNetwork extends UntypedTransportModelNetwork
 
   /**
    * Not possible when already a conjugate network, so return itself and log user warning
+   *
+   * @param idToken to use
    * @return this transport model network
    */
   @Override
-  public ConjugateTransportModelNetwork createConjugate() {
+  public ConjugateTransportModelNetwork createConjugate(final IdGroupingToken idToken) {
     LOGGER.warning("Unable to create conjugate version of already conjugate ntransport model network " +
             "(not supported yet), providing this conjugate network as result");
     return this;

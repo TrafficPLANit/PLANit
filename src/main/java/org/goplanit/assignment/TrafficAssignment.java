@@ -17,6 +17,7 @@ import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
 import org.goplanit.network.transport.ConjugateTransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkImpl;
+import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.output.OutputManager;
 import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
@@ -186,7 +187,9 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
     var theTransportNetwork = new TransportModelNetworkImpl(physicalNetwork, zoning);
     theTransportNetwork.integrateTransportNetworkViaConnectoids(resetAndRecreateManagedIds);
     transportNetwork = conjugate ?
-            theTransportNetwork.createConjugate() : theTransportNetwork;
+            theTransportNetwork.createConjugate(
+                    TransportModelNetworkUtils.generateDerivedConjugateIdGoupingToken(theTransportNetwork)) :
+            theTransportNetwork;
   }
 
   /**
