@@ -95,7 +95,7 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
   @Override
   public void logInfo(String prefix){
     LOGGER.info(String.format(
-            "%s Layered network (%s) has %d layers",
+            "%sLayered network (%s) has %d layers",
             prefix, getIdsAsString(), getTransportLayers().size()));
 
     /* for each layer log information regarding contents */

@@ -75,7 +75,7 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
   @Override
   public void logInfo(String prefix){
     LOGGER.info(String.format(
-        "%s Virtual network (%s) has %d layer", prefix, getIdsAsString(), 1));
+        "%sVirtual network (%s) has %d layer", prefix, getIdsAsString(), 1));
     getLayer().logInfo(prefix + LoggingUtils.virtualNetworkLayerPrefix(getLayer().getId()));
   }
 

@@ -143,7 +143,7 @@ public class ConjugateNetworkTest {
       // combine in overall network
       transportModelNetwork = new TransportModelNetworkImpl(network, zoning);
       transportModelNetwork.integrateTransportNetworkViaConnectoids(false);
-      transportModelNetwork.logInfo("");
+      transportModelNetwork.logInfo("[ORIGINAL]");
 
     }catch(Exception e) {
       e.printStackTrace();
@@ -164,7 +164,7 @@ public class ConjugateNetworkTest {
       // create conjugate version of the network + virtual network
       var conjugateTransportModelNetwork =
           transportModelNetwork.createConjugate(conjugateTestToken);
-      conjugateTransportModelNetwork.logInfo("");
+      conjugateTransportModelNetwork.logInfo("[CONJUGATE]");
       var conjugatePhysicalLayer =
           conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst();
       var conjugateVirtualNetwork =
