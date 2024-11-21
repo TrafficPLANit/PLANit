@@ -23,6 +23,7 @@ import org.goplanit.utils.network.layer.physical.ConjugateNodes;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
+import org.goplanit.utils.network.virtual.ConjugateVirtualNetworkLayer;
 
 /**
  * Conjugate of macroscopic physical Network (layer), i.e. the edge-to-vertex dual of its original form
@@ -44,9 +45,9 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    * Reset and re-populate entire conjugate network layer based on current state of original layer this is the
    * conjugate of
    * 
-   * @param conjugateVirtualNetwork to use when connecting to original connectoid edges/segments
+   * @param conjugateVirtualNetworkLayer optional to connect to original connectoid edges/segments when present
    */
-  protected void recreateFromReferenceLayer(ConjugateVirtualNetwork conjugateVirtualNetwork) {
+  protected void recreateFromReferenceLayer(ConjugateVirtualNetworkLayer conjugateVirtualNetworkLayer) {
     reset();
 
     /* link -> conjugate node */
@@ -57,10 +58,12 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
     }
 
     /* also allow for connectoids to be available and connected to newly created conjugate links */
-    if (conjugateVirtualNetwork != null && !conjugateVirtualNetwork.isEmpty()) {
-      for (var conjugateConnectoidNode : conjugateVirtualNetwork.getLayer().getVertices()) {
+    if (conjugateVirtualNetworkLayer != null && !conjugateVirtualNetworkLayer.isEmpty()) {
+      for (var conjugateConnectoidNode : conjugateVirtualNetworkLayer.getVertices()) {
         var originalEdge = conjugateConnectoidNode.getOriginalEdge();
-        edgeToConjugateNode.put(originalEdge, conjugateConnectoidNode);
+        if(originalEdge != null) {
+          edgeToConjugateNode.put(originalEdge, conjugateConnectoidNode);
+        }
       }
     }else{
       LOGGER.info("Conjugate virtual network is not available or empty, ignored in conjugate macroscopic network layer recreation");
@@ -92,7 +95,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
 
           ConjugateDirectedVertex conjugateVertexA = edgeToConjugateNode.get(edge);
           ConjugateDirectedVertex conjugateVertexB = edgeToConjugateNode.get(nextEdge);
-          if ((conjugateVertexA == null || conjugateVertexB == null) && conjugateVirtualNetwork != null) {
+          if ((conjugateVertexA == null || conjugateVertexB == null) && conjugateVirtualNetworkLayer != null) {
             LOGGER.warning("Unable to obtain conjugate vertex for original link, this shouldn't happen, skip");
             continue;
           }

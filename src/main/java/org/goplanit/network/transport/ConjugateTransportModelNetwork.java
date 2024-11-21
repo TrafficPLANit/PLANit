@@ -20,18 +20,11 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class ConjugateTransportModelNetwork extends UntypedTransportModelNetwork<ConjugateMacroscopicNetwork,ConjugateVirtualNetwork> {
+public class ConjugateTransportModelNetwork
+    extends UntypedTransportModelNetwork<ConjugateMacroscopicNetwork,ConjugateVirtualNetwork> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateTransportModelNetwork.class.getCanonicalName());
-
-  /**
-   * log info on transport model network assuming it has integrated virtual and physical network it reports
-   * on the connectoid edges and segments to do so.
-   */
-  private void logInfo() {
-    getVirtualNetwork().logInfo("");
-  }
 
   /**
    * Holds the reference regular transport model network in non-conjugate form
@@ -40,14 +33,21 @@ public class ConjugateTransportModelNetwork extends UntypedTransportModelNetwork
 
   /**
    * Create the conjugate physical network and its layers based on the reference network
+   * <p>
+   *   When conjugate virtual network is provided, the conjugate virtual network is directly integrated/connected to
+   *   the conjugate physical network based on the connections present in the original physical and virtual networks
+   * </p>
    *
    * @param token to use for id generation
-   * @param macroscopicNetwork reference network
+   * @param macroscopicNetwork reference network to based conjugate version on
+   * @param conjugateVirtualNetwork (optional) when present, integrate conjugate physical network with virtual network
    * @return created conjugate network
    */
   private ConjugateMacroscopicNetwork createConjugatePhysicalNetwork(
-          IdGroupingToken token, MacroscopicNetwork macroscopicNetwork) {
-    return macroscopicNetwork.createConjugate(token);
+          IdGroupingToken token,
+          MacroscopicNetwork macroscopicNetwork,
+          ConjugateVirtualNetwork conjugateVirtualNetwork) {
+    return macroscopicNetwork.createConjugate(token, conjugateVirtualNetwork);
   }
 
   /**
@@ -71,13 +71,16 @@ public class ConjugateTransportModelNetwork extends UntypedTransportModelNetwork
   protected ConjugateTransportModelNetwork(final IdGroupingToken idToken,
       TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> referenceTransportModelNetwork) {
     super();
+    this.movements = new MovementsImpl(idToken);
     this.referenceTransportModelNetwork = referenceTransportModelNetwork;
 
     // create baseline conjugate versions without integrating them yet.
     this.virtualNetwork = createConjugateBaseVirtualNetwork(idToken);
+    // provide base conjugate virtual network so integration is automatic while constructing the physical
+    // conjugate network
     this.infrastructureNetwork =
-            createConjugatePhysicalNetwork(idToken, referenceTransportModelNetwork.getInfrastructureNetwork());
-    movements = new MovementsImpl(idToken);
+            createConjugatePhysicalNetwork(
+                idToken, referenceTransportModelNetwork.getInfrastructureNetwork(), virtualNetwork);
   }
 
   /**
@@ -89,9 +92,11 @@ public class ConjugateTransportModelNetwork extends UntypedTransportModelNetwork
    */
   @Override
   public ConjugateTransportModelNetwork integrateTransportNetworkViaConnectoids(boolean resetAndRecreateManagedIds){
-    // integrate as we would normally
-    // todo check if this works
-    logInfo();
+    // todo: would be better to provide general code for integrating the two making the code in the conjugate
+    //  physical network more general so it can be reused here. For now we accept we simply do not support this yet
+    LOGGER.warning("method integrateTransportNetworkViaConnectoids is not supported yet, instead it is expected that " +
+        "integration occurred upon creation by supplying the conjugate virtual network to the conjugate physical " +
+        "network when creating the physical conjugate network, ignore call");
     return this;
   }
 

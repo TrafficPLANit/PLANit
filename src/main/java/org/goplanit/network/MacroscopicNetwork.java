@@ -12,6 +12,7 @@ import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layers.MacroscopicNetworkLayers;
+import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
 
 /**
  * Macroscopic Network which stores one or more macroscopic network infrastructure layers that together form the complete (intermodal) network.
@@ -122,13 +123,15 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    * construct a conjugate macroscopic network based on this network
    *
    * @param token groupIdToken to use
+   * @param conjugateVirtualNetwork (optional) when present, integrate conjugate physical network with virtual network
    * @return created conjugate Macroscopic network
    */
-  public ConjugateMacroscopicNetwork createConjugate(IdGroupingToken token) {
+  public ConjugateMacroscopicNetwork createConjugate(
+      IdGroupingToken token, ConjugateVirtualNetwork conjugateVirtualNetwork) {
     // create instance
     var conjugateNetwork = new ConjugateMacroscopicNetwork(token, this);
     // create the actual conjugate network
-    conjugateNetwork.recreateFromReferenceNetwork();
+    conjugateNetwork.recreateFromReferenceNetwork(conjugateVirtualNetwork);
     return conjugateNetwork;
   }
 }

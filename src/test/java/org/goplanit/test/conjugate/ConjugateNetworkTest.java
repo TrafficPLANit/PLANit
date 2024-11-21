@@ -143,6 +143,7 @@ public class ConjugateNetworkTest {
       // combine in overall network
       transportModelNetwork = new TransportModelNetworkImpl(network, zoning);
       transportModelNetwork.integrateTransportNetworkViaConnectoids(false);
+      transportModelNetwork.logInfo("");
 
     }catch(Exception e) {
       e.printStackTrace();
@@ -157,12 +158,17 @@ public class ConjugateNetworkTest {
   @Test
   public void conjugateNetworkTest() {
     try {
-      var conjugateTestToken = TransportModelNetworkUtils.generateDerivedConjugateIdGoupingToken(transportModelNetwork);
+      var conjugateTestToken =
+          TransportModelNetworkUtils.generateDerivedConjugateIdGoupingToken(transportModelNetwork);
 
       // create conjugate version of the network + virtual network
-      var conjugateTransportModelNetwork = transportModelNetwork.createConjugate(conjugateTestToken);
-      var conjugatePhysicalLayer = conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst();
-      var conjugateVirtualNetwork = conjugateTransportModelNetwork.getVirtualNetwork();
+      var conjugateTransportModelNetwork =
+          transportModelNetwork.createConjugate(conjugateTestToken);
+      conjugateTransportModelNetwork.logInfo("");
+      var conjugatePhysicalLayer =
+          conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst();
+      var conjugateVirtualNetwork =
+          conjugateTransportModelNetwork.getVirtualNetwork();
 
       assertEquals(networkLayer.getLinks().size(), conjugatePhysicalLayer.getNodes().size());
 
@@ -179,8 +185,9 @@ public class ConjugateNetworkTest {
       assertEquals(totalEdgePairs * 2, conjugatePhysicalLayer.getLinkSegments().size());
 
       /*
-       * virtual conjugate network check (where we add a partial dummy turn around each centroid to enter/exit the virtual network. Therefore, we have a single conjugate edge + 2
-       * conjugate segments for each original connectoid edge
+       * virtual conjugate network check (where we add a partial dummy turn around each centroid to enter/exit the
+       * virtual network. Therefore, we have a single conjugate edge + 2 conjugate segments for each original
+       * connectoid edge
        */
       assertEquals(zoning.getVirtualNetwork().getLayer().getConnectoidLinks().size(),
               conjugateVirtualNetwork.getLayer().getConnectoidLinks().size());

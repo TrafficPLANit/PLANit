@@ -95,12 +95,12 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
   @Override
   public void logInfo(String prefix){
     LOGGER.info(String.format(
-            "%s XML id %s (external id: %s) has %d layers",
-            prefix, getXmlId(), getExternalId(), getTransportLayers().size()));
+            "%s Layered network (%s) has %d layers",
+            prefix, getIdsAsString(), getTransportLayers().size()));
 
     /* for each layer log information regarding contents */
     for(NetworkLayer networkLayer : getTransportLayers()) {
-      networkLayer.logInfo(LoggingUtils.networkLayerPrefix(networkLayer.getId()));
+      networkLayer.logInfo(prefix + LoggingUtils.networkLayerPrefix(networkLayer.getId()));
     }
   }
 

@@ -28,17 +28,6 @@ public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetw
   private static final Logger LOGGER = Logger.getLogger(UntypedTransportModelNetwork.class.getCanonicalName());
 
   /**
-   * log info on transport model network assuming it has integrated virtual and physical network it reports
-   * on the connectoid edges and segments to do so.
-   */
-  private void logInfo() {
-    getVirtualNetwork().logInfo("");
-    if(!movements.isEmpty()){
-      LOGGER.info(String.format("#Movements: %d", getMovements().size()));
-    }
-  }
-
-  /**
    * Holds the infrastructure road network that is being modelled
    */
   protected G infrastructureNetwork;
@@ -102,6 +91,22 @@ public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetw
     this.zoning = zoning;
     this.virtualNetwork = virtualNetwork;
     this.movements = new MovementsImpl(infrastructureNetwork.getIdGroupingToken());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void logInfo(String prefix) {
+    if(getVirtualNetwork()!=null){
+      getVirtualNetwork().logInfo(prefix);
+    }
+    if(getInfrastructureNetwork()!=null){
+      getInfrastructureNetwork().logInfo(prefix);
+    }
+    if(movements!=null && !movements.isEmpty()){
+      LOGGER.info(String.format("%s#Movements: %d", prefix, getMovements().size()));
+    }
   }
 
   /**

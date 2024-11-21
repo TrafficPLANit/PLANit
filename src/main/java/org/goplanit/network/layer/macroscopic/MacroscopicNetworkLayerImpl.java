@@ -14,6 +14,7 @@ import org.goplanit.utils.network.layer.macroscopic.*;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
 import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
+import org.goplanit.utils.network.virtual.ConjugateVirtualNetworkLayer;
 
 /**
  * Macroscopic physical Network (layer) that supports one or more modes and link segment types, where the modes are registered on the network (Infrastructure network) level
@@ -194,11 +195,11 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    */
   @Override
   public ConjugateMacroscopicNetworkLayer createConjugate(
-          final IdGroupingToken idToken, final ConjugateVirtualNetwork conjugateVirtualNetwork) {
+          final IdGroupingToken idToken, final ConjugateVirtualNetworkLayer conjugateVirtualNetworkLayer) {
     /* empty instance */
     var conjugateLayer = new ConjugateMacroscopicNetworkLayerImpl(idToken, this);
     /* update based on state of parent network */
-    conjugateLayer.recreateFromReferenceLayer(conjugateVirtualNetwork);
+    conjugateLayer.recreateFromReferenceLayer(conjugateVirtualNetworkLayer);
     return conjugateLayer;
   }
 

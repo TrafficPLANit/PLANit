@@ -66,7 +66,7 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
   /**
    * Update the layer by syncing it to the current non-conjugate reference layer
    */
-  protected void update() {
+  protected void recreateFromReferenceLayer() {
     reset();
 
     Map<DirectedVertex, ConjugateConnectoidNode> dummyConjugateNodePerCentroidVertex = new HashMap<>();
@@ -77,27 +77,27 @@ public class ConjugateVirtualNetworkLayerImpl implements ConjugateVirtualNetwork
       return;
     }
 
-    /* connectoid edge -> conjugate connectoid node */
-    for (var connectoidEdge : getReferenceLayer().getConnectoidLinks()) {
+    /* connectoid edge -> conjugate connectoid node  + conjugate connectoid link(segments) from dummy to conjugate node*/
+    for (var referenceConnectoidEdge : getReferenceLayer().getConnectoidLinks()) {
 
-      var centroid = connectoidEdge.getCentroidVertex();
+      var centroid = referenceConnectoidEdge.getCentroidVertex();
       var conjugateDummyNode = dummyConjugateNodePerCentroidVertex.get(centroid);
       if (conjugateDummyNode == null) {
         conjugateDummyNode = getVertices().getFactory().registerNew(null);
         dummyConjugateNodePerCentroidVertex.put(centroid, conjugateDummyNode);
       }
-      var conjugateNode = getVertices().getFactory().registerNew(connectoidEdge);
+      var conjugateNode = getVertices().getFactory().registerNew(referenceConnectoidEdge);
 
       /* create "fake" conjugate connectoid edge (where one of the two conjugate connectoid nodes has no original
        * network equivalent but reflects a conjugate centroid) */
-      var conjugateEdge = this.getConnectoidLinks().getFactory().registerNew(
-              conjugateDummyNode, conjugateNode, true, connectoidEdge);
+      var conjugateLink = this.getConnectoidLinks().getFactory().registerNew(
+              conjugateDummyNode, conjugateNode, true, referenceConnectoidEdge);
 
       // create conjugate connectoid segments between the two nodes to create connectoid turn segments where either
       // the incoming or outgoing original edge segment is null this ensures we can have a generic path search
       // algorithm where we consistently use either incoming or outgoing original edge segment costs
-      getConnectoidSegments().getFactory().registerNew(conjugateEdge, true /* ab direction */, true);
-      getConnectoidSegments().getFactory().registerNew(conjugateEdge, false /* ba direction */, true);
+      getConnectoidSegments().getFactory().registerNew(conjugateLink, true /* ab direction */, true);
+      getConnectoidSegments().getFactory().registerNew(conjugateLink, false /* ba direction */, true);
     }
   }
 

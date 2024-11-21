@@ -42,16 +42,6 @@ public class TransportModelNetworkImpl
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(TransportModelNetworkImpl.class.getCanonicalName());
 
-  /**
-   * log info on transport model network assuming it has integrated virtual and physical network it reports
-   * on the connectoid edges and segments to do so.
-   */
-  private void logInfo() {
-    getVirtualNetwork().logInfo("");
-    if(!movements.isEmpty()){
-      LOGGER.info(String.format("#Movements: %d", getMovements().size()));
-    }
-  }
 
   // Public
 
@@ -218,7 +208,6 @@ public class TransportModelNetworkImpl
             connectoidLinkFactory, connectoidSegmentFactory, centroidVertex, accessZone, directedConnectoid, geoTools);
       }
     }
-    logInfo();
     return this;
   }
 
@@ -238,12 +227,13 @@ public class TransportModelNetworkImpl
     if(getVirtualNetwork() == null){
       LOGGER.warning("Virtual network must be available to be able to create conjugate but found null");
     }
+
+    // creating the conjugate transport model will trigger a complete creation/initialisation of this network
+    // at the moment the result is a complete integrated conjugate version of the original.
     @SuppressWarnings("unchecked")
     var conjugateTransportModelNetwork = new ConjugateTransportModelNetwork(idToken,
         (TransportModelNetwork<MacroscopicNetwork,VirtualNetwork>)(TransportModelNetwork<?,?>) this);
 
-    // since conjugate network is always created new no need to recreate ids
-    conjugateTransportModelNetwork.integrateTransportNetworkViaConnectoids(false);
     return conjugateTransportModelNetwork;
   }
 

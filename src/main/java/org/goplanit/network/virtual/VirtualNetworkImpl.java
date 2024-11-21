@@ -4,6 +4,7 @@ import org.goplanit.network.Network;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
@@ -67,6 +68,17 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
             getLayer().shallowClone();
   }
 
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void logInfo(String prefix){
+    LOGGER.info(String.format(
+        "%s Virtual network (%s) has %d layer", prefix, getIdsAsString(), 1));
+    getLayer().logInfo(prefix + LoggingUtils.virtualNetworkLayerPrefix(getLayer().getId()));
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -97,11 +109,6 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
   @Override
   public boolean isEmpty() {
     return getLayer().isEmpty();
-  }
-
-  @Override
-  public void logInfo(String prefix) {
-    VirtualNetwork.super.logInfo(prefix);
   }
 
   /**

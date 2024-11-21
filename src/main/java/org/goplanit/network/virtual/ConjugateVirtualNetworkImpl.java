@@ -2,9 +2,11 @@ package org.goplanit.network.virtual;
 
 import java.util.logging.Logger;
 
+import org.goplanit.network.Network;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
@@ -18,7 +20,7 @@ import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoid
  * @author markr
  *
  */
-public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
+public class ConjugateVirtualNetworkImpl extends Network implements ConjugateVirtualNetwork {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateVirtualNetworkImpl.class.getCanonicalName());
@@ -33,7 +35,7 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
    * this is the conjugate of
    */
   protected void update() {
-    getLayer().update();
+    getLayer().recreateFromReferenceLayer();
   }
 
   /**
@@ -43,6 +45,7 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
    * @param originalVirtualNetwork to use
    */
   public ConjugateVirtualNetworkImpl(IdGroupingToken idToken, final VirtualNetworkImpl originalVirtualNetwork) {
+    super(idToken);
     this.conjugateVirtualLayer = new ConjugateVirtualNetworkLayerImpl(idToken, originalVirtualNetwork.getLayer());
     this.originalVirtualNetwork = originalVirtualNetwork;
   }
@@ -63,6 +66,7 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
           GraphEntityDeepCopyMapper<? extends ConjugateConnectoidLink> connectoidEdgeMapper,
           GraphEntityDeepCopyMapper<? extends ConjugateConnectoidSegment> connectoidSegmentMapper,
           GraphEntityDeepCopyMapper<? extends ConjugateConnectoidNode> conjugateNodeMapper) {
+    super(other, deepCopy);
     this.conjugateVirtualLayer = deepCopy ?
             getLayer().deepCloneWithMapping(
                     (GraphEntityDeepCopyMapper<ConjugateConnectoidLink>) connectoidEdgeMapper,
@@ -77,31 +81,63 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
    * {@inheritDoc}
    */
   @Override
+  public void logInfo(String prefix){
+    LOGGER.info(String.format(
+        "%s Conjugate virtual network (%s) has %d layer", prefix, getIdsAsString(), 1));
+    getLayer().logInfo(prefix + LoggingUtils.virtualNetworkLayerPrefix(getLayer().getId()));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public VirtualNetwork getOriginalVirtualNetwork() {
     return originalVirtualNetwork;
   }
 
-
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ConjugateVirtualNetworkLayerImpl getLayer() {
     return conjugateVirtualLayer;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void clear() {
     conjugateVirtualLayer.clear();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void reset() {
     conjugateVirtualLayer.reset();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isEmpty() {
+    return getLayer().isEmpty();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ConjugateVirtualNetworkImpl shallowClone() {
     return new ConjugateVirtualNetworkImpl(this, false, null, null, null );
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ConjugateVirtualNetworkImpl deepClone() {
     return deepCloneWithMapping(
@@ -110,6 +146,10 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
             new GraphEntityDeepCopyMapper<>());
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @SuppressWarnings("unchecked")
   @Override
   public ConjugateVirtualNetworkImpl deepCloneWithMapping(
       GraphEntityDeepCopyMapper<? extends ConnectoidDirectedEdge> connectoidEdgeMapper,

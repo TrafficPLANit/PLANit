@@ -1,6 +1,5 @@
 package org.goplanit.path.choice;
 
-import java.awt.*;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,7 +10,6 @@ import org.goplanit.choice.ChoiceModel;
 import org.goplanit.path.filter.PathFilter;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
-import org.goplanit.utils.od.OdData;
 import org.goplanit.utils.path.SimpleDirectedPath;
 import org.goplanit.utils.reflection.ReflectionUtils;
 
@@ -189,8 +187,8 @@ public class StochasticPathChoice extends PathChoice {
     var choiceModelSettingsMap = choiceModel.collectSettingsAsKeyValueMap();
     if (choiceModelSettingsMap != null) {
       String componentPrefix = LoggingUtils.runIdPrefix(getId()) +
-              LoggingUtils.surroundwithBrackets(this.getClass().getSimpleName()) +
-                      LoggingUtils.surroundwithBrackets(choiceModel.getClass().getSimpleName());
+              LoggingUtils.surroundWithBrackets(this.getClass().getSimpleName()) +
+                      LoggingUtils.surroundWithBrackets(choiceModel.getClass().getSimpleName());
       choiceModelSettingsMap.forEach((k, v) -> LOGGER.info(componentPrefix + k + " " + v));
     }
 

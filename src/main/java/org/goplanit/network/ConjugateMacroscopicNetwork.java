@@ -7,6 +7,8 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layers.ConjugateMacroscopicNetworkLayers;
 import org.goplanit.utils.network.layers.MacroscopicNetworkLayers;
+import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
+import org.goplanit.utils.network.virtual.ConjugateVirtualNetworkLayer;
 
 import java.util.logging.Logger;
 
@@ -27,9 +29,12 @@ public class ConjugateMacroscopicNetwork extends
   /**
    * Tries to initialise and create/register conjugate layers via reference layers
    *
-   * @param referenceLayers to use
+   * @param referenceLayers         to use
+   @param conjugateVirtualNetwork (optional) when present, integrate conjugate physical network with virtual network
    */
-  private void createAndRegisterConjugateLayers(MacroscopicNetworkLayers referenceLayers) {
+  private void createAndRegisterConjugateLayers(
+      MacroscopicNetworkLayers referenceLayers, ConjugateVirtualNetwork conjugateVirtualNetwork) {
+
     if (!getTransportLayers().isEmpty()) {
       LOGGER.warning("unable to initialise conjugate layers based on reference layers, since conjugate network " +
               "already has layers defined");
@@ -40,9 +45,12 @@ public class ConjugateMacroscopicNetwork extends
       return;
     }
 
+    ConjugateVirtualNetworkLayer conjugateVirtualLayer =
+        conjugateVirtualNetwork!=null ? conjugateVirtualNetwork.getLayer() : null;
     // create conjugate version and register on conjugate container
     for(var referenceLayer : referenceLayers){
-      var conjugateLayer = referenceLayer.createConjugate(getNetworkGroupingTokenId(), null);
+      var conjugateLayer =
+          referenceLayer.createConjugate(getNetworkGroupingTokenId(), conjugateVirtualLayer);
       getTransportLayers().register(conjugateLayer);
     }
 
@@ -63,11 +71,13 @@ public class ConjugateMacroscopicNetwork extends
 
   /**
    * Update/recreate the conjugate network based on current state of the reference network.
+   *
+   * @param conjugateVirtualNetwork (optional) when present, integrate conjugate physical network with virtual network
    */
-  protected void recreateFromReferenceNetwork() {
+  protected void recreateFromReferenceNetwork(ConjugateVirtualNetwork conjugateVirtualNetwork) {
     var conjugateLayers = getTransportLayers();
     conjugateLayers.reset();
-    createAndRegisterConjugateLayers(referenceNetwork.getTransportLayers());
+    createAndRegisterConjugateLayers(referenceNetwork.getTransportLayers(), conjugateVirtualNetwork);
   }
 
   // Public

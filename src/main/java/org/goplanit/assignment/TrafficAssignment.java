@@ -14,7 +14,6 @@ import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
-import org.goplanit.network.transport.ConjugateTransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkImpl;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
@@ -100,7 +99,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   private void logComponentSettings(PlanitComponent<?> component) {
     var settingsMap = component.collectSettingsAsKeyValueMap();
     if (settingsMap != null) {
-      String componentPrefix = LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surroundwithBrackets(component.getClass().getSimpleName());
+      String componentPrefix = LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surroundWithBrackets(component.getClass().getSimpleName());
       settingsMap.forEach((k, v) -> LOGGER.info(componentPrefix + k + ": " + v));
     }
   }
@@ -186,10 +185,15 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   protected void createTransportNetwork(boolean resetAndRecreateManagedIds, boolean conjugate) {
     var theTransportNetwork = new TransportModelNetworkImpl(physicalNetwork, zoning);
     theTransportNetwork.integrateTransportNetworkViaConnectoids(resetAndRecreateManagedIds);
+    if(conjugate){
+      theTransportNetwork.logInfo("");
+      LOGGER.info("Creating conjugate version of original transport model network to support assignment");
+    }
     transportNetwork = conjugate ?
             theTransportNetwork.createConjugate(
                     TransportModelNetworkUtils.generateDerivedConjugateIdGoupingToken(theTransportNetwork)) :
             theTransportNetwork;
+    transportNetwork.logInfo("");
   }
 
   /**

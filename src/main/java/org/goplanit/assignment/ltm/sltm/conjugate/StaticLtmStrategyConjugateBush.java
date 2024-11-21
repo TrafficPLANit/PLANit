@@ -66,7 +66,7 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
     /* generate conjugate virtual network - generate ids separate from other vertices/edges/segments by providing new token */
     this.conjugateVirtualNetwork = transportModelNetwork.getZoning().getVirtualNetwork().createConjugate(token);
     this.conjugateNetworkLayer = getInfrastructureNetwork().getLayerByMode(
-            getInfrastructureNetwork().getModes().getFirst()).createConjugate(token, conjugateVirtualNetwork);
+            getInfrastructureNetwork().getModes().getFirst()).createConjugate(token, conjugateVirtualNetwork.getLayer());
   }
 
   /**

@@ -108,6 +108,13 @@ public interface TransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V
   }
 
   /**
+   * log info on transport model network
+   *
+   * @param prefix to use for logging
+   */
+  public abstract void logInfo(String prefix);
+
+  /**
    * Collect the physical network component of the transport network
    * 
    * @return physicalNetwork

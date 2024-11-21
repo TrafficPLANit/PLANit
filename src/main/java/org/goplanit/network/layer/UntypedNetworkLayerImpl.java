@@ -26,7 +26,8 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
  *
  * @author markr
  */
-public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extends DirectedEdge, S extends EdgeSegment> extends TopologicalLayerImpl
+public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extends DirectedEdge, S extends EdgeSegment>
+    extends TopologicalLayerImpl
     implements UntypedDirectedGraphLayer<V, E, S> {
 
   /** the logger */

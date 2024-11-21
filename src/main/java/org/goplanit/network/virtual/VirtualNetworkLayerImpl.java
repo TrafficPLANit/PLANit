@@ -223,7 +223,7 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
   @Override
   public ConjugateVirtualNetworkLayerImpl createConjugate(IdGroupingToken idToken) {
     var conjugateLayer = new ConjugateVirtualNetworkLayerImpl(idToken, this);
-    conjugateLayer.update();
+    conjugateLayer.recreateFromReferenceLayer();
     return conjugateLayer;
   }
 
