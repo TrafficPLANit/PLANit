@@ -402,11 +402,12 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * Determine the sending flow on the subpath given by the  subPathArray in order from start to finish.
    *
    * @param subPathArray to use
+   * @param nonConjugateFlowAcceptanceFactors to use
    * @return sendingFlowPcuH between start and end vertex following the sub-path
    *
    * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    */
-  public double determineSubPathSendingFlow(ConjugateEdgeSegment[] subPathArray, double[] flowAcceptanceFactors) {
+  public double determineSubPathSendingFlow(ConjugateEdgeSegment[] subPathArray, double[] nonConjugateFlowAcceptanceFactors) {
     // TODO: not rewritten yet
     return Double.NEGATIVE_INFINITY;
   }
@@ -418,12 +419,13 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    *
    * @param entrySegment to start subpath from
    * @param subPathArray to append to entry segment to extract path from
+   * @param nonConjugateFlowAcceptanceFactors to use
    * @return sendingFlowPcuH between start and end vertex following the sub-path
    *
    * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    */
   public double determineSubPathSendingFlow(
-          ConjugateEdgeSegment entrySegment, ConjugateEdgeSegment[] subPathArray, double[] flowAcceptanceFactors) {
+          ConjugateEdgeSegment entrySegment, ConjugateEdgeSegment[] subPathArray, double[] nonConjugateFlowAcceptanceFactors) {
     // TODO: not rewritten yet <---- SHOULD NOT BE NEEDED NOW THAT WE ARE IN CONJUGATE FORM
     return Double.NEGATIVE_INFINITY;
   }

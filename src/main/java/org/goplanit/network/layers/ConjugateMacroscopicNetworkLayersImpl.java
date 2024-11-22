@@ -31,6 +31,7 @@ public class ConjugateMacroscopicNetworkLayersImpl extends UntypedPhysicalNetwor
    * Constructor
    *
    * @param idToken for id generation
+   * @param referenceLayers reflecting original layers upon which the conjugate ones will be based
    */
   public ConjugateMacroscopicNetworkLayersImpl(IdGroupingToken idToken, MacroscopicNetworkLayers referenceLayers) {
     super(idToken);

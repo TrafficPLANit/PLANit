@@ -67,6 +67,7 @@ public class LabelledBushTurnData {
    * @param fromSegment      of turn
    * @param toSegment        of turn
    * @param turnSendingFlow  to update
+   * @param force if not forced perform additional checks to see if valid before applying
    * @return true when turn has any labelled turn sending flow left after setting flow, false when labelled turn sending flow no longer exists
    */
   public boolean setTurnSendingFlow(

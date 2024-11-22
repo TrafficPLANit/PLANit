@@ -34,7 +34,8 @@ public class ConjugateNodeImpl extends NodeImpl<ConjugateLinkSegment> implements
 
   /**
    * Conjugate Node constructor.
-   * 
+   *
+   * @param idToken to use
    * @param original original this conjugate represents
    */
   protected ConjugateNodeImpl(IdGroupingToken idToken, final Link original) {

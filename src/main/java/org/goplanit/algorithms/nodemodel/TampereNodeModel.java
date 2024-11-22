@@ -19,7 +19,6 @@ import org.ojalgo.function.aggregator.Aggregator;
  * <p>
  * Each run of this node model requires two inputs, the mapping of the network to the local node and the
  *</p>
- * <p>
  * Paper References:
  * <ul>
  * <li>Tampère, C. M. J., Corthout, R., Cattrysse, D., &amp; Immers, L. H. (2011). A generic class of first order node models for dynamic macroscopic simulation of traffic flows.
@@ -27,7 +26,7 @@ import org.ojalgo.function.aggregator.Aggregator;
  * <li>Bliemer, M. C. J., Raadsen, M. P. H., Smits, E.-S., Zhou, B., &amp; Bell, M. G. H. (2014). Quasi-dynamic traffic assignment with residual point queues incorporating a first
  * order node model. Transportation Research Part B: Methodological, 68, 363–384. <a href="https://doi.org/10.1016/j.trb.2014.07.001">doi.org/10.1016/j.trb.2014.07.001</a></li>
  * </ul>
- *</p>
+ *
  * @author markr
  */
 public class TampereNodeModel implements NodeModel {

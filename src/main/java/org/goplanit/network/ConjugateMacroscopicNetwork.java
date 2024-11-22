@@ -85,6 +85,7 @@ public class ConjugateMacroscopicNetwork extends
   /**
    * Constructor
    *
+   * @param referenceNetwork original network the conjugate version will be based on
    * @param tokenId contiguous id generation within this group for instances of this class
    */
   protected ConjugateMacroscopicNetwork(final IdGroupingToken tokenId, MacroscopicNetwork referenceNetwork) {

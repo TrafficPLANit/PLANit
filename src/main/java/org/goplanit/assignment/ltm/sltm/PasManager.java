@@ -645,6 +645,7 @@ public class PasManager {
    *
    * @param bush to check
    * @param pasPredicate to apply
+   * @param removeUnusedPass flag to use
    * @return number of pass from which the bush has been removed
    */
   public int removeBushFromPasIf(

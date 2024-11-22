@@ -89,8 +89,10 @@ public class TransportModelNetworkUtils {
    * embedding information about the original in the description
    *
    * @param transportModelNetwork to use as reference
+   * @return created token
    */
-  public static IdGroupingToken generateDerivedConjugateIdGoupingToken(TransportModelNetwork<?,?> transportModelNetwork) {
+  public static IdGroupingToken generateDerivedConjugateIdGoupingToken(
+          TransportModelNetwork<?,?> transportModelNetwork) {
     return IdGenerator.createIdGroupingToken(
             "Conjugate for original network " + transportModelNetwork.getInfrastructureNetwork().getId());
   }

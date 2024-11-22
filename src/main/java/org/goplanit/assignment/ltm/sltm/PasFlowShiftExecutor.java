@@ -174,6 +174,7 @@ public abstract class PasFlowShiftExecutor {
   /**
    * Convenience method to check if we need to perform added logging for destination
    *
+   * @param bush to use for checking
    * @return true when destination is tracked for logging
    */
   protected boolean isDestinationTrackedForLogging(RootedLabelledBush bush) {

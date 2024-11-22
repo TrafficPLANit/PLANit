@@ -653,6 +653,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * higher usage branches.
    *
    * @param flowThreshold any links with flow below this threshold will be implictly branch shifted
+   * @param flowAcceptanceFactors to use
    */
   protected void performLowFlowBushBranchShifts(double flowThreshold, double[] flowAcceptanceFactors) {
     int numShifts = 0;

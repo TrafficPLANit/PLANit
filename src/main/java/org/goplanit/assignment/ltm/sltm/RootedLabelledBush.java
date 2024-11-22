@@ -147,7 +147,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
 
   /**
    * Verify if adding the sub-path edge segments would introduce a cycle in this bush
-   * TODO: very costly operation as it may traverses entire bush --> find a way to bake in some more information
+   * TODO: very costly operation as it may traverses entire bush so... find a way to bake in some more information
    *  in the topological sorting to track more information to make this much quicker, e.g., track the ordering indices
    *  and allow for direct lookup of index of vertices so we can start directly at the alternative....
    * 
@@ -555,6 +555,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * Determine the sending flow on the subpath given by the  subPathArray in order from start to finish.
    *
    * @param subPathArray to use
+   * @param flowAcceptanceFactors to use
    * @return sendingFlowPcuH between start and end vertex following the sub-path
    */
   public double determineSubPathSendingFlow(EdgeSegment[] subPathArray, double[] flowAcceptanceFactors) {
@@ -583,6 +584,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    *
    * @param entrySegment to start subpath from
    * @param subPathArray to append to entry segment to extract path from
+   * @param flowAcceptanceFactors to use
    * @return sendingFlowPcuH between start and end vertex following the sub-path
    */
   public double determineSubPathSendingFlow(
