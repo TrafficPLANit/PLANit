@@ -139,7 +139,7 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData>
         double bushEntryAcceptedFlow = bushLinkSendingFlow * alpha;
 
         /* s_a = SUM(u^o_a) (only when enabled) */
-        if (dataConfig.isSendingflowsUpdate()) {
+        if (dataConfig.isSendingFlowsUpdate()) {
           dataConfig.sendingFlows[entrySegmentId] += bushLinkSendingFlow;
         }
 

@@ -180,7 +180,8 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
    */
   @Override
   protected StaticLtmLoadingBushConjugate createNetworkLoading(MultiKeyMap<Object, Movement> segmentPair2MovementMap) {
-    return new StaticLtmLoadingBushConjugate(getIdGroupingToken(), getAssignmentId(), segmentPair2MovementMap, getSettings());
+    throw new PlanItRunTimeException("segmentPair2MovementMap embedded in loading, but should be abstracted out I think - TODO");
+    //return new StaticLtmLoadingBushConjugate(getIdGroupingToken(), getAssignmentId(), getSettings());
   }
 
   /**

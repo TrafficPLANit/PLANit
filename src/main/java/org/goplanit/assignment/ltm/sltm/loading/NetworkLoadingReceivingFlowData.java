@@ -9,7 +9,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
  * @author markr
  *
  */
-public class ReceivingFlowData extends LinkSegmentData {
+public class NetworkLoadingReceivingFlowData extends LinkSegmentData {
 
   /**
    * Receiving flows for all link segments by internal id (current and next)
@@ -21,7 +21,7 @@ public class ReceivingFlowData extends LinkSegmentData {
    * 
    * @param emptySegmentArray empty array used to initialize data stores
    */
-  public ReceivingFlowData(double[] emptySegmentArray) {
+  public NetworkLoadingReceivingFlowData(double[] emptySegmentArray) {
     super(emptySegmentArray);
     receivingFlowsPcuH = new double[2][emptySegmentArray.length];
     resetCurrentReceivingFlows();

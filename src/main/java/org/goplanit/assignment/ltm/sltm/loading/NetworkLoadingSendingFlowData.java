@@ -9,7 +9,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
  * @author markr
  *
  */
-public class SendingFlowData extends LinkSegmentData {
+public class NetworkLoadingSendingFlowData extends LinkSegmentData {
 
   /**
    * Sending flows for all link segments by internal id (current and next)
@@ -21,7 +21,7 @@ public class SendingFlowData extends LinkSegmentData {
    * 
    * @param emptySegmentArray empty array used to initialize data stores
    */
-  public SendingFlowData(double[] emptySegmentArray) {
+  public NetworkLoadingSendingFlowData(double[] emptySegmentArray) {
     super(emptySegmentArray);
     sendingFlowsPcuH = new double[2][emptySegmentArray.length];
     reset();

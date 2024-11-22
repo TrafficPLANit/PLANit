@@ -1,6 +1,5 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
-import java.util.BitSet;
 import java.util.TreeSet;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -19,14 +18,14 @@ import org.ojalgo.array.Array1D;
  * @author markr
  *
  */
-public interface SplittingRateData {
+public interface NetworkLoadingSplittingRateData {
 
   /**
    * Initialise the prevIteration splitting rate data on this instance based on the data from the previous iteration
    *
    * @param prevIterationSplittingRateData to use
    */
-  public abstract void initialisePrevIterationData(SplittingRateData prevIterationSplittingRateData);
+  public abstract void initialisePrevIterationData(NetworkLoadingSplittingRateData prevIterationSplittingRateData);
 
   /**
    * Verify if node is registered as being tracked with splitting rates

@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.loading.SplittingRateData;
+import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSplittingRateData;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
@@ -286,7 +286,7 @@ public abstract class StaticLtmAssignmentStrategy {
 
     final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
-    SplittingRateData splittingRateData = getLoading().getSplittingRateData();
+    NetworkLoadingSplittingRateData splittingRateData = getLoading().getSplittingRateData();
     if (updateOnlyPotentiallyBlockingNodeCosts) {
 
       MacroscopicNetworkLayer networkLayer = getInfrastructureNetwork().getLayerByMode(theMode);
@@ -352,7 +352,7 @@ public abstract class StaticLtmAssignmentStrategy {
     final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
     final double[] acceptanceFactors = this.networkLoading.getCurrentFlowAcceptanceFactors();
-    final SplittingRateData splittingRateData = getLoading().getSplittingRateData();
+    final NetworkLoadingSplittingRateData splittingRateData = getLoading().getSplittingRateData();
 
     MacroscopicNetworkLayer networkLayer = getInfrastructureNetwork().getLayerByMode(theMode);
     final var physicalLayerSegments = networkLayer.getLinkSegments();

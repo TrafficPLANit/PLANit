@@ -57,10 +57,10 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     }
     
     if (updateSendingFlows) {
-      sendingFlowData.reset();
+      nlSendingFlowData.reset();
     }
     if (updateOutflows) {
-      this.inFlowOutflowData.resetOutflows();
+      this.nlInFlowOutflowData.resetOutflows();
     }
     if(updateUnconstrainedFlows){
       this.unconstrainedFlowData.reset();
@@ -75,13 +75,13 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
       if (updateOutflows) {
         /* sending + outflow update only (potentially unconstrained flows as well) */
         dataConfig = updateUnconstrainedFlows ?
-                new NetworkFlowUpdateData(sendingFlowData, inFlowOutflowData, networkLoadingFactorData, unconstrainedFlowData):
-                new NetworkFlowUpdateData(sendingFlowData, inFlowOutflowData, networkLoadingFactorData);
+                new NetworkFlowUpdateData(nlSendingFlowData, nlInFlowOutflowData, networkLoadingFactorData, unconstrainedFlowData):
+                new NetworkFlowUpdateData(nlSendingFlowData, nlInFlowOutflowData, networkLoadingFactorData);
       } else {
         /* sending flow update only (potentially unconstrained flows as well) */
         dataConfig =  updateUnconstrainedFlows ?
-                new NetworkFlowUpdateData(sendingFlowData, networkLoadingFactorData, unconstrainedFlowData):
-                new NetworkFlowUpdateData(sendingFlowData, networkLoadingFactorData);
+                new NetworkFlowUpdateData(nlSendingFlowData, networkLoadingFactorData, unconstrainedFlowData):
+                new NetworkFlowUpdateData(nlSendingFlowData, networkLoadingFactorData);
       }
 
       return new PathLinkFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode));
@@ -104,10 +104,10 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
           return null;
         } else {        
           dataConfig = new NetworkTurnFlowUpdateData(
-                  isTrackAllNodeTurnFlowsDuringLoading(), sendingFlowData, splittingRateData, networkLoadingFactorData, numMovements);
+                  isTrackAllNodeTurnFlowsDuringLoading(), nlSendingFlowData, nlSplittingRateData, networkLoadingFactorData, numMovements);
         }
       }else {
-        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlowsDuringLoading(), splittingRateData, networkLoadingFactorData, numMovements);
+        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlowsDuringLoading(), nlSplittingRateData, networkLoadingFactorData, numMovements);
       }
       return new PathTurnFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode));
     }

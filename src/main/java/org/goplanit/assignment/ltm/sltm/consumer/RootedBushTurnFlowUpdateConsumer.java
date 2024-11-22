@@ -3,8 +3,6 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.network.layer.physical.Movement;
 
 /**
@@ -56,7 +54,7 @@ public class RootedBushTurnFlowUpdateConsumer extends RootedBushFlowUpdateConsum
   protected void applyAcceptedTurnFlowUpdate(
           final Movement movement,
           double turnAcceptedFlowPcuH) {
-    if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(movement.getCentreVertex())) {
+    if (dataConfig.trackAllNodeTurnFlows || dataConfig.nlSplittingRateData.isTracked(movement.getCentreVertex())) {
       dataConfig.addToAcceptedTurnFlows(movement, turnAcceptedFlowPcuH); // network level
     }
   }

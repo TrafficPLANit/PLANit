@@ -3,11 +3,11 @@ package org.goplanit.assignment.ltm.sltm.loading;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.Bush;
-import org.goplanit.assignment.ltm.sltm.Pas;
-import org.goplanit.assignment.ltm.sltm.PasManager;
-import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.*;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
+import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
+import org.goplanit.assignment.ltm.sltm.consumer.RootedBushTurnFlowUpdateConsumer;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
@@ -46,23 +46,126 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
   }
 
   /**
-   * TODO: Create factory class for this
-   * <p>
-   * Factory method to create the right flow update consumer to use when conducting a bush based flow update. We either create one that updates turn accepted flows (and possibly
-   * also sending flows), or one that only updates (network wide) link sending flows and/or link outflows. The latter is to be used for initialisation/finalisation purposes only.
-   * The former is the one used during the iterative loading procedure.
-   * 
-   * @param updateTurnAcceptedFlows flag indicating if the turn accepted flows are to be updated by this consumer
-   * @param updateSendingFlows      flag indicating if the link sending flow are to be updated by this consumer
-   * @param updateOutflows           flag indicating if the link outflows are to be updated by this consumer
+   * Factory method to create network link flow data container based on coniguration provided. to be used in
+   * conjunction with creating network loading bush consumers.
+   *
+   * @param updateLinkOutflows when true make sure data contains reference to the network loading outflows
+   * @param updateUnconstrainedLinkFlows when true make sure data contains reference to the network unconstrained flows
+   */
+  protected NetworkFlowUpdateData createNetworkLinkFlowData(
+          boolean updateLinkOutflows, boolean updateUnconstrainedLinkFlows) {
+
+      if (updateLinkOutflows) {
+        /* sending + outflow update only */
+        return updateUnconstrainedLinkFlows ?
+                new NetworkFlowUpdateData(
+                        nlSendingFlowData, nlInFlowOutflowData, networkLoadingFactorData, unconstrainedFlowData) :
+                new NetworkFlowUpdateData(nlSendingFlowData, nlInFlowOutflowData, networkLoadingFactorData);
+      } else {
+        /* sending flow update only */
+        return updateUnconstrainedLinkFlows ?
+                new NetworkFlowUpdateData(nlSendingFlowData, networkLoadingFactorData, unconstrainedFlowData) :
+                new NetworkFlowUpdateData(nlSendingFlowData, networkLoadingFactorData);
+      }
+    }
+
+  /**
+   * Factory method to create network turn flow data container based on foniguration provided. to be used in
+   * conjunction with creating network loading bush consumers.
+   *
+   * @param updateLinkSendingFlows when true make sure data contains reference to the network loading sending flows
+   * @param numTurnSegments        number of entries in turn segment related raw data arrays that are created as part of
+   *                               the container
+   */
+  protected NetworkTurnFlowUpdateData createNetworkTurnFlowData(
+          boolean updateLinkSendingFlows, int numTurnSegments) {
+    if (updateLinkSendingFlows) {
+      return new NetworkTurnFlowUpdateData(
+              isTrackAllNodeTurnFlowsDuringLoading(),
+              nlSendingFlowData,
+              nlSplittingRateData,
+              networkLoadingFactorData,
+              numTurnSegments);
+    }else {
+      return new NetworkTurnFlowUpdateData(
+              isTrackAllNodeTurnFlowsDuringLoading(),
+              nlSplittingRateData,
+              networkLoadingFactorData,
+              numTurnSegments);
+    }
+  }
+
+  /**
+   * Factory method to create the right link flow update consumer to use when conducting a bush based flow update.
+   * This link based version is to be used for initialisation/finalisation purposes only
+   *
+   * @param updateLinkOutflows           flag indicating if the link outflows are to be updated by this consumer
+   *                                     in addition to sending flows
+   * @param updateUnconstrainedLinkFlows flag indicating if the unconstrained link flows are to be tracked/updated
+   *                                     by this consumer in addition to sending flows
+   * @return created link (sending/outflow/unconsitrained) flow update consumer
+   */
+  protected abstract BushFlowUpdateConsumer<B> createBushLinkSendingFlowUpdateConsumer(
+          boolean updateLinkOutflows, boolean updateUnconstrainedLinkFlows);
+
+  /**
+   * Factory method to create the right flow update consumer to use when conducting a bush based flow update.
+   * This version is for updating turn accepted flows (and possibly also link sending flows)
+   *
+   * @param updateLinkSendingFlows flag indicating if the link sending flows are to be updated by this consumer
+   *                               as well
+   * @return created turn (and potentially link) flow update consumer
+   */
+  protected abstract BushFlowUpdateConsumer<B> createBushTurnFlowUpdateConsumer(boolean updateLinkSendingFlows);
+
+  /**
+   * Factory method to create the right flow update consumer to use when conducting a bush based flow update.
+   * We either create one that updates turn accepted flows (and possibly also sending flows), or one that
+   * only updates (network wide) link sending flows and/or link outflows. The latter is to be used for
+   * initialisation/finalisation purposes only. The former is the one used during the iterative loading procedure.
+   *
+   * @param updateTurnAcceptedFlows  flag indicating if the turn accepted flows are to be updated by this consumer
+   * @param updateSendingFlows       flag indicating if the link sending flow are to be updated by this consumer
+   * @param updateLinkOutflows       flag indicating if the link outflows are to be updated by this consumer
    * @param updateUnconstrainedFlows flag indicating if the unconstrained link flows are to be tracked/updated by this consumer
    * @return created flow update consumer
    */
-  protected abstract BushFlowUpdateConsumer<B> createBushFlowUpdateConsumer(
+  protected BushFlowUpdateConsumer<B> createBushFlowUpdateConsumer(
           boolean updateTurnAcceptedFlows,
           boolean updateSendingFlows,
-          boolean updateOutflows,
-          boolean updateUnconstrainedFlows);
+          boolean updateLinkOutflows,
+          boolean updateUnconstrainedFlows){
+
+    if (!updateSendingFlows && !updateTurnAcceptedFlows) {
+      LOGGER.warning("Network flow updates using bushes must either updating link sending flows or turn accepted " +
+              "flows, neither are selected");
+      return null;
+    }
+
+    // prep by resetting
+    if (updateSendingFlows) {
+      nlSendingFlowData.reset();
+    }
+    if (updateLinkOutflows) {
+      this.nlInFlowOutflowData.resetOutflows();
+    }
+    if(updateUnconstrainedFlows){
+      this.unconstrainedFlowData.reset();
+    }
+
+    if (!updateTurnAcceptedFlows) {
+      /* link based sending flows + potentially link outflows/unconstrained flows */
+      return createBushLinkSendingFlowUpdateConsumer(updateLinkOutflows, updateUnconstrainedFlows);
+    }else{
+      if (updateLinkOutflows) {
+        LOGGER.warning("Network outflow updates using bushes can only be combined with link sending flows updates, " +
+                "not turn accepted flows");
+        return null;
+      }
+      /* turn based sending flows + potentially link sending flows */
+      return createBushTurnFlowUpdateConsumer(updateSendingFlows);
+    }
+  }
 
   //@formatter:off
   /**
@@ -150,7 +253,11 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    *  to splitting rate data format
    * @param settings to use
    */
-  public StaticLtmLoadingBushBase(IdGroupingToken idToken, long assignmentId, MultiKeyMap<Object,Movement> segmentPair2MovementMap, final StaticLtmSettings settings) {
+  public StaticLtmLoadingBushBase(
+          IdGroupingToken idToken,
+          long assignmentId,
+          MultiKeyMap<Object,Movement> segmentPair2MovementMap,
+          final StaticLtmSettings settings) {
     super(idToken, assignmentId, segmentPair2MovementMap, settings);
   }
   
@@ -184,7 +291,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
     }
     /* only when not all turn flows are tracked, we must expand the tracked nodes, otherwise they are already available */
     if(!isTrackAllNodeTurnFlowsDuringLoading()) {
-      var pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.getSplittingRateData();
+      var pointQueueBasicSplittingRates = (NetworkLoadingSplittingRateDataPartial) this.getSplittingRateData();
       boolean lowCostSegment = true;
       newPas.forEachVertex(lowCostSegment, (v) -> {
         if(!pointQueueBasicSplittingRates.isTracked(v)) 

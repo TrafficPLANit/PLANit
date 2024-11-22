@@ -137,12 +137,12 @@ public abstract class StaticLtmNetworkLoading {
    * @param mode to use
    */
   private void initialiseSendingFlows(Mode mode, boolean updateUnconstrainedFlows) {
-    this.sendingFlowData.resetCurrentSendingFlows();
+    this.nlSendingFlowData.resetCurrentSendingFlows();
     if(updateUnconstrainedFlows){
       this.unconstrainedFlowData.reset();
     }
     networkLoadingLinkSegmentSendingFlowUpdate(mode, updateUnconstrainedFlows);
-    LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), this.sendingFlowData.getNextSendingFlows());
+    LinkSegmentData.copyTo(this.nlSendingFlowData.getCurrentSendingFlows(), this.nlSendingFlowData.getNextSendingFlows());
   }
 
   /**
@@ -157,14 +157,14 @@ public abstract class StaticLtmNetworkLoading {
     if (this.solutionScheme.isPointQueue()) {
 
       /* r_a = q_a */
-      double[] currReceivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
+      double[] currReceivingFlows = this.nlReceivingFlowData.getCurrentReceivingFlows();
       for (var linkSegment : networkLayer.getLinkSegments()) {
         currReceivingFlows[(int) linkSegment.getId()] = linkSegment.getCapacityOrDefaultPcuH();
       }
       for (var connectoidSegment : transportNetwork.getVirtualNetwork().getLayer().getConnectoidSegments()) {
         currReceivingFlows[(int) connectoidSegment.getId()] = connectoidSegment.getCapacityOrDefaultPcuH();
       }
-      LinkSegmentData.copyTo(currReceivingFlows, receivingFlowData.getNextReceivingFlows());
+      LinkSegmentData.copyTo(currReceivingFlows, nlReceivingFlowData.getNextReceivingFlows());
 
     } else {
       LOGGER.severe("sLTM with physical queues is not yet implemented, please disable storage constraints and " +
@@ -189,19 +189,19 @@ public abstract class StaticLtmNetworkLoading {
    *
    * @return created splittingRateData class
    */
-  private SplittingRateData createSplittingRateData(SplittingRateData prevIterationSplittingRateData) {
+  private NetworkLoadingSplittingRateData createSplittingRateData(NetworkLoadingSplittingRateData prevIterationSplittingRateData) {
 
     int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
     /* POINT QUEUE BASIC */
     if (!isTrackAllNodeTurnFlowsDuringLoading()) {
-      splittingRateData = new SplittingRateDataPartial(numberOfVertices);
+      nlSplittingRateData = new NetworkLoadingSplittingRateDataPartial(numberOfVertices);
     }
     /* OTHER, e.g. physical queues and advanced point queue model */
     else if (!this.solutionScheme.equals(StaticLtmLoadingScheme.NONE)) {
-      splittingRateData = new SplittingRateDataComplete(numberOfVertices, this.inFlowOutflowData.getInflows().length);
+      nlSplittingRateData = new NetworkLoadingSplittingRateDataComplete(numberOfVertices, this.nlInFlowOutflowData.getInflows().length);
     }
 
-    if(splittingRateData == null){
+    if(nlSplittingRateData == null){
       LOGGER.severe("Unable to create correct splitting rate tracking data class");
       return null;
     }
@@ -212,10 +212,10 @@ public abstract class StaticLtmNetworkLoading {
      * TODO: move all potentially blocking information from splitting rate data to its own data class?
      */
     if(prevIterationSplittingRateData != null){
-      splittingRateData.initialisePrevIterationData(prevIterationSplittingRateData);
+      nlSplittingRateData.initialisePrevIterationData(prevIterationSplittingRateData);
     }
 
-    return splittingRateData;
+    return nlSplittingRateData;
   }
 
   /**
@@ -238,7 +238,7 @@ public abstract class StaticLtmNetworkLoading {
      * process
      */
     boolean initialiseTrackedNodes = true;
-    this.splittingRateData = createSplittingRateData(splittingRateData);
+    this.nlSplittingRateData = createSplittingRateData(nlSplittingRateData);
 //    if (!prevIterationFinalSolutionScheme.equals(getActivatedSolutionScheme())) {
 //      this.splittingRateData = createSplittingRateData(splittingRateData);
 //      initialiseTrackedNodes = true;
@@ -252,7 +252,7 @@ public abstract class StaticLtmNetworkLoading {
          * OTHER, e.g. physical queues and advanced point queue model all nodes are to be considered so we must
          * activate them all (track and mark potentially blocking)
          */
-        activateAllUsedNodeSplittingRates(this.networkLayer, this.sendingFlowData.getCurrentSendingFlows());
+        activateAllUsedNodeSplittingRates(this.networkLayer, this.nlSendingFlowData.getCurrentSendingFlows());
       } else {
         /*
          * POINT QUEUE BASIC only track nodes that are needed. Eligibility depends on approach, so to be implemented
@@ -268,7 +268,7 @@ public abstract class StaticLtmNetworkLoading {
      * potentially blocking)
      */
     if (!isTrackAllNodeTurnFlowsDuringLoading()) {
-      updatePotentiallyBlockingNodes(this.networkLayer, this.sendingFlowData.getCurrentSendingFlows());
+      updatePotentiallyBlockingNodes(this.networkLayer, this.nlSendingFlowData.getCurrentSendingFlows());
     }
   }
 
@@ -278,12 +278,12 @@ public abstract class StaticLtmNetworkLoading {
    * @param acceptedTurnFlows to use to determine splitting rates (movement id indexed array)
    */
   private void updateNextSplittingRates(final double[] acceptedTurnFlows) {
-    var trackedNodes = splittingRateData.getTrackedNodes();
+    var trackedNodes = nlSplittingRateData.getTrackedNodes();
     for (var node : trackedNodes) {
       for (var entrySegment : node.getEntryEdgeSegments()) {
 
         /* construct splitting rates by first imposing absolute turn flows */
-        Array1D<Double> nextSplittingRates = splittingRateData.getSplittingRates(entrySegment);
+        Array1D<Double> nextSplittingRates = nlSplittingRateData.getSplittingRates(entrySegment);
         nextSplittingRates.reset();
         int index = 0;
         for (var exitSegment : node.getExitEdgeSegments()) {
@@ -320,7 +320,7 @@ public abstract class StaticLtmNetworkLoading {
    */
   private void performNodeModelUpdate(final ApplyToNodeModelResult consumer) {
     /* For each tracked node */
-    for (var trackedNode : splittingRateData.getTrackedNodes()) {
+    for (var trackedNode : nlSplittingRateData.getTrackedNodes()) {
       StaticLtmNetworkLoading.performNodeModelUpdate(trackedNode, consumer, this);
     }
   }
@@ -339,12 +339,12 @@ public abstract class StaticLtmNetworkLoading {
   private void updateNextStorageCapacityFactors() {
     this.networkLoadingFactorData.resetNextStorageCapacityFactors();
     double[] nextStorageCapacityFactor = this.networkLoadingFactorData.getNextStorageCapacityFactors();
-    double[] inflows = this.inFlowOutflowData.getInflows();
-    double[] receivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
+    double[] inflows = this.nlInFlowOutflowData.getInflows();
+    double[] receivingFlows = this.nlReceivingFlowData.getCurrentReceivingFlows();
 
     int currentLinkSegmentId = -1;
-    for (DirectedVertex trackedNode : this.splittingRateData.getTrackedNodes()) {
-      if (!this.splittingRateData.isPotentiallyBlocking(trackedNode)) {
+    for (DirectedVertex trackedNode : this.nlSplittingRateData.getTrackedNodes()) {
+      if (!this.nlSplittingRateData.isPotentiallyBlocking(trackedNode)) {
         continue;
       }
 
@@ -367,14 +367,14 @@ public abstract class StaticLtmNetworkLoading {
    */
   private void updateNextFlowAcceptanceFactors() {
     this.networkLoadingFactorData.resetNextFlowAcceptanceFactors();
-    double[] inflows = this.inFlowOutflowData.getInflows();
+    double[] inflows = this.nlInFlowOutflowData.getInflows();
     double[] nextFlowAcceptanceFactors = this.networkLoadingFactorData.getNextFlowAcceptanceFactors();
     double[] currentFlowCapacityFactors = this.networkLoadingFactorData.getCurrentFlowCapacityFactors();
     double[] currentStorageCapacityFactors = this.networkLoadingFactorData.getCurrentStorageCapacityFactors();
 
     int currentLinkSegmentId = -1;
-    for (DirectedVertex trackedNode : this.splittingRateData.getTrackedNodes()) {
-      if (!this.splittingRateData.isPotentiallyBlocking(trackedNode)) {
+    for (DirectedVertex trackedNode : this.nlSplittingRateData.getTrackedNodes()) {
+      if (!this.nlSplittingRateData.isPotentiallyBlocking(trackedNode)) {
         continue;
       }
 
@@ -406,12 +406,12 @@ public abstract class StaticLtmNetworkLoading {
   private void updateNextFlowCapacityFactors() {
     this.networkLoadingFactorData.resetNextFlowCapacityFactors();
     double[] nextFlowCapacityFactors = this.networkLoadingFactorData.getNextFlowCapacityFactors();
-    double[] outflows = this.inFlowOutflowData.getOutflows();
-    double[] receivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
+    double[] outflows = this.nlInFlowOutflowData.getOutflows();
+    double[] receivingFlows = this.nlReceivingFlowData.getCurrentReceivingFlows();
 
     int currentLinkSegmentId = -1;
-    for (DirectedVertex trackedNode : this.splittingRateData.getTrackedNodes()) {
-      if (!this.splittingRateData.isPotentiallyBlocking(trackedNode)) {
+    for (DirectedVertex trackedNode : this.nlSplittingRateData.getTrackedNodes()) {
+      if (!this.nlSplittingRateData.isPotentiallyBlocking(trackedNode)) {
         continue;
       }
 
@@ -435,19 +435,19 @@ public abstract class StaticLtmNetworkLoading {
   protected UnconstrainedFlowData unconstrainedFlowData;
 
   /** variables tracked for sending flow update step **/
-  protected SendingFlowData sendingFlowData;
+  protected NetworkLoadingSendingFlowData nlSendingFlowData;
 
   /** variables tracked for receiving flow update step **/
-  protected ReceivingFlowData receivingFlowData;
+  protected NetworkLoadingReceivingFlowData nlReceivingFlowData;
 
   /** variables tracked for splitting rate update step **/
-  protected SplittingRateData splittingRateData;
+  protected NetworkLoadingSplittingRateData nlSplittingRateData;
 
   /** tracks flow acceptance factors as well as its two related other factors, storage and capacity factors */
   protected NetworkLoadingFactorData networkLoadingFactorData;
 
   /** variables tracked for temporary inflow outflow tracking within sub algorithms **/
-  protected InflowOutflowData inFlowOutflowData;
+  protected InflowOutflowData nlInFlowOutflowData;
 
   /** the gap function to apply on global convergence update */
   protected NormBasedGapFunction flowAcceptanceGapFunction;
@@ -547,7 +547,7 @@ public abstract class StaticLtmNetworkLoading {
    * @param sendingFlowsPcuH to use
    */
   protected void updatePotentiallyBlockingNodes(MacroscopicNetworkLayer layer, final double[] sendingFlowsPcuH) {
-    SplittingRateDataPartial pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.splittingRateData;
+    NetworkLoadingSplittingRateDataPartial pointQueueBasicSplittingRates = (NetworkLoadingSplittingRateDataPartial) this.nlSplittingRateData;
     pointQueueBasicSplittingRates.resetPotentiallyBlockingNodes();
 
     for (MacroscopicLinkSegment linkSegment : layer.getLinkSegments()) {
@@ -572,7 +572,7 @@ public abstract class StaticLtmNetworkLoading {
   protected void activateAllUsedNodeSplittingRates(MacroscopicNetworkLayer layer, double[] sendingFlowsPcuH) {
     for (MacroscopicLinkSegment linkSegment : layer.getLinkSegments()) {
       if (Precision.positive(sendingFlowsPcuH[(int) linkSegment.getId()])) {
-        this.splittingRateData.registerTrackedNode(linkSegment.getUpstreamNode());
+        this.nlSplittingRateData.registerTrackedNode(linkSegment.getUpstreamNode());
       }
     }
     /* also add nodes of eligible connectoid segments (when they are not centroids) */
@@ -580,8 +580,8 @@ public abstract class StaticLtmNetworkLoading {
             getTransportNetwork().getZoning().getVirtualNetwork().getLayer().getConnectoidSegments()) {
       if (Precision.positive(sendingFlowsPcuH[(int) connectoidSegment.getId()])) {
         /* activate both nodes, succeeding segments might not be available */
-        this.splittingRateData.registerTrackedNode(connectoidSegment.getUpstreamVertex());
-        this.splittingRateData.registerTrackedNode(connectoidSegment.getDownstreamVertex());
+        this.nlSplittingRateData.registerTrackedNode(connectoidSegment.getUpstreamVertex());
+        this.nlSplittingRateData.registerTrackedNode(connectoidSegment.getDownstreamVertex());
       }
     }
   }
@@ -659,7 +659,7 @@ public abstract class StaticLtmNetworkLoading {
           DirectedVertex node, ApplyToNodeModelResult consumer, StaticLtmNetworkLoading staticLtmNetworkLoading) {
 
     var splittingRateData = staticLtmNetworkLoading.getSplittingRateData();
-    var sendingFlowData = staticLtmNetworkLoading.sendingFlowData;
+    var sendingFlowData = staticLtmNetworkLoading.nlSendingFlowData;
       
     /* tracked but non-blocking or centroidVertex is notified as non-blocking */
     if (!splittingRateData.isPotentiallyBlocking(node) || node instanceof CentroidVertex) {
@@ -745,10 +745,10 @@ public abstract class StaticLtmNetworkLoading {
     double[] referenceEmptyArray = new double[network.getNumberOfEdgeSegmentsAllLayers()];
     
     /* flow data defaults to zero unless explicitly set */
-    this.sendingFlowData = new SendingFlowData(referenceEmptyArray);
+    this.nlSendingFlowData = new NetworkLoadingSendingFlowData(referenceEmptyArray);
     this.unconstrainedFlowData = new UnconstrainedFlowData(referenceEmptyArray);
-    this.receivingFlowData = new ReceivingFlowData(referenceEmptyArray);       
-    this.inFlowOutflowData = new InflowOutflowData(referenceEmptyArray);
+    this.nlReceivingFlowData = new NetworkLoadingReceivingFlowData(referenceEmptyArray);
+    this.nlInFlowOutflowData = new InflowOutflowData(referenceEmptyArray);
     
     this.networkLoadingFactorData = new NetworkLoadingFactorData(network.getNumberOfEdgeSegmentsAllLayers());
 
@@ -790,7 +790,7 @@ public abstract class StaticLtmNetworkLoading {
     
     /* 3. limit flows to capacity s_a=r_a=min(u_a,cap_a) */
     /* reduce sending flows to capacity */
-    this.sendingFlowData.limitCurrentSendingFlowsToCapacity(networkLayer.getLinkSegments());
+    this.nlSendingFlowData.limitCurrentSendingFlowsToCapacity(networkLayer.getLinkSegments());
     
     /* initialize receiving flows */
     initialiseReceivingFlows();
@@ -855,19 +855,19 @@ public abstract class StaticLtmNetworkLoading {
     do {      
       /* 1. Update node model to compute new inflows, Eq. (5)
        * 2. Update next sending flows via inflows, Eq. (7) */
-      LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), this.inFlowOutflowData.getInflows());
-      performNodeModelUpdate(new NMRUpdateExitLinkInflowsConsumer(this.inFlowOutflowData.getInflows()));
+      LinkSegmentData.copyTo(this.nlSendingFlowData.getCurrentSendingFlows(), this.nlInFlowOutflowData.getInflows());
+      performNodeModelUpdate(new NMRUpdateExitLinkInflowsConsumer(this.nlInFlowOutflowData.getInflows()));
       /* s_a^tilde = u_a */
-      LinkSegmentData.copyTo(this.inFlowOutflowData.getInflows(), this.sendingFlowData.getNextSendingFlows());
+      LinkSegmentData.copyTo(this.nlInFlowOutflowData.getInflows(), this.nlSendingFlowData.getNextSendingFlows());
             
       /*3. Compute gap between current and next sending flows, then update sending flows to next sending flows */
       this.sendingFlowGapFunction.reset();
       this.sendingFlowGapFunction.increaseMeasuredValue(
-              this.sendingFlowData.getNextSendingFlows(), this.sendingFlowData.getCurrentSendingFlows());
+              this.nlSendingFlowData.getNextSendingFlows(), this.nlSendingFlowData.getCurrentSendingFlows());
       sendingFlowGap = this.sendingFlowGapFunction.computeGap();
       
       /* 4a, update current sending flows s_a = s_a^tilde to next sending flows */
-      this.sendingFlowData.swapCurrentAndNextSendingFlows();
+      this.nlSendingFlowData.swapCurrentAndNextSendingFlows();
       
       /* Only run as iterative procedure with physical queues or when using advanced point queue */
       if(!isIterativeSendingFlowUpdateActivated()) {
@@ -959,7 +959,7 @@ public abstract class StaticLtmNetworkLoading {
     do {
       
       /* 1. Update node model to compute new outflows, Eq. (5) */
-      performNodeModelUpdate(new NMRUpdateEntryLinksOutflowConsumer(this.inFlowOutflowData.getOutflows()));
+      performNodeModelUpdate(new NMRUpdateEntryLinksOutflowConsumer(this.nlInFlowOutflowData.getOutflows()));
       
       /* POINT QUEUE -> only run as iterative procedure with physical queues are present and r can vary, now
        * we only require an update of outflows v to use for updating flow capacity factors */  
@@ -968,9 +968,9 @@ public abstract class StaticLtmNetworkLoading {
       }        
       
       /* 2. Update next receiving flows via inflows, Eq. (7)*/
-      double[] outflows = this.inFlowOutflowData.getOutflows();
-      double[] nextReceivingFlows = this.receivingFlowData.getNextReceivingFlows();
-      for(DirectedVertex node : this.splittingRateData.getTrackedNodes()) {
+      double[] outflows = this.nlInFlowOutflowData.getOutflows();
+      double[] nextReceivingFlows = this.nlReceivingFlowData.getNextReceivingFlows();
+      for(DirectedVertex node : this.nlSplittingRateData.getTrackedNodes()) {
         for(EdgeSegment entryEdgeSegment: node.getEntryEdgeSegments()){
           int index = (int)entryEdgeSegment.getId();
         
@@ -988,11 +988,11 @@ public abstract class StaticLtmNetworkLoading {
        * receiving flows */
       this.receivingFlowGapFunction.reset();
       this.receivingFlowGapFunction.increaseMeasuredValue(
-              this.receivingFlowData.getNextReceivingFlows(), this.receivingFlowData.getCurrentReceivingFlows());
+              this.nlReceivingFlowData.getNextReceivingFlows(), this.nlReceivingFlowData.getCurrentReceivingFlows());
       receivingFlowGap = this.receivingFlowGapFunction.computeGap();
       
       /* 4a update r^i-1 = r^i */
-      this.receivingFlowData.swapCurrentAndNextReceivingFlows();      
+      this.nlReceivingFlowData.swapCurrentAndNextReceivingFlows();
       
       /* 4b If converged continue, otherwise continue go back to Step 4-(1). */
     }while(!this.receivingFlowGapFunction.getStopCriterion().hasConverged(
@@ -1102,9 +1102,9 @@ public abstract class StaticLtmNetworkLoading {
      */
     {
       networkLoadingSendingFlowOutflowUpdate(mode);
-      sendingFlowData.limitCurrentSendingFlowsToCapacity(networkLayer.getLinkSegments());
-      LinkSegmentData.copyTo(sendingFlowData.getCurrentSendingFlows(), inFlowOutflowData.getInflows());
-      inFlowOutflowData.limitOutflowsToCapacity(networkLayer.getLinkSegments());
+      nlSendingFlowData.limitCurrentSendingFlowsToCapacity(networkLayer.getLinkSegments());
+      LinkSegmentData.copyTo(nlSendingFlowData.getCurrentSendingFlows(), nlInFlowOutflowData.getInflows());
+      nlInFlowOutflowData.limitOutflowsToCapacity(networkLayer.getLinkSegments());
     }
   }
 
@@ -1188,7 +1188,7 @@ public abstract class StaticLtmNetworkLoading {
    * @return inflows in Pcu per hour
    */
   public double[] getCurrentInflowsPcuH() {
-    return this.inFlowOutflowData.getInflows();
+    return this.nlInFlowOutflowData.getInflows();
   }
   
   /**
@@ -1197,7 +1197,7 @@ public abstract class StaticLtmNetworkLoading {
    * @return outflows in Pcu per hour
    */
   public double[] getCurrentOutflowsPcuH() {
-    return this.inFlowOutflowData.getOutflows();
+    return this.nlInFlowOutflowData.getOutflows();
   }
 
   /**
@@ -1215,7 +1215,7 @@ public abstract class StaticLtmNetworkLoading {
    */
   public void reset() {
     resetIteration();
-    this.splittingRateData.reset();    
+    this.nlSplittingRateData.reset();
     this.prevIterationFinalSolutionScheme = solutionScheme;
   }
   
@@ -1224,10 +1224,10 @@ public abstract class StaticLtmNetworkLoading {
    */
   public void resetIteration() {
     /* flow data defaults to zero unless explicitly set */
-    this.sendingFlowData.reset();
+    this.nlSendingFlowData.reset();
     this.unconstrainedFlowData.reset();
-    this.receivingFlowData.reset();       
-    this.inFlowOutflowData.reset();        
+    this.nlReceivingFlowData.reset();
+    this.nlInFlowOutflowData.reset();
     this.networkLoadingFactorData.reset();
 
     /* gap functions used */
@@ -1263,8 +1263,8 @@ public abstract class StaticLtmNetworkLoading {
    * 
    * @return splitting rate data
    */
-  public final SplittingRateData getSplittingRateData(){
-    return this.splittingRateData;
+  public final NetworkLoadingSplittingRateData getSplittingRateData(){
+    return this.nlSplittingRateData;
   }
   
   /** Currently active sLTM solution scheme

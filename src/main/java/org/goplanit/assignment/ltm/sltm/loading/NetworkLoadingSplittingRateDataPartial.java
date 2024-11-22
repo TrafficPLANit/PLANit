@@ -16,7 +16,7 @@ import org.ojalgo.array.Array1D;
  * @author markr
  *
  */
-public class SplittingRateDataPartial extends SplittingRateDataBase implements SplittingRateData {
+public class NetworkLoadingSplittingRateDataPartial extends NetworkLoadingSplittingRateDataBase implements NetworkLoadingSplittingRateData {
 
   /**
    * Nodes that are tracked to maintain their splitting rates available which might or might not be also potentially blocking
@@ -54,7 +54,7 @@ public class SplittingRateDataPartial extends SplittingRateDataBase implements S
    * 
    * @param numberOfVertices to expect at most
    */
-  public SplittingRateDataPartial(int numberOfVertices) {
+  public NetworkLoadingSplittingRateDataPartial(int numberOfVertices) {
     super(numberOfVertices);
     this.trackedNodes = new TreeSet<>();
     this.potentiallyBlockingNodes = new BitSet(numberOfVertices);
