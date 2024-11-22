@@ -5,15 +5,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.goplanit.assignment.ltm.sltm.RootedLabelledBush;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 
 /**
- * Track conjugate edge segment based data, i.e., turn data of a conjugate bush.
+ * Track conjugate edge segment based data, i.e., original network turns in a conjugate bush form.
  * <p>
- * For now we only track (turn) sending flows to minimise bookkeeping and memory usage, turn splitting rates are deduced from the turn sending flows when needed.
+ * For now we only track (turn/conjugate segment) sending flows to minimise bookkeeping and memory usage,
+ * splitting rates are deduced from the sending flows when needed.
+ *
+ * todo: (not todo) NOTE to self, last synced with LabelledBushTurnData implementation on 22/11
  * 
  * @author markr
  *
@@ -23,8 +28,10 @@ public class ConjugateBushTurnData{
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateBushTurnData.class.getCanonicalName());
 
-  /** track known conjugate bush (turn) sending flows s_ab by the combined key of incoming outgoing link segments */
+  /** track known conjugate bush (turn) sending flows s_ab by conjugate link segment */
   private final Map<ConjugateEdgeSegment, Double> turnSendingFlows;
+
+  private final ConjugateDestinationBush parent;
 
   /**
    * Register turn sending flow on the container
@@ -38,10 +45,12 @@ public class ConjugateBushTurnData{
 
   /**
    * Constructor
-   * 
+   *
+   * @param parent parent bush
    */
-  ConjugateBushTurnData() {
-    this.turnSendingFlows = new HashMap<ConjugateEdgeSegment, Double>();
+  ConjugateBushTurnData(final ConjugateDestinationBush parent) {
+    this.turnSendingFlows = new HashMap<>();
+    this.parent = parent;
   }
 
   /**
@@ -51,61 +60,63 @@ public class ConjugateBushTurnData{
    */
   public ConjugateBushTurnData(ConjugateBushTurnData bushTurnData) {
     this.turnSendingFlows = new HashMap<>(bushTurnData.turnSendingFlows);
+    this.parent = bushTurnData.parent;
   }
 
   /**
    * Update the turn sending flow for a given turn
-   * 
-   * @param turnSegment      the turn
+   *
+   * @param turnSegment      conjugate of turn
    * @param turnSendingFlow  to update
-   * @param allowTurnRemoval when true we allow for removal of turn/edge segment when no flow remains, when false we keep regardless of the remaining flow
-   * @return true when turn has any turn sending flow left after setting flow, false when turn sending flow no longer exists
+   * @return true when turn has any labelled turn sending flow left after setting flow, false when labelled turn sending flow no longer exists
    */
-  public boolean setTurnSendingFlow(final ConjugateEdgeSegment turnSegment, double turnSendingFlow, boolean allowTurnRemoval) {
+  public boolean setTurnSendingFlow(
+          final ConjugateEdgeSegment turnSegment,
+          double turnSendingFlow,
+          boolean force) {
 
     if (Double.isNaN(turnSendingFlow)) {
-      LOGGER.severe("Turn sending flow is NAN, shouldn't happen - consider identifying issue as turn flow cannot be updated properly, reset to 0.0 flow");
+      LOGGER.severe("Turn (%s to %s) sending flow is NAN, shouldn't happen - " +
+              "consider identifying issue as turn flow cannot be updated properly, reset to 0.0 flow");
       turnSendingFlow = 0.0;
-    } else if (!Precision.positive(turnSendingFlow)) {
-      if (allowTurnRemoval) {
+    }else if(!force){
+      // not forced, so apply some additional checking in situation of low flows and negative flows
+      // note forced may be helpful for small positive flows that otherwise would be regarded as zero flow with the below checks
+      if(!Precision.positive(turnSendingFlow)) {
+        // when negative flow but extremely close to zero, remove the turn flow and accept
+
+//        if(parent.getDag().getId() == 10) {
+//          LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f) on bush (%s), remove entry for label (%s,%s)",
+//              fromSegment.getXmlId(), toSegment.getXmlId(), turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), fromComposition.getLabelId(), toComposition.getLabelId()));
+//        }
         removeTurn(turnSegment);
         return false;
-      } else if (turnSendingFlow < 0) {
-        var originalEdgeSegments = turnSegment.getOriginalAdjacentEdgeSegments();
-        LOGGER.warning(String.format("** Turn (%s to %s) sending flow negative (%.9f), this is not allowed, reset to 0.0 ", originalEdgeSegments.first().getXmlId(),
-            originalEdgeSegments.second().getXmlId(), turnSendingFlow));
-        turnSendingFlow = 0.0;
+      }else if(turnSendingFlow < 0) {
+        // too negative, warn user as this is unexpected behaviour possibly beyond a rounding situation
+        var originalTurnSegments = turnSegment.getOriginalAdjacentEdgeSegments();
+        LOGGER.warning(String.format(
+                "** Turn (%s to %s) sending flow negative (%.9f) on bush (%s), this is not allowed, removing turn flow",
+                originalTurnSegments.first().getXmlId(), originalTurnSegments.second().getXmlId(),
+                turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+        removeTurn(turnSegment);
         return false;
       }
     }
 
     registerTurnSendingFlow(turnSegment, turnSendingFlow);
     return true;
-
   }
 
   /**
-   * Add turn sending flow for a given turn (can be negative), turn will not be removed if no flow remains
-   * 
-   * @param turnSegment the turn
-   * @param flowPcuH    to add
-   * @return the new turn sending flow after adding the given flow
-   */
-  public double addTurnSendingFlow(final ConjugateEdgeSegment turnSegment, double flowPcuH) {
-    return addTurnSendingFlow(turnSegment, flowPcuH, false);
-  }
-
-  /**
-   * Add turn sending flow for a given turn (can be negative), flow can be removed if desired depending on flags set if desired
+   * Add turn sending flow for a given turn (can be negative).
    * 
    * @param turnSegment      the turn
    * @param flowPcuH         to add
-   * @param allowTurnRemoval when true we allow for removal of turn/edge segment when no flow remains, when false we keep regardless of the remaining flow
    * @return the new labelled turn sending flow after adding the given flow
    */
-  public double addTurnSendingFlow(final ConjugateEdgeSegment turnSegment, double flowPcuH, boolean allowTurnRemoval) {
+  public double addTurnSendingFlow(final ConjugateEdgeSegment turnSegment, double flowPcuH) {
     Double newSendingFlow = flowPcuH + getTurnSendingFlowPcuH(turnSegment);
-    boolean hasRemainingFlow = setTurnSendingFlow(turnSegment, newSendingFlow, allowTurnRemoval);
+    boolean hasRemainingFlow = setTurnSendingFlow(turnSegment, newSendingFlow, flowPcuH>0);
     newSendingFlow = hasRemainingFlow ? newSendingFlow : 0.0;
     return newSendingFlow;
   }
@@ -150,13 +161,17 @@ public class ConjugateBushTurnData{
   }
 
   /**
-   * Collect the accepted flow towards a conjugate node (original edge segment) in the bush, if not present, zero flow is returned
+   * Collect the accepted flow towards a conjugate node (original edge segment) in the bush, if not present,
+   * zero flow is returned
    * 
    * @param node                                        conjugate node to collect accepted flow towards to
-   * @param originalNetworkSegmentFlowAcceptanceFactors to convert sending flow to accepted flow (based on original edge segment ids)
+   * @param originalNetworkSegmentFlowAcceptanceFactors to convert sending flow to accepted flow (based on original
+   *                                                    edge segment ids)
    * @return bush sending flow found
    */
-  public double getTotalAcceptedFlowToPcuH(final ConjugateDirectedVertex node, double[] originalNetworkSegmentFlowAcceptanceFactors) {
+  public double getTotalAcceptedFlowToPcuH(
+          final ConjugateDirectedVertex node, double[] originalNetworkSegmentFlowAcceptanceFactors) {
+
     if (!node.hasEntryEdgeSegments()) {
       /* no preceding conjugate link segments, so no incoming turns, hence it must be a root vertex connected to an origin */
       return getTotalSendingFlowFromPcuH(node);
@@ -184,16 +199,18 @@ public class ConjugateBushTurnData{
   }
 
   /**
-   * Collect the splitting rates for a given conjugate node (original link segment). Splitting rates are based on the current turn sending flows s_ab. In case no flows are present
-   * zero splitting rates for all turns are returned.
+   * Collect the splitting rates for a given conjugate node (original link segment). Splitting rates are based on
+   * the current turn sending flows s_ab. In case no flows are present zero splitting rates for all turns are returned.
    * 
    * @param conjugateVertex to collect bush splitting rates for
-   * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the conjugate node
+   * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the
+   * conjugate node
    */
   public double[] getSplittingRates(final ConjugateDirectedVertex conjugateVertex) {
     var turns = conjugateVertex.getExitEdgeSegments();
 
-    /* determining number of edge segment is costly, instead use edges (which is larger or equal) and then copy result */
+    /* determining number of edge segment is costly, instead use edges (which is larger or equal) and then copy
+     * result */
     double[] splittingRates = new double[conjugateVertex.getNumberOfEdges()];
 
     double totalSendingFlow = 0;
@@ -211,10 +228,11 @@ public class ConjugateBushTurnData{
   }
 
   /**
-   * Collect the splitting rate for a given conjugate link segment. Splitting rates are based on the current turn sending flows s_ab.
+   * Collect the splitting rate for a given conjugate link segment. Splitting rates are based on the current turn
+   * sending flows s_ab.
    * <p>
-   * When collecting multiple splitting rates with the same in link, do not use this method but instead collect all splitting rates at once and then filter the ones you require it
-   * is computationally more efficient.
+   * When collecting multiple splitting rates with the same in link, do not use this method but instead collect all
+   * splitting rates at once and then filter the ones you require it is computationally more efficient.
    * 
    * 
    * @param turnSegment the turn to collect splitting rate for
@@ -226,8 +244,9 @@ public class ConjugateBushTurnData{
       double totalSendingFlow = getTotalSendingFlowFromPcuH(turnSegment.getUpstreamVertex());
       if (totalSendingFlow < turnSendingFlow) {
         var originalPair = turnSegment.getOriginalAdjacentEdgeSegments();
-        LOGGER.severe(String.format("Total sending flow (%.10f) smaller than turn (%s,%s) sending flow (%.10f), this shouldn't happen", totalSendingFlow,
-            originalPair.first().getXmlId(), originalPair.second().getXmlId(), turnSendingFlow));
+        LOGGER.severe(String.format("Total sending flow (%.10f) smaller than turn (%s,%s) sending flow (%.10f), " +
+                        "this shouldn't happen",
+                totalSendingFlow, originalPair.first().getXmlId(), originalPair.second().getXmlId(), turnSendingFlow));
       }
       return turnSendingFlow / totalSendingFlow;
     } else {

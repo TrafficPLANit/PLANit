@@ -281,7 +281,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         /* when bush does not contain the opposite direction which would cause a cycle it is worth checking */
         boolean viableSearch =
                 reducedCostSegment.getOppositeDirectionSegment()==null ||
-                        !bush.containsEdgeSegment(reducedCostSegment.getOppositeDirectionSegment());
+                        !bush.contains(reducedCostSegment.getOppositeDirectionSegment());
         if (!viableSearch) {
           // preferred alternative cannot be added due to bush triggering a cycle if we would
           // todo: check what happens when terminate because if this gets still triggered then we have not technically

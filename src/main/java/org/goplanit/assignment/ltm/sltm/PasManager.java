@@ -541,7 +541,7 @@ public class PasManager {
       /* check if PAS is attached upstream to bush - even if it is just with the vertex */
       boolean pasPotentialMatch = false;
       for (var pasFirstExitSegment : pas.getDivergeVertex().getExitEdgeSegments()) {
-        if (bush.containsEdgeSegment(pasFirstExitSegment)) {
+        if (bush.contains(pasFirstExitSegment)) {
           pasPotentialMatch = true;
           break;
         }
@@ -553,7 +553,7 @@ public class PasManager {
       
       /* check if PAS is attached downstream to bush - even if it is just with the vertex */
       for (var pasLastEntrySegment : pas.getMergeVertex().getEntryEdgeSegments()) {
-        if (bush.containsEdgeSegment(pasLastEntrySegment)) {
+        if (bush.contains(pasLastEntrySegment)) {
           pasPotentialMatch = true;
           break;
         }

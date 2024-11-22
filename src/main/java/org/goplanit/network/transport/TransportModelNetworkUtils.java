@@ -6,7 +6,6 @@ import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.UntypedVirtualNetwork;
-import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.zoning.Zoning;
 
 public class TransportModelNetworkUtils {

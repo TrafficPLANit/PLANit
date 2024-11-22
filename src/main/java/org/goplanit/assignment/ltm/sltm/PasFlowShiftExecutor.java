@@ -690,7 +690,7 @@ public abstract class PasFlowShiftExecutor {
     bushEntrySegmentS1S2SendingFlows.clear();
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {
       for (var bush : pas.getRegisteredBushes()) {
-        if (!bush.containsEdgeSegment(entrySegment)) {
+        if (!bush.contains(entrySegment)) {
           continue;
         }
         bushEntrySegmentS1S2SendingFlows.putIfAbsent(bush, new HashMap<>());
@@ -737,7 +737,7 @@ public abstract class PasFlowShiftExecutor {
     var s1 = this.pas.getAlternative(true);
     for(var linkSegment : s1){
       for(var bush : this.pas.getRegisteredBushes()){
-        if(!bush.containsEdgeSegment(linkSegment)){
+        if(!bush.contains(linkSegment)){
           missingLinkSegmentsByBush.putIfAbsent(linkSegment, new TreeSet<>());
           missingLinkSegmentsByBush.get(linkSegment).add(bush);
         }

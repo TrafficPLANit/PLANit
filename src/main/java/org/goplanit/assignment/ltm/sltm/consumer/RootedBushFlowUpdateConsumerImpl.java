@@ -22,7 +22,8 @@ import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
  * @author markr
  *
  */
-public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> implements BushFlowUpdateConsumer<RootedLabelledBush> {
+public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData>
+        implements BushFlowUpdateConsumer<RootedLabelledBush> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(RootedBushFlowUpdateConsumerImpl.class.getCanonicalName());
@@ -46,7 +47,7 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
     for (var originVertex : originVertices) {
       double totalOriginsSendingFlow = 0;
       for (var originExit : originVertex.getExitEdgeSegments()) {
-        if (bush.containsEdgeSegment(originExit)) {
+        if (bush.contains(originExit)) {
             double sendingFlow = bush.getSendingFlowPcuH(originExit);
             bushSendingFlows.put(originExit, sendingFlow);
             totalOriginsSendingFlow += sendingFlow;
@@ -61,15 +62,16 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
   }
 
   /**
-   * Register the bush accepted turn flow to the turn if required. Default implementation does nothing but provide a hook for derived classes that do require to do something with
-   * turn accepted flows
+   * Register the bush accepted turn flow to the turn if required. Default implementation does nothing but provide
+   * a hook for derived classes that do require to do something with turn accepted flows
    * 
    * @param movement          the movement
    * @param turnAcceptedFlowPcuH sending flow rate of turn
    */
   protected void applyAcceptedTurnFlowUpdate(
           final Movement movement, double turnAcceptedFlowPcuH) {
-    // default implementation does nothing but provide a hook for derived classes that do require to do something with turn accepted flows
+    // default implementation does nothing but provide a hook for derived classes that do require to do something
+    // with turn accepted flows
   }
 
   /**
@@ -117,7 +119,7 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
     while (vertexIter.hasNext()) {
       currVertex = vertexIter.next();
       for (var entrySegment : currVertex.getEntryEdgeSegments()) {
-        if (!bush.containsEdgeSegment(entrySegment)) {
+        if (!bush.contains(entrySegment)) {
           continue;
         }
 
@@ -165,7 +167,7 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> i
         int splittingRateIndex = 0;
         double totalExitAcceptedFlow = 0;
         for (var exitSegment : currVertex.getExitEdgeSegments()) {
-          if (!bush.containsEdgeSegment(exitSegment)) {
+          if (!bush.contains(exitSegment)) {
             ++splittingRateIndex;
             continue;
           }

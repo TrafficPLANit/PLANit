@@ -1,14 +1,11 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Logger;
-import org.apache.commons.collections4.map.MultiKeyMap;
+
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.IterableUtils;
-import org.goplanit.utils.misc.Pair;
 
 /**
  * Functionality to conduct a PAS flow shift based on underlying destination based bush approach. A destination-based bush approach no longer requires labelling and should therefore outperform
@@ -40,10 +37,10 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
     // flag if additional cycle checks are needed for subsequent PASs that may not be compatible with this current
     // PAS that we chose to prefer over those later ones
     if(flowShiftPcuH > 0){
-      if(!bush.containsEdgeSegment(turnEntry.getId())){
+      if(!bush.contains(turnEntry.getId())){
         addBushAddedLinkSegment(bush, turnEntry);
       }
-      if(!bush.containsEdgeSegment(turnExit.getId())){
+      if(!bush.contains(turnExit.getId())){
         addBushAddedLinkSegment(bush, turnExit);
       }
     }
@@ -54,7 +51,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
       // the previous shift then we should remove all turn sending flow. By explicitly setting this value we avoid rounding issues
       // and ensures that high cost segment flows get removed in its entirety when we no longer route flow through them
       // todo: now that we explicitly check for this earlier, this should not be necessary anymore!
-      if(!bush.containsEdgeSegment(turnEntry)){
+      if(!bush.contains(turnEntry)){
         var availableFlow = bush.getTurnSendingFlow(turnEntry, turnExit);
         if(Precision.smaller(availableFlow, -flowShiftPcuH, Precision.EPSILON_6)) {
           LOGGER.severe(String.format("adding %.8f to flow shift (%.10f) to empty already removed turn (from: %s, to: %s) when removing turn flow" +
@@ -89,10 +86,10 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
         LOGGER.info(String.format("     [No more flow --> Removed turn: FROM (%s) TO (%s) from bush (%s)]", turnEntry.getIdsAsString(), turnExit.getIdsAsString(), bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
       }
 
-      if(!bush.containsEdgeSegment(turnEntry)) {
+      if(!bush.contains(turnEntry)) {
         addBushRemovedLinkSegment(bush, turnEntry);
       }
-      if(!bush.containsEdgeSegment(turnExit)) {
+      if(!bush.contains(turnExit)) {
         addBushRemovedLinkSegment(bush, turnExit);
       }
       newTurnFlow = 0.0;

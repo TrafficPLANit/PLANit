@@ -516,7 +516,9 @@ public class ZoningConverterUtils {
         (distanceToExistingCoordinateOnLinkInMeters < maxAllowedDistanceMeters)){
 
       if(isPotentialAccessEntryLinkSegmentForWaitingArea(
-          waitingAreaSourceId, waitingAreaGeometry, accessLinkSegment, accessLinkSourceId, accessLinkSegment.getDownstreamVertex(), accessMode, getOverwrittenWaitingAreaSourceIdForNode, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, countryName, geoUtils)) {
+          waitingAreaSourceId, waitingAreaGeometry, accessLinkSegment, accessLinkSourceId,
+              accessLinkSegment.getDownstreamNode(), accessMode, getOverwrittenWaitingAreaSourceIdForNode,
+              getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, countryName, geoUtils)) {
         return PlanitJtsUtils.createPoint(closestExistingCoordinate);
       }else{
         return null;

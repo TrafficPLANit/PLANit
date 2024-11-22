@@ -103,9 +103,9 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * @param flowThreshold         any links with flow below this threshold will be implicitly branch shifted
    * @param flowAcceptanceFactors edge segment flow acceptance factors indexed by internal id
    * @param detailedLogging       when true log what branch shifted links are affected
-   * @return true when a low flow branch shift was performed, false otherwise
+   * @return the edge segments that were removed during the flow shifts from this bush
    */
-  public abstract TreeSet<EdgeSegment> performLowFlowBranchShifts(
+  public abstract TreeSet<? extends EdgeSegment> performLowFlowBranchShifts(
           double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging);
 
   /**
@@ -174,6 +174,14 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   }
 
   /**
+   * Verify if bush contains the edge segment provided
+   *
+   * @param segment to check
+   * @return true when present, false otherwise
+   */
+  public abstract boolean contains(EdgeSegment segment);
+
+  /**
    * Indicates if bush has inverted direction w.r.t. its root
    * 
    * @return true when inverted, false otherwise
@@ -216,5 +224,42 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * @return root zone
    */
   protected abstract CentroidVertex getRootZoneVertex();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    var sb = new StringBuilder("[");
+    /* log all edge segments on bush */
+    var root = getRootVertex();
+    Queue<DirectedVertex> openVertices = new PriorityQueue<>();
+    openVertices.add(root);
+    Set<DirectedVertex> processed = new HashSet<>();
+
+    final var getNextEdgeSegments =
+            isInverted() ? DirectedVertex.getEntryEdgeSegments : DirectedVertex.getExitEdgeSegments;
+    final var getNextVertex =
+            isInverted() ? EdgeSegment.getUpstreamVertex : EdgeSegment.getDownstreamVertex;
+
+    while (!openVertices.isEmpty()) {
+      var vertex = openVertices.poll();
+      processed.add(vertex);
+      for (EdgeSegment nextSegment : getNextEdgeSegments.apply(vertex)) {
+        if (!contains(nextSegment)) {
+          continue;
+        }
+        var nextVertex = getNextVertex.apply(nextSegment);
+        sb.append(nextSegment.getXmlId()).append(",");
+        if (processed.contains(nextVertex)) {
+          continue;
+        }
+        openVertices.add(nextVertex);
+      }
+    }
+    sb.deleteCharAt(sb.length() - 1);
+    sb.append("]");
+    return sb.toString();
+  }
 
 }

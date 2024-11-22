@@ -12,14 +12,18 @@ import org.goplanit.utils.network.layer.physical.Movement;
  * <p>
  * Depending on the applied solution scheme a slightly different approach is taken to this update where:
  * <p>
- * POINT QUEUE BASIC: Also update the network sending flow. Only during basic point queue solution scheme, sending flows are NOT locally updated in the sending flow update step.
- * Therefore, sending flows of most links are not updated during this sending flow update because it only updates the sending flows of outgoing links of potentially blocking nodes.
- * When an incoming link of any node is not also an outgoing link of another potentially blocking node its sending flow remains the same even if it actually changes due to further
- * upstream changes in restrictions. In this approach this is only identified when we make sure the sending flows are updated during (this) loading on the path level. Hence, we
- * must update sending flows here.
+ * POINT QUEUE BASIC: Also update the network sending flow. Only during basic point queue solution scheme,
+ * sending flows are NOT locally updated in the sending flow update step. Therefore, sending flows of most links
+ * are not updated during this sending flow update because it only updates the sending flows of outgoing links of
+ * potentially blocking nodes. When an incoming link of any node is not also an outgoing link of another potentially
+ * blocking node its sending flow remains the same even if it actually changes due to further upstream changes in
+ * restrictions. In this approach this is only identified when we make sure the sending flows are updated during (this)
+ * loading on the path level. Hence, we must update sending flows here.
  * <p>
- * ANY OTHER SOLUTION APPROACH: Here we update all used nodes and sending flows are updated iteratively and locally propagated without the need of the loading in the sending flow
- * update. Therefore, there is no need to update the sending flows. On the other hand we now update the turn flows on all used nodes rather than only the potentially blocking ones.
+ * ANY OTHER SOLUTION APPROACH: Here we update all used nodes and sending flows are updated iteratively and locally
+ * propagated without the need of the loading in the sending flow update. Therefore, there is no need to update
+ * the sending flows. On the other hand we now update the turn flows on all used nodes rather than only the
+ * potentially blocking ones.
  * 
  * @author markr
  *

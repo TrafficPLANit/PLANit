@@ -30,7 +30,8 @@ public class LabelledBushTurnData {
   private final RootedLabelledBush parent;
 
   /**
-   * Register labelled sending flow on the container while also ensuring link level composition labels are kept consistent
+   * Register labelled sending flow on the container while also ensuring link level composition labels are kept
+   * consistent
    * 
    * @param fromSegment     of turn
    * @param toSegment       of turn
@@ -87,14 +88,14 @@ public class LabelledBushTurnData {
 //          LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f) on bush (%s), remove entry for label (%s,%s)",
 //              fromSegment.getXmlId(), toSegment.getXmlId(), turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), fromComposition.getLabelId(), toComposition.getLabelId()));
 //        }
-        removeTurnFlow(fromSegment, toSegment);
+        removeTurn(fromSegment, toSegment);
         return false;
       }else if(turnSendingFlow < 0) {
         // too negative, warn user as this is unexpected behaviour possibly beyond a rounding situation
         LOGGER.warning(String.format(
                 "** Turn (%s to %s) sending flow negative (%.9f) on bush (%s), this is not allowed, removing turn flow", fromSegment.getXmlId(), toSegment.getXmlId(),
                 turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-        removeTurnFlow(fromSegment, toSegment);
+        removeTurn(fromSegment, toSegment);
         return false;
       }
     }
@@ -129,20 +130,6 @@ public class LabelledBushTurnData {
    * @param toEdgeSegment   of turn
    */
   public void removeTurn(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
-    turnSendingFlows.removeMultiKey(fromEdgeSegment, toEdgeSegment);
-  }
-
-  /**
-   * Remove the turn flow of the given labels (if present) and update the link composition labels in the process
-   * 
-   * @param fromEdgeSegment of turn
-   * @param toEdgeSegment   of turn
-   */
-  public void removeTurnFlow(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
-    if (fromEdgeSegment == null || toEdgeSegment == null) {
-      LOGGER.severe("One or more inputs required to remove turn flow from bush data registration is null, unable to remove turn flow");
-      return;
-    }
     turnSendingFlows.removeMultiKey(fromEdgeSegment, toEdgeSegment);
   }
 
@@ -239,10 +226,11 @@ public class LabelledBushTurnData {
   }
 
   /**
-   * Collect the splitting rate for a given link segment. Splitting rates are based on the current turn sending flows s_ab.
+   * Collect the splitting rate for a given link segment. Splitting rates are based on the current turn sending
+   * flows s_ab.
    * <p>
-   * When collecting multiple splitting rates with the same in link, do not use this method but instead collect all splitting rates at once and then filter the ones you require it
-   * is computationally more efficient.
+   * When collecting multiple splitting rates with the same in link, do not use this method but instead collect
+   * all splitting rates at once and then filter the ones you require it is computationally more efficient.
    * 
    * 
    * @param fromSegment of turn to collect splitting rate for
@@ -254,8 +242,9 @@ public class LabelledBushTurnData {
     if (turnSendingFlow > 0) {
       double totalSendingFlow = getTotalSendingFlowFromPcuH(fromSegment);
       if (totalSendingFlow < turnSendingFlow) {
-        LOGGER.severe(String.format("Total sending flow (%.10f) smaller than turn (%s,%s) sending flow (%.10f), this shouldn't happen", totalSendingFlow, fromSegment.getXmlId(),
-            toSegment.getXmlId(), turnSendingFlow));
+        LOGGER.severe(String.format("Total sending flow (%.10f) smaller than turn (%s,%s) sending flow (%.10f), " +
+                        "this shouldn't happen",
+                totalSendingFlow, fromSegment.getXmlId(), toSegment.getXmlId(), turnSendingFlow));
       }
       return turnSendingFlow / totalSendingFlow;
     } else {

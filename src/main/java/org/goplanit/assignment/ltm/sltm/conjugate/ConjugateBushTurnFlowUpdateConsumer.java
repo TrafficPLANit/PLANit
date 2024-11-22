@@ -23,7 +23,8 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
  * @author markr
  *
  */
-public class ConjugateBushTurnFlowUpdateConsumer extends ConjugateBushFlowUpdateConsumerImpl<NetworkTurnFlowUpdateData> {
+public class ConjugateBushTurnFlowUpdateConsumer
+        extends ConjugateBushFlowUpdateConsumerImpl<NetworkTurnFlowUpdateData> {
 
   /** logger to use */
   @SuppressWarnings("unused")

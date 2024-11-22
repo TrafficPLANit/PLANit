@@ -52,6 +52,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
       int index,
       double[] flowAcceptanceFactors,
       final EdgeSegment[] subPathArray) {
+
     if(subPathAcceptedFlow <= 0.0){
       return subPathAcceptedFlow;
     }
@@ -82,6 +83,9 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     return restrictedSubPathAcceptedFlow * 1/(compoundedFlowAcceptanceScalingFactor);
   }
 
+  /** track bush specific data */
+  protected final LabelledBushTurnData bushData;
+
   /**
    * Access to DAG as regular acylic subgraph rather than untyped
    * 
@@ -91,9 +95,6 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   protected ACyclicSubGraph getDag() {
     return (ACyclicSubGraph) super.getDag();
   }
-
-  /** track bush specific data */
-  protected final LabelledBushTurnData bushData;
 
   /**
    * Constructor
@@ -143,41 +144,6 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    */
   @Override
   public abstract RootedLabelledBush deepClone();
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString() {
-    var sb = new StringBuilder("[");
-    /* log all edge segments on bush */
-    var root = getRootVertex();
-    Queue<DirectedVertex> openVertices = new PriorityQueue<>();
-    openVertices.add(root);
-    Set<DirectedVertex> processed = new HashSet<>();
-
-    final var getNextEdgeSegments = isInverted() ? DirectedVertex.getEntryEdgeSegments : DirectedVertex.getExitEdgeSegments;
-    final var getNextVertex = isInverted() ? EdgeSegment.getUpstreamVertex : EdgeSegment.getDownstreamVertex;
-
-    while (!openVertices.isEmpty()) {
-      var vertex = openVertices.poll();
-      processed.add(vertex);
-      for (EdgeSegment nextSegment : getNextEdgeSegments.apply(vertex)) {
-        if (!containsEdgeSegment(nextSegment)) {
-          continue;
-        }
-        var nextVertex = getNextVertex.apply(nextSegment);
-        sb.append(nextSegment.getXmlId()).append(",");
-        if (processed.contains(nextVertex)) {
-          continue;
-        }
-        openVertices.add(nextVertex);
-      }
-    }
-    sb.deleteCharAt(sb.length() - 1);
-    sb.append("]");
-    return sb.toString();
-  }
 
   /**
    * Verify if adding the sub-path edge segments would introduce a cycle in this bush
@@ -249,7 +215,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
       }
 
       currCoincidingVertexFound = containsAnyEdgeSegmentOf(currAltVertex);
-      boolean directCycle = currSegment.getOppositeDirectionSegment()!=null && containsEdgeSegment(currSegment.getOppositeDirectionSegment());
+      boolean directCycle = currSegment.getOppositeDirectionSegment()!=null && contains(currSegment.getOppositeDirectionSegment());
       if(directCycle){
         // direct cycle detected since opposite direction already present, abort
         return currSegment;
@@ -317,16 +283,16 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
           double addFlowPcuH) {
 
     if (addFlowPcuH > 0) {
-      if (!containsEdgeSegment(from)) {
-        if (containsEdgeSegment(from.getOppositeDirectionSegment())) {
+      if (!contains(from)) {
+        if (contains(from.getOppositeDirectionSegment())) {
           LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s) where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
               from.getXmlId(), to.getXmlId(), getRootZoneVertex().getParent().getParentZone().getIdsAsString(), from.getXmlId()));
         }
         getDag().addEdgeSegment(from);
         requireTopologicalSortUpdate = true;
       }
-      if (!containsEdgeSegment(to)) {
-        if (containsEdgeSegment(to.getOppositeDirectionSegment())) {
+      if (!contains(to)) {
+        if (contains(to.getOppositeDirectionSegment())) {
           LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s) where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
               from.getXmlId(), to.getXmlId(), getRootZoneVertex().getParent().getParentZone().getIdsAsString(), to.getXmlId()));
         }
@@ -381,17 +347,20 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   }
 
   /**
-   * Collect the bush splitting rates for a given incoming edge segment. If entry segment has no flow, zero splitting rates are returned for all turns
+   * Collect the bush splitting rates for a given incoming edge segment. If entry segment has no flow,
+   * zero splitting rates are returned for all turns
    * 
    * @param entrySegment to use
-   * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the downstream from segment vertex
+   * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments
+   * of the downstream from segment vertex
    */
   public double[] getSplittingRates(final EdgeSegment entrySegment) {
     return bushData.getSplittingRates(entrySegment);
   }
 
   /**
-   * Remove a turn from the bush by removing it from the acyclic graph and removing any data associated with it. Edge segments are also removed in case the no longer carry any flow
+   * Remove a turn from the bush by removing it from the acyclic graph and removing any data associated with it.
+   * Edge segments are also removed in case the no longer carry any flow
    * 
    * @param fromEdgeSegment of the turn
    * @param toEdgeSegment   of the turn
@@ -437,7 +406,8 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @param edgeSegment to verify
    * @return true when present, false otherwise
    */
-  public boolean containsEdgeSegment(EdgeSegment edgeSegment) {
+  @Override
+  public boolean contains(EdgeSegment edgeSegment) {
     return getDag().containsEdgeSegment(edgeSegment);
   }
 
@@ -447,7 +417,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @param edgeSegmentId to verify
    * @return true when present, false otherwise
    */
-  public boolean containsEdgeSegment(long edgeSegmentId) {
+  public boolean contains(long edgeSegmentId) {
     return getDag().containsEdgeSegment(edgeSegmentId);
   }
 
@@ -459,7 +429,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    */
   public boolean containsAnyEdgeSegmentOf(DirectedEdge edge) {
     for (var edgeSegment : edge.getEdgeSegments()) {
-      if (getDag().containsEdgeSegment(edgeSegment)) {
+      if (contains(edgeSegment)) {
         return true;
       }
     }
@@ -499,12 +469,14 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * The returned map contains the next edge segment for each vertex, from the vertex closer to the bush root
    * to the reference vertex where for the reference vertex the edge segment remains null
    * 
-   * @param referenceVertex                to start breadth first search from as it is the point of coincidence of the alternative path (via labelled vertices) and bush
-   * @param forbiddenInitialSegment        the first segment of the shortest path segment from the root, that we cannot use
-   *                                       otherwise this alternative is partly overlapping
-   * @param alternativeSubpathVertexLabels indicating the shortest (network) path at the reference vertex but not part of the bush at that point (different edge segment used)
-   * @return vertex at which the two paths coincided again and the map (back link tree effectively) to extract the path from this vertex to the reference vertex that was found using the breadth-first
-   *         method
+   * @param referenceVertex                to start breadth first search from as it is the point of coincidence of
+   *                                       the alternative path (via labelled vertices) and bush
+   * @param forbiddenInitialSegment        the first segment of the shortest path segment from the root, that we
+   *                                       cannot use otherwise this alternative is partly overlapping
+   * @param alternativeSubpathVertexLabels indicating the shortest (network) path at the reference vertex but not
+   *                                       part of the bush at that point (different edge segment used)
+   * @return vertex at which the two paths coincided again and the map (back link tree effectively) to extract the
+   * path from this vertex to the reference vertex that was found using the breadth-first method
    */
   public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpathByBackLinkTree(
           DirectedVertex referenceVertex, EdgeSegment forbiddenInitialSegment, final short[] alternativeSubpathVertexLabels) {
@@ -548,8 +520,9 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   }
 
   /**
-   * Determine the accepted flow between origin,destination vertex using the subpath given by the subPathArray in order from start to finish. We utilise the initial sending flow on
-   * the first segment as the base flow which is then reduced by the splitting rates and acceptance factor up to and including the final link segment
+   * Determine the accepted flow between origin,destination vertex using the subpath given by the subPathArray in
+   * order from start to finish. We utilise the initial sending flow on the first segment as the base flow which
+   * is then reduced by the splitting rates and acceptance factor up to and including the final link segment
    * 
    * @param startVertex                  to use
    * @param endVertex                    to use
@@ -579,10 +552,9 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   }
 
   /**
-   * Determine the sending flow between origin,destination vertex using the subpath given by the segment +
-   * subPathArray in order from start to finish.
+   * Determine the sending flow on the subpath given by the  subPathArray in order from start to finish.
    *
-   * @param subPathArray to append to entry segment to extract path from
+   * @param subPathArray to use
    * @return sendingFlowPcuH between start and end vertex following the sub-path
    */
   public double determineSubPathSendingFlow(EdgeSegment[] subPathArray, double[] flowAcceptanceFactors) {
@@ -641,7 +613,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     /* traverse form origin->destination */
     forEachTopologicalSortedVertex(isInverted(), currVertex -> {
       for (var entrySegment : currVertex.getEntryEdgeSegments()) {
-        if (!containsEdgeSegment(entrySegment)) {
+        if (!contains(entrySegment)) {
           continue; // next vertex
         }
 
@@ -650,7 +622,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
 
         int splittingRateIndex = 0;
         for (var exitSegment : currVertex.getExitEdgeSegments()) {
-          if (!containsEdgeSegment(exitSegment)) {
+          if (!contains(exitSegment)) {
             ++splittingRateIndex;
             continue;
           }
@@ -678,6 +650,43 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    */
   public boolean isEmpty() {
     return bushData.hasTurnFlows();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    var sb = new StringBuilder("[");
+    /* log all edge segments on bush */
+    var root = getRootVertex();
+    Queue<DirectedVertex> openVertices = new PriorityQueue<>();
+    openVertices.add(root);
+    Set<DirectedVertex> processed = new HashSet<>();
+
+    final var getNextEdgeSegments =
+            isInverted() ? DirectedVertex.getEntryEdgeSegments : DirectedVertex.getExitEdgeSegments;
+    final var getNextVertex =
+            isInverted() ? EdgeSegment.getUpstreamVertex : EdgeSegment.getDownstreamVertex;
+
+    while (!openVertices.isEmpty()) {
+      var vertex = openVertices.poll();
+      processed.add(vertex);
+      for (EdgeSegment nextSegment : getNextEdgeSegments.apply(vertex)) {
+        if (!contains(nextSegment)) {
+          continue;
+        }
+        var nextVertex = getNextVertex.apply(nextSegment);
+        sb.append(nextSegment.getXmlId()).append(",");
+        if (processed.contains(nextVertex)) {
+          continue;
+        }
+        openVertices.add(nextVertex);
+      }
+    }
+    sb.deleteCharAt(sb.length() - 1);
+    sb.append("]");
+    return sb.toString();
   }
 
 }

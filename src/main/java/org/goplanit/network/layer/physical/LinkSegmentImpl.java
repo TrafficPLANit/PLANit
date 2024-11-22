@@ -2,6 +2,7 @@ package org.goplanit.network.layer.physical;
 
 import org.goplanit.graph.directed.EdgeSegmentImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Link;
@@ -149,16 +150,16 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    * {@inheritDoc}
    */
   @Override
-  public Node getDownstreamVertex() {
-    return (Node) super.getDownstreamVertex();
+  public DirectedVertex getDownstreamVertex() {
+    return super.getDownstreamVertex();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Node getUpstreamVertex() {
-    return (Node) super.getUpstreamVertex();
+  public DirectedVertex getUpstreamVertex() {
+    return super.getUpstreamVertex();
   }
 
   /**

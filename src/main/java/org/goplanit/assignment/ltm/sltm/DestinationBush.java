@@ -55,15 +55,26 @@ public class DestinationBush extends RootedLabelledBush {
   }
 
   /**
-   * Compute the min-max path tree rooted at the destination towards all origins given the provided (network wide) costs. The provided costs are at the network level so should
-   * contain all the segments active in the bush
+   * collect destination of this bush
+   *
+   * @return destination zone
+   */
+  public CentroidVertex getDestination() {
+    return this.destination;
+  }
+
+  /**
+   * Compute the min-max path tree rooted at the destination towards all origins given the provided (network wide)
+   * costs. The provided costs are at the network level so should contain all the segments active in the bush
    * 
    * @param linkSegmentCosts              to use
-   * @param totalTransportNetworkVertices number of vertices in overall network needed to be able to construct result per vertex based on id
+   * @param totalTransportNetworkVertices number of vertices in overall network needed to be able to construct result
+   *                                      per vertex based on id
    * @return minMaxPathResult, null if unable to complete
    */
   @Override
-  public MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
+  public MinMaxPathResult computeMinMaxShortestPaths(
+          final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
 
     /* build min/max path tree */
     var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(
@@ -129,7 +140,9 @@ public class DestinationBush extends RootedLabelledBush {
   /**
    * {@inheritDoc}
    */
-  public TreeSet<EdgeSegment> performLowFlowBranchShifts(double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging){
+  @Override
+  public TreeSet<EdgeSegment> performLowFlowBranchShifts(
+          double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging){
 
     // removed turn flows with multikey being entry and exit segment
     final MultiKeyMap<Object, Double> removedTurnFlows = new MultiKeyMap<>();
@@ -143,7 +156,7 @@ public class DestinationBush extends RootedLabelledBush {
 
       Map<EdgeSegment, Double> exitSegmentsWithRemovedIncomingFlows = new TreeMap<>();
       for (var exitSegment : currVertex.getExitEdgeSegments()) {
-        if (!containsEdgeSegment(exitSegment)) {
+        if (!contains(exitSegment)) {
           continue; // next vertex
         }
         if (exitSegment.getDownstreamVertex() instanceof CentroidVertex) {
@@ -329,15 +342,6 @@ public class DestinationBush extends RootedLabelledBush {
   public String toString() {
     String result = super.toString();
     return "Bush: destination zone: " + getDestination().getParent().getParentZone().getXmlId() + "\n" + result;
-  }
-
-  /**
-   * collect destination of this bush
-   * 
-   * @return destination zone
-   */
-  public CentroidVertex getDestination() {
-    return this.destination;
   }
 
 }
