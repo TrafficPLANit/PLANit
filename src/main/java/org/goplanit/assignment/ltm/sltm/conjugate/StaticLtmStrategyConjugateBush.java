@@ -12,7 +12,9 @@ import org.goplanit.assignment.ltm.sltm.StaticLtmBushStrategyBase;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
+import org.goplanit.network.transport.ConjugateTransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGenerator;
@@ -22,6 +24,7 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
+import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
 import org.goplanit.zoning.Zoning;
 
 /**
@@ -36,11 +39,9 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmStrategyConjugateBush.class.getCanonicalName());
 
-  /** the conjugate virtual network we base our bushes on */
-  private final ConjugateVirtualNetwork conjugateVirtualNetwork;
-
-  /** the conjugate network layer we base our conjugate bushes on */
-  private final ConjugateMacroscopicNetworkLayer conjugateNetworkLayer;
+  /** because the bushes will be created and tracked in conjugate network form, we create a conjugate version of the
+   * entire network from which the bushes draw */
+  protected final ConjugateTransportModelNetwork conjugateTransportModelNetwork;
 
   /**
    * Constructor
@@ -58,15 +59,9 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
           final StaticLtmSettings settings,
           final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
-
-    /* generate conjugate network - generate ids separate from other vertices/edges/segments by providing new token */
-    var token = IdGenerator.createIdGroupingToken(
-            "conjugate for network " + getInfrastructureNetwork().getId());
-    
-    /* generate conjugate virtual network - generate ids separate from other vertices/edges/segments by providing new token */
-    this.conjugateVirtualNetwork = transportModelNetwork.getZoning().getVirtualNetwork().createConjugate(token);
-    this.conjugateNetworkLayer = getInfrastructureNetwork().getLayerByMode(
-            getInfrastructureNetwork().getModes().getFirst()).createConjugate(token, conjugateVirtualNetwork.getLayer());
+    this.conjugateTransportModelNetwork = transportModelNetwork.createConjugate(
+        TransportModelNetworkUtils.generateDerivedConjugateIdGoupingToken(transportModelNetwork));
+    conjugateTransportModelNetwork.logInfo("");
   }
 
   /**
@@ -77,38 +72,51 @@ public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<Co
    */
   protected ConjugateDestinationBush[] createEmptyBushes(Mode mode) {
 
-    throw new PlanItRunTimeException("commented out original code --> fix the code to make it usable again");
+    var centroid2ConjugateNodeMapping =
+        VirtualNetworkUtils.createCentroidVertexToConjugateNodeMapping(
+            conjugateTransportModelNetwork.getVirtualNetwork().getLayer());
 
-//    // TODO: we now create this mapping twice, see #initialiseBush, not efficient
-//    var centroid2ConjugateNodeMapping = conjugateVirtualNetwork.createCentroidToConjugateNodeMapping();
-//
-//    Zoning zoning = getTransportNetwork().getZoning();
-//    ConjugateDestinationBush[] conjugateBushes = new ConjugateDestinationBush[(int) zoning.getNumberOfCentroids()];
-//
-//    OdDemands odDemands = getOdDemands(mode);
-//    for (var destination : zoning.getOdZones()) {
-//      ConjugateDestinationBush bush = null;
-//      for (var origin : zoning.getOdZones()) {
-//        if (destination.idEquals(origin)) {
-//          continue;
-//        }
-//
-//        Double currOdDemand = odDemands.getValue(origin, destination);
-//        if (currOdDemand != null && currOdDemand > 0) {
-//          if (bush == null) {
-//            /* collect conjugate root node for this conjugate destination bush */
-//            var destinationCentroidVertex = findCentroidVertex(destination);
-//            var rootConjugateConnectoidNode = centroid2ConjugateNodeMapping.get(destination.getCentroid());
-//            /* register new bush */
-//            bush = new ConjugateDestinationBush(conjugateNetworkLayer.getLayerIdGroupingToken(), destinationCentroidVertex, rootConjugateConnectoidNode,
-//                conjugateNetworkLayer.getLinkSegments().size() + conjugateVirtualNetwork.getConjugateConnectoidEdgeSegments().size());
-//            conjugateBushes[(int) destination.getOdZoneId()] = bush;
-//            break;
-//          }
-//        }
-//      }
-//    }
-//    return conjugateBushes;
+    var conjugateNetworkLayer =
+        conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst();
+    Zoning zoning = getTransportNetwork().getZoning();
+    ConjugateDestinationBush[] conjugateBushes = new ConjugateDestinationBush[(int) zoning.getNumberOfCentroids()];
+
+    OdDemands odDemands = getOdDemands(mode);
+    for (var destination : zoning.getOdZones()) {
+      ConjugateDestinationBush bush = null;
+      for (var origin : zoning.getOdZones()) {
+        if (destination.idEquals(origin)) {
+          continue;
+        }
+
+        Double currOdDemand = odDemands.getValue(origin, destination);
+        if (currOdDemand != null && currOdDemand > 0) {
+
+          /* centroid vertex to which demand will be mapped */
+          var destinationCentroidVertex = findCentroidVertex(destination);
+          if(destinationCentroidVertex == null){
+            LOGGER.severe(String.format("Destination zone (%s) without centroid vertex to connect to network, " +
+                "this shouldn't happen", destination.getIdsAsString()));
+            continue;
+          }
+
+          /* collect conjugate root node for this conjugate destination bush */
+          var rootConjugateConnectoidNode =
+              centroid2ConjugateNodeMapping.get(destinationCentroidVertex);
+
+          /* register new bush */
+          bush = new ConjugateDestinationBush(
+              conjugateNetworkLayer.getLayerIdGroupingToken(),
+              destinationCentroidVertex,
+              rootConjugateConnectoidNode,
+              /* all "real" turns as conjugate segment is a turn */
+              conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers() );
+          conjugateBushes[(int) destination.getOdZoneId()] = bush;
+          break;
+        }
+      }
+    }
+    return conjugateBushes;
   }
 
   /**

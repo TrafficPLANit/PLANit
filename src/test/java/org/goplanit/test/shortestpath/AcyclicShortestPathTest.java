@@ -26,6 +26,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
@@ -159,7 +160,8 @@ public class AcyclicShortestPathTest {
       transportNetwork = new TransportModelNetworkImpl(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids(false);
       Map<OdZone, CentroidVertex> zone2VertexMapping =
-          (Map<OdZone, CentroidVertex>) transportNetwork.createZoneToCentroidVertexMapping(true, false);
+          (Map<OdZone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+              transportNetwork.getVirtualNetwork().getLayer(), true, false);
           
       // costs
       linkSegmentCosts = new double[]
@@ -322,7 +324,8 @@ public class AcyclicShortestPathTest {
     try {
 
       Map<? extends Zone, CentroidVertex> zone2VertexMapping =
-          transportNetwork.createZoneToCentroidVertexMapping(true, false);
+          VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+              transportNetwork.getVirtualNetwork().getLayer(),true, false);
       var zoneACentroidVertex = zone2VertexMapping.get(centroidA.getParentZone());
       var zoneBCentroidVertex = zone2VertexMapping.get(centroidB.getParentZone());
 

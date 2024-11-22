@@ -136,21 +136,6 @@ public interface TransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V
   public abstract Zoning getZoning();
 
   /**
-   * Create a (new) mapping from zones (transfer and or OD) to their centroid vertex.
-   *
-   * @param OdZones when true OdZones will be included in the mapping, not included otherwise
-   * @param transferZones when true transferZones will be included in the mapping, not included otherwise
-   * @return mapping that was created
-   */
-  public default Map<? extends Zone, CentroidVertex> createZoneToCentroidVertexMapping(boolean OdZones, boolean transferZones){
-    return getVirtualNetwork().getLayer().getVertices().stream().filter(
-        v -> v instanceof CentroidVertex).map(v -> ((CentroidVertex)v)).filter( // only centroid vertices
-          cv -> (OdZones && cv.getParent().getParentZone() instanceof OdZone) || // only those with matching zones
-              (transferZones && cv.getParent().getParentZone() instanceof TransferZone)).collect(
-                  Collectors.toMap( cv -> cv.getParent().getParentZone(), cv -> cv)); // as key value map
-  }
-
-  /**
    * Create a (new) mapping from entry/sexit segment combinations to their movement (if any)
    *
    * @return mapping that was created

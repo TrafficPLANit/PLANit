@@ -74,7 +74,8 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   }
 
   /**
-   * Constructor. It is expected that all provided root vertices represent edges in the orignal network leading to a single root.
+   * Constructor. It is expected that all provided root vertices represent edges in the original network leading to a
+   * single root.
    * 
    * @param idToken          the token to base the id generation on
    * @param destination      this conjugate destination bush has rooted conjugate vertices for
@@ -82,7 +83,11 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    *                         destination
    * @param maxSubGraphTurns The maximum number of conjugate edge segments, i.e. turns, the conjugate bush can at most register given the parent network it is a subset of
    */
-  public ConjugateDestinationBush(final IdGroupingToken idToken, final CentroidVertex destination, ConjugateConnectoidNode rootVertex, int maxSubGraphTurns) {
+  public ConjugateDestinationBush(
+      final IdGroupingToken idToken,
+      final CentroidVertex destination,
+      ConjugateConnectoidNode rootVertex,
+      int maxSubGraphTurns) {
     super(new ConjugateACyclicSubGraphImpl(idToken, rootVertex, true /* inverted */, maxSubGraphTurns));
     this.bushData = new ConjugateBushTurnData();
     this.destination = destination;

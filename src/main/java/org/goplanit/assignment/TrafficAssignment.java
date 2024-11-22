@@ -249,8 +249,10 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * @param segmentCostToPopulate array to store the costs in
    * @return false if the initial costs cannot be set for this mode, true otherwise
    */
-  protected boolean populateWithTimePeriodAgnosticInitialCostIfAvailable(final Mode mode, MacroscopicLinkSegments linkSegments, final double[] segmentCostToPopulate) {
-    if (this.initialLinkSegmentCostTimePeriodAgnostic == null || !this.initialLinkSegmentCostTimePeriodAgnostic.isSegmentCostsSetForMode(mode)) {
+  protected boolean populateWithTimePeriodAgnosticInitialCostIfAvailable(
+      final Mode mode, MacroscopicLinkSegments linkSegments, final double[] segmentCostToPopulate) {
+    if (this.initialLinkSegmentCostTimePeriodAgnostic == null ||
+        !this.initialLinkSegmentCostTimePeriodAgnostic.isSegmentCostsSetForMode(mode)) {
       return false;
     }
     CostUtils.populateModalPhysicalLinkSegmentCosts(
@@ -259,8 +261,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   }
 
   /**
-   * Initialize the link segment costs from the InitialLinkSegmentCost of passed in time period. If there is no initial cost available for the timp eriod we set the default initial
-   * cost if it is present.
+   * Initialize the link segment costs from the InitialLinkSegmentCost of passed in time period.
+   * If there is no initial cost available for the timp eriod we set the default initial cost if it is present.
    * <p>
    * This method is called during the first iteration of the simulation.
    *
@@ -271,10 +273,15 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * @return false if the initial costs cannot be set for this mode, true otherwise
    */
   protected boolean populateWithPhysicalInitialCostIfAvailable(
-          final Mode mode, final TimePeriod timePeriod, MacroscopicLinkSegments linkSegments, final double[] segmentCostToPopulate) {
+          final Mode mode,
+          final TimePeriod timePeriod,
+          MacroscopicLinkSegments linkSegments,
+          final double[] segmentCostToPopulate) {
 
-    final var initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod);
-    if (initialLinkSegmentCostForTimePeriod == null || !initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
+    final var initialLinkSegmentCostForTimePeriod =
+        initialLinkSegmentCostByTimePeriod.get(timePeriod);
+    if (initialLinkSegmentCostForTimePeriod == null ||
+        !initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
       return populateWithTimePeriodAgnosticInitialCostIfAvailable(mode, linkSegments, segmentCostToPopulate);
     }
 
@@ -298,7 +305,9 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   /**
    * Initialize all relevant traffic assignment components before execution of the assignment commences
    *
-   * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all internal managed ids of transport model network components (links, nodes, connectoids etc.), when false do not.
+   * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all internal managed ids
+   *                                   of transport model network components (links, nodes, connectoids etc.),
+   *                                   when false do not.
    * @throws PlanItException thrown if there is an error
    */
   protected void initialiseBeforeExecution(boolean resetAndRecreateManagedIds) throws PlanItException {
@@ -386,8 +395,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    */
   public TrafficAssignment(IdGroupingToken groupId) {
     super(groupId);
-    trafficAssignmentComponents = new HashMap<Class<? extends PlanitComponent<?>>, PlanitComponent<?>>();
-    initialLinkSegmentCostByTimePeriod = new HashMap<TimePeriod, InitialModesLinkSegmentCost>();
+    trafficAssignmentComponents = new HashMap<>();
+    initialLinkSegmentCostByTimePeriod = new HashMap<>();
   }
 
   /**
@@ -411,7 +420,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
     this.initialLinkSegmentCostTimePeriodAgnostic = other.initialLinkSegmentCostTimePeriodAgnostic.shallowClone();
     // map of primitive container wrappers, so clone equates to deep clone
     this.initialLinkSegmentCostByTimePeriod = new HashMap<>();
-    other.initialLinkSegmentCostByTimePeriod.forEach( (p,e) -> initialLinkSegmentCostByTimePeriod.put(p, e.shallowClone()));
+    other.initialLinkSegmentCostByTimePeriod.forEach(
+        (p,e) -> initialLinkSegmentCostByTimePeriod.put(p, e.shallowClone()));
   }
 
   /**
@@ -429,7 +439,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   public abstract TimePeriod getTimePeriod();
 
   /**
-   * Create the output type adapter for the current output type, specifically tailored towards the assignment type that we are builing
+   * Create the output type adapter for the current output type, specifically tailored towards the assignment
+   * type that we are building
    *
    * @param outputType the current output type
    * @return the output type adapter corresponding to the current traffic assignment and output type
@@ -445,10 +456,12 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    */
   public void execute() throws PlanItException {
 
-    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surround(this.getClass().getSimpleName(), '-', 17));
+    LOGGER.info(LoggingUtils.runIdPrefix(
+        getId()) + LoggingUtils.surround(this.getClass().getSimpleName(), '-', 17));
 
     // make sure all internal ids are aligned and contiguous (especially if one does multiple runs this is needed)
-    // todo: could be made more intelligent if we know there is no risk of internal ids not being aligned, for now always recreate to avoid issues for multi-runs
+    // todo: could be made more intelligent if we know there is no risk of internal ids not being aligned, for
+    //  now always recreate to avoid issues for multi-runs
     boolean resetAndRecreatedManagedIds = true;
     initialiseBeforeExecution(resetAndRecreatedManagedIds);
 
@@ -456,7 +469,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
 
     finalizeAfterExecution();
 
-    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surround(this.getClass().getSimpleName(), '-', 17));
+    LOGGER.info(LoggingUtils.runIdPrefix(
+        getId()) + LoggingUtils.surround(this.getClass().getSimpleName(), '-', 17));
     executionCounter.increment();
   }
 
@@ -464,14 +478,16 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * Log settings of this traffic assignment
    */
   public void logAllSettings() {
-    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surround("ASSIGNMENT SETTINGS - START", '-', 17));
+    LOGGER.info(LoggingUtils.runIdPrefix(
+        getId()) + LoggingUtils.surround("ASSIGNMENT SETTINGS - START", '-', 17));
     logComponentSettings(this);
     for (var componentEntry : this.trafficAssignmentComponents.entrySet()) {
       logComponentSettings(componentEntry.getValue());
     }
     // TODO output manager settings
     // this.getOutputManager().collectSettingsAsKeyValueMap();
-    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surround("ASSIGNMENT SETTINGS - END", '-', 17));
+    LOGGER.info(LoggingUtils.runIdPrefix(
+        getId()) + LoggingUtils.surround("ASSIGNMENT SETTINGS - END", '-', 17));
   }
 
   // Getters - Setters
@@ -480,8 +496,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * {@inheritDoc}
    */
   public void reset() {
-    // do not reset input components because they are considered configuration, not internal state. Also, initial cost is not reset since
-    // this is considered a fixed input as well without an internal state, we only remove them
+    // do not reset input components because they are considered configuration, not internal state. Also, initial
+    // cost is not reset since this is considered a fixed input as well without an internal state, we only remove them
     this.initialLinkSegmentCostByTimePeriod.clear();
     this.initialLinkSegmentCostTimePeriodAgnostic = null;
 
@@ -582,17 +598,19 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   }
 
   /**
-   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults() right after construction
+   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the
+   * initialiseDefaults() right after construction
    *
-   * @param gapfunction the gap function to set
+   * @param gapFunction the gap function to set
    */
-  public void setGapFunction(final GapFunction gapfunction) {
-    logRegisteredComponentName(gapfunction, true);
-    registerComponent(GapFunction.class, gapfunction);
+  public void setGapFunction(final GapFunction gapFunction) {
+    logRegisteredComponentName(gapFunction, true);
+    registerComponent(GapFunction.class, gapFunction);
   }
 
   /**
-   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults() right after construction
+   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults()
+   * right after construction
    *
    * @return gapFunction
    */
@@ -601,7 +619,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   }
 
   /**
-   * Set the initial link segment cost that is mode agnostic and can be used as the fallback if no time period specific initial cost is registered
+   * Set the initial link segment cost that is mode agnostic and can be used as the fallback if no time period
+   * specific initial cost is registered
    *
    * @param initialLinkSegmentCost the initial link segment cost
    */
@@ -610,18 +629,21 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   }
 
   /**
-   * Set the initial link segment cost for a specified time period on the assignment, otherwise revert to the general initial link segment cost (if any). Note thta the provided
+   * Set the initial link segment cost for a specified time period on the assignment, otherwise revert to the
+   * general initial link segment cost (if any). Note thta the provided
    * time period might differ from the how the provided initial costs were parsed on the project if so desired.
    *
    * @param timePeriod             the specified time period
    * @param initialLinkSegmentCost the initial link segment cost to apply for the assignment time period
    */
-  public void setInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialModesLinkSegmentCost initialLinkSegmentCost) {
+  public void setInitialLinkSegmentCost(
+      final TimePeriod timePeriod, final InitialModesLinkSegmentCost initialLinkSegmentCost) {
     initialLinkSegmentCostByTimePeriod.put(timePeriod, initialLinkSegmentCost);
   }
 
   /**
-   * Set the physical cost where in case the cost is an InteractorAccessor will trigger an event to get access to the required data via requesting an InteractorAccessee
+   * Set the physical cost where in case the cost is an InteractorAccessor will trigger an event to get access to
+   * the required data via requesting an InteractorAccessee
    *
    * @param physicalCost the physical cost object for the current assignment
    */
@@ -649,7 +671,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   }
 
   /**
-   * Set the virtual cost where in case the cost is an InteractorAccessor will trigger an event to get access to the required data via requesting an InteractorAccessee
+   * Set the virtual cost where in case the cost is an InteractorAccessor will trigger an event to get access to
+   * the required data via requesting an InteractorAccessee
    *
    * @param virtualCost the virtual cost object to be assigned
    * @throws PlanItException thrown if there is an error
@@ -667,7 +690,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   public <T> T getTrafficAssignmentComponent(final Class<T> planitComponentClass) {
     T component = (T) trafficAssignmentComponents.get(planitComponentClass);
     if (component == null) {
-      LOGGER.warning(String.format("Unable to access component supposed to be registered under %s, consider registering it first", planitComponentClass.getName()));
+      LOGGER.warning(String.format("Unable to access component supposed to be registered under %s, " +
+          "consider registering it first", planitComponentClass.getName()));
     }
     return component;
   }
@@ -691,7 +715,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
     this.outputManager = outputManager;
     // TODO: move all logging of components to one central place instead of in setters
     outputManager.getOutputFormatters().forEach(of -> logRegisteredComponentName(of, true));
-    outputManager.getRegisteredOutputTypeConfigurations().forEach(oc -> LOGGER.info(LoggingUtils.runIdPrefix(this.getId()) + "activated: OutputType." + oc.getOutputType()));
+    outputManager.getRegisteredOutputTypeConfigurations().forEach(
+        oc -> LOGGER.info(LoggingUtils.runIdPrefix(this.getId()) + "activated: OutputType." + oc.getOutputType()));
   }
 
   /**

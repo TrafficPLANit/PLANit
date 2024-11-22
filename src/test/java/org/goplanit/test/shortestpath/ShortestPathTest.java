@@ -17,8 +17,10 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.zoning.Centroid;
+import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.AfterAll;
@@ -179,7 +181,8 @@ public class ShortestPathTest {
       transportNetwork = new TransportModelNetworkImpl(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids(false);
       zone2CentroidVertexMapping =
-          (Map<Zone, CentroidVertex>) transportNetwork.createZoneToCentroidVertexMapping(true, false);
+          (Map<Zone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+              transportNetwork.getVirtualNetwork().getLayer(),true, false);
           
       // costs
       linkSegmentCosts = new double[]

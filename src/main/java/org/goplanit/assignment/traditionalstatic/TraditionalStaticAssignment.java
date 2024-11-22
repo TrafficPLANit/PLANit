@@ -33,6 +33,7 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.time.RunTimesTracker;
@@ -151,7 +152,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     /* construct mapping from OdZone to centroidVertex which is needed for path finding among other things, where we get an OD but need to find a path from
      * centroid vertex to centroid vertex */
     this.zone2VertexMapping =
-        (Map<OdZone, CentroidVertex>) getTransportNetwork().createZoneToCentroidVertexMapping(true, false);
+        (Map<OdZone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+            getZoning().getVirtualNetwork().getLayer(), true, false);
 
     /* register new time period on costs */
     getPhysicalCost().updateTimePeriod(timePeriod);

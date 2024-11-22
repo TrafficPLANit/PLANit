@@ -26,6 +26,7 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
@@ -412,7 +413,7 @@ public abstract class StaticLtmAssignmentStrategy {
   public StaticLtmAssignmentStrategy(
       final IdGroupingToken idGroupingToken,
       long assignmentId,
-      final TransportModelNetwork transportModelNetwork,
+      final TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> transportModelNetwork,
       final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
 
@@ -424,7 +425,8 @@ public abstract class StaticLtmAssignmentStrategy {
 
     /* construct mapping from OdZone to centroidVertex which is needed for path finding among other things, where we get an OD but need to find a path from
      * centroid vertex to centroid vertex */
-    this.zone2VertexMapping = transportModelNetwork.createZoneToCentroidVertexMapping(true /*include OdZones */, false /* exclude transfer zones */);
+    this.zone2VertexMapping = (Map<Zone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+        transportModelNetwork.getVirtualNetwork().getLayer(), true /*include OdZones */, false /* exclude transfer zones */);
 
     /* construct mapping from entry/exit segment to movement which is currently needed for quick conversion of turn flows to splitting rates
      * during loading at the expense of more memory usage.

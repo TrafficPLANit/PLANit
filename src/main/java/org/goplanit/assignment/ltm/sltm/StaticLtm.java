@@ -238,14 +238,15 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   }
 
   /**
-   * When we have a conjugate bush based approach the transport model network needs to be
-   * in conjugate form, otherwise not
+   * When we have a conjugate bush based approach the transport model network remains in regular form, so
+   * we never require a conjugate transport model network as our base network. We'll create the conjugate version
+   * within the strategy when needed locally instead.
    *
-   * @return true when conjugate bush based, false otherwise
+   * @return false always
    */
   @Override
   protected boolean isRequireConjugateNetwork() {
-    return settings.getSltmType() == StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED;
+    return false;
   }
 
   /**
