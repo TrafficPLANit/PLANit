@@ -1,28 +1,21 @@
 package org.goplanit.network.virtual;
 
-import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
-import org.goplanit.network.layer.modifier.UntypedNetworkLayerModifierImpl;
+import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.virtual.graph.CentroidVerticesImpl;
 import org.goplanit.network.virtual.physical.ConnectoidLinksImpl;
 import org.goplanit.network.virtual.physical.ConnectoidSegmentsImpl;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
-import org.goplanit.utils.network.layer.NetworkLayer;
-import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
-import org.goplanit.utils.network.virtual.*;
+import org.goplanit.utils.network.virtual.VirtualNetworkLayer;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.graph.CentroidVertices;
 import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
 import org.goplanit.utils.network.virtual.physical.ConnectoidLinks;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegments;
-import org.locationtech.jts.geom.Envelope;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import java.util.Collection;
 import java.util.logging.Logger;
@@ -31,24 +24,16 @@ import java.util.logging.Logger;
  * Model free virtual network layer which is part of the virtual network and holds all the virtual infrastructure
  * connecting the zones to the physical road network.
  *
- * TODO: instead of extending UntypedDirectedGraphImpl, implement its interface and have a member to hide some inherited
- *   methods (getEdges etc.), and then consolidate some methods copied from UntypedNetworkLayerImpl that for now have been
- *   duplicated
- * 
  * @author markr
  */
-public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
+public class VirtualNetworkLayerImpl
+        extends UntypedNetworkLayerImpl<CentroidVertex, ConnectoidLink, ConnectoidSegment>
+        implements VirtualNetworkLayer {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger((VirtualNetworkLayerImpl.class.getCanonicalName()));
 
   // Protected
-
-  protected UntypedDirectedGraphImpl<CentroidVertex, ConnectoidLink, ConnectoidSegment> theGraph;
-
-  protected String externalId;
-
-  protected String xmlId;
 
   /**
    * Constructor
@@ -56,13 +41,10 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
    * @param tokenId contiguous id generation for instances of this class
    */
   public VirtualNetworkLayerImpl(final IdGroupingToken tokenId) {
-    this.theGraph = new UntypedDirectedGraphImpl<>(
-            tokenId,
+    super(tokenId,
             new CentroidVerticesImpl(tokenId),
             new ConnectoidLinksImpl(tokenId),
             new ConnectoidSegmentsImpl(tokenId));
-    this.externalId = null;
-    this.xmlId = null;
   }
 
   /**
@@ -80,15 +62,7 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
       GraphEntityDeepCopyMapper<ConnectoidLink> connectoidEdgeMapper,
       GraphEntityDeepCopyMapper<ConnectoidSegment> connectoidSegmentMapper,
       GraphEntityDeepCopyMapper<CentroidVertex> centroidVertexMapper) {
-    if(deepCopy){
-      theGraph = theGraph.smartDeepClone(
-              centroidVertexMapper, connectoidEdgeMapper, connectoidSegmentMapper);
-    }else{
-      theGraph = other.theGraph;
-    }
-
-    this.xmlId = other.getXmlId();
-    this.externalId = other.getExternalId();
+    super(other, deepCopy, centroidVertexMapper, connectoidEdgeMapper, connectoidSegmentMapper);
 
     // replace by calling super now that we use a layer derived from graphs for virtual network. Could be too simplistic
     // so keep below for reference in case we find this goes wrong. To be removed if found to be fine
@@ -123,60 +97,21 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
 //    }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void reset() {
-    getConnectoidSegments().reset();
-    getVertices().reset();
-    getConnectoidLinks().reset();
-  }
-
-  @Override
-  public String getExternalId() {
-    return externalId;
-  }
-
-  @Override
-  public void setExternalId(String externalId) {
-    this.externalId = externalId;
-  }
-
-  @Override
-  public String getXmlId() {
-    return xmlId;
-  }
-
-  @Override
-  public void setXmlId(String xmlId) {
-    this.xmlId = xmlId;
-  }
-
   @Override
   public ConnectoidLinks getConnectoidLinks() {
-    return (ConnectoidLinks) theGraph.getEdges();
+    return (ConnectoidLinks) getDirectedGraph().getEdges();
   }
 
   @Override
   public ConnectoidSegments getConnectoidSegments() {
-    return (ConnectoidSegments) theGraph.getEdgeSegments();
+    return (ConnectoidSegments) getDirectedGraph().getEdgeSegments();
   }
 
   @Override
   public CentroidVertices getVertices() {
-    return (CentroidVertices) theGraph.getVertices();
+    return (CentroidVertices) getDirectedGraph().getVertices();
   }
 
-  @Override
-  public IdGroupingToken getLayerIdGroupingToken() {
-    return theGraph.getGraphIdGroupingToken();
-  }
-
-  @Override
-  public UntypedDirectedGraphLayerModifier<CentroidVertex, ConnectoidLink, ConnectoidSegment> getLayerModifier() {
-    return new UntypedNetworkLayerModifierImpl<>(theGraph);
-  }
 
   /**
    * {@inheritDoc}
@@ -188,58 +123,14 @@ public class VirtualNetworkLayerImpl implements VirtualNetworkLayer {
     LOGGER.info(String.format("%s#centroid vertices: %d", prefix, getVertices().size()));
   }
 
-  @Override
-  public boolean validate() {
-    return theGraph.validate();
-  }
-
-  @Override
-  public void transform(
-          CoordinateReferenceSystem fromCoordinateReferenceSystem, 
-          CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException {
-    try {
-      theGraph.transformGeometries(PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
-    } catch (Exception e) {
-      PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
-      throw new PlanItException(String.format(
-              "%s error during transformation of virtual network %s CRS", NetworkLayer.createLayerLogPrefix(this), getXmlId()), e);
-    }
-  }
-
-  @Override
-  public Envelope createBoundingBox() {
-    if(getVertices().isEmpty()){
-      return null;
-    }
-
-    Envelope envelope = new Envelope(getVertices().iterator().next().getPosition().getCoordinate());
-    getVertices().forEach(v -> envelope.expandToInclude(v.getPosition().getCoordinate()));
-    return envelope;
-  }
-
   /**
    * {@inheritDoc}
    */
   @Override
-  public ConjugateVirtualNetworkLayerImpl createConjugate(IdGroupingToken idToken) {
+  public ConjugateVirtualNetworkLayerImpl createConjugate(IdGroupingToken idToken, boolean resetIdToken) {
     var conjugateLayer = new ConjugateVirtualNetworkLayerImpl(idToken, this);
-    conjugateLayer.recreateFromReferenceLayer();
+    conjugateLayer.recreateFromReferenceLayer(resetIdToken);
     return conjugateLayer;
-  }
-
-  @Override
-  public boolean isEmpty() {
-    return theGraph.isEmpty();
-  }
-
-  @Override
-  public long getId() {
-    return theGraph.getId();
-  }
-
-  @Override
-  public long recreateManagedIds(IdGroupingToken tokenId) {
-    return theGraph.recreateManagedIds(tokenId);
   }
 
   @Override

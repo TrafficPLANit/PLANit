@@ -112,9 +112,12 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    * {@inheritDoc}
    */
   @Override
-  public void transform(CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException {
+  public void transform(
+          CoordinateReferenceSystem fromCoordinateReferenceSystem,
+          CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException {
     try {
-      getDirectedGraph().transformGeometries(PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
+      getDirectedGraph().transformGeometries(
+              PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
     } catch (Exception e) {
       PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
       throw new PlanItException(String.format("%s error during transformation of physical network %s CRS", NetworkLayer.createLayerLogPrefix(this), getXmlId()), e);
@@ -122,7 +125,8 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   }
 
   /**
-   * Create bounding box based on underlying nodes, this means that any geometries of links tht are internal may cross the boundary of the bounding box
+   * Create bounding box based on underlying nodes, this means that any geometries of links tht are internal
+   * may cross the boundary of the bounding box
    *
    * @return bounding box for this layer based on its nodes' locations, if no vertices are present null is returned
    */
@@ -179,11 +183,11 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void reset() {
-    super.reset();
-    ((ManagedIdEntities<V>) this.directedGraph.getVertices()).reset();
-    ((ManagedIdEntities<E>) this.directedGraph.getEdges()).reset();
-    ((ManagedIdEntities<S>) this.directedGraph.getEdgeSegments()).reset();
+  public void reset(boolean resetManagedIdToken) {
+    super.reset(resetManagedIdToken);
+    ((ManagedIdEntities<V>) this.directedGraph.getVertices()).reset(resetManagedIdToken);
+    ((ManagedIdEntities<E>) this.directedGraph.getEdges()).reset(resetManagedIdToken);
+    ((ManagedIdEntities<S>) this.directedGraph.getEdgeSegments()).reset(resetManagedIdToken);
   }
 
   /**

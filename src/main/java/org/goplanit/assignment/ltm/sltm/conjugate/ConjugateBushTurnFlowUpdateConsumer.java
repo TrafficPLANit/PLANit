@@ -2,7 +2,6 @@ package org.goplanit.assignment.ltm.sltm.conjugate;
 
 import java.util.logging.Logger;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 

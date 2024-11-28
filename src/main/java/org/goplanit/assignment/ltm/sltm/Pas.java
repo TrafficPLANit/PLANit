@@ -42,7 +42,7 @@ public class Pas {
   private double s2Cost;
 
   /** registered origin bushes */
-  private final Set<RootedLabelledBush> registeredBushes;
+  private final Set<RootedBush<?,?>> registeredBushes;
 
   protected long pasId;
 
@@ -122,7 +122,7 @@ public class Pas {
    * @param bush bush to register
    * @return true when newly added, false, when already present
    */
-  public boolean registerBush(final RootedLabelledBush bush) {
+  public boolean registerBush(final RootedBush<?,?> bush) {
     return registeredBushes.add(bush);
   }
 
@@ -132,7 +132,7 @@ public class Pas {
    * @param bush to check
    * @return true when registered, false otherwise
    */
-  public boolean hasRegisteredBush(final RootedLabelledBush bush) {
+  public boolean hasRegisteredBush(final RootedBush<?,?> bush) {
     return registeredBushes.contains(bush);
   }
 
@@ -141,7 +141,7 @@ public class Pas {
    * 
    * @return registered bushes
    */
-  public Set<RootedLabelledBush> getRegisteredBushes() {
+  public Set<? extends RootedBush<?,?>> getRegisteredBushes() {
     return registeredBushes;
   }
 
@@ -166,7 +166,7 @@ public class Pas {
    * 
    * @param bushes to remove
    */
-  public void removeBushes(Collection<RootedLabelledBush> bushes) {
+  public void removeBushes(Collection<RootedBush<?,?>> bushes) {
     bushes.forEach(this::removeBush);
   }
 
@@ -175,23 +175,26 @@ public class Pas {
    * 
    * @param bush to remove
    */
-  public void removeBush(RootedLabelledBush bush) {
+  public void removeBush(RootedBush<?,?> bush) {
     registeredBushes.remove(bush);
   }
 
   /**
-   * Check if bush is overlapping with one of the alternatives, and if it is how much sending flow this sub-path currently represents
+   * Check if bush is overlapping with one of the alternatives, and if it is how much sending flow this sub-path
+   * currently represents
    * 
    * @param bush                             to verify
    * @param lowCost                          when true check with low cost alternative otherwise high cost
-   * @param linkSegmentFlowAcceptanceFactors to use to obtain accepted flow along subpath, where the flow at the start of the high cost segment is used as starting demand
-   * @return when non-negative the segment is overlapping with the PAS, where the value indicates the accepted flow on this sub-path for the bush (with sendinf flow at start as
-   *         base demand)
+   * @param linkSegmentFlowAcceptanceFactors to use to obtain accepted flow along subpath, where the flow at the
+   *                                         start of the high cost segment is used as starting demand
+   * @return when non-negative the segment is overlapping with the PAS, where the value indicates the accepted flow
+   * on this sub-path for the bush (with sending flow at start as base demand)
    */
   public double computeOverlappingAcceptedFlow(
           RootedLabelledBush bush, boolean lowCost, double[] linkSegmentFlowAcceptanceFactors) {
     EdgeSegment[] alternative = lowCost ? s1 : s2;
-    return bush.computeSubPathAcceptedFlow(getDivergeVertex(), getMergeVertex(), alternative, linkSegmentFlowAcceptanceFactors);
+    return bush.computeSubPathAcceptedFlow(
+            getDivergeVertex(), getMergeVertex(), alternative, linkSegmentFlowAcceptanceFactors);
   }
 
   /**
@@ -207,7 +210,8 @@ public class Pas {
     EdgeSegment matchingEdgeSegment = null;
         
     if(pathSearchResult.isInverted()) {
-      /* when search type (and result) is in inverted direction, the result is traversed in downstream direction, i.e., match from first to last */      
+      /* when search type (and result) is in inverted direction, the result is traversed in downstream
+      direction, i.e., match from first to last */
       for (int index = 0; index < alternative.length; ++index) {
         currEdgeSegment = alternative[index];
         matchingEdgeSegment = pathSearchResult.getNextEdgeSegmentForVertex(currEdgeSegment.getUpstreamVertex());
@@ -310,7 +314,8 @@ public class Pas {
    * @return true when overlapping in opposite direction, false otherwise
    */
   public boolean containsAnyOppositeDirection(final  Collection<EdgeSegment> linkSegments) {
-    return containsAnyOppositeDirection(linkSegments, true) || containsAnyOppositeDirection(linkSegments, false);
+    return containsAnyOppositeDirection(linkSegments, true)
+            || containsAnyOppositeDirection(linkSegments, false);
   }
 
   /**
@@ -335,7 +340,8 @@ public class Pas {
   }
 
   /**
-   * update costs of both paths. In case the low cost path is no longer the low cost path, switch it with the high cost path
+   * update costs of both paths. In case the low cost path is no longer the low cost path, switch it with the
+   * high cost path
    * 
    * @param edgeSegmentCosts to use
    * @return true when updated costs caused a switch in what is the high and low cost path
@@ -433,8 +439,9 @@ public class Pas {
   }
 
   /**
-   * Returns the difference between the cost of the high cost and the low cost segment. Should always be larger than zero assuming an {@link #updateCost(double[])} has been
-   * conducted to ensure the segments are labelled correctly regarding which one is high and which one is low cost
+   * Returns the difference between the cost of the high cost and the low cost segment. Should always be
+   * larger than zero assuming an {@link #updateCost(double[])} has been conducted to ensure the segments are
+   * labelled correctly regarding which one is high and which one is low cost
    * 
    * @return s2Cost - s2Cost
    */

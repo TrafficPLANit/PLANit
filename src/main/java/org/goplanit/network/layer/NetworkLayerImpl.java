@@ -6,6 +6,7 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.goplanit.network.Network;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
@@ -132,7 +133,7 @@ public abstract class NetworkLayerImpl extends ExternalIdAbleImpl implements Net
    * {@inheritDoc}
    */
   @Override
-  public void reset() {
+  public void reset(boolean resetManagedIdToken) {
     this.supportedModes.clear();
   }
 

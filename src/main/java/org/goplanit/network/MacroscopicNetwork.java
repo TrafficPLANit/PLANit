@@ -108,7 +108,8 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    */
   @Override
   public MacroscopicNetwork shallowClone() {
-    return new MacroscopicNetwork(this, false, null, null);
+    return new MacroscopicNetwork(
+            this, false, null, null);
   }
 
   /**
@@ -116,20 +117,31 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    */
   @Override
   public MacroscopicNetwork deepClone() {
-    return new MacroscopicNetwork(this, true, new ManagedIdDeepCopyMapper<>(), new ManagedIdDeepCopyMapper<>());
+    return new MacroscopicNetwork(
+            this, true, new ManagedIdDeepCopyMapper<>(), new ManagedIdDeepCopyMapper<>());
   }
 
   /**
-   * construct a conjugate macroscopic network based on this network
+   * Construct a conjugate macroscopic network based on this network.
+   * TODO: currently we only support a single layer version for this by reuing the virtual network's network token for
+   * id generation to ensure contiguous numbering of ids across both networks
    *
-   * @param token groupIdToken to use
+   * @param token groupIdToken to use for the network id generation
    * @param conjugateVirtualNetwork (optional) when present, integrate conjugate physical network with virtual network
+   *                                and use the virtual networks network id token for the managed layer id generation
    * @return created conjugate Macroscopic network
    */
   public ConjugateMacroscopicNetwork createConjugate(
       IdGroupingToken token, ConjugateVirtualNetwork conjugateVirtualNetwork) {
+
     // create instance
-    var conjugateNetwork = new ConjugateMacroscopicNetwork(token, this);
+    ConjugateMacroscopicNetwork conjugateNetwork;
+    if(conjugateVirtualNetwork==null) {
+      conjugateNetwork = new ConjugateMacroscopicNetwork(token, this);
+    }else{
+      conjugateNetwork = new ConjugateMacroscopicNetwork(
+              token, conjugateVirtualNetwork.getLayer().getLayerIdGroupingToken(), this);
+    }
     // create the actual conjugate network
     conjugateNetwork.recreateFromReferenceNetwork(conjugateVirtualNetwork);
     return conjugateNetwork;

@@ -46,14 +46,14 @@ public abstract class PasFlowShiftExecutor {
   private final static Logger LOGGER = Logger.getLogger(PasFlowShiftExecutor.class.getCanonicalName());
 
   /** track any removed edge segments as a result of a flow shift on a bush level */
-  private final Map<EdgeSegment, Set<RootedLabelledBush>> removedEdgeSegmentsForBushes = new TreeMap<>();
+  private final Map<EdgeSegment, Set<RootedBush<?,?>>> removedEdgeSegmentsForBushes = new TreeMap<>();
 
   /** track any removed edge segments as a result of a flow shift on a bush level */
   //todo: remove when no longer needed, now identified beforehand via missing s1 links method
-  private final Map<EdgeSegment, Set<RootedLabelledBush>> addedEdgeSegmentsForBushes = new TreeMap<>();
+  private final Map<EdgeSegment, Set<RootedBush<?,?>>> addedEdgeSegmentsForBushes = new TreeMap<>();
 
   /** track the actually performed flow shifts on S2, to know what to apply to S1 when shifting flow */
-  Map<EdgeSegment, Map<RootedLabelledBush, BushEntryShiftedS2FlowData>> flowShiftedS2BushData = new TreeMap<>();
+  Map<EdgeSegment, Map<RootedBush<?,?>, BushEntryShiftedS2FlowData>> flowShiftedS2BushData = new TreeMap<>();
 
   /**
    * Verify if entry segment is congested.
@@ -177,7 +177,7 @@ public abstract class PasFlowShiftExecutor {
    * @param bush to use for checking
    * @return true when destination is tracked for logging
    */
-  protected boolean isDestinationTrackedForLogging(RootedLabelledBush bush) {
+  protected boolean isDestinationTrackedForLogging(RootedBush<?,?> bush) {
     return settings.isTrackDestinationForLogging((OdZone) bush.getRootZoneVertex().getParent().getParentZone());
   }
 
@@ -491,7 +491,7 @@ public abstract class PasFlowShiftExecutor {
   protected final StaticLtmSettings settings;
 
   /** Track the desired sending flows for s1 and s2 per bush per entry segment */
-  protected final Map<RootedLabelledBush, Map<EdgeSegment, Pair<Double, Double>>> bushEntrySegmentS1S2SendingFlows;
+  protected final Map<RootedBush<?,?>, Map<EdgeSegment, Pair<Double, Double>>> bushEntrySegmentS1S2SendingFlows;
 
   /** store locally as it is costly-ish to compute */
   protected final int pasMergeVertexNumExitSegments;
@@ -690,7 +690,7 @@ public abstract class PasFlowShiftExecutor {
 
     bushEntrySegmentS1S2SendingFlows.clear();
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {
-      for (var bush : pas.getRegisteredBushes()) {
+      for (var bush : (Set<RootedLabelledBush>) pas.getRegisteredBushes()) { //todo: stopgap cast
         if (!bush.contains(entrySegment)) {
           continue;
         }
@@ -737,7 +737,7 @@ public abstract class PasFlowShiftExecutor {
     var missingLinkSegmentsByBush = new TreeMap<EdgeSegment, Set<RootedLabelledBush>>();
     var s1 = this.pas.getAlternative(true);
     for(var linkSegment : s1){
-      for(var bush : this.pas.getRegisteredBushes()){
+      for(var bush : (Set<RootedLabelledBush>) this.pas.getRegisteredBushes()){ //todo: stopgap cast
         if(!bush.contains(linkSegment)){
           missingLinkSegmentsByBush.putIfAbsent(linkSegment, new TreeSet<>());
           missingLinkSegmentsByBush.get(linkSegment).add(bush);
@@ -786,7 +786,7 @@ public abstract class PasFlowShiftExecutor {
     // sub path sending flows current (which is likely different and lower than the ones consistent with loading due to S2 flow shifts
     // performed on other PASs
     Map<Bush, Map<EdgeSegment, Double>> bushEntrySegments2UpdatedFlow = new TreeMap<>();
-    for (var bush : pas.getRegisteredBushes()) {
+    for (RootedLabelledBush bush : (Set<RootedLabelledBush>) pas.getRegisteredBushes()) { // todo: stopgap cast
       double subPathSendingFlow = bush.determineSubPathSendingFlow(
               pas.getAlternative(false), networkLoading.getCurrentFlowAcceptanceFactors());
       var initialS2Segment = pas.getAlternative(false)[0];
@@ -868,7 +868,7 @@ public abstract class PasFlowShiftExecutor {
         smoothedProportionalPasflowShift = guaranteedEntrySegmentS2SendingFlow;
       }
 
-      for (var bush : pas.getRegisteredBushes()) {
+      for (var bush : (Set<RootedLabelledBush>) pas.getRegisteredBushes()) { //todo: stopgap cast
         double nlConsistentBushEntrySegmentS2Flow = bushEntrySegmentS1S2SendingFlows.get(bush).getOrDefault(entrySegment,Pair.of(0.0, 0.0)).second();
         double currentBushEntrySegmentS2Flow = bushEntrySegments2UpdatedFlow.get(bush).getOrDefault(entrySegment,0.0);
         double guaranteedBushEntrySegmentS2SendingFlow = currentBushEntrySegmentS2Flow; //Math.min(nlConsistentBushEntrySegmentS2Flow, currentBushEntrySegmentS2Flow);
@@ -935,7 +935,7 @@ public abstract class PasFlowShiftExecutor {
     for (var entry : flowShiftedS2BushData.entrySet()) {
       var entrySegment = entry.getKey();
       for (var bushFlowEntry : entry.getValue().entrySet()) {
-        var bush = bushFlowEntry.getKey();
+        RootedLabelledBush bush = (RootedLabelledBush) bushFlowEntry.getKey(); //todo: stopgap cast
         var flowShiftData = bushFlowEntry.getValue();
 
         if(isDestinationTrackedForLogging(bush)) {
@@ -1000,7 +1000,7 @@ public abstract class PasFlowShiftExecutor {
    *
    * @return tracked findings or empty map
    */
-  public Map<EdgeSegment, Set<RootedLabelledBush>> getBushRemovedLinkSegments() {
+  public Map<EdgeSegment, Set<RootedBush<?,?>>> getBushRemovedLinkSegments() {
     return removedEdgeSegmentsForBushes;
   }
 
@@ -1009,7 +1009,7 @@ public abstract class PasFlowShiftExecutor {
    *
    * @return tracked findings or empty map
    */
-  public Map<EdgeSegment, Set<RootedLabelledBush>> getBushAddedLinkSegments() {
+  public Map<EdgeSegment, Set<RootedBush<?,?>>> getBushAddedLinkSegments() {
     return addedEdgeSegmentsForBushes;
   }
 
@@ -1019,7 +1019,7 @@ public abstract class PasFlowShiftExecutor {
    * @param linkSegment to check for
    * @return tracked findings or empty list
    */
-  public Set<RootedLabelledBush> getBushRemovedLinkSegments(EdgeSegment linkSegment) {
+  public Set<RootedBush<?,?>> getBushRemovedLinkSegments(EdgeSegment linkSegment) {
     var bushes =
         removedEdgeSegmentsForBushes.computeIfAbsent(linkSegment, k -> new TreeSet<>());
     return bushes;
@@ -1031,7 +1031,7 @@ public abstract class PasFlowShiftExecutor {
    * @param linkSegment to check for
    * @return tracked findings or empty list
    */
-  public Set<RootedLabelledBush> getBushAddedLinkSegments(EdgeSegment linkSegment) {
+  public Set<RootedBush<?,?>> getBushAddedLinkSegments(EdgeSegment linkSegment) {
     var bushes =
         addedEdgeSegmentsForBushes.computeIfAbsent(linkSegment, k -> new TreeSet<>());
     return bushes;
@@ -1044,7 +1044,7 @@ public abstract class PasFlowShiftExecutor {
    * @param linkSegment to register
    */
   public void addBushRemovedLinkSegment(
-      RootedLabelledBush bush, EdgeSegment linkSegment){
+          RootedBush<?,?> bush, EdgeSegment linkSegment){
     if(settings.hasTrackOdsForLogging() && isDestinationTrackedForLogging(bush)){
       LOGGER.info(String.format(
           "           Removed link segment (%s) from bush (%s)",
@@ -1060,7 +1060,7 @@ public abstract class PasFlowShiftExecutor {
    * @param linkSegment to register
    */
   public void addBushAddedLinkSegment(
-      RootedLabelledBush bush, EdgeSegment linkSegment){
+          RootedBush<?,?> bush, EdgeSegment linkSegment){
     if(settings.hasTrackOdsForLogging() && isDestinationTrackedForLogging(bush)){
       LOGGER.info(String.format(
           "           Added link segment (%s) to bush (%s)",

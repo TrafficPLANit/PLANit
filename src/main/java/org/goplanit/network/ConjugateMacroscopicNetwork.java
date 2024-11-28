@@ -73,10 +73,13 @@ public class ConjugateMacroscopicNetwork extends
    * Update/recreate the conjugate network based on current state of the reference network.
    *
    * @param conjugateVirtualNetwork (optional) when present, integrate conjugate physical network with virtual network
+   *                                and do not reset network grouping ids as we base it off continuation of ids used by
+   *                                virtual layer
    */
   protected void recreateFromReferenceNetwork(ConjugateVirtualNetwork conjugateVirtualNetwork) {
     var conjugateLayers = getTransportLayers();
-    conjugateLayers.reset();
+    boolean resetManagedIdToken = conjugateVirtualNetwork==null;
+    conjugateLayers.reset(resetManagedIdToken);
     createAndRegisterConjugateLayers(referenceNetwork.getTransportLayers(), conjugateVirtualNetwork);
   }
 
@@ -89,9 +92,23 @@ public class ConjugateMacroscopicNetwork extends
    * @param tokenId contiguous id generation within this group for instances of this class
    */
   protected ConjugateMacroscopicNetwork(final IdGroupingToken tokenId, MacroscopicNetwork referenceNetwork) {
-    super(tokenId);
+    this(tokenId, null, referenceNetwork);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param referenceNetwork original network the conjugate version will be based on
+   * @param networkGroupingToken groupIdToken to use for the network managed ids id generation (if null,
+   *                             an auto generated token will be created)
+   * @param tokenId contiguous id generation within this group for instances of this class
+   */
+  protected ConjugateMacroscopicNetwork(
+          final IdGroupingToken tokenId, IdGroupingToken networkGroupingToken, MacroscopicNetwork referenceNetwork) {
+    super(tokenId, networkGroupingToken, referenceNetwork.getCoordinateReferenceSystem());
     this.referenceNetwork = referenceNetwork;
   }
+
 
   /**
    * Copy constructor.

@@ -8,6 +8,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.DestinationBush;
 import org.goplanit.assignment.ltm.sltm.RootedLabelledBush;
 import org.goplanit.utils.arrays.ArrayUtils;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.physical.Movement;
@@ -43,7 +44,7 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData>
    */
   private void initialiseOriginExitSegmentSendingFlows(
           final RootedLabelledBush bush, final TreeMap<EdgeSegment, Double> bushSendingFlows) {
-    Set<CentroidVertex> originVertices = bush.getOriginVertices();
+    var originVertices = bush.getOriginVertices();
     for (var originVertex : originVertices) {
       double totalOriginsSendingFlow = 0;
       for (var originExit : originVertex.getExitEdgeSegments()) {
@@ -55,10 +56,24 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData>
         }
 
         if (Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(originVertex), Precision.EPSILON_3)) {
-          LOGGER.severe(String.format("bush (%s) origin's (%s) travel demand (%.8f pcu/h) not equal to total flow (%.8f pcu/h), this shouldn't happen",
-                  ((DestinationBush)bush).getRootZoneVertex().getParent().getParentZone().getIdsAsString(), originVertex.getParent().getParentZone().getXmlId(), bush.getOriginDemandPcuH(originVertex), totalOriginsSendingFlow));
+          LOGGER.severe(String.format("bush (%s) origin's (%s) travel demand (%.8f pcu/h) not equal " +
+                          "to total flow (%.8f pcu/h), this shouldn't happen",
+                  ((DestinationBush)bush).getRootZoneVertex().getParent().getParentZone().getIdsAsString(),
+                  originVertex.getParent().getParentZone().getXmlId(),
+                  bush.getOriginDemandPcuH(originVertex), totalOriginsSendingFlow));
         }
     }
+  }
+
+  /**
+   * Access to movement given a from to segment
+   *
+   * @param from from segment of movement
+   * @param to to segment of movement
+   * @return movement if available
+   */
+  protected Movement getMovement(EdgeSegment from, EdgeSegment to){
+    return segmentPair2MovementMap.get(from, to);
   }
 
   /**
@@ -189,8 +204,7 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData>
             }
 
             /* update turn accepted flows as per derived class implementation (or do nothing) */
-            applyAcceptedTurnFlowUpdate(
-                    segmentPair2MovementMap.get(entrySegment, exitSegment), turnAcceptedFlow);
+            applyAcceptedTurnFlowUpdate(getMovement(entrySegment, exitSegment), turnAcceptedFlow);
           }
           ++splittingRateIndex;
         }

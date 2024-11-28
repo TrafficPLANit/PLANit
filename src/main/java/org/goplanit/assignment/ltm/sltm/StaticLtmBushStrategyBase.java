@@ -48,7 +48,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * @param bushRemovedLinkSegments to consider
    */
   private void deregisterBushesWithRemovedSegmentsFromMatchingPass(
-          Map<EdgeSegment, Set<RootedLabelledBush>> bushRemovedLinkSegments) {
+          Map<EdgeSegment, Set<RootedBush<?,?>>> bushRemovedLinkSegments) {
 
     for(var entry : bushRemovedLinkSegments.entrySet()){
       // check if any edge segment of pas is matching with the link segment removed from the bush
@@ -384,7 +384,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
          * then we must remove these bushes from other pass that 1) have this bush registered, and 2) have
          * the link segment present that no longer has any flow on the bush. */
         if(pasFlowShifter.hasAnyBushRemovedLinkSegments()){
-          Map<EdgeSegment, Set<RootedLabelledBush>> bushRemovedLinkSegments = pasFlowShifter.getBushRemovedLinkSegments();
+          Map<EdgeSegment, Set<RootedBush<?,?>>> bushRemovedLinkSegments = pasFlowShifter.getBushRemovedLinkSegments();
           deregisterBushesWithRemovedSegmentsFromMatchingPass(bushRemovedLinkSegments);
         }
       }
@@ -589,7 +589,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * @param odDemands             to use
    * @param shortestBushAlgorithm to use
    */
-  protected abstract void initialiseBush(B bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm);
+  protected abstract void initialiseBush(
+          B bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm);
 
   /**
    * {@inheritDoc}
@@ -601,7 +602,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   protected abstract PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings);
 
   /**
-   * Initialise bushes. Find shortest bush for each origin and add the links, flow, and destination labelling to the bush
+   * Initialise bushes. Find shortest bush for each origin and add the links, flow, and destination labelling to
+   * the bush
    *
    * @param mode             to use
    * @param linkSegmentCosts costs to use
@@ -631,10 +633,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * @param linkSegmentCosts to use
    * @return one-to-all shortest bush algorithm
    */
-  protected ShortestBushGeneralised createNetworkShortestBushAlgo(final double[] linkSegmentCosts) {
-    final int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
-    return new ShortestBushGeneralised(linkSegmentCosts, numberOfVertices);
-  }
+  protected abstract ShortestBushGeneralised createNetworkShortestBushAlgo(final double[] linkSegmentCosts);
 
   /**
    * Create a network wide Dijkstra shortest path algorithm based on provided costs
@@ -687,7 +686,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         // potential for removing one or more bushes but only if removed segment(s) overlap with the PAS
         if(pas.containsEdgeSegment(removedSegmentsEntry.getKey())){
           // overlap found, remove bush from PAS since it is no longer valid
-          pas.removeBushes((Collection<RootedLabelledBush>) removedSegmentsEntry.getValue());
+          pas.removeBushes((Collection<RootedBush<?,?>>) removedSegmentsEntry.getValue());
         }
       }
     });
@@ -736,6 +735,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
     } catch (Exception e) {
       LOGGER.severe(String.format("Unable to create initial bushes for sLTM %d", getAssignmentId()));
+      LOGGER.severe(e.getMessage());
+      e.printStackTrace();
     }
   }
 

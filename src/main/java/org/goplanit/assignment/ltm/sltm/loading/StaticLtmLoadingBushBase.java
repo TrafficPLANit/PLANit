@@ -249,16 +249,16 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * 
    * @param idToken      to use
    * @param assignmentId to use
-   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
-   *  to splitting rate data format
+   * @param nlSegmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to convert turn flows
+   *  to splitting rate data format at network loading general network level (not for the bushes)
    * @param settings to use
    */
   public StaticLtmLoadingBushBase(
           IdGroupingToken idToken,
           long assignmentId,
-          MultiKeyMap<Object,Movement> segmentPair2MovementMap,
+          MultiKeyMap<Object,Movement> nlSegmentPair2MovementMap,
           final StaticLtmSettings settings) {
-    super(idToken, assignmentId, segmentPair2MovementMap, settings);
+    super(idToken, assignmentId, nlSegmentPair2MovementMap, settings);
   }
   
   /** The bushes to use when a loading update is requested

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushRooted;
 import org.goplanit.gap.GapFunction;
@@ -19,6 +20,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 
 /**
  * Base implementation to support a rooted bush based solution for sLTM
@@ -184,6 +186,15 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
   }
 
   /**
+   * {@inheritDoc
+   */
+  @Override
+  protected ShortestBushGeneralised createNetworkShortestBushAlgo(final double[] linkSegmentCosts) {
+    final int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
+    return new ShortestBushGeneralised(linkSegmentCosts, numberOfVertices);
+  }
+
+  /**
    * Match (new) PASs to improve existing bushes (origin) at hand.
    * <p>
    * Note that in order to extend the bushes we run a shortest path rooted at each bush's origin, since this is costly, we utilise the result also to update the min-cost gap for
@@ -250,7 +261,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         var odDemands = getOdDemands(mode);
         var destination = ((DestinationBush) bush).getDestination().getParent().getParentZone();
         for (var originVertex : bush.getOriginVertices()) {
-          var origin = originVertex.getParent().getParentZone();
+          var origin = ((CentroidVertex)originVertex).getParent().getParentZone();
           double odDemand = odDemands.getValue(origin, destination);
           double minOdCost = networkMinPaths.getCostToReach(originVertex);
           totalMinCost += minOdCost * odDemand;

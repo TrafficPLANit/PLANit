@@ -18,7 +18,7 @@ public class BushInitialiserHelper {
   private static final Logger LOGGER = Logger.getLogger(BushInitialiserHelper.class.getCanonicalName());
 
   /** to initialise */
-  private final RootedLabelledBush bush;
+  private final RootedBush<?,?> bush;
 
   /** to use to initialise bush */
   private final ACyclicSubGraph rootedDag;
@@ -212,10 +212,12 @@ public class BushInitialiserHelper {
           }
 
           // remove tracking info from alternative - finished
-          removeFinishedPasAlternativeTracking(pasAlternative, allOriginVertexAlternatives, edgeSegmentPasOriginVertexAlternativeIndex, entrySegmentsWithUnfinishedPas);
+          removeFinishedPasAlternativeTracking(
+                  pasAlternative, allOriginVertexAlternatives, edgeSegmentPasOriginVertexAlternativeIndex, entrySegmentsWithUnfinishedPas);
         }
         // remove tracking info from reference alternative - finished
-        removeFinishedPasAlternativeTracking(referenceAlternative, allOriginVertexAlternatives, edgeSegmentPasOriginVertexAlternativeIndex, entrySegmentsWithUnfinishedPas);
+        removeFinishedPasAlternativeTracking(
+                referenceAlternative, allOriginVertexAlternatives, edgeSegmentPasOriginVertexAlternativeIndex, entrySegmentsWithUnfinishedPas);
         if (allOriginVertexAlternatives.isEmpty()) {
           originVertexAlternatives.remove(originVertex);
         }
@@ -232,7 +234,7 @@ public class BushInitialiserHelper {
    * @param logNewPass when true log new PASs, otherwise not
    */
   protected BushInitialiserHelper(
-          final RootedLabelledBush bush, final ACyclicSubGraph rootedDag, final PasManager pasManager, boolean logNewPass) {
+          final RootedBush<?,?> bush, final ACyclicSubGraph rootedDag, final PasManager pasManager, boolean logNewPass) {
     this.bush = bush;
     this.rootedDag = rootedDag;
     this.pasManager = pasManager;
@@ -249,18 +251,19 @@ public class BushInitialiserHelper {
    * @return created helper
    */
   public static BushInitialiserHelper create(
-          final RootedLabelledBush bush, final ACyclicSubGraph rootedDag, final PasManager pasManager, boolean logNewPass) {
+          final RootedBush<?,?> bush, final ACyclicSubGraph rootedDag, final PasManager pasManager, boolean logNewPass) {
     return new BushInitialiserHelper(bush, rootedDag, pasManager, logNewPass);
   }
 
   /**
-   * Execute the initialisation by ensuring the correct flow is added to the bush for the given od dag and its related demand.
+   * Execute the initialisation by ensuring the correct flow is added to the bush for the given od dag and its
+   * related demand.
    * <p>
    *   It is assumed we are given an iterator that runs from the origin towards destination(s) at all times here
    * </p>
    * 
-   * @param originVertex   to start with, expected to be the centroid of the od's origin. It is expected the iterator proceeds in downstream direction until reaching the
-   *                       destination
+   * @param originVertex   to start with, expected to be the centroid of the od's origin. It is expected the
+   *                       iterator proceeds in downstream direction until reaching the destination
    * @param oDDemandPcuH   to use for the origin vertex
    * @param vertexIter     flag indicating if new pass are to be logged
    */
@@ -298,7 +301,8 @@ public class BushInitialiserHelper {
             continue;
           }
 
-          if (Precision.positive(entrySegmentSendingFlow) && edgeSegmentPasOriginVertexAlternativeIndex.get(entryEdgeSegment) != null) {
+          if (Precision.positive(entrySegmentSendingFlow)
+                  && edgeSegmentPasOriginVertexAlternativeIndex.get(entryEdgeSegment) != null) {
             entrySegmentsWithUnfinishedPas.add(entryEdgeSegment);
           }
           vertexOdSendingFlow += entrySegmentSendingFlow;
@@ -307,7 +311,8 @@ public class BushInitialiserHelper {
 
       if (entrySegmentsWithUnfinishedPas.size() > 1) {
         /* create PASs at this merge and update passed in containers to reflect changes */
-        finishInitialBushPassAtMerge(entrySegmentsWithUnfinishedPas, originVertexAlternatives, edgeSegmentPasOriginVertexAlternativeIndex);
+        finishInitialBushPassAtMerge(
+                entrySegmentsWithUnfinishedPas, originVertexAlternatives, edgeSegmentPasOriginVertexAlternativeIndex);
       }
 
       numUsedOdExitSegments = rootedDag.getNumberOfEdgeSegments(currVertex, true /* exit segments */);
@@ -328,15 +333,21 @@ public class BushInitialiserHelper {
 
             /* for all continuing PASs - we select the first exit segment as their continuation path and add it */
             if (!entrySegmentsWithUnfinishedPas.isEmpty()) {
-              extendUnfinishedPass(exitSegment, entrySegmentsWithUnfinishedPas, edgeSegmentPasOriginVertexAlternativeIndex, originVertexAlternatives);
+              extendUnfinishedPass(
+                      exitSegment,
+                      entrySegmentsWithUnfinishedPas,
+                      edgeSegmentPasOriginVertexAlternativeIndex,
+                      originVertexAlternatives);
               entrySegmentsWithUnfinishedPas.clear();
             }
           }
         }
 
         if (numUsedExits > 1 && !originVertexAlternatives.containsKey(currVertex)) {
-          /* new PAS(s) start here, flow splits, create and register exit edge segments as start of alternatives for new diverge leading to PAS(s) when merging later */
-          addNewUnfinishedPass(currVertex, rootedDag, edgeSegmentPasOriginVertexAlternativeIndex, originVertexAlternatives);
+          /* new PAS(s) start here, flow splits, create and register exit edge segments as start of alternatives
+          for new diverge leading to PAS(s) when merging later */
+          addNewUnfinishedPass(
+                  currVertex, rootedDag, edgeSegmentPasOriginVertexAlternativeIndex, originVertexAlternatives);
         }
       }
     }

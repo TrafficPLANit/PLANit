@@ -10,7 +10,7 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.LtmAssignment;
-import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmStrategyConjugateBush;
+import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
@@ -74,7 +74,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
                 getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
         break;
       case CONJUGATE_DESTINATION_BUSH_BASED:
-        strategy =  new StaticLtmStrategyConjugateBush(
+        strategy =  new StaticLtmConjugateBushStrategy(
                 getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
         break;
       case PATH_BASED:

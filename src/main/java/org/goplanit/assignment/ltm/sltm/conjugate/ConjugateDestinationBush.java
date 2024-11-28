@@ -8,6 +8,7 @@ import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.graph.directed.acyclic.ConjugateACyclicSubGraphImpl;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
@@ -146,6 +147,25 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
           final double[] conjugatelinkSegmentCosts, final int totalConjugateVertices) {
     // TODO: not rewritten yet
     return null;
+  }
+
+  /**
+   * {@inheritDoc
+   */
+  @Override
+  @SuppressWarnings("unchecked")
+  public Set<ConjugateDirectedVertex> getOriginVertices() {
+    return (Set<ConjugateDirectedVertex>) super.getOriginVertices();
+  }
+
+  @Override
+  public EdgeSegment determineIntroduceCycle(EdgeSegment[] alternative) {
+    throw new PlanItRunTimeException("not yet implemented - reuse one in regular rooted bush");
+  }
+
+  @Override
+  public double addTurnSendingFlow(EdgeSegment from, EdgeSegment to, double addFlowPcuH) {
+    throw new PlanItRunTimeException("not yet implemented - reuse one in regular rooted bush");
   }
 
   @Override

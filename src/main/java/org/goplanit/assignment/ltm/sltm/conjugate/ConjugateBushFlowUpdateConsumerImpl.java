@@ -6,6 +6,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.network.layer.physical.Movement;
 
 /**
  * Conjugate Bush consumer to apply during conjugate bush based network loading flow update for each origin bush
@@ -70,10 +71,10 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
 
   /**
    * Constructor
-   * 
-   * @param dataConfig to use
+   *
+   * @param dataConfig              to use
    */
-  public ConjugateBushFlowUpdateConsumerImpl(final T dataConfig) {
+  public ConjugateBushFlowUpdateConsumerImpl(final T dataConfig){
     this.dataConfig = dataConfig;
   }
 

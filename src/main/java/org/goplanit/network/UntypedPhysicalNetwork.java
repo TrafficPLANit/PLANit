@@ -1,13 +1,11 @@
 package org.goplanit.network;
 
+import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.layers.UntypedPhysicalNetworkLayers;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * A network that comprises physical topological transport network elements, i.e., roads, rail, etc.
@@ -15,7 +13,8 @@ import org.goplanit.utils.network.layers.UntypedPhysicalNetworkLayers;
  * @author markr
  *
  */
-public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?, ?>, LS extends UntypedPhysicalNetworkLayers<L>> extends TopologicalLayerNetwork<L, LS> {
+public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?, ?>, LS extends UntypedPhysicalNetworkLayers<L>>
+        extends TopologicalLayerNetwork<L, LS> {
 
   /**
    * generated UID
@@ -38,7 +37,22 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
    * @param coordinateReferenceSystem preferred coordinate reference system to use
    */
   public UntypedPhysicalNetwork(IdGroupingToken tokenId, CoordinateReferenceSystem coordinateReferenceSystem) {
-    super(tokenId, coordinateReferenceSystem);
+    this(tokenId, null, coordinateReferenceSystem);
+  }
+
+  /**
+   * Default constructor
+   *
+   * @param tokenId              to use for id generation
+   * @param networkGroupingToken groupIdToken to use for the network managed ids id generation (if null,
+   *                             an auto generated token will be created)
+   * @param coordinateReferenceSystem preferred coordinate reference system to use
+   */
+  public UntypedPhysicalNetwork(
+          IdGroupingToken tokenId,
+          IdGroupingToken networkGroupingToken,
+          CoordinateReferenceSystem coordinateReferenceSystem) {
+    super(tokenId, networkGroupingToken, coordinateReferenceSystem);
   }
 
   /**

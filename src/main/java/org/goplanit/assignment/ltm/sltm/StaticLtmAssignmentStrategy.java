@@ -74,8 +74,8 @@ public abstract class StaticLtmAssignmentStrategy {
   /** have a mapping between zone and connectoid to the layer by means of its centroid vertex */
   private final Map<Zone, CentroidVertex> zone2VertexMapping;
 
-  /** have a mapping between two link segments (keys) - from and to - towards a movement*/
-  private final MultiKeyMap<Object, Movement> segmentPair2MovementMap;
+  /** have a mapping between two link segments (keys) - from and to - towards a movement used for network loading*/
+  private final MultiKeyMap<Object, Movement> nlSegmentPair2MovementMap;
 
   /**
    * The transport model network used
@@ -100,7 +100,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * @return segmentToMovement mapping
    */
   protected MultiKeyMap<Object, Movement> getSegmentToMovementMapping(){
-    return segmentPair2MovementMap;
+    return nlSegmentPair2MovementMap;
   }
 
   /**
@@ -423,15 +423,15 @@ public abstract class StaticLtmAssignmentStrategy {
     this.settings = settings;
     this.taComponents = taComponents;
 
-    /* construct mapping from OdZone to centroidVertex which is needed for path finding among other things, where we get an OD but need to find a path from
-     * centroid vertex to centroid vertex */
+    /* construct mapping from OdZone to centroidVertex which is needed for path finding among other things,
+     * where we get an OD but need to find a path from centroid vertex to centroid vertex */
     this.zone2VertexMapping = (Map<Zone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
         transportModelNetwork.getVirtualNetwork().getLayer(), true /*include OdZones */, false /* exclude transfer zones */);
 
-    /* construct mapping from entry/exit segment to movement which is currently needed for quick conversion of turn flows to splitting rates
-     * during loading at the expense of more memory usage.
+    /* construct mapping from entry/exit segment to movement which is currently needed for quick conversion of turn
+     * flows to splitting rates during loading at the expense of more memory usage.
      */
-    this.segmentPair2MovementMap = transportModelNetwork.createEntryExitSegmentToMovementMapping();
+    this.nlSegmentPair2MovementMap = transportModelNetwork.createEntryExitSegmentToMovementMapping();
   }
 
   /**
@@ -442,7 +442,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param demands     to use
    */
   public void updateTimePeriod(final TimePeriod timePeriod, final Set<Mode> modes, final Demands demands) {
-    this.networkLoading = createNetworkLoading(segmentPair2MovementMap);
+    this.networkLoading = createNetworkLoading(nlSegmentPair2MovementMap);
     this.networkLoading.initialiseInputs(timePeriod, modes, demands, getTransportNetwork());
   }
 

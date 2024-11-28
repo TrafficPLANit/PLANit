@@ -22,7 +22,9 @@ import org.goplanit.utils.network.virtual.ConjugateVirtualNetworkLayer;
  * @author markr
  *
  */
-public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, MacroscopicLink, MacroscopicLinkSegment> implements MacroscopicNetworkLayer {
+public class MacroscopicNetworkLayerImpl
+        extends UntypedPhysicalLayerImpl<Node, MacroscopicLink, MacroscopicLinkSegment>
+        implements MacroscopicNetworkLayer {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicNetworkLayerImpl.class.getCanonicalName());
@@ -47,7 +49,8 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    * @param links        to use
    * @param linkSegments to use
    */
-  protected MacroscopicNetworkLayerImpl(final IdGroupingToken groupId, Nodes nodes, MacroscopicLinks links, MacroscopicLinkSegments linkSegments) {
+  protected MacroscopicNetworkLayerImpl(
+          final IdGroupingToken groupId, Nodes nodes, MacroscopicLinks links, MacroscopicLinkSegments linkSegments) {
     super(groupId, nodes, links, linkSegments);
     linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl(groupId);
   }
@@ -166,8 +169,8 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    * {@inheritDoc}
    */
   @Override
-  public void reset() {
-    super.reset();
+  public void reset(boolean resetManagedIdToken) {
+    super.reset(resetManagedIdToken);
     this.resetChildManagedIdEntities();
   }
 

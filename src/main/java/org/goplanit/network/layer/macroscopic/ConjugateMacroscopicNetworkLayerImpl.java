@@ -66,7 +66,8 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
         }
       }
     }else{
-      LOGGER.info("Conjugate virtual network is not available or empty, ignored in conjugate macroscopic network layer recreation");
+      LOGGER.info("Conjugate virtual network is not available or empty, ignored in " +
+              "conjugate macroscopic network layer recreation");
     }
 
     /* (link,link) -> conjugate link + conjugate link segments */
@@ -126,9 +127,11 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    * @param groupId       contiguous id generation within this group for instances of this class
    * @param originalLayer this conjugate is based on
    */
-  protected ConjugateMacroscopicNetworkLayerImpl(final IdGroupingToken groupId, final MacroscopicNetworkLayer originalLayer) {
+  protected ConjugateMacroscopicNetworkLayerImpl(
+          final IdGroupingToken groupId, final MacroscopicNetworkLayer originalLayer) {
     // todo: replace links with Macroscopic conjugate links
-    this(groupId, new ConjugateNodesImpl(groupId), new ConjugateLinksImpl(groupId), new ConjugateLinkSegmentsImpl(groupId), originalLayer);
+    this(groupId, new ConjugateNodesImpl(groupId), new ConjugateLinksImpl(groupId),
+            new ConjugateLinkSegmentsImpl(groupId), originalLayer);
   }
 
   /**
@@ -211,25 +214,20 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    */
   @Override
   public ConjugateMacroscopicNetworkLayerImpl deepClone() {
-    return new ConjugateMacroscopicNetworkLayerImpl(this, true, new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
+    return new ConjugateMacroscopicNetworkLayerImpl(
+            this,
+            true,
+            new GraphEntityDeepCopyMapper<>(),
+            new GraphEntityDeepCopyMapper<>(),
+            new GraphEntityDeepCopyMapper<>());
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void reset() {
-    super.reset();
-    this.resetChildManagedIdEntities();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void resetChildManagedIdEntities() {
-    super.resetChildManagedIdEntities();
-    // no others at this point
+  public void reset(boolean resetManagedIdToken) {
+    super.reset(resetManagedIdToken);
   }
 
   /**

@@ -44,7 +44,11 @@ public class ShortestBushResultGeneralised extends ShortestResultGeneralised imp
    * @param numberOfEdgeSegments     on the parent network
    * @param searchType               used (one-to-all, all-to-one, etc)
    */
-  protected ShortestBushResultGeneralised(double[] vertexMeasuredCost, Object[] nextEdgeSegmentsByVertex, int numberOfEdgeSegments, ShortestSearchType searchType) {
+  protected ShortestBushResultGeneralised(
+          double[] vertexMeasuredCost,
+          Object[] nextEdgeSegmentsByVertex,
+          int numberOfEdgeSegments,
+          ShortestSearchType searchType) {
     super(vertexMeasuredCost, searchType);
     this.nextEdgeSegments = nextEdgeSegmentsByVertex;
     this.numberOfEdgeSegments = numberOfEdgeSegments;
@@ -71,11 +75,12 @@ public class ShortestBushResultGeneralised extends ShortestResultGeneralised imp
       var currVertex = openVertices.first();
       openVertices.remove(currVertex);
 
-      /* add all eligible upstream segments to the dag and register their upstream vertices (if unprocessed) for further processing */
+      /* add all eligible upstream segments to the dag and register their upstream vertices
+       * (if unprocessed) for further processing */
       List<EdgeSegment> eligibleNextEdgeSegments = getNextEdgeSegmentsForVertex(currVertex);
       if (!CollectionUtils.nullOrEmpty(eligibleNextEdgeSegments)) {
         for (var edgeSegment : eligibleNextEdgeSegments) {
-          dag.addEdgeSegment((EdgeSegment) edgeSegment);
+          dag.addEdgeSegment(edgeSegment);
           DirectedVertex nextVertex = this.getVertexAtExtreme.apply(edgeSegment);
           if (!processedVertices.contains(nextVertex)) {
             openVertices.add(nextVertex);

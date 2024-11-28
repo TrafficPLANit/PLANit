@@ -6,6 +6,7 @@ import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.UntypedVirtualNetwork;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.zoning.Zoning;
 
 public class TransportModelNetworkUtils {
@@ -50,9 +51,9 @@ public class TransportModelNetworkUtils {
    */
   public static int getNumberOfPhysicalLinkSegmentsAllLayers(LayeredNetwork<?, ?> theNetwork) {
     int totalPhysicalLinkSegments = 0;
-    var networkLayers = theNetwork.getTransportLayers().<MacroscopicNetworkLayerImpl>getLayersOfType();
+    var networkLayers = theNetwork.getTransportLayers().<UntypedPhysicalLayer<?,?,?>>getLayersOfType();
     for (var layer : networkLayers) {
-      totalPhysicalLinkSegments += layer.getNumberOfLinkSegments();
+      totalPhysicalLinkSegments += (int) layer.getNumberOfLinkSegments();
     }
     return totalPhysicalLinkSegments;
   }
@@ -61,12 +62,11 @@ public class TransportModelNetworkUtils {
    * Returns the total physical vertices and centroid vertices (of od and/or transfer zones) in this transport network
    *
    * @param physicalNetwork to use
-   * @param zoning to use
+   * @param virtualNetwork to use
    * @return the total number of vertices
    */
-  public static int getNumberOfVerticesAllLayers(LayeredNetwork<?, ?> physicalNetwork, Zoning zoning) {
-    return zoning.getOdZones().getNumberOfCentroids() +
-            zoning.getTransferZones().getNumberOfCentroids() + getNumberOfPhysicalNodesAllLayers(physicalNetwork);
+  public static int getNumberOfVerticesAllLayers(LayeredNetwork<?, ?> physicalNetwork, VirtualNetwork virtualNetwork) {
+    return virtualNetwork.getLayer().getVertices().size() + getNumberOfPhysicalNodesAllLayers(physicalNetwork);
   }
 
   /**

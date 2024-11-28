@@ -3,6 +3,7 @@ package org.goplanit.network.virtual;
 import org.goplanit.network.Network;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.virtual.*;
@@ -115,9 +116,17 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    * {@inheritDoc}
    */
   @Override
-  public ConjugateVirtualNetworkImpl createConjugate(IdGroupingToken idToken) {
-    var conjugateVirtualNetwork = new ConjugateVirtualNetworkImpl(idToken, this);
-    conjugateVirtualNetwork.update();
+  public ConjugateVirtualNetworkImpl createConjugate(
+          IdGroupingToken idToken, boolean resetIdToken) {
+    // it is expected we start by creating the virtual network, so we can safely create a layer token which then can
+    // be reused by the physical network layer once we create that conjugate. Not ideal but for now it sufficies to ensure
+    // contiguous ids across both networks
+    var conjugateVirtualNetwork =
+            new ConjugateVirtualNetworkImpl(
+                    idToken,
+                    IdGenerator.createIdGroupingToken(this, getId()), // <---
+                    this);
+    conjugateVirtualNetwork.recreateFromReferenceVirtualNetwork(resetIdToken);
     return conjugateVirtualNetwork;
   }
 

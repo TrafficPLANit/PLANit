@@ -67,7 +67,8 @@ public class ShortestPathGeneralised {
    * @param openVertices       to bootstrap with one or more initial vertices
    * @param vertexMeasuredCost to initialise based on the bootstrapping of the open vertices, otherwise all entries have maximum double values
    */
-  protected void initialiseOpenVertices(PriorityQueue<Pair<DirectedVertex, Double>> openVertices, double[] vertexMeasuredCost) {
+  protected void initialiseOpenVertices(
+          PriorityQueue<Pair<DirectedVertex, Double>> openVertices, double[] vertexMeasuredCost) {
     vertexMeasuredCost[(int) currentSource.getId()] = 0.0;
     openVertices.add(Pair.of(currentSource, 0.0)); // cost to reach self is zero
   }
@@ -75,11 +76,15 @@ public class ShortestPathGeneralised {
   /**
    * Generalised shortest-X search
    * 
-   * @param verifyVertex                           predicate to test if the new cost to reach vertex is considered shortest compared to existing cost
-   * @param shortestAlternativeEdgeSegmentConsumer process the "shortest" alternative edge segment when verified by the predicate
-   * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
+   * @param verifyVertex                           predicate to test if the new cost to reach vertex is considered
+   *                                               shortest compared to existing cost
+   * @param shortestAlternativeEdgeSegmentConsumer process the "shortest" alternative edge segment when verified by
+   *                                               the predicate
+   * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available
+   * in the array
    */
-  protected double[] internalExecute(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestAlternativeEdgeSegmentConsumer) {
+  protected double[] internalExecute(
+          BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestAlternativeEdgeSegmentConsumer) {
     boolean[] vertexVisited = new boolean[numberOfVertices];
 
     // track measured cost for each vertex
@@ -130,42 +135,59 @@ public class ShortestPathGeneralised {
   }
 
   /**
-   * Generalised shortest-X search where the search type determines to which of the other methods to delegate, oneToAll or AllToOne.
+   * Generalised shortest-X search where the search type determines to which of the other methods to delegate,
+   * oneToAll or AllToOne.
    * 
    * @param searchType                          to use
-   * @param verifyVertex                        predicate to test if the new cost to reach vertex is considered shortest compared to existing cost
-   * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by the predicate
-   * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
+   * @param verifyVertex                        predicate to test if the new cost to reach vertex is considered
+   *                                            shortest compared to existing cost
+   * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by the
+   *                                            predicate
+   * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available
+   * in the array
    */
-  protected double[] execute(ShortestSearchType searchType, BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
+  protected double[] execute(
+          ShortestSearchType searchType,
+          BiPredicate<Double, Double> verifyVertex,
+          Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
     this.getEdgeSegmentsInDirection = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(searchType);
     this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(searchType);
     return internalExecute(verifyVertex, shortestIncomingEdgeSegmentConsumer);
   }
 
   /**
-   * Generalised one-to-all shortest-X search where the test whether or not an alternative edge segment is shortest is dictated by the provided predicate while the processing of
-   * the alternative edge segment when the predicate tests as true is outsourced to the provided consumer. It is however assumed that only a single cost is stored per vertex
-   * resulting in the returned vertex measured cost array
+   * Generalised one-to-all shortest-X search where the test whether or not an alternative edge segment is shortest
+   * is dictated by the provided predicate while the processing of alternative edge segment when the predicate tests
+   * as true is outsourced to the provided consumer. It is however assumed that only a single cost is stored per
+   * vertex resulting in the returned vertex measured cost array
    * 
-   * @param verifyVertex                        predicate to test if the new cost to reach vertex is considered shortest compared to existing cost
-   * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by the predicate
-   * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
+   * @param verifyVertex                        predicate to test if the new cost to reach vertex is considered
+   *                                            shortest compared to existing cost
+   * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by the
+   *                                            predicate
+   * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available
+   * in the array
    */
-  protected double[] executeOneToAll(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
+  protected double[] executeOneToAll(
+          BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
     return execute(ShortestSearchType.ONE_TO_ALL, verifyVertex, shortestIncomingEdgeSegmentConsumer);
   }
 
   /**
-   * Generalised all-to-one shortest-X search where the test whether or not an alternative edge segment is shortest is dictated by the provided predicate while the processing of
-   * the alternative edge segment when the predicate tests as true is outsourced to the provided consumer. It is however assumed that only a single cost is stored per vertex
-   * resulting in the returned vertex measured cost array
+   * Generalised all-to-one shortest-X search where the test whether or not an alternative edge segment is shortest
+   * is dictated by the provided predicate while the processing of the alternative edge segment when the predicate
+   * tests as true is outsourced to the provided consumer. It is however assumed that only a single cost is stored
+   * per vertex resulting in the returned vertex measured cost array
    * 
-   * @param verifyVertex                        predicate to test if the new cost to reach vertex is considered shortest compared to existing cost
-   * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by the predicate
-   * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
+   * @param verifyVertex                        predicate to test if the new cost to reach vertex is considered
+   *                                            shortest compared to existing cost
+   * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by
+   *                                            the predicate
+   * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available
+   * in the array
    */
-  protected double[] executeAllToOne(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
+  protected double[] executeAllToOne(
+          BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
     return execute(ShortestSearchType.ALL_TO_ONE, verifyVertex, shortestIncomingEdgeSegmentConsumer);
   }
 

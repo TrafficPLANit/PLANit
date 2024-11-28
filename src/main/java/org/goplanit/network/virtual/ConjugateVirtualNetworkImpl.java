@@ -33,20 +33,28 @@ public class ConjugateVirtualNetworkImpl extends Network implements ConjugateVir
   /**
    * Reset and re-populate entire conjugate virtual network based on current state of original virtual network
    * this is the conjugate of
+   *
+   * @param resetManagedIdToken  when true reset token to start ids from zero, otherwise not
    */
-  protected void update() {
-    getLayer().recreateFromReferenceLayer();
+  protected void recreateFromReferenceVirtualNetwork(boolean resetManagedIdToken) {
+    getLayer().recreateFromReferenceLayer(resetManagedIdToken);
   }
 
   /**
    * Constructor
    * 
    * @param idToken contiguous id generation for instances of this class
+   * @param networkIdGroupingToken token for id generation of managed id classes within network itself
    * @param originalVirtualNetwork to use
    */
-  public ConjugateVirtualNetworkImpl(IdGroupingToken idToken, final VirtualNetworkImpl originalVirtualNetwork) {
-    super(idToken);
-    this.conjugateVirtualLayer = new ConjugateVirtualNetworkLayerImpl(idToken, originalVirtualNetwork.getLayer());
+  public ConjugateVirtualNetworkImpl(
+          IdGroupingToken idToken,
+          final IdGroupingToken networkIdGroupingToken,
+          final VirtualNetworkImpl originalVirtualNetwork) {
+    super(idToken, networkIdGroupingToken);
+    // layer is managed by virtual network, so it receives the network id grouping token
+    this.conjugateVirtualLayer =
+            new ConjugateVirtualNetworkLayerImpl(getNetworkGroupingTokenId(), originalVirtualNetwork.getLayer());
     this.originalVirtualNetwork = originalVirtualNetwork;
   }
 

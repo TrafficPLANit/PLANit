@@ -161,8 +161,11 @@ public class TransportModelNetworkImpl
    */
   @Override
   public TransportModelNetworkImpl integrateTransportNetworkViaConnectoids(boolean resetAndRecreateManagedIds){
-    LOGGER.info(String.format("Integrating physical network %d (XML id %s) with zoning %d (XML id %s)", infrastructureNetwork.getId(),
-        infrastructureNetwork.getXmlId() != null ? infrastructureNetwork.getXmlId() : "N/A", zoning.getId(), zoning.getXmlId() != null ? zoning.getXmlId() : "N/A"));
+    LOGGER.info(String.format("Integrating physical network %d (XML id %s) with zoning %d (XML id %s)",
+            infrastructureNetwork.getId(),
+            infrastructureNetwork.getXmlId() != null ? infrastructureNetwork.getXmlId() : "N/A",
+            zoning.getId(),
+            zoning.getXmlId() != null ? zoning.getXmlId() : "N/A"));
 
     VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
     if(resetAndRecreateManagedIds){

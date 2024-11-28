@@ -56,7 +56,16 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
    * @param tokenId to use for id generation
    */
   public LayeredNetwork(IdGroupingToken tokenId) {
-    super(tokenId);
+    this(tokenId, null);
+  }
+
+  /**
+   * Default constructor
+   *
+   * @param tokenId to use for id generation
+   */
+  public LayeredNetwork(IdGroupingToken tokenId, IdGroupingToken networkGroupingToken) {
+    super(tokenId, networkGroupingToken);
 
     /* for mode management */
     this.modes = new ModesImpl(tokenId);
@@ -74,7 +83,10 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
    * @param layerMapper to use for tracking mapping between original and copied layers
    */
   @SuppressWarnings("unchecked")
-  protected LayeredNetwork(final LayeredNetwork<U, T> other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<U> layerMapper) {
+  protected LayeredNetwork(
+          final LayeredNetwork<U, T> other,
+          boolean deepCopy,
+          ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<U> layerMapper) {
     super(other, deepCopy);
 
     // both are container wrappers, so requiring cloning also for shallow copy
@@ -85,7 +97,8 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
       this.modes = other.modes.shallowClone();
       this.transportLayers = (T) other.getTransportLayers().shallowClone();
     }
-    this.transportLayers = (T) (deepCopy ? other.getTransportLayers().deepClone() : other.getTransportLayers().shallowClone());
+    this.transportLayers =
+            (T) (deepCopy ? other.getTransportLayers().deepClone() : other.getTransportLayers().shallowClone());
   }
 
   /**

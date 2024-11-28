@@ -95,7 +95,8 @@ public interface TransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V
    * @return the total number of vertices
    */
   public default int getNumberOfVerticesAllLayers(){
-    return TransportModelNetworkUtils.getNumberOfVerticesAllLayers(getInfrastructureNetwork(), getZoning());
+    return TransportModelNetworkUtils.getNumberOfVerticesAllLayers(
+            getInfrastructureNetwork(), getZoning().getVirtualNetwork());
   }
 
   /**

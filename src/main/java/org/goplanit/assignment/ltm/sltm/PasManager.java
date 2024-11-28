@@ -374,7 +374,7 @@ public class PasManager {
    * @param s2         expensive alternative segment
    * @return createdPas
    */
-  public Pas createAndRegisterNewPas(final RootedLabelledBush bush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
+  public Pas createAndRegisterNewPas(final RootedBush<?,?> bush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
     Pas newPas = Pas.create(s1, s2);
     if (newPas == null) {
       return null;
@@ -395,8 +395,8 @@ public class PasManager {
    * @return createdPas
    */
   public Pas createAndRegisterNewPas(
-          final RootedLabelledBush bush, final Collection<EdgeSegment> s1, final Collection<EdgeSegment> s2) {
-    return createAndRegisterNewPas(bush, s1.toArray(new EdgeSegment[s1.size()]), s2.toArray(new EdgeSegment[s2.size()]));
+          final RootedBush<?,?> bush, final Collection<EdgeSegment> s1, final Collection<EdgeSegment> s2) {
+    return createAndRegisterNewPas(bush, s1.toArray(new EdgeSegment[0]), s2.toArray(new EdgeSegment[0]));
   }
 
   /**
@@ -649,7 +649,7 @@ public class PasManager {
    * @return number of pass from which the bush has been removed
    */
   public int removeBushFromPasIf(
-          RootedLabelledBush bush, Predicate<Pas> pasPredicate, boolean removeUnusedPass) {
+          RootedBush<?,?> bush, Predicate<Pas> pasPredicate, boolean removeUnusedPass) {
     int countRemovals = 0;
     List<Pas> passWithoutBush = null; //todo: make set when pas is comparable
     for (var pass : passByVertex.values()) {

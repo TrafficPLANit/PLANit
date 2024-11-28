@@ -32,55 +32,28 @@ public class ConjugateTransportModelNetwork
   protected final TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> referenceTransportModelNetwork;
 
   /**
-   * Create the conjugate physical network and its layers based on the reference network
-   * <p>
-   *   When conjugate virtual network is provided, the conjugate virtual network is directly integrated/connected to
-   *   the conjugate physical network based on the connections present in the original physical and virtual networks
-   * </p>
-   *
-   * @param token to use for id generation
-   * @param macroscopicNetwork reference network to based conjugate version on
-   * @param conjugateVirtualNetwork (optional) when present, integrate conjugate physical network with virtual network
-   * @return created conjugate network
-   */
-  private ConjugateMacroscopicNetwork createConjugatePhysicalNetwork(
-          IdGroupingToken token,
-          MacroscopicNetwork macroscopicNetwork,
-          ConjugateVirtualNetwork conjugateVirtualNetwork) {
-    return macroscopicNetwork.createConjugate(token, conjugateVirtualNetwork);
-  }
-
-  /**
-   * create the conjugate virtual network, but do not create connectoid edges yet as this is to be
-   * dealt with when integration with the physical network is explicitly invoked
-   *
-   * @param token to use
-   */
-  private ConjugateVirtualNetwork createConjugateBaseVirtualNetwork(IdGroupingToken token) {
-    var referenceVirtualNetwork = referenceTransportModelNetwork.getZoning().getVirtualNetwork();
-    /* generate conjugate virtual network - generate ids separate from other vertices/edges/segments by providing new token */
-    return referenceVirtualNetwork.createConjugate(token);
-  }
-
-  /**
    * Constructor
    *
    * @param idToken to use
    * @param referenceTransportModelNetwork the original TransportNetwork
    */
-  protected ConjugateTransportModelNetwork(final IdGroupingToken idToken,
-      TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> referenceTransportModelNetwork) {
+  protected ConjugateTransportModelNetwork(
+          final IdGroupingToken idToken,
+          TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> referenceTransportModelNetwork) {
     super();
     this.movements = new MovementsImpl(idToken);
+    this.zoning = referenceTransportModelNetwork.getZoning();
     this.referenceTransportModelNetwork = referenceTransportModelNetwork;
 
-    // create baseline conjugate versions without integrating them yet.
-    this.virtualNetwork = createConjugateBaseVirtualNetwork(idToken);
+    // create baseline conjugate virtual network, using idToken
+    this.virtualNetwork =
+            referenceTransportModelNetwork.getZoning().getVirtualNetwork().createConjugate(
+                    idToken, true);
+
     // provide base conjugate virtual network so integration is automatic while constructing the physical
     // conjugate network
-    this.infrastructureNetwork =
-            createConjugatePhysicalNetwork(
-                idToken, referenceTransportModelNetwork.getInfrastructureNetwork(), virtualNetwork);
+    this.infrastructureNetwork = referenceTransportModelNetwork.getInfrastructureNetwork().createConjugate(
+            idToken, getVirtualNetwork());
   }
 
   /**

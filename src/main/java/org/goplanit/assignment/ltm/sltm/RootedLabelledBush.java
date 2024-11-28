@@ -146,6 +146,15 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   public abstract RootedLabelledBush deepClone();
 
   /**
+   * {@inheritDoc
+   */
+  @Override
+  @SuppressWarnings("unchecked")
+  public Set<CentroidVertex> getOriginVertices() {
+    return (Set<CentroidVertex>) super.getOriginVertices();
+  }
+
+  /**
    * Verify if adding the sub-path edge segments would introduce a cycle in this bush
    * TODO: very costly operation as it may traverses entire bush so... find a way to bake in some more information
    *  in the topological sorting to track more information to make this much quicker, e.g., track the ordering indices
@@ -154,6 +163,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @param alternative to verify
    * @return edge segment that would introduce a cycle, null otherwise
    */
+  @Override
   public EdgeSegment determineIntroduceCycle(EdgeSegment[] alternative) {
     if (alternative == null) {
       LOGGER.severe("Cannot verify if edge segments introduce cycle when parameters are null");
@@ -277,6 +287,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * @param addFlowPcuH      to add
    * @return new labelled turn sending flow after adding given flow
    */
+  @Override
   public double addTurnSendingFlow(
           final EdgeSegment from,
           final EdgeSegment to,

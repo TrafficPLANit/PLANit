@@ -91,7 +91,8 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
         /* initialise bush with this origin shortest path(s) */
         var originCentroidVertex = findCentroidVertex(origin);
         var destinationOriginInvertedDag =
-                allToOneResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), originCentroidVertex, destinationVertex);
+                allToOneResult.createDirectedAcyclicSubGraph(
+                        getIdGroupingToken(), originCentroidVertex, destinationVertex);
         if (destinationOriginInvertedDag.isEmpty()) {
           LOGGER.severe(String.format("Unable to create bush connection(s) from origin (%s) to destination %s", origin.getXmlId(), destination.getXmlId()));
           continue;

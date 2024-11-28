@@ -33,25 +33,15 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   /** the directed acyclic subgraph representation of the bush, pertaining solely to the topology */
   private final UntypedACyclicSubGraph<V, ES> dag;
 
-  /** the origin demands (PCU/h) of the bush this may or may not be at the root (depending on whether we root in origin or destination) */
-  protected Map<CentroidVertex, Double> originDemandsPcuH;
+  /** the origin demands (PCU/h) of the bush this may or may not be at the root (depending on whether we root in
+   * origin or destination) and may or may not be located at a centroid vertex */
+  private Map<DirectedVertex, Double> originDemandsPcuH;
 
   /** token for id generation unique within this bush */
   protected final IdGroupingToken bushGroupingToken;
 
   /** track if underlying acyclic graph is modified, if so, an update of the topological sort is required flagged by this member */
   protected boolean requireTopologicalSortUpdate = true;
-
-  /**
-   * Track origin demands for bush
-   *
-   * @param originDemandCentroidVertex to set
-   * @param demandPcuH demand to set
-   */
-  protected void addOriginDemandPcuH(CentroidVertex originDemandCentroidVertex, double demandPcuH) {
-    double currentDemandPcuH = this.originDemandsPcuH.getOrDefault(originDemandCentroidVertex, 0.0);
-    this.originDemandsPcuH.put(originDemandCentroidVertex, currentDemandPcuH + demandPcuH);
-  }
 
   /**
    * Access to the underlying dag
@@ -61,6 +51,39 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   protected UntypedACyclicSubGraph<V, ES> getDag() {
     return this.dag;
   }
+
+  /**
+   * Track origin demands for bush. Should only be used for initialisation and then left as is.
+   *
+   * @param demandPcuH demand to set
+   */
+  public void addOriginDemandPcuH(DirectedVertex originDemandVertex, double demandPcuH) {
+    double currentDemandPcuH = this.originDemandsPcuH.getOrDefault(originDemandVertex, 0.0);
+    this.originDemandsPcuH.put(originDemandVertex, currentDemandPcuH + demandPcuH);
+  }
+
+  /**
+   * Verify if adding the sub-path edge segments would introduce a cycle in this bush
+   *
+   * @param alternative to verify
+   * @return edge segment that would introduce a cycle, null otherwise
+   */
+  public abstract EdgeSegment determineIntroduceCycle(EdgeSegment[] alternative);
+
+  /**
+   * Add turn sending flow to the bush. In case the turn does not yet exist on the bush it is newly registered.
+   * If it does exist and there is already flow present, the provided flow is added to it. If by adding the
+   * flow (can be negative) the turn no longer has any flow, the labels are removed
+   *
+   * @param from             from segment of the turn
+   * @param to               to segment of the turn
+   * @param addFlowPcuH      to add
+   * @return new labelled turn sending flow after adding given flow
+   */
+  public abstract double addTurnSendingFlow(
+          final EdgeSegment from,
+          final EdgeSegment to,
+          double addFlowPcuH);
 
   /**
    * Traverse a bush in topological order, invert traversal of root is inverted
@@ -195,7 +218,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * 
    * @return origins on this bush
    */
-  public Set<CentroidVertex> getOriginVertices() {
+  public Set<? extends DirectedVertex> getOriginVertices() {
     return this.originDemandsPcuH.keySet();
   }
 
@@ -205,7 +228,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * @param originVertex to collect demand for
    * @return demand (if any)
    */
-  public Double getOriginDemandPcuH(CentroidVertex originVertex) {
+  public Double getOriginDemandPcuH(DirectedVertex originVertex) {
     return this.originDemandsPcuH.get(originVertex);
   }
 

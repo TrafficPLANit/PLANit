@@ -52,7 +52,20 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
    * @param coordinateReferenceSystem preferred coordinate reference system to use
    */
   public TopologicalLayerNetwork(IdGroupingToken tokenId, CoordinateReferenceSystem coordinateReferenceSystem) {
-    super(tokenId);
+    this(tokenId, null, coordinateReferenceSystem);
+  }
+
+  /**
+   * Default constructor
+   *
+   * @param tokenId              to use for id generation
+   * @param networkGroupingToken groupIdToken to use for the network managed ids id generation (if null,
+   *                             an auto generated token will be created)
+   * @param coordinateReferenceSystem preferred coordinate reference system to use
+   */
+  public TopologicalLayerNetwork(
+          IdGroupingToken tokenId, IdGroupingToken networkGroupingToken, CoordinateReferenceSystem coordinateReferenceSystem) {
+    super(tokenId, networkGroupingToken);
 
     /* default crs */
     this.coordinateReferenceSystem = coordinateReferenceSystem;
@@ -66,7 +79,11 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
    * @param modeMapper to use for tracking mapping between original and copied modes
    * @param layerMapper to use for tracking mapping between original and copied layers
    */
-  protected TopologicalLayerNetwork(final TopologicalLayerNetwork<T, U> other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<T> layerMapper) {
+  protected TopologicalLayerNetwork(
+          final TopologicalLayerNetwork<T, U> other,
+          boolean deepCopy,
+          ManagedIdDeepCopyMapper<Mode> modeMapper,
+          ManagedIdDeepCopyMapper<T> layerMapper) {
     super(other, deepCopy, modeMapper, layerMapper);
     this.coordinateReferenceSystem = other.getCoordinateReferenceSystem();
   }

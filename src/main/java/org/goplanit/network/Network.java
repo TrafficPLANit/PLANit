@@ -26,13 +26,26 @@ public abstract class Network extends PlanitComponent<Network> implements Serial
   public static final String MACROSCOPIC_NETWORK = MacroscopicNetwork.class.getCanonicalName();
 
   /**
-   * Constructor
+   * Constructor, for id generation of managed id classes with network a auto-generated token will be used
+   * based on this networks own unique id.
    * 
    * @param tokenId contiguous id generation within this group for instances of this class
    */
   public Network(final IdGroupingToken tokenId) {
+    this(tokenId, null);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param tokenId contiguous id generation within this group for instances of this class
+   * @param networkIdGroupingToken token for id generation of managed id classes within network itself
+   */
+  public Network(final IdGroupingToken tokenId, final  IdGroupingToken networkIdGroupingToken) {
     super(tokenId, Network.class);
-    this.networkIdGroupingToken = IdGenerator.createIdGroupingToken(this, getId());
+    this.networkIdGroupingToken =
+            networkIdGroupingToken==null ? IdGenerator.createIdGroupingToken(this, getId()) :
+                    networkIdGroupingToken;
   }
 
   /**
