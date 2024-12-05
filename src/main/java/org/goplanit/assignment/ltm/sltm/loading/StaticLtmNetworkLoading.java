@@ -277,7 +277,7 @@ public abstract class StaticLtmNetworkLoading {
    * 
    * @param acceptedTurnFlows to use to determine splitting rates (movement id indexed array)
    */
-  private void updateNextSplittingRates(final double[] acceptedTurnFlows) {
+  private void updateNextSplittingRates(final TurnFlowAccessor acceptedTurnFlows) {
     var trackedNodes = nlSplittingRateData.getTrackedNodes();
     for (var node : trackedNodes) {
       for (var entrySegment : node.getEntryEdgeSegments()) {
@@ -293,8 +293,7 @@ public abstract class StaticLtmNetworkLoading {
             continue;
           }
 
-          var movement = segmentPair2MovementMap.get(entrySegment, exitSegment);
-          Double acceptedTurnFlow = acceptedTurnFlows[(int) movement.getId()];
+          Double acceptedTurnFlow = acceptedTurnFlows.getTurnFlow(entrySegment, exitSegment);
           if (acceptedTurnFlow == null) {
             acceptedTurnFlow = 0.0;
           }
@@ -593,9 +592,9 @@ public abstract class StaticLtmNetworkLoading {
    *
    * @param mode                    to use
    * @return acceptedTurnFlows (on potentially blocking nodes) where movement id is index and value is the
-   * accepted turn flow v_ab
+   * accepted turn flow v_ab in the form of an accessor interface implementation
    */
-  protected abstract double[] networkLoadingTurnFlowUpdate(Mode mode);
+  protected abstract TurnFlowAccessor networkLoadingTurnFlowUpdate(Mode mode);
 
   /**
    * Conduct a network loading to compute updated current sending flow rates
@@ -627,20 +626,16 @@ public abstract class StaticLtmNetworkLoading {
    *
    * @param idToken                 for id generation of internal entities
    * @param runId                   run id the loading is applied for
-   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
-   *  to splitting rate data format
    * @param settings                to use
    */
 
   protected StaticLtmNetworkLoading(
           final IdGroupingToken idToken,
           long runId,
-          MultiKeyMap<Object,Movement> segmentPair2MovementMap,
           StaticLtmSettings settings) {
     this.runId = runId;
     this.idToken = idToken;
     this.settings = settings;
-    this.segmentPair2MovementMap = segmentPair2MovementMap;
     
     /* state trackers */    
     this.convergenceAnalyser = new StaticLtmNetworkLoadingConvergenceAnalyser();
@@ -816,7 +811,7 @@ public abstract class StaticLtmNetworkLoading {
     }
 
     /* 1. Update turn inflows via network loading (movement index array provided) Eq. (3) */
-    double[] acceptedTurnFlows = networkLoadingTurnFlowUpdate(mode);
+    var acceptedTurnFlows = networkLoadingTurnFlowUpdate(mode);
     
     /* update splitting rates Eq. (6),(4) */
     updateNextSplittingRates(acceptedTurnFlows);

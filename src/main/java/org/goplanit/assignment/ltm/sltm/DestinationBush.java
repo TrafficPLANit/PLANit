@@ -99,24 +99,6 @@ public class DestinationBush extends RootedLabelledBush {
    * {@inheritDoc}
    */
   @Override
-  public Iterator<DirectedVertex> getTopologicalIterator() {
-    boolean invertDirection = false; /* do not invert direction, dag is in d-o direction */
-    return getDag().getTopologicalIterator(requireTopologicalSortUpdate, invertDirection);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Iterator<DirectedVertex> getInvertedTopologicalIterator() {
-    boolean invertDirection = true; /* do invert direction, dag is in o-d direction */
-    return getDag().getTopologicalIterator(requireTopologicalSortUpdate, invertDirection);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public CentroidVertex getRootZoneVertex() {
     return getDestination();
   }

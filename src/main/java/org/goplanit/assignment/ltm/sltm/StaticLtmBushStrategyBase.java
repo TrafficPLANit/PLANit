@@ -623,8 +623,6 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         LOGGER.info(bush.toString());
       }
     }
-    LOGGER.info(String.format("Initialised with %d PASs", pasManager.getNumberOfPass()));
-    LOGGER.info("TODO: Consider removing initialisation with PASs as it is not complete and side effect of initialisation");
   }
 
   /**
@@ -699,12 +697,10 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   /**
    * Create bush based network loading implementation
    *
-   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
-   *                                to splitting rate data format
    * @return created loading implementation supporting bush-based approach
    */
   @Override
-  protected abstract StaticLtmLoadingBushBase<B> createNetworkLoading(MultiKeyMap<Object, Movement> segmentPair2MovementMap);
+  protected abstract StaticLtmLoadingBushBase<B> createNetworkLoading();
 
   /**
    * {@inheritDoc}

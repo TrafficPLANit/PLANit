@@ -19,7 +19,8 @@ import org.goplanit.utils.zoning.OdZone;
  * @author markr
  *
  */
-public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements TriConsumer<OdZone, OdZone, Double> {
+public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
+        implements TriConsumer<OdZone, OdZone, Double> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(PathFlowUpdateConsumer.class.getCanonicalName());

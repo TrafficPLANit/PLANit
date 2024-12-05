@@ -3,6 +3,8 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessor;
+import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessorMovements;
 import org.goplanit.utils.network.layer.physical.Movement;
 
 /**
@@ -55,17 +57,18 @@ public class RootedBushTurnFlowUpdateConsumer extends RootedBushFlowUpdateConsum
           final Movement movement,
           double turnAcceptedFlowPcuH) {
     if (dataConfig.trackAllNodeTurnFlows || dataConfig.nlSplittingRateData.isTracked(movement.getCentreVertex())) {
-      dataConfig.addToAcceptedTurnFlows(movement, turnAcceptedFlowPcuH); // network level
+      dataConfig.addToAcceptedTurnFlows((int)movement.getId(), turnAcceptedFlowPcuH); // network level
     }
   }
 
   /**
    * The found accepted turn flows by movement id
-   * 
+   *
    * @return accepted turn flows
    */
   @Override
-  public double[] getAcceptedTurnFlows() {
-    return dataConfig.getAcceptedTurnFlows();
+  public TurnFlowAccessor getAcceptedTurnFlows() {
+    return TurnFlowAccessorMovements.of(this.segmentPair2MovementMap, dataConfig.getAcceptedTurnFlows());
   }
+
 }

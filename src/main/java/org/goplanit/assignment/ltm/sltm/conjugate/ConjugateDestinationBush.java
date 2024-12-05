@@ -3,6 +3,7 @@ package org.goplanit.assignment.ltm.sltm.conjugate;
 import java.util.*;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
@@ -88,6 +89,9 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   /** track bush specific data */
   protected final ConjugateBushTurnData bushData;
 
+  /** inverse mapping from turn edge segments (double key) to conjugate edge segment */
+  protected final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjugateSegmentMapping;
+
   /**
    * {@inheritDoc}
    */
@@ -110,13 +114,15 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    *                                     can at most register given the parent network it is a subset of
    */
   public ConjugateDestinationBush(
-      final IdGroupingToken idToken,
-      final CentroidVertex destination,
-      ConjugateConnectoidNode rootVertex,
-      int maxSubGraphConjugateSegments) {
+          final IdGroupingToken idToken,
+          final CentroidVertex destination,
+          ConjugateConnectoidNode rootVertex,
+          int maxSubGraphConjugateSegments,
+          final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjugateSegmentMapping) {
     super(new ConjugateACyclicSubGraphImpl(idToken, rootVertex, true /* inverted */, maxSubGraphConjugateSegments));
     this.bushData = new ConjugateBushTurnData(this);
     this.destination = destination;
+    this.turn2ConjugateSegmentMapping = turn2ConjugateSegmentMapping;
   }
 
   /**
@@ -131,6 +137,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
     // container wrapper with primitives, so always clone
     this.bushData = bush.bushData.shallowClone();
+    this.turn2ConjugateSegmentMapping = bush.turn2ConjugateSegmentMapping.clone();
   }
 
   /**
@@ -165,19 +172,19 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
   @Override
   public double addTurnSendingFlow(EdgeSegment from, EdgeSegment to, double addFlowPcuH) {
-    throw new PlanItRunTimeException("not yet implemented - reuse one in regular rooted bush");
-  }
+    var conjugateSegment = turn2ConjugateSegmentMapping.get(from,to);
 
-  @Override
-  public Iterator<ConjugateDirectedVertex> getTopologicalIterator() {
-    // TODO: not rewritten yet
-    return null;
-  }
-
-  @Override
-  public Iterator<ConjugateDirectedVertex> getInvertedTopologicalIterator() {
-    // TODO: not rewritten yet
-    return null;
+    if (addFlowPcuH > 0) {
+      if (!contains(conjugateSegment)) {
+        if (contains(conjugateSegment.getOppositeDirectionSegment())) {
+          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on conjugate bush (%s) where the opposite direction (of segment %s) already is part of the bush, this breaks acyclicity",
+                  from.getXmlId(), to.getXmlId(), getRootZoneVertex().getParent().getParentZone().getIdsAsString(), from.getXmlId()));
+        }
+        getDag().addEdgeSegment(conjugateSegment);
+        requireTopologicalSortUpdate = true;
+      }
+    }
+    return bushData.addTurnSendingFlow(conjugateSegment, addFlowPcuH);
   }
 
   @Override
@@ -510,7 +517,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    */
   @Override
   public String toString() {
-    var sb = new StringBuilder("[");
+    var sb = new StringBuilder("Original registered segments [");
 
     /* log all original edge segments on conjugate bush */
     var root = getRootVertex();
@@ -525,7 +532,9 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     while (!openVertices.isEmpty()) {
       var vertex = openVertices.poll();
       processed.add(vertex);
-      vertex.getOriginalEdge().forEachSegment(es -> sb.append(es.getXmlId()).append(","));
+      if(vertex.hasOriginalEdge()) {
+        vertex.getOriginalEdge().forEachSegment(es -> sb.append(es.getXmlId()).append(","));
+      }
       for (var nextSegment : getNextEdgeSegments.apply(vertex)) {
         if(!contains(nextSegment)) {
           continue;
@@ -534,7 +543,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
         if (processed.contains(nextVertex)) {
           continue;
         }
-        openVertices.add((ConjugateDirectedVertex) nextVertex);
+        openVertices.add(nextVertex);
       }
     }
     sb.deleteCharAt(sb.length() - 1);

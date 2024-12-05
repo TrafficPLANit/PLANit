@@ -7,7 +7,6 @@ import org.goplanit.assignment.ltm.sltm.*;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
-import org.goplanit.assignment.ltm.sltm.consumer.RootedBushTurnFlowUpdateConsumer;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
@@ -177,7 +176,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * edge segment ids and value is the accepted turn flow v_ab
    */
   @Override
-  protected double[] networkLoadingTurnFlowUpdate(Mode mode) {
+  protected TurnFlowAccessor networkLoadingTurnFlowUpdate(Mode mode) {
    
     /* update network turn flows (and sending flows if POINT_QUEUE_BASIC) by performing a network loading
      * on all bushes using the bush-splitting rates (and updating the bush turn sending flows in the process, so they remain consistent
@@ -249,16 +248,13 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * 
    * @param idToken      to use
    * @param assignmentId to use
-   * @param nlSegmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to convert turn flows
-   *  to splitting rate data format at network loading general network level (not for the bushes)
    * @param settings to use
    */
   public StaticLtmLoadingBushBase(
           IdGroupingToken idToken,
           long assignmentId,
-          MultiKeyMap<Object,Movement> nlSegmentPair2MovementMap,
           final StaticLtmSettings settings) {
-    super(idToken, assignmentId, nlSegmentPair2MovementMap, settings);
+    super(idToken, assignmentId, settings);
   }
   
   /** The bushes to use when a loading update is requested

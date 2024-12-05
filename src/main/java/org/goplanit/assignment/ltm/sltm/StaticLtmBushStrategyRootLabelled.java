@@ -363,13 +363,12 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
   /**
    * Create bush based network loading implementation
    *
-   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
-   *  to splitting rate data format
    * @return created loading implementation supporting bush-based approach
    */
   @Override
-  protected StaticLtmLoadingBushRooted createNetworkLoading(MultiKeyMap<Object, Movement> segmentPair2MovementMap) {
-    return new StaticLtmLoadingBushRooted(getIdGroupingToken(), getAssignmentId(), segmentPair2MovementMap, getSettings());
+  protected StaticLtmLoadingBushRooted createNetworkLoading() {
+    return new StaticLtmLoadingBushRooted(
+            getIdGroupingToken(), getAssignmentId(), getSegmentToMovementMapping(), getSettings());
   }
 
   /**

@@ -134,4 +134,20 @@ public class NetworkFlowUpdateData {
   public boolean isUnconstrainedFlowsUpdate() {
     return unconstrainedFlows != null;
   }
+
+  public double[] getFlowAcceptanceFactors() {
+    return flowAcceptanceFactors;
+  }
+
+  public double[] getSendingFlows() {
+    return sendingFlows;
+  }
+
+  public double[] getUnconstrainedFlows() {
+    return unconstrainedFlows;
+  }
+
+  public double[] getOutFlows() {
+    return outFlows;
+  }
 }

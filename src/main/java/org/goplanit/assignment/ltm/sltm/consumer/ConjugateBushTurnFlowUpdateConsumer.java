@@ -1,8 +1,9 @@
-package org.goplanit.assignment.ltm.sltm.conjugate;
+package org.goplanit.assignment.ltm.sltm.consumer;
 
 import java.util.logging.Logger;
 
-import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
+import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessorConjugateSegments;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 
 /**
@@ -34,22 +35,23 @@ public class ConjugateBushTurnFlowUpdateConsumer
    * 
    * @param dataConfig to use
    */
-  public ConjugateBushTurnFlowUpdateConsumer(final NetworkTurnFlowUpdateData dataConfig) {
-    super(dataConfig);
+  public ConjugateBushTurnFlowUpdateConsumer(final NetworkTurnFlowUpdateData dataConfig,
+                                             final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping) {
+    super(dataConfig, turn2ConjSegmentMapping);
   }
 
   /**
    * Track the turn accepted flows when they are classified as being tracked during network loading, otherwise do nothing
    * 
-   * @param turnSegment          of turn
+   * @param conjEdgeSegment      the turn ti use
    * @param turnAcceptedFlowPcuH to use
    */
   @Override
-  protected void applyAcceptedTurnFlowUpdate(final ConjugateEdgeSegment turnSegment, double turnAcceptedFlowPcuH) {
-    // TODO: not rewritten yet
-//    if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(currentSegment.getUpstreamVertex())) {
-//      dataConfig.addToAcceptedTurnFlows(prevSegment, currentSegment, turnAcceptedFlowPcuH); // network level
-//    }
+  protected void applyAcceptedTurnFlowUpdate(final ConjugateEdgeSegment conjEdgeSegment, double turnAcceptedFlowPcuH) {
+    if (dataConfig.isTrackAllNodeTurnFlows() ||
+            dataConfig.getNlSplittingRateData().isTracked(conjEdgeSegment.getOriginalCentreVertex())) {
+      dataConfig.addToAcceptedTurnFlows((int)conjEdgeSegment.getId(), turnAcceptedFlowPcuH); // network level
+    }
   }
 
   /**
@@ -58,7 +60,7 @@ public class ConjugateBushTurnFlowUpdateConsumer
    * @return accepted turn flows
    */
   @Override
-  public double[] getAcceptedTurnFlows() {
-    return dataConfig.getAcceptedTurnFlows();
+  public TurnFlowAccessorConjugateSegments getAcceptedTurnFlows() {
+    return TurnFlowAccessorConjugateSegments.of(this.turn2ConjSegmentMapping, dataConfig.getAcceptedTurnFlows());
   }
 }

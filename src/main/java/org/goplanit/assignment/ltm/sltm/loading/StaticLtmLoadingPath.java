@@ -75,7 +75,8 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
       if (updateOutflows) {
         /* sending + outflow update only (potentially unconstrained flows as well) */
         dataConfig = updateUnconstrainedFlows ?
-                new NetworkFlowUpdateData(nlSendingFlowData, nlInFlowOutflowData, networkLoadingFactorData, unconstrainedFlowData):
+                new NetworkFlowUpdateData(
+                        nlSendingFlowData, nlInFlowOutflowData, networkLoadingFactorData, unconstrainedFlowData):
                 new NetworkFlowUpdateData(nlSendingFlowData, nlInFlowOutflowData, networkLoadingFactorData);
       } else {
         /* sending flow update only (potentially unconstrained flows as well) */
@@ -120,7 +121,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * {@inheritDoc}
    */
   @Override
-  protected double[] networkLoadingTurnFlowUpdate(Mode mode) {
+  protected TurnFlowAccessor networkLoadingTurnFlowUpdate(Mode mode) {
     
     /* when one-shot sending flow update in step-2 of the algorithm is active, the sending flows are to be updated during the update here, 
      * otherwise not. In the latter case it is taken care of by step-2 in the solution algorithm via the iterative procedure */

@@ -570,13 +570,13 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
   /** create a path based network loading for this solution scheme
    *
-   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
    *  to splitting rate data format
    * @return created path based loading
    */
   @Override
-  protected StaticLtmLoadingPath createNetworkLoading(MultiKeyMap<Object, Movement> segmentPair2MovementMap) {
-    return new StaticLtmLoadingPath(getIdGroupingToken(), getAssignmentId(), segmentPair2MovementMap, getSettings());
+  protected StaticLtmLoadingPath createNetworkLoading() {
+    return new StaticLtmLoadingPath(
+            getIdGroupingToken(), getAssignmentId(), getSegmentToMovementMapping(), getSettings());
   }
 
   /**

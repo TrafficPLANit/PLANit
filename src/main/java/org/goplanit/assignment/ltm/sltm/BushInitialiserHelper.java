@@ -12,6 +12,15 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.math.Precision;
 
+/**
+ * Helps to initialise bushes while creating PASs based on equal cost alternative paths before running the
+ * assignment
+ * <p>
+ *   Too complicated and hard to maintain, slated for removal, for now replace with simpler version until able
+ *   to remove without causing issues
+ * </p>
+ */
+@Deprecated
 public class BushInitialiserHelper {
 
   /** Logger to use */
@@ -42,7 +51,7 @@ public class BushInitialiserHelper {
 
     var unfinishedPassThroughSegment = containerToRegisterOn.get(edgeSegmentToAdd);
     if (unfinishedPassThroughSegment == null) {
-      unfinishedPassThroughSegment = new HashMap<DirectedVertex, Integer>();
+      unfinishedPassThroughSegment = new HashMap<>();
       containerToRegisterOn.put(edgeSegmentToAdd, unfinishedPassThroughSegment);
     }
     unfinishedPassThroughSegment.put(unfinishedPasDivergeVertex, alternativeIndex);
@@ -164,12 +173,13 @@ public class BushInitialiserHelper {
    * @param originVertexAlternatives                   information regarding origin diverge vertices and alternatives of unfinished PAS(s)
    * @param edgeSegmentPasOriginVertexAlternativeIndex information regarding what unfinished PAS(s) pass through what edge segments
    */
-  private void finishInitialBushPassAtMerge(List<EdgeSegment> entrySegmentsWithUnfinishedPas, Map<DirectedVertex, List<List<EdgeSegment>>> originVertexAlternatives,
-      Map<EdgeSegment, Map<DirectedVertex, Integer>> edgeSegmentPasOriginVertexAlternativeIndex) {
+  private void finishInitialBushPassAtMerge(
+          List<EdgeSegment> entrySegmentsWithUnfinishedPas, Map<DirectedVertex, List<List<EdgeSegment>>> originVertexAlternatives,
+          Map<EdgeSegment, Map<DirectedVertex, Integer>> edgeSegmentPasOriginVertexAlternativeIndex) {
 
     /*
-     * Collect all unfinished PASs by origin vertex that pass through this vertex. Create local version of overall container just containing the subselection of unfinished PAS
-     * alternatives that merge at this vertex
+     * Collect all unfinished PASs by origin vertex that pass through this vertex. Create local version of overall
+     * container just containing the subselection of unfinished PAS alternatives that merge at this vertex
      */
     Map<DirectedVertex, List<List<EdgeSegment>>> localPasAlternatives = new HashMap<>();
     for (var entryEdgeSegment : entrySegmentsWithUnfinishedPas) {
@@ -178,7 +188,7 @@ public class BushInitialiserHelper {
       for (var entry : entrySegmentUnfinishedPass.entrySet()) {
         currEntryPasAlternatives = localPasAlternatives.get(entry.getKey());
         if (currEntryPasAlternatives == null) {
-          currEntryPasAlternatives = new ArrayList<List<EdgeSegment>>();
+          currEntryPasAlternatives = new ArrayList<>();
           localPasAlternatives.put(entry.getKey(), currEntryPasAlternatives);
         }
         /* unfinished Pas alternative (value) along entry segment originating from a diverge (key) */
@@ -265,7 +275,7 @@ public class BushInitialiserHelper {
    * @param originVertex   to start with, expected to be the centroid of the od's origin. It is expected the
    *                       iterator proceeds in downstream direction until reaching the destination
    * @param oDDemandPcuH   to use for the origin vertex
-   * @param vertexIter     flag indicating if new pass are to be logged
+   * @param vertexIter     iterator to use
    */
   public void executeOdBushInitialisation(
           DirectedVertex originVertex,
@@ -351,6 +361,9 @@ public class BushInitialiserHelper {
         }
       }
     }
+
+    LOGGER.info(String.format("Initialised with %d PASs", pasManager.getNumberOfPass()));
+    LOGGER.info("TODO: Consider removing initialisation with PASs as it is not complete and side effect of initialisation");
   }
 
 }

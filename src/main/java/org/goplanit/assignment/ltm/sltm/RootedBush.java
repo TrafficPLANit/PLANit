@@ -53,6 +53,24 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Iterator<V> getTopologicalIterator() {
+    boolean invertDirection = false; /* do not invert direction, dag is in d-o direction */
+    return getDag().getTopologicalIterator(requireTopologicalSortUpdate, invertDirection);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Iterator<V> getInvertedTopologicalIterator() {
+    boolean invertDirection = true; /* do invert direction, dag is in o-d direction */
+    return getDag().getTopologicalIterator(requireTopologicalSortUpdate, invertDirection);
+  }
+
+  /**
    * Track origin demands for bush. Should only be used for initialisation and then left as is.
    *
    * @param demandPcuH demand to set

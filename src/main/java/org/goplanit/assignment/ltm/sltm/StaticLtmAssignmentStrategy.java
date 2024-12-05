@@ -267,11 +267,9 @@ public abstract class StaticLtmAssignmentStrategy {
   /**
    * Factory method to create the desired network loading
    *
-   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
-   *  to splitting rate data format
    * @return network loading for this solution approach
    */
-  protected abstract StaticLtmNetworkLoading createNetworkLoading(MultiKeyMap<Object, Movement> segmentPair2MovementMap);
+  protected abstract StaticLtmNetworkLoading createNetworkLoading();
 
   /**
    * Perform an update of the network wide costs where a partial update is applied in case only potentially blocking nodes are updated during the loading
@@ -442,7 +440,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param demands     to use
    */
   public void updateTimePeriod(final TimePeriod timePeriod, final Set<Mode> modes, final Demands demands) {
-    this.networkLoading = createNetworkLoading(nlSegmentPair2MovementMap);
+    this.networkLoading = createNetworkLoading();
     this.networkLoading.initialiseInputs(timePeriod, modes, demands, getTransportNetwork());
   }
 

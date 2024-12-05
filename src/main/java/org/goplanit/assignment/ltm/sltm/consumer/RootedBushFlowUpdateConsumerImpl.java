@@ -1,14 +1,14 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.DestinationBush;
 import org.goplanit.assignment.ltm.sltm.RootedLabelledBush;
+import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessor;
+import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessorMovements;
 import org.goplanit.utils.arrays.ArrayUtils;
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.physical.Movement;
@@ -33,7 +33,7 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData>
   protected T dataConfig;
 
   /** be able to convert entry/exit segment to their corresponding movement */
-  private final MultiKeyMap<Object,Movement> segmentPair2MovementMap;
+  protected final MultiKeyMap<Object,Movement> segmentPair2MovementMap;
 
   /**
    * Initialise the bush sending flows for the bush's origins' exit edge segments to bootstrap the loading for this bush.
@@ -217,4 +217,5 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData>
       }
     }
   }
+
 }

@@ -2,8 +2,8 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 
 import java.util.function.Consumer;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.Bush;
+import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessor;
 
 /**
  * Placeholder for bush based network loading flow update for each origin bush
@@ -18,7 +18,7 @@ public interface BushFlowUpdateConsumer<B extends Bush> extends Consumer<B> {
    * 
    * @return accepted turn flows
    */
-  public default double[] getAcceptedTurnFlows() {
+  public default TurnFlowAccessor getAcceptedTurnFlows() {
     // TODO: ugly should be refactored
     // when (Derived) consumer is turn based this can be overridden to provide results
     return null;

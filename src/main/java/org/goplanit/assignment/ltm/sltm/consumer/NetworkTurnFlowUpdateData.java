@@ -56,11 +56,11 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
   /**
    * add to accepted turn flows
    * 
-   * @param movement  the movement to use
+   * @param turnFlowIndex  the index to use (abstracted out what this index is)
    * @param flowToAddPcuH to add
    */
-  protected void addToAcceptedTurnFlows(final Movement movement, double flowToAddPcuH) {
-    acceptedTurnFlows[(int)movement.getId()] += flowToAddPcuH;
+  protected void addToAcceptedTurnFlows(final int turnFlowIndex, double flowToAddPcuH) {
+    acceptedTurnFlows[turnFlowIndex] += flowToAddPcuH;
   }
 
   /**
@@ -116,5 +116,13 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
    */
   public double[] getAcceptedTurnFlows() {
     return this.acceptedTurnFlows;
+  }
+
+  public NetworkLoadingSplittingRateData getNlSplittingRateData() {
+    return nlSplittingRateData;
+  }
+
+  public boolean isTrackAllNodeTurnFlows() {
+    return trackAllNodeTurnFlows;
   }
 }

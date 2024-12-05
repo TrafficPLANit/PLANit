@@ -24,6 +24,8 @@ public class StaticLtmLoadingBushRooted extends StaticLtmLoadingBushBase<RootedL
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingBushRooted.class.getCanonicalName());
 
+  final MultiKeyMap<Object, Movement> segmentPair2MovementMap;
+
   /**
    * {@inheritDoc}
    */
@@ -61,7 +63,8 @@ public class StaticLtmLoadingBushRooted extends StaticLtmLoadingBushBase<RootedL
           long assignmentId,
           MultiKeyMap<Object, Movement> segmentPair2MovementMap,
           final StaticLtmSettings settings) {
-    super(idToken, assignmentId, segmentPair2MovementMap, settings);
+    super(idToken, assignmentId,settings);
+    this.segmentPair2MovementMap = segmentPair2MovementMap;
   }
 
 }

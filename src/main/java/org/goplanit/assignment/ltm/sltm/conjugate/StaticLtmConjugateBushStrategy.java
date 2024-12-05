@@ -11,10 +11,12 @@ import org.goplanit.assignment.ltm.sltm.*;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.ConjugateTransportModelNetwork;
+import org.goplanit.network.transport.ConjugateTransportModelNetworkUtils;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
+import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -80,12 +82,9 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<Co
       currVertex = vertexIter.next();
     }
 
-    /* re-use the general approach which populates the bush from origin-to-destination direction, hence the fiddling to
-     * to reorganise the dag to traverse it this way rather than the inverted setup (d-to-o) it has by default)
-     * todo: when we remove the origin-based implementation revisit this
-     */
-    var helper = BushInitialiserHelper.create(
-            conjugateDestinationBush, destinationOriginInvertedDag, pasManager, getSettings().isDetailedLogging());
+    /* populate initial demand on link sof shortest path */
+    var helper = ConjugateBushSimpleInitialiserHelper.create(
+            conjugateDestinationBush, destinationOriginInvertedDag);
     helper.executeOdBushInitialisation(currVertex, odDemandPcuH, vertexIter);
   }
 
@@ -95,6 +94,9 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<Co
 
   /** inverse mapping from centroid vertices to their conjugate node */
   protected final Map<CentroidVertex, ConjugateConnectoidNode> centroid2ConjugateNodeMapping;
+
+  /** inverse mapping from turn edge segments (double key) to conjugate edge segment */
+  protected final  MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjugateSegmentMapping;
 
   /**
    * Create a shortest bush search algorithm for the conjugate bushes based on conjugate edge segments and costs
@@ -155,7 +157,8 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<Co
               destinationCentroidVertex,
               rootConjugateConnectoidNode,
               /* all "real" turns as conjugate segment is a turn */
-              conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers() );
+              conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers(),
+              turn2ConjugateSegmentMapping);
           conjugateBushes[(int) destination.getOdZoneId()] = bush;
           break;
         }
@@ -221,18 +224,14 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<Co
   /**
    * Create conjugate bush based network loading implementation
    *
-   * @param nonConjugateSegmentPair2MovementMap mapping from entry/exit segment (dual key) to movement,
-   *                                            use to covert turn flows to splitting rate data format in network
-   *                                            loading
    * @return created loading implementation supporting conjugate bush-based approach
    */
   @Override
-  protected StaticLtmLoadingBushConjugate createNetworkLoading(
-          MultiKeyMap<Object, Movement> nonConjugateSegmentPair2MovementMap) {
+  protected StaticLtmLoadingBushConjugate createNetworkLoading() {
     return new StaticLtmLoadingBushConjugate(
             getIdGroupingToken(),
             getAssignmentId(),
-            nonConjugateSegmentPair2MovementMap,
+            turn2ConjugateSegmentMapping,
             this.conjugateTransportModelNetwork,
             getSettings());
   }
@@ -286,6 +285,9 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<Co
     centroid2ConjugateNodeMapping =
             VirtualNetworkUtils.createCentroidVertexToConjugateNodeMapping(
                     conjugateTransportModelNetwork.getVirtualNetwork().getLayer());
+    turn2ConjugateSegmentMapping =
+            ConjugateTransportModelNetworkUtils.createOriginalSegmentsToConjugateSegmentsMapping(
+                    conjugateTransportModelNetwork);
   }
 
   /**
