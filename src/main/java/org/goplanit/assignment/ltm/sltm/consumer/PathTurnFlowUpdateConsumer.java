@@ -3,7 +3,9 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
+import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessorMovements;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.network.layer.physical.Movement;
@@ -101,8 +103,9 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
    */
   public PathTurnFlowUpdateConsumer(
           final NetworkTurnFlowUpdateData dataConfig,
-          final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odPaths) {
-    super(dataConfig, odPaths);
+          final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odPaths,
+          final MultiKeyMap<Object,Movement> segmentPair2MovementMap) {
+    super(dataConfig, odPaths, segmentPair2MovementMap);
   }
 
   /**
@@ -110,8 +113,8 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
    * 
    * @return accepted turn flows
    */
-  public double[] getAcceptedTurnFlows() {
-    return dataConfig.getAcceptedTurnFlows();
+  public TurnFlowAccessorMovements getAcceptedTurnFlows() {
+    return TurnFlowAccessorMovements.of(segmentPair2MovementMap, dataConfig.getAcceptedTurnFlows());
   }
 
 }

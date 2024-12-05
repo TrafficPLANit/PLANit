@@ -3,6 +3,7 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.utils.functionalinterface.TriConsumer;
@@ -33,6 +34,9 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
    */
   private final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths;
 
+  /** be able to convert entry/exit segment to their corresponding movement */
+  protected final MultiKeyMap<Object,Movement> segmentPair2MovementMap;
+
   /**
    * Apply the flow to the turn (and update link sending flow if required)
    * 
@@ -62,9 +66,11 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
    */
   public PathFlowUpdateConsumer(
           final T dataConfig,
-          final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths) {
+          final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths,
+          final MultiKeyMap<Object,Movement> segmentPair2MovementMap) {
     this.dataConfig = dataConfig;
     this.odMultiPaths = odMultiPaths;
+    this.segmentPair2MovementMap = segmentPair2MovementMap;
   }
 
   /**

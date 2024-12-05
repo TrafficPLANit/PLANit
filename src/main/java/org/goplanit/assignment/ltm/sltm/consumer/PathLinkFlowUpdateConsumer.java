@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -76,7 +77,7 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
   public PathLinkFlowUpdateConsumer(
           final NetworkFlowUpdateData dataConfig,
           final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odPaths) {
-    super(dataConfig, odPaths);
+    super(dataConfig, odPaths, null);
   }
 
 }

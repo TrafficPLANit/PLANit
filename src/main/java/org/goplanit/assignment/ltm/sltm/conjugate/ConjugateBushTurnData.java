@@ -165,25 +165,28 @@ public class ConjugateBushTurnData{
    * Collect the accepted flow towards a conjugate node (original edge segment) in the bush, if not present,
    * zero flow is returned
    * 
-   * @param node                                        conjugate node to collect accepted flow towards to
+   * @param conjVertex                                        conjugate node to collect accepted flow towards to
    * @param originalNetworkSegmentFlowAcceptanceFactors to convert sending flow to accepted flow (based on original
    *                                                    edge segment ids)
    * @return bush sending flow found
    */
   public double getTotalAcceptedFlowToPcuH(
-          final ConjugateDirectedVertex node, double[] originalNetworkSegmentFlowAcceptanceFactors) {
+          final ConjugateDirectedVertex conjVertex, double[] originalNetworkSegmentFlowAcceptanceFactors) {
 
-    if (!node.hasEntryEdgeSegments()) {
+    if (!conjVertex.hasEntryEdgeSegments()) {
       /* no preceding conjugate link segments, so no incoming turns, hence it must be a root vertex connected to an origin */
-      return getTotalSendingFlowFromPcuH(node);
+      return getTotalSendingFlowFromPcuH(conjVertex);
     }
 
     double totalAcceptedFlow = 0;
-    for (var turn : node.getEntryEdgeSegments()) {
+    for (var turn : conjVertex.getEntryEdgeSegments()) {
       double s_ab = getTurnSendingFlowPcuH(turn);
 
-      var originalEntrySegment = turn.getOriginalAdjacentEdgeSegments().first();
-      double v_ab = s_ab * originalNetworkSegmentFlowAcceptanceFactors[(int) originalEntrySegment.getId()];
+      double v_ab = s_ab;
+      if(turn.hasOriginalEntryEdgeSegment()) {
+        var originalEntrySegment = turn.getOriginalAdjacentEdgeSegments().first();
+        v_ab *= originalNetworkSegmentFlowAcceptanceFactors[(int) originalEntrySegment.getId()];
+      }
       totalAcceptedFlow += v_ab;
     }
     return totalAcceptedFlow;
@@ -224,7 +227,7 @@ public class ConjugateBushTurnData{
     ArrayUtils.divideBy(splittingRates, totalSendingFlow, 0);
 
     /* truncate */
-    Arrays.copyOf(splittingRates, index);
+    splittingRates = Arrays.copyOf(splittingRates, index);
     return splittingRates;
   }
 

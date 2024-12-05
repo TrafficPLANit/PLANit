@@ -570,8 +570,9 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     }
     var currConjugateVertex = conjugateVertexIter.next();
 
-    /* pass over conjugate bush in topological order updating turn sending flows based on flow acceptance factors */
-    final boolean AllowTurnRemoval = false;
+    /* pass over conjugate bush in topological order updating turn sending flows based on flow acceptance factors
+    *  these turn flows inform the network level splitting rates now that they are consistent with network loading */
+    final boolean allowTurnRemoval = false;
     while (conjugateVertexIter.hasNext()) {
       currConjugateVertex = conjugateVertexIter.next();
       double conjugateVertexAcceptedFlow =
@@ -582,17 +583,17 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
        * flows but placed in new array. So once we have the splitting rates we can safely update the turn
        * flows without affecting these splitting rates
        */
-      double[] splittingRates = getSplittingRates(currConjugateVertex);
+      double[] bushSplittingRates = getSplittingRates(currConjugateVertex);
       int index = -1;
       for (var turnSegment : currConjugateVertex.getExitEdgeSegments()) {
         ++index;
         if (!containsConjugateSegment(turnSegment)) {
           continue;
         }
-        double currTurnSplittingRate = splittingRates[index];
+        double currTurnSplittingRate = bushSplittingRates[index];
         if (currTurnSplittingRate > 0) {
           double bushTurnLabeledAcceptedFlow = conjugateVertexAcceptedFlow * currTurnSplittingRate;
-          bushData.setTurnSendingFlow(turnSegment, bushTurnLabeledAcceptedFlow, AllowTurnRemoval);
+          bushData.setTurnSendingFlow(turnSegment, bushTurnLabeledAcceptedFlow, allowTurnRemoval);
         }
       }
     }

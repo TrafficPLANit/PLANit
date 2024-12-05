@@ -423,11 +423,6 @@ public abstract class StaticLtmNetworkLoading {
     }
   }
 
-  // INPUTS (cnt'd)
-
-  /** mapping from entry/exit segments to movement used to quickly convert movement/turn flows to splitting rates */
-  protected MultiKeyMap<Object,Movement> segmentPair2MovementMap;
-
   // SIMULATION DATA
 
   /** variables tracked for sending flow update step **/

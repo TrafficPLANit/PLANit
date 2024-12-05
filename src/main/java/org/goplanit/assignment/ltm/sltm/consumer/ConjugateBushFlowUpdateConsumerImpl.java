@@ -121,6 +121,20 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
     /* pass over bush in topological order propagating flow from origin */
     while (vertexIter.hasNext()) {
       currConjVertex = vertexIter.next();
+
+      /* bush splitting rates by [exit segment, exit label] as key
+      *  in conjugate setting all conjugate entry segments will have the same splitting rates */
+      double[] splittingRates = bush.getSplittingRates(currConjVertex);
+      double splittingRateTotal = ArrayUtils.sumOf(splittingRates);
+      if (splittingRates == null || splittingRateTotal <= 0.0) {
+        continue;
+      }
+
+      if(Precision.smaller(splittingRateTotal, 1, Precision.EPSILON_6)){
+        LOGGER.severe("Splitting rates do not add up to 100%, this shouldn't happen");
+      }
+
+
       for (var conjEntrySegment : currConjVertex.getEntryEdgeSegments()) {
         if (!bush.contains(conjEntrySegment)) {
           continue;
@@ -165,58 +179,45 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
           }
         }
 
-        /* bush splitting rates by [exit segment, exit label] as key */
-        double[] splittingRates = bush.getSplittingRates(conjEntrySegment.getUpstreamVertex());
-        double splittingRateTotal = ArrayUtils.sumOf(splittingRates);
-        if (splittingRates == null || splittingRateTotal <= 0.0) {
-          continue;
+        int splittingRateIndex = 0;
+        double totalExitAcceptedFlow = 0;
+        for (var conjExitSegment : currConjVertex.getExitEdgeSegments()) {
+          if (!bush.contains(conjExitSegment)) {
+            ++splittingRateIndex;
+            continue;
+          }
+
+          double splittingRate = splittingRates[splittingRateIndex];
+          if (splittingRate > 0) {
+
+            /* v^o_ab = v^o_a * phi_ab */
+            double turnAcceptedFlow = bushConjSegmentAcceptedFlow * splittingRate;
+            totalExitAcceptedFlow += turnAcceptedFlow;
+
+            double exitFlowToUpdate = bushSendingFlows.getOrDefault(conjExitSegment, 0.0) + turnAcceptedFlow;
+            bushSendingFlows.put(conjExitSegment, exitFlowToUpdate);
+
+            if(dataConfig.isUnconstrainedFlowsUpdate()){
+              double bushTurnDemand =
+                      bushUnconstrainedFlows.getOrDefault(conjEntrySegment, 0.0) * splittingRate;
+              bushUnconstrainedFlows.put(conjExitSegment,
+                      bushUnconstrainedFlows.getOrDefault(conjExitSegment,0.0) + bushTurnDemand);
+            }
+
+            /* update turn accepted flows as per derived class implementation (or do nothing) */
+            applyAcceptedTurnFlowUpdate(conjExitSegment, turnAcceptedFlow);
+          }
+          ++splittingRateIndex;
         }
 
-        if(Precision.smaller(splittingRateTotal, 1, Precision.EPSILON_6)){
-          LOGGER.severe("Splitting rates do not add up to 100%, this shouldn't happen");
+        if (Precision.notEqual(bushConjSegmentAcceptedFlow, totalExitAcceptedFlow) && !(conjEntrySegment instanceof ConnectoidSegment)) {
+          LOGGER.severe(String.format("Accepted out flow %.10f on conjugate edge segment (%s) not equal to flow (%.10f) assigned " +
+                          "to turns on bush %s, this shouldn't happen",
+                  bushConjSegmentAcceptedFlow,
+                  conjEntrySegment.getXmlId(),
+                  totalExitAcceptedFlow,
+                  bush.getDestination().getParent().getParentZone().getIdsAsString()));
         }
-
-        throw new PlanItRunTimeException("below is rewritten but not tested. Also changed dealing with turn flows via turnFlowAccessor. This is also\n" +
-                "not tested. Continue here");
-//
-//        int splittingRateIndex = 0;
-//        double totalExitAcceptedFlow = 0;
-//        for (var exitSegment : currConjVertex.getExitEdgeSegments()) {
-//          if (!bush.contains(exitSegment)) {
-//            ++splittingRateIndex;
-//            continue;
-//          }
-//
-//          double splittingRate = splittingRates[splittingRateIndex];
-//          if (splittingRate > 0) {
-//
-//            /* v^o_ab = v^o_a * phi_ab */
-//            double turnAcceptedFlow = bushConjSegmentAcceptedFlow * splittingRate;
-//            totalExitAcceptedFlow += turnAcceptedFlow;
-//
-//            double exitFlowToUpdate = bushSendingFlows.getOrDefault(exitSegment, 0.0) + turnAcceptedFlow;
-//            bushSendingFlows.put(exitSegment, exitFlowToUpdate);
-//
-//            if(dataConfig.isUnconstrainedFlowsUpdate()){
-//              double bushTurnDemand = bushUnconstrainedFlows.get(conjEntrySegment) * splittingRate;
-//              bushUnconstrainedFlows.put(exitSegment,
-//                      bushUnconstrainedFlows.getOrDefault(exitSegment,0.0) + bushTurnDemand);
-//            }
-//
-//            /* update turn accepted flows as per derived class implementation (or do nothing) */
-//            applyAcceptedTurnFlowUpdate(exitSegment, turnAcceptedFlow);
-//          }
-//          ++splittingRateIndex;
-//        }
-//
-//        if (Precision.notEqual(bushConjSegmentAcceptedFlow, totalExitAcceptedFlow) && !(conjEntrySegment instanceof ConnectoidSegment)) {
-//          LOGGER.severe(String.format("Accepted out flow %.10f on conjugate edge segment (%s) not equal to flow (%.10f) assigned " +
-//                          "to turns on bush %s, this shouldn't happen",
-//                  bushConjSegmentAcceptedFlow,
-//                  conjEntrySegment.getXmlId(),
-//                  totalExitAcceptedFlow,
-//                  bush.getDestination().getParent().getParentZone().getIdsAsString()));
-//        }
       }
     }
   }

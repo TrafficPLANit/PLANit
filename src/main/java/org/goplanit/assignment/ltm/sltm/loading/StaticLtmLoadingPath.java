@@ -26,10 +26,11 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingPath.class.getCanonicalName());
 
-  /**
-   * Od Paths registered by mode
-   */
+  /** Od Paths registered by mode */
   private final Map<Mode, OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>>> odMultiPathsByMode;
+
+  /** mapping from entry/exit segments to movement used to quickly convert movement/turn flows to splitting rates */
+  protected MultiKeyMap<Object,Movement> segmentPair2MovementMap;
 
   //@formatter:off
 
@@ -105,12 +106,17 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
           return null;
         } else {        
           dataConfig = new NetworkTurnFlowUpdateData(
-                  isTrackAllNodeTurnFlowsDuringLoading(), nlSendingFlowData, nlSplittingRateData, networkLoadingFactorData, numMovements);
+                  isTrackAllNodeTurnFlowsDuringLoading(),
+                  nlSendingFlowData,
+                  nlSplittingRateData,
+                  networkLoadingFactorData,
+                  numMovements);
         }
       }else {
-        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlowsDuringLoading(), nlSplittingRateData, networkLoadingFactorData, numMovements);
+        dataConfig = new NetworkTurnFlowUpdateData(
+                isTrackAllNodeTurnFlowsDuringLoading(), nlSplittingRateData, networkLoadingFactorData, numMovements);
       }
-      return new PathTurnFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode));
+      return new PathTurnFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode), segmentPair2MovementMap);
     }
 
     LOGGER.warning("Invalid network flow update requested for path based loading");
@@ -186,9 +192,14 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    *  to splitting rate data format
    * @param settings to use
    */
-  public StaticLtmLoadingPath(IdGroupingToken idToken, long assignmentId, MultiKeyMap<Object, Movement> segmentPair2MovementMap, final StaticLtmSettings settings) {
-    super(idToken, assignmentId, segmentPair2MovementMap, settings);
+  public StaticLtmLoadingPath(
+          IdGroupingToken idToken,
+          long assignmentId,
+          MultiKeyMap<Object, Movement> segmentPair2MovementMap,
+          final StaticLtmSettings settings) {
+    super(idToken, assignmentId, settings);
     this.odMultiPathsByMode = new HashMap<>();
+    this.segmentPair2MovementMap = segmentPair2MovementMap;
   }
 
   /** Set the od multi paths to use in the loading (by mode). Expected to be set before this class is used

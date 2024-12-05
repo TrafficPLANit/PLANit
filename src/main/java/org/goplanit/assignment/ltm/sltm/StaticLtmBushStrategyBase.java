@@ -789,7 +789,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
         var alphas = getLoading().getCurrentFlowAcceptanceFactors();
         for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
           if(alphas[(int)ls.getId()]<0.999999999998){
-            LOGGER.info(String.format("** LINK (%s) - ALPHA: %.8f - Sending flow: %.2f", ls.getXmlId(), alphas[(int)ls.getId()], getLoading().getCurrentInflowsPcuH()[(int)ls.getId()]));
+            LOGGER.info(String.format("** LINK (%s) - ALPHA: %.8f - Sending flow: %.2f",
+                    ls.getIdsAsString(), alphas[(int)ls.getId()], getLoading().getCurrentInflowsPcuH()[(int)ls.getId()]));
           }
         }
       }
