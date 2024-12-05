@@ -42,13 +42,36 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
   protected final MacroscopicNetworkLayer originalLayer;
 
   /**
+   * Check if original network edge combination hosts a potential turn via its direction link segments
+   *
+   * @param fromEdge to check
+   * @param toEdge to check
+   * @return true when present, false otherwise
+   */
+  private boolean hasPotentialDirectionalTurn(DirectedEdge fromEdge, DirectedEdge toEdge) {
+    boolean directionalTurnExistsBetweenConjugateVertices = false;
+    for(var es : fromEdge.getEdgeSegments()) {
+      for (var exitEs : es.getDownstreamVertex().getExitEdgeSegments()) {
+        if (toEdge.getEdgeSegments().contains(exitEs)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Reset and re-populate entire conjugate network layer based on current state of original layer this is the
-   * conjugate of
+   * conjugate of.
+   * <p>
+   *   It is assumed the conjugate virtual network layer is already populated (if present) and therefore
+   *   we do not reset the managed ids to enforce contiguous ids across edges and vertices.
+   * </p>
    * 
    * @param conjugateVirtualNetworkLayer optional to connect to original connectoid edges/segments when present
    */
   protected void recreateFromReferenceLayer(ConjugateVirtualNetworkLayer conjugateVirtualNetworkLayer) {
-    reset();
+    reset(conjugateVirtualNetworkLayer==null);
 
     /* link -> conjugate node */
     Map<DirectedEdge, ConjugateDirectedVertex> edgeToConjugateNode = new HashMap<>();
@@ -100,6 +123,15 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
             LOGGER.warning("Unable to obtain conjugate vertex for original link, this shouldn't happen, skip");
             continue;
           }
+
+          // only create conjugate link if a turn in either direction exists, otherwise contiguous id generation will
+          // be messed up as we'll have links without link segments which makes no practical sense
+          boolean directionalTurnExistsBetweenConjugateVertices =
+                  hasPotentialDirectionalTurn(edge, nextEdge) || hasPotentialDirectionalTurn(nextEdge, edge);
+          if(!directionalTurnExistsBetweenConjugateVertices){
+            continue;
+          }
+
 
           /* conjugate link */
           ConjugateLink conjugateLink = getLinks().getFactory().registerNew(

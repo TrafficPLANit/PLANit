@@ -96,7 +96,7 @@ public interface TransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V
    */
   public default int getNumberOfVerticesAllLayers(){
     return TransportModelNetworkUtils.getNumberOfVerticesAllLayers(
-            getInfrastructureNetwork(), getZoning().getVirtualNetwork());
+            getInfrastructureNetwork(), getVirtualNetwork());
   }
 
   /**

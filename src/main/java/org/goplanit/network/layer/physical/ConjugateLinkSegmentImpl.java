@@ -74,12 +74,12 @@ public class ConjugateLinkSegmentImpl extends LinkSegmentImpl implements Conjuga
 
   @Override
   public ConjugateNode getUpstreamVertex() {
-    return getUpstreamNode();
+    return (ConjugateNode) super.getUpstreamVertex();
   }
 
   @Override
   public ConjugateNode getDownstreamVertex() {
-    return getDownstreamNode();
+    return (ConjugateNode) super.getDownstreamVertex();
   }
 
   /**

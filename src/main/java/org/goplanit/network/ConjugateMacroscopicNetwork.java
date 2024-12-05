@@ -77,9 +77,6 @@ public class ConjugateMacroscopicNetwork extends
    *                                virtual layer
    */
   protected void recreateFromReferenceNetwork(ConjugateVirtualNetwork conjugateVirtualNetwork) {
-    var conjugateLayers = getTransportLayers();
-    boolean resetManagedIdToken = conjugateVirtualNetwork==null;
-    conjugateLayers.reset(resetManagedIdToken);
     createAndRegisterConjugateLayers(referenceNetwork.getTransportLayers(), conjugateVirtualNetwork);
   }
 

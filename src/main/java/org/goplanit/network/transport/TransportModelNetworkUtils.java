@@ -65,7 +65,8 @@ public class TransportModelNetworkUtils {
    * @param virtualNetwork to use
    * @return the total number of vertices
    */
-  public static int getNumberOfVerticesAllLayers(LayeredNetwork<?, ?> physicalNetwork, VirtualNetwork virtualNetwork) {
+  public static int getNumberOfVerticesAllLayers(
+          LayeredNetwork<?, ?> physicalNetwork, UntypedVirtualNetwork<?> virtualNetwork) {
     return virtualNetwork.getLayer().getVertices().size() + getNumberOfPhysicalNodesAllLayers(physicalNetwork);
   }
 

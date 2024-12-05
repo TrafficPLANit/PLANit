@@ -734,8 +734,8 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
       getLoading().setPasManager(this.pasManager);
 
     } catch (Exception e) {
-      LOGGER.severe(String.format("Unable to create initial bushes for sLTM %d", getAssignmentId()));
       LOGGER.severe(e.getMessage());
+      LOGGER.severe(String.format("Unable to create initial bushes for sLTM %d", getAssignmentId()));
       e.printStackTrace();
     }
   }
