@@ -1,18 +1,20 @@
 package org.goplanit.algorithms.shortest;
 
+import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 
-import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
-
 /**
- * Build a min/max shortest path tree for a given start vertex based on the configuration used. This implementation requires an acyclic network representation such that the
- * vertices can - and already are - topologically sorted. If the provided topological sorted list of vertices is incorrect undefined behaviour will occur.
+ * Build a min/max shortest path tree for a given start vertex based on the configuration used. This implementation
+ * requires an acyclic network representation such that the vertices can - and already are - topologically sorted.
+ * If the provided topological sorted list of vertices is incorrect undefined behaviour will occur.
  * <p>
- * Obtaining a topologically sorted list of vertices for a given acyclic (sub)graph can be generated via the functionality on the AcyclicSubGraph implementation
+ * Obtaining a topologically sorted list of vertices for a given acyclic (sub)graph can be generated via the
+ * functionality on the AcyclicSubGraph implementation
  * </p>
  * 
  * @author markr
@@ -24,7 +26,7 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
   private final Collection<? extends DirectedVertex> topologicalOrder;
 
   /** the acyclic graph to operate on */
-  private final ACyclicSubGraph acyclicSubGraph;
+  private final UntypedACyclicSubGraph<DirectedVertex,EdgeSegment> acyclicSubGraph;
 
   /** costs of all edge segments known, index reflects id of the graph entity */
   private final double[] edgeSegmentCosts;
@@ -49,18 +51,24 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
    * @param edgeSegmentCosts       for all edge segments
    * @param parentNetworkVertices  number of vertices in parent network, required to create raw result array by contiguous vertex id without the need for any mapping
    */
-  public ShortestPathAcyclicMinMaxGeneralised(final ACyclicSubGraph acyclicSubGraph, boolean updateTopologicalOrder, final double[] edgeSegmentCosts,
-      final int parentNetworkVertices) {
-    this.acyclicSubGraph = acyclicSubGraph;
+  @SuppressWarnings("unchecked")
+  public ShortestPathAcyclicMinMaxGeneralised(
+          final UntypedACyclicSubGraph<?,?> acyclicSubGraph,
+          boolean updateTopologicalOrder,
+          final double[] edgeSegmentCosts,
+          final int parentNetworkVertices) {
+
+    this.acyclicSubGraph = (UntypedACyclicSubGraph<DirectedVertex, EdgeSegment>) acyclicSubGraph;
     this.topologicalOrder = this.acyclicSubGraph.topologicalSort(updateTopologicalOrder);
     this.edgeSegmentCosts = edgeSegmentCosts;
     this.numParentNetworkVertices = parentNetworkVertices;
   }
 
   /**
-   * Perform a generalised min-max path search where we construct both the least and most costly path from the start vertex provided to all other vertices in the (sub)graph based
-   * on the configuration. Since this is conducted on an acyclic graph all vertices only need to be explored once, which makes it computationally more attractive than the same
-   * search on a cyclic graph.
+   * Perform a generalised min-max path search where we construct both the least and most costly path from the
+   * start vertex provided to all other vertices in the (sub)graph based on the configuration. Since this is
+   * conducted on an acyclic graph all vertices only need to be explored once, which makes it computationally
+   * more attractive than the same search on a cyclic graph.
    * 
    * @param startVertex to conduct search for
    * @return created result
@@ -113,7 +121,8 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
    */
   @Override
   public MinMaxPathResult executeAllToOne(DirectedVertex currentDestination) {
-    this.getEdgeSegmentsInDirection = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ALL_TO_ONE);
+    this.getEdgeSegmentsInDirection =
+            ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ALL_TO_ONE);
     this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ALL_TO_ONE);
     return execute(currentDestination);
   }

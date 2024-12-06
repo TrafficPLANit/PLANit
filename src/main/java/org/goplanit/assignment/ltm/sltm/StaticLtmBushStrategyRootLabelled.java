@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
+import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushRooted;
 import org.goplanit.gap.GapFunction;
@@ -195,6 +196,15 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
   }
 
   /**
+   * {@inheritDoc
+   */
+  @Override
+  protected ShortestPathDijkstra createNetworkShortestPathAlgo(final double[] linkSegmentCosts) {
+    final int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
+    return new ShortestPathDijkstra(linkSegmentCosts, numberOfVertices);
+  }
+
+  /**
    * Match (new) PASs to improve existing bushes (origin) at hand.
    * <p>
    * Note that in order to extend the bushes we run a shortest path rooted at each bush's origin, since this is costly, we utilise the result also to update the min-cost gap for
@@ -295,8 +305,6 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
                         !bush.contains(reducedCostSegment.getOppositeDirectionSegment());
         if (!viableSearch) {
           // preferred alternative cannot be added due to bush triggering a cycle if we would
-          // todo: check what happens when terminate because if this gets still triggered then we have not technically
-          //  converged and we have a problem...
           continue;
         }
 

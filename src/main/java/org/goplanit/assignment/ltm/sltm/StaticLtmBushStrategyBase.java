@@ -639,10 +639,7 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    * @param linkSegmentCosts to use
    * @return Dijkstra shortest path algorithm
    */
-  protected ShortestPathDijkstra createNetworkShortestPathAlgo(final double[] linkSegmentCosts) {
-    final int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
-    return new ShortestPathDijkstra(linkSegmentCosts, numberOfVertices);
-  }
+  protected abstract ShortestPathDijkstra createNetworkShortestPathAlgo(final double[] linkSegmentCosts);
 
   /**
    * To avoid bushes keeping low flow links occupied and limiting options to use links or opposite links

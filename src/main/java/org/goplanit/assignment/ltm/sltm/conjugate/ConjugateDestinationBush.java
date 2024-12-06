@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
+import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.assignment.ltm.sltm.RootedBush;
@@ -145,14 +146,24 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * implementation and given the provided conjugate (network wide) costs. The provided costs are at the conjugate
    * network level so should contain all the conjugate segments active in the bush
    * 
-   * @param conjugatelinkSegmentCosts to use
+   * @param conjugateLinkSegmentCosts to use
    * @param totalConjugateVertices    needed to be able to create primitive array recording the (partial) subgraph
    *                                  backward conjugate link segment results (efficiently)
    * @return minMaxPathResult, null if unable to complete
    */
   public MinMaxPathResult computeMinMaxShortestPaths(
-          final double[] conjugatelinkSegmentCosts, final int totalConjugateVertices) {
-    // TODO: not rewritten yet
+          final double[] conjugateLinkSegmentCosts, final int totalConjugateVertices) {
+    //todo: effectively duplicated from non conjugate implementation, consider consolidating
+
+    /* build min/max path tree */
+    var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(
+            getDag(), requireTopologicalSortUpdate, conjugateLinkSegmentCosts, totalConjugateVertices);
+    try {
+      return minMaxBushPaths.executeAllToOne(getRootVertex());
+    } catch (Exception e) {
+      LOGGER.severe(String.format("Unable to complete minmax path three for conjugate destination-based bush ending at " +
+              "destination %s", getDestination().getXmlId()));
+    }
     return null;
   }
 
@@ -187,10 +198,12 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     return bushData.addTurnSendingFlow(conjugateSegment, addFlowPcuH);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ShortestSearchType getShortestSearchType() {
-    // TODO: not rewritten yet
-    return null;
+    return ShortestSearchType.ALL_TO_ONE;
   }
 
   /**
