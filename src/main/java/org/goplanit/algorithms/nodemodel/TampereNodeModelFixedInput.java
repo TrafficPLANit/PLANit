@@ -11,7 +11,8 @@ import org.ojalgo.array.Array1D;
 import org.ojalgo.function.PrimitiveFunction;
 
 /**
- * Inner class that holds the mapping of the inputs to/from the underlying physical network (if any). Currently we support the PLANit network format for this mapping, or one
+ * Inner class that holds the mapping of the inputs to/from the underlying physical network (if any).
+ * Currently, we support the PLANit network format for this mapping, or one
  * provides the fixed input separate from a particular network format By default, we:
  * <ul>
  * <li>map incoming link segments in order of appearance to index a=0,...,|A^in|-1</li>
@@ -20,13 +21,15 @@ import org.ojalgo.function.PrimitiveFunction;
  * <li>extract receiving flow capacities such that R_b=C_b</li>
  * </ul>
  * 
- * Note that in case the receiving flows are not fixed at the outgoing link's capacity this can be omitted and provided as a separate input via the TampereNodeModelInput
+ * Note that in case the receiving flows are not fixed at the outgoing link's capacity this can be omitted and
+ * provided as a separate input via the TampereNodeModelInput
  * 
  */
 public class TampereNodeModelFixedInput {
 
   /**
-   * Map link segments to local data mapping structure in order of appearance, i.e., first incoming link segment is placed in index 0, second in index 1 etc.
+   * Map link segments to local data mapping structure in order of appearance, i.e., first incoming link segment
+   * is placed in index 0, second in index 1 etc.
    * 
    * @param linkSegments, to map to
    * @param edgeSegments  to map from
@@ -39,7 +42,8 @@ public class TampereNodeModelFixedInput {
 
     for (var incomingLinkSegment : edgeSegments) {
       if(!(incomingLinkSegment instanceof MacroscopicLinkSegment)) {
-        throw new PlanItRunTimeException("Edges of node are not of type MacroscopicLinkSegment when mapping in Tampere node model");
+        throw new PlanItRunTimeException("Edges of node are not of type MacroscopicLinkSegment when mapping in " +
+                "Tampere node model");
       }
 
       linkSegments.add((MacroscopicLinkSegment) incomingLinkSegment);
@@ -65,7 +69,8 @@ public class TampereNodeModelFixedInput {
   }
 
   /**
-   * Map incoming link segments to node model compatible index in order of appearance, i.e., first incoming link segment is placed in index 0, second in index 1 etc.
+   * Map incoming link segments to node model compatible index in order of appearance, i.e., first incoming link
+   * segment is placed in index 0, second in index 1 etc.
    * 
    * @param incomingEdgeSegments to map
    */
@@ -75,7 +80,8 @@ public class TampereNodeModelFixedInput {
   }
 
   /**
-   * Map outgoingEdgeSegments link segments to node model compatible index in order of appearance, i.e., first incoming link segment is placed in index 0, second in index 1 etc.
+   * Map outgoingEdgeSegments link segments to node model compatible index in order of appearance, i.e., first
+   * incoming link segment is placed in index 0, second in index 1 etc.
    * 
    * @param outgoingEdgeSegments to map
    */
@@ -92,11 +98,12 @@ public class TampereNodeModelFixedInput {
   }
 
   /**
-   * Extract the available outgoing link receiving flows by setting them to capacity. It is assumed the incoming link segments are available. Note that assignment methods that
-   * support storage constraints, i.e., spillback do not always have receiving flows equal to capacity. In that case receiving flows are not fixed and should not be initialised
-   * here but instead by provided on-the-fly for each tampere node model update
+   * Extract the available outgoing link receiving flows by setting them to capacity. It is assumed the incoming
+   * link segments are available. Note that assignment methods that support storage constraints, i.e., spillback
+   * do not always have receiving flows equal to capacity. In that case receiving flows are not fixed and should
+   * not be initialised here but instead by provided on-the-fly for each tampere node model update.
    * 
-   * @param initialiseReceivingFlowsAtCapacity
+   * @param initialiseReceivingFlowsAtCapacity to use
    */
   private void initialiseOutoingLinkSegmentReceivingFlows(boolean initialiseReceivingFlowsAtCapacity) {
     if (initialiseReceivingFlowsAtCapacity) {
@@ -123,12 +130,14 @@ public class TampereNodeModelFixedInput {
   public static double DEFAULT_MAX_IN_CAPACITY = 10_000.0;
 
   /**
-   * Constructor. The TampereNodeModelFixedInput class is meant to be created once for each node where the node model is applied more than once. All fixed inputs conditioned on the
-   * network infrastructure are stored here and therefore can be reused with every update of the node model throughout a simulation.
+   * Constructor. The TampereNodeModelFixedInput class is meant to be created once for each node where the node
+   * model is applied more than once. All fixed inputs conditioned on the network infrastructure are stored here
+   * and therefore can be reused with every update of the node model throughout a simulation.
    * 
    * 
    * @param node                               to use for extracting static inputs
-   * @param initialiseReceivingFlowsAtCapacity indicate to initialise receiving flows at capacity (true), or not initialise them at all
+   * @param initialiseReceivingFlowsAtCapacity indicate to initialise receiving flows at capacity (true),
+   *                                           or not initialise them at all
    */
   public TampereNodeModelFixedInput(Node node, boolean initialiseReceivingFlowsAtCapacity){
     // Set A^in
@@ -164,7 +173,8 @@ public class TampereNodeModelFixedInput {
   }
 
   /**
-   * Based on the set maximum in link capacity, check and update current in link capacities if they exceed this maximum
+   * Based on the set maximum in link capacity, check and update current in link capacities if they
+   * exceed this maximum.
    */
   public void capInLinkCapacitiesToMaximum() {
     PrimitiveFunction.Unary capToMaxCapacity = v -> Math.max(getMaxInLinkSegmentCapacity(), v);

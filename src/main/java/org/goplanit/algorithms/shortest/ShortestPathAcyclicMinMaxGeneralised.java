@@ -31,7 +31,8 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
   /** costs of all edge segments known, index reflects id of the graph entity */
   private final double[] edgeSegmentCosts;
 
-  /** number of vertices in parent network, required to create raw result array by contiguous vertex id without the need for any mapping */
+  /** number of vertices in parent network, required to create raw result array by contiguous vertex id without
+   * the need for any mapping */
   private final int numParentNetworkVertices;
 
   /** depending on configuration this function collects vertex at desired edge segment extremity */
@@ -43,13 +44,16 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
   /**
    * Constructor
    * <p>
-   * The edge segment costs should be set for all registered segments on the subgraph while the array itself is expected to match the ids of the edge segments which in turn are
-   * based on the number of edge segments on the over-arching network.
+   * The edge segment costs should be set for all registered segments on the subgraph while the array itself is
+   * expected to match the ids of the edge segments which in turn are based on the number of edge segments on the
+   * over-arching network.
    * 
    * @param acyclicSubGraph        the subgraph we are conducting this search on
-   * @param updateTopologicalOrder indicate if current topological order can be used, or it should be updated before use
+   * @param updateTopologicalOrder indicate if current topological order can be used, or it should be updated
+   *                               before use
    * @param edgeSegmentCosts       for all edge segments
-   * @param parentNetworkVertices  number of vertices in parent network, required to create raw result array by contiguous vertex id without the need for any mapping
+   * @param parentNetworkVertices  number of vertices in parent network, required to create raw result array by
+   *                               contiguous vertex id without the need for any mapping
    */
   @SuppressWarnings("unchecked")
   public ShortestPathAcyclicMinMaxGeneralised(
@@ -132,7 +136,8 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
    */
   @Override
   public MinMaxPathResult executeOneToAll(DirectedVertex currentOrigin) {
-    this.getEdgeSegmentsInDirection = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ONE_TO_ALL);
+    this.getEdgeSegmentsInDirection =
+            ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ONE_TO_ALL);
     this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ONE_TO_ALL);
     return execute(currentOrigin);
   }

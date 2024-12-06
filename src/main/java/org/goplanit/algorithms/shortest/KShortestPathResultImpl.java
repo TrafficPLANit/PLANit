@@ -34,7 +34,8 @@ public class KShortestPathResultImpl implements KShortestPathResult {
 
   private boolean validateOriginDestination(DirectedVertex origin, DirectedVertex destination){
     if(!origin.idEquals(this.origin) || !destination.idEquals(this.destination)){
-      LOGGER.warning("Origin and/or destination do not match the origin-destination this k-shortest path result is configured for");
+      LOGGER.warning("Origin and/or destination do not match the origin-destination this k-shortest path " +
+              "result is configured for");
       return false;
     }
     return true;
@@ -48,7 +49,10 @@ public class KShortestPathResultImpl implements KShortestPathResult {
    * @param kShortestRawPathsWithCost   raw paths with cost for each of the k-shortest paths found by the algorithm
    */
   public KShortestPathResultImpl(
-          DirectedVertex origin, DirectedVertex destination, List<Pair<Deque<EdgeSegment>, Double>> kShortestRawPathsWithCost) {
+          DirectedVertex origin,
+          DirectedVertex destination,
+          List<Pair<Deque<EdgeSegment>, Double>> kShortestRawPathsWithCost) {
+
     this.origin = origin;
     this.destination = destination;
     this.kShortestRawPathsWithCost = kShortestRawPathsWithCost;
@@ -61,7 +65,8 @@ public class KShortestPathResultImpl implements KShortestPathResult {
   public void chooseKShortestPathIndex(int k) {
     if(k >= kShortestRawPathsWithCost.size()){
       LOGGER.warning(String.format(
-              "Chosen a k index (%d) for k-shortest path that is larger than the max index given the available shortest paths, truncating to max index of %d", k, kShortestRawPathsWithCost.size()-1));
+              "Chosen a k index (%d) for k-shortest path that is larger than the max index given the available " +
+                      "shortest paths, truncating to max index of %d", k, kShortestRawPathsWithCost.size()-1));
       k = kShortestRawPathsWithCost.size()-1;
     }
     this.currentK = k;
@@ -92,7 +97,8 @@ public class KShortestPathResultImpl implements KShortestPathResult {
    * {@inheritDoc}
    */
   @Override
-  public <T extends SimpleDirectedPath> T createPath(DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
+  public <T extends SimpleDirectedPath> T createPath(
+          DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
     if(!validateOriginDestination(origin, destination)){
       return null;
     }
@@ -125,7 +131,8 @@ public class KShortestPathResultImpl implements KShortestPathResult {
     if(vertex.idEquals(this.destination)){
       return kShortestRawPathsWithCost.get(currentK).second(); // full path cost to reach destination
     }
-    throw new PlanItRunTimeException("getCostOf not yet supported for k-shortest path result other than for the destination vertex");
+    throw new PlanItRunTimeException("getCostOf not yet supported for k-shortest path result other than for " +
+            "the destination vertex");
   }
 
   @Override

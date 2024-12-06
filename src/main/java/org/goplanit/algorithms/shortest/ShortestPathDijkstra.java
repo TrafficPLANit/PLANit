@@ -11,8 +11,9 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 /**
  * Dijkstra's shortest path algorithm
  * <p>
- * Dijkstra's shortest path is a one-to-all (or all-to-one) implementation of the shortest path algorithm based on the generalized costs on each link segment (edge). The costs
- * should be provided upon instantiation and are reused whenever an execution conditional on the chosen source/destination node is performed.
+ * Dijkstra's shortest path is a one-to-all (or all-to-one) implementation of the shortest path algorithm based on
+ * the generalized costs on each link segment (edge). The costs should be provided upon instantiation and are reused
+ * whenever an execution conditional on the chosen source/destination node is performed.
  * </p>
  * <p>
  * In its current form, it assumes a macroscopic network and macroscopic link segments to operate on
@@ -21,7 +22,8 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
  * @author markr
  *
  */
-public class ShortestPathDijkstra extends ShortestPathGeneralised implements ShortestPathOneToAll, ShortestPathAllToOne {
+public class ShortestPathDijkstra extends ShortestPathGeneralised
+        implements ShortestPathOneToAll, ShortestPathAllToOne {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ShortestPathDijkstra.class.getCanonicalName());
@@ -32,23 +34,28 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised implements Sho
   protected EdgeSegment[] shortestEdgeSegmentOfVertex;
 
   /**
-   * predicate for Dijkstra where shortest means less cost than existing cost, so only cheaper paths overwrite an existing shortest path to a node
+   * predicate for Dijkstra where shortest means less cost than existing cost, so only cheaper paths overwrite
+   * an existing shortest path to a node.
    */
   protected static final BiPredicate<Double, Double> isShorterPredicate = (currCost, computedCost) -> {
     return currCost > computedCost;
   };
 
   /**
-   * Execute Dijkstra shortest path search based on search type, start vertex and consumer that deals with finding a new shorter(equally short) alternative edge segment for a given
-   * vertex
+   * Execute Dijkstra shortest path search based on search type, start vertex and consumer that deals with
+   * finding a new shorter(equally short) alternative edge segment for a given vertex.
    * 
    * @param searchType                      to apply
    * @param startVertex                     to use
    * @param shortestNextEdgeSegmentConsumer to apply to a new shortest edge segment found for a given vertex
-   * @return shortest path results which, depending on search type, can take on various derived forms of this base result class
+   * @return shortest path results which, depending on search type, can take on various derived forms of this base
+   * result class
    */
   private ShortestPathResult dijkstraExecute(
-          ShortestSearchType searchType, DirectedVertex startVertex, Consumer<EdgeSegment> shortestNextEdgeSegmentConsumer) {
+          ShortestSearchType searchType,
+          DirectedVertex startVertex,
+          Consumer<EdgeSegment> shortestNextEdgeSegmentConsumer) {
+
     this.currentSource = startVertex;
     this.shortestEdgeSegmentOfVertex = new EdgeSegment[numberOfVertices];
 
@@ -96,7 +103,10 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised implements Sho
    */
   @Override
   public ShortestPathResult executeOneToAll(DirectedVertex currentOrigin) {
-    return dijkstraExecute(ShortestSearchType.ONE_TO_ALL, currentOrigin, es -> shortestEdgeSegmentOfVertex[(int) es.getDownstreamVertex().getId()] = es);
+    return dijkstraExecute(
+            ShortestSearchType.ONE_TO_ALL,
+            currentOrigin,
+            es -> shortestEdgeSegmentOfVertex[(int) es.getDownstreamVertex().getId()] = es);
   }
 
   /**

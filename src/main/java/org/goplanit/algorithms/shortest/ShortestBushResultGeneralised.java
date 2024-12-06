@@ -15,9 +15,10 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.CollectionUtils;
 
 /**
- * Class that stores the result of a shortest bush execution allowing one to extract bushes or cost information for a given origin-to-vertex
- * 
- * Note that we construct the bush in reverse order from destination to the origin via all viable paths to construct the bush
+ * Class that stores the result of a shortest bush execution allowing one to extract bushes or cost information
+ * for a given origin-to-vertex.
+ * Note that we construct the bush in reverse order from destination to the origin via all viable paths to
+ * construct the bush.
  * 
  * @author markr
  *
@@ -28,8 +29,8 @@ public class ShortestBushResultGeneralised extends ShortestResultGeneralised imp
   private static final Logger LOGGER = Logger.getLogger(ShortestBushResultGeneralised.class.getCanonicalName());
 
   /**
-   * the next edge segment(s) to reach the vertex with the given measured cost. If only a single edge segment is present, that is what is stored, otherwise it is a list of edge
-   * segments
+   * the next edge segment(s) to reach the vertex with the given measured cost. If only a single edge segment is
+   * present, that is what is stored, otherwise it is a list of edge segments.
    */
   protected final Object[] nextEdgeSegments;
 
@@ -63,7 +64,8 @@ public class ShortestBushResultGeneralised extends ShortestResultGeneralised imp
 
     var startEndPair = getStartEndVertexForResultTraversal(origin, destination);
     DirectedVertex startSearchVertex = startEndPair.first();
-    DirectedVertex endSearchVertex = startEndPair.second(); // is also root of dag since we always end up back at the root while traversing search result
+    // is also root of dag since we always end up back at the root while traversing search result
+    DirectedVertex endSearchVertex = startEndPair.second();
 
     var dag = new ACyclicSubGraphImpl(idToken, endSearchVertex, isInverted(), numberOfEdgeSegments);
 

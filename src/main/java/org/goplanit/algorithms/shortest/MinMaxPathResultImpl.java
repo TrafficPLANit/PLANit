@@ -39,10 +39,17 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    * @param maxVertexCost               found
    * @param maxCostBackwardEdgeSegments found
    */
-  protected MinMaxPathResultImpl(double[] minVertexCost, EdgeSegment[] minCostBackwardEdgeSegments, double[] maxVertexCost, EdgeSegment[] maxCostBackwardEdgeSegments) {
+  protected MinMaxPathResultImpl(
+          double[] minVertexCost,
+          EdgeSegment[] minCostBackwardEdgeSegments,
+          double[] maxVertexCost,
+          EdgeSegment[] maxCostBackwardEdgeSegments) {
+
     this.minPathState = true;
-    this.minPathResult = new ShortestPathResultGeneralised(minVertexCost, minCostBackwardEdgeSegments, ShortestSearchType.ONE_TO_ALL);
-    this.maxPathResult = new ShortestPathResultGeneralised(maxVertexCost, maxCostBackwardEdgeSegments, ShortestSearchType.ONE_TO_ALL);
+    this.minPathResult = new ShortestPathResultGeneralised(
+            minVertexCost, minCostBackwardEdgeSegments, ShortestSearchType.ONE_TO_ALL);
+    this.maxPathResult = new ShortestPathResultGeneralised(
+            maxVertexCost, maxCostBackwardEdgeSegments, ShortestSearchType.ONE_TO_ALL);
   }
 
   /**
@@ -65,8 +72,11 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    * {@inheritDoc}
    */
   @Override
-  public <T extends SimpleDirectedPath> T createPath(DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
-    return minPathState ? minPathResult.createPath(pathFactory, origin, destination) : maxPathResult.createPath(pathFactory, origin, destination);
+  public <T extends SimpleDirectedPath> T createPath(
+          DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
+    return minPathState ?
+            minPathResult.createPath(pathFactory, origin, destination):
+            maxPathResult.createPath(pathFactory, origin, destination);
   }
 
   /**
@@ -74,7 +84,8 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    */
   @Override
   public Deque<EdgeSegment> createRawPath(DirectedVertex origin, DirectedVertex destination) {
-    return minPathState ? minPathResult.createRawPath(origin, destination) : maxPathResult.createRawPath(origin, destination);
+    return minPathState ?
+            minPathResult.createRawPath(origin, destination) : maxPathResult.createRawPath(origin, destination);
   }
 
   /**
@@ -82,12 +93,15 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    */
   @Override
   public EdgeSegment getNextEdgeSegmentForVertex(Vertex vertex) {
-    return minPathState ? minPathResult.getNextEdgeSegmentForVertex(vertex) : maxPathResult.getNextEdgeSegmentForVertex(vertex);
+    return minPathState ?
+            minPathResult.getNextEdgeSegmentForVertex(vertex) : maxPathResult.getNextEdgeSegmentForVertex(vertex);
   }
 
   @Override
   public DirectedVertex getNextVertexForEdgeSegment(EdgeSegment edgeSegment) {
-    return minPathState ? minPathResult.getNextVertexForEdgeSegment(edgeSegment) : maxPathResult.getNextVertexForEdgeSegment(edgeSegment);
+    return minPathState ?
+            minPathResult.getNextVertexForEdgeSegment(edgeSegment):
+            maxPathResult.getNextVertexForEdgeSegment(edgeSegment);
   }
 
   /**

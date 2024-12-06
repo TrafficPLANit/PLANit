@@ -15,16 +15,22 @@ import org.ojalgo.function.PrimitiveFunction;
 import org.ojalgo.function.aggregator.Aggregator;
 
 /**
- * General First order node model implementation as proposed by Tampere et al. (2011). Here we utilise the algorithm description as presented in Bliemer et al. (2014).
+ * General First order node model implementation as proposed by Tampere et al. (2011). Here we utilise the algorithm
+ * description as presented in Bliemer et al. (2014).
  * <p>
  * Each run of this node model requires two inputs, the mapping of the network to the local node and the
  *</p>
  * Paper References:
  * <ul>
- * <li>Tampère, C. M. J., Corthout, R., Cattrysse, D., &amp; Immers, L. H. (2011). A generic class of first order node models for dynamic macroscopic simulation of traffic flows.
- * Transportation Research Part B: Methodological, 45(1), 289–309. <a href="https://doi.org/10.1016/j.trb.2010.06.004">doi.org/10.1016/j.trb.2010.06.004</a></li>
- * <li>Bliemer, M. C. J., Raadsen, M. P. H., Smits, E.-S., Zhou, B., &amp; Bell, M. G. H. (2014). Quasi-dynamic traffic assignment with residual point queues incorporating a first
- * order node model. Transportation Research Part B: Methodological, 68, 363–384. <a href="https://doi.org/10.1016/j.trb.2014.07.001">doi.org/10.1016/j.trb.2014.07.001</a></li>
+ * <li>Tampère, C. M. J., Corthout, R., Cattrysse, D., &amp; Immers, L. H. (2011). A generic class of first order node
+ * models for dynamic macroscopic simulation of traffic flows. Transportation Research Part B: Methodological, 45(1),
+ * 289–309. <a href="https://doi.org/10.1016/j.trb.2010.06.004">doi.org/10.1016/j.trb.2010.06.004</a>
+ * </li>
+ * <li>Bliemer, M. C. J., Raadsen, M. P. H., Smits, E.-S., Zhou, B., &amp; Bell, M. G. H. (2014). Quasi-dynamic
+ * traffic assignment with residual point queues incorporating a first order node model.
+ * Transportation Research Part B: Methodological, 68, 363–384.
+ * <a href="https://doi.org/10.1016/j.trb.2014.07.001">doi.org/10.1016/j.trb.2014.07.001</a>
+ * </li>
  * </ul>
  *
  * @author markr
@@ -41,7 +47,8 @@ public class TampereNodeModel implements NodeModel {
   protected Array2D<Double> scaledRemainingTurnSendingFlows;
 
   /**
-   * track which in-link segments are processed X_topbar. Note this is the inverse since it tracks processed rather than unprocessed link segments
+   * track which in-link segments are processed X_topbar. Note this is the inverse since it tracks processed
+   * rather than unprocessed link segments
    */
   protected boolean[] processedInLinkSegments;
 
@@ -59,7 +66,7 @@ public class TampereNodeModel implements NodeModel {
   /* optional outputs to collect */
 
   /* track most restricting out link for each in link */
-  Map<Integer, Integer> mostRestrictingOutLinkIndexByInLinkIndex = new HashMap<Integer, Integer>();
+  Map<Integer, Integer> mostRestrictingOutLinkIndexByInLinkIndex = new HashMap<>();
 
   /**
    * Initialise the run conforming to Step 1 in Appendix A of Bliemer et al. 2014
@@ -83,7 +90,9 @@ public class TampereNodeModel implements NodeModel {
     processedInLinkSegments = new boolean[inputs.fixedInput.getNumberOfIncomingLinkSegments()];
     // initialise flow acceptance factors to 1
     if(linkBasedDefault) {
-      this.incomingLinkSegmentFlowAcceptanceFactors = Array1D.PRIMITIVE64.makeFilled(inputs.fixedInput.getNumberOfIncomingLinkSegments(), NullaryDoubleSupplier.ONE);
+      this.incomingLinkSegmentFlowAcceptanceFactors =
+              Array1D.PRIMITIVE64.makeFilled(
+                      inputs.fixedInput.getNumberOfIncomingLinkSegments(), NullaryDoubleSupplier.ONE);
     }else {
       this.turnFlowAcceptanceFactors =
               Array2D.PRIMITIVE64.makeFilled(
@@ -96,7 +105,8 @@ public class TampereNodeModel implements NodeModel {
   /**
    * Find most restricted unprocessed outgoing link segment based on the scaled sending flows
    * 
-   * @return a pair of the restriction factor and outlinkSegmentIndex for the most restricted out link segment, null if no such out link could be found
+   * @return a pair of the restriction factor and outlinkSegmentIndex for the most restricted out link segment, null
+   * if no such out link could be found
    */
   protected Pair<Double, Integer> findMostRestrictingOutLinkSegmentIndex() {
     Integer foundOutLinkSegmentIndex = null;
@@ -106,7 +116,8 @@ public class TampereNodeModel implements NodeModel {
     for (int outLinkSegmentIndex = 0; outLinkSegmentIndex < numberOfOutLinkSegments; ++outLinkSegmentIndex) {
       double remainingReceivingFlow = remainingReceivingFlows.get(outLinkSegmentIndex);
       // lambda_a * SUM of t_ab
-      double sumScaledTurnSendingFlows = scaledRemainingTurnSendingFlows.aggregateColumn(outLinkSegmentIndex, Aggregator.SUM).doubleValue();
+      double sumScaledTurnSendingFlows =
+              scaledRemainingTurnSendingFlows.aggregateColumn(outLinkSegmentIndex, Aggregator.SUM).doubleValue();
 
       // Only non-zero flows can lead to a restriction
       if (Precision.positive(sumScaledTurnSendingFlows, precisionEpsilon)) {
@@ -149,12 +160,15 @@ public class TampereNodeModel implements NodeModel {
       final double outLinkSegmentScalingFactorBeta = mostRestrictingOutLinkSegmentData.first();
 
       // Y(m) = { a of unprocessed in-links | t_ab_topbar > 0, lambda_a * beta_b > 1}
-      scaledRemainingTurnSendingFlows.loopColumn(mostRestrictedOutLinkIndex, (inLinkSegmentIndex, outLinkSegmentIndex) -> {
+      scaledRemainingTurnSendingFlows.loopColumn(
+              mostRestrictedOutLinkIndex, (inLinkSegmentIndex, outLinkSegmentIndex) -> {
         final double turnSendingFlow = scaledRemainingTurnSendingFlows.get(inLinkSegmentIndex, outLinkSegmentIndex);
         // t_ab_topbar > 0 && a is unprocessed in link segment
-        if (Precision.greater(turnSendingFlow, precisionEpsilon) && !isInLinkSegmentProcessed((int) inLinkSegmentIndex)) {
+        if (Precision.greater(turnSendingFlow, precisionEpsilon) &&
+                !isInLinkSegmentProcessed((int) inLinkSegmentIndex)) {
           // lambda_a * beta_b
-          final double requiredScalingFactor = inputs.capacityScalingFactors.get(inLinkSegmentIndex) * outLinkSegmentScalingFactorBeta;
+          final double requiredScalingFactor =
+                  inputs.capacityScalingFactors.get(inLinkSegmentIndex) * outLinkSegmentScalingFactorBeta;
           if (Precision.greaterEqual(requiredScalingFactor, 1, precisionEpsilon)) {
             demandConstrainedInLinksY.add(inLinkSegmentIndex);
           }
@@ -192,12 +206,14 @@ public class TampereNodeModel implements NodeModel {
     final double outLinkSegmentScalingFactorBeta = mostRestrictingOutLinkSegmentData.first();
 
     // Z(m) = { a of unprocessed in-links | t_ab_topbar > 0 }
-    scaledRemainingTurnSendingFlows.loopColumn(mostRestrictedOutLinkIndex, (inLinkSegmentIndex, outLinkSegmentIndex) -> {
+    scaledRemainingTurnSendingFlows.loopColumn(
+            mostRestrictedOutLinkIndex, (inLinkSegmentIndex, outLinkSegmentIndex) -> {
       final double turnSendingFlow = scaledRemainingTurnSendingFlows.get(inLinkSegmentIndex, outLinkSegmentIndex);
       // a is unprocessed in link segment
       if(!isInLinkSegmentProcessed((int) inLinkSegmentIndex)){
 
-        // alpha_a = lambda_a*beta_b    (note that in case of turn based approach beta can be very large if zero turn and link flow,hence capping to 1)
+        // alpha_a = lambda_a*beta_b    (note that in case of turn based approach beta can be very large if zero
+        // turn and link flow,hence capping to 1)
         double flowAcceptanceFactor =
                 Math.min(1, inputs.capacityScalingFactors.get(inLinkSegmentIndex) * outLinkSegmentScalingFactorBeta);
 
@@ -216,7 +232,8 @@ public class TampereNodeModel implements NodeModel {
         }
 
         if(linkBasedDefault && nonZeroTurnFlow){
-          // set alpha_a - regular link-based approach where only single alpha per link based on non-zero flow into exit
+          // set alpha_a - regular link-based approach where only single alpha per link based on non-zero flow
+          // into exit
           incomingLinkSegmentFlowAcceptanceFactors.set(inLinkSegmentIndex, flowAcceptanceFactor);
         }else if(!linkBasedDefault) {
           // set alpha_a - on turn level regardless if there is turn flow, applied alpha on link-level can be
@@ -228,8 +245,10 @@ public class TampereNodeModel implements NodeModel {
   }
 
   /**
-   * Remove all turn sending flows from provided in-link from remaining receiving flows (whichever out-link they go to) for a demand constrained in link
-   * R_b' = R_b'-t_ab' for all out links b' t_ab' = 0 (to ensure the turn flows are not accidentally reused when updating lambda in next iteration)
+   * Remove all turn sending flows from provided in-link from remaining receiving flows (whichever out-link they go
+   * to) for a demand constrained in link.
+   * R_b' = R_b'-t_ab' for all out links b' t_ab' = 0 (to ensure the turn flows are not accidentally reused when
+   * updating lambda in next iteration).
    * 
    * @param inLinkSegmentIndex the inLink to base the reduction on
    */
@@ -238,19 +257,26 @@ public class TampereNodeModel implements NodeModel {
   }
 
   /**
-   * Remove all accepted turn sending flows (by scaling with flow acceptance factor) from provided in-link from remaining receiving flows (whichever out-link they go to)
-   * R_b' = R_b'-alpha_a*t_ab' for all out links b' t_ab' = 0 (to ensure the turn flows are not accidentally reused when updating lambda in next iteration)
+   * Remove all accepted turn sending flows (by scaling with flow acceptance factor) from provided in-link from
+   * remaining receiving flows (whichever out-link they go to).
+   * R_b' = R_b'-alpha_a*t_ab' for all out links b' t_ab' = 0 (to ensure the turn flows are not accidentally reused
+   * when updating lambda in next iteration).
    * 
    * @param inLinkSegmentIndex   the inLink to base the reduction on
    * @param flowAcceptanceFactor to scale the sending flows to accepted flow
    */
-  protected void updateRemainingReceivingAndSendingFlows(final long inLinkSegmentIndex, final double flowAcceptanceFactor) {
+  protected void updateRemainingReceivingAndSendingFlows(
+          final long inLinkSegmentIndex, final double flowAcceptanceFactor) {
+
     // Remove all turn sending flows from this in-link from remaining receiving flows (whichever out-link they go to)
     // R_b' = R_b'-t_ab' for all b' out links where a is demand constrained
     inputs.turnSendingFlows.loopRow(inLinkSegmentIndex, (i, outLinkSegmentIndex2) -> {
       final double acceptedTurnSendingflowTo = inputs.turnSendingFlows.get(inLinkSegmentIndex, outLinkSegmentIndex2);
-      remainingReceivingFlows.modifyOne(outLinkSegmentIndex2, PrimitiveFunction.SUBTRACT.by(acceptedTurnSendingflowTo * flowAcceptanceFactor));
+      remainingReceivingFlows.modifyOne(
+              outLinkSegmentIndex2,
+              PrimitiveFunction.SUBTRACT.by(acceptedTurnSendingflowTo * flowAcceptanceFactor));
     });
+
     // empty row in scaled sending flows: it won't be considered constructing next out-link restriction factor
     scaledRemainingTurnSendingFlows.fillRow(inLinkSegmentIndex, 0.0);
   }
@@ -345,7 +371,8 @@ public class TampereNodeModel implements NodeModel {
   }
 
   /**
-   * collect most restricted out link index by in link index. Only available after run and only for capacity constrained in links entries exist
+   * Collect most restricted out link index by in link index. Only available after run and only for capacity
+   * constrained in links entries exist.
    * 
    * @return map result, empty if no capacity constrained in links were found
    */

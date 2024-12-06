@@ -3,7 +3,8 @@ package org.goplanit.algorithms.shortest;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 
 /**
- * An algorithm which calculates the shortest (a.k.a. lowest cost) path to all vertices from a given start vertex for a directed graph
+ * An algorithm which calculates the shortest (a.k.a. lowest cost) path to all vertices from a given start vertex
+ * for a directed graph.
  * 
  * @author markr
  *

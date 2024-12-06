@@ -14,9 +14,10 @@ import org.goplanit.utils.misc.Pair;
 /**
  * Dijkstra's shortest path algorithm
  * <p>
- * Dijkstra's shortest path is a one-to-all implementation of the shortest path algorithm based on the generalized costs on each link segment (edge). The costs should be provided
- * upon instantiation and are reused whenever a One-To-All execution conditional on the chosen source node is performed. Note that while it is one-to-all the direction of the
- * search can be inverted such that it effectively becomes an all-to-one search.
+ * Dijkstra's shortest path is a one-to-all implementation of the shortest path algorithm based on the generalized
+ * costs on each link segment (edge). The costs should be provided upon instantiation and are reused whenever a
+ * One-To-All execution conditional on the chosen source node is performed. Note that while it is one-to-all the
+ * direction of the search can be inverted such that it effectively becomes an all-to-one search.
  * </p>
  * <p>
  * In its current form, it assumes a macroscopic network and macroscopic link segments to operate on
@@ -28,7 +29,8 @@ import org.goplanit.utils.misc.Pair;
 public class ShortestPathGeneralised {
 
   /** Comparator to sort based on the second elements minimum value (ascending order) */
-  private static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator = Comparator.comparing(Pair::second, Comparator.naturalOrder());
+  private static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator =
+          Comparator.comparing(Pair::second, Comparator.naturalOrder());
 
   /**
    * Reference to starting point for search for which we collect shortest paths from/to
@@ -65,7 +67,8 @@ public class ShortestPathGeneralised {
    * Initialise the open vertices. Default behaviour is to place the (single) source vertex at zero cost
    * 
    * @param openVertices       to bootstrap with one or more initial vertices
-   * @param vertexMeasuredCost to initialise based on the bootstrapping of the open vertices, otherwise all entries have maximum double values
+   * @param vertexMeasuredCost to initialise based on the bootstrapping of the open vertices, otherwise all entries
+   *                           have maximum double values
    */
   protected void initialiseOpenVertices(
           PriorityQueue<Pair<DirectedVertex, Double>> openVertices, double[] vertexMeasuredCost) {

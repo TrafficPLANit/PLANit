@@ -13,7 +13,8 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 public interface ShortestResult {
 
   /**
-   * Find the next vertex on the given edge segment extremity based on the underlying search this can be either in upstream or downstream direction
+   * Find the next vertex on the given edge segment extremity based on the underlying search this can be either
+   * in upstream or downstream direction
    * 
    * @param edgeSegment to get next vertex for
    * @return next vertex
@@ -35,7 +36,9 @@ public interface ShortestResult {
    */
   public abstract ShortestSearchType getSearchType();
   
-  /** when search is inverted, result is also inverted, i.e., when search is one-to-x (regular), result is in upstream direction, when inverted, result is in downstream direction
+  /** when search is inverted, result is also inverted, i.e., when search is one-to-x (regular), result is in
+   * upstream direction, when inverted, result is in downstream direction
+   *
    * @return true when search (and result) is inverted compared to regular one-to-x search, false otherwise
    */
   public default boolean isInverted() {

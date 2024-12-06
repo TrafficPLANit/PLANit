@@ -3,7 +3,8 @@ package org.goplanit.algorithms.shortest;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 
 /**
- * An algorithm which calculates the shortest (a.k.a. lowest cost) bush from all vertices to a given end vertex for a directed graph in upstream direction
+ * An algorithm which calculates the shortest (a.k.a. lowest cost) bush from all vertices to a given end vertex
+ * for a directed graph in upstream direction.
  * 
  * @author markr
  *

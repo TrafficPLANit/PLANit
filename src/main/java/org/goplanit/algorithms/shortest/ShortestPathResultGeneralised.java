@@ -18,8 +18,8 @@ import org.goplanit.utils.path.SimpleDirectedPath;
  * However not both at the same time, so either the internal state reflects a one-to-all result, or an all-to-one result and methods supported by that specific interface have
  * defined behaviour
  * <p>
- * Note that for one-to-all we traverse a path from an origin to a destination in reversed order to extract the path, whereas in all-to-one we can directly extract it as we start
- * at the origin directly.
+ * Note that for one-to-all we traverse a path from an origin to a destination in reversed order to extract the path,
+ * whereas in all-to-one we can directly extract it as we start at the origin directly.
  * 
  * @author markr
  *
@@ -30,7 +30,8 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
   private static final Logger LOGGER = Logger.getLogger(ShortestPathResultGeneralised.class.getCanonicalName());
   
   /**
-   * the next edge segment to reach the vertex with the given measured cost (preceding in one-to-all, succeeding in all-to-one)
+   * the next edge segment to reach the vertex with the given measured cost (preceding in one-to-all, succeeding
+   * in all-to-one).
    */
   protected final EdgeSegment[] nextEdgeSegmentByVertex;  
 
