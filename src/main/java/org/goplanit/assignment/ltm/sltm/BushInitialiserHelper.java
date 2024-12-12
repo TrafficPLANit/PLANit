@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
@@ -27,13 +28,13 @@ public class BushInitialiserHelper {
   private static final Logger LOGGER = Logger.getLogger(BushInitialiserHelper.class.getCanonicalName());
 
   /** to initialise */
-  private final RootedBush<?,?> bush;
+  private final RootedBush<DirectedVertex, EdgeSegment> bush;
 
   /** to use to initialise bush */
   private final ACyclicSubGraph rootedDag;
 
   /** pas manager to use */
-  private final PasManager pasManager;
+  private final PasManager<DirectedVertex, EdgeSegment> pasManager;
 
   /** flag indicating if new pass are logged or not */
   private final boolean logNewPass;
@@ -46,7 +47,8 @@ public class BushInitialiserHelper {
    * @param alternativeIndex           entry value to add to value map
    * @param containerToRegisterOn      container to use
    */
-  private static void registerUnfinishedPasOnEdgeSegment(EdgeSegment edgeSegmentToAdd, DirectedVertex unfinishedPasDivergeVertex, int alternativeIndex,
+  private static void registerUnfinishedPasOnEdgeSegment(
+          EdgeSegment edgeSegmentToAdd, DirectedVertex unfinishedPasDivergeVertex, int alternativeIndex,
       Map<EdgeSegment, Map<DirectedVertex, Integer>> containerToRegisterOn) {
 
     var unfinishedPassThroughSegment = containerToRegisterOn.get(edgeSegmentToAdd);
@@ -201,7 +203,7 @@ public class BushInitialiserHelper {
       var originVertex = entry.getKey();
       var alternatives = entry.getValue();
       var allOriginVertexAlternatives = originVertexAlternatives.get(originVertex);
-      if (alternatives.size() < 2) {
+      if(alternatives.size() < 2) {
         /* single entry, so unfinished PAS does not merge here despite that flows merge here, do not create new PAS */
         // do nothing for now
       } else if (alternatives.size() >= 2) {
@@ -244,7 +246,10 @@ public class BushInitialiserHelper {
    * @param logNewPass when true log new PASs, otherwise not
    */
   protected BushInitialiserHelper(
-          final RootedBush<?,?> bush, final ACyclicSubGraph rootedDag, final PasManager pasManager, boolean logNewPass) {
+          final RootedBush<DirectedVertex,EdgeSegment> bush,
+          final ACyclicSubGraph rootedDag,
+          final PasManager<DirectedVertex, EdgeSegment> pasManager,
+          boolean logNewPass) {
     this.bush = bush;
     this.rootedDag = rootedDag;
     this.pasManager = pasManager;
@@ -261,7 +266,10 @@ public class BushInitialiserHelper {
    * @return created helper
    */
   public static BushInitialiserHelper create(
-          final RootedBush<?,?> bush, final ACyclicSubGraph rootedDag, final PasManager pasManager, boolean logNewPass) {
+          final RootedBush<DirectedVertex,EdgeSegment> bush,
+          final ACyclicSubGraph rootedDag,
+          final PasManager<DirectedVertex, EdgeSegment> pasManager,
+          boolean logNewPass) {
     return new BushInitialiserHelper(bush, rootedDag, pasManager, logNewPass);
   }
 

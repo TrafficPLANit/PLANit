@@ -15,6 +15,7 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
@@ -25,6 +26,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.time.RunTimesTracker;
 import org.goplanit.utils.time.TimePeriod;
@@ -325,6 +327,16 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     super(sltm, false);
     this.settings = sltm.settings.shallowClone();
     this.simulationData = sltm.simulationData.shallowClone();
+  }
+
+  /**
+   * Get the TransportNetwork used in the current assignment
+   *
+   * @return TransportNetwork used in current assignment
+   */
+  @Override
+  public TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> getTransportNetwork() {
+    return (TransportModelNetwork<MacroscopicNetwork, VirtualNetwork>) super.getTransportNetwork();
   }
 
   /**

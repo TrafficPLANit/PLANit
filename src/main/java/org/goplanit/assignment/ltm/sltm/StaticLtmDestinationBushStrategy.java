@@ -5,12 +5,14 @@ import java.util.logging.Logger;
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestBushResult;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
@@ -155,7 +157,10 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
    */
-  public StaticLtmDestinationBushStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork,
+  public StaticLtmDestinationBushStrategy(
+          final IdGroupingToken idGroupingToken,
+          long assignmentId,
+          final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
       final StaticLtmSettings settings, final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
   }

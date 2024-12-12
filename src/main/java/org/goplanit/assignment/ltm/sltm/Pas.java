@@ -21,7 +21,7 @@ import org.goplanit.utils.misc.CollectionUtils;
  * @author markr
  *
  */
-public class Pas {
+public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(Pas.class.getCanonicalName());
@@ -30,10 +30,10 @@ public class Pas {
   private static final LongAdder pasIdCreator = new LongAdder();
 
   /** cheap PA segment s1 in downstream direction*/
-  private EdgeSegment[] s1;
+  private ES[] s1;
 
   /** expensive PA segment s2 in downstream direction*/
-  private EdgeSegment[] s2;
+  private ES[] s2;
 
   /** cheap path cost */
   private double s1Cost;
@@ -42,7 +42,7 @@ public class Pas {
   private double s2Cost;
 
   /** registered origin bushes */
-  private final Set<RootedBush<?,?>> registeredBushes;
+  private final Set<RootedBush<V,ES>> registeredBushes;
 
   protected long pasId;
 
@@ -53,7 +53,7 @@ public class Pas {
    * @param s2 expensive subpath
    * @param pasId for debugging
    */
-  private Pas(final EdgeSegment[] s1, final EdgeSegment[] s2, long pasId) {
+  private Pas(final ES[] s1, final ES[] s2, long pasId) {
     this.pasId = pasId;
     this.s1 = s1;
     this.s2 = s2;
@@ -68,7 +68,7 @@ public class Pas {
    */
   protected void updateCost(final double[] edgeSegmentCosts, boolean updateS1) {
 
-    EdgeSegment[] alternative = updateS1 ? s1 : s2;
+    ES[] alternative = updateS1 ? s1 : s2;
     double cost = 0;
     for (int index = 0; index < alternative.length; ++index) {
       cost += edgeSegmentCosts[(int) alternative[index].getId()];
@@ -89,13 +89,14 @@ public class Pas {
    * 
    * @return newly created PAS, or null when alternative segment(s) is/are null
    */
-  protected static Pas create(final EdgeSegment[] s1, final EdgeSegment[] s2) {
+  protected static <Vs extends DirectedVertex, ESs extends EdgeSegment> Pas<Vs,ESs> create(
+          final ESs[] s1, final ESs[] s2) {
     if (s1 == null || s2 == null) {
       LOGGER.warning("Unable to create new PAS, one or both alternative segments are null");
       return null;
     }
     pasIdCreator.increment();
-    return new Pas(s1, s2, pasIdCreator.longValue());
+    return new Pas<>(s1, s2, pasIdCreator.longValue());
   }
 
   /**
@@ -103,8 +104,8 @@ public class Pas {
    * 
    * @return end vertex
    */
-  public DirectedVertex getMergeVertex() {
-    return s2[s2.length - 1].getDownstreamVertex();
+  public V getMergeVertex() {
+    return (V) s2[s2.length - 1].getDownstreamVertex();
   }
 
   /**
@@ -112,8 +113,8 @@ public class Pas {
    * 
    * @return start vertex
    */
-  public DirectedVertex getDivergeVertex() {
-    return s2[0].getUpstreamVertex();
+  public V getDivergeVertex() {
+    return (V) s2[0].getUpstreamVertex();
   }
 
   /**
@@ -122,7 +123,7 @@ public class Pas {
    * @param bush bush to register
    * @return true when newly added, false, when already present
    */
-  public boolean registerBush(final RootedBush<?,?> bush) {
+  public boolean registerBush(final RootedBush<V,ES> bush) {
     return registeredBushes.add(bush);
   }
 
@@ -132,7 +133,7 @@ public class Pas {
    * @param bush to check
    * @return true when registered, false otherwise
    */
-  public boolean hasRegisteredBush(final RootedBush<?,?> bush) {
+  public boolean hasRegisteredBush(final RootedBush<V,ES> bush) {
     return registeredBushes.contains(bush);
   }
 
@@ -141,7 +142,7 @@ public class Pas {
    * 
    * @return registered bushes
    */
-  public Set<? extends RootedBush<?,?>> getRegisteredBushes() {
+  public Set<? extends RootedBush<V,ES>> getRegisteredBushes() {
     return registeredBushes;
   }
 
@@ -166,7 +167,7 @@ public class Pas {
    * 
    * @param bushes to remove
    */
-  public void removeBushes(Collection<RootedBush<?,?>> bushes) {
+  public void removeBushes(Collection<RootedBush<V,ES>> bushes) {
     bushes.forEach(this::removeBush);
   }
 
@@ -175,61 +176,8 @@ public class Pas {
    * 
    * @param bush to remove
    */
-  public void removeBush(RootedBush<?,?> bush) {
+  public void removeBush(RootedBush<V,ES> bush) {
     registeredBushes.remove(bush);
-  }
-
-  /**
-   * Check if bush is overlapping with one of the alternatives, and if it is how much sending flow this sub-path
-   * currently represents
-   * 
-   * @param bush                             to verify
-   * @param lowCost                          when true check with low cost alternative otherwise high cost
-   * @param linkSegmentFlowAcceptanceFactors to use to obtain accepted flow along subpath, where the flow at the
-   *                                         start of the high cost segment is used as starting demand
-   * @return when non-negative the segment is overlapping with the PAS, where the value indicates the accepted flow
-   * on this sub-path for the bush (with sending flow at start as base demand)
-   */
-  public double computeOverlappingAcceptedFlow(
-          RootedLabelledBush bush, boolean lowCost, double[] linkSegmentFlowAcceptanceFactors) {
-    EdgeSegment[] alternative = lowCost ? s1 : s2;
-    return bush.computeSubPathAcceptedFlow(
-            getDivergeVertex(), getMergeVertex(), alternative, linkSegmentFlowAcceptanceFactors);
-  }
-
-  /**
-   * check if shortest path tree is overlapping with one of the alternatives
-   * 
-   * @param pathSearchResult to verify
-   * @param lowCost      when true check with low cost alternative otherwise high cost
-   * @return true when overlapping, false otherwise
-   */
-  public boolean isOverlappingWith(ShortestPathResult pathSearchResult, boolean lowCost) {
-    EdgeSegment[] alternative = lowCost ? s1 : s2;
-    EdgeSegment currEdgeSegment = null;
-    EdgeSegment matchingEdgeSegment = null;
-        
-    if(pathSearchResult.isInverted()) {
-      /* when search type (and result) is in inverted direction, the result is traversed in downstream
-      direction, i.e., match from first to last */
-      for (int index = 0; index < alternative.length; ++index) {
-        currEdgeSegment = alternative[index];
-        matchingEdgeSegment = pathSearchResult.getNextEdgeSegmentForVertex(currEdgeSegment.getUpstreamVertex());
-        if (!currEdgeSegment.idEquals(matchingEdgeSegment)) {
-          return false;
-        }
-      }
-    }else {
-      /* when search type (and result) is in regular direction, the result is traversed in upstream direction, i.e., match from last to first */
-      for (int index = alternative.length - 1; index >= 0; --index) {
-        currEdgeSegment = alternative[index];
-        matchingEdgeSegment = pathSearchResult.getNextEdgeSegmentForVertex(currEdgeSegment.getDownstreamVertex());
-        if (!currEdgeSegment.idEquals(matchingEdgeSegment)) {
-          return false;
-        }
-      }
-    }
-    return true;
   }
 
   /**
@@ -239,8 +187,8 @@ public class Pas {
    * @param lowCost      which of the two alternatives to check against
    * @return true when equal, false otherwise
    */
-  public boolean isAlternativeEqual(final EdgeSegment[] pathToVerify, boolean lowCost) {
-    EdgeSegment[] alternative = lowCost ? s1 : s2;
+  public boolean isAlternativeEqual(final ES[] pathToVerify, boolean lowCost) {
+    ES[] alternative = lowCost ? s1 : s2;
     return Arrays.equals(alternative, pathToVerify);
   }
 
@@ -251,8 +199,8 @@ public class Pas {
    * @param lowCost      which of the two alternatives to check against
    * @return true when equal, false otherwise
    */
-  public boolean isAlternativeEqual(final Collection<EdgeSegment> pathToVerify, boolean lowCost) {
-    EdgeSegment[] alternative = lowCost ? s1 : s2;
+  public boolean isAlternativeEqual(final Collection<ES> pathToVerify, boolean lowCost) {
+    ES[] alternative = lowCost ? s1 : s2;
     return CollectionUtils.equals(pathToVerify, alternative);
   }
 
@@ -263,9 +211,9 @@ public class Pas {
    * @param lowCost      when true check with low cost alternative otherwise high cost
    * @return true when match is found on any, false otherwise
    */
-  public boolean anyMatch(Predicate<EdgeSegment> pred, boolean lowCost) {
-    EdgeSegment[] alternative = lowCost ? s1 : s2;
-    EdgeSegment currEdgeSegment;
+  public boolean anyMatch(Predicate<ES> pred, boolean lowCost) {
+    ES[] alternative = lowCost ? s1 : s2;
+    ES currEdgeSegment;
     for (int index = alternative.length - 1; index >= 0; --index) {
       currEdgeSegment = alternative[index];
       if(pred.test(currEdgeSegment)){
@@ -282,7 +230,7 @@ public class Pas {
    * @param lowCost      when true check with low cost alternative otherwise high cost
    * @return true when overlapping, false otherwise
    */
-  public boolean containsAny(final Collection<EdgeSegment> linkSegments, boolean lowCost) {
+  public boolean containsAny(final Collection<? extends ES> linkSegments, boolean lowCost) {
     return anyMatch(linkSegments::contains, lowCost);
   }
 
@@ -293,8 +241,8 @@ public class Pas {
    * @param lowCost      when true check with low cost alternative otherwise high cost
    * @return true when overlapping in opposite direction, false otherwise
    */
-  public boolean containsAnyOppositeDirection(final  Collection<EdgeSegment> linkSegments, boolean lowCost) {
-    return anyMatch(es -> linkSegments.contains(es.getOppositeDirectionSegment()), lowCost);
+  public boolean containsAnyOppositeDirection(final  Collection<? extends ES> linkSegments, boolean lowCost) {
+    return anyMatch(es -> linkSegments.contains((ES)es.getOppositeDirectionSegment()), lowCost);
   }
 
   /**
@@ -303,7 +251,7 @@ public class Pas {
    * @param linkSegments where we verify against set link segments
    * @return true when overlapping, false otherwise
    */
-  public boolean containsAny(final Collection<EdgeSegment> linkSegments) {
+  public boolean containsAny(final Collection<? extends ES> linkSegments) {
     return containsAny(linkSegments, true) || containsAny(linkSegments, false);
   }
 
@@ -313,7 +261,7 @@ public class Pas {
    * @param linkSegments where we verify against set link segments
    * @return true when overlapping in opposite direction, false otherwise
    */
-  public boolean containsAnyOppositeDirection(final  Collection<EdgeSegment> linkSegments) {
+  public boolean containsAnyOppositeDirection(final  Collection<? extends ES> linkSegments) {
     return containsAnyOppositeDirection(linkSegments, true)
             || containsAnyOppositeDirection(linkSegments, false);
   }
@@ -324,7 +272,7 @@ public class Pas {
    * @param linkSegment where we verify against alternative link segments
    * @return true when present, false otherwise
    */
-  public boolean containsEdgeSegment(EdgeSegment linkSegment) {
+  public boolean containsEdgeSegment(ES linkSegment) {
     return containsEdgeSegment(linkSegment, true) || containsEdgeSegment(linkSegment, false);
   }
 
@@ -335,7 +283,7 @@ public class Pas {
    * @param lowCost when true check against low cost alternative, otherwise the high cost alternative
    * @return true when present, false otherwise
    */
-  public boolean containsEdgeSegment(EdgeSegment linkSegment, boolean lowCost) {
+  public boolean containsEdgeSegment(ES linkSegment, boolean lowCost) {
     return anyMatch(es -> es.equals(linkSegment), lowCost);
   }
 
@@ -355,7 +303,7 @@ public class Pas {
       s1Cost = s2Cost;
       s2Cost = tempCost;
 
-      EdgeSegment[] tempSegment = s1;
+      ES[] tempSegment = s1;
       s1 = s2;
       s2 = tempSegment;
       return true;
@@ -369,12 +317,12 @@ public class Pas {
    * @param lowCostSegment when true applied to low cost segment, when false the high cost segment
    * @param vertexConsumer to apply
    */
-  public void forEachVertex(boolean lowCostSegment, Consumer<DirectedVertex> vertexConsumer) {
-    EdgeSegment[] alternative = getAlternative(lowCostSegment);
+  public void forEachVertex(boolean lowCostSegment, Consumer<? super V> vertexConsumer) {
+    ES[] alternative = getAlternative(lowCostSegment);
     for (int index = 0; index < alternative.length; ++index) {
-      vertexConsumer.accept(alternative[index].getUpstreamVertex());
+      vertexConsumer.accept((V) alternative[index].getUpstreamVertex());
     }
-    vertexConsumer.accept(alternative[alternative.length - 1].getDownstreamVertex());
+    vertexConsumer.accept((V) alternative[alternative.length - 1].getDownstreamVertex());
   }
 
   /**
@@ -383,8 +331,8 @@ public class Pas {
    * @param lowCostSegment      when true applied to low cost segment, when false the high cost segment
    * @param edgeSegmentConsumer to apply
    */
-  public void forEachEdgeSegment(boolean lowCostSegment, Consumer<EdgeSegment> edgeSegmentConsumer) {
-    EdgeSegment[] alternative = getAlternative(lowCostSegment);
+  public void forEachEdgeSegment(boolean lowCostSegment, Consumer<ES> edgeSegmentConsumer) {
+    ES[] alternative = getAlternative(lowCostSegment);
     for (int index = 0; index < alternative.length; ++index) {
       edgeSegmentConsumer.accept(alternative[index]);
     }
@@ -414,7 +362,7 @@ public class Pas {
    * @param lowCostSegment when true collect for low cost segment, otherwise the high cost segment
    * @return edge segment
    */
-  public EdgeSegment getLastEdgeSegment(boolean lowCostSegment) {
+  public ES getLastEdgeSegment(boolean lowCostSegment) {
     return lowCostSegment ? s1[s1.length - 1] : s2[s2.length - 1];
   }
 
@@ -424,7 +372,7 @@ public class Pas {
    * @param lowCostSegment when true collect for low cost segment, otherwise the high cost segment
    * @return edge segment
    */
-  public EdgeSegment getFirstEdgeSegment(boolean lowCostSegment) {
+  public ES getFirstEdgeSegment(boolean lowCostSegment) {
     return lowCostSegment ? s1[0] : s2[0];
   }
 
@@ -434,7 +382,7 @@ public class Pas {
    * @param lowCostSegment when true return s1 (lowCost), otherwise s2 (highCost)
    * @return ordered edge segments representing the alternative
    */
-  public EdgeSegment[] getAlternative(boolean lowCostSegment) {
+  public ES[] getAlternative(boolean lowCostSegment) {
     return lowCostSegment ? s1 : s2;
   }
 
@@ -466,8 +414,8 @@ public class Pas {
    * @param predicate      to test on a per segment basis
    * @return edge segment that matches, null if none matches
    */
-  public EdgeSegment matchFirst(boolean lowCostSegment, Predicate<EdgeSegment> predicate) {
-    EdgeSegment[] alternative = getAlternative(lowCostSegment);
+  public ES matchFirst(boolean lowCostSegment, Predicate<ES> predicate) {
+    ES[] alternative = getAlternative(lowCostSegment);
     for (int index = 0; index < alternative.length; ++index) {
       if (predicate.test(alternative[index])) {
         return alternative[index];
@@ -484,11 +432,11 @@ public class Pas {
    * @param predicate      to test on a per segment basis (providing next segment as second argument)
    * @return edge segment that matches, null if none matches
    */
-  public EdgeSegment matchFirst(boolean lowCostSegment, BiPredicate<EdgeSegment, EdgeSegment> predicate) {
-    EdgeSegment[] alternative = getAlternative(lowCostSegment);
+  public ES matchFirst(boolean lowCostSegment, BiPredicate<ES, ES> predicate) {
+    ES[] alternative = getAlternative(lowCostSegment);
     int index = 0;
-    EdgeSegment currSegment = alternative[index++];
-    EdgeSegment nextSegment = null;
+    ES currSegment = alternative[index++];
+    ES nextSegment = null;
     for (; index < alternative.length; ++index) {
       nextSegment = alternative[index];
       if (predicate.test(currSegment, nextSegment)) {
@@ -552,7 +500,7 @@ public class Pas {
   public String toString() {
     final StringBuilder sb = new StringBuilder(String.format(" (id: %d) -", pasId));
 
-    Consumer<EdgeSegment> consumer = (ls) -> {
+    Consumer<ES> consumer = (ls) -> {
       if (ls == null) {
         LOGGER.warning("edgeSegment null on PAS alternative, shouldn't happen");
         sb.append("null,");

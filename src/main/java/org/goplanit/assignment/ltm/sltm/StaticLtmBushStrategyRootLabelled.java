@@ -1,12 +1,5 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
@@ -14,14 +7,19 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushRooted;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.physical.Movement;
-import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Base implementation to support a rooted bush based solution for sLTM
@@ -29,13 +27,14 @@ import org.goplanit.utils.network.virtual.graph.CentroidVertex;
  * @author markr
  *
  */
-public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStrategyBase<RootedLabelledBush> {
+public abstract class StaticLtmBushStrategyRootLabelled
+        extends StaticLtmBushStrategyBase<DirectedVertex, EdgeSegment, RootedLabelledBush> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategyRootLabelled.class.getCanonicalName());
 
   /**
-   * Check if an existing PAS exists that terminates/starts (Depending on bush config) at the given bush vertex. If so,
+   * Check if an existing PAS exists that terminates/starts (depending on bush config) at the given bush vertex. If so,
    * it is considered a match when:
    * <ul>
    * <li>The cheap alternative ends with a link segment that is not part of the bush (Assumed true, to be checked beforehand)</li>
@@ -51,9 +50,11 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    * @param reducedCost between the shorter path and current shortest path in the bush
    * 
    * @return PAS when a match is found and null otherwise (PAS is already registered as part of this call)
+   *
    */
-  private Pas extendBushWithSuitableExistingPas(
+  private Pas<DirectedVertex,EdgeSegment> extendBushWithSuitableExistingPas(
       final RootedLabelledBush bush, final DirectedVertex reducedCostVertex, final double reducedCost) {
+    //todo: effectively same as for conjugate can be consolidated in base clase with some minor changes likely
 
     boolean bushFlowThroughMergeVertex = false;
     for (var entrySegment : reducedCostVertex.getEntryEdgeSegments()) {
@@ -75,7 +76,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
     }
 
     double[] alphas = getLoading().getCurrentFlowAcceptanceFactors();
-    Pas effectivePas = pasManager.findFirstSuitableExistingPas(bush, reducedCostVertex, alphas, reducedCost);
+    var effectivePas = pasManager.findFirstSuitableExistingPas(bush, reducedCostVertex, alphas, reducedCost);
     if (effectivePas == null) {
       return null;
     }
@@ -104,13 +105,15 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    * @param linkSegmentCosts  to check if new PAS is considered effective
    * @return new created PAS if successfully created, null otherwise, the boolean indicates if it indeed is a brand new PAS
    * or for some reason we still reused an existing one
+   *
    */
-  private Pas extendBushWithNewPas(
+  private Pas<DirectedVertex,EdgeSegment> extendBushWithNewPas(
           final RootedLabelledBush bush,
           final DirectedVertex reducedCostVertex,
           final ShortestPathResult networkMinPaths,
           double reducedCost,
           double[] linkSegmentCosts) {
+    //todo: effectively same as for conjugate can be consolidated in base clase with some minor changes likely
 
     /* Label all vertices on shortest path root-reducedCostVertex as -1, and PAS reference vertex itself as 1 */
     final short[] alternativeSegmentVertexLabels = new short[getTransportNetwork().getNumberOfVerticesAllLayers()];
@@ -136,8 +139,12 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
     Map<DirectedVertex, EdgeSegment> backLinkTreeAsMap = highCostSubPathResultPair.second();
 
     /* S1 */
-    EdgeSegment[] s1 = PasManager.createSubpathArrayFrom(
-            coincideCloserToRootVertex, reducedCostVertex, networkMinPaths, numShortestPathEdgeSegments, truncateSpareArrayCapacity);
+    EdgeSegment[] s1 = PasManager.createSubPathArrayFrom(
+            coincideCloserToRootVertex,
+            reducedCostVertex,
+            networkMinPaths,
+            new EdgeSegment[numShortestPathEdgeSegments],
+            truncateSpareArrayCapacity);
     var cycleInducingSegment = bush.determineIntroduceCycle(s1);
     if (cycleInducingSegment != null) {
       /*
@@ -151,16 +158,16 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
     }
 
     /* S2 */
-    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(
+    EdgeSegment[] s2 = PasManager.createSubPathArrayFrom(
         coincideCloserToRootVertex,
         reducedCostVertex,
         bush.getShortestSearchType(),
         backLinkTreeAsMap,
-        highCostSubPathResultPair.second().size(),
+        new EdgeSegment[highCostSubPathResultPair.second().size()],
         truncateSpareArrayCapacity);
 
     /* register on existing PAS (if available) otherwise create new PAS */
-    Pas existingPas = pasManager.findExistingPas(s1, s2);
+    var existingPas = pasManager.findExistingPas(s1, s2);
     if (existingPas != null) {
       // exists already but was discarded as option for this bush (otherwise we would not ask for a new PAS to be created
       // not able to create new PAS using this S1/S2 alternative
@@ -170,10 +177,10 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
     }
 
     /* New pas */
-    Pas pas = pasManager.createAndRegisterNewPas(bush, s1, s2);
+    var pas = pasManager.createAndRegisterNewPas(bush, s1, s2);
     pas.updateCost(linkSegmentCosts);
 
-    if (!pasManager.isPasEffectiveForBush(
+    if (!PasManager.isPasEffectiveForBush(
             pas, bush, getLoading().getCurrentFlowAcceptanceFactors(), reducedCost)) {
       pasManager.removePas(pas, false);
       return null;
@@ -218,7 +225,8 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    * @return newly created PASs and existing pass with newly registered bushes on them  (empty if no new PASs were created or newly assigned))
    */
   @Override
-  protected Pair<Collection<Pas>, Collection<Pas>> updateBushPass(
+  protected Pair<Collection<Pas<DirectedVertex,EdgeSegment>>, Collection<Pas<DirectedVertex,EdgeSegment>>>
+  updateBushPass(
           Mode mode, final double[] linkSegmentCosts, boolean updateGap, boolean logAll){
 
     double totalMinCost = 0; // track during bush traversal to get min OD costs based on shortest paths
@@ -238,11 +246,11 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
     }
 
     //todo --> should be sets
-    List<Pas> newPass = new ArrayList<>();
-    List<Pas> existingPassWithNewBushes = new ArrayList<>();
+    var newPass = new ArrayList<Pas<DirectedVertex,EdgeSegment>>();
+    var existingPassWithNewBushes = new ArrayList<Pas<DirectedVertex,EdgeSegment>>();
 
     final var networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
-    for (RootedLabelledBush bush : bushes) {
+    for (var bush : bushes) {
       if (bush == null) {
         continue;
       }
@@ -271,7 +279,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         var odDemands = getOdDemands(mode);
         var destination = ((DestinationBush) bush).getDestination().getParent().getParentZone();
         for (var originVertex : bush.getOriginVertices()) {
-          var origin = ((CentroidVertex)originVertex).getParent().getParentZone();
+          var origin = originVertex.getParent().getParentZone();
           double odDemand = odDemands.getValue(origin, destination);
           double minOdCost = networkMinPaths.getCostToReach(originVertex);
           totalMinCost += minOdCost * odDemand;
@@ -281,7 +289,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
       /* find (new) matching PASs - start with new PAS close to origin exploration first
        *  todo: this is a choice, could choose differently and going with close to destination seems safer */
       var bushVertexIter = bush.isInverted() ? bush.getInvertedTopologicalIterator() : bush.getTopologicalIterator();
-      for (; bushVertexIter.hasNext(); ) {
+      while(bushVertexIter.hasNext()) {
         DirectedVertex bushVertex = bushVertexIter.next();
         EdgeSegment reducedCostSegment = networkMinPaths.getNextEdgeSegmentForVertex(bushVertex);
         if (reducedCostSegment == null) {
@@ -308,7 +316,7 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
           continue;
         }
 
-        Pas existingRegisteredPas = extendBushWithSuitableExistingPas(bush, bushVertex, reducedCost);
+        var existingRegisteredPas = extendBushWithSuitableExistingPas(bush, bushVertex, reducedCost);
         if (existingRegisteredPas != null) {
           if(isDestinationTrackedForLogging(bush) || logAll){
             LOGGER.info(String.format("Registered suitable existing PAS (%s) on bush (%s)", existingRegisteredPas, bush));
@@ -327,7 +335,8 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
         newPass.add(newPas);
         newPas.updateCost(linkSegmentCosts);
         if(isDestinationTrackedForLogging(bush) || logAll){
-          LOGGER.info(String.format("Registered new PAS (%s) on bush (%s)", newPas, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+          LOGGER.info(String.format("Registered new PAS (%s) on bush (%s)",
+                  newPas, bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
 
         // BRANCH SHIFT
@@ -346,7 +355,8 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
     if(updateGap){
       var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
       // both costs have already been normalised to demand so use unity to transfer as is
-      // ideally we'd use a link based gap but this is not ideal with the path absed implementation we also support for sLTM
+      // ideally we'd use a link based gap but this is not ideal with the path based implementation we also support
+      // for sLTM
       gapFunction.increaseMinimumPathCosts(totalMinCost,1);
       gapFunction.increaseAbsolutePathGap(totalRealisedCost, 1, totalMinCost);
     }
@@ -363,8 +373,12 @@ public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStr
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
    */
-  protected StaticLtmBushStrategyRootLabelled(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork,
-                                              final StaticLtmSettings settings, final TrafficAssignmentComponentAccessee taComponents) {
+  protected StaticLtmBushStrategyRootLabelled(
+          final IdGroupingToken idGroupingToken,
+          long assignmentId,
+          final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
+          final StaticLtmSettings settings,
+          final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
   }
 

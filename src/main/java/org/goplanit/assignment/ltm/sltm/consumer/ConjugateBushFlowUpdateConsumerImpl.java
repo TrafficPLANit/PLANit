@@ -143,7 +143,8 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
         Double bushConjSegmentSendingFlow = bushSendingFlows.get(conjEntrySegment);
         if (bushConjSegmentSendingFlow == null) {
           LOGGER.severe(String.format(
-                  "No sending flow found for conjugate segment %s (original turn: [%s]-[%s]) on bush(%s), this shouldn't happen",
+                  "No sending flow found for conjugate segment %s (original turn: [%s]-[%s]) on bush(%s), " +
+                          "this shouldn't happen",
                   conjEntrySegment.getXmlId(),
                   conjEntrySegment.getOriginalAdjacentEdgeSegments().first().getIdsAsString(),
                   conjEntrySegment.getOriginalAdjacentEdgeSegments().second().getIdsAsString(),

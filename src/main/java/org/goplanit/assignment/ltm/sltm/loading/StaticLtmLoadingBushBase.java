@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -7,6 +8,9 @@ import org.goplanit.assignment.ltm.sltm.*;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
+import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
+import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Movement;
@@ -17,7 +21,8 @@ import org.goplanit.utils.network.layer.physical.Movement;
  * @author markr
  *
  */
-public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtmNetworkLoading {
+public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extends
+        StaticLtmNetworkLoading {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingBushBase.class.getCanonicalName());
@@ -29,7 +34,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * the PAS manager with all the currently active PASs, used to determine which nodes to track flows and splitting rates for during network loading, namely all links and nodes
    * present in the active PASs
    */
-  private PasManager pasManager;
+  private PasManager<?,?> pasManager;
 
   /**
    * Conduct a loading update based on the provided consumer functionality
@@ -270,7 +275,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * 
    * @param pasManager to use
    */
-  public void setPasManager(final PasManager pasManager) {
+  public void setPasManager(final PasManager<?,?> pasManager) {
     this.pasManager = pasManager;
   } 
 
@@ -280,7 +285,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    *
    *@param newPas to activate nodes on segments for
    */
-  public void activateNodeTrackingFor(final Pas newPas) {
+  public void activateNodeTrackingFor(final Pas<? extends DirectedVertex,?> newPas) {
     if(newPas==null) {
       LOGGER.severe("Provided PAS is null, unable to activate node tracking for alternative segments");
       return;
@@ -288,16 +293,27 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
     /* only when not all turn flows are tracked, we must expand the tracked nodes, otherwise they are already available */
     if(!isTrackAllNodeTurnFlowsDuringLoading()) {
       var pointQueueBasicSplittingRates = (NetworkLoadingSplittingRateDataPartial) this.getSplittingRateData();
+
+      //todo: make better but currently we must take extra measure for conjugate vertices on PASs as these are not
+      // directly compatible with network loading. In those cases we find the relevant node for each turn and track it
+      // eventually this should be delegated and done via an overridden method but for now this should work
+      Consumer<? super DirectedVertex> lambda = (v) -> {
+        DirectedVertex candidateVertex = v;
+        if(v instanceof ConjugateDirectedVertex && ((ConjugateDirectedVertex)v).hasOriginalEdge()){
+          if(newPas.getMergeVertex() == v){
+            return; // last conjugate vertex we ignore, because downstream original edge is beyond point of interest for tracking
+          }
+          candidateVertex = ((ConjugateDirectedVertex)v).getOriginalEdge().getVertexB();
+        }
+
+        if(!pointQueueBasicSplittingRates.isTracked(candidateVertex))
+          pointQueueBasicSplittingRates.registerTrackedNode(candidateVertex);
+      };
+
       boolean lowCostSegment = true;
-      newPas.forEachVertex(lowCostSegment, (v) -> {
-        if(!pointQueueBasicSplittingRates.isTracked(v)) 
-          pointQueueBasicSplittingRates.registerTrackedNode(v); 
-        });
+      newPas.forEachVertex(lowCostSegment, lambda);
       lowCostSegment = false;
-      newPas.forEachVertex(lowCostSegment, (v) -> {
-        if(!pointQueueBasicSplittingRates.isTracked(v)) 
-          pointQueueBasicSplittingRates.registerTrackedNode(v); 
-        });      
+      newPas.forEachVertex(lowCostSegment, lambda);
     }
     
   }

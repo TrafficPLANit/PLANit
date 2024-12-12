@@ -57,7 +57,7 @@ public class TamperNodeModelTest {
       assertEquals(2000.0 / 2000.0, scalingFactors.get(1), Precision.EPSILON_6);
       assertEquals(1000.0 / 800.0, scalingFactors.get(2), Precision.EPSILON_6);
       assertEquals(2000.0 / 1700.0, scalingFactors.get(3), Precision.EPSILON_6);
-    } catch (PlanItException e) {
+    } catch (Exception e) {
       fail("Error when constructing input for Tampere node model");
     }
   }
@@ -78,7 +78,7 @@ public class TamperNodeModelTest {
       assertEquals(inLinkFlowAcceptanceFactors.get(2), 1.0, Precision.EPSILON_6);
       assertEquals(inLinkFlowAcceptanceFactors.get(3), 0.80568720, Precision.EPSILON_6); 
 
-    } catch (PlanItException e) {
+    } catch (Exception e) {
       fail("Error when running Tampere node model");
     }
   }
@@ -174,7 +174,7 @@ public class TamperNodeModelTest {
       assertEquals(turnFlowAcceptanceFactors.get(1, 2), 1, Precision.EPSILON_6);
       assertEquals(turnFlowAcceptanceFactors.get(1, 3), 0.3333333, Precision.EPSILON_6);
 
-    } catch (PlanItException e) {
+    } catch (Exception e) {
       fail("Error when running Tampere node model");
     }
   }

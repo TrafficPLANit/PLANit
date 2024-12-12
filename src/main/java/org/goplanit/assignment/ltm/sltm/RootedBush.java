@@ -5,11 +5,14 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 
 /**
@@ -35,7 +38,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
 
   /** the origin demands (PCU/h) of the bush this may or may not be at the root (depending on whether we root in
    * origin or destination) and may or may not be located at a centroid vertex */
-  private Map<DirectedVertex, Double> originDemandsPcuH;
+  private Map<V, Double> originDemandsPcuH;
 
   /** token for id generation unique within this bush */
   protected final IdGroupingToken bushGroupingToken;
@@ -71,22 +74,181 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   }
 
   /**
+   * Verify if adding the sub-path edge segments would introduce a cycle in this bush
+   * TODO: very costly operation as it may traverses entire bush so... find a way to bake in some more information
+   *  in the topological sorting to track more information to make this much quicker, e.g., track the ordering indices
+   *  and allow for direct lookup of index of vertices so we can start directly at the alternative....
+   *
+   * @param alternative to verify
+   * @return edge segment that would introduce a cycle, null otherwise
+   */
+  @SuppressWarnings("unchecked")
+  public ES determineIntroduceCycle(ES[] alternative) {
+    if (alternative == null) {
+      LOGGER.severe("Cannot verify if edge segments introduce cycle when parameters are null");
+      return null;
+    }
+
+    // to see if a cycle is introduced for adding an edge segment not yet on a bush between (u,v)
+    // there must be no path available on the bush between (v) and (u).
+
+    // 1. until we get to the starting point of the alternative, all vertices before that
+    //    cannot introduce a cycle when the alternative intersects with them after diverging.
+    // 2. while traversing the alternative, each vertex (v) we encounter that reattaches to the bush after
+    //    diverging causes a cycle if it can reach any vertex in the cycleIntroducing vertices. this set
+    //    contains any preceding vertex on the alternative up till the current point (all (u)s).
+    //    if such a reattaching vertex however can reach any non cycle introducing vertices we know it won't introduce
+    //    a cycle (because it reattaches earlier than (u) so it can't be reached, this saves time in the BFS
+    Set<V> cycleIntroducingVertices = new HashSet<>();
+    Map<V, Integer> topoTraversedVertices = new HashMap<>();
+
+    int altIndex = 0;
+    final int maxAltIndex = alternative.length-1;
+    V currAltVertex = (V) alternative[altIndex].getUpstreamVertex();
+    cycleIntroducingVertices.add(currAltVertex);
+    V currOrderedVertex;
+
+    var topologicalIter = isInverted() ?  getTopologicalIterator() : getInvertedTopologicalIterator();
+    if(topologicalIter == null){
+      throw new PlanItRunTimeException("Unable to obtain topological iterator for bush (%s), this should not happen",
+              getRootZoneVertex().getParent().getParentZone().getIdsAsString());
+    }
+    int index = 0;
+    while(topologicalIter.hasNext()) {
+      currOrderedVertex = topologicalIter.next();
+      if (!currOrderedVertex.idEquals(currAltVertex)) {
+        // register all preceding vertices as traversed up to a first match
+        topoTraversedVertices.put(currOrderedVertex, index);
+      }else{
+        break;
+      }
+      ++index;
+    }
+
+    // now traverse the alternative and whenever it touches the bush, verify no path back to any preceding
+    // vertices can be found
+    ES nextSegment = alternative[altIndex];
+    ES currSegment = alternative[altIndex];
+    boolean currCoincidingVertexFound;
+    int maxAllowedTopologicalIndex = Integer.MAX_VALUE;
+    do{
+      if(altIndex < maxAltIndex){
+        currSegment = nextSegment;
+        nextSegment = alternative[++altIndex];
+        currAltVertex = (V) nextSegment.getUpstreamVertex();
+      }else if(altIndex++ == maxAltIndex){
+        currSegment = nextSegment;
+        nextSegment = null;
+        currAltVertex = (V) alternative[maxAltIndex].getDownstreamVertex();
+      }
+
+      currCoincidingVertexFound = containsAnyEdgeSegmentOf(currAltVertex);
+      boolean directCycle =
+              currSegment.getOppositeDirectionSegment()!=null &&
+                      contains((ES)currSegment.getOppositeDirectionSegment());
+      if(directCycle){
+        // direct cycle detected since opposite direction already present, abort
+        return currSegment;
+      }
+
+      boolean guaranteedNoCycle = false;
+      boolean ableToDirectlyVerifyCycle = topoTraversedVertices.containsKey(currAltVertex);
+      if(ableToDirectlyVerifyCycle){
+        if(topoTraversedVertices.get(currAltVertex) < maxAllowedTopologicalIndex){
+          // when curr vertex has a more restricting location in the topological order, then reduce the index so that we ensure we do
+          // not allow any connections to a vertex that occurs later, i.e, closing a loop. For now it means no cycle though
+          // because it should be smaller each time
+          maxAllowedTopologicalIndex = topoTraversedVertices.get(currAltVertex);
+          guaranteedNoCycle = true;
+        }else{
+          return currSegment;
+        }
+      }
+
+
+      boolean potentialCycle = currCoincidingVertexFound && !guaranteedNoCycle;
+      if(potentialCycle) {
+        // touching - possible complex cycle
+
+        // see if adding alternative segment would introduce cycle via BFS search to reach a cycle introducing vertex
+        var result = getDag().breadthFirstSearch(
+                currAltVertex,
+                false,
+                (es) -> true,
+                (prevEs,es) -> true,
+                (v, prevEs) -> cycleIntroducingVertices.contains(v));
+        if(result == null){
+          LOGGER.severe("BFS for cycle detection has no result, this shouldn't happen");
+          return alternative[0]; // pretend cycle is found to not break
+        }else if(cycleIntroducingVertices.contains(result.first())){
+          // cycle - get edge segment on alternative that caused the cycle if it were to be added
+          return Arrays.stream(alternative).filter(es -> es.anyVertexMatches(v -> v.idEquals(result.first()))).findFirst().get();
+        }else if(result.first() != null){
+          LOGGER.severe("found BFS result for cycle detection but it is not cycle introducing, this shouldn't happen");
+        }
+        // no cycle could be detected continue
+      }
+
+      cycleIntroducingVertices.add(currAltVertex);
+      if(currCoincidingVertexFound) {
+        topoTraversedVertices.remove(currAltVertex); // by considering alternative it would now close a cycle when downstream segments could reach it
+      }
+    }while((altIndex-1) <= maxAltIndex);
+    // done, no cycle
+    return null;
+  }
+
+  /**
    * Track origin demands for bush. Should only be used for initialisation and then left as is.
    *
    * @param demandPcuH demand to set
    */
-  public void addOriginDemandPcuH(DirectedVertex originDemandVertex, double demandPcuH) {
+  public void addOriginDemandPcuH(V originDemandVertex, double demandPcuH) {
     double currentDemandPcuH = this.originDemandsPcuH.getOrDefault(originDemandVertex, 0.0);
     this.originDemandsPcuH.put(originDemandVertex, currentDemandPcuH + demandPcuH);
   }
 
   /**
-   * Verify if adding the sub-path edge segments would introduce a cycle in this bush
+   * The alternative subpath on the network we're finding a within-bush alternative for is provided through link
+   * segment labels of value -1. The point at which they coincide with the bush is indicated with label 1 at the
+   * given reference vertex (passed in). Here we do a breadth-first search on the bush in the direction towards
+   * its root to find a location the alternative path reconnects to the bush, which, at the latest, should be at
+   * the root and at the earliest directly at the next vertex compared to the reference vertex.
+   * <p>
+   * The returned map contains the next edge segment for each vertex, from the vertex closer to the bush root
+   * to the reference vertex where for the reference vertex the edge segment remains null
+   * </p>
    *
-   * @param alternative to verify
-   * @return edge segment that would introduce a cycle, null otherwise
+   * @param referenceVertex                to start breadth first search from as it is the point of coincidence of
+   *                                       the alternative path (via labelled vertices) and bush
+   * @param forbiddenInitialSegment        the first segment of the shortest path segment from the root, that we
+   *                                       cannot use otherwise this alternative is partly overlapping
+   * @param alternativeSubpathVertexLabels indicating the shortest (network) path at the reference vertex but not
+   *                                       part of the bush at that point (different edge segment used)
+   * @return vertex at which the two paths coincided again and the map (back link tree effectively) to extract the
+   * path from this vertex to the reference vertex that was found using the breadth-first method
    */
-  public abstract EdgeSegment determineIntroduceCycle(EdgeSegment[] alternative);
+  public abstract Pair<V, Map<V, ES>> findBushAlternativeSubpathByBackLinkTree(
+          V referenceVertex,
+          ES forbiddenInitialSegment,
+          final short[] alternativeSubpathVertexLabels);
+
+  /**
+   * Determine the sending flow on the subpath given by the  subPathArray in order from start to finish.
+   *
+   * @param subPathArray to use (in bush segment representation)
+   * @param flowAcceptanceFactors to use (in network segment indexed representation)
+   * @return sendingFlowPcuH between start and end vertex following the sub-path
+   */
+  public abstract double determineSubPathSendingFlow(ES[] subPathArray, double[] flowAcceptanceFactors);
+
+  /**
+   * Collect the sending flow of an edge segment in the bush, if not present, zero flow is returned
+   *
+   * @param edgeSegment to collect sending flow for
+   * @return bush sending flow on edge segment
+   */
+  public abstract double getSendingFlowPcuH(final ES edgeSegment);
 
   /**
    * Add turn sending flow to the bush. In case the turn does not yet exist on the bush it is newly registered.
@@ -146,7 +308,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * @param detailedLogging       when true log what branch shifted links are affected
    * @return the edge segments that were removed during the flow shifts from this bush
    */
-  public abstract TreeSet<? extends EdgeSegment> performLowFlowBranchShifts(
+  public abstract TreeSet<? extends ES> performLowFlowBranchShifts(
           double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging);
 
   /**
@@ -217,10 +379,52 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   /**
    * Verify if bush contains the edge segment provided
    *
-   * @param segment to check
+   * @param edgeSegment to check
    * @return true when present, false otherwise
    */
-  public abstract boolean contains(EdgeSegment segment);
+  public boolean contains(ES edgeSegment) {
+    return getDag().containsEdgeSegment(edgeSegment);
+  }
+
+  /**
+   * Verify if the bush contains the given edge segment
+   *
+   * @param edgeSegmentId to verify
+   * @return true when present, false otherwise
+   */
+  public boolean contains(long edgeSegmentId) {
+    return getDag().containsEdgeSegment(edgeSegmentId);
+  }
+
+  /**
+   * Verify if the bush contains any edge segment of the edge in either direction
+   *
+   * @param edge to verify
+   * @return true when an edge segment of the edge is present, false otherwise
+   */
+  public boolean containsAnyEdgeSegmentOf(DirectedEdge edge) {
+    for (var edgeSegment : edge.getEdgeSegments()) {
+      if (contains((ES) edgeSegment)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Verify if the bush contains any edge segment attached to the vertex
+   *
+   * @param vertex to verify
+   * @return true when an edge segment of the vertex is registered, false otherwise
+   */
+  public boolean containsAnyEdgeSegmentOf(V vertex) {
+    for (var edge : vertex.getEdges()) {
+      if (containsAnyEdgeSegmentOf(edge)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Indicates if bush has inverted direction w.r.t. its root
@@ -236,7 +440,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * 
    * @return origins on this bush
    */
-  public Set<? extends DirectedVertex> getOriginVertices() {
+  public Set<? extends V> getOriginVertices() {
     return this.originDemandsPcuH.keySet();
   }
 
@@ -286,8 +490,8 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
     while (!openVertices.isEmpty()) {
       var vertex = openVertices.poll();
       processed.add(vertex);
-      for (EdgeSegment nextSegment : getNextEdgeSegments.apply(vertex)) {
-        if (!contains(nextSegment)) {
+      for (var nextSegment : getNextEdgeSegments.apply(vertex)) {
+        if (!contains((ES) nextSegment)) {
           continue;
         }
         var nextVertex = getNextVertex.apply(nextSegment);

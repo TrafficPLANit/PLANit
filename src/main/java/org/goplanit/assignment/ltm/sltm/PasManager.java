@@ -6,6 +6,7 @@ import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.CollectionUtils;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -19,7 +20,7 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class PasManager {
+public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(PasManager.class.getCanonicalName());
@@ -39,19 +40,19 @@ public class PasManager {
   /**
    * Map storing all PASs by their reference vertex
    */
-  private Map<DirectedVertex, Collection<Pas>> passByVertex;
+  private final Map<V, Collection<Pas<V,ES>>> passByVertex;
   
   /** flag indicating if we store PASs by their downstream merge, or upstream diverge */
   private final boolean registerByDiverge;
   
   /** lambda to obtain reference vertex to use to store PAS in container */
-  private Function<Pas, DirectedVertex> getReferenceVertex;
+  private final Function<Pas<V,ES>, V> getReferenceVertex;
 
   /** a comparator to compare PASs based on the reduced cost between their high and low cost segments */
-  public static final Comparator<Pas> PAS_REDUCED_COST_COMPARATOR;
+  public static final Comparator<Pas<?, ?>> PAS_REDUCED_COST_COMPARATOR;
 
   /** a comparator to compare PASs based on the reduced cost per KM between their high and low cost segments */
-  public static final Comparator<Pas> PAS_REDUCED_COST_PER_KM_COMPARATOR;
+  public static final Comparator<Pas<?, ?>> PAS_REDUCED_COST_PER_KM_COMPARATOR;
   
   static {
     /*
@@ -90,12 +91,12 @@ public class PasManager {
    * @param alternative to collect from
    * @return found reference vertex
    */
-  private DirectedVertex getReferenceVertexFromAlternative(List<EdgeSegment> alternative) {
-    DirectedVertex referenceVertex = null;
+  private V getReferenceVertexFromAlternative(List<ES> alternative) {
+    V referenceVertex = null;
     if(this.registerByDiverge) {
-      referenceVertex = alternative.get(0).getUpstreamVertex();
+      referenceVertex = (V) alternative.get(0).getUpstreamVertex();
     }else {
-      referenceVertex = alternative.get(alternative.size() - 1).getDownstreamVertex();
+      referenceVertex = (V) alternative.get(alternative.size() - 1).getDownstreamVertex();
     }
     return referenceVertex;
   }
@@ -105,12 +106,12 @@ public class PasManager {
    * @param alternative to collect from
    * @return found reference vertex
    */
-  private DirectedVertex getReferenceVertexFromAlternative(EdgeSegment[] alternative) {
-    DirectedVertex referenceVertex = null;
+  private V getReferenceVertexFromAlternative(ES[] alternative) {
+    V referenceVertex = null;
     if(this.registerByDiverge) {
-      referenceVertex = alternative[0].getUpstreamVertex();
+      referenceVertex = (V) alternative[0].getUpstreamVertex();
     }else {
-      referenceVertex = alternative[alternative.length-1].getDownstreamVertex();
+      referenceVertex = (V) alternative[alternative.length-1].getDownstreamVertex();
     }
     return referenceVertex;
   }
@@ -149,57 +150,52 @@ public class PasManager {
    * it would not improve this bush much if we would consider it.
    * </p>
    * <p>
-   *   UPDATE OCT 2024: found that using accepted flow on last segment is not a good choice due to alphas algon the way
-   *   We can achieve our objective using sending flows at the start of the PAS instead and compare it against the portion
-   *   that follows the pas in full. this is the same concept, but one that makes way more sense in a capacitated environment
+   *   UPDATE OCT 2024: found that using accepted flow on last segment is not a good choice due to alphas along the way
+   *   We can achieve our objective using sending flows at the start of the PAS instead and compare it against the
+   *   portion that follows the pas in full. This is the same concept, but one that makes way more sense in a
+   *   capacitated environment
    * </p>
    *
-   * @param pas                   under consideration for a bush
-   * @param bush            the accepted flow found on the bush traversing the high cost PAS and reaching the end vertex (including final alpha) of the PAS
-   * @param flowAcceptanceFactors the accepted flow found passing through the final vertex of the PAS from the origin of the bush, i.e., all sub-paths to this vertex
+   * @param <Vs> type of vertex on bush
+   * @param <ESs> type of edge segment on bush
+   * @param pas  under consideration for a bush
+   * @param bush the accepted flow found on the bush traversing the high cost PAS and reaching the end
+   *             vertex (including final alpha) of the PAS
+   * @param nlFlowAcceptanceFactors the accepted flow found passing through the final vertex of the PAS from the origin
+   *                              of the bush, i.e., all sub-paths to this vertex
    * @return true when considered effective, false otherwise
    */
-  public static boolean isFlowEffective(Pas pas, RootedLabelledBush bush, double[] flowAcceptanceFactors) {
-
-
-    // OLD based on accepted flow
-//    boolean highCostPath = true;
-//    /* usage of high cost segment on bush */
-//    double s2SubPathAcceptedFlowOnBush = pas.computeOverlappingAcceptedFlow(bush, highCostPath, flowAcceptanceFactors);
-//    /* usage of segment arriving at merge vertex in bush */
-//    EdgeSegment s2LastEdgeSegment = pas.getLastEdgeSegment(highCostPath);
-//    double s2LastSegmentSendingFlowOnBush = bush.getSendingFlowPcuH(s2LastEdgeSegment);
-//    double s2LastSegmentAcceptedFlowOnBush =
-//            s2LastSegmentSendingFlowOnBush * flowAcceptanceFactors[(int) s2LastEdgeSegment.getId()];
-//
-//    return Precision.greater(s2SubPathAcceptedFlowOnBush, NU * s2LastSegmentAcceptedFlowOnBush);
-
+  @SuppressWarnings("unchecked")
+  public static <Vs extends DirectedVertex,ESs extends EdgeSegment> boolean isFlowEffective(
+          Pas pas, RootedBush<Vs,ESs> bush, double[] nlFlowAcceptanceFactors) {
     // NEW based on sending flow
     double s2FullSubPathSendingFlowOnBush = bush.determineSubPathSendingFlow(
-            pas.getAlternative(false), flowAcceptanceFactors);
+            (ESs[]) pas.getAlternative(false), nlFlowAcceptanceFactors);
     /* general usage of high cost initial segment in bush (irrespective whether the flow follows the high-cost path)*/
     EdgeSegment s2InitialEdgeSegment = pas.getFirstEdgeSegment(false);
-    double s2InitialSegmentSendingFlowOnBush = bush.getSendingFlowPcuH(s2InitialEdgeSegment);
+    double s2InitialSegmentSendingFlowOnBush = bush.getSendingFlowPcuH((ESs) s2InitialEdgeSegment);
     return Precision.greater(s2FullSubPathSendingFlowOnBush, NU * s2InitialSegmentSendingFlowOnBush);
   }
 
   /**
    * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both {@link #isCostEffective(double, double, double)} and
-   * {@link #isFlowEffective(Pas, RootedLabelledBush, double[])}
+   * {@link #isFlowEffective(Pas, RootedBush, double[])}
    *
+   * @param <Vs> type of vertex on bush
+   * @param <ESs> type of edge segment on bush
    * @param pas                   to use
    * @param bush            to use
-   * @param flowAcceptanceFactors to use
+   * @param nlFlowAcceptanceFactors to use
    * @param reducedCost           to use
    * @return true when considered effective, false otherwise
    */
-  public static boolean isPasEffectiveForBush(
-          Pas pas, RootedLabelledBush bush, double[] flowAcceptanceFactors, double reducedCost) {
+  public static <Vs extends DirectedVertex,ESs extends EdgeSegment> boolean isPasEffectiveForBush(
+          Pas<Vs,ESs> pas, RootedBush<Vs,ESs> bush, double[] nlFlowAcceptanceFactors, double reducedCost) {
     /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound of the reduced cost */
     return isCostEffective(
             pas.getAlternativeHighCost(), pas.getAlternativeLowCost(), reducedCost)
             &&
-            isFlowEffective(pas, bush, flowAcceptanceFactors);
+            isFlowEffective(pas, bush, nlFlowAcceptanceFactors);
   }
 
   /**
@@ -210,15 +206,17 @@ public class PasManager {
    * @param closestToSearchRoot       vertex in relation to searchResult tree chosen root
    * @param furthestFromSearchRoot    vertex in relation to searchResult tree chosen root
    * @param searchResultTree          to extract path from, tree's direction is automatically accounted for
-   * @param arrayLength               to use for the to be created array which should be at least as long as the path that is to be extracted
+   * @param edgeSegmentArrayToPopulate to use for the array population which should be at least as long as the path
+   *                                   that is to be extracted into it
    * @param truncateArray             flag indicating to truncate the subpath array in case the front of the array is not fully used due to the existence of spare capacity
    * @return created array in downstream direction, null if no path could be found
    */
-  public static EdgeSegment[] createSubpathArrayFrom(
-      final DirectedVertex closestToSearchRoot,
-      final DirectedVertex furthestFromSearchRoot,
+  @SuppressWarnings("unchecked")
+  public static <Vs extends DirectedVertex,ESs extends EdgeSegment> ESs[] createSubPathArrayFrom(
+      final Vs closestToSearchRoot,
+      final Vs furthestFromSearchRoot,
       final ShortestPathResult searchResultTree,
-      int arrayLength,
+      ESs[] edgeSegmentArrayToPopulate,
       boolean truncateArray) {
 
     // Note: result tree is traversed in reversed order of the search itself
@@ -227,23 +225,23 @@ public class PasManager {
     // 2) all-to-one (search inverted) --> traverse tree backwards from origin to destination
     //                                 --> extract path already in correct travel direction
 
-    EdgeSegment currEdgeSegment = null;
-    EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
-    DirectedVertex currVertex = furthestFromSearchRoot;
+    ESs currEdgeSegment = null;
+    int arrayLength = edgeSegmentArrayToPopulate.length;
+    Vs currVertex = furthestFromSearchRoot;
     boolean searchInverted = searchResultTree.getSearchType().isInverted();
     
     /* run from end to start backward while adding in reverse to final array, unless search was inverted, then we go from start to end */
     int index = searchInverted ? 0 : arrayLength - 1;
     do {
 
-      currEdgeSegment = searchResultTree.getNextEdgeSegmentForVertex(currVertex);
-      edgeSegmentArray[index] = currEdgeSegment;
+      currEdgeSegment = (ESs) searchResultTree.getNextEdgeSegmentForVertex(currVertex);
+      edgeSegmentArrayToPopulate[index] = currEdgeSegment;
       if (currEdgeSegment == null) {
         LOGGER.warning(String.format("Unable to extract subpath from start vertex %s to end vertex %s, no incoming edge segment available at intermediate vertex %s",
             closestToSearchRoot.getXmlId(), furthestFromSearchRoot.getXmlId(), currVertex.getXmlId()));
         return null;
       }
-      currVertex = searchResultTree.getNextVertexForEdgeSegment(currEdgeSegment);
+      currVertex = (Vs) searchResultTree.getNextVertexForEdgeSegment(currEdgeSegment);
       
       if (searchInverted) {
         ++index;
@@ -254,12 +252,12 @@ public class PasManager {
 
     if (truncateArray) {
       if (!searchInverted && index > 0){
-        return Arrays.copyOfRange(edgeSegmentArray, index+1, edgeSegmentArray.length);
+        return Arrays.copyOfRange(edgeSegmentArrayToPopulate, index+1, edgeSegmentArrayToPopulate.length);
       }else if(searchInverted && index < arrayLength) {
-        return Arrays.copyOfRange(edgeSegmentArray, 0, index);
+        return Arrays.copyOfRange(edgeSegmentArrayToPopulate, 0, index);
       }
     }
-    return edgeSegmentArray;
+    return edgeSegmentArrayToPopulate;
   }
 
   /**
@@ -273,22 +271,24 @@ public class PasManager {
    * @param closestToSearchRoot         vertex in relation to searchResult tree
    * @param furthestFromSearchRoot      vertex in relation to searchResult tree
    * @param shortestSearchType          shortestSearchType used to obtain inverted search result, i.e., when on-to-all
-   *                                    inverted search result is in downstream direction, when all-to-one in upstream direction
+   *                                    inverted search result is in downstream direction, when all-to-one in upstream
+   *                                    direction
    * @param invertedBfSearchResultTree  to extract path from, tree is in inverted direction compared to regular search
    *                                    tree result, i.e., one-to-all search result is normally in upstream direction,
    *                                    here it is in downstream direction etc.
-   * @param arrayLength                 to use for the to be created array which should be at least as long as the path
-   *                                    that is to be extracted
+   * @param edgeSegmentArrayToPopulate to use for the array population which should be at least as long as the path
+   *                                   that is to be extracted into it
    * @param truncateArray               flag indicating to truncate the subpath array in case the back of the array is
    *                                    not fully used due to the existence of spare capacity
    * @return created array always in downstream direction, null if no path could be found
    */
-  public static EdgeSegment[] createSubpathArrayFrom(
-        DirectedVertex closestToSearchRoot,
-        DirectedVertex furthestFromSearchRoot,
+  @SuppressWarnings("unchecked")
+  public static <Vs extends DirectedVertex, ESs extends EdgeSegment> ESs[] createSubPathArrayFrom(
+        Vs closestToSearchRoot,
+        Vs furthestFromSearchRoot,
         ShortestSearchType shortestSearchType,
-        Map<DirectedVertex, EdgeSegment> invertedBfSearchResultTree,
-        int arrayLength,
+        Map<? extends Vs, ? extends ESs> invertedBfSearchResultTree,
+        ESs[] edgeSegmentArrayToPopulate,
         boolean truncateArray) {
 
     /*
@@ -297,8 +297,8 @@ public class PasManager {
      */
     boolean searchInverted = shortestSearchType.isInverted();
     
-    EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
-    EdgeSegment currEdgeSegment = null;
+    int arrayLength = edgeSegmentArrayToPopulate.length;
+    ESs currEdgeSegment = null;
     
     /* search utils yields lambda based on search type for searching, not result traversal, we traverse results, so we
      * should invert. However, our provided results are inverted already, so double inversion makes that we should not invert */
@@ -306,7 +306,7 @@ public class PasManager {
     
     /* run from end to start backward while adding in reverse to final array, unless search was inverted, then we go from start to end */
     int index = 0;
-    DirectedVertex currVertex = closestToSearchRoot;
+    Vs currVertex = closestToSearchRoot;
     if (searchInverted) {
       index = arrayLength-1;
     }
@@ -314,13 +314,14 @@ public class PasManager {
     boolean nextAvailable = true;
     do {
       currEdgeSegment = invertedBfSearchResultTree.get(currVertex);
-      edgeSegmentArray[index] = currEdgeSegment;
+      edgeSegmentArrayToPopulate[index] = currEdgeSegment;
       if (currEdgeSegment == null) {
-        LOGGER.warning(String.format("Unable to extract subpath between vertices (%s, %s), no edge segment available at intermediate vertex %s",
-            closestToSearchRoot.getXmlId(), furthestFromSearchRoot.getXmlId(), currVertex.getXmlId()));
+        LOGGER.warning(String.format("Unable to extract sub-path between vertex (%s) and vertex (%s), no edge " +
+                        "segment available at intermediate vertex (%s)",
+            closestToSearchRoot.getIdsAsString(), furthestFromSearchRoot.getIdsAsString(), currVertex.getIdsAsString()));
         return null;
       }
-      currVertex = getNextVertex.apply(currEdgeSegment);
+      currVertex = (Vs) getNextVertex.apply(currEdgeSegment);
       
       if (searchInverted) {
         nextAvailable = --index >= 0;
@@ -331,21 +332,22 @@ public class PasManager {
     } while (!currVertex.idEquals(furthestFromSearchRoot) && nextAvailable);
 
     if (!currVertex.idEquals(furthestFromSearchRoot)) {
-      LOGGER.warning(String.format("Unable to create subpath array between nodes (%s, %s) from given pathTree", closestToSearchRoot.toString(), furthestFromSearchRoot.toString()));
+      LOGGER.warning(String.format("Unable to create sub-path array between node (%s) and node (%s) from given " +
+              "pathTree", closestToSearchRoot.getIdsAsString(), furthestFromSearchRoot.getIdsAsString()));
       return null;
     }
 
     if (truncateArray && nextAvailable) {
       if(searchInverted) {
         /* inverted, truncate start */
-        return Arrays.copyOfRange(edgeSegmentArray, index + 1, arrayLength);
+        return Arrays.copyOfRange(edgeSegmentArrayToPopulate, index + 1, arrayLength);
       }else {
         /* regular, truncate end */
-        return Arrays.copyOfRange(edgeSegmentArray, 0, index); 
+        return Arrays.copyOfRange(edgeSegmentArrayToPopulate, 0, index);
       }      
     }
 
-    return edgeSegmentArray;
+    return edgeSegmentArrayToPopulate;
   }
 
   /**
@@ -362,7 +364,7 @@ public class PasManager {
       this.getReferenceVertex = Pas::getMergeVertex;
     }
     
-    this.passByVertex = new HashMap<DirectedVertex, Collection<Pas>>();
+    this.passByVertex = new HashMap<>();
   }
 
   /**
@@ -374,14 +376,14 @@ public class PasManager {
    * @param s2         expensive alternative segment
    * @return createdPas
    */
-  public Pas createAndRegisterNewPas(final RootedBush<?,?> bush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
-    Pas newPas = Pas.create(s1, s2);
+  public Pas<V,ES> createAndRegisterNewPas(final RootedBush<V,ES> bush, final ES[] s1, final ES[] s2) {
+    Pas<V,ES> newPas = Pas.create(s1, s2);
     if (newPas == null) {
       return null;
     }
 
     newPas.registerBush(bush);
-    passByVertex.putIfAbsent(this.getReferenceVertex.apply(newPas), new ArrayList<Pas>());
+    passByVertex.putIfAbsent(this.getReferenceVertex.apply(newPas), new ArrayList<>());
     passByVertex.get(this.getReferenceVertex.apply(newPas)).add(newPas);
     return newPas;
   }
@@ -394,9 +396,9 @@ public class PasManager {
    * @param s2         expensive alternative segment
    * @return createdPas
    */
-  public Pas createAndRegisterNewPas(
-          final RootedBush<?,?> bush, final Collection<EdgeSegment> s1, final Collection<EdgeSegment> s2) {
-    return createAndRegisterNewPas(bush, s1.toArray(new EdgeSegment[0]), s2.toArray(new EdgeSegment[0]));
+  public Pas<V,ES> createAndRegisterNewPas(
+          final RootedBush<V,ES> bush, final Collection<ES> s1, final Collection<ES> s2) {
+    return createAndRegisterNewPas(bush, CollectionUtils.toArray(s1), CollectionUtils.toArray(s2));
   }
 
   /**
@@ -405,7 +407,7 @@ public class PasManager {
    * @param pas           to remove
    * @param logRemovedPas when true log removed pas, when false do not
    */
-  public void removePas(final Pas pas, boolean logRemovedPas) {
+  public void removePas(final Pas<V,ES> pas, boolean logRemovedPas) {
     passByVertex.get(this.getReferenceVertex.apply(pas)).remove(pas);
     if (logRemovedPas) {
       LOGGER.info(String.format("Removed existing PAS: %s", pas.toString()));
@@ -418,7 +420,7 @@ public class PasManager {
    * @param referenceVertex to collect for
    * @return found PAS matches, null if none
    */
-  public Collection<Pas> getPassByReferenceVertex(final DirectedVertex referenceVertex) {
+  public Collection<Pas<V,ES>> getPassByReferenceVertex(final V referenceVertex) {
     return passByVertex.get(referenceVertex);
   }
 
@@ -429,7 +431,7 @@ public class PasManager {
    * @param alternative2 alternative segment of PAS
    * @return the matching PAS, null otherwise
    */
-  public Pas findExistingPas(final List<EdgeSegment> alternative1, final List<EdgeSegment> alternative2) {
+  public Pas<V,ES> findExistingPas(final List<ES> alternative1, final List<ES> alternative2) {
     if (alternative1 == null || alternative2 == null) {
       LOGGER.severe("one or more alternatives of potential PAS are null");
       return null;
@@ -444,10 +446,12 @@ public class PasManager {
       return null;
     }
 
-    for (Pas potentialPas : potentialPass) {
-      if (potentialPas.isAlternativeEqual(alternative1, true) && potentialPas.isAlternativeEqual(alternative2, false)) {
+    for (var potentialPas : potentialPass) {
+      if (potentialPas.isAlternativeEqual(alternative1, true) &&
+              potentialPas.isAlternativeEqual(alternative2, false)) {
         return potentialPas;
-      } else if (potentialPas.isAlternativeEqual(alternative2, true) && potentialPas.isAlternativeEqual(alternative1, false)) {
+      } else if (potentialPas.isAlternativeEqual(alternative2, true) &&
+              potentialPas.isAlternativeEqual(alternative1, false)) {
         return potentialPas;
       }
     }
@@ -456,13 +460,14 @@ public class PasManager {
   }
 
   /**
-   * Find PAS that exactly matches the provides alternative segments. Identical to {@link #findExistingPas(EdgeSegment[], EdgeSegment[])}
+   * Find PAS that exactly matches the provides alternative segments. Identical to
+   * {@link #findExistingPas(ES[], ES[])}
    * 
    * @param alternative1 alternative segment of PAS
    * @param alternative2 alternative segment of PAS
    * @return the matching PAS, null otherwise
    */
-  public Pas findExistingPas(final EdgeSegment[] alternative1, final EdgeSegment[] alternative2) {
+  public Pas<V,ES> findExistingPas(final ES[] alternative1, final ES[] alternative2) {
     if (alternative1 == null || alternative2 == null) {
       LOGGER.severe("one or more alternatives of potential PAS are null");
       return null;
@@ -473,10 +478,12 @@ public class PasManager {
       return null;
     }
 
-    for (Pas potentialPas : potentialPass) {
-      if (potentialPas.isAlternativeEqual(alternative1, true) && potentialPas.isAlternativeEqual(alternative2, false)) {
+    for (var potentialPas : potentialPass) {
+      if (potentialPas.isAlternativeEqual(alternative1, true) &&
+              potentialPas.isAlternativeEqual(alternative2, false)) {
         return potentialPas;
-      } else if (potentialPas.isAlternativeEqual(alternative2, true) && potentialPas.isAlternativeEqual(alternative1, false)) {
+      } else if (potentialPas.isAlternativeEqual(alternative2, true) &&
+              potentialPas.isAlternativeEqual(alternative1, false)) {
         return potentialPas;
       }
     }
@@ -491,14 +498,15 @@ public class PasManager {
    * @param referenceVertex to test for
    * @return true when PAS is used by origin bush ending at this vertex, false otherwise
    */
-  public boolean isRegisteredOnAnyPasAtReferenceVertex(final RootedLabelledBush bush, final DirectedVertex referenceVertex) {
+  public boolean isRegisteredOnAnyPasAtReferenceVertex(
+          final RootedBush<V,ES> bush, final V referenceVertex) {
     /* verify potential PASs */
     var potentialPass = getPassByReferenceVertex(referenceVertex);
     if (potentialPass == null) {
       return false;
     }
 
-    for (Pas pas : potentialPass) {
+    for (var pas : potentialPass) {
       if (pas.hasRegisteredBush(bush)) {
         return true;
       }
@@ -513,16 +521,17 @@ public class PasManager {
    * (reduced cost) improvement provided as well as that the bush has sufficient flow on the high cost alternative of the
    * PAS such that it can improve sufficiently by shifting flow towards the new low cost segment. If this all holds
    * the PAS is selected and returned. We select the first PAS we can find that matches this criteria.
-   * 
+   *
    * @param bush            to find suitable PAS for
    * @param referenceVertex           to use
    * @param flowAcceptanceFactors to use (required to assess flow effectiveness in capacitated context)
    * @param reducedCost           the upper bound on the improvement that is known for this merge vertex
    * @return pas found, null if no suitable candidates exist
    */
-  public Pas findFirstSuitableExistingPas(
-          final RootedLabelledBush bush,
-          final DirectedVertex referenceVertex,
+  @SuppressWarnings("unchecked")
+  public Pas<V,ES> findFirstSuitableExistingPas(
+          final RootedBush<V,ES> bush,
+          final V referenceVertex,
           double[] flowAcceptanceFactors,
           double reducedCost) {
 
@@ -532,8 +541,8 @@ public class PasManager {
       return null;
     }
 
-    Pas matchedPas = null;
-    for (Pas pas : potentialPass) {
+    Pas<V,ES> matchedPas = null;
+    for (var pas : potentialPass) {
       if (pas.hasRegisteredBush(bush)) {
         continue;
       }
@@ -541,7 +550,7 @@ public class PasManager {
       /* check if PAS is attached upstream to bush - even if it is just with the vertex */
       boolean pasPotentialMatch = false;
       for (var pasFirstExitSegment : pas.getDivergeVertex().getExitEdgeSegments()) {
-        if (bush.contains(pasFirstExitSegment)) {
+        if (bush.contains((ES) pasFirstExitSegment)) {
           pasPotentialMatch = true;
           break;
         }
@@ -550,10 +559,11 @@ public class PasManager {
       if(!pasPotentialMatch) {
         continue;
       }
-      
+
+      pasPotentialMatch = false;
       /* check if PAS is attached downstream to bush - even if it is just with the vertex */
       for (var pasLastEntrySegment : pas.getMergeVertex().getEntryEdgeSegments()) {
-        if (bush.contains(pasLastEntrySegment)) {
+        if (bush.contains((ES) pasLastEntrySegment)) {
           pasPotentialMatch = true;
           break;
         }
@@ -569,7 +579,7 @@ public class PasManager {
       }
 
       /* deemed effective, now ensure it does not introduce cycles given current state of the bush */
-      if (bush.determineIntroduceCycle(pas.getAlternative(true)) != null) {
+      if (bush.determineIntroduceCycle((ES[]) pas.getAlternative(true)) != null) {
         continue;
       }
 
@@ -586,7 +596,7 @@ public class PasManager {
    * @param linkSegmentCosts to use
    */
   public void updateCosts(final double[] linkSegmentCosts) {
-    for (Collection<Pas> pass : passByVertex.values()) {
+    for (Collection<Pas<V,ES>> pass : passByVertex.values()) {
       updateCosts(pass, linkSegmentCosts);
     }
   }
@@ -597,20 +607,21 @@ public class PasManager {
    * @param pass             collection of specific PASs to update
    * @param linkSegmentCosts to use
    */
-  public void updateCosts(Collection<Pas> pass, double[] linkSegmentCosts) {
-    for (Pas pas : pass) {
+  public void updateCosts(Collection<Pas<V,ES>> pass, double[] linkSegmentCosts) {
+    for (var pas : pass) {
       pas.updateCost(linkSegmentCosts);
     }
   }
 
   /**
-   * Construct a priority queue based on the PASs reduced cost, i.e., difference between their high and low cost segments in descending order.
+   * Construct a priority queue based on the PASs reduced cost, i.e., difference between their high and low
+   * cost segments in descending order.
    *
    * @param pasComparator to use
    * @return sorted PAS queue in descending order, i.e., highest reduced cost first
    */
-  public Collection<Pas> getPassSortedByReducedCost(Comparator<Pas> pasComparator) {
-    var sortedList = new ArrayList<Pas>((int) getNumberOfPass());
+  public Collection<Pas<V,ES>> getPassSortedByReducedCost(Comparator<Pas<V,ES>> pasComparator) {
+    var sortedList = new ArrayList<Pas<V,ES>>((int) getNumberOfPass());
     forEachPas(sortedList::add);
     sortedList.sort(pasComparator);
     return sortedList;
@@ -621,7 +632,7 @@ public class PasManager {
    * 
    * @param pasConsumer to apply
    */
-  public void forEachPas(Consumer<Pas> pasConsumer) {
+  public void forEachPas(Consumer<Pas<V,ES>> pasConsumer) {
     passByVertex.forEach((v, pc) -> {
       pc.forEach(pasConsumer);
     });
@@ -649,9 +660,9 @@ public class PasManager {
    * @return number of pass from which the bush has been removed
    */
   public int removeBushFromPasIf(
-          RootedBush<?,?> bush, Predicate<Pas> pasPredicate, boolean removeUnusedPass) {
+          RootedBush<V,ES> bush, Predicate<Pas<V,ES>> pasPredicate, boolean removeUnusedPass) {
     int countRemovals = 0;
-    List<Pas> passWithoutBush = null; //todo: make set when pas is comparable
+    List<Pas<V,ES>> passWithoutBush = null; //todo: make set when pas is comparable
     for (var pass : passByVertex.values()) {
       for( var pas : pass){
         if(pas.hasRegisteredBush(bush)){

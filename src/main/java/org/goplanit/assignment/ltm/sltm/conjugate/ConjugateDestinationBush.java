@@ -1,6 +1,8 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
 import java.util.*;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -41,22 +43,42 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   private static final Logger LOGGER = Logger.getLogger(ConjugateDestinationBush.class.getCanonicalName());
 
   /**
+   * Based on non-conjugate flow acceptance factors in the network obtain the acceptance factor for the
+   * conjugate segment by looking at its original incoming segment. If it does not exist then 1 is returned
+   *
+   * @param conjugateEdgeSegment to get acceptance factor for
+   * @param nonConjugateFlowAcceptanceFactors to use
+   * @return conjugate converted acceptance factor
+   */
+  private static double getConjugateFlowAcceptanceFactor(
+          ConjugateEdgeSegment conjugateEdgeSegment, double[] nonConjugateFlowAcceptanceFactors){
+    if(!conjugateEdgeSegment.hasOriginalEntryEdgeSegment()){
+      return 1;
+    }else{
+      return nonConjugateFlowAcceptanceFactors[
+              (int) conjugateEdgeSegment.getOriginalAdjacentEdgeSegments().first().getId()];
+    }
+  }
+
+  /**
    * Determine the sending flow between origin,destination vertex using the subpath given by the subPathArray in
    * order from start to finish. We utilise the initial sending flow on the indexed conjugate segment as the base
    * flow which is then followed along the subpath through the bush splitting rates up to the final link segment
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
-   * 
-   * @param subPathAcceptedFlow to start with
+   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 12/12
+   *
+   * @param subPathAcceptedFlow accepted flow so far
+   * @param compoundedFlowAcceptanceScalingFactor combined multiplied alphas so far
    * @param index              offset to start in array with
-   * @param subPathArray       to extract path from
+   * @param nonConjugateFlowAcceptanceFactors to use
+   * @param subPathArray       to extract path from*
    * @return sendingFlowPcuH between index and end vertex following the sub-path
    */
   private double determineSubPathSendingFlow(
           double subPathAcceptedFlow,
           double compoundedFlowAcceptanceScalingFactor,
           int index,
-          double[] flowAcceptanceFactors,
+          double[] nonConjugateFlowAcceptanceFactors,
           final ConjugateEdgeSegment[] subPathArray) {
 
     if(subPathAcceptedFlow <= 0.0){
@@ -66,17 +88,16 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     var currConjugateSegment = subPathArray[index++];
 
     if (index < subPathArray.length && Precision.positive(subPathAcceptedFlow)) {
-      var nextConjugateSegment = subPathArray[index];
-
       var currSendingFlow = bushData.getTurnSendingFlowPcuH(currConjugateSegment);
       // restrict by what is available on our subpath
       double subPathSendingFlow = Math.min(subPathAcceptedFlow, currSendingFlow);
-      double flowAcceptanceFactor = flowAcceptanceFactors[(int)currConjugateSegment.getId()];
+      double flowAcceptanceFactor =
+              getConjugateFlowAcceptanceFactor(currConjugateSegment, nonConjugateFlowAcceptanceFactors);
       return determineSubPathSendingFlow(
               subPathSendingFlow * flowAcceptanceFactor,
               compoundedFlowAcceptanceScalingFactor * flowAcceptanceFactor,
               index,
-              flowAcceptanceFactors,
+              nonConjugateFlowAcceptanceFactors,
               subPathArray);
     }
 
@@ -99,6 +120,59 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   @Override
   protected ConjugateACyclicSubGraph getDag() {
     return (ConjugateACyclicSubGraph) super.getDag();
+  }
+
+  /**
+   * Run as BFS search.
+   * {@inheritDoc}
+   *
+   */
+  @Override
+  public Pair<ConjugateDirectedVertex, Map<ConjugateDirectedVertex, ConjugateEdgeSegment>>
+  findBushAlternativeSubpathByBackLinkTree(
+          ConjugateDirectedVertex referenceVertex,
+          ConjugateEdgeSegment forbiddenInitialSegment,
+          short[] alternativeSubpathVertexLabels) {
+
+    // cannot use the initial segment that is part of the cheapest option.
+    // Note that we cannot check for the -1 marking here because it is possible that the shortest alternative loops
+    // around and the alternative we are looking is exactly 1 link long starting at vertex marked with 1 and ending
+    // at vertex marked -1 so actual initial rival edge segment is needed for exclusion
+    Predicate<ConjugateEdgeSegment> initialInclusionCondition = es -> !es.equals(forbiddenInitialSegment);
+
+    // only consider (original) turns with positive flow on bush
+    BiPredicate<ConjugateEdgeSegment, ConjugateEdgeSegment> regularInclusionCondition =
+            (prevEs,es) -> bushData.containsTurnSendingFlow(es);
+
+    // terminate when shortest path reconnects to the bush
+    BiPredicate<ConjugateDirectedVertex, ConjugateEdgeSegment> terminationCondition = (v, prevEs) ->
+            alternativeSubpathVertexLabels[(int) v.getId()] == -1;
+
+    // when bush is inverted, shortest path search runs from root outward and backlinks run in graph direction
+    //   so do not invert BFS to create backlinks consistent with that approach
+    // when not inverted, shortest path search runs from root outward and backlinks run opposite graph direction
+    //   so invert BFS to create backlinks consistent with that approach
+    boolean invertBfs = !this.isInverted();
+
+    // perform BFS
+    var result = getDag().breadthFirstSearch(
+            referenceVertex,
+            invertBfs,
+            initialInclusionCondition,
+            regularInclusionCondition,
+            terminationCondition);
+
+    /*
+     * no result could be found, only possible when cycle is detected before reaching origin Not sure this will actually happen, so created warning to check, when it does happen
+     * investigate and see if this expected behaviour (if so remove statement). this would equate to finding a vertex marked with a '1' in Xie & Xie, which I do not do because I
+     * don't think it is needed, but I might be wrong.
+     */
+    if(result== null || result.first() == null) {
+      LOGGER.warning(String.format(
+              "Cycle found when finding alternative subpath on conjugate bush merging at conjugate vertex (%s)",
+              referenceVertex.getIdsAsString()));
+    }
+    return result;
   }
 
   /**
@@ -176,11 +250,9 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     return (Set<ConjugateDirectedVertex>) super.getOriginVertices();
   }
 
-  @Override
-  public EdgeSegment determineIntroduceCycle(EdgeSegment[] alternative) {
-    throw new PlanItRunTimeException("not yet implemented - reuse one in regular rooted bush");
-  }
-
+  /**
+   * {@inheritDoc
+   */
   @Override
   public double addTurnSendingFlow(EdgeSegment from, EdgeSegment to, double addFlowPcuH) {
     var conjugateSegment = turn2ConjugateSegmentMapping.get(from,to);
@@ -196,6 +268,14 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
       }
     }
     return bushData.addTurnSendingFlow(conjugateSegment, addFlowPcuH);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getSendingFlowPcuH(final ConjugateEdgeSegment edgeSegment) {
+    return bushData.getTurnSendingFlowPcuH(edgeSegment);
   }
 
   /**
@@ -220,17 +300,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   @Override
   public ConjugateDestinationBush deepClone() {
     return new ConjugateDestinationBush(this, true);
-  }
-
-  /**
-   * Verify if adding the sub-path conjugated edge segments (turns) would introduce a cycle in this bush
-   * 
-   * @param alternative to verify
-   * @return edge segment that would introduces a cycle, null otherwise
-   */
-  public ConjugateEdgeSegment determineIntroduceCycle(ConjugateEdgeSegment[] alternative) {
-    // TODO: not rewritten yet
-    return null;
   }
 
   /**
@@ -447,9 +516,24 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    *
    * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    */
-  public double determineSubPathSendingFlow(ConjugateEdgeSegment[] subPathArray, double[] nonConjugateFlowAcceptanceFactors) {
-    // TODO: not rewritten yet
-    return Double.NEGATIVE_INFINITY;
+  @Override
+  public double determineSubPathSendingFlow(
+          ConjugateEdgeSegment[] subPathArray, double[] nonConjugateFlowAcceptanceFactors) {
+    int index = 0;
+
+    /* determine flow on initial segment, from there on recursively traverse sub-path */
+    var initialSubPathEdgeSegment = subPathArray[index];
+    double subPathSendingFlow = bushData.getTurnSendingFlowPcuH(initialSubPathEdgeSegment);
+    if (subPathSendingFlow <= 0) {
+      return subPathSendingFlow;
+    }
+    subPathSendingFlow = determineSubPathSendingFlow(
+            subPathSendingFlow,
+            1,
+            index,
+            nonConjugateFlowAcceptanceFactors,
+            subPathArray);
+    return subPathSendingFlow;
   }
 
   /**
@@ -519,16 +603,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    */
   @Override
-  public boolean contains(EdgeSegment turnSegment) {
-    return containsConjugateSegment((ConjugateEdgeSegment)turnSegment);
-  }
-
-  /**
-   * {@inheritDoc}
-   *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
-   */
-  @Override
   public String toString() {
     var sb = new StringBuilder("Original registered segments [");
 
@@ -549,7 +623,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
         vertex.getOriginalEdge().forEachSegment(es -> sb.append(es.getXmlId()).append(","));
       }
       for (var nextSegment : getNextEdgeSegments.apply(vertex)) {
-        if(!contains(nextSegment)) {
+        if(!contains((ConjugateEdgeSegment) nextSegment)) {
           continue;
         }
         ConjugateDirectedVertex nextVertex = (ConjugateDirectedVertex) getNextVertex.apply(nextSegment);
