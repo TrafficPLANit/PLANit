@@ -12,12 +12,12 @@ public class BushEntryShiftedS2FlowData {
 
   private final EdgeSegment entrySegment;
 
-  private final RootedLabelledBush bush;
+  private final RootedBush<?,?> bush;
 
   private final double[] s2MergeExitSplittingRates;
 
   public BushEntryShiftedS2FlowData(
-          RootedLabelledBush bush,
+          RootedBush<?,?> bush,
           EdgeSegment entrySegment,
           double s2Flowshifted,
           double[] s2MergeExitSplittingRates){
@@ -36,7 +36,7 @@ public class BushEntryShiftedS2FlowData {
     return entrySegment;
   }
 
-  public RootedLabelledBush getBush() {
+  public RootedBush<?,?> getBush() {
     return bush;
   }
 

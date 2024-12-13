@@ -294,7 +294,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
         hyperDerivative =  0.5 * currentTimePeriodHours / outflowRatePcuH;
       } else {
         /* avoid division by zero, if no outflow rate but congested, it is undesirable to use this link
-        (if it has any flow), we return infinity, or let congested portion have no impact if empty*/
+        (if it has any flow), we return infinity, or let congested portion have no impact if empty (or unknown)*/
         hyperDerivative = accessee.getLinkSegmentInflowPcuHour(linkSegment) > 0.0 ? Double.POSITIVE_INFINITY : 0;
       }
     }

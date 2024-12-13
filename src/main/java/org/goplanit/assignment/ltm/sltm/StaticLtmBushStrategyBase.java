@@ -50,7 +50,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    *
    * @param bushRemovedLinkSegments to consider
    */
-  private void deregisterBushesWithRemovedSegmentsFromMatchingPass(
+  private void unregisterBushesWithRemovedSegmentsFromMatchingPass(
           Map<ES, Set<RootedBush<V,ES>>> bushRemovedLinkSegments) {
 
     for(var entry : bushRemovedLinkSegments.entrySet()){
@@ -143,7 +143,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
 
       // determine PAS alternative s1 and s2 sending flows
-      pasFlowShifter.stepOneDetermineNetworkLoadingConsistentS1S2EntrySendingFlows(
+      pasFlowShifter.stepOneDetermineNetworkLoadingConsistentS1S2SendingFlows(
               getLoading().getCurrentFlowAcceptanceFactors());
 
       // register for further processing
@@ -199,30 +199,30 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param theMode        to use
    * @param pasExecutors   to use
    * @param simulationData to use
-   * @return proposed flow shifts per PAS per entry segment of the PAS
+   * @return proposed flow shifts per PAS per network entry segment of the PAS
    */
-  private Map<Pas<V,ES>, Map<ES, Double>> flowShiftingStepThreeDetermineProposedFlowShift(
+  private Map<Pas<V,ES>, Map<EdgeSegment, Double>> flowShiftingStepThreeDetermineProposedFlowShift(
           Mode theMode,
           Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
           StaticLtmSimulationData simulationData) {
 
-    // result to populate
-    final Map<Pas<V,ES>, Map<ES, Double>> pasProposedFlowShifts = new HashMap<>();
+    // result to populate, proposed flow shifts are always based on original network using edge segments as base class
+    final Map<Pas<V,ES>, Map<EdgeSegment, Double>> pasProposedFlowShifts = new HashMap<>();
 
     // prep
     var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
     var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
 
-    // the closer we are to convergence the less agrressive we want to approach any possible discontinuity
+    // the closer we are to convergence the less aggressive we want to approach any possible discontinuity
     // in the cost functions, i.e., when we switch traffic states from uncongested to congested or vice versa on
     // any link as a result of flow shifts. This is factored in when computing the proposed flow shifts
     // For now, we use the gap since a small gap means high dampening (multiplying a delta flow with small number)
-    var discontinuityDampeningFactor = gapFunction.getGap();
+    var discontinuityDampeningFactor = Math.min(1,gapFunction.getGap());
 
     // Determine proposed flow shift per PAS
     this.pasManager.forEachPas( pas -> {
-      var flowShifts = pasExecutors.get(pas).determineProposedFlowShiftByEntrySegment(
+      var flowShifts = pasExecutors.get(pas).determineProposedFlowShiftByLoadingEntrySegment(
               theMode, physicalCost, virtualCost, getLoading(), discontinuityDampeningFactor);
       pasProposedFlowShifts.put(pas, flowShifts);
     });
@@ -334,7 +334,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           Mode theMode,
           Collection<Pas<V,ES>> sortedPass,
           Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
-          Map<Pas<V,ES>, Map<ES, Double>> pasProposedFlowShifts,
+          Map<Pas<V,ES>, Map<EdgeSegment, Double>> pasProposedFlowShifts,
           StaticLtmSimulationData simulationData) {
 
     Collection<ES> linkSegmentsUsed = new HashSet<>(100);
@@ -399,7 +399,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
          * the link segment present that no longer has any flow on the bush. */
         if(pasFlowShifter.hasAnyBushRemovedLinkSegments()){
           Map<ES, Set<RootedBush<V,ES>>> bushRemovedLinkSegments = pasFlowShifter.getBushRemovedLinkSegments();
-          deregisterBushesWithRemovedSegmentsFromMatchingPass(bushRemovedLinkSegments);
+          unregisterBushesWithRemovedSegmentsFromMatchingPass(bushRemovedLinkSegments);
         }
       }
     }
@@ -468,9 +468,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // from manager, and remove from flow shift executors as they are no longer relevant
     flowShiftingStepTwoRemovePassWithoutRemainingFlow(pasExecutors);
 
-    // STEP3: determine the proposed flow shift for each PAS as if it were performing
+    // STEP3: Determine the proposed flow shift for each PAS as if it were performing
     //  its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
-    final Map<Pas<V,ES>, Map<ES, Double>> pasProposedFlowShifts =
+    final Map<Pas<V,ES>, Map<EdgeSegment, Double>> pasProposedFlowShifts =
             flowShiftingStepThreeDetermineProposedFlowShift(theMode, pasExecutors, simulationData);
 
     // STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based on relevant

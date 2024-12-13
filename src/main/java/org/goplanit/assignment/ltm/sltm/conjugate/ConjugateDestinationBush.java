@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
@@ -21,6 +22,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ConjugateACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
@@ -537,24 +539,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   }
 
   /**
-   * Determine the sending flow between origin,destination vertex using the subpath given by the segment +
-   * subPathArray in order from start to finish. We utilise the initial sending flow on the entry segment as the
-   * base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
-   *
-   * @param entrySegment to start subpath from
-   * @param subPathArray to append to entry segment to extract path from
-   * @param nonConjugateFlowAcceptanceFactors to use
-   * @return sendingFlowPcuH between start and end vertex following the sub-path
-   *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
-   */
-  public double determineSubPathSendingFlow(
-          ConjugateEdgeSegment entrySegment, ConjugateEdgeSegment[] subPathArray, double[] nonConjugateFlowAcceptanceFactors) {
-    // TODO: not rewritten yet <---- SHOULD NOT BE NEEDED NOW THAT WE ARE IN CONJUGATE FORM
-    return Double.NEGATIVE_INFINITY;
-  }
-
-  /**
    * Verify if empty
    *
    * @return true when empty, false otherwise
@@ -692,9 +676,202 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   @Override
   public TreeSet<ConjugateEdgeSegment> performLowFlowBranchShifts(
           double flowThreshold, double[] nonConjugateFlowAcceptanceFactors, boolean detailedLogging){
-    //todo
-    LOGGER.severe("NOT YET IMPLEMENTED");
-    return null;
+
+    //todo: continue here --> not sure how to deal with this since it should work on the bush level turn flows
+    // but these are conjugate so bit weird in this context. I think it is ok so let's se eif we can do it near 1:1
+
+    // removed turn flows with multikey being entry and exit conjugate segments
+    final MultiKeyMap<Object, Double> removedTurnFlows = new MultiKeyMap<>();
+    // a removed turn flow does not mean a removed edge segment necessarily (as we avoid performing a full bush update
+    // as a result, so track removed edge segments separately. We do so because removed edge segments allow us to deregister
+    // bushes from PASs that have this edge segment (but after branch shift this bush is no longer eleigible for the PAS)
+    final TreeSet<ConjugateEdgeSegment> removedConjSegments = new TreeSet<>();
+
+//    /* traverse form origin->destination */
+//    forEachTopologicalSortedVertex(isInverted(), currVertex -> {
+//
+//      Map<ConjugateEdgeSegment, Double> conjExitSegmentsWithRemovedIncomingFlows = new TreeMap<>();
+//      for (ConjugateEdgeSegment exitSegment : currVertex.getExitEdgeSegments()) {
+//        if (!contains(exitSegment)) {
+//          continue; // next vertex
+//        }
+//        if (exitSegment.getDownstreamVertex() instanceof ConjugateConnectoidNode &&
+//                ((ConjugateConnectoidNode)exitSegment.getDownstreamVertex()).getCentroidVertex() != null) {
+//          // not ideal in case we have a continuing shift that should remove this connector because it is no
+//          // longer used should generally not happen but it could... Conversely we don't want to remove ways
+//          // to a destination
+//          continue;
+//        }
+//
+//        // TODO: THIS IS WHERE I ACTUALLY STOPPED
+//
+//        // check if any preceding link flow was removed as a result of a threshold violation (see below).
+//        // if so, propagate this removal of flow before assessing if link is eligible for removal
+//        if (!removedTurnFlows.isEmpty()) {
+//          for (var entrySegment : currVertex.getEntryEdgeSegments()) {
+//            if (removedTurnFlows.keySet().stream().noneMatch(e -> e.getKey(1).equals(entrySegment)) ||
+//                    !containsTurnSendingFlow(entrySegment, exitSegment)) {
+//              continue;
+//            }
+//            double removedPortionIntoExit = bushData.getSplittingRate(entrySegment, exitSegment);
+//            double removedTotalOnEntry = removedTurnFlows.entrySet().stream().filter(
+//                    e -> e.getKey().getKey(1).equals(entrySegment)).mapToDouble(Map.Entry::getValue).sum();
+//            // incoming flow removed into this exit as a result of branch shift, track what was removed in total going
+//            // into current exit segment
+//            conjExitSegmentsWithRemovedIncomingFlows.put(exitSegment, conjExitSegmentsWithRemovedIncomingFlows.getOrDefault(exitSegment, 0.0) +
+//                    flowAcceptanceFactors[(int) exitSegment.getId()] * removedPortionIntoExit * removedTotalOnEntry);
+//          }
+//        }
+//      }
+//
+//      // now determine which exit segments are eligible for removal (may be multiple) and if they are initiating a new
+//      // branch shift or not (when initiating a new shift, this may indicate merging with a continuing one, but this is dealt
+//      // with after)
+//      Map<EdgeSegment, Boolean> exitSegmentToRemove = new TreeMap<>();
+//      Set<EdgeSegment> exitSegmentsToTerminateTrackingButFinaliseUpstreamRemovals = new TreeSet<>();
+//      for (var exitSegment : currVertex.getExitEdgeSegments()) {
+//        double totalInflowPcuH = bushData.getTotalAcceptedFlowToPcuH(exitSegment, flowAcceptanceFactors);
+//        if(totalInflowPcuH<=0){
+//          continue;
+//        }
+//
+//        // test for eligibility of removal based on the total inflow into the exit segment
+//        // (adjusted with any removed upstream flow)
+//        double removedExitSegmentIncomingFlow = conjExitSegmentsWithRemovedIncomingFlows.getOrDefault(exitSegment, 0.0);
+//        if ((totalInflowPcuH - removedExitSegmentIncomingFlow) < flowThreshold) {
+//          // below threshold hold, so initiate (or continue) a branch merge. Check if (new) flow has been merged into this link
+//          // from other incoming links, because if so, it is a new branch shift (possibly in addition to a continuing one)
+//          boolean initiateNewShift = IterableUtils.asStream(currVertex.getEntryEdgeSegments()).filter(
+//                  es -> removedTurnFlows.keySet().stream().noneMatch(k -> k.getKey(1).equals(es))).anyMatch(
+//                  es -> containsTurnSendingFlow(es, exitSegment));
+//          exitSegmentToRemove.put(exitSegment, initiateNewShift);
+//        } else if (removedExitSegmentIncomingFlow > 0 /* but above threshold for removal*/) {
+//          exitSegmentsToTerminateTrackingButFinaliseUpstreamRemovals.add(exitSegment);
+//        }
+//      }
+//
+//
+//      // perform continuation/new branch shift on nominated exit segments when eligible
+//      for (var candidate : exitSegmentToRemove.entrySet()) {
+//        EdgeSegment lowFlowSegment = candidate.getKey();
+//        boolean initiateNewShift = candidate.getValue();
+//
+//        // safety --> we can only initiate an implicit shift if there is an alternative flow into another exit segment available
+//        // that is not a candidate for removal. if not then we cannot remove this flow for an implicit shift to another branch, so check this availability
+//        // note: In case we allow multiple branch shifts per bush we must exclude any removed segments from this selection as their turn sending flows may not have been removed yet
+//        // (this is triggered by the exit link, rather than the removed entry). As a result we should disallow multiple branch shifts per bush er iteration to avoid
+//        // such complexities (also because we not fully propagate the shift anyway potentially cuasing other problems).
+//        var alternativeUsedExitSegmentFlows = IterableUtils.asStream(lowFlowSegment.getUpstreamVertex().getExitEdgeSegments()).filter(
+//                es -> !exitSegmentToRemove.containsKey(es)).map(es ->
+//                Pair.of(es, bushData.getTotalAcceptedFlowToPcuH(es, flowAcceptanceFactors))).collect(Collectors.toList());
+//        if (initiateNewShift && alternativeUsedExitSegmentFlows.stream().mapToDouble(Pair::second).sum() <= 0) {
+//          // no other branch available to reallocate flow to, so we must maintain this flow despite it being low
+//          // this can happen 1) halfway along a corridor with alphas < 1 such that flow reduces below threshold halfway but without an
+//          // option to divert. Since, we may alos have conintuing removals at the same time, we flag the exit for temrination
+//          // in case this happens
+//          exitSegmentsToTerminateTrackingButFinaliseUpstreamRemovals.add(lowFlowSegment);
+//          continue;
+//        }
+//
+//        // WHEN REACING THIS POINT WE ARE: continuing an existing or initiating a new branch shift on threshold compliant
+//        // segment that is to be removed...
+//
+//        //remove edge segment explicitly, because otherwise it may not be removed if it still
+//        // has sending flow, but we can only deal with that later, so do it explicitly
+//        getDag().removeEdgeSegment(lowFlowSegment);
+//        removedConjSegments.add(lowFlowSegment);
+//
+//        for (var entrySegment : currVertex.getEntryEdgeSegments()) {
+//          double turnFlow = getTurnSendingFlow(entrySegment, lowFlowSegment);
+//          if(turnFlow <= 0){
+//            continue;
+//          }
+//
+//          // remove turn coming into this exit segment.
+//          boolean entryIsContinuingRemoval = !getDag().containsEdgeSegment(entrySegment);
+//          removeTurn(entrySegment,lowFlowSegment);
+//          if(!entryIsContinuingRemoval) {
+//            // when initiating a new shift, we only consider moving flow across from those incoming links that
+//            // were not already removed, i.e., the continuing portion of a branch shift cannot be redistributed because that
+//            // flow was already redistributed upstream
+//
+//            // It may be that some entry segments have no current other used exit turns, while others do.
+//            // We therefore use the general distribution across exit segments as a proxy and shift
+//            // the removed turn flow to all these used exit segments (across all entries) to forcibly create
+//            // a used turn for such entries in case it does not exist (but already exists for other entries)
+//            double totalAcceptedExitFlow = alternativeUsedExitSegmentFlows.stream().mapToDouble(
+//                    Pair::second).reduce(0.0, Double::sum);
+//            Map<EdgeSegment, Double> altExitSegmentFlowSplittingRates = new TreeMap<>();
+//            alternativeUsedExitSegmentFlows.forEach(
+//                    e -> altExitSegmentFlowSplittingRates.put(e.first(), e.second() / totalAcceptedExitFlow));
+//            for (var altExitSegment : currVertex.getExitEdgeSegments()) {
+//              var splittingRate = altExitSegmentFlowSplittingRates.getOrDefault(altExitSegment, 0.0);
+//              if (splittingRate > 0) {
+//                double shiftedTurnFlow = turnFlow * splittingRate;
+//                addTurnSendingFlow(entrySegment, altExitSegment, shiftedTurnFlow);
+//
+//                if (detailedLogging) {
+//                  LOGGER.info(String.format(
+//                          "%s branch shift for too low flows: shifted edge segment (%s) flow: %.10f) from exit link (%s) to other exit link (%s) from bush (%s)",
+//                          conjExitSegmentsWithRemovedIncomingFlows.getOrDefault(lowFlowSegment,0.0) > 0 ? "initiate additional" : "Initiate",
+//                          entrySegment.getIdsAsString(),
+//                          shiftedTurnFlow,
+//                          lowFlowSegment.getIdsAsString(),
+//                          altExitSegment.getIdsAsString(),
+//                          getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+//                }
+//              }
+//            }
+//          }else if(conjExitSegmentsWithRemovedIncomingFlows.getOrDefault(lowFlowSegment, 0.0) > 0){
+//            //  continuing existing branch shift, but not initiating a new one, which will continue tracking of the removed flows
+//            if (detailedLogging) {
+//              LOGGER.info(String.format(
+//                      "Continuing Implicit branch shift: shifted flow: %.10f, from edge segment (%s) to other exit segment (%s) from bush (%s)",
+//                      turnFlow,
+//                      entrySegment.getIdsAsString(),
+//                      lowFlowSegment.getIdsAsString(),
+//                      getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+//            }
+//          }
+//
+//          // propagate removed link's flow in case it should lead to downstream removal of more link segments which
+//          //   may be required to avoid dangling links within the bush
+//          //   Note: since we are removing turns on-the-fly which affects the topological order, we should not create another
+//          //         topological iterator at this point as the bush's state is in flux and may be invalid temporarily. therefore
+//          //         we will track the to be removed flow as we go and deal with it here while traversing the bush instead
+//          removedTurnFlows.put(entrySegment, lowFlowSegment, turnFlow);
+//        }
+//
+//      }
+//
+//      // finalise by removal of preceding incoming turns from removed segments but without further tracking/removal required
+//      // because too much flow remains on exit segment despite removed incoming flow, so just remove the turns from removed
+//      // entry segments into this exit to finalise the shift but do not track removal propagation any further because
+//      // it is not required (no dangling links can occur)
+//      for (var nonCandidateWithPrecedingLowFlowremoval : exitSegmentsToTerminateTrackingButFinaliseUpstreamRemovals) {
+//        for (var entrySegment : currVertex.getEntryEdgeSegments()) {
+//          if (removedTurnFlows.keySet().stream().noneMatch(e -> e.getKey(1).equals(entrySegment)) ||
+//                  !containsTurnSendingFlow(entrySegment, nonCandidateWithPrecedingLowFlowremoval)) {
+//            continue;
+//          }
+//          removeTurn(entrySegment, nonCandidateWithPrecedingLowFlowremoval);
+//          if (detailedLogging) {
+//            LOGGER.info(String.format(
+//                    "Finalising branch shift; keep segment (%s) with above threshold flow : removed turn from edge segment (%s) into  (%s) from bush (%s)",
+//                    nonCandidateWithPrecedingLowFlowremoval.getIdsAsString(),
+//                    entrySegment.getIdsAsString(),
+//                    nonCandidateWithPrecedingLowFlowremoval.getIdsAsString(),
+//                    getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+//          }
+//        }
+//      }
+//    });
+//
+//    if (detailedLogging && !removedConjSegments.isEmpty()) {
+//      removedConjSegments.forEach( es -> LOGGER.info(String.format(
+//              "Branch shift removed edge segment (%s)",es.getIdsAsString())));
+//    }
+    return removedConjSegments;
   }
 
 }

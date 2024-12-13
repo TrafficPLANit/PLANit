@@ -14,6 +14,7 @@ import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.zoning.Zone;
 
 /**
  * A rooted bush is an acyclic directed graph comprising implicit paths along a network. It has a root which can be any
@@ -271,8 +272,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * @param invertIterator when true invert iterator direction
    * @param vertexConsumer to apply to each vertex
    */
-  @Override
-  public void forEachTopologicalSortedVertex(boolean invertIterator, Consumer<DirectedVertex> vertexConsumer) {
+  public void forEachTopologicalSortedVertex(boolean invertIterator, Consumer<V> vertexConsumer) {
 
     /* get topological sorted vertices to process in indicated direction */
     var vertexIter = invertIterator ? getInvertedTopologicalIterator() : getTopologicalIterator();
@@ -468,7 +468,16 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    *
    * @return root zone
    */
-  protected abstract CentroidVertex getRootZoneVertex();
+  public abstract CentroidVertex getRootZoneVertex();
+
+  /**
+   * Access to root zone
+   *
+   * @return root zone
+   */
+  public Zone getRootZone(){
+    return getRootZoneVertex().getParent().getParentZone();
+  }
 
   /**
    * {@inheritDoc}
