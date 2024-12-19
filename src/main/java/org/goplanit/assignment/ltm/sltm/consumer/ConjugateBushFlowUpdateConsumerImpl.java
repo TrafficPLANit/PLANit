@@ -125,16 +125,6 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
       /* bush splitting rates by [exit segment, exit label] as key
       *  in conjugate setting all conjugate entry segments will have the same splitting rates */
       double[] splittingRates = bush.getSplittingRates(currConjVertex);
-      double splittingRateTotal = ArrayUtils.sumOf(splittingRates);
-      if (splittingRates == null || splittingRateTotal <= 0.0) {
-        continue;
-      }
-
-      if(Precision.smaller(splittingRateTotal, 1, Precision.EPSILON_6)){
-        LOGGER.severe("Splitting rates do not add up to 100%, this shouldn't happen");
-      }
-
-
       for (var conjEntrySegment : currConjVertex.getEntryEdgeSegments()) {
         if (!bush.contains(conjEntrySegment)) {
           continue;
@@ -180,6 +170,14 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
           }
         }
 
+        double splittingRateTotal = ArrayUtils.sumOf(splittingRates);
+        if (splittingRateTotal <= 0.0) {
+          continue;
+        }
+
+        if(Precision.smaller(splittingRateTotal, 1, Precision.EPSILON_6)){
+          LOGGER.severe("Splitting rates do not add up to 100%, this shouldn't happen");
+        }
         int splittingRateIndex = 0;
         double totalExitAcceptedFlow = 0;
         for (var conjExitSegment : currConjVertex.getExitEdgeSegments()) {
