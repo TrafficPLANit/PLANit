@@ -108,6 +108,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
     }
   }
 
+
   /**
    * Create destination bushes for all destination with non-zero flow from any origin, remaining entries in raw array will be null and they are placed in the array by zone id
    *
@@ -146,6 +147,14 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
   @Override
   protected PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings) {
     return new PasFlowShiftDestinationBasedExecutor(pas, settings);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void updatePasCosts(double[] originalNetworkLinkSegmentCosts) {
+    pasManager.updateCosts(originalNetworkLinkSegmentCosts);
   }
 
   /**

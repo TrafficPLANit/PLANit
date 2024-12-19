@@ -86,10 +86,10 @@ public class sLtmAssignmentBushSingleOdTest1 {
     double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
     double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
 
-    assertEquals(outflow1, 2333.333333, Precision.EPSILON_3);
-    assertEquals(outflow5, 2333.333333, Precision.EPSILON_3);
-    assertEquals(outflow8, 2333.333333, Precision.EPSILON_3);
-    assertEquals(outflow2, 7000, Precision.EPSILON_6);
+    assertEquals(2333.333333 ,outflow1, Precision.EPSILON_3);
+    assertEquals(2333.333333, outflow5, Precision.EPSILON_3);
+    assertEquals( 2333.333333,outflow8, Precision.EPSILON_3);
+    assertEquals( 7000,outflow2, Precision.EPSILON_6);
 
     double inflow0 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
     double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
@@ -97,11 +97,11 @@ public class sLtmAssignmentBushSingleOdTest1 {
     double inflow8 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
     double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
 
-    assertEquals(inflow0, 8000, Precision.EPSILON_6);
-    assertEquals(inflow1, 2714.52991, Precision.EPSILON_3);
-    assertEquals(inflow5, 2642.73504, Precision.EPSILON_3);
-    assertEquals(inflow8, 2642.73504, Precision.EPSILON_3);
-    assertEquals(inflow2, 7000, Precision.EPSILON_6);
+    assertEquals(8000,inflow0, Precision.EPSILON_6);
+    assertEquals( 2714.52991,inflow1, Precision.EPSILON_3);
+    assertEquals( 2642.73504,inflow5, Precision.EPSILON_3);
+    assertEquals( 2642.73504,inflow8, Precision.EPSILON_3);
+    assertEquals( 7000,inflow2, Precision.EPSILON_6);
 
     double demand0 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
     double demand1 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());

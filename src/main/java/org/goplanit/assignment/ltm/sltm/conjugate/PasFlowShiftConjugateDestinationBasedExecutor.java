@@ -512,9 +512,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       // then use the minimum
       // looking at spreadsheet with small example it may not be enough either
 
+      EdgeSegment originalCongestedS2Segment = firstS2CongestedSegment.getOriginalAdjacentEdgeSegments().first();
+      int originalCongestedS2SegmentId = (int) originalCongestedS2Segment.getId();
       s2DeltaFlowToStateChangeEstimate =
-              networkLoading.getCurrentInflowsPcuH()[(int) firstS2CongestedSegment.getId()] *
-                      (1 - networkLoading.getCurrentFlowAcceptanceFactors()[(int) firstS2CongestedSegment.getId()]);
+              networkLoading.getCurrentInflowsPcuH()[originalCongestedS2SegmentId] *
+                      (1 - networkLoading.getCurrentFlowAcceptanceFactors()[originalCongestedS2SegmentId]);
       flowShift = adjustFlowShiftBasedOnS2SlackFlow(
               flowShift, s2DeltaFlowToStateChangeEstimate, discontinuityDampeningFactor);
     }

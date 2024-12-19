@@ -133,6 +133,15 @@ public class StaticLtmConjugateBushStrategy
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void updatePasCosts(double[] originalNetworkLinkSegmentCosts) {
+    var conjSegmentCosts = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(originalNetworkLinkSegmentCosts);
+    pasManager.updateCosts(conjSegmentCosts);
+  }
+
+  /**
    * Check if an existing PAS exists that terminates/starts (depending on bush config) at the given bush vertex. If so,
    * it is considered a match when:
    * <ul>
@@ -151,7 +160,7 @@ public class StaticLtmConjugateBushStrategy
    *
    * @return PAS when a match is found and null otherwise (PAS is already registered as part of this call)
    */
-  protected Pas extendconjugateBushWithSuitableExistingPas(
+  protected Pas<ConjugateDirectedVertex,ConjugateEdgeSegment> extendConjugateBushWithSuitableExistingPas(
           final ConjugateDestinationBush bush,
           final ConjugateDirectedVertex reducedCostVertex,
           final double reducedCost) {
@@ -520,7 +529,7 @@ public class StaticLtmConjugateBushStrategy
           continue;
         }
 
-        var existingRegisteredPas = extendconjugateBushWithSuitableExistingPas(conjBush, conjBushVertex, reducedCost);
+        var existingRegisteredPas = extendConjugateBushWithSuitableExistingPas(conjBush, conjBushVertex, reducedCost);
         if (existingRegisteredPas != null) {
           if(isDestinationTrackedForLogging(conjBush) || logAll){
             LOGGER.info(String.format("Registered suitable existing PAS (%s) on bush (%s)",

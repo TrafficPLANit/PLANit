@@ -640,6 +640,13 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   protected abstract ShortestPathDijkstra createNetworkShortestPathAlgo(final double[] linkSegmentCosts);
 
   /**
+   * Update all existing PASs costs based on provided original network link segment costs
+   *
+   * @param originalNetworkLinkSegmentCosts to use
+   */
+  protected abstract void updatePasCosts(double[] originalNetworkLinkSegmentCosts);
+
+  /**
    * To avoid bushes keeping low flow links occupied and limiting options to use links or opposite links
    * more efficiently, we will remove very low flow links from each bush, implicitly shifting this flow to
    * higher usage branches.
@@ -647,6 +654,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param flowThreshold any links with flow below this threshold will be implictly branch shifted
    * @param flowAcceptanceFactors to use
    */
+  @SuppressWarnings("unchecked")
   protected void performLowFlowBushBranchShifts(double flowThreshold, double[] flowAcceptanceFactors) {
     int numShifts = 0;
     Map<ES, Set<B>> removedSegmentsForBushes = new TreeMap<>();
@@ -771,7 +779,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
         
         /* PAS COST UPDATE*/
-        pasManager.updateCosts(costsToUpdate);      
+        updatePasCosts(costsToUpdate);
 
         if(getSettings().isDetailedLogging()){
           LOGGER.info(String.format("** ALPHA: %s", Arrays.toString(getLoading().getCurrentFlowAcceptanceFactors())));
