@@ -266,7 +266,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     var pasAlternative = this.pas.getAlternative(isLowCostAlternative);
     int index = 0;
-    while(index <= pasAlternative.length){
+    while(index < pasAlternative.length){
       ConjugateEdgeSegment currSegment = pasAlternative[index++];
       if(!currSegment.hasOriginalEntryEdgeSegment()){
         continue;
