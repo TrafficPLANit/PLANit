@@ -141,4 +141,10 @@ public class ConjugateMacroscopicNetwork extends
             this, true, new ManagedIdDeepCopyMapper<>(), new ManagedIdDeepCopyMapper<>());
   }
 
+  /**
+   * For each conjugate entity, log the mapping to its original underlying entity where possible
+   */
+  public void logConjugateToOriginalMapping() {
+    getTransportLayers().forEach(ConjugateMacroscopicNetworkLayer::logConjugateToOriginalMapping);
+  }
 }

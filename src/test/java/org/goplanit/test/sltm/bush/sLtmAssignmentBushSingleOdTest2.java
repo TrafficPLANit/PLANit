@@ -13,6 +13,7 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -242,44 +243,48 @@ public class sLtmAssignmentBushSingleOdTest2 {
         node.setXmlId("8");
         node.setPosition(geoFactory.createPoint(new Coordinate(3000, 1000)));             
       }
-                     
-      
+
       Nodes nodes = networkLayer.getNodes();
       MacroscopicLinks links = networkLayer.getLinks();
+      var linkFactory = links.getFactory();
       //links
-      links.getFactory().registerNew(nodes.getByXmlId("0"), nodes.getByXmlId("1"), 1, true).setXmlId("0");
-      links.getFactory().registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("2"), 1, true).setXmlId("1");
-      links.getFactory().registerNew(nodes.getByXmlId("2"), nodes.getByXmlId("3"), 1, true).setXmlId("2");
-      links.getFactory().registerNew(nodes.getByXmlId("3"), nodes.getByXmlId("4"), 1, true).setXmlId("3");
-      links.getFactory().registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("5"), 1, true).setXmlId("4");
-      links.getFactory().registerNew(nodes.getByXmlId("5"), nodes.getByXmlId("6"), 1, true).setXmlId("5");
-      links.getFactory().registerNew(nodes.getByXmlId("6"), nodes.getByXmlId("2"), 1, true).setXmlId("6");
-      links.getFactory().registerNew(nodes.getByXmlId("2"), nodes.getByXmlId("7"), 1, true).setXmlId("7");
-      links.getFactory().registerNew(nodes.getByXmlId("7"), nodes.getByXmlId("8"), 1, true).setXmlId("8");
-      links.getFactory().registerNew(nodes.getByXmlId("8"), nodes.getByXmlId("3"), 1, true).setXmlId("9");
+      final double oneKm = 1.0;
+      linkFactory.registerNew(nodes.getByXmlId("0"), nodes.getByXmlId("1"), oneKm, true).setXmlId("0");
+      linkFactory.registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("2"), oneKm, true).setXmlId("1");
+      linkFactory.registerNew(nodes.getByXmlId("2"), nodes.getByXmlId("3"), oneKm, true).setXmlId("2");
+      linkFactory.registerNew(nodes.getByXmlId("3"), nodes.getByXmlId("4"), oneKm, true).setXmlId("3");
+      linkFactory.registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("5"), oneKm, true).setXmlId("4");
+      linkFactory.registerNew(nodes.getByXmlId("5"), nodes.getByXmlId("6"), oneKm, true).setXmlId("5");
+      linkFactory.registerNew(nodes.getByXmlId("6"), nodes.getByXmlId("2"), oneKm, true).setXmlId("6");
+      linkFactory.registerNew(nodes.getByXmlId("2"), nodes.getByXmlId("7"), oneKm, true).setXmlId("7");
+      linkFactory.registerNew(nodes.getByXmlId("7"), nodes.getByXmlId("8"), oneKm, true).setXmlId("8");
+      linkFactory.registerNew(nodes.getByXmlId("8"), nodes.getByXmlId("3"), oneKm, true).setXmlId("9");
       
       
       MacroscopicLinkSegmentTypes linkTypes = networkLayer.getLinkSegmentTypes();
       linkTypes.getFactory().registerNew("500_per_lane", 500, 180, network.getModes().getFirst()).setXmlId("500_per_lane");
-      
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(16);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("1"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(10);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("2"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(5);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("3"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(4);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("4"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(10);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("5"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(8);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("6"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(8);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(6);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("8"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(4);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("9"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(4);
+
+      var linkSegmentFactory = networkLayer.getLinkSegments().getFactory();
+      linkSegmentFactory.registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(16);
+      linkSegmentFactory.registerNew(links.getByXmlId("1"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(10);
+      linkSegmentFactory.registerNew(links.getByXmlId("2"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(5);
+      linkSegmentFactory.registerNew(links.getByXmlId("3"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(4);
+      linkSegmentFactory.registerNew(links.getByXmlId("4"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(10);
+      linkSegmentFactory.registerNew(links.getByXmlId("5"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(8);
+      linkSegmentFactory.registerNew(links.getByXmlId("6"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(8);
+      linkSegmentFactory.registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(6);
+      linkSegmentFactory.registerNew(links.getByXmlId("8"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(4);
+      linkSegmentFactory.registerNew(links.getByXmlId("9"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(4);
       networkLayer.getLinkSegments().forEach(ls -> ls.setXmlId(""+ls.getParent().getId()));
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
-      zoning.getOdZones().getFactory().registerNew().setXmlId("A");
-      zoning.getOdZones().getFactory().registerNew().setXmlId("A`");
-           
-      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
-      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("4"),  zoning.getOdZones().getByXmlId("A`"), 0);
+      var zoneFactory = zoning.getOdZones().getFactory();
+      zoneFactory.registerNew().setXmlId("A");
+      zoneFactory.registerNew().setXmlId("A`");
+
+      var connectoidFactory = zoning.getOdConnectoids().getFactory();
+      connectoidFactory.registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
+      connectoidFactory.registerNew(nodes.getByXmlId("4"),  zoning.getOdZones().getByXmlId("A`"), 0);
                       
     }catch(Exception e) {
       e.printStackTrace();
@@ -301,11 +306,11 @@ public class sLtmAssignmentBushSingleOdTest2 {
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sLTMBuilder.getConfigurator().activateDetailedLogging(false);
 
-      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(1);
-      
+//      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+//      fixedStepSmoothing.setStepSize(1);
+      var msraSmoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
+
       /* DESTINATION BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.DESTINATION_BUSH_BASED);
 
@@ -324,6 +329,44 @@ public class sLtmAssignmentBushSingleOdTest2 {
       e.printStackTrace();
       fail("Error when testing sLTM bush based assignment");
     }
-  }  
+  }
+
+  /**
+   * Test sLTM conjugate bush-based assignment on above network for a point queue model
+   */
+  @Test
+  public void sLtmPointQueueBushConjugateDestinationBasedAssignmentTest() {
+    try {
+
+      /* OD DEMANDS 8000 A->A` */
+      Demands demands = createDemands();
+
+      /* sLTM - POINT QUEUE */
+      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+
+//      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+//      fixedStepSmoothing.setStepSize(1);
+      var msraSmoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
+
+      /* DESTINATION BASED */
+      sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
+
+      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
+      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+
+      StaticLtm sLTM = sLTMBuilder.build();
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.setActivateDetailedLogging(true);
+      sLTM.execute();
+
+      testOutputs(sLTM);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      fail("Error when testing sLTM bush based assignment");
+    }
+  }
 
 }

@@ -608,6 +608,12 @@ public class StaticLtmConjugateBushStrategy
     turn2ConjugateSegmentMapping =
             ConjugateTransportModelNetworkUtils.createOriginalSegmentsToConjugateSegmentsMapping(
                     conjugateTransportModelNetwork);
+
+    // todo: remove at some point as for large networks this will mean a lot of logging!
+    boolean logMapping = true;
+    if(logMapping) {
+      conjugateTransportModelNetwork.logConjugateToOriginalMapping();
+    }
   }
 
   /**

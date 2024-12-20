@@ -12,6 +12,7 @@ import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.physical.ConjugateLink;
@@ -268,6 +269,78 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
   @Override
   public MacroscopicNetworkLayer getOriginalLayer() {
     return originalLayer;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void logConjugateToOriginalMapping() {
+    logConjugateVertexToOriginalEdgeMapping();
+    logConjugateEdgeToOriginalEdgesMapping();
+    logConjugateEdgeSegmentToOriginalSegmentsMapping();
+  }
+
+  /**
+   * Log mapping between conjugate layer segments and original directed segments (pair of link segments)
+   */
+  public void logConjugateEdgeSegmentToOriginalSegmentsMapping() {
+    var layerPrefix = LoggingUtils.networkLayerPrefix(getId());
+    LOGGER.info(String.format(
+            "%sLogging conjugate link segments to original directed segment pair mapping",
+            layerPrefix));
+
+    for(var conjSegment : getLinkSegments()){
+      var originalSegmentPair = conjSegment.getOriginalAdjacentEdgeSegments();
+      var originalEntryIds = originalSegmentPair.first() != null ? originalSegmentPair.first().getIdsAsString() : "-";
+      var originalExitIds = originalSegmentPair.second() != null ? originalSegmentPair.second().getIdsAsString() : "-";
+      LOGGER.info(String.format("%s[upstreamVertex (%s) - downstreamVertex (%s)] conjugate segment" +
+                      " (%s) <--> original link segment pair [ (%s) , (%s) ]",
+              layerPrefix,
+              conjSegment.getUpstreamVertex().getIdsAsString(),
+              conjSegment.getDownstreamVertex().getIdsAsString(),
+              conjSegment.getIdsAsString(),
+              originalEntryIds,
+              originalExitIds));
+    }
+  }
+
+  /**
+   * Log mapping between conjugate layer links and original links (pair of links)
+   */
+  public void logConjugateEdgeToOriginalEdgesMapping() {
+    var layerPrefix = LoggingUtils.networkLayerPrefix(getId());
+    LOGGER.info(String.format(
+            "%sLogging conjugate links to original links pair mapping",
+            layerPrefix));
+
+    for(var conjEdge : getLinks()){
+      var originalEdgesPair = conjEdge.getOriginalAdjacentEdges();
+      var originalEdge1Ids = originalEdgesPair.first() != null ? originalEdgesPair.first().getIdsAsString() : "-";
+      var originalEdge2Ids = originalEdgesPair.second() != null ? originalEdgesPair.second().getIdsAsString() : "-";
+      LOGGER.info(String.format("%s[vertexA (%s) - vertexB (%s)] conjugate link " +
+                      "(%s) <--> original link pair [ (%s) , (%s) ]",
+              layerPrefix,
+              conjEdge.getVertexA().getIdsAsString(),
+              conjEdge.getVertexB().getIdsAsString(),
+              conjEdge.getIdsAsString(),
+              originalEdge1Ids,
+              originalEdge2Ids));
+    }
+  }
+
+  /**
+   * Log mapping between conjugate nodes and original entities (links)
+   */
+  public void logConjugateVertexToOriginalEdgeMapping() {
+    var layerPrefix = LoggingUtils.networkLayerPrefix(getId());
+    LOGGER.info(String.format(
+            "%sLogging conjugate nodes to original link mapping", layerPrefix));
+    for(var conjVertex : getNodes()){
+      var originalIds = conjVertex.hasOriginalEdge() ? conjVertex.getOriginalEdge().getIdsAsString() : "-";
+      LOGGER.info(String.format("%sconjugate node (%s) <--> original link (%s)",
+              layerPrefix, conjVertex.getIdsAsString(), originalIds));
+    }
   }
 
 }

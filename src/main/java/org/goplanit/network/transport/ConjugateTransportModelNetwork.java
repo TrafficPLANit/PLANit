@@ -105,4 +105,17 @@ public class ConjugateTransportModelNetwork
     return this;
   }
 
+  /**
+   * For each conjugate entity, log the mapping to its original underlying entity where possible
+   */
+  public void logConjugateToOriginalMapping(){
+    LOGGER.info("Logging conjugate to original mapping for conjugate transport model network");
+    if(getVirtualNetwork()!=null) {
+      LOGGER.info("-- Logging conjugate virtual network  to original virtual network mapping --");
+      getVirtualNetwork().logConjugateToOriginalMapping();
+    }
+    LOGGER.info("-- Logging conjugate infrastructure network  to original infrastructure network mapping --");
+    getInfrastructureNetwork().logConjugateToOriginalMapping();
+  }
+
 }

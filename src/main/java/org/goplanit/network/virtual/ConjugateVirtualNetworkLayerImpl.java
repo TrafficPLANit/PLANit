@@ -1,27 +1,18 @@
 package org.goplanit.network.virtual;
 
-import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
-import org.goplanit.network.layer.modifier.UntypedNetworkLayerModifierImpl;
 import org.goplanit.network.virtual.physical.conjugate.ConjugateConnectoidLinksImpl;
 import org.goplanit.network.virtual.physical.conjugate.ConjugateConnectoidNodesImpl;
 import org.goplanit.network.virtual.physical.conjugate.ConjugateConnectoidSegmentsImpl;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
-import org.goplanit.utils.network.layer.NetworkLayer;
-import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
 import org.goplanit.utils.network.virtual.*;
-import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.physical.conjugate.*;
-import org.locationtech.jts.geom.Envelope;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -130,21 +121,33 @@ public class ConjugateVirtualNetworkLayerImpl
     this.getConnectoidLinks().reset(resetManagedIdToken);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ConjugateConnectoidLinks getConnectoidLinks() {
     return (ConjugateConnectoidLinks) getDirectedGraph().getEdges();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ConjugateConnectoidSegments getConnectoidSegments() {
     return (ConjugateConnectoidSegments) getDirectedGraph().getEdgeSegments();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ConjugateConnectoidNodes getVertices() {
     return (ConjugateConnectoidNodes) getDirectedGraph().getVertices();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public VirtualNetworkLayer getReferenceLayer() {
     return referenceLayer;
@@ -194,6 +197,78 @@ public class ConjugateVirtualNetworkLayerImpl
     LOGGER.info(String.format("%s#conjugate connectoid links: %d", prefix, this.getConnectoidLinks().size()));
     LOGGER.info(String.format("%s#conjugate connectoid segments: %d", prefix, getConnectoidSegments().size()));
     LOGGER.info(String.format("%s#conjugate nodes: %d", prefix, getVertices().size()));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void logConjugateToOriginalMapping() {
+    logConjugateVertexToOriginalEdgeMapping();
+    logConjugateEdgeToOriginalEdgesMapping();
+    logConjugateEdgeSegmentToOriginalSegmentsMapping();
+  }
+
+  /**
+   * Log mapping between conjugate virtual layer edge segments and original entities (pair of edge segments)
+   */
+  public void logConjugateEdgeSegmentToOriginalSegmentsMapping() {
+    var layerPrefix = LoggingUtils.virtualNetworkLayerPrefix(getId());
+    LOGGER.info(String.format(
+            "%sLogging conjugate connectoid segments to original directed segment pair mapping",
+            layerPrefix));
+
+    for(var conjSegment : getConnectoidSegments()){
+      var originalSegmentPair = conjSegment.getOriginalAdjacentEdgeSegments();
+      var originalEntryIds = originalSegmentPair.first() != null ? originalSegmentPair.first().getIdsAsString() : "-";
+      var originalExitIds = originalSegmentPair.second() != null ? originalSegmentPair.second().getIdsAsString() : "-";
+      LOGGER.info(String.format("%s[upstreamVertex (%s) - downstreamVertex (%s)] conjugate connectoid " +
+                      "segment (%s) <--> original connectoid segment pair [ (%s) , (%s) ]",
+              layerPrefix,
+              conjSegment.getUpstreamVertex().getIdsAsString(),
+              conjSegment.getDownstreamVertex().getIdsAsString(),
+              conjSegment.getIdsAsString(),
+              originalEntryIds,
+              originalExitIds));
+    }
+  }
+
+  /**
+   * Log mapping between conjugate virtual layer edges and original entities (pair of edges)
+   */
+  public void logConjugateEdgeToOriginalEdgesMapping() {
+    var layerPrefix = LoggingUtils.virtualNetworkLayerPrefix(getId());
+    LOGGER.info(String.format(
+            "%sLogging conjugate connectoid links to original connectoid edges pair mapping",
+            layerPrefix));
+
+    for(var conjEdge : getConnectoidLinks()){
+      var originalEdgesPair = conjEdge.getOriginalAdjacentEdges();
+      var originalEdge1Ids = originalEdgesPair.first() != null ? originalEdgesPair.first().getIdsAsString() : "-";
+      var originalEdge2Ids = originalEdgesPair.second() != null ? originalEdgesPair.second().getIdsAsString() : "-";
+      LOGGER.info(String.format("%s[vertexA (%s) - vertexB (%s)] conjugate connectoid link " +
+                      "(%s) <--> original connectoid edge pair [ (%s) , (%s) ]",
+              layerPrefix,
+              conjEdge.getVertexA().getIdsAsString(),
+              conjEdge.getVertexB().getIdsAsString(),
+              conjEdge.getIdsAsString(),
+              originalEdge1Ids,
+              originalEdge2Ids));
+    }
+  }
+
+  /**
+   * Log mapping between conjugate virtual layer vertices and original entities (edges)
+   */
+  public void logConjugateVertexToOriginalEdgeMapping() {
+    var layerPrefix = LoggingUtils.virtualNetworkLayerPrefix(getId());
+    LOGGER.info(String.format(
+            "%sLogging conjugate vertices to original edges mapping", layerPrefix));
+    for(var conjVertex : getVertices()){
+      var originalIds = conjVertex.hasOriginalEdge() ? conjVertex.getOriginalEdge().getIdsAsString() : "-";
+      LOGGER.info(String.format("%sconjugate vertex (%s) <--> original edge (%s)",
+              layerPrefix, conjVertex.getIdsAsString(), originalIds));
+    }
   }
 
   /**
