@@ -380,7 +380,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double flowShiftPcuH = -bushEntrySegmentFlowShift;
 
     flowShiftPcuH = executeBushPasFlowShift(conjBush, flowShiftPcuH, s2, nonConjugateFlowAcceptanceFactors);
-    
+
     /*end splitting rates not required since we do not shift flow beyond end merge via its turn in conjugate form  */
     //todo: remove return value when we no longer have non-conjugate form for this
     return null;

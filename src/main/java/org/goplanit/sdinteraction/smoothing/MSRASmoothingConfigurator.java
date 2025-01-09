@@ -46,7 +46,7 @@ public class MSRASmoothingConfigurator extends SmoothingConfigurator<MSRASmoothi
   }
 
   /**
-   * Return the kappa step to use
+   * Return the kappa step to use, gamma is applied after a good iteration
    *
    * @return the kappa step
    */
@@ -55,7 +55,7 @@ public class MSRASmoothingConfigurator extends SmoothingConfigurator<MSRASmoothi
   }
 
   /**
-   * Set the kappa step to use
+   * Set the kappa step to use, kappa is applied after a bad iteration
    *
    * @param kappaStep the kappa step
    */
