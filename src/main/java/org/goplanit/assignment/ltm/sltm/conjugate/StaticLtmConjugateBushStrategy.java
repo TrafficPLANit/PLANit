@@ -90,7 +90,7 @@ public class StaticLtmConjugateBushStrategy
       currVertex = vertexIter.next();
     }
 
-    /* populate initial demand on link sof shortest path */
+    /* populate initial demand on links of shortest path */
     var helper = ConjugateBushSimpleInitialiserHelper.create(
             conjugateDestinationBush, destinationOriginInvertedDag);
     helper.executeOdBushInitialisation(currVertex, odDemandPcuH, vertexIter);

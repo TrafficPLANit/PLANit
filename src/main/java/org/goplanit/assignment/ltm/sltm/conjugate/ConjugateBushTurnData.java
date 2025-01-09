@@ -11,6 +11,7 @@ import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 
 /**
  * Track conjugate edge segment based data, i.e., original network turns in a conjugate bush form.
@@ -173,8 +174,8 @@ public class ConjugateBushTurnData{
   public double getTotalAcceptedFlowToPcuH(
           final ConjugateDirectedVertex conjVertex, double[] originalNetworkSegmentFlowAcceptanceFactors) {
 
-    if (!conjVertex.hasEntryEdgeSegments()) {
-      /* no preceding conjugate link segments, so no incoming turns, hence it must be a root vertex connected to an origin */
+    if (conjVertex instanceof ConjugateConnectoidNode && conjVertex.getEdges().size()==1) {
+      /* sink/source, hence it must be a root vertex connected to an origin */
       return getTotalSendingFlowFromPcuH(conjVertex);
     }
 

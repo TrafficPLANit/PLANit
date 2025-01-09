@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm.conjugate;
 
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 
 import java.util.*;
@@ -61,12 +62,16 @@ public class ConjugateBushSimpleInitialiserHelper {
           DirectedVertex originVertex,
           final Double odDemandPcuH,
           final Iterator<DirectedVertex> vertexIter) {
+    // track local to avoid confounding with other OD bush flows already placed on bush level flows
+    Map<EdgeSegment, Double> localDagTurnSendingFlows = new HashMap<>();
 
     /* initialise starting flows on initial vertex */
     int numUsedOdExitSegments = rootedDag.getNumberOfEdgeSegments(originVertex, true /* exit segments */);
     for (var conjugateExitSegment : originVertex.getExitEdgeSegments()) {
+      double exitProportionalOdDemandPcuH = odDemandPcuH / numUsedOdExitSegments;
+      localDagTurnSendingFlows.put(conjugateExitSegment,exitProportionalOdDemandPcuH);
       bush.addTurnSendingFlow(
-              (ConjugateEdgeSegment) conjugateExitSegment, odDemandPcuH / numUsedOdExitSegments);
+              (ConjugateEdgeSegment) conjugateExitSegment, exitProportionalOdDemandPcuH);
     }
 
     /* pass using topological ordering to propagate o-d flow and initialising labels from origin
@@ -80,7 +85,7 @@ public class ConjugateBushSimpleInitialiserHelper {
       double vertexOdSendingFlow = 0;
       for (var conjugateEntryEdgeSegment : currVertex.getEntryEdgeSegments()) {
         if (rootedDag.containsEdgeSegment(conjugateEntryEdgeSegment)) {
-          Double entrySegmentSendingFlow = bush.getTurnSendingFlow((ConjugateEdgeSegment) conjugateEntryEdgeSegment);
+          Double entrySegmentSendingFlow = localDagTurnSendingFlows.get(conjugateEntryEdgeSegment);
           if (entrySegmentSendingFlow == null) {
             continue;
           }
@@ -91,15 +96,11 @@ public class ConjugateBushSimpleInitialiserHelper {
       numUsedOdExitSegments = rootedDag.getNumberOfEdgeSegments(currVertex, true /* exit segments */);
       double proportionalOdExitFlow = vertexOdSendingFlow / numUsedOdExitSegments;
 
-      for (var conjugateEntrySegment : currVertex.getEntryEdgeSegments()) {
-        if (!rootedDag.containsEdgeSegment(conjugateEntrySegment)) {
-          continue;
-        }
-
-        for (var conjugateExitSegment : currVertex.getExitEdgeSegments()) {
-          if (rootedDag.containsEdgeSegment(conjugateExitSegment)) {
-            bush.addTurnSendingFlow((ConjugateEdgeSegment) conjugateExitSegment, proportionalOdExitFlow);
-          }
+      for (var conjugateExitSegment : currVertex.getExitEdgeSegments()) {
+        if (rootedDag.containsEdgeSegment(conjugateExitSegment)) {
+          localDagTurnSendingFlows.put(conjugateExitSegment, proportionalOdExitFlow);
+          // update bush level turn sending flows
+          bush.addTurnSendingFlow((ConjugateEdgeSegment) conjugateExitSegment, proportionalOdExitFlow);
         }
       }
     }

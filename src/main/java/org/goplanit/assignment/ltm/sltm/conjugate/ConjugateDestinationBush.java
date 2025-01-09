@@ -582,13 +582,13 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   }
 
   /**
-   * {@inheritDoc}
+   * Option ot choose whether to log conjugate ids instead of original network ids or vice versa
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
+   * @param asUnderlyingOriginal when true log underlying original ids, otherwise the conjugate ids
    */
-  @Override
-  public String toString() {
-    var sb = new StringBuilder("Original registered segments [");
+  public String toString(boolean asUnderlyingOriginal) {
+    var sb = asUnderlyingOriginal ?
+        new StringBuilder("Original registered segments [") : new StringBuilder("Conjugate registered segments [");
 
     /* log all original edge segments on conjugate bush */
     var root = getRootVertex();
@@ -600,11 +600,22 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     final var getNextEdgeSegments = ConjugateDirectedVertex.getEntryEdgeSegments;
     final var getNextVertex = ConjugateEdgeSegment.getUpstreamVertex;
 
+    final Set<Long> processedIds = new HashSet<>(); // only required if logging conjugate form segments
     while (!openVertices.isEmpty()) {
       var vertex = openVertices.poll();
       processed.add(vertex);
-      if(vertex.hasOriginalEdge()) {
-        vertex.getOriginalEdge().forEachSegment(es -> sb.append(es.getXmlId()).append(","));
+
+      if(asUnderlyingOriginal && vertex.hasOriginalEdge()) {
+        vertex.getOriginalEdge().forEachSegment(es -> sb.append("("+es.getIdsAsString()+")").append(","));
+      }else{
+        vertex.getEdges().forEach(e -> e.forEachSegment( es -> {
+          if(processedIds.contains(es.getId())){
+            return;
+          }
+          sb.append("("+es.getIdsAsString()+")").append(",");
+          processedIds.add(es.getId());
+        }));
+
       }
       for (var nextSegment : getNextEdgeSegments.apply(vertex)) {
         if(!contains((ConjugateEdgeSegment) nextSegment)) {
@@ -621,7 +632,17 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     sb.append("]");
 
     return "Conjugate Bush: destination zone: " +
-            getRootZoneVertex().getParent().getParentZone().getXmlId() + "\n" + sb;
+        getRootZoneVertex().getParent().getParentZone().getXmlId() + "\n" + sb;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
+   */
+  @Override
+  public String toString() {
+    return toString(true /* asUnderlyingOriginal */);
   }
 
   /**
@@ -639,7 +660,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
               "skip turn flow update"));
       return;
     }
-    var currConjugateVertex = conjugateVertexIter.next();
+    ConjugateDirectedVertex currConjugateVertex = null;
 
     /* pass over conjugate bush in topological order updating turn sending flows based on flow acceptance factors
     *  these turn flows inform the network level splitting rates now that they are consistent with network loading */

@@ -744,6 +744,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
     Map<DestinationBush, Map<EdgeSegment, Double>> bushEntrySegments2UpdatedFlow = new TreeMap<>();
     for (var bush : pas.getRegisteredBushes()) { // todo: stopgap cast
       DestinationBush destinationBush = (DestinationBush) bush;
+
       double subPathSendingFlow = destinationBush.determineSubPathSendingFlow(
               pas.getAlternative(false), networkLoading.getCurrentFlowAcceptanceFactors());
       var initialS2Segment = pas.getAlternative(false)[0];
