@@ -191,7 +191,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
     }
     transportNetwork = conjugate ?
             theTransportNetwork.createConjugate(
-                    TransportModelNetworkUtils.generateDerivedConjugateIdGoupingToken(theTransportNetwork)) :
+                    TransportModelNetworkUtils.generateDerivedConjugateIdGroupingToken(theTransportNetwork)) :
             theTransportNetwork;
     transportNetwork.logInfo("");
   }

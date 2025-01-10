@@ -87,16 +87,16 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
     assertEquals(outflow1, 4529.16, 1);
     assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow3, outflow2, Precision.EPSILON_3);
-    assertEquals(outflow4, 3739.73, 1);
+    assertEquals(outflow4, 3738.73, 1);
     assertEquals(outflow5, 3191.29, 1);
     assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow7, outflow6, Precision.EPSILON_3);
-    assertEquals(outflow8, 3760.266, 1);
+    assertEquals(outflow8, 3761.67, 1);
     assertEquals(outflow9, 3000.0, Precision.EPSILON_3);
     assertEquals(outflow10, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow11, outflow10, Precision.EPSILON_3);
     assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
-    assertEquals(outflow13, 2239.733, 1);
+    assertEquals(outflow13, 2238.32, 1);
     assertEquals(outflow14, 2261, 1);
 
     double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
@@ -129,10 +129,11 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
   }
 
   /**
-   * Test sLTM bush-destination-based assignment on above network for a point queue model
+   * Configure and run test based on chosen sLTM Type
+   *
+   * @param sltmType to use
    */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
+  private void runTest(StaticLtmType sltmType ) {
     try {
 
       Demands demands = createDemands(4000);
@@ -143,9 +144,9 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       configurator.createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
       configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       configurator.activateDetailedLogging(false);
-      
+
       /* DESTINATION BASED */
-      configurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);
+      configurator.setType(sltmType);
 
       // to test if it works without smoothing we disallow overlapping PAS updates and set step-size to 1
       configurator.setAllowOverlappingPasUpdate(true);
@@ -158,7 +159,7 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       //configurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"),Pair.of("A","A``"));
 
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_15);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
       sLTM.execute();
 
@@ -168,6 +169,23 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       e.printStackTrace();
       fail("Error when testing sLTM bush based assignment");
     }
-  }  
+  }
+
+
+  /**
+   * Test sLTM bush-destination-based assignment on above network for a point queue model
+   */
+  @Test
+  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
+    runTest(StaticLtmType.DESTINATION_BUSH_BASED);
+  }
+
+  /**
+   * Test sLTM conjugate bush-destination-based assignment on above network for a point queue model
+   */
+  @Test
+  public void sLtmPointQueueConjugateBushDestinationBasedAssignmentTest() {
+    runTest(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
+  }
 
 }

@@ -599,7 +599,7 @@ public class StaticLtmConjugateBushStrategy
 
     // construct conjugate version of original transport model network, to be used by all conjugate bushes
     this.conjugateTransportModelNetwork = transportModelNetwork.createConjugate(
-            TransportModelNetworkUtils.generateDerivedConjugateIdGoupingToken(transportModelNetwork));
+            TransportModelNetworkUtils.generateDerivedConjugateIdGroupingToken(transportModelNetwork));
     conjugateTransportModelNetwork.logInfo("");
 
     centroid2ConjugateNodeMapping =

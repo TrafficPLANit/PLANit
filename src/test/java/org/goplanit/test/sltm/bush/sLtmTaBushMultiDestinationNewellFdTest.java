@@ -59,6 +59,46 @@ public class sLtmTaBushMultiDestinationNewellFdTest extends sLtmAssignmentMultiD
   }
   //@formatter:on
 
+  /**
+   * Configure and run test based on chosen sLTM Type
+   *
+   * @param sltmType to use
+   */
+  private void runTest(StaticLtmType sltmType ) {
+    try {
+
+      Demands demands = createDemands(4000);
+
+      /* sLTM - POINT QUEUE */
+      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+      var configurator = sLTMBuilder.getConfigurator();
+      configurator.createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
+      configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      configurator.activateDetailedLogging(false);
+
+      var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
+              sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      fixedStepSmoothing.setStepSize(0.5);
+
+      /* DESTINATION BASED */
+      configurator.setType(sltmType);
+
+      configurator.activateOutput(OutputType.LINK);
+      configurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+
+      StaticLtm sLTM = sLTMBuilder.build();
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.execute();
+
+      testDeterministicOutputs(sLTM);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      fail("Error when testing sLTM bush based assignment");
+    }
+  }
+
   private void testDeterministicOutputs(StaticLtm sLTM) {
     double outflow0 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
     double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
@@ -130,37 +170,16 @@ public class sLtmTaBushMultiDestinationNewellFdTest extends sLtmAssignmentMultiD
    */
   @Test
   public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
-    try {
+    runTest(StaticLtmType.DESTINATION_BUSH_BASED);
+  }
 
-      Demands demands = createDemands(4000);
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      var configurator = sLTMBuilder.getConfigurator();
-      configurator.createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
-      configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      configurator.activateDetailedLogging(false);
-
-      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(0.5);
-      
-      /* DESTINATION BASED */
-      configurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);
-
-      configurator.activateOutput(OutputType.LINK);
-      configurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-
-      StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.execute();
-
-      testDeterministicOutputs(sLTM);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
-    }
-  }  
+  /**
+   * Test sLTM conjugate bush-destination-based assignment on above network for a point queue model
+   * <p>Triangular (Newell) FD used</p>
+   */
+  @Test
+  public void sLtmPointQueueConjugateBushDestinationBasedAssignmentTest() {
+    runTest(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
+  }
 
 }

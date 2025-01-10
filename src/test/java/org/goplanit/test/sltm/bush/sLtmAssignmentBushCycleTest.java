@@ -239,7 +239,9 @@ public class sLtmAssignmentBushCycleTest {
   //@formatter:on
 
   /**
-   * Test sLTM bush-destination based assignment on above network for a point queue model
+   * Test sLTM bush-destination based assignment on above network for a point queue model --> unable to solve properly
+   * yet due to requiring a "cycle" based on definition of DAG yet this "cycle" seems needed to solve...see conjugate version
+   * which can solve
    */
   @Test
   public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
@@ -257,7 +259,7 @@ public class sLtmAssignmentBushCycleTest {
 
       //todo: due to cycle the alternative that is a reduced cost for A'->A'' can't be added but it is needed
       // to converge. Now the algorithm thinks it has converged because the two available PASs have finished but
-      // in realityit hasn't.
+      // in reality it hasn't.
       // ALSO: this is not truly a cycle because there is no flow circulating from the point of view of turns
       // so moving to a conjugate representation would solve this.
       //
@@ -269,7 +271,7 @@ public class sLtmAssignmentBushCycleTest {
       var smoothing = (MSRASmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.MSRA);
       smoothing.setKappaStep(1);
       smoothing.setGammaStep(0.0);
-      smoothing.setActivateLambda(true);
+      smoothing.setActivateLambda(false);
 
       sltmConfigurator.activateOutput(OutputType.LINK);
       sltmConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));

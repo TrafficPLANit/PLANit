@@ -1,12 +1,11 @@
 package org.goplanit.network.transport;
 
 import org.goplanit.network.LayeredNetwork;
-import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
-import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.MacroscopicNetworkUtils;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.UntypedVirtualNetwork;
-import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.zoning.Zoning;
 
 public class TransportModelNetworkUtils {
@@ -92,9 +91,9 @@ public class TransportModelNetworkUtils {
    * @param transportModelNetwork to use as reference
    * @return created token
    */
-  public static IdGroupingToken generateDerivedConjugateIdGoupingToken(
+  public static IdGroupingToken generateDerivedConjugateIdGroupingToken(
           TransportModelNetwork<?,?> transportModelNetwork) {
-    return IdGenerator.createIdGroupingToken(
-            "Conjugate for original network " + transportModelNetwork.getInfrastructureNetwork().getId());
+    return MacroscopicNetworkUtils.generateDerivedConjugateIdGroupingToken(
+            (MacroscopicNetwork) transportModelNetwork.getInfrastructureNetwork());
   }
 }

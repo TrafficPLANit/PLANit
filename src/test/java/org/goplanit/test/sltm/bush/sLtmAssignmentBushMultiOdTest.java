@@ -56,7 +56,7 @@ public class sLtmAssignmentBushMultiOdTest {
   private static Logger LOGGER = null;
 
   /**
-   * Create demands an populate with OD DEMANDS 2000 A->A`, 2000 A->A``, and, 2000 A```->A`, 2000 A```->A``
+   * Create demands and populate with OD DEMANDS 2000 A->A`, 2000 A->A``, and, 2000 A```->A`, 2000 A```->A``
    * 
    * @return created demands
    */
@@ -348,10 +348,11 @@ public class sLtmAssignmentBushMultiOdTest {
   //@formatter:on
 
   /**
-   * Test sLTM bush-destination-based assignment on above network for a point queue model
+   * Configure and run test based on chosen sLTM Type
+   *
+   * @param sltmType to use
    */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
+  private void runTest(StaticLtmType sltmType ) {
     try {
 
       Demands demands = createDemands();
@@ -363,10 +364,10 @@ public class sLtmAssignmentBushMultiOdTest {
 
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
       fixedStepSmoothing.setStepSize(0.2);
-      
+
       /* DESTINATION BASED */
       var slTMConfigurator = sLTMBuilder.getConfigurator();
-      slTMConfigurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);
+      slTMConfigurator.setType(sltmType);
 
       slTMConfigurator.activateOutput(OutputType.LINK);
       slTMConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
@@ -386,6 +387,22 @@ public class sLtmAssignmentBushMultiOdTest {
       e.printStackTrace();
       fail("Error when testing sLTM bush based assignment");
     }
-  }  
+  }
+
+  /**
+   * Test sLTM bush-destination-based assignment on above network for a point queue model
+   */
+  @Test
+  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
+    runTest(StaticLtmType.DESTINATION_BUSH_BASED);
+  }
+
+  /**
+   * Test sLTM bush-destination-based assignment on above network for a point queue model
+   */
+  @Test
+  public void sLtmPointQueueConjugateBushDestinationBasedAssignmentTest() {
+    runTest(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
+  }
 
 }

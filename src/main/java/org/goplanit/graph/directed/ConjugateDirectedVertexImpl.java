@@ -3,11 +3,15 @@ package org.goplanit.graph.directed;
 import java.util.Collection;
 import java.util.logging.Logger;
 
+import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.graph.ConjugateVertex;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.locationtech.jts.geom.LineSegment;
+import org.locationtech.jts.geom.Point;
 
 /**
  * Conjugate directed vertex representation connected to one or more entry and exit conjugate edges
@@ -15,7 +19,8 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class ConjugateDirectedVertexImpl extends DirectedVertexImpl<ConjugateEdgeSegment> implements ConjugateDirectedVertex {
+public class ConjugateDirectedVertexImpl extends DirectedVertexImpl<ConjugateEdgeSegment>
+        implements ConjugateDirectedVertex {
 
   /** UID */
   private static final long serialVersionUID = 3357507383489421626L;
@@ -52,6 +57,27 @@ public class ConjugateDirectedVertexImpl extends DirectedVertexImpl<ConjugateEdg
   }
 
   // Public
+
+  /**
+   * conjugate derived position
+   *
+   * @return derive conjugate position
+   */
+  @Override
+  public Point getPosition() {
+    // explicitly use ConjugateVertex interface implementation otherwise it defaults to the extended directed vertex
+    // which is not helpful here
+    return ConjugateDirectedVertex.super.getPosition();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setPosition(final Point position) {
+    LOGGER.warning("Geometry of conjugate directed vertex is derived from  underlying original geometries, " +
+            "unable to explicitly step position directly, ignored");
+  }
 
   /**
    * {@inheritDoc}

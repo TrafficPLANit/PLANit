@@ -1,12 +1,12 @@
 package org.goplanit.graph;
 
-import java.util.logging.Logger;
-
 import org.goplanit.utils.graph.ConjugateEdge;
 import org.goplanit.utils.graph.ConjugateVertex;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.locationtech.jts.geom.Point;
+
+import java.util.logging.Logger;
 
 /**
  * Conjugate vertex representation connected to one or more entry and exit conjugate edges
@@ -50,20 +50,24 @@ public class ConjugateVertexImpl extends VertexImpl<ConjugateEdge> implements Co
   // Public
 
   /**
-   * Position cannot be obtained from conjugate vertex
+   * conjugate derived position
+   *
+   * @return derive conjugate position
    */
   @Override
   public Point getPosition() {
-    LOGGER.warning("Position of conjugate is non-eistent depends on underlying edge geometry, collect those instead, null returned");
-    return null;
+    // explicitly use ConjugateVertex interface implementation otherwise it defaults to the extended directed vertex
+    // which is not helpful here
+    return ConjugateVertex.super.getPosition();
   }
 
   /**
-   * position cannot be set on conjugate vertex
+   * {@inheritDoc}
    */
   @Override
   public void setPosition(final Point position) {
-    LOGGER.warning("Position of conjugate is non-eistent depends on underlying edge geometry, set those instead");
+    LOGGER.warning("Geometry of conjugate directed vertex is derived from  underlying original geometries, " +
+            "unable to explicitly step position directly, ignored");
   }
 
   /**

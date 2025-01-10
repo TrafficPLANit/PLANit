@@ -1,14 +1,16 @@
 package org.goplanit.converter.idmapping;
 
-import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.IdMapperType;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
 import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.time.TimePeriod;
 
 import java.util.function.Function;
@@ -27,13 +29,15 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
     add(Link.class, IdMapperFunctionFactory.createLinkIdMappingFunction(type));
     add(Link.class, IdMapperFunctionFactory.createLinkIdMappingFunction(type));
     add(MacroscopicLinkSegmentType.class, IdMapperFunctionFactory.createLinkSegmentTypeIdMappingFunction(type));
-    add(MacroscopicLinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
     add(TimePeriod.class,  IdMapperFunctionFactory.createTimePeriodIdMappingFunction(type));
     add(TravellerType.class, IdMapperFunctionFactory.createTravellerTypeIdMappingFunction(type));
     add(UserClass.class, IdMapperFunctionFactory.createUserClassIdMappingFunction(type));
     add(Vertex.class, IdMapperFunctionFactory.createVertexIdMappingFunction(type));
-    add(MacroscopicNetworkLayer.class, IdMapperFunctionFactory.createMacroscopicNetworkLayerIdMappingFunction(type));
-    add(MacroscopicNetwork.class, IdMapperFunctionFactory.createMacroscopicNetworkIdMappingFunction(type));
+    add(UntypedPhysicalLayer.class, IdMapperFunctionFactory.createPhysicalNetworkLayerIdMappingFunction(type));
+    add(UntypedPhysicalNetwork.class, IdMapperFunctionFactory.createPhysicalNetworkIdMappingFunction(type));
+
+    add(MacroscopicLinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
+    add(ConjugateLinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
   }
 
   /**
@@ -55,8 +59,15 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
   /** get id mapper for link segments
    * @return id mapper
    */
-  public Function<MacroscopicLinkSegment, String> getLinkSegmentIdMapper(){
+  public Function<MacroscopicLinkSegment, String> getMacroscopicLinkSegmentIdMapper(){
     return get(MacroscopicLinkSegment.class);
+  }
+
+  /** get id mapper for conjugate link segments
+   * @return id mapper
+   */
+  public Function<ConjugateLinkSegment, String> getConjugateLinkSegmentIdMapper(){
+    return get(ConjugateLinkSegment.class);
   }
 
   /** get id mapper for link segment types
@@ -90,15 +101,15 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
   /** get id mapper for network layers
    * @return id mapper
    */
-  public Function<MacroscopicNetworkLayer, String> getNetworkLayerIdMapper(){
-    return get(MacroscopicNetworkLayer.class);
+  public Function<UntypedPhysicalLayer, String> getNetworkLayerIdMapper(){
+    return get(UntypedPhysicalLayer.class);
   }
 
   /** get id mapper for networks
    * @return id mapper
    */
-  public Function<MacroscopicNetwork, String> getNetworkIdMapper(){
-    return get(MacroscopicNetwork.class);
+  public Function<UntypedPhysicalNetwork, String> getNetworkIdMapper(){
+    return get(UntypedPhysicalNetwork.class);
   }
 
 }

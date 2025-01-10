@@ -7,6 +7,7 @@ import org.goplanit.assignment.ltm.sltm.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.MacroscopicNetworkUtils;
 import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
@@ -95,7 +96,7 @@ public class sLtmAssignmentGridTestBase {
     
     try {
       
-      network = MacroscopicNetwork.createSimpleGrid(testToken, 4, 4);
+      network = MacroscopicNetworkUtils.createSimpleGrid(testToken, 4, 4);
       networkLayer = network.getTransportLayers().getFirst();
       
       /* add physical link in front of attaching zone to node 0 and 12 so that we can properly deal with any queue build up there*/

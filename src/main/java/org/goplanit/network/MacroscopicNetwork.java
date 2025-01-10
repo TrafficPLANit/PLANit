@@ -87,23 +87,6 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
   }
 
   /**
-   * Create a macroscopic network instance using the id token provided and in addition generate a simple grid-based network layer for the predefined car mode, where each link is
-   * bi-directional and has a single link segment type with access for car (nothing else set). For a more sophisticated grid generator configure the dedicated generator class
-   * MacroscopicGridNetworkLayerGenerator by overriding its defaults that are used here.
-   * 
-   * @param tokenId to use
-   * @param rows    in the grid
-   * @param columns in the grid
-   * @return created grid network
-   */
-  public static MacroscopicNetwork createSimpleGrid(final IdGroupingToken tokenId, int rows, int columns) {
-    var network = new MacroscopicNetwork(tokenId);
-    var carMode = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
-    MacroscopicGridNetworkLayerGenerator.create(rows, columns, network.getTransportLayers(), carMode).generate();
-    return network;
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -126,7 +109,7 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    * TODO: currently we only support a single layer version for this by reuing the virtual network's network token for
    * id generation to ensure contiguous numbering of ids across both networks
    *
-   * @param token groupIdToken to use for the network id generation
+   * @param token groupIdToken to use for the conjugate network id generation
    * @param conjugateVirtualNetwork (optional) when present, integrate conjugate physical network with virtual network
    *                                and use the virtual networks network id token for the managed layer id generation
    * @return created conjugate Macroscopic network

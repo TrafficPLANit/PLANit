@@ -26,7 +26,7 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
   /**
    * adjacent original edges represented by this conjugate
    */
-  protected final Pair<Edge, Edge> originalEdges;
+  protected final Pair<? extends Edge, ? extends Edge> originalEdges;
 
   /**
    * Constructor which injects link lengths directly
@@ -115,7 +115,7 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
    * {@inheritDoc}
    */
   @Override
-  public Pair<Edge, Edge> getOriginalEdges() {
+  public Pair<? extends Edge, ? extends Edge> getOriginalAdjacentEdges() {
     return this.originalEdges;
   }
 

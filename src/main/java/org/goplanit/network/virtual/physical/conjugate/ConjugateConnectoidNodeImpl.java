@@ -3,15 +3,16 @@
  */
 package org.goplanit.network.virtual.physical.conjugate;
 
-import java.util.Collection;
-import java.util.logging.Logger;
-
 import org.goplanit.graph.directed.DirectedVertexImpl;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
+import org.locationtech.jts.geom.Point;
+
+import java.util.Collection;
+import java.util.logging.Logger;
 
 /**
  * Conjugate node representation connected to one or more conjugate (entry and exit) conjugate links.
@@ -83,6 +84,27 @@ public class ConjugateConnectoidNodeImpl
     this.original = other.original;
     setConjugateNodeId(other.getNodeId());
     setName(other.getName());
+  }
+
+  /**
+   * conjugate derived position
+   *
+   * @return derive conjugate position
+   */
+  @Override
+  public Point getPosition() {
+    // explicitly use ConjugateVertex interface implementation otherwise it defaults to the extended directed vertex
+    // which is not helpful here
+    return ConjugateConnectoidNode.super.getPosition();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setPosition(final Point position) {
+    LOGGER.warning("Geometry of conjugate connectoid node is derived from  underlying original geometries, " +
+            "unable to explicitly step position directly, ignored");
   }
 
   @Override

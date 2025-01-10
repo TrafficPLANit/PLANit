@@ -4,16 +4,15 @@ import java.util.logging.Logger;
 
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.MacroscopicNetworkUtils;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkImpl;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.*;
 
@@ -92,7 +91,7 @@ public class ConjugateNetworkTest {
     
     try {
       
-      network = MacroscopicNetwork.createSimpleGrid(testToken, 4, 4);
+      network = MacroscopicNetworkUtils.createSimpleGrid(testToken, 4, 4);
       networkLayer = network.getTransportLayers().getFirst();
       
       /* add physical link in front of attaching zone to node 0 and 12 */
@@ -159,7 +158,7 @@ public class ConjugateNetworkTest {
   public void conjugateNetworkTest() {
     try {
       var conjugateTestToken =
-          TransportModelNetworkUtils.generateDerivedConjugateIdGoupingToken(transportModelNetwork);
+          TransportModelNetworkUtils.generateDerivedConjugateIdGroupingToken(transportModelNetwork);
 
       // create conjugate version of the network + virtual network
       var conjugateTransportModelNetwork =

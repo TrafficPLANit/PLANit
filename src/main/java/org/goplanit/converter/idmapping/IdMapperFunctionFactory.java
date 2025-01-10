@@ -1,7 +1,7 @@
 package org.goplanit.converter.idmapping;
 
-import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
+import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.graph.Vertex;
@@ -9,11 +9,11 @@ import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.id.IdMappingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
@@ -232,18 +232,19 @@ public class IdMapperFunctionFactory {
    * @param idMapper the type of mapping function to create
    * @return function that generates NetworkLayer ids
    */
-  public static Function<MacroscopicNetworkLayer, String> createMacroscopicNetworkLayerIdMappingFunction(IdMapperType idMapper) {
-    return IdMappingUtils.createIdMappingFunction(MacroscopicNetworkLayer.class , idMapper);
+  public static Function<UntypedPhysicalLayer, String> createPhysicalNetworkLayerIdMappingFunction(
+          IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(UntypedPhysicalLayer.class , idMapper);
   }
 
   /**
-   * create a function that takes a MacroscopicNetwork and generates the appropriate id based on the user configuration
+   * create a function that takes a physical network and generates the appropriate id based on the user configuration
    *
    * @param idMapper the type of mapping function to create
-   * @return function that generates MacroscopicNetwork ids
+   * @return function that generates Network ids
    */
-  public static Function<MacroscopicNetwork, String> createMacroscopicNetworkIdMappingFunction(IdMapperType idMapper) {
-    return IdMappingUtils.createIdMappingFunction(MacroscopicNetwork.class , idMapper);
+  public static Function<UntypedPhysicalNetwork, String> createPhysicalNetworkIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(UntypedPhysicalNetwork.class , idMapper);
   }
 
   /**
