@@ -13,7 +13,8 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Adapter providing access to the data of the StaticLtm class relevant for link outputs without exposing the internals of the traffic assignment class itself
+ * Adapter providing access to the data of the StaticLtm class relevant for link outputs without exposing the
+ * internals of the traffic assignment class itself
  *
  * @author markr
  *
@@ -71,7 +72,6 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    * @param linkSegment LinkSegment object containing the required data
    * @param mode        current mode
    * @return the travel cost (time) through the current link segment
-   * @throws PlanItException thrown if there is an error
    */
   private Optional<Double> getLinkTravelTimeHour(final MacroscopicLinkSegment linkSegment, final Mode mode){
     final int id = (int) linkSegment.getId();
@@ -87,11 +87,13 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    * @return the travel cost (time) through the current link segment
    */
   private Optional<Double> getCostTimesFlow(final MacroscopicLinkSegment linkSegment, final Mode mode) {
-    return Optional.of(getLinkTravelTimeHour(linkSegment, mode).get() * getOutFlowPcuHour(linkSegment, mode).get());
+    return Optional.of(
+        getLinkTravelTimeHour(linkSegment, mode).get() * getOutFlowPcuHour(linkSegment, mode).get());
   }
 
   /**
-   * Returns the Vc ratio for the link over all modes. Here we use the inflow rate as it is a better indicator of the busyness. Generally though the Vc ratio is quite meaningless,
+   * Returns the Vc ratio for the link over all modes. Here we use the inflow rate as it is a better indicator of
+   * the busyness. Generally though the Vc ratio is quite meaningless,
    * especially in a capacity constrained assignment such as sLTM.
    *
    * @param linkSegment LinkSegment object containing the required data
@@ -170,7 +172,8 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
         value = getCostTimesFlow(linkSegment, mode);
         break;
       default:
-        throw new PlanItException("Tried to find link property of %s which is not applicable for links", outputProperty.getName());
+        throw new PlanItException(
+            "Tried to find link property of %s which is not applicable for links", outputProperty.getName());
       }
 
       if (outputProperty.supportsUnitOverride() && outputProperty.isUnitOverride()) {

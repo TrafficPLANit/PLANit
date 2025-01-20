@@ -46,7 +46,8 @@ public abstract class OdOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
   @Override
-  public Optional<?> getOdOutputPropertyValue(OutputProperty outputProperty, OdDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod) {
+  public Optional<?> getOdOutputPropertyValue(
+      OutputProperty outputProperty, OdDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod) {
     Optional<?> value = Optional.empty();
 
     try {

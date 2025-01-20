@@ -7,7 +7,7 @@ import org.goplanit.assignment.TrafficAssignment;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
  * Top-level abstract class which defines the common methods required by Link output type adapters
@@ -15,11 +15,12 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
  * @author gman6028
  *
  */
-public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> extends OutputTypeAdapterImpl implements UntypedLinkOutputTypeAdapter<LS> {
+public abstract class UntypedNetworkLinkOutputTypeAdapterImpl<LS extends EdgeSegment>
+    extends OutputTypeAdapterImpl implements UntypedNetworkLinkOutputTypeAdapter<LS> {
 
   /** the logger */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(UntypedLinkOutputTypeAdapterImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(UntypedNetworkLinkOutputTypeAdapterImpl.class.getCanonicalName());
 
   /** in case a link (segment) has no geometry of its own, we can choose to construct it by creating a line between the two node
    * locations if possible. This is switched on by default */
@@ -34,7 +35,7 @@ public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> e
    * @param outputType        the OutputType this adapter corresponds to
    * @param trafficAssignment TrafficAssignment object which this adapter wraps
    */
-  public UntypedLinkOutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
+  public UntypedNetworkLinkOutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
     super(outputType, trafficAssignment);
   }
 
@@ -73,7 +74,7 @@ public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> e
         result = getLinkSegmentXmlId(linkSegment);
         break;
       case LINK_SEGMENT_GEOMETRY:
-        result = getLinkSegmentGeometry(
+        result = getGeometry(
                 linkSegment, CONSTRUCT_LINK_SEGMENT_GEOMETRY_FROM_NODES_IF_UNAVAILABLE, FORCE_TRAVEL_DIRECTION);
         break;
       case LINK_SEGMENT_ID:

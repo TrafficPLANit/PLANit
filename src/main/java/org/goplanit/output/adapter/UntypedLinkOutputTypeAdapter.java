@@ -1,23 +1,25 @@
 package org.goplanit.output.adapter;
 
-import java.util.Optional;
-
 import org.goplanit.output.property.OutputProperty;
-import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.EdgeUtils;
-import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.graph.Vertex;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.locationtech.jts.geom.Geometry;
 
+import java.util.Optional;
+
 /**
- * Interface defining the methods required for a link output adapter
+ * Interface defining the methods required for a link output adapter agnostic to how these link (segments) are
+ * containerised or stored in a arger setting, e.g., network or bush.
+ *
+ * todo: split in edge segment and link segment version now that we need the distinction
  * 
  * @author gman6028, markr
  *
  */
-public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends OutputTypeAdapter {
+public interface UntypedLinkOutputTypeAdapter<T extends EdgeSegment> extends OutputTypeAdapter {
 
   /**
    * collect geometry from vertex
@@ -41,7 +43,8 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
    * @param constructInAbDirection when true and constructGeometryFromNodesIfUnavailable==true then we construct the geometry in AB direction otherwise in BA direction
    * @return the geometry
    */
-  public static Optional<?> getEdgeGeometry(Edge edge, boolean constructGeometryFromNodesIfUnavailable, boolean constructInAbDirection) {
+  public static Optional<?> getEdgeGeometry(
+      Edge edge, boolean constructGeometryFromNodesIfUnavailable, boolean constructInAbDirection) {
     if(edge == null){
       return Optional.of(PROPERTY_NOT_AVAILABLE);
     }
@@ -147,11 +150,13 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
    * @param forceSegmentDirection when true, we force the geometry to be provided in the travel direction of the segment, when false keep
    * @return the geometry
    */
-  public default Optional<?> getLinkSegmentGeometry(T linkSegment, boolean constructGeometryFromNodesIfUnavailable, boolean forceSegmentDirection) {
+  public default Optional<?> getGeometry(
+      T linkSegment, boolean constructGeometryFromNodesIfUnavailable, boolean forceSegmentDirection) {
     if(linkSegment == null){
       Optional.of(PROPERTY_NOT_AVAILABLE);
     }
-    var collectedEdgeGeometry = getEdgeGeometry(linkSegment.getParent(), constructGeometryFromNodesIfUnavailable, linkSegment.isDirectionAb());
+    var collectedEdgeGeometry =
+        getEdgeGeometry(linkSegment.getParent(), constructGeometryFromNodesIfUnavailable, linkSegment.isDirectionAb());
 
     /* force geometry to be in travel direction of segment if configured as such */
     boolean mayNeedReversal = linkSegment.getParent().hasGeometry(); // only when geometry is not constructed from nodes we may need to reverse
@@ -219,14 +224,6 @@ public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends Out
   public default Optional<Long> getUpstreamNodeId(T linkSegment) throws PlanItException {
     return Optional.of(linkSegment.getUpstreamVertex().getId());
   }
-
-  /**
-   * Return the Link segments for this assignment
-   * 
-   * @param infrastructureLayerId to collect link segments for
-   * @return a List of link segments for this assignment
-   */
-  public abstract GraphEntities<T> getPhysicalLinkSegments(long infrastructureLayerId);
 
   /**
    * Return the value of a specified output property of a link segment

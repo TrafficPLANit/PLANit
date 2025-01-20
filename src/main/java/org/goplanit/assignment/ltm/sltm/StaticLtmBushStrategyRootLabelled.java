@@ -250,7 +250,7 @@ public abstract class StaticLtmBushStrategyRootLabelled
     var existingPassWithNewBushes = new ArrayList<Pas<DirectedVertex,EdgeSegment>>();
 
     final var networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
-    for (var bush : bushes) {
+    for (var bush : getBushes()) {
       if (bush == null) {
         continue;
       }

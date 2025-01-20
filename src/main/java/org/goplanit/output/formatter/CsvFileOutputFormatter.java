@@ -21,7 +21,6 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.output.OutputUtils;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.unit.VehiclesUnit;
 
@@ -187,8 +186,14 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param csvPrinter              CSVPrinter object to record results for this iteration
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
-  protected PlanItException writePathResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
+  protected PlanItException writePathResultsForCurrentTimePeriodToCsvPrinter(
+      OutputConfiguration outputConfiguration,
+      OutputTypeConfiguration outputTypeConfiguration,
+      OutputTypeEnum currentOutputType,
+      OutputAdapter outputAdapter,
+      Set<Mode> modes,
+      TimePeriod timePeriod,
+      CSVPrinter csvPrinter) {
     try {
       PlanItException.throwIf(!(currentOutputType instanceof OutputType), "currentOutputType not compatible with path output");
 
@@ -282,7 +287,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
         Optional<Long> networkLayerId = linkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
         if (networkLayerId.isPresent()) {
-          for (MacroscopicLinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments(networkLayerId.get())) {
+          for (MacroscopicLinkSegment linkSegment : linkOutputTypeAdapter.getLinkSegmentsForLayer(networkLayerId.get())) {
 
             if (linkSegment.isModeAllowed(mode)) {
               Optional<Boolean> flowPositive = linkOutputTypeAdapter.isFlowPositive(linkSegment, mode);

@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.time.TimePeriod;
@@ -15,7 +14,7 @@ import org.goplanit.utils.time.TimePeriod;
  * @author gman6028, markr
  *
  */
-public interface MacroscopicLinkOutputTypeAdapter extends UntypedLinkOutputTypeAdapter<MacroscopicLinkSegment> {
+public interface MacroscopicLinkOutputTypeAdapter extends UntypedNetworkLinkOutputTypeAdapter<MacroscopicLinkSegment> {
 
   /**
    * Returns the value of the capacity per lane
@@ -70,17 +69,6 @@ public interface MacroscopicLinkOutputTypeAdapter extends UntypedLinkOutputTypeA
    */
   public default Optional<Double> getMaximumDensity(MacroscopicLinkSegment linkSegment) throws PlanItException {
     return Optional.of(linkSegment.getLinkSegmentType().getExplicitMaximumDensityPerLaneOrDefault());
-  }
-
-  /**
-   * Returns the external Id of the downstream node
-   * 
-   * @param linkSegment LinkSegment object containing the required data
-   * @return he external Id of the downstream node
-   * @throws PlanItException thrown if there is an error
-   */
-  public default Optional<String> getDownstreamNodeExternalId(MacroscopicLinkSegment linkSegment) throws PlanItException {
-    return Optional.of(linkSegment.getDownstreamVertex().getExternalId());
   }
 
   /**

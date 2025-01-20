@@ -9,6 +9,7 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
@@ -145,7 +146,8 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    * 
    */
   @Override
-  protected PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings) {
+  protected PasFlowShiftExecutor<DirectedVertex, EdgeSegment> createPasFlowShiftExecutor(
+      final Pas<DirectedVertex, EdgeSegment> pas, final StaticLtmSettings settings) {
     return new PasFlowShiftDestinationBasedExecutor(pas, settings);
   }
 

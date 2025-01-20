@@ -44,6 +44,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategyBase.class.getCanonicalName());
 
   /**
+   * tracked bushes (with non-zero demand)
+   */
+  private B[] bushes;
+
+  /**
    * Knowing which edge segments no longer have flow for the given bushes, we must deregister all these bushes from
    * any other PASs on which they reside that also utilise these link segments as it is no longer possible to traverse
    * them on the bush with non-zero flow.
@@ -501,14 +506,17 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   }
 
   /**
-   * tracked bushes (with non-zero demand)
-   */
-  protected B[] bushes;
-
-  /**
    * track all unique PASs
    */
   protected final PasManager<V,ES> pasManager;
+
+  /**
+   * access to bushes
+   * @return bushes
+   */
+  protected B[] getBushes(){
+    return bushes;
+  }
 
   protected boolean isDestinationTrackedForLogging(B bush) {
     return getSettings().hasTrackOdsForLogging() &&

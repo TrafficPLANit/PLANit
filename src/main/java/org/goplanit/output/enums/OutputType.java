@@ -4,10 +4,11 @@ package org.goplanit.output.enums;
  * Different configurations exist for different types of output which we
  * identify via this enum
  * GENERAL:
- * LINK: link based output
+ * LINK: link based output on a network wide level
  * SIMULATION: simulation based output such as profile information, objects created etc.
- * OD: origin-destination based output regarding travel times and other costs
- * PATH: Path from origin to destination
+ * OD: origin-destination based output regarding travel times and other costs on an origin-destination based level
+ * PATH: Path based output differentiated on individual path level
+ * BUSH: link based output on a bush level (assuming the assignment method used supports this output)
  * 
  * @author markr
  */
@@ -16,7 +17,8 @@ public enum OutputType implements OutputTypeEnum {
   LINK("Link"),
   SIMULATION("Simulation"),
   OD("Origin-Destination"),
-  PATH("Path");
+  PATH("Path"),
+  BUSH("Bush");
 
   private final String value;
 

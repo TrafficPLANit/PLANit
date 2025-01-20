@@ -46,16 +46,19 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
   }
 
   /**
-   * Convert the output property value that is assumed to be in the properties default units in the desired units indicated on the property
+   * Convert the output property value that is assumed to be in the properties default units in the
+   * desired units indicated on the property
    * 
    * @param outputProperty   to base conversion on
    * @param unconvertedValue original value in default units
    * @return converted value as optional
    * @throws PlanItException thrown if error
    */
-  protected static Optional<?> createConvertedUnitsValue(OutputProperty outputProperty, Optional<?> unconvertedValue) throws PlanItException {
+  protected static Optional<?> createConvertedUnitsValue(
+      OutputProperty outputProperty, Optional<?> unconvertedValue) throws PlanItException {
     if (unconvertedValue.isPresent()) {
-      return Optional.of(outputProperty.getDefaultUnit().convertTo(outputProperty.getOverrideUnit(), (double) unconvertedValue.get()));
+      return Optional.of(
+          outputProperty.getDefaultUnit().convertTo(outputProperty.getOverrideUnit(), (double) unconvertedValue.get()));
     }
     return unconvertedValue;
   }

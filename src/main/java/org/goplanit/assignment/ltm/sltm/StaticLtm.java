@@ -22,10 +22,12 @@ import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
 import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.time.RunTimesTracker;
@@ -378,6 +380,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       break;
     case SIMULATION:
       outputTypeAdapter = new StaticLtmSimulationOutputTypeAdapter(outputType, this);
+      break;
+    case BUSH:
+        outputTypeAdapter = new StaticLtmBushLinkOutputTypeAdapter(outputType,this);
       break;
     default:
       LOGGER.warning(String.format("%s%s is not supported yet", LoggingUtils.runIdPrefix(getId()), outputType.value()));

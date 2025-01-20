@@ -455,7 +455,7 @@ public class StaticLtmConjugateBushStrategy
     // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...
     final var conjLinkSegmentCosts = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(nonConjugateLinkSegmentCosts);
     final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
-    for (var conjBush : bushes) {
+    for (var conjBush : getBushes()) {
       if (conjBush == null) {
         continue;
       }
@@ -610,10 +610,19 @@ public class StaticLtmConjugateBushStrategy
                     conjugateTransportModelNetwork);
 
     // todo: remove at some point as for large networks this will mean a lot of logging!
-    boolean logMapping = true;
+    boolean logMapping = false;
     if(logMapping) {
       conjugateTransportModelNetwork.logConjugateToOriginalMapping();
     }
+  }
+
+  /**
+   * Access to conjugate transport model network this strategy relies on
+   *
+   * @return conjugate transport model network
+   */
+  public ConjugateTransportModelNetwork getConjugateTransportModelNetwork() {
+    return conjugateTransportModelNetwork;
   }
 
   /**

@@ -290,7 +290,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
       Optional<Long> networkLayerId = linkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
       networkLayerId.orElseThrow(() -> new PlanItRunTimeException("unable to determine if layer id for mode"));
 
-      for (MacroscopicLinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments(networkLayerId.get())) {
+      for (MacroscopicLinkSegment linkSegment : linkOutputTypeAdapter.getLinkSegmentsForLayer(networkLayerId.get())) {
         Optional<Boolean> flowPositive = linkOutputTypeAdapter.isFlowPositive(linkSegment, mode);
         flowPositive.orElseThrow(() -> new PlanItRunTimeException("unable to determine if flow is positive on link segment"));
 

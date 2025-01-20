@@ -21,7 +21,8 @@ import org.goplanit.utils.time.TimePeriod;
  * @author gman6028, markr
  *
  */
-public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOutputTypeAdapterImpl<MacroscopicLinkSegment> implements MacroscopicLinkOutputTypeAdapter {
+public abstract class MacroscopicLinkOutputTypeAdapterImpl
+    extends UntypedNetworkLinkOutputTypeAdapterImpl<MacroscopicLinkSegment> implements MacroscopicLinkOutputTypeAdapter {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkOutputTypeAdapterImpl.class.getCanonicalName());
@@ -48,11 +49,11 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOu
   /**
    * Provide access to the macroscopic link segments
    * 
-   * @param infrastructureLayerId to use
+   * @param layerId to use
    */
   @Override
-  public MacroscopicLinkSegments getPhysicalLinkSegments(long infrastructureLayerId) {
-    NetworkLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
+  public MacroscopicLinkSegments getLinkSegmentsForLayer(long layerId) {
+    NetworkLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(layerId);
     if (networkLayer instanceof MacroscopicNetworkLayer) {
       return ((MacroscopicNetworkLayer) networkLayer).getLinkSegments();
     }

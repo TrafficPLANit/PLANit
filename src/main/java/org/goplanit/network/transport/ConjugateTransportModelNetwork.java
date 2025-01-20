@@ -3,9 +3,9 @@ package org.goplanit.network.transport;
 import org.goplanit.network.ConjugateMacroscopicNetwork;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.physical.MovementsImpl;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.virtual.*;
+import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 
 import java.util.logging.Logger;
