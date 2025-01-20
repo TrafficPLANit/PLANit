@@ -194,7 +194,7 @@ public abstract class StaticLtmBushStrategyRootLabelled
   }
 
   /**
-   * {@inheritDoc
+   * {@inheritDoc}
    */
   @Override
   protected ShortestBushGeneralised createNetworkShortestBushAlgo(final double[] linkSegmentCosts) {
@@ -203,7 +203,7 @@ public abstract class StaticLtmBushStrategyRootLabelled
   }
 
   /**
-   * {@inheritDoc
+   * {@inheritDoc}
    */
   @Override
   protected ShortestPathDijkstra createNetworkShortestPathAlgo(final double[] linkSegmentCosts) {

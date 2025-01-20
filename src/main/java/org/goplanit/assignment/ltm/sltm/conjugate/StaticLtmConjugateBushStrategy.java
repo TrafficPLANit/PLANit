@@ -124,7 +124,7 @@ public class StaticLtmConjugateBushStrategy
   }
 
   /**
-   * {@inheritDoc
+   * {@inheritDoc}
    */
   @Override
   protected ShortestPathDijkstra createNetworkShortestPathAlgo(final double[] conjugateLinkSegmentCosts) {

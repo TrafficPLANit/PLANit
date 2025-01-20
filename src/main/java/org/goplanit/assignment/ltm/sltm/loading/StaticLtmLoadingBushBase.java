@@ -55,6 +55,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    *
    * @param updateLinkOutflows when true make sure data contains reference to the network loading outflows
    * @param updateUnconstrainedLinkFlows when true make sure data contains reference to the network unconstrained flows
+   * @return network flow data created
    */
   protected NetworkFlowUpdateData createNetworkLinkFlowData(
           boolean updateLinkOutflows, boolean updateUnconstrainedLinkFlows) {
@@ -80,6 +81,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    * @param updateLinkSendingFlows when true make sure data contains reference to the network loading sending flows
    * @param numTurnSegments        number of entries in turn segment related raw data arrays that are created as part of
    *                               the container
+   * @return network turn flow data created
    */
   protected NetworkTurnFlowUpdateData createNetworkTurnFlowData(
           boolean updateLinkSendingFlows, int numTurnSegments) {

@@ -83,7 +83,9 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
 
   /**
    * Create a new PAS (factory method)
-   * 
+   *
+   * @param <Vs> vertex type
+   * @param <ESs> edge segment type
    * @param s1 to use
    * @param s2 to use
    * 

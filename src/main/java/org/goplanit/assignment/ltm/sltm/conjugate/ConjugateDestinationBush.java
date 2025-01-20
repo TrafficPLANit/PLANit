@@ -189,6 +189,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    *                         initial turns enter/exit the conjugate network from the conjugate destination
    * @param maxSubGraphConjugateSegments The maximum number of conjugate edge segments, i.e. turns, the conjugate bush
    *                                     can at most register given the parent network it is a subset of
+   * @param turn2ConjugateSegmentMapping to use
    */
   public ConjugateDestinationBush(
           final IdGroupingToken idToken,
@@ -244,7 +245,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   }
 
   /**
-   * {@inheritDoc
+   * {@inheritDoc}
    */
   @Override
   @SuppressWarnings("unchecked")
@@ -253,7 +254,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   }
 
   /**
-   * {@inheritDoc
+   * {@inheritDoc}
    */
   @Override
   public double addTurnSendingFlow(EdgeSegment from, EdgeSegment to, double addFlowPcuH) {
@@ -585,6 +586,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * Option ot choose whether to log conjugate ids instead of original network ids or vice versa
    *
    * @param asUnderlyingOriginal when true log underlying original ids, otherwise the conjugate ids
+   * @return created string
    */
   public String toString(boolean asUnderlyingOriginal) {
     var sb = asUnderlyingOriginal ?

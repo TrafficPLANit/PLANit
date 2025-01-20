@@ -59,6 +59,7 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
    * @param idToken      to use
    * @param assignmentId to use
    * @param turn2ConjugateSegmentMapping to use
+   * @param conjugateTransportModelNetwork to use
    * @param settings     to use
    */
   public StaticLtmLoadingBushConjugate(

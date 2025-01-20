@@ -81,6 +81,7 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
    * Constructor
    *
    * @param dataConfig              to use
+   * @param turn2ConjSegmentMapping to use
    */
   public ConjugateBushFlowUpdateConsumerImpl(
           final T dataConfig, final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping){
@@ -90,7 +91,8 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
 
   /**
    * Update(increase) the (network) flows based on the bush at hand as dictated by the data configuration
-   * 
+   *
+   * @param bush to apply to
    */
   @Override
   public void accept(final ConjugateDestinationBush bush) {

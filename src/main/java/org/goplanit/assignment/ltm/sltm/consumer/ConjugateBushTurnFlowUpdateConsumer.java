@@ -34,6 +34,7 @@ public class ConjugateBushTurnFlowUpdateConsumer
    * constructor
    * 
    * @param dataConfig to use
+   * @param turn2ConjSegmentMapping to use
    */
   public ConjugateBushTurnFlowUpdateConsumer(final NetworkTurnFlowUpdateData dataConfig,
                                              final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping) {

@@ -249,6 +249,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param networkLoading to use
    * @param physicalCost to use
    * @param virtualCost  to use
+   * @param isLowCostAlternative to use
    * @return dTravelTimedFlow or 0 if not possible to compute (with warning)
    */
   protected abstract double getDTravelTimeDFlow(
@@ -318,6 +319,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * designated amount based on the difference between the PAS alternative costs and the assumed s1
    * slack flow (flow estimated to switch from uncongested to congested on the PAS's S1 (low cost) segment)
    *
+   * @param proposedFlowShift to adjust if needed
    * @param s1SlackFlow                  that is expected
    * @param discontinuityDampeningFactor to use
    * @return adjusted proposed flow shift (if any)
@@ -333,6 +335,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * s2 slack flow (flow estimated to switch from congested to uncongested on the PAS's S2
    * (high cost) segment)
    *
+   * @param proposedFlowShift to adjust if needed
    * @param s2SlackFlow that is expected
    * @param discontinuityDampeningFactor to use
    * @return adjusted proposed flow shift (if any)

@@ -202,6 +202,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   /**
    * Track origin demands for bush. Should only be used for initialisation and then left as is.
    *
+   * @param originDemandVertex to use
    * @param demandPcuH demand to set
    */
   public void addOriginDemandPcuH(V originDemandVertex, double demandPcuH) {

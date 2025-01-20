@@ -146,7 +146,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   public abstract RootedLabelledBush deepClone();
 
   /**
-   * {@inheritDoc
+   * {@inheritDoc}
    */
   @Override
   @SuppressWarnings("unchecked")

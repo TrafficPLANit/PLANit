@@ -202,7 +202,9 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    * Extract a subpath in the form of a raw edge segment array in downstream direction based on the shortest path result
    * provided. Since the path tree is in reverse direction, the array is filled from the back, i.e.,if there is spare
    * capacity the front of the array would be empty.
-   * 
+   *
+   * @param <Vs> vertex type to use
+   * @param <ESs> edge segment type to use
    * @param closestToSearchRoot       vertex in relation to searchResult tree chosen root
    * @param furthestFromSearchRoot    vertex in relation to searchResult tree chosen root
    * @param searchResultTree          to extract path from, tree's direction is automatically accounted for
@@ -267,7 +269,9 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    * as the search itself (unlike shortestXResults which are in the opposite direction), i.e., if the search was
    * one-to-all (not inverted) then the bf results are also provided in the downstream direction, whereas all-to-one is
    * in the opposite direction.
-   * 
+   *
+   * @param <Vs> vertex type to use
+   * @param <ESs> edge segment type to use
    * @param closestToSearchRoot         vertex in relation to searchResult tree
    * @param furthestFromSearchRoot      vertex in relation to searchResult tree
    * @param shortestSearchType          shortestSearchType used to obtain inverted search result, i.e., when on-to-all
@@ -461,7 +465,7 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
 
   /**
    * Find PAS that exactly matches the provides alternative segments. Identical to
-   * {@link #findExistingPas(ES[], ES[])}
+   * {@link #findExistingPas(List, List)}
    * 
    * @param alternative1 alternative segment of PAS
    * @param alternative2 alternative segment of PAS

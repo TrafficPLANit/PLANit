@@ -63,6 +63,7 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
    * Default constructor
    *
    * @param tokenId to use for id generation
+   * @param networkGroupingToken to use
    */
   public LayeredNetwork(IdGroupingToken tokenId, IdGroupingToken networkGroupingToken) {
     super(tokenId, networkGroupingToken);
