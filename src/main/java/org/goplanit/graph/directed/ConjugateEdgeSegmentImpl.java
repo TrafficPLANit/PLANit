@@ -1,9 +1,13 @@
 package org.goplanit.graph.directed;
 
+import java.util.concurrent.atomic.DoubleAdder;
 import java.util.logging.Logger;
 
+import org.goplanit.utils.graph.ConjugateEdge;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -56,6 +60,28 @@ public class ConjugateEdgeSegmentImpl extends EdgeSegmentImpl implements Conjuga
   }
 
   /**
+   * Static implementation of to be overwritten method that due to inheritance structure otherwise would
+   * require code duplication.
+   *
+   * @param conjugateEdgeSegment to extract geometry from
+   * @return result of check
+   */
+  public static boolean hasGeometry(ConjugateEdgeSegment conjugateEdgeSegment) {
+    return conjugateEdgeSegment.getParent().hasGeometry();
+  }
+
+  /**
+   * Static implementation of to be overwritten method that due to inheritance structure otherwise would
+   * require code duplication.
+   *
+   * @param conjugateEdgeSegment to extract length in km from
+   * @return length in km
+   */
+  public static double getLengthKm(ConjugateEdgeSegment conjugateEdgeSegment){
+    return conjugateEdgeSegment.getParent().getLengthKm();
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -85,6 +111,29 @@ public class ConjugateEdgeSegmentImpl extends EdgeSegmentImpl implements Conjuga
   @Override
   public boolean validate() {
     return EdgeSegmentImpl.validate(this);
+  }
+
+  /**
+   * Geometry is to be derived from underlying non-conjugate counterpart. Currently, this entails simply
+   * requiring an up and downstream node geometry.
+   *
+   * @return true when up and downstream conjugate node geometry is available to construct on-the-fly geometry,
+   * false otherwise
+   */
+  @Override
+  public boolean hasGeometry() {
+    return hasGeometry(this);
+  }
+
+  /**
+   * Length is sum of length of its underlying two edge segments. Computed on-the-fly. If any edge is null, it is assumed
+   * length may be set to 0km for that edge.
+   *
+   * @return on-the-fly length calculation
+   */
+  @Override
+  public double getLengthKm() {
+    return getLengthKm(this);
   }
 
 }

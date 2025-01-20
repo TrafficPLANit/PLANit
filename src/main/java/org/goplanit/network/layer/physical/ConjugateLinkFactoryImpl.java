@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.graph.GraphEntities;
+import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -52,6 +53,23 @@ public class ConjugateLinkFactoryImpl extends GraphEntityFactoryImpl<ConjugateLi
       nodeA.addEdge(newLink);
       nodeB.addEdge(newLink);
     }
+    return newLink;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateLink registerNew(
+          ConjugateDirectedVertex vertexA,
+          ConjugateDirectedVertex vertexB,
+          boolean registerOnVertices,
+          DirectedEdge originalEdge1,
+          DirectedEdge originalEdge2,
+          boolean deriveXmlIdFromOriginalEdges,
+          String xmlIdPostFix){
+    final var newLink = registerNew(vertexA, vertexB, registerOnVertices, originalEdge1, originalEdge2);
+    newLink.populateXmlId(deriveXmlIdFromOriginalEdges, xmlIdPostFix);
     return newLink;
   }
 

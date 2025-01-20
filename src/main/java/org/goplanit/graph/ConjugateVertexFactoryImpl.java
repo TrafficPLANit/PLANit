@@ -35,8 +35,9 @@ public class ConjugateVertexFactoryImpl extends GraphEntityFactoryImpl<Conjugate
    * {@inheritDoc}
    */
   @Override
-  public ConjugateVertex registerNew(final Edge originalEdge) {
+  public ConjugateVertex registerNew(final Edge originalEdge, boolean deriveFromOriginalEdge, String xmlIdPostFix) {
     final ConjugateVertex newVertex = createNew(originalEdge);
+    newVertex.populateXmlId(deriveFromOriginalEdge, xmlIdPostFix);
     getGraphEntities().register(newVertex);
     return newVertex;
   }

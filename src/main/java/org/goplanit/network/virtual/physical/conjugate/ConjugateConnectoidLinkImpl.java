@@ -1,6 +1,9 @@
 package org.goplanit.network.virtual.physical.conjugate;
 
+import org.goplanit.graph.ConjugateEdgeImpl;
 import org.goplanit.network.layer.physical.LinkImpl;
+import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
@@ -9,6 +12,7 @@ import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoid
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegment;
 import org.locationtech.jts.geom.LineString;
 
+import java.util.concurrent.atomic.DoubleAdder;
 import java.util.logging.Logger;
 
 /**
@@ -22,8 +26,6 @@ import java.util.logging.Logger;
  */
 public class ConjugateConnectoidLinkImpl
     extends LinkImpl<ConjugateConnectoidNode, ConjugateConnectoidSegment> implements ConjugateConnectoidLink {
-
-  // Protected
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(ConjugateConnectoidLinkImpl.class.getCanonicalName());
@@ -64,15 +66,14 @@ public class ConjugateConnectoidLinkImpl
   }
 
   /**
-   * Length not supported on conjugate edge, collect from original underlying edges instead if required
-   * 
-   * @return negative infinity
+   * Length is sum of length of its underlying two edges. Computed on-the-fly. If any edge is null, it is assumed
+   * length may be set to 0km for that edge.
+   *
+   * @return on-the-fly length calculation
    */
   @Override
   public double getLengthKm() {
-    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, " +
-        "collect those instead, negative infinity returned");
-    return Double.NEGATIVE_INFINITY;
+    return ConjugateEdgeImpl.getLengthKm(this);
   }
 
   /**
@@ -87,15 +88,15 @@ public class ConjugateConnectoidLinkImpl
   }
 
   /**
-   * Geometry not supported on conjugate edge, collect from original underlying edge segments instead if required
-   * 
-   * @return null
+   * Geometry on conjugate connectoid link is created on-the-fly by joining the two nodes on its extremes (direct line).
+   * This to be able to overlay the conjugate network on top of the original network and show how it differs.
+   * The actual geometry can be retrieved from the underlying original edges. It is assumed the vertices have a coordinate.
+   *
+   * @return on-the-fly vertex connecting linestring
    */
   @Override
   public LineString getGeometry() {
-    LOGGER.warning("Geometry of conjugate is combination of underlying original geometries, " +
-        "collect those instead, null returned");
-    return null;
+    return ConjugateEdgeImpl.getGeometry(this);
   }
 
   /**

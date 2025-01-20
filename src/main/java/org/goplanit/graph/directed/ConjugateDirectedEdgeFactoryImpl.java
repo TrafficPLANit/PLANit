@@ -15,7 +15,8 @@ import org.goplanit.utils.id.IdGroupingToken;
  * 
  * @author markr
  */
-public class ConjugateDirectedEdgeFactoryImpl extends GraphEntityFactoryImpl<ConjugateDirectedEdge> implements ConjugateDirectedEdgeFactory {
+public class ConjugateDirectedEdgeFactoryImpl extends GraphEntityFactoryImpl<ConjugateDirectedEdge>
+        implements ConjugateDirectedEdgeFactory {
 
   /**
    * Constructor
@@ -23,7 +24,8 @@ public class ConjugateDirectedEdgeFactoryImpl extends GraphEntityFactoryImpl<Con
    * @param groupId                to use
    * @param conjugateDirectedEdges to use
    */
-  protected ConjugateDirectedEdgeFactoryImpl(final IdGroupingToken groupId, final ConjugateDirectedEdges conjugateDirectedEdges) {
+  protected ConjugateDirectedEdgeFactoryImpl(
+          final IdGroupingToken groupId, final ConjugateDirectedEdges conjugateDirectedEdges) {
     super(groupId, conjugateDirectedEdges);
   }
 
@@ -31,14 +33,36 @@ public class ConjugateDirectedEdgeFactoryImpl extends GraphEntityFactoryImpl<Con
    * {@inheritDoc}
    */
   @Override
-  public ConjugateDirectedEdge registerNew(ConjugateDirectedVertex vertexA, ConjugateDirectedVertex vertexB, DirectedEdge originalEdge1, DirectedEdge originalEdge2,
-      boolean registerOnVertices) throws PlanItException {
-    final var newConjugateEdge = new ConjugateDirectedEdgeImpl<ConjugateDirectedVertex, ConjugateEdgeSegment>(getIdGroupingToken(), vertexA, vertexB, originalEdge1, originalEdge2);
+  public ConjugateDirectedEdge registerNew(
+          ConjugateDirectedVertex vertexA,
+          ConjugateDirectedVertex vertexB,
+          boolean registerOnVertices,
+          DirectedEdge originalEdge1,
+          DirectedEdge originalEdge2){
+    final var newConjugateEdge = new ConjugateDirectedEdgeImpl<>(
+            getIdGroupingToken(), vertexA, vertexB, originalEdge1, originalEdge2);
     getGraphEntities().register(newConjugateEdge);
     if (registerOnVertices) {
       vertexA.addEdge(newConjugateEdge);
       vertexB.addEdge(newConjugateEdge);
     }
+    return newConjugateEdge;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateDirectedEdge registerNew(
+          ConjugateDirectedVertex vertexA,
+          ConjugateDirectedVertex vertexB,
+          boolean registerOnVertices,
+          DirectedEdge originalEdge1,
+          DirectedEdge originalEdge2,
+          boolean deriveXmlIdFromOriginalEdges,
+          String xmlIdPostFix){
+    final var newConjugateEdge = registerNew(vertexA, vertexB, registerOnVertices, originalEdge1, originalEdge2);
+    newConjugateEdge.populateXmlId(deriveXmlIdFromOriginalEdges, xmlIdPostFix);
     return newConjugateEdge;
   }
 

@@ -36,8 +36,9 @@ public class ConjugateNodeFactoryImpl extends GraphEntityFactoryImpl<ConjugateNo
    * {@inheritDoc}
    */
   @Override
-  public ConjugateNode registerNew(final Link originalLink) {
+  public ConjugateNode registerNew(final Link originalLink, boolean deriveFromOriginalEdge, String xmlIdPostFix) {
     final ConjugateNode newEntity = createNew(originalLink);
+    newEntity.populateXmlId(deriveFromOriginalEdge, xmlIdPostFix);
     getGraphEntities().register(newEntity);
     return newEntity;
   }

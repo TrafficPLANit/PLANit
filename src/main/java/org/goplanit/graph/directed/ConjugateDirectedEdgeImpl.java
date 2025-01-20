@@ -1,7 +1,12 @@
 package org.goplanit.graph.directed;
 
+import java.util.concurrent.atomic.DoubleAdder;
 import java.util.logging.Logger;
 
+import org.goplanit.graph.ConjugateEdgeImpl;
+import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.graph.ConjugateEdge;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
@@ -61,17 +66,6 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
   }
 
   /**
-   * Length not supported on conjugate edge, collect from original underlying edges instead if required
-   * 
-   * @return negative infinity
-   */
-  @Override
-  public double getLengthKm() {
-    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, collect those instead, negative infinity returned");
-    return Double.NEGATIVE_INFINITY;
-  }
-
-  /**
    * Length not supported on conjugate edge, set on original underlying edges instead if required
    * 
    * @param lengthInKm to use
@@ -82,14 +76,26 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
   }
 
   /**
-   * Geometry not supported on conjugate edge, collect from original underlying edge segments instead if required
-   * 
-   * @return null
+   * Length is sum of length of its underlying two edges. Computed on-the-fly. If any edge is null, it is assumed
+   * length may be set to 0km for that edge.
+   *
+   * @return on-the-fly length calculation
+   */
+  @Override
+  public double getLengthKm() {
+    return ConjugateEdgeImpl.getLengthKm(this);
+  }
+
+  /**
+   * Geometry on conjugate directed edge is created on-the-fly by joining the two nodes on its extremes (direct line).
+   * This to be able to overlay the conjugate network on top of the original network and show how it differs.
+   * The actual geometry can be retrieved from the underlying original edges. It is assumed the vertices have a coordinate.
+   *
+   * @return on-the-fly vertex connecting linestring
    */
   @Override
   public LineString getGeometry() {
-    LOGGER.warning("Geometry of conjugate is combination of underlying original geometries, collect those instead, null returned");
-    return null;
+    return ConjugateEdgeImpl.getGeometry(this);
   }
 
   /**

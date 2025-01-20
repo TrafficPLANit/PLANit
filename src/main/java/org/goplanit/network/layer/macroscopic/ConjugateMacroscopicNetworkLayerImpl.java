@@ -68,16 +68,23 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    *   It is assumed the conjugate virtual network layer is already populated (if present) and therefore
    *   we do not reset the managed ids to enforce contiguous ids across edges and vertices.
    * </p>
+   * <p>
+   *   XMLids of conjugate entities will be derived from their underlying original counterparts and marked with '*'
+   *   to reflect this.
+   * </p>
    * 
    * @param conjugateVirtualNetworkLayer optional to connect to original connectoid edges/segments when present
    */
   protected void recreateFromReferenceLayer(ConjugateVirtualNetworkLayer conjugateVirtualNetworkLayer) {
     reset(conjugateVirtualNetworkLayer==null);
 
+    final boolean deriveXmlIdFromOriginalEntities = true;
+    String xmlIdPostFix = "*";
     /* link -> conjugate node */
     Map<DirectedEdge, ConjugateDirectedVertex> edgeToConjugateNode = new HashMap<>();
     for (Link link : originalLayer.getLinks()) {
-      ConjugateNode conjugateNode = getNodes().getFactory().registerNew(link);
+      ConjugateNode conjugateNode =
+              getNodes().getFactory().registerNew(link, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
       edgeToConjugateNode.put(link, conjugateNode);
     }
 
@@ -135,19 +142,36 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
 
 
           /* conjugate link */
+          boolean registerNewEntityOnItsNodes = true;
           ConjugateLink conjugateLink = getLinks().getFactory().registerNew(
-                  conjugateVertexA, conjugateVertexB, true, edge, nextEdge);
+                  conjugateVertexA,
+                  conjugateVertexB,
+                  registerNewEntityOnItsNodes,
+                  edge,
+                  nextEdge,
+                  deriveXmlIdFromOriginalEntities,
+                  xmlIdPostFix);
 
           /* conjugate link segments for conjugate link */
           boolean directionAb = true;
           var abPair = conjugateLink.getOriginalAdjacentEdgeSegments(directionAb);
           if (abPair.bothNotNull()) {
-            getLinkSegments().getFactory().registerNew(conjugateLink, directionAb, true);
+            getLinkSegments().getFactory().registerNew(
+                    conjugateLink,
+                    directionAb,
+                    registerNewEntityOnItsNodes,
+                    deriveXmlIdFromOriginalEntities,
+                    xmlIdPostFix);
           }
           directionAb = false;
           var baPair = conjugateLink.getOriginalAdjacentEdgeSegments(directionAb);
           if (baPair.bothNotNull()) {
-            getLinkSegments().getFactory().registerNew(conjugateLink, directionAb, true);
+            getLinkSegments().getFactory().registerNew(
+                    conjugateLink,
+                    directionAb,
+                    registerNewEntityOnItsNodes,
+                    deriveXmlIdFromOriginalEntities,
+                    xmlIdPostFix);
           }
         }
       }

@@ -2,7 +2,9 @@ package org.goplanit.network.layer.physical;
 
 import java.util.logging.Logger;
 
+import org.goplanit.graph.ConjugateEdgeImpl;
 import org.goplanit.graph.directed.DirectedEdgeImpl;
+import org.goplanit.utils.graph.ConjugateEdge;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
@@ -65,15 +67,14 @@ public class ConjugateLinkImpl extends LinkImpl<ConjugateDirectedVertex, Conjuga
   }
 
   /**
-   * Length not supported on conjugate edge, collect from original underlying edges instead if required
-   * 
-   * @return negative infinity
+   * Length is sum of length of its underlying two edges. Computed on-the-fly. If any link is null, it is assumed
+   * length may be set to 0km for that link.
+   *
+   * @return on-the-fly length calculation
    */
   @Override
   public double getLengthKm() {
-    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, " +
-        "collect those instead, negative infinity returned");
-    return Double.NEGATIVE_INFINITY;
+    return ConjugateEdgeImpl.getLengthKm(this);
   }
 
   /**
@@ -94,9 +95,7 @@ public class ConjugateLinkImpl extends LinkImpl<ConjugateDirectedVertex, Conjuga
    */
   @Override
   public LineString getGeometry() {
-    LOGGER.warning("Geometry of conjugate is combination of underlying original geometries, " +
-        "collect those instead, null returned");
-    return null;
+    return ConjugateEdgeImpl.getGeometry(this);
   }
 
   /**

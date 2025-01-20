@@ -1,10 +1,12 @@
 package org.goplanit.network.layer.physical;
 
-import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.graph.directed.ConjugateEdgeSegmentImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.physical.*;
+import org.goplanit.utils.network.layer.physical.ConjugateLink;
+import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
+import org.goplanit.utils.network.layer.physical.ConjugateNode;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 import java.util.Collection;
 import java.util.Set;
@@ -142,16 +144,27 @@ public class ConjugateLinkSegmentImpl extends LinkSegmentImpl implements Conjuga
     return -1;
   }
 
+  /**
+   * Length is sum of length of its underlying two edge segments. Computed on-the-fly. If any edge is null, it is assumed
+   * length may be set to 0km for that edge.
+   *
+   * @return on-the-fly length calculation
+   */
   @Override
   public double getLengthKm() {
-    LOGGER.warning("Length on conjugate link segment not available, use non-conjugate counterpart");
-    return -1;
+    return ConjugateEdgeSegmentImpl.getLengthKm(this);
   }
 
+  /**
+   * Geometry is to be derived from underlying non-conjugate counterpart. Currently, this entails simply
+   * requiring an up and downstream node geometry.
+   *
+   * @return true when up and downstream conjugate node geometry is available to construct on-the-fly geometry,
+   * false otherwise
+   */
   @Override
   public boolean hasGeometry() {
-    LOGGER.warning("Geometry on conjugate link segment not available, use non-conjugate counterpart");
-    return false;
+    return ConjugateEdgeSegmentImpl.hasGeometry(this);
   }
 
 }
