@@ -6,6 +6,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.NetworkLayer;
+import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -17,7 +18,7 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class UntypedNetworkSegmentsOutputTypeAdapterTraitImpl<ES extends EdgeSegment>
+public abstract class UntypedNetworkSegmentsOutputTypeAdapterTraitImpl<ES extends EdgeSegment>
     implements NetworkSegmentsOutputTypeAdapterTrait<ES> {
 
   /** the logger */
@@ -40,19 +41,26 @@ public class UntypedNetworkSegmentsOutputTypeAdapterTraitImpl<ES extends EdgeSeg
   }
 
   /**
-   * {@inheritDoc}
+   * Default implementation to be made available, using transport model network of assignment as reference.
+   * <p>
+   * Implemented as separate method to avoid single-dispatch problems
+   * where this method would be invoked even if an overridden version in more specific implementation exists.
+   * (stupid Java)
+   * </p>
    */
-  @Override
-  public Optional<Long> getInfrastructureLayerIdForMode(Mode mode) {
-    NetworkLayer networkLayer = trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode);
-    return Optional.of(networkLayer != null ? networkLayer.getId() : null);
+  public UntypedPhysicalLayer<?,?,?> getDefaultInfrastructureLayerForMode(Mode mode) {
+    return trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode);
   }
 
   /**
-   * {@inheritDoc}
+   * Default implementation to be made available, using transport model network of assignment as reference.
+   * <p>
+   * Implemented as separate method to avoid single-dispatch problems
+   * where this method would be invoked even if an overridden version in more specific implementation exists.
+   * (stupid Java)
+   * </p>
    */
-  @Override
-  public GraphEntities<? extends ES> getLinkSegmentsForLayer(long layerId) {
+  public GraphEntities<? extends ES> getDefaultLinkSegmentsForLayer(long layerId) {
     var networkLayer =
             trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(layerId);
     return (GraphEntities<? extends ES>) networkLayer.getLinkSegments();

@@ -3,11 +3,17 @@ package org.goplanit.output.adapter;
 import org.goplanit.assignment.TrafficAssignment;
 import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.output.adapter.traits.BushNetworkSegmentsOutputTypeAdapterTraitImpl;
+import org.goplanit.output.adapter.traits.NetworkSegmentsOutputTypeAdapterTrait;
+import org.goplanit.output.adapter.traits.UntypedBushSegmentsOutputTypeAdapterTrait;
 import org.goplanit.output.enums.OutputType;
+import org.goplanit.output.property.OutputProperty;
+import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.time.TimePeriod;
 
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -23,19 +29,19 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class BushLinkOutputTypeAdapterImpl
+public abstract class BushLinkOutputTypeAdapterImpl
     extends UntypedEdgeOutputTypeAdapterImpl<EdgeSegment> implements BushLinkOutputTypeAdapter {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(BushLinkOutputTypeAdapterImpl.class.getCanonicalName());
 
   /** trait implementation */
-  private final BushNetworkSegmentsOutputTypeAdapterTraitImpl bushSegmentsTrait;
+  private final UntypedBushSegmentsOutputTypeAdapterTrait<? extends EdgeSegment> bushSegmentsTrait;
 
   /**
    * Access to trait
    */
-  protected BushNetworkSegmentsOutputTypeAdapterTraitImpl getTrait(){
+  protected UntypedBushSegmentsOutputTypeAdapterTrait<? extends EdgeSegment> getTrait(){
     return bushSegmentsTrait;
   }
 
@@ -49,28 +55,39 @@ public class BushLinkOutputTypeAdapterImpl
   public BushLinkOutputTypeAdapterImpl(
           OutputType outputType,
           TrafficAssignment trafficAssignment,
-          BushNetworkSegmentsOutputTypeAdapterTraitImpl bushSegmentsTrait) {
+          UntypedBushSegmentsOutputTypeAdapterTrait<? extends EdgeSegment> bushSegmentsTrait) {
     super(outputType, trafficAssignment);
     this.bushSegmentsTrait = bushSegmentsTrait;
   }
 
+  /**
+   * Return the value of a specified output property of a link segment.
+   * The DENSITY case should never be called for TraditionalStaticAssignment.
+   *
+   * @param outputProperty the specified output property
+   * @param linkSegment    the specified link segment
+   * @param mode           the current mode
+   * @param timePeriod     the current time period
+   * @return the value of the specified output property (or an Exception message if an error occurs)
+   */
   @Override
-  public Optional<Long> getInfrastructureLayerIdForMode(Mode mode) {
+  public Optional<?> getEdgeSegmentOutputPropertyValue(
+      OutputProperty outputProperty, EdgeSegment linkSegment, Mode mode, TimePeriod timePeriod) {
+
+    Optional<?> value = super.getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
+    if (value.isPresent()) {
+      return value;
+    }
+
+    value = super.getEdgeSegmentOutputPropertyValue(outputProperty, linkSegment);
+    if (value.isPresent()) {
+      return value;
+    }
+
     return Optional.empty();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public GraphEntities<? extends EdgeSegment> getLinkSegmentsForLayer(long layerId) {
-    // base implementation assumes bushes are consistent and build upon the regular network
-    // if not this method needs to be overridden in derived class.
-    var layer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(layerId);
-    return layer.getLinkSegments();
-  }
-
-  /**
+    /**
    * {@inheritDoc}
    */
   @Override

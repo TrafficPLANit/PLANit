@@ -35,6 +35,15 @@ public class MacroscopicNetworkSegmentsOutputTypeAdapterTraitImpl
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Optional<Long> getInfrastructureLayerIdForMode(Mode mode) {
+    var layer = super.getDefaultInfrastructureLayerForMode(mode);
+    return Optional.of(layer != null ? layer.getId() : null);
+  }
+
+  /**
    * Provide access to the macroscopic link segments
    *
    * @param layerId to use

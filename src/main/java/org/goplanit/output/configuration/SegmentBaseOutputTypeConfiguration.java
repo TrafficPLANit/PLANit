@@ -46,8 +46,10 @@ public abstract class SegmentBaseOutputTypeConfiguration extends OutputTypeConfi
    * @return the value of the identification type determined
    */
   private int findIdentificationMethod(OutputProperty[] outputKeyProperties) {
-    Set<OutputPropertyType> outputKeyPropertyList = Arrays.stream(outputKeyProperties).map(op -> op.getOutputPropertyType()).collect(Collectors.toSet());
-    if (outputKeyPropertyList.contains(OutputPropertyType.DOWNSTREAM_NODE_XML_ID) && outputKeyPropertyList.contains(OutputPropertyType.UPSTREAM_NODE_XML_ID)) {
+    Set<OutputPropertyType> outputKeyPropertyList =
+        Arrays.stream(outputKeyProperties).map(OutputProperty::getOutputPropertyType).collect(Collectors.toSet());
+    if (outputKeyPropertyList.contains(OutputPropertyType.DOWNSTREAM_NODE_XML_ID) &&
+        outputKeyPropertyList.contains(OutputPropertyType.UPSTREAM_NODE_XML_ID)) {
       return LINK_SEGMENT_IDENTIFICATION_BY_NODE_XML_ID;
     }
     if (outputKeyPropertyList.contains(OutputPropertyType.LINK_SEGMENT_ID)) {
@@ -59,7 +61,8 @@ public abstract class SegmentBaseOutputTypeConfiguration extends OutputTypeConfi
     if (outputKeyPropertyList.contains(OutputPropertyType.LINK_SEGMENT_EXTERNAL_ID)) {
       return LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID;
     }
-    if (outputKeyPropertyList.contains(OutputPropertyType.DOWNSTREAM_NODE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputPropertyType.UPSTREAM_NODE_EXTERNAL_ID)) {
+    if (outputKeyPropertyList.contains(OutputPropertyType.DOWNSTREAM_NODE_EXTERNAL_ID) &&
+        outputKeyPropertyList.contains(OutputPropertyType.UPSTREAM_NODE_EXTERNAL_ID)) {
       return LINK_SEGMENT_IDENTIFICATION_BY_NODE_EXTERNAL_ID;
     }
     return LINK_SEGMENT_NOT_IDENTIFIED;

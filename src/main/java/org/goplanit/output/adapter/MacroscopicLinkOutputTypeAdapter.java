@@ -103,5 +103,6 @@ public interface MacroscopicLinkOutputTypeAdapter extends NetworkSegmentsOutputT
    * @param timePeriod     the current time period
    * @return the value of the specified output property (or an Exception if an error occurs)
    */
-  public abstract Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode, TimePeriod timePeriod);
+  public abstract Optional<?> getLinkSegmentOutputPropertyValue(
+      OutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode, TimePeriod timePeriod);
 }

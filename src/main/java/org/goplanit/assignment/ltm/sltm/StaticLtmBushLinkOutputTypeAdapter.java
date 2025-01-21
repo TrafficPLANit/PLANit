@@ -5,16 +5,19 @@ import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.network.transport.UntypedTransportModelNetwork;
 import org.goplanit.output.adapter.BushLinkOutputTypeAdapterImpl;
+import org.goplanit.output.adapter.traits.UntypedBushSegmentsOutputTypeAdapterTrait;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.PhysicalLayer;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -38,6 +41,14 @@ public class StaticLtmBushLinkOutputTypeAdapter extends BushLinkOutputTypeAdapte
   }
 
   /**
+   * Access to trait
+   */
+  @Override
+  protected StaticLtmBushLinkOutputTypeAdapterTraitImpl getTrait(){
+    return (StaticLtmBushLinkOutputTypeAdapterTraitImpl) super.getTrait();
+  }
+
+  /**
    * Constructor
    *
    * @param outputType        the output type for the current persistence
@@ -52,12 +63,15 @@ public class StaticLtmBushLinkOutputTypeAdapter extends BushLinkOutputTypeAdapte
   }
 
   /**
-   * Obtain the link segments for the given layer from the bush compatible network. To obtain just the link segments
-   * for a given bush, these need to be filtered by traversing each bush and verifying whether the links are part of
-   * that bush.
-   *
-   * @param layerId to collect link segments for used by the bushes
-   * @return bush compatible link segments (not reduced to a specific bush yet)
+   * {@inheritDoc}
+   */
+  @Override
+  public Optional<Long> getInfrastructureLayerIdForMode(Mode mode) {
+    return getTrait().getInfrastructureLayerIdForMode(mode);
+  }
+
+  /**
+   * {@inheritDoc}
    */
   @Override
   public GraphEntities<? extends EdgeSegment> getLinkSegmentsForLayer(long layerId) {

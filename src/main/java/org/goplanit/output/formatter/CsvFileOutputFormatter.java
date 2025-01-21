@@ -2,6 +2,7 @@ package org.goplanit.output.formatter;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.od.skim.OdSkimMatrix.OdSkimMatrixIterator;
@@ -17,6 +18,8 @@ import org.goplanit.output.property.OutputPropertyType;
 import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
@@ -315,6 +318,69 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   }
 
   /**
+   * Write output values to the bush CSV files for the current iteration
+   *
+   * @param outputConfiguration     output configuration
+   * @param outputTypeConfiguration the current output type configuration
+   * @param currentOutputType       the output type
+   * @param outputAdapter           output adapter for the current output type
+   * @param modes                   Set of modes for the current assignment
+   * @param timePeriod              the current time period
+   * @param csvPrinter              CSVPrinter object to record results for this iteration
+   * @return PlanItException thrown if the CSV file cannot be created or written to
+   */
+  protected PlanItException writeBushResultsForCurrentTimePeriodToCsvPrinter(
+      OutputConfiguration outputConfiguration,
+      OutputTypeConfiguration outputTypeConfiguration,
+      OutputTypeEnum currentOutputType,
+      OutputAdapter outputAdapter,
+      Set<Mode> modes,
+      TimePeriod timePeriod,
+      RootedBush<? extends DirectedVertex, ? extends EdgeSegment> bush,
+      CSVPrinter csvPrinter) {
+    try {
+
+      OutputType outputType = (OutputType) currentOutputType;
+      BushLinkOutputTypeAdapter bushLinkOutputTypeAdapter =
+          (BushLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+
+      SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
+      for (Mode mode : modes) {
+        // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+        // the current mode's conversion factor
+        VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
+
+        Optional<Long> networkLayerId = bushLinkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
+        if (networkLayerId.isEmpty()) {
+          LOGGER.severe(String.format(
+              "Network layer could not be identified for mode %s by bush csv output formatter", mode.getXmlId()));
+          continue;
+        }
+
+        for (EdgeSegment edgeSegment : bushLinkOutputTypeAdapter.getLinkSegmentsForLayer(networkLayerId.get())) {
+          if(!bush.contains(edgeSegment.getId())){
+            // implicitly assumes 1) a bush does not contain the edge segment unless it supports the mode at hand
+            // and 2) it has positive flow, otherwise the bush would discard the edge segment
+            continue;
+          }
+
+          // after establishing whether segment is in bush, remainder is bush independent and is a matter of persisting
+          // segment specific information only
+          csvPrinter.printRecord(outputProperties.stream().map(outputProperty ->
+                outputProperty.formatValue(
+                    bushLinkOutputTypeAdapter.getEdgeSegmentOutputPropertyValue(
+                        outputProperty, edgeSegment, mode, timePeriod))));
+        }
+      }
+    } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
+      return new PlanItException(
+          "Error when writing bush (%s) results for current time period in CSVOutputFileFormatter", bush.toString(), e);
+    }
+    return null;
+  }
+
+  /**
    * Open the CSV output file and write the headers to it
    * 
    * @param csvFileName             the name of the CSV output file
@@ -322,13 +388,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @throws Exception thrown if there is an error opening the file
    */
   protected CSVPrinter createCsvPrinter(String csvFileName) throws Exception {
-
-    CSVPrinter csvPrinter =
-        new CSVPrinter(
-            new FileWriter(csvFileName),
-            CSVFormat.Builder.create(CSVFormat.DEFAULT).setIgnoreSurroundingSpaces(true).build());
-
-    return csvPrinter;
+    return new CSVPrinter(
+        new FileWriter(csvFileName),
+        CSVFormat.Builder.create(CSVFormat.DEFAULT).setIgnoreSurroundingSpaces(true).build());
   }
 
   /**

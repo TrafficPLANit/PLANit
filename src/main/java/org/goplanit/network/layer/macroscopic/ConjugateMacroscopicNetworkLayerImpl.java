@@ -78,6 +78,11 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
   protected void recreateFromReferenceLayer(ConjugateVirtualNetworkLayer conjugateVirtualNetworkLayer) {
     reset(conjugateVirtualNetworkLayer==null);
 
+    // sync supported modes
+    registerSupportedModes(getOriginalLayer().getSupportedModes());
+
+    // network entities
+
     final boolean deriveXmlIdFromOriginalEntities = true;
     String xmlIdPostFix = "*";
     /* link -> conjugate node */

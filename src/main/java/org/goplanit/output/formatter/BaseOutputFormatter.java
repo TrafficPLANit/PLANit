@@ -252,20 +252,20 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * 
    * @param timePeriod              time period for current results
    * @param modes                   Set of modes covered by current results
-   * @param outputConfiguration     output configuration
-   * @param outputTypeConfiguration output configuration being used
+   * @param outputConfig     output configuration
+   * @param outputTypeConfig output configuration being used
    * @param outputAdapter           output adapter being used
    */
   @Override
   public void persist(
       TimePeriod timePeriod,
       Set<Mode> modes,
-      OutputConfiguration outputConfiguration,
-      OutputTypeConfiguration outputTypeConfiguration,
+      OutputConfiguration outputConfig,
+      OutputTypeConfiguration outputTypeConfig,
       OutputAdapter outputAdapter) {
 
-    OutputType outputType = outputTypeConfiguration.getOutputType();
-    OutputProperty[] outputValuePropertyArray = outputTypeConfiguration.getOutputValueProperties();
+    OutputType outputType = outputTypeConfig.getOutputType();
+    OutputProperty[] outputValuePropertyArray = outputTypeConfig.getOutputValueProperties();
     if (!outputTypeValuesLocked.get(outputType)) {
       outputValueProperties.put(outputType, outputValuePropertyArray);
     } else {
@@ -281,7 +281,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
     }
 
     if (!outputTypeKeysLocked.get(outputType)) {
-      boolean success = initializeKeyProperties(outputTypeConfiguration);
+      boolean success = initializeKeyProperties(outputTypeConfig);
       if(!success){
         LOGGER.warning("Ignoring OutputType: [" + outputType.value() + "] for persistence");
         return;
@@ -298,10 +298,10 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
     // iteration reference (which might be different from the simulation iteration, and the
     // (sub)output type combination before proceeding with the actual persisting
     var outputTypeIterationInformation = new HashMap<OutputTypeEnum, Integer>();
-    if (outputTypeConfiguration.hasActiveSubOutputTypes()) {
+    if (outputTypeConfig.hasActiveSubOutputTypes()) {
       // subdivided in suboutput types, each having their own file and possible a different reference
       // iteration index
-      Set<SubOutputTypeEnum> subOutputTypes = outputTypeConfiguration.getActiveSubOutputTypes();
+      Set<SubOutputTypeEnum> subOutputTypes = outputTypeConfig.getActiveSubOutputTypes();
       for (SubOutputTypeEnum subOutputTypeEnum : subOutputTypes) {
         Optional<Integer> iterationIndex = adapter.getIterationIndexForSubOutputType(subOutputTypeEnum);
         if (iterationIndex.isEmpty()) {
@@ -327,27 +327,27 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
       switch (outputType) {
         case GENERAL:
           writeGeneralResultsForCurrentTimePeriod(
-              outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+              outputConfig, outputTypeConfig, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
           break;
         case LINK:
           writeLinkResultsForCurrentTimePeriod(
-              outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+              outputConfig, outputTypeConfig, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
           break;
         case OD:
           writeOdResultsForCurrentTimePeriod(
-              outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+              outputConfig, outputTypeConfig, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
           break;
         case SIMULATION:
           writeSimulationResultsForCurrentTimePeriod(
-              outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+              outputConfig, outputTypeConfig, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
           break;
         case PATH:
           writePathResultsForCurrentTimePeriod(
-              outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+              outputConfig, outputTypeConfig, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
           break;
         case BUSH:
           writeBushResultsForCurrentTimePeriod(
-                  outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+                  outputConfig, outputTypeConfig, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
           break;
         default:
           LOGGER.warning(String.format("Unsupported output type %s found when persisting output formatter results, " +

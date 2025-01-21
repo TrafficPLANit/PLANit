@@ -383,7 +383,11 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       outputTypeAdapter = new StaticLtmSimulationOutputTypeAdapter(outputType, this);
       break;
     case BUSH:
+      if(!settings.getSltmType().equals(StaticLtmType.PATH_BASED)){
         outputTypeAdapter = new StaticLtmBushLinkOutputTypeAdapter(outputType,this);
+      }else{
+        LOGGER.warning("Bush output type not available when static LTM assignment is path based");
+      }
       break;
     default:
       LOGGER.warning(String.format("%s%s is not supported yet", LoggingUtils.runIdPrefix(getId()), outputType.value()));
