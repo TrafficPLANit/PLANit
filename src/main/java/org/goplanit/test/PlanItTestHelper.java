@@ -48,9 +48,9 @@ public class PlanItTestHelper {
     final boolean contentEquals = FileUtils.contentEqualsIgnoreEOL(f1.toFile(), f2.toFile(), charSetName);
     if(!contentEquals && printFilesOnFalse) {
       LOGGER.warning("FILE NOT THE SAME: Printing contents for comparison");
-      LOGGER.warning("File 1:");
+      LOGGER.warning(String.format("File 1: %s", f1.toAbsolutePath()));
       LOGGER.warning(FileUtils.readFileToString(f1.toFile(), charSetName));
-      LOGGER.warning("File 2:");
+      LOGGER.warning(String.format("File 2: %s", f2.toAbsolutePath()));
       LOGGER.warning(FileUtils.readFileToString(f2.toFile(), charSetName));
     }
     return contentEquals;

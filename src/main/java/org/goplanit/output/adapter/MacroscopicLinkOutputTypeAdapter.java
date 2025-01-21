@@ -2,6 +2,7 @@ package org.goplanit.output.adapter;
 
 import java.util.Optional;
 
+import org.goplanit.output.adapter.traits.NetworkSegmentsOutputTypeAdapterTrait;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.mode.Mode;
@@ -9,12 +10,13 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Interface defining the methods required for a macroscopic link (segment) output adapter
+ * Interface defining the methods required for a macroscopic link (segment) output adapter used in a network context.
  * 
  * @author gman6028, markr
  *
  */
-public interface MacroscopicLinkOutputTypeAdapter extends UntypedNetworkLinkOutputTypeAdapter<MacroscopicLinkSegment> {
+public interface MacroscopicLinkOutputTypeAdapter extends NetworkSegmentsOutputTypeAdapterTrait<MacroscopicLinkSegment>,
+ UntypedLinkOutputTypeAdapter<MacroscopicLinkSegment>{
 
   /**
    * Returns the value of the capacity per lane
@@ -82,14 +84,6 @@ public interface MacroscopicLinkOutputTypeAdapter extends UntypedNetworkLinkOutp
   public default Optional<Double> getMaximumSpeed(MacroscopicLinkSegment linkSegment, Mode mode) throws PlanItException {
     return Optional.of(linkSegment.getModelledSpeedLimitKmH(mode));
   }
-
-  /**
-   * collect the infrastructure layer id this mode resides on
-   * 
-   * @param mode to collect layer id for
-   * @return infrastructure layer id, null if not found
-   */
-  public abstract Optional<Long> getInfrastructureLayerIdForMode(Mode mode);
 
   /**
    * Returns true if there is a flow through the current specified link segment for the specified mode

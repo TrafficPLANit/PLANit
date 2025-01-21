@@ -3,6 +3,7 @@ package org.goplanit.output.adapter;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.TrafficAssignment;
+import org.goplanit.output.adapter.traits.NetworkSegmentsOutputTypeAdapterTrait;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.network.layer.physical.PhysicalLayer;
 import org.goplanit.utils.graph.GraphEntities;
@@ -17,7 +18,7 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
  *
  */
 public abstract class PhysicalLinkOutputTypeAdapterImpl
-    extends OutputTypeAdapterImpl implements UntypedNetworkLinkOutputTypeAdapter<LinkSegment> {
+    extends OutputTypeAdapterImpl implements NetworkSegmentsOutputTypeAdapterTrait<LinkSegment> {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(PhysicalLinkOutputTypeAdapterImpl.class.getCanonicalName());

@@ -4,14 +4,15 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.TrafficAssignment;
+import org.goplanit.output.adapter.traits.MacroscopicNetworkSegmentsOutputTypeAdapterTraitImpl;
+import org.goplanit.output.adapter.traits.NetworkSegmentsOutputTypeAdapterTrait;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -22,10 +23,14 @@ import org.goplanit.utils.time.TimePeriod;
  *
  */
 public abstract class MacroscopicLinkOutputTypeAdapterImpl
-    extends UntypedNetworkLinkOutputTypeAdapterImpl<MacroscopicLinkSegment> implements MacroscopicLinkOutputTypeAdapter {
+    extends UntypedLinkOutputTypeAdapterImpl<MacroscopicLinkSegment>
+        implements MacroscopicLinkOutputTypeAdapter, NetworkSegmentsOutputTypeAdapterTrait<MacroscopicLinkSegment> {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkOutputTypeAdapterImpl.class.getCanonicalName());
+
+  /** trait implementation */
+  private final MacroscopicNetworkSegmentsOutputTypeAdapterTraitImpl networkSegmentsTrait;
 
   /**
    * Constructor
@@ -35,6 +40,7 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl
    */
   public MacroscopicLinkOutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
     super(outputType, trafficAssignment);
+    this.networkSegmentsTrait = new MacroscopicNetworkSegmentsOutputTypeAdapterTraitImpl(trafficAssignment);
   }
 
   /**
@@ -47,24 +53,16 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl
   }
 
   /**
-   * Provide access to the macroscopic link segments
-   * 
-   * @param layerId to use
+   * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegments getLinkSegmentsForLayer(long layerId) {
-    NetworkLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(layerId);
-    if (networkLayer instanceof MacroscopicNetworkLayer) {
-      return ((MacroscopicNetworkLayer) networkLayer).getLinkSegments();
-    }
-    LOGGER.warning(String.format("Cannot collect macroscopic physical link segments from infrastructure layer %s, as it is not a macroscopic physical network layer",
-        networkLayer.getXmlId()));
-    return null;
+  public GraphEntities<? extends MacroscopicLinkSegment> getLinkSegmentsForLayer(long layerId) {
+    return networkSegmentsTrait.getLinkSegmentsForLayer(layerId);
   }
 
+
   /**
-   * Return the value of a specified output property of a link segment
-   * 
+   * Return the value of a specified output property of a link segment.
    * The DENSITY case should never be called for TraditionalStaticAssignment.
    * 
    * @param outputProperty the specified output property

@@ -373,10 +373,11 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       outputTypeAdapter = new StaticLtmOdOutputTypeAdapter(outputType, this);
       break;
     case PATH:
-      if(settings.getSltmType() != StaticLtmType.PATH_BASED){
+      if(settings.getSltmType().equals(StaticLtmType.PATH_BASED)){
+        outputTypeAdapter = new StaticLtmPathOutputTypeAdapter(outputType, this);
+      }else{
         LOGGER.warning("Path output type not available when static LTM assignment is not path based");
       }
-      outputTypeAdapter = new StaticLtmPathOutputTypeAdapter(outputType, this);
       break;
     case SIMULATION:
       outputTypeAdapter = new StaticLtmSimulationOutputTypeAdapter(outputType, this);

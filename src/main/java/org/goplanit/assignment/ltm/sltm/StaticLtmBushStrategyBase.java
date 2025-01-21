@@ -894,9 +894,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   @Override
   public OdSkimMatrix createOdSkimMatrix(
           OdSkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData) {
-    LOGGER.warning(String.format("OD Skim matrix support not yet available in %s for type % and mode (%s)",
+    LOGGER.warning(String.format("OD Skim matrix support not yet available in %s for type %s and mode (%s)",
             this.getClass().getCanonicalName(), odSkimOutputType, mode.getIdsAsString()));
-    return null;
+
+    // for time being use empty skim matrix
+    var emptySkimMatrix = new OdSkimMatrix(getTransportNetwork().getZoning().getOdZones(), odSkimOutputType);
+    return emptySkimMatrix;
   }
 
 }

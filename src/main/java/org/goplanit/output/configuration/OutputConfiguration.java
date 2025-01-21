@@ -98,20 +98,23 @@ public class OutputConfiguration {
   public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType) {
     OutputTypeConfiguration createdOutputTypeConfiguration = null;
     switch (outputType) {
-    case LINK:
-      createdOutputTypeConfiguration = new LinkOutputTypeConfiguration();
-      break;
-    case OD:
-      createdOutputTypeConfiguration = new OdOutputTypeConfiguration();
-      break;
-    case PATH:
-      createdOutputTypeConfiguration = new PathOutputTypeConfiguration();
-      break;
-    case SIMULATION:
-      createdOutputTypeConfiguration = new SimulationOutputTypeConfiguration();
-      break;
-    default:
-      LOGGER.warning(outputType.value() + " output type configuration has not been defined yet.");
+      case LINK:
+        createdOutputTypeConfiguration = new LinkOutputTypeConfiguration();
+        break;
+      case OD:
+        createdOutputTypeConfiguration = new OdOutputTypeConfiguration();
+        break;
+      case PATH:
+        createdOutputTypeConfiguration = new PathOutputTypeConfiguration();
+        break;
+      case BUSH:
+        createdOutputTypeConfiguration = new BushOutputTypeConfiguration();
+        break;
+      case SIMULATION:
+        createdOutputTypeConfiguration = new SimulationOutputTypeConfiguration();
+        break;
+      default:
+        LOGGER.warning(outputType.value() + " output type configuration has not been defined yet.");
     }
 
     if (createdOutputTypeConfiguration != null) {

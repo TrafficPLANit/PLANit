@@ -110,7 +110,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   }
 
   /**
-   * Write link results for the current time period to the CSV file
+   * Write link results for the current time period
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
@@ -130,7 +130,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
           int iterationIndex);
 
   /**
-   * Write General results for the current time period to the CSV file
+   * Write General results for the current time period
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
@@ -150,7 +150,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
           int iterationIndex);
 
   /**
-   * Write Origin-Destination results for the time period to the CSV file
+   * Write Origin-Destination results for the time period
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
@@ -170,7 +170,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
           int iterationIndex);
 
   /**
-   * Write Simulation results for the current time period to the CSV file
+   * Write Simulation results for the current time period
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
@@ -190,7 +190,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
           int iterationIndex);
 
   /**
-   * Write OD Path results for the time period to the CSV file
+   * Write OD Path results for the time period
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
@@ -201,6 +201,26 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * @param iterationIndex          current iteration index
    */
   protected abstract void writePathResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex);
+
+  /**
+   * Write bush results for the current time period
+   *
+   * @param outputConfiguration     output configuration
+   * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
+   * @param currentOutputType       active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
+   * @param outputAdapter           OutputAdapter for current persistence
+   * @param modes                   Set of modes of travel
+   * @param timePeriod              current time period
+   * @param iterationIndex          current iteration index
+   */
+  protected abstract void writeBushResultsForCurrentTimePeriod(
           OutputConfiguration outputConfiguration,
           OutputTypeConfiguration outputTypeConfiguration,
           OutputTypeEnum currentOutputType,
@@ -269,7 +289,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
     }
 
     if(!outputAdapter.hasOutputTypeAdapter(outputType)){
-      LOGGER.warning(String.format("Output type %s not supported for %s, ignored", outputType, outputAdapter.getAssignmentClassName()));
+      LOGGER.warning(String.format("Output type %s not supported for this configuration of %s, ignored", outputType, outputAdapter.getAssignmentClassName()));
       return;
     }
     var adapter = outputAdapter.getOutputTypeAdapter(outputType);
@@ -305,27 +325,34 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
       OutputTypeEnum currentOutputTypeEnum = entry.getKey();
       int iterationIndex = entry.getValue();
       switch (outputType) {
-      case GENERAL:
-        writeGeneralResultsForCurrentTimePeriod(
-            outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
-        break;
-      case LINK:
-        writeLinkResultsForCurrentTimePeriod(
-            outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
-        break;
-      case OD:
-        writeOdResultsForCurrentTimePeriod(
-            outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
-        break;
-      case SIMULATION:
-        writeSimulationResultsForCurrentTimePeriod(
-            outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
-        break;
-      case PATH:
-        writePathResultsForCurrentTimePeriod(
-            outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
-        break;
-      }
+        case GENERAL:
+          writeGeneralResultsForCurrentTimePeriod(
+              outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+          break;
+        case LINK:
+          writeLinkResultsForCurrentTimePeriod(
+              outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+          break;
+        case OD:
+          writeOdResultsForCurrentTimePeriod(
+              outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+          break;
+        case SIMULATION:
+          writeSimulationResultsForCurrentTimePeriod(
+              outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+          break;
+        case PATH:
+          writePathResultsForCurrentTimePeriod(
+              outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+          break;
+        case BUSH:
+          writeBushResultsForCurrentTimePeriod(
+                  outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+          break;
+        default:
+          LOGGER.warning(String.format("Unsupported output type %s found when persisting output formatter results, " +
+                  "should not happen", outputType));
+    }
       lockOutputProperties(outputType);
     }
   }

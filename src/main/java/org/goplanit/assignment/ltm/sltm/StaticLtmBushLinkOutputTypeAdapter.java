@@ -29,12 +29,6 @@ public class StaticLtmBushLinkOutputTypeAdapter extends BushLinkOutputTypeAdapte
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushLinkOutputTypeAdapter.class.getCanonicalName());
 
-  @SuppressWarnings("unchecked")
-  protected StaticLtmBushStrategyBase<?,?,?> getBushBasedAssignmentStrategy(){
-    return (StaticLtmBushStrategyBase<? extends DirectedVertex,?,? extends LinkSegment>)
-        getAssignment().getAssignmentStrategy();
-  }
-
   /**
    * {@inheritDoc}
    */
@@ -52,10 +46,10 @@ public class StaticLtmBushLinkOutputTypeAdapter extends BushLinkOutputTypeAdapte
   public StaticLtmBushLinkOutputTypeAdapter(
       final OutputType outputType,
       final TrafficAssignment trafficAssignment) {
-    super(outputType, trafficAssignment);
+    super(outputType,
+            trafficAssignment,
+            new StaticLtmBushLinkOutputTypeAdapterTraitImpl(trafficAssignment));
   }
-
-
 
   /**
    * Obtain the link segments for the given layer from the bush compatible network. To obtain just the link segments
@@ -66,27 +60,11 @@ public class StaticLtmBushLinkOutputTypeAdapter extends BushLinkOutputTypeAdapte
    * @return bush compatible link segments (not reduced to a specific bush yet)
    */
   @Override
-  public GraphEntities<? extends LinkSegment> getLinkSegmentsForLayer(long layerId) {
-    var sltmType = getAssignment().settings.getSltmType();
-    UntypedPhysicalLayer<?,?,? extends LinkSegment> layer = null;
-    if(sltmType.equals(StaticLtmType.DESTINATION_BUSH_BASED)){
-      // destination based bushes reside on regular network, so collect those link segments
-      layer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(layerId);
-    }else if(sltmType.equals(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED)) {
-      // conjugate bushes reside on conjugate network, so use conjugate network link segments
-      layer =
-          ((StaticLtmConjugateBushStrategy) getBushBasedAssignmentStrategy()).getConjugateTransportModelNetwork().
-              getInfrastructureNetwork().getTransportLayers().get(layerId);
-    }else{
-      LOGGER.severe(String.format(
-          "Chosen sLTM type %s not compatible with bush based link results", sltmType));
-      return null;
-    }
-    return layer.getLinkSegments();
+  public GraphEntities<? extends EdgeSegment> getLinkSegmentsForLayer(long layerId) {
+    // delegate to trait as StaticLTM version may does use default trait implementation as conjugate
+    // bushes are not based on regular network link segments but on conjugate segments. Trait takes care
+    // of this distinction
+    return getTrait().getLinkSegmentsForLayer(layerId);
   }
 
-  @Override
-  public RootedBush<? extends DirectedVertex, ? extends EdgeSegment>[] getBushes() {
-    return getBushBasedAssignmentStrategy().getBushes();
-  }
 }
