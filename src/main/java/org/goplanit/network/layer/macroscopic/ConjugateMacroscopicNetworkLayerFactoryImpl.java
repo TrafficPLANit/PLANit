@@ -1,5 +1,6 @@
 package org.goplanit.network.layer.macroscopic;
 
+import org.goplanit.network.layers.ConjugateMacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.mode.Mode;
@@ -17,7 +18,9 @@ import java.util.Arrays;
  * 
  * @author markr
  */
-public class ConjugateMacroscopicNetworkLayerFactoryImpl extends ManagedIdEntityFactoryImpl<ConjugateMacroscopicNetworkLayer> implements ConjugateMacroscopicNetworkLayerFactory {
+public class ConjugateMacroscopicNetworkLayerFactoryImpl
+        extends ManagedIdEntityFactoryImpl<ConjugateMacroscopicNetworkLayer>
+        implements ConjugateMacroscopicNetworkLayerFactory {
 
   /** container to register instances on */
   private final ConjugateMacroscopicNetworkLayers container;
@@ -38,8 +41,8 @@ public class ConjugateMacroscopicNetworkLayerFactoryImpl extends ManagedIdEntity
    * {@inheritDoc}
    */
   @Override
-  public ConjugateMacroscopicNetworkLayer registerNew(MacroscopicNetworkLayer referenceLayer) {
-    ConjugateMacroscopicNetworkLayer newLayer =
+  public ConjugateMacroscopicNetworkLayerImpl registerNew(MacroscopicNetworkLayer referenceLayer) {
+    ConjugateMacroscopicNetworkLayerImpl newLayer =
             new ConjugateMacroscopicNetworkLayerImpl(this.getIdGroupingToken(), referenceLayer);
     container.register(newLayer);
     return newLayer;

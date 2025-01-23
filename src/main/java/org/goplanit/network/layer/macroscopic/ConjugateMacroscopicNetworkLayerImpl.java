@@ -62,20 +62,58 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
   }
 
   /**
-   * Reset and re-populate entire conjugate network layer based on current state of original layer this is the
-   * conjugate of.
-   * <p>
-   *   It is assumed the conjugate virtual network layer is already populated (if present) and therefore
-   *   we do not reset the managed ids to enforce contiguous ids across edges and vertices.
-   * </p>
-   * <p>
-   *   XMLids of conjugate entities will be derived from their underlying original counterparts and marked with '*'
-   *   to reflect this.
-   * </p>
+   * Constructor
    * 
-   * @param conjugateVirtualNetworkLayer optional to connect to original connectoid edges/segments when present
+   * @param groupId       contiguous id generation within this group for instances of this class
+   * @param originalLayer this conjugate is based on
    */
-  protected void recreateFromReferenceLayer(ConjugateVirtualNetworkLayer conjugateVirtualNetworkLayer) {
+  protected ConjugateMacroscopicNetworkLayerImpl(
+          final IdGroupingToken groupId, final MacroscopicNetworkLayer originalLayer) {
+    // todo: replace links with Macroscopic conjugate links
+    this(groupId, new ConjugateNodesImpl(groupId), new ConjugateLinksImpl(groupId),
+            new ConjugateLinkSegmentsImpl(groupId), originalLayer);
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param groupId               contiguous id generation within this group for instances of this class
+   * @param conjugateNodes        to use
+   * @param conjugateLinks        to use
+   * @param conjugateLinkSegments to use
+   * @param originalLayer         this conjugate is based on
+   */
+  protected ConjugateMacroscopicNetworkLayerImpl(final IdGroupingToken groupId, ConjugateNodes conjugateNodes, ConjugateLinks conjugateLinks,
+      ConjugateLinkSegments conjugateLinkSegments, final MacroscopicNetworkLayer originalLayer) {
+    super(groupId, conjugateNodes, conjugateLinks, conjugateLinkSegments);
+    this.originalLayer = originalLayer;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param nodeMapper to use
+   * @param linkMapper to use
+   * @param linkSegmentMapper to use
+   */
+  protected ConjugateMacroscopicNetworkLayerImpl(
+      ConjugateMacroscopicNetworkLayerImpl other,
+      boolean deepCopy,
+      GraphEntityDeepCopyMapper<ConjugateNode> nodeMapper,
+      GraphEntityDeepCopyMapper<ConjugateLink> linkMapper,
+      GraphEntityDeepCopyMapper<ConjugateLinkSegment> linkSegmentMapper) {
+    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper);
+    this.originalLayer = other.originalLayer;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateFromReferenceLayer(ConjugateVirtualNetworkLayer conjugateVirtualNetworkLayer) {
     reset(conjugateVirtualNetworkLayer==null);
 
     // sync supported modes
@@ -183,52 +221,6 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
     }
   }
 
-  /**
-   * Constructor
-   * 
-   * @param groupId       contiguous id generation within this group for instances of this class
-   * @param originalLayer this conjugate is based on
-   */
-  protected ConjugateMacroscopicNetworkLayerImpl(
-          final IdGroupingToken groupId, final MacroscopicNetworkLayer originalLayer) {
-    // todo: replace links with Macroscopic conjugate links
-    this(groupId, new ConjugateNodesImpl(groupId), new ConjugateLinksImpl(groupId),
-            new ConjugateLinkSegmentsImpl(groupId), originalLayer);
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param groupId               contiguous id generation within this group for instances of this class
-   * @param conjugateNodes        to use
-   * @param conjugateLinks        to use
-   * @param conjugateLinkSegments to use
-   * @param originalLayer         this conjugate is based on
-   */
-  protected ConjugateMacroscopicNetworkLayerImpl(final IdGroupingToken groupId, ConjugateNodes conjugateNodes, ConjugateLinks conjugateLinks,
-      ConjugateLinkSegments conjugateLinkSegments, final MacroscopicNetworkLayer originalLayer) {
-    super(groupId, conjugateNodes, conjugateLinks, conjugateLinkSegments);
-    this.originalLayer = originalLayer;
-  }
-
-  /**
-   * Copy constructor
-   * 
-   * @param other to copy
-   * @param deepCopy when true, create a deep copy, shallow copy otherwise
-   * @param nodeMapper to use
-   * @param linkMapper to use
-   * @param linkSegmentMapper to use
-   */
-  protected ConjugateMacroscopicNetworkLayerImpl(
-      ConjugateMacroscopicNetworkLayerImpl other,
-      boolean deepCopy,
-      GraphEntityDeepCopyMapper<ConjugateNode> nodeMapper,
-      GraphEntityDeepCopyMapper<ConjugateLink> linkMapper,
-      GraphEntityDeepCopyMapper<ConjugateLinkSegment> linkSegmentMapper) {
-    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper);
-    this.originalLayer = other.originalLayer;
-  }
 
   /**
    * {@inheritDoc}

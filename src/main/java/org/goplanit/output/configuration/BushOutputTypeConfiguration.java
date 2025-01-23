@@ -19,9 +19,7 @@ import java.util.stream.Collectors;
  * <li>LINK_SEGMENT_XML_ID</li>
  * <li>LINK_SEGMENT_GEOMETRY</li>
  * <li>UPSTREAM_NODE_XML_ID</li>
- * <li>UPSTREAM_NODE_GEOMETRY</li>
  * <li>DOWNSTREAM_NODE_XML_ID</li>
- * <li>DOWNSTREAM_NODE_GEOMETRY</li>
  * <li>TIME_PERIOD_XML_ID</li>
  * </ul>
  * 
@@ -42,6 +40,7 @@ public class BushOutputTypeConfiguration extends SegmentBaseOutputTypeConfigurat
    */
   public BushOutputTypeConfiguration(){
     super(OutputType.BUSH);
+    addProperty(OutputPropertyType.LINK_SEGMENT_GEOMETRY);
   }
 
   /**

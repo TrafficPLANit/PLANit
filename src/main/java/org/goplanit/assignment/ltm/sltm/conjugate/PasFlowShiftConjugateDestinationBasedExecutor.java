@@ -205,11 +205,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    */
   @Override
   protected Pair<ConjugateEdgeSegment, Boolean> findFirstCongestedEdgeSegmentOnPasAlternative(
-          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
+          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment) {
+    assert(ignoreInitialSegment);
 
     ConjugateEdgeSegment[] alternative = pas.getAlternative(lowCost);
     ConjugateEdgeSegment currConjSegment = null;
-    for (int index = 0; index < alternative.length; ++index) {
+    for (int index = 1; index < alternative.length; ++index) {
       currConjSegment = alternative[index];
 
       // use the original network loading segments to determine if the conjugate segment (turn) is considered
@@ -260,12 +261,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           final StaticLtmLoadingBushBase<?> networkLoading,
           final AbstractPhysicalCost physicalCost,
           final AbstractVirtualCost virtualCost,
-          boolean isLowCostAlternative) {
+          boolean isLowCostAlternative,
+          boolean ignoreFirstSegment) {
+    assert(ignoreFirstSegment);
 
     double dTravelTimeDFlow = 0.0;
 
     var pasAlternative = this.pas.getAlternative(isLowCostAlternative);
-    int index = 0;
+    int index = 1;
     while(index < pasAlternative.length){
       ConjugateEdgeSegment currSegment = pasAlternative[index++];
       if(!currSegment.hasOriginalEntryEdgeSegment()){
@@ -311,14 +314,16 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    */
   @Override
   protected double determinePasAlternativeSlackFlow(
-          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
+          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment) {
+    assert (ignoreInitialSegment);
+
     double slackFlow = Double.POSITIVE_INFINITY;
 
     // regular PAS traversal rework back to original link segments
     int linkSegmentId = -1;
     ConjugateEdgeSegment conjAltEdgeSegment = null;
     ConjugateEdgeSegment[] conjAltEdgeSegments = pas.getAlternative(lowCost);
-    for (int index = 0; index < conjAltEdgeSegments.length; ++index) {
+    for (int index = 1; index < conjAltEdgeSegments.length; ++index) {
       conjAltEdgeSegment = conjAltEdgeSegments[index];
       if(!conjAltEdgeSegment.hasOriginalEntryEdgeSegment()){
         continue;
@@ -447,21 +452,28 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double denominatorS2 = 0;
     double denominatorS1 = 0;
 
-    /* get first congested edge segment (or near congestion) that is affected when shifting flow, per alternative */
-    var s1FirstCongestedSegmentResult = findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true);
-    var s2FirstCongestedSegmentResult = findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false);
+    /* get first congested edge segment (or near congestion) that is affected when shifting flow, per alternative
+    *  Note: in conjugate setting the first segment can and must always be ignored because its original counter-part
+    *  entry is ALWAYS shared. As a result shifting flows has no impact. If it would be included derivatives would be
+    * biased and wrong especially in case it is (the only) congested segment */
+    boolean ignoreInitialConjEdgeSegment = true;
+    var s1FirstCongestedSegmentResult =
+            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true, ignoreInitialConjEdgeSegment);
+    var s2FirstCongestedSegmentResult =
+            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false, ignoreInitialConjEdgeSegment);
     var firstS1CongestedSegment = s1FirstCongestedSegmentResult!= null ? s1FirstCongestedSegmentResult.first() : null;
     var firstS2CongestedSegment = s2FirstCongestedSegmentResult!= null ? s2FirstCongestedSegmentResult.first() : null;
 
-    denominatorS1 =
-            getDTravelTimeDFlow(theMode, networkLoading, physicalCost, virtualCost, true);
-    denominatorS2 =
-            getDTravelTimeDFlow(theMode, networkLoading, physicalCost, virtualCost, false);
+    denominatorS1 = getDTravelTimeDFlow(
+            theMode, networkLoading, physicalCost, virtualCost, true, ignoreInitialConjEdgeSegment);
+    denominatorS2 = getDTravelTimeDFlow(
+            theMode, networkLoading, physicalCost, virtualCost, false, ignoreInitialConjEdgeSegment);
 
     double flowShift = 0;
     boolean pasCostEqual = pas.isCostEqual(EPSILON);
-    double slackFlowEstimate = determinePasAlternativeSlackFlow(networkLoading, true);
-    if (!pasCostEqual && smaller(denominatorS2,EPSILON) && smaller(denominatorS2, EPSILON)) {
+    double slackFlowEstimate = determinePasAlternativeSlackFlow(
+            networkLoading, true, ignoreInitialConjEdgeSegment);
+    if (!pasCostEqual && smallerEqual(denominatorS2,EPSILON,EPSILON) && smallerEqual(denominatorS2, EPSILON,EPSILON)) {
       /* s1 & S2 UNCONGESTED - no derivative estimate possible (denominator zero) */
       /* move all towards cheaper alternative limited by slack + delta */
       /* obtain PAS-entry segment sub-path sending flows */
@@ -499,7 +511,15 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
 
     // VERIFY CROSSING OF DISCONTINUITY on S2 travel time function - adjust shift if so, to mitigate effect
-    boolean pasS2PotentialDiscontinuity = (firstS2CongestedSegment != null && s2FirstCongestedSegmentResult.second());
+    // Now we do consider initial segment because we are looking at crossing a discontinuity, not how much flow to
+    // change
+    var pasEntrySegmentCongestedResult = isCongested(
+            networkLoading,
+            pas.getFirstEdgeSegment(false).getOriginalAdjacentEdgeSegments().first(),
+            UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH);
+    boolean pasS2PotentialDiscontinuity =
+            (firstS2CongestedSegment != null && s2FirstCongestedSegmentResult.second()) ||
+                    (pasEntrySegmentCongestedResult.first() && !pasEntrySegmentCongestedResult.second());
     if (pasS2PotentialDiscontinuity) {
       double s2DeltaFlowToStateChangeEstimate = -1;
 

@@ -52,11 +52,11 @@ public class TransportModelNetworkImpl
    * @param connectoidLink to process
    */
   protected void createAndRegisterConnectoidEdgeSegments(
-      ConnectoidSegmentFactory connectoidSegmentFactory, ConnectoidLink connectoidLink) {
+      ConnectoidSegmentFactory connectoidSegmentFactory, ConnectoidLink connectoidLink, String virtualXmlIdPrefix) {
     var segment = connectoidSegmentFactory.registerNew(connectoidLink, true);
-    segment.setXmlId("c_ab" + segment.getId());
+    segment.setXmlId(virtualXmlIdPrefix + segment.getId()+"_ab");
     segment = connectoidSegmentFactory.registerNew(connectoidLink, false);
-    segment.setXmlId("c_ba" + segment.getId());
+    segment.setXmlId(virtualXmlIdPrefix + segment.getId()+"ba");
     connectVerticesToEdge(connectoidLink);
   }
 
@@ -78,12 +78,15 @@ public class TransportModelNetworkImpl
       Connectoid connectoid,
       PlanitJtsCrsUtils geoTools) {
 
+    String virtualXmlIdPrefix = "c";
     double connectoidLength = connectoid.getLengthKm(accessZone).orElseThrow(
-        () -> new PlanItRunTimeException("unable to retrieve length for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
+        () -> new PlanItRunTimeException(
+                "unable to retrieve length for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
     var connectoidEdge =
         connectoidLinkFactory.registerNew(centroidVertex, connectoid.getAccessVertex(), connectoidLength);
+    connectoidEdge.setXmlId(virtualXmlIdPrefix + connectoidEdge.getId());
     connectVerticesToEdge(connectoidEdge);
-    createAndRegisterConnectoidEdgeSegments(connectoidSegmentFactory, connectoidEdge);
+    createAndRegisterConnectoidEdgeSegments(connectoidSegmentFactory, connectoidEdge, virtualXmlIdPrefix);
 
     /* populate geometry as well */
     populateConnectoidGeometry(connectoidEdge, geoTools);
@@ -171,7 +174,8 @@ public class TransportModelNetworkImpl
     if(resetAndRecreateManagedIds){
       LOGGER.info("Recreating internal contiguous ids for network and zoning");
       infrastructureNetwork.recreateManagedIds();
-      virtualNetwork.recreateManagedIds(false); // reset of underlying managed id class (edge,vertex) already happened in network
+      // reset of underlying managed id class (edge,vertex) already happened in network
+      virtualNetwork.recreateManagedIds(false);
     }
 
     var centroidVertexFactory = virtualNetwork.getLayer().getVertices().getFactory();
@@ -185,7 +189,8 @@ public class TransportModelNetworkImpl
       for(var accessZone : undirectedConnectoid.getAccessZones()){
         var centroidVertex = zone2CentroidVertexMapping.get(accessZone);
         if(centroidVertex == null) {
-          centroidVertex = centroidVertexFactory.registerNew(accessZone.getCentroid()); // explicit vertex for centroid related to this virtual/physical network
+          // explicit vertex for centroid related to this virtual/physical network
+          centroidVertex = centroidVertexFactory.registerNew(accessZone.getCentroid());
           zone2CentroidVertexMapping.put(accessZone, centroidVertex);
         }
 

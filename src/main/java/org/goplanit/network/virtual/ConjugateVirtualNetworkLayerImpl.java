@@ -38,11 +38,44 @@ public class ConjugateVirtualNetworkLayerImpl
   protected VirtualNetworkLayerImpl referenceLayer;
 
   /**
-   * Update the layer by syncing it to the current non-conjugate reference layer
+   * Constructor
    *
-   * @param resetManagedIds when true reset the id token such that generated managed ids will start from zero again
+   * @param tokenId contiguous id generation for instances of this class
+   * @param referenceLayer original layer
    */
-  protected void recreateFromReferenceLayer(boolean resetManagedIds) {
+  public ConjugateVirtualNetworkLayerImpl(final IdGroupingToken tokenId, VirtualNetworkLayerImpl referenceLayer) {
+    super(tokenId,
+            new ConjugateConnectoidNodesImpl(tokenId),
+            new ConjugateConnectoidLinksImpl(tokenId),
+            new ConjugateConnectoidSegmentsImpl(tokenId));
+    this.referenceLayer = referenceLayer;
+  }
+
+  /**
+   * Copy constructor
+   *
+   * @param other to clone
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   * @param conjugateConnectoidLinkMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param conjugateConnectoidSegmentMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param conjugateNodeMapper to use for tracking mapping between original and copied entity (may be null)
+   */
+  protected ConjugateVirtualNetworkLayerImpl(
+      final ConjugateVirtualNetworkLayerImpl other,
+      boolean deepCopy,
+      GraphEntityDeepCopyMapper<ConjugateConnectoidLink> conjugateConnectoidLinkMapper,
+      GraphEntityDeepCopyMapper<ConjugateConnectoidSegment> conjugateConnectoidSegmentMapper,
+      GraphEntityDeepCopyMapper<ConjugateConnectoidNode> conjugateNodeMapper) {
+    super(other, deepCopy, conjugateNodeMapper, conjugateConnectoidLinkMapper, conjugateConnectoidSegmentMapper);
+
+    this.referenceLayer = other.referenceLayer; // not owned
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateFromReferenceLayer(boolean resetManagedIds) {
     reset(resetManagedIds);
 
     Map<DirectedVertex, ConjugateConnectoidNode> dummyConjugateNodePerCentroidVertex = new HashMap<>();
@@ -77,39 +110,6 @@ public class ConjugateVirtualNetworkLayerImpl
     }
   }
 
-  /**
-   * Constructor
-   *
-   * @param tokenId contiguous id generation for instances of this class
-   * @param referenceLayer original layer
-   */
-  public ConjugateVirtualNetworkLayerImpl(final IdGroupingToken tokenId, VirtualNetworkLayerImpl referenceLayer) {
-    super(tokenId,
-            new ConjugateConnectoidNodesImpl(tokenId),
-            new ConjugateConnectoidLinksImpl(tokenId),
-            new ConjugateConnectoidSegmentsImpl(tokenId));
-    this.referenceLayer = referenceLayer;
-  }
-
-  /**
-   * Copy constructor
-   *
-   * @param other to clone
-   * @param deepCopy when true, create a deep copy, shallow copy otherwise
-   * @param conjugateConnectoidLinkMapper to use for tracking mapping between original and copied entity (may be null)
-   * @param conjugateConnectoidSegmentMapper to use for tracking mapping between original and copied entity (may be null)
-   * @param conjugateNodeMapper to use for tracking mapping between original and copied entity (may be null)
-   */
-  protected ConjugateVirtualNetworkLayerImpl(
-      final ConjugateVirtualNetworkLayerImpl other,
-      boolean deepCopy,
-      GraphEntityDeepCopyMapper<ConjugateConnectoidLink> conjugateConnectoidLinkMapper,
-      GraphEntityDeepCopyMapper<ConjugateConnectoidSegment> conjugateConnectoidSegmentMapper,
-      GraphEntityDeepCopyMapper<ConjugateConnectoidNode> conjugateNodeMapper) {
-    super(other, deepCopy, conjugateNodeMapper, conjugateConnectoidLinkMapper, conjugateConnectoidSegmentMapper);
-
-    this.referenceLayer = other.referenceLayer; // not owned
-  }
 
   /**
    * {@inheritDoc}

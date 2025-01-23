@@ -25,7 +25,8 @@ public class QuadraticLinearFundamentalDiagramComponent extends FundamentalDiagr
   /**
    * Logger to use
    */
-  private static final Logger LOGGER = Logger.getLogger(QuadraticLinearFundamentalDiagramComponent.class.getCanonicalName());
+  private static final Logger LOGGER =
+          Logger.getLogger(QuadraticLinearFundamentalDiagramComponent.class.getCanonicalName());
 
   /**
    * {@inheritDoc}

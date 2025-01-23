@@ -45,12 +45,13 @@ public class ConjugateMacroscopicNetwork extends
       return;
     }
 
+
     ConjugateVirtualNetworkLayer conjugateVirtualLayer =
         conjugateVirtualNetwork!=null ? conjugateVirtualNetwork.getLayer() : null;
     // create conjugate version and register on conjugate container
     for(var referenceLayer : referenceLayers){
       var conjugateLayer =
-          referenceLayer.createConjugate(getNetworkGroupingTokenId(), conjugateVirtualLayer);
+          referenceLayer.createAndRegisterConjugate(getTransportLayers().getFactory(), conjugateVirtualLayer);
       getTransportLayers().register(conjugateLayer);
     }
 

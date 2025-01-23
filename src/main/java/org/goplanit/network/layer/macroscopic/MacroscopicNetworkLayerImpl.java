@@ -13,7 +13,7 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.*;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
-import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
+import org.goplanit.utils.network.layers.ConjugateMacroscopicNetworkLayerFactory;
 import org.goplanit.utils.network.virtual.ConjugateVirtualNetworkLayer;
 
 /**
@@ -197,10 +197,12 @@ public class MacroscopicNetworkLayerImpl
    * {@inheritDoc}
    */
   @Override
-  public ConjugateMacroscopicNetworkLayer createConjugate(
-          final IdGroupingToken idToken, final ConjugateVirtualNetworkLayer conjugateVirtualNetworkLayer) {
+  public  ConjugateMacroscopicNetworkLayer createAndRegisterConjugate(
+          ConjugateMacroscopicNetworkLayerFactory factory,
+          final ConjugateVirtualNetworkLayer conjugateVirtualNetworkLayer) {
+
     /* empty instance */
-    var conjugateLayer = new ConjugateMacroscopicNetworkLayerImpl(idToken, this);
+    var conjugateLayer = factory.registerNew(this);
     /* update based on state of parent network */
     conjugateLayer.recreateFromReferenceLayer(conjugateVirtualNetworkLayer);
     return conjugateLayer;

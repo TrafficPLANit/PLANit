@@ -188,8 +188,8 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param segment to check
    * @param nearCongestionIsCongestionThresholdPcuH threshold which will flag segment as congested when it approaches
    *                                            congestion within this threshold.
-   * @return pair indicating what congestion was found - first argument indicates if segment itself is congested, second indicates
-   *  if any of its exit segments are near congestion based on threshold
+   * @return pair indicating what congestion was found - first argument indicates if segment itself is congested,
+   * second indicates if any of its exit segments are near congestion based on threshold
    */
   protected static Pair<Boolean, Boolean> isCongested(
           StaticLtmLoadingBushBase<?> loading,
@@ -250,6 +250,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param physicalCost to use
    * @param virtualCost  to use
    * @param isLowCostAlternative to use
+   * @param ignoreInitialEdgeSegment when true, ignore initial segment for calculation
    * @return dTravelTimedFlow or 0 if not possible to compute (with warning)
    */
   protected abstract double getDTravelTimeDFlow(
@@ -257,7 +258,8 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
           final StaticLtmLoadingBushBase<?> networkLoading,
           final AbstractPhysicalCost physicalCost,
           final AbstractVirtualCost virtualCost,
-          boolean isLowCostAlternative);
+          boolean isLowCostAlternative,
+          boolean ignoreInitialEdgeSegment);
 
   /**
    * Determine the adjusted flow shift by taking the proposed upper bound and reduce it by a
@@ -356,10 +358,11 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param networkLoading to collect outflow rates from
    * @param lowCost        when true determine for low cost alternative, when false for high cost alternative
+   * @param ignoreInitialSegment when true ignore initial segment when computing this
    * @return slack flow found
    */
   protected abstract double determinePasAlternativeSlackFlow(
-          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost);
+          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment);
 
   /**
    * Find first congested segment on PAS for either alternative, note that we do use some slack on when
@@ -367,12 +370,13 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param networkLoading to use
    * @param lowCost flag indicating what alternative to apply
+   * @param ignoreInitialSegment when true ignore the first segment of the PAS alternative in this search.
    * @return found segments on alternative, null when not congested, second argument indicates whether it
    *  is truly congested already (true), or near congestion (false) but within threshold applied
    *
    */
   protected abstract Pair<ES, Boolean> findFirstCongestedEdgeSegmentOnPasAlternative(
-          final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost);
+          final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment);
 
   /**
    * Perform the flow shift for a given bush. Delegate to concrete class implementation

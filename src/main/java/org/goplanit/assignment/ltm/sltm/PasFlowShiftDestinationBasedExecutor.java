@@ -302,7 +302,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    */
   @Override
   protected Pair<EdgeSegment, Boolean> findFirstCongestedEdgeSegmentOnPasAlternative(
-          final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
+          final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreFirstSegment) {
+    assert(!ignoreFirstSegment);
 
     EdgeSegment[] alternative = pas.getAlternative(lowCost);
     int index = 0;
@@ -340,7 +341,9 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
           final StaticLtmLoadingBushBase<?> networkLoading,
           final AbstractPhysicalCost physicalCost,
           final AbstractVirtualCost virtualCost,
-          boolean isLowCostAlternative) {
+          boolean isLowCostAlternative,
+          boolean ignoreFirstSegment) {
+    assert(!ignoreFirstSegment);
 
     double dTravelTimeDFlow = 0.0;
 
@@ -392,7 +395,9 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    */
   @Override
   protected double determinePasAlternativeSlackFlow(
-          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
+          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment) {
+    assert (!ignoreInitialSegment);
+
     var lastAlternativeSegment = pas.getLastEdgeSegment(lowCost);
     double slackFlow = Double.POSITIVE_INFINITY;
 
@@ -463,20 +468,23 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
     double denominatorS1 = 0;
 
     /* get first congested edge segment that is affected when shifting flow, per alternative */
-    var s1FirstCongestedSegmentResult = findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true);
-    var s2FirstCongestedSegmentResult = findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false);
+    boolean ignoreFirstSegment = false;
+    var s1FirstCongestedSegmentResult =
+            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true, ignoreFirstSegment);
+    var s2FirstCongestedSegmentResult =
+            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false, ignoreFirstSegment);
     var firstS1CongestedSegment = s1FirstCongestedSegmentResult!= null ? s1FirstCongestedSegmentResult.first() : null;
     var firstS2CongestedSegment = s2FirstCongestedSegmentResult!= null ? s2FirstCongestedSegmentResult.first() : null;
 
-    denominatorS1 =
-            getDTravelTimeDFlow(theMode, networkLoading, physicalCost, virtualCost, true);
-    denominatorS2 =
-            getDTravelTimeDFlow(theMode, networkLoading, physicalCost, virtualCost, false);
+    denominatorS1 = getDTravelTimeDFlow(
+            theMode, networkLoading, physicalCost, virtualCost, true, ignoreFirstSegment);
+    denominatorS2 = getDTravelTimeDFlow(
+            theMode, networkLoading, physicalCost, virtualCost, false, ignoreFirstSegment);
 
     double flowShift = 0;
     boolean pasCostEqual = pas.isCostEqual(EPSILON);
     double s2TotalEntrySendingFlow = getTotalEntrySegmentSendingFlow(entrySegment, false);
-    double slackFlowEstimate = determinePasAlternativeSlackFlow(networkLoading, true);
+    double slackFlowEstimate = determinePasAlternativeSlackFlow(networkLoading, true, ignoreFirstSegment);
     if (!pasCostEqual && smaller(denominatorS2,EPSILON) && smaller(denominatorS2, EPSILON)) {
 
       /* s1 & S2 UNCONGESTED - no derivative estimate possible (denominator zero) */
