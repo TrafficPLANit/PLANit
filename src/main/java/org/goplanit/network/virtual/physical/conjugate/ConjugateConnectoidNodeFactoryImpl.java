@@ -12,7 +12,8 @@ import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
  * 
  * @author markr
  */
-public class ConjugateConnectoidNodeFactoryImpl extends GraphEntityFactoryImpl<ConjugateConnectoidNode> implements ConjugateConnectoidNodeFactory {
+public class ConjugateConnectoidNodeFactoryImpl
+        extends GraphEntityFactoryImpl<ConjugateConnectoidNode> implements ConjugateConnectoidNodeFactory {
 
   /**
    * Constructor
@@ -36,8 +37,10 @@ public class ConjugateConnectoidNodeFactoryImpl extends GraphEntityFactoryImpl<C
    * {@inheritDoc}
    */
   @Override
-  public ConjugateConnectoidNode registerNew(final ConnectoidDirectedEdge originalConnectoidEdge) {
+  public ConjugateConnectoidNode registerNew(
+          final ConnectoidDirectedEdge originalConnectoidEdge, boolean deriveFromOriginalEdge, String xmlIdPostFix) {
     final ConjugateConnectoidNode newEntity = createNew(originalConnectoidEdge);
+    newEntity.populateXmlId(deriveFromOriginalEdge, xmlIdPostFix);
     getGraphEntities().register(newEntity);
     return newEntity;
   }

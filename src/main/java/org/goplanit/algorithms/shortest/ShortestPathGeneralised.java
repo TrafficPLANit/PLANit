@@ -3,6 +3,7 @@ package org.goplanit.algorithms.shortest;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -83,11 +84,15 @@ public class ShortestPathGeneralised {
    *                                               shortest compared to existing cost
    * @param shortestAlternativeEdgeSegmentConsumer process the "shortest" alternative edge segment when verified by
    *                                               the predicate
+   * @param bannedThroughVertices                  set of vertices that do not allow paths to go through them.
+   *                                               They may only serve as start and/or end points
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available
    * in the array
    */
   protected double[] internalExecute(
-          BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestAlternativeEdgeSegmentConsumer) {
+          BiPredicate<Double, Double> verifyVertex,
+          Consumer<EdgeSegment> shortestAlternativeEdgeSegmentConsumer,
+          Set<DirectedVertex> bannedThroughVertices) {
     boolean[] vertexVisited = new boolean[numberOfVertices];
 
     // track measured cost for each vertex
@@ -125,9 +130,11 @@ public class ShortestPathGeneralised {
 
             if (verifyVertex.test(adjacentVertexCost, computedCostToReachAdjacentVertex)) {
               vertexMeasuredCost[adjacentVertexId] = computedCostToReachAdjacentVertex; // update cost
-              openVertices.add(Pair.of(adjacentVertex, computedCostToReachAdjacentVertex)); // place on queue
 
               shortestAlternativeEdgeSegmentConsumer.accept(adjacentEdgeSegment); // process "shortest" edge segment
+              if(!bannedThroughVertices.contains(adjacentVertex)){
+                openVertices.add(Pair.of(adjacentVertex, computedCostToReachAdjacentVertex)); // place on queue
+              }
             }
           }
         }
@@ -146,16 +153,19 @@ public class ShortestPathGeneralised {
    *                                            shortest compared to existing cost
    * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by the
    *                                            predicate
+   * @param bannedThroughVertices               set of vertices that do not allow paths to go through them. They may only serve as
+   *                                            start and/or end points
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available
    * in the array
    */
   protected double[] execute(
           ShortestSearchType searchType,
           BiPredicate<Double, Double> verifyVertex,
-          Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
+          Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer,
+          Set<DirectedVertex> bannedThroughVertices) {
     this.getEdgeSegmentsInDirection = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(searchType);
     this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(searchType);
-    return internalExecute(verifyVertex, shortestIncomingEdgeSegmentConsumer);
+    return internalExecute(verifyVertex, shortestIncomingEdgeSegmentConsumer, bannedThroughVertices);
   }
 
   /**
@@ -168,12 +178,17 @@ public class ShortestPathGeneralised {
    *                                            shortest compared to existing cost
    * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by the
    *                                            predicate
+   * @param bannedThroughVertices               set of vertices that do not allow paths to go through them. They may only serve as
+   *                                            start and/or end points
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available
    * in the array
    */
   protected double[] executeOneToAll(
-          BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
-    return execute(ShortestSearchType.ONE_TO_ALL, verifyVertex, shortestIncomingEdgeSegmentConsumer);
+          BiPredicate<Double, Double> verifyVertex,
+          Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer,
+          Set<DirectedVertex> bannedThroughVertices) {
+    return execute(
+            ShortestSearchType.ONE_TO_ALL, verifyVertex, shortestIncomingEdgeSegmentConsumer, bannedThroughVertices);
   }
 
   /**
@@ -186,12 +201,17 @@ public class ShortestPathGeneralised {
    *                                            shortest compared to existing cost
    * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by
    *                                            the predicate
+   * @param bannedThroughVertices               set of vertices that do not allow paths to go through them. They may only serve as
+   *                                            start and/or end points
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available
    * in the array
    */
   protected double[] executeAllToOne(
-          BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
-    return execute(ShortestSearchType.ALL_TO_ONE, verifyVertex, shortestIncomingEdgeSegmentConsumer);
+          BiPredicate<Double, Double> verifyVertex,
+          Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer,
+          Set<DirectedVertex> bannedThroughVertices) {
+    return execute(
+            ShortestSearchType.ALL_TO_ONE, verifyVertex, shortestIncomingEdgeSegmentConsumer, bannedThroughVertices);
   }
 
   /**

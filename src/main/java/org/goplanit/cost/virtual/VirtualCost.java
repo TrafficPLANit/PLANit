@@ -27,4 +27,12 @@ public interface VirtualCost extends Cost<ConnectoidSegment> {
    * @param costToFill     array of link segment costs identified by the link segment's internal id
    */
   public void populateWithCost(final VirtualNetwork virtualNetwork, Mode mode, double[] costToFill);
+
+  /**
+   * Name of this cost type, should be based on the String representation that are made publicly available, e.g.,
+   * FIXED, or SPEED.
+   *
+   * @return name of this type of cost
+   */
+  public abstract String getName();
 }

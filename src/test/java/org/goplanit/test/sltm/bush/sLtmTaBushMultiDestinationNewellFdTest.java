@@ -88,7 +88,12 @@ public class sLtmTaBushMultiDestinationNewellFdTest extends sLtmAssignmentMultiD
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
+
+      sLTM.addTrackOdForLoggingByXmlId("A", "A``");
+      sLTM.addTrackOdForLoggingByXmlId("A", "A`");
+      sLTM.setActivateDetailedLogging(true);
+
       sLTM.execute();
 
       testDeterministicOutputs(sLTM);

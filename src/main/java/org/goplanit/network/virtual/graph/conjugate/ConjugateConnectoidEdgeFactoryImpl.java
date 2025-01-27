@@ -15,7 +15,8 @@ import java.util.logging.Logger;
  * 
  * @author markr
  */
-public class ConjugateConnectoidEdgeFactoryImpl extends GraphEntityFactoryImpl<ConjugateConnectoidDirectedEdge> implements ConjugateConnectoidEdgeFactory {
+public class ConjugateConnectoidEdgeFactoryImpl
+        extends GraphEntityFactoryImpl<ConjugateConnectoidDirectedEdge> implements ConjugateConnectoidEdgeFactory {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateConnectoidEdgeFactoryImpl.class.getCanonicalName());
@@ -38,7 +39,9 @@ public class ConjugateConnectoidEdgeFactoryImpl extends GraphEntityFactoryImpl<C
       final ConjugateConnectoidNode vertexA,
       final ConjugateConnectoidNode vertexB,
       boolean registerOnNodes,
-      final ConnectoidDirectedEdge originalConnectoidEdge) {
+      final ConnectoidDirectedEdge originalConnectoidEdge,
+      boolean deriveXmlIdFromOriginalEdges,
+      String xmlIdPostFix) {
 
     if (vertexA == null || vertexB == null) {
       LOGGER.warning("Unable to create new conjugate link, one or more of its conjugate nodes are not defined");
@@ -47,6 +50,7 @@ public class ConjugateConnectoidEdgeFactoryImpl extends GraphEntityFactoryImpl<C
 
     ConjugateConnectoidEdgeImpl newConjugateEdge =
         new ConjugateConnectoidEdgeImpl(getIdGroupingToken(), vertexA, vertexB, originalConnectoidEdge);
+    newConjugateEdge.populateXmlId(deriveXmlIdFromOriginalEdges, xmlIdPostFix);
     getGraphEntities().register(newConjugateEdge);
     if (registerOnNodes) {
       vertexA.addEdge(newConjugateEdge);

@@ -13,6 +13,8 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -362,8 +364,10 @@ public class sLtmAssignmentBushMultiOdTest {
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       sLTMBuilder.getConfigurator().activateDetailedLogging(false);
 
-      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(0.2);
+//      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+//      fixedStepSmoothing.setStepSize(0.2);
+
+      var smoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
 
       /* DESTINATION BASED */
       var slTMConfigurator = sLTMBuilder.getConfigurator();

@@ -101,6 +101,14 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * {@inheritDoc}
    */
   @Override
+  public String getName() {
+    return VirtualCost.SPEED;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public SpeedConnectoidTravelTimeCost shallowClone() {
     return new SpeedConnectoidTravelTimeCost(this, false);
   }

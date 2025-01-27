@@ -150,7 +150,8 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
 
       // to test if it works without smoothing we disallow overlapping PAS updates and set step-size to 1
       configurator.setAllowOverlappingPasUpdate(true);
-      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) configurator.createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) configurator.createAndRegisterSmoothing(
+              Smoothing.FIXED_STEP);
       fixedStepSmoothing.setStepSize(1);
 
       configurator.activateOutput(OutputType.LINK);

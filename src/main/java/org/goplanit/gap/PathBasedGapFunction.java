@@ -144,6 +144,8 @@ public class PathBasedGapFunction extends GapFunction {
 
     /* regular non-zero measured cost */
     gap = scaledMeasuredPathCostGap / Math.abs(scaledMinimumPathCosts);
+    LOGGER.severe(String.format("Measured cost diff (%.10f)", scaledMeasuredPathCostGap));
+    LOGGER.severe(String.format("Scaled minimum path costs (%.10f)", scaledMinimumPathCosts));
     return gap;
   }
 

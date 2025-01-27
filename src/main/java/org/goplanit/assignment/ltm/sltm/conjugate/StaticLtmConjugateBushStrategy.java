@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 /**
@@ -56,12 +57,24 @@ public class StaticLtmConjugateBushStrategy
    * @return conjugate projected costs
    */
   private double[] expandNonConjugateLinkSegmentCostToConjugateSegmentCost(double[] nonConjugateLinkSegmentCosts){
-    double[] conjugateSegmentCosts = new double[conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers()];
-    var conjugatePhysicalLayer = conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst();
-    conjugatePhysicalLayer.getLinkSegments().forEach(cs ->
-            // [conj_segment_cost] = [link_segment_cost_of_original_turn_entry]
-            conjugateSegmentCosts[(int)cs.getId()] =
-                    nonConjugateLinkSegmentCosts[(int)cs.getOriginalAdjacentEdgeSegments().first().getId()]);
+    final double[] conjugateSegmentCosts = new double[conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers()];
+
+    // Function to expand from original entry segment costs to conjugate link segment costs
+    Consumer<ConjugateEdgeSegment> adoptOriginalEdgeSegmentCostFunc = cs -> {
+      double conjugateCost = 0.0;
+      if(cs.getOriginalAdjacentEdgeSegments().first() != null){
+        conjugateCost = nonConjugateLinkSegmentCosts[(int)cs.getOriginalAdjacentEdgeSegments().first().getId()];
+      }
+      conjugateSegmentCosts[(int)cs.getId()] = conjugateCost;
+    };
+
+    // apply to physical layer...
+    var conjugatePhysicalLayer =
+            conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst();
+    conjugatePhysicalLayer.getLinkSegments().forEach(adoptOriginalEdgeSegmentCostFunc);
+    // and apply to virtual layer...
+    var conjugateVirtualLayer = conjugateTransportModelNetwork.getVirtualNetwork().getLayer();
+    conjugateVirtualLayer.getConnectoidSegments().forEach(adoptOriginalEdgeSegmentCostFunc);
     return conjugateSegmentCosts;
   }
 
@@ -382,6 +395,7 @@ public class StaticLtmConjugateBushStrategy
         bush.addOriginDemandPcuH(originConjugateReferenceVertex, currOdDemand);
         initialiseConjugateBushForOrigin(
                 bush, originConjugateReferenceVertex, currOdDemand, destinationOriginInvertedDag);
+        LOGGER.info(bush.toString());
       }
     }
   }
@@ -453,7 +467,8 @@ public class StaticLtmConjugateBushStrategy
 
     // method overridden for conjugate implementation resulting in conjugate compatible shortest path search using
     // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...
-    final var conjLinkSegmentCosts = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(nonConjugateLinkSegmentCosts);
+    final var conjLinkSegmentCosts =
+            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(nonConjugateLinkSegmentCosts);
     final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
     for (var conjBush : getBushes()) {
       if (conjBush == null) {

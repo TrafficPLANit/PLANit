@@ -6,6 +6,8 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
+import org.goplanit.cost.virtual.FixedConnectoidTravelTimeCost;
+import org.goplanit.cost.virtual.VirtualCost;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -800,7 +802,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         var alphas = getLoading().getCurrentFlowAcceptanceFactors();
         for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
           if(alphas[(int)ls.getId()]<0.999999999998){
-            LOGGER.info(String.format("** LINK (%s) - ALPHA: %.8f - Sending flow: %.2f",
+            LOGGER.info(String.format("** LINK (%s) - ALPHA: %.8f - Sending flow: %.10f",
                     ls.getIdsAsString(), alphas[(int)ls.getId()], getLoading().getCurrentInflowsPcuH()[(int)ls.getId()]));
           }
         }
@@ -832,8 +834,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         var newPassWithShiftedFlows = new ArrayList<>(justNewPass);
         newPassWithShiftedFlows.retainAll(updatedPass);
         long remainingPass = pasManager.getNumberOfPass();
+        updatedPass.forEach( p -> LOGGER.info(p.toString()));
         LOGGER.info(String.format("Flow shifts performed: %d ---- [#PASs: before %d, after %d, newly added (with shifts): %d]",
             updatedPass.size(), numOriginalPass, remainingPass, newPassWithShiftedFlows.size()));
+
 
         /* Remove unused new PASs, in case no flow shift is applied due to overlap with PAS with higher reduced cost
          * In this case, the new PAS is not used and is to be removed identical to how existing PASs are removed during flow shifts when they no longer carry flow*/
@@ -874,17 +878,41 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * {@inheritDoc}
    *
-   * Path-based based assignment requires a form of path choice if we do more than a single iteration
+   * Bush-based based assignment check
    */
   @Override
   public void verifyComponentCompatibility() {
     super.verifyComponentCompatibility();
 
-    var gapFunction = getTrafficAssignmentComponent(GapFunction.class);
+    // as long as conjugate network does not create a node per link segment and instead per link,
+    // it is possible to generate zero cost alternative paths that use a u-turn in a conjugate network
+    // if a link has zero cost. This should not be allowed. To avoid this we disallow zero-cost links in the virtual
+    // network
+    //
+    //                                     o
+    //     |                             / |
+    // X---o     --> conjugate -->   -->o  |         --> route via left is equal cost as straight if connector cost is 0
+    //     |                             \ |             but should never be allowed. Avoid by having non-zero connector costs
+    //                                     o
+    var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
+    if(virtualCost instanceof FixedConnectoidTravelTimeCost &&
+            ((FixedConnectoidTravelTimeCost)virtualCost).isFixedConnectoidCostZero()){
 
+      double ALT_COST_30_SECONDS_IN_HOUR_FORMAT = 30.0/3600; // assumed 30s travel time equivalent if cost is in hours.
+      LOGGER.warning("In a (conjugate) bush based setting, connectoid costs cannot be zero, this to avoid " +
+              "unrealistic PAS creations");
+      ((FixedConnectoidTravelTimeCost) virtualCost).setFixedConnectoidCost(ALT_COST_30_SECONDS_IN_HOUR_FORMAT);
+      LOGGER.warning(String.format("Updated connectoid costs to %.6f (30s equivalent in hour normalised cost", ALT_COST_30_SECONDS_IN_HOUR_FORMAT));
+      LOGGER.warning("If default change is not acceptable, consider manually overriding the virtual cost component");
+    }
+
+
+    var gapFunction = getTrafficAssignmentComponent(GapFunction.class);
     /* gap function check */
     PlanItRunTimeException.throwIf(!(gapFunction instanceof PathBasedGapFunction),
             "%s bush based Static LTM currently requires PAS compatible PathBasedRelative gap function, but found %s", gapFunction.getClass().getCanonicalName());
+
+
 
   }
 

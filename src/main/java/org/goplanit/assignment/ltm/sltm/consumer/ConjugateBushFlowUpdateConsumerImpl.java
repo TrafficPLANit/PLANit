@@ -140,7 +140,11 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
                   conjEntrySegment.getXmlId(),
                   conjEntrySegment.getOriginalAdjacentEdgeSegments().first().getIdsAsString(),
                   conjEntrySegment.getOriginalAdjacentEdgeSegments().second().getIdsAsString(),
-                  ((CentroidVertex)bush.getRootVertex()).getParent().getParentZone().getIdsAsString()));
+                  bush.getRootZone().getIdsAsString()));
+          // can happen due to low flow branch shift that leaves some dangling edges. with a better
+          // implementation of the low lfow branch shift this can be avoided, but run time wise it is probably
+          // better to remove them here and assume it'll fix itself
+          bush.removeTurn(conjEntrySegment);
           continue;
         }
 

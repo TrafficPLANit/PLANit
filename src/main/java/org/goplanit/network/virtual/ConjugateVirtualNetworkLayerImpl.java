@@ -86,16 +86,21 @@ public class ConjugateVirtualNetworkLayerImpl
       return;
     }
 
+    final boolean deriveXmlIdFromOriginalEntities = true;
+    String xmlIdPostFix = "*";
+
     /* connectoid edge -> conjugate connectoid node  + conjugate connectoid link(segments) from dummy to conjugate node*/
     for (var referenceConnectoidEdge : getReferenceLayer().getConnectoidLinks()) {
 
       var centroid = referenceConnectoidEdge.getCentroidVertex();
       var conjugateDummyNode = dummyConjugateNodePerCentroidVertex.get(centroid);
       if (conjugateDummyNode == null) {
-        conjugateDummyNode = getVertices().getFactory().registerNew(null);
+        conjugateDummyNode = getVertices().getFactory().registerNew(
+                null, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
         dummyConjugateNodePerCentroidVertex.put(centroid, conjugateDummyNode);
       }
-      var conjugateNode = getVertices().getFactory().registerNew(referenceConnectoidEdge);
+      var conjugateNode = getVertices().getFactory().registerNew(
+              referenceConnectoidEdge, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
 
       /* create "fake" conjugate connectoid edge (where one of the two conjugate connectoid nodes has no original
        * network equivalent but reflects a conjugate centroid) */
@@ -105,8 +110,18 @@ public class ConjugateVirtualNetworkLayerImpl
       // create conjugate connectoid segments between the two nodes to create connectoid turn segments where either
       // the incoming or outgoing original edge segment is null this ensures we can have a generic path search
       // algorithm where we consistently use either incoming or outgoing original edge segment costs
-      getConnectoidSegments().getFactory().registerNew(conjugateLink, true /* ab direction */, true);
-      getConnectoidSegments().getFactory().registerNew(conjugateLink, false /* ba direction */, true);
+      getConnectoidSegments().getFactory().registerNew(
+              conjugateLink,
+              true /* ab direction */,
+              true,
+              deriveXmlIdFromOriginalEntities,
+              xmlIdPostFix);
+      getConnectoidSegments().getFactory().registerNew(
+              conjugateLink,
+              false /* ba direction */,
+              true,
+              deriveXmlIdFromOriginalEntities,
+              xmlIdPostFix);
     }
   }
 

@@ -206,11 +206,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   @Override
   protected Pair<ConjugateEdgeSegment, Boolean> findFirstCongestedEdgeSegmentOnPasAlternative(
           StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment) {
-    assert(ignoreInitialSegment);
 
     ConjugateEdgeSegment[] alternative = pas.getAlternative(lowCost);
     ConjugateEdgeSegment currConjSegment = null;
-    for (int index = 1; index < alternative.length; ++index) {
+    int index = ignoreInitialSegment ? 1 : 0;
+    for (; index < alternative.length; ++index) {
       currConjSegment = alternative[index];
 
       // use the original network loading segments to determine if the conjugate segment (turn) is considered
@@ -263,12 +263,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           final AbstractVirtualCost virtualCost,
           boolean isLowCostAlternative,
           boolean ignoreFirstSegment) {
-    assert(ignoreFirstSegment);
-
     double dTravelTimeDFlow = 0.0;
 
     var pasAlternative = this.pas.getAlternative(isLowCostAlternative);
-    int index = 1;
+    int index = ignoreFirstSegment? 1 : 0;
     while(index < pasAlternative.length){
       ConjugateEdgeSegment currSegment = pasAlternative[index++];
       if(!currSegment.hasOriginalEntryEdgeSegment()){
@@ -315,7 +313,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   @Override
   protected double determinePasAlternativeSlackFlow(
           StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment) {
-    assert (ignoreInitialSegment);
 
     double slackFlow = Double.POSITIVE_INFINITY;
 
@@ -323,7 +320,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     int linkSegmentId = -1;
     ConjugateEdgeSegment conjAltEdgeSegment = null;
     ConjugateEdgeSegment[] conjAltEdgeSegments = pas.getAlternative(lowCost);
-    for (int index = 1; index < conjAltEdgeSegments.length; ++index) {
+    int index = ignoreInitialSegment ? 0 : 1;
+    for (; index < conjAltEdgeSegments.length; ++index) {
       conjAltEdgeSegment = conjAltEdgeSegments[index];
       if(!conjAltEdgeSegment.hasOriginalEntryEdgeSegment()){
         continue;
@@ -351,9 +349,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     //todo: add in the splitting rates of the low cost segment, since any exit flow their will be moved to the high cost
     // and distributed accordingly, so we cannot just consider the current state of the low cost here...
 
-    int index = 0;
+    int mergeExitIndex = 0;
     for (var exitSegment : lastOriginalNetworkSegment.getDownstreamVertex().getExitEdgeSegments()) {
-      double splittingRate = splittingRates.get(index);
+      double splittingRate = splittingRates.get(mergeExitIndex);
       if (splittingRate > 0) {
         linkSegmentId = (int) exitSegment.getId();
         /* do not use outflows directly because they are only available on potentially blocking nodes in point queue basic solution scheme */
@@ -361,7 +359,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         double currSlackFlow = ((PcuCapacitated) exitSegment).getCapacityOrDefaultPcuH() - nextInflow;
         slackFlow = Math.min(slackFlow, currSlackFlow);
       }
-      ++index;
+      ++mergeExitIndex;
     }
 
     return slackFlow;
@@ -452,11 +450,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double denominatorS2 = 0;
     double denominatorS1 = 0;
 
-    /* get first congested edge segment (or near congestion) that is affected when shifting flow, per alternative
-    *  Note: in conjugate setting the first segment can and must always be ignored because its original counter-part
-    *  entry is ALWAYS shared. As a result shifting flows has no impact. If it would be included derivatives would be
-    * biased and wrong especially in case it is (the only) congested segment */
-    boolean ignoreInitialConjEdgeSegment = true;
+    boolean ignoreInitialConjEdgeSegment = false;
     var s1FirstCongestedSegmentResult =
             findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true, ignoreInitialConjEdgeSegment);
     var s2FirstCongestedSegmentResult =
@@ -471,8 +465,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     double flowShift = 0;
     boolean pasCostEqual = pas.isCostEqual(EPSILON);
-    double slackFlowEstimate = determinePasAlternativeSlackFlow(
-            networkLoading, true, ignoreInitialConjEdgeSegment);
+
+    boolean disableSlackFlowEstimate = true;
+    double slackFlowEstimate = disableSlackFlowEstimate ? determinePasAlternativeSlackFlow(
+            networkLoading, true, ignoreInitialConjEdgeSegment) : getS2SendingFlow();
     if (!pasCostEqual && smallerEqual(denominatorS2,EPSILON,EPSILON) && smallerEqual(denominatorS2, EPSILON,EPSILON)) {
       /* s1 & S2 UNCONGESTED - no derivative estimate possible (denominator zero) */
       /* move all towards cheaper alternative limited by slack + delta */
@@ -677,20 +673,20 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
     Map<RootedBush<ConjugateDirectedVertex, ConjugateEdgeSegment>, BushEntryShiftedS2FlowData> executedBushS2FlowShifts
             = getFlowShiftedS2BushData().values().stream().findFirst().get();
-    if(executedBushS2FlowShifts.keySet().stream().anyMatch(this::isDestinationTrackedForLogging)) {
-      LOGGER.info(String.format("* S1 FLOW SHIFT on PAS: %s", pas));
-    }
+//    if(executedBushS2FlowShifts.keySet().stream().anyMatch(this::isDestinationTrackedForLogging)) {
+//      LOGGER.info(String.format("* S1 FLOW SHIFT on PAS: %s", pas));
+//    }
 
     // For each bush - execute S1 flow shift
     for (var entry : executedBushS2FlowShifts.entrySet()) {
       ConjugateDestinationBush bush = (ConjugateDestinationBush) entry.getKey();
       BushEntryShiftedS2FlowData flowShiftData = entry.getValue();
 
-      if(isDestinationTrackedForLogging(bush)) {
-        LOGGER.info(String.format("        Flow to shift: %.8f - bush (%s)",
-                flowShiftData.getS2Flowshifted(),
-                bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-      }
+//      if(isDestinationTrackedForLogging(bush)) {
+//        LOGGER.info(String.format("        Flow to shift: %.8f - bush (%s)",
+//                flowShiftData.getS2Flowshifted(),
+//                bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+//      }
 
       executeBushS1FlowShift(
               bush,

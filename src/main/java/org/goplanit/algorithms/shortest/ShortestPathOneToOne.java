@@ -4,6 +4,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -22,7 +23,9 @@ public interface ShortestPathOneToOne {
    * @param destination vertex of sink node
    * @return shortest path result of the execution
    */
-  public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination);
+  public default ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination){
+    return executeOneToOne(origin, destination, Collections.emptySet());
+  }
 
   /**
    * Construct shortest paths from source node to all other nodes in the network based on directed LinkSegment edges

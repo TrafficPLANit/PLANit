@@ -238,7 +238,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   @Override
   protected void verifyComponentCompatibility(){
     super.verifyComponentCompatibility();
-
   }
 
   /**

@@ -44,11 +44,16 @@ public class ConjugateConnectoidSegmentFactoryImpl
    */
   @Override
   public ConjugateConnectoidSegmentImpl registerNew(
-      final ConjugateConnectoidLink parent, final boolean directionAb, boolean registerOnNodeAndLink) {
+      final ConjugateConnectoidLink parent,
+      final boolean directionAb,
+      boolean registerOnNodeAndLink,
+      boolean deriveXmlIdFromOriginalEdges,
+      String xmlIdPostFix) {
 
     final var conjugateEdgeSegment = create(parent, directionAb);
-    getGraphEntities().register(conjugateEdgeSegment);
+    conjugateEdgeSegment.populateXmlId(deriveXmlIdFromOriginalEdges, xmlIdPostFix);
 
+    getGraphEntities().register(conjugateEdgeSegment);
     if (registerOnNodeAndLink) {
       parent.registerEdgeSegment(conjugateEdgeSegment, directionAb);
     }

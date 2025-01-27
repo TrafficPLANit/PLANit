@@ -184,7 +184,8 @@ public abstract class StaticLtmBushStrategyRootLabelled
             pas, bush, getLoading().getCurrentFlowAcceptanceFactors(), reducedCost)) {
       pasManager.removePas(pas, false);
       return null;
-    }else if(getSettings().isDetailedLogging()){
+    }
+    else if(getSettings().isDetailedLogging()){
       LOGGER.info(String.format("Created new PAS: %s", pas));
     }
 

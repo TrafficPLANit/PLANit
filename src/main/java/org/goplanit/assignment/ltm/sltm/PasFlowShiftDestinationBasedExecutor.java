@@ -896,10 +896,10 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
   public void performS1FlowShift(
           Mode theMode,
           StaticLtmLoadingBushBase<?> networkLoading) {
-    if(getFlowShiftedS2BushData().values().stream().flatMap(
-            e -> e.keySet().stream()).anyMatch(this::isDestinationTrackedForLogging)) {
-      LOGGER.info(String.format("* S1 FLOW SHIFT on PAS: %s", pas));
-    }
+//    if(getFlowShiftedS2BushData().values().stream().flatMap(
+//            e -> e.keySet().stream()).anyMatch(this::isDestinationTrackedForLogging)) {
+//      LOGGER.info(String.format("* S1 FLOW SHIFT on PAS: %s", pas));
+//    }
 
     for (var entry : getFlowShiftedS2BushData().entrySet()) {
       var entrySegment = entry.getKey();

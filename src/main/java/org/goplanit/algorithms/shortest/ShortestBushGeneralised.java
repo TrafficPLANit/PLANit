@@ -1,7 +1,9 @@
 package org.goplanit.algorithms.shortest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -50,7 +52,7 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised
    */
   private boolean isShorterOrEqual(double currShortestCostToVertex, double currComputedCostToVertex) {
     currEqualShortestCosts = false;
-    if (Precision.smaller(currShortestCostToVertex, currComputedCostToVertex)) {
+    if (Precision.smaller(currShortestCostToVertex, currComputedCostToVertex, Precision.EPSILON_15)) {
       return false;
     } else if (Precision.equal(currShortestCostToVertex, currComputedCostToVertex, Precision.EPSILON_15)) {
       currEqualShortestCosts = true;
@@ -104,14 +106,19 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised
   }
 
   /**
-   * Construct shortest bush result from origin node to all other nodes in the network based on directed
-   * LinkSegment edges.
-   * 
-   * @param currentOrigin origin vertex of source node
-   * @return shortest bush result that can be used to extract bushes
+   * {@inheritDoc}
    */
   @Override
   public ShortestBushResult executeOneToAll(DirectedVertex currentOrigin) {
+    return executeOneToAll(currentOrigin, Collections.emptySet());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ShortestBushResult executeOneToAll(
+          DirectedVertex currentOrigin, Set<DirectedVertex> bannedThroughVertices) {
 
     this.currentSource = currentOrigin;
 
@@ -123,20 +130,25 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised
      * is just the edge segment
      */
     var vertexMeasuredCost = super.executeOneToAll(
-            this::isShorterOrEqual, this::processShorterOrEqualIncomingEdgeSegment);
+            this::isShorterOrEqual, this::processShorterOrEqualIncomingEdgeSegment, bannedThroughVertices);
     return new ShortestBushResultGeneralised(
             vertexMeasuredCost, nextEdgeSegments, edgeSegmentCosts.length, ShortestSearchType.ONE_TO_ALL);
   }
 
   /**
-   * Construct shortest bush result from all nodes to destination node in the network based on directed LinkSegment
-   * edges.
-   * 
-   * @param currentDestination origin vertex of source node
-   * @return shortest bush result that can be used to extract bushes
+   * {@inheritDoc}
    */
   @Override
   public ShortestBushResult executeAllToOne(DirectedVertex currentDestination) {
+    return executeAllToOne(currentDestination, Collections.emptySet());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ShortestBushResult executeAllToOne(
+          DirectedVertex currentDestination, Set<DirectedVertex> bannedThroughVertices) {
     this.currentSource = currentDestination;
 
     /* see #processShorterOrEqualIncomginEdgeSegment on how it is populated */
@@ -147,7 +159,9 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised
      * segments are stored on the array as a list, unless only a single edge segment is shortest in which case
      * the entry is just the edge segment.
      */
-    var vertexMeasuredCost = super.executeAllToOne(this::isShorterOrEqual, this::processShorterOrEqualIncomingEdgeSegment);
-    return new ShortestBushResultGeneralised(vertexMeasuredCost, nextEdgeSegments, edgeSegmentCosts.length, ShortestSearchType.ALL_TO_ONE);
+    var vertexMeasuredCost = super.executeAllToOne(
+            this::isShorterOrEqual, this::processShorterOrEqualIncomingEdgeSegment, bannedThroughVertices);
+    return new ShortestBushResultGeneralised(
+            vertexMeasuredCost, nextEdgeSegments, edgeSegmentCosts.length, ShortestSearchType.ALL_TO_ONE);
   }
 }

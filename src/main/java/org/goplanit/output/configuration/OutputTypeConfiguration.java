@@ -36,9 +36,7 @@ public abstract class OutputTypeConfiguration {
    * @return array containing the relevant OutputProperty objects
    */
   private OutputProperty[] getOutputPropertyArray(Function<OutputProperty, Boolean> test) {
-    OutputProperty[] outputPropertyArray =
-        outputProperties.stream().filter(test::apply).toArray(OutputProperty[]::new);
-    return outputPropertyArray;
+    return outputProperties.stream().filter(test::apply).toArray(OutputProperty[]::new);
   }
 
   /** the logger */
@@ -50,13 +48,14 @@ public abstract class OutputTypeConfiguration {
   protected boolean persistOnlyFinalIteration = PERSIST_ONLY_FINAL_ITERATION;
 
   /**
-   * The output type being used with the current instance - this must be set in each concrete class which extends OutputTypeConfiguration
+   * The output type being used with the current instance - this must be set in each concrete class which
+   * extends OutputTypeConfiguration
    */
   protected OutputType outputType;
 
   /**
-   * Stores all active sub output types (if any). some output types are broken down further in sub output types which can be accounted for via this set. Can remain empty if not
-   * used.
+   * Stores all active sub output types (if any). some output types are broken down further in sub output types
+   * which can be accounted for via this set. Can remain empty if not used.
    */
   protected Set<SubOutputTypeEnum> activeSubOutputTypes;
 
@@ -156,9 +155,8 @@ public abstract class OutputTypeConfiguration {
    * 
    * @param propertyClassName class name of the property to be removed
    * @return true if the property is successfully removed, false if it was not in the List of output properties
-   * @throws PlanItException thrown if there is an error removing the property
    */
-  public boolean removeProperty(String propertyClassName) throws PlanItException {
+  public boolean removeProperty(String propertyClassName) {
     return outputProperties.remove(OutputProperty.of(propertyClassName));
   }
 
@@ -167,13 +165,13 @@ public abstract class OutputTypeConfiguration {
    * 
    * @param outputProperty enumeration value specifying which output property is to be removed
    * @return true if the property is successfully removed, false if it was not in the List of output properties
-   * @throws PlanItException thrown if there is an error removing the property
    */
-  public boolean removeProperty(OutputPropertyType outputProperty) throws PlanItException {
+  public boolean removeProperty(OutputPropertyType outputProperty){
     OutputProperty baseOutputProperty = OutputProperty.of(outputProperty);
     if(baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY)){
       LOGGER.warning(String.format(
-          "Removing column %s that is typically used as an index from output configuration, may result in non-unique output", outputProperty));
+          "Removing column %s that is typically used as an index from output configuration, may result in " +
+                  "non-unique output", outputProperty));
     }
     if (outputProperties.contains(baseOutputProperty)) {
       return outputProperties.remove(baseOutputProperty);
@@ -195,7 +193,8 @@ public abstract class OutputTypeConfiguration {
    * @return the output property itself, null if not registered
    */
   public OutputProperty getOutputProperty(OutputPropertyType outputPropertyType) {
-    return outputProperties.stream().dropWhile(prop -> !prop.getOutputPropertyType().equals(outputPropertyType)).findFirst().orElseGet(null);
+    return outputProperties.stream().dropWhile(
+            prop -> !prop.getOutputPropertyType().equals(outputPropertyType)).findFirst().orElseGet(null);
   }
 
   /**
@@ -250,7 +249,8 @@ public abstract class OutputTypeConfiguration {
     OutputProperty outputProperty = getOutputProperty(outputPropertyType);
     if (outputProperty != null) {
       if (!outputProperty.supportsUnitOverride()) {
-        LOGGER.warning(String.format("IGNORE: Output property %s does not (yet) support overriding its units", outputProperty.getName()));
+        LOGGER.warning(String.format(
+                "IGNORE: Output property %s does not (yet) support overriding its units", outputProperty.getName()));
         return;
       }
       outputProperty.setUnitOverride(overrideUnits);

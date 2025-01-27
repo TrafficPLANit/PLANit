@@ -1,9 +1,11 @@
 package org.goplanit.algorithms.shortest;
 
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNodes;
 
@@ -28,8 +30,11 @@ public class ConjugateShortestPathGeneralised extends ShortestPathGeneralised {
    */
   @Override
   protected double[] internalExecute(
-          BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestAlternativeEdgeSegmentConsumer) {
-    var vertexMeasuredCost = super.internalExecute(verifyVertex, shortestAlternativeEdgeSegmentConsumer);
+          BiPredicate<Double, Double> verifyVertex,
+          Consumer<EdgeSegment> shortestAlternativeEdgeSegmentConsumer,
+          Set<DirectedVertex> bannedThroughVertices) {
+    var vertexMeasuredCost =
+            super.internalExecute(verifyVertex, shortestAlternativeEdgeSegmentConsumer, bannedThroughVertices);
     //TODO: currently we are missing cost of final turn, once we have updated the structure of conjugate
     // (virtual) network (by adding dummy turns at start and end, it should not longer be needed to do this
     // as all link costs are included then and method can be removed

@@ -6,6 +6,8 @@ import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -75,14 +77,21 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
    * more attractive than the same search on a cyclic graph.
    * 
    * @param startVertex to conduct search for
+   * @param bannedThroughVertices set of vertices that do not allow paths to go through them. They may only serve as
+   *                              start and/or end points
    * @return created result
    */
-  public MinMaxPathResultImpl execute(final DirectedVertex startVertex) {
+  public MinMaxPathResultImpl execute(
+          final DirectedVertex startVertex, Set<DirectedVertex> bannedThroughVertices) {
+
     /* prep cost arrays */
     double[] minCost = new double[numParentNetworkVertices];
     double[] maxCost = new double[numParentNetworkVertices];
     Arrays.fill(minCost, Double.POSITIVE_INFINITY);
     Arrays.fill(maxCost, Double.NEGATIVE_INFINITY);
+    if(bannedThroughVertices == null){
+      bannedThroughVertices = Collections.emptySet();
+    }
 
     /* prep backward link reference arrays */
     EdgeSegment[] minCostNextEdgeSegments = new EdgeSegment[numParentNetworkVertices];
@@ -95,6 +104,11 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
     for (DirectedVertex vertex : topologicalOrder) {
       int vertexIndex = (int) vertex.getId();
       var edgeSegments = this.getEdgeSegmentsInDirection.apply(vertex);
+
+      if(bannedThroughVertices.contains(vertex) && vertex != startVertex){
+        continue;
+      }
+
       for (EdgeSegment currEdgeSegment : edgeSegments) {
         if (acyclicSubGraph.containsEdgeSegment(currEdgeSegment)) {
           double edgeCost = edgeSegmentCosts[(int) currEdgeSegment.getId()];
@@ -124,22 +138,40 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
    * {@inheritDoc}
    */
   @Override
-  public MinMaxPathResult executeAllToOne(DirectedVertex currentDestination) {
+  public MinMaxPathResult executeAllToOne(
+          DirectedVertex currentDestination, Set<DirectedVertex> bannedThroughVertices) {
     this.getEdgeSegmentsInDirection =
             ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ALL_TO_ONE);
     this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ALL_TO_ONE);
-    return execute(currentDestination);
+    return execute(currentDestination, bannedThroughVertices);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public MinMaxPathResult executeOneToAll(DirectedVertex currentOrigin) {
+  public MinMaxPathResult executeAllToOne(DirectedVertex currentDestination){
+    return executeAllToOne(currentDestination, Collections.emptySet());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MinMaxPathResult executeOneToAll(
+          DirectedVertex currentOrigin, Set<DirectedVertex> bannedThroughVertices) {
     this.getEdgeSegmentsInDirection =
             ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ONE_TO_ALL);
     this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ONE_TO_ALL);
-    return execute(currentOrigin);
+    return execute(currentOrigin, bannedThroughVertices);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MinMaxPathResult executeOneToAll(DirectedVertex currentOrigin){
+    return executeOneToAll(currentOrigin, Collections.emptySet());
   }
 
 }
