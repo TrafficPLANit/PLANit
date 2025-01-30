@@ -113,6 +113,9 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    * @return found reference vertex
    */
   private V getReferenceVertexFromAlternative(ES[] alternative) {
+    if(alternative == null){
+      return null;
+    }
     V referenceVertex = null;
     if(this.registerByDiverge) {
       referenceVertex = (V) alternative[0].getUpstreamVertex();
@@ -184,9 +187,8 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
       if (checkEffectiveness && !isPasEffectiveForBush(pas, bush, flowAcceptanceFactors, reducedCost)) {
         continue;
       }
-      /* when not checking on effectiveness we at least must check it has no flow */
-      if(!checkEffectiveness && hasNonZeroFlow(pas.getAlternative(false), bush, flowAcceptanceFactors)){
-        DOES NOT WORK YET CONTINUE HERE BUSH CYCLE TEST
+      /* when not checking on effectiveness we at least must check it has flow */
+      if(!checkEffectiveness && hasZeroFlow(pas.getAlternative(false), bush, flowAcceptanceFactors)){
         continue;
       }
 
@@ -295,7 +297,8 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
-   * Verify if the alternative has non-zero flow on bush
+   * Verify if the alternative has zero flow on bush
+   *
    * @param alternative to check
    * @param bush bush to use
    * @param nlFlowAcceptanceFactors to use
@@ -303,9 +306,9 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    * @param <Vs> type of vertex
    * @param <ESs> type of segment
    */
-  public static <Vs extends DirectedVertex,ESs extends EdgeSegment> boolean hasNonZeroFlow(
+  public static <Vs extends DirectedVertex,ESs extends EdgeSegment> boolean hasZeroFlow(
           ESs[] alternative, RootedBush<Vs,ESs> bush, double[] nlFlowAcceptanceFactors) {
-    return Precision.positive(bush.determineSubPathSendingFlow(alternative, nlFlowAcceptanceFactors));
+    return !Precision.positive(bush.determineSubPathSendingFlow(alternative, nlFlowAcceptanceFactors));
   }
 
   /**
@@ -666,7 +669,7 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
             (Class<ES>)alternative1.get(0).getClass(),alternative1.size());
     var alt2Array = ReflectionUtils.createTypedArrayInstance(
             (Class<ES>) alternative2.get(0).getClass(),alternative2.size());
-    return findMatchingActivePas(alt1Array, alt2Array);
+    return findMatchingActivePas(alternative1.toArray(alt1Array), alternative2.toArray(alt2Array));
   }
 
   /**
@@ -782,12 +785,23 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
-   * Update costs on all registered PASs
+   * Update costs on all registered active PASs
    * 
    * @param linkSegmentCosts to use
    */
   public void updateActivePassCosts(final double[] linkSegmentCosts) {
     for (Collection<Pas<V,ES>> pass : activePassByVertex.values()) {
+      updatePassCosts(pass, linkSegmentCosts);
+    }
+  }
+
+  /**
+   * Update costs on all registered inactive PASs
+   *
+   * @param linkSegmentCosts to use
+   */
+  public void updateInactivePassCosts(final double[] linkSegmentCosts) {
+    for (Collection<Pas<V,ES>> pass : inactivePassByVertex.values()) {
       updatePassCosts(pass, linkSegmentCosts);
     }
   }
@@ -825,6 +839,17 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    */
   public void forEachActivePas(Consumer<Pas<V,ES>> pasConsumer) {
     activePassByVertex.forEach((v, pc) -> {
+      pc.forEach(pasConsumer);
+    });
+  }
+
+  /**
+   * Loop over all inactive Pass
+   *
+   * @param pasConsumer to apply
+   */
+  public void forEachInactivePas(Consumer<Pas<V,ES>> pasConsumer) {
+    inactivePassByVertex.forEach((v, pc) -> {
       pc.forEach(pasConsumer);
     });
   }

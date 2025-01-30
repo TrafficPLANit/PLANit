@@ -152,6 +152,7 @@ public class StaticLtmConjugateBushStrategy
   protected void updatePasCosts(double[] originalNetworkLinkSegmentCosts) {
     var conjSegmentCosts = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(originalNetworkLinkSegmentCosts);
     pasManager.updateActivePassCosts(conjSegmentCosts);
+    pasManager.updateInactivePassCosts(conjSegmentCosts);
   }
 
   /**

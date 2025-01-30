@@ -157,6 +157,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
   @Override
   protected void updatePasCosts(double[] originalNetworkLinkSegmentCosts) {
     pasManager.updateActivePassCosts(originalNetworkLinkSegmentCosts);
+    pasManager.updateInactivePassCosts(originalNetworkLinkSegmentCosts);
   }
 
   /**

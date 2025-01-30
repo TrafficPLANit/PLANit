@@ -239,12 +239,19 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
 
   /**
    * Initialise tracking of splitting rates and network flows on all nodes that are used by any currently
-   * active PAS. This way we are able to ascertain how much total network flow runs through each PAS which in turn
-   * is used to determine how much flow we can shift between segments.
+   * active AND inactive PAS. This way we are able to ascertain how much total network flow runs through each PAS
+   * which in turn is used to determine how much flow we can shift between segments.
+   * <p>
+   *   We also activate all inactive PASs here to ensure that if an inactive PAS gets reactivated we have all the
+   *   information readily available.
+   * </p>
+   * todo: we could reduce memory footprint by postponing flow shifts on reactivated PASs by one iteration in which case
+   *   we only need to track active PASs.
    */
   @Override
   protected void activateEligibleSplittingRateTrackedNodes() {
     this.pasManager.forEachActivePas( this::activateNodeTrackingFor);
+    this.pasManager.forEachInactivePas( this::activateNodeTrackingFor);
   }
 
   /**

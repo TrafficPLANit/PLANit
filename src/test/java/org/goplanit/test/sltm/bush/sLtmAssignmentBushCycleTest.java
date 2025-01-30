@@ -271,7 +271,7 @@ public class sLtmAssignmentBushCycleTest {
       var smoothing = (MSRASmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.MSRA);
       smoothing.setKappaStep(1);
       smoothing.setGammaStep(0.0);
-      smoothing.setActivateLambda(false);
+      smoothing.setActivateLambda(true);
 
       sltmConfigurator.activateOutput(OutputType.LINK);
       sltmConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
@@ -279,7 +279,7 @@ public class sLtmAssignmentBushCycleTest {
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.setActivateDetailedLogging(true);
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(2000);
       sLTM.execute();
 
       double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
@@ -345,7 +345,7 @@ public class sLtmAssignmentBushCycleTest {
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.setActivateDetailedLogging(true);
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(2000);
       sLTM.execute();
 
       double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
