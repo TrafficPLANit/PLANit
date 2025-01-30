@@ -7,8 +7,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.ShortestPathResult;
-import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
@@ -67,13 +65,8 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
    * @param updateS1         Flag indicating to update cost of s1 (cheap) segment, when false update the s2 (costlier) segment
    */
   protected void updateCost(final double[] edgeSegmentCosts, boolean updateS1) {
-
     ES[] alternative = updateS1 ? s1 : s2;
-    double cost = 0;
-    for (int index = 0; index < alternative.length; ++index) {
-      cost += edgeSegmentCosts[(int) alternative[index].getId()];
-    }
-
+    double cost = PasManager.computeCost(alternative, edgeSegmentCosts);
     if (updateS1) {
       s1Cost = cost;
     } else {
@@ -525,4 +518,21 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
     return sb.toString();
   }
 
+  /**
+   * Verify if the PASs has functionally equivalent alternatives to the two passed in alternatives (regardless
+   * which one is tagged as high or low cost).
+   *
+   * @param alternative one of the alternatives
+   * @param otherAlternative other alternative
+   * @return true when both alternatives are matching the alternatives of this PAS
+   */
+  public boolean isAlternativesEqual(ES[] alternative, ES[] otherAlternative) {
+    if(isAlternativeEqual(alternative, true)){
+      return isAlternativeEqual(otherAlternative, false);
+    }
+    if(isAlternativeEqual(alternative, false)){
+      return isAlternativeEqual(otherAlternative, true);
+    }
+    return false;
+  }
 }

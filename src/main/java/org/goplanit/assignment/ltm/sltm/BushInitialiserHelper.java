@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
@@ -213,7 +212,7 @@ public class BushInitialiserHelper {
         while (iter.hasNext()) {
           var pasAlternative = iter.next();
 
-          var pas = pasManager.findExistingPas(referenceAlternative, pasAlternative);
+          var pas = pasManager.findMatchingActivePas(referenceAlternative, pasAlternative);
           if (pas == null) {
             pas = pasManager.createAndRegisterNewPas(bush, referenceAlternative, pasAlternative);
             if (logNewPass) {
@@ -370,7 +369,7 @@ public class BushInitialiserHelper {
       }
     }
 
-    LOGGER.info(String.format("Initialised with %d PASs", pasManager.getNumberOfPass()));
+    LOGGER.info(String.format("Initialised with %d PASs", pasManager.getNumberOfActivePass()));
     LOGGER.info("TODO: Consider removing initialisation with PASs as it is not complete and side effect of initialisation");
   }
 

@@ -583,13 +583,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
     double remainingS2SendingFlow = bushS2RemainingSendingFlows.values().stream().mapToDouble(e -> e).sum();
 
-    if (Precision.greater(nlConsistentS2SendingFlow, remainingS2SendingFlow, EPSILON_3)) {
-      if(isDestinationTrackedForLogging()) {
-        LOGGER.info(String.format("[removal --> proposed shift %.10f exceeds s2 sending flow %.10f]",
-                nlConsistentS2SendingFlow, remainingS2SendingFlow));
-      }
-    }
-
     // if earlier shifts have reduced available flow, capture in factor, so we remain in feasible shifting region
     double s2FlowAvailabilityFactor = Math.min(1,remainingS2SendingFlow/nlConsistentS2SendingFlow);
     double guaranteedS2SendingFlow = remainingS2SendingFlow; // use latest always as it may be higher than original

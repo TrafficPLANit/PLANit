@@ -54,7 +54,7 @@ public abstract class StaticLtmBushStrategyRootLabelled
    */
   private Pas<DirectedVertex,EdgeSegment> extendBushWithSuitableExistingPas(
       final RootedLabelledBush bush, final DirectedVertex reducedCostVertex, final double reducedCost) {
-    //todo: effectively same as for conjugate can be consolidated in base clase with some minor changes likely
+    //todo: effectively same as for conjugate can be consolidated in base case with some minor changes likely
 
     boolean bushFlowThroughMergeVertex = false;
     for (var entrySegment : reducedCostVertex.getEntryEdgeSegments()) {
@@ -75,17 +75,29 @@ public abstract class StaticLtmBushStrategyRootLabelled
       return null;
     }
 
+    // disable effectiveness check: at some point it was considered effective for some bush, therefore we allow
+    // for it to be reactivated
+    boolean checkEffectiveness = false;
+    boolean inActive = false;
     double[] alphas = getLoading().getCurrentFlowAcceptanceFactors();
-    var effectivePas = pasManager.findFirstSuitableExistingPas(bush, reducedCostVertex, alphas, reducedCost);
+    var effectivePas = pasManager.findFirstSuitableActivePas(
+            bush, reducedCostVertex, alphas, reducedCost, checkEffectiveness);
+    if (effectivePas == null) {
+      effectivePas = pasManager.findFirstSuitableInactivePas(
+              bush, reducedCostVertex, alphas, reducedCost, checkEffectiveness);
+      inActive = true;
+    }
     if (effectivePas == null) {
       return null;
     }
 
     /*
-     * found -> register origin, shifting of flow occurs when updating pas, extending bush with low cost segment
-     * occurs automatically when shifting flow later (flow is added to low cost link segments which will be created
-     * if non-existent on bush)
+     * found -> register bush for future flow shifting, if PAS was previously inactive, reactivate it so it is
+     * considered again.
      */
+    if(inActive){
+      pasManager.reactivatePas(effectivePas);
+    }
     boolean newlyRegistered = effectivePas.registerBush(bush);
     if (newlyRegistered && getSettings().isDetailedLogging()) {
       LOGGER.info(String.format("%s %s added to PAS %s",
@@ -124,7 +136,9 @@ public abstract class StaticLtmBushStrategyRootLabelled
     /* Identify when it coincides again with bush (closer to root) using back link tree BF search */
     var highCostSubPathResultPair =
         bush.findBushAlternativeSubpathByBackLinkTree(
-                reducedCostVertex, networkMinPaths.getNextEdgeSegmentForVertex(reducedCostVertex), alternativeSegmentVertexLabels);
+                reducedCostVertex,
+                networkMinPaths.getNextEdgeSegmentForVertex(reducedCostVertex),
+                alternativeSegmentVertexLabels);
     if (highCostSubPathResultPair == null || highCostSubPathResultPair.first() == null) {
       /* likely cycle detected on bush for merge vertex, unable to identify higher cost segment for NEW PAS, log issue */
       LOGGER.info(String.format(
@@ -166,8 +180,7 @@ public abstract class StaticLtmBushStrategyRootLabelled
         new EdgeSegment[highCostSubPathResultPair.second().size()],
         truncateSpareArrayCapacity);
 
-    /* register on existing PAS (if available) otherwise create new PAS */
-    var existingPas = pasManager.findExistingPas(s1, s2);
+    var existingPas = pasManager.findMatchingActivePas(s1, s2);
     if (existingPas != null) {
       // exists already but was discarded as option for this bush (otherwise we would not ask for a new PAS to be created
       // not able to create new PAS using this S1/S2 alternative
@@ -175,22 +188,33 @@ public abstract class StaticLtmBushStrategyRootLabelled
       // could help. For now we just accept no new PAS is to be created for this bush at this vertex
       return null;
     }
+    existingPas = pasManager.findMatchingInactivePas(s1, s2);
+    if (existingPas != null) {
+      // same as above
+      return null;
+    }
+
+    double highCostAlternativeCost = PasManager.computeCost(s2, linkSegmentCosts);
+    double lowCostAlternativeCost = PasManager.computeCost(s1, linkSegmentCosts);
+    if (!PasManager.isPasEffectiveForBush(
+            s2,
+            highCostAlternativeCost,
+            lowCostAlternativeCost,
+            bush,
+            getLoading().getCurrentFlowAcceptanceFactors(),
+            reducedCost)) {
+      return null;
+    }
 
     /* New pas */
     var pas = pasManager.createAndRegisterNewPas(bush, s1, s2);
     pas.updateCost(linkSegmentCosts);
-
-    if (!PasManager.isPasEffectiveForBush(
-            pas, bush, getLoading().getCurrentFlowAcceptanceFactors(), reducedCost)) {
-      pasManager.removePas(pas, false);
-      return null;
-    }
-    else if(getSettings().isDetailedLogging()){
+    /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
+    getLoading().activateNodeTrackingFor(pas);
+    if(getSettings().isDetailedLogging()){
       LOGGER.info(String.format("Created new PAS: %s", pas));
     }
 
-    /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
-    getLoading().activateNodeTrackingFor(pas);
     return pas;
   }
 
@@ -373,14 +397,16 @@ public abstract class StaticLtmBushStrategyRootLabelled
    * @param transportModelNetwork to use
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
+   * @param registerPassByDiverge when true index registration by diverge, merge otherwise
    */
   protected StaticLtmBushStrategyRootLabelled(
           final IdGroupingToken idGroupingToken,
           long assignmentId,
           final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
           final StaticLtmSettings settings,
-          final TrafficAssignmentComponentAccessee taComponents) {
-    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
+          final TrafficAssignmentComponentAccessee taComponents,
+          boolean registerPassByDiverge) {
+    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents, registerPassByDiverge);
   }
 
   /**

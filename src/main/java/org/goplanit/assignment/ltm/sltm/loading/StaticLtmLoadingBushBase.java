@@ -3,17 +3,14 @@ package org.goplanit.assignment.ltm.sltm.loading;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.*;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.physical.Movement;
 
 /**
  * The bush based network loading scheme for sLTM - base class
@@ -247,7 +244,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    */
   @Override
   protected void activateEligibleSplittingRateTrackedNodes() {
-    this.pasManager.forEachPas( this::activateNodeTrackingFor);
+    this.pasManager.forEachActivePas( this::activateNodeTrackingFor);
   }
 
   /**

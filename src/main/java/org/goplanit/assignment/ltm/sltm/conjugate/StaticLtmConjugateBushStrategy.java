@@ -151,7 +151,7 @@ public class StaticLtmConjugateBushStrategy
   @Override
   protected void updatePasCosts(double[] originalNetworkLinkSegmentCosts) {
     var conjSegmentCosts = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(originalNetworkLinkSegmentCosts);
-    pasManager.updateCosts(conjSegmentCosts);
+    pasManager.updateActivePassCosts(conjSegmentCosts);
   }
 
   /**
@@ -178,23 +178,36 @@ public class StaticLtmConjugateBushStrategy
           final ConjugateDirectedVertex reducedCostVertex,
           final double reducedCost) {
 
+    // disable effectiveness check: at some point it was considered effective for some bush, therefore we allow
+    // for it to be reactivated
+    boolean checkEffectiveness = false;
+    boolean inActive = false;
     double[] alphas = getLoading().getCurrentFlowAcceptanceFactors();
-    var effectivePas = pasManager.findFirstSuitableExistingPas(bush, reducedCostVertex, alphas, reducedCost);
-    if (effectivePas == null) {
+    var suitablePas =
+            pasManager.findFirstSuitableActivePas(bush, reducedCostVertex, alphas, reducedCost, false);
+    if (suitablePas == null) {
+      suitablePas =
+              pasManager.findFirstSuitableInactivePas(
+                      bush, reducedCostVertex, alphas, reducedCost, false);
+      inActive = true;
+    }
+    if (suitablePas == null) {
       return null;
     }
 
     /*
-     * found -> register origin, shifting of flow occurs when updating pas, extending bush with low cost segment
-     * occurs automatically when shifting flow later (flow is added to low cost link segments which will be created
-     * if non-existent on bush)
+     * found -> register bush for future flow shifting, if PAS was previously inactive, reactivate it so it is
+     * considered again.
      */
-    boolean newlyRegistered = effectivePas.registerBush(bush);
+    if(inActive){
+      pasManager.reactivatePas(suitablePas);
+    }
+    boolean newlyRegistered = suitablePas.registerBush(bush);
     if (newlyRegistered && getSettings().isDetailedLogging()) {
       LOGGER.info(String.format("Destination %s added to PAS %s",
-              bush.getRootZoneVertex().getParent().getParentZone().getXmlId(), effectivePas));
+              bush.getRootZoneVertex().getParent().getParentZone().getXmlId(), suitablePas));
     }
-    return effectivePas;
+    return suitablePas;
   }
 
   /**
@@ -274,8 +287,7 @@ public class StaticLtmConjugateBushStrategy
             new ConjugateEdgeSegment[highCostSubPathResultPair.second().size()],
             truncateSpareArrayCapacity);
 
-    /* register on existing PAS (if available) otherwise create new PAS */
-    var existingPas = pasManager.findExistingPas(s1, s2);
+    var existingPas = pasManager.findMatchingActivePas(s1, s2);
     if (existingPas != null) {
       // exists already but was discarded as option for this bush (otherwise we would not ask for a new PAS to be
       // created not able to create new PAS using this S1/S2 alternative
@@ -283,22 +295,33 @@ public class StaticLtmConjugateBushStrategy
       // could help. For now we just accept no new PAS is to be created for this bush at this vertex
       return null;
     }
+    existingPas = pasManager.findMatchingInactivePas(s1, s2);
+    if (existingPas != null) {
+      // same reason as above
+      return null;
+    }
+
+    double highCostAlternativeCost = PasManager.computeCost(s2, conjugateLinkSegmentCosts);
+    double lowCostAlternativeCost = PasManager.computeCost(s1, conjugateLinkSegmentCosts);
+    if (!PasManager.isPasEffectiveForBush(
+            s2,
+            highCostAlternativeCost,
+            lowCostAlternativeCost,
+            bush,
+            getLoading().getCurrentFlowAcceptanceFactors(),
+            reducedCost)) {
+      return null;
+    }
 
     /* New pas */
     var pas = pasManager.createAndRegisterNewPas(bush, s1, s2);
     pas.updateCost(conjugateLinkSegmentCosts);
-
-    if (!PasManager.isPasEffectiveForBush(
-            pas, bush, getLoading().getCurrentFlowAcceptanceFactors(), reducedCost)) {
-      pasManager.removePas(pas, false);
-      return null;
-    }else if(getSettings().isDetailedLogging()){
-      LOGGER.info(String.format("Created new PAS: %s", pas));
-    }
-
     /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance
      * factor information */
     getLoading().activateNodeTrackingFor(pas);
+    if(getSettings().isDetailedLogging()) {
+      LOGGER.info(String.format("Created new PAS: %s", pas));
+    }
     return pas;
   }
 
@@ -610,7 +633,9 @@ public class StaticLtmConjugateBushStrategy
           final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
           final StaticLtmSettings settings,
           final TrafficAssignmentComponentAccessee taComponents) {
-    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
+    /* destination based bushes are inverted, so PASs are to be registered based on vertex farthest from root,
+     * i.e, farthest from destination, so at the upstream point of the PAS at its diverge (hence true at end of super)*/
+    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents, true);
 
     // construct conjugate version of original transport model network, to be used by all conjugate bushes
     this.conjugateTransportModelNetwork = transportModelNetwork.createConjugate(

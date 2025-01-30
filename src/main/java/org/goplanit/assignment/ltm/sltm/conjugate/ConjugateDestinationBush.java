@@ -88,11 +88,11 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     }
 
     var currConjugateSegment = subPathArray[index++];
-
+    // restrict by what is available on our subpath
+    var currSendingFlow = bushData.getTurnSendingFlowPcuH(currConjugateSegment);
+    double subPathSendingFlow = Math.min(subPathAcceptedFlow, currSendingFlow);
     if (index < subPathArray.length && Precision.positive(subPathAcceptedFlow)) {
-      var currSendingFlow = bushData.getTurnSendingFlowPcuH(currConjugateSegment);
       // restrict by what is available on our subpath
-      double subPathSendingFlow = Math.min(subPathAcceptedFlow, currSendingFlow);
       double flowAcceptanceFactor =
               getConjugateFlowAcceptanceFactor(currConjugateSegment, nonConjugateFlowAcceptanceFactors);
       return determineSubPathSendingFlow(
@@ -104,7 +104,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     }
 
     // done, rescale to original sending flow using reciprocal of compounded flow acceptance factors
-    return subPathAcceptedFlow * 1/(compoundedFlowAcceptanceScalingFactor);
+    return subPathSendingFlow * 1/(compoundedFlowAcceptanceScalingFactor);
   }
 
   /** destination of this conjugate bush */

@@ -7,8 +7,6 @@ import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
@@ -505,7 +503,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
     Set<DirectedVertex> processed = new HashSet<>();
 
     final var getNextEdgeSegments =
-            isInverted() ? DirectedVertex.getEntryEdgeSegments : DirectedVertex.getExitEdgeSegments;
+            isInverted() ? DirectedVertex.GET_ENTRY_EDGE_SEGMENTS : DirectedVertex.GET_EXIT_EDGE_SEGMENTS;
     final var getNextVertex =
             isInverted() ? EdgeSegment.getUpstreamVertex : EdgeSegment.getDownstreamVertex;
 

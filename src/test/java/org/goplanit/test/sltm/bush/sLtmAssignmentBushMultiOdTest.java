@@ -364,10 +364,10 @@ public class sLtmAssignmentBushMultiOdTest {
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       sLTMBuilder.getConfigurator().activateDetailedLogging(false);
 
-//      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-//      fixedStepSmoothing.setStepSize(0.2);
+      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      fixedStepSmoothing.setStepSize(0.2);
 
-      var smoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
+      //var smoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
 
       /* DESTINATION BASED */
       var slTMConfigurator = sLTMBuilder.getConfigurator();
@@ -377,7 +377,7 @@ public class sLtmAssignmentBushMultiOdTest {
       slTMConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       slTMConfigurator.setAllowOverlappingPasUpdate(true);
-      //slTMConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"), Pair.of("A","A``"));
+      slTMConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"), Pair.of("A","A``"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);

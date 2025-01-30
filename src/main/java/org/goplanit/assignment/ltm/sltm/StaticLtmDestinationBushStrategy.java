@@ -156,7 +156,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    */
   @Override
   protected void updatePasCosts(double[] originalNetworkLinkSegmentCosts) {
-    pasManager.updateCosts(originalNetworkLinkSegmentCosts);
+    pasManager.updateActivePassCosts(originalNetworkLinkSegmentCosts);
   }
 
   /**
@@ -173,7 +173,9 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
           long assignmentId,
           final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
       final StaticLtmSettings settings, final TrafficAssignmentComponentAccessee taComponents) {
-    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
+    /* destination based bushes are inverted, so PASs are to be registered based on vertex farthest from root,
+     * i.e, farthest from destination, so at the upstream point of the PAS at its diverge (hence true at end of super)*/
+    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents, true);
   }
 
   /**

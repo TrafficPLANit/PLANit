@@ -493,7 +493,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
     Set<DirectedVertex> processed = new HashSet<>();
 
     final var getNextEdgeSegments =
-            isInverted() ? DirectedVertex.getEntryEdgeSegments : DirectedVertex.getExitEdgeSegments;
+            isInverted() ? DirectedVertex.GET_ENTRY_EDGE_SEGMENTS : DirectedVertex.GET_EXIT_EDGE_SEGMENTS;
     final var getNextVertex =
             isInverted() ? EdgeSegment.getUpstreamVertex : EdgeSegment.getDownstreamVertex;
 

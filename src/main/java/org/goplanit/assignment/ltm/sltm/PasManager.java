@@ -7,6 +7,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CollectionUtils;
+import org.goplanit.utils.reflection.ReflectionUtils;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -38,9 +39,14 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   private static final double NU = 0.25;
 
   /**
-   * Map storing all PASs by their reference vertex
+   * Map storing all currently in use PASs by their reference vertex
    */
-  private final Map<V, Collection<Pas<V,ES>>> passByVertex;
+  private final Map<V, Collection<Pas<V,ES>>> activePassByVertex;
+
+  /**
+   * Map storing all previously used, but currently unused PASs by their reference vertex
+   */
+  private final Map<V, Collection<Pas<V,ES>>> inactivePassByVertex;
   
   /** flag indicating if we store PASs by their downstream merge, or upstream diverge */
   private final boolean registerByDiverge;
@@ -116,6 +122,117 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
     return referenceVertex;
   }
 
+  /**
+   * find the first PAS of the PASs considered and which if we would extend the bush
+   * with its least cost alternative would improve to the point it is considered effective enough compared to the
+   * upper bound (reduced cost) improvement provided as well as that the bush has sufficient flow on the high-cost
+   * alternative of the PAS such that it can improve sufficiently by shifting flow towards the new low cost segment.
+   * If this all holds the PAS is selected and returned. We select the first PAS we can find that matches the criteria.
+   *
+   * @param bush                  to find suitable PAS for
+   * @param pass                  to consider
+   * @param flowAcceptanceFactors to use (required to assess flow effectiveness in capacitated context)
+   * @param reducedCost           the upper bound on the improvement that is known for this merge vertex
+   * @param checkEffectiveness when true enforce effectiveness checks, otherwise do not
+   * @return pas found, null if no suitable candidates exist
+   */
+  @SuppressWarnings("unchecked")
+  private Pas<V,ES> findFirstSuitablePas(
+          final RootedBush<V,ES> bush,
+          Collection<Pas<V,ES>> pass,
+          double[] flowAcceptanceFactors,
+          double reducedCost,
+          boolean checkEffectiveness) {
+
+    if (pass == null) {
+      return null;
+    }
+
+    Pas<V,ES> matchedPas = null;
+    for (var pas : pass) {
+      if (pas.hasRegisteredBush(bush)) {
+        continue;
+      }
+
+      /* check if PAS is attached upstream to bush - even if it is just with the vertex */
+      boolean pasPotentialMatch = false;
+      for (var pasFirstExitSegment : pas.getDivergeVertex().getExitEdgeSegments()) {
+        if (bush.contains((ES) pasFirstExitSegment)) {
+          pasPotentialMatch = true;
+          break;
+        }
+      }
+
+      if(!pasPotentialMatch) {
+        continue;
+      }
+
+      pasPotentialMatch = false;
+      /* check if PAS is attached downstream to bush - even if it is just with the vertex */
+      for (var pasLastEntrySegment : pas.getMergeVertex().getEntryEdgeSegments()) {
+        if (bush.contains((ES) pasLastEntrySegment)) {
+          pasPotentialMatch = true;
+          break;
+        }
+      }
+
+      if (!pasPotentialMatch) {
+        continue;
+      }
+
+      /* PAS start/end node are on bush, now check if it is effective in reducing cost/shifting flow */
+      if (checkEffectiveness && !isPasEffectiveForBush(pas, bush, flowAcceptanceFactors, reducedCost)) {
+        continue;
+      }
+      /* when not checking on effectiveness we at least must check it has no flow */
+      if(!checkEffectiveness && hasNonZeroFlow(pas.getAlternative(false), bush, flowAcceptanceFactors)){
+        DOES NOT WORK YET CONTINUE HERE BUSH CYCLE TEST
+        continue;
+      }
+
+      /* deemed effective, now ensure it does not introduce cycles given current state of the bush */
+      if (bush.determineIntroduceCycle(pas.getAlternative(true)) != null) {
+        continue;
+      }
+
+      matchedPas = pas;
+      break;
+
+    }
+    return matchedPas;
+  }
+
+  /**
+   * Find PAS that exactly matches the provides alternative segments. Identical to
+   * {@link #findMatchingActivePas(List, List)}
+   *
+   * @param alternative1 alternative segment of PAS
+   * @param alternative2 alternative segment of PAS
+   * @param active when true consider active PASs for a match, otherwise consider inactive PASs for a match
+   * @return the matching PAS, null otherwise
+   */
+  private Pas<V,ES> findMatchingPas(final ES[] alternative1, final ES[] alternative2, boolean active) {
+    if (alternative1 == null || alternative2 == null) {
+      LOGGER.severe("one or more alternatives of potential PAS are null");
+      return null;
+    }
+
+    var potentialPass = active ?
+            getActivePassByReferenceVertex(getReferenceVertexFromAlternative(alternative1)) :
+            getInactivePassByReferenceVertex(getReferenceVertexFromAlternative(alternative1));
+    if (potentialPass == null) {
+      return null;
+    }
+
+    for (var potentialPas : potentialPass) {
+      if(potentialPas.isAlternativesEqual(alternative1,alternative2)){
+        return potentialPas;
+      }
+    }
+
+    return null;
+  }
+
   /** default for detailed logging flag */
   public static final boolean DETAILED_LOGGING = false;
 
@@ -158,7 +275,7 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    *
    * @param <Vs> type of vertex on bush
    * @param <ESs> type of edge segment on bush
-   * @param pas  under consideration for a bush
+   * @param pasHighCostAlternative  PAS high cost alternative to check for a bush
    * @param bush the accepted flow found on the bush traversing the high cost PAS and reaching the end
    *             vertex (including final alpha) of the PAS
    * @param nlFlowAcceptanceFactors the accepted flow found passing through the final vertex of the PAS from the origin
@@ -167,19 +284,33 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    */
   @SuppressWarnings("unchecked")
   public static <Vs extends DirectedVertex,ESs extends EdgeSegment> boolean isFlowEffective(
-          Pas pas, RootedBush<Vs,ESs> bush, double[] nlFlowAcceptanceFactors) {
+          ESs[] pasHighCostAlternative, RootedBush<Vs,ESs> bush, double[] nlFlowAcceptanceFactors) {
     // NEW based on sending flow
     double s2FullSubPathSendingFlowOnBush = bush.determineSubPathSendingFlow(
-            (ESs[]) pas.getAlternative(false), nlFlowAcceptanceFactors);
+            pasHighCostAlternative, nlFlowAcceptanceFactors);
     /* general usage of high cost initial segment in bush (irrespective whether the flow follows the high-cost path)*/
-    EdgeSegment s2InitialEdgeSegment = pas.getFirstEdgeSegment(false);
-    double s2InitialSegmentSendingFlowOnBush = bush.getSendingFlowPcuH((ESs) s2InitialEdgeSegment);
+    var s2InitialEdgeSegment = pasHighCostAlternative[0];
+    double s2InitialSegmentSendingFlowOnBush = bush.getSendingFlowPcuH(s2InitialEdgeSegment);
     return Precision.greater(s2FullSubPathSendingFlowOnBush, NU * s2InitialSegmentSendingFlowOnBush);
   }
 
   /**
+   * Verify if the alternative has non-zero flow on bush
+   * @param alternative to check
+   * @param bush bush to use
+   * @param nlFlowAcceptanceFactors to use
+   * @return true when flow is present, false otherwise
+   * @param <Vs> type of vertex
+   * @param <ESs> type of segment
+   */
+  public static <Vs extends DirectedVertex,ESs extends EdgeSegment> boolean hasNonZeroFlow(
+          ESs[] alternative, RootedBush<Vs,ESs> bush, double[] nlFlowAcceptanceFactors) {
+    return Precision.positive(bush.determineSubPathSendingFlow(alternative, nlFlowAcceptanceFactors));
+  }
+
+  /**
    * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both {@link #isCostEffective(double, double, double)} and
-   * {@link #isFlowEffective(Pas, RootedBush, double[])}
+   * {@link #isFlowEffective(EdgeSegment[], RootedBush, double[])}
    *
    * @param <Vs> type of vertex on bush
    * @param <ESs> type of edge segment on bush
@@ -192,10 +323,39 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   public static <Vs extends DirectedVertex,ESs extends EdgeSegment> boolean isPasEffectiveForBush(
           Pas<Vs,ESs> pas, RootedBush<Vs,ESs> bush, double[] nlFlowAcceptanceFactors, double reducedCost) {
     /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound of the reduced cost */
-    return isCostEffective(
-            pas.getAlternativeHighCost(), pas.getAlternativeLowCost(), reducedCost)
-            &&
-            isFlowEffective(pas, bush, nlFlowAcceptanceFactors);
+    return isPasEffectiveForBush(
+            pas.getAlternative(false),
+            pas.getAlternativeHighCost(),
+            pas.getAlternativeLowCost(),
+            bush,
+            nlFlowAcceptanceFactors,
+            reducedCost);
+  }
+
+  /**
+   * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both {@link #isCostEffective(double, double, double)} and
+   * {@link #isFlowEffective(EdgeSegment[], RootedBush, double[])}
+   *
+   * @param <Vs> type of vertex on bush
+   * @param <ESs> type of edge segment on bush
+   * @param pasHighCostAlternative  to use
+   * @param highCostAlternativeCost to use
+   * @param lowCostAlternativeCost to use
+   * @param bush            to use
+   * @param nlFlowAcceptanceFactors to use
+   * @param reducedCost           to use
+   * @return true when considered effective, false otherwise
+   */
+  public static <Vs extends DirectedVertex,ESs extends EdgeSegment> boolean isPasEffectiveForBush(
+          ESs[] pasHighCostAlternative,
+          double highCostAlternativeCost,
+          double lowCostAlternativeCost,
+          RootedBush<Vs,ESs> bush,
+          double[] nlFlowAcceptanceFactors,
+          double reducedCost) {
+    /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound of the reduced cost */
+    return isCostEffective(highCostAlternativeCost, lowCostAlternativeCost, reducedCost)
+            && isFlowEffective(pasHighCostAlternative, bush, nlFlowAcceptanceFactors);
   }
 
   /**
@@ -355,9 +515,25 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
+   * Compute costs for an array of edge segments
+   *
+   * @param edgeSegments to compute cost for
+   * @param edgeSegmentCosts costs per edge segment
+   * @return total cost
+   */
+  public static double computeCost(EdgeSegment[] edgeSegments, final double[] edgeSegmentCosts){
+    double cost = 0;
+    for (int index = 0; index < edgeSegments.length; ++index) {
+      cost += edgeSegmentCosts[(int) edgeSegments[index].getId()];
+    }
+    return cost;
+  }
+
+  /**
    * Constructor
    * 
-   * @param registerByDiverge when true store PASs by (most upstream) diverge vertex, otherwise by their (most downstream) merge vertex 
+   * @param registerByDiverge when true store PASs by (most upstream) diverge vertex, otherwise by their
+   *                          (most downstream) merge vertex
    */
   public PasManager(boolean registerByDiverge) {
     
@@ -368,7 +544,8 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
       this.getReferenceVertex = Pas::getMergeVertex;
     }
     
-    this.passByVertex = new HashMap<>();
+    this.activePassByVertex = new HashMap<>();
+    this.inactivePassByVertex = new HashMap<>();
   }
 
   /**
@@ -381,15 +558,46 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    * @return createdPas
    */
   public Pas<V,ES> createAndRegisterNewPas(final RootedBush<V,ES> bush, final ES[] s1, final ES[] s2) {
-    Pas<V,ES> newPas = Pas.create(s1, s2);
+    var refVertex = getReferenceVertexFromAlternative(s1);
+    var unusedPassForRefVertex = inactivePassByVertex.get(refVertex);
+
+    Pas<V,ES> newPas;
+    if(unusedPassForRefVertex != null &&
+            unusedPassForRefVertex.stream().anyMatch( p -> p.isAlternativesEqual(s1, s2))){
+      LOGGER.warning("Trying to register a new Pas that already existed in unused form, using existing variant");
+      newPas = unusedPassForRefVertex.stream().filter(p -> p.isAlternativesEqual(s1, s2)).findFirst().get();
+    }else{
+      newPas = Pas.create(s1, s2);
+    }
+
     if (newPas == null) {
       return null;
     }
 
     newPas.registerBush(bush);
-    passByVertex.putIfAbsent(this.getReferenceVertex.apply(newPas), new ArrayList<>());
-    passByVertex.get(this.getReferenceVertex.apply(newPas)).add(newPas);
+    activePassByVertex.putIfAbsent(this.getReferenceVertex.apply(newPas), new ArrayList<>());
+    activePassByVertex.get(this.getReferenceVertex.apply(newPas)).add(newPas);
     return newPas;
+  }
+
+  /**
+   * Reactivate a currently inactive PAS
+   *
+   * @param inactivePas to reactivate
+   */
+  public void reactivatePas(Pas<V, ES> inactivePas) {
+    var refVertex = getReferenceVertex.apply(inactivePas);
+    if(activePassByVertex.get(refVertex).contains(inactivePas)){
+      LOGGER.warning("Unable to reactive PAS (%s) as it is already active, shouldn't happen");
+      return;
+    }
+    if(!inactivePassByVertex.get(refVertex).contains(inactivePas)){
+      LOGGER.warning("Unable to reactivate PAS (%s) as it is unknown as an inactive PAS, shouldn't happen");
+      return;
+    }
+    activePassByVertex.putIfAbsent(refVertex, new ArrayList<>());
+    activePassByVertex.get(refVertex).add(inactivePas);
+    inactivePassByVertex.get(refVertex).remove(inactivePas);
   }
 
   /**
@@ -406,106 +614,98 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
-   * Remove the PAS from the manager
+   * Deactivate the PAS
    * 
    * @param pas           to remove
    * @param logRemovedPas when true log removed pas, when false do not
    */
-  public void removePas(final Pas<V,ES> pas, boolean logRemovedPas) {
-    passByVertex.get(this.getReferenceVertex.apply(pas)).remove(pas);
+  public void deactivatePas(final Pas<V,ES> pas, boolean logRemovedPas) {
+    var refVertex = this.getReferenceVertex.apply(pas);
+    // remove from active pass
+    activePassByVertex.get(this.getReferenceVertex.apply(pas)).remove(pas);
+    // remove all bushes from PAS if any are remaining
+    pas.removeAllRegisteredBushes();
+    // track as unused pass whihc may later be activated again
+    inactivePassByVertex.putIfAbsent(refVertex, new ArrayList<>());
+    inactivePassByVertex.get(refVertex).add(pas);
     if (logRemovedPas) {
-      LOGGER.info(String.format("Removed existing PAS: %s", pas.toString()));
+      LOGGER.info(String.format("Deactivated existing PAS: %s", pas.toString()));
     }
   }
 
   /**
-   * Collect all PASs that share the same reference vertex. Make sure this vertex is in line with the manager's chosen reference vertex (diverge or merge vertex of the PAS container key)
+   * Collect all active PASs that share the same reference vertex.
    * 
    * @param referenceVertex to collect for
-   * @return found PAS matches, null if none
+   * @return found active PAS matches, null if none
    */
-  public Collection<Pas<V,ES>> getPassByReferenceVertex(final V referenceVertex) {
-    return passByVertex.get(referenceVertex);
+  public Collection<Pas<V,ES>> getActivePassByReferenceVertex(final V referenceVertex) {
+    return activePassByVertex.get(referenceVertex);
   }
 
   /**
-   * Find PAS that exactly matches the provides alternative segments. Identical to {@link #findExistingPas(EdgeSegment[], EdgeSegment[])}
-   * 
+   * Collect all inactive PASs that share the same reference vertex.
+   *
+   * @param referenceVertex to collect for
+   * @return found inactive PAS matches, null if none
+   */
+  public Collection<Pas<V,ES>> getInactivePassByReferenceVertex(final V referenceVertex) {
+    return inactivePassByVertex.get(referenceVertex);
+  }
+
+  /**
+   * Identical to {@link #findMatchingActivePas(EdgeSegment[], EdgeSegment[])}
+   *
    * @param alternative1 alternative segment of PAS
    * @param alternative2 alternative segment of PAS
    * @return the matching PAS, null otherwise
    */
-  public Pas<V,ES> findExistingPas(final List<ES> alternative1, final List<ES> alternative2) {
-    if (alternative1 == null || alternative2 == null) {
-      LOGGER.severe("one or more alternatives of potential PAS are null");
-      return null;
-    }
-    if (alternative1.isEmpty() || alternative2.isEmpty()) {
-      LOGGER.severe("one or more alternatives of potential PAS are empty");
-      return null;
-    }
-
-    var potentialPass = getPassByReferenceVertex(getReferenceVertexFromAlternative(alternative1));
-    if (potentialPass == null) {
-      return null;
-    }
-
-    for (var potentialPas : potentialPass) {
-      if (potentialPas.isAlternativeEqual(alternative1, true) &&
-              potentialPas.isAlternativeEqual(alternative2, false)) {
-        return potentialPas;
-      } else if (potentialPas.isAlternativeEqual(alternative2, true) &&
-              potentialPas.isAlternativeEqual(alternative1, false)) {
-        return potentialPas;
-      }
-    }
-
-    return null;
+  @SuppressWarnings("unchecked")
+  public Pas<V,ES> findMatchingActivePas(final List<ES> alternative1, final List<ES> alternative2) {
+    var alt1Array = ReflectionUtils.createTypedArrayInstance(
+            (Class<ES>)alternative1.get(0).getClass(),alternative1.size());
+    var alt2Array = ReflectionUtils.createTypedArrayInstance(
+            (Class<ES>) alternative2.get(0).getClass(),alternative2.size());
+    return findMatchingActivePas(alt1Array, alt2Array);
   }
 
   /**
    * Find PAS that exactly matches the provides alternative segments. Identical to
-   * {@link #findExistingPas(List, List)}
+   * {@link #findMatchingActivePas(List, List)}
    * 
    * @param alternative1 alternative segment of PAS
    * @param alternative2 alternative segment of PAS
    * @return the matching PAS, null otherwise
    */
-  public Pas<V,ES> findExistingPas(final ES[] alternative1, final ES[] alternative2) {
-    if (alternative1 == null || alternative2 == null) {
-      LOGGER.severe("one or more alternatives of potential PAS are null");
-      return null;
-    }
-
-    var potentialPass = getPassByReferenceVertex(getReferenceVertexFromAlternative(alternative1));
-    if (potentialPass == null) {
-      return null;
-    }
-
-    for (var potentialPas : potentialPass) {
-      if (potentialPas.isAlternativeEqual(alternative1, true) &&
-              potentialPas.isAlternativeEqual(alternative2, false)) {
-        return potentialPas;
-      } else if (potentialPas.isAlternativeEqual(alternative2, true) &&
-              potentialPas.isAlternativeEqual(alternative1, false)) {
-        return potentialPas;
-      }
-    }
-
-    return null;
+  public Pas<V,ES> findMatchingActivePas(final ES[] alternative1, final ES[] alternative2) {
+    boolean searchActivePass = true;
+    return findMatchingPas(alternative1, alternative2, searchActivePass);
   }
 
   /**
-   * Verify if any PAS at given reference vertex is used by this origin bush.
+   * Find inactive PAS that exactly matches the provides alternative segments. Identical to
+   * {@link #findMatchingActivePas(List, List)}
+   *
+   * @param alternative1 alternative segment of PAS
+   * @param alternative2 alternative segment of PAS
+   * @return the matching PAS, null otherwise
+   */
+  public Pas<V,ES> findMatchingInactivePas(final ES[] alternative1, final ES[] alternative2) {
+    boolean searchActivePass = true;
+    return findMatchingPas(alternative1, alternative2, !searchActivePass);
+  }
+
+  /**
+   * Verify if any active PAS at given reference vertex is used by this origin bush.
    * 
    * @param bush  to test for
    * @param referenceVertex to test for
    * @return true when PAS is used by origin bush ending at this vertex, false otherwise
    */
-  public boolean isRegisteredOnAnyPasAtReferenceVertex(
+  public boolean isRegisteredOnAnyActivePasAtReferenceVertex(
           final RootedBush<V,ES> bush, final V referenceVertex) {
     /* verify potential PASs */
-    var potentialPass = getPassByReferenceVertex(referenceVertex);
+    var potentialPass = getActivePassByReferenceVertex(referenceVertex);
     if (potentialPass == null) {
       return false;
     }
@@ -520,78 +720,65 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
-   * find the first PAS which has the given merge vertex as end vertex and which if we would extend the bush with its
-   * least cost alternative would improve to the point it is considered effective enough compared to the upper bound
-   * (reduced cost) improvement provided as well as that the bush has sufficient flow on the high cost alternative of the
-   * PAS such that it can improve sufficiently by shifting flow towards the new low cost segment. If this all holds
-   * the PAS is selected and returned. We select the first PAS we can find that matches this criteria.
+   * find the first ACTIVE PAS which if we would extend the bush with its least cost alternative would improve
+   * to the point it is considered effective enough compared to the upper bound (reduced cost) improvement
+   * provided as well as that the bush has sufficient flow on the high-cost alternative of the PAS such
+   * that it can improve sufficiently by shifting flow towards the new low cost segment.
+   * If this all holds the PAS is selected and returned. We select the first PAS we can find that matches
+   * the criteria.
    *
    * @param bush            to find suitable PAS for
    * @param referenceVertex           to use
    * @param flowAcceptanceFactors to use (required to assess flow effectiveness in capacitated context)
    * @param reducedCost           the upper bound on the improvement that is known for this merge vertex
+   * @param checkEffectiveness when true enforce effectiveness checks, otherwise do not
    * @return pas found, null if no suitable candidates exist
    */
   @SuppressWarnings("unchecked")
-  public Pas<V,ES> findFirstSuitableExistingPas(
+  public Pas<V,ES> findFirstSuitableActivePas(
           final RootedBush<V,ES> bush,
           final V referenceVertex,
           double[] flowAcceptanceFactors,
-          double reducedCost) {
+          double reducedCost,
+          boolean checkEffectiveness) {
 
-    /* verify potential PASs */
-    var potentialPass = getPassByReferenceVertex(referenceVertex);
-    if (potentialPass == null) {
-      return null;
-    }
+    /* check suitable PASs from pool of active PASs */
+    return findFirstSuitablePas(
+            bush,
+            getActivePassByReferenceVertex(referenceVertex),
+            flowAcceptanceFactors,
+            reducedCost,
+            checkEffectiveness);
+  }
 
-    Pas<V,ES> matchedPas = null;
-    for (var pas : potentialPass) {
-      if (pas.hasRegisteredBush(bush)) {
-        continue;
-      }
-      
-      /* check if PAS is attached upstream to bush - even if it is just with the vertex */
-      boolean pasPotentialMatch = false;
-      for (var pasFirstExitSegment : pas.getDivergeVertex().getExitEdgeSegments()) {
-        if (bush.contains((ES) pasFirstExitSegment)) {
-          pasPotentialMatch = true;
-          break;
-        }
-      }
-      
-      if(!pasPotentialMatch) {
-        continue;
-      }
-
-      pasPotentialMatch = false;
-      /* check if PAS is attached downstream to bush - even if it is just with the vertex */
-      for (var pasLastEntrySegment : pas.getMergeVertex().getEntryEdgeSegments()) {
-        if (bush.contains((ES) pasLastEntrySegment)) {
-          pasPotentialMatch = true;
-          break;
-        }
-      }      
-
-      if (!pasPotentialMatch) {
-        continue;
-      }
-
-      /* PAS start/end node are on bush, now check if it is effective in reducing cost/shifting flow */
-      if (!isPasEffectiveForBush(pas, bush, flowAcceptanceFactors, reducedCost)) {
-        continue;
-      }
-
-      /* deemed effective, now ensure it does not introduce cycles given current state of the bush */
-      if (bush.determineIntroduceCycle((ES[]) pas.getAlternative(true)) != null) {
-        continue;
-      }
-
-      matchedPas = pas;
-      break;
-
-    }
-    return matchedPas;
+  /**
+   * find the first INACTIVE PAS which if we would extend the bush with its least cost alternative would improve
+   * to the point it is considered effective enough compared to the upper bound (reduced cost) improvement
+   * provided as well as that the bush has sufficient flow on the high-cost alternative of the PAS such
+   * that it can improve sufficiently by shifting flow towards the new low cost segment.
+   * If this all holds the PAS is selected and returned. We select the first PAS we can find that matches
+   * the criteria.
+   *
+   * @param bush            to find suitable PAS for
+   * @param referenceVertex           to use
+   * @param flowAcceptanceFactors to use (required to assess flow effectiveness in capacitated context)
+   * @param reducedCost           the upper bound on the improvement that is known for this merge vertex
+   * @param checkEffectiveness when true enforce effectiveness checks, otherwise do not
+   * @return pas found, null if no suitable candidates exist
+   */
+  @SuppressWarnings("unchecked")
+  public Pas<V,ES> findFirstSuitableInactivePas(
+          final RootedBush<V,ES> bush,
+          final V referenceVertex,
+          double[] flowAcceptanceFactors,
+          double reducedCost,
+          boolean checkEffectiveness) {
+      return findFirstSuitablePas(
+              bush,
+              getInactivePassByReferenceVertex(referenceVertex),
+              flowAcceptanceFactors,
+              reducedCost,
+              checkEffectiveness);
   }
 
   /**
@@ -599,9 +786,9 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    * 
    * @param linkSegmentCosts to use
    */
-  public void updateCosts(final double[] linkSegmentCosts) {
-    for (Collection<Pas<V,ES>> pass : passByVertex.values()) {
-      updateCosts(pass, linkSegmentCosts);
+  public void updateActivePassCosts(final double[] linkSegmentCosts) {
+    for (Collection<Pas<V,ES>> pass : activePassByVertex.values()) {
+      updatePassCosts(pass, linkSegmentCosts);
     }
   }
 
@@ -611,63 +798,63 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    * @param pass             collection of specific PASs to update
    * @param linkSegmentCosts to use
    */
-  public void updateCosts(Collection<Pas<V,ES>> pass, double[] linkSegmentCosts) {
+  public void updatePassCosts(Collection<Pas<V,ES>> pass, double[] linkSegmentCosts) {
     for (var pas : pass) {
       pas.updateCost(linkSegmentCosts);
     }
   }
 
   /**
-   * Construct a priority queue based on the PASs reduced cost, i.e., difference between their high and low
+   * Construct a priority queue based on the active PASs reduced cost, i.e., difference between their high and low
    * cost segments in descending order.
    *
    * @param pasComparator to use
    * @return sorted PAS queue in descending order, i.e., highest reduced cost first
    */
-  public Collection<Pas<V,ES>> getPassSortedByReducedCost(Comparator<Pas<V,ES>> pasComparator) {
-    var sortedList = new ArrayList<Pas<V,ES>>((int) getNumberOfPass());
-    forEachPas(sortedList::add);
+  public Collection<Pas<V,ES>> getActivePassSortedByReducedCost(Comparator<Pas<V,ES>> pasComparator) {
+    var sortedList = new ArrayList<Pas<V,ES>>((int) getNumberOfActivePass());
+    forEachActivePas(sortedList::add);
     sortedList.sort(pasComparator);
     return sortedList;
   }
 
   /**
-   * Loop over all Pass
+   * Loop over all active Pass
    * 
    * @param pasConsumer to apply
    */
-  public void forEachPas(Consumer<Pas<V,ES>> pasConsumer) {
-    passByVertex.forEach((v, pc) -> {
+  public void forEachActivePas(Consumer<Pas<V,ES>> pasConsumer) {
+    activePassByVertex.forEach((v, pc) -> {
       pc.forEach(pasConsumer);
     });
   }
 
   /**
-   * Number of PASs registered
+   * Number of active PASs registered
    * 
    * @return number of PASs registered
    */
-  public long getNumberOfPass() {
+  public long getNumberOfActivePass() {
     long numPass = 0;
-    for (var pass : passByVertex.values()) {
+    for (var pass : activePassByVertex.values()) {
       numPass += pass.size();
     }
     return numPass;
   }
 
   /**
-   * Remove bushes from Pass on which the bush is currently registered and the predicate provided holds
+   * Remove bushes from active Pass on which the bush is currently registered and the predicate provided holds
    *
    * @param bush to check
    * @param pasPredicate to apply
    * @param removeUnusedPass flag to use
    * @return number of pass from which the bush has been removed
    */
-  public int removeBushFromPasIf(
+  public int removeBushFromActivePasIf(
           RootedBush<V,ES> bush, Predicate<Pas<V,ES>> pasPredicate, boolean removeUnusedPass) {
     int countRemovals = 0;
     List<Pas<V,ES>> passWithoutBush = null; //todo: make set when pas is comparable
-    for (var pass : passByVertex.values()) {
+    for (var pass : activePassByVertex.values()) {
       for( var pas : pass){
         if(pas.hasRegisteredBush(bush)){
           if(pasPredicate.test(pas)) {
@@ -686,7 +873,7 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
       }
     }
     if(passWithoutBush!=null && !passWithoutBush.isEmpty()){
-      passWithoutBush.forEach(p -> removePas(p, true));
+      passWithoutBush.forEach(p -> deactivatePas(p, true));
     }
     return countRemovals;
   }

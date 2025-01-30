@@ -331,7 +331,8 @@ public class sLtmAssignmentBushCycleTest {
       sltmConfigurator.setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
       sltmConfigurator.setAllowOverlappingPasUpdate(true);
 
-      sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("x","A``"));
+      sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A``"));
+      sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A`","A``"));
 
       var smoothing = (MSRASmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.MSRA);
       smoothing.setKappaStep(1);
@@ -344,7 +345,7 @@ public class sLtmAssignmentBushCycleTest {
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.setActivateDetailedLogging(true);
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
       sLTM.execute();
 
       double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());

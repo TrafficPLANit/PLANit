@@ -7,7 +7,6 @@ import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.cost.virtual.FixedConnectoidTravelTimeCost;
-import org.goplanit.cost.virtual.VirtualCost;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -66,7 +65,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
               p.anyMatch(es -> es.idEquals(entry.getKey()), true) ||
                       p.anyMatch(es -> es.idEquals(entry.getKey()), false);;
       for(var bush : entry.getValue()){
-        pasManager.removeBushFromPasIf(bush, pasPredicate, true);
+        pasManager.removeBushFromActivePasIf(bush, pasPredicate, true);
       }
     }
   }
@@ -144,7 +143,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   private Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>>
   flowShiftingStepOneCreatePasFlowShiftersWithLoadingS1S2SendingFlows() {
     final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors = new HashMap<>();
-    this.pasManager.forEachPas( pas -> {
+    this.pasManager.forEachActivePas(pas -> {
 
       // create flow shifter
       var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
@@ -170,7 +169,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   private int flowShiftingStepTwoRemovePassWithoutRemainingFlow(
           Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors) {
     var passWithoutBush = new ArrayList<Pas<V,ES>>();
-    this.pasManager.forEachPas( pas -> {
+    this.pasManager.forEachActivePas(pas -> {
 
       var pasFlowShifter = pasExecutors.get(pas);
 
@@ -185,7 +184,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // remove from pas manager and pas flow shift executors
     if (!passWithoutBush.isEmpty()) {
       passWithoutBush.forEach((pas) -> {
-        this.pasManager.removePas(pas, getSettings().isDetailedLogging());
+        this.pasManager.deactivatePas(pas, getSettings().isDetailedLogging());
         pasExecutors.remove(pas);
       });
 
@@ -194,7 +193,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     int numRemovedPASs = passWithoutBush.size();
     if(getSettings().isDetailedLogging()){
       LOGGER.info(String.format(
-              "Removed %d PASs that were found to have no remaining flow on their high cost segment - Before flow shifting", numRemovedPASs));
+              "Deactivated %d PASs that were found to have no remaining flow on their high cost segment - Before flow shifting", numRemovedPASs));
     }
     return numRemovedPASs;
   }
@@ -228,7 +227,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     var discontinuityDampeningFactor = Math.min(1,gapFunction.getGap());
 
     // Determine proposed flow shift per PAS
-    this.pasManager.forEachPas( pas -> {
+    this.pasManager.forEachActivePas(pas -> {
       var flowShifts = pasExecutors.get(pas).determineProposedFlowShiftByLoadingEntrySegment(
               theMode, physicalCost, virtualCost, getLoading(), discontinuityDampeningFactor);
       pasProposedFlowShifts.put(pas, flowShifts);
@@ -260,7 +259,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     };
 
     /* Sort all remaining PAss based on comparator */
-    return this.pasManager.getPassSortedByReducedCost(PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR);
+    return this.pasManager.getActivePassSortedByReducedCost(PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR);
   }
 
   /** STEP5: Any new PASs that were identified may be in conflict with each other regarding introducing cycles. Using
@@ -346,7 +345,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
     Collection<ES> linkSegmentsUsed = new HashSet<>(100);
 
-    var flowShiftedPass = new ArrayList<Pas<V,ES>>((int) this.pasManager.getNumberOfPass());
+    var flowShiftedPass = new ArrayList<Pas<V,ES>>((int) this.pasManager.getNumberOfActivePass());
     var passWithoutBush = new ArrayList<Pas<V,ES>>();
 
     for (var pas : sortedPass) {
@@ -442,13 +441,13 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    */
   private void flowShiftingStepEightFinalise(ArrayList<Pas<V,ES>> passWithoutBush) {
     if (!passWithoutBush.isEmpty()) {
-      passWithoutBush.forEach((pas) -> this.pasManager.removePas(pas, getSettings().isDetailedLogging()));
+      passWithoutBush.forEach((pas) -> this.pasManager.deactivatePas(pas, getSettings().isDetailedLogging()));
     }
 
     int numRemovedPASs = passWithoutBush.size();
     if(getSettings().isDetailedLogging()){
       LOGGER.info(String.format(
-              "Removed %d PASs that were found to have no remaining flow on their high cost segment - After flow shifting", numRemovedPASs));
+              "Deactivated %d PASs that were found to have no remaining flow on their high cost segment - After flow shifting", numRemovedPASs));
     }
   }
 
@@ -558,22 +557,17 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param transportModelNetwork to use
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
+   * @param registerPassByDiverge when true index registration by diverge, merge otherwise
    */
   protected StaticLtmBushStrategyBase(
       final IdGroupingToken idGroupingToken,
       long assignmentId,
       final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
       final StaticLtmSettings settings,
-      final TrafficAssignmentComponentAccessee taComponents) {
+      final TrafficAssignmentComponentAccessee taComponents,
+      boolean registerPassByDiverge) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
-
-    /*
-     * destination based bushes are inverted, so PASs are to be registered based on vertex farthest from root, i.e, farthest from destination, so at the upstream point of the PAS
-     * at its diverge
-     */
-    boolean registerPassByDiverge = settings.getSltmType() == StaticLtmType.DESTINATION_BUSH_BASED;
     this.pasManager = new PasManager<>(registerPassByDiverge);
-
     this.pasManager.setDetailedLogging(settings.isDetailedLogging());
   }
 
@@ -689,7 +683,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     }
 
     // deregister bushes from PASs that have edge segments that were removed for that bush as a result of the branch shift
-    this.pasManager.forEachPas( pas -> {
+    this.pasManager.forEachActivePas(pas -> {
       for(var removedSegmentsEntry : removedSegmentsForBushes.entrySet()){
         if(pas.getRegisteredBushes().stream().noneMatch(b -> removedSegmentsEntry.getValue().contains(b))){
           continue;
@@ -819,12 +813,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         boolean logAll = false; //simulationData.getIterationIndex()>=200;
 
         /* (NEW) PAS MATCHING FOR BUSHES */
-        long numOriginalPass = pasManager.getNumberOfPass();
+        long numOriginalPass = pasManager.getNumberOfActivePass();
         boolean updateGap = true; // we can cheaply determine gap while traversing bushes
         var newAndUpdatedPass = updateBushPass(theMode, costsToUpdate, updateGap, logAll);
         if(getSettings().isDetailedLogging()) {
           LOGGER.info(String.format("%d PASs known (including %d new and %d updated PASs)",
-                  pasManager.getNumberOfPass(), newAndUpdatedPass.first().size(), newAndUpdatedPass.second().size()));
+                  pasManager.getNumberOfActivePass(), newAndUpdatedPass.first().size(), newAndUpdatedPass.second().size()));
         }
 
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
@@ -833,7 +827,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         var justNewPass = newAndUpdatedPass.first();
         var newPassWithShiftedFlows = new ArrayList<>(justNewPass);
         newPassWithShiftedFlows.retainAll(updatedPass);
-        long remainingPass = pasManager.getNumberOfPass();
+        long remainingPass = pasManager.getNumberOfActivePass();
         updatedPass.forEach( p -> LOGGER.info(p.toString()));
         LOGGER.info(String.format("Flow shifts performed: %d ---- [#PASs: before %d, after %d, newly added (with shifts): %d]",
             updatedPass.size(), numOriginalPass, remainingPass, newPassWithShiftedFlows.size()));
@@ -842,7 +836,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         /* Remove unused new PASs, in case no flow shift is applied due to overlap with PAS with higher reduced cost
          * In this case, the new PAS is not used and is to be removed identical to how existing PASs are removed during flow shifts when they no longer carry flow*/
         justNewPass.removeAll(updatedPass);
-        justNewPass.forEach( pas -> pasManager.removePas(pas, getSettings().isDetailedLogging()));
+        justNewPass.forEach( pas -> pasManager.deactivatePas(pas, getSettings().isDetailedLogging()));
       }
 
       /* 5 - perform low flow branch shifts on the bush level */
