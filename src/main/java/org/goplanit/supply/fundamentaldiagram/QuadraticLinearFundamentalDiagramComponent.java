@@ -75,7 +75,8 @@ public class QuadraticLinearFundamentalDiagramComponent extends FundamentalDiagr
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public QuadraticLinearFundamentalDiagramComponent(final QuadraticLinearFundamentalDiagramComponent other, boolean deepCopy) {
+  public QuadraticLinearFundamentalDiagramComponent(
+      final QuadraticLinearFundamentalDiagramComponent other, boolean deepCopy) {
     super(other, deepCopy);
   }
 

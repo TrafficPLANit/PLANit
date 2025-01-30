@@ -67,13 +67,15 @@ public class sLtmAssignmentBushSingleOdQlFdTest3 {
     Demands demands = new Demands(testToken);
     demands.timePeriods.getFactory().registerNew("dummyTimePeriod", 0, 3600);
     demands.travelerTypes.getFactory().registerNew("dummyTravellerType");
-    demands.userClasses.getFactory().registerNew("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
+    demands.userClasses.getFactory().registerNew(
+        "dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
 
     /* OD DEMANDS 8000 A->A` */
     OdZones odZones = zoning.getOdZones();
     OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
     odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), 8000.0);
-    demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
+    demands.registerOdDemandPcuHour(
+        demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
 
     return demands;
   }
@@ -175,7 +177,8 @@ public class sLtmAssignmentBushSingleOdQlFdTest3 {
       
       network = new MacroscopicNetwork(testToken);
       network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
-      networkLayer = network.getTransportLayers().getFactory().registerNew(network.getModes().get(PredefinedModeType.CAR));
+      networkLayer = network.getTransportLayers().getFactory().registerNew(
+          network.getModes().get(PredefinedModeType.CAR));
 
       {
         // 0
@@ -228,7 +231,11 @@ public class sLtmAssignmentBushSingleOdQlFdTest3 {
       
       
       MacroscopicLinkSegmentTypes linkTypes = networkLayer.getLinkSegmentTypes();
-      linkTypes.getFactory().registerNew("500_per_lane", 500, 180, network.getModes().getFirst()).setXmlId("500_per_lane");
+      linkTypes.getFactory().registerNew(
+          "500_per_lane",
+          500,
+          180,
+          network.getModes().getFirst()).setXmlId("500_per_lane");
 
       var linkSegmentFactory = networkLayer.getLinkSegments().getFactory();
       linkSegmentFactory.registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(16);

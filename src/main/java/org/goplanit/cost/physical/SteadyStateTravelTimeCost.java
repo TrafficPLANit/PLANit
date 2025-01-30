@@ -1,15 +1,11 @@
 package org.goplanit.cost.physical;
 
-import java.util.Arrays;
-import java.util.Map;
-
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.interactor.LinkInflowOutflowAccessor;
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
-import org.goplanit.supply.fundamentaldiagram.QuadraticLinearFundamentalDiagram;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -20,6 +16,9 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.unit.Unit;
+
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Cost computation for travel times based on the work of Raadsen and Bliemer (2019), Steady-state link travel time methods: Formulation, derivation, classification, and

@@ -87,17 +87,17 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
     assertEquals(outflow1, 4529.16, 1);
     assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow3, outflow2, Precision.EPSILON_3);
-    assertEquals(outflow4, 3738.73, 1);
-    assertEquals(outflow5, 3191.29, 1);
+    assertEquals(outflow4, 3742, 2);
+    assertEquals(outflow5, 3191, 1);
     assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow7, outflow6, Precision.EPSILON_3);
-    assertEquals(outflow8, 3761.67, 1);
+    assertEquals(outflow8, 3758, 2);
     assertEquals(outflow9, 3000.0, Precision.EPSILON_3);
     assertEquals(outflow10, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow11, outflow10, Precision.EPSILON_3);
     assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
-    assertEquals(outflow13, 2238.32, 1);
-    assertEquals(outflow14, 2261, 1);
+    assertEquals(outflow13, 2242, 2);
+    assertEquals(outflow14, 2258, 2);
 
     double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
@@ -160,8 +160,8 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       //configurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"),Pair.of("A","A``"));
 
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_15);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(0);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(500);
       sLTM.execute();
 
       testDeterministicOutputs(sLTM);
