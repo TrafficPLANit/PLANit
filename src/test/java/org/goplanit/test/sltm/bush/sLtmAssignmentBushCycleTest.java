@@ -53,7 +53,8 @@ public class sLtmAssignmentBushCycleTest {
   private MacroscopicNetworkLayer networkLayer;
   private Zoning zoning;
 
-  private final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("sLtmAssignmentSingleOdTest1");
+  private final IdGroupingToken testToken =
+          IdGenerator.createIdGroupingToken("sLtmAssignmentBushCycleTest");
 
   /** the logger */
   private static Logger LOGGER = null;
