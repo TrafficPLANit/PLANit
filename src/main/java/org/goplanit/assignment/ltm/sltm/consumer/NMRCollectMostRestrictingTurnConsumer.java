@@ -44,7 +44,8 @@ public class NMRCollectMostRestrictingTurnConsumer implements ApplyToNodeModelRe
    * {@inheritDoc}
    */
   @Override
-  public void acceptTurnBasedResult(final DirectedVertex node, final Array1D<Double> flowAcceptanceFactors, final NodeModel nodeModel) {
+  public void acceptTurnBasedResult(
+      final DirectedVertex node, final Array1D<Double> flowAcceptanceFactors, final NodeModel nodeModel) {
 
     /* match entry segment to index */
     var iter = node.getEntryEdgeSegments().iterator();

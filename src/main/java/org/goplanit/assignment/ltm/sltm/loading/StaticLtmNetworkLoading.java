@@ -3,10 +3,10 @@ package org.goplanit.assignment.ltm.sltm.loading;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelInput;
+import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
 import org.goplanit.assignment.ltm.sltm.LinkSegmentData;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.ApplyToNodeModelResult;
@@ -26,7 +26,6 @@ import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
@@ -36,7 +35,6 @@ import org.ojalgo.array.Array1D;
 import org.ojalgo.array.Array2D;
 import org.ojalgo.function.PrimitiveFunction;
 import org.ojalgo.function.aggregator.Aggregator;
-import org.ojalgo.structure.Access1D;
 
 /**
  * Class exposing the various sLTM network loading solution method components of sLTM (not considering path choice,
@@ -666,40 +664,20 @@ public abstract class StaticLtmNetworkLoading {
   
     /* C_a : in Array1D form, capped to maximum physical capacity in case we are dealing with connectoid with
      * infinite capacity */
-    var inCapacities = Array1D.PRIMITIVE64.makeZero(numEntrySegments);
-    int index = 0;
-    for (var entryEdgeSegment : node.getEntryEdgeSegments()) {
-      inCapacities.set(
-              index++,
-              Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
-                      ((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH()));
-    }
+    var inCapacities = TampereNodeModelUtils.createIncomingCapacities(node);
   
     /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
-    @SuppressWarnings("unchecked")
-    var tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[numEntrySegments];
-    int entryIndex = 0;
-    for (var iter = node.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
-      EdgeSegment entryEdgeSegment = iter.next();
-      /* s_ab = s_a*phi_ab */
-      double sendingFlow = sendingFlowData.getCurrentSendingFlows()[(int) entryEdgeSegment.getId()];
-      Array1D<Double> localTurnSendingFlows = splittingRateData.getSplittingRates(entryEdgeSegment).copy();
-      localTurnSendingFlows.modifyAll(PrimitiveFunction.MULTIPLY.by(sendingFlow));
-      tunSendingFlowsByEntryLinkSegment[entryIndex] = localTurnSendingFlows;
-    }
-    Array2D<Double> turnSendingFlows = Array2D.PRIMITIVE64.rows(tunSendingFlowsByEntryLinkSegment);
+    Array2D<Double> turnSendingFlows = TampereNodeModelUtils.createTurnSendingFlowsUsingSplittingRates(
+        node,
+        sendingFlowData.getCurrentSendingFlows(),
+        es -> splittingRateData.getSplittingRates(es).copy());
   
     /* r_a : in Array1D form */
-    var outReceivingFlows = Array1D.PRIMITIVE64.makeZero(numExitSegments);
-    index = 0;
-    for (var exitEdgeSegment : node.getExitEdgeSegments()) {
-      outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).getCapacityOrDefaultPcuH());
-    }
+    var outReceivingFlows = TampereNodeModelUtils.createOutgoingReceivingFlows(node);
   
     /* Kappa(s,r,phi) : node model update */
     try {
-      var nodeModel = new TampereNodeModel(new TampereNodeModelInput(
-              new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingFlows));
+      var nodeModel = TampereNodeModel.of(inCapacities, outReceivingFlows, turnSendingFlows);
       Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
         
       /* delegate to consumer */

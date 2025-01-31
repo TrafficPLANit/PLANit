@@ -5,8 +5,9 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.ojalgo.array.Array1D;
 
 /**
- * Apply this to the result of a Tampere node model execution for a particular node, it is invoked with the node the model was invoked on, the resulting flow acceptance factors and
- * the sending flow turn flows (rows are entry link segments, columns outgoing link segments).
+ * Apply this to the result of a Tampere node model execution for a particular node, it is invoked with the node
+ * the model was invoked on, the resulting flow acceptance factors and the sending flow turn flows (rows are
+ * entry link segments, columns outgoing link segments).
  * 
  * @author markr
  *
@@ -20,15 +21,18 @@ public interface ApplyToNodeModelResult {
    * @param node                   to use
    * @param linkSegmentSendingFlow to use. Note that these are the network wide sending flows by link segment id, not localised for the node
    */
-  public abstract void acceptNonBlockingLinkBasedResult(final DirectedVertex node, final double[] linkSegmentSendingFlow);
+  public abstract void acceptNonBlockingLinkBasedResult(
+      final DirectedVertex node, final double[] linkSegmentSendingFlow);
 
   /**
    * Result of a node model update
    * 
    * @param node                  to use
-   * @param flowAcceptanceFactors resulting from the update, localised for the node based on its entry segment iterator order
+   * @param flowAcceptanceFactors resulting from the update, localised for the node based on its entry segment
+   *                              iterator order
    * @param nodeModel             that was applied
    */
-  public abstract void acceptTurnBasedResult(final DirectedVertex node, final Array1D<Double> flowAcceptanceFactors, final NodeModel nodeModel);
+  public abstract void acceptTurnBasedResult(
+      final DirectedVertex node, final Array1D<Double> flowAcceptanceFactors, final NodeModel nodeModel);
 
 }

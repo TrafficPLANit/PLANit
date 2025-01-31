@@ -42,7 +42,7 @@ public class TamperNodeModelTest {
 
   @Test
   public void TampereNodeModelFixedInputTest() {
-    TampereNodeModelFixedInput fixedInput = new TampereNodeModelFixedInput(inCapacities, outReceivingFlows);
+    TampereNodeModelFixedInput fixedInput = TampereNodeModelFixedInput.of(inCapacities, outReceivingFlows);
     assertEquals(4, fixedInput.getNumberOfIncomingLinkSegments());
     assertEquals(4, fixedInput.getNumberOfOutgoingLinkSegments());
   }
@@ -50,7 +50,7 @@ public class TamperNodeModelTest {
   @Test
   public void TampereNodeModelInputTest() {
     try {
-      TampereNodeModelFixedInput fixedInput = new TampereNodeModelFixedInput(inCapacities, outReceivingFlows);
+      TampereNodeModelFixedInput fixedInput = TampereNodeModelFixedInput.of(inCapacities, outReceivingFlows);
       TampereNodeModelInput input = new TampereNodeModelInput(fixedInput, turnSendingflows);
       Array1D<Double> scalingFactors = input.getCapacityScalingFactors();
       assertEquals(1000.0 / 500.0, scalingFactors.get(0), Precision.EPSILON_6);
@@ -67,9 +67,7 @@ public class TamperNodeModelTest {
   public void testBasedOnPaper() {
     try {
       TampereNodeModel tampereNodeModel = 
-          new TampereNodeModel(
-              new TampereNodeModelInput(
-                  new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingflows));
+          TampereNodeModel.of(inCapacities, outReceivingFlows, turnSendingflows);
       
       
       Array1D<Double> inLinkFlowAcceptanceFactors = tampereNodeModel.run();
@@ -121,9 +119,7 @@ public class TamperNodeModelTest {
 
 
       TampereNodeModel tampereNodeModel =
-              new TampereNodeModel(
-                      new TampereNodeModelInput(
-                              new TampereNodeModelFixedInput(theInCapacities, theOutReceivingFlows), theTurnSendingflows));
+              TampereNodeModel.of(theInCapacities, theOutReceivingFlows, theTurnSendingflows);
 
       //  with near zero flow but not zero flow on the right turn both in links are severely congested
       Array1D<Double> inLinkFlowAcceptanceFactors = tampereNodeModel.run();
@@ -153,7 +149,7 @@ public class TamperNodeModelTest {
       assertEquals(turnFlowAcceptanceFactors.get(1, 3), 0.3333333, Precision.EPSILON_6);
 
       // now we reduce the straight flow on the link with the right turn with the small flow to zero. This means
-      // the right-turn flow would be scaled to capacity if it had flow receiving comparatively more barganing power
+      // the right-turn flow would be scaled to capacity if it had flow receiving comparatively more bargaining power
       // on the outlink, this should result in a turn acceptance factor on the zero-flow turn that is again 1 rather
       // than below 1 compared to before
       theTurnSendingflows = Array2D.PRIMITIVE64.rows(
@@ -175,7 +171,7 @@ public class TamperNodeModelTest {
       assertEquals(turnFlowAcceptanceFactors.get(1, 3), 0.3333333, Precision.EPSILON_6);
 
     } catch (Exception e) {
-      fail("Error when running Tampere node model");
+      fail("Error when running turn based Tampere node model test");
     }
   }
   //@formatter:on

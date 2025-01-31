@@ -21,14 +21,17 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
- * Cost computation for travel times based on the work of Raadsen and Bliemer (2019), Steady-state link travel time methods: Formulation, derivation, classification, and
- * unification.
+ * Cost computation for travel times based on the work of Raadsen and Bliemer (2019), Steady-state link travel time
+ * methods: Formulation, derivation, classification, and unification.
  * <p>
- * Suitable for static and semi-dynamic traffic assignment methods that are steady-state with respect to their inflow and outflow rates which necessarily are able to take on
- * different values, where the difference between in and outflow results in a queue on the link. Most notable assignment method that adopts this method is sLTM.
+ * Suitable for static and semi-dynamic traffic assignment methods that are steady-state with respect to their
+ * inflow and outflow rates which necessarily are able to take on different values, where the difference between in
+ * and outflow results in a queue on the link. Most notable assignment method that adopts this method is sLTM.
  * <p>
- * Raadsen and Bliemer (2019) highlight three main computation methods to compute the same steady-state travel time on the link level. In this implementation we utilise the so
- * called static-functional - longitudinal method where we compute the travel time via three components: 1) free flow travel time + 2) hypocritical delay + 3) hypercritical delay
+ * Raadsen and Bliemer (2019) highlight three main computation methods to compute the same steady-state travel time
+ * on the link level. In this implementation we utilise the so called static-functional - longitudinal method where
+ * we compute the travel time via three components: 1) free flow travel time + 2) hypocritical delay + 3)
+ * hypercritical delay.
  *
  * @author markr
  */
@@ -40,7 +43,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   /** accessee to use to obtain inflow and outflows to derive costs for */
   private LinkInflowOutflowAccessee accessee;
 
-  /** the time period in hours for which we are computing costs. In case of steady state costs it is the duration of the period that is of interest */
+  /** the time period in hours for which we are computing costs. In case of steady state costs it is the duration
+   * of the period that is of interest */
   private double currentTimePeriodHours;
 
   /**
@@ -62,7 +66,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   }
 
   /**
-   * To speed up the computations we create the mapping between link segment and free flow travel times once and reuse it throughout the lifespan of this cost component. This
+   * To speed up the computations we create the mapping between link segment and free flow travel times once and
+   * reuse it throughout the lifespan of this cost component. This
    * avoids repeating the same computations albeit at the cost of increased memory usage
    * 
    * @param linkSegments to create free flow travel time mapping for
@@ -72,7 +77,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   }
 
   /**
-   * To speed up the computations we create the mapping between link segment and fundamental diagram once and reuse it throughout the lifespan of this cost component. This avoids
+   * To speed up the computations we create the mapping between link segment and fundamental diagram once and reuse
+   * it throughout the lifespan of this cost component. This avoids
    * repeating the same costly lookups via the component albeit at the cost of increased memory usage
    * 
    * @param linkSegments to create FD mapping for
@@ -90,7 +96,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * @param outflowRatePcuHour to use
    * @return travel time computed, when outflow is zero and inflow is positive an infinite travel time is returned
    */
-  private double computeTravelTime(LinkSegment linkSegment, FundamentalDiagram fd, double inflowRatePcuHour, double outflowRatePcuHour) {
+  private double computeTravelTime(
+      LinkSegment linkSegment, FundamentalDiagram fd, double inflowRatePcuHour, double outflowRatePcuHour) {
     /* minimum travel time */
     double freeFlowTravelTime = freeFlowTravelTimePerLinkSegment[(int) linkSegment.getLinkSegmentId()];
 
@@ -104,14 +111,16 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
       if (!fd.getFreeFlowBranch().isLinear()) {
         // hypocritical delay = hypocritical travel time - minimum travel time
         hypoCriticalDelay =
-            (linkSegment.getParent().getLengthKm() / fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflowPcuHLane)) - freeFlowTravelTime;
+            (linkSegment.getParent().getLengthKm() /
+                fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflowPcuHLane)) - freeFlowTravelTime;
       }
 
       /* average hyper critical delay */
       if (Precision.smaller(outflowPcuHLane, inflowPcuHLane)) {
 
         if (!Precision.positive(outflowRatePcuHour)) {
-          LOGGER.warning(String.format("Link segment (%s) appears to have no outflow while positive inflow (%.2f) -> infinite travel time, this is unlikely",
+          LOGGER.warning(String.format("Link segment (%s) appears to have no outflow while positive inflow (%.2f) " +
+                  "-> infinite travel time, this is unlikely",
               linkSegment.getIdsAsString(), inflowRatePcuHour));
           return Double.POSITIVE_INFINITY;
         }
@@ -146,8 +155,10 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     this.accessee = other.accessee;
 
     this.currentTimePeriodHours = other.currentTimePeriodHours;
-    this.freeFlowTravelTimePerLinkSegment = Arrays.copyOf(other.freeFlowTravelTimePerLinkSegment, other.freeFlowTravelTimePerLinkSegment.length);
-    this.linkSegmentFundamentalDiagrams = Arrays.copyOf(other.linkSegmentFundamentalDiagrams, other.linkSegmentFundamentalDiagrams.length);
+    this.freeFlowTravelTimePerLinkSegment =
+        Arrays.copyOf(other.freeFlowTravelTimePerLinkSegment, other.freeFlowTravelTimePerLinkSegment.length);
+    this.linkSegmentFundamentalDiagrams =
+        Arrays.copyOf(other.linkSegmentFundamentalDiagrams, other.linkSegmentFundamentalDiagrams.length);
   }
 
   /**
@@ -155,11 +166,14 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    */
   @Override
   public void initialiseBeforeSimulation(LayeredNetwork<?, ?> network) throws PlanItException {
-    PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "Steady state travel time cost is only compatible with macroscopic networks");
+    PlanItException.throwIf(!(network instanceof MacroscopicNetwork),
+        "Steady state travel time cost is only compatible with macroscopic networks");
     var macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
-        "Steady state travel time cost is currently only compatible with networks using a single infrastructure layer");
-    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1, "Steady state travel time cost is currently only compatible with a single mode, found %d",
+        "Steady state travel time cost is currently only compatible with networks using a single " +
+            "infrastructure layer");
+    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
+        "Steady state travel time cost is currently only compatible with a single mode, found %d",
         network.getModes().size());
 
     var mode = network.getModes().getFirst();

@@ -55,7 +55,7 @@ public class TampereNodeModel implements NodeModel {
   /** the result of the node model are the acceptance factors for each incoming link segment */
   protected Array1D<Double> incomingLinkSegmentFlowAcceptanceFactors;
 
-  /** the result of the node model - when run in turn absed mode - are the acceptance factors for each
+  /** the result of the node model - when run in turn based mode - are the acceptance factors for each
    * turn */
   protected Array2D<Double> turnFlowAcceptanceFactors;
 
@@ -301,6 +301,41 @@ public class TampereNodeModel implements NodeModel {
   }
 
   /**
+   * Constructor
+   *
+   * @param tampereNodeModelInput inputs for the model
+   */
+  protected TampereNodeModel(TampereNodeModelInput tampereNodeModelInput){
+    PlanItRunTimeException.throwIf(tampereNodeModelInput == null, "Tampere node model input is null");
+    this.inputs = tampereNodeModelInput;
+  }
+
+  /**
+   * Factory method to create an instance
+   * @param tampereNodeModelInput to use
+   * @return node model instance
+   */
+  public static TampereNodeModel of(TampereNodeModelInput tampereNodeModelInput){
+    return new TampereNodeModel(tampereNodeModelInput);
+  }
+
+  /**
+   * Factory method to create an instance
+   * @param inCapacities to use
+   * @param outReceivingFlows to use
+   * @param turnSendingFlows to use
+   * @return node model instance
+   */
+  public static TampereNodeModel of(
+      Array1D<Double> inCapacities,
+      Array1D<Double> outReceivingFlows,
+      Array2D<Double> turnSendingFlows){
+    return new TampereNodeModel(
+        new TampereNodeModelInput(
+            TampereNodeModelFixedInput.of(inCapacities, outReceivingFlows), turnSendingFlows));
+  }
+
+  /**
    * Run the node model in either of the two run types, link-based which is the regular and default approach as in
    * the original paper, or turn-based where we track acceptance factors on each turn and zero flow turns receive
    * the acceptance factor of the exit link even if there is no flow into it. the latter provides more granular
@@ -325,16 +360,6 @@ public class TampereNodeModel implements NodeModel {
         updateCapacityConstrainedInLinkSegments(mostRestrictingOutLinkSegmentData, linkBasedDefault);
       }
     }
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param tampereNodeModelInput inputs for the model
-   */
-  public TampereNodeModel(TampereNodeModelInput tampereNodeModelInput){
-    PlanItRunTimeException.throwIf(tampereNodeModelInput == null, "Tampere node model input is null");
-    this.inputs = tampereNodeModelInput;
   }
 
   /**
