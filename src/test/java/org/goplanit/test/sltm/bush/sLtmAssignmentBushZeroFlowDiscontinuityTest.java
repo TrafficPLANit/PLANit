@@ -268,6 +268,7 @@ public class sLtmAssignmentBushZeroFlowDiscontinuityTest {
       // solution -> each PAS update should also perform local loading update for all its bushes
       sltmConfigurator.setAllowOverlappingPasUpdate(true);
       sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("O1", "D2"));
+      sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("O1", "D1"));
 
       var smoothing = (MSRASmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.MSRA);
       smoothing.setKappaStep(1);

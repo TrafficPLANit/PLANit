@@ -16,12 +16,14 @@ import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Class for dynamic cost functions, which calculate link segment costs for each iteration and assumes an underlying macroscopic link segment approach
+ * Class for dynamic cost functions, which calculates link segment costs for each iteration and assumes an
+ * underlying macroscopic link segment approach
  *
  * @author markr, gman6028
  *
  */
-public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysicalCost> implements PhysicalCost<MacroscopicLinkSegment>, Serializable {
+public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysicalCost>
+    implements PhysicalCost<MacroscopicLinkSegment>, Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = 3657719270477537657L;

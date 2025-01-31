@@ -646,9 +646,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * Update all existing PASs costs based on provided original network link segment costs
    *
+   * @param theMode the mode to use
    * @param originalNetworkLinkSegmentCosts to use
    */
-  protected abstract void updatePasCosts(double[] originalNetworkLinkSegmentCosts);
+  protected abstract void updatePasCosts(Mode theMode, double[] originalNetworkLinkSegmentCosts);
 
   /**
    * To avoid bushes keeping low flow links occupied and limiting options to use links or opposite links
@@ -783,7 +784,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
         
         /* PAS COST UPDATE*/
-        updatePasCosts(costsToUpdate);
+        updatePasCosts(theMode, costsToUpdate);
 
         if(getSettings().isDetailedLogging()){
           LOGGER.info(String.format("** ALPHA: %s", Arrays.toString(getLoading().getCurrentFlowAcceptanceFactors())));

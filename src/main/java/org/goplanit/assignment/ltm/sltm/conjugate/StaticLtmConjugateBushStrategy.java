@@ -1,12 +1,16 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.algorithms.nodemodel.TampereNodeModel;
+import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestBushResult;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.*;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
+import org.goplanit.cost.physical.AbstractPhysicalCost;
+import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -16,25 +20,36 @@ import org.goplanit.network.transport.ConjugateTransportModelNetworkUtils;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.functionalinterface.TriConsumer;
+import org.goplanit.utils.functionalinterface.TriFunction;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
+import org.ojalgo.array.Array1D;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 /**
@@ -123,7 +138,7 @@ public class StaticLtmConjugateBushStrategy
    * Create a shortest bush search algorithm for the conjugate bushes based on conjugate edge segments and costs
    *
    * @param nonConjugateLinkSegmentCosts to use
-   * @return create shortest busg algorithm
+   * @return create shortest bush algorithm
    */
   @Override
   protected ShortestBushGeneralised createNetworkShortestBushAlgo(double[] nonConjugateLinkSegmentCosts) {
@@ -149,10 +164,96 @@ public class StaticLtmConjugateBushStrategy
    * {@inheritDoc}
    */
   @Override
-  protected void updatePasCosts(double[] originalNetworkLinkSegmentCosts) {
-    var conjSegmentCosts = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(originalNetworkLinkSegmentCosts);
+  protected void updatePasCosts(Mode theMode, double[] originalNetworkLinkSegmentCosts) {
+    // PASs on conjugate level, so expand link segment to conjugate segment costs as if first
+    var conjSegmentCosts =
+        expandNonConjugateLinkSegmentCostToConjugateSegmentCost(originalNetworkLinkSegmentCosts);
+    // Now account for zero flow discontinuity by rerunning all nodes in turn based mode to obtain
+    // turn level acceptance factors which we can then use to update the turn costs for zero flow
+    // turns such that they become (realistically) unattractive as options for when finding new PASs
+    updateZeroFlowDiscontinuityCongestedTurnCosts(theMode, conjSegmentCosts);
     pasManager.updateActivePassCosts(conjSegmentCosts);
     pasManager.updateInactivePassCosts(conjSegmentCosts);
+  }
+
+  /**
+   * For all congested nodes, recompute node model in turn based setting to obtain turn costs considering zero flow
+   * discontinuities. For any such turns with: (i) currently uncongested, (ii) having zero flow, (iii) leading into a
+   * congested link (iv) having non-zero flow would cause the incoming link become congested: we replace the current
+   * cost with one based on the limit towards zero flow cost produced (which is higher) to ensure a PAS is not
+   * considered unless it is attractive even under this situation.
+   *
+   * @param theMode to use
+   * @param conjSegmentCosts to update zero-flow turns at a discontinuity to utilise most restricting cost rather than
+   *                         least restricting cost
+   */
+  private void updateZeroFlowDiscontinuityCongestedTurnCosts(final Mode theMode, double[] conjSegmentCosts) {
+    //1. identify congested nodes
+    var trackedNodes = getLoading().getSplittingRateData().getTrackedNodes();
+
+    // prep
+    final LongAdder numDiscontinuitiesUpdated = new LongAdder();
+    final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
+    final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
+    var flowAcceptanceFactors = getLoading().getCurrentFlowAcceptanceFactors();
+    var linkSendingFlows = getLoading().getCurrentInflowsPcuH();
+    Function<EdgeSegment, Array1D<Double>> getEntrySegmentSplittingRates =
+        es -> getLoading().getSplittingRateData().getSplittingRates(es).copy();
+    // end prep
+
+    // Prep Lambda Function that will ultimately perform the cost update after the node model calculation
+    TriConsumer<EdgeSegment, EdgeSegment, Double> discontinuityTurnCostReplacementConsumer = (entry, exit, alpha) ->
+      {
+        var nlAppliedFlowAcceptanceFactor = flowAcceptanceFactors[(int)entry.getId()];
+        if(Precision.greaterEqual(alpha, nlAppliedFlowAcceptanceFactor, Precision.EPSILON_9)){
+          return;
+        }
+        // discontinuity found since the turn acceptance factor is more restricting than the link based one applied in loading
+        // this only happens at a zero flow discontinuity.
+
+        //HACK: because the cost calculation hides its internal workings for now we modify the link outflow locally
+        //      based on the changed alphas.
+        // TODO: create a nice fix so we can compute generalised cost on-the-fly for a given flow acceptance factor
+        double originalNlOutflow = getLoading().getCurrentOutflowsPcuH()[(int)entry.getId()];
+        double outflowConsistentWithNonZeroTurnFlow = getLoading().getCurrentInflowsPcuH()[(int)entry.getId()] * alpha;
+        getLoading().getCurrentOutflowsPcuH()[(int)entry.getId()] = outflowConsistentWithNonZeroTurnFlow;
+        double disContinuitySegmentCost = (entry instanceof ConnectoidSegment) ?
+            virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) entry):
+            physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) entry);
+        getLoading().getCurrentOutflowsPcuH()[(int)entry.getId()] = originalNlOutflow; // place original cost back
+        assert(originalNlOutflow > outflowConsistentWithNonZeroTurnFlow);
+
+        //3. overwrite existing costs for turns where discontinuity was found
+        var conjugateSegment = turn2ConjugateSegmentMapping.get(entry, exit);
+        assert (conjSegmentCosts[(int)conjugateSegment.getId()] < disContinuitySegmentCost);
+        conjSegmentCosts[(int)conjugateSegment.getId()] = disContinuitySegmentCost;
+        numDiscontinuitiesUpdated.increment();
+      };
+    //
+
+    //2. for each congested node rerun node in turn based form
+    Predicate<DirectedVertex> hasCongestedEntrySegment = n -> IterableUtils.asStream(
+        n.getEntryEdgeSegments()).anyMatch(es -> flowAcceptanceFactors[(int)es.getId()] < 1 );
+    for(var node : trackedNodes){
+      if(!hasCongestedEntrySegment.test(node)){
+        continue;
+      }
+      var inCapacities = TampereNodeModelUtils.createIncomingCapacities(node);
+      var receivingFlows = TampereNodeModelUtils.createOutgoingReceivingFlows(node);
+      var turnSendingFlows = TampereNodeModelUtils.createTurnSendingFlowsUsingSplittingRates(
+          node, linkSendingFlows, getEntrySegmentSplittingRates);
+
+      // run node model in turn aware setup
+      var turnBasedFlowAcceptanceFactors =
+          TampereNodeModel.of(inCapacities, receivingFlows, turnSendingFlows).runTurnBased();
+      TampereNodeModelUtils.forEachTurnBasedResult(
+          node, turnBasedFlowAcceptanceFactors, discontinuityTurnCostReplacementConsumer);
+    }
+
+    if(numDiscontinuitiesUpdated.intValue()>0) {
+      LOGGER.info(String.format("Updated costs for %d zero-flow turns with a discontinuous cost function",
+          numDiscontinuitiesUpdated.intValue()));
+    }
   }
 
   /**

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
@@ -139,7 +140,7 @@ public class TampereNodeModelFixedInput {
    * @param initialiseReceivingFlowsAtCapacity indicate to initialise receiving flows at capacity (true),
    *                                           or not initialise them at all
    */
-  public TampereNodeModelFixedInput(Node node, boolean initialiseReceivingFlowsAtCapacity){
+  protected TampereNodeModelFixedInput(Node node, boolean initialiseReceivingFlowsAtCapacity){
     // Set A^in
     mapIncomingLinkSegments(node.getEntryEdgeSegments(), node.getNumberOfEntryEdgeSegments());
     // Set A^out
@@ -156,10 +157,11 @@ public class TampereNodeModelFixedInput {
    * @param incomingLinkSegmentCapacities     to use
    * @param outgoingLinkSegmentReceivingFlows to use
    */
-  public TampereNodeModelFixedInput(
+  protected TampereNodeModelFixedInput(
           Array1D<Double> incomingLinkSegmentCapacities, Array1D<Double> outgoingLinkSegmentReceivingFlows) {
     this.incomingLinkSegmentCapacities = incomingLinkSegmentCapacities.copy();
-    this.outgoingLinkSegmentReceivingFlows = outgoingLinkSegmentReceivingFlows.copy();
+    this.outgoingLinkSegmentReceivingFlows =
+        outgoingLinkSegmentReceivingFlows!= null ?outgoingLinkSegmentReceivingFlows.copy() : null;
   }
 
   /**
@@ -167,9 +169,8 @@ public class TampereNodeModelFixedInput {
    * 
    * @param incomingLinkSegmentCapacities to use
    */
-  public TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities) {
-    this.incomingLinkSegmentCapacities = incomingLinkSegmentCapacities.copy();
-    this.outgoingLinkSegmentReceivingFlows = null;
+  protected TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities) {
+    this(incomingLinkSegmentCapacities, null);
   }
 
   /**
@@ -215,6 +216,30 @@ public class TampereNodeModelFixedInput {
    */
   public void setMaxInLinkSegmentCapacity(double maxInLinkSegmentCapacity) {
     this.maxInLinkSegmentCapacity = maxInLinkSegmentCapacity;
+  }
+
+  /**
+   * Factory method
+   *
+   * @param node                               to use for extracting static inputs
+   * @param initialiseReceivingFlowsAtCapacity indicate to initialise receiving flows at capacity (true),
+   *                                           or not initialise them at all
+   * @return create fixed inputs
+   */
+  public static TampereNodeModelFixedInput of(Node node, boolean initialiseReceivingFlowsAtCapacity){
+    return new TampereNodeModelFixedInput(node, initialiseReceivingFlowsAtCapacity);
+  }
+
+  /**
+   * Factory method
+   *
+   * @param incomingLinkSegmentCapacities     to use
+   * @param outgoingLinkSegmentReceivingFlows to use
+   * @return create fixed inputs
+   */
+  public static TampereNodeModelFixedInput of(
+      Array1D<Double> incomingLinkSegmentCapacities, Array1D<Double> outgoingLinkSegmentReceivingFlows){
+    return new TampereNodeModelFixedInput(incomingLinkSegmentCapacities, outgoingLinkSegmentReceivingFlows);
   }
 
 }
