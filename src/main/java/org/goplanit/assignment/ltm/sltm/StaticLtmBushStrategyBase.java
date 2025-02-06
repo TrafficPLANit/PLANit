@@ -611,7 +611,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param linkSegmentCosts costs to use
    */
   protected void initialiseBushes(Mode mode, final double[] linkSegmentCosts){
-    final var shortestBushAlgorithm = createNetworkShortestBushAlgo(linkSegmentCosts);
+    final var shortestBushAlgorithm = createNetworkShortestBushAlgo(mode, linkSegmentCosts);
 
     Zoning zoning = getTransportNetwork().getZoning();
     OdDemands odDemands = getOdDemands(mode);
@@ -630,10 +630,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * Create a network wide shortest bush algorithm based on provided costs
    *
+   * @param theMode to use
    * @param linkSegmentCosts to use
    * @return one-to-all shortest bush algorithm
    */
-  protected abstract ShortestBushGeneralised createNetworkShortestBushAlgo(final double[] linkSegmentCosts);
+  protected abstract ShortestBushGeneralised createNetworkShortestBushAlgo(
+          Mode theMode, final double[] linkSegmentCosts);
 
   /**
    * Create a network wide Dijkstra shortest path algorithm based on provided costs

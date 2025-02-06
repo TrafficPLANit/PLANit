@@ -108,7 +108,7 @@ public class sLtmAssignmentBushZeroFlowDiscontinuityTest {
   public void intialise() {
     // construct the network.
     // all demands are 1000
-    // all capacities are 2000 eacept for bottleneck link 4 which is 100
+    // all capacities are 2000 except for bottleneck link 4 which is 100
     //
     //           * D1
     //           ^
@@ -130,14 +130,14 @@ public class sLtmAssignmentBushZeroFlowDiscontinuityTest {
     //
     //
     // Bottleneck: link 4
-    // Situation: O1->d2 will use bottleneck link initially, It is congested so revert to not using it
+    // Situation: O1->D2 will use bottleneck link initially, It is congested so revert to not using it
     //            when not using it, it will use bottom route (and O1->D1 diverts as well). This route is longer.
     //            When turn 2->4 is not used anymore, the derivative of cost on 2 becomes (near) 0 and the 2->4
     //            turn appears to be attractive again. The moment any flow is diverted here again, a big queue
     //            materialises and we get a repeat.
     //
-    // Solution: the PAS for 2->4 should not be selected/created after 4 becomes congested because the non-zero
-    //           flow cost/derivatives into 4 from 2 should be considered instead of the zero flow situation.
+    // Solution: the PAS for 2->4 should never be allowed to be selected/created after 4 becomes congested because
+    // the non-zero flow cost/derivatives into 4 from 2 should be considered instead of the zero flow situation.
 
     
     try {
@@ -331,7 +331,7 @@ public class sLtmAssignmentBushZeroFlowDiscontinuityTest {
   /**
    * Test sLTM conjugate bush-destination based assignment on above network for a point queue model -->
    * should be able to solve properly once we have turn based costs and derivatives.
-   * TODO: not yet implemented turn absed costs and derivatives
+   * TODO: not yet implemented turn based costs and derivatives
    */
   @Test
   public void sLtmPointQueueConjugateBushDestinationBasedAssignmentTest() {

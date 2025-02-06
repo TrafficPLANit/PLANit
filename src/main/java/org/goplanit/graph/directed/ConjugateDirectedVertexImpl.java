@@ -3,14 +3,8 @@ package org.goplanit.graph.directed;
 import java.util.Collection;
 import java.util.logging.Logger;
 
-import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.graph.ConjugateVertex;
-import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
-import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.locationtech.jts.geom.LineSegment;
 import org.locationtech.jts.geom.Point;
 
 /**
@@ -31,18 +25,18 @@ public class ConjugateDirectedVertexImpl extends DirectedVertexImpl<ConjugateEdg
 
   // Protected
 
-  /** original edge this conjugate vertex represents */
-  protected final DirectedEdge originalEdge;
+  /** original this conjugate vertex represents */
+  protected final EdgeSegment original;
 
   /**
    * Constructor
    * 
-   * @param groupId,          contiguous id generation within this group for instances of this class
-   * @param originalEdge this conjugate represents in the conjugate graph
+   * @param groupId contiguous id generation within this group for instances of this class
+   * @param original original this conjugate represents in the conjugate graph
    */
-  protected ConjugateDirectedVertexImpl(final IdGroupingToken groupId, final DirectedEdge originalEdge) {
+  protected ConjugateDirectedVertexImpl(final IdGroupingToken groupId, final EdgeSegment original) {
     super(groupId);
-    this.originalEdge = originalEdge;
+    this.original = original;
   }
 
   /**
@@ -53,7 +47,7 @@ public class ConjugateDirectedVertexImpl extends DirectedVertexImpl<ConjugateEdg
    */
   protected ConjugateDirectedVertexImpl(ConjugateDirectedVertexImpl other, boolean deepCopy) {
     super(other, deepCopy);
-    this.originalEdge = other.originalEdge;
+    this.original = other.original;
   }
 
   // Public
@@ -124,8 +118,8 @@ public class ConjugateDirectedVertexImpl extends DirectedVertexImpl<ConjugateEdg
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdge getOriginalEdge() {
-    return originalEdge;
+  public EdgeSegment getOriginalEdgeSegment() {
+    return original;
   }
 
 }

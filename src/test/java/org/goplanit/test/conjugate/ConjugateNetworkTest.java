@@ -169,29 +169,24 @@ public class ConjugateNetworkTest {
       var conjugateVirtualNetwork =
           conjugateTransportModelNetwork.getVirtualNetwork();
 
-      assertEquals(networkLayer.getLinks().size(), conjugatePhysicalLayer.getNodes().size());
-
-      /* physical conjugate network check */
-      int totalEdgePairs = 0;
-      for (Node node : networkLayer.getNodes()) {
-        int combinations = 0;
-        for (int index = node.getEdges().size() - 1; index > 0; --index) {
-          combinations += index;
-        }
-        totalEdgePairs += combinations;
-      }
-      assertEquals(totalEdgePairs, conjugatePhysicalLayer.getLinks().size());
-      assertEquals(totalEdgePairs * 2, conjugatePhysicalLayer.getLinkSegments().size());
+      // # original link segments == # conjugate nodes
+      assertEquals(networkLayer.getLinkSegments().size(), conjugatePhysicalLayer.getNodes().size());
+      // # conjugate links == # conjugate link segments (all 1:1 and directional currently)
+      assertEquals(conjugatePhysicalLayer.getLinks().size(), conjugatePhysicalLayer.getLinkSegments().size());
 
       /*
        * virtual conjugate network check (where we add a partial dummy turn around each centroid to enter/exit the
        * virtual network. Therefore, we have a single conjugate edge + 2 conjugate segments for each original
        * connectoid edge
        */
-      assertEquals(zoning.getVirtualNetwork().getLayer().getConnectoidLinks().size(),
+      assertEquals(zoning.getVirtualNetwork().getLayer().getConnectoidLinks().size() * 2,
               conjugateVirtualNetwork.getLayer().getConnectoidLinks().size());
-      assertEquals(zoning.getVirtualNetwork().getLayer().getConnectoidSegments().size(),
+      assertEquals(conjugateVirtualNetwork.getLayer().getConnectoidLinks().size(),
               conjugateVirtualNetwork.getLayer().getConnectoidSegments().size());
+
+      // one dummy per centroid + one conjugate node per connectoid segment
+      assertEquals(zoning.getOdZones().size() + zoning.getVirtualNetwork().getLayer().getConnectoidSegments().size(),
+              conjugateVirtualNetwork.getLayer().getVertices().size());
 
     } catch (Exception e) {
       e.printStackTrace();

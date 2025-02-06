@@ -2,12 +2,8 @@ package org.goplanit.graph.directed;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
-import org.goplanit.utils.graph.directed.ConjugateDirectedEdgeFactory;
-import org.goplanit.utils.graph.directed.ConjugateDirectedEdges;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
-import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -37,10 +33,10 @@ public class ConjugateDirectedEdgeFactoryImpl extends GraphEntityFactoryImpl<Con
           ConjugateDirectedVertex vertexA,
           ConjugateDirectedVertex vertexB,
           boolean registerOnVertices,
-          DirectedEdge originalEdge1,
-          DirectedEdge originalEdge2){
+          EdgeSegment original1,
+          EdgeSegment original2){
     final var newConjugateEdge = new ConjugateDirectedEdgeImpl<>(
-            getIdGroupingToken(), vertexA, vertexB, originalEdge1, originalEdge2);
+            getIdGroupingToken(), vertexA, vertexB, original1, original2);
     getGraphEntities().register(newConjugateEdge);
     if (registerOnVertices) {
       vertexA.addEdge(newConjugateEdge);
@@ -57,11 +53,11 @@ public class ConjugateDirectedEdgeFactoryImpl extends GraphEntityFactoryImpl<Con
           ConjugateDirectedVertex vertexA,
           ConjugateDirectedVertex vertexB,
           boolean registerOnVertices,
-          DirectedEdge originalEdge1,
-          DirectedEdge originalEdge2,
+          EdgeSegment original1,
+          EdgeSegment original2,
           boolean deriveXmlIdFromOriginalEdges,
           String xmlIdPostFix){
-    final var newConjugateEdge = registerNew(vertexA, vertexB, registerOnVertices, originalEdge1, originalEdge2);
+    final var newConjugateEdge = registerNew(vertexA, vertexB, registerOnVertices, original1, original2);
     newConjugateEdge.populateXmlId(deriveXmlIdFromOriginalEdges, xmlIdPostFix);
     return newConjugateEdge;
   }

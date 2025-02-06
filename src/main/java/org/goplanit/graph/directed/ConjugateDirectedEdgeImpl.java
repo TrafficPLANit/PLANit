@@ -1,16 +1,9 @@
 package org.goplanit.graph.directed;
 
-import java.util.concurrent.atomic.DoubleAdder;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.ConjugateEdgeImpl;
-import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.graph.ConjugateEdge;
-import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
-import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.locationtech.jts.geom.LineString;
@@ -35,9 +28,9 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
   private static final Logger LOGGER = Logger.getLogger(ConjugateDirectedEdgeImpl.class.getCanonicalName());
 
   /**
-   * adjacent original directed edges represented by this conjugate
+   * adjacent originals represented by this conjugate
    */
-  protected final Pair<DirectedEdge, DirectedEdge> originalEdges;
+  protected final Pair<EdgeSegment, EdgeSegment> originals;
 
   /**
    * Constructor
@@ -45,13 +38,17 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param vertexA  first conjugate vertex in the link
    * @param vertexB  second conjugate vertex in the link
-   * @param originalEdge1 to use
-   * @param originalEdge2 to use
+   * @param original1 to use
+   * @param original2 to use
    */
-  protected ConjugateDirectedEdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB, final DirectedEdge originalEdge1,
-      final DirectedEdge originalEdge2) {
+  protected ConjugateDirectedEdgeImpl(
+          final IdGroupingToken groupId,
+          final V vertexA,
+          final V vertexB,
+          final EdgeSegment original1,
+          final EdgeSegment original2) {
     super(groupId, vertexA, vertexB);
-    this.originalEdges = Pair.of(originalEdge1, originalEdge2);
+    this.originals = Pair.of(original1, original2);
   }
 
   /**
@@ -62,7 +59,7 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
    */
   protected ConjugateDirectedEdgeImpl(ConjugateDirectedEdgeImpl<V,ES> other, boolean deepCopy) {
     super(other, deepCopy);
-    this.originalEdges = other.originalEdges.copy(); // not owned so never deep copied
+    this.originals = other.originals.copy(); // not owned so never deep copied
   }
 
   /**
@@ -112,8 +109,8 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
    * {@inheritDoc}
    */
   @Override
-  public Pair<DirectedEdge, DirectedEdge> getOriginalAdjacentEdges() {
-    return originalEdges;
+  public Pair<EdgeSegment, EdgeSegment> getOriginalAdjacentSegments() {
+    return originals;
   }
 
   /**

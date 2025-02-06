@@ -8,6 +8,7 @@ import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 import org.locationtech.jts.geom.Point;
 
@@ -36,7 +37,7 @@ public class ConjugateConnectoidNodeImpl
   protected long conjugateNodeId;
 
   /** original this conjugate represents */
-  protected final ConnectoidDirectedEdge original;
+  protected final ConnectoidSegment original;
 
   /**
    * set the node id on this node
@@ -67,7 +68,7 @@ public class ConjugateConnectoidNodeImpl
    * @param original original this conjugate represents
    * @param idToken to use
    */
-  protected ConjugateConnectoidNodeImpl(final ConnectoidDirectedEdge original, final IdGroupingToken idToken) {
+  protected ConjugateConnectoidNodeImpl(final ConnectoidSegment original, final IdGroupingToken idToken) {
     super(idToken);
     this.original = original;
     this.conjugateNodeId = generateNodeId(idToken);
@@ -113,12 +114,12 @@ public class ConjugateConnectoidNodeImpl
   }
 
   /**
-   * Provide name of original edge (if any)
+   * Provide name of original edge segment parent (if any)
    * @return name
    */
   @Override
   public String getName() {
-    return getOriginalEdge()!=null ? getOriginalEdge().getName() : null;
+    return this.getOriginalEdgeSegment()!=null ? this.getOriginalEdgeSegment().getParentName() : null;
   }
 
   /**
@@ -174,7 +175,7 @@ public class ConjugateConnectoidNodeImpl
    * {@inheritDoc}
    */
   @Override
-  public ConnectoidDirectedEdge getOriginalEdge() {
+  public ConnectoidSegment getOriginalEdgeSegment() {
     return original;
   }
 

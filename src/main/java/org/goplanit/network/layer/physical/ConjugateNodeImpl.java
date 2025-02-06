@@ -9,11 +9,9 @@ import java.util.logging.Logger;
 import org.goplanit.graph.directed.DirectedVertexImpl;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.ConjugateLink;
-import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
-import org.goplanit.utils.network.layer.physical.ConjugateNode;
-import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.*;
 import org.locationtech.jts.geom.Point;
 
 /**
@@ -30,7 +28,7 @@ public class ConjugateNodeImpl extends NodeImpl<ConjugateLinkSegment> implements
   private static final Logger LOGGER = Logger.getLogger(ConjugateNodeImpl.class.getCanonicalName());
 
   /** original this conjugate represents */
-  protected final Link original;
+  protected final LinkSegment original;
 
   // Public
 
@@ -40,7 +38,7 @@ public class ConjugateNodeImpl extends NodeImpl<ConjugateLinkSegment> implements
    * @param idToken to use
    * @param original original this conjugate represents
    */
-  protected ConjugateNodeImpl(IdGroupingToken idToken, final Link original) {
+  protected ConjugateNodeImpl(IdGroupingToken idToken, final LinkSegment original) {
     super(idToken);
     this.original = original;
   }
@@ -107,7 +105,7 @@ public class ConjugateNodeImpl extends NodeImpl<ConjugateLinkSegment> implements
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdge getOriginalEdge() {
+  public LinkSegment getOriginalEdgeSegment() {
     return original;
   }
 

@@ -165,9 +165,10 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
             terminationCondition);
 
     /*
-     * no result could be found, only possible when cycle is detected before reaching origin Not sure this will actually happen, so created warning to check, when it does happen
-     * investigate and see if this expected behaviour (if so remove statement). this would equate to finding a vertex marked with a '1' in Xie & Xie, which I do not do because I
-     * don't think it is needed, but I might be wrong.
+     * no result could be found, only possible when cycle is detected before reaching origin Not sure this will
+     * actually happen, so created warning to check, when it does happen investigate and see if this expected
+     * behaviour (if so remove statement). this would equate to finding a vertex marked with a '1' in Xie & Xie,
+     * which I do not do because I  don't think it is needed, but I might be wrong.
      */
     if(result== null || result.first() == null) {
       LOGGER.warning(String.format(

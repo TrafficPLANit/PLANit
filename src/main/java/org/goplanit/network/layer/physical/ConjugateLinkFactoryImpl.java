@@ -7,6 +7,7 @@ import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.ConjugateLink;
 import org.goplanit.utils.network.layer.physical.ConjugateLinkFactory;
@@ -40,14 +41,15 @@ public class ConjugateLinkFactoryImpl extends GraphEntityFactoryImpl<ConjugateLi
           final ConjugateDirectedVertex nodeA,
           final ConjugateDirectedVertex nodeB,
           boolean registerOnNodes,
-          final DirectedEdge originalEdge1,
-          final DirectedEdge originalEdge2) {
+          final EdgeSegment original1,
+          final EdgeSegment original2) {
     if (nodeA == null || nodeB == null) {
       LOGGER.warning("Unable to create new conjugate link, one or more of its conjugate nodes are not defined");
       return null;
     }
 
-    ConjugateLinkImpl newLink = new ConjugateLinkImpl(getIdGroupingToken(), nodeA, nodeB, originalEdge1, originalEdge2);
+    ConjugateLinkImpl newLink = new ConjugateLinkImpl(
+            getIdGroupingToken(), nodeA, nodeB, original1, original2);
     getGraphEntities().register(newLink);
     if (registerOnNodes) {
       nodeA.addEdge(newLink);
@@ -64,11 +66,11 @@ public class ConjugateLinkFactoryImpl extends GraphEntityFactoryImpl<ConjugateLi
           ConjugateDirectedVertex vertexA,
           ConjugateDirectedVertex vertexB,
           boolean registerOnVertices,
-          DirectedEdge originalEdge1,
-          DirectedEdge originalEdge2,
+          EdgeSegment original1,
+          EdgeSegment original2,
           boolean deriveXmlIdFromOriginalEdges,
           String xmlIdPostFix){
-    final var newLink = registerNew(vertexA, vertexB, registerOnVertices, originalEdge1, originalEdge2);
+    final var newLink = registerNew(vertexA, vertexB, registerOnVertices, original1, original2);
     newLink.populateXmlId(deriveXmlIdFromOriginalEdges, xmlIdPostFix);
     return newLink;
   }

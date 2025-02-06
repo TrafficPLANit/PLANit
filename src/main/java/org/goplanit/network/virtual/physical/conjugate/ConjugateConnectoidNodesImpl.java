@@ -39,7 +39,7 @@ public class ConjugateConnectoidNodesImpl extends ManagedGraphEntitiesImpl<Conju
    * @param conjugateConnectoidNodeFactory the factory to use
    */
   public ConjugateConnectoidNodesImpl(final IdGroupingToken groupId, ConjugateConnectoidNodeFactory conjugateConnectoidNodeFactory) {
-    super(n -> n.getOriginalEdge().getId());
+    super(n -> n.getOriginalEdgeSegment().getId());
     this.factory = conjugateConnectoidNodeFactory;
   }
 

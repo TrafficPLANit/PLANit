@@ -21,6 +21,7 @@ import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
@@ -285,6 +286,7 @@ public abstract class StaticLtmAssignmentStrategy {
     final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
     NetworkLoadingSplittingRateData splittingRateData = getLoading().getSplittingRateData();
+    final double[] flowAcceptanceFactors = getLoading().getCurrentFlowAcceptanceFactors();
     if (updateOnlyPotentiallyBlockingNodeCosts) {
 
       MacroscopicNetworkLayer networkLayer = getInfrastructureNetwork().getLayerByMode(theMode);
@@ -309,7 +311,13 @@ public abstract class StaticLtmAssignmentStrategy {
           if(layerSegments.containsKey(es.getId())){
             costsToUpdate[(int) es.getId()] = physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) es);
           }else if(virtualLayerSegments.containsKey(es.getId())){
-            costsToUpdate[(int) es.getId()] = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es);
+            double cost = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es);
+            if(flowAcceptanceFactors[(int) es.getId()] < 1){
+              LOGGER.warning(String.format("Queue build up on virtual link segment (%s) connected to node (%s), " +
+                      "applying virtual cost of %.4f instead, consider changing network geometry",
+                      es.getIdsAsString(), node.getIdsAsString(), cost));
+            }
+            costsToUpdate[(int) es.getId()] = cost;
           }
         });
       });

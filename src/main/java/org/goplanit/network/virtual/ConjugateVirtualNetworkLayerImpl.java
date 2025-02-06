@@ -89,23 +89,30 @@ public class ConjugateVirtualNetworkLayerImpl
     final boolean deriveXmlIdFromOriginalEntities = true;
     String xmlIdPostFix = "*";
 
-    /* connectoid edge -> conjugate connectoid node  + conjugate connectoid link(segments) from dummy to conjugate node*/
-    for (var referenceConnectoidEdge : getReferenceLayer().getConnectoidLinks()) {
+    /* connectoid edge segment -> conjugate connectoid node  + conjugate connectoid link(segments) from dummy
+       to conjugate node*/
+    for (var referenceConnectoidSegment : getReferenceLayer().getConnectoidSegments()) {
+      var centroid = referenceConnectoidSegment.getParent().getCentroidVertex();
 
-      var centroid = referenceConnectoidEdge.getCentroidVertex();
+      // currently we do not split up the centroid in two, so single dummy node that acts as a proxy centroid
       var conjugateDummyNode = dummyConjugateNodePerCentroidVertex.get(centroid);
       if (conjugateDummyNode == null) {
         conjugateDummyNode = getVertices().getFactory().registerNew(
                 null, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
         dummyConjugateNodePerCentroidVertex.put(centroid, conjugateDummyNode);
       }
+
       var conjugateNode = getVertices().getFactory().registerNew(
-              referenceConnectoidEdge, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
+              referenceConnectoidSegment, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
+
+      boolean upstreamIsDummy = referenceConnectoidSegment.getParent().getCentroidVertex() == referenceConnectoidSegment.getUpstreamVertex();
+      var upstreamNode = upstreamIsDummy ? conjugateDummyNode : conjugateNode;
+      var downstreamNode = upstreamIsDummy ? conjugateNode : conjugateDummyNode;
 
       /* create "fake" conjugate connectoid edge (where one of the two conjugate connectoid nodes has no original
        * network equivalent but reflects a conjugate centroid) */
       var conjugateLink = this.getConnectoidLinks().getFactory().registerNew(
-              conjugateDummyNode, conjugateNode, true, referenceConnectoidEdge);
+              upstreamNode, downstreamNode, true, referenceConnectoidSegment);
 
       // create conjugate connectoid segments between the two nodes to create connectoid turn segments where either
       // the incoming or outgoing original edge segment is null this ensures we can have a generic path search
@@ -113,12 +120,6 @@ public class ConjugateVirtualNetworkLayerImpl
       getConnectoidSegments().getFactory().registerNew(
               conjugateLink,
               true /* ab direction */,
-              true,
-              deriveXmlIdFromOriginalEntities,
-              xmlIdPostFix);
-      getConnectoidSegments().getFactory().registerNew(
-              conjugateLink,
-              false /* ba direction */,
               true,
               deriveXmlIdFromOriginalEntities,
               xmlIdPostFix);
@@ -207,6 +208,9 @@ public class ConjugateVirtualNetworkLayerImpl
     throw new PlanItRunTimeException("Not yet supported to be derived from physical network for now");
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void logInfo(String prefix) {
     LOGGER.info(String.format("%s#conjugate connectoid links: %d", prefix, this.getConnectoidLinks().size()));
@@ -258,7 +262,7 @@ public class ConjugateVirtualNetworkLayerImpl
             layerPrefix));
 
     for(var conjEdge : getConnectoidLinks()){
-      var originalEdgesPair = conjEdge.getOriginalAdjacentEdges();
+      var originalEdgesPair = conjEdge.getOriginalAdjacentSegments();
       var originalEdge1Ids = originalEdgesPair.first() != null ? originalEdgesPair.first().getIdsAsString() : "-";
       var originalEdge2Ids = originalEdgesPair.second() != null ? originalEdgesPair.second().getIdsAsString() : "-";
       LOGGER.info(String.format("%s[vertexA (%s) - vertexB (%s)] conjugate connectoid link " +
@@ -280,7 +284,7 @@ public class ConjugateVirtualNetworkLayerImpl
     LOGGER.info(String.format(
             "%sLogging conjugate vertices to original edges mapping", layerPrefix));
     for(var conjVertex : getVertices()){
-      var originalIds = conjVertex.hasOriginalEdge() ? conjVertex.getOriginalEdge().getIdsAsString() : "-";
+      var originalIds = conjVertex.hasOriginalEdgeSegment() ? conjVertex.getOriginalEdgeSegment().getIdsAsString() : "-";
       LOGGER.info(String.format("%sconjugate vertex (%s) <--> original edge (%s)",
               layerPrefix, conjVertex.getIdsAsString(), originalIds));
     }

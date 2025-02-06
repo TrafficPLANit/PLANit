@@ -7,6 +7,7 @@ import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.ConjugateEdge;
 import org.goplanit.utils.graph.ConjugateVertex;
 import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.locationtech.jts.geom.LineString;
@@ -28,7 +29,7 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
   /**
    * adjacent original edges represented by this conjugate
    */
-  protected final Pair<? extends Edge, ? extends Edge> originalEdges;
+  protected final Pair<? extends EdgeSegment, ? extends EdgeSegment> originals;
 
   /**
    * Constructor which injects link lengths directly
@@ -36,12 +37,17 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param vertexA  first vertex in the link
    * @param vertexB  second vertex in the link
-   * @param originalEdge1 to use
-   * @param originalEdge2 to use
+   * @param original1 to use
+   * @param original2 to use
    */
-  protected ConjugateEdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB, final Edge originalEdge1, final Edge originalEdge2) {
+  protected ConjugateEdgeImpl(
+          final IdGroupingToken groupId,
+          final V vertexA,
+          final V vertexB,
+          final EdgeSegment original1,
+          final EdgeSegment original2) {
     super(groupId, vertexA, vertexB);
-    originalEdges = Pair.of(originalEdge1, originalEdge2);
+    originals = Pair.of(original1, original2);
   }
 
   /**
@@ -52,7 +58,7 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
    */
   protected ConjugateEdgeImpl(ConjugateEdgeImpl<V> other, boolean deepCopy) {
     super(other, deepCopy);
-    originalEdges = other.originalEdges.copy();
+    originals = other.originals.copy();
   }
 
   /**
@@ -80,7 +86,7 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
    */
   public static double getLengthKm(ConjugateEdge conjugateEdge){
     DoubleAdder lengthAdder = new DoubleAdder();
-    conjugateEdge.getOriginalAdjacentEdges().<Edge>both(e -> lengthAdder.add(e!= null ? e.getLengthKm() : 0.0));
+    conjugateEdge.getOriginalAdjacentSegments().<Edge>both(e -> lengthAdder.add(e!= null ? e.getLengthKm() : 0.0));
     return lengthAdder.doubleValue();
   }
 
@@ -147,8 +153,8 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
    * {@inheritDoc}
    */
   @Override
-  public Pair<? extends Edge, ? extends Edge> getOriginalAdjacentEdges() {
-    return this.originalEdges;
+  public Pair<? extends EdgeSegment, ? extends EdgeSegment> getOriginalAdjacentSegments() {
+    return this.originals;
   }
 
 }

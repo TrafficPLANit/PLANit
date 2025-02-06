@@ -67,12 +67,17 @@ public class StaticLtmConjugateBushStrategy
 
   /**
    * Given non conjugate costs for link segments, expand to concjugate segments (turns)
+   * TODO: when everything is conjugate, avoid calling this multiple times as we do now as it is costly
+   *   at that point process flow can just use conjugate costs rather than non-conjugate costs.
    *
+   * @param theMode to use
    * @param nonConjugateLinkSegmentCosts original costs
    * @return conjugate projected costs
    */
-  private double[] expandNonConjugateLinkSegmentCostToConjugateSegmentCost(double[] nonConjugateLinkSegmentCosts){
-    final double[] conjugateSegmentCosts = new double[conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers()];
+  private double[] expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
+          Mode theMode, double[] nonConjugateLinkSegmentCosts){
+    final double[] conjugateSegmentCosts =
+            new double[conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers()];
 
     // Function to expand from original entry segment costs to conjugate link segment costs
     Consumer<ConjugateEdgeSegment> adoptOriginalEdgeSegmentCostFunc = cs -> {
@@ -90,6 +95,13 @@ public class StaticLtmConjugateBushStrategy
     // and apply to virtual layer...
     var conjugateVirtualLayer = conjugateTransportModelNetwork.getVirtualNetwork().getLayer();
     conjugateVirtualLayer.getConnectoidSegments().forEach(adoptOriginalEdgeSegmentCostFunc);
+
+    // Now account for zero flow discontinuity by rerunning all nodes in turn based mode to obtain
+    // turn level acceptance factors which we can then use to update the turn costs for zero flow
+    // turns such that they become (realistically) unattractive as options for when finding new PASs
+    // todo: costly, so ideally only do once per iteration, but we now do it on the fly
+    updateZeroFlowDiscontinuityCongestedTurnCosts(theMode, conjugateSegmentCosts);
+
     return conjugateSegmentCosts;
   }
 
@@ -141,12 +153,12 @@ public class StaticLtmConjugateBushStrategy
    * @return create shortest bush algorithm
    */
   @Override
-  protected ShortestBushGeneralised createNetworkShortestBushAlgo(double[] nonConjugateLinkSegmentCosts) {
+  protected ShortestBushGeneralised createNetworkShortestBushAlgo(Mode theMode, double[] nonConjugateLinkSegmentCosts) {
     //todo: once base implementation works, replace nonConjugateLinkSegment costs with turn based costs throughout
     // implementation. For now project non conjugate link segment costs to conjugate segments by using the entry segment
     // as the point of reference
     double[] conjugateSegmentCosts =
-            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(nonConjugateLinkSegmentCosts);
+            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, nonConjugateLinkSegmentCosts);
     final int numberOfVertices = this.conjugateTransportModelNetwork.getNumberOfVerticesAllLayers();
     return new ShortestBushGeneralised(conjugateSegmentCosts, numberOfVertices);
   }
@@ -167,13 +179,12 @@ public class StaticLtmConjugateBushStrategy
   protected void updatePasCosts(Mode theMode, double[] originalNetworkLinkSegmentCosts) {
     // PASs on conjugate level, so expand link segment to conjugate segment costs as if first
     var conjSegmentCosts =
-        expandNonConjugateLinkSegmentCostToConjugateSegmentCost(originalNetworkLinkSegmentCosts);
-    // Now account for zero flow discontinuity by rerunning all nodes in turn based mode to obtain
-    // turn level acceptance factors which we can then use to update the turn costs for zero flow
-    // turns such that they become (realistically) unattractive as options for when finding new PASs
-    updateZeroFlowDiscontinuityCongestedTurnCosts(theMode, conjSegmentCosts);
+        expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, originalNetworkLinkSegmentCosts);
+
+    // execute cost update based on conjugate costs
     pasManager.updateActivePassCosts(conjSegmentCosts);
     pasManager.updateInactivePassCosts(conjSegmentCosts);
+
   }
 
   /**
@@ -188,6 +199,10 @@ public class StaticLtmConjugateBushStrategy
    *                         least restricting cost
    */
   private void updateZeroFlowDiscontinuityCongestedTurnCosts(final Mode theMode, double[] conjSegmentCosts) {
+    if(getLoading().getSplittingRateData() == null){
+      return; // avoid null pointer at initialisation
+    }
+
     //1. identify congested nodes
     var trackedNodes = getLoading().getSplittingRateData().getTrackedNodes();
 
@@ -204,6 +219,9 @@ public class StaticLtmConjugateBushStrategy
     // Prep Lambda Function that will ultimately perform the cost update after the node model calculation
     TriConsumer<EdgeSegment, EdgeSegment, Double> discontinuityTurnCostReplacementConsumer = (entry, exit, alpha) ->
       {
+        if(entry.getOppositeDirectionSegment() == exit){
+          return;
+        }
         var nlAppliedFlowAcceptanceFactor = flowAcceptanceFactors[(int)entry.getId()];
         if(Precision.greaterEqual(alpha, nlAppliedFlowAcceptanceFactor, Precision.EPSILON_9)){
           return;
@@ -593,7 +611,7 @@ public class StaticLtmConjugateBushStrategy
     // method overridden for conjugate implementation resulting in conjugate compatible shortest path search using
     // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...
     final var conjLinkSegmentCosts =
-            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(nonConjugateLinkSegmentCosts);
+            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(mode, nonConjugateLinkSegmentCosts);
     final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
     for (var conjBush : getBushes()) {
       if (conjBush == null) {

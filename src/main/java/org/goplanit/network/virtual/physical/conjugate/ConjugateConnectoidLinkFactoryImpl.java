@@ -4,6 +4,7 @@ import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidLink;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidLinkFactory;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
@@ -27,7 +28,8 @@ public class ConjugateConnectoidLinkFactoryImpl
    * @param groupIdToken to use for creating element ids
    * @param container    to register the created instances on
    */
-  public ConjugateConnectoidLinkFactoryImpl(IdGroupingToken groupIdToken, GraphEntities<ConjugateConnectoidLink> container) {
+  public ConjugateConnectoidLinkFactoryImpl(
+          IdGroupingToken groupIdToken, GraphEntities<ConjugateConnectoidLink> container) {
     super(groupIdToken, container);
   }
 
@@ -39,15 +41,15 @@ public class ConjugateConnectoidLinkFactoryImpl
       final ConjugateConnectoidNode vertexA,
       final ConjugateConnectoidNode vertexB,
       boolean registerOnNodes,
-      final ConnectoidLink originalConnectoidLink) {
+      final ConnectoidSegment original) {
     if (vertexA == null || vertexB == null) {
       LOGGER.warning("Unable to create new conjugate link, one or more of its conjugate nodes are not defined");
       return null;
     }
 
-    // entry link is assumed dummy
+    // entry is assumed dummy so only exit is provided via original
     ConjugateConnectoidLinkImpl newConjugateLink =
-        new ConjugateConnectoidLinkImpl(getIdGroupingToken(), vertexA, vertexB, null, originalConnectoidLink);
+        new ConjugateConnectoidLinkImpl(getIdGroupingToken(), vertexA, vertexB, null, original);
     getGraphEntities().register(newConjugateLink);
     if (registerOnNodes) {
       vertexA.addEdge(newConjugateLink);
