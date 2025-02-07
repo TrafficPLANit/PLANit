@@ -190,8 +190,8 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
     }
 
     if(currentVertex.getId() != destination.getId()) {
-      throw new PlanItRunTimeException("Destination %s (id:%d) unreachable from origin %S (id:%d)",
-              destination.getXmlId(), destination.getId(), origin.getXmlId(), origin.getId());
+      throw new PlanItRunTimeException("Destination (%s) unreachable from origin (%s) ",
+              destination.getIdsAsString(), origin.getIdsAsString());
     }
 
     return new ShortestPathResultGeneralised(vertexMeasuredCost, incomingEdgeSegment, ShortestSearchType.ONE_TO_ONE);

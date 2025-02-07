@@ -92,20 +92,17 @@ public class ConjugateVirtualNetworkLayerImpl
     /* connectoid edge segment -> conjugate connectoid node  + conjugate connectoid link(segments) from dummy
        to conjugate node*/
     for (var referenceConnectoidSegment : getReferenceLayer().getConnectoidSegments()) {
-      var centroid = referenceConnectoidSegment.getParent().getCentroidVertex();
+      var cVertex = referenceConnectoidSegment.getParent().getCentroidVertex();
 
       // currently we do not split up the centroid in two, so single dummy node that acts as a proxy centroid
-      var conjugateDummyNode = dummyConjugateNodePerCentroidVertex.get(centroid);
-      if (conjugateDummyNode == null) {
-        conjugateDummyNode = getVertices().getFactory().registerNew(
-                null, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
-        dummyConjugateNodePerCentroidVertex.put(centroid, conjugateDummyNode);
-      }
+      var conjugateDummyNode = dummyConjugateNodePerCentroidVertex.computeIfAbsent(cVertex,
+              v -> getVertices().getFactory().registerNew(null, deriveXmlIdFromOriginalEntities, xmlIdPostFix));
 
       var conjugateNode = getVertices().getFactory().registerNew(
               referenceConnectoidSegment, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
 
-      boolean upstreamIsDummy = referenceConnectoidSegment.getParent().getCentroidVertex() == referenceConnectoidSegment.getUpstreamVertex();
+      boolean upstreamIsDummy =
+              referenceConnectoidSegment.getParent().getCentroidVertex() == referenceConnectoidSegment.getUpstreamVertex();
       var upstreamNode = upstreamIsDummy ? conjugateDummyNode : conjugateNode;
       var downstreamNode = upstreamIsDummy ? conjugateNode : conjugateDummyNode;
 

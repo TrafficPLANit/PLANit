@@ -61,7 +61,9 @@ public class KShortestPathTest {
   private Centroid centroidA;
   private Centroid centroidB;
 
-  private Map<Zone, CentroidVertex> zone2CentroidVertexMapping;
+  private Map<? extends Zone, CentroidVertex> zone2SourceVertexMapping;
+  private Map<? extends Zone, CentroidVertex> zone2SinkVertexMapping;
+
 
   /** util method to create nodes
    *
@@ -109,9 +111,10 @@ public class KShortestPathTest {
   //@formatter:off
   @BeforeEach
   public void intialise() {
-    // Construct the network. It is identical to Yen (example on wikipedia: https://en.wikipedia.org/wiki/Yen%27s_algorithm#cite_note-yenksp2-2
-    // only we added centroid connectors before and after the origin and destination and made it geographically/spatially more accurate
-    // for the A* to make sense
+    // Construct the network. It is identical to Yen
+    // (example on wikipedia: https://en.wikipedia.org/wiki/Yen%27s_algorithm#cite_note-yenksp2-2
+    // only we added centroid connectors before and after the origin and destination and made it
+    // geographically/spatially more accurate for the A* to make sense
     //
     //   (0,0) __3_> (2,0)
     // A*--[C]/     \[D]_>_4__ (4,1)   (5,1)
@@ -159,9 +162,15 @@ public class KShortestPathTest {
 
       transportNetwork = new TransportModelNetworkImpl(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids(false);
-      zone2CentroidVertexMapping =
-          (Map<Zone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
-              transportNetwork.getVirtualNetwork().getLayer(),true, false);
+
+      boolean considerOds = true;
+      boolean considerTransfers = false;
+      boolean sourceVertices = true;
+      zone2SourceVertexMapping = VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+              transportNetwork.getVirtualNetwork().getLayer(), sourceVertices, considerOds, considerTransfers);
+      sourceVertices = false;
+      zone2SinkVertexMapping = VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+              transportNetwork.getVirtualNetwork().getLayer(), sourceVertices, considerOds, considerTransfers);
 
       // costs
       var linkSegments = networkLayer.getLinkSegments();
@@ -176,7 +185,8 @@ public class KShortestPathTest {
               linkSegments.getByXmlId("FG").getLengthKm(),
               linkSegments.getByXmlId("FH").getLengthKm(),
               linkSegments.getByXmlId("GH").getLengthKm(),
-              /* connectoid segment costs made up but so that it is non-zero and bi-directional as this is how they are created*/
+              /* connectoid segment costs made up but so that it is non-zero and bi-directional as this is how they
+              are created*/
               0.1, 0.1, 0.1, 0.1
           };
 
@@ -194,8 +204,8 @@ public class KShortestPathTest {
   public void yenKShortestTest() {
     try {
 
-      var destinationVertex = zone2CentroidVertexMapping.get(centroidB.getParentZone());
-      var originVertex = zone2CentroidVertexMapping.get(centroidA.getParentZone());
+      var destinationVertex = zone2SinkVertexMapping.get(centroidB.getParentZone());
+      var originVertex = zone2SourceVertexMapping.get(centroidA.getParentZone());
 
       /* prep */
       var dijkstra = new ShortestPathDijkstra(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());

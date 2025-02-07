@@ -46,22 +46,28 @@ public class TransportModelNetworkImpl
   // Public
 
   /**
-   * create and register the edge segments for the passed in connectoid edge, XML id set to id prefixed with "c_ab or c_ba".
+   * create and register the edge segment for the passed in connectoid edge, XML id set to id prefixed with
+   * "c_ab or c_ba".
    *
    * @param connectoidSegmentFactory  to create and register on
    * @param connectoidLink to process
+   * @param directionAb direction to create
+   * @param virtualXmlIdPrefix to use
    */
-  protected void createAndRegisterConnectoidEdgeSegments(
-      ConnectoidSegmentFactory connectoidSegmentFactory, ConnectoidLink connectoidLink, String virtualXmlIdPrefix) {
-    var segment = connectoidSegmentFactory.registerNew(connectoidLink, true);
+  protected void createAndRegisterConnectoidEdgeSegment(
+      ConnectoidSegmentFactory connectoidSegmentFactory,
+      ConnectoidLink connectoidLink,
+      boolean directionAb,
+      String virtualXmlIdPrefix) {
+
+    var segment = connectoidSegmentFactory.registerNew(connectoidLink, directionAb);
     segment.setXmlId(virtualXmlIdPrefix + segment.getId()+"_ab");
-    segment = connectoidSegmentFactory.registerNew(connectoidLink, false);
-    segment.setXmlId(virtualXmlIdPrefix + segment.getId()+"ba");
     connectVerticesToEdge(connectoidLink);
   }
 
   /**
-   * Given context of centroid vertex and connectoid + access zone, we create the required connectoid edges and connected segments with the provided factories
+   * Given context of centroid vertex and connectoid + access zone, we create the required connectoid edge and
+   * single connectoid segments with the provided factories in the required direction.
    *
    * @param connectoidLinkFactory    factory to use
    * @param connectoidSegmentFactory factory to use
@@ -69,14 +75,17 @@ public class TransportModelNetworkImpl
    * @param accessZone               at hand for the current connectoid
    * @param connectoid               the connectoid at hand used to extract length to access zone
    * @param geoTools                 to use for geometry creation
+   * @param fromSource               when true create link and segment away from provided centroid vertex, otherwise
+   *                                 towards it
    */
-  protected void createAndRegisterConnectoidLinkAndEdgeSegments(
+  protected void createAndRegisterConnectoidLinkAndEdgeSegment(
       ConnectoidLinkFactory connectoidLinkFactory,
       ConnectoidSegmentFactory connectoidSegmentFactory,
       CentroidVertex centroidVertex,
       Zone accessZone,
       Connectoid connectoid,
-      PlanitJtsCrsUtils geoTools) {
+      PlanitJtsCrsUtils geoTools,
+      boolean fromSource) {
 
     String virtualXmlIdPrefix = "c";
     double connectoidLength = connectoid.getLengthKm(accessZone).orElseThrow(
@@ -86,7 +95,7 @@ public class TransportModelNetworkImpl
         connectoidLinkFactory.registerNew(centroidVertex, connectoid.getAccessVertex(), connectoidLength);
     connectoidEdge.setXmlId(virtualXmlIdPrefix + connectoidEdge.getId());
     connectVerticesToEdge(connectoidEdge);
-    createAndRegisterConnectoidEdgeSegments(connectoidSegmentFactory, connectoidEdge, virtualXmlIdPrefix);
+    createAndRegisterConnectoidEdgeSegment(connectoidSegmentFactory, connectoidEdge, fromSource, virtualXmlIdPrefix);
 
     /* populate geometry as well */
     populateConnectoidGeometry(connectoidEdge, geoTools);
@@ -179,41 +188,50 @@ public class TransportModelNetworkImpl
     }
 
     var centroidVertexFactory = virtualNetwork.getLayer().getVertices().getFactory();
-    var connectoidLinkFactory = virtualNetwork.getLayer().getConnectoidLinks().getFactory();
-    var connectoidSegmentFactory = virtualNetwork.getLayer().getConnectoidSegments().getFactory();
+    var cLinkFactory = virtualNetwork.getLayer().getConnectoidLinks().getFactory();
+    var cSegmentFactory = virtualNetwork.getLayer().getConnectoidSegments().getFactory();
 
     var geoTools = new PlanitJtsCrsUtils(getInfrastructureNetwork().getCoordinateReferenceSystem());
 
-    Map<Zone, CentroidVertex> zone2CentroidVertexMapping = new HashMap<>();
-    for (UndirectedConnectoid undirectedConnectoid : zoning.getOdConnectoids()) {
-      for(var accessZone : undirectedConnectoid.getAccessZones()){
-        var centroidVertex = zone2CentroidVertexMapping.get(accessZone);
-        if(centroidVertex == null) {
-          // explicit vertex for centroid related to this virtual/physical network
-          centroidVertex = centroidVertexFactory.registerNew(accessZone.getCentroid());
-          zone2CentroidVertexMapping.put(accessZone, centroidVertex);
-        }
-
-        createAndRegisterConnectoidLinkAndEdgeSegments(
-            connectoidLinkFactory, connectoidSegmentFactory, centroidVertex, accessZone, undirectedConnectoid, geoTools);
+    // create two centroid vertices per centroid one for the source and one for the sink
+    //  for origin-destination zones these two should not be connected to avoid traffic through centroids
+    //  for transfer zones this may depend on how the transfers are modelled, one layers sink is another layer's source
+    //    although currently this is not yet supported.
+    Map<Zone, CentroidVertex> zone2SourceCentroidVertexMapping = new HashMap<>();
+    Map<Zone, CentroidVertex> zone2SinkCentroidVertexMapping = new HashMap<>();
+    for (UndirectedConnectoid uConnectoid : zoning.getOdConnectoids()) {
+      for(var accessZone : uConnectoid.getAccessZones()){
+        var sourceVertex = zone2SourceCentroidVertexMapping.computeIfAbsent(
+                accessZone, z -> centroidVertexFactory.registerNew(z.getCentroid()));
+        var sinkVertex = zone2SinkCentroidVertexMapping.computeIfAbsent(
+                accessZone, z -> centroidVertexFactory.registerNew(z.getCentroid()));
+        boolean fromSource = true;
+        createAndRegisterConnectoidLinkAndEdgeSegment(
+            cLinkFactory, cSegmentFactory, sourceVertex, accessZone, uConnectoid, geoTools, fromSource);
+        fromSource = false;
+        createAndRegisterConnectoidLinkAndEdgeSegment(
+                cLinkFactory, cSegmentFactory, sinkVertex, accessZone, uConnectoid, geoTools, fromSource);
       }
     }
 
-    for (DirectedConnectoid directedConnectoid : zoning.getTransferConnectoids()) {
-      for(var accessZone : directedConnectoid.getAccessZones()) {
-        var centroidVertex = zone2CentroidVertexMapping.get(accessZone);
-        if(centroidVertex == null) {
-          centroidVertex = centroidVertexFactory.registerNew(accessZone.getCentroid()); // explicit vertex for centroid related to this virtual/physical network
-          zone2CentroidVertexMapping.put(accessZone, centroidVertex);
-        }
+    for (DirectedConnectoid dConnectoid : zoning.getTransferConnectoids()) {
+      for(var accessZone : dConnectoid.getAccessZones()) {
+        var sourceVertex = zone2SourceCentroidVertexMapping.computeIfAbsent(
+                accessZone, z -> centroidVertexFactory.registerNew(z.getCentroid()));
+        var sinkVertex = zone2SinkCentroidVertexMapping.computeIfAbsent(
+                accessZone, z -> centroidVertexFactory.registerNew(z.getCentroid()));
 
-        var accessEdgeSegment = directedConnectoid.getAccessLinkSegment();
+        var accessEdgeSegment = dConnectoid.getAccessLinkSegment();
         var accessVertex = (Node) (accessEdgeSegment != null ? accessEdgeSegment.getDownstreamVertex() : null);
         if (accessVertex == null) {
           throw new PlanItRunTimeException("No access vertex found for directed connectoid, this shouldn't happen");
         }
-        createAndRegisterConnectoidLinkAndEdgeSegments(
-            connectoidLinkFactory, connectoidSegmentFactory, centroidVertex, accessZone, directedConnectoid, geoTools);
+        boolean fromSource = true;
+        createAndRegisterConnectoidLinkAndEdgeSegment(
+                cLinkFactory, cSegmentFactory, sourceVertex, accessZone, dConnectoid, geoTools, fromSource);
+        fromSource = false;
+        createAndRegisterConnectoidLinkAndEdgeSegment(
+                cLinkFactory, cSegmentFactory, sinkVertex, accessZone, dConnectoid, geoTools, fromSource);
       }
     }
     return this;

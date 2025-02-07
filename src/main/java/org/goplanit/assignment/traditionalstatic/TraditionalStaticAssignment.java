@@ -68,8 +68,11 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   /** to generate paths we use a path factory that is configured to generate appropriate ids */
   private ManagedDirectedPathFactoryImpl localPathFactory;
 
-  /** have a mapping between zone and connectoid to the layer by means of its centroid vertex */
-  private Map<OdZone, CentroidVertex> zone2VertexMapping;
+  /** have a mapping between zone and connectoid to the layer by means of its origin centroid vertex */
+  private Map<Zone, CentroidVertex> zone2OriginVertexMapping;
+
+  /** have a mapping between zone and connectoid to the layer by means of its destination centroid vertex */
+  private Map<Zone, CentroidVertex> zone2DestinationVertexMapping;
 
   /**
    * create the logging prefix for logging statements during equilibration
@@ -81,20 +84,23 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   }
 
   /**
-   * Verify if the network contains a single compatible infrastructure layer as traditional static assignment does not support intermodal network layers
+   * Verify if the network contains a single compatible infrastructure layer as traditional static assignment
+   * does not support intermodal network layers
    *
-   * @throws PlanItException thrown if the components are not compatible
    */
   @Override
-  protected void verifyNetworkDemandZoningCompatibility() throws PlanItException {
+  protected void verifyNetworkDemandZoningCompatibility() {
     /* network compatibility */
-    PlanItException.throwIf(!(getInfrastructureNetwork() instanceof MacroscopicNetwork), "Traditional static assignment is only compatible with macroscopic networks");
+    PlanItRunTimeException.throwIf(!(getInfrastructureNetwork() instanceof MacroscopicNetwork),
+            "Traditional static assignment is only compatible with macroscopic networks");
     var macroscopicNetwork = (MacroscopicNetwork) getInfrastructureNetwork();
-    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
-        "Traditional static assignment  is currently only compatible with networks using a single infrastructure layer");
+    PlanItRunTimeException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
+        "Traditional static assignment  is currently only compatible with networks using a single " +
+                "infrastructure layer");
     var infrastructureLayer = macroscopicNetwork.getTransportLayers().getFirst();
     if (getInfrastructureNetwork().getModes().size() != infrastructureLayer.getSupportedModes().size()) {
-      LOGGER.warning("network wide modes do not match modes supported by the single available layer, consider removing unused modes");
+      LOGGER.warning("network wide modes do not match modes supported by the single available layer, consider " +
+              "removing unused modes");
     }
 
     /* register the layer */
@@ -118,7 +124,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     /* gap function check */
     PlanItRunTimeException.throwIf(!(getGapFunction() instanceof LinkBasedRelativeDualityGapFunction),
-        "Traditional static assignment only supports link based relative duality gap function at the moment, but found %s", getGapFunction().getClass().getCanonicalName());
+        "Traditional static assignment only supports link based relative duality gap function at the moment, " +
+                "but found %s", getGapFunction().getClass().getCanonicalName());
 
   }
 
@@ -149,11 +156,16 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       this.localPathFactory = new ManagedDirectedPathFactoryImpl(networkLayer.getLayerIdGroupingToken());
     }
 
-    /* construct mapping from OdZone to centroidVertex which is needed for path finding among other things, where we get an OD but need to find a path from
-     * centroid vertex to centroid vertex */
-    this.zone2VertexMapping =
-        (Map<OdZone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
-            getZoning().getVirtualNetwork().getLayer(), true, false);
+    /* construct mapping from OdZone to (o/d) centroidVertices which is needed for path finding among other things,
+     * where we get an OD but need to find a path from centroid vertex to centroid vertex */
+    boolean considerOdZones = true;
+    boolean considerTransferZones = false;
+    boolean originCentroidVertices = true;
+    this.zone2OriginVertexMapping = (Map<Zone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+            getZoning().getVirtualNetwork().getLayer(),originCentroidVertices, considerOdZones, considerTransferZones);
+    originCentroidVertices = false;
+    this.zone2DestinationVertexMapping = (Map<Zone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+            getZoning().getVirtualNetwork().getLayer(),originCentroidVertices, considerOdZones, considerTransferZones);
 
     /* register new time period on costs */
     getPhysicalCost().updateTimePeriod(timePeriod);
@@ -168,7 +180,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param modeData data for the current mode
    */
   private void applySmoothing(Mode mode, final ModeData modeData) {
-    final double[] smoothedSegmentFlows = getSmoothing().execute(modeData.getCurrentSegmentFlows(), modeData.getNextSegmentFlows(), getTotalNumberOfNetworkSegments());
+    final double[] smoothedSegmentFlows = getSmoothing().execute(
+            modeData.getCurrentSegmentFlows(), modeData.getNextSegmentFlows(), getTotalNumberOfNetworkSegments());
     // update flow arrays for next iteration
     modeData.setCurrentSegmentFlows(smoothedSegmentFlows);
     simulationData.getModeSpecificData().put(mode, modeData);
@@ -184,10 +197,12 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void executeTimePeriodAndMode(
-      final Mode mode, final TimePeriod timePeriod, final ModeData currentModeData, final double[] modalNetworkSegmentCosts)
-      throws PlanItException {
+      final Mode mode, final TimePeriod timePeriod,
+      final ModeData currentModeData,
+      final double[] modalNetworkSegmentCosts) throws PlanItException {
 
-    final var shortestPathAlgorithm = new ShortestPathDijkstra(modalNetworkSegmentCosts, getTotalNumberOfNetworkVertices());
+    final var shortestPathAlgorithm = new ShortestPathDijkstra(
+            modalNetworkSegmentCosts, getTotalNumberOfNetworkVertices());
     final OdDemands odDemands = getDemands().get(mode, timePeriod);
 
     final var dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
@@ -214,7 +229,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
           /* new shortest path tree for current origin */
           if (previousOriginZoneId != currentOriginZone.getId()) {
-            var originCentroidVertex = zone2VertexMapping.get(currentOriginZone);
+            var originCentroidVertex = zone2OriginVertexMapping.get(currentOriginZone);
             if (!originCentroidVertex.hasExitEdgeSegments()) {
               throw new PlanItException(String.format("Edge segments have not been assigned to Centroid for Zone %d", currentOriginZone.getExternalId()));
             }
@@ -224,20 +239,24 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
           }
 
           if (Precision.positive(odDemand)) {
-            var destinationCentroidVertex = zone2VertexMapping.get(currentDestinationZone);
+            var destinationCentroidVertex = zone2DestinationVertexMapping.get(currentDestinationZone);
             double odShortestPathCost = shortestPathResult.getCostToReach(destinationCentroidVertex);
             if (odShortestPathCost == Double.POSITIVE_INFINITY || odShortestPathCost == Double.MAX_VALUE) {
               LOGGER.warning(String.format("%s impossible path from origin zone %s (id:%d) to destination zone %s (id:%d) for mode %s (id:%d)", createLoggingPrefix(),
                   currentOriginZone.getXmlId(), currentOriginZone.getId(), currentDestinationZone.getXmlId(), currentDestinationZone.getId(), mode.getXmlId(), mode.getId()));
             } else {
-              updateNetworkFlowsForPath(shortestPathResult, zone2VertexMapping.get(currentOriginZone), destinationCentroidVertex, odDemand, currentModeData);
+              updateNetworkFlowsForPath(
+                      shortestPathResult,
+                      zone2OriginVertexMapping.get(currentOriginZone),
+                      destinationCentroidVertex,
+                      odDemand,
+                      currentModeData);
               dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
             }
           }
           previousOriginZoneId = currentOriginZone.getId();
 
           /* update skim and path data if needed */
-
           updateOdOutputData(skimMatrixMap, currentOriginZone, currentDestinationZone, shortestPathResult);
           updatePathOutputData(mode, odPaths, currentOriginZone, currentDestinationZone, shortestPathResult);
         }
@@ -253,8 +272,17 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param currentModeData          data for the current mode
    * @param modalNetworkSegmentCosts segment costs for the network
    */
-  private void smoothTimePeriodAndMode(final Mode mode, final TimePeriod timePeriod, final ModeData currentModeData, final double[] modalNetworkSegmentCosts) {
-    final double totalModeSystemTravelTime = ArrayUtils.dotProduct(currentModeData.getCurrentSegmentFlows(), modalNetworkSegmentCosts, getTotalNumberOfNetworkSegments());
+  private void smoothTimePeriodAndMode(
+          final Mode mode,
+          final TimePeriod timePeriod,
+          final ModeData currentModeData,
+          final double[] modalNetworkSegmentCosts) {
+
+    final double totalModeSystemTravelTime =
+            ArrayUtils.dotProduct(
+                    currentModeData.getCurrentSegmentFlows(),
+                    modalNetworkSegmentCosts,
+                    getTotalNumberOfNetworkSegments());
 
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
     dualityGapFunction.increaseMeasuredCost(totalModeSystemTravelTime);
@@ -269,7 +297,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void executeAndSmoothTimePeriodAndMode(final TimePeriod timePeriod, final Mode mode) throws PlanItException {
-    LOGGER.fine(LoggingUtils.runIdPrefix(getId()) + String.format("[mode %s (id:%d)]", mode.getExternalId(), mode.getId()));
+    LOGGER.fine(LoggingUtils.runIdPrefix(getId()) + String.format("[mode %s (id:%d)]",
+            mode.getExternalId(), mode.getId()));
 
     // mode specific data
     final double[] modalLinkSegmentCosts = simulationData.getModalLinkSegmentCosts(mode);
@@ -291,11 +320,14 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param destination        current destination zone
    * @param odDemand           the demands from the specified origin to the specified destination
    * @param currentModeData    data for the current mode
-   * @return the path cost for the calculated minimum cost path
    * @throws PlanItException thrown if there is an error
    */
-  private void updateNetworkFlowsForPath(final ShortestPathResult shortestPathResult, final CentroidVertex origin, final CentroidVertex destination, final double odDemand,
-      final ModeData currentModeData) throws PlanItException {
+  private void updateNetworkFlowsForPath(
+          final ShortestPathResult shortestPathResult,
+          final CentroidVertex origin,
+          final CentroidVertex destination,
+          final double odDemand,
+          final ModeData currentModeData) throws PlanItException {
 
     // prep
     EdgeSegment currentEdgeSegment = null;
@@ -307,7 +339,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
       if (currentEdgeSegment == null) {
         PlanItException.throwIf(currentVertex instanceof CentroidVertex,
-            "The solution could not find an Edge Segment for the connectoid for zone " + ((CentroidVertex) currentVertex).getParent().getParentZone().getExternalId());
+            "The solution could not find an Edge Segment for the connectoid for zone " +
+                    ((CentroidVertex) currentVertex).getParent().getParentZone().getExternalId());
       }
 
       currentModeData.addToNextSegmentFlows(currentEdgeSegment.getId(), odDemand);
@@ -319,12 +352,15 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * Update the OD skim matrix for all active output types
    *
    * @param skimMatrixMap          Map of OD skim matrices for each active output type
-   * @param currentOriginZone      current origin zone
-   * @param currentDestinationZone current destination zone
+   * @param originZone      current origin zone
+   * @param destinationZone current destination zone
    * @param shortestPathResult     costs for the shortest path results for the specified mode and origin-any destination
    */
   private void updateOdOutputData(
-      final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone, final ShortestPathResult shortestPathResult) {
+      final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap,
+      final Zone originZone,
+      final Zone destinationZone,
+      final ShortestPathResult shortestPathResult) {
 
     if (getOutputManager().isOutputTypeActive(OutputType.OD)) {
       var activeSubOutputTypes = getOutputManager().getOutputTypeConfiguration(OutputType.OD).getActiveSubOutputTypes();
@@ -332,9 +368,10 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
         if (odSkimOutputType.equals(OdSkimSubOutputType.COST)) {
 
           // Collect cost to get to vertex from shortest path ONE-TO-ALL information directly
-          final double odGeneralisedCost = shortestPathResult.getCostToReach(zone2VertexMapping.get(currentDestinationZone));
+          final double odGeneralisedCost =
+                  shortestPathResult.getCostToReach(zone2DestinationVertexMapping.get(destinationZone));
           final OdSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);
-          odSkimMatrix.setValue(currentOriginZone, currentDestinationZone, odGeneralisedCost);
+          odSkimMatrix.setValue(originZone, destinationZone, odGeneralisedCost);
         }
       }
     }
@@ -344,22 +381,28 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * Update the OD path matrix
    *
    * @param mode               the path is to be stored for (logging purposes only)
-   * @param odpathMatrix       OD path matrix to add to
+   * @param odPathMatrix       OD path matrix to add to
    * @param origin             origin zone
    * @param destination        destination zone
    * @param shortestPathResult shortest path tree for given origin
    */
-  private void updatePathOutputData(Mode mode, OdPathMatrix odpathMatrix, Zone origin, Zone destination, ShortestPathResult shortestPathResult) {
+  private void updatePathOutputData(
+          Mode mode,
+          OdPathMatrix odPathMatrix,
+          Zone origin,
+          Zone destination,
+          ShortestPathResult shortestPathResult) {
 
-    // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
+    // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very
+    //  costly when switched on
     if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
       final ManagedDirectedPath path = shortestPathResult.createPath(
-          localPathFactory, zone2VertexMapping.get(origin), zone2VertexMapping.get(destination));
+          localPathFactory, zone2OriginVertexMapping.get(origin), zone2DestinationVertexMapping.get(destination));
       if (path == null) {
         LOGGER.fine(String.format("Unable to create path from origin %s (id:%d) to destination %s (id:%d) for mode %s (id:%d)", origin.getXmlId(), origin.getId(),
             destination.getXmlId(), destination.getId(), mode.getXmlId(), mode.getId()));
       }
-      odpathMatrix.setValue(origin, destination, path);
+      odPathMatrix.setValue(origin, destination, path);
     }
   }
 
@@ -371,10 +414,12 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param dualityGap          the duality gap at the end of the iteration
    * @return the time (in ms) at the end of the iteration for profiling purposes only
    */
-  private Calendar logBasicIterationInformation(final Calendar startTime, final double measuredNetworkCost, final double dualityGap) {
+  private Calendar logBasicIterationInformation(
+          final Calendar startTime, final double measuredNetworkCost, final double dualityGap) {
     final Calendar currentTime = Calendar.getInstance();
-    LOGGER.info(createLoggingPrefix() + String.format("Network cost: %f", measuredNetworkCost));
-    LOGGER.info(createLoggingPrefix() + String.format("Gap: %.10f (%d ms)", dualityGap, currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
+    LOGGER.info(String.format("%sNetwork cost: %f", createLoggingPrefix(), measuredNetworkCost));
+    LOGGER.info(String.format("%sGap: %.10f (%d ms)",
+            createLoggingPrefix() , dualityGap, currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
     return currentTime;
   }
 
@@ -391,13 +436,16 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     final double[] currentSegmentCosts = CostUtils.createEmptyLinkSegmentCostArray(getInfrastructureNetwork(), getZoning());
 
     /* virtual component */
-    CostUtils.populateModalVirtualLinkSegmentCosts(mode, getVirtualCost(), getZoning().getVirtualNetwork(), currentSegmentCosts);
+    CostUtils.populateModalVirtualLinkSegmentCosts(
+            mode, getVirtualCost(), getZoning().getVirtualNetwork(), currentSegmentCosts);
 
     /* physical component */
-    if(populateWithPhysicalInitialCostIfAvailable(mode, timePeriod, networkLayer.getLinkSegments(), currentSegmentCosts)) {
+    if(populateWithPhysicalInitialCostIfAvailable(
+            mode, timePeriod, networkLayer.getLinkSegments(), currentSegmentCosts)) {
       return currentSegmentCosts;
     } else {
-      CostUtils.populateModalPhysicalLinkSegmentCosts(mode, getPhysicalCost(), getInfrastructureNetwork(), currentSegmentCosts);
+      CostUtils.populateModalPhysicalLinkSegmentCosts(
+              mode, getPhysicalCost(), getInfrastructureNetwork(), currentSegmentCosts);
       return currentSegmentCosts;
     }
   }
@@ -409,7 +457,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @return array containing costs for each link segment
    */
   private double[] collectModalLinkSegmentCosts(final Mode mode) {
-    return CostUtils.createAndPopulateModalSegmentCost(mode, getVirtualCost(), getPhysicalCost(), getInfrastructureNetwork(), getZoning());
+    return CostUtils.createAndPopulateModalSegmentCost(
+            mode, getVirtualCost(), getPhysicalCost(), getInfrastructureNetwork(), getZoning());
   }
 
   /**
@@ -440,7 +489,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       if(smoothing instanceof IterationBasedSmoothing) {
         ((IterationBasedSmoothing) getSmoothing()).updateIteration(simulationData.getIterationIndex());
       }else{
-        throw new PlanItRunTimeException("Currently traditional static assignment only supports iteration based smoothing options such as MSA");
+        throw new PlanItRunTimeException("Currently traditional static assignment only supports iteration based " +
+                "smoothing options such as MSA");
       }
       getSmoothing().updateStepSize();
 
@@ -461,11 +511,12 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
         executeAndSmoothTimePeriodAndMode(timePeriod, mode);
       }
 
-      // TODO: questionable if we should update iteration index before logging/persistence/convergence check... see if we can change this
-      // which would seem more logical
+      // TODO: questionable if we should update iteration index before logging/persistence/convergence check...
+      //  see if we can change this which would seem more logical
       dualityGapFunction.computeGap();
 
-      // FINALISE ITERATION - collect stats for persistence, and reset timings (so that we still on average take persistence time cost into account)
+      // FINALISE ITERATION - collect stats for persistence, and reset timings (so that we still on average take
+      // persistence time cost into account)
       simulationData.incrementIterationIndex();
       var iterationEndTime = logBasicIterationInformation(
               iterationStartTime, dualityGapFunction.getMeasuredNetworkCost(), dualityGapFunction.getGap());

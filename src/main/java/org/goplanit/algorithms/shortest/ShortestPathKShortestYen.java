@@ -2,10 +2,13 @@ package org.goplanit.algorithms.shortest;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Yen's K-shortest path algorithm + efficiency improvements to avoid recomputing potential shortest paths when
@@ -71,14 +74,14 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
           ArrayList<Pair<Deque<EdgeSegment>, Double>> kShortestRawPathsWithCost,
           int excludedLinksThreshold) {
 
-    var lastestKShortestPath = kShortestRawPathsWithCost.get(kShortestRawPathsWithCost.size()-1).first();
+    var latestKShortestPath = kShortestRawPathsWithCost.get(kShortestRawPathsWithCost.size()-1).first();
     int numFoundKShortestPaths = kShortestRawPathsWithCost.size();
     for(int p = 0; p < numFoundKShortestPaths-1 ; ++p){
 
       var pathP = kShortestRawPathsWithCost.get(p).first();
       var pathPIterUpToFork = pathP.iterator();
       EdgeSegment pathPIterCurrSegment = pathPIterUpToFork.next();
-      var kMin1IterUpToFork = lastestKShortestPath.iterator();
+      var kMin1IterUpToFork = latestKShortestPath.iterator();
 
       int indexUpToForkNode = 0;
       while(indexUpToForkNode < forkNodeIndex){
@@ -222,10 +225,14 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
           continue;
         }
 
-        /* only consider fork node if it has exit links */
+        /* only consider fork node if it has viable exit links */
         var numForkNodeExitSegments = currForkNode.getNumberOfExitEdgeSegments();
-        int numExcludedForkExitSegments =
-                (prevForkSegment!= null && prevForkSegment.hasOppositeDirectionSegment()) ? 2 : 1;
+        // count towards exclusion when: (i) opposite direction of preceding fork, (ii) has been used alrady (always 1),
+        // (iii) connectoid link as it leads to sink so not viable to explore as alternative
+        var connectoidExits = IterableUtils.asStream(currForkNode.getExitEdgeSegments()).filter(es ->
+                        es instanceof ConnectoidSegment).collect(Collectors.toList());
+        int oppDirExclusion = prevForkSegment!= null && prevForkSegment.hasOppositeDirectionSegment() ? 1 : 0;
+        long numExcludedForkExitSegments = connectoidExits.size() + oppDirExclusion + 1;
         if(numForkNodeExitSegments - numExcludedForkExitSegments <= 0){
           continue;
         }
@@ -239,12 +246,11 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
           }
           // 0. do not allow loops or reusing of edges, instead of adding all link sup to here, just add preceding
           // one which has the same effect in practice yet is computationally more efficient.
-          if(prevForkSegment != null){
-            var prevKMinus1OppositeDirectionLink = prevForkSegment.getOppositeDirectionSegment();
-            if(prevKMinus1OppositeDirectionLink != null) {
-              excludedLinks.add(prevKMinus1OppositeDirectionLink);
-            }
+          if(prevForkSegment != null && prevForkSegment.hasOppositeDirectionSegment()){
+            excludedLinks.add(prevForkSegment.getOppositeDirectionSegment());
           }
+          excludedLinks.addAll(connectoidExits);
+
           // 1. the one from the k-1 shortest path exiting the fork node, so this is not an option for the alternative
           excludedLinks.add(currForkSegment);
 
@@ -253,9 +259,9 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
           //todo: this could be simpler if we track how the k-1 relates to k-2 in terms of until what link it overlaps,
           // then we can use this to figure out if we need to add an excluded exit link, rather than traversing the
           // entire path over and over
-          int excludedLinksThreshold = excludedLinks.size() + (numForkNodeExitSegments-numExcludedForkExitSegments);
+          long excludedLinksThreshold = excludedLinks.size() + (numForkNodeExitSegments-numExcludedForkExitSegments);
           excludeExitLinkSegmentsFromCoincidingRootPaths(
-                  excludedLinks, forkNodeIndex, kShortestRawPathsWithCost, excludedLinksThreshold);
+                  excludedLinks, forkNodeIndex, kShortestRawPathsWithCost, (int) excludedLinksThreshold);
           if(excludedLinksThreshold == excludedLinks.size()){
             // no options remaining to fork at this node, so skip finding alternative path and move to next node
             continue;

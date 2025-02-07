@@ -470,7 +470,7 @@ public class StaticLtmConjugateBushStrategy
         if (currOdDemand != null && currOdDemand > 0) {
 
           /* centroid vertex to which demand will be mapped */
-          var destinationCentroidVertex = findCentroidVertex(destination);
+          var destinationCentroidVertex = findDestinationCentroidVertex(destination);
           if(destinationCentroidVertex == null){
             LOGGER.severe(String.format("Destination zone (%s) without centroid vertex to connect to network, " +
                 "this shouldn't happen", destination.getIdsAsString()));
@@ -526,7 +526,7 @@ public class StaticLtmConjugateBushStrategy
         }
 
         /* initialise conjugate bush with this origin shortest path(s) */
-        var originConjugateReferenceVertex = centroid2ConjugateNodeMapping.get(findCentroidVertex(origin));
+        var originConjugateReferenceVertex = centroid2ConjugateNodeMapping.get(findOriginCentroidVertex(origin));
         var destinationOriginInvertedDag =
                 allToOneResult.createDirectedAcyclicSubGraph(
                         getIdGroupingToken(), originConjugateReferenceVertex, destinationConjugateReferenceVertex);

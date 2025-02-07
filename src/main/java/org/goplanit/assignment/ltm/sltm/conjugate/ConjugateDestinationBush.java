@@ -185,7 +185,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    * 
    * @param idToken          the token to base the id generation on
-   * @param destination      this conjugate destination bush has rooted conjugate vertices for
+   * @param destinationCentroidVertex      this conjugate destination bush has rooted conjugate vertices for
    * @param rootVertex       this conjugate node represents the root vertex as it is the dummy node from which all
    *                         initial turns enter/exit the conjugate network from the conjugate destination
    * @param maxSubGraphConjugateSegments The maximum number of conjugate edge segments, i.e. turns, the conjugate bush
@@ -194,13 +194,17 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    */
   public ConjugateDestinationBush(
           final IdGroupingToken idToken,
-          final CentroidVertex destination,
+          final CentroidVertex destinationCentroidVertex,
           ConjugateConnectoidNode rootVertex,
           int maxSubGraphConjugateSegments,
           final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjugateSegmentMapping) {
     super(new ConjugateACyclicSubGraphImpl(idToken, rootVertex, true /* inverted */, maxSubGraphConjugateSegments));
     this.bushData = new ConjugateBushTurnData(this);
-    this.destination = destination;
+    if(!destinationCentroidVertex.isSinkVertex() || destinationCentroidVertex.isSourceVertex()){
+      throw new PlanItRunTimeException(
+              "Conjugate Destination bush does not have a sink centroid vertex as its root, this is not allowed");
+    }
+    this.destination = destinationCentroidVertex;
     this.turn2ConjugateSegmentMapping = turn2ConjugateSegmentMapping;
   }
 

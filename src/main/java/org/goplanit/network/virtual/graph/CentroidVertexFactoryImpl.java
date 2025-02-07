@@ -8,7 +8,7 @@ import org.goplanit.utils.network.virtual.graph.CentroidVertices;
 import org.goplanit.utils.zoning.Centroid;
 
 /**
- * Factory for creating nodes on nodes container
+ * Factory for creating centroid vertices on container
  * 
  * @author markr
  */

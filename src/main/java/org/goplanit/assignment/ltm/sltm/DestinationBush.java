@@ -8,6 +8,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -40,6 +41,10 @@ public class DestinationBush extends RootedLabelledBush {
    */
   public DestinationBush(final IdGroupingToken idToken, CentroidVertex destination, long maxSubGraphEdgeSegments) {
     super(idToken, destination, true /* inverted */, maxSubGraphEdgeSegments);
+    if(!destination.isSinkVertex() || destination.isSourceVertex()){
+      throw new PlanItRunTimeException(
+              "Destination bush does not have a sink centroid vertex as its root, this is not allowed");
+    }
     this.destination = destination;
   }
 
