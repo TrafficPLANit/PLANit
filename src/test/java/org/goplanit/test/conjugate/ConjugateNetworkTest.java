@@ -175,17 +175,19 @@ public class ConjugateNetworkTest {
       assertEquals(conjugatePhysicalLayer.getLinks().size(), conjugatePhysicalLayer.getLinkSegments().size());
 
       /*
-       * virtual conjugate network check (where we add a partial dummy turn around each centroid to enter/exit the
-       * virtual network. Therefore, we have a single conjugate edge + 2 conjugate segments for each original
-       * connectoid edge
+       * virtual conjugate network check (where we add a partial dummy turn around each o/d centroid to enter/exit the
+       * virtual network. Therefore, we have 1 conjugate connectoid edge and 1 conjugate connectoid segment for each
+       * original connectoid edge and connectoid segment.
        */
-      assertEquals(zoning.getVirtualNetwork().getLayer().getConnectoidLinks().size() * 2,
+      assertEquals(zoning.getVirtualNetwork().getLayer().getConnectoidLinks().size(),
               conjugateVirtualNetwork.getLayer().getConnectoidLinks().size());
       assertEquals(conjugateVirtualNetwork.getLayer().getConnectoidLinks().size(),
               conjugateVirtualNetwork.getLayer().getConnectoidSegments().size());
 
-      // one dummy per centroid + one conjugate node per connectoid segment
-      assertEquals(zoning.getOdZones().size() + zoning.getVirtualNetwork().getLayer().getConnectoidSegments().size(),
+      // one dummy per centroid (2 centroid vertices per zone one for origin on for destination) +
+      // one conjugate node per connectoid segment
+      assertEquals(zoning.getOdZones().size() * 2
+                      + zoning.getVirtualNetwork().getLayer().getConnectoidSegments().size(),
               conjugateVirtualNetwork.getLayer().getVertices().size());
 
     } catch (Exception e) {

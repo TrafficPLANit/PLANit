@@ -94,10 +94,11 @@ public class ConjugateVirtualNetworkLayerImpl
     for (var referenceConnectoidSegment : getReferenceLayer().getConnectoidSegments()) {
       var cVertex = referenceConnectoidSegment.getParent().getCentroidVertex();
 
-      // currently we do not split up the centroid in two, so single dummy node that acts as a proxy centroid
+      // attach original centroid vertex to the dummy node and create conjugate vertex for it (without original)
       var conjugateDummyNode = dummyConjugateNodePerCentroidVertex.computeIfAbsent(cVertex,
               v -> getVertices().getFactory().registerNew(null, deriveXmlIdFromOriginalEntities, xmlIdPostFix));
 
+      // register conjugate node with the reference segment as original
       var conjugateNode = getVertices().getFactory().registerNew(
               referenceConnectoidSegment, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
 
