@@ -243,7 +243,7 @@ public class StaticLtmConjugateBushStrategy
 
         //3. overwrite existing costs for turns where discontinuity was found
         var conjugateSegment = turn2ConjugateSegmentMapping.get(entry, exit);
-        assert (conjSegmentCosts[(int)conjugateSegment.getId()] < disContinuitySegmentCost);
+        assert (conjSegmentCosts[(int)conjugateSegment.getId()] <= disContinuitySegmentCost);
         conjSegmentCosts[(int)conjugateSegment.getId()] = disContinuitySegmentCost;
         numDiscontinuitiesUpdated.increment();
       };
@@ -678,12 +678,15 @@ public class StaticLtmConjugateBushStrategy
           continue;
         }
 
-        /* when bush does not contain the opposite direction which would cause a cycle it is worth checking */
+        /* when bush does not contain the opposite direction which would cause a cycle it is worth checking,
+        *  we also do not allow u-turns (on original network), so disallow that as well */
+        boolean disallowUTurns = true;
         boolean viableSearch =
+                (reducedCostSegment.isOriginalEdgeSegmentsUTurn() && disallowUTurns) ||
                 reducedCostSegment.getOppositeDirectionSegment()==null ||
                         !conjBush.contains(reducedCostSegment.getOppositeDirectionSegment());
         if (!viableSearch) {
-          // preferred alternative cannot be added due to bush triggering a cycle if we would
+          // preferred alternative cannot be added due to bush triggering a cycle, or u-turn inclusion if we would
           continue;
         }
 

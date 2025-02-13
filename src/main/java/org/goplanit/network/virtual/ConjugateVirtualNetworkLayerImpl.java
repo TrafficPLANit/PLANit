@@ -87,7 +87,7 @@ public class ConjugateVirtualNetworkLayerImpl
     }
 
     final boolean deriveXmlIdFromOriginalEntities = true;
-    String xmlIdPostFix = "*";
+    String xmlIdPostFix = "";
 
     /* connectoid edge segment -> conjugate connectoid node  + conjugate connectoid link(segments) from dummy
        to conjugate node*/

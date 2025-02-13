@@ -112,9 +112,10 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
     registerSupportedModes(getOriginalLayer().getSupportedModes());
 
     // network entities
+    boolean disallowUTurns = true;
 
     final boolean deriveXmlIdFromOriginalEntities = true;
-    String xmlIdPostFix = "*";
+    String xmlIdPostFix = "";
     /* link segment -> conjugate node */
     Map<EdgeSegment, ConjugateDirectedVertex> edgeSegmentToConjugateNode = new HashMap<>();
     for (LinkSegment linkSegment : originalLayer.getLinkSegments()) {
@@ -141,6 +142,10 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
       for(var entrySegment : node.getEntryEdgeSegments()){
         ConjugateDirectedVertex conjugateVertexUp = edgeSegmentToConjugateNode.get(entrySegment);
         for(var exitSegment : node.getExitLinkSegments()){
+          if(disallowUTurns && entrySegment.getOppositeDirectionSegment()==exitSegment){
+            continue;
+          }
+
           ConjugateDirectedVertex conjugateVertexDown = edgeSegmentToConjugateNode.get(exitSegment);
           if ((conjugateVertexUp == null || conjugateVertexDown == null) && conjugateVirtualNetworkLayer != null) {
             LOGGER.warning("Unable to obtain conjugate vertices for original turn, this shouldn't happen, skip");

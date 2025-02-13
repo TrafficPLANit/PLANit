@@ -42,65 +42,6 @@ public class TransportModelNetworkImpl
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(TransportModelNetworkImpl.class.getCanonicalName());
 
-
-  // Public
-
-  /**
-   * create and register the edge segment for the passed in connectoid edge, XML id set to id prefixed with
-   * "c_ab or c_ba".
-   *
-   * @param connectoidSegmentFactory  to create and register on
-   * @param connectoidLink to process
-   * @param directionAb direction to create
-   * @param virtualXmlIdPrefix to use
-   */
-  protected void createAndRegisterConnectoidEdgeSegment(
-      ConnectoidSegmentFactory connectoidSegmentFactory,
-      ConnectoidLink connectoidLink,
-      boolean directionAb,
-      String virtualXmlIdPrefix) {
-
-    var segment = connectoidSegmentFactory.registerNew(connectoidLink, directionAb);
-    segment.setXmlId(virtualXmlIdPrefix + segment.getId()+"_ab");
-    connectVerticesToEdge(connectoidLink);
-  }
-
-  /**
-   * Given context of centroid vertex and connectoid + access zone, we create the required connectoid edge and
-   * single connectoid segments with the provided factories in the required direction.
-   *
-   * @param connectoidLinkFactory    factory to use
-   * @param connectoidSegmentFactory factory to use
-   * @param centroidVertex           centroid vertex created for the access zone
-   * @param accessZone               at hand for the current connectoid
-   * @param connectoid               the connectoid at hand used to extract length to access zone
-   * @param geoTools                 to use for geometry creation
-   * @param fromSource               when true create link and segment away from provided centroid vertex, otherwise
-   *                                 towards it
-   */
-  protected void createAndRegisterConnectoidLinkAndEdgeSegment(
-      ConnectoidLinkFactory connectoidLinkFactory,
-      ConnectoidSegmentFactory connectoidSegmentFactory,
-      CentroidVertex centroidVertex,
-      Zone accessZone,
-      Connectoid connectoid,
-      PlanitJtsCrsUtils geoTools,
-      boolean fromSource) {
-
-    String virtualXmlIdPrefix = "c";
-    double connectoidLength = connectoid.getLengthKm(accessZone).orElseThrow(
-        () -> new PlanItRunTimeException(
-                "unable to retrieve length for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
-    var connectoidEdge =
-        connectoidLinkFactory.registerNew(centroidVertex, connectoid.getAccessVertex(), connectoidLength);
-    connectoidEdge.setXmlId(virtualXmlIdPrefix + connectoidEdge.getId());
-    connectVerticesToEdge(connectoidEdge);
-    createAndRegisterConnectoidEdgeSegment(connectoidSegmentFactory, connectoidEdge, fromSource, virtualXmlIdPrefix);
-
-    /* populate geometry as well */
-    populateConnectoidGeometry(connectoidEdge, geoTools);
-  }
-
   /**
    * Populate connectoid edge with geometry, simple line between the two vertices when centroid is present, otherwise
    * to closest project point on geometry of parent zone to signify connectoid (visually)
@@ -147,15 +88,100 @@ public class TransportModelNetworkImpl
 
       /* line string -> find closest projected point and use that as "centroid" vertex location */
       var projectedLocation = geoTools.getClosestProjectedLinearLocationOnLineString(
-          connectoidEdge.getNonCentroidVertex().getPosition().getCoordinate(), (LineString)zoneGeometry);
+              connectoidEdge.getNonCentroidVertex().getPosition().getCoordinate(), (LineString)zoneGeometry);
       var closestPointOnZoneGeometry = PlanitJtsUtils.createPoint(projectedLocation.getCoordinate(zoneGeometry));
       connectoidEdge.setGeometry(PlanitJtsUtils.createLineString(
-          closestPointOnZoneGeometry.getCoordinate(),
-          connectoidEdge.getNonCentroidVertex().getPosition().getCoordinate()));
+              closestPointOnZoneGeometry.getCoordinate(),
+              connectoidEdge.getNonCentroidVertex().getPosition().getCoordinate()));
       connectoidHasGeometry = true;
     }
     return connectoidHasGeometry;
   }
+
+  //protected
+
+  /**
+   * Construct readable but unique Xml id for connectoid based on zone and contextual information
+   *
+   * @param accessZone               at hand for the current connectoid
+   * @param connectoidEdge           the connectoid at hand used to extract length to access zone
+   * @param fromSource               when true connectoid goes from source into network, otherwise it is a sink
+   */
+  protected String constructConnectoidXmlId(
+          Zone accessZone, ConnectoidLink connectoidEdge, boolean fromSource){
+    // e.g., xmlId= "D2_1" is the first connectoid edge connected to zone 2 its destination vertex
+    var sb = new StringBuilder();
+    if(fromSource) {
+      sb.append("O");
+    } else {
+      sb.append("D");
+    }
+    // use XML id but if not present indicate internal id is used.
+    sb.append(accessZone.hasXmlId() ? accessZone.getXmlId() : accessZone.getId());
+    // supplement with index on how manieth connectoid it is for the zone
+    sb.append("_").append(connectoidEdge.getCentroidVertex().getEdges().size());
+    return sb.toString();
+  }
+
+  /**
+   * create and register the edge segment for the passed in connectoid edge, XML id set to id prefixed with
+   * "c_ab or c_ba".
+   *
+   * @param connectoidSegmentFactory  to create and register on
+   * @param connectoidLink to process
+   * @param directionAb direction to create
+   * @param xmlId to set
+   */
+  protected void createAndRegisterConnectoidEdgeSegment(
+      ConnectoidSegmentFactory connectoidSegmentFactory,
+      ConnectoidLink connectoidLink,
+      boolean directionAb,
+      String xmlId) {
+
+    var segment = connectoidSegmentFactory.registerNew(connectoidLink, directionAb);
+    segment.setXmlId(xmlId);
+    connectVerticesToEdge(connectoidLink);
+  }
+
+  /**
+   * Given context of centroid vertex and connectoid + access zone, we create the required connectoid edge and
+   * single connectoid segments with the provided factories in the required direction.
+   *
+   * @param connectoidLinkFactory    factory to use
+   * @param connectoidSegmentFactory factory to use
+   * @param centroidVertex           centroid vertex created for the access zone
+   * @param accessZone               at hand for the current connectoid
+   * @param connectoid               the connectoid at hand used to extract length to access zone
+   * @param geoTools                 to use for geometry creation
+   * @param fromSource               when true create link and segment away from provided centroid vertex, otherwise
+   *                                 towards it
+   */
+  protected void createAndRegisterConnectoidLinkAndEdgeSegment(
+      ConnectoidLinkFactory connectoidLinkFactory,
+      ConnectoidSegmentFactory connectoidSegmentFactory,
+      CentroidVertex centroidVertex,
+      Zone accessZone,
+      Connectoid connectoid,
+      PlanitJtsCrsUtils geoTools,
+      boolean fromSource) {
+
+    double connectoidLength = connectoid.getLengthKm(accessZone).orElseThrow(
+        () -> new PlanItRunTimeException(
+                "unable to retrieve length for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
+    var connectoidEdge =
+        connectoidLinkFactory.registerNew(centroidVertex, connectoid.getAccessVertex(), connectoidLength);
+    connectVerticesToEdge(connectoidEdge);
+    connectoidEdge.setXmlId(constructConnectoidXmlId(accessZone, connectoidEdge, fromSource));
+    // since sink/source centroid vertices will only ever have one segment per edge, we reuse the xmlId of the
+    // edge since it is more descriptive and still unique within the type of object
+    createAndRegisterConnectoidEdgeSegment(
+            connectoidSegmentFactory, connectoidEdge, fromSource, connectoidEdge.getXmlId());
+
+    /* populate geometry as well */
+    populateConnectoidGeometry(connectoidEdge, geoTools);
+  }
+
+  // Public
 
   /**
    * Constructor
