@@ -10,6 +10,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.ConjugateLink;
 import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
+import org.goplanit.utils.network.layer.physical.Link;
 import org.locationtech.jts.geom.LineString;
 
 /**
@@ -21,7 +22,8 @@ import org.locationtech.jts.geom.LineString;
  * @author markr
  *
  */
-public class ConjugateLinkImpl extends LinkImpl<ConjugateDirectedVertex, ConjugateLinkSegment> implements ConjugateLink {
+public class ConjugateLinkImpl
+        extends LinkImpl<ConjugateDirectedVertex, ConjugateLinkSegment> implements ConjugateLink {
 
   // Protected
 

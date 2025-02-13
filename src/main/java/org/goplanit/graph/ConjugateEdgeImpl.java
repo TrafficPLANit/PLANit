@@ -81,12 +81,14 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
    * Static implementation of to be overwritten method that due to inheritance structure otherwise would
    * require code duplication.
    *
-   * @param conjugateEdge to extract length in km from
+   * @param conjugateEdge to extract length in km from (sum of both underlying original segments that
+   *                      constitute the movement.
    * @return length in km
    */
   public static double getLengthKm(ConjugateEdge conjugateEdge){
     DoubleAdder lengthAdder = new DoubleAdder();
-    conjugateEdge.getOriginalAdjacentSegments().<Edge>both(e -> lengthAdder.add(e!= null ? e.getLengthKm() : 0.0));
+    conjugateEdge.getOriginalAdjacentSegments().<EdgeSegment>both(
+            es -> lengthAdder.add(es!= null ? es.getLengthKm() : 0.0));
     return lengthAdder.doubleValue();
   }
 
