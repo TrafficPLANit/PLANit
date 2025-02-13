@@ -326,7 +326,7 @@ public class DestinationBush extends RootedLabelledBush {
    * {@inheritDoc}
    */
   @Override
-  public String toString() {
+  public String  toString() {
     String result = super.toString();
     return "Bush: destination zone: " + getDestination().getParent().getParentZone().getXmlId() + "\n" + result;
   }

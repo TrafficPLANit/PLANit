@@ -268,7 +268,7 @@ public class StaticLtmConjugateBushStrategy
           node, turnBasedFlowAcceptanceFactors, discontinuityTurnCostReplacementConsumer);
     }
 
-    if(numDiscontinuitiesUpdated.intValue()>0) {
+    if(getSettings().isDetailedLogging() && numDiscontinuitiesUpdated.intValue()>0) {
       LOGGER.info(String.format("Updated costs for %d zero-flow turns with a discontinuous cost function",
           numDiscontinuitiesUpdated.intValue()));
     }
@@ -439,7 +439,7 @@ public class StaticLtmConjugateBushStrategy
     /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance
      * factor information */
     getLoading().activateNodeTrackingFor(pas);
-    if(getSettings().isDetailedLogging()) {
+    if(getSettings().isDetailedLogging() || isDestinationTrackedForLogging(bush)) {
       LOGGER.info(String.format("Created new PAS: %s", pas));
     }
     return pas;
@@ -538,8 +538,10 @@ public class StaticLtmConjugateBushStrategy
         bush.addOriginDemandPcuH(originConjugateReferenceVertex, currOdDemand);
         initialiseConjugateBushForOrigin(
                 bush, originConjugateReferenceVertex, currOdDemand, destinationOriginInvertedDag);
-        LOGGER.info(bush.toString());
       }
+    }
+    if(getSettings().isDetailedLogging()) {
+      LOGGER.info(bush.toString());
     }
   }
 

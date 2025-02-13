@@ -796,11 +796,13 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         }
 
         // DEBUGGING
-        var alphas = getLoading().getCurrentFlowAcceptanceFactors();
-        for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
-          if(alphas[(int)ls.getId()]<0.999999999998){
-            LOGGER.info(String.format("** LINK (%s) - ALPHA: %.8f - Sending flow: %.10f",
-                    ls.getIdsAsString(), alphas[(int)ls.getId()], getLoading().getCurrentInflowsPcuH()[(int)ls.getId()]));
+        if(getSettings().isDetailedLogging()){
+          var alphas = getLoading().getCurrentFlowAcceptanceFactors();
+          for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
+            if(alphas[(int)ls.getId()]<0.999999999998){
+              LOGGER.info(String.format("Link (%s) - Acceptance Factor: %.4f - Sending flow: %.2f",
+                      ls.getIdsAsString(), alphas[(int)ls.getId()], getLoading().getCurrentInflowsPcuH()[(int)ls.getId()]));
+            }
           }
         }
       }
