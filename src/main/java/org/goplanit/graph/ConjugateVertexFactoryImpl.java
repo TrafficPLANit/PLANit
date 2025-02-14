@@ -4,6 +4,7 @@ import org.goplanit.utils.graph.ConjugateVertex;
 import org.goplanit.utils.graph.ConjugateVertexFactory;
 import org.goplanit.utils.graph.ConjugateVertices;
 import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -27,17 +28,17 @@ public class ConjugateVertexFactoryImpl extends GraphEntityFactoryImpl<Conjugate
    * {@inheritDoc}
    */
   @Override
-  public ConjugateVertex createNew(final Edge originalEdge) {
-    return new ConjugateVertexImpl(getIdGroupingToken(), originalEdge);
+  public ConjugateVertex createNew(final EdgeSegment original) {
+    return new ConjugateVertexImpl(getIdGroupingToken(), original);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ConjugateVertex registerNew(final Edge originalEdge, boolean deriveFromOriginalEdge, String xmlIdPostFix) {
-    final ConjugateVertex newVertex = createNew(originalEdge);
-    newVertex.populateXmlId(deriveFromOriginalEdge, xmlIdPostFix);
+  public ConjugateVertex registerNew(final EdgeSegment original, boolean deriveFromOriginalXmlId, String xmlIdPostFix) {
+    final ConjugateVertex newVertex = createNew(original);
+    newVertex.populateXmlId(deriveFromOriginalXmlId, xmlIdPostFix);
     getGraphEntities().register(newVertex);
     return newVertex;
   }

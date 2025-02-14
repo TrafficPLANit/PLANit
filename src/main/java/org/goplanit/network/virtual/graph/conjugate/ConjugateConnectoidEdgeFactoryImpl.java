@@ -5,6 +5,7 @@ import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.graph.conjugate.ConjugateConnectoidDirectedEdge;
 import org.goplanit.utils.network.virtual.graph.conjugate.ConjugateConnectoidEdgeFactory;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 
@@ -39,8 +40,8 @@ public class ConjugateConnectoidEdgeFactoryImpl
       final ConjugateConnectoidNode vertexA,
       final ConjugateConnectoidNode vertexB,
       boolean registerOnNodes,
-      final ConnectoidDirectedEdge originalConnectoidEdge,
-      boolean deriveXmlIdFromOriginalEdges,
+      final ConnectoidSegment original,
+      boolean deriveXmlIdFromOriginal,
       String xmlIdPostFix) {
 
     if (vertexA == null || vertexB == null) {
@@ -49,8 +50,8 @@ public class ConjugateConnectoidEdgeFactoryImpl
     }
 
     ConjugateConnectoidEdgeImpl newConjugateEdge =
-        new ConjugateConnectoidEdgeImpl(getIdGroupingToken(), vertexA, vertexB, originalConnectoidEdge);
-    newConjugateEdge.populateXmlId(deriveXmlIdFromOriginalEdges, xmlIdPostFix);
+        new ConjugateConnectoidEdgeImpl(getIdGroupingToken(), vertexA, vertexB, original);
+    newConjugateEdge.populateXmlId(deriveXmlIdFromOriginal, xmlIdPostFix);
     getGraphEntities().register(newConjugateEdge);
     if (registerOnNodes) {
       vertexA.addEdge(newConjugateEdge);

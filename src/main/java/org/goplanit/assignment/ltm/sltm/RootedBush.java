@@ -485,7 +485,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    */
   @Override
   public String toString() {
-    var sb = new StringBuilder("[");
+    var sb = new StringBuilder("Bush: [");
     /* log all edge segments on bush */
     var root = getRootVertex();
     Queue<DirectedVertex> openVertices = new PriorityQueue<>();

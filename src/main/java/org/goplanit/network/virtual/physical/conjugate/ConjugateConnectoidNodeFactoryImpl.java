@@ -2,6 +2,7 @@ package org.goplanit.network.virtual.physical.conjugate;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNodeFactory;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNodes;
@@ -29,8 +30,8 @@ public class ConjugateConnectoidNodeFactoryImpl
    * {@inheritDoc}
    */
   @Override
-  public ConjugateConnectoidNode createNew(final ConnectoidDirectedEdge originalConnectoidEdge) {
-    return new ConjugateConnectoidNodeImpl(originalConnectoidEdge, getIdGroupingToken());
+  public ConjugateConnectoidNode createNew(final ConnectoidSegment original) {
+    return new ConjugateConnectoidNodeImpl(original, getIdGroupingToken());
   }
 
   /**
@@ -38,9 +39,9 @@ public class ConjugateConnectoidNodeFactoryImpl
    */
   @Override
   public ConjugateConnectoidNode registerNew(
-          final ConnectoidDirectedEdge originalConnectoidEdge, boolean deriveFromOriginalEdge, String xmlIdPostFix) {
-    final ConjugateConnectoidNode newEntity = createNew(originalConnectoidEdge);
-    newEntity.populateXmlId(deriveFromOriginalEdge, xmlIdPostFix);
+          final ConnectoidSegment original, boolean deriveFromOriginal, String xmlIdPostFix) {
+    final ConjugateConnectoidNode newEntity = createNew(original);
+    newEntity.populateXmlId(deriveFromOriginal, xmlIdPostFix);
     getGraphEntities().register(newEntity);
     return newEntity;
   }

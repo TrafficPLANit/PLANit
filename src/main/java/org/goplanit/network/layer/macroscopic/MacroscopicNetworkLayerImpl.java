@@ -17,7 +17,8 @@ import org.goplanit.utils.network.layers.ConjugateMacroscopicNetworkLayerFactory
 import org.goplanit.utils.network.virtual.ConjugateVirtualNetworkLayer;
 
 /**
- * Macroscopic physical Network (layer) that supports one or more modes and link segment types, where the modes are registered on the network (Infrastructure network) level
+ * Macroscopic physical Network (layer) that supports one or more modes and link segment types, where the modes
+ * are registered on the network (Infrastructure network) level
  *
  * @author markr
  *

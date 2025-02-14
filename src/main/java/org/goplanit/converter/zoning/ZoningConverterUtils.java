@@ -608,7 +608,8 @@ public class ZoningConverterUtils {
 
     Coordinate closestExistingCoordinate = geoUtils.getClosestExistingLineStringCoordinateToGeometry(
         waitingAreaGeometry, accessLink.getGeometry());
-    double distanceToExistingCoordinateOnLinkInMeters = geoUtils.getClosestDistanceInMeters(closestExistingCoordinate, waitingAreaGeometry);
+    double distanceToExistingCoordinateOnLinkInMeters =
+            geoUtils.getClosestDistanceInMeters(closestExistingCoordinate, waitingAreaGeometry);
 
     /* if close enough utilise existing node location as stop_position/connectoid, otherwise create artificial point on closest projected location which
      * in most cases will be closer and within threshold */
@@ -638,9 +639,11 @@ public class ZoningConverterUtils {
       }else {
 
         /* 2) must be internal if not an extreme node */
-        int coordinateIndex = PlanitJtsUtils.getCoordinateIndexOf(closestExistingCoordinate, accessLink.getGeometry().getCoordinates());
+        int coordinateIndex = PlanitJtsUtils.getCoordinateIndexOf(
+                closestExistingCoordinate, accessLink.getGeometry().getCoordinates());
         if(coordinateIndex <= 0 || coordinateIndex==(accessLink.getGeometry().getCoordinates().length-1)) {
-          throw new PlanItRunTimeException("Unable to locate link internal location even though it is expected to exist when identifying connectoid location for waiting area %s", waitingAreaSourceId);
+          throw new PlanItRunTimeException("Unable to locate link internal location even though it is expected to exist" +
+                  " when identifying connectoid location for waiting area %s", waitingAreaSourceId);
         }
 
         connectoidLocation = PlanitJtsUtils.createPoint(closestExistingCoordinate);
@@ -656,25 +659,29 @@ public class ZoningConverterUtils {
     }
 
     if(connectoidLocation == null) {
-      /* too far, or identified existing location is not suitable, so we must check if breaking the existing link in appropriate location instead would work */
-      LinearLocation projectedLinLocOnLink = PlanitEntityGeoUtils.extractClosestProjectedLinearLocationToGeometryFromEdge(waitingAreaGeometry, accessLink, geoUtils);
+      /* too far, or identified existing location is not suitable, so we must check if breaking the existing link in
+       appropriate location instead would work */
+      LinearLocation projectedLinLocOnLink =
+              PlanitEntityGeoUtils.extractClosestProjectedLinearLocationToGeometryFromEdge(
+                      waitingAreaGeometry, accessLink, geoUtils);
 
       /* verify projected location is valid */
-      Coordinate closestProjectedCoordinate = projectedLinLocOnLink.getCoordinate(accessLink.getGeometry());
-      if( closestExistingCoordinate.equals2D(closestProjectedCoordinate) ||
-          geoUtils.getClosestDistanceInMeters(closestProjectedCoordinate, waitingAreaGeometry) > maxAllowedDistanceMeters) {
+      Coordinate closestProjectedCoord = projectedLinLocOnLink.getCoordinate(accessLink.getGeometry());
+      if( closestExistingCoordinate.equals2D(closestProjectedCoord) ||
+          geoUtils.getClosestDistanceInMeters(closestProjectedCoord, waitingAreaGeometry) > maxAllowedDistanceMeters) {
         /* no option to break link, the projected closest point is too far away or deemed not suitable */
       }else {
         /* acceptable location, create proposed connectoid location as result */
-        connectoidLocation = PlanitJtsUtils.createPoint(closestProjectedCoordinate);
+        connectoidLocation = PlanitJtsUtils.createPoint(closestProjectedCoord);
       }
     }
 
     return connectoidLocation;
   }
 
-  /** create directed connectoid for the link segment provided, all related to the given transfer zone and with access modes provided. When the link segment does not have any of the
-   * passed in modes listed as allowed, no connectoid is created and null is returned
+  /** create directed connectoid for the link segment provided, all related to the given transfer zone and with access
+   * modes provided. When the link segment does not have any of the passed in modes listed as allowed, no connectoid
+   * is created and null is returned
    *
    * @param zoning to register on
    * @param accessZone to relate connectoids to
@@ -684,23 +691,31 @@ public class ZoningConverterUtils {
    * @return created connectoid when at least one of the allowed modes is also allowed on the link segment
    */
   public static DirectedConnectoid createAndRegisterDirectedConnectoid(
-      Zoning zoning, final TransferZone accessZone, final boolean downstreamAccessNode, final MacroscopicLinkSegment linkSegment, final Set<Mode> allowedModes){
+      Zoning zoning,
+      final TransferZone accessZone,
+      final boolean downstreamAccessNode,
+      final MacroscopicLinkSegment linkSegment,
+      final Set<Mode> allowedModes){
+
     final Set<Mode> realAllowedModes = linkSegment.getAllowedModesFrom(allowedModes);
     if(realAllowedModes!= null && !realAllowedModes.isEmpty()) {
       var connectoid =
-          zoning.getTransferConnectoids().getFactory().registerNew(downstreamAccessNode, linkSegment, accessZone, true, realAllowedModes);
+          zoning.getTransferConnectoids().getFactory().registerNew(
+                  downstreamAccessNode, linkSegment, accessZone, true, realAllowedModes);
       return connectoid;
     }
     return null;
   }
 
-  /** create directed connectoids, one per link segment provided, all related to the given transfer zone and with access modes provided. connectoids are only created
-   * when the access link segment has at least one of the allowed modes as an eligible mode
+  /** create directed connectoids, one per link segment provided, all related to the given transfer zone and with
+   * access modes provided. Connectoids are only created when the access link segment has at least one of the
+   * allowed modes as an eligible mode.
    *
    * @param zoning to register on
    * @param transferZone to relate connectoids to
-   * @param accessNode the access node the connectoid utilises (determine the up/downstream connection of the attached link segment(s)
-   * @param linkSegments to create connectoids for (one per segment)
+   * @param accessNode the access node the connectoid utilises (determine the up/downstream connection of the
+   *                   attached link segment(s)
+   * @param accessLinkSegments to create connectoids for (one per segment)
    * @param allowedModes used for each connectoid
    * @return created connectoids
    */
@@ -708,18 +723,22 @@ public class ZoningConverterUtils {
       Zoning zoning,
       final TransferZone transferZone,
       final Node accessNode,
-      final Iterable<? extends MacroscopicLinkSegment> linkSegments,
+      final Iterable<? extends MacroscopicLinkSegment> accessLinkSegments,
       final Set<Mode> allowedModes){
     Set<DirectedConnectoid> createdConnectoids = new HashSet<>();
 
     // we sort to ensure connectoids are always created in same deterministic order
-    IterableUtils.asStream(linkSegments).sorted(Comparator.comparing(MacroscopicLinkSegment::getId)).forEach( linkSegment -> {
-      boolean downstreamAccessNode = linkSegment.isDownstreamNode(accessNode);
-      if(!linkSegment.hasNode(accessNode)){
-        throw new PlanItRunTimeException("Chosen access node %s not attached to link segment %s", accessNode.getIdsAsString(), linkSegment.getIdsAsString());
+    IterableUtils.asStream(accessLinkSegments).sorted(
+            Comparator.comparing(MacroscopicLinkSegment::getId)).forEach( accessLinkSegment -> {
+      boolean downstreamAccessNode = accessLinkSegment.isDownstreamNode(accessNode);
+      if(!accessLinkSegment.hasNode(accessNode)){
+        throw new PlanItRunTimeException(
+                "Chosen access node %s not attached to link segment %s",
+                accessNode.getIdsAsString(), accessLinkSegment.getIdsAsString());
       }
+
       DirectedConnectoid newConnectoid = createAndRegisterDirectedConnectoid(
-          zoning, transferZone, downstreamAccessNode, linkSegment, allowedModes);
+          zoning, transferZone, downstreamAccessNode, accessLinkSegment, allowedModes);
       if(newConnectoid != null) {
         createdConnectoids.add(newConnectoid);
       }

@@ -2,10 +2,7 @@ package org.goplanit.network.layer.physical;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.ConjugateNode;
-import org.goplanit.utils.network.layer.physical.ConjugateNodeFactory;
-import org.goplanit.utils.network.layer.physical.ConjugateNodes;
-import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.*;
 
 /**
  * Factory for creating nodes on conjugate nodes container.
@@ -28,16 +25,17 @@ public class ConjugateNodeFactoryImpl extends GraphEntityFactoryImpl<ConjugateNo
    * {@inheritDoc}
    */
   @Override
-  public ConjugateNode createNew(final Link originalLink) {
-    return new ConjugateNodeImpl(getIdGroupingToken(), originalLink);
+  public ConjugateNode createNew(final LinkSegment originalLinkSegment) {
+    return new ConjugateNodeImpl(getIdGroupingToken(), originalLinkSegment);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ConjugateNode registerNew(final Link originalLink, boolean deriveFromOriginalEdge, String xmlIdPostFix) {
-    final ConjugateNode newEntity = createNew(originalLink);
+  public ConjugateNode registerNew(
+          final LinkSegment originalLinkSegment, boolean deriveFromOriginalEdge, String xmlIdPostFix) {
+    final ConjugateNode newEntity = createNew(originalLinkSegment);
     newEntity.populateXmlId(deriveFromOriginalEdge, xmlIdPostFix);
     getGraphEntities().register(newEntity);
     return newEntity;

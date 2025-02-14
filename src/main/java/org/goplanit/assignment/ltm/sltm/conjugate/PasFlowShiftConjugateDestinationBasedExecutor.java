@@ -620,20 +620,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double bushS2Portion = bushS2RemainingSendingFlow / guaranteedS2SendingFlow;
       double bushPasFlowShift = smoothedProportionalPasflowShift * bushS2Portion;
 
-      if(bushS2RemainingSendingFlow < EPSILON_3){
-        // make sure we rid the bush s2 PAS from all remaining flow by setting a high value
-        bushPasFlowShift = bushS2RemainingSendingFlow;
-        if(isDestinationTrackedForLogging(conjBush) || logAll) {
-          LOGGER.info(String.format(
-                  "     S2 flow bush near zero -> FLOW SHIFT UPLIFT -> Attempted flow shift=%.10f) - bush (%s)",
-                  bushPasFlowShift, conjBush.getRootZone().getIdsAsString()));
-        }
-      }else{
-        if(isDestinationTrackedForLogging(conjBush) || logAll) {
-          LOGGER.info(String.format(
-                  "     Shift: %.9f (available flow %.9f) - bush (%s) ",
-                  bushPasFlowShift, bushS2RemainingSendingFlow,conjBush.getRootZone().getIdsAsString()));
-        }
+      if(isDestinationTrackedForLogging(conjBush) || logAll) {
+        LOGGER.info(String.format(
+                "     Shift: %.9f (available flow %.9f) - bush (%s) ",
+                bushPasFlowShift, bushS2RemainingSendingFlow,conjBush.getRootZone().getIdsAsString()));
       }
 
       /* perform the flow shift for the current bush and its attributed portion */

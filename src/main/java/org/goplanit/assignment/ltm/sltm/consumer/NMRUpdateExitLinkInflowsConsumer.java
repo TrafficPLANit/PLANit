@@ -45,7 +45,8 @@ public class NMRUpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult 
    * {@inheritDoc}
    */
   @Override
-  public void acceptTurnBasedResult(final DirectedVertex node, final Array1D<Double> flowAcceptanceFactors, final NodeModel nodeModel) {
+  public void acceptTurnBasedResult(
+          final DirectedVertex node, final Array1D<Double> flowAcceptanceFactors, final NodeModel nodeModel) {
     // TODO: should not cast directly
     Array2D<Double> turnSendingFlows = ((TampereNodeModel) nodeModel).getInputs().getTurnSendingFlows();
 

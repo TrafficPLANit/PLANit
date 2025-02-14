@@ -2,17 +2,16 @@ package org.goplanit.network.virtual.physical.conjugate;
 
 import org.goplanit.graph.ConjugateEdgeImpl;
 import org.goplanit.network.layer.physical.LinkImpl;
-import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidLink;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegment;
 import org.locationtech.jts.geom.LineString;
 
-import java.util.concurrent.atomic.DoubleAdder;
 import java.util.logging.Logger;
 
 /**
@@ -31,9 +30,9 @@ public class ConjugateConnectoidLinkImpl
   private static final Logger LOGGER = Logger.getLogger(ConjugateConnectoidLinkImpl.class.getCanonicalName());
 
   /**
-   * adjacent original directed edges represented by this conjugate
+   * adjacent originals represented by this conjugate
    */
-  protected final Pair<? extends DirectedEdge, ? extends DirectedEdge> originalEdges;
+  protected final Pair<? extends EdgeSegment, ? extends EdgeSegment> originalPair;
 
   /**
    * Copy constructor
@@ -43,7 +42,7 @@ public class ConjugateConnectoidLinkImpl
    */
   protected ConjugateConnectoidLinkImpl(ConjugateConnectoidLinkImpl other, boolean deepCopy) {
     super(other, deepCopy);
-    this.originalEdges = other.originalEdges.copy();
+    this.originalPair = other.originalPair.copy();
   }
 
   /**
@@ -52,17 +51,17 @@ public class ConjugateConnectoidLinkImpl
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param nodeA    the first node in the link
    * @param nodeB    the second node in the link
-   * @param originalEdge1 to use
-   * @param originalEdge2 to use
+   * @param original1 to use
+   * @param original2 to use
    */
   protected ConjugateConnectoidLinkImpl(
           final IdGroupingToken groupId,
           final ConjugateConnectoidNode nodeA,
           final ConjugateConnectoidNode nodeB,
-          final DirectedEdge originalEdge1,
-          final DirectedEdge originalEdge2) {
+          final ConnectoidSegment original1,
+          final ConnectoidSegment original2) {
     super(groupId, nodeA, nodeB);
-    this.originalEdges = Pair.of(originalEdge1, originalEdge2);
+    this.originalPair = Pair.of(original1, original2);
   }
 
   /**
@@ -130,8 +129,8 @@ public class ConjugateConnectoidLinkImpl
    * {@inheritDoc}
    */
   @Override
-  public Pair<? extends DirectedEdge, ? extends DirectedEdge> getOriginalAdjacentEdges() {
-    return this.originalEdges;
+  public Pair<? extends EdgeSegment, ? extends EdgeSegment> getOriginalAdjacentSegments() {
+    return this.originalPair;
   }
 
 }

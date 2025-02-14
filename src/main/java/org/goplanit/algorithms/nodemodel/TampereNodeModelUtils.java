@@ -3,10 +3,12 @@ package org.goplanit.algorithms.nodemodel;
 import org.goplanit.utils.functionalinterface.TriConsumer;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.pcu.PcuCapacitated;
 import org.ojalgo.array.Array1D;
 import org.ojalgo.array.Array2D;
 import org.ojalgo.function.PrimitiveFunction;
+import org.ojalgo.function.aggregator.Aggregator;
 import org.ojalgo.structure.Access1D;
 
 import java.util.function.BiConsumer;
@@ -88,6 +90,12 @@ public class TampereNodeModelUtils {
       /* s_ab = s_a*phi_ab */
       double sendingFlow = sendingFlowsBySegmentId[(int) entryEdgeSegment.getId()];
       Array1D<Double> localTurnSendingFlows = createSplittingRatesForSegment.apply(entryEdgeSegment).copy();
+
+      if(sendingFlow > 0){
+        // splitting rates must sum to 1 if any non-zero flow exists
+        assert (localTurnSendingFlows.aggregateAll(Aggregator.SUM) - Precision.EPSILON_6 < 1 );
+      }
+
       localTurnSendingFlows.modifyAll(PrimitiveFunction.MULTIPLY.by(sendingFlow));
       tunSendingFlowsByEntryLinkSegment[entryIndex] = localTurnSendingFlows;
     }

@@ -306,7 +306,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     Zoning zoning = getTransportNetwork().getZoning();
     OdDemands odDemands = getOdDemands(mode);
     for (var origin : zoning.getOdZones()) {
-      var originVertex = findCentroidVertex(origin);
+      var originVertex = findOriginCentroidVertex(origin);
       var oneToAllResult = shortestPathAlgorithm.executeOneToAll(originVertex);
       for (var destination : zoning.getOdZones()) {
         if (destination.idEquals(origin)) {
@@ -316,7 +316,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         /* for positive demand on OD generate the shortest path under given costs */
         Double currOdDemand = odDemands.getValue(origin, destination);
         if (currOdDemand != null && currOdDemand > 0) {
-          var destinationVertex = findCentroidVertex(destination);
+          var destinationVertex = findDestinationCentroidVertex(destination);
           var sltmPath = oneToAllResult.createPath(pathFactory, originVertex, destinationVertex);
           if (sltmPath == null) {
             LOGGER.warning(String.format("%sUnable to create path for OD [ o - (%s), d - (%s)] with non-zero demand (%.2f)",

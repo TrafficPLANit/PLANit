@@ -30,7 +30,8 @@ public class ConnectoidLinkFactoryImpl extends GraphEntityFactoryImpl<Connectoid
    */
   public ConnectoidLink registerNew(CentroidVertex centroidVertex, DirectedVertex nonCentroidVertex, double lengthKm){
       /* create and register connectoid edge */
-    ConnectoidLink newConnectoidLink = new ConnectoidLinkImpl(getIdGroupingToken(), centroidVertex, nonCentroidVertex, lengthKm);
+    ConnectoidLink newConnectoidLink = new ConnectoidLinkImpl(
+            getIdGroupingToken(), centroidVertex, nonCentroidVertex, lengthKm);
       getGraphEntities().register(newConnectoidLink);
     return newConnectoidLink;
   }

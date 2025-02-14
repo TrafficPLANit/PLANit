@@ -159,9 +159,17 @@ public class AcyclicShortestPathTest {
       
       transportNetwork = new TransportModelNetworkImpl(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids(false);
-      Map<OdZone, CentroidVertex> zone2VertexMapping =
+
+      boolean considerOds = true;
+      boolean considerTransfers = false;
+      boolean sourceVertices = true;
+      Map<OdZone, CentroidVertex> zone2SourceVertexMapping =
           (Map<OdZone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
-              transportNetwork.getVirtualNetwork().getLayer(), true, false);
+              transportNetwork.getVirtualNetwork().getLayer(), sourceVertices, considerOds, considerTransfers);
+      sourceVertices = false;
+      Map<OdZone, CentroidVertex> zone2SinkVertexMapping =
+              (Map<OdZone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+                      transportNetwork.getVirtualNetwork().getLayer(), sourceVertices, considerOds, considerTransfers);
           
       // costs
       linkSegmentCosts = new double[]
@@ -182,9 +190,10 @@ public class AcyclicShortestPathTest {
       
       // SUBGRAPH -> containing all link segments except the connectoids in the wrong direction      
       long totalEdgeSegments = transportNetwork.getNumberOfEdgeSegmentsAllLayers();
-      var zoneACentroidVertex = zone2VertexMapping.get(zoneA);
-      var zoneBCentroidVertex = zone2VertexMapping.get(zoneB);
-      acyclicSubGraph = new ACyclicSubGraphImpl(network.getNetworkGroupingTokenId(), zoneACentroidVertex, false, (int) totalEdgeSegments);
+      var zoneACentroidVertex = zone2SourceVertexMapping.get(zoneA);
+      var zoneBCentroidVertex = zone2SinkVertexMapping.get(zoneB);
+      acyclicSubGraph = new ACyclicSubGraphImpl(
+              network.getNetworkGroupingTokenId(), zoneACentroidVertex, false, (int) totalEdgeSegments);
 
       /* add all physical link segments */
       acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(0).getEdgeSegment(networkLayer.getNodes().get(1)));
@@ -261,8 +270,10 @@ public class AcyclicShortestPathTest {
 
       // now add a link segment connecting 8 back to 0 (cycle), this should cause the topological
       // sorting to fail
-      MacroscopicLink link = networkLayer.getLinks().getFactory().registerNew(networkLayer.getNodes().get(8), networkLayer.getNodes().get(0), 1, true);
-      MacroscopicLinkSegment cyclicSegment = networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
+      MacroscopicLink link = networkLayer.getLinks().getFactory().registerNew(
+              networkLayer.getNodes().get(8), networkLayer.getNodes().get(0), 1, true);
+      MacroscopicLinkSegment cyclicSegment = networkLayer.getLinkSegments().getFactory().registerNew(
+              link, true, true);
       acyclicSubGraph.addEdgeSegment(cyclicSegment);
 
       topologicalOrder = acyclicSubGraph.topologicalSort(true /*update*/);
@@ -323,11 +334,19 @@ public class AcyclicShortestPathTest {
   public void minMaxPathTest() {
     try {
 
-      Map<? extends Zone, CentroidVertex> zone2VertexMapping =
-          VirtualNetworkUtils.createZoneToCentroidVertexMapping(
-              transportNetwork.getVirtualNetwork().getLayer(),true, false);
-      var zoneACentroidVertex = zone2VertexMapping.get(centroidA.getParentZone());
-      var zoneBCentroidVertex = zone2VertexMapping.get(centroidB.getParentZone());
+      boolean considerOds = true;
+      boolean considerTransfers = false;
+      boolean sourceVertices = true;
+      Map<OdZone, CentroidVertex> zone2SourceVertexMapping =
+              (Map<OdZone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+                      transportNetwork.getVirtualNetwork().getLayer(), sourceVertices, considerOds, considerTransfers);
+      sourceVertices = false;
+      Map<OdZone, CentroidVertex> zone2SinkVertexMapping =
+              (Map<OdZone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+                      transportNetwork.getVirtualNetwork().getLayer(), sourceVertices, considerOds, considerTransfers);
+
+      var zoneACentroidVertex = zone2SourceVertexMapping.get(centroidA.getParentZone());
+      var zoneBCentroidVertex = zone2SinkVertexMapping.get(centroidB.getParentZone());
 
       var minMaxPathAlgo = new ShortestPathAcyclicMinMaxGeneralised(
           acyclicSubGraph, true /*update sort*/, linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());

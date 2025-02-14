@@ -898,7 +898,7 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
       }
     }
     if(passWithoutBush!=null && !passWithoutBush.isEmpty()){
-      passWithoutBush.forEach(p -> deactivatePas(p, true));
+      passWithoutBush.forEach(p -> deactivatePas(p, isDetailedLogging()));
     }
     return countRemovals;
   }

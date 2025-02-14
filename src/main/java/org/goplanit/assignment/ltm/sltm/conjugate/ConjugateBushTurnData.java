@@ -177,7 +177,7 @@ public class ConjugateBushTurnData{
   public double getTotalAcceptedFlowToPcuH(
           final ConjugateDirectedVertex conjVertex, double[] originalNetworkSegmentFlowAcceptanceFactors) {
 
-    if (conjVertex instanceof ConjugateConnectoidNode && conjVertex.getEdges().size()==1) {
+    if (conjVertex instanceof ConjugateConnectoidNode && conjVertex.getOriginalEdgeSegment() == null) {
       /* sink/source, hence it must be a root vertex connected to an origin */
       return getTotalSendingFlowFromPcuH(conjVertex);
     }

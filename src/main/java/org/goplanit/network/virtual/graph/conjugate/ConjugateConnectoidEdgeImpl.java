@@ -6,6 +6,7 @@ import org.goplanit.graph.directed.ConjugateDirectedEdgeImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 import org.goplanit.utils.network.virtual.graph.conjugate.ConjugateConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegment;
 
@@ -46,12 +47,12 @@ public class ConjugateConnectoidEdgeImpl
    * @param groupId,               contiguous id generation within this group for instances of this class
    * @param nodeA                  the first vertex of the edge
    * @param nodeB                  the second vertex of the edge
-   * @param originalConnectoidEdge of the conjugate
+   * @param original of the conjugate
    */
   protected ConjugateConnectoidEdgeImpl(
       final IdGroupingToken groupId, final ConjugateConnectoidNode nodeA, final ConjugateConnectoidNode nodeB,
-      final ConnectoidDirectedEdge originalConnectoidEdge) {
-    super(groupId, nodeA, nodeB, originalConnectoidEdge, null);
+      final ConnectoidSegment original) {
+    super(groupId, nodeA, nodeB, original, null);
   }
 
   /**

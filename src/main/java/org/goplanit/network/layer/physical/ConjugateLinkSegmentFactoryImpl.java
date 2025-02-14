@@ -57,7 +57,7 @@ public class ConjugateLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<Conj
           boolean registerOnNodeAndLink) {
     final ConjugateLinkSegment edgeSegment = create(parent, directionAb);
     getGraphEntities().register(edgeSegment);
-
+    
     if (registerOnNodeAndLink) {
       parent.registerEdgeSegment(edgeSegment, directionAb);
     }

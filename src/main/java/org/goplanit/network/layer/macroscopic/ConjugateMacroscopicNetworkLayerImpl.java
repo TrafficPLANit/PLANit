@@ -11,19 +11,12 @@ import org.goplanit.network.layer.physical.ConjugateNodesImpl;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.physical.ConjugateLink;
-import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
-import org.goplanit.utils.network.layer.physical.ConjugateLinkSegments;
-import org.goplanit.utils.network.layer.physical.ConjugateLinks;
-import org.goplanit.utils.network.layer.physical.ConjugateNode;
-import org.goplanit.utils.network.layer.physical.ConjugateNodes;
-import org.goplanit.utils.network.layer.physical.Link;
-import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
+import org.goplanit.utils.network.layer.physical.*;
 import org.goplanit.utils.network.virtual.ConjugateVirtualNetworkLayer;
 
 /**
@@ -50,7 +43,6 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    * @return true when present, false otherwise
    */
   private boolean hasPotentialDirectionalTurn(DirectedEdge fromEdge, DirectedEdge toEdge) {
-    boolean directionalTurnExistsBetweenConjugateVertices = false;
     for(var es : fromEdge.getEdgeSegments()) {
       for (var exitEs : es.getDownstreamVertex().getExitEdgeSegments()) {
         if (toEdge.getEdgeSegments().contains(exitEs)) {
@@ -120,23 +112,24 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
     registerSupportedModes(getOriginalLayer().getSupportedModes());
 
     // network entities
+    boolean disallowUTurns = true;
 
     final boolean deriveXmlIdFromOriginalEntities = true;
-    String xmlIdPostFix = "*";
-    /* link -> conjugate node */
-    Map<DirectedEdge, ConjugateDirectedVertex> edgeToConjugateNode = new HashMap<>();
-    for (Link link : originalLayer.getLinks()) {
+    String xmlIdPostFix = "";
+    /* link segment -> conjugate node */
+    Map<EdgeSegment, ConjugateDirectedVertex> edgeSegmentToConjugateNode = new HashMap<>();
+    for (LinkSegment linkSegment : originalLayer.getLinkSegments()) {
       ConjugateNode conjugateNode =
-              getNodes().getFactory().registerNew(link, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
-      edgeToConjugateNode.put(link, conjugateNode);
+              getNodes().getFactory().registerNew(linkSegment, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
+      edgeSegmentToConjugateNode.put(linkSegment, conjugateNode);
     }
 
     /* also allow for connectoids to be available and connected to newly created conjugate links */
     if (conjugateVirtualNetworkLayer != null && !conjugateVirtualNetworkLayer.isEmpty()) {
       for (var conjugateConnectoidNode : conjugateVirtualNetworkLayer.getVertices()) {
-        var originalEdge = conjugateConnectoidNode.getOriginalEdge();
-        if(originalEdge != null) {
-          edgeToConjugateNode.put(originalEdge, conjugateConnectoidNode);
+        var original = conjugateConnectoidNode.getOriginalEdgeSegment();
+        if(original != null) {
+          edgeSegmentToConjugateNode.put(original, conjugateConnectoidNode);
         }
       }
     }else{
@@ -146,69 +139,39 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
 
     /* (link,link) -> conjugate link + conjugate link segments */
     for (Node node : originalLayer.getNodes()) {
-
-      var edgeIter = node.getEdges().iterator();
-      while (edgeIter.hasNext()) {
-        var edge = edgeIter.next();
-        var nextEdgeIter = node.getEdges().iterator();
-
-        /* move next link iter to first after link iter */
-        while (nextEdgeIter.hasNext()) {
-          if (nextEdgeIter.next().equals(edge)) {
-            break;
-          }
-        }
-        if (edgeIter.hasNext() && !nextEdgeIter.hasNext()) {
-          LOGGER.warning("Unable to find next link while updating conjugate macroscopic network, " +
-                  "this shouldn't happen, abort");
-          return;
-        }
-
-        /* for all remaining next links after current link create combinations (and in both directions for segments) */
-        while (nextEdgeIter.hasNext()) {
-          var nextEdge = nextEdgeIter.next();
-
-          ConjugateDirectedVertex conjugateVertexA = edgeToConjugateNode.get(edge);
-          ConjugateDirectedVertex conjugateVertexB = edgeToConjugateNode.get(nextEdge);
-          if ((conjugateVertexA == null || conjugateVertexB == null) && conjugateVirtualNetworkLayer != null) {
-            LOGGER.warning("Unable to obtain conjugate vertex for original link, this shouldn't happen, skip");
+      for(var entrySegment : node.getEntryEdgeSegments()){
+        ConjugateDirectedVertex conjugateVertexUp = edgeSegmentToConjugateNode.get(entrySegment);
+        for(var exitSegment : node.getExitLinkSegments()){
+          if(disallowUTurns && entrySegment.getOppositeDirectionSegment()==exitSegment){
             continue;
           }
 
-          // only create conjugate link if a turn in either direction exists, otherwise contiguous id generation will
-          // be messed up as we'll have links without link segments which makes no practical sense
-          boolean directionalTurnExistsBetweenConjugateVertices =
-                  hasPotentialDirectionalTurn(edge, nextEdge) || hasPotentialDirectionalTurn(nextEdge, edge);
-          if(!directionalTurnExistsBetweenConjugateVertices){
+          ConjugateDirectedVertex conjugateVertexDown = edgeSegmentToConjugateNode.get(exitSegment);
+          if ((conjugateVertexUp == null || conjugateVertexDown == null) && conjugateVirtualNetworkLayer != null) {
+            LOGGER.warning("Unable to obtain conjugate vertices for original turn, this shouldn't happen, skip");
             continue;
           }
 
+          // NOTE: in current setup each conjugate link only ever has one conjugate segment since we created a conjugate
+          // node per original link segment, e.g., we disentangled directions fully.
+          // todo: it would be more correct if we would have conjugate directed and undirected nodes in the future instead
+          //  of abusing the conjugate nodes as if they are directed.
 
           /* conjugate link */
           boolean registerNewEntityOnItsNodes = true;
           ConjugateLink conjugateLink = getLinks().getFactory().registerNew(
-                  conjugateVertexA,
-                  conjugateVertexB,
+                  conjugateVertexUp,
+                  conjugateVertexDown,
                   registerNewEntityOnItsNodes,
-                  edge,
-                  nextEdge,
+                  conjugateVertexUp.getOriginalEdgeSegment(),
+                  conjugateVertexDown.getOriginalEdgeSegment(),
                   deriveXmlIdFromOriginalEntities,
                   xmlIdPostFix);
 
-          /* conjugate link segments for conjugate link */
+          /* conjugate link segment for conjugate link */
           boolean directionAb = true;
           var abPair = conjugateLink.getOriginalAdjacentEdgeSegments(directionAb);
           if (abPair.bothNotNull()) {
-            getLinkSegments().getFactory().registerNew(
-                    conjugateLink,
-                    directionAb,
-                    registerNewEntityOnItsNodes,
-                    deriveXmlIdFromOriginalEntities,
-                    xmlIdPostFix);
-          }
-          directionAb = false;
-          var baPair = conjugateLink.getOriginalAdjacentEdgeSegments(directionAb);
-          if (baPair.bothNotNull()) {
             getLinkSegments().getFactory().registerNew(
                     conjugateLink,
                     directionAb,
@@ -229,6 +192,9 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
   @Override
   public void logInfo(String prefix) {
     super.logInfo(prefix);
+    LOGGER.info(String.format("%s#conjugate links: %d", prefix, this.getLinkSegments().size()));
+    LOGGER.info(String.format("%s#conjugate segments: %d", prefix, this.getLinks().size()));
+    LOGGER.info(String.format("%s#conjugate nodes: %d", prefix, this.getNodes().size()));
   }
 
   /**
@@ -336,7 +302,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
             layerPrefix));
 
     for(var conjEdge : getLinks()){
-      var originalEdgesPair = conjEdge.getOriginalAdjacentEdges();
+      var originalEdgesPair = conjEdge.getOriginalAdjacentSegments();
       var originalEdge1Ids = originalEdgesPair.first() != null ? originalEdgesPair.first().getIdsAsString() : "-";
       var originalEdge2Ids = originalEdgesPair.second() != null ? originalEdgesPair.second().getIdsAsString() : "-";
       LOGGER.info(String.format("%s[vertexA (%s) - vertexB (%s)] conjugate link " +
@@ -358,7 +324,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
     LOGGER.info(String.format(
             "%sLogging conjugate nodes to original link mapping", layerPrefix));
     for(var conjVertex : getNodes()){
-      var originalIds = conjVertex.hasOriginalEdge() ? conjVertex.getOriginalEdge().getIdsAsString() : "-";
+      var originalIds = conjVertex.hasOriginalEdgeSegment() ? conjVertex.getOriginalEdgeSegment().getIdsAsString() : "-";
       LOGGER.info(String.format("%sconjugate node (%s) <--> original link (%s)",
               layerPrefix, conjVertex.getIdsAsString(), originalIds));
     }

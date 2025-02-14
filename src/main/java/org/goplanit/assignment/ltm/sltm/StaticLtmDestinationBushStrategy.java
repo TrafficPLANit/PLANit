@@ -92,7 +92,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
         }
 
         /* initialise bush with this origin shortest path(s) */
-        var originCentroidVertex = findCentroidVertex(origin);
+        var originCentroidVertex = findOriginCentroidVertex(origin);
         var destinationOriginInvertedDag =
                 allToOneResult.createDirectedAcyclicSubGraph(
                         getIdGroupingToken(), originCentroidVertex, destinationVertex);
@@ -123,7 +123,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
 
     OdDemands odDemands = getOdDemands(mode);
     for (var destination : zoning.getOdZones()) {
-      var destinationVertex = findCentroidVertex(destination);
+      var destinationVertex = findDestinationCentroidVertex(destination);
       for (var origin : zoning.getOdZones()) {
         if (destination.idEquals(origin)) {
           continue;
@@ -132,7 +132,8 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
         Double currOdDemand = odDemands.getValue(origin, destination);
         if (currOdDemand != null && currOdDemand > 0) {
           /* register new bush */
-          var bush = new DestinationBush(getIdGroupingToken(), destinationVertex, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
+          var bush = new DestinationBush(
+                  getIdGroupingToken(), destinationVertex, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
           destinationBushes[(int) destination.getOdZoneId()] = bush;
           break;
         }

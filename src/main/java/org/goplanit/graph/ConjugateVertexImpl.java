@@ -3,6 +3,7 @@ package org.goplanit.graph;
 import org.goplanit.utils.graph.ConjugateEdge;
 import org.goplanit.utils.graph.ConjugateVertex;
 import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.locationtech.jts.geom.Point;
 
@@ -22,18 +23,18 @@ public class ConjugateVertexImpl extends VertexImpl<ConjugateEdge> implements Co
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateVertexImpl.class.getCanonicalName());
 
-  /** original edge this conjugate represents */
-  protected final Edge originalEdge;
+  /** original this conjugate represents */
+  protected final EdgeSegment original;
 
   /**
    * Constructor
    * 
    * @param groupId, contiguous id generation within this group for instances of this class
-   * @param originalEdge representing the conjugate vertex
+   * @param original original now represented by the conjugate vertex
    */
-  protected ConjugateVertexImpl(final IdGroupingToken groupId, final Edge originalEdge) {
+  protected ConjugateVertexImpl(final IdGroupingToken groupId, final EdgeSegment original) {
     super(groupId, CONJUGATE_VERTEX_ID_CLASS);
-    this.originalEdge = originalEdge;
+    this.original = original;
   }
 
   /**
@@ -44,7 +45,7 @@ public class ConjugateVertexImpl extends VertexImpl<ConjugateEdge> implements Co
    */
   protected ConjugateVertexImpl(ConjugateVertexImpl conjugateVertexImpl, boolean deepCopy) {
     super(conjugateVertexImpl, deepCopy);
-    this.originalEdge = conjugateVertexImpl.originalEdge; // not owned
+    this.original = conjugateVertexImpl.original; // not owned
   }
 
   // Public
@@ -90,8 +91,8 @@ public class ConjugateVertexImpl extends VertexImpl<ConjugateEdge> implements Co
    * {@inheritDoc}
    */
   @Override
-  public Edge getOriginalEdge() {
-    return this.originalEdge;
+  public EdgeSegment getOriginalEdgeSegment() {
+    return this.original;
   }
 
 }

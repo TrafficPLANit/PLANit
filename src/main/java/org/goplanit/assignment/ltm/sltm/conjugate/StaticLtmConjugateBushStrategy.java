@@ -67,12 +67,17 @@ public class StaticLtmConjugateBushStrategy
 
   /**
    * Given non conjugate costs for link segments, expand to concjugate segments (turns)
+   * TODO: when everything is conjugate, avoid calling this multiple times as we do now as it is costly
+   *   at that point process flow can just use conjugate costs rather than non-conjugate costs.
    *
+   * @param theMode to use
    * @param nonConjugateLinkSegmentCosts original costs
    * @return conjugate projected costs
    */
-  private double[] expandNonConjugateLinkSegmentCostToConjugateSegmentCost(double[] nonConjugateLinkSegmentCosts){
-    final double[] conjugateSegmentCosts = new double[conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers()];
+  private double[] expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
+          Mode theMode, double[] nonConjugateLinkSegmentCosts){
+    final double[] conjugateSegmentCosts =
+            new double[conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers()];
 
     // Function to expand from original entry segment costs to conjugate link segment costs
     Consumer<ConjugateEdgeSegment> adoptOriginalEdgeSegmentCostFunc = cs -> {
@@ -90,6 +95,13 @@ public class StaticLtmConjugateBushStrategy
     // and apply to virtual layer...
     var conjugateVirtualLayer = conjugateTransportModelNetwork.getVirtualNetwork().getLayer();
     conjugateVirtualLayer.getConnectoidSegments().forEach(adoptOriginalEdgeSegmentCostFunc);
+
+    // Now account for zero flow discontinuity by rerunning all nodes in turn based mode to obtain
+    // turn level acceptance factors which we can then use to update the turn costs for zero flow
+    // turns such that they become (realistically) unattractive as options for when finding new PASs
+    // todo: costly, so ideally only do once per iteration, but we now do it on the fly
+    updateZeroFlowDiscontinuityCongestedTurnCosts(theMode, conjugateSegmentCosts);
+
     return conjugateSegmentCosts;
   }
 
@@ -141,12 +153,12 @@ public class StaticLtmConjugateBushStrategy
    * @return create shortest bush algorithm
    */
   @Override
-  protected ShortestBushGeneralised createNetworkShortestBushAlgo(double[] nonConjugateLinkSegmentCosts) {
+  protected ShortestBushGeneralised createNetworkShortestBushAlgo(Mode theMode, double[] nonConjugateLinkSegmentCosts) {
     //todo: once base implementation works, replace nonConjugateLinkSegment costs with turn based costs throughout
     // implementation. For now project non conjugate link segment costs to conjugate segments by using the entry segment
     // as the point of reference
     double[] conjugateSegmentCosts =
-            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(nonConjugateLinkSegmentCosts);
+            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, nonConjugateLinkSegmentCosts);
     final int numberOfVertices = this.conjugateTransportModelNetwork.getNumberOfVerticesAllLayers();
     return new ShortestBushGeneralised(conjugateSegmentCosts, numberOfVertices);
   }
@@ -167,13 +179,12 @@ public class StaticLtmConjugateBushStrategy
   protected void updatePasCosts(Mode theMode, double[] originalNetworkLinkSegmentCosts) {
     // PASs on conjugate level, so expand link segment to conjugate segment costs as if first
     var conjSegmentCosts =
-        expandNonConjugateLinkSegmentCostToConjugateSegmentCost(originalNetworkLinkSegmentCosts);
-    // Now account for zero flow discontinuity by rerunning all nodes in turn based mode to obtain
-    // turn level acceptance factors which we can then use to update the turn costs for zero flow
-    // turns such that they become (realistically) unattractive as options for when finding new PASs
-    updateZeroFlowDiscontinuityCongestedTurnCosts(theMode, conjSegmentCosts);
+        expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, originalNetworkLinkSegmentCosts);
+
+    // execute cost update based on conjugate costs
     pasManager.updateActivePassCosts(conjSegmentCosts);
     pasManager.updateInactivePassCosts(conjSegmentCosts);
+
   }
 
   /**
@@ -188,6 +199,10 @@ public class StaticLtmConjugateBushStrategy
    *                         least restricting cost
    */
   private void updateZeroFlowDiscontinuityCongestedTurnCosts(final Mode theMode, double[] conjSegmentCosts) {
+    if(getLoading().getSplittingRateData() == null){
+      return; // avoid null pointer at initialisation
+    }
+
     //1. identify congested nodes
     var trackedNodes = getLoading().getSplittingRateData().getTrackedNodes();
 
@@ -204,6 +219,9 @@ public class StaticLtmConjugateBushStrategy
     // Prep Lambda Function that will ultimately perform the cost update after the node model calculation
     TriConsumer<EdgeSegment, EdgeSegment, Double> discontinuityTurnCostReplacementConsumer = (entry, exit, alpha) ->
       {
+        if(entry.getOppositeDirectionSegment() == exit){
+          return;
+        }
         var nlAppliedFlowAcceptanceFactor = flowAcceptanceFactors[(int)entry.getId()];
         if(Precision.greaterEqual(alpha, nlAppliedFlowAcceptanceFactor, Precision.EPSILON_9)){
           return;
@@ -225,7 +243,7 @@ public class StaticLtmConjugateBushStrategy
 
         //3. overwrite existing costs for turns where discontinuity was found
         var conjugateSegment = turn2ConjugateSegmentMapping.get(entry, exit);
-        assert (conjSegmentCosts[(int)conjugateSegment.getId()] < disContinuitySegmentCost);
+        assert (conjSegmentCosts[(int)conjugateSegment.getId()] <= disContinuitySegmentCost);
         conjSegmentCosts[(int)conjugateSegment.getId()] = disContinuitySegmentCost;
         numDiscontinuitiesUpdated.increment();
       };
@@ -250,7 +268,7 @@ public class StaticLtmConjugateBushStrategy
           node, turnBasedFlowAcceptanceFactors, discontinuityTurnCostReplacementConsumer);
     }
 
-    if(numDiscontinuitiesUpdated.intValue()>0) {
+    if(getSettings().isDetailedLogging() && numDiscontinuitiesUpdated.intValue()>0) {
       LOGGER.info(String.format("Updated costs for %d zero-flow turns with a discontinuous cost function",
           numDiscontinuitiesUpdated.intValue()));
     }
@@ -421,7 +439,7 @@ public class StaticLtmConjugateBushStrategy
     /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance
      * factor information */
     getLoading().activateNodeTrackingFor(pas);
-    if(getSettings().isDetailedLogging()) {
+    if(getSettings().isDetailedLogging() || isDestinationTrackedForLogging(bush)) {
       LOGGER.info(String.format("Created new PAS: %s", pas));
     }
     return pas;
@@ -452,7 +470,7 @@ public class StaticLtmConjugateBushStrategy
         if (currOdDemand != null && currOdDemand > 0) {
 
           /* centroid vertex to which demand will be mapped */
-          var destinationCentroidVertex = findCentroidVertex(destination);
+          var destinationCentroidVertex = findDestinationCentroidVertex(destination);
           if(destinationCentroidVertex == null){
             LOGGER.severe(String.format("Destination zone (%s) without centroid vertex to connect to network, " +
                 "this shouldn't happen", destination.getIdsAsString()));
@@ -508,7 +526,7 @@ public class StaticLtmConjugateBushStrategy
         }
 
         /* initialise conjugate bush with this origin shortest path(s) */
-        var originConjugateReferenceVertex = centroid2ConjugateNodeMapping.get(findCentroidVertex(origin));
+        var originConjugateReferenceVertex = centroid2ConjugateNodeMapping.get(findOriginCentroidVertex(origin));
         var destinationOriginInvertedDag =
                 allToOneResult.createDirectedAcyclicSubGraph(
                         getIdGroupingToken(), originConjugateReferenceVertex, destinationConjugateReferenceVertex);
@@ -520,8 +538,10 @@ public class StaticLtmConjugateBushStrategy
         bush.addOriginDemandPcuH(originConjugateReferenceVertex, currOdDemand);
         initialiseConjugateBushForOrigin(
                 bush, originConjugateReferenceVertex, currOdDemand, destinationOriginInvertedDag);
-        LOGGER.info(bush.toString());
       }
+    }
+    if(getSettings().isDetailedLogging()) {
+      LOGGER.info(bush.toString());
     }
   }
 
@@ -593,7 +613,7 @@ public class StaticLtmConjugateBushStrategy
     // method overridden for conjugate implementation resulting in conjugate compatible shortest path search using
     // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...
     final var conjLinkSegmentCosts =
-            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(nonConjugateLinkSegmentCosts);
+            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(mode, nonConjugateLinkSegmentCosts);
     final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
     for (var conjBush : getBushes()) {
       if (conjBush == null) {
@@ -660,12 +680,15 @@ public class StaticLtmConjugateBushStrategy
           continue;
         }
 
-        /* when bush does not contain the opposite direction which would cause a cycle it is worth checking */
+        /* when bush does not contain the opposite direction which would cause a cycle it is worth checking,
+        *  we also do not allow u-turns (on original network), so disallow that as well */
+        boolean disallowUTurns = true;
         boolean viableSearch =
+                (reducedCostSegment.isOriginalEdgeSegmentsUTurn() && disallowUTurns) ||
                 reducedCostSegment.getOppositeDirectionSegment()==null ||
                         !conjBush.contains(reducedCostSegment.getOppositeDirectionSegment());
         if (!viableSearch) {
-          // preferred alternative cannot be added due to bush triggering a cycle if we would
+          // preferred alternative cannot be added due to bush triggering a cycle, or u-turn inclusion if we would
           continue;
         }
 

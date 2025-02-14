@@ -305,11 +305,11 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
       // eventually this should be delegated and done via an overridden method but for now this should work
       Consumer<? super DirectedVertex> lambda = (v) -> {
         DirectedVertex candidateVertex = v;
-        if(v instanceof ConjugateDirectedVertex && ((ConjugateDirectedVertex)v).hasOriginalEdge()){
+        if(v instanceof ConjugateDirectedVertex && ((ConjugateDirectedVertex)v).hasOriginalEdgeSegment()){
           if(newPas.getMergeVertex() == v){
             return; // last conjugate vertex we ignore, because downstream original edge is beyond point of interest for tracking
           }
-          candidateVertex = ((ConjugateDirectedVertex)v).getOriginalEdge().getVertexB();
+          candidateVertex = ((ConjugateDirectedVertex)v).getOriginalEdgeSegment().getDownstreamVertex();
         }
 
         if(!pointQueueBasicSplittingRates.isTracked(candidateVertex))

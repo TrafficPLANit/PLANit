@@ -71,8 +71,11 @@ public abstract class StaticLtmAssignmentStrategy {
   /** the user configured traffic assignment components used */
   private final TrafficAssignmentComponentAccessee taComponents;
 
-  /** have a mapping between zone and connectoid to the layer by means of its centroid vertex */
-  private final Map<Zone, CentroidVertex> zone2VertexMapping;
+  /** have a mapping between zone and connectoid to the layer by means of its origin centroid vertex */
+  private final Map<Zone, CentroidVertex> zone2OriginVertexMapping;
+
+  /** have a mapping between zone and connectoid to the layer by means of its destination centroid vertex */
+  private final Map<Zone, CentroidVertex> zone2DestinationVertexMapping;
 
   /** have a mapping between two link segments (keys) - from and to - towards a movement used for network loading*/
   private final MultiKeyMap<Object, Movement> nlSegmentPair2MovementMap;
@@ -201,33 +204,46 @@ public abstract class StaticLtmAssignmentStrategy {
         !getFundamentalDiagramComponent().hasAnyNonLinearFreeFlowBranchFundamentalDiagrams();
   }
 
-  /** map zone to centroid vertex
+  /** map zone to origin centroid vertex
    *
    * @param zone to map
    * @return vertex found
    */
-  protected CentroidVertex findCentroidVertex(OdZone zone){
-    return zone2VertexMapping.get(zone);
+  protected CentroidVertex findOriginCentroidVertex(OdZone zone){
+    return zone2OriginVertexMapping.get(zone);
+  }
+
+  /** map zone to destination centroid vertex
+   *
+   * @param zone to map
+   * @return vertex found
+   */
+  protected CentroidVertex findDestinationCentroidVertex(OdZone zone){
+    return zone2DestinationVertexMapping.get(zone);
   }
 
   /**
-   * Verify convergence progress and if insufficient attempt to activate one or more extensions to overcome convergence difficulties
+   * Verify convergence progress and if insufficient attempt to activate one or more extensions to overcome
+   * convergence difficulties
    *
    * @param mode to use
    * @param networkLoading               to verify progress on
    * @param networkLoadingIterationIndex we are at
    */
-  protected void verifyNetworkLoadingConvergenceProgress(Mode mode, StaticLtmNetworkLoading networkLoading, int networkLoadingIterationIndex) {
+  protected void verifyNetworkLoadingConvergenceProgress(
+          Mode mode, StaticLtmNetworkLoading networkLoading, int networkLoadingIterationIndex) {
     /*
-     * whenever the current form of the solution method does not suffice, we move to the next extension which attempts to be more cautious and has a higher likelihood of finding a
-     * solution at the cost of slower convergence, so whenever we are not yet stuck, we try to avoid activating these extensions.
+     * whenever the current form of the solution method does not suffice, we move to the next extension which attempts
+     * to be more cautious and has a higher likelihood of finding a solution at the cost of slower convergence,
+     * so whenever we are not yet stuck, we try to avoid activating these extensions.
      */
     if (!networkLoading.isConverging()) {
       // dependent on whether we are modelling physical queues or not and where we started with settings
       boolean changedScheme = networkLoading.activateNextExtension(mode,true);
       if (!changedScheme) {
         LOGGER.warning(
-            String.format("%sDetected network loading is not converging as expected (internal loading iteration %d) - unable to activate further extensions, consider aborting",
+            String.format("%sDetected network loading is not converging as expected (internal loading iteration %d) " +
+                            "- unable to activate further extensions, consider aborting",
                 LoggingUtils.runIdPrefix(getAssignmentId()), networkLoadingIterationIndex));
       }
     }
@@ -285,6 +301,7 @@ public abstract class StaticLtmAssignmentStrategy {
     final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
     NetworkLoadingSplittingRateData splittingRateData = getLoading().getSplittingRateData();
+    final double[] flowAcceptanceFactors = getLoading().getCurrentFlowAcceptanceFactors();
     if (updateOnlyPotentiallyBlockingNodeCosts) {
 
       MacroscopicNetworkLayer networkLayer = getInfrastructureNetwork().getLayerByMode(theMode);
@@ -309,7 +326,13 @@ public abstract class StaticLtmAssignmentStrategy {
           if(layerSegments.containsKey(es.getId())){
             costsToUpdate[(int) es.getId()] = physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) es);
           }else if(virtualLayerSegments.containsKey(es.getId())){
-            costsToUpdate[(int) es.getId()] = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es);
+            double cost = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es);
+            if(flowAcceptanceFactors[(int) es.getId()] < 1){
+              LOGGER.warning(String.format("Queue build up on virtual link segment (%s) connected to node (%s), " +
+                      "applying virtual cost of %.4f instead, consider changing network geometry",
+                      es.getIdsAsString(), node.getIdsAsString(), cost));
+            }
+            costsToUpdate[(int) es.getId()] = cost;
           }
         });
       });
@@ -423,8 +446,14 @@ public abstract class StaticLtmAssignmentStrategy {
 
     /* construct mapping from OdZone to centroidVertex which is needed for path finding among other things,
      * where we get an OD but need to find a path from centroid vertex to centroid vertex */
-    this.zone2VertexMapping = (Map<Zone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
-        transportModelNetwork.getVirtualNetwork().getLayer(), true /*include OdZones */, false /* exclude transfer zones */);
+    boolean considerOdZones = true;
+    boolean considerTransferZones = false;
+    boolean originCentroidVertices = true;
+    this.zone2OriginVertexMapping = (Map<Zone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+        transportModelNetwork.getVirtualNetwork().getLayer(),originCentroidVertices, considerOdZones, considerTransferZones);
+    originCentroidVertices = false;
+    this.zone2DestinationVertexMapping = (Map<Zone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+            transportModelNetwork.getVirtualNetwork().getLayer(),originCentroidVertices, considerOdZones, considerTransferZones);
 
     /* construct mapping from entry/exit segment to movement which is currently needed for quick conversion of turn
      * flows to splitting rates during loading at the expense of more memory usage.
