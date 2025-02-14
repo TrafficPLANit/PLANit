@@ -124,7 +124,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
 
     AcyclicVertexData vertexData = getVertexData(vertex);
     if(vertexData == null){
-      throw new PlanItRunTimeException("No vertex data available for vertex %s, this shouldn't happen", vertex.toString());
+      throw new PlanItRunTimeException(
+              "No vertex data available for vertex %s, this shouldn't happen", vertex.toString());
     }
     preVisit(vertexData, counter);
 
@@ -142,8 +143,9 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
           isAcyclic = traverseRecursively(nextVertex, visited, counter, topologicalOrder);
         } else if (nextVertexData.postVisitIndex == 0) {
           /*
-           * not valid, when already visited before, then it must have been fully explored, if not it means that this vertex being expanded originates from this (not fully
-           * exhausted) downstream vertex and it ends up at the starting point again (current downstream vertex) -> cycle, not a DAG
+           * not valid, when already visited before, then it must have been fully explored, if not it means that this
+           * vertex being expanded originates from this (not fully exhausted) downstream vertex and it ends up at the
+           *  starting point again (current downstream vertex) -> cycle, not a DAG
            */
           isAcyclic = false;
           LOGGER.warning(String.format("Cycle detected in supposed acyclic graph at vertex %s, terminating", nextVertex.getXmlId()));
