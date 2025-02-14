@@ -855,22 +855,11 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
         double bushS2Portion = guaranteedBushEntrySegmentS2SendingFlow / guaranteedEntrySegmentS2SendingFlow;
         double entrySegmentBushPasflowShift = smoothedProportionalPasflowShift * bushS2Portion;
 
-        if(guaranteedBushEntrySegmentS2SendingFlow < EPSILON_3){
-          // make sure we rid the bush s2 PAS from all remaining flow by setting a high value
-          entrySegmentBushPasflowShift = guaranteedBushEntrySegmentS2SendingFlow;
-          if(isDestinationTrackedForLogging(destinationBush) || logAll) {
-            LOGGER.info(String.format(
-                    "     S2 flow bush near zero -> FLOW SHIFT UPLIFT -> Attempted flow shift=%.10f) - entry segment (%s) - alpha: %.2f - bush (%s)",
-                    entrySegmentBushPasflowShift, entrySegment.getIdsAsString(),
-                    networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()], destinationBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-          }
-        }else{
-          if(isDestinationTrackedForLogging(destinationBush) || logAll) {
-            LOGGER.info(String.format(
-                    "     Shift: %.9f (available flow %.9f) on entry (%s) - bush (%s) - entry alpha: %.2f -",
-                    entrySegmentBushPasflowShift, guaranteedBushEntrySegmentS2SendingFlow, entrySegment.getIdsAsString(),
-                    destinationBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()]));
-          }
+        if(isDestinationTrackedForLogging(destinationBush) || logAll) {
+          LOGGER.info(String.format(
+                  "     Shift: %.9f (available flow %.9f) on entry (%s) - bush (%s) - entry alpha: %.2f -",
+                  entrySegmentBushPasflowShift, guaranteedBushEntrySegmentS2SendingFlow, entrySegment.getIdsAsString(),
+                  destinationBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()]));
         }
 
         /* perform the flow shift for the current bush and its attributed portion */
