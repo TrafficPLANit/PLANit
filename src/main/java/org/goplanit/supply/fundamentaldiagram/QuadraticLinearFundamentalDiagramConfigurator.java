@@ -12,7 +12,12 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
  * In absence of a capacity, the capacity is computed by the point of intersection of the free flow branch and
  * congested branch, which for Newell is defined by only the free flow speed, maximum density and intersection points
  * with the x-axis (density=0), by explicitly setting the capacity or moving the maximum density point the FD will adjust its
- * backward wave speed to accommodate any change comapred to the default computed capacity/maximum density.
+ * backward wave speed to accommodate any change compared to the default computed capacity/maximum density.
+ * </p>
+ * <p>
+ *   For QL there is an option to force concavity (Default activated) even if the critical speed is not defined (in
+ *   which case a percentage of free speed is applied (also configurable)). When critical speed is defined this speed is
+ *   assuming it is smaller than the free speed.
  * </p>
  * 
  * @author markr
@@ -26,6 +31,10 @@ public class QuadraticLinearFundamentalDiagramConfigurator extends FundamentalDi
   private static final String SET_CAPACITY_LINK_SEGMENT_TYPE = "setCapacityLinkSegmentTypePcuHourLane";
 
   private static final String SET_MAXIMUM_DENSITY_LINK_SEGMENT_TYPE = "setMaximumDensityLinkSegmentTypePcuKmLane";
+
+  private static final String SET_FORCE_CONCAVE_FREE_FLOW_BRANCH = "setForceConcaveFreeFlowBranch";
+
+  private static final String SET_CRITICAL_SPEED_FACTOR = "setCriticalSpeedFactor";
 
   /**
    * Constructor
@@ -80,6 +89,24 @@ public class QuadraticLinearFundamentalDiagramConfigurator extends FundamentalDi
   public void setMaximumDensityLinkSegmentTypePcuKmLane(
           final MacroscopicLinkSegmentType linkSegmentType, final double maxDensityPcuKmLane) {
     registerDelayedMethodCall(SET_MAXIMUM_DENSITY_LINK_SEGMENT_TYPE, linkSegmentType, maxDensityPcuKmLane);
+  }
+
+  /** Set factor to apply to the free speed to obtain critical speed in case forceConcaveFreeFlowBranch is active,
+   * and the critical speed is not explicitly set to a lower value than the free speed
+   *
+   * @param criticalSpeedFactor to use
+   */
+  public void setCriticalSpeedFactor(double criticalSpeedFactor) {
+    registerDelayedMethodCall(SET_CRITICAL_SPEED_FACTOR, criticalSpeedFactor);
+  }
+
+  /** Set flag to indicate of we force a concave free flow in case critical speed is defined or inferred to be
+   * greater or equal than the free speed
+   *
+   * @param forceConcaveFreeFlowBranch flag to set
+   */
+  public void setForceConcaveFreeFlowBranch(boolean forceConcaveFreeFlowBranch) {
+    registerDelayedMethodCall(SET_FORCE_CONCAVE_FREE_FLOW_BRANCH, forceConcaveFreeFlowBranch);
   }
 
 }

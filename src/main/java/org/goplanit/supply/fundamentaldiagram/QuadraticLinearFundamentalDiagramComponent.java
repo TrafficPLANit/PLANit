@@ -22,6 +22,14 @@ public class QuadraticLinearFundamentalDiagramComponent extends FundamentalDiagr
   /** generated UID */
   private static final long serialVersionUID = -3166623064510413929L;
 
+  /** flag to indicate of we force a concave free flow in case critical speed is defined or inferred to be
+   * greater or equal than the free speed */
+  private boolean forceConcaveFreeFlowBranch = DEFAULT_FORCE_CONCAVE_FREE_FLOW_BRANCH;
+
+  /** factor to apply to the free speed to obtain critical speed in case {@link #forceConcaveFreeFlowBranch} is set to
+   * and the critical speed is not explicitly set to a lower value than the free speed */
+  private double criticalSpeedFactor = DEFAULT_CRITICAL_SPEED_FACTOR;
+
   /**
    * Logger to use
    */
@@ -35,10 +43,18 @@ public class QuadraticLinearFundamentalDiagramComponent extends FundamentalDiagr
   protected FundamentalDiagram createFundamentalDiagramByLinkSegmentType(
           MacroscopicLinkSegmentType lsType, Mode mode) {
 
+    if(!lsType.isModeAllowed(mode)){
+      LOGGER.warning("Unable to create fundamental diagram for mode (%s) on link type since the mode is not allowed");
+      return null;
+    }
     // free speed:      use explicitly set or mode speed limit
     double modeFreeSpeedForType = lsType.getMaximumSpeedKmH(mode);
+
     // critical speed:  use explicitly set or minimum of mode speed limit and default critical speed
     var modeCriticalSpeed = lsType.getCriticalSpeedKmH(mode);
+    if(isForceConcaveFreeFlowBranch() && Precision.greaterEqual(modeCriticalSpeed, modeFreeSpeedForType)){
+      modeCriticalSpeed = modeCriticalSpeed * getCriticalSpeedFactor();
+    }
 
     double maxDensity = lsType.getExplicitMaximumDensityPerLaneOrDefault();
     double capacity = lsType.isExplicitCapacityPerLaneSet() ? lsType.getExplicitCapacityPerLane() :
@@ -59,6 +75,12 @@ public class QuadraticLinearFundamentalDiagramComponent extends FundamentalDiagr
               capacity,
               maxDensity);
   }
+
+  /** default for forcing a concave free flow branch flag */
+  public static final boolean DEFAULT_FORCE_CONCAVE_FREE_FLOW_BRANCH = true;
+
+  /** default for critical speed factor setting */
+  public static final double DEFAULT_CRITICAL_SPEED_FACTOR = 0.8;
 
   /**
    * Constructor
@@ -137,4 +159,31 @@ public class QuadraticLinearFundamentalDiagramComponent extends FundamentalDiagr
     return null;
   }
 
+  // getters / setters
+
+  /** flag to indicate of we force a concave free flow in case critical speed is defined or inferred to be
+   * greater or equal than the free speed
+   *
+   * @return flag
+   */
+  public boolean isForceConcaveFreeFlowBranch() {
+    return forceConcaveFreeFlowBranch;
+  }
+
+  public void setForceConcaveFreeFlowBranch(boolean forceConcaveFreeFlowBranch) {
+    this.forceConcaveFreeFlowBranch = forceConcaveFreeFlowBranch;
+  }
+
+  /** factor to apply to the free speed to obtain critical speed in case {@link #forceConcaveFreeFlowBranch} is set to
+   * and the critical speed is not explicitly set to a lower value than the free speed
+   *
+   * @return flag
+   */
+  public double getCriticalSpeedFactor() {
+    return criticalSpeedFactor;
+  }
+
+  public void setCriticalSpeedFactor(double criticalSpeedFactor) {
+    this.criticalSpeedFactor = criticalSpeedFactor;
+  }
 }

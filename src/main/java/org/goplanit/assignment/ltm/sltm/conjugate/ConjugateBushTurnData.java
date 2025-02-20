@@ -117,9 +117,6 @@ public class ConjugateBushTurnData{
    * @return the new labelled turn sending flow after adding the given flow
    */
   public double addTurnSendingFlow(final ConjugateEdgeSegment turnSegment, double flowPcuH) {
-    if(turnSegment.getOriginalAdjacentEdgeSegments().<EdgeSegment>anyMatch( es -> es.getParent().getXmlId().contains("c47") )){
-      int bla = 4;
-    }
     Double newSendingFlow = flowPcuH + getTurnSendingFlowPcuH(turnSegment);
     boolean hasRemainingFlow = setTurnSendingFlow(turnSegment, newSendingFlow, flowPcuH>0);
     newSendingFlow = hasRemainingFlow ? newSendingFlow : 0.0;

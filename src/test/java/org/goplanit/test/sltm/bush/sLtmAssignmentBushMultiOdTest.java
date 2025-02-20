@@ -365,7 +365,7 @@ public class sLtmAssignmentBushMultiOdTest {
       sLTMBuilder.getConfigurator().activateDetailedLogging(false);
 
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(0.2);
+      fixedStepSmoothing.setStepSize(0.8);
 
       //var smoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
 
@@ -381,8 +381,8 @@ public class sLtmAssignmentBushMultiOdTest {
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.setActivateDetailedLogging(false);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
+      sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
       testOutputs(sLTM);

@@ -29,13 +29,17 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
    * @return fundamental diagram instance
    * @throws PlanItException thrown if error
    */
-  protected FundamentalDiagramComponent createFundamentalDiagramComponentInstance(final MacroscopicNetworkLayer macroscopicNetworkLayer) throws PlanItException {
-    var fundamentalDiagramComponentFactory = new PlanitComponentFactory<FundamentalDiagramComponent>(FundamentalDiagramComponent.class);
-    fundamentalDiagramComponentFactory.addListener(getInputBuilderListener());
-    return fundamentalDiagramComponentFactory.create(
+  protected FundamentalDiagramComponent createFundamentalDiagramComponentInstance(
+          final MacroscopicNetworkLayer macroscopicNetworkLayer) throws PlanItException {
+    var fdComponentFactory =
+            new PlanitComponentFactory<FundamentalDiagramComponent>(FundamentalDiagramComponent.class);
+    fdComponentFactory.addListener(getInputBuilderListener());
+    FundamentalDiagramComponent fdComponent = fdComponentFactory.createWithoutDispatch(
             getConfigurator().getFundamentalDiagram().getClassTypeToConfigure().getCanonicalName(),
-            new Object[] { getGroupIdToken() },
-            new Object[] { macroscopicNetworkLayer });
+            new Object[] { getGroupIdToken() });
+    getConfigurator().getFundamentalDiagram().configure(fdComponent);
+    fdComponentFactory.dispatchComponent(fdComponent, macroscopicNetworkLayer);
+    return fdComponent;
   }
 
   /**
@@ -45,10 +49,11 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
    * @return path choice instance
    * @throws PlanItException thrown if error
    */
-  protected PathChoice createPathChoiceInstance(LtmConfigurator<? extends LtmAssignment> configurator) throws PlanItException {
+  protected PathChoice createPathChoiceInstance(
+          LtmConfigurator<? extends LtmAssignment> configurator) throws PlanItException {
     var pathChoiceFactory = new PlanitComponentFactory<PathChoice>(PathChoice.class);
     pathChoiceFactory.addListener(getInputBuilderListener());
-    return pathChoiceFactory.create(configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
+    return pathChoiceFactory.createAndDispatch(configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 
   /**
@@ -62,11 +67,7 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
 
     /* Fundamental diagram sub component */
     if (getConfigurator().getFundamentalDiagram() != null) {
-      // todo: refactor configuration of FD to
-      //  postpone initialisation until after configuration (.configure) is called because now nothing can be configured
-      //  without redoing the creation of FDs, ideally this is combined
       var fundamentalDiagramComponent = createFundamentalDiagramComponentInstance(ltmAssignmentInstance.getUsedNetworkLayer());
-      getConfigurator().getFundamentalDiagram().configure(fundamentalDiagramComponent);
       ltmAssignmentInstance.setFundamentalDiagram(fundamentalDiagramComponent);
     }
 

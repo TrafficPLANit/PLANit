@@ -40,7 +40,7 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
   protected ChoiceModel createChoiceModelInstance(ChoiceModelConfigurator<?> choiceConfigurator) {
     PlanitComponentFactory<ChoiceModel> choiceModelFactory = new PlanitComponentFactory<>(ChoiceModel.class);
     choiceModelFactory.addListener(getInputBuilderListener());
-    return choiceModelFactory.create(
+    return choiceModelFactory.createAndDispatch(
             choiceConfigurator.getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 
@@ -53,7 +53,7 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
   protected PathFilter createPathFilterInstance(PathFilterConfigurator pathFilterConfigurator) {
     PlanitComponentFactory<PathFilter> pathFilterModelFactory = new PlanitComponentFactory<>(PathFilter.class);
     pathFilterModelFactory.addListener(getInputBuilderListener());
-    return pathFilterModelFactory.create(
+    return pathFilterModelFactory.createAndDispatch(
             pathFilterConfigurator.getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 

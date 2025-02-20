@@ -16,7 +16,8 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
  * 
  * @author markr
  */
-public class NewellFundamentalDiagramConfigurator extends FundamentalDiagramConfigurator<NewellFundamentalDiagramComponent> {
+public class NewellFundamentalDiagramConfigurator extends
+        FundamentalDiagramConfigurator<NewellFundamentalDiagramComponent> {
 
   /**
    * Constructor

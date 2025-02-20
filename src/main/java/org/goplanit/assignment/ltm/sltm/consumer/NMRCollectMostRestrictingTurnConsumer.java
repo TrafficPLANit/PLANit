@@ -7,7 +7,8 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.ojalgo.array.Array1D;
 
 /**
- * A functional class that consumes the result of a node model update in order to obtain the most restrictive out link for the given in link provided
+ * A functional class that consumes the result of a node model update in order to obtain the most restrictive out link
+ * for the given in link provided
  * 
  * @author markr
  *

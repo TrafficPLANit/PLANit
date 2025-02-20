@@ -640,7 +640,8 @@ public abstract class StaticLtmNetworkLoading {
    * conduct a node model update sLTM style with
    * 
    * @param node                    to compute
-   * @param consumer                to apply to the result of each node model update of the considered nodes, may be null then ignored
+   * @param consumer                to apply to the result of each node model update of the considered nodes, may be
+   *                                null then ignored
    * @param staticLtmNetworkLoading sLTMloading containing the data to populate node with (using current sending flows)
    */
   public static void performNodeModelUpdate(

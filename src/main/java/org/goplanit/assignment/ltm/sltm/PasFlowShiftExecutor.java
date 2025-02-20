@@ -156,9 +156,9 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param networkLoading to use
    * @return identified most restricting out edge segment
    */
-  private static EdgeSegment
-  identifyMostRestrictingOutEdgeSegment(
+  protected static EdgeSegment identifyMostRestrictingOutEdgeSegment(
           EdgeSegment entrySegment, StaticLtmLoadingBushBase<?> networkLoading) {
+
     // collect most restricting turn for entry segment
     var consumer = new NMRCollectMostRestrictingTurnConsumer(entrySegment);
     StaticLtmNetworkLoading.performNodeModelUpdate(entrySegment.getDownstreamVertex(), consumer, networkLoading);

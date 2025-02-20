@@ -156,15 +156,20 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @param constructorParameters    parameters to pass to the constructor
    * @return the created component object
    */
-  private <T extends PlanitComponent<?>> T createTrafficComponent(final String planitComponentClassName, final Object[] constructorParameters) {
+  private <T extends PlanitComponent<?>> T createTrafficComponent(
+          final String planitComponentClassName, final Object[] constructorParameters) {
+
     final var eligibleComponentTypes = registeredPlanitComponents.get(componentSuperTypeCanonicalName);
-    PlanItRunTimeException.throwIf(eligibleComponentTypes == null || !eligibleComponentTypes.contains(planitComponentClassName),
+    PlanItRunTimeException.throwIf(
+            eligibleComponentTypes == null || !eligibleComponentTypes.contains(planitComponentClassName),
         "Provided PLANit Component class %s is not eligible for construction", planitComponentClassName != null ? planitComponentClassName : "");
 
     T typedInstance = null;
     try {
       Object instance = ReflectionUtils.createInstance(planitComponentClassName, constructorParameters);
-      PlanItRunTimeException.throwIf(!(instance instanceof PlanitComponent<?>), "provided factory class is not eligible for construction since it is not derived from PLANitComponent<?>");
+      PlanItRunTimeException.throwIf(
+              !(instance instanceof PlanitComponent<?>),
+              "provided factory class is not eligible for construction since it is not derived from PLANitComponent<?>");
       typedInstance = (T) instance;
     }catch(Exception e){
       throw new PlanItRunTimeException(e);
@@ -324,9 +329,9 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
       for (var listener : listeners) {
         factoryInstance.addListener(listener);
       }
-      return factoryInstance.create(concreteClassCanonicalName, constructorParameters, eventParameters);
+      return factoryInstance.createAndDispatch(concreteClassCanonicalName, constructorParameters, eventParameters);
     }
-    return factoryInstance.create(concreteClassCanonicalName, constructorParameters);
+    return factoryInstance.createAndDispatch(concreteClassCanonicalName, constructorParameters);
   }
 
   /**
@@ -354,7 +359,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @param constructorParameters to use
    * @return created component
    */
-  public static <C extends PlanitComponent<?>> C create(
+  public static <C extends PlanitComponent<?>> C createAndDispatch(
       Class<C> clazzCategory, String concreteClassCanonicalName, final Object[] constructorParameters) {
     return createWithListeners(clazzCategory, concreteClassCanonicalName, constructorParameters, null, null);
   }
@@ -384,30 +389,61 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @param constructorParameters    parameters to pass to the constructor
    * @return the created TrafficAssignmentComponent
    */
-  public <C extends PlanitComponent<?>> C create(final String planitComponentClassName, final Object[] constructorParameters) {
+  public <C extends PlanitComponent<?>> C createAndDispatch(
+          final String planitComponentClassName, final Object[] constructorParameters) {
     final C newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
     dispatchPopulatePlanitComponentEvent(newTrafficComponent, null);
     return newTrafficComponent;
   }
 
   /**
-   * Create PLANit component
+   * Create PLANit component and dispatch to listeners
    *
    * @param <C> type of component
    * @param planitComponentClassName the derived class name of the PLANit component (without packages)
    * @param constructorParameters    parameters to pass to the constructor
-   * @param eventParameters          object array which contains any additional data that might be required to populate the component
+   * @param eventParameters          object array which contains any additional data that might be required
+   *                                 to populate the component
    * @return the created component
    */
-  public <C extends PlanitComponent<?>> C create(final String planitComponentClassName, final Object[] constructorParameters, final Object... eventParameters) {
+  public <C extends PlanitComponent<?>> C createAndDispatch(
+          final String planitComponentClassName, final Object[] constructorParameters, final Object... eventParameters) {
     final C newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
     dispatchPopulatePlanitComponentEvent(newTrafficComponent, eventParameters);
     return newTrafficComponent;
   }
 
   /**
-   * Allows one to verify if this factory creates derived classes of the provided class super type. Useful in case the generic type parameter is not available at run time for this
-   * factory
+   * Create PLANit component but do not dispatch to listeners (yet). It is expected the caller will do this at a
+   * later stage.
+   *
+   * @param <C> type of component
+   * @param planitComponentClassName the derived class name of the PLANit component (without packages)
+   * @param constructorParameters    parameters to pass to the constructor
+   * @return the created component
+   */
+  public <C extends PlanitComponent<?>> C createWithoutDispatch(
+          final String planitComponentClassName, final Object[] constructorParameters) {
+    final C newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
+    return newTrafficComponent;
+  }
+
+  /**
+   * Create PLANit component but do not dispatch to listeners (yet). It is expected the caller will do this at a
+   * later stage.
+   *
+   * @param <C> type of component
+   * @param component the component to dispatch for being populated
+   * @param eventParameters          object array which contains any additional data that might be required
+   *                                 to populate the component
+   */
+  public <C extends PlanitComponent<?>> void dispatchComponent(final C component, final Object... eventParameters) {
+    dispatchPopulatePlanitComponentEvent(component, eventParameters);
+  }
+
+  /**
+   * Allows one to verify if this factory creates derived classes of the provided class super type. Useful in case
+   * the generic type parameter is not available at run time for this factory
    *
    * @param <U>        type to verify
    * @param superClazz class of type

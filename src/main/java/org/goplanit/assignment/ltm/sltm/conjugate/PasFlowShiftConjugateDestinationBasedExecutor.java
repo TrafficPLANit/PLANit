@@ -266,23 +266,35 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double dTravelTimeDFlow = 0.0;
 
     var pasAlternative = this.pas.getAlternative(isLowCostAlternative);
+    var otherPasAlternative = this.pas.getAlternative(!isLowCostAlternative);
+
     int index = ignoreFirstSegment? 1 : 0;
     while(index < pasAlternative.length){
+      boolean isDiverge = (index == 0);
+      boolean isMerge = (index == (pasAlternative.length-1));
+
       ConjugateEdgeSegment currSegment = pasAlternative[index++];
       if(!currSegment.hasOriginalEntryEdgeSegment()){
         continue;
       }
       EdgeSegment originalEntrySegment = currSegment.getOriginalAdjacentEdgeSegments().first();
+      EdgeSegment originalExitSegment = currSegment.getOriginalAdjacentEdgeSegments().second();
 
-      // check segment on congestion or near-congestion on next segment (using threshold)
-      // todo: known information from earlier in process flow, can be passed in when to stop to save time
+
       boolean unCongested = !isCongested(networkLoading, originalEntrySegment);
-      if(unCongested && index >= pasAlternative.length){
-        // last turn, check all original exit segments using threshold to apply to curr segment state
-        unCongested = !isCongested(
-                networkLoading,
-                originalEntrySegment,
-                UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH).anyMatch((Boolean e) -> e);
+      EdgeSegment mostRestrictingExit = null;
+      if(!unCongested){
+        mostRestrictingExit = identifyMostRestrictingOutEdgeSegment(originalEntrySegment, networkLoading); // todo should be done once and cached
+      }else if(isMerge && isLowCostAlternative){
+        // MERGE (part I)
+        // special case: when processing s1 and S2 is congested and most restricted by exit link at merge, then s1 turn
+        // is expected to also become congested (if not already). So treat it as such to avoid overshooting
+        // todo: to be replaced by analytical version  in due time
+        var otherAltMergeEntry = otherPasAlternative[otherPasAlternative.length -1].getOriginalAdjacentEdgeSegments().first();
+        if(otherAltMergeEntry!=null && isCongested(networkLoading, otherAltMergeEntry)) {
+          unCongested = false; // treat s1 as uncongested as well
+          mostRestrictingExit = identifyMostRestrictingOutEdgeSegment(otherAltMergeEntry, networkLoading); // todo should be done once and cached
+        }
       }
 
       double currDTravelTimeDFlow = 0.0;
@@ -297,9 +309,39 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
                 originalEntrySegment.getIdsAsString()));
       }
 
+      //TODO: below three cases written out, eventually they should be consolidated as they are largely the same
+
+      // DIVERGE (congested entry link)
+      // - case 1: shifting from most-restrictive to not most restrictive --> not most restrictive gets zero
+      //      todo for case 1: if turn is going towards other congested out link that is less restrictive, we should be using that deravative instead of zero
+      // - case 2: shifting from most-restrictive to not most restrictive --> most restrictive gets derivative as is
+      // - case 3: shifting from non-most-restrictive to non-most restrictive --> set derivative to 0
+      boolean thisAltOnMostRestrictingTurn = (mostRestrictingExit == originalExitSegment);
+      if(isDiverge && !unCongested && !thisAltOnMostRestrictingTurn){
+          // case 1 and case 3
+          currDTravelTimeDFlow = 0;
+      } // case 2 no action needed
+
+      // ON PAS (congested entry link)
+      // - case 1: flow not on most-restrictive turn --> set derivative to zero
+      //      todo for case 1: if turn is going towards other congested out link that is less restrictive, we should be using that deravative instead of zero
+      // - case 2: flow on most-restrictive turn --> derivative as is
+      if(!isDiverge && !isMerge && !unCongested && !thisAltOnMostRestrictingTurn){
+        currDTravelTimeDFlow = 0; // case 1
+      } // case 2 no action needed
+
+      // MERGE
+      // - case 1: flow not on most-restrictive turn --> set derivative to zero
+      //      todo for case 1: if turn is going towards other congested out link that is less restrictive, we should be using that deravative instead of zero
+      // - case 2: flow on most-restrictive turn --> derivative as is
+      if(isMerge && !unCongested && !thisAltOnMostRestrictingTurn){
+        currDTravelTimeDFlow = 0; // case 1
+      }
+
+
       dTravelTimeDFlow += currDTravelTimeDFlow;
 
-      if(!unCongested){
+      if(!unCongested && thisAltOnMostRestrictingTurn){
         // no more flow change beyond here due to it being a bottleneck
         break;
       }

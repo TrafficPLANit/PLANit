@@ -172,8 +172,15 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
      */
     if(result== null || result.first() == null) {
       LOGGER.warning(String.format(
-              "Cycle found when finding alternative subpath on conjugate bush merging at conjugate vertex (%s)",
+              "Cycle found when finding alternative subpath on conjugate bush (%s) merging at conjugate vertex (%s)",
+              getRootZone().getIdsAsString(),
               referenceVertex.getIdsAsString()));
+      result = getDag().breadthFirstSearch(
+              referenceVertex,
+              invertBfs,
+              initialInclusionCondition,
+              regularInclusionCondition,
+              terminationCondition);
     }
     return result;
   }
@@ -679,7 +686,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
             double removedTotalOnEntry = conjSegmentRemovedFlows.get(entrySegment);
             double entryAcceptanceFactor =
                     nonConjugateFlowAcceptanceFactors[
-                            (int) exitSegment.getOriginalAdjacentEdgeSegments().first().getId()];
+                            (int) entrySegment.getOriginalAdjacentEdgeSegments().first().getId()];
             // incoming flow removed into this exit as a result of branch shift, track what was removed in total going
             // into current exit segment as continuing. Only used to distinguish between new to be removed flow and already
             // removed flow from upstream
@@ -721,7 +728,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
       // perform continuation/new branch shift on nominated exit segments when eligible
       // track actual flow to redistribute after removal of low flow candidates have been removed
-      double flowtoRedistribute = 0;
+      double newFlowtoRedistribute = 0;
       for (var candidate : conjSegmentToRemove.entrySet()) {
         ConjugateEdgeSegment lowFlowConjSegment = candidate.getKey();
         boolean initiateNewShift = candidate.getValue();
@@ -749,45 +756,41 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
         removeTurn(lowFlowConjSegment);
         removedConjSegments.add(lowFlowConjSegment);
 
-        if(initiateNewShift){ // for logging purposes only
-          // update total flow to redistribute for conjugate vertex after removal of eligible...
-          double conjSegmentRemovedUpstreamFlow =
-                  conjSegmentRemovedFlows.getOrDefault(lowFlowConjSegment, 0.0);
-          double newlyShiftedFlowToRedistribute = originalConjSegmentFlow - conjSegmentRemovedUpstreamFlow;
-          if (detailedLogging) {
-            LOGGER.info(String.format(
-                    "Initiate branch shift for too low flows: newly shifted from turn (%s) flow: %.10f) - conj bush (%s)",
-                    lowFlowConjSegment.getOriginalAdjacentEdgeSegmentsIdsAsString(),
-                    newlyShiftedFlowToRedistribute,
-                    lowFlowConjSegment.getIdsAsString(),
-                    getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-          }
+        // determine how much flow requires redistributing (if any)
+        newFlowtoRedistribute += originalConjSegmentFlow;
+        if(conjSegmentRemovedFlows.containsKey(lowFlowConjSegment)) {
+          // downscale flow to redistribute for conjugate by removing portion of turn flow that was already redistributed upstream...
+          newFlowtoRedistribute -= conjSegmentRemovedFlows.getOrDefault(lowFlowConjSegment, 0.0);
         }
-
-        // propagate/register removed link's (newly removed) flow in case it should lead to downstream removal of more link
+        // propagate/register removed link's flow in case it should lead to downstream removal of more link
         // segments which may be required to avoid dangling links within the bush.
         //   Note: since we are removing turns on-the-fly which affects the topological order, we should not create another
         //         topological iterator at this point as the bush's state is in flux and may be invalid temporarily. therefore
         //         we will track the to be removed flow as we go and deal with it here while traversing the bush instead
-        flowtoRedistribute +=
-                conjSegmentRemovedFlows.getOrDefault(lowFlowConjSegment,0.0) + originalConjSegmentFlow;
-        conjSegmentRemovedFlows.put(lowFlowConjSegment, flowtoRedistribute);
+        conjSegmentRemovedFlows.put(lowFlowConjSegment, originalConjSegmentFlow);
 
-        //  continuing existing branch shift, but not initiating a new one, which will continue tracking of the removed flows
         if (detailedLogging) {
-          LOGGER.info(String.format(
-                  "Continuing Implicit branch shift: total removed flow: %.10f, from turn (%s) - bush (%s)",
-                  flowtoRedistribute,
-                  lowFlowConjSegment.getOriginalAdjacentEdgeSegmentsIdsAsString(),
-                  getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+          if(initiateNewShift) {
+            LOGGER.info(String.format(
+                    "Initiate branch shift for too low flows: newly shifted flow: %.10f from turn (%s) - conj bush (%s)",
+                    newFlowtoRedistribute,
+                    lowFlowConjSegment.getOriginalAdjacentEdgeSegmentsIdsAsString(),
+                    getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+          }else{
+            LOGGER.info(String.format(
+                    "Continuing Implicit branch shift: total removed flow: %.10f, from turn (%s) - bush (%s)",
+                    conjSegmentRemovedFlows.get(lowFlowConjSegment),
+                    lowFlowConjSegment.getOriginalAdjacentEdgeSegmentsIdsAsString(),
+                    getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+          }
         }
       }
 
-      // WHEN REACHING THIS POINT WE ARE: finalising an existing shift or redistributing flow of a new branch shift
-      // triggered by one or more conjugate exit segments that have been removed...
+      // WHEN REACHING THIS POINT WE ARE: finalising an existing shift or redistributing flow of a new/continuing
+      // branch shift triggered by one or more conjugate exit segments that have been removed...
 
       // REDISTRIBUTION OF FLOW OF NEW BRANCH SHIFT
-      if(flowtoRedistribute > 0) {
+      if(newFlowtoRedistribute > 0) {
         // updated splitting rates now that flow has been removed, so distribution has changed, use this for
         // redistribution purposes.
         var updatedSplittingRates = bushData.getSplittingRates(currVertex);
@@ -795,7 +798,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
         for (var altExitSegment : currVertex.getExitEdgeSegments()) {
           var splittingRate = updatedSplittingRates[index++];
           if (splittingRate > 0) {
-            double shiftedTurnFlow = flowtoRedistribute * splittingRate;
+            double shiftedTurnFlow = newFlowtoRedistribute * splittingRate;
             addTurnSendingFlow(altExitSegment, shiftedTurnFlow);
 
             if (detailedLogging) {

@@ -107,7 +107,7 @@ public class PlanItProjectInput {
     /* note that the time period(s) are hidden in the eventual event (although available via additional content) as it is generally not useful
      * to the handler who's task it is to populate the component based on the file, regardless to what period it is mapped */
     final InitialMacroscopicLinkSegmentCost initialLinkSegmentCost =
-        getComponentFactory(InitialPhysicalCost.class).create(
+        getComponentFactory(InitialPhysicalCost.class).createAndDispatch(
             InitialMacroscopicLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId}, fileName, network, timePeriod);
     
     if(timePeriod!=null) {   
@@ -185,7 +185,7 @@ public class PlanItProjectInput {
    */
   public LayeredNetwork<?,?> createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
     LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populating network");
-    final Network theNetwork = getComponentFactory(Network.class).create(infrastructureNetworkType, new Object[] { projectGroupId });
+    final Network theNetwork = getComponentFactory(Network.class).createAndDispatch(infrastructureNetworkType, new Object[] { projectGroupId });
     
     /* for now we only support infrastructure based networks even though class heirarchy is more generic */
     if(!(theNetwork instanceof LayeredNetwork)){
@@ -215,7 +215,7 @@ public class PlanItProjectInput {
 
     LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populating zoning");
     final Zoning zoning = 
-        getComponentFactory(Zoning.class).create(
+        getComponentFactory(Zoning.class).createAndDispatch(
             Zoning.class.getCanonicalName(), 
             new Object[] { projectGroupId, infrastructureNetwork.getNetworkGroupingTokenId() }, 
             infrastructureNetwork);
@@ -238,7 +238,7 @@ public class PlanItProjectInput {
 
     LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populating demands");
     final Demands demands = 
-        getComponentFactory(Demands.class).create(
+        getComponentFactory(Demands.class).createAndDispatch(
             Demands.class.getCanonicalName(), new Object[] { projectGroupId }, zoning, network);  
 
     this.demands.register(demands);
@@ -257,7 +257,7 @@ public class PlanItProjectInput {
 
     LOGGER.info(String.format("%spopulating service network with parent physical network %s", LoggingUtils.projectPrefix(this.projectId), network.getXmlId()));
     final Network theNetwork = 
-        getComponentFactory(Network.class).create(
+        getComponentFactory(Network.class).createAndDispatch(
             ServiceNetwork.class.getCanonicalName(), new Object[] { projectGroupId, network });
         
     /* for now we only support infrastructure based networks even though class heirarchy is more generic */
@@ -296,7 +296,7 @@ public class PlanItProjectInput {
 
     LOGGER.info(String.format("%spopulating routed services with parent service network %s", LoggingUtils.projectPrefix(this.projectId), serviceNetwork.getXmlId()));
     final RoutedServices routedServices = 
-        getComponentFactory(RoutedServices.class).create(
+        getComponentFactory(RoutedServices.class).createAndDispatch(
             RoutedServices.class.getCanonicalName(), new Object[] { projectGroupId, serviceNetwork});  
     
     String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.routedServicesPrefix(routedServices.getId());
@@ -324,7 +324,7 @@ public class PlanItProjectInput {
 
     LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populating od path sets");
     final OdPathSets odPathSets = 
-        getComponentFactory(OdPathSets.class).create(
+        getComponentFactory(OdPathSets.class).createAndDispatch(
             OdPathSets.class.getCanonicalName(), new Object[] { projectGroupId }, odPathSetInputPath);
     
     String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.odPathSetsPrefix(odPathSets.getId());
