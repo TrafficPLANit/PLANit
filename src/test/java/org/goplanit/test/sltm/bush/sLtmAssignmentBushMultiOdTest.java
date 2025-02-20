@@ -365,7 +365,7 @@ public class sLtmAssignmentBushMultiOdTest {
       sLTMBuilder.getConfigurator().activateDetailedLogging(false);
 
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(0.8);
+      fixedStepSmoothing.setStepSize(0.2);
 
       //var smoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
 
