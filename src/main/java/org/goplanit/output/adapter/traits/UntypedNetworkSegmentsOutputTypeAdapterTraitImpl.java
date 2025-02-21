@@ -47,6 +47,9 @@ public abstract class UntypedNetworkSegmentsOutputTypeAdapterTraitImpl<ES extend
    * where this method would be invoked even if an overridden version in more specific implementation exists.
    * (stupid Java)
    * </p>
+   *
+   * @param mode to use
+   * @return layer
    */
   public UntypedPhysicalLayer<?,?,?> getDefaultInfrastructureLayerForMode(Mode mode) {
     return trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode);
@@ -59,6 +62,9 @@ public abstract class UntypedNetworkSegmentsOutputTypeAdapterTraitImpl<ES extend
    * where this method would be invoked even if an overridden version in more specific implementation exists.
    * (stupid Java)
    * </p>
+   *
+   * @param layerId to use
+   * @return link segments
    */
   public GraphEntities<? extends ES> getDefaultLinkSegmentsForLayer(long layerId) {
     var networkLayer =

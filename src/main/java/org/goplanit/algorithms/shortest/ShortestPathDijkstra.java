@@ -100,6 +100,7 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised
    * 
    * @param searchType  to use
    * @param startVertex to use
+   * @param bannedThroughVertices to use
    * @return results of shortest path search, if something went wrong null is returned
    */
   public ShortestPathResult execute(

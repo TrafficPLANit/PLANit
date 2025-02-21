@@ -106,6 +106,7 @@ public class TransportModelNetworkImpl
    * @param accessZone               at hand for the current connectoid
    * @param connectoidEdge           the connectoid at hand used to extract length to access zone
    * @param fromSource               when true connectoid goes from source into network, otherwise it is a sink
+   * @return xml id
    */
   protected String constructConnectoidXmlId(
           Zone accessZone, ConnectoidLink connectoidEdge, boolean fromSource){

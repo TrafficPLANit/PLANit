@@ -40,6 +40,8 @@ public abstract class BushLinkOutputTypeAdapterImpl
 
   /**
    * Access to trait
+   *
+   * @return trait
    */
   protected UntypedBushSegmentsOutputTypeAdapterTrait<? extends EdgeSegment> getTrait(){
     return bushSegmentsTrait;

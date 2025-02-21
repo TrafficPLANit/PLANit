@@ -326,6 +326,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param outputAdapter           output adapter for the current output type
    * @param modes                   Set of modes for the current assignment
    * @param timePeriod              the current time period
+   * @param bush                    to use
    * @param csvPrinter              CSVPrinter object to record results for this iteration
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */

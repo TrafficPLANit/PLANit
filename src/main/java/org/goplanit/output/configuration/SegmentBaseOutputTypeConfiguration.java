@@ -70,9 +70,9 @@ public abstract class SegmentBaseOutputTypeConfiguration extends OutputTypeConfi
 
   /**
    * Constructor
-   *
    * Define the default output properties here.
    *
+   * @param outputType to use
    */
   public SegmentBaseOutputTypeConfiguration(OutputType outputType){
     super(outputType);
