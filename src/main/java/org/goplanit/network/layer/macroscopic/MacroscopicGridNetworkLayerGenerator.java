@@ -199,7 +199,7 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
             networkLayer.getLinkSegmentTypes().getFactory().registerNew(
                     linkSegmentTypeName, defaultLinkSegmentCapacityPcuH, defaultLinkSegmentJamDensityPcuKm);
     final var accessGroupProperties = AccessGroupPropertiesFactory.create(modes);
-    linkSegmentType.addAccessGroupProperties(accessGroupProperties);
+    linkSegmentType.addAccessGroupProperties(accessGroupProperties, true);
   }
 
   /**

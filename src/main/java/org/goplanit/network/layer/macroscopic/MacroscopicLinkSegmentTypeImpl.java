@@ -43,7 +43,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   /**
    * Track access properties for each of the modes it supports for quick lookups
    */
-  protected Map<Mode, AccessGroupProperties> modeAccessProperties;
+  protected TreeMap<Mode, AccessGroupProperties> modeAccessProperties;
 
   /**
    * set the id on this link segment type
@@ -83,7 +83,8 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * @param name            name of this link segment type
    * @param capacityPerLane capacity per lane of this link segment type
    */
-  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final Double capacityPerLane) {
+  protected MacroscopicLinkSegmentTypeImpl(
+          final IdGroupingToken groupId, final String name, final Double capacityPerLane) {
     this(groupId, name, capacityPerLane, null);
   }
 
@@ -95,7 +96,12 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * @param capacityPerLane       capacity per lane of this link segment type
    * @param maximumDensityPerLane maximum density per lane of this link segment type
    */
-  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final Double capacityPerLane, final Double maximumDensityPerLane) {
+  protected MacroscopicLinkSegmentTypeImpl(
+          final IdGroupingToken groupId,
+          final String name,
+          final Double capacityPerLane,
+          final Double maximumDensityPerLane) {
+
     super(generateId(groupId));
     setName(name);
     this.capacityPerLanePcuHourLane = capacityPerLane;
@@ -182,6 +188,14 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
+  public TreeMap<Mode, AccessGroupProperties> getAccessProperties() {
+    return modeAccessProperties;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public boolean isModeAllowed(Mode mode) {
     return modeAccessProperties.containsKey(mode);
   }
@@ -238,7 +252,9 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     for (AccessGroupProperties entry : accessProperties) {
       for (Mode mode : entry.getAccessModes()) {
         if (processedModes.contains(mode)) {
-          LOGGER.warning(String.format("Multiple provided access proprties on link segment type define the same mode (%s), ignoring all but first encountered", mode.getXmlId()));
+          LOGGER.warning(String.format(
+                  "Multiple provided access properties on link segment type define the same mode (%s), ignoring " +
+                          "all but first encountered", mode.getXmlId()));
         }
         this.modeAccessProperties.put(mode, entry);
       }
@@ -260,9 +276,11 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
-  public void addAccessGroupProperties(AccessGroupProperties accessProperties) {
-    if (findEqualAccessPropertiesForAnyMode(accessProperties) != null) {
-      LOGGER.warning(String.format("IGNORE: Unable to register new access properties on link segment type %s, identical group already exist", getXmlId()));
+  public void addAccessGroupProperties(AccessGroupProperties accessProperties, boolean logWarning) {
+    if (findEqualAccessPropertiesForAnyMode(accessProperties) != null && logWarning) {
+      LOGGER.warning(String.format("IGNORE: Unable to register new access properties on link segment type %s, " +
+              "identical group already exist", getXmlId()));
+      return;
     }
     setAccessGroupProperties(accessProperties);
   }

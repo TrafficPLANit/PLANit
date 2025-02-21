@@ -327,6 +327,11 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
       return false;
     }
 
+    if (getVertexA().getEdges(getVertexB()) == null || !(getVertexA().getEdges(getVertexB()).contains(this))) {
+      LOGGER.warning(String.format("Edge (id:%d externalId:%s) not registered on vertex A", getId(), getExternalId()));
+      return false;
+    }
+
     if (getVertexB().getEdges(getVertexA()) == null || !(getVertexB().getEdges(getVertexA()).contains(this))) {
       LOGGER.warning(String.format("Edge (id:%d externalId:%s) not registered on vertex B", getId(), getExternalId()));
       return false;

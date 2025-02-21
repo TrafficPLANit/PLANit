@@ -40,6 +40,14 @@ public class ModeFactoryImpl extends ManagedIdEntityFactoryImpl<Mode> implements
    * {@inheritDoc}
    */
   @Override
+  public void registerPredefinedMode(PredefinedMode predefinedMode) {
+    modes.register(predefinedMode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public PredefinedMode createPredefinedMode(IdGroupingToken groupId, final PredefinedModeType modeType) {
     switch (modeType) {
     case BICYCLE:
@@ -82,9 +90,21 @@ public class ModeFactoryImpl extends ManagedIdEntityFactoryImpl<Mode> implements
    * {@inheritDoc}
    */
   @Override
-  public Mode registerNewCustomMode(String name, double maxSpeed, double pcu, PhysicalModeFeatures physicalFeatures, UsabilityModeFeatures usabilityFeatures) {
+  public Mode registerNewCustomMode(
+          String name,
+          double maxSpeed,
+          double pcu,
+          PhysicalModeFeatures physicalFeatures,
+          UsabilityModeFeatures usabilityFeatures) {
+
     final Mode newMode = new ModeImpl(
-            getIdGroupingToken(), name, maxSpeed, pcu, (PhysicalModeFeaturesImpl) physicalFeatures, (UsabilityModeFeaturesImpl) usabilityFeatures);
+            getIdGroupingToken(),
+            name,
+            maxSpeed,
+            pcu,
+            (PhysicalModeFeaturesImpl) physicalFeatures,
+            (UsabilityModeFeaturesImpl) usabilityFeatures);
+
     modes.register(newMode);
     return newMode;
   }
@@ -97,7 +117,7 @@ public class ModeFactoryImpl extends ManagedIdEntityFactoryImpl<Mode> implements
     PredefinedMode theMode = null;
     if (!modes.containsPredefinedMode(modeType)) {
       theMode = createPredefinedMode(getIdGroupingToken(), modeType);
-      modes.register(theMode);
+      registerPredefinedMode(theMode);
     } else {
       theMode = modes.get(modeType);
     }

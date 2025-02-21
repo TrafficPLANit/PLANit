@@ -33,7 +33,8 @@ public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactor
    */
   @Override
   public MacroscopicLinkSegmentType registerNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm) {
-    MacroscopicLinkSegmentType linkSegmentType = new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacityPcuPerHour, maximumDensityPcuPerKm);
+    MacroscopicLinkSegmentType linkSegmentType =
+            new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacityPcuPerHour, maximumDensityPcuPerKm);
     linkSegmentTypes.register(linkSegmentType);
     return linkSegmentType;
   }

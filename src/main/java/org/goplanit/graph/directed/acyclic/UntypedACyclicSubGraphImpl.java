@@ -265,7 +265,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
   /**
    * Perform topological sorting from root, based on Gupta et al. 2008.
    * 
-   * @param update when true we force an update, when false we return the most recent result without performing an update (if any exist)
+   * @param update when true we force an update, when false we return the most recent result without performing an
+   *               update (if any exist)
    * @return Topologically sorted list of vertices, null when graph is not acyclic, or disconnected
    */
   @Override

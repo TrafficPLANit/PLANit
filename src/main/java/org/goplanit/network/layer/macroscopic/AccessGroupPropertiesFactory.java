@@ -92,20 +92,22 @@ public class AccessGroupPropertiesFactory {
    * @param modesToAdd      to add
    * @param maxSpeedKmH     maxSpeed to set
    */
-  public static void createOnLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType, final double maxSpeedKmH, final Collection<Mode> modesToAdd) {
+  public static void createOnLinkSegmentType(
+          final MacroscopicLinkSegmentType linkSegmentType, final double maxSpeedKmH, final Collection<Mode> modesToAdd) {
     linkSegmentType.setAccessGroupProperties(create(maxSpeedKmH, modesToAdd));
   }
 
   /**
-   * Add access properties for the passed in modes to the passed in link segment type where we cap the max and critical speed based on the minimum of the mode's maximum speed and
-   * the maximum speed
+   * Add access properties for the passed in modes to the passed in link segment type where we cap the max and critical
+   * speed based on the minimum of the mode's maximum speed and the maximum speed
    * 
    * @param linkSegmentType to populate for
    * @param modeToAdd       to add
    * @param maxSpeedKmH     maxSpeed to set, if exceeding mode maximum speed, only access for the mode is registered as the provided speed is not a restriction compared to the
    *                        physical restriction
    */
-  public static void createOnLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType, final Mode modeToAdd, final double maxSpeedKmH) {
+  public static void createOnLinkSegmentType(
+          final MacroscopicLinkSegmentType linkSegmentType, final Mode modeToAdd, final double maxSpeedKmH) {
     if (Precision.greater(maxSpeedKmH, modeToAdd.getMaximumSpeedKmH())) {
       create(modeToAdd); //todo: this does not seem to do anything...
     } else {
