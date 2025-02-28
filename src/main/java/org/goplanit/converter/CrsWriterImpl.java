@@ -134,10 +134,13 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
    *
    * @param sourceCrs the crs used for the source material of this writer
    * @param userDefinedDestinationCrs the user configured destination Crs (if any)
-   * @param destinationCountry the destination country for which we can construct a Crs in case no specific destination Crs is provided
+   * @param destinationCountry the destination country for which we can construct a Crs in case no
+   *                           specific destination Crs is provided
    */
   protected void prepareCoordinateReferenceSystem(
-          CoordinateReferenceSystem sourceCrs, CoordinateReferenceSystem userDefinedDestinationCrs, String destinationCountry){
+          CoordinateReferenceSystem sourceCrs,
+          CoordinateReferenceSystem userDefinedDestinationCrs,
+          String destinationCountry){
 
     PlanItRunTimeException.throwIfNull(sourceCrs, "Source Crs null, this is not allowed");
     this.geoUtils = new PlanitJtsCrsUtils(sourceCrs);

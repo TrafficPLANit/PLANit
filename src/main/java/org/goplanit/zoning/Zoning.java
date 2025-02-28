@@ -46,7 +46,8 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
 
   /**
    * Virtual network holds all the virtual connections to the physical network (layers)
-   * todo: we should have potentially multiple virtual networks per zoning, one for each physical network the zoning is used on!
+   * todo: we should have potentially multiple virtual networks per zoning, one for each physical network the zoning
+   * is used on!
    */
   protected final VirtualNetwork virtualNetwork;
 
@@ -197,8 +198,8 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   }
 
   /**
-   * Verify if passed in demands are compatible with the zoning structure. Compatibility is ensured when the number of zones matches the number of origins/destinations in the
-   * demands.
+   * Verify if passed in demands are compatible with the zoning structure. Compatibility is ensured when the number
+   * of zones matches the number of origins/destinations in the demands.
    * 
    * @param demands to verify against
    * @param modes   to check

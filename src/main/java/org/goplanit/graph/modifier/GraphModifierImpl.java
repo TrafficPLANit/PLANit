@@ -272,7 +272,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
     Map<Long, Pair<Ex, Ex>> affectedEdges = new TreeMap<>();
     for (Ex edgeToBreak : edgesToBreak) {
       if (affectedEdges.containsKey(edgeToBreak.getId())) {
-        LOGGER.severe(String.format("Edge (%s) cannot be broken twice at a single vertex, yet this appears to be the case", edgeToBreak.getXmlId()));
+        LOGGER.severe(String.format("Edge (%s) cannot be broken twice at a single vertex, yet this appears " +
+                "to be the case", edgeToBreak.getXmlId()));
       }
 
       /* break an edge */
@@ -291,7 +292,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    */
   @SuppressWarnings("unchecked")
   @Override
-  public <Ex extends Edge> Ex breakEdgeAt(final Vertex vertexToBreakAt, final Ex edgeToBreak, final PlanitJtsCrsUtils geoUtils) {
+  public <Ex extends Edge> Ex breakEdgeAt(
+          final Vertex vertexToBreakAt, final Ex edgeToBreak, final PlanitJtsCrsUtils geoUtils) {
     Ex aToBreak = edgeToBreak;
 
     /* create unique copy of edge with unique id and register it, do a deep copy to ensure any input properties are duplicated */

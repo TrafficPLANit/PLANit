@@ -234,7 +234,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * {@inheritDoc}
    */
   @Override
-  public <Ex extends DirectedEdge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(List<Ex> edgesToBreak, DirectedVertex vertexToBreakAt, CoordinateReferenceSystem crs) {
+  public <Ex extends DirectedEdge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(
+          List<Ex> edgesToBreak, DirectedVertex vertexToBreakAt, CoordinateReferenceSystem crs) {
 
     /* delegate regular breaking of edges */
     Map<Long, Pair<Ex, Ex>> brokenEdges = graphModifier.breakEdgesAt(edgesToBreak, vertexToBreakAt, crs);

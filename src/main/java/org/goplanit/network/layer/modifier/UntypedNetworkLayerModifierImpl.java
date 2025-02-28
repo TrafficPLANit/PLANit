@@ -17,13 +17,15 @@ import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifi
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
- * Modifier class for model free network layer, generics used to allow derived classes to provide typed versions for containers and content of containers. It wraps a directed graph
- * modifier while allowing the methods to be typed in a more user friendly way and hide or add additional functionality compared to the raw modifications exposed by the underlying
- * graph modifier.
+ * Modifier class for model free network layer, generics used to allow derived classes to provide typed versions
+ * for containers and content of containers. It wraps a directed graph modifier while allowing the methods to be
+ * typed in a more user friendly way and hide or add additional functionality compared to the raw modifications
+ * exposed by the underlying graph modifier.
  *
  * @author markr
  */
-public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends DirectedEdge, S extends EdgeSegment> implements UntypedDirectedGraphLayerModifier<V, E, S> {
+public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends DirectedEdge, S extends EdgeSegment>
+        implements UntypedDirectedGraphLayerModifier<V, E, S> {
 
   // INNER CLASSES
 
@@ -57,7 +59,6 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   /**
    * Break the passed in links by inserting the passed in node in between. After completion the original links remain as (NodeA,NodeToBreakAt), and new links as inserted for
    * (NodeToBreakAt,NodeB).
-   * 
    * Underlying link segments (if any) are also updated accordingly in the same manner
    * 
    * @param linksToBreak  the links to break
@@ -79,8 +80,8 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   }
 
   /**
-   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed. Also remove zoning entities that rely
-   * solely on removed dangling network entities
+   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder
+   * the internal ids if needed. Also remove zoning entities that rely solely on removed dangling network entities
    * <p>
    *   Should fire #RecreatedGraphEntitiesManagedIdsEvent after it has been executed
    * </p>
@@ -94,6 +95,22 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
     /* perform removal */
     graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest);
     graphModifier.recreateManagedEntitiesIds();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeEdge(E edge){
+    graphModifier.removeEdge(edge);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeEdgeSegment(S edgeSegment){
+    graphModifier.removeEdgeSegment(edgeSegment);
   }
 
   /**
