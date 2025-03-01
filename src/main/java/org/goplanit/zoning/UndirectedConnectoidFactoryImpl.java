@@ -35,7 +35,7 @@ public class UndirectedConnectoidFactoryImpl
   public UndirectedConnectoid registerNew(Node accessNode, Zone parentZone, double length) {
     UndirectedConnectoid newConnectoid = registerNew(accessNode);
     newConnectoid.addAccessZone(parentZone);
-    newConnectoid.setLength(parentZone, length);
+    newConnectoid.setLengthKm(parentZone, length);
     return newConnectoid;
   }
 

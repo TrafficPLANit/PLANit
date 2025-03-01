@@ -9,7 +9,6 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -148,7 +147,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   protected ConnectoidImpl(final IdGroupingToken idToken, Zone accessZone, double length) {
     this(idToken);
     addAccessZone(accessZone);
-    setLength(accessZone, length);
+    setLengthKm(accessZone, length);
   }
 
   /**
@@ -296,9 +295,9 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * {@inheritDoc}
    */
   @Override
-  public void setLength(Zone accessZone, double length) {
+  public void setLengthKm(Zone accessZone, double lengthKm) {
     if (hasAccessZone(accessZone)) {
-      accessZones.get(accessZone.getId()).lengthKm = length;
+      accessZones.get(accessZone.getId()).lengthKm = lengthKm;
     } else {
       LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when setting length", accessZone.getXmlId(), accessZone.getId(), getXmlId(), getId()));
     }
