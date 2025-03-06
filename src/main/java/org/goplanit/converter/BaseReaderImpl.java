@@ -62,7 +62,7 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
    * @param addToSourceIdMap add all entities in iterable to the newly created source id map upon creation
    */
   protected <K, V> void initialiseSourceIdMap(
-      Class<V> clazz, final Function<V, K> valueToKey, Iterable<V> addToSourceIdMap) {
+      Class<V> clazz, final Function<V, K> valueToKey, Iterable<? extends V> addToSourceIdMap) {
     sourceIdTracker.initialiseEntityContainer(clazz, valueToKey, addToSourceIdMap);
   }
 

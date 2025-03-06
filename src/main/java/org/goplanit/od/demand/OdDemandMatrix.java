@@ -160,7 +160,8 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
 
     if(logstats) {
       LOGGER.info(String.format(
-              "Stochastic rounding applied - total entries: %d, original non-zero: %d (%.2f%%), new-non-zero: %d (%.2f%%) [not-rounded-kept: %d, rounded-kept: %d,  rounded-zero: %d]",
+              "Stochastic rounding applied - total entries: %d, original non-zero: %d (%.2f%%), " +
+                      "new-non-zero: %d (%.2f%%) [not-rounded-kept: %d, rounded-kept: %d,  rounded-zero: %d]",
               totalCount.intValue(),
               nonZeroCount.intValue(),
               nonZeroCount.intValue() / totalCount.doubleValue(),

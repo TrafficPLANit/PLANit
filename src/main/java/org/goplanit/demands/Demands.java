@@ -16,6 +16,7 @@ import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
+import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -170,6 +171,22 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Find first entry if it exists and return it
+   *
+   * @return first entry found
+   */
+  public OdDemands getFirst() {
+    if(odDemandsByTimePeriodAndMode==null || CollectionUtils.nullOrEmpty(odDemandsByTimePeriodAndMode.values())){
+      return null;
+    }
+    var firstEntryValue = odDemandsByTimePeriodAndMode.firstEntry().getValue();
+    if(firstEntryValue==null || CollectionUtils.nullOrEmpty(firstEntryValue.values())){
+      return null;
+    }
+    return firstEntryValue.firstEntry().getValue();
   }
 
   /**
