@@ -159,6 +159,9 @@ public abstract class SegmentBaseOutputTypeConfiguration extends OutputTypeConfi
       case LINK_SEGMENT_EXTERNAL_ID:
       case LINK_SEGMENT_XML_ID:
       case LINK_SEGMENT_ID:
+      case LINK_EXTERNAL_ID:
+      case LINK_XML_ID:
+      case LINK_ID:
       case LINK_SEGMENT_GEOMETRY:
       case RUN_ID:
       case MODE_EXTERNAL_ID:

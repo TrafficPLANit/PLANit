@@ -13,7 +13,10 @@ import org.goplanit.utils.exceptions.PlanItException;
 public enum OutputPropertyType {
 
   // @formatter:off
-  DENSITY("org.goplanit.output.property.DensityOutputProperty"), 
+  DENSITY("org.goplanit.output.property.DensityOutputProperty"),
+  LINK_ID("org.goplanit.output.property.LinkIdOutputProperty"),
+  LINK_XML_ID("org.goplanit.output.property.LinkXmlIdOutputProperty"),
+  LINK_EXTERNAL_ID("org.goplanit.output.property.LinkExternalIdOutputProperty"),
   LINK_SEGMENT_ID("org.goplanit.output.property.LinkSegmentIdOutputProperty"),
   LINK_SEGMENT_XML_ID("org.goplanit.output.property.LinkSegmentXmlIdOutputProperty"), 
   LINK_SEGMENT_EXTERNAL_ID("org.goplanit.output.property.LinkSegmentExternalIdOutputProperty"),

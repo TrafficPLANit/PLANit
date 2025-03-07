@@ -594,12 +594,14 @@ public class StaticLtmConjugateBushStrategy
     double totalRealisedCostForGap = 0;
     if(updateGap) {
       // costs as they currently are utilising the unconstrained demand as a point of reference
-      for (var linkSegment : getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode).getLinkSegments()) {
+      var networkLayer = getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode);
+      for (var linkSegment : networkLayer.getLinkSegments()) {
         double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
         double linkCost = nonConjugateLinkSegmentCosts[(int) linkSegment.getId()];
         totalRealisedCostForGap += linkCost * linkDemand;
       }
-      for (var linkSegment : getTransportNetwork().getVirtualNetwork().getLayer().getConnectoidSegments()) {
+      var virtualLayer = getTransportNetwork().getVirtualNetwork().getLayer();
+      for (var linkSegment : virtualLayer.getConnectoidSegments()) {
         double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
         double linkCost = nonConjugateLinkSegmentCosts[(int) linkSegment.getId()];
         totalRealisedCostForGap += linkCost * linkDemand;
@@ -656,10 +658,8 @@ public class StaticLtmConjugateBushStrategy
         }
       }
 
-      /* find (new) matching PASs - start with new PAS close to origin exploration first
-       *  todo: this is a choice, could choose differently and going with close to destination seems safer */
-      var bushVertexIter = conjBush.isInverted() ?
-              conjBush.getInvertedTopologicalIterator() : conjBush.getTopologicalIterator();
+      /* find (new) matching PASs - start with new PAS close to destination exploration first */
+      var bushVertexIter = conjBush.getTopologicalIterator();
       while(bushVertexIter.hasNext()) {
         ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
         ConjugateEdgeSegment reducedCostSegment =

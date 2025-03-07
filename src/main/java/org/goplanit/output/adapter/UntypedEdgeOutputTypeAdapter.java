@@ -135,8 +135,47 @@ public interface UntypedEdgeOutputTypeAdapter<T extends EdgeSegment> extends Out
   }
 
   /**
-   * Returns the Id of the current edge segment
+   * Returns the Id of the current edge segment's parent
    * 
+   * @param edgeSegment edgeSegment object containing the required data
+   * @return the Id of the current edge segment's parent
+   */
+  public default Optional<Long> getParentLinkId(T edgeSegment){
+    if(edgeSegment.getParent() == null){
+      return Optional.empty();
+    }
+    return Optional.of(edgeSegment.getParent().getId());
+  }
+
+  /**
+   * Returns the external Id of the current edge segment's parent
+   *
+   * @param edgeSegment edgeSegment object containing the required data
+   * @return the external Id of the current edge segment's parent
+   */
+  public default Optional<String> getParentLinkExternalId(T edgeSegment) {
+    if(edgeSegment.getParent() == null){
+      return Optional.empty();
+    }
+    return Optional.of(edgeSegment.getParent().getExternalId());
+  }
+
+  /**
+   * Returns the XML Id of the current edge segment's parent
+   *
+   * @param edgeSegment edgeSegment object containing the required data
+   * @return the XML Id of the current edge segment's parent
+   */
+  public default Optional<String> getParentLinkXmlId(T edgeSegment) {
+    if(edgeSegment.getParent() == null){
+      return Optional.empty();
+    }
+    return Optional.of(edgeSegment.getParent().getXmlId());
+  }
+
+  /**
+   * Returns the Id of the current edge segment
+   *
    * @param edgeSegment edgeSegment object containing the required data
    * @return the Id of the current edge segment
    */

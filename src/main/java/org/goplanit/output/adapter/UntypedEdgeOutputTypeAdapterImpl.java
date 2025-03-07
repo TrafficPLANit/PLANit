@@ -68,6 +68,9 @@ public abstract class UntypedEdgeOutputTypeAdapterImpl<ES extends EdgeSegment>
       case LENGTH:
         result = getLength(edgeSegment);
         break;
+      case LINK_SEGMENT_ID:
+        result = getSegmentId(edgeSegment);
+        break;
       case LINK_SEGMENT_EXTERNAL_ID:
         result = getSegmentExternalId(edgeSegment);
         break;
@@ -77,9 +80,6 @@ public abstract class UntypedEdgeOutputTypeAdapterImpl<ES extends EdgeSegment>
       case LINK_SEGMENT_GEOMETRY:
         result = getGeometry(
                 edgeSegment, CONSTRUCT_SEGMENT_GEOMETRY_FROM_NODES_IF_UNAVAILABLE, FORCE_TRAVEL_DIRECTION);
-        break;
-      case LINK_SEGMENT_ID:
-        result = getSegmentId(edgeSegment);
         break;
       case UPSTREAM_NODE_EXTERNAL_ID:
         result = getUpstreamNodeExternalId(edgeSegment);
@@ -92,6 +92,15 @@ public abstract class UntypedEdgeOutputTypeAdapterImpl<ES extends EdgeSegment>
         break;
       case UPSTREAM_NODE_GEOMETRY:
         result = getUpstreamNodeGeometry(edgeSegment);
+        break;
+      case LINK_ID:
+        result = getParentLinkId(edgeSegment);
+        break;
+      case LINK_EXTERNAL_ID:
+        result = getParentLinkExternalId(edgeSegment);
+        break;
+      case LINK_XML_ID:
+        result = getParentLinkXmlId(edgeSegment);
         break;
       default:
       }
