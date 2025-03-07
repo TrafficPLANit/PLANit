@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
@@ -157,8 +158,18 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    */
   @Override
   protected void updatePasCosts(Mode theMode, double[] originalNetworkLinkSegmentCosts) {
+    LongAdder countSwappedPassPrev = new LongAdder();
+    pasManager.forEachActivePas( p -> countSwappedPassPrev.add(p.getCountS1Swaps().second().longValue()));
+
     pasManager.updateActivePassCosts(originalNetworkLinkSegmentCosts);
     pasManager.updateInactivePassCosts(originalNetworkLinkSegmentCosts);
+    if(getSettings().isDetailedLogging()){
+      LongAdder countSwappedPassCurr = new LongAdder();
+      pasManager.forEachActivePas( p -> countSwappedPassCurr.add(p.getCountS1Swaps().second().longValue()));
+      long numSwaps = countSwappedPassCurr.longValue() - countSwappedPassPrev.longValue();
+      double percentageSwapped = (numSwaps * 100) /(double)pasManager.getNumberOfActivePass();
+      LOGGER.info("%.2f% of Active PASs swapped which alternative was cheapest");
+    }
   }
 
   /**

@@ -177,6 +177,9 @@ public class StaticLtmConjugateBushStrategy
    */
   @Override
   protected void updatePasCosts(Mode theMode, double[] originalNetworkLinkSegmentCosts) {
+    LongAdder countSwappedPassPrev = new LongAdder();
+    pasManager.forEachActivePas( p -> countSwappedPassPrev.add(p.getCountS1Swaps().second().longValue()));
+
     // PASs on conjugate level, so expand link segment to conjugate segment costs as if first
     var conjSegmentCosts =
         expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, originalNetworkLinkSegmentCosts);
@@ -184,6 +187,14 @@ public class StaticLtmConjugateBushStrategy
     // execute cost update based on conjugate costs
     pasManager.updateActivePassCosts(conjSegmentCosts);
     pasManager.updateInactivePassCosts(conjSegmentCosts);
+
+    LongAdder countSwappedPassCurr = new LongAdder();
+    pasManager.forEachActivePas( p -> countSwappedPassCurr.add(p.getCountS1Swaps().second().longValue()));
+    long numSwaps = countSwappedPassCurr.longValue() - countSwappedPassPrev.longValue();
+    if(pasManager.getNumberOfActivePass()>0) {
+      double percentageSwapped = (numSwaps * 100) / (double) pasManager.getNumberOfActivePass();
+      LOGGER.info(String.format("%.2f%% (%d/%d) of Active PASs  swapped which alternative was cheapest", percentageSwapped, numSwaps, pasManager.getNumberOfActivePass()));
+    }
 
   }
 

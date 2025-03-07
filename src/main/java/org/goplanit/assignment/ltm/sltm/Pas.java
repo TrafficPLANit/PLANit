@@ -11,6 +11,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CollectionUtils;
+import org.goplanit.utils.misc.Pair;
 
 /**
  * Paired Alternative Segment (PAS) implementation comprising two subpaths (segments), one of a higher cost than the other. In a PAS both subpaths start at the same vertex and end
@@ -44,6 +45,10 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
 
   protected long pasId;
 
+  /** track how often the PAS swapped its S1 segment versus how often its costs was updated
+   * (cost may be updated regardless whether it is active or not) */
+  protected Pair<LongAdder,LongAdder> countS1Swap = Pair.of(new LongAdder(),new LongAdder());
+
   /**
    * Constructor
    * 
@@ -62,7 +67,8 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
    * update costs of an alternative
    * 
    * @param edgeSegmentCosts to use
-   * @param updateS1         Flag indicating to update cost of s1 (cheap) segment, when false update the s2 (costlier) segment
+   * @param updateS1         Flag indicating to update cost of s1 (cheap) segment, when false update the s2
+   *                         (costlier) segment
    */
   protected void updateCost(final double[] edgeSegmentCosts, boolean updateS1) {
     ES[] alternative = updateS1 ? s1 : s2;
@@ -293,6 +299,7 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
     updateCost(edgeSegmentCosts, true);
     updateCost(edgeSegmentCosts, false);
 
+    countS1Swap.first().increment();
     if (s1Cost > s2Cost) {
       double tempCost = s1Cost;
       s1Cost = s2Cost;
@@ -301,9 +308,21 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
       ES[] tempSegment = s1;
       s1 = s2;
       s2 = tempSegment;
+      countS1Swap.second().increment();
       return true;
     }
     return false;
+  }
+
+  /**
+   * Access to stats on how often the S1 alternative swapped between the two options in relation to
+   * how often this was updated.
+   *
+   * @return pair with first containing how often the cost was updated and second containing how often this meant that
+   *  the S1 segment swapped over.
+   */
+  public Pair<LongAdder, LongAdder> getCountS1Swaps(){
+    return countS1Swap;
   }
 
   /**
