@@ -52,6 +52,17 @@ public class TimePeriodsFactory extends ManagedIdEntityFactoryImpl<TimePeriod> i
   }
 
   /**
+   * register the default entry on the container and return it: start=0s, duration=3600s, name="DEFAULT"
+   *
+   * @return created default instance
+   */
+  public TimePeriod registerNewDefault() {
+    var timePeriod =  registerNew("DEFAULT", 0, 3600);
+    timePeriod.setXmlId(timePeriod.getId());
+    return timePeriod;
+  }
+
+  /**
    * register a new entry on the container and return it
    *
    * @param startTimeSeconds start time in seconds since midnight

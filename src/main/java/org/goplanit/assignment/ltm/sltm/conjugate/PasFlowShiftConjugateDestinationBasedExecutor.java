@@ -89,39 +89,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         addBushAddedLinkSegment(conjBush, conjSegment);
     }
 
-    // when we are reducing flow (negative flow shift) --> avoid rounding issues, ugly but necessary...
-    if(flowShiftPcuH < 0){
-
-      // ...and the turn entry link segment was removed from the bush in
-      // the previous shift then we should remove all turn sending flow. By explicitly setting this value we avoid rounding issues
-      // and ensures that high cost segment flows get removed in its entirety when we no longer route flow through them
-      // todo: now that we explicitly check for this earlier, this should not be necessary anymore!
-      if(!conjBush.contains(conjSegment)){
-        var availableFlow = conjBush.getTurnSendingFlow(conjSegment);
-        if(Precision.smaller(availableFlow, -flowShiftPcuH, Precision.EPSILON_6)) {
-          LOGGER.severe(String.format("adding %.8f to flow shift (%.10f) to empty already removed turn (%s) when " +
-                          "removing turn flow from bush (%s)",
-                  availableFlow + flowShiftPcuH,
-                  -availableFlow,
-                  conjSegment.getOriginalAdjacentEdgeSegmentsIdsAsString(),
-                  conjBush.getRootZone().getIdsAsString()));
-          flowShiftPcuH = -availableFlow; // sync
-        }
-      }
-      double totalSendingFlowIntoExit = IterableUtils.asStream(conjSegment.getUpstreamVertex().getEntryEdgeSegments()).mapToDouble(
-              es -> conjBush.getTurnSendingFlow(conjSegment)).sum();
-      if(totalSendingFlowIntoExit<=0){
-        // dangling segment with no more entering flow, meaning that due to rounding ALL residual exiting turn flow
-        // should be removed even if it exceeds the flow shift
-        flowShiftPcuH = Math.min(flowShiftPcuH,-conjBush.getSendingFlowPcuH(conjSegment));
-        if(flowShiftPcuH > Precision.EPSILON_3){
-          LOGGER.severe(String.format("Found dangling edge segment on bush (%s) with ghost flow exceeding non-trivial " +
-                  "amount (%.10f), this shouldn't happen",
-                  conjBush.getRootZone().getIdsAsString(), conjBush.getSendingFlowPcuH(conjSegment)));
-        }
-      }
-    }
-
     double newTurnFlow = conjBush.addTurnSendingFlow(conjSegment, flowShiftPcuH);
 
     //todo make sure that when very close to zero we remove all flow on the high cost segment somehow
@@ -551,10 +518,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // VERIFY CROSSING OF DISCONTINUITY on S2 travel time function - adjust shift if so, to mitigate effect
     // Now we do consider initial segment because we are looking at crossing a discontinuity, not how much flow to
     // change
-    var pasEntrySegmentCongestedResult = isCongested(
-            networkLoading,
-            pas.getFirstEdgeSegment(false).getOriginalAdjacentEdgeSegments().first(),
-            UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH);
+    Pair<Boolean,Boolean> pasEntrySegmentCongestedResult;
+    if(originalEntrySegment!=null) {
+      pasEntrySegmentCongestedResult = isCongested(
+              networkLoading, originalEntrySegment, UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH);
+    }else{
+      pasEntrySegmentCongestedResult = Pair.of(false,false); // dummy entry, no congestion by definition
+    }
+
     boolean pasS2PotentialDiscontinuity =
             (firstS2CongestedSegment != null && s2FirstCongestedSegmentResult.second()) ||
                     (pasEntrySegmentCongestedResult.first() && !pasEntrySegmentCongestedResult.second());
@@ -581,7 +552,13 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // make sure we never shift more than the flow that is available
     flowShift = Math.min(flowShift, getS2SendingFlow());
-    result.put(originalEntrySegment, flowShift);
+    if(originalEntrySegment != null) {
+      result.put(originalEntrySegment, flowShift);
+    }else{
+      // use dummy since entry segment is not used in conjugate anyway, but it can't be null while
+      // for conjuate connector turn there may be no original
+      result.put(pas.getFirstEdgeSegment(true), flowShift);
+    }
     return result;
   }
 

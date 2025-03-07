@@ -69,9 +69,11 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
    * @param outputProperty the specified output property
    * @param mode           the current mode
    * @param timePeriod     the current time period
-   * @return the value of the specified property, or null if the specified property is not common to all output adapters (or an Exception message if an error has occurred)
+   * @return the value of the specified property, or null if the specified property is not common to all output
+   * adapters (or an Exception message if an error has occurred)
    */
-  protected Optional<?> getOutputTypeIndependentPropertyValue(OutputProperty outputProperty, Mode mode, TimePeriod timePeriod) {
+  protected Optional<?> getOutputTypeIndependentPropertyValue(
+          OutputProperty outputProperty, Mode mode, TimePeriod timePeriod) {
     try {
       switch (outputProperty.getOutputPropertyType()) {
       case MODE_EXTERNAL_ID:

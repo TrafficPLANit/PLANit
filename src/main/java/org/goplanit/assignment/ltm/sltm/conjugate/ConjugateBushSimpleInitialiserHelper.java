@@ -67,8 +67,11 @@ public class ConjugateBushSimpleInitialiserHelper {
 
     /* initialise starting flows on initial vertex */
     int numUsedOdExitSegments = rootedDag.getNumberOfEdgeSegments(originVertex, true /* exit segments */);
+    double exitProportionalOdDemandPcuH = odDemandPcuH / numUsedOdExitSegments;
     for (var conjugateExitSegment : originVertex.getExitEdgeSegments()) {
-      double exitProportionalOdDemandPcuH = odDemandPcuH / numUsedOdExitSegments;
+      if(!rootedDag.containsEdgeSegment(conjugateExitSegment)){
+        continue;
+      }
       localDagTurnSendingFlows.put(conjugateExitSegment,exitProportionalOdDemandPcuH);
       bush.addTurnSendingFlow(
               (ConjugateEdgeSegment) conjugateExitSegment, exitProportionalOdDemandPcuH);
