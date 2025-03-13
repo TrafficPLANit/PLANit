@@ -40,6 +40,11 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
   /** expensive path cost */
   private double s2Cost;
 
+  /** based on the change in cost (see cost update) between iterations, a second-derivative like measure is computed
+   * that is based on the measured change in cost vs expected equilibrium cost. This adjustment factor can be applied
+   * to the newly calculated proposed flow shift to improve the magnitude of the shift */
+  private double proposedPasFlowShiftAdjustmentFactor = 1;
+
   /** registered origin bushes */
   private final Set<RootedBush<V,ES>> registeredBushes;
 
@@ -69,15 +74,20 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
    * @param edgeSegmentCosts to use
    * @param updateS1         Flag indicating to update cost of s1 (cheap) segment, when false update the s2
    *                         (costlier) segment
+   * @return oldCost before update for given alternative
    */
-  protected void updateCost(final double[] edgeSegmentCosts, boolean updateS1) {
+  protected double updateAlternativeCost(final double[] edgeSegmentCosts, boolean updateS1) {
     ES[] alternative = updateS1 ? s1 : s2;
-    double cost = PasManager.computeCost(alternative, edgeSegmentCosts);
+    double newCost = PasManager.computeCost(alternative, edgeSegmentCosts);
+    double oldCost;
     if (updateS1) {
-      s1Cost = cost;
+      oldCost = s1Cost;
+      s1Cost = newCost;
     } else {
-      s2Cost = cost;
+      oldCost = s2Cost;
+      s2Cost = newCost;
     }
+    return oldCost;
   }
 
   /**
@@ -288,18 +298,44 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
     return anyMatch(es -> es.equals(linkSegment), lowCost);
   }
 
+  public boolean updateCost(final double[] edgeSegmentCosts) {
+    return updateCost(edgeSegmentCosts, false);
+  }
+
   /**
    * update costs of both paths. In case the low cost path is no longer the low cost path, switch it with the
    * high cost path
    * 
    * @param edgeSegmentCosts to use
+   * @param updateAdjustmentFactor when tru update the adjustment factor based on cost that cna be used to alter proposed flow shifts
    * @return true when updated costs caused a switch in what is the high and low cost path
    */
-  public boolean updateCost(final double[] edgeSegmentCosts) {
-    updateCost(edgeSegmentCosts, true);
-    updateCost(edgeSegmentCosts, false);
+  public boolean updateCost(final double[] edgeSegmentCosts, boolean updateAdjustmentFactor) {
+    double oldS1Cost = updateAlternativeCost(edgeSegmentCosts, true);
+    double oldS2Cost = updateAlternativeCost(edgeSegmentCosts, false);
 
-    countS1Swap.first().increment();
+    // under linearised cost we could have hoped for an equilibrium cost half way between the two alternatives
+    double oldCostAlternativeExpectedDelta = (oldS2Cost - oldS1Cost)/2;
+    // now after an iteration and previous flow shift, we find out how far off equilibrium we still are and compute
+    // a factor to apply for the interactions non-linearity that should aid us in making a better localised adjusted
+    // step using this "second derivative like knowledge" that also embeds network interactions not just this PAS by
+    // itself
+    double s2CostRealisedDelta = Math.abs(s2Cost - oldS2Cost);
+    double s2CostChangeMismatchFactor = s2CostRealisedDelta/oldCostAlternativeExpectedDelta;
+    double s1CostRealisedDelta = Math.abs(s1Cost - oldS1Cost);
+    double s1CostChangeMismatchFactor = s1CostRealisedDelta/oldCostAlternativeExpectedDelta;
+    // if mismatch > 1 --> then we should dampen the change, if = 1, then change was good, if < 1 then we should
+    // up the change.
+    // We take the reciprocal of the cost that changed the most compared to the expectation (largest value) to address
+    // overshooting as our primary concern, if it still changed too little, then we consider changing more based on this
+    // value
+    double localPasFlowShiftAdjustmentFactor = 1;
+    if(updateAdjustmentFactor) {
+      countS1Swap.first().increment();
+      localPasFlowShiftAdjustmentFactor = 1 / Math.max(s2CostChangeMismatchFactor,s1CostChangeMismatchFactor);
+    }
+
+    boolean cheapCostAlternativeSwap = false;
     if (s1Cost > s2Cost) {
       double tempCost = s1Cost;
       s1Cost = s2Cost;
@@ -308,10 +344,29 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
       ES[] tempSegment = s1;
       s1 = s2;
       s2 = tempSegment;
-      countS1Swap.second().increment();
-      return true;
+      cheapCostAlternativeSwap = true;
+
+      // when a swap occurs, we overshot in which case we should never allow for an adjustment over 1
+      localPasFlowShiftAdjustmentFactor = Math.min(1, localPasFlowShiftAdjustmentFactor);
+    }else{
+      localPasFlowShiftAdjustmentFactor = Math.min(1, localPasFlowShiftAdjustmentFactor);
     }
-    return false;
+
+    if(updateAdjustmentFactor){
+      if(cheapCostAlternativeSwap) {
+        countS1Swap.second().increment();
+      }
+      proposedPasFlowShiftAdjustmentFactor = localPasFlowShiftAdjustmentFactor;
+      if(countS1Swap.first().intValue()<=1){
+        proposedPasFlowShiftAdjustmentFactor = localPasFlowShiftAdjustmentFactor;
+      }else {
+        double portion = (1.0 / countS1Swap.first().intValue());
+        proposedPasFlowShiftAdjustmentFactor =
+                (1 - portion) * proposedPasFlowShiftAdjustmentFactor + portion * localPasFlowShiftAdjustmentFactor;
+      }
+    }
+
+    return cheapCostAlternativeSwap;
   }
 
   /**
@@ -553,5 +608,9 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
       return isAlternativeEqual(otherAlternative, true);
     }
     return false;
+  }
+
+  public double getProposedPasFlowShiftAdjustmentFactor(){
+    return proposedPasFlowShiftAdjustmentFactor;
   }
 }

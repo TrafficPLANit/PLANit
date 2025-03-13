@@ -290,7 +290,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
         Optional<Long> networkLayerId = linkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
         if (networkLayerId.isPresent()) {
-          for (MacroscopicLinkSegment linkSegment : linkOutputTypeAdapter.getLinkSegmentsForLayer(networkLayerId.get())) {
+          for (var linkSegment : linkOutputTypeAdapter.getLinkSegmentsForLayer(networkLayerId.get())) {
 
             if (linkSegment.isModeAllowed(mode)) {
               Optional<Boolean> flowPositive = linkOutputTypeAdapter.isFlowPositive(linkSegment, mode);

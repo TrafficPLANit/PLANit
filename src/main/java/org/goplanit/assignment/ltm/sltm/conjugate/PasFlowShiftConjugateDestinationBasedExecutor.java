@@ -483,9 +483,15 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       /* move all towards cheaper alternative limited by slack + delta */
       /* obtain PAS-entry segment sub-path sending flows */
       double proposedFlowShift = Math.min(getS2SendingFlow() - 10, slackFlowEstimate) + 10;
-      result.put(
-              originalEntrySegment,
-              adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, slackFlowEstimate, discontinuityDampeningFactor));
+      double finalProposedShift =
+              adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, slackFlowEstimate, discontinuityDampeningFactor);
+      if(originalEntrySegment != null) {
+        result.put(originalEntrySegment, finalProposedShift);
+      }else{
+        // use dummy since entry segment is not used in conjugate anyway, but it can't be null while
+        // for conjugate connector turn there may be no original
+        result.put(pas.getFirstEdgeSegment(true), finalProposedShift);
+      }
       return result;
     }
 
@@ -627,6 +633,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       /* truncate to guaranteed available S2 flow */
       smoothedProportionalPasflowShift = guaranteedS2SendingFlow;
+    }
+
+    if(!Double.isNaN(pas.getProposedPasFlowShiftAdjustmentFactor()) &&
+            !Double.isInfinite(pas.getProposedPasFlowShiftAdjustmentFactor())){
+      smoothedProportionalPasflowShift *= pas.getProposedPasFlowShiftAdjustmentFactor();
+      smoothedProportionalPasflowShift = Math.min(guaranteedS2SendingFlow, smoothedProportionalPasflowShift);
     }
 
     for (var entry : bushS2RemainingSendingFlows.entrySet()) {

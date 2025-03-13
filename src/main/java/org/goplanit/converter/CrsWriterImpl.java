@@ -109,7 +109,7 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
    */
   protected static String extractSrsName(CoordinateReferenceSystem crs) {
     String srsName = "";
-    if("EPSG".equals(crs.getName().getCodeSpace())) {
+    if(!crs.getIdentifiers().isEmpty()) {
       /* spatial crs based on epsg code*/
       Integer epsgCode = null;
       try {

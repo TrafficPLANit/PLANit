@@ -791,7 +791,7 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    */
   public void updateActivePassCosts(final double[] linkSegmentCosts) {
     for (Collection<Pas<V,ES>> pass : activePassByVertex.values()) {
-      updatePassCosts(pass, linkSegmentCosts);
+      updatePassCosts(pass, linkSegmentCosts, true);
     }
   }
 
@@ -802,7 +802,7 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    */
   public void updateInactivePassCosts(final double[] linkSegmentCosts) {
     for (Collection<Pas<V,ES>> pass : inactivePassByVertex.values()) {
-      updatePassCosts(pass, linkSegmentCosts);
+      updatePassCosts(pass, linkSegmentCosts, false);
     }
   }
 
@@ -812,9 +812,9 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    * @param pass             collection of specific PASs to update
    * @param linkSegmentCosts to use
    */
-  public void updatePassCosts(Collection<Pas<V,ES>> pass, double[] linkSegmentCosts) {
+  public void updatePassCosts(Collection<Pas<V,ES>> pass, double[] linkSegmentCosts, boolean updateAdjustmentFactor) {
     for (var pas : pass) {
-      pas.updateCost(linkSegmentCosts);
+      pas.updateCost(linkSegmentCosts, updateAdjustmentFactor);
     }
   }
 

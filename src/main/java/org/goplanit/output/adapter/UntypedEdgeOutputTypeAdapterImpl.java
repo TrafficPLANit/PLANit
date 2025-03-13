@@ -22,7 +22,7 @@ public abstract class UntypedEdgeOutputTypeAdapterImpl<ES extends EdgeSegment>
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(UntypedEdgeOutputTypeAdapterImpl.class.getCanonicalName());
 
-  /** in case a edge (segment) has no geometry of its own, we can choose to construct it by creating a line between
+  /** in case an edge (segment) has no geometry of its own, we can choose to construct it by creating a line between
    * the two node locations if possible. This is switched on by default */
   protected static final boolean CONSTRUCT_SEGMENT_GEOMETRY_FROM_NODES_IF_UNAVAILABLE = true;
 

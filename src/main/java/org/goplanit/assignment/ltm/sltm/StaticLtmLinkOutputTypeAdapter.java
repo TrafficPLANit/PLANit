@@ -133,7 +133,9 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    */
   @Override
   public Optional<?> getLinkSegmentOutputPropertyValue(
-          final OutputProperty outputProperty, final MacroscopicLinkSegment linkSegment, final Mode mode,
+      final OutputProperty outputProperty,
+      final MacroscopicLinkSegment linkSegment,
+      final Mode mode,
       final TimePeriod timePeriod) {
 
     Optional<?> value = Optional.empty();

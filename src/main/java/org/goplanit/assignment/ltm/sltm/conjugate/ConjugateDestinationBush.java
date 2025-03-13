@@ -684,7 +684,8 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
             }
             double removedPortionIntoExit = splittingRates[index];
             double removedTotalOnEntry = conjSegmentRemovedFlows.get(entrySegment);
-            double entryAcceptanceFactor =
+            EdgeSegment originalEntrySegment = entrySegment.getOriginalAdjacentEdgeSegments().first();
+            double entryAcceptanceFactor = originalEntrySegment == null ? 1 :
                     nonConjugateFlowAcceptanceFactors[
                             (int) entrySegment.getOriginalAdjacentEdgeSegments().first().getId()];
             // incoming flow removed into this exit as a result of branch shift, track what was removed in total going

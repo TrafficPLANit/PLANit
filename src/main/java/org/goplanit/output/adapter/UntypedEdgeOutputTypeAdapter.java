@@ -121,7 +121,7 @@ public interface UntypedEdgeOutputTypeAdapter<T extends EdgeSegment> extends Out
    * @return the external Id of the current edge segment
    */
   public default Optional<String> getSegmentExternalId(T edgeSegment) {
-    return Optional.of(edgeSegment.getExternalId());
+    return Optional.of(edgeSegment.hasExternalId() ? edgeSegment.getExternalId() : "");
   }
 
   /**
@@ -131,7 +131,7 @@ public interface UntypedEdgeOutputTypeAdapter<T extends EdgeSegment> extends Out
    * @return the XML Id of the current edge segment
    */
   public default Optional<String> getSegmentXmlId(T edgeSegment) {
-    return Optional.of(edgeSegment.getXmlId());
+    return Optional.of(edgeSegment.hasXmlId() ? edgeSegment.getXmlId() : "");
   }
 
   /**

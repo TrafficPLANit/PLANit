@@ -542,7 +542,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param linkSegmentCosts to use
    * @param updateGap        flag
    * @param logAll           flag
-   * @return newly created PASs and exiting PAss with newly assigned bushes
+   * @return newly created PASs and existing PAss with newly assigned bushes
    */
   protected abstract Pair<Collection<Pas<V,ES>>, Collection<Pas<V,ES>>> updateBushPass(
           Mode mode, final double[] linkSegmentCosts, boolean updateGap, boolean logAll);

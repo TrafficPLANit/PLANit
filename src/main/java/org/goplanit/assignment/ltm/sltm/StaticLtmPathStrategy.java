@@ -223,6 +223,9 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(),
             (o, d, demand) -> {
               var odPaths = modeOdMultiPaths.getValue(o, d);
+              if(odPaths == null){
+                return; // in case we have a disconnected OD with non-zero demand, skip
+              }
               double relativeScalingFactor = ((StochasticPathChoice) getPathChoice()).getChoiceModel().getScalingFactor();
 
               if(odPaths.size()>1) {
@@ -319,8 +322,9 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
           var destinationVertex = findDestinationCentroidVertex(destination);
           var sltmPath = oneToAllResult.createPath(pathFactory, originVertex, destinationVertex);
           if (sltmPath == null) {
-            LOGGER.warning(String.format("%sUnable to create path for OD [ o - (%s), d - (%s)] with non-zero demand (%.2f)",
-                    LoggingUtils.runIdPrefix(getAssignmentId()), origin.getIdsAsString(), destination.getIdsAsString(), currOdDemand));
+            LOGGER.warning(String.format("%sUnable to create path for OD [ o - (%s), d - (%s)] with " +
+                "non-zero demand (%.4f)", LoggingUtils.runIdPrefix(
+                        getAssignmentId()), origin.getIdsAsString(), destination.getIdsAsString(), currOdDemand));
             oneToAllResult.createPath(pathFactory, originVertex, destinationVertex);
             continue;
           }
@@ -706,6 +710,9 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
               (o, d, demand) -> {
 
                 var odPaths =  odMultiPathsForMode.getValue(o, d);
+                if(odPaths == null){
+                  return; // non-zero demand for (assumed) disconnected OD, skip
+                }
                 numOdsWithDemand.increment();
 
                 boolean newPathAdded = false;
@@ -752,7 +759,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
-      LOGGER.severe("Unable to complete sLTM iteration, print stack trace when enabling detailed logging");
+      LOGGER.severe("Unable to complete sLTM iteration, enable detailed logging to print stack trace");
       if (getSettings().isDetailedLogging()) {
         e.printStackTrace();
       }

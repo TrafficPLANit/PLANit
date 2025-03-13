@@ -81,6 +81,9 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
   public void accept(OdZone origin, OdZone destination, Double odDemand) {
     /* path */
     var odPaths = odMultiPaths.getValue(origin, destination);
+    if(odPaths == null){
+      return; // no paths for some reason, skip
+    }
     for (StaticLtmDirectedPath odPath : odPaths) {
       double pathDemand = odDemand * odPath.getPathChoiceProbability();
       if(Double.compare(Double.NaN, pathDemand)==0) {
