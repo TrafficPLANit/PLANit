@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -25,7 +26,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
   private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingBushBase.class.getCanonicalName());
 
   /** the bushes managed by the bush strategy but provided to be able to conduct a network loading based on the current state (bush splitting rates) of each bush */
-  private B[] bushes;
+  private Set<B> bushes;
 
   /**
    * the PAS manager with all the currently active PASs, used to determine which nodes to track flows and splitting rates for during network loading, namely all links and nodes
@@ -272,7 +273,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    * 
    * @param bushes to use
    */
-  public void setBushes(final B[] bushes) {
+  public void setBushes(final Set<B> bushes) {
     this.bushes = bushes;    
   }
   

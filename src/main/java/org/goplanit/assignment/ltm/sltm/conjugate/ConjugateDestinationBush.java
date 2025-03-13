@@ -67,8 +67,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * order from start to finish. We utilise the initial sending flow on the indexed conjugate segment as the base
    * flow which is then followed along the subpath through the bush splitting rates up to the final link segment
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 12/12
-   *
    * @param subPathAcceptedFlow accepted flow so far
    * @param compoundedFlowAcceptanceScalingFactor combined multiplied alphas so far
    * @param index              offset to start in array with
@@ -189,8 +187,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * Constructor. It is expected that all provided root vertices represent edges in the original network leading
    * to a single root.
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
-   * 
    * @param idToken          the token to base the id generation on
    * @param destinationCentroidVertex      this conjugate destination bush has rooted conjugate vertices for
    * @param rootVertex       this conjugate node represents the root vertex as it is the dummy node from which all
@@ -322,8 +318,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * If it does exist and there is already flow present, the provided flow is added to it.
    * If by adding the flow (can be negative) the turn no longer has any flow, it is removed
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
-   * 
    * @param turn             the turn in conjugate form
    * @param addFlowPcuH      to add
    * @return new turn sending flow after adding given flow
@@ -349,8 +343,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   /**
    * Collect bush turn sending flow (if any)
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
-   * 
    * @param turn to use
    * @return sending flow, zero if unknown
    */
@@ -362,8 +354,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * Collect the sending flow of a conjugate node (original edge segment) in the conjugate bush, if not present,
    * zero flow is returned.
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
-   * 
    * @param conjugateNode to collect sending flow for
    * @return bush sending flow
    */
@@ -374,8 +364,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   /**
    * Verify if the provided turn has any registered sending flow
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
-   * 
    * @param turn to use
    * @return true when turn sending flow is present, false otherwise
    */
@@ -386,8 +374,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   /**
    * Collect the bush splitting rate on the given turn
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
-   * 
    * @param turn to use
    * @return found splitting rate, in case the turn is not used, 0 is returned
    */
@@ -398,8 +384,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   /**
    * Collect the bush splitting rates for a given conjugate node (original incoming edge segment). If no flow,
    * zero splitting rates are returned
-   *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    * 
    * @param conjugateVertex to use
    * @return splitting rates in primitive array in order of which one iterates over the outgoing (conjugate)
@@ -412,8 +396,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   /**
    * Remove a turn from the conjugate bush
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
-   * 
    * @param turn of the turn
    */
   public void removeTurn(final ConjugateEdgeSegment turn) {
@@ -431,8 +413,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   /**
    * Verify if the bush contains any conjugate edge segment (turn) of the conjugate edge in either direction
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
-   * 
    * @param conjugateEdge to verify
    * @return true when present, false otherwise
    */
@@ -447,8 +427,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
   /**
    * Verify if the bush contains any edge segment attached to the vertex
-   *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    *
    * @param conjugateVertex to verify
    * @return true when an edge segment of the vertex is registered, false otherwise
@@ -489,7 +467,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * @return vertex at which the two paths coincided again and the map to extract the path from this vertex to
    * the reference vertex that was found using the breadth-first method
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    */
   public Pair<ConjugateDirectedVertex, Map<ConjugateDirectedVertex, ConjugateEdgeSegment>> findBushAlternativeSubpath(
           ConjugateDirectedVertex referenceVertex,
@@ -511,7 +488,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * @param nonConjugateLinkSegmentAcceptanceFactors the acceptance factor to apply along the path, indexed by link segment id
    * @return sendingFlowPcuH between start and end vertex following the found sub-path
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11   *
    */
   public double computeSubPathAcceptedFlow(
           final ConjugateDirectedVertex startVertex,
@@ -529,7 +505,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * @param nonConjugateFlowAcceptanceFactors to use
    * @return sendingFlowPcuH between start and end vertex following the sub-path
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    */
   @Override
   public double determineSubPathSendingFlow(
@@ -555,7 +530,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * Verify if empty
    *
    * @return true when empty, false otherwise
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    */
   public boolean isEmpty() {
     return bushData.hasTurnFlows();
@@ -565,7 +539,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * collect destination of this bush
    *
    * @return destination zone
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    */
   public CentroidVertex getDestination() {
     return getRootZoneVertex();
@@ -575,7 +548,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * Each conjugate destination bush is expected to have a single destination zone to which all of its root vertices are connected, which is to be returned here
    *
    * @return destination zone
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    */
   @Override
   public CentroidVertex getRootZoneVertex() {
@@ -584,8 +556,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
   /**
    * Verify if the bush contains the given turn segment.
-   *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    *
    * @param turnSegment to verify
    * @return true when present, false otherwise
@@ -597,7 +567,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   /**
    * {@inheritDoc}
    *
-   * todo: (not todo) NOTE to self, last synced with RootLabelledBush/DestinationBush implementation on 22/11
    */
   @Override
   public void syncToNetworkFlows(double[] originalNetworkFlowAcceptanceFactors) {

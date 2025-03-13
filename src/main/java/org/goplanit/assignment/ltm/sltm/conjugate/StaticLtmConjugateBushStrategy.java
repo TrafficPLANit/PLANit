@@ -21,7 +21,6 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.functionalinterface.TriConsumer;
-import org.goplanit.utils.functionalinterface.TriFunction;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -42,10 +41,7 @@ import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
 import org.ojalgo.array.Array1D;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -462,12 +458,12 @@ public class StaticLtmConjugateBushStrategy
    * @param mode to use
    * @return created empty bushes suitable for this strategy
    */
-  protected ConjugateDestinationBush[] createEmptyBushes(Mode mode) {
+  protected Set<ConjugateDestinationBush> createEmptyBushes(Mode mode) {
 
     var conjugateNetworkLayer =
         conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst();
     Zoning zoning = getTransportNetwork().getZoning();
-    ConjugateDestinationBush[] conjugateBushes = new ConjugateDestinationBush[(int) zoning.getNumberOfCentroids()];
+    Set<ConjugateDestinationBush> conjugateBushes = new TreeSet<>();
 
     OdDemands odDemands = getOdDemands(mode);
     for (var destination : zoning.getOdZones()) {
@@ -500,7 +496,7 @@ public class StaticLtmConjugateBushStrategy
               /* all "real" turns as conjugate segment is a turn */
               conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers(),
               turn2ConjugateSegmentMapping);
-          conjugateBushes[(int) destination.getOdZoneId()] = bush;
+          conjugateBushes.add(bush);
           break;
         }
       }
@@ -510,9 +506,10 @@ public class StaticLtmConjugateBushStrategy
 
   /**
    * {@inheritDoc}
+   *
    */
   @Override
-  protected void initialiseBush(
+  protected boolean initialiseBush(
           ConjugateDestinationBush bush,
           Zoning zoning,
           OdDemands odDemands,
@@ -541,8 +538,9 @@ public class StaticLtmConjugateBushStrategy
         var destinationOriginInvertedDag =
                 allToOneResult.createDirectedAcyclicSubGraph(
                         getIdGroupingToken(), originConjugateReferenceVertex, destinationConjugateReferenceVertex);
-        if (destinationOriginInvertedDag.isEmpty()) {
-          LOGGER.severe(String.format("Unable to create conjugate bush connection(s) from origin (%s) to destination %s", origin.getXmlId(), destination.getXmlId()));
+        if (getSettings().isDetailedLogging() && destinationOriginInvertedDag.isEmpty()) {
+          LOGGER.severe(String.format("Unable to connect origin (%s) to " +
+                  "destination (%s)", origin.getIdsAsString(), destination.getIdsAsString()));
           continue;
         }
 
@@ -554,6 +552,9 @@ public class StaticLtmConjugateBushStrategy
     if(getSettings().isDetailedLogging()) {
       LOGGER.info(bush.toString());
     }
+    // successful unless not a single connection to an origin could be established (bush root is origin only, so
+    // invalid in destination based setting
+    return !bush.getDag().isEmpty();
   }
 
   /**

@@ -1,8 +1,11 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
+import com.sun.source.tree.Tree;
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestBushResult;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -25,7 +28,7 @@ import org.goplanit.zoning.Zoning;
  * @author markr
  *
  */
-public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootLabelled {
+public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootLabelled<DestinationBush> {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmDestinationBushStrategy.class.getCanonicalName());
@@ -65,17 +68,12 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
   }
 
   /**
-   * Loop over all origins for bush' destination and apply demand proportionally across available shortest path(s) based on given demand and shortest path algorithm used
-   * 
-   * @param bush                  to use
-   * @param zoning                to use
-   * @param odDemands             to use
-   * @param shortestBushAlgorithm to use
+   * {@inheritDoc}
    */
   @Override
-  protected void initialiseBush(
-          RootedLabelledBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
-    var destinationVertex = ((DestinationBush) bush).getDestination();
+  protected boolean initialiseBush(
+          DestinationBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
+    var destinationVertex = bush.getDestination();
     var destination = (OdZone) destinationVertex.getParent().getParentZone();
     ShortestBushResult allToOneResult = null;
 
@@ -98,16 +96,17 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
                 allToOneResult.createDirectedAcyclicSubGraph(
                         getIdGroupingToken(), originCentroidVertex, destinationVertex);
         if (destinationOriginInvertedDag.isEmpty()) {
-          LOGGER.severe(String.format("Unable to create bush connection(s) from origin (%s) to destination %s", origin.getXmlId(), destination.getXmlId()));
+          LOGGER.severe(String.format("Unable to create bush connection(s) from origin (%s) to destination %s",
+                  origin.getXmlId(), destination.getXmlId()));
           continue;
         }
 
         // destination bush has root in destination, but still tracks origin demands that it uses
         bush.addOriginDemandPcuH(originCentroidVertex, currOdDemand);
-        initialiseBushForOrigin(
-                (DestinationBush) bush, originCentroidVertex, currOdDemand, destinationOriginInvertedDag);
+        initialiseBushForOrigin(bush, originCentroidVertex, currOdDemand, destinationOriginInvertedDag);
       }
     }
+    return !bush.getDag().isEmpty();
   }
 
 
@@ -118,9 +117,9 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    * @return created destination bushes
    */
   @Override
-  protected DestinationBush[] createEmptyBushes(Mode mode) {
+  protected Set<DestinationBush> createEmptyBushes(Mode mode) {
     Zoning zoning = getTransportNetwork().getZoning();
-    DestinationBush[] destinationBushes = new DestinationBush[(int) zoning.getNumberOfCentroids()];
+    Set<DestinationBush> destinationBushes = new TreeSet<>();
 
     OdDemands odDemands = getOdDemands(mode);
     for (var destination : zoning.getOdZones()) {
@@ -135,7 +134,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
           /* register new bush */
           var bush = new DestinationBush(
                   getIdGroupingToken(), destinationVertex, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
-          destinationBushes[(int) destination.getOdZoneId()] = bush;
+          destinationBushes.add(bush);
           break;
         }
       }

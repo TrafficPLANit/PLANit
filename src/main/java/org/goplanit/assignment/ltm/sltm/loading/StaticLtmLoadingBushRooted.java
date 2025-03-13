@@ -19,7 +19,7 @@ import org.goplanit.utils.network.layer.physical.Movement;
  * @author markr
  *
  */
-public class StaticLtmLoadingBushRooted extends StaticLtmLoadingBushBase<RootedLabelledBush> {
+public class StaticLtmLoadingBushRooted<B> extends StaticLtmLoadingBushBase<RootedLabelledBush> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingBushRooted.class.getCanonicalName());

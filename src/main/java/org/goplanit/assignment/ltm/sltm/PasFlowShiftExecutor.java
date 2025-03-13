@@ -165,7 +165,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
 
     var mostRestrictingOutSegment = consumer.getMostRestrictingOutSegment();
     if (mostRestrictingOutSegment == null) {
-      LOGGER.severe(String.format("Expected most restricting our segment to be present given that " +
+      LOGGER.severe(String.format("Expected most restricting out segment to be present given that " +
                       "incoming segment (%s) is congested, but not found, this shouldn't happen",
               entrySegment.getXmlId()));
     }

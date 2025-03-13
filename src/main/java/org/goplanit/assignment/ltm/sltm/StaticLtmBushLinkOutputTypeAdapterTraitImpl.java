@@ -13,6 +13,7 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -101,7 +102,8 @@ public class StaticLtmBushLinkOutputTypeAdapterTraitImpl extends BushNetworkSegm
    * {@inheritDoc}
    */
   @Override
-  public RootedBush<? extends DirectedVertex, ? extends EdgeSegment>[] getBushes() {
-    return getBushBasedAssignmentStrategy().getBushes();
+  public Set<RootedBush<? extends DirectedVertex, ? extends EdgeSegment>> getBushes() {
+    return (Set<RootedBush<? extends DirectedVertex, ? extends EdgeSegment>>)
+            getBushBasedAssignmentStrategy().getBushes();
   }
 }

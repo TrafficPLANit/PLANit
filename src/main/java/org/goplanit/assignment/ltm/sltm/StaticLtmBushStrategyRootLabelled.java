@@ -27,8 +27,8 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public abstract class StaticLtmBushStrategyRootLabelled
-        extends StaticLtmBushStrategyBase<DirectedVertex, EdgeSegment, RootedLabelledBush> {
+public abstract class StaticLtmBushStrategyRootLabelled<B extends RootedLabelledBush>
+        extends StaticLtmBushStrategyBase<DirectedVertex, EdgeSegment, B> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategyRootLabelled.class.getCanonicalName());

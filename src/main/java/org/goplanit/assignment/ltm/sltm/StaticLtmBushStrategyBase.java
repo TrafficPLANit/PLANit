@@ -47,7 +47,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * tracked bushes (with non-zero demand)
    */
-  private B[] bushes;
+  private Set<B> bushes;
 
   /**
    * Knowing which edge segments no longer have flow for the given bushes, we must deregister all these bushes from
@@ -513,7 +513,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * access to bushes
    * @return bushes
    */
-  protected B[] getBushes(){
+  protected Set<B> getBushes(){
     return bushes;
   }
 
@@ -575,7 +575,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param mode to use
    * @return created empty bushes suitable for this strategy
    */
-  protected abstract B[] createEmptyBushes(Mode mode);
+  protected abstract Set<B> createEmptyBushes(Mode mode);
 
   /**
    * Initialise the sLTM bush by including the relevant DAGs based on available demand and bush layout. When equal costs are found between alternative paths OD demand is to be
@@ -587,8 +587,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param zoning                to use
    * @param odDemands             to use
    * @param shortestBushAlgorithm to use
+   * @return true when successful, false when bush could not be initialised
    */
-  protected abstract void initialiseBush(
+  protected abstract boolean initialiseBush(
           B bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm);
 
   /**
@@ -611,18 +612,26 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   protected void initialiseBushes(Mode mode, final double[] linkSegmentCosts){
     final var shortestBushAlgorithm = createNetworkShortestBushAlgo(mode, linkSegmentCosts);
 
+    Set<B> invalidBushesToRemove = new TreeSet<>();
     Zoning zoning = getTransportNetwork().getZoning();
     OdDemands odDemands = getOdDemands(mode);
     for (B bush : bushes) {
       if (bush == null) {
         continue;
       }
-      initialiseBush(bush, zoning, odDemands, shortestBushAlgorithm);
+      boolean validBush = initialiseBush(bush, zoning, odDemands, shortestBushAlgorithm);
+      if(!validBush){
+        LOGGER.warning(String.format("Bush for root zone (%s) could not be initialised, likely due to lack of connectivity " +
+                "as a destination, discard", bush.getRootZone().getIdsAsString()));
+        invalidBushesToRemove.add(bush);
+        continue;
+      }
 
       if (isDestinationTrackedForLogging(bush)) {
         LOGGER.info(bush.toString());
       }
     }
+    invalidBushesToRemove.forEach(b -> bushes.remove(b));
   }
 
   /**
@@ -728,7 +737,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     try {
 
       /* delegate to concrete implementation */
-      if (this.bushes == null || this.bushes.length == 0) {
+      if (this.bushes == null || this.bushes.isEmpty()) {
         this.bushes = createEmptyBushes(mode);
       }
       initialiseBushes(mode, initialLinkSegmentCosts);

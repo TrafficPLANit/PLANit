@@ -16,6 +16,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.time.TimePeriod;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -25,12 +26,12 @@ import java.util.logging.Logger;
  *   Currently no additional options compared to the regular network link output type adapter are supported hence
  *   this class only masks its untyped counterpart, when new option are to be made available implement them here.
  * </p>
- * 
+ *
  * @author markr
  *
  */
 public abstract class BushLinkOutputTypeAdapterImpl
-    extends UntypedEdgeOutputTypeAdapterImpl<EdgeSegment> implements BushLinkOutputTypeAdapter {
+        extends UntypedEdgeOutputTypeAdapterImpl<EdgeSegment> implements BushLinkOutputTypeAdapter {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(BushLinkOutputTypeAdapterImpl.class.getCanonicalName());
@@ -74,7 +75,7 @@ public abstract class BushLinkOutputTypeAdapterImpl
    */
   @Override
   public Optional<?> getEdgeSegmentOutputPropertyValue(
-      OutputProperty outputProperty, EdgeSegment linkSegment, Mode mode, TimePeriod timePeriod) {
+          OutputProperty outputProperty, EdgeSegment linkSegment, Mode mode, TimePeriod timePeriod) {
 
     Optional<?> value = super.getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
     if (value.isPresent()) {
@@ -89,11 +90,11 @@ public abstract class BushLinkOutputTypeAdapterImpl
     return Optional.empty();
   }
 
-    /**
+  /**
    * {@inheritDoc}
    */
   @Override
-  public RootedBush<? extends DirectedVertex, ? extends EdgeSegment>[] getBushes() {
-    return bushSegmentsTrait.getBushes();
+  public Set<RootedBush<? extends DirectedVertex, ? extends EdgeSegment>> getBushes() {
+    return (Set<RootedBush<? extends DirectedVertex, ? extends EdgeSegment>>) bushSegmentsTrait.getBushes();
   }
 }
