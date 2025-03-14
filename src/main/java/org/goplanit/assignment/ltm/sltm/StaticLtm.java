@@ -220,15 +220,13 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     var modes = simulationData.getSupportedModes();
     if (getOutputManager().isPersistAnyOutput(timePeriod, modes, converged)) {
 
-      assignmentStrategy.getLoading().stepSixFinaliseForAnalysis(modes.iterator().next());
-      getOutputManager().persistOutputData(timePeriod, modes, converged);
-
-      if(isActivateDetailedLogging()) {
-        Function<double[],double[]> truncate100Entries = original -> Arrays.copyOf(original, Math.min(original.length, 100));
-        LOGGER.info(String.format("** INFLOW (0-100): %s", Arrays.toString(truncate100Entries.apply(assignmentStrategy.getLoading().getCurrentInflowsPcuH()))));
-        LOGGER.info(String.format("** OUTFLOW (0-100): %s", Arrays.toString(truncate100Entries.apply(assignmentStrategy.getLoading().getCurrentOutflowsPcuH()))));
-        LOGGER.info(String.format("** ALPHA (0-100): %s", Arrays.toString(truncate100Entries.apply(assignmentStrategy.getLoading().getCurrentFlowAcceptanceFactors()))));
+      if(settings.getSltmType() == StaticLtmType.PATH_BASED) {
+        // for bush based we already do stepSixFinaliseForAnalysis this before cost update (maybe we shouldn't though)
+        // and doing it here again AFTER bush flow shifts causes problems for some reason, so implemented ugly hack
+        // around it for now let's leave it TODO: streamline this as it is ugly and costly
+        assignmentStrategy.getLoading().stepSixFinaliseForAnalysis(modes.iterator().next());
       }
+      getOutputManager().persistOutputData(timePeriod, modes, converged);
     }
   }
 

@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
+import org.goplanit.algorithms.shortest.ShortestResult;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -156,9 +157,9 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
       boolean ableToDirectlyVerifyCycle = topoTraversedVertices.containsKey(currAltVertex);
       if(ableToDirectlyVerifyCycle){
         if(topoTraversedVertices.get(currAltVertex) < maxAllowedTopologicalIndex){
-          // when curr vertex has a more restricting location in the topological order, then reduce the index so that we ensure we do
-          // not allow any connections to a vertex that occurs later, i.e, closing a loop. For now it means no cycle though
-          // because it should be smaller each time
+          // when curr vertex has a more restricting location in the topological order, then reduce the index so that
+          // we ensure we do not allow any connections to a vertex that occurs later, i.e, closing a loop. For now,
+          // it means no cycle though because it should be smaller each time
           maxAllowedTopologicalIndex = topoTraversedVertices.get(currAltVertex);
           guaranteedNoCycle = true;
         }else{

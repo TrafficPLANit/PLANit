@@ -683,7 +683,7 @@ public abstract class StaticLtmNetworkLoading {
       var nodeModel = TampereNodeModel.of(inCapacities, outReceivingFlows, turnSendingFlows);
       Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
 
-      if(node.getId() == 620L){
+      if(node.getId() == 1164L){
         LOGGER.info(String.format("DEBUG node (%s): alphas: %s (turn flows: %s) - (type: %s)",
                 node.getIdsAsString(), localFlowAcceptanceFactors, turnSendingFlows, consumer.getClass().getName()));
       }
@@ -1067,12 +1067,12 @@ public abstract class StaticLtmNetworkLoading {
       stepTwoInflowSendingFlowUpdate(mode);
       stepThreeSplittingRateUpdate(mode);
       stepFourOutflowAndReceivingFlowUpdate(mode);
-      // Step 5 (make flow accpetance factors consistent without recomputing gap))
+      // Step 5 (make flow acceptance factors consistent without recomputing gap)
       updateNextFlowAcceptanceFactors();
       networkLoadingFactorData.swapCurrentAndNextFlowAcceptanceFactors();
     }
 
-    /* limit to capacities in case loading + alphas caused slight discrepenacies due to local convergence not being
+    /* limit to capacities in case loading + alphas caused slight discrepancies due to local convergence not being
      * exactly 0 */
     {
       //networkLoadingSendingFlowOutflowUpdate(mode);   // reworked above to trigger full update so not needed anymore

@@ -3,10 +3,7 @@ package org.goplanit.assignment.ltm.sltm.conjugate;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
-import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
-import org.goplanit.algorithms.shortest.ShortestBushResult;
-import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
-import org.goplanit.algorithms.shortest.ShortestPathResult;
+import org.goplanit.algorithms.shortest.*;
 import org.goplanit.assignment.ltm.sltm.*;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
@@ -357,7 +354,8 @@ public class StaticLtmConjugateBushStrategy
    * @param reducedCostVertex to use for creating the PAS as a cheaper path to the root exists at this vertex
    * @param conjugateNetworkMinPaths   the current conjugate network shortest path tree
    * @param reducedCost       to check if new PAS is considered effective
-   * @param conjugateLinkSegmentCosts  to check if new PAS is considered effective
+   * @param bushMinMaxPathResult used for cycle detection
+   * @param conjugateLinkSegmentCosts  to check if new PAS is considered effective and cycle detection
    * @return new created PAS if successfully created, null otherwise, the boolean indicates if it indeed is a brand
    * new PAS or for some reason we still reused an existing one
    */
@@ -366,6 +364,7 @@ public class StaticLtmConjugateBushStrategy
           final ConjugateDirectedVertex reducedCostVertex,
           final ShortestPathResult conjugateNetworkMinPaths,
           double reducedCost,
+          MinMaxPathResult bushMinMaxPathResult,
           double[] conjugateLinkSegmentCosts) {
 
     /* Label all vertices on shortest path root-reducedCostVertex as -1, and PAS reference vertex itself as 1 */
@@ -730,7 +729,7 @@ public class StaticLtmConjugateBushStrategy
 
         /* no suitable match, attempt creating an entirely new PAS */
         var newPas = extendConjugateBushWithNewPas(
-                conjBush, conjBushVertex, conjNetworkMinPaths, reducedCost, conjLinkSegmentCosts);
+                conjBush, conjBushVertex, conjNetworkMinPaths, reducedCost, conjBushMinMaxPaths, conjLinkSegmentCosts);
         if (newPas == null) {
           continue;
         }

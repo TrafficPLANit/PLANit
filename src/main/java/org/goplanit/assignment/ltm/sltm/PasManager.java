@@ -631,9 +631,11 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
     // track as unused pass which may later be activated again
     inactivePassByVertex.putIfAbsent(refVertex, new ArrayList<>());
     inactivePassByVertex.get(refVertex).add(pas);
-    if (logDeactivatedPas) {
-      LOGGER.info(String.format("Deactivated existing PAS: %s", pas.toString()));
-    }
+
+    // larger networks cause massive logging, switched off for now
+//    if (logDeactivatedPas) {
+//      LOGGER.info(String.format("Deactivated existing PAS: %s", pas.toString()));
+//    }
   }
 
   /**
