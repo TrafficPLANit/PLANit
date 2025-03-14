@@ -24,7 +24,8 @@ import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoid
  * @author markr
  *
  */
-public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> implements BushFlowUpdateConsumer<ConjugateDestinationBush> {
+public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData>
+        implements BushFlowUpdateConsumer<ConjugateDestinationBush> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateBushFlowUpdateConsumerImpl.class.getCanonicalName());

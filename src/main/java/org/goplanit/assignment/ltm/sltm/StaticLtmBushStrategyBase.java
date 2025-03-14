@@ -2,7 +2,9 @@ package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
+import org.goplanit.assignment.ltm.sltm.consumer.NMRCollectMostRestrictingTurnConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
+import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
@@ -21,6 +23,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.zoning.OdZone;
@@ -780,7 +783,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       {
         executeNetworkLoading(theMode);
       }
-             
+
       /* 2 - NETWORK COST UPDATE + UPDATE NETWORK REALISED COST GAP */
       {
         boolean updateOnlyPotentiallyBlockingNodeCosts = isUpdateOnlyPotentiallyBlockingNodeCosts();
@@ -791,34 +794,38 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
                   theMode, getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments(), costsToUpdate);
         }
         this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
-        
+
         /* PAS COST UPDATE*/
         updatePasCosts(theMode, costsToUpdate);
 
-        if(getSettings().isDetailedLogging()){
-          LOGGER.info(String.format("** ALPHA: %s", Arrays.toString(getLoading().getCurrentFlowAcceptanceFactors())));
-          LOGGER.info(String.format("** COSTS: %s", Arrays.toString(costsToUpdate)));
-          LOGGER.info(String.format("** INFLOW: %s", Arrays.toString(getLoading().getCurrentInflowsPcuH())));
-          LOGGER.info(String.format("** OUTFLOW: %s", Arrays.toString(getLoading().getCurrentOutflowsPcuH())));
-        }
-
         // DEBUGGING
         if(getSettings().isDetailedLogging()){
+          List<String> idList = new ArrayList<>();
+          List<Quadruple<Double, Double, Double,Double>> alphaCostInOutflowList = new ArrayList<>();
           var alphas = getLoading().getCurrentFlowAcceptanceFactors();
           for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
             if(alphas[(int)ls.getId()]<0.999999999998){
-              LOGGER.info(String.format("Link (%s) - Acceptance Factor: %.4f - Sending flow: %.2f",
-                      ls.getIdsAsString(), alphas[(int)ls.getId()], getLoading().getCurrentInflowsPcuH()[(int)ls.getId()]));
+              idList.add(ls.getIdsAsString());
+              alphaCostInOutflowList.add(Quadruple.of(
+                      alphas[(int)ls.getId()],
+                      costsToUpdate[(int)ls.getId()],
+                      getLoading().getCurrentInflowsPcuH()[(int)ls.getId()],
+                      getLoading().getCurrentOutflowsPcuH()[(int)ls.getId()]));
             }
+          }
+          for(int index =0 ; index<idList.size();++index){
+            var quad = alphaCostInOutflowList.get(index);
+            LOGGER.info(String.format("Congested Link (%s) - U: %.1f - V: %.1f - alpha: %.2f - cost: %.8f",
+                    idList.get(index), quad.third(), quad.fourth(), quad.first(), quad.second()));
           }
         }
       }
-      
+
       /* 3 - BUSH LOADING - SYNC BUSH TURN FLOWS - USE NETWORK LOADING ALPHAS - MODE AGNOSTIC FOR NOW */
       {
         syncBushFlowsToNetworkFlows();
       }
-      
+
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */     
       {
         // debugging

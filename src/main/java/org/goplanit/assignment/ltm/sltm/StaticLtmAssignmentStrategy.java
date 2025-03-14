@@ -357,14 +357,15 @@ public abstract class StaticLtmAssignmentStrategy {
   }
 
   /**
-   * Construct the dCost/dFlow per link segment for the purpose of determining steps towards equilibrium. Derivatives are
-   * calculated base don the adopted physical and virtual cost components and existing flows in the underlying network loading
-   * iteration
+   * Construct the dCost/dFlow per link segment for the purpose of determining steps towards equilibrium. Derivatives
+   * are calculated based on the adopted physical and virtual cost components and existing flows in the underlying
+   * network loading iteration
    *
    * @param theMode mode to populate for
-   * @param updateOnlyPotentiallyBlockingNodeCosts when true we only consider incoming links into potentiall blocking nodes (assuming
-   *                                               dCost/dFlow is zero for all non-blocking nodes which is only valid if a linear free flow
-   *                                               branch for the Fundamental diagram is adopted.
+   * @param updateOnlyPotentiallyBlockingNodeCosts when true we only consider incoming links into potentially blocking
+   *                                               nodes (assuming dCost/dFlow is zero for all non-blocking nodes which
+   *                                               is only valid if a linear free flow branch for the Fundamental
+   *                                               diagram is adopted.
    * @return resulting dCostDFlow per link segment involved (zero for non-touched link segments)
    */
   protected double[] constructLinkBasedDCostDFlow(Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts){

@@ -620,18 +620,18 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    * Deactivate the PAS
    * 
    * @param pas           to remove
-   * @param logRemovedPas when true log removed pas, when false do not
+   * @param logDeactivatedPas when true log deactived pas, when false do not
    */
-  public void deactivatePas(final Pas<V,ES> pas, boolean logRemovedPas) {
+  public void deactivatePas(final Pas<V,ES> pas, boolean logDeactivatedPas) {
     var refVertex = this.getReferenceVertex.apply(pas);
     // remove from active pass
     activePassByVertex.get(this.getReferenceVertex.apply(pas)).remove(pas);
     // remove all bushes from PAS if any are remaining
     pas.removeAllRegisteredBushes();
-    // track as unused pass whihc may later be activated again
+    // track as unused pass which may later be activated again
     inactivePassByVertex.putIfAbsent(refVertex, new ArrayList<>());
     inactivePassByVertex.get(refVertex).add(pas);
-    if (logRemovedPas) {
+    if (logDeactivatedPas) {
       LOGGER.info(String.format("Deactivated existing PAS: %s", pas.toString()));
     }
   }

@@ -189,7 +189,8 @@ public class StaticLtmConjugateBushStrategy
     long numSwaps = countSwappedPassCurr.longValue() - countSwappedPassPrev.longValue();
     if(pasManager.getNumberOfActivePass()>0) {
       double percentageSwapped = (numSwaps * 100) / (double) pasManager.getNumberOfActivePass();
-      LOGGER.info(String.format("%.2f%% (%d/%d) of Active PASs  swapped which alternative was cheapest", percentageSwapped, numSwaps, pasManager.getNumberOfActivePass()));
+      LOGGER.info(String.format("%.2f%% (%d/%d) of Active PASs  swapped which alternative was cheapest",
+              percentageSwapped, numSwaps, pasManager.getNumberOfActivePass()));
     }
 
   }
@@ -223,6 +224,10 @@ public class StaticLtmConjugateBushStrategy
         es -> getLoading().getSplittingRateData().getSplittingRates(es).copy();
     // end prep
 
+    // TODO: currently we do not actuall check if it is a zero-flow turn, we should because due to slight
+    //  inconsistencies in the iterative loading procedure this sometimes gets triggered for turns with non-zero flow
+    //  which is not great.
+
     // Prep Lambda Function that will ultimately perform the cost update after the node model calculation
     TriConsumer<EdgeSegment, EdgeSegment, Double> discontinuityTurnCostReplacementConsumer = (entry, exit, alpha) ->
       {
@@ -246,13 +251,19 @@ public class StaticLtmConjugateBushStrategy
             virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) entry):
             physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) entry);
         getLoading().getCurrentOutflowsPcuH()[(int)entry.getId()] = originalNlOutflow; // place original cost back
-        assert(originalNlOutflow > outflowConsistentWithNonZeroTurnFlow);
+        assert(originalNlOutflow >= outflowConsistentWithNonZeroTurnFlow);
 
         //3. overwrite existing costs for turns where discontinuity was found
         var conjugateSegment = turn2ConjugateSegmentMapping.get(entry, exit);
         assert (conjSegmentCosts[(int)conjugateSegment.getId()] <= disContinuitySegmentCost);
-        conjSegmentCosts[(int)conjugateSegment.getId()] = disContinuitySegmentCost;
-        numDiscontinuitiesUpdated.increment();
+
+        // in case cost has not changed (can happen in change in drop in alpha is offset in increased inflow due to
+        // slight discrepancy when ending iterative loading procedure, then ignore update, otherwise, true
+        // discontinuity found and update
+        if(conjSegmentCosts[(int)conjugateSegment.getId()] < disContinuitySegmentCost) {
+          conjSegmentCosts[(int) conjugateSegment.getId()] = disContinuitySegmentCost;
+          numDiscontinuitiesUpdated.increment();
+        }
       };
     //
 
@@ -330,7 +341,8 @@ public class StaticLtmConjugateBushStrategy
       pasManager.reactivatePas(suitablePas);
     }
     boolean newlyRegistered = suitablePas.registerBush(bush);
-    if (newlyRegistered && getSettings().isDetailedLogging()) {
+    if (newlyRegistered && getSettings().isDetailedLogging()
+            && getSettings().isTrackDestinationForLogging((OdZone) bush.getRootZone())) {
       LOGGER.info(String.format("Destination %s added to PAS %s",
               bush.getRootZoneVertex().getParent().getParentZone().getXmlId(), suitablePas));
     }
@@ -446,7 +458,7 @@ public class StaticLtmConjugateBushStrategy
     /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance
      * factor information */
     getLoading().activateNodeTrackingFor(pas);
-    if(getSettings().isDetailedLogging() || isDestinationTrackedForLogging(bush)) {
+    if(getSettings().isDetailedLogging() && isDestinationTrackedForLogging(bush)) {
       LOGGER.info(String.format("Created new PAS: %s", pas));
     }
     return pas;
@@ -538,9 +550,11 @@ public class StaticLtmConjugateBushStrategy
         var destinationOriginInvertedDag =
                 allToOneResult.createDirectedAcyclicSubGraph(
                         getIdGroupingToken(), originConjugateReferenceVertex, destinationConjugateReferenceVertex);
-        if (getSettings().isDetailedLogging() && destinationOriginInvertedDag.isEmpty()) {
-          LOGGER.severe(String.format("Unable to connect origin (%s) to " +
-                  "destination (%s)", origin.getIdsAsString(), destination.getIdsAsString()));
+        if (destinationOriginInvertedDag.isEmpty()) {
+          if(getSettings().isDetailedLogging()) {
+            LOGGER.severe(String.format("Unable to connect origin (%s) to " +
+                    "destination (%s)", origin.getIdsAsString(), destination.getIdsAsString()));
+          }
           continue;
         }
 

@@ -292,8 +292,9 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   }
 
   /**
-   * Conduct an update of the bush turn flows based on the network flow acceptance factors by conducting a bush DAG loading and updating the turn sending flows from the root, i.e.,
-   * scale them back with the flow acceptance factor whenever one is encountered.
+   * Conduct an update of the bush turn flows based on the network flow acceptance factors by conducting a bush DAG
+   * loading and updating the turn sending flows from the root, i.e., scale them back with the flow acceptance factor
+   * whenever one is encountered.
    *
    * @param flowAcceptanceFactors to use
    */

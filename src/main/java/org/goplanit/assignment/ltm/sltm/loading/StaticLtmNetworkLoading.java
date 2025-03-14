@@ -187,7 +187,8 @@ public abstract class StaticLtmNetworkLoading {
    *
    * @return created splittingRateData class
    */
-  private NetworkLoadingSplittingRateData createSplittingRateData(NetworkLoadingSplittingRateData prevIterationSplittingRateData) {
+  private NetworkLoadingSplittingRateData createSplittingRateData(
+          NetworkLoadingSplittingRateData prevIterationSplittingRateData) {
 
     int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
     /* POINT QUEUE BASIC */
@@ -196,7 +197,8 @@ public abstract class StaticLtmNetworkLoading {
     }
     /* OTHER, e.g. physical queues and advanced point queue model */
     else if (!this.solutionScheme.equals(StaticLtmLoadingScheme.NONE)) {
-      nlSplittingRateData = new NetworkLoadingSplittingRateDataComplete(numberOfVertices, this.nlInFlowOutflowData.getInflows().length);
+      nlSplittingRateData = new NetworkLoadingSplittingRateDataComplete(
+              numberOfVertices, this.nlInFlowOutflowData.getInflows().length);
     }
 
     if(nlSplittingRateData == null){
@@ -680,6 +682,11 @@ public abstract class StaticLtmNetworkLoading {
     try {
       var nodeModel = TampereNodeModel.of(inCapacities, outReceivingFlows, turnSendingFlows);
       Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
+
+      if(node.getId() == 620L){
+        LOGGER.info(String.format("DEBUG node (%s): alphas: %s (turn flows: %s) - (type: %s)",
+                node.getIdsAsString(), localFlowAcceptanceFactors, turnSendingFlows, consumer.getClass().getName()));
+      }
         
       /* delegate to consumer */
       consumer.acceptTurnBasedResult(node, localFlowAcceptanceFactors, nodeModel);
@@ -753,8 +760,8 @@ public abstract class StaticLtmNetworkLoading {
     /* 2. Initial sending flows via network loading Eq. (3)-(4) in paper: unconstrained network loading */
     initialiseSendingFlows(mode, true);
     
-    /* Depending on the solution scheme we either track all used nodes in the network, or a subset. Either way these need to be 
-     * activated/initialized before commencing the loading. This is done here. */
+    /* Depending on the solution scheme we either track all used nodes in the network, or a subset. Either way these
+    need to be activated/initialized before commencing the loading. This is done here. */
     initialiseNodeSplittingRateStatus();
     
     /* 3. limit flows to capacity s_a=r_a=min(u_a,cap_a) */
@@ -1041,40 +1048,41 @@ public abstract class StaticLtmNetworkLoading {
      * Persistence requires all network data available, when not tracking entire network during loading
      * we must now switch to full network tracking for persistence purpose. 
      */
+    int originalMaxIterations = this.sendingFlowGapFunction.getStopCriterion().getMaxIterations();
+    /* prep: force single iteration on sending flow/inflow update */
+    this.sendingFlowGapFunction.getStopCriterion().setMaxIterations(1);
+
     if (!isTrackAllNodeTurnFlowsDuringLoading()) {
       
       /* triggers tracking all node turn flows for loading steps */
       this.solutionScheme = StaticLtmLoadingScheme.POINT_QUEUE_ADVANCED;
-      
-      /* prep: force single iteration on sending flow/inflow update */
-      int originalMaxIterations = this.sendingFlowGapFunction.getStopCriterion().getMaxIterations();
-      this.sendingFlowGapFunction.getStopCriterion().setMaxIterations(1);      
-      
+
       /* update sending flows, inflows, outflows on all links with minimal overhead */
       initialiseTrackAllNodeTurnFlows(mode);
-
-      /* conduct full network loading to ensure all variables are available based on most recent route choice results */
-      {
-        stepOneSplittingRatesUpdate(mode);
-        stepTwoInflowSendingFlowUpdate(mode);
-        stepThreeSplittingRateUpdate(mode);
-        stepFourOutflowAndReceivingFlowUpdate(mode);
-      }
-      
-      /* post */
-      this.sendingFlowGapFunction.getStopCriterion().setMaxIterations(originalMaxIterations);
     }
-    
-    /* Do one final loading updating inflows and outflows simultaneously to ensure consistency in flows across
-     * network as local updates on sending/receiving and in/outflows might otherwise cause slight discrepancies
-     * in final result that look strange, e.g., outflow>inflow etc.
-     */
+
+    /* conduct one full network loading to ensure all variables are available based on current route choice results */
     {
-      networkLoadingSendingFlowOutflowUpdate(mode);
+      stepOneSplittingRatesUpdate(mode);
+      stepTwoInflowSendingFlowUpdate(mode);
+      stepThreeSplittingRateUpdate(mode);
+      stepFourOutflowAndReceivingFlowUpdate(mode);
+      // Step 5 (make flow accpetance factors consistent without recomputing gap))
+      updateNextFlowAcceptanceFactors();
+      networkLoadingFactorData.swapCurrentAndNextFlowAcceptanceFactors();
+    }
+
+    /* limit to capacities in case loading + alphas caused slight discrepenacies due to local convergence not being
+     * exactly 0 */
+    {
+      //networkLoadingSendingFlowOutflowUpdate(mode);   // reworked above to trigger full update so not needed anymore
       nlSendingFlowData.limitCurrentSendingFlowsToCapacity(networkLayer.getLinkSegments());
       LinkSegmentData.copyTo(nlSendingFlowData.getCurrentSendingFlows(), nlInFlowOutflowData.getInflows());
       nlInFlowOutflowData.limitOutflowsToCapacity(networkLayer.getLinkSegments());
     }
+
+    /* post */
+    this.sendingFlowGapFunction.getStopCriterion().setMaxIterations(originalMaxIterations);
   }
 
   /**
