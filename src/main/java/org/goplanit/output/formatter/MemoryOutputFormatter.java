@@ -269,7 +269,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     OutputType outputType = (OutputType) currentOutputType;
     OutputProperty[] outputProperties = outputValueProperties.get(outputType);
     OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
-    MacroscopicLinkOutputTypeAdapter linkOutputTypeAdapter = (MacroscopicLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+    MacroscopicLinkOutputTypeAdapter linkOutputTypeAdapter =
+            (MacroscopicLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
 
     for (Mode mode : modes) {
       // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely

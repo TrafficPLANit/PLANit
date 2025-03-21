@@ -98,7 +98,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     var assignmentFactory = new PlanitComponentFactory<TrafficAssignment>(NetworkLoading.class.getCanonicalName());
     assignmentFactory.addListener(getInputBuilderListener());
 
-    var networkLoadingAndAssignment = assignmentFactory.createAndDispatch(trafficAssignmentClassName, new Object[] { groupId });
+    var networkLoadingAndAssignment =
+            assignmentFactory.createAndDispatch(trafficAssignmentClassName, new Object[] { groupId });
     PlanItException.throwIf(!(networkLoadingAndAssignment instanceof TrafficAssignment), "not a valid traffic assignment type");
     return (T) networkLoadingAndAssignment;
   }

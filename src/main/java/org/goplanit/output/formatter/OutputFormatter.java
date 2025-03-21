@@ -49,7 +49,12 @@ public interface OutputFormatter {
    * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to be saved
    * @param outputAdapter           OutputAdapter for the assignment to be saved
    */
-  public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter);
+  public void persist(
+          TimePeriod timePeriod,
+          Set<Mode> modes,
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputAdapter outputAdapter);
 
   /**
    * Open resources to store results
@@ -69,7 +74,10 @@ public interface OutputFormatter {
    * @param iterationIndex the last iteration index of the last time period used before the simulation eneded
    */
   public void finaliseAfterSimulation(
-          OutputConfiguration outputConfiguration, OutputAdapter outputAdapter, TimePeriod timePeriod, int iterationIndex);
+          OutputConfiguration outputConfiguration,
+          OutputAdapter outputAdapter,
+          TimePeriod timePeriod,
+          int iterationIndex);
 
   /**
    * Flag to indicate whether an implementation can handle multiple iterations

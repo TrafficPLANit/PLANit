@@ -187,7 +187,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @return gap function configuration object
    * @throws PlanItException thrown if there is an error
    */
-  public GapFunctionConfigurator<? extends GapFunction> createAndRegisterGapFunction(final String gapFunctionType) throws PlanItException {
+  public GapFunctionConfigurator<? extends GapFunction> createAndRegisterGapFunction(
+          final String gapFunctionType) throws PlanItException {
     gapFunctionConfigurator = GapFunctionConfiguratorFactory.createConfigurator(gapFunctionType);
     return gapFunctionConfigurator;
   }
@@ -210,7 +211,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @return the physical cost created
    * @throws PlanItException thrown if there is an error
    */
-  public PhysicalCostConfigurator<? extends AbstractPhysicalCost> createAndRegisterPhysicalCost(final String physicalTravelTimeCostFunctionType) throws PlanItException {
+  public PhysicalCostConfigurator<? extends AbstractPhysicalCost> createAndRegisterPhysicalCost(
+          final String physicalTravelTimeCostFunctionType) throws PlanItException {
     physicalCostConfigurator = PhysicalCostConfiguratorFactory.createConfigurator(physicalTravelTimeCostFunctionType);
     return physicalCostConfigurator;
   }
@@ -289,7 +291,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    * @throws PlanItException thrown if time period is null
    */
-  public void registerInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialModesLinkSegmentCost initialLinkSegmentCost) throws PlanItException {
+  public void registerInitialLinkSegmentCost(
+          final TimePeriod timePeriod, final InitialModesLinkSegmentCost initialLinkSegmentCost) throws PlanItException {
     PlanItException.throwIf(timePeriod == null, "time period null when registering initial link segment costs");
     registerDelayedMethodCall(SET_INITIAL_LINK_SEGMENT_COST, timePeriod, initialLinkSegmentCost);
   }

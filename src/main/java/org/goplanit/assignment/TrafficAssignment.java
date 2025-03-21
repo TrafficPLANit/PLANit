@@ -344,15 +344,6 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   }
 
   /**
-   * Collect the output manager
-   * 
-   * @return output manager for this assignment
-   */
-  protected OutputManager getOutputManager() {
-    return outputManager;
-  }
-
-  /**
    * log registering an item on this traffic assignment
    * 
    * @param item     to (un)register
@@ -717,6 +708,15 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
     outputManager.getOutputFormatters().forEach(of -> logRegisteredComponentName(of, true));
     outputManager.getRegisteredOutputTypeConfigurations().forEach(
         oc -> LOGGER.info(LoggingUtils.runIdPrefix(this.getId()) + "activated: OutputType." + oc.getOutputType()));
+  }
+
+  /**
+   * Collect the output manager
+   *
+   * @return output manager for this assignment
+   */
+  public OutputManager getOutputManager() {
+    return outputManager;
   }
 
   /**
