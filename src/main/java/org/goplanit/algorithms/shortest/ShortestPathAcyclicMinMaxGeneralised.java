@@ -4,10 +4,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -115,8 +112,10 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
           int nextVertexIndex = (int) this.getVertexAtExtreme.apply(currEdgeSegment).getId();
 
           /* min cost update */
+          double minCostCurrVertex = minCost[vertexIndex];
           double foundCostToNextVertex = minCost[vertexIndex] + edgeCost;
-          if (foundCostToNextVertex < minCost[nextVertexIndex]) {
+          double minCostNextVertex = minCost[nextVertexIndex];
+          if (foundCostToNextVertex < minCostNextVertex) {
             minCost[nextVertexIndex] = foundCostToNextVertex;
             minCostNextEdgeSegments[nextVertexIndex] = currEdgeSegment;
           }

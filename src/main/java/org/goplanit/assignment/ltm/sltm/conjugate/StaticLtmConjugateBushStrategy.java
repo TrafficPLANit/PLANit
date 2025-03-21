@@ -562,6 +562,7 @@ public class StaticLtmConjugateBushStrategy
                 bush, originConjugateReferenceVertex, currOdDemand, destinationOriginInvertedDag);
       }
     }
+
     if(getSettings().isDetailedLogging()) {
       LOGGER.info(bush.toString());
     }
@@ -657,6 +658,14 @@ public class StaticLtmConjugateBushStrategy
                 "Unable to obtain conjugate min-max paths for bush, this shouldn't happen, skip updateBushPass"));
         continue;
       }
+
+      // identify any inefficient edges, i.e., edges on the DAG that do not bring you closer to the root
+      // when any exist, it cannot be guaranteed that adding shortest paths edges
+      // will not cause cycles. So we want to know all edge segment are efficient before considering adding any
+      // edge segments to the DAG (unless you do explicit costly cycle checks).
+      // See Gentile, 2012 (https://doi.org/10.1080/18128602.2012.691911).
+      List<EdgeSegment> inefficientEdges = new ArrayList<>();
+
       conjBushMinMaxPaths.setMinPathState(false);
 
       /* network min-paths - searched in designated direction (inverted if ALL-TO-ONE, so it is compatible with bush

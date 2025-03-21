@@ -106,6 +106,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
         initialiseBushForOrigin(bush, originCentroidVertex, currOdDemand, destinationOriginInvertedDag);
       }
     }
+
     return !bush.getDag().isEmpty();
   }
 

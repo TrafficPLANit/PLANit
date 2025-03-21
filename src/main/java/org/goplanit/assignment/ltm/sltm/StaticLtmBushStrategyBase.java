@@ -2,9 +2,7 @@ package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
-import org.goplanit.assignment.ltm.sltm.consumer.NMRCollectMostRestrictingTurnConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
-import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
@@ -169,7 +167,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param pasExecutors to update and check for
    * @return number of removed PASs due to no remaining flow on s2 alternative
    */
-  private int flowShiftingStepTwoRemovePassWithoutRemainingFlow(
+  private int flowShiftingStepTwoDeactivatePassWithoutRemainingFlow(
           Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors) {
     var passWithoutBush = new ArrayList<Pas<V,ES>>();
     this.pasManager.forEachActivePas(pas -> {
@@ -473,7 +471,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
     // STEP2: Based on current NL flows, if we have any PASs without any S2 flow, deregister bushes, remove pas
     // from manager, and remove from flow shift executors as they are no longer relevant
-    flowShiftingStepTwoRemovePassWithoutRemainingFlow(pasExecutors);
+    flowShiftingStepTwoDeactivatePassWithoutRemainingFlow(pasExecutors);
 
     // STEP3: Determine the proposed flow shift for each PAS as if it were performing
     //  its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs

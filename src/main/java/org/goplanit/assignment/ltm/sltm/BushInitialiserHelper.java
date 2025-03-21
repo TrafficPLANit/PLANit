@@ -369,8 +369,8 @@ public class BushInitialiserHelper {
       }
     }
 
-    LOGGER.info(String.format("Initialised with %d PASs", pasManager.getNumberOfActivePass()));
-    LOGGER.info("TODO: Consider removing initialisation with PASs as it is not complete and side effect of initialisation");
+    //LOGGER.info(String.format("Initialised with %d PASs", pasManager.getNumberOfActivePass()));
+    //LOGGER.info("TODO: Consider removing initialisation with PASs as it is not complete and side effect of initialisation");
   }
 
 }
