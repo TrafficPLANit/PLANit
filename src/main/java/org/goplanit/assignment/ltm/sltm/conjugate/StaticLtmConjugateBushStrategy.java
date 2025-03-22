@@ -23,6 +23,7 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
+import org.goplanit.utils.graph.directed.acyclic.ConjugateACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.IterableUtils;
@@ -98,37 +99,6 @@ public class StaticLtmConjugateBushStrategy
     return conjugateSegmentCosts;
   }
 
-  /**
-   * Populate with initial demand for given OD and shortest conjugate bush DAG
-   *
-   * @param conjugateDestinationBush  to populate
-   * @param  originConjugateVertex     to use
-   * @param odDemandPcuH     to use
-   * @param destinationOriginInvertedDag            to use
-   *
-   */
-  private void initialiseConjugateBushForOrigin(
-          final ConjugateDestinationBush conjugateDestinationBush,
-          final ConjugateDirectedVertex originConjugateVertex,
-          final Double odDemandPcuH,
-          final ACyclicSubGraph destinationOriginInvertedDag) {
-
-    /* get topological sorted vertices to process from origin-to-destination in direction of odDag, so invert iterator since it runs
-       from destination to origin currently */
-    var vertexIter = destinationOriginInvertedDag.getTopologicalIterator(true, true);
-
-    /* proceed until we arrive at our origin */
-    DirectedVertex currVertex = null;
-    while (vertexIter.hasNext() && !originConjugateVertex.equals(currVertex)) {
-      currVertex = vertexIter.next();
-    }
-
-    /* populate initial demand on links of shortest path */
-    var helper = ConjugateBushSimpleInitialiserHelper.create(
-            conjugateDestinationBush, destinationOriginInvertedDag);
-    helper.executeOdBushInitialisation(currVertex, odDemandPcuH, vertexIter);
-  }
-
   /** because the bushes will be created and tracked in conjugate network form, we create a conjugate version of the
    * entire network from which the bushes draw */
   protected final ConjugateTransportModelNetwork conjugateTransportModelNetwork;
@@ -146,14 +116,14 @@ public class StaticLtmConjugateBushStrategy
    * @return create shortest bush algorithm
    */
   @Override
-  protected ShortestBushGeneralised createNetworkShortestBushAlgo(Mode theMode, double[] nonConjugateLinkSegmentCosts) {
+  protected ShortestPathGeneralised createNetworkShortestSearchTreeAlgo(
+      Mode theMode, double[] nonConjugateLinkSegmentCosts) {
     //todo: once base implementation works, replace nonConjugateLinkSegment costs with turn based costs throughout
     // implementation. For now project non conjugate link segment costs to conjugate segments by using the entry segment
     // as the point of reference
     double[] conjugateSegmentCosts =
             expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, nonConjugateLinkSegmentCosts);
-    final int numberOfVertices = this.conjugateTransportModelNetwork.getNumberOfVerticesAllLayers();
-    return new ShortestBushGeneralised(conjugateSegmentCosts, numberOfVertices);
+    return createNetworkShortestPathAlgo(conjugateSegmentCosts);
   }
 
   /**
@@ -524,13 +494,19 @@ public class StaticLtmConjugateBushStrategy
           ConjugateDestinationBush bush,
           Zoning zoning,
           OdDemands odDemands,
-          ShortestBushGeneralised shortestBushAlgorithm) {
-
+          ShortestPathGeneralised shortestTreeAlgorithm) {
+    // prep
     final var destinationCentroidVertex = bush.getRootZoneVertex();
     final OdZone destination = (OdZone) destinationCentroidVertex.getParent().getParentZone();
-    final var destinationConjugateReferenceVertex = centroid2ConjugateNodeMapping.get(destinationCentroidVertex);
-    ShortestBushResult allToOneResult = null;
+    final var destinationConjugateReferenceVertex =
+        centroid2ConjugateNodeMapping.get(destinationCentroidVertex);
 
+    // shortest path search + spanning tree creation
+    var shortestPAthAlgorithm = (ShortestPathDijkstra) shortestTreeAlgorithm;
+    ShortestPathResult allToOneResult = shortestPAthAlgorithm.executeAllToOne(destinationConjugateReferenceVertex);
+    allToOneResult.populateDirectedAcyclicSubGraphSpanningTree(bush.getDag());
+
+    // demand to OD-shortest paths
     for (var origin : zoning.getOdZones()) {
       if (origin.idEquals(destination)) {
         continue;
@@ -538,36 +514,21 @@ public class StaticLtmConjugateBushStrategy
 
       Double currOdDemand = odDemands.getValue(origin, destination);
       if (currOdDemand != null && currOdDemand > 0) {
+        var originConjugateReferenceVertex =
+            centroid2ConjugateNodeMapping.get(findOriginCentroidVertex(origin));
 
-        /* find all-to-one shortest paths */
-        if (allToOneResult == null) {
-          allToOneResult = shortestBushAlgorithm.executeAllToOne(destinationConjugateReferenceVertex);
-        }
-
-        /* initialise conjugate bush with this origin shortest path(s) */
-        var originConjugateReferenceVertex = centroid2ConjugateNodeMapping.get(findOriginCentroidVertex(origin));
-        var destinationOriginInvertedDag =
-                allToOneResult.createDirectedAcyclicSubGraph(
-                        getIdGroupingToken(), originConjugateReferenceVertex, destinationConjugateReferenceVertex);
-        if (destinationOriginInvertedDag.isEmpty()) {
-          if(getSettings().isDetailedLogging()) {
-            LOGGER.severe(String.format("Unable to connect origin (%s) to " +
-                    "destination (%s)", origin.getIdsAsString(), destination.getIdsAsString()));
-          }
-          continue;
-        }
-
+        /* add demand along conjugate bush's origin shortest path */
+        // todo: could be more efficient, if we'd only added the demands and then walk topologicially using the next
+        // backlinks to add the demand
         bush.addOriginDemandPcuH(originConjugateReferenceVertex, currOdDemand);
-        initialiseConjugateBushForOrigin(
-                bush, originConjugateReferenceVertex, currOdDemand, destinationOriginInvertedDag);
+        allToOneResult.forEachNextEdgeSegment(originConjugateReferenceVertex, destinationConjugateReferenceVertex,
+            es -> bush.addTurnSendingFlow((ConjugateEdgeSegment) es, currOdDemand));
       }
     }
 
     if(getSettings().isDetailedLogging()) {
       LOGGER.info(bush.toString());
     }
-    // successful unless not a single connection to an origin could be established (bush root is origin only, so
-    // invalid in destination based setting
     return !bush.getDag().isEmpty();
   }
 

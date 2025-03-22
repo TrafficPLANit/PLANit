@@ -6,9 +6,10 @@ import java.util.function.Consumer;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
+import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
+import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.path.DirectedPathFactory;
-import org.goplanit.utils.path.ManagedDirectedPath;
-import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.path.SimpleDirectedPath;
 
 /**
@@ -39,7 +40,7 @@ public interface ShortestPathResult extends ShortestResult{
    *
    * @param origin      the specified origin vertex
    * @param destination the specified destination vertex
-   * @return the raw path in the form of an array of edgesegments, when no path could be extracted null is returned
+   * @return the raw path in the form of an array of edge segments, when no path could be extracted null is returned
    */
   public abstract Deque<EdgeSegment> createRawPath(DirectedVertex origin, DirectedVertex destination);
   
@@ -50,7 +51,28 @@ public interface ShortestPathResult extends ShortestResult{
    * @param vertex to get next segment for
    * @return next edge segment
    */
-  public abstract EdgeSegment getNextEdgeSegmentForVertex(Vertex vertex);  
+  public abstract EdgeSegment getNextEdgeSegmentForVertex(Vertex vertex);
+
+  /**
+   * Extract the shortest path tree as a directed acyclic sub graph to ALL vertices.
+   * It is a subgraph because it will be a subset of the network (graph), but it will be a full spanning tree, so all
+   * vertices in the network will be connected
+   *
+   * @return created graph
+   */
+  public abstract UntypedACyclicSubGraph<?,?> createAndPopulateDirectedAcyclicSubGraphSpanningTree(
+      final IdGroupingToken idToken);
+
+  /**
+   * identical to {@link #createAndPopulateDirectedAcyclicSubGraphSpanningTree(IdGroupingToken)} only now dag is
+   * provided which will be used to populate (assumed empty)
+   *
+   * @param <V> vertex type
+   * @param <E> edge segment type
+   * @return populated graph
+   */
+  public abstract <V extends DirectedVertex, E extends EdgeSegment> void populateDirectedAcyclicSubGraphSpanningTree(
+      UntypedACyclicSubGraph<V,E> dagToPopulate);
 
   /**
    * apply consumer to each edge segment on path. Depending on the type of shortest path (direction), the next segment

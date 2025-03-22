@@ -94,8 +94,9 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
     // to see if a cycle is introduced for adding an edge segment not yet on a bush between (u,v)
     // there must be no path available on the bush between (v) and (u).
 
-    // 1. until we get to the starting point of the alternative, all vertices before that
-    //    cannot introduce a cycle when the alternative intersects with them after diverging.
+    // 1. until we get to the starting point of the alternative (from root destination), all vertices before that
+    //    cannot introduce a cycle when the alternative intersects with them after diverging (towards destination).
+    //    because it brings them closer to root
     // 2. while traversing the alternative, each vertex (v) we encounter that reattaches to the bush after
     //    diverging causes a cycle if it can reach any vertex in the cycleIntroducing vertices. this set
     //    contains any preceding vertex on the alternative up till the current point (all (u)s).

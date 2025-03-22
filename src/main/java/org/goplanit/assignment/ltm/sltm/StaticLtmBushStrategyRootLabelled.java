@@ -222,7 +222,7 @@ public abstract class StaticLtmBushStrategyRootLabelled<B extends RootedLabelled
    * {@inheritDoc}
    */
   @Override
-  protected ShortestBushGeneralised createNetworkShortestBushAlgo(Mode theMode, final double[] linkSegmentCosts) {
+  protected ShortestBushGeneralised createNetworkShortestSearchTreeAlgo(Mode theMode, final double[] linkSegmentCosts) {
     final int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
     return new ShortestBushGeneralised(linkSegmentCosts, numberOfVertices);
   }

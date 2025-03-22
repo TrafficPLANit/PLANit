@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
+import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
@@ -579,19 +580,19 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   protected abstract Set<B> createEmptyBushes(Mode mode);
 
   /**
-   * Initialise the sLTM bush by including the relevant DAGs based on available demand and bush layout. When equal costs are found between alternative paths OD demand is to be
-   * split proportionally
+   * Initialise the sLTM bush by including the relevant DAGs based on available demand and bush layout.
    * <p>
    * Add the edge segments to the bush and update the turn sending flow accordingly.
+   * </p>
    *
    * @param bush                  to use
    * @param zoning                to use
    * @param odDemands             to use
-   * @param shortestBushAlgorithm to use
+   * @param shortestTreeAlgorithm to use
    * @return true when successful, false when bush could not be initialised
    */
   protected abstract boolean initialiseBush(
-          B bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm);
+      B bush, Zoning zoning, OdDemands odDemands, ShortestPathGeneralised shortestTreeAlgorithm);
 
   /**
    * {@inheritDoc}
@@ -611,7 +612,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param linkSegmentCosts costs to use
    */
   protected void initialiseBushes(Mode mode, final double[] linkSegmentCosts){
-    final var shortestBushAlgorithm = createNetworkShortestBushAlgo(mode, linkSegmentCosts);
+    final var shortestTreeAlgorithm = createNetworkShortestSearchTreeAlgo(mode, linkSegmentCosts);
 
     Set<B> invalidBushesToRemove = new TreeSet<>();
     Zoning zoning = getTransportNetwork().getZoning();
@@ -620,7 +621,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       if (bush == null) {
         continue;
       }
-      boolean validBush = initialiseBush(bush, zoning, odDemands, shortestBushAlgorithm);
+      boolean validBush = initialiseBush(bush, zoning, odDemands, shortestTreeAlgorithm);
       if(!validBush){
         LOGGER.warning(String.format("Bush for root zone (%s) could not be initialised, likely due to lack of connectivity " +
                 "as a destination, discard", bush.getRootZone().getIdsAsString()));
@@ -636,13 +637,13 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   }
 
   /**
-   * Create a network wide shortest bush algorithm based on provided costs
+   * Create a network wide shortest search tree algorithm based on provided costs
    *
    * @param theMode to use
    * @param linkSegmentCosts to use
-   * @return one-to-all shortest bush algorithm
+   * @return one-to-all shortest tree search algorithm
    */
-  protected abstract ShortestBushGeneralised createNetworkShortestBushAlgo(
+  protected abstract ShortestPathGeneralised createNetworkShortestSearchTreeAlgo(
           Mode theMode, final double[] linkSegmentCosts);
 
   /**

@@ -130,7 +130,8 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
       }
     }
 
-    return new MinMaxPathResultImpl(minCost, minCostNextEdgeSegments, maxCost, maxCostNextEdgeSegments);
+    return new MinMaxPathResultImpl(
+        startVertex, minCost, minCostNextEdgeSegments, maxCost, maxCostNextEdgeSegments, edgeSegmentCosts.length);
   }
 
   /**

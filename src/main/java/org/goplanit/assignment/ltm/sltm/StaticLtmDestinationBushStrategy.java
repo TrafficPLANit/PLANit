@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import com.sun.source.tree.Tree;
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestBushResult;
+import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
@@ -72,7 +73,10 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    */
   @Override
   protected boolean initialiseBush(
-          DestinationBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
+          DestinationBush bush, Zoning zoning, OdDemands odDemands, ShortestPathGeneralised shortestTreeAlgorithm) {
+    //todo: not yet updated to new bush implementation
+    var shortestBushAlgorithm = (ShortestBushGeneralised) shortestTreeAlgorithm;
+    
     var destinationVertex = bush.getDestination();
     var destination = (OdZone) destinationVertex.getParent().getParentZone();
     ShortestBushResult allToOneResult = null;

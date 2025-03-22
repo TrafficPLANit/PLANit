@@ -1,8 +1,12 @@
 package org.goplanit.algorithms.shortest;
 
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
+import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
+import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.path.DirectedPathFactory;
 import org.goplanit.utils.path.SimpleDirectedPath;
 
@@ -15,6 +19,9 @@ import java.util.Deque;
  *
  */
 public class MinMaxPathResultImpl implements MinMaxPathResult {
+
+  /** root search vertex used for the underlying search carried out */
+  private DirectedVertex rootSearchVertex;
 
   /**
    * Track the state regarding whether to return min or max path information
@@ -33,23 +40,28 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
 
   /**
    * Constructor
-   * 
+   *
+   * @param rootSearchVertex             that was used for the search
    * @param minVertexCost               found
    * @param minCostBackwardEdgeSegments found
    * @param maxVertexCost               found
    * @param maxCostBackwardEdgeSegments found
+   * @param numEdgeSegments  number of edge segments in network
    */
   protected MinMaxPathResultImpl(
-          double[] minVertexCost,
-          EdgeSegment[] minCostBackwardEdgeSegments,
-          double[] maxVertexCost,
-          EdgeSegment[] maxCostBackwardEdgeSegments) {
+      DirectedVertex rootSearchVertex,
+      double[] minVertexCost,
+      EdgeSegment[] minCostBackwardEdgeSegments,
+      double[] maxVertexCost,
+      EdgeSegment[] maxCostBackwardEdgeSegments,
+      int numEdgeSegments) {
 
     this.minPathState = true;
-    this.minPathResult = new ShortestPathResultGeneralised(
-            minVertexCost, minCostBackwardEdgeSegments, ShortestSearchType.ONE_TO_ALL);
+    this.rootSearchVertex = rootSearchVertex;
+        this.minPathResult = new ShortestPathResultGeneralised(
+        rootSearchVertex, minVertexCost, minCostBackwardEdgeSegments, ShortestSearchType.ONE_TO_ALL, numEdgeSegments);
     this.maxPathResult = new ShortestPathResultGeneralised(
-            maxVertexCost, maxCostBackwardEdgeSegments, ShortestSearchType.ONE_TO_ALL);
+        rootSearchVertex, maxVertexCost, maxCostBackwardEdgeSegments, ShortestSearchType.ONE_TO_ALL, numEdgeSegments);
   }
 
   /**
@@ -98,6 +110,17 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
   }
 
   @Override
+  public UntypedACyclicSubGraph<?,?> createAndPopulateDirectedAcyclicSubGraphSpanningTree(IdGroupingToken idToken) {
+    throw new PlanItRunTimeException("createDirectedAcyclicSubGraph not yet supported for min/max result");
+  }
+
+  @Override
+  public <V extends DirectedVertex, E extends EdgeSegment> void  populateDirectedAcyclicSubGraphSpanningTree(
+      UntypedACyclicSubGraph<V,E> dagToPopulate) {
+    throw new PlanItRunTimeException("createDirectedAcyclicSubGraph not yet supported for min/max result");
+  }
+
+  @Override
   public DirectedVertex getNextVertexForEdgeSegment(EdgeSegment edgeSegment) {
     return minPathState ?
             minPathResult.getNextVertexForEdgeSegment(edgeSegment):
@@ -118,6 +141,14 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
   @Override
   public ShortestSearchType getSearchType() {
     return minPathResult.searchType;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedVertex getRootSearchVertex() {
+    return rootSearchVertex;
   }
 
 }

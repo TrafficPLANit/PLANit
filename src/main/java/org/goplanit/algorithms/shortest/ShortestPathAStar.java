@@ -194,7 +194,8 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
               destination.getIdsAsString(), origin.getIdsAsString());
     }
 
-    return new ShortestPathResultGeneralised(vertexMeasuredCost, incomingEdgeSegment, ShortestSearchType.ONE_TO_ONE);
+    return new ShortestPathResultGeneralised(
+         origin, vertexMeasuredCost, incomingEdgeSegment, ShortestSearchType.ONE_TO_ONE, numberOfEdgeSegments);
   }
 
   @Override

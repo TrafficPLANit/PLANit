@@ -32,6 +32,7 @@ public interface ShortestPathAllToOne {
    *                           start and/or end points
    * @return shortest path result that can be used to extract paths
    */
-  public ShortestPathResult executeAllToOne(DirectedVertex currentDestination, Set<DirectedVertex> bannedsThroughVertices);
+  public ShortestPathResult executeAllToOne(
+      DirectedVertex currentDestination, Set<DirectedVertex> bannedsThroughVertices);
 
 }
