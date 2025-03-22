@@ -597,12 +597,12 @@ public class StaticLtmConjugateBushStrategy
 
     //todo --> should be sets
     List<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> newPass = new ArrayList<>();
-    List<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> existingPassWithNewBushes = new ArrayList<>();
 
     // method overridden for conjugate implementation resulting in conjugate compatible shortest path search using
     // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...
     final var conjLinkSegmentCosts =
             expandNonConjugateLinkSegmentCostToConjugateSegmentCost(mode, nonConjugateLinkSegmentCosts);
+    // TODO: MIN NETWORK SEARCH ONLY USED FOR GAP CALCULATION CURRENTLY --> PHASE OUT WHEN SWAPPING TO MIN-MAX SHORTEST PATHS GAP
     final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
     for (var conjBush : getBushes()) {
       if (conjBush == null) {
@@ -611,7 +611,6 @@ public class StaticLtmConjugateBushStrategy
 
       /* within-bush min/max-paths - searched from root in designated direction (inverted if ALL-TO-ONE, i.e., root
        * is destination) */
-      //todo: we do not yet account for if the path is used --> we should because we will likely get unused max cost paths now!
       var conjBushMinMaxPaths = conjBush.computeMinMaxShortestPaths(
               conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
       if (conjBushMinMaxPaths == null) {
@@ -619,19 +618,10 @@ public class StaticLtmConjugateBushStrategy
                 "Unable to obtain conjugate min-max paths for bush, this shouldn't happen, skip updateBushPass"));
         continue;
       }
-
-      // identify any inefficient edges, i.e., edges on the DAG that do not bring you closer to the root
-      // when any exist, it cannot be guaranteed that adding shortest paths edges
-      // will not cause cycles. So we want to know all edge segment are efficient before considering adding any
-      // edge segments to the DAG (unless you do explicit costly cycle checks).
-      // See Gentile, 2012 (https://doi.org/10.1080/18128602.2012.691911).
-      List<EdgeSegment> inefficientEdges = new ArrayList<>();
-
       conjBushMinMaxPaths.setMinPathState(false);
 
       /* network min-paths - searched in designated direction (inverted if ALL-TO-ONE, so it is compatible with bush
        * where destination is root) */
-      // todo below rewritten but not yet tested, so continue here
       var conjNetworkMinPaths =
               conjNetworkShortestPathAlgo.execute(conjBush.getShortestSearchType(), conjBush.getRootVertex());
       if (conjNetworkMinPaths == null) {
@@ -687,16 +677,6 @@ public class StaticLtmConjugateBushStrategy
           continue;
         }
 
-        var existingRegisteredPas = extendConjugateBushWithSuitableExistingPas(conjBush, conjBushVertex, reducedCost);
-        if (existingRegisteredPas != null) {
-          if(isDestinationTrackedForLogging(conjBush) || logAll){
-            LOGGER.info(String.format("Registered suitable existing PAS (%s) on bush (%s)",
-                    existingRegisteredPas, conjBush));
-          }
-          existingPassWithNewBushes.add(existingRegisteredPas);
-          continue;
-        }
-
         /* no suitable match, attempt creating an entirely new PAS */
         var newPas = extendConjugateBushWithNewPas(
                 conjBush, conjBushVertex, conjNetworkMinPaths, reducedCost, conjBushMinMaxPaths, conjLinkSegmentCosts);
@@ -712,17 +692,6 @@ public class StaticLtmConjugateBushStrategy
                   newPas, conjBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
 
-        // BRANCH SHIFT
-        {
-          // NOTE: since we will perform an update on all PASs it seems illogical to also explicitly register the
-          // required branch shifts since they will be carried out regardless. Hence we do not log a warning nor
-          // implement the branch shift until it appears necessary
-
-          /* no suitable new or existing PAS could be found given the conditions applied, do a branch shift instead */
-          // LOGGER.info("No existing/new PAS found that satisfies flow/cost effective conditions for origin bush %s, consider branch shift - not yet implemented");
-          // TODO: currently not implemented yet -> requires shifting flow on existing bush with the given vertex as the end point
-        }
-
       }
     }
 
@@ -735,7 +704,7 @@ public class StaticLtmConjugateBushStrategy
       gapFunction.increaseAbsolutePathGap(totalRealisedCostForGap, 1, totalMinCostForGap);
     }
 
-    return Pair.of(newPass,existingPassWithNewBushes);
+    return Pair.of(newPass,new ArrayList<>(0));
   }
 
   /**

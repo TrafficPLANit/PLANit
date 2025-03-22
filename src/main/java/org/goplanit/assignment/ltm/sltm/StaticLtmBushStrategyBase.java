@@ -1,6 +1,5 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
@@ -50,6 +49,27 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * tracked bushes (with non-zero demand)
    */
   private Set<B> bushes;
+
+  private void logCongestedSegmentInfo(double[] costs, Mode theMode) {
+    List<String> idList = new ArrayList<>();
+    List<Quadruple<Double, Double, Double,Double>> alphaCostInOutflowList = new ArrayList<>();
+    var alphas = getLoading().getCurrentFlowAcceptanceFactors();
+    for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
+      if(Precision.smaller(alphas[(int)ls.getId()], 1, Precision.EPSILON_9)){
+        idList.add(ls.getIdsAsString());
+        alphaCostInOutflowList.add(Quadruple.of(
+            alphas[(int)ls.getId()],
+            costs[(int)ls.getId()],
+            getLoading().getCurrentInflowsPcuH()[(int)ls.getId()],
+            getLoading().getCurrentOutflowsPcuH()[(int)ls.getId()]));
+      }
+    }
+    for(int index =0 ; index<idList.size();++index){
+      var quad = alphaCostInOutflowList.get(index);
+      LOGGER.info(String.format("Congested Link (%s) - U: %.1f - V: %.1f - alpha: %.2f - cost: %.8f",
+          idList.get(index), quad.third(), quad.fourth(), quad.first(), quad.second()));
+    }
+  }
 
   /**
    * Knowing which edge segments no longer have flow for the given bushes, we must deregister all these bushes from
@@ -798,25 +818,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         updatePasCosts(theMode, costsToUpdate);
 
         // DEBUGGING
-        if(getSettings().isDetailedLogging()){
-          List<String> idList = new ArrayList<>();
-          List<Quadruple<Double, Double, Double,Double>> alphaCostInOutflowList = new ArrayList<>();
-          var alphas = getLoading().getCurrentFlowAcceptanceFactors();
-          for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
-            if(alphas[(int)ls.getId()]<0.999999999998){
-              idList.add(ls.getIdsAsString());
-              alphaCostInOutflowList.add(Quadruple.of(
-                      alphas[(int)ls.getId()],
-                      costsToUpdate[(int)ls.getId()],
-                      getLoading().getCurrentInflowsPcuH()[(int)ls.getId()],
-                      getLoading().getCurrentOutflowsPcuH()[(int)ls.getId()]));
-            }
-          }
-          for(int index =0 ; index<idList.size();++index){
-            var quad = alphaCostInOutflowList.get(index);
-            LOGGER.info(String.format("Congested Link (%s) - U: %.1f - V: %.1f - alpha: %.2f - cost: %.8f",
-                    idList.get(index), quad.third(), quad.fourth(), quad.first(), quad.second()));
-          }
+        if(getSettings().isDetailedLogging()) {
+          logCongestedSegmentInfo(costsToUpdate, theMode);
         }
       }
 
