@@ -135,7 +135,7 @@ public abstract class StaticLtmBushStrategyRootLabelled<B extends RootedLabelled
 
     /* Identify when it coincides again with bush (closer to root) using back link tree BF search */
     var highCostSubPathResultPair =
-        bush.findBushAlternativeSubpathByBackLinkTree(
+        bush.findBushAlternativeSubpathBfs(
                 reducedCostVertex,
                 networkMinPaths.getNextEdgeSegmentForVertex(reducedCostVertex),
                 alternativeSegmentVertexLabels);

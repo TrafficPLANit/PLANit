@@ -126,10 +126,11 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * Run as BFS search.
    * {@inheritDoc}
    *
+   *
    */
   @Override
   public Pair<ConjugateDirectedVertex, Map<ConjugateDirectedVertex, ConjugateEdgeSegment>>
-  findBushAlternativeSubpathByBackLinkTree(
+  findBushAlternativeSubpathBfs(
           ConjugateDirectedVertex referenceVertex,
           ConjugateEdgeSegment forbiddenInitialSegment,
           short[] alternativeSubpathVertexLabels) {

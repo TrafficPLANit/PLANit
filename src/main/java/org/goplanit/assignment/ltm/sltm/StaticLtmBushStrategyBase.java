@@ -295,6 +295,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    *   determine which new PAS is more favourable on a network level.
    * </p>
    */
+  @Deprecated
   private void flowShiftingStepFiveRemoveConflictingNewPass(
           Collection<Pas<V,ES>> sortedPass,
           Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
@@ -373,8 +374,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       var pasFlowShifter = pasExecutors.get(pas);
       if(!getSettings().isAllowOverlappingPasUpdate())
       {
-        // todo: should probably also check on entry segments to avoid overlap or cycles, this is not yet done!
-
         /* cannot do overlapping PASs without network loading update, so skip those for now */
         if (pas.containsAny(linkSegmentsUsed)) {
           continue;
@@ -503,10 +502,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // criterion.
     Collection<Pas<V,ES>> sortedPass = flowShiftingStepFourOrderPassInDescendingOrder(pasExecutors);
 
+    //todo: <-- should not be necessary anymore now that we use P1/P2 intersection of constructing bush (see Nie 2009)
     // STEP5: Any new PASs that were identified may be in conflict with each other regarding introducing cycles. Using
     // the established ordering, we verify if a conflict exists, and if it does, remove cycle introducing PASs from
     // the affected bush where the higher priority new PAS is kept and the lower priority one discarded (for such a bush)
-    flowShiftingStepFiveRemoveConflictingNewPass(sortedPass, pasExecutors, newAndUpdatedPass);
+    //flowShiftingStepFiveRemoveConflictingNewPass(sortedPass, pasExecutors, newAndUpdatedPass);
 
     // STEP6 : S2 flow shifts
     // Remove proposed flows when possible from high cost S2 alternatives for sorted PASs
@@ -834,15 +834,15 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         boolean logAll = false; //simulationData.getIterationIndex()>=200;
 
         /* (NEW) PAS MATCHING FOR BUSHES */
-        long numOriginalPass = pasManager.getNumberOfActivePass();
         boolean updateGap = true; // we can cheaply determine gap while traversing bushes
         var newAndUpdatedPass = updateBushPass(theMode, costsToUpdate, updateGap, logAll);
         if(getSettings().isDetailedLogging()) {
-          LOGGER.info(String.format("%d PASs known (including %d new and %d updated PASs)",
-                  pasManager.getNumberOfActivePass(), newAndUpdatedPass.first().size(), newAndUpdatedPass.second().size()));
+          LOGGER.info(String.format("Newly added PASs: %d (active: %d))",
+                  newAndUpdatedPass.first().size(), pasManager.getNumberOfActivePass()));
         }
 
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
+        // TODO: LEFT OFF HERE <---- rule for which PASs to update on a per Bush basis (see iTapas/LUCE?)
         Collection<Pas<V,ES>> updatedPass = shiftPasFlows(theMode, simulationData, newAndUpdatedPass);
 
         var justNewPass = newAndUpdatedPass.first();
@@ -850,8 +850,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         newPassWithShiftedFlows.retainAll(updatedPass);
         long remainingPass = pasManager.getNumberOfActivePass();
         //updatedPass.forEach( p -> LOGGER.info("Updated PAS: " + p.toString()));
-        LOGGER.info(String.format("Flow shifts performed: %d ---- [#PASs: before %d, after %d, newly added (with shifts): %d]",
-            updatedPass.size(), numOriginalPass, remainingPass, newPassWithShiftedFlows.size()));
+        LOGGER.info(String.format("Flow shifts performed: %d ---- [#PASs remaining %d (newly added with shifts: %d)]",
+            updatedPass.size(), remainingPass, newPassWithShiftedFlows.size()));
 
 
         /* Remove unused new PASs, in case no flow shift is applied due to overlap with PAS with higher reduced cost

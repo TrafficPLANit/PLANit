@@ -18,12 +18,11 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.functionalinterface.TriConsumer;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
-import org.goplanit.utils.graph.directed.acyclic.ConjugateACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.IterableUtils;
@@ -260,155 +259,119 @@ public class StaticLtmConjugateBushStrategy
   }
 
   /**
-   * Check if an existing PAS exists that terminates/starts (depending on bush config) at the given bush vertex. If so,
-   * it is considered a match when:
-   * <ul>
-   * <li>The cheap alternative ends with a link segment that is not part of the bush
-   * (Assumed true, to be checked beforehand)</li>
-   * <li>The expensive alternative overlaps with the bush (has non-zero flow)</li>
-   * <li>It is considered an improvement, i.e., effective based on the settings in terms of cost and flow</li>
-   * </ul>
-   * When this holds, accept this PAS as a decent enough alternative to the true shortest path (which its cheaper
-   * segment might or might not overlap with, as long as it is close enough to the potential reduced cost we'll
-   * take it to avoid exponential growth of PASs)
+   * Check if segment is worth adding based on whether it is both in the min and in the max path search.
+   * Consistent with intersection of P1 and P2 sets in Nie (2009) - A class of bush-based algorithms for the traffic
+   * assignment problem.
    *
-   * @param bush        to consider
-   * @param reducedCostVertex where we identified a potential reduced cost compared to current bush
-   * @param reducedCost between the shorter path and current shortest path in the bush
-   *
-   * @return PAS when a match is found and null otherwise (PAS is already registered as part of this call)
+   * @param linkSegment          to check
+   * @param conjLinkSegmentCosts segment costs to use
+   * @param conjBushMinMaxPaths  min max path cost to check
+   * @return true when eligible, false otherwise
    */
-  protected Pas<ConjugateDirectedVertex,ConjugateEdgeSegment> extendConjugateBushWithSuitableExistingPas(
-          final ConjugateDestinationBush bush,
-          final ConjugateDirectedVertex reducedCostVertex,
-          final double reducedCost) {
+  private boolean isEligibleForAdding(
+      ConjugateEdgeSegment linkSegment, double[] conjLinkSegmentCosts, MinMaxPathResult conjBushMinMaxPaths) {
+    var endVertex = linkSegment.getUpstreamVertex();
+    var startVertex = linkSegment.getDownstreamVertex();
 
-    // disable effectiveness check: at some point it was considered effective for some bush, therefore we allow
-    // for it to be reactivated
-    boolean checkEffectiveness = false;
-    boolean inActive = false;
-    double[] alphas = getLoading().getCurrentFlowAcceptanceFactors();
-    var suitablePas =
-            pasManager.findFirstSuitableActivePas(bush, reducedCostVertex, alphas, reducedCost, false);
-    if (suitablePas == null) {
-      suitablePas =
-              pasManager.findFirstSuitableInactivePas(
-                      bush, reducedCostVertex, alphas, reducedCost, false);
-      inActive = true;
-    }
-    if (suitablePas == null) {
-      return null;
-    }
+    double startToEndCost = conjLinkSegmentCosts[(int)linkSegment.getId()];
 
-    /*
-     * found -> register bush for future flow shifting, if PAS was previously inactive, reactivate it so it is
-     * considered again.
-     */
-    if(inActive){
-      pasManager.reactivatePas(suitablePas);
+    double minCostEnd = conjBushMinMaxPaths.getMinCostToReach(endVertex);
+    double minCostStart = conjBushMinMaxPaths.getMinCostToReach(startVertex);
+    if(minCostStart + startToEndCost < minCostEnd){
+      double maxCostEnd = conjBushMinMaxPaths.getMaxCostToReach(endVertex);
+      double maxCostStart = conjBushMinMaxPaths.getMaxCostToReach(startVertex);
+      if(maxCostStart + startToEndCost < maxCostEnd){
+        return true;
+      }
     }
-    boolean newlyRegistered = suitablePas.registerBush(bush);
-    if (newlyRegistered && getSettings().isDetailedLogging()
-            && getSettings().isTrackDestinationForLogging((OdZone) bush.getRootZone())) {
-      LOGGER.info(String.format("Destination %s added to PAS %s",
-              bush.getRootZoneVertex().getParent().getParentZone().getXmlId(), suitablePas));
-    }
-    return suitablePas;
+    return false;
   }
 
   /**
-   * Try to create a new PAS for the given bush and the provided merge vertex. If a new PAS can be created given that
-   * it is considered sufficiently effective the bush is registered on it.
+   * Try to create a new PAS for the given bush and the provided diverge vertex. We do so using the bush min-max path
+   * tree and the newly added segment.
+   * First, we mark the newly added segment, and then all bush min path links back to the destination.
+   * Second, we traverse the max path from the diverge vertex back to the destination.
+   * Third, when the max path coincides with the min path, we have found our new PAS
+   * <p>
+   * TODO: we should revisit what is deemed sufficiently efficient cost/flow based for adding a PAS
    *
-   * @param bush              to identify new PAS for
-   * @param reducedCostVertex to use for creating the PAS as a cheaper path to the root exists at this vertex
-   * @param conjugateNetworkMinPaths   the current conjugate network shortest path tree
-   * @param reducedCost       to check if new PAS is considered effective
-   * @param bushMinMaxPathResult used for cycle detection
-   * @param conjugateLinkSegmentCosts  to check if new PAS is considered effective and cycle detection
+   * @param bush                          to identify new PAS for
+   * @param reducedCostVertex             to use for creating the PAS as a cheaper path to the root exists at this vertex
+   * @param startSegmentForS1Alternative  to use as the start segment of the S1 alternative
+   * @param reducedCost                   to check if new PAS is considered effective
+   * @param bushMinMaxPathResult          used for PAS construction
+   * @param conjugateLinkSegmentCosts     to check if new PAS is considered effective
    * @return new created PAS if successfully created, null otherwise, the boolean indicates if it indeed is a brand
    * new PAS or for some reason we still reused an existing one
    */
   protected Pas<ConjugateDirectedVertex,ConjugateEdgeSegment> extendConjugateBushWithNewPas(
-          final ConjugateDestinationBush bush,
-          final ConjugateDirectedVertex reducedCostVertex,
-          final ShortestPathResult conjugateNetworkMinPaths,
-          double reducedCost,
-          MinMaxPathResult bushMinMaxPathResult,
-          double[] conjugateLinkSegmentCosts) {
+      final ConjugateDestinationBush bush,
+      final ConjugateDirectedVertex reducedCostVertex,
+      ConjugateEdgeSegment startSegmentForS1Alternative,
+      double reducedCost,
+      MinMaxPathResult bushMinMaxPathResult,
+      double[] conjugateLinkSegmentCosts) {
 
-    /* Label all vertices on shortest path root-reducedCostVertex as -1, and PAS reference vertex itself as 1 */
+    /* Label all vertices on min path from reference vertex to root as -1, and PAS reference vertex itself as 1 */
     final short[] conjAlternativeSegmentVertexLabels =
             new short[conjugateTransportModelNetwork.getNumberOfVerticesAllLayers()];
     conjAlternativeSegmentVertexLabels[(int) reducedCostVertex.getId()] = 1;
-    int numShortestPathEdgeSegments = conjugateNetworkMinPaths.forEachNextEdgeSegment(
+    bushMinMaxPathResult.setMinPathState(true);
+    int numShortestPathEdgeSegments = bushMinMaxPathResult.forEachNextEdgeSegment(
             bush.getRootVertex(),
             reducedCostVertex,
             (edgeSegment) -> conjAlternativeSegmentVertexLabels[(int)
-                    conjugateNetworkMinPaths.getNextVertexForEdgeSegment(edgeSegment).getId()] = -1);
+                bushMinMaxPathResult.getNextVertexForEdgeSegment(edgeSegment).getId()] = -1);
 
-    /* Identify when it coincides again with bush (closer to root) using back link tree BF search */
-    var highCostSubPathResultPair =
-            bush.findBushAlternativeSubpathByBackLinkTree(
-                    reducedCostVertex,
-                    (ConjugateEdgeSegment) conjugateNetworkMinPaths.getNextEdgeSegmentForVertex(reducedCostVertex),
-                    conjAlternativeSegmentVertexLabels);
-    if (highCostSubPathResultPair == null || highCostSubPathResultPair.first() == null) {
-      /* likely cycle detected on bush for merge vertex, unable to identify higher cost segment for NEW PAS */
-      LOGGER.info(String.format(
-              "Unable to create new PAS for conjugate bush rooted at vertex (%s), despite shorter path found on " +
-                      "network to reduced cost vertex (%s)",
-              bush.getRootVertex().getIdsAsString(), reducedCostVertex.getIdsAsString()));
+    // Identify when it coincides again with bush (closer to root) using back links of max path tree
+    bushMinMaxPathResult.setMinPathState(false);
+    var s2Alternative = new LinkedList<ConjugateEdgeSegment>();
+    ConjugateEdgeSegment nextS2Segment;
+    ConjugateDirectedVertex currVertex = reducedCostVertex;
+    do {
+      nextS2Segment = (ConjugateEdgeSegment) bushMinMaxPathResult.getNextEdgeSegmentForVertex(currVertex);
+      if(nextS2Segment == null){
+        LOGGER.info(String.format("Unable to create new PAS (S2) for conjugate bush rooted at vertex (%s), " +
+            "despite reduced cost, should not happen"));
+        s2Alternative.clear();
+        break;
+      }
+      s2Alternative.add(nextS2Segment);
+      currVertex = nextS2Segment.getDownstreamVertex();
+    }while(conjAlternativeSegmentVertexLabels[(int)nextS2Segment.getDownstreamVertex().getId()] != -1);
+
+    if (s2Alternative.isEmpty()) {
       return null;
     }
 
-    /* create the PAS and register bush on it */
-    boolean truncateSpareArrayCapacity = true;
-    var coincideCloserToRootVertex = highCostSubPathResultPair.first();
-    Map<ConjugateDirectedVertex, ConjugateEdgeSegment> backLinkTreeAsMap = highCostSubPathResultPair.second();
+    // construct s1 alternative now that we know where it terminates
+    bushMinMaxPathResult.setMinPathState(true);
+    var s1Alternative = new LinkedList<ConjugateEdgeSegment>();
+    s1Alternative.add(startSegmentForS1Alternative);
+    ConjugateEdgeSegment nextS1Segment = null;
+    ConjugateDirectedVertex mergeVertex = currVertex;
+    currVertex = startSegmentForS1Alternative.getDownstreamVertex();
+    do {
+      nextS1Segment = (ConjugateEdgeSegment) bushMinMaxPathResult.getNextEdgeSegmentForVertex(currVertex);
+      if(nextS1Segment == null){
+        LOGGER.info(String.format("Unable to create new PAS (S1) for conjugate bush rooted at vertex (%s), " +
+            "despite reduced cost, should not happen"));
+        s1Alternative.clear();
+        break;
+      }
+      s1Alternative.add(nextS1Segment);
 
-    /* S1 */
-    ConjugateEdgeSegment[] s1 = PasManager.createSubPathArrayFrom(
-            coincideCloserToRootVertex,
-            reducedCostVertex,
-            conjugateNetworkMinPaths,
-            new ConjugateEdgeSegment[numShortestPathEdgeSegments],
-            truncateSpareArrayCapacity);
-    var cycleInducingSegment = bush.determineIntroduceCycle(s1);
-    if (cycleInducingSegment != null) {
-      /*
-       * this can happen if the merge vertex can only be reached by traversing the bush in opposite direction of
-       * existing edge segment on the bush. In which case, an alternative PAS further upstream should be considered,
-       * now identify this and ignore PAS as it is sub-optimal and cycle inducing
-       */
-//      LOGGER.info(String.format("Newly identified PAS alternative for bush rooted at vertex (%s) would introduce cycle on low cost alternative (edge segment [%s]), ignore",
-//          bush.getRootVertex().getIdsAsString(), cycleInducingSegment.getIdsAsString()));
+    }while(!nextS1Segment.getDownstreamVertex().idEquals(mergeVertex));
+
+    if (s1Alternative.isEmpty()) {
       return null;
     }
 
-    /* S2 */
-    ConjugateEdgeSegment[] s2 = PasManager.createSubPathArrayFrom(
-            coincideCloserToRootVertex,
-            reducedCostVertex,
-            bush.getShortestSearchType(),
-            backLinkTreeAsMap,
-            new ConjugateEdgeSegment[highCostSubPathResultPair.second().size()],
-            truncateSpareArrayCapacity);
+    var s1 = s1Alternative.toArray(new ConjugateEdgeSegment[0]);
+    var s2 = s2Alternative.toArray(new ConjugateEdgeSegment[0]);
 
-    var existingPas = pasManager.findMatchingActivePas(s1, s2);
-    if (existingPas != null) {
-      // exists already but was discarded as option for this bush (otherwise we would not ask for a new PAS to be
-      // created not able to create new PAS using this S1/S2 alternative
-      //todo: consider alternative S1/S2 creation using DFS for example to see if an alternative partially overlapping PAS
-      // could help. For now we just accept no new PAS is to be created for this bush at this vertex
-      return null;
-    }
-    existingPas = pasManager.findMatchingInactivePas(s1, s2);
-    if (existingPas != null) {
-      // same reason as above
-      return null;
-    }
-
+    //todo revisit this. IS it still needed? Or maybe bad to actually use it!
     double highCostAlternativeCost = PasManager.computeCost(s2, conjugateLinkSegmentCosts);
     double lowCostAlternativeCost = PasManager.computeCost(s1, conjugateLinkSegmentCosts);
     if (!PasManager.isPasEffectiveForBush(
@@ -421,15 +384,22 @@ public class StaticLtmConjugateBushStrategy
       return null;
     }
 
-    /* New pas */
-    var pas = pasManager.createAndRegisterNewPas(bush, s1, s2);
-    pas.updateCost(conjugateLinkSegmentCosts);
-    /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance
-     * factor information */
-    getLoading().activateNodeTrackingFor(pas);
-    if(getSettings().isDetailedLogging() && isDestinationTrackedForLogging(bush)) {
-      LOGGER.info(String.format("Created new PAS: %s", pas));
+    // find or create new PAS for this bush. If PAS exists for other bush, we reuse it, but it will be registered
+    // per bush still. This provides more flexibility in updating PASs-bush combinations
+    var pas = pasManager.findMatchingActivePas(s1, s2);
+    if (pas == null) {
+      pas = pasManager.findMatchingInactivePas(s1, s2);
+      if (pas == null) {
+        /* New pas */
+        pas = pasManager.createAndRegisterNewPas(bush, s1, s2);
+        pas.updateCost(conjugateLinkSegmentCosts);
+
+        /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance
+         * factor information */
+        getLoading().activateNodeTrackingFor(pas);
+      }
     }
+
     return pas;
   }
 
@@ -577,6 +547,8 @@ public class StaticLtmConjugateBushStrategy
   protected Pair<Collection<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>, Collection<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>>
   updateBushPass(Mode mode, double[] nonConjugateLinkSegmentCosts, boolean updateGap, boolean logAll){
 
+    final int MAX_PAS_ADD_PER_BUSH = 1;
+
     double totalMinCostForGap = 0; // track during bush traversal to get min OD costs based on shortest paths
     double totalRealisedCostForGap = 0;
     if(updateGap) {
@@ -611,14 +583,14 @@ public class StaticLtmConjugateBushStrategy
 
       /* within-bush min/max-paths - searched from root in designated direction (inverted if ALL-TO-ONE, i.e., root
        * is destination) */
-      var conjBushMinMaxPaths = conjBush.computeMinMaxShortestPaths(
+      var bushMinMaxTree = conjBush.computeMinMaxShortestPaths(
               conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
-      if (conjBushMinMaxPaths == null) {
+      if (bushMinMaxTree == null) {
         LOGGER.severe(String.format(
                 "Unable to obtain conjugate min-max paths for bush, this shouldn't happen, skip updateBushPass"));
         continue;
       }
-      conjBushMinMaxPaths.setMinPathState(false);
+      bushMinMaxTree.setMinPathState(false);
 
       /* network min-paths - searched in designated direction (inverted if ALL-TO-ONE, so it is compatible with bush
        * where destination is root) */
@@ -644,54 +616,44 @@ public class StaticLtmConjugateBushStrategy
       }
 
       /* find (new) matching PASs - start with new PAS close to destination exploration first */
+      int countPassAddedForBush = 0;
       var bushVertexIter = conjBush.getTopologicalIterator();
       while(bushVertexIter.hasNext()) {
         ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
-        ConjugateEdgeSegment reducedCostSegment =
-                (ConjugateEdgeSegment) conjNetworkMinPaths.getNextEdgeSegmentForVertex(conjBushVertex);
-        if(reducedCostSegment == null) {
-          continue;
-        }
+        for(var outgoingSegment : conjBushVertex.getExitEdgeSegments()){
+          if(conjBush.contains(outgoingSegment) ||
+              !isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree)){
+            continue;
+          }
 
-        double reducedCost =
-                conjBushMinMaxPaths.getCostToReach(conjBushVertex) - conjNetworkMinPaths.getCostToReach(conjBushVertex);
-        if(reducedCost <= 0){
-          continue;
-        }
+          // found segment to add -- necessitates creation of a new PAS because we are merging two possible routes
+          conjBush.getDag().addEdgeSegment(outgoingSegment);
+          double reducedCost =
+              bushMinMaxTree.getMaxCostToReach(conjBushVertex) - bushMinMaxTree.getMinCostToReach(conjBushVertex);
 
-        if(conjBushMinMaxPaths.getNextEdgeSegmentForVertex(conjBushVertex).equals(
-                conjNetworkMinPaths.getNextEdgeSegmentForVertex(conjBushVertex))){
-          // not the location that min path and bush min path split, so do not create the start point of PAS here yet
-          continue;
-        }
+          // find PAS using min max cost paths until converging
+          // NOTES:
+          //  - do not yet consider existing PAS in case this segment existed earlier and PAS was created - TODO add that in
 
-        /* when bush does not contain the opposite direction which would cause a cycle it is worth checking,
-        *  we also do not allow u-turns (on original network), so disallow that as well */
-        boolean disallowUTurns = true;
-        boolean viableSearch =
-                (reducedCostSegment.isOriginalEdgeSegmentsUTurn() && disallowUTurns) ||
-                reducedCostSegment.getOppositeDirectionSegment()==null ||
-                        !conjBush.contains(reducedCostSegment.getOppositeDirectionSegment());
-        if (!viableSearch) {
-          // preferred alternative cannot be added due to bush triggering a cycle, or u-turn inclusion if we would
-          continue;
-        }
+          /* no suitable match, attempt creating an entirely new PAS */
+          var newPas = extendConjugateBushWithNewPas(
+              conjBush, conjBushVertex, outgoingSegment, reducedCost, bushMinMaxTree, conjLinkSegmentCosts);
+          if (newPas == null) {
+            continue;
+          }
 
-        /* no suitable match, attempt creating an entirely new PAS */
-        var newPas = extendConjugateBushWithNewPas(
-                conjBush, conjBushVertex, conjNetworkMinPaths, reducedCost, conjBushMinMaxPaths, conjLinkSegmentCosts);
-        if (newPas == null) {
-          continue;
+          // truly new PAS
+          newPass.add(newPas);
+          newPas.updateCost(conjLinkSegmentCosts);
+          if(isDestinationTrackedForLogging(conjBush) || logAll){
+            LOGGER.info(String.format("Registered new PAS (%s) on conjugate bush (%s)",
+                newPas, conjBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+          }
+          ++countPassAddedForBush;
+          if(countPassAddedForBush == MAX_PAS_ADD_PER_BUSH){
+            break;
+          }
         }
-
-        // truly new PAS
-        newPass.add(newPas);
-        newPas.updateCost(conjLinkSegmentCosts);
-        if(isDestinationTrackedForLogging(conjBush) || logAll){
-          LOGGER.info(String.format("Registered new PAS (%s) on conjugate bush (%s)",
-                  newPas, conjBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-        }
-
       }
     }
 

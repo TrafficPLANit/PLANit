@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
-import org.goplanit.algorithms.shortest.ShortestResult;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -232,7 +231,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * @return vertex at which the two paths coincided again and the map (back link tree effectively) to extract the
    * path from this vertex to the reference vertex that was found using the breadth-first method
    */
-  public abstract Pair<V, Map<V, ES>> findBushAlternativeSubpathByBackLinkTree(
+  public abstract Pair<V, Map<V, ES>> findBushAlternativeSubpathBfs(
           V referenceVertex,
           ES forbiddenInitialSegment,
           final short[] alternativeSubpathVertexLabels);

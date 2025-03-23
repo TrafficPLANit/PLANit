@@ -311,7 +311,7 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * path from this vertex to the reference vertex that was found using the breadth-first method
    */
   @Override
-  public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpathByBackLinkTree(
+  public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpathBfs(
           DirectedVertex referenceVertex,
           EdgeSegment forbiddenInitialSegment,
           final short[] alternativeSubpathVertexLabels) {

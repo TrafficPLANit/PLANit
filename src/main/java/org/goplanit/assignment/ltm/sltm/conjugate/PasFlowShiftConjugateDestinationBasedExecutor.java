@@ -453,8 +453,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           double discontinuityDampeningFactor) {
     // todo: once we no longer have non-conjugate implementation remove any entry segment based tracking of flow shifts
     Map<EdgeSegment, Double> result = new TreeMap<>();
-    var originalEntrySegment = pas.getFirstEdgeSegment(false).getOriginalAdjacentEdgeSegments().first();
-
+    var originalEntrySegment =
+        pas.getFirstEdgeSegment(false).getOriginalAdjacentEdgeSegments().first();
 
     double denominatorS2 = 0;
     double denominatorS1 = 0;

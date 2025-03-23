@@ -68,6 +68,22 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    * {@inheritDoc}
    */
   @Override
+  public double getMinCostToReach(Vertex vertex) {
+    return minPathResult.getCostToReach(vertex);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getMaxCostToReach(Vertex vertex) {
+    return maxPathResult.getCostToReach(vertex);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void setMinPathState(boolean flag) {
     this.minPathState = flag;
   }

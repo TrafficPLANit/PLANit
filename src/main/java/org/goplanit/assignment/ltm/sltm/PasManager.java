@@ -27,14 +27,17 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   private static final Logger LOGGER = Logger.getLogger(PasManager.class.getCanonicalName());
 
   /**
-   * reduced cost multiplier, empirical calibrated value to use as threshold to consider shifting flow on an origin matching with a PAS, such that reducedCost_max_bush_PAS_path -
-   * reducedCost_min_bush_PAS_path > mu * reducedCost_min_network_PAS_path. 0.5 based on Bar-Gera (2010)
+   * reduced cost multiplier, empirical calibrated value to use as threshold to consider shifting flow on an origin
+   * matching with a PAS, such that
+   * reducedCost_max_bush_PAS_path - reducedCost_min_bush_PAS_path > mu * reducedCost_min_network_PAS_path.
+   * 0.5 based on Bar-Gera (2010)
    */
   private static final double MU = 0.5;
 
   /**
-   * Flow Effective factor nu, empirically calibrated value to use as threshold to consider shifting flow on an origin matching with a PAS, such that max_cost_PAS_path_flow -
-   * max_cost_PAS_path_flow > nu * min_network_PAS_path_flow. 0.25 based on Xie and Xie (2015)
+   * Flow Effective factor nu, empirically calibrated value to use as threshold to consider shifting flow on an
+   * origin matching with a PAS, such that
+   * max_cost_PAS_path_flow - max_cost_PAS_path_flow > nu * min_network_PAS_path_flow. 0.25 based on Xie and Xie (2015)
    */
   private static final double NU = 0.25;
 
@@ -107,7 +110,8 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
     return referenceVertex;
   }
   
-  /** Based on the reference vertex relative to the PAS we obtain the correct vertex from a list of edge segments that are assumed to represent a PAS alternative
+  /** Based on the reference vertex relative to the PAS we obtain the correct vertex from a list of edge segments that
+   * are assumed to represent a PAS alternative
    * 
    * @param alternative to collect from
    * @return found reference vertex
@@ -239,13 +243,17 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   public static final boolean DETAILED_LOGGING = false;
 
   /**
-   * Verify if extending a bush with the given PAS given the reduced cost found, it would be effective in improving the bush. This is verified by
+   * Verify if extending a bush with the given PAS given the reduced cost found, it would be effective in improving
+   * the bush. This is verified by
    * <p>
-   * reducedCost = bush_min_path_cost - PAS_min_path_cost, then it is considered effective if (PAS_max_path_cost - PAS_min_path_cost) exceeds mu*bushReducedCost.
+   * reducedCost = bush_min_path_cost - PAS_min_path_cost, then it is considered effective if
+   * (PAS_max_path_cost - PAS_min_path_cost) exceeds mu*bushReducedCost.
    * <p>
-   * Formulation based on Bar-Gera (2010). IDea is that if the PAS has little difference between high and low cost, we can't shift much flow to improve and it is less attractive.
-   * This is ok if the reduced cost, i.e., the maximum improvement given the current state of the network, is also low, but when the best option (which might not exactly follow
-   * this PAS) is much better than what this PAS offers, we regard this PAS as not cost-effective and ignore it as a viable option.
+   * Formulation based on Bar-Gera (2010). IDea is that if the PAS has little difference between high and low cost,
+   * we can't shift much flow to improve and it is less attractive. This is ok if the reduced cost, i.e., the maximum
+   * improvement given the current state of the network, is also low, but when the best option (which might not
+   * exactly follow this PAS) is much better than what this PAS offers, we regard this PAS as not cost-effective and
+   * ignore it as a viable option.
    *
    * @param alternativeHighCost to use
    * @param alternativeLowCost to use
@@ -312,7 +320,8 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
-   * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both {@link #isCostEffective(double, double, double)} and
+   * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both
+   * {@link #isCostEffective(double, double, double)} and
    * {@link #isFlowEffective(EdgeSegment[], RootedBush, double[])}
    *
    * @param <Vs> type of vertex on bush
@@ -325,7 +334,8 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    */
   public static <Vs extends DirectedVertex,ESs extends EdgeSegment> boolean isPasEffectiveForBush(
           Pas<Vs,ESs> pas, RootedBush<Vs,ESs> bush, double[] nlFlowAcceptanceFactors, double reducedCost) {
-    /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound of the reduced cost */
+    /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound
+    of the reduced cost */
     return isPasEffectiveForBush(
             pas.getAlternative(false),
             pas.getAlternativeHighCost(),
@@ -336,7 +346,8 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
-   * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both {@link #isCostEffective(double, double, double)} and
+   * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both
+   * {@link #isCostEffective(double, double, double)} and
    * {@link #isFlowEffective(EdgeSegment[], RootedBush, double[])}
    *
    * @param <Vs> type of vertex on bush
@@ -356,7 +367,8 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
           RootedBush<Vs,ESs> bush,
           double[] nlFlowAcceptanceFactors,
           double reducedCost) {
-    /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound of the reduced cost */
+    /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound
+    of the reduced cost */
     return isCostEffective(highCostAlternativeCost, lowCostAlternativeCost, reducedCost)
             && isFlowEffective(pasHighCostAlternative, bush, nlFlowAcceptanceFactors);
   }
@@ -373,10 +385,12 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    * @param searchResultTree          to extract path from, tree's direction is automatically accounted for
    * @param edgeSegmentArrayToPopulate to use for the array population which should be at least as long as the path
    *                                   that is to be extracted into it
-   * @param truncateArray             flag indicating to truncate the subpath array in case the front of the array is not fully used due to the existence of spare capacity
+   * @param truncateArray             flag indicating to truncate the subpath array in case the front of the array is
+   *                                  not fully used due to the existence of spare capacity
    * @return created array in downstream direction, null if no path could be found
    */
   @SuppressWarnings("unchecked")
+  @Deprecated
   public static <Vs extends DirectedVertex,ESs extends EdgeSegment> ESs[] createSubPathArrayFrom(
       final Vs closestToSearchRoot,
       final Vs furthestFromSearchRoot,
@@ -395,14 +409,16 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
     Vs currVertex = furthestFromSearchRoot;
     boolean searchInverted = searchResultTree.getSearchType().isInverted();
     
-    /* run from end to start backward while adding in reverse to final array, unless search was inverted, then we go from start to end */
+    /* run from end to start backward while adding in reverse to final array, unless search was inverted, then we go
+    from start to end */
     int index = searchInverted ? 0 : arrayLength - 1;
     do {
 
       currEdgeSegment = (ESs) searchResultTree.getNextEdgeSegmentForVertex(currVertex);
       edgeSegmentArrayToPopulate[index] = currEdgeSegment;
       if (currEdgeSegment == null) {
-        LOGGER.warning(String.format("Unable to extract subpath from start vertex %s to end vertex %s, no incoming edge segment available at intermediate vertex %s",
+        LOGGER.warning(String.format("Unable to extract subpath from start vertex %s to end vertex %s, no incoming " +
+                "edge segment available at intermediate vertex %s",
             closestToSearchRoot.getXmlId(), furthestFromSearchRoot.getXmlId(), currVertex.getXmlId()));
         return null;
       }
@@ -449,6 +465,7 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    *                                    not fully used due to the existence of spare capacity
    * @return created array always in downstream direction, null if no path could be found
    */
+  @Deprecated
   @SuppressWarnings("unchecked")
   public static <Vs extends DirectedVertex, ESs extends EdgeSegment> ESs[] createSubPathArrayFrom(
         Vs closestToSearchRoot,
@@ -468,10 +485,13 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
     ESs currEdgeSegment = null;
     
     /* search utils yields lambda based on search type for searching, not result traversal, we traverse results, so we
-     * should invert. However, our provided results are inverted already, so double inversion makes that we should not invert */
-    var getNextVertex = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(shortestSearchType);
+     * should invert. However, our provided results are inverted already, so double inversion makes that we should
+     * not invert */
+    var getNextVertex =
+        ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(shortestSearchType);
     
-    /* run from end to start backward while adding in reverse to final array, unless search was inverted, then we go from start to end */
+    /* run from end to start backward while adding in reverse to final array, unless search was inverted, then we go
+    from start to end */
     int index = 0;
     Vs currVertex = closestToSearchRoot;
     if (searchInverted) {
@@ -604,7 +624,8 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
-   * create a new PAS for the given cheap and expensive paired alternative segments (subpaths) and register the origin bush on it that was responsible for creating it
+   * create a new PAS for the given cheap and expensive paired alternative segments (subpaths) and register the origin
+   * bush on it that was responsible for creating it
    * 
    * @param bush responsible for triggering the creation of this PAS
    * @param s1         cheap alternative segment
