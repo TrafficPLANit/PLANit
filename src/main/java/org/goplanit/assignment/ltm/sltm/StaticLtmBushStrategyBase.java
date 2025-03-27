@@ -15,6 +15,7 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -370,31 +371,17 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     var passWithoutBush = new ArrayList<Pas<V,ES>>();
 
     for (var pas : sortedPass) {
-
       var pasFlowShifter = pasExecutors.get(pas);
-      if(!getSettings().isAllowOverlappingPasUpdate())
+
+      /* cannot do overlapping PASs without network loading update, so skip those for now */
+      if(!getSettings().isAllowOverlappingPasUpdate() && pas.containsAny(linkSegmentsUsed))
       {
-        /* cannot do overlapping PASs without network loading update, so skip those for now */
-        if (pas.containsAny(linkSegmentsUsed)) {
-          continue;
-        }
-        /* cannot do PASs that have conflicting (opposite) direction links compared to earlier processed PASs in this loop,
-         * this can happen if multiple PASs were identified for the first time as potentially eligible for a bush, but
-         * they contain opposing link segments, if one has been applied, then the next triggers this check and we should
-         * skip it */
-        if (pas.containsAnyOppositeDirection(linkSegmentsUsed)) {
-          // if the opposite direction is present on the bush due to earlier pas shift, then do not execute, if none of the
-          // bushes overlap with the previous pas that was applied that contained the opposite direction then we can
-          // still safely proceed
-          // todo the above explained portion of this check is not yet implemented, but could improve convergence per loading, now we are very conservative by
-          //  always skipping even if bushes between the two PASs are not overlapping at all
-          continue;
-        }
+        continue;
       }
 
       if (!(pasFlowShifter.getS2SendingFlow() > 0) || !pas.hasRegisteredBushes()) { // todo: this piece of code is duplication from line 166 -> consolidate
         /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial
-         * overlapping S2 segments, or cycles were found as a result causing deregistering of all bushes on the PAS) */
+         * overlapping S2 segments */
         pas.removeAllRegisteredBushes();
         passWithoutBush.add(pas);
         continue;
@@ -471,23 +458,18 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   }
 
   /**
-   * Shift flows based on the registered PASs and their origins.
+   * Create PAS executors for each active PAS, deactivate PASs without flow remaining
    *
-   * @param theMode           to use
-   * @param simulationData    to use
-   * @param newAndUpdatedPass only used to deregister bush from new/updated Pass pre-emptively in case we flag a cycle
-   *                          if it were to be used due to the current PAS adding link segments to the bush as a result
-   *                          of the flow shift
-   * @return all PASs where non-zero flow was shifted on
+   * @param theMode
+   * @param simulationData
+   * @return
    */
-  private Collection<Pas<V,ES>> shiftPasFlows(
-          final Mode theMode,
-          final StaticLtmSimulationData simulationData,
-          final Pair<Collection<Pas<V,ES>>,Collection<Pas<V,ES>>> newAndUpdatedPass) {
-
+  private Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> prepareForFlowShifts(
+      final Mode theMode, final StaticLtmSimulationData simulationData){
+    
     // STEP 1: PAS original sending flows per alternative
     final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors =
-            flowShiftingStepOneCreatePasFlowShiftersWithLoadingS1S2SendingFlows();
+        flowShiftingStepOneCreatePasFlowShiftersWithLoadingS1S2SendingFlows();
 
     // STEP2: Based on current NL flows, if we have any PASs without any S2 flow, deregister bushes, remove pas
     // from manager, and remove from flow shift executors as they are no longer relevant
@@ -496,10 +478,31 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // STEP3: Determine the proposed flow shift for each PAS as if it were performing
     //  its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
     final Map<Pas<V,ES>, Map<EdgeSegment, Double>> pasProposedFlowShifts =
-            flowShiftingStepThreeDetermineProposedFlowShift(theMode, pasExecutors, simulationData);
+        flowShiftingStepThreeDetermineProposedFlowShift(theMode, pasExecutors, simulationData);
+
+    return pasExecutors;
+  }
+
+  /**
+   * Shift flows based on the registered PASs and their bushes. Using info from steps 1-3.
+   * ONLY update guaranteed uncongested PASs across bushes here.
+   *
+   * @param theMode               to use
+   * @param pasExecutors          to use
+   * @param pasProposedFlowShifts to use
+   * @param originalNetworkCosts  to use and update
+   * @param simulationData        to use
+   * @return all PASs where non-zero flow was shifted on
+   */
+  private Collection<Pas<V,ES>> equilibrateUncongestedPasFlows(
+      final Mode theMode,
+      final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
+      Map<Pas<V,ES>, Map<EdgeSegment, Double>> pasProposedFlowShifts,
+      double[] originalNetworkCosts,
+      final StaticLtmSimulationData simulationData) {
 
     // STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based on relevant
-    // criterion.
+    // criterion. todo: in future we can use this to not equilibrate all of them, currently we do all
     Collection<Pas<V,ES>> sortedPass = flowShiftingStepFourOrderPassInDescendingOrder(pasExecutors);
 
     //todo: <-- should not be necessary anymore now that we use P1/P2 intersection of constructing bush (see Nie 2009)
@@ -507,6 +510,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // the established ordering, we verify if a conflict exists, and if it does, remove cycle introducing PASs from
     // the affected bush where the higher priority new PAS is kept and the lower priority one discarded (for such a bush)
     //flowShiftingStepFiveRemoveConflictingNewPass(sortedPass, pasExecutors, newAndUpdatedPass);
+
+    // UNCONGESTED ONLY
+    attemptUncongestedFlowShift(
+        theMode, sortedPass, pasExecutors, pasProposedFlowShifts, originalNetworkCosts);
+
+    // todo: below not touched
 
     // STEP6 : S2 flow shifts
     // Remove proposed flows when possible from high cost S2 alternatives for sorted PASs
@@ -524,6 +533,14 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     flowShiftingStepEightFinalise(passWithoutBush);
 
     return flowShiftedPass;
+  }
+
+  protected void attemptUncongestedFlowShift(
+      Mode theMode, Collection<Pas<V,ES>> sortedPass,
+      Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
+      Map<Pas<V,ES>, Map<EdgeSegment, Double>> pasProposedFlowShifts,
+      double[] originalNetworkCosts) {
+    // stub implementation (not implemented for regular destination based yet
   }
 
   /**
@@ -683,6 +700,19 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   protected abstract void updatePasCosts(Mode theMode, double[] originalNetworkLinkSegmentCosts);
 
   /**
+   * Update all existing PASs status based on current state of network without considering
+   * any information on proposed flow shifts, determine congested or uncongested (without flow shift).
+   * All PASs get assigned
+   * todo: optimisation could be to not do this for inactive PASs, but then we have to do this on the fly
+   *  when a PAS changes from inactive to active.
+   *
+   * @param theMode the mode to use
+   * @param networkLinkSegmentFlowAcceptanceFactors to determine if a link segment is congested or not
+   */
+  protected abstract void updatePasStatusBeforeFlowShifts(
+          Mode theMode, double[] networkLinkSegmentFlowAcceptanceFactors);
+
+  /**
    * To avoid bushes keeping low flow links occupied and limiting options to use links or opposite links
    * more efficiently, we will remove very low flow links from each bush, implicitly shifting this flow to
    * higher usage branches.
@@ -814,8 +844,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         }
         this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
 
-        /* PAS COST UPDATE*/
+        /* PAS COST UPDATE */
         updatePasCosts(theMode, costsToUpdate);
+        /* PAS STATUS UPDATE (used to truncate search for PASs on bush) */
+        updatePasStatusBeforeFlowShifts(theMode, this.getLoading().getCurrentFlowAcceptanceFactors());
 
         // DEBUGGING
         if(getSettings().isDetailedLogging()) {
@@ -841,23 +873,39 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
                   newAndUpdatedPass.first().size(), pasManager.getNumberOfActivePass()));
         }
 
+
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
-        // TODO: LEFT OFF HERE <---- rule for which PASs to update on a per Bush basis (see iTapas/LUCE?)
-        Collection<Pas<V,ES>> updatedPass = shiftPasFlows(theMode, simulationData, newAndUpdatedPass);
+        {
+          // STEP1 + STEP2 (flow shifters + deactivate unused PASs)
+          final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors =
+              prepareForFlowShifts(theMode, simulationData);
 
-        var justNewPass = newAndUpdatedPass.first();
-        var newPassWithShiftedFlows = new ArrayList<>(justNewPass);
-        newPassWithShiftedFlows.retainAll(updatedPass);
-        long remainingPass = pasManager.getNumberOfActivePass();
-        //updatedPass.forEach( p -> LOGGER.info("Updated PAS: " + p.toString()));
-        LOGGER.info(String.format("Flow shifts performed: %d ---- [#PASs remaining %d (newly added with shifts: %d)]",
-            updatedPass.size(), remainingPass, newPassWithShiftedFlows.size()));
+          // STEP3: Determine the proposed flow shift for each PAS as if it were performing
+          //  its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
+          final Map<Pas<V,ES>, Map<EdgeSegment, Double>> pasProposedFlowShifts =
+              flowShiftingStepThreeDetermineProposedFlowShift(theMode, pasExecutors, simulationData);
+
+          /* UNCONGESTED FLOW SHIFTS (considering proposed shift) */
+          Collection<Pas<V,ES>> updatedPass = equilibrateUncongestedPasFlows(
+              theMode, pasExecutors, pasProposedFlowShifts, costsToUpdate, simulationData);
+
+          /* POTENTIALLY CONGESTED FLOW SHIFTS PER BUSH */
+          //todo --> this does not get equilibrated, this is a one shot update
+
+          var justNewPass = newAndUpdatedPass.first();
+          var newPassWithShiftedFlows = new ArrayList<>(justNewPass);
+          newPassWithShiftedFlows.retainAll(updatedPass);
+          long remainingPass = pasManager.getNumberOfActivePass();
+          //updatedPass.forEach( p -> LOGGER.info("Updated PAS: " + p.toString()));
+          LOGGER.info(String.format("Flow shifts performed: %d ---- [#PASs remaining %d (newly added with shifts: %d)]",
+              updatedPass.size(), remainingPass, newPassWithShiftedFlows.size()));
 
 
-        /* Remove unused new PASs, in case no flow shift is applied due to overlap with PAS with higher reduced cost
-         * In this case, the new PAS is not used and is to be removed identical to how existing PASs are removed during flow shifts when they no longer carry flow*/
-        justNewPass.removeAll(updatedPass);
-        justNewPass.forEach( pas -> pasManager.deactivatePas(pas, getSettings().isDetailedLogging()));
+          /* Remove unused new PASs, in case no flow shift is applied due to overlap with PAS with higher reduced cost
+           * In this case, the new PAS is not used and is to be removed identical to how existing PASs are removed during flow shifts when they no longer carry flow*/
+          justNewPass.removeAll(updatedPass);
+          justNewPass.forEach( pas -> pasManager.deactivatePas(pas, getSettings().isDetailedLogging()));
+        }
       }
 
       /* 5 - perform low flow branch shifts on the bush level */

@@ -18,7 +18,6 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.functionalinterface.TriConsumer;
-import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -98,6 +97,29 @@ public class StaticLtmConjugateBushStrategy
     return conjugateSegmentCosts;
   }
 
+  /**
+   * Update PAS status based on flow acceptance factors (without considering impact of any potential flow shifts)
+   *
+   * @param conjugatePas to update
+   * @param nonConjAcceptanceFactors to use
+   */
+  private void updatePasStatusBeforeFlowShift(
+          Pas<ConjugateDirectedVertex, ConjugateEdgeSegment> conjugatePas,
+          double[] nonConjAcceptanceFactors) {
+    // test if conj segment is congested by considering original entry segment acceptance factor
+    Predicate<ConjugateEdgeSegment> congestedPred = es -> es.hasOriginalEntryEdgeSegment() &&
+            Precision.smaller(
+                    nonConjAcceptanceFactors[(int)es.getOriginalAdjacentEdgeSegments().first().getId()],
+                    1,
+                    Precision.EPSILON_9);
+
+    if( conjugatePas.anyMatch(congestedPred,false) || conjugatePas.anyMatch( congestedPred,true)){
+      conjugatePas.updateStatus(PasStatus.CONGESTED);
+    }else{
+      conjugatePas.updateStatus(PasStatus.UNCONGESTED_WITHOUT_SHIFT);
+    }
+  }
+
   /** because the bushes will be created and tracked in conjugate network form, we create a conjugate version of the
    * entire network from which the bushes draw */
   protected final ConjugateTransportModelNetwork conjugateTransportModelNetwork;
@@ -134,6 +156,33 @@ public class StaticLtmConjugateBushStrategy
     return new ShortestPathDijkstra(conjugateLinkSegmentCosts, numberOfVertices);
   }
 
+  @Override
+  protected void attemptUncongestedFlowShift(
+      Mode theMode,
+      Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>> sortedPass,
+      Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>, PasFlowShiftExecutor<ConjugateDirectedVertex,ConjugateEdgeSegment>> pasExecutors,
+      Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>, Map<EdgeSegment, Double>> pasProposedFlowShifts,
+      double[] originalNetworkCosts) {
+
+    // PASs on conjugate level, so expand link segment to conjugate segment costs as if first
+    var conjSegmentCosts =
+        expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, originalNetworkCosts);
+
+    for(var sortedPas : sortedPass) {
+      ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(sortedPas)).executeUncongestedPasEquilibration(
+          theMode,
+          pasProposedFlowShifts.get(sortedPas),
+          getLoading(),
+          getSmoothing(),
+          getGapFunction(),
+          getPhysicalCost(),
+          getVirtualCost(),
+          originalNetworkCosts,
+          conjSegmentCosts,
+          false);
+    }
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -159,6 +208,16 @@ public class StaticLtmConjugateBushStrategy
               percentageSwapped, numSwaps, pasManager.getNumberOfActivePass()));
     }
 
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void updatePasStatusBeforeFlowShifts(Mode theMode, double[] networkLinkSegmentFlowAcceptanceFactors) {
+    // execute status update without considering any flow shift information
+    pasManager.forEachActivePas( p -> updatePasStatusBeforeFlowShift(p, networkLinkSegmentFlowAcceptanceFactors));
+    pasManager.forEachInactivePas(p -> updatePasStatusBeforeFlowShift(p, networkLinkSegmentFlowAcceptanceFactors));
   }
 
   /**
@@ -296,22 +355,23 @@ public class StaticLtmConjugateBushStrategy
    * <p>
    * TODO: we should revisit what is deemed sufficiently efficient cost/flow based for adding a PAS
    *
-   * @param bush                          to identify new PAS for
-   * @param reducedCostVertex             to use for creating the PAS as a cheaper path to the root exists at this vertex
-   * @param startSegmentForS1Alternative  to use as the start segment of the S1 alternative
-   * @param reducedCost                   to check if new PAS is considered effective
-   * @param bushMinMaxPathResult          used for PAS construction
-   * @param conjugateLinkSegmentCosts     to check if new PAS is considered effective
+   * @param bush                         to identify new PAS for
+   * @param reducedCostVertex            to use for creating the PAS as a cheaper path to the root exists at this vertex
+   * @param startSegmentForS1Alternative to use as the start segment of the S1 alternative
+   * @param reducedCost                  to check if new PAS is considered effective
+   * @param bushMinMaxPathResult         used for PAS construction
+   * @param conjugateLinkSegmentCosts    to check if new PAS is considered effective
+   * @param allowUncongestedOnly          when true we only consider adding PASs that are NOT congested
    * @return new created PAS if successfully created, null otherwise, the boolean indicates if it indeed is a brand
    * new PAS or for some reason we still reused an existing one
    */
-  protected Pas<ConjugateDirectedVertex,ConjugateEdgeSegment> extendConjugateBushWithNewPas(
+  protected Pair<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>, Boolean> extendConjugateBushWithPas(
       final ConjugateDestinationBush bush,
       final ConjugateDirectedVertex reducedCostVertex,
       ConjugateEdgeSegment startSegmentForS1Alternative,
       double reducedCost,
       MinMaxPathResult bushMinMaxPathResult,
-      double[] conjugateLinkSegmentCosts) {
+      double[] conjugateLinkSegmentCosts, boolean allowUncongestedOnly) {
 
     /* Label all vertices on min path from reference vertex to root as -1, and PAS reference vertex itself as 1 */
     final short[] conjAlternativeSegmentVertexLabels =
@@ -384,23 +444,41 @@ public class StaticLtmConjugateBushStrategy
       return null;
     }
 
-    // find or create new PAS for this bush. If PAS exists for other bush, we reuse it, but it will be registered
-    // per bush still. This provides more flexibility in updating PASs-bush combinations
+    // find or create new PAS for this bush. If PAS exists for other bush, we reuse it.
+    boolean isNewPas = false;
     var pas = pasManager.findMatchingActivePas(s1, s2);
     if (pas == null) {
       pas = pasManager.findMatchingInactivePas(s1, s2);
       if (pas == null) {
-        /* New pas */
         pas = pasManager.createAndRegisterNewPas(bush, s1, s2);
+        // prep for usage
         pas.updateCost(conjugateLinkSegmentCosts);
-
-        /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance
-         * factor information */
+        updatePasStatusBeforeFlowShift(pas, getLoading().getCurrentFlowAcceptanceFactors());
         getLoading().activateNodeTrackingFor(pas);
+        isNewPas = true;
+      }else{
+        // existing PAS, register bush on it and reactivate
+        pas.registerBush(bush);
+        pasManager.reactivatePas(pas);
       }
+    }else{
+      // existing activated PAS, register bush on it
+      pas.registerBush(bush);
     }
 
-    return pas;
+    //todo inefficient, if we were able to determine status outside of PAS (should be easy) like cost, we can avoid
+    // first creating PAS and then deactivating it etc.
+    if(allowUncongestedOnly && pas.getStatus()== PasStatus.CONGESTED){
+      // not allowed, because we only consider uncongested PASs at this point, deregister bush, and reset
+      pas.removeBush(bush);
+      if(!pas.hasRegisteredBushes()){
+        pasManager.deactivatePas(pas, false);
+      }
+      isNewPas = false;
+      pas = null;
+    }
+
+    return Pair.of(pas, isNewPas);
   }
 
   /**
@@ -547,7 +625,8 @@ public class StaticLtmConjugateBushStrategy
   protected Pair<Collection<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>, Collection<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>>
   updateBushPass(Mode mode, double[] nonConjugateLinkSegmentCosts, boolean updateGap, boolean logAll){
 
-    final int MAX_PAS_ADD_PER_BUSH = 1;
+    final int MAX_CONGESTED_PAS_ADD_PER_BUSH = 1;
+    final int MIN_UNCONGESTED_PAS_ADD_PER_BUSH = 2;
 
     double totalMinCostForGap = 0; // track during bush traversal to get min OD costs based on shortest paths
     double totalRealisedCostForGap = 0;
@@ -617,6 +696,7 @@ public class StaticLtmConjugateBushStrategy
 
       /* find (new) matching PASs - start with new PAS close to destination exploration first */
       int countPassAddedForBush = 0;
+      int countCongestedPassAddedForBush = 0;
       var bushVertexIter = conjBush.getTopologicalIterator();
       while(bushVertexIter.hasNext()) {
         ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
@@ -635,9 +715,17 @@ public class StaticLtmConjugateBushStrategy
           // NOTES:
           //  - do not yet consider existing PAS in case this segment existed earlier and PAS was created - TODO add that in
 
-          /* no suitable match, attempt creating an entirely new PAS */
-          var newPas = extendConjugateBushWithNewPas(
-              conjBush, conjBushVertex, outgoingSegment, reducedCost, bushMinMaxTree, conjLinkSegmentCosts);
+          /* find a (new) PAS for the bush */
+          boolean allowUncongestedOnly = MAX_CONGESTED_PAS_ADD_PER_BUSH == countCongestedPassAddedForBush;
+          var newPasResult = extendConjugateBushWithPas(
+              conjBush,
+              conjBushVertex,
+              outgoingSegment,
+              reducedCost,
+              bushMinMaxTree,
+              conjLinkSegmentCosts,
+              allowUncongestedOnly);
+          var newPas = newPasResult.first();
           if (newPas == null) {
             continue;
           }
@@ -649,8 +737,13 @@ public class StaticLtmConjugateBushStrategy
             LOGGER.info(String.format("Registered new PAS (%s) on conjugate bush (%s)",
                 newPas, conjBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
           }
+
           ++countPassAddedForBush;
-          if(countPassAddedForBush == MAX_PAS_ADD_PER_BUSH){
+          if(newPas.getStatus() == PasStatus.CONGESTED) {
+            ++countCongestedPassAddedForBush;
+          }
+          if(countCongestedPassAddedForBush == MAX_CONGESTED_PAS_ADD_PER_BUSH &&
+                  countPassAddedForBush - countCongestedPassAddedForBush >= MIN_UNCONGESTED_PAS_ADD_PER_BUSH){
             break;
           }
         }

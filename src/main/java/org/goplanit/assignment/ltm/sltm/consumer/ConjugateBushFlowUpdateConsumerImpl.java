@@ -5,14 +5,11 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.DestinationBush;
 import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.utils.arrays.ArrayUtils;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 
@@ -145,7 +142,7 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
           // can happen due to low flow branch shift that leaves some dangling edges. with a better
           // implementation of the low lfow branch shift this can be avoided, but run time wise it is probably
           // better to remove them here and assume it'll fix itself
-          bush.removeTurn(conjEntrySegment);
+          bush.remove(conjEntrySegment);
           continue;
         }
 

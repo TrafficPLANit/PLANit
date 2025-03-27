@@ -50,6 +50,9 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
 
   protected long pasId;
 
+  /** track status of PAS which determines how it is used */
+  protected PasStatus pasStatus = PasStatus.UNKNOWN;
+
   /** track how often the PAS swapped its S1 segment versus how often its costs was updated
    * (cost may be updated regardless whether it is active or not) */
   protected Pair<LongAdder,LongAdder> countS1Swap = Pair.of(new LongAdder(),new LongAdder());
@@ -370,6 +373,23 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
+   * Update status of PAS explicitly
+   *
+   * @param pasStatus to set
+   * @return previous status
+   */
+  public PasStatus updateStatus(final PasStatus pasStatus){
+    var prevStatus = getStatus();
+    this.pasStatus = pasStatus;
+    return prevStatus;
+  }
+
+
+  public PasStatus getStatus(){
+    return this.pasStatus;
+  }
+
+  /**
    * Access to stats on how often the S1 alternative swapped between the two options in relation to
    * how often this was updated.
    *
@@ -613,4 +633,5 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
   public double getProposedPasFlowShiftAdjustmentFactor(){
     return proposedPasFlowShiftAdjustmentFactor;
   }
+
 }

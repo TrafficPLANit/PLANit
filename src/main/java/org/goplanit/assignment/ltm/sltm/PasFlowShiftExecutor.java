@@ -563,6 +563,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @return true if confirmed, false otherwise
    */
+  @Deprecated
   public boolean hasAnyBushAddedLinkSegments() {
     return addedEdgeSegmentsForBushes != null && !addedEdgeSegmentsForBushes.isEmpty();
   }
@@ -581,6 +582,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @return tracked findings or empty map
    */
+  @Deprecated
   public Map<ES, Set<RootedBush<V,ES>>> getBushAddedLinkSegments() {
     return addedEdgeSegmentsForBushes;
   }
@@ -603,6 +605,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param linkSegment to check for
    * @return tracked findings or empty list
    */
+  @Deprecated
   public Set<RootedBush<V,ES>> getBushAddedLinkSegments(ES linkSegment) {
     var bushes =
         addedEdgeSegmentsForBushes.computeIfAbsent(linkSegment, k -> new TreeSet<>());
@@ -615,6 +618,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param bush to use
    * @param linkSegment to register
    */
+
   public void addBushRemovedLinkSegment(
           RootedBush<V,ES> bush, ES linkSegment){
     if(settings.hasTrackOdsForLogging() && isDestinationTrackedForLogging(bush)){
@@ -631,6 +635,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param bush to use
    * @param linkSegment to register
    */
+  @Deprecated
   public void addBushAddedLinkSegment(
           RootedBush<V,ES> bush, ES linkSegment){
     if(settings.hasTrackOdsForLogging() && isDestinationTrackedForLogging(bush)){

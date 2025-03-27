@@ -10,14 +10,12 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
-import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.graph.directed.acyclic.ConjugateACyclicSubGraphImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ConjugateACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -268,18 +266,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   @Override
   public double addTurnSendingFlow(EdgeSegment from, EdgeSegment to, double addFlowPcuH) {
     var conjugateSegment = turn2ConjugateSegmentMapping.get(from,to);
-
-    if (addFlowPcuH > 0) {
-      if (!contains(conjugateSegment)) {
-        if (contains(conjugateSegment.getOppositeDirectionSegment())) {
-          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on conjugate bush (%s) where the opposite direction (of segment %s) already is part of the bush, this breaks acyclicity",
-                  from.getXmlId(), to.getXmlId(), getRootZoneVertex().getParent().getParentZone().getIdsAsString(), from.getXmlId()));
-        }
-        getDag().addEdgeSegment(conjugateSegment);
-        requireTopologicalSortUpdate = true;
-      }
-    }
-    return bushData.addTurnSendingFlow(conjugateSegment, addFlowPcuH);
+    return addTurnSendingFlow(conjugateSegment, addFlowPcuH);
   }
 
   /**
@@ -327,6 +314,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
     if (addFlowPcuH > 0) {
       if (!containsConjugateSegment(turn)) {
+        //todo eventually phase this out as it should never get triggered anyway anymore
         if (containsConjugateSegment(turn.getOppositeDirectionSegment())) {
           var originalTurnSegments = turn.getOriginalAdjacentEdgeSegments();
           LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s) where the opposite direction turn" +
@@ -334,6 +322,8 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
                   originalTurnSegments.first().getXmlId(), originalTurnSegments.second().getXmlId(),
                   getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
+        LOGGER.warning(String.format("Add turn (%s) in conjugate bush (%s), but this should have already happened earlier, " +
+                "should not happen", turn.getIdsAsString(), getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         getDag().addEdgeSegment(turn);
         requireTopologicalSortUpdate = true;
       }
@@ -399,8 +389,8 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    *
    * @param turn of the turn
    */
-  public void removeTurn(final ConjugateEdgeSegment turn) {
-    bushData.removeTurn(turn);
+  public void remove(final ConjugateEdgeSegment turn) {
+    bushData.removeTurnData(turn);
 //    LOGGER.info(String.format("Removing turn (%s,%s) from bush",
 //            turn.getOriginalAdjacentEdgeSegments().first().getXmlId(), turn.getOriginalAdjacentEdgeSegments().second().getXmlId()));
 
@@ -724,7 +714,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
         // remove segment
         double originalConjSegmentFlow = bushData.getTurnSendingFlowPcuH(lowFlowConjSegment);
-        removeTurn(lowFlowConjSegment);
+        remove(lowFlowConjSegment);
         removedConjSegments.add(lowFlowConjSegment);
 
         // determine how much flow requires redistributing (if any)

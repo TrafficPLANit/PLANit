@@ -5,11 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.goplanit.assignment.ltm.sltm.RootedLabelledBush;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 
@@ -85,13 +83,8 @@ public class ConjugateBushTurnData{
       // not forced, so apply some additional checking in situation of low flows and negative flows
       // note forced may be helpful for small positive flows that otherwise would be regarded as zero flow with the below checks
       if(!Precision.positive(turnSendingFlow)) {
-        // when negative flow but extremely close to zero, remove the turn flow and accept
-
-//        if(parent.getDag().getId() == 10) {
-//          LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f) on bush (%s), remove entry for label (%s,%s)",
-//              fromSegment.getXmlId(), toSegment.getXmlId(), turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString(), fromComposition.getLabelId(), toComposition.getLabelId()));
-//        }
-        removeTurn(turnSegment);
+        // when negative flow but extremely close to zero, remove the turn flow and continue
+        removeTurnData(turnSegment);
         return false;
       }else if(turnSendingFlow < 0) {
         // too negative, warn user as this is unexpected behaviour possibly beyond a rounding situation
@@ -100,7 +93,7 @@ public class ConjugateBushTurnData{
                 "** Turn (%s to %s) sending flow negative (%.9f) on bush (%s), this is not allowed, removing turn flow",
                 originalTurnSegments.first().getXmlId(), originalTurnSegments.second().getXmlId(),
                 turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-        removeTurn(turnSegment);
+        removeTurnData(turnSegment);
         return false;
       }
     }
@@ -128,7 +121,7 @@ public class ConjugateBushTurnData{
    * 
    * @param turnSegment the turn
    */
-  public void removeTurn(final ConjugateEdgeSegment turnSegment) {
+  public void removeTurnData(final ConjugateEdgeSegment turnSegment) {
     turnSendingFlows.remove(turnSegment);
   }
 
