@@ -74,12 +74,13 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
    * more attractive than the same search on a cyclic graph.
    * 
    * @param startVertex to conduct search for
+   * @param searchType used
    * @param bannedThroughVertices set of vertices that do not allow paths to go through them. They may only serve as
    *                              start and/or end points
    * @return created result
    */
   public MinMaxPathResultImpl execute(
-          final DirectedVertex startVertex, Set<DirectedVertex> bannedThroughVertices) {
+          final DirectedVertex startVertex, ShortestSearchType searchType, Set<DirectedVertex> bannedThroughVertices) {
 
     /* prep cost arrays */
     double[] minCost = new double[numParentNetworkVertices];
@@ -131,7 +132,13 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
     }
 
     return new MinMaxPathResultImpl(
-        startVertex, minCost, minCostNextEdgeSegments, maxCost, maxCostNextEdgeSegments, edgeSegmentCosts.length);
+        startVertex,
+        searchType,
+        minCost,
+        minCostNextEdgeSegments,
+        maxCost,
+        maxCostNextEdgeSegments,
+        edgeSegmentCosts.length);
   }
 
   /**
@@ -143,7 +150,7 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
     this.getEdgeSegmentsInDirection =
             ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ALL_TO_ONE);
     this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ALL_TO_ONE);
-    return execute(currentDestination, bannedThroughVertices);
+    return execute(currentDestination, ShortestSearchType.ALL_TO_ONE, bannedThroughVertices);
   }
 
   /**
@@ -163,7 +170,7 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
     this.getEdgeSegmentsInDirection =
             ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ONE_TO_ALL);
     this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ONE_TO_ALL);
-    return execute(currentOrigin, bannedThroughVertices);
+    return execute(currentOrigin, ShortestSearchType.ONE_TO_ALL, bannedThroughVertices);
   }
 
   /**

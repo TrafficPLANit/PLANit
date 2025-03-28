@@ -41,7 +41,8 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
   /**
    * Constructor
    *
-   * @param rootSearchVertex             that was used for the search
+   * @param rootSearchVertex            that was used for the search
+   * @param searchType                  the direction of the search type
    * @param minVertexCost               found
    * @param minCostBackwardEdgeSegments found
    * @param maxVertexCost               found
@@ -50,6 +51,7 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    */
   protected MinMaxPathResultImpl(
       DirectedVertex rootSearchVertex,
+      ShortestSearchType searchType,
       double[] minVertexCost,
       EdgeSegment[] minCostBackwardEdgeSegments,
       double[] maxVertexCost,
@@ -59,9 +61,9 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
     this.minPathState = true;
     this.rootSearchVertex = rootSearchVertex;
         this.minPathResult = new ShortestPathResultGeneralised(
-        rootSearchVertex, minVertexCost, minCostBackwardEdgeSegments, ShortestSearchType.ONE_TO_ALL, numEdgeSegments);
+        rootSearchVertex, minVertexCost, minCostBackwardEdgeSegments, searchType, numEdgeSegments);
     this.maxPathResult = new ShortestPathResultGeneralised(
-        rootSearchVertex, maxVertexCost, maxCostBackwardEdgeSegments, ShortestSearchType.ONE_TO_ALL, numEdgeSegments);
+        rootSearchVertex, maxVertexCost, maxCostBackwardEdgeSegments, searchType, numEdgeSegments);
   }
 
   /**

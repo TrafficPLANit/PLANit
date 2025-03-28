@@ -47,17 +47,23 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       StaticLtmLoadingBushBase<ConjugateDestinationBush> networkLoading, double totalPasShift) {
 
     for(var es : pas.getAlternative(true)){
-      int id = (int)es.getId();
-      networkLoading.getUnconstrainedFlowsPcuHour()[id] += totalPasShift;
-      networkLoading.getCurrentOutflowsPcuH()[id] += totalPasShift;
-      networkLoading.getCurrentInflowsPcuH()[id] += totalPasShift;
+      var originalSegments = es.getOriginalAdjacentEdgeSegments();
+      if(originalSegments.firstNotNull()){
+        int id = (int) (originalSegments.first()).getId();
+        networkLoading.getUnconstrainedFlowsPcuHour()[id] += totalPasShift;
+        networkLoading.getCurrentOutflowsPcuH()[id] += totalPasShift;
+        networkLoading.getCurrentInflowsPcuH()[id] += totalPasShift;
+      }
     }
 
     for(var es : pas.getAlternative(false)) {
-      int id = (int) es.getId();
-      networkLoading.getUnconstrainedFlowsPcuHour()[id] -= totalPasShift;
-      networkLoading.getCurrentOutflowsPcuH()[id] -= totalPasShift;
-      networkLoading.getCurrentInflowsPcuH()[id] -= totalPasShift;
+      var originalSegments = es.getOriginalAdjacentEdgeSegments();
+      if(originalSegments.firstNotNull()){
+        int id = (int) (originalSegments.first()).getId();
+        networkLoading.getUnconstrainedFlowsPcuHour()[id] -= totalPasShift;
+        networkLoading.getCurrentOutflowsPcuH()[id] -= totalPasShift;
+        networkLoading.getCurrentInflowsPcuH()[id] -= totalPasShift;
+      }
     }
   }
 
@@ -79,7 +85,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         return;
       }
       var originalEntrySegment = es.getOriginalAdjacentEdgeSegments().first();
-      int id = (int) es.getId();
       // will use current network flows (including any shift applied via syncUncongestedPasFlowShiftToNetworkFlow
       double currentCost = physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) originalEntrySegment);
       originalNetworkCosts[(int)originalEntrySegment.getId()]  = currentCost;
@@ -632,7 +637,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       Mode theMode,
       Map<EdgeSegment, Double> proposedFlowShifts,
       StaticLtmLoadingBushBase<ConjugateDestinationBush> networkLoading,
-      Smoothing smoothing,
       GapFunction gapFunction, AbstractPhysicalCost physicalCost,
       AbstractVirtualCost virtualCost,
       double[] originalNetworkCosts,
@@ -679,18 +683,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         }
       }
 
-      double smoothedProportionalPasflowShift = smoothing.executeRefZero(proposedFlowShift);
-      /*test for eligibility to reduce to zero flow along S2 */
-      if (smoothedProportionalPasflowShift >= guaranteedS2SendingFlow) {
-        /* truncate to guaranteed available S2 flow */
-        smoothedProportionalPasflowShift = guaranteedS2SendingFlow;
-      }
-
       // verify if uncongested considering the shift we decided to apply. If so continue (UNCONGESTED_WITH_SHIFT)
       // Otherwise, stop equilibration process without shifting or part way through equilibration.
       boolean ignoreInitialConjEdgeSegment = true; // ignore initial because shift will not change amount of flow on entry
       double s1SlackFlow = determinePasAlternativeSlackFlow(networkLoading, true, ignoreInitialConjEdgeSegment);
-      if(smoothedProportionalPasflowShift > s1SlackFlow){
+      if(proposedFlowShift > s1SlackFlow){
         // insufficient slack, do not process (further)
         pas.updateStatus(PasStatus.UNCONGESTED_WITHOUT_SHIFT);
         break;
@@ -707,7 +704,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
         // scale to bush
         double bushS2Portion = bushS2RemainingSendingFlow / guaranteedS2SendingFlow;
-        double bushPasFlowShift = smoothedProportionalPasflowShift * bushS2Portion;
+        double bushPasFlowShift = proposedFlowShift * bushS2Portion;
 
         if(isDestinationTrackedForLogging(conjBush) || logAll) {
           LOGGER.info(String.format(

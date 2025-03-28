@@ -144,16 +144,13 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
     if(dagToPopulate == null){
       throw new PlanItRunTimeException("provided dag is null, unable to populate spanning tree");
     }
-    if(dagToPopulate.isDirectionInverted() == isInverted()){
-      // search tree "normal" direction is in the inverse of the normal direction, yet DAG coincides with the normal
-      // perspective, hence we need to invert the flag to set it correctly in the context of the DAG
-      throw new PlanItRunTimeException("direction of provided dag clashes with search, unable to populate spanning tree");
-    }
 
     // add all edge segments in tree with a backlink, this covers all vertices unless they were dangling in the
     // original network
     for(EdgeSegment nextEdgeSegment : nextEdgeSegmentByVertex){
-      dagToPopulate.addEdgeSegment( (E) nextEdgeSegment);
+      if(nextEdgeSegment != null) {
+        dagToPopulate.addEdgeSegment((E) nextEdgeSegment);
+      }
     }
   }
 

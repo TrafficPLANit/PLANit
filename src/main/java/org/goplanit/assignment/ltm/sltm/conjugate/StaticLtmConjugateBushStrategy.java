@@ -173,7 +173,6 @@ public class StaticLtmConjugateBushStrategy
           theMode,
           pasProposedFlowShifts.get(sortedPas),
           getLoading(),
-          getSmoothing(),
           getGapFunction(),
           getPhysicalCost(),
           getVirtualCost(),
@@ -373,22 +372,50 @@ public class StaticLtmConjugateBushStrategy
       MinMaxPathResult bushMinMaxPathResult,
       double[] conjugateLinkSegmentCosts, boolean allowUncongestedOnly) {
 
-    /* Label all vertices on min path from reference vertex to root as -1, and PAS reference vertex itself as 1 */
+    // TODO: we now only consider one of the two options: max bush path, but when adding a new link in
+    //  the bush min path from the vertex is ALSO an alternative. Probably better to check both and then choose
+    //  the shortest of the two!
+
+    /* Label all vertices on max path from reference vertex to root as -1, and PAS reference vertex itself as 1 */
     final short[] conjAlternativeSegmentVertexLabels =
             new short[conjugateTransportModelNetwork.getNumberOfVerticesAllLayers()];
     conjAlternativeSegmentVertexLabels[(int) reducedCostVertex.getId()] = 1;
-    bushMinMaxPathResult.setMinPathState(true);
+    bushMinMaxPathResult.setMinPathState(false);
     int numShortestPathEdgeSegments = bushMinMaxPathResult.forEachNextEdgeSegment(
             bush.getRootVertex(),
             reducedCostVertex,
             (edgeSegment) -> conjAlternativeSegmentVertexLabels[(int)
                 bushMinMaxPathResult.getNextVertexForEdgeSegment(edgeSegment).getId()] = -1);
 
-    // Identify when it coincides again with bush (closer to root) using back links of max path tree
+    // construct s1 alternative now that we can find where it terminates
+    bushMinMaxPathResult.setMinPathState(true);
+    var s1Alternative = new LinkedList<ConjugateEdgeSegment>();
+    s1Alternative.add(startSegmentForS1Alternative);
+    ConjugateEdgeSegment nextS1Segment = null;
+    var currVertex = startSegmentForS1Alternative.getDownstreamVertex();
+    do {
+      nextS1Segment = (ConjugateEdgeSegment) bushMinMaxPathResult.getNextEdgeSegmentForVertex(currVertex);
+      if(nextS1Segment == null){
+        LOGGER.info(String.format("Unable to create new PAS (S1) for conjugate bush rooted at vertex (%s), " +
+            "despite reduced cost, should not happen"));
+        s1Alternative.clear();
+        break;
+      }
+      s1Alternative.add(nextS1Segment);
+      currVertex = nextS1Segment.getDownstreamVertex();
+    }while(conjAlternativeSegmentVertexLabels[(int)currVertex.getId()] != -1);
+
+    if (s1Alternative.isEmpty()) {
+      return null;
+    }
+
+    // Identify S2 now that we know where it coincides with S1 alternative
+    // todo: see options for improving this furter in above todo
     bushMinMaxPathResult.setMinPathState(false);
     var s2Alternative = new LinkedList<ConjugateEdgeSegment>();
     ConjugateEdgeSegment nextS2Segment;
-    ConjugateDirectedVertex currVertex = reducedCostVertex;
+    ConjugateDirectedVertex mergeVertex = currVertex;
+    currVertex = reducedCostVertex;
     do {
       nextS2Segment = (ConjugateEdgeSegment) bushMinMaxPathResult.getNextEdgeSegmentForVertex(currVertex);
       if(nextS2Segment == null){
@@ -399,32 +426,9 @@ public class StaticLtmConjugateBushStrategy
       }
       s2Alternative.add(nextS2Segment);
       currVertex = nextS2Segment.getDownstreamVertex();
-    }while(conjAlternativeSegmentVertexLabels[(int)nextS2Segment.getDownstreamVertex().getId()] != -1);
+    }while(!currVertex.idEquals(mergeVertex));
 
     if (s2Alternative.isEmpty()) {
-      return null;
-    }
-
-    // construct s1 alternative now that we know where it terminates
-    bushMinMaxPathResult.setMinPathState(true);
-    var s1Alternative = new LinkedList<ConjugateEdgeSegment>();
-    s1Alternative.add(startSegmentForS1Alternative);
-    ConjugateEdgeSegment nextS1Segment = null;
-    ConjugateDirectedVertex mergeVertex = currVertex;
-    currVertex = startSegmentForS1Alternative.getDownstreamVertex();
-    do {
-      nextS1Segment = (ConjugateEdgeSegment) bushMinMaxPathResult.getNextEdgeSegmentForVertex(currVertex);
-      if(nextS1Segment == null){
-        LOGGER.info(String.format("Unable to create new PAS (S1) for conjugate bush rooted at vertex (%s), " +
-            "despite reduced cost, should not happen"));
-        s1Alternative.clear();
-        break;
-      }
-      s1Alternative.add(nextS1Segment);
-
-    }while(!nextS1Segment.getDownstreamVertex().idEquals(mergeVertex));
-
-    if (s1Alternative.isEmpty()) {
       return null;
     }
 
@@ -565,18 +569,15 @@ public class StaticLtmConjugateBushStrategy
         var originConjugateReferenceVertex =
             centroid2ConjugateNodeMapping.get(findOriginCentroidVertex(origin));
 
-        /* add demand along conjugate bush's origin shortest path */
+        /* add demand along conjugate bush's shortest path from destination back to origin */
         // todo: could be more efficient, if we'd only added the demands and then walk topologicially using the next
         // backlinks to add the demand
         bush.addOriginDemandPcuH(originConjugateReferenceVertex, currOdDemand);
-        allToOneResult.forEachNextEdgeSegment(originConjugateReferenceVertex, destinationConjugateReferenceVertex,
+        allToOneResult.forEachNextEdgeSegment(destinationConjugateReferenceVertex, originConjugateReferenceVertex,
             es -> bush.addTurnSendingFlow((ConjugateEdgeSegment) es, currOdDemand));
       }
     }
 
-    if(getSettings().isDetailedLogging()) {
-      LOGGER.info(bush.toString());
-    }
     return !bush.getDag().isEmpty();
   }
 
@@ -708,12 +709,13 @@ public class StaticLtmConjugateBushStrategy
 
           // found segment to add -- necessitates creation of a new PAS because we are merging two possible routes
           conjBush.getDag().addEdgeSegment(outgoingSegment);
-          double reducedCost =
-              bushMinMaxTree.getMaxCostToReach(conjBushVertex) - bushMinMaxTree.getMinCostToReach(conjBushVertex);
+          double minCostToVertexWithNewLink = conjLinkSegmentCosts[(int)outgoingSegment.getId()] + bushMinMaxTree.getMinCostToReach(outgoingSegment.getDownstreamVertex());
+          double minReducedCost =
+              bushMinMaxTree.getMinCostToReach(conjBushVertex) - minCostToVertexWithNewLink;
+          double maxReducedCost =
+              bushMinMaxTree.getMaxCostToReach(conjBushVertex) - minCostToVertexWithNewLink;
 
-          // find PAS using min max cost paths until converging
-          // NOTES:
-          //  - do not yet consider existing PAS in case this segment existed earlier and PAS was created - TODO add that in
+          // find PAS using either min or max cost bush paths
 
           /* find a (new) PAS for the bush */
           boolean allowUncongestedOnly = MAX_CONGESTED_PAS_ADD_PER_BUSH == countCongestedPassAddedForBush;
@@ -721,7 +723,7 @@ public class StaticLtmConjugateBushStrategy
               conjBush,
               conjBushVertex,
               outgoingSegment,
-              reducedCost,
+              maxReducedCost,
               bushMinMaxTree,
               conjLinkSegmentCosts,
               allowUncongestedOnly);
@@ -732,7 +734,6 @@ public class StaticLtmConjugateBushStrategy
 
           // truly new PAS
           newPass.add(newPas);
-          newPas.updateCost(conjLinkSegmentCosts);
           if(isDestinationTrackedForLogging(conjBush) || logAll){
             LOGGER.info(String.format("Registered new PAS (%s) on conjugate bush (%s)",
                 newPas, conjBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));

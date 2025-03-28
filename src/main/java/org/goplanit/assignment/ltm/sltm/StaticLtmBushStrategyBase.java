@@ -475,11 +475,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // from manager, and remove from flow shift executors as they are no longer relevant
     flowShiftingStepTwoDeactivatePassWithoutRemainingFlow(pasExecutors);
 
-    // STEP3: Determine the proposed flow shift for each PAS as if it were performing
-    //  its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
-    final Map<Pas<V,ES>, Map<EdgeSegment, Double>> pasProposedFlowShifts =
-        flowShiftingStepThreeDetermineProposedFlowShift(theMode, pasExecutors, simulationData);
-
     return pasExecutors;
   }
 
@@ -666,7 +661,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         continue;
       }
 
-      if (isDestinationTrackedForLogging(bush)) {
+      if (isDestinationTrackedForLogging(bush) || getSettings().isDetailedLogging()) {
         LOGGER.info(bush.toString());
       }
     }

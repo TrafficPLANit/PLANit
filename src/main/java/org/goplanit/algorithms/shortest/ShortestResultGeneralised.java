@@ -61,7 +61,6 @@ public abstract class ShortestResultGeneralised implements ShortestResult{
 
     /* search direction for creating paths in opposite direction as compared to shortest path search itself */
     this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(searchType, true /* invert */ );
-    
   }
   
   /**

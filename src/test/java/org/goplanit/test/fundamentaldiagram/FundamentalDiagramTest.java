@@ -154,10 +154,13 @@ public class FundamentalDiagramTest {
         // for linear branch should be fixed and zero
         assertEquals(0, qlFd.getCongestedBranch().getDSpeedDDensityAtDensity(criticalDensity));
         assertEquals(qlFd.getCongestedBranch().getDSpeedDDensityAtDensity(jamDensity),qlFd.getCongestedBranch().getDSpeedDDensityAtDensity(criticalDensity));
-        // for quadratic branch should be fixed and non-zero such that it shifts from free speed to critical speed over the span of 0-critical density
-        double expectedSpeedDerivative = -(freeSpeed - qlFd.getFreeFlowBranch().getSpeedKmHourByFlow(capacity))/(criticalDensity - 0);
-        assertEquals(qlFd.getFreeFlowBranch().getDSpeedDFlowAtFlow(0),expectedSpeedDerivative);
-        assertEquals(qlFd.getFreeFlowBranch().getDSpeedDFlowAtFlow(0),qlFd.getFreeFlowBranch().getDSpeedDFlowAtFlow(criticalDensity));
+        // for quadratic branch it is not fixed because flow changes differently than speed
+        double expectedSpeedDerivativeAtZeroFlow = -alpha/Math.sqrt(Math.pow(freeSpeed,2));
+        double expectedSpeedDerivativeAtCapacityFlow = -alpha/Math.sqrt(Math.pow(freeSpeed,2) - 4 * alpha * capacity);
+        assertEquals(qlFd.getFreeFlowBranch().getDSpeedDFlowAtFlow(0),expectedSpeedDerivativeAtZeroFlow);
+        assertEquals(qlFd.getFreeFlowBranch().getDSpeedDFlowAtFlow(capacity),expectedSpeedDerivativeAtCapacityFlow);
+
+
       }
 
 

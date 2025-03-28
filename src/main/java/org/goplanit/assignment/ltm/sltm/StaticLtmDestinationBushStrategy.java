@@ -3,6 +3,7 @@ package org.goplanit.assignment.ltm.sltm;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import com.sun.source.tree.Tree;
@@ -13,10 +14,12 @@ import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
@@ -66,6 +69,28 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
     var helper = BushInitialiserHelper.create(
             destinationBush, destinationOriginInvertedDag, pasManager, getSettings().isDetailedLogging());
     helper.executeOdBushInitialisation(currVertex, oDDemandPcuH, vertexIter);
+  }
+
+  private void updatePasStatusBeforeFlowShift(
+      Pas<DirectedVertex, EdgeSegment> pas, double[] flowAcceptanceFactors) {
+
+    // test if conj segment is congested by considering original entry segment acceptance factor
+    Predicate<EdgeSegment> congestedPred = es -> Precision.smaller(
+        flowAcceptanceFactors[(int)es.getId()],1, Precision.EPSILON_9);
+
+    for( var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()){
+      if(congestedPred.test(entrySegment) &&
+          pas.getRegisteredBushes().stream().anyMatch( b -> b.contains(entrySegment))){
+        pas.updateStatus(PasStatus.CONGESTED);
+        return;
+      }
+    }
+
+    if( pas.anyMatch(congestedPred,false) || pas.anyMatch( congestedPred,true)){
+      pas.updateStatus(PasStatus.CONGESTED);
+    }else{
+      pas.updateStatus(PasStatus.UNCONGESTED_WITHOUT_SHIFT);
+    }
   }
 
   /**
@@ -175,6 +200,14 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
       LOGGER.info("%.2f% of Active PASs swapped which alternative was cheapest");
     }
   }
+
+  @Override
+  protected void updatePasStatusBeforeFlowShifts(Mode theMode, double[] networkLinkSegmentFlowAcceptanceFactors) {
+    // execute status update without considering any flow shift information
+    pasManager.forEachActivePas( p -> updatePasStatusBeforeFlowShift(p, networkLinkSegmentFlowAcceptanceFactors));
+    pasManager.forEachInactivePas(p -> updatePasStatusBeforeFlowShift(p, networkLinkSegmentFlowAcceptanceFactors));
+  }
+
 
   /**
    * Constructor

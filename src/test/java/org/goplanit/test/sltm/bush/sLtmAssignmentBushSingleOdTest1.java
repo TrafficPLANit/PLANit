@@ -5,24 +5,26 @@ import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
 import org.goplanit.assignment.ltm.sltm.StaticLtmType;
-import org.goplanit.choice.ChoiceModel;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
+import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesImpl;
 import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
-import org.goplanit.path.choice.PathChoice;
-import org.goplanit.path.choice.StochasticPathChoiceConfigurator;
-import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
+import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
+import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.PredefinedMode;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
@@ -38,6 +40,8 @@ import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -60,27 +64,52 @@ public class sLtmAssignmentBushSingleOdTest1 {
   /** the logger */
   private static Logger LOGGER = null;
 
-  /**
-   * Create demands an populate with OD DEMANDS 8000 A->A`
-   * 
-   * @return created demands
-   */
-  private Demands createDemands() {
+  private Demands createEmptyDemands() {
     Demands demands = new Demands(testToken);
     demands.timePeriods.getFactory().registerNew("dummyTimePeriod", 0, 3600);
     demands.travelerTypes.getFactory().registerNew("dummyTravellerType");
     demands.userClasses.getFactory().registerNew("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
+    return demands;
+  }
+
+  /**
+   * Create demands and populate with OD DEMANDS 8000 A->A`
+   * 
+   * @return created demands
+   */
+  private Demands createCongestedDemands() {
+    Demands demands = createEmptyDemands();
 
     /* OD DEMANDS 8000 A->A` */
     OdZones odZones = zoning.getOdZones();
     OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
     odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), 8000.0);
-    demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
+    demands.registerOdDemandPcuHour(
+        demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
 
     return demands;
   }
 
-  private void testOutputs(StaticLtm sLTM) {
+  /**
+   * Create demands and populate with uncongested OD DEMANDS
+   *
+   * @return created demands
+   */
+  private Demands createUncongestedDemands() {
+    Demands demands = createEmptyDemands();
+
+    OdZones odZones = zoning.getOdZones();
+    OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
+    odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), 6000.0);
+    demands.registerOdDemandPcuHour(
+        demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
+
+    return demands;
+  }
+
+  //todo --> will no longer hold because shortened alternatives link lengths to be of same length as middle route
+  // to aid the uncongested test
+  private void testCongestedOutputs(StaticLtm sLTM) {
     double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
     double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
@@ -116,6 +145,31 @@ public class sLtmAssignmentBushSingleOdTest1 {
     assertEquals(demand2, demand0, Precision.EPSILON_6);
   }
 
+  private StaticLtm initialiseSltm(
+      StaticLtmType staticLtmType, String fundamentalDiagramType, Demands demands) throws PlanItException {
+
+    /* sLTM - POINT QUEUE */
+    StaticLtmTrafficAssignmentBuilder sLTMBuilder =
+        new StaticLtmTrafficAssignmentBuilder(
+            network.getIdGroupingToken(), null, demands, zoning, network);
+
+    sLTMBuilder.getConfigurator().disableLinkStorageConstraints(
+        StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+    sLTMBuilder.getConfigurator().setType(staticLtmType);
+
+    sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(fundamentalDiagramType);
+
+    sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
+    sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+
+    var fixedSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+    fixedSmoothing.setStepSize(0.5);
+
+    sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
+
+    return sLTMBuilder.build();
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -141,7 +195,9 @@ public class sLtmAssignmentBushSingleOdTest1 {
     //
     // Inspired by the network in Raadsen and Bliemer (2021), but not identical since we use three separate links for the 
     // alternative routes and capacities might be slightly different as well. Link 2 (7k capacity) is the bottleneck
-    // with the middle route being shorter, all link shave 8k capacity and demand is 8k as well
+    // with the middle route being shorter, all link shave 8k capacity.
+    //  - Demand is 8k as well for the congested test
+    //  - Demand is 7k with QL diagram and lower speeds for uncongested test
     //
     //            4 *----->------* 5
     //              |     4      |
@@ -158,10 +214,11 @@ public class sLtmAssignmentBushSingleOdTest1 {
     try {
       // local CRS in meters
       GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
-      
+
       network = new MacroscopicNetwork(testToken);
-      network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
-      networkLayer = network.getTransportLayers().getFactory().registerNew(network.getModes().get(PredefinedModeType.CAR));
+      PredefinedMode carMode = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
+      networkLayer = network.getTransportLayers().getFactory().registerNew(
+          network.getModes().get(PredefinedModeType.CAR));
 
       {
         // 0
@@ -206,18 +263,23 @@ public class sLtmAssignmentBushSingleOdTest1 {
       linkFactory.registerNew(nodes.getByXmlId("0"), nodes.getByXmlId("1"), 1, true).setXmlId("0");
       linkFactory.registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("2"), 1, true).setXmlId("1");
       linkFactory.registerNew(nodes.getByXmlId("2"), nodes.getByXmlId("3"), 1, true).setXmlId("2");
-      linkFactory.registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("4"), 1, true).setXmlId("3");
-      linkFactory.registerNew(nodes.getByXmlId("4"), nodes.getByXmlId("5"), 1, true).setXmlId("4");
-      linkFactory.registerNew(nodes.getByXmlId("5"), nodes.getByXmlId("2"), 1, true).setXmlId("5");
-      linkFactory.registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("6"), 1, true).setXmlId("6");
-      linkFactory.registerNew(nodes.getByXmlId("6"), nodes.getByXmlId("7"), 1, true).setXmlId("7");
-      linkFactory.registerNew(nodes.getByXmlId("7"), nodes.getByXmlId("2"), 1, true).setXmlId("8");
+      linkFactory.registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("4"), 1.0/3, true).setXmlId("3");
+      linkFactory.registerNew(nodes.getByXmlId("4"), nodes.getByXmlId("5"), 1.0/3, true).setXmlId("4");
+      linkFactory.registerNew(nodes.getByXmlId("5"), nodes.getByXmlId("2"), 1.0/3, true).setXmlId("5");
+      linkFactory.registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("6"), 1.0/3, true).setXmlId("6");
+      linkFactory.registerNew(nodes.getByXmlId("6"), nodes.getByXmlId("7"), 1.0/3, true).setXmlId("7");
+      linkFactory.registerNew(nodes.getByXmlId("7"), nodes.getByXmlId("2"), 1.0/3, true).setXmlId("8");
+
+      var access = AccessGroupPropertiesFactory.create(130, 80, carMode);
       
-      
-      /* capacities the same (1500), difference is in number of lanes applied) */
+      // capacities the same (1500), difference is in number of lanes applied)
       MacroscopicLinkSegmentTypes linkTypes = networkLayer.getLinkSegmentTypes();
-      linkTypes.getFactory().registerNew("MainType", 2000, 180, network.getModes().getFirst()).setXmlId("MainType");
-      linkTypes.getFactory().registerNew("BottleNeckType", 7000/4.0, 180, network.getModes().getFirst()).setXmlId("BottleNeckType");
+      var mainType = linkTypes.getFactory().registerNew("MainType", 2000, 180, network.getModes().getFirst());
+      mainType.setXmlId("MainType");
+      mainType.setAccessGroupProperties(access);
+      var bottleneckType = linkTypes.getFactory().registerNew("BottleNeckType", 7000/4.0, 180, network.getModes().getFirst());
+      bottleneckType.setXmlId("BottleNeckType");
+      bottleneckType.setAccessGroupProperties(access);
 
       var linkSegmentFactory = networkLayer.getLinkSegments().getFactory();
       linkSegmentFactory.registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4).setXmlId("0");
@@ -254,30 +316,17 @@ public class sLtmAssignmentBushSingleOdTest1 {
     try {
 
       /* OD DEMANDS 8000 A->A` */
-      Demands demands = createDemands();
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      Demands demands = createCongestedDemands();
 
       /* DESTINATION BASED */
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.DESTINATION_BUSH_BASED);
+      var sLTM = initialiseSltm(StaticLtmType.DESTINATION_BUSH_BASED, FundamentalDiagram.NEWELL, demands);
 
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-
-      var fixedSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedSmoothing.setStepSize(0.5);
-
-      sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
-
-      StaticLtm sLTM = sLTMBuilder.build();
       sLTM.setActivateDetailedLogging(true);
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
       sLTM.execute();
 
-      testOutputs(sLTM);
+      testCongestedOutputs(sLTM);
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -286,42 +335,55 @@ public class sLtmAssignmentBushSingleOdTest1 {
   }
 
   /**
-   * Test sLTM bush-destination based conjugate assignment on above network for a point queue model
+   * Test sLTM conjugate bush-destination based conjugate assignment on above network for a point queue model
    */
   @Test
-  public void sLtmPointQueueBushDestinationBasedConjugateAssignmentTest() {
+  public void sLtmPointQueueConjBushCongestedAssignmentTest() {
     try {
 
       /* OD DEMANDS 8000 A->A` */
-      Demands demands = createDemands();
+      Demands demands = createCongestedDemands();
 
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(
-              StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      var sLTM = initialiseSltm(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED, FundamentalDiagram.NEWELL, demands);
 
-      /* DESTINATION BASED */
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
+      sLTM.setActivateDetailedLogging(true);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
 
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
-      var fixedSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedSmoothing.setStepSize(0.5);
+      sLTM.execute();
 
-      sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
+      testCongestedOutputs(sLTM);
 
-      StaticLtm sLTM = sLTMBuilder.build();
+    } catch (Exception e) {
+      e.printStackTrace();
+      fail("Error when testing sLTM conjugate bush based assignment");
+    }
+  }
+
+  /**
+   * Test sLTM bush-destination based conjugate uncongested assignment on above network for a point queue model
+   */
+  @Test
+  public void sLtmPointQueueConjBushUncongestedAssignmentTest() {
+    try {
+
+      /* OD DEMANDS 6000 A->A` */
+      Demands demands = createUncongestedDemands();
+
+      var sLTM = initialiseSltm(
+          StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED,FundamentalDiagram.QUADRATIC_LINEAR, demands);
+
       sLTM.setActivateDetailedLogging(true);
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
       sLTM.execute();
 
-      testOutputs(sLTM);
+      testCongestedOutputs(sLTM);
 
     } catch (Exception e) {
       e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
+      fail("Error when testing sLTM uncongested conjugate bush based assignment");
     }
   }
 

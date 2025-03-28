@@ -129,24 +129,12 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
         if (!bush.contains(conjEntrySegment)) {
           continue;
         }
-
         Double bushConjSegmentSendingFlow = bushSendingFlows.get(conjEntrySegment);
-        if (bushConjSegmentSendingFlow == null) {
-          LOGGER.severe(String.format(
-                  "No sending flow found for conjugate segment %s (original turn: [%s]-[%s]) on bush(%s), " +
-                          "this shouldn't happen",
-                  conjEntrySegment.getXmlId(),
-                  conjEntrySegment.getOriginalAdjacentEdgeSegments().first().getIdsAsString(),
-                  conjEntrySegment.getOriginalAdjacentEdgeSegments().second().getIdsAsString(),
-                  bush.getRootZone().getIdsAsString()));
-          // can happen due to low flow branch shift that leaves some dangling edges. with a better
-          // implementation of the low lfow branch shift this can be avoided, but run time wise it is probably
-          // better to remove them here and assume it'll fix itself
-          bush.remove(conjEntrySegment);
+        if (bushConjSegmentSendingFlow == null ) {
+          // can happen in case it is there to maintain spanning tree
           continue;
         }
 
-        // initial dummy turn has no alpha, so just propagate....
         double bushConjSegmentAcceptedFlow = bushConjSegmentSendingFlow;
         var originalTurnEntrySegment = conjEntrySegment.getOriginalAdjacentEdgeSegments().first();
 

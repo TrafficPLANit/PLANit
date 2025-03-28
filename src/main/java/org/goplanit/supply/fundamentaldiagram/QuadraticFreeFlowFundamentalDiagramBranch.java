@@ -207,14 +207,22 @@ public class QuadraticFreeFlowFundamentalDiagramBranch implements FundamentalDia
   }
 
   /**
-   * The dSpeed/dFlow given a particular flow. We can reuse {@link #getDSpeedDDensityAtDensity(double)} since in this
-   * case the derivative is fixed and independent of the density (or flow), we use the result directly, i.e., -alpha.
+   * The dSpeed/dFlow given a particular flow. This is not constant. Note that the formula to compute speed as a
+   * function of flow can be obtained by rewriting the flow(density) function using the ABC rule such that:
+   *
+   * speed = (maxWaveSpeed + SQRT( (-maxWaveSpeed)^2 - 4 * 1 * alpha * FLOW )) / 2 * 1
+   *
+   * To get dSpeed/dFlow for a given flow, we then take the derivative of the above, resulting in:
+   *
+   * take dSpeed/dFlow(FLOW) of 1/2 * ( (-maxWaveSpeed)^2 - 4 * 1 * alpha * FLOW )^1/2 -->
+   * dSpeed/dFlow(FLOW) = -alpha / SQRT( (-maxWaveSpeed)^2 - 4 * alpha * FLOW)
    *
    * @param flowPcuHour to use (not needed for QL fd)
    */
   @Override
   public double getDSpeedDFlowAtFlow(double flowPcuHour) {
-    return -getAlpha();
+    // ignore negative on power function as it does not do anything
+    return -alpha / Math.sqrt(Math.pow(maxWaveSpeedKmHour, 2) - 4 * alpha * flowPcuHour) ;
   }
 
   /**
