@@ -15,7 +15,6 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.enums.OdSkimSubOutputType;
-import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -229,7 +228,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param pasExecutors   to use
    * @param simulationData to use
    * @return proposed flow shifts per PAS per network entry segment of the PAS
+   *
+   * Deprecated in favour of doing this on the fly. Once all rewritten, phase this out
    */
+  @Deprecated
   private Map<Pas<V,ES>, Map<EdgeSegment, Double>> flowShiftingStepThreeDetermineProposedFlowShift(
           Mode theMode,
           Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
@@ -479,20 +481,17 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   }
 
   /**
-   * Shift flows based on the registered PASs and their bushes. Using info from steps 1-3.
-   * ONLY update guaranteed uncongested PASs across bushes here.
+   * Shift flows based on the registered PASs and their bushes.
    *
-   * @param theMode               to use
-   * @param pasExecutors          to use
-   * @param pasProposedFlowShifts to use
-   * @param originalNetworkCosts  to use and update
-   * @param simulationData        to use
+   * @param theMode              to use
+   * @param pasExecutors         to use
+   * @param originalNetworkCosts to use and update
+   * @param simulationData       to use
    * @return all PASs where non-zero flow was shifted on
    */
-  private Collection<Pas<V,ES>> equilibrateUncongestedPasFlows(
+  private Collection<Pas<V,ES>> performFlowShifts(
       final Mode theMode,
       final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
-      Map<Pas<V,ES>, Map<EdgeSegment, Double>> pasProposedFlowShifts,
       double[] originalNetworkCosts,
       final StaticLtmSimulationData simulationData) {
 
@@ -508,14 +507,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
     // UNCONGESTED ONLY
     attemptUncongestedFlowShift(
-        theMode, sortedPass, pasExecutors, pasProposedFlowShifts, originalNetworkCosts);
+        theMode, sortedPass, pasExecutors, originalNetworkCosts);
 
-    // todo: below not touched
-
-    // STEP6 : S2 flow shifts
-    // Remove proposed flows when possible from high cost S2 alternatives for sorted PASs
+    // Perform flow shifts for CONGESTED AND BECOMING CONGESTED WITH SHIFT PASs
     var flowShiftedAndObsoletePass = flowShiftingStepSixPerformS2FlowShifts(
-            theMode, sortedPass, pasExecutors, pasProposedFlowShifts, simulationData);
+            theMode, sortedPass, pasExecutors, null /* do on the fly */, simulationData);
     ArrayList<Pas<V,ES>> flowShiftedPass = flowShiftedAndObsoletePass.first();
     ArrayList<Pas<V,ES>> passWithoutBush = flowShiftedAndObsoletePass.second();
 
@@ -533,7 +529,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   protected void attemptUncongestedFlowShift(
       Mode theMode, Collection<Pas<V,ES>> sortedPass,
       Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
-      Map<Pas<V,ES>, Map<EdgeSegment, Double>> pasProposedFlowShifts,
       double[] originalNetworkCosts) {
     // stub implementation (not implemented for regular destination based yet
   }
@@ -875,14 +870,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors =
               prepareForFlowShifts(theMode, simulationData);
 
-          // STEP3: Determine the proposed flow shift for each PAS as if it were performing
-          //  its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
-          final Map<Pas<V,ES>, Map<EdgeSegment, Double>> pasProposedFlowShifts =
-              flowShiftingStepThreeDetermineProposedFlowShift(theMode, pasExecutors, simulationData);
-
           /* UNCONGESTED FLOW SHIFTS (considering proposed shift) */
-          Collection<Pas<V,ES>> updatedPass = equilibrateUncongestedPasFlows(
-              theMode, pasExecutors, pasProposedFlowShifts, costsToUpdate, simulationData);
+          Collection<Pas<V,ES>> updatedPass = performFlowShifts(
+              theMode, pasExecutors, costsToUpdate, simulationData);
 
           /* POTENTIALLY CONGESTED FLOW SHIFTS PER BUSH */
           //todo --> this does not get equilibrated, this is a one shot update

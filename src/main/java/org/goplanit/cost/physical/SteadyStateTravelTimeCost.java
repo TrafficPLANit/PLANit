@@ -296,11 +296,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
       double inflowPerLane = accessee.getLinkSegmentInflowPcuHour(linkSegment)/linkSegment.getNumberOfLanes();
       hypoDerivative = (-linkSegment.getLengthKm() / Math.pow(ffBranch.getSpeedKmHourByFlow(inflowPerLane), 2))
                         * ffBranch.getDSpeedDFlowAtFlow(inflowPerLane);
-
-      var length = linkSegment.getLengthKm();
-      var tt_orig = length/ffBranch.getSpeedKmHourByFlow(inflowPerLane);
-      var tt_new = length/ffBranch.getSpeedKmHourByFlow(inflowPerLane+12);
-      var delta = tt_new - tt_orig;
+      hypoDerivative /= linkSegment.getNumberOfLanes();
     }
 
     /* hyperCriticalDelay derivative */

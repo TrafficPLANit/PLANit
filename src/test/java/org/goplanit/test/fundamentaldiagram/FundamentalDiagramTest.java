@@ -159,8 +159,6 @@ public class FundamentalDiagramTest {
         double expectedSpeedDerivativeAtCapacityFlow = -alpha/Math.sqrt(Math.pow(freeSpeed,2) - 4 * alpha * capacity);
         assertEquals(qlFd.getFreeFlowBranch().getDSpeedDFlowAtFlow(0),expectedSpeedDerivativeAtZeroFlow);
         assertEquals(qlFd.getFreeFlowBranch().getDSpeedDFlowAtFlow(capacity),expectedSpeedDerivativeAtCapacityFlow);
-
-
       }
 
 

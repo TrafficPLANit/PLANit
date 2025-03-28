@@ -622,20 +622,17 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * cannot be updated because it would trigger a state change, the flow change is NOT executed and its status is
    * changed from {@code PasStatus.UNCONGESTED_WITH_SHIFT} to {@code PasStatus.UNCONGESTED_WITHOUT_SHIFT}
    *
-   * @param theMode to use
-   * @param proposedFlowShifts to use
-   * @param networkLoading to use
-   * @param smoothing to use
-   * @param gapFunction to use
-   * @param physicalCost to use
-   * @param virtualCost to use
+   * @param theMode              to use
+   * @param networkLoading       to use
+   * @param gapFunction          to use
+   * @param physicalCost         to use
+   * @param virtualCost          to use
    * @param originalNetworkCosts to use
-   * @param conjSegmentCosts to use
-   * @param logAll to use
+   * @param conjSegmentCosts     to use
+   * @param logAll               to use
    */
   public void executeUncongestedPasEquilibration(
       Mode theMode,
-      Map<EdgeSegment, Double> proposedFlowShifts,
       StaticLtmLoadingBushBase<ConjugateDestinationBush> networkLoading,
       GapFunction gapFunction, AbstractPhysicalCost physicalCost,
       AbstractVirtualCost virtualCost,
@@ -648,22 +645,15 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       return;
     }
 
-    if(proposedFlowShifts.size()!=1){
-      throw new PlanItRunTimeException("Expecting exactly one single original network entry segment for a " +
-          "conjugate bush PAS");
-    }
-    double proposedFlowShift = proposedFlowShifts.values().stream().mapToDouble(d->d).sum();
-
-    // enter uncongested equilibration phase.
-    boolean converged = false;
-
     double s1SendingFlow = 0;
     for (var bush : pas.getRegisteredBushes()) {
       s1SendingFlow += bush.determineSubPathSendingFlow(
           pas.getAlternative(true), networkLoading.getCurrentFlowAcceptanceFactors());
     }
 
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 20;
+    // enter uncongested equilibration phase.
+    boolean converged = false;
+    int MAX_INTERAL_ITERATIONS_ALLOWED = 10;
     int internalIteration = 0;
     do{
 
@@ -682,6 +672,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           guaranteedS2SendingFlow += remainingSubPathSendingFlow;
         }
       }
+
+      // determine proposed flow shift now that we have costs and available flows
+      var proposedShiftResult = determineProposedFlowShiftByLoadingEntrySegment(
+          theMode, physicalCost, virtualCost, networkLoading, 1);
+      double proposedFlowShift = proposedShiftResult.values().iterator().next();
 
       // verify if uncongested considering the shift we decided to apply. If so continue (UNCONGESTED_WITH_SHIFT)
       // Otherwise, stop equilibration process without shifting or part way through equilibration.
@@ -713,12 +708,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         }
 
         /* perform the flow shift IN FULL for S1 and S2 for the current bush and its attributed portion */
-        var dummyEntrySegment = proposedFlowShifts.keySet().stream().findAny().get();
+
         // todo: for now use general flow shift, but can be optimised since we know no acceptance factors are needed
         executeBushS2FlowShift(
-            conjBush, dummyEntrySegment, bushPasFlowShift, networkLoading.getCurrentFlowAcceptanceFactors());
+            conjBush, null, bushPasFlowShift, networkLoading.getCurrentFlowAcceptanceFactors());
         executeBushS1FlowShift(
-            conjBush, dummyEntrySegment, bushPasFlowShift, networkLoading.getCurrentFlowAcceptanceFactors(),null);
+            conjBush, null, bushPasFlowShift, networkLoading.getCurrentFlowAcceptanceFactors(),null);
         totalPasShift += bushPasFlowShift;
       }
 
@@ -743,14 +738,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           (pas.getAlternativeLowCost() * (s1SendingFlow + s2SendingFlow));
       // reuse criterion of gap (overall gap is done wider, so we do not update gap as such here)
       converged = pasGap <= gapFunction.getStopCriterion().getEpsilon();
-      if(!converged) {
-        // update proposed flow shift now that we have new costs
-        var result = determineProposedFlowShiftByLoadingEntrySegment(
-            theMode, physicalCost, virtualCost, networkLoading, 1);
-        proposedFlowShift = result.values().iterator().next();
-      }
       ++internalIteration;
-    }while(!converged || internalIteration > MAX_INTERAL_ITERATIONS_ALLOWED);
+    }while(!converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED);
   }
 
   /**
