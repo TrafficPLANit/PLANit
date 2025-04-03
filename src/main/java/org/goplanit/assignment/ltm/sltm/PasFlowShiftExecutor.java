@@ -5,8 +5,8 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
+import org.goplanit.gap.GapFunction;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
-import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
@@ -161,7 +161,8 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
 
     // collect most restricting turn for entry segment
     var consumer = new NMRCollectMostRestrictingTurnConsumer(entrySegment);
-    StaticLtmNetworkLoading.performNodeModelUpdate(entrySegment.getDownstreamVertex(), consumer, networkLoading);
+    StaticLtmNetworkLoading.performNodeModelUpdate(
+        entrySegment.getDownstreamVertex(), consumer, networkLoading);
 
     var mostRestrictingOutSegment = consumer.getMostRestrictingOutSegment();
     if (mostRestrictingOutSegment == null) {
@@ -387,7 +388,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param flowAcceptanceFactors     to use
    * @return end merge splitting rates of s2 to be used in s1 flow shift
    */
-  protected abstract double[] executeBushS2FlowShift(
+  protected abstract double[] executeBushS2FlowShiftNoNodeModelUpdate(
           final RootedBush<V,ES> bush,
           final EdgeSegment entrySegment,
           double bushEntrySegmentFlowShift,
@@ -402,7 +403,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param flowAcceptanceFactors     to use
    * @param endMergeSplittingRates    end merge splitting rates of s2 to be used in s1 flow shift
    */
-  protected abstract void executeBushS1FlowShift(
+  protected abstract void executeBushS1FlowShiftNoNodeModelUpdate(
           final RootedBush<V,ES> bush,
           final EdgeSegment entrySegment,
           double bushEntrySegmentFlowShift,
@@ -427,9 +428,9 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
 
     /* shift flows for S2 */
     var bushS2MergeExitSplittingRates =
-            executeBushS2FlowShift(bush, entrySegment, bushEntrySegmentFlowShift, flowAcceptanceFactors);
+            executeBushS2FlowShiftNoNodeModelUpdate(bush, entrySegment, bushEntrySegmentFlowShift, flowAcceptanceFactors);
     /* shift flows for S1 */
-    executeBushS1FlowShift(bush, entrySegment, bushEntrySegmentFlowShift, flowAcceptanceFactors, bushS2MergeExitSplittingRates);
+    executeBushS1FlowShiftNoNodeModelUpdate(bush, entrySegment, bushEntrySegmentFlowShift, flowAcceptanceFactors, bushS2MergeExitSplittingRates);
 
   }
 
@@ -484,13 +485,9 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
 
 
   /**
-   * We account for the fact that per bush different incoming links to the PAS might be used so each incoming link that is used and that is congested should be the basis for the
-   * flow shift instead of the first congested one within the PAS. This is currently not accounted for + if an incoming link is congested, then it has the same alpha for both
-   * alternatives BUT the most restricting one might be linked to one of those. If so then we should shift towards the other! This does not exist yet. If neither is the most
-   * restricting then revert to situation where we shift as if uncongested as it has no impact. So, split flow shift and execution to per incoming link rather than combining them
-   * as we do in run!! Later we can optimise possibly
-   * <p>
-   * Each PAS per bush is split in x PASs where x is the number of used in links for each bush
+   * Shift flows for all bushes registered on the PAS proportionally. The S2 shifted flow per bush is tracked
+   * by resetting internal map of tracked S2 shifted flows which is then populated as part of this method. It is then
+   * to be used when invoking the all bush S1 flow shifts.
    *
    * @param proposedFlowShifts proposed shifts per original network's entry segment into the PAS
    * @param theMode            to use
@@ -499,11 +496,23 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param logAll             to use
    * @return true when flow is shifted, false otherwise
    */
-  public abstract boolean performS2FlowShift(
+  public abstract boolean performOneShotCongestedS2FlowShift(
       Map<EdgeSegment, Double> proposedFlowShifts,
       Mode theMode,
       StaticLtmLoadingBushBase<?> networkLoading,
       Smoothing smoothing,
+      boolean logAll);
+
+
+  public abstract boolean performEquilibratedCongestedFlowShifts(
+      Mode theMode,
+      StaticLtmLoadingBushBase<?> networkLoading,
+      Smoothing smoothing,
+      GapFunction gapFunction,
+      AbstractPhysicalCost physicalCost,
+      AbstractVirtualCost virtualCost,
+      double[] originalNetworkCosts,
+      double[] conjSegmentCosts,
       boolean logAll);
 
   /**
@@ -512,7 +521,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param theMode to use
    * @param networkLoading to apply
    */
-  public abstract void performS1FlowShift(
+  public abstract void performAllBushesS1FlowShift(
           Mode theMode, StaticLtmLoadingBushBase<?> networkLoading);
 
   /**

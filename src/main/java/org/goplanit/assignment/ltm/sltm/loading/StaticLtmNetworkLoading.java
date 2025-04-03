@@ -640,44 +640,47 @@ public abstract class StaticLtmNetworkLoading {
 
   /**
    * conduct a node model update sLTM style with
-   * 
+   *
    * @param node                    to compute
    * @param consumer                to apply to the result of each node model update of the considered nodes, may be
    *                                null then ignored
-   * @param staticLtmNetworkLoading sLTMloading containing the data to populate node with (using current sending flows)
+   * @param staticLtmNetworkLoading sLTMloading containing the data to populate node with (using current splitting rates)
+   * @param nodeModelSendingFlows   node model sending flows to use (can be inflows, sending flows, or other flows)
    */
   public static void performNodeModelUpdate(
-          DirectedVertex node, ApplyToNodeModelResult consumer, StaticLtmNetworkLoading staticLtmNetworkLoading) {
+      DirectedVertex node,
+      ApplyToNodeModelResult consumer,
+      StaticLtmNetworkLoading staticLtmNetworkLoading,
+      double[] nodeModelSendingFlows) {
 
     var splittingRateData = staticLtmNetworkLoading.getSplittingRateData();
-    var sendingFlowData = staticLtmNetworkLoading.nlSendingFlowData;
-      
+
     /* tracked but non-blocking or centroidVertex is notified as non-blocking */
     if (!splittingRateData.isPotentiallyBlocking(node) || node instanceof CentroidVertex) {
-      consumer.acceptNonBlockingLinkBasedResult(node, sendingFlowData.getCurrentSendingFlows());
+      consumer.acceptNonBlockingLinkBasedResult(node, nodeModelSendingFlows);
       return;
     }
-  
+
     /* For each potentially blocking node */
     int numEntrySegments = node.getNumberOfEntryEdgeSegments();
     int numExitSegments = node.getNumberOfExitEdgeSegments();
-  
+
     // TODO: not computationally efficient, capacities are recomputed every time and construction of
     // TODO: turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
-  
+
     /* C_a : in Array1D form, capped to maximum physical capacity in case we are dealing with connectoid with
      * infinite capacity */
     var inCapacities = TampereNodeModelUtils.createIncomingCapacities(node);
-  
+
     /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
     Array2D<Double> turnSendingFlows = TampereNodeModelUtils.createTurnSendingFlowsUsingSplittingRates(
         node,
-        sendingFlowData.getCurrentSendingFlows(),
+        nodeModelSendingFlows,
         es -> splittingRateData.getSplittingRates(es).copy());
-  
+
     /* r_a : in Array1D form */
     var outReceivingFlows = TampereNodeModelUtils.createOutgoingReceivingFlows(node);
-  
+
     /* Kappa(s,r,phi) : node model update */
     try {
       var nodeModel = TampereNodeModel.of(inCapacities, outReceivingFlows, turnSendingFlows);
@@ -685,16 +688,31 @@ public abstract class StaticLtmNetworkLoading {
 
       if(node.getId() == 1164L){
         LOGGER.info(String.format("DEBUG node (%s): alphas: %s (turn flows: %s) - (type: %s)",
-                node.getIdsAsString(), localFlowAcceptanceFactors, turnSendingFlows, consumer.getClass().getName()));
+            node.getIdsAsString(), localFlowAcceptanceFactors, turnSendingFlows, consumer.getClass().getName()));
       }
-        
+
       /* delegate to consumer */
       consumer.acceptTurnBasedResult(node, localFlowAcceptanceFactors, nodeModel);
-  
+
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
       LOGGER.severe(String.format("Unable to run Tampere node model on tracked node %s", node.getXmlId()));
     }
+  }
+
+  /**
+   * conduct a node model update sLTM style with
+   * 
+   * @param node                    to compute
+   * @param consumer                to apply to the result of each node model update of the considered nodes, may be
+   *                                null then ignored
+   * @param staticLtmNetworkLoading sLTMloading containing the data to populate node with
+   *                                (using current sending flows and splitting rates)
+   */
+  public static void performNodeModelUpdate(
+          DirectedVertex node, ApplyToNodeModelResult consumer, StaticLtmNetworkLoading staticLtmNetworkLoading) {
+    performNodeModelUpdate(
+        node, consumer, staticLtmNetworkLoading, staticLtmNetworkLoading.nlSendingFlowData.getCurrentSendingFlows());
   }
 
   /** Initialise the loading with the given inputs
@@ -1160,7 +1178,7 @@ public abstract class StaticLtmNetworkLoading {
   }
 
   /**
-   * Collect the most recently calculate total inflows by the loading
+   * Collect the most recently calculated total inflows by the loading
    * 
    * @return inflows in Pcu per hour
    */

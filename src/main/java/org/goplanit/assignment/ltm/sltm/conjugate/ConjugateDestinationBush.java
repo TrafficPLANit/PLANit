@@ -103,6 +103,46 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     return subPathSendingFlow * 1/(compoundedFlowAcceptanceScalingFactor);
   }
 
+  private double determineConstrainedSubPathSendingFlow(
+      double subPathAcceptedFlow,
+      double compoundedFlowAcceptanceScalingFactor,
+      int index,
+      double[] nonConjugateFlowAcceptanceFactors,
+      final ConjugateEdgeSegment[] subPathArray,
+      ConjugateBushTurnData bushConstrainedFlowData) {
+
+    if(subPathAcceptedFlow <= 0.0){
+      return subPathAcceptedFlow;
+    }
+
+    var currConjugateSegment = subPathArray[index++];
+
+    // restrict by what is available on our subpath
+    // todo: ugly to use 0 as magic number, ideally change at some point if possible
+    double constrainedSendingFlow = bushConstrainedFlowData.getTurnSendingFlowPcuH(currConjugateSegment);
+    double currSendingFlow = bushData.getTurnSendingFlowPcuH(currConjugateSegment);
+    if(constrainedSendingFlow > 0) {
+      currSendingFlow = Math.min(constrainedSendingFlow, currSendingFlow);
+    }
+
+    double subPathSendingFlow = Math.min(subPathAcceptedFlow, currSendingFlow);
+    if (index < subPathArray.length && Precision.positive(subPathAcceptedFlow)) {
+      // restrict by what is available on our subpath
+      double flowAcceptanceFactor =
+          getConjugateFlowAcceptanceFactor(currConjugateSegment, nonConjugateFlowAcceptanceFactors);
+      return determineConstrainedSubPathSendingFlow(
+          subPathSendingFlow * flowAcceptanceFactor,
+          compoundedFlowAcceptanceScalingFactor * flowAcceptanceFactor,
+          index,
+          nonConjugateFlowAcceptanceFactors,
+          subPathArray,
+          bushConstrainedFlowData);
+    }
+
+    // done, rescale to original sending flow using reciprocal of compounded flow acceptance factors
+    return subPathSendingFlow * 1/(compoundedFlowAcceptanceScalingFactor);
+  }
+
   /** destination of this conjugate bush */
   protected final CentroidVertex destination;
 
@@ -492,14 +532,14 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   /**
    * Determine the sending flow on the subpath given by the  subPathArray in order from start to finish.
    *
-   * @param subPathArray to use
+   * @param subPathArray                      to use
    * @param nonConjugateFlowAcceptanceFactors to use
    * @return sendingFlowPcuH between start and end vertex following the sub-path
-   *
    */
   @Override
   public double determineSubPathSendingFlow(
-          ConjugateEdgeSegment[] subPathArray, double[] nonConjugateFlowAcceptanceFactors) {
+      ConjugateEdgeSegment[] subPathArray,
+      double[] nonConjugateFlowAcceptanceFactors) {
     int index = 0;
 
     /* determine flow on initial segment, from there on recursively traverse sub-path */
@@ -516,6 +556,43 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
             subPathArray);
     return subPathSendingFlow;
   }
+
+  @Override
+  public <T> double determineConstrainedSubPathSendingFlow(
+      ConjugateEdgeSegment[] subPathArray,
+      double[] nonConjugateFlowAcceptanceFactors,
+      T bushConstrainedFlow){
+    if(!(bushConstrainedFlow instanceof ConjugateBushTurnData)){
+      throw new PlanItRunTimeException("invalid bush turn data type");
+    }
+
+    int index = 0;
+    var conjBushConstrainedFlowData = (ConjugateBushTurnData)bushConstrainedFlow;
+
+    /* determine flow on initial segment, from there on recursively traverse sub-path */
+    var initialSubPathEdgeSegment = subPathArray[index];
+
+    // note 0 is used if no entry exists in ConjugateBushTurnData, so that's is why we check for larger than zero
+    // todo: ugly to use 0 as magic number, ideally change at some point if possible
+    double constrainedSendingFlow = conjBushConstrainedFlowData.getTurnSendingFlowPcuH(initialSubPathEdgeSegment);
+    double subPathSendingFlow = bushData.getTurnSendingFlowPcuH(initialSubPathEdgeSegment);
+    if(constrainedSendingFlow > 0) {
+      subPathSendingFlow = Math.min(constrainedSendingFlow, subPathSendingFlow);
+    }
+
+    if (subPathSendingFlow <= 0) {
+      return subPathSendingFlow;
+    }
+    subPathSendingFlow = determineConstrainedSubPathSendingFlow(
+        subPathSendingFlow,
+        1,
+        index,
+        nonConjugateFlowAcceptanceFactors,
+        subPathArray,
+        conjBushConstrainedFlowData);
+    return subPathSendingFlow;
+  }
+
 
   /**
    * Verify if empty

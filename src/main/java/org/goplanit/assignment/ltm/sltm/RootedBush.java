@@ -5,6 +5,8 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
+import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateBushTurnData;
+import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -239,11 +241,26 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   /**
    * Determine the sending flow on the subpath given by the  subPathArray in order from start to finish.
    *
-   * @param subPathArray to use (in bush segment representation)
-   * @param flowAcceptanceFactors to use (in network segment indexed representation)
+   * @param subPathArray                to use (in bush segment representation)
+   * @param flowAcceptanceFactors       to use (in network segment indexed representation)
    * @return sendingFlowPcuH between start and end vertex following the sub-path
    */
-  public abstract double determineSubPathSendingFlow(ES[] subPathArray, double[] flowAcceptanceFactors);
+  public abstract double determineSubPathSendingFlow(
+      ES[] subPathArray, double[] flowAcceptanceFactors);
+
+  /**
+   * Determine the sending flow on the subpath given by the  subPathArray in order from start to finish.
+   *
+   * @param <T> type of flow constraint data to use
+   * @param subPathArray                to use (in bush segment representation)
+   * @param flowAcceptanceFactors       to use (in network segment indexed representation)
+   * @param bushConstrainedFlowData         data on additional flow constraints to impose when determining the sub-path
+   *                                   sending flow that is deemed available
+   * @return sendingFlowPcuH between start and end vertex following the sub-path
+   */
+  public abstract <T> double determineConstrainedSubPathSendingFlow(
+      ES[] subPathArray, double[] flowAcceptanceFactors, T bushConstrainedFlowData);
+
 
   /**
    * Collect the sending flow of an edge segment in the bush, if not present, zero flow is returned

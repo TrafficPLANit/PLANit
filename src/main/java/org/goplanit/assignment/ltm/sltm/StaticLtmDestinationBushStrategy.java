@@ -1,5 +1,7 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.LongAdder;
@@ -10,10 +12,13 @@ import com.sun.source.tree.Tree;
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestBushResult;
 import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
+import org.goplanit.assignment.ltm.sltm.conjugate.PasFlowShiftConjugateDestinationBasedExecutor;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -180,6 +185,12 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
   protected PasFlowShiftExecutor<DirectedVertex, EdgeSegment> createPasFlowShiftExecutor(
       final Pas<DirectedVertex, EdgeSegment> pas, final StaticLtmSettings settings) {
     return new PasFlowShiftDestinationBasedExecutor(pas, settings);
+  }
+
+  @Override
+  protected void hookBeforeCongestedPasUpdate(
+      Collection<PasFlowShiftExecutor<DirectedVertex, EdgeSegment>> pasExecutors) {
+    throw new PlanItRunTimeException("hookBeforeCongestedPasUpdate not implemented in non-conjugate destination based");
   }
 
   /**

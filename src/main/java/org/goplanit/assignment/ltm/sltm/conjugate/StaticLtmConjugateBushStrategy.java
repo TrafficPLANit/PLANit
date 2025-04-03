@@ -57,45 +57,15 @@ public class StaticLtmConjugateBushStrategy
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmConjugateBushStrategy.class.getCanonicalName());
 
-  /**
-   * Given non conjugate costs for link segments, expand to concjugate segments (turns)
-   * TODO: when everything is conjugate, avoid calling this multiple times as we do now as it is costly
-   *   at that point process flow can just use conjugate costs rather than non-conjugate costs.
-   *
-   * @param theMode to use
-   * @param nonConjugateLinkSegmentCosts original costs
-   * @return conjugate projected costs
+  /** access to original bush turn flows. To be used for constraining identifying available sending flows
+   * for flow shifts. Requires updating when constraining further as part of this instance conducting
+   * flow shifts, so it is available to other PASs as a constraint.
+   * Note: it should NOT contain all original turn flows per bush, only those where the original turn flow
+   * was at some point was reduced to save memory.
+   * NOTE: not owned by this executor, owned by parent strategy
+   * todo: this injected approach is ugly, needs refactoring at some point
    */
-  private double[] expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
-          Mode theMode, double[] nonConjugateLinkSegmentCosts){
-    final double[] conjugateSegmentCosts =
-            new double[conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers()];
-
-    // Function to expand from original entry segment costs to conjugate link segment costs
-    Consumer<ConjugateEdgeSegment> adoptOriginalEdgeSegmentCostFunc = cs -> {
-      double conjugateCost = 0.0;
-      if(cs.getOriginalAdjacentEdgeSegments().first() != null){
-        conjugateCost = nonConjugateLinkSegmentCosts[(int)cs.getOriginalAdjacentEdgeSegments().first().getId()];
-      }
-      conjugateSegmentCosts[(int)cs.getId()] = conjugateCost;
-    };
-
-    // apply to physical layer...
-    var conjugatePhysicalLayer =
-            conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst();
-    conjugatePhysicalLayer.getLinkSegments().forEach(adoptOriginalEdgeSegmentCostFunc);
-    // and apply to virtual layer...
-    var conjugateVirtualLayer = conjugateTransportModelNetwork.getVirtualNetwork().getLayer();
-    conjugateVirtualLayer.getConnectoidSegments().forEach(adoptOriginalEdgeSegmentCostFunc);
-
-    // Now account for zero flow discontinuity by rerunning all nodes in turn based mode to obtain
-    // turn level acceptance factors which we can then use to update the turn costs for zero flow
-    // turns such that they become (realistically) unattractive as options for when finding new PASs
-    // todo: costly, so ideally only do once per iteration, but we now do it on the fly
-    updateZeroFlowDiscontinuityCongestedTurnCosts(theMode, conjugateSegmentCosts);
-
-    return conjugateSegmentCosts;
-  }
+  private Map<ConjugateDestinationBush, ConjugateBushTurnData> originalBushTurnFlowTracker;
 
   /**
    * Update PAS status based on flow acceptance factors (without considering impact of any potential flow shifts)
@@ -178,6 +148,17 @@ public class StaticLtmConjugateBushStrategy
           conjSegmentCosts,
           false);
     }
+  }
+
+  @Override
+  protected void hookBeforeCongestedPasUpdate(
+      Collection<PasFlowShiftExecutor<ConjugateDirectedVertex, ConjugateEdgeSegment>> pasExecutors) {
+    // reset and inject empty tracking container for original turn flows that may get adjusted and therefore need to
+    // be preserved and accessible as a constraint on available flow to shift
+    this.originalBushTurnFlowTracker = new HashMap<>();
+    pasExecutors.forEach(
+        pe -> ((PasFlowShiftConjugateDestinationBasedExecutor)pe).injectOriginalBushTurnFlowAccess(
+            originalBushTurnFlowTracker));
   }
 
   /**
@@ -797,6 +778,46 @@ public class StaticLtmConjugateBushStrategy
     if(logMapping) {
       conjugateTransportModelNetwork.logConjugateToOriginalMapping();
     }
+  }
+
+  /**
+   * Given non conjugate costs for link segments, expand to concjugate segments (turns)
+   * TODO: when everything is conjugate, avoid calling this multiple times as we do now as it is costly
+   *   at that point process flow can just use conjugate costs rather than non-conjugate costs.
+   *
+   * @param theMode to use
+   * @param nonConjugateLinkSegmentCosts original costs
+   * @return conjugate projected costs
+   */
+  public double[] expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
+      Mode theMode, double[] nonConjugateLinkSegmentCosts){
+    final double[] conjugateSegmentCosts =
+        new double[conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers()];
+
+    // Function to expand from original entry segment costs to conjugate link segment costs
+    Consumer<ConjugateEdgeSegment> adoptOriginalEdgeSegmentCostFunc = cs -> {
+      double conjugateCost = 0.0;
+      if(cs.getOriginalAdjacentEdgeSegments().first() != null){
+        conjugateCost = nonConjugateLinkSegmentCosts[(int)cs.getOriginalAdjacentEdgeSegments().first().getId()];
+      }
+      conjugateSegmentCosts[(int)cs.getId()] = conjugateCost;
+    };
+
+    // apply to physical layer...
+    var conjugatePhysicalLayer =
+        conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst();
+    conjugatePhysicalLayer.getLinkSegments().forEach(adoptOriginalEdgeSegmentCostFunc);
+    // and apply to virtual layer...
+    var conjugateVirtualLayer = conjugateTransportModelNetwork.getVirtualNetwork().getLayer();
+    conjugateVirtualLayer.getConnectoidSegments().forEach(adoptOriginalEdgeSegmentCostFunc);
+
+    // Now account for zero flow discontinuity by rerunning all nodes in turn based mode to obtain
+    // turn level acceptance factors which we can then use to update the turn costs for zero flow
+    // turns such that they become (realistically) unattractive as options for when finding new PASs
+    // todo: costly, so ideally only do once per iteration, but we now do it on the fly
+    updateZeroFlowDiscontinuityCongestedTurnCosts(theMode, conjugateSegmentCosts);
+
+    return conjugateSegmentCosts;
   }
 
   /**

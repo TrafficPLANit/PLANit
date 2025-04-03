@@ -9,8 +9,10 @@ import java.util.logging.Logger;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
+import org.goplanit.gap.GapFunction;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.arrays.ArrayUtils;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
@@ -558,7 +560,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    * {@inheritDoc}
    */
   @Override
-  protected double[] executeBushS2FlowShift(
+  protected double[] executeBushS2FlowShiftNoNodeModelUpdate(
           RootedBush<DirectedVertex, EdgeSegment> bush,
           EdgeSegment entrySegment,
           double bushFlowShift,
@@ -598,7 +600,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    * {@inheritDoc}
    */
   @Override
-  protected void executeBushS1FlowShift(
+  protected void executeBushS1FlowShiftNoNodeModelUpdate(
           RootedBush<DirectedVertex, EdgeSegment> bush,
           EdgeSegment entrySegment,
           double bushFlowShift,
@@ -728,7 +730,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    * @return true when flow is shifted, false otherwise
    */
   @Override
-  public boolean performS2FlowShift(
+  public boolean performOneShotCongestedS2FlowShift(
           Map<EdgeSegment, Double> proposedFlowShifts,
           Mode theMode,
           StaticLtmLoadingBushBase<?> networkLoading,
@@ -754,7 +756,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
       DestinationBush destinationBush = (DestinationBush) bush;
 
       double subPathSendingFlow = destinationBush.determineSubPathSendingFlow(
-              pas.getAlternative(false), networkLoading.getCurrentFlowAcceptanceFactors());
+              pas.getAlternative(false),
+          networkLoading.getCurrentFlowAcceptanceFactors());
       var initialS2Segment = pas.getAlternative(false)[0];
 
       double[] entrySegmentAcceptedFlowIntoS2 = IterableUtils.asStream(
@@ -863,7 +866,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
         }
 
         /* perform the flow shift for the current bush and its attributed portion */
-        var endMergeSplittingRates = executeBushS2FlowShift(
+        var endMergeSplittingRates = executeBushS2FlowShiftNoNodeModelUpdate(
                 destinationBush, entrySegment, entrySegmentBushPasflowShift, networkLoading.getCurrentFlowAcceptanceFactors());
 
         // track what was shifted for later S1 update
@@ -878,11 +881,18 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
     return !getFlowShiftedS2BushData().isEmpty();
   }
 
+  @Override
+  public boolean performEquilibratedCongestedFlowShifts(
+      Mode theMode, StaticLtmLoadingBushBase<?> networkLoading, Smoothing smoothing, GapFunction gapFunction, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, double[] originalNetworkCosts, double[] conjSegmentCosts, boolean logAll) {
+    throw new PlanItRunTimeException("performEquilibratedCongestedS2FlowShift not yet implemented on " +
+        "non-conjugate destination based ");
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
-  public void performS1FlowShift(
+  public void performAllBushesS1FlowShift(
           Mode theMode,
           StaticLtmLoadingBushBase<?> networkLoading) {
 //    if(getFlowShiftedS2BushData().values().stream().flatMap(
@@ -904,7 +914,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
                   bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
 
-        executeBushS1FlowShift(
+        executeBushS1FlowShiftNoNodeModelUpdate(
                 bush,
                 entrySegment,
                 flowShiftData.getS2Flowshifted(),
