@@ -81,7 +81,8 @@ public class ConjugateBushTurnData{
       turnSendingFlow = 0.0;
     }else if(!force){
       // not forced, so apply some additional checking in situation of low flows and negative flows
-      // note forced may be helpful for small positive flows that otherwise would be regarded as zero flow with the below checks
+      // note forced may be helpful for small positive flows that otherwise would be regarded as zero flow with the
+      // below checks
       if(!Precision.positive(turnSendingFlow)) {
         // when negative flow but extremely close to zero, remove the turn flow and continue
         removeTurnData(turnSegment);

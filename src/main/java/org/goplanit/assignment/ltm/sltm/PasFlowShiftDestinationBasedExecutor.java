@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.ToDoubleFunction;
 import java.util.logging.Logger;
@@ -116,29 +117,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
         }
       }
     }
-
-    double newTurnFlow = bush.addTurnSendingFlow(turnEntry, turnExit, flowShiftPcuH);
-
-    //todo make sure that when very close to zero we remove all flow on the high cost segment somehow
-    // so we do not get into trouble with precision...
-    if (!Precision.positive(newTurnFlow, EPSILON) &&
-            !Precision.positive(bush.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
-
-      /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
-      bush.removeTurn(turnEntry, turnExit);
-      if(isDestinationTrackedForLogging(bush)){
-        LOGGER.info(String.format("     [No more flow --> Removed turn: FROM (%s) TO (%s) from bush (%s)]", turnEntry.getIdsAsString(), turnExit.getIdsAsString(), bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-      }
-
-      if(!bush.contains(turnEntry)) {
-        addBushRemovedLinkSegment(bush, turnEntry);
-      }
-      if(!bush.contains(turnExit)) {
-        addBushRemovedLinkSegment(bush, turnExit);
-      }
-      newTurnFlow = 0.0;
-    }
-    return newTurnFlow;
+    return bush.addTurnSendingFlow(turnEntry, turnExit, flowShiftPcuH);
   }
 
   /**
@@ -180,19 +159,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
           s2FlowShift = -currentFlow; // sync to available flow
         }
 
-        double newturnFlow = bush.addTurnSendingFlow(lastS2Segment, exitSegment, s2FlowShift);
-        if (!Precision.positive(newturnFlow, EPSILON) &&
-                !Precision.positive(bush.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
-          /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
-          bush.removeTurn(lastS2Segment, exitSegment);
-          /* track for further processing, so we can deregister bush on other PASs with these links */
-          if(bush.getSendingFlowPcuH(lastS2Segment) <= 0.0) {
-            addBushRemovedLinkSegment(bush, lastS2Segment);
-          }
-          if(bush.getSendingFlowPcuH(exitSegment) <= 0.0) {
-            addBushRemovedLinkSegment(bush, exitSegment);
-          }
-        }
+        bush.addTurnSendingFlow(lastS2Segment, exitSegment, s2FlowShift);
 
         /* track so we can attribute it to s1 segment later */
         exitShiftedSendingFlows[index] += -s2FlowShift;
@@ -883,7 +850,16 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
 
   @Override
   public boolean performEquilibratedCongestedFlowShifts(
-      Mode theMode, StaticLtmLoadingBushBase<?> networkLoading, Smoothing smoothing, GapFunction gapFunction, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, double[] originalNetworkCosts, double[] conjSegmentCosts, boolean logAll) {
+      Mode theMode,
+      StaticLtmLoadingBushBase<?> networkLoading,
+      Smoothing smoothing,
+      GapFunction gapFunction,
+      AbstractPhysicalCost physicalCost,
+      AbstractVirtualCost virtualCost,
+      double[] originalNetworkCosts,
+      double[] conjSegmentCosts,
+      Set<? extends RootedBush<?,?>> bushes,
+      boolean logAll) {
     throw new PlanItRunTimeException("performEquilibratedCongestedS2FlowShift not yet implemented on " +
         "non-conjugate destination based ");
   }

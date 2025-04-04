@@ -46,9 +46,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   private final static Logger LOGGER = Logger.getLogger(PasFlowShiftExecutor.class.getCanonicalName());
 
   /** track any removed edge segments as a result of a flow shift on a bush level */
-  private final Map<ES, Set<RootedBush<V,ES>>> removedEdgeSegmentsForBushes = new TreeMap<>();
-
-  /** track any removed edge segments as a result of a flow shift on a bush level */
   //todo: remove when no longer needed, now identified beforehand via missing s1 links method
   private final Map<ES, Set<RootedBush<V,ES>>> addedEdgeSegmentsForBushes = new TreeMap<>();
 
@@ -513,6 +510,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
       AbstractVirtualCost virtualCost,
       double[] originalNetworkCosts,
       double[] conjSegmentCosts,
+      Set<? extends RootedBush<?,?>> bushes,
       boolean logAll);
 
   /**
@@ -559,15 +557,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   }
 
   /**
-   * Verify if any edge segments have been removed by a bush as a result of the PAS flow shift
-   *
-   * @return true if confirmed, false otherwise
-   */
-  public boolean hasAnyBushRemovedLinkSegments() {
-    return removedEdgeSegmentsForBushes != null && !removedEdgeSegmentsForBushes.isEmpty();
-  }
-
-  /**
    * Verify if any edge segments have been added by a bush as a result of the PAS flow shift
    *
    * @return true if confirmed, false otherwise
@@ -575,15 +564,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   @Deprecated
   public boolean hasAnyBushAddedLinkSegments() {
     return addedEdgeSegmentsForBushes != null && !addedEdgeSegmentsForBushes.isEmpty();
-  }
-
-  /**
-   * access bushes that have removed link segments due to a flow shift
-   *
-   * @return tracked findings or empty map
-   */
-  public Map<ES, Set<RootedBush<V,ES>>> getBushRemovedLinkSegments() {
-    return removedEdgeSegmentsForBushes;
   }
 
   /**
@@ -597,18 +577,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   }
 
   /**
-   * access bushes that have removed the given link segment due to a flow shift
-   *
-   * @param linkSegment to check for
-   * @return tracked findings or empty list
-   */
-  public Set<RootedBush<V,ES>> getBushRemovedLinkSegments(ES linkSegment) {
-    var bushes =
-        removedEdgeSegmentsForBushes.computeIfAbsent(linkSegment, k -> new TreeSet<>());
-    return bushes;
-  }
-
-  /**
    * access bushes that have added the given link segment due to a flow shift
    *
    * @param linkSegment to check for
@@ -619,23 +587,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
     var bushes =
         addedEdgeSegmentsForBushes.computeIfAbsent(linkSegment, k -> new TreeSet<>());
     return bushes;
-  }
-
-  /**
-   * Mark segment as removed from bush due to flow shift
-   *
-   * @param bush to use
-   * @param linkSegment to register
-   */
-
-  public void addBushRemovedLinkSegment(
-          RootedBush<V,ES> bush, ES linkSegment){
-    if(settings.hasTrackOdsForLogging() && isDestinationTrackedForLogging(bush)){
-      LOGGER.info(String.format(
-          "           Removed link segment (%s) from bush (%s)",
-          linkSegment.getIdsAsString(), bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-    }
-    getBushRemovedLinkSegments(linkSegment).add(bush);
   }
 
   /**

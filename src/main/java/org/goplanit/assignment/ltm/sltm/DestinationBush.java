@@ -96,6 +96,20 @@ public class DestinationBush extends RootedLabelledBush {
    * {@inheritDoc}
    */
   @Override
+  public void remove(EdgeSegment edgeSegment) {
+    for(var exit : edgeSegment.getDownstreamVertex().getExitEdgeSegments()) {
+      bushData.removeTurn(edgeSegment,exit);
+    }
+    if(getDag().containsEdgeSegment(edgeSegment)) {
+      getDag().removeEdgeSegment(edgeSegment);
+      requireTopologicalSortUpdate = true;
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public ShortestSearchType getShortestSearchType() {
     return ShortestSearchType.ALL_TO_ONE;
   }
@@ -122,6 +136,12 @@ public class DestinationBush extends RootedLabelledBush {
   @Override
   public DestinationBush deepClone() {
     return new DestinationBush(this, true);
+  }
+
+  @Override
+  public <T> double determineConstrainedSubPathSendingFlow(
+      EdgeSegment[] subPathArray, double[] flowAcceptanceFactors, T bushConstrainedFlowData) {
+    throw new PlanItRunTimeException("determineConstrainedSubPathSendingFlow not yet implemented in DestinationBush");
   }
 
   /**

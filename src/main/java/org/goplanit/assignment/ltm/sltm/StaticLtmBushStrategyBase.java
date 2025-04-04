@@ -80,8 +80,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    *
    * @param bushRemovedLinkSegments to consider
    */
-  private void unregisterBushesWithRemovedSegmentsFromMatchingPass(
-          Map<ES, Set<RootedBush<V,ES>>> bushRemovedLinkSegments) {
+  @Deprecated
+  protected void unregisterBushesWithRemovedSegmentsFromMatchingPass(
+      Map<ES, Set<RootedBush<V, ES>>> bushRemovedLinkSegments) {
+
+    //todo: should no longer be needed, bushes should simply not find to have any flow anymore
+    // so they will get skipped in flow shifting automatically
 
     for(var entry : bushRemovedLinkSegments.entrySet()){
       // check if any edge segment of pas is matching with the link segment removed from the bush
@@ -351,8 +355,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   }
 
   /**
-   * FLOW_SHIFTING STEP6 : S2 flow shifts, remove proposed flows when possible from high cost S2 alternatives
-   * for sorted PASs. Do this for all but the UNCONGESTED PASs as they have already been processed in full
+   * FLOW_SHIFTING : Do this for all but the UNCONGESTED PASs as they have already been processed in full
    *
    * @param theMode               to use
    * @param sortedPass            list of sorted PASs in processing order
@@ -362,7 +365,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @return list of PASs with shifted flows, and PASs with no flow remaining (the latter may also be listed as flow
    * shifted since, after the shift it may be that it has no more flow left, then it appears in both lists)
    */
-  private Pair<ArrayList<Pas<V,ES>>, ArrayList<Pas<V,ES>>> doCongestedS2FlowShifting(
+  private Pair<ArrayList<Pas<V,ES>>, ArrayList<Pas<V,ES>>> doCongestedFlowShifting(
           Mode theMode,
           Collection<Pas<V,ES>> sortedPass,
           Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
@@ -434,6 +437,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
               getVirtualCost(),
               originalNetworkCosts,
               conjSegmentCosts,
+              getBushes(),
               logAll);
 
       if (pasFlowShifted) {
@@ -447,14 +451,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         /* when s2 no longer used on any bush - mark PAS for overall removal */
         if (!pas.hasRegisteredBushes()) {
           passWithoutBush.add(pas);
-        }
-
-        /* If due to flow shifting some bushes have removed edges due to zero flow remaining
-         * then we must remove these bushes from other pass that 1) have this bush registered, and 2) have
-         * the link segment present that no longer has any flow on the bush. */
-        if(pasFlowShifter.hasAnyBushRemovedLinkSegments()){
-          Map<ES, Set<RootedBush<V,ES>>> bushRemovedLinkSegments = pasFlowShifter.getBushRemovedLinkSegments();
-          unregisterBushesWithRemovedSegmentsFromMatchingPass(bushRemovedLinkSegments);
         }
       }
     }
@@ -547,18 +543,21 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     //flowShiftingStepFiveRemoveConflictingNewPass(sortedPass, pasExecutors, newAndUpdatedPass);
 
     // UNCONGESTED ONLY
-    attemptUncongestedFlowShift(
+    var flowShiftedAndObsoletePass = attemptUncongestedFlowShift(
         theMode, sortedPass, pasExecutors, originalNetworkCosts);
-
-    // Perform flow shifts for CONGESTED AND BECOMING CONGESTED WITH SHIFT PASs
-    var flowShiftedAndObsoletePass = doCongestedS2FlowShifting(
-            theMode, sortedPass, pasExecutors, originalNetworkCosts, simulationData);
     ArrayList<Pas<V,ES>> flowShiftedPass = flowShiftedAndObsoletePass.first();
     ArrayList<Pas<V,ES>> passWithoutBush = flowShiftedAndObsoletePass.second();
 
+    // Perform flow shifts for CONGESTED AND BECOMING CONGESTED WITH SHIFT PASs
+    flowShiftedAndObsoletePass = doCongestedFlowShifting(
+            theMode, sortedPass, pasExecutors, originalNetworkCosts, simulationData);
+    flowShiftedPass.addAll(flowShiftedAndObsoletePass.first());
+    passWithoutBush.addAll(flowShiftedAndObsoletePass.second());
+
     // STEP7 : S1 flow shifts
     // Add removed S2 flows to low cost S1 segments for sorted PASs
-    doCongestedS1FlowShifting(theMode, flowShiftedPass, pasExecutors);
+    // todo: remove this as no longer required at some point
+    //doCongestedS1FlowShifting(theMode, flowShiftedPass, pasExecutors);
 
     // STEP8 : Finalise
     // dispose of PASs that no longer have S2 flows
@@ -573,11 +572,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    */
   protected abstract void hookBeforeCongestedPasUpdate(Collection<PasFlowShiftExecutor<V, ES>> pasExecutors);
 
-  protected void attemptUncongestedFlowShift(
+  protected Pair<ArrayList<Pas<V,ES>>, ArrayList<Pas<V,ES>>> attemptUncongestedFlowShift(
       Mode theMode, Collection<Pas<V,ES>> sortedPass,
       Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
       double[] originalNetworkCosts) {
     // stub implementation (not implemented for regular destination based yet
+    return Pair.of(null, null);
   }
 
   /**

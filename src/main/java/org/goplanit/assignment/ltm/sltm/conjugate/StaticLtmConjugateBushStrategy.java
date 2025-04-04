@@ -127,27 +127,43 @@ public class StaticLtmConjugateBushStrategy
   }
 
   @Override
-  protected void attemptUncongestedFlowShift(
+  protected Pair<ArrayList<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>, ArrayList<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>>
+  attemptUncongestedFlowShift(
       Mode theMode,
       Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>> sortedPass,
       Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>, PasFlowShiftExecutor<ConjugateDirectedVertex,ConjugateEdgeSegment>> pasExecutors,
       double[] originalNetworkCosts) {
 
+    var flowShiftedPass = new ArrayList<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>(
+        (int) this.pasManager.getNumberOfActivePass());
+    var passWithoutBush = new ArrayList<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>();
+
     // PASs on conjugate level, so expand link segment to conjugate segment costs as if first
     var conjSegmentCosts =
         expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, originalNetworkCosts);
 
-    for(var sortedPas : sortedPass) {
-      ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(sortedPas)).executeUncongestedPasEquilibration(
-          theMode,
-          getLoading(),
-          getGapFunction(),
-          getPhysicalCost(),
-          getVirtualCost(),
-          originalNetworkCosts,
-          conjSegmentCosts,
-          false);
+    for(var pas : sortedPass) {
+      var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
+      boolean pasFlowShifted = executor.executeUncongestedPasEquilibration(
+        theMode,
+        getLoading(),
+        getGapFunction(),
+        getPhysicalCost(),
+        getVirtualCost(),
+        originalNetworkCosts,
+        conjSegmentCosts,
+        false);
+
+      if (pasFlowShifted) {
+        flowShiftedPass.add(pas);
+
+        if (!pas.hasRegisteredBushes()) {
+          passWithoutBush.add(pas);
+        }
+
+      }
     }
+    return Pair.of(flowShiftedPass, passWithoutBush);
   }
 
   @Override
@@ -706,10 +722,12 @@ public class StaticLtmConjugateBushStrategy
               bushMinMaxTree,
               conjLinkSegmentCosts,
               allowUncongestedOnly);
-          var newPas = newPasResult.first();
-          if (newPas == null) {
+          if (newPasResult == null || newPasResult.first() == null) {
+            // ending up not adding the PAS, so remove just added segment again
+            conjBush.remove(outgoingSegment);
             continue;
           }
+          var newPas = newPasResult.first();
 
           // truly new PAS
           newPass.add(newPas);

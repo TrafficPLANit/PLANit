@@ -2,8 +2,8 @@ package org.goplanit.assignment.ltm.sltm.conjugate;
 
 import org.goplanit.assignment.ltm.sltm.*;
 import org.goplanit.assignment.ltm.sltm.consumer.NMRCollectEntryLinkFlowAcceptanceFactorConsumer;
-import org.goplanit.assignment.ltm.sltm.consumer.NMRCollectMostRestrictingTurnConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
+import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
@@ -14,16 +14,15 @@ import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.pcu.PcuCapacitated;
+import org.ojalgo.function.PrimitiveFunction;
+import org.ojalgo.function.aggregator.Aggregator;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -118,35 +117,36 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   }
 
   /**
-   * Unregister bushes with very low or zero flow from PAS
+   * Unregister bushes with zero flow from PAS
    *
-   * @param bushS2RemainingFlows remaining flows for each bush for this PAS
+   * @param allowDanglingNodes flag indicating if we allow dangling nodes after removal
    */
-  private void removeZeroFlowS2BushesFromPas(Map<ConjugateDestinationBush, Double> bushS2RemainingFlows) {
+  private void removeZeroFlowBushesFromPas(boolean allowDanglingNodes) {
+
     var iter = pas.getRegisteredBushes().iterator();
     while (iter.hasNext()) {
       ConjugateDestinationBush bush = (ConjugateDestinationBush) iter.next();
 
-      // use updated flows as these are always either smaller or larger, when larger they are inconsistent but that is fine
-      // because it won't lead to removals, when smaller they are more restrictive and indicate possible removals so we
-      // use it
-      Double bushS2Flow = bushS2RemainingFlows.get(bush);
-      if (bushS2Flow==null || bushS2Flow < EPSILON_6) {
+      // now remove any zero flow segments from any bush after completing the shifts
+      boolean anyRemoved = bush.removeZeroFlowSegmentsIn(
+          pas.getAlternative(true),allowDanglingNodes, isDestinationTrackedForLogging());
+      anyRemoved = anyRemoved || bush.removeZeroFlowSegmentsIn(
+          pas.getAlternative(false), allowDanglingNodes, isDestinationTrackedForLogging());
+      if(anyRemoved){
         if(isDestinationTrackedForLogging(bush)){
-          LOGGER.info(String.format("   [Unregistering bush (%s) from PAS %s, no more S2 flow left (%.10f)]",
-                  bush.getRootZone().getIdsAsString(), pas, bushS2Flow));
+          LOGGER.info(String.format("   [Unregistering bush (%s) from PAS %s, no more S2 flow left]",
+              bush.getRootZone().getIdsAsString(), pas));
         }
         iter.remove();
-      }else if(bushS2Flow < 1){
-//        LOGGER.info(String.format("   [KEEPING bush (%s) on PAS %s, yet VERY LOW s2 flow remaining (less than 1 per entry segment)]",
-//                bush.getRootZone().getIdsAsString(), pas));
       }
     }
   }
 
   /**
-   * Helper to perform a flow shift on a network turn in conjugate form. If the turn has no more flow it is removed
-   * from the bush.
+   * Helper to perform a flow shift on a network turn in conjugate form.
+   * If the turn has no more flow, the flow is set to zero but the turn is not removed. If this is desired,
+   * it needs to be done manually after the fact by removing it from the underlying DAG
+   * (we do not remove it because it may be added back in later, to avoid inefficiencies).
    *
    * @param conjBush        bush to use
    * @param conjSegment     turn entry segment
@@ -155,37 +155,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    */
   private double executeTurnFlowShift(
           ConjugateDestinationBush conjBush, ConjugateEdgeSegment conjSegment, double flowShiftPcuH) {
-
-    double newTurnFlow = conjBush.addTurnSendingFlow(conjSegment, flowShiftPcuH);
-
-    //todo make sure that when very close to zero we remove all flow on the high cost segment somehow
-    // so we do not get into trouble with precision...
-    if (!Precision.positive(newTurnFlow, EPSILON) &&
-            !Precision.positive(conjBush.getTurnSendingFlow(conjSegment), EPSILON)) {
-
-      // no remaining flow at all on turn after flow shift, remove turn from bush entirely, unless it means
-      // the node becomes dangling; our approach requires a fully connected network currently
-      boolean downstreamVertexDanglingAfterRemoval =
-          IterableUtils.asStream(conjSegment.getDownstreamVertex().getEntryEdgeSegments()).filter(
-            es -> !es.idEquals(conjSegment)).anyMatch(conjBush::contains);
-      boolean upstreamVertexDanglingAfterRemoval = downstreamVertexDanglingAfterRemoval &&
-          IterableUtils.asStream(conjSegment.getUpstreamVertex().getExitEdgeSegments()).filter(
-              es -> !es.idEquals(conjSegment)).anyMatch(conjBush::contains);
-      if(!downstreamVertexDanglingAfterRemoval && !upstreamVertexDanglingAfterRemoval) {
-        conjBush.remove(conjSegment);
-        if (isDestinationTrackedForLogging(conjBush)) {
-          LOGGER.info(String.format("     [No more flow --> Removed turn: (%s) from bush (%s)]",
-              conjSegment.getOriginalAdjacentEdgeSegmentsIdsAsString(),
-              conjBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-        }
-
-        if (!conjBush.contains(conjSegment)) {
-          addBushRemovedLinkSegment(conjBush, conjSegment);
-        }
-      }
-      newTurnFlow = 0.0;
-    }
-    return newTurnFlow;
+    return conjBush.addTurnSendingFlow(conjSegment, flowShiftPcuH);
   }
 
   /**
@@ -281,6 +251,95 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         // adjust flow shift using the new acceptance factor
         currentFlowShift *= newFlowAcceptanceFactor;
       }
+    }
+  }
+
+  // given an original entry segment and turn flows, update the splitting rates on network level
+  private void updateOriginalEntrySegmentSplittingRate(
+      EdgeSegment originalEntrySegment, Map<EdgeSegment, Double> networkExitSegmentSplittingRates,
+      StaticLtmLoadingBushConjugate networkLoading) {
+
+    // now convert to splitting rates
+    var entrySegmentSplittingRates = networkLoading.getSplittingRateData().getSplittingRates(originalEntrySegment);
+    entrySegmentSplittingRates.reset();
+    int index = 0;
+    for (var exitSegment : originalEntrySegment.getDownstreamVertex().getExitEdgeSegments()) {
+      /* assume no u-turn flow allowed */
+      if (originalEntrySegment.getParent().idEquals(exitSegment.getParent())) {
+        index++;
+        continue;
+      }
+
+      double totalTurnFlow = networkExitSegmentSplittingRates.getOrDefault(exitSegment,0.0);
+      entrySegmentSplittingRates.set(index++, totalTurnFlow);
+    }
+
+    /* sum all flows and then divide by this sum to obtain splitting rates */
+    double totalEntryFlow = entrySegmentSplittingRates.aggregateAll(Aggregator.SUM);
+    if (totalEntryFlow > 0) {
+      entrySegmentSplittingRates.modifyAll(PrimitiveFunction.DIVIDE.by(totalEntryFlow));
+    } else {
+      entrySegmentSplittingRates.fillAll(1.0);
+    }
+  }
+
+  // for conjugate PAS segment, obtain its current turn flows for original entry segment of the conj segment
+  // and update the network splitting rates based off of this.
+  private void executeNetworkSplittingRateUpdateForPasAlternativeSegment(
+      ConjugateEdgeSegment conjSegment,
+      Collection<ConjugateDestinationBush> conjBushes,
+      StaticLtmLoadingBushConjugate networkLoading) {
+
+    Map<EdgeSegment, Double> networkExitSegmentSplittingRates = new TreeMap<>();
+    var originalEntrySegment = conjSegment.getOriginalAdjacentEdgeSegments().first();
+
+    // consider all turn flows originating from original entry segments and collate them in map by original exit
+    // segment
+    var conjSegmentsSharedOrigEntry = conjSegment.getUpstreamVertex().getExitEdgeSegments();
+    for (var conjBush : conjBushes) {
+      for (var conjSegmentWithSharedEntry : conjSegmentsSharedOrigEntry) {
+        if (!conjBush.contains(conjSegment)) {
+          continue;
+        }
+
+        if (!conjSegmentWithSharedEntry.getOriginalAdjacentEdgeSegments().first().idEquals(originalEntrySegment)) {
+          // fail safe in case conjugate network would not introduce nodes per link segment but per link. Should
+          // never trigger currently
+          LOGGER.severe("conjugate network nodes should never have exit links with different original entry links," +
+              "unless something changed in conjugate network construction!!");
+          continue;
+        }
+
+        // original network entry --> add (exit link, turn flow) to map
+        var originalExitLink = conjSegmentWithSharedEntry.getOriginalAdjacentEdgeSegments().second();
+        double turnSendingFlow = conjBush.getTurnSendingFlow(conjSegmentWithSharedEntry);
+        if(turnSendingFlow > 0) {
+          networkExitSegmentSplittingRates.put(
+              originalExitLink,
+              networkExitSegmentSplittingRates.getOrDefault(originalExitLink, 0.0) +
+                  conjBush.getTurnSendingFlow(conjSegmentWithSharedEntry)); // updated value
+        }
+      }
+    }
+
+    updateOriginalEntrySegmentSplittingRate(originalEntrySegment, networkExitSegmentSplittingRates, networkLoading);
+  }
+
+  // update network splitting rates for entry segments on PAS alternative
+  // expensive since it requires traversing all bushes to see if link is on those bushes
+  private void executeNetworkSplittingRateUpdateForPasAlternative(
+      ConjugateEdgeSegment[] alternative,
+      Collection<ConjugateDestinationBush> conjBushes,
+      StaticLtmLoadingBushConjugate networkLoading) {
+
+    // process update of splitting rates per PAS segment conjugate segment (underlying original entry segment)
+    for (var conjSegment : alternative) {
+      if (!conjSegment.hasOriginalExitEdgeSegment() || !conjSegment.hasOriginalEntryEdgeSegment()) {
+        continue;
+      }
+
+      // update splitting rate update for this segment in isolation
+      executeNetworkSplittingRateUpdateForPasAlternativeSegment(conjSegment, conjBushes, networkLoading);
     }
   }
 
@@ -558,6 +617,13 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     executeNetworkFlowShiftWithNodeModelUpdate(flowShift, s1, networkLoading);
   }
 
+  protected void executeNetworkSplittingRateUpdateForPas(
+      StaticLtmLoadingBushConjugate networkLoading,
+      Set<ConjugateDestinationBush> bushes) {
+    executeNetworkSplittingRateUpdateForPasAlternative(pas.getAlternative(true), bushes, networkLoading);
+    executeNetworkSplittingRateUpdateForPasAlternative(pas.getAlternative(false), bushes, networkLoading);
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -721,8 +787,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * @param originalNetworkCosts to use
    * @param conjSegmentCosts     to use
    * @param logAll               to use
+   * @return true when any flow was shifted, false otherwise
    */
-  public void executeUncongestedPasEquilibration(
+  public boolean executeUncongestedPasEquilibration(
       Mode theMode,
       StaticLtmLoadingBushBase<ConjugateDestinationBush> networkLoading,
       GapFunction gapFunction,
@@ -734,8 +801,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // only consider PAS when it is potentially uncongested, confirm later with explicit check
     if(this.pas.getStatus() != PasStatus.UNCONGESTED_WITHOUT_SHIFT){
-      return;
+      return false;
     }
+
+    // update costs because if another overlapping uncongested PAS was updated previously, current costs are no longer
+    // up to date
+    pas.updateCost(conjSegmentCosts);
 
     double s1SendingFlow = 0;
     for (var bush : pas.getRegisteredBushes()) {
@@ -747,6 +818,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     boolean converged = false;
     int MAX_INTERAL_ITERATIONS_ALLOWED = 10;
     int internalIteration = 0;
+    boolean doNotStop = true;
+    boolean flowShifted = false;
     do{
 
       //--------------- UPDATE SENDING FLOWS THROUGH ALTERNATIVE ------------------------------------
@@ -808,6 +881,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         totalPasShift += bushPasFlowShift;
       }
 
+      flowShifted = flowShifted || totalPasShift>0;
+
       // sync costs to changes in flow, to allow for next proposed flow update
       boolean costSwitch = false;
       {
@@ -819,12 +894,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         // sync local PAS cost based on synced network costs
         costSwitch = pas.updateCost(conjSegmentCosts);
       }
-
-      // remove zero-flow S2 bushes from PAS
-      // todo: should probably be postponed, if we overshot we should move flow back in next iteration
-      //  and we do not know if this is the case yet --> only do so if s1/s2 did not change
-      //  consider applying MSA locally as we may introduce flip flopping?
-      removeZeroFlowS2BushesFromPas(bushS2RemainingSendingFlows);
 
       s1SendingFlow += totalPasShift;
       double s2SendingFlow = guaranteedS2SendingFlow - totalPasShift;
@@ -839,7 +908,16 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       // reuse criterion of gap (overall gap is done wider, so we do not update gap as such here)
       converged = pasGap <= gapFunction.getStopCriterion().getEpsilon();
       ++internalIteration;
-    }while(!converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED);
+
+      doNotStop = !converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED;
+
+      // remove zero-flow S2 bushes from PAS when we know they won't get used again, or it is the final iteration
+      if(!costSwitch || !doNotStop) {
+        removeZeroFlowBushesFromPas(false /* no dangling nodes */);
+      }
+    }while(doNotStop);
+
+    return flowShifted;
   }
 
   /**
@@ -855,6 +933,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       AbstractVirtualCost virtualCost,
       double[] originalNetworkCosts,
       double[] conjSegmentCosts,
+      Set<? extends RootedBush<?,?>> bushes,
       boolean logAll) {
 
     //TODO: largely equivalent to uncongested setup but with some tweaks to account for complexities of
@@ -871,7 +950,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       s1SendingFlow += bush.determineSubPathSendingFlow(
           pas.getAlternative(true), networkLoading.getCurrentFlowAcceptanceFactors());
     }
-
 
     // Make sure original sending flows as a constraint are locked in via originalBushTurnFlowTracker
     // so we do not run the risk of
@@ -900,15 +978,17 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
     }
 
-
     // enter congested equilibration phase.
     boolean converged = false;
     int MAX_INTERAL_ITERATIONS_ALLOWED = 10;
     int internalIteration = 0;
+    final Map<ConjugateDestinationBush, Double> bushS2RemainingSendingFlows = new TreeMap<>();
+    boolean doNotStop = true;
+    boolean flowShifted = false;
     do{
 
       //--------------- UPDATE SENDING FLOWS THROUGH ALTERNATIVE ------------------------------------
-      Map<ConjugateDestinationBush, Double> bushS2RemainingSendingFlows = new TreeMap<>();
+      bushS2RemainingSendingFlows.clear();
       for (var bush : pas.getRegisteredBushes()) {
         ConjugateDestinationBush conjBush = (ConjugateDestinationBush) bush;
         double remainingSubPathSendingFlow = conjBush.determineConstrainedSubPathSendingFlow(
@@ -956,6 +1036,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         smoothedProportionalPasflowShift = Math.min(guaranteedS2SendingFlow, smoothedProportionalPasflowShift);
       }
 
+      if(smoothedProportionalPasflowShift < 0){
+        break;
+      }
+
       // update the ALPHAS + INFLOWS so that we can sync the bush flows accordingly <-- differs from uncongested
       executeNetworkS2FlowShiftNodeModelUpdate(smoothedProportionalPasflowShift, networkLoading);
       executeNetworkS1FlowShiftNodeModelUpdate(smoothedProportionalPasflowShift, networkLoading);
@@ -989,29 +1073,25 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         LOGGER.info(String.format("flow shifted on network level (%.8f) larger than total flow shifted at bush level " +
             "(%.8f), ideally this does not happen", smoothedProportionalPasflowShift, totalPasShift));
       }
+      flowShifted = flowShifted || totalPasShift>0;
 
       // sync costs to changes in flow, to allow for next proposed flow update
       boolean costSwitch = false;
       {
+        var conjLoading = (StaticLtmLoadingBushConjugate) networkLoading;
         // no need to sync network flows because that was already done during alpha/node model update <-- differs from uncongested
 
-        // need to update network splitting rates since those are derived from the bushes that now have different flows
-        // splitting rates are used in node model calculation <-- differs from uncongested
-        // todo: just update for the entry segments for nodes in the PAS, but requires checking all bushes
-        // OPTION: keep them fixed and accept this is not perfect
+        // need to sync network splitting rates since those are derived from the bushes that now have different flows
+        // this is required in next local iteration since splitting rates are used in network node model calculation
+        executeNetworkSplittingRateUpdateForPas(conjLoading, (Set<ConjugateDestinationBush>) bushes);
 
-        // Then, sync conj expanded and original costs to new flows ...
+        // sync conj expanded and original costs to new flows, this will inform updated derivatives and flow shift
+        // step ...
         updateOriginalAndConjugateNetworkCostsToCurrentPasFlows(
-            theMode, (StaticLtmLoadingBushBase<ConjugateDestinationBush>) networkLoading, physicalCost, virtualCost, originalNetworkCosts, conjSegmentCosts);
-        // sync local PAS cost based on synced network costs
+            theMode, conjLoading, physicalCost, virtualCost, originalNetworkCosts, conjSegmentCosts);
+        // sync local PAS cost based on synced network costs (may cause switch in s1/s2)
         costSwitch = pas.updateCost(conjSegmentCosts);
       }
-
-      // remove zero-flow S2 bushes from PAS
-      // todo: should probably be postponed, if we overshot we should move flow back in next iteration
-      //  and we do not know if this is the case yet --> only do so if s1/s2 did not change
-      //  consider applying MSA locally as we may introduce flip flopping?
-      removeZeroFlowS2BushesFromPas(bushS2RemainingSendingFlows);
 
       s1SendingFlow += totalPasShift;
       double s2SendingFlow = guaranteedS2SendingFlow - totalPasShift;
@@ -1026,10 +1106,17 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       // reuse criterion of gap (overall gap is done wider, so we do not update gap as such here)
       converged = pasGap <= gapFunction.getStopCriterion().getEpsilon();
       ++internalIteration;
+
+      doNotStop = !converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED;
+      // remove zero-flow S2 bushes from PAS when we know they won't get used again, or it is the final iteration
+      if(!costSwitch || !doNotStop) {
+        removeZeroFlowBushesFromPas(false /* no dangling nodes */);
+      }
     }while(!converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED);
 
-    return !getFlowShiftedS2BushData().isEmpty();
+    return flowShifted;
   }
+
 
   /**
    * {@inheritDoc}
@@ -1128,7 +1215,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
 
     /* remove zero-flow S2 bushes from PAS */
-    removeZeroFlowS2BushesFromPas(bushS2RemainingSendingFlows);
+    removeZeroFlowBushesFromPas(false /* no dangling nodes */);
 
     return !getFlowShiftedS2BushData().isEmpty();
   }

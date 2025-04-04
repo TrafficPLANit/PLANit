@@ -8,12 +8,14 @@ import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateBushTurnData;
 import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.zoning.Zone;
@@ -85,6 +87,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * @param alternative to verify
    * @return edge segment that would introduce a cycle, null otherwise
    */
+  @Deprecated
   @SuppressWarnings("unchecked")
   public ES determineIntroduceCycle(ES[] alternative) {
     if (alternative == null) {
@@ -366,6 +369,62 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    */
   public abstract MinMaxPathResult computeMinMaxShortestPaths(
       final double[] linkSegmentCosts, final int totalTransportNetworkVertices);
+
+  /**
+   * Remove all edge segments from DAG explicitly if they no longer carry any flow
+   *
+   * @param edgeSegments to consider for removal
+   * @param allowDanglingNodes when true allow dangling nodes, when false only remove if no node becomes dangling
+   * @param logRemoved when tru log the removed segments, otherwise do not
+   * @return true if any edge segments were removed as a result of zero flow detection, false otherwise
+   */
+  public boolean removeZeroFlowSegmentsIn(ES[] edgeSegments, boolean allowDanglingNodes, boolean logRemoved){
+    boolean anyRemoved = false;
+    for(var edgeSegment :edgeSegments){
+      if(getSendingFlowPcuH(edgeSegment) <= 0.0 && getDag().containsEdgeSegment(edgeSegment)){
+
+        boolean localRemoved = false;
+        if(allowDanglingNodes){
+          localRemoved = true;
+          remove(edgeSegment);
+        }else{
+          localRemoved = removeUnlessNodeDangling(edgeSegment);
+        }
+
+        if(localRemoved && logRemoved){
+          LOGGER.info(String.format("     [No more flow --> remove : (%s) from bush (%s)]",
+              edgeSegment.getIdsAsString(),
+              getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+          anyRemoved = localRemoved;
+        }
+      }
+    }
+    return anyRemoved;
+  }
+
+  /**
+   * Remove edgeSegment from the bush. In case any of its nodes become dangling, do not remove
+   *
+   * @param edgeSegment of the turn
+   * @return true when removed, false when not removed because a dangling node would remain
+   */
+  public boolean removeUnlessNodeDangling(final ES edgeSegment) {
+    boolean upstreamVertexDanglingAfterRemoval =
+        IterableUtils.asStream(edgeSegment.getUpstreamVertex().getExitEdgeSegments()).filter(
+            es -> !es.idEquals(edgeSegment)).noneMatch(otherEs -> this.contains(otherEs.getId()));
+    if(upstreamVertexDanglingAfterRemoval) {
+      return false;
+    }
+    remove(edgeSegment);
+    return true;
+  }
+
+  /**
+   * Remove from the bush in terms of flow and dag
+   *
+   * @param edgeSegment to remove explicitly
+   */
+  public abstract void remove(final ES edgeSegment);
 
   /**
    * {@inheritDoc}

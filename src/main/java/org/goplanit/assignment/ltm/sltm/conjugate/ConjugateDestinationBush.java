@@ -354,8 +354,10 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
     if (addFlowPcuH > 0) {
       if (!containsConjugateSegment(turn)) {
-        //todo eventually phase this out as it should never get triggered anyway anymore
+
         if (containsConjugateSegment(turn.getOppositeDirectionSegment())) {
+          //todo eventually phase this out as it should never get triggered anyway anymore with conjugate node per segment
+          // rather than link
           var originalTurnSegments = turn.getOriginalAdjacentEdgeSegments();
           LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s) where the opposite direction turn" +
                           "is already is part of the bush, this breaks acyclicity",
@@ -431,14 +433,11 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    */
   public void remove(final ConjugateEdgeSegment turn) {
     bushData.removeTurnData(turn);
-//    LOGGER.info(String.format("Removing turn (%s,%s) from bush",
-//            turn.getOriginalAdjacentEdgeSegments().first().getXmlId(), turn.getOriginalAdjacentEdgeSegments().second().getXmlId()));
 
-    // unlike non-conjugate bushes, we do not need to check if we are to remove edge/link segments since a turn is an
-    // edge segment, so this can just be done. conjugate vertices could be removed but there is no benefit in doing so
-    // given that no data is tracked on them nor are subgraphs like bushes tracked via vertices. So ignore (for now)
-    getDag().removeEdgeSegment(turn);
-    requireTopologicalSortUpdate = true;
+    if(contains(turn)) {
+      getDag().removeEdgeSegment(turn);
+      requireTopologicalSortUpdate = true;
+    }
   }
 
   /**
@@ -791,8 +790,11 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
         // remove segment
         double originalConjSegmentFlow = bushData.getTurnSendingFlowPcuH(lowFlowConjSegment);
-        remove(lowFlowConjSegment);
-        removedConjSegments.add(lowFlowConjSegment);
+
+        boolean removedFromDag = removeUnlessNodeDangling(lowFlowConjSegment);
+        if(removedFromDag) {
+          removedConjSegments.add(lowFlowConjSegment);
+        }
 
         // determine how much flow requires redistributing (if any)
         newFlowtoRedistribute += originalConjSegmentFlow;
