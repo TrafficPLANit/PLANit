@@ -68,7 +68,8 @@ public class ConjugateBushTurnData{
    * @param turnSegment      conjugate of turn
    * @param turnSendingFlow  to update
    * @param force if not forced perform additional checks to see if valid before applying
-   * @return true when turn has any labelled turn sending flow left after setting flow, false when labelled turn sending flow no longer exists
+   * @return true when turn has any labelled turn sending flow left after setting flow, false when labelled turn
+   *        sending flow no longer exists
    */
   public boolean setTurnSendingFlow(
           final ConjugateEdgeSegment turnSegment,
@@ -104,15 +105,28 @@ public class ConjugateBushTurnData{
   }
 
   /**
-   * Add turn sending flow for a given turn (can be negative).
+   * Add turn sending flow for a given turn (can be negative). Do not force registration of zero flows or negative flows
+   * by performing additional checks on the flow change proposed before applying
    * 
    * @param turnSegment      the turn
    * @param flowPcuH         to add
    * @return the new labelled turn sending flow after adding the given flow
    */
   public double addTurnSendingFlow(final ConjugateEdgeSegment turnSegment, double flowPcuH) {
+    return addTurnSendingFlow(turnSegment, flowPcuH, flowPcuH>0);
+  }
+
+  /**
+   * Add turn sending flow for a given turn (can be negative).
+   *
+   * @param turnSegment      the turn
+   * @param flowPcuH         to add
+   * @param force            force registration of this flow change when true, regardless of what change is provided
+   * @return the new labelled turn sending flow after adding the given flow
+   */
+  public double addTurnSendingFlow(final ConjugateEdgeSegment turnSegment, double flowPcuH, boolean force) {
     Double newSendingFlow = flowPcuH + getTurnSendingFlowPcuH(turnSegment);
-    boolean hasRemainingFlow = setTurnSendingFlow(turnSegment, newSendingFlow, flowPcuH>0);
+    boolean hasRemainingFlow = setTurnSendingFlow(turnSegment, newSendingFlow, force);
     newSendingFlow = hasRemainingFlow ? newSendingFlow : 0.0;
     return newSendingFlow;
   }

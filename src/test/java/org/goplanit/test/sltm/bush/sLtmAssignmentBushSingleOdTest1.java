@@ -64,6 +64,7 @@ public class sLtmAssignmentBushSingleOdTest1 {
   /** the logger */
   private static Logger LOGGER = null;
 
+
   private Demands createEmptyDemands() {
     Demands demands = new Demands(testToken);
     demands.timePeriods.getFactory().registerNew("dummyTimePeriod", 0, 3600);
@@ -131,6 +132,42 @@ public class sLtmAssignmentBushSingleOdTest1 {
     assertEquals( 2642.73504,inflow5, Precision.EPSILON_3);
     assertEquals( 2642.73504,inflow8, Precision.EPSILON_3);
     assertEquals( 7000,inflow2, Precision.EPSILON_6);
+
+    double demand0 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+    double demand1 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+    double demand5 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+    double demand8 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+    double demand2 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+
+    assertEquals(demand0, inflow0, Precision.EPSILON_6);
+    assertEquals(inflow1, demand1, Precision.EPSILON_3);
+    assertEquals(inflow5, demand5, Precision.EPSILON_3);
+    assertEquals(inflow8, demand8, Precision.EPSILON_3);
+    assertEquals(demand2, demand0, Precision.EPSILON_6);
+  }
+
+  private void testUncongestedOutputs(StaticLtm sLTM) {
+    double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+    double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+    double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+    double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+
+    assertEquals(2000.0 ,outflow1, Precision.EPSILON_3);
+    assertEquals(outflow1, outflow5, Precision.EPSILON_3);
+    assertEquals( outflow1, outflow8, Precision.EPSILON_3);
+    assertEquals( outflow1 + outflow8 + outflow5, outflow2, Precision.EPSILON_6);
+
+    double inflow0 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+    double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+    double inflow5 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+    double inflow8 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+    double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+
+    assertEquals(6000, inflow0, Precision.EPSILON_6);
+    assertEquals( outflow1, inflow1, Precision.EPSILON_3);
+    assertEquals( outflow5, inflow5, Precision.EPSILON_3);
+    assertEquals( outflow8, inflow8, Precision.EPSILON_3);
+    assertEquals( outflow2, inflow2, Precision.EPSILON_6);
 
     double demand0 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
     double demand1 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
@@ -344,10 +381,11 @@ public class sLtmAssignmentBushSingleOdTest1 {
       /* OD DEMANDS 8000 A->A` */
       Demands demands = createCongestedDemands();
 
-      var sLTM = initialiseSltm(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED, FundamentalDiagram.NEWELL, demands);
+      var sLTM = initialiseSltm(
+          StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED, FundamentalDiagram.QUADRATIC_LINEAR, demands);
 
       sLTM.setActivateDetailedLogging(true);
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
 
 
@@ -372,14 +410,14 @@ public class sLtmAssignmentBushSingleOdTest1 {
       Demands demands = createUncongestedDemands();
 
       var sLTM = initialiseSltm(
-          StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED,FundamentalDiagram.QUADRATIC_LINEAR, demands);
+          StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED, FundamentalDiagram.QUADRATIC_LINEAR, demands);
 
       sLTM.setActivateDetailedLogging(true);
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
       sLTM.execute();
 
-      testCongestedOutputs(sLTM);
+      testUncongestedOutputs(sLTM);
 
     } catch (Exception e) {
       e.printStackTrace();

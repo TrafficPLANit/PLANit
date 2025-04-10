@@ -98,7 +98,7 @@ public class TampereNodeModelUtils {
         double summedSplittingRates = localTurnSendingFlows.aggregateAll(Aggregator.SUM);
         if((summedSplittingRates - Precision.EPSILON_6) > 1){
           throw new PlanItRunTimeException(" Splitting rates exceed 100% for link segment (%s): %s",
-                  entryEdgeSegment.getIdsAsString(), localTurnSendingFlows);
+                  entryEdgeSegment.getIdsAsString(), localTurnSendingFlows.toString());
         }
       }
 
