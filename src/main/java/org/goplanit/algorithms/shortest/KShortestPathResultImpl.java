@@ -125,6 +125,11 @@ public class KShortestPathResultImpl implements KShortestPathResult {
   }
 
   @Override
+  public EdgeSegment overwriteNextSegmentForVertex(Vertex vertex, EdgeSegment nextSegment) {
+    throw new PlanItRunTimeException("overwriteNextSegmentForVertex not yet supported for k-shortest path result");
+  }
+
+  @Override
   public UntypedACyclicSubGraph<?,?> createAndPopulateDirectedAcyclicSubGraphSpanningTree(IdGroupingToken idToken) {
     throw new PlanItRunTimeException("createDirectedAcyclicSubGraph not yet supported for min/max result");
   }

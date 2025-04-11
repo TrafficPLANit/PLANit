@@ -127,6 +127,16 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
             minPathResult.getNextEdgeSegmentForVertex(vertex) : maxPathResult.getNextEdgeSegmentForVertex(vertex);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegment overwriteNextSegmentForVertex(Vertex vertex, EdgeSegment nextSegment) {
+    return minPathState ?
+        minPathResult.overwriteNextSegmentForVertex(vertex, nextSegment) :
+        maxPathResult.overwriteNextSegmentForVertex(vertex, nextSegment);
+  }
+
   @Override
   public UntypedACyclicSubGraph<?,?> createAndPopulateDirectedAcyclicSubGraphSpanningTree(IdGroupingToken idToken) {
     throw new PlanItRunTimeException("createDirectedAcyclicSubGraph not yet supported for min/max result");

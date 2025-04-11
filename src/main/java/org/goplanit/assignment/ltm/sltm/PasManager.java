@@ -301,7 +301,7 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
     /* general usage of high cost initial segment in bush (irrespective whether the flow follows the high-cost path)*/
     var s2InitialEdgeSegment = pasHighCostAlternative[0];
     double s2InitialSegmentSendingFlowOnBush = bush.getSendingFlowPcuH(s2InitialEdgeSegment);
-    return Precision.greater(s2FullSubPathSendingFlowOnBush, NU * s2InitialSegmentSendingFlowOnBush);
+    return Precision.greater(s2FullSubPathSendingFlowOnBush, NU * Math.min(100, s2InitialSegmentSendingFlowOnBush));
   }
 
   /**

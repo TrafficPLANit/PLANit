@@ -171,6 +171,24 @@ public class ConjugateBushTurnData{
   }
 
   /**
+   * Verify if any sending flows s_a from given original segment exists
+   *
+   * @param node conjugate node to use
+   * @return true when sending flow s_a exists, false otherwise
+   */
+  public boolean containsSendingFlow(final ConjugateDirectedVertex node) {
+    for (var turn : node.getExitEdgeSegments()) {
+      double s_ab = getTurnSendingFlowPcuH(turn);
+      if(s_ab > 0){
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+
+  /**
    * Collect the accepted flow towards a conjugate node (original edge segment) in the bush, if not present,
    * zero flow is returned
    * 

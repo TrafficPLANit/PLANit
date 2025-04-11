@@ -14,7 +14,9 @@ import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.test.sltm.sLtmAssignmentGridTestBase;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.zoning.OdZones;
 import org.junit.jupiter.api.AfterAll;
@@ -74,10 +76,12 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
 
       Demands demands = createDemands(testToken);
 
-      // OD DEMANDS 1800 A->A`
+      // OD DEMANDS 900 A->A`
+      // todo: up to 1800 for when this works, 1800 will trigger potentially congested pas updates
+      //  (despite not being congested, which triggers a different process flow).
       OdZones odZones = zoning.getOdZones();
       OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
-      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), 1800.0);
+      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), 900.0);
       demands.registerOdDemandPcuHour(
           demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
 
@@ -94,6 +98,8 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
 
       sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
       sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+
+      sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);

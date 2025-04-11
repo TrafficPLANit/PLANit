@@ -126,6 +126,16 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
    * {@inheritDoc}
    */
   @Override
+  public EdgeSegment overwriteNextSegmentForVertex(Vertex vertex, EdgeSegment nextSegment) {
+    var original = nextEdgeSegmentByVertex[(int) vertex.getId()];
+    nextEdgeSegmentByVertex[(int) vertex.getId()] = nextSegment;
+    return original;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public ACyclicSubGraph createAndPopulateDirectedAcyclicSubGraphSpanningTree(IdGroupingToken idToken) {
     // search tree "normal" direction is in the inverse of the normal direction, yet DAG coincides with the normal
     // perspective, hence we need to invert the flag to set it correctly in the context of the DAG

@@ -288,7 +288,8 @@ public class StaticLtmConjugateBushStrategy
 
     //2. for each congested node rerun node in turn based form
     Predicate<DirectedVertex> hasCongestedEntrySegment = n -> IterableUtils.asStream(
-        n.getEntryEdgeSegments()).anyMatch(es -> flowAcceptanceFactors[(int)es.getId()] < 1 );
+        n.getEntryEdgeSegments()).anyMatch(es -> Precision.smaller(
+            flowAcceptanceFactors[(int)es.getId()], 1, Precision.EPSILON_6));
     for(var node : trackedNodes){
       if(!hasCongestedEntrySegment.test(node)){
         continue;
@@ -349,12 +350,13 @@ public class StaticLtmConjugateBushStrategy
    * <p>
    * TODO: we should revisit what is deemed sufficiently efficient cost/flow based for adding a PAS
    *
-   * @param bush                         to identify new PAS for
-   * @param reducedCostVertex            to use for creating the PAS as a cheaper path to the root exists at this vertex
-   * @param startSegmentForS1Alternative to use as the start segment of the S1 alternative
-   * @param reducedCost                  to check if new PAS is considered effective
-   * @param bushMinMaxPathResult         used for PAS construction
-   * @param conjugateLinkSegmentCosts    to check if new PAS is considered effective
+   * @param bush                          to identify new PAS for
+   * @param reducedCostVertex             to use for creating the PAS as a cheaper path to the root exists at this vertex
+   * @param startSegmentForS1Alternative  to use as the start segment of the S1 alternative
+   * @param reducedCost                   to check if new PAS is considered effective
+   * @param bushMinMaxPathResult          used for PAS construction
+   * @param conjugateLinkSegmentCosts     to check if new PAS is considered effective
+   * @param bannedS1Vertices              vertices that are not allowed to be used for any new S1 alternative
    * @param allowUncongestedOnly          when true we only consider adding PASs that are NOT congested
    * @return new created PAS if successfully created, null otherwise, the boolean indicates if it indeed is a brand
    * new PAS or for some reason we still reused an existing one
@@ -365,7 +367,9 @@ public class StaticLtmConjugateBushStrategy
       ConjugateEdgeSegment startSegmentForS1Alternative,
       double reducedCost,
       MinMaxPathResult bushMinMaxPathResult,
-      double[] conjugateLinkSegmentCosts, boolean allowUncongestedOnly) {
+      double[] conjugateLinkSegmentCosts,
+      Set<ConjugateDirectedVertex> bannedS1Vertices,
+      boolean allowUncongestedOnly) {
 
     // TODO: we now only consider one of the two options: max bush path, but when adding a new link in
     //  the bush min path from the vertex is ALSO an alternative. Probably better to check both and then choose
@@ -375,6 +379,7 @@ public class StaticLtmConjugateBushStrategy
     final short[] conjAlternativeSegmentVertexLabels =
             new short[conjugateTransportModelNetwork.getNumberOfVerticesAllLayers()];
     conjAlternativeSegmentVertexLabels[(int) reducedCostVertex.getId()] = 1;
+    // choose max path because it is the most likely to have flow
     bushMinMaxPathResult.setMinPathState(false);
     int numShortestPathEdgeSegments = bushMinMaxPathResult.forEachNextEdgeSegment(
             bush.getRootVertex(),
@@ -382,30 +387,35 @@ public class StaticLtmConjugateBushStrategy
             (edgeSegment) -> conjAlternativeSegmentVertexLabels[(int)
                 bushMinMaxPathResult.getNextVertexForEdgeSegment(edgeSegment).getId()] = -1);
 
-    // construct s1 alternative now that we can find where it terminates
+    // construct s1 alternative now that we can find where it terminates when intersecting with Max path (-1)
     bushMinMaxPathResult.setMinPathState(true);
     var s1Alternative = new LinkedList<ConjugateEdgeSegment>();
-    s1Alternative.add(startSegmentForS1Alternative);
-    ConjugateEdgeSegment nextS1Segment = null;
     var currVertex = startSegmentForS1Alternative.getDownstreamVertex();
-    do {
-      nextS1Segment = (ConjugateEdgeSegment) bushMinMaxPathResult.getNextEdgeSegmentForVertex(currVertex);
-      if(nextS1Segment == null){
-        LOGGER.info(String.format("Unable to create new PAS (S1) for conjugate bush rooted at vertex (%s), " +
-            "despite reduced cost, should not happen"));
-        s1Alternative.clear();
-        break;
-      }
-      s1Alternative.add(nextS1Segment);
-      currVertex = nextS1Segment.getDownstreamVertex();
-    }while(conjAlternativeSegmentVertexLabels[(int)currVertex.getId()] != -1);
+    if(!bannedS1Vertices.contains(currVertex)){
+      s1Alternative.add(startSegmentForS1Alternative);
+      ConjugateEdgeSegment nextS1Segment = null;
+      do {
+        nextS1Segment = (ConjugateEdgeSegment) bushMinMaxPathResult.getNextEdgeSegmentForVertex(currVertex);
+        if(nextS1Segment == null){
+          LOGGER.info(String.format("Unable to create new PAS (S1) for conjugate bush rooted at vertex (%s), " +
+              "despite reduced cost, should not happen"));
+          s1Alternative.clear();
+          break;
+        }else if(bannedS1Vertices.contains(nextS1Segment.getDownstreamVertex())){
+          // touching banned vertex, not allowed to create s1 alternative
+          s1Alternative.clear();
+          break;
+        }
+        s1Alternative.add(nextS1Segment);
+        currVertex = nextS1Segment.getDownstreamVertex();
+      }while(conjAlternativeSegmentVertexLabels[(int)currVertex.getId()] != -1);
+    }
 
     if (s1Alternative.isEmpty()) {
       return null;
     }
 
     // Identify S2 now that we know where it coincides with S1 alternative
-    // todo: see options for improving this furter in above todo
     bushMinMaxPathResult.setMinPathState(false);
     var s2Alternative = new LinkedList<ConjugateEdgeSegment>();
     ConjugateEdgeSegment nextS2Segment;
@@ -414,8 +424,8 @@ public class StaticLtmConjugateBushStrategy
     do {
       nextS2Segment = (ConjugateEdgeSegment) bushMinMaxPathResult.getNextEdgeSegmentForVertex(currVertex);
       if(nextS2Segment == null){
-        LOGGER.info(String.format("Unable to create new PAS (S2) for conjugate bush rooted at vertex (%s), " +
-            "despite reduced cost, should not happen"));
+        LOGGER.info(String.format("Unable to create new PAS (S2) for conjugate bush (%s), " +
+            "despite reduced cost, should not happen", bush.getRootZone().getIdsAsString()));
         s2Alternative.clear();
         break;
       }
@@ -475,6 +485,11 @@ public class StaticLtmConjugateBushStrategy
       }
       isNewPas = false;
       pas = null;
+    }
+
+    // IMPORTANT FOR EFFICIENT MULTI_PASS adding
+    if(pas != null){
+
     }
 
     return Pair.of(pas, isNewPas);
@@ -622,7 +637,7 @@ public class StaticLtmConjugateBushStrategy
   updateBushPass(Mode mode, double[] nonConjugateLinkSegmentCosts, boolean updateGap, boolean logAll){
 
     final int MAX_CONGESTED_PAS_ADD_PER_BUSH = 1;
-    final int MIN_UNCONGESTED_PAS_ADD_PER_BUSH = 2;
+    final int MAX_PAS_ADD_PER_BUSH = 5;
 
     double totalMinCostForGap = 0; // track during bush traversal to get min OD costs based on shortest paths
     double totalRealisedCostForGap = 0;
@@ -643,7 +658,7 @@ public class StaticLtmConjugateBushStrategy
     }
 
     //todo --> should be sets
-    List<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> newPass = new ArrayList<>();
+    List<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> addedPass = new ArrayList<>();
 
     // method overridden for conjugate implementation resulting in conjugate compatible shortest path search using
     // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...
@@ -655,6 +670,11 @@ public class StaticLtmConjugateBushStrategy
       if (conjBush == null) {
         continue;
       }
+      // track vertices that have been added due to PAS s1 alternative
+      // any new PAS that touches these vertices will not be added because they overlap
+      // overlapping PASs are less effective than non-overlapping ones. Wait until next iteration
+      // for when they have flow / top. ordering and bush/min/max is updated. Then try again.
+      Set<ConjugateDirectedVertex> addedBushPasS1TouchedVertices = new TreeSet<>();
 
       /* within-bush min/max-paths - searched from root in designated direction (inverted if ALL-TO-ONE, i.e., root
        * is destination) */
@@ -694,6 +714,7 @@ public class StaticLtmConjugateBushStrategy
       int countPassAddedForBush = 0;
       int countCongestedPassAddedForBush = 0;
       var bushVertexIter = conjBush.getTopologicalIterator();
+      BREAK_BUSH:
       while(bushVertexIter.hasNext()) {
         ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
         for(var outgoingSegment : conjBushVertex.getExitEdgeSegments()){
@@ -701,6 +722,13 @@ public class StaticLtmConjugateBushStrategy
               !isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree)){
             continue;
           }
+
+          // we want to only add eligible links which have flow leading into their upstream vertex, otherwise there is
+          // no flow to divert.
+          if(!conjBush.containsSendingFlow(conjBushVertex)){
+            continue;
+          }
+
 
           // found segment to add -- necessitates creation of a new PAS because we are merging two possible routes
           conjBush.getDag().addEdgeSegment(outgoingSegment);
@@ -714,35 +742,42 @@ public class StaticLtmConjugateBushStrategy
 
           /* find a (new) PAS for the bush */
           boolean allowUncongestedOnly = MAX_CONGESTED_PAS_ADD_PER_BUSH == countCongestedPassAddedForBush;
-          var newPasResult = extendConjugateBushWithPas(
+          var bushPasExtensionResult = extendConjugateBushWithPas(
               conjBush,
               conjBushVertex,
               outgoingSegment,
               maxReducedCost,
               bushMinMaxTree,
               conjLinkSegmentCosts,
+              addedBushPasS1TouchedVertices,
               allowUncongestedOnly);
-          if (newPasResult == null || newPasResult.first() == null) {
+          if (bushPasExtensionResult == null || bushPasExtensionResult.first() == null) {
             // ending up not adding the PAS, so remove just added segment again
             conjBush.remove(outgoingSegment);
             continue;
           }
-          var newPas = newPasResult.first();
+          var pasToAdd = bushPasExtensionResult.first();
 
           // truly new PAS
-          newPass.add(newPas);
+          addedPass.add(pasToAdd);
           if(isDestinationTrackedForLogging(conjBush) || logAll){
             LOGGER.info(String.format("Registered new PAS (%s) on conjugate bush (%s)",
-                newPas, conjBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+                pasToAdd, conjBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
           }
 
           ++countPassAddedForBush;
-          if(newPas.getStatus() == PasStatus.CONGESTED) {
+          if(pasToAdd.getStatus() == PasStatus.CONGESTED) {
             ++countCongestedPassAddedForBush;
           }
-          if(countCongestedPassAddedForBush == MAX_CONGESTED_PAS_ADD_PER_BUSH &&
-                  countPassAddedForBush - countCongestedPassAddedForBush >= MIN_UNCONGESTED_PAS_ADD_PER_BUSH){
-            break;
+          if(countCongestedPassAddedForBush == MAX_CONGESTED_PAS_ADD_PER_BUSH ||
+                  countPassAddedForBush - countCongestedPassAddedForBush >= MAX_PAS_ADD_PER_BUSH){
+            break BREAK_BUSH;
+          }
+
+          // update added PAS vertices - to ban for subsequent new PASs
+          var lowCostAlt = pasToAdd.getAlternative(true);
+          for(int index = 0; index < lowCostAlt.length-1; ++index){
+            addedBushPasS1TouchedVertices.add(lowCostAlt[index].getDownstreamVertex());
           }
         }
       }
@@ -757,7 +792,7 @@ public class StaticLtmConjugateBushStrategy
       gapFunction.increaseAbsolutePathGap(totalRealisedCostForGap, 1, totalMinCostForGap);
     }
 
-    return Pair.of(newPass,new ArrayList<>(0));
+    return Pair.of(addedPass,new ArrayList<>(0));
   }
 
   /**

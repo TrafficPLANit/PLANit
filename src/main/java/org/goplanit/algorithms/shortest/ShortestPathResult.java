@@ -3,7 +3,10 @@ package org.goplanit.algorithms.shortest;
 import java.util.Deque;
 import java.util.function.Consumer;
 
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
+import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
@@ -54,6 +57,15 @@ public interface ShortestPathResult extends ShortestResult{
   public abstract EdgeSegment getNextEdgeSegmentForVertex(Vertex vertex);
 
   /**
+   * Allow to overwrite the result for the next segment to use for a given vertex in the result. Use with caution!
+   *
+   * @param vertex to overwrite next segment for
+   * @param nextSegment to replace existing result
+   * @return original next segment that has been replaced
+   */
+  public abstract EdgeSegment overwriteNextSegmentForVertex(Vertex vertex, EdgeSegment nextSegment);
+
+  /**
    * Extract the shortest path tree as a directed acyclic sub graph to ALL vertices.
    * It is a subgraph because it will be a subset of the network (graph), but it will be a full spanning tree, so all
    * vertices in the network will be connected
@@ -102,4 +114,5 @@ public interface ShortestPathResult extends ShortestResult{
     } while (!currentVertex.idEquals(startVertex));
     return count;
   }
+
 }

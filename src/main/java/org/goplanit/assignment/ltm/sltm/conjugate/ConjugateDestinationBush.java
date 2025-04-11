@@ -395,6 +395,16 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   }
 
   /**
+   * Verify if any sending flow exists that traverses the conjugate node (original edge segment) in the conjugate bush,
+   *
+   * @param conjugateNode to verify  for
+   * @return true if present, false otherwise
+   */
+  public boolean containsSendingFlow(final ConjugateDirectedVertex conjugateNode) {
+    return bushData.containsSendingFlow(conjugateNode);
+  }
+
+  /**
    * Verify if the provided turn has any registered sending flow
    *
    * @param turn to use
