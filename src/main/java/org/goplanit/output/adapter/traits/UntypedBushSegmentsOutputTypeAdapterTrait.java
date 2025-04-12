@@ -24,4 +24,14 @@ public interface UntypedBushSegmentsOutputTypeAdapterTrait<ES extends EdgeSegmen
    * @return collection of bushes
    */
   public abstract Set<RootedBush<? extends DirectedVertex, ? extends ES>> getBushes();
+
+  /**
+   * Allow to check on non zero flow using edge segment rather than concrete bush segment derived version
+   *
+   * @param bush to use
+   * @param edgeSegment to check
+   * @return true when flow present, false otherwise
+   */
+  public abstract boolean hasNonZeroFlow(
+      RootedBush<? extends DirectedVertex, ? extends EdgeSegment> bush, EdgeSegment edgeSegment);
 }

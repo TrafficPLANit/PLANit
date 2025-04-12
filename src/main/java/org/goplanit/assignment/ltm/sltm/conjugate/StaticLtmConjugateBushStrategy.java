@@ -397,8 +397,8 @@ public class StaticLtmConjugateBushStrategy
       do {
         nextS1Segment = (ConjugateEdgeSegment) bushMinMaxPathResult.getNextEdgeSegmentForVertex(currVertex);
         if(nextS1Segment == null){
-          LOGGER.info(String.format("Unable to create new PAS (S1) for conjugate bush rooted at vertex (%s), " +
-              "despite reduced cost, should not happen"));
+          LOGGER.info(String.format("Unable to create new PAS (S1) for conjugate bush (%s), " +
+              "despite reduced cost, should not happen", bush.getRootZone().getIdsAsString()));
           s1Alternative.clear();
           break;
         }else if(bannedS1Vertices.contains(nextS1Segment.getDownstreamVertex())){
@@ -440,18 +440,18 @@ public class StaticLtmConjugateBushStrategy
     var s1 = s1Alternative.toArray(new ConjugateEdgeSegment[0]);
     var s2 = s2Alternative.toArray(new ConjugateEdgeSegment[0]);
 
-    //todo revisit this. IS it still needed? Or maybe bad to actually use it!
-    double highCostAlternativeCost = PasManager.computeCost(s2, conjugateLinkSegmentCosts);
-    double lowCostAlternativeCost = PasManager.computeCost(s1, conjugateLinkSegmentCosts);
-    if (!PasManager.isPasEffectiveForBush(
-            s2,
-            highCostAlternativeCost,
-            lowCostAlternativeCost,
-            bush,
-            getLoading().getCurrentFlowAcceptanceFactors(),
-            reducedCost)) {
-      return null;
-    }
+//    //todo revisit this. IS it still needed? Or maybe bad to actually use it!
+//    double highCostAlternativeCost = PasManager.computeCost(s2, conjugateLinkSegmentCosts);
+//    double lowCostAlternativeCost = PasManager.computeCost(s1, conjugateLinkSegmentCosts);
+//    if (!PasManager.isPasEffectiveForBush(
+//            s2,
+//            highCostAlternativeCost,
+//            lowCostAlternativeCost,
+//            bush,
+//            getLoading().getCurrentFlowAcceptanceFactors(),
+//            reducedCost)) {
+//      return null;
+//    }
 
     // find or create new PAS for this bush. If PAS exists for other bush, we reuse it.
     boolean isNewPas = false;
@@ -637,7 +637,9 @@ public class StaticLtmConjugateBushStrategy
   updateBushPass(Mode mode, double[] nonConjugateLinkSegmentCosts, boolean updateGap, boolean logAll){
 
     final int MAX_CONGESTED_PAS_ADD_PER_BUSH = 1;
-    final int MAX_PAS_ADD_PER_BUSH = 5;
+
+    final int MAX_PAS_ADD_PER_BUSH = Integer.MAX_VALUE;
+    pasManager.reset();
 
     double totalMinCostForGap = 0; // track during bush traversal to get min OD costs based on shortest paths
     double totalRealisedCostForGap = 0;
@@ -718,25 +720,58 @@ public class StaticLtmConjugateBushStrategy
       while(bushVertexIter.hasNext()) {
         ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
         for(var outgoingSegment : conjBushVertex.getExitEdgeSegments()){
-          if(conjBush.contains(outgoingSegment) ||
-              !isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree)){
-            continue;
+
+          if(outgoingSegment.hasXmlId() && outgoingSegment.getXmlId().equals("OA_1>0")){
+            int bla = 4;
           }
 
-          // we want to only add eligible links which have flow leading into their upstream vertex, otherwise there is
-          // no flow to divert.
+          // TODO: temp try using ALL "NOW" PASs of all vertices if eligible and wipe after outer iteration
+          //  so we allow any eligible reduced cost vertex for now to be considered
+
+//          if(conjBush.contains(outgoingSegment) ||
+//              !isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree)){
+//            continue;
+//          }
+          boolean minPathInitialLinkNewToBush = false;
+          if(!conjBush.contains(outgoingSegment)){
+            if(!isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree)){
+              continue;
+            }
+            minPathInitialLinkNewToBush = true;
+          }else if(conjBush.contains(outgoingSegment)){
+            boolean potentialReducedCost = Precision.EPSILON_12 <
+                  (bushMinMaxTree.getMaxCostToReach(conjBushVertex) - bushMinMaxTree.getMinCostToReach(conjBushVertex));
+            // for existing segments we at least require a potential reduced cost AND a split at the vertex
+            // for the min and max path
+            bushMinMaxTree.setMinPathState(true);
+            var minNextEdge = bushMinMaxTree.getNextEdgeSegmentForVertex(conjBushVertex);
+            bushMinMaxTree.setMinPathState(false);
+            var maxNextEdge = bushMinMaxTree.getNextEdgeSegmentForVertex(conjBushVertex);
+            if(minNextEdge == maxNextEdge || !potentialReducedCost || minNextEdge != outgoingSegment){
+              continue; // (we match min path to current outgoing segment as this is what PAS creator expects)
+            }
+            int bla = 4;
+          }
+
+          // we want to only consider eligible links which have flow leading into their upstream vertex, otherwise
+          // there is no flow to divert.
           if(!conjBush.containsSendingFlow(conjBushVertex)){
             continue;
           }
 
-
-          // found segment to add -- necessitates creation of a new PAS because we are merging two possible routes
-          conjBush.getDag().addEdgeSegment(outgoingSegment);
-          double minCostToVertexWithNewLink = conjLinkSegmentCosts[(int)outgoingSegment.getId()] + bushMinMaxTree.getMinCostToReach(outgoingSegment.getDownstreamVertex());
-          double minReducedCost =
-              bushMinMaxTree.getMinCostToReach(conjBushVertex) - minCostToVertexWithNewLink;
-          double maxReducedCost =
-              bushMinMaxTree.getMaxCostToReach(conjBushVertex) - minCostToVertexWithNewLink;
+          double reducedCost = -1;
+          if(minPathInitialLinkNewToBush) {
+            // found segment to add -- necessitates creation of a new PAS because we are merging two possible routes
+            conjBush.getDag().addEdgeSegment(outgoingSegment);
+            double minCostToVertexWithNewLink = conjLinkSegmentCosts[(int) outgoingSegment.getId()] + bushMinMaxTree.getMinCostToReach(outgoingSegment.getDownstreamVertex());
+//            minReducedCost =
+//                bushMinMaxTree.getMinCostToReach(conjBushVertex) - minCostToVertexWithNewLink;
+            reducedCost =
+                bushMinMaxTree.getMaxCostToReach(conjBushVertex) - minCostToVertexWithNewLink;
+          }else{
+            reducedCost =
+                bushMinMaxTree.getMaxCostToReach(conjBushVertex) - bushMinMaxTree.getMinCostToReach(conjBushVertex);
+          }
 
           // find PAS using either min or max cost bush paths
 
@@ -746,14 +781,17 @@ public class StaticLtmConjugateBushStrategy
               conjBush,
               conjBushVertex,
               outgoingSegment,
-              maxReducedCost,
+              reducedCost,
               bushMinMaxTree,
               conjLinkSegmentCosts,
               addedBushPasS1TouchedVertices,
               allowUncongestedOnly);
           if (bushPasExtensionResult == null || bushPasExtensionResult.first() == null) {
+
             // ending up not adding the PAS, so remove just added segment again
-            conjBush.remove(outgoingSegment);
+            if(minPathInitialLinkNewToBush) {
+              conjBush.remove(outgoingSegment);
+            }
             continue;
           }
           var pasToAdd = bushPasExtensionResult.first();
@@ -774,11 +812,12 @@ public class StaticLtmConjugateBushStrategy
             break BREAK_BUSH;
           }
 
+          // todo: switched off for "non-pas" simulated approach
           // update added PAS vertices - to ban for subsequent new PASs
-          var lowCostAlt = pasToAdd.getAlternative(true);
-          for(int index = 0; index < lowCostAlt.length-1; ++index){
-            addedBushPasS1TouchedVertices.add(lowCostAlt[index].getDownstreamVertex());
-          }
+//          var lowCostAlt = pasToAdd.getAlternative(true);
+//          for(int index = 0; index < lowCostAlt.length-1; ++index){
+//            addedBushPasS1TouchedVertices.add(lowCostAlt[index].getDownstreamVertex());
+//          }
         }
       }
     }

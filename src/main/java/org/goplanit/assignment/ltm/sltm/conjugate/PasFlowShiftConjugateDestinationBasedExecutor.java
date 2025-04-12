@@ -904,20 +904,24 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
 
       s1SendingFlow += totalPasShift;
-      double s2SendingFlow = guaranteedS2SendingFlow - totalPasShift;
+      double s2SendingFlow = Math.max(0, guaranteedS2SendingFlow - totalPasShift);
       if(costSwitch){
         double prevS1SendingFlow = s1SendingFlow;
         s1SendingFlow = s2SendingFlow;
         s2SendingFlow = prevS1SendingFlow;
       }
+
       double pasGap = 0;
       if(s2SendingFlow > 0) {
         pasGap = pas.getReducedCost() * s2SendingFlow
             /
             (pas.getAlternativeLowCost() * (s1SendingFlow + s2SendingFlow));
+      }else{
+        pasGap = pas.getReducedCost();
       }
+
       // reuse criterion of gap (overall gap is done wider, so we do not update gap as such here)
-      converged = pasGap <= Precision.EPSILON_6 ;gapFunction.getGap();
+      converged = pasGap <= gapFunction.getGap();
       ++internalIteration;
 
       doNotStop = !converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED;

@@ -1,11 +1,13 @@
 package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.assignment.TrafficAssignment;
+import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
 import org.goplanit.output.adapter.BushLinkOutputTypeAdapterImpl;
 import org.goplanit.output.adapter.traits.BushNetworkSegmentsOutputTypeAdapterTraitImpl;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.graph.GraphEntities;
+import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
@@ -105,5 +107,24 @@ public class StaticLtmBushLinkOutputTypeAdapterTraitImpl extends BushNetworkSegm
   public Set<RootedBush<? extends DirectedVertex, ? extends EdgeSegment>> getBushes() {
     return (Set<RootedBush<? extends DirectedVertex, ? extends EdgeSegment>>)
             getBushBasedAssignmentStrategy().getBushes();
+  }
+
+  @Override
+  public boolean hasNonZeroFlow(
+      RootedBush<? extends DirectedVertex, ? extends EdgeSegment> bush, EdgeSegment edgeSegment) {
+
+    var sltmType = ((StaticLtm)trafficAssignment).settings.getSltmType();
+    if(sltmType.equals(StaticLtmType.DESTINATION_BUSH_BASED)){
+      // destination based bushes use regular edge segments
+      return ((DestinationBush)bush).getSendingFlowPcuH(edgeSegment)>0;
+    }else if(sltmType.equals(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED)) {
+      // conjugate bushes use conjugate edge segments
+      return
+          ((ConjugateDestinationBush) bush).getSendingFlowPcuH((ConjugateEdgeSegment) edgeSegment) > 0;
+    }else{
+      LOGGER.severe(String.format(
+          "Chosen sLTM type %s not compatible with bush based link result non zero flow check", sltmType));
+      return false;
+    }
   }
 }

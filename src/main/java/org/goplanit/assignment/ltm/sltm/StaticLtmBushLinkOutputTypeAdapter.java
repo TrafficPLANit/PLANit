@@ -81,4 +81,9 @@ public class StaticLtmBushLinkOutputTypeAdapter extends BushLinkOutputTypeAdapte
     return getTrait().getLinkSegmentsForLayer(layerId);
   }
 
+  @Override
+  public boolean hasNonZeroFlow(
+      RootedBush<? extends DirectedVertex, ? extends EdgeSegment> bush, EdgeSegment edgeSegment) {
+    return getTrait().hasNonZeroFlow(bush, edgeSegment);
+  }
 }

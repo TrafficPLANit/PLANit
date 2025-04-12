@@ -1,6 +1,7 @@
 package org.goplanit.network;
 
 import org.goplanit.network.layer.macroscopic.MacroscopicGridNetworkLayerGenerator;
+import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.PredefinedModeType;
@@ -24,7 +25,10 @@ public class MacroscopicNetworkUtils {
    */
   public static MacroscopicNetwork createSimpleGrid(final IdGroupingToken tokenId, int rows, int columns) {
     var network = new MacroscopicNetwork(tokenId);
+
+    network.setCoordinateReferenceSystem(PlanitJtsCrsUtils.CARTESIANCRS);
     var carMode = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
+
     MacroscopicGridNetworkLayerGenerator.create(rows, columns, network.getTransportLayers(), carMode).generate();
     return network;
   }

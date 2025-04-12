@@ -936,4 +936,8 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
     this.detailedLogging = detailedLogging;
   }
 
+  public void reset() {
+    this.inactivePassByVertex.clear();
+    this.activePassByVertex.clear();
+  }
 }

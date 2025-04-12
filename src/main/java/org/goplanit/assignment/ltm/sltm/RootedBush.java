@@ -395,8 +395,8 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
           LOGGER.info(String.format("     [No more flow --> remove : (%s) from bush (%s)]",
               edgeSegment.getIdsAsString(),
               getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-          anyRemoved = localRemoved;
         }
+        anyRemoved = localRemoved;
       }
     }
     return anyRemoved;

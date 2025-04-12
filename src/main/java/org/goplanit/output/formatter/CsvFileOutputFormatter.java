@@ -311,6 +311,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
     } catch (PlanItException e) {
       return e;
     } catch (Exception e) {
+      e.printStackTrace();
       LOGGER.severe(e.getMessage());
       return new PlanItException("Error when writing link results for current time period in CSVOutputFileFormatter", e);
     }
@@ -345,6 +346,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       BushLinkOutputTypeAdapter bushLinkOutputTypeAdapter =
           (BushLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
 
+      boolean persistZeroFlowBushLinkSegments = outputConfiguration.isPersistZeroFlow();
       SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
       for (Mode mode : modes) {
         // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
@@ -362,6 +364,10 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
           if(!bush.contains(edgeSegment.getId())){
             // implicitly assumes 1) a bush does not contain the edge segment unless it supports the mode at hand
             // and 2) it has positive flow, otherwise the bush would discard the edge segment
+            continue;
+          }
+
+          if(!persistZeroFlowBushLinkSegments && !bushLinkOutputTypeAdapter.hasNonZeroFlow(bush, edgeSegment)){
             continue;
           }
 
