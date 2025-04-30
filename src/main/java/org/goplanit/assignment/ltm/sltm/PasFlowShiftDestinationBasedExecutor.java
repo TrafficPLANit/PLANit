@@ -7,6 +7,7 @@ import java.util.TreeMap;
 import java.util.function.ToDoubleFunction;
 import java.util.logging.Logger;
 
+import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
@@ -531,7 +532,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
           RootedBush<DirectedVertex, EdgeSegment> bush,
           EdgeSegment entrySegment,
           double bushFlowShift,
-          double[] flowAcceptanceFactors) {
+          StaticLtmLoadingBushBase<?> networkLoading) {
 
     var destinationBush = (DestinationBush)bush;
     /* prep - pas */
@@ -547,7 +548,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
 
     double s2StartLabeledFlowShift = -bushFlowShift;
     double s2FinalLabeledFlowShift =
-            executeBushPasFlowShift(destinationBush, entrySegment, s2StartLabeledFlowShift, s2, flowAcceptanceFactors);
+            executeBushPasFlowShift(destinationBush, entrySegment, s2StartLabeledFlowShift, s2, networkLoading.getCurrentFlowAcceptanceFactors());
 
     /* shift flow across final merge for S2 */
     double[] bushS2MergeExitShiftedSendingFlows =
@@ -571,7 +572,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
           RootedBush<DirectedVertex, EdgeSegment> bush,
           EdgeSegment entrySegment,
           double bushFlowShift,
-          double[] flowAcceptanceFactors,
+          StaticLtmLoadingBushBase<?> networkLoading,
           double[] mergeExitSplittingRates) {
     var destinationBush = (DestinationBush)bush;
 
@@ -582,7 +583,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
             entrySegment,
             bushFlowShift,
             s1,
-            flowAcceptanceFactors);
+            networkLoading.getCurrentFlowAcceptanceFactors());
 
     /* shift flow across final merge for S1 based on findings in s2 */
     executeBushS1FlowShiftEndMerge(destinationBush, s1FinalLabeledFlowShift, mergeExitSplittingRates);
@@ -834,7 +835,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
 
         /* perform the flow shift for the current bush and its attributed portion */
         var endMergeSplittingRates = executeBushS2FlowShiftNoNodeModelUpdate(
-                destinationBush, entrySegment, entrySegmentBushPasflowShift, networkLoading.getCurrentFlowAcceptanceFactors());
+                destinationBush, entrySegment, entrySegmentBushPasflowShift, networkLoading);
 
         // track what was shifted for later S1 update
         putFlowShiftedS2Data(entrySegment, destinationBush, new BushEntryShiftedS2FlowData(
@@ -894,7 +895,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
                 bush,
                 entrySegment,
                 flowShiftData.getS2Flowshifted(),
-                networkLoading.getCurrentFlowAcceptanceFactors(),
+                networkLoading,
                 flowShiftData.getS2MergeExitSplittingRates());
       }
     }

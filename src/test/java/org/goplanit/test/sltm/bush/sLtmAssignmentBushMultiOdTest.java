@@ -360,12 +360,15 @@ public class sLtmAssignmentBushMultiOdTest {
       Demands demands = createDemands();
 
       /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(
+          network.getIdGroupingToken(), null, demands, zoning, network);
+      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(
+          StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       sLTMBuilder.getConfigurator().activateDetailedLogging(false);
 
-      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(0.2);
+      var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
+          sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      fixedStepSmoothing.setStepSize(1.0);
 
       //var smoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
 

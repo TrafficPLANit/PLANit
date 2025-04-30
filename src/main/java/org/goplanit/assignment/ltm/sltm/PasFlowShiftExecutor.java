@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.assignment.ltm.sltm.consumer.NMRCollectMostRestrictingTurnConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
@@ -382,14 +383,14 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param bush                      to perform shift for
    * @param entrySegment              entry segment from original network to apply flow shift for
    * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entrysegment combination
-   * @param flowAcceptanceFactors     to use
+   * @param networkLoading     to use
    * @return end merge splitting rates of s2 to be used in s1 flow shift
    */
   protected abstract double[] executeBushS2FlowShiftNoNodeModelUpdate(
           final RootedBush<V,ES> bush,
           final EdgeSegment entrySegment,
           double bushEntrySegmentFlowShift,
-          final double[] flowAcceptanceFactors);
+          StaticLtmLoadingBushBase<?> networkLoading);
 
   /**
    * Perform the flow shift for a given bush. Delegate to concrete class implementation
@@ -397,39 +398,15 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param bush                      to perform shift for
    * @param entrySegment              original network entry segment at hand to apply flow shift for
    * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entry segment combination
-   * @param flowAcceptanceFactors     to use
+   * @param networkLoading     to use
    * @param endMergeSplittingRates    end merge splitting rates of s2 to be used in s1 flow shift
    */
   protected abstract void executeBushS1FlowShiftNoNodeModelUpdate(
           final RootedBush<V,ES> bush,
           final EdgeSegment entrySegment,
           double bushEntrySegmentFlowShift,
-          final double[] flowAcceptanceFactors,
+          StaticLtmLoadingBushBase<?> networkLoading,
           double[] endMergeSplittingRates);
-
-  /**
-   * Perform the flow shift for a given bush. Delegate to concrete class implementation
-   * 
-   * @param bush                      to perform shift for
-   * @param entrySegment              entry segment at hand to apply flow shift for
-   * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entrysegment combination
-   * @param flowAcceptanceFactors     to use
-   * @deprecated to be replaced by separate calls
-   */
-  @Deprecated
-  public void executeBushFlowShift(
-          final RootedBush<V,ES> bush,
-          final ES entrySegment,
-          double bushEntrySegmentFlowShift,
-          final double[] flowAcceptanceFactors){
-
-    /* shift flows for S2 */
-    var bushS2MergeExitSplittingRates =
-            executeBushS2FlowShiftNoNodeModelUpdate(bush, entrySegment, bushEntrySegmentFlowShift, flowAcceptanceFactors);
-    /* shift flows for S1 */
-    executeBushS1FlowShiftNoNodeModelUpdate(bush, entrySegment, bushEntrySegmentFlowShift, flowAcceptanceFactors, bushS2MergeExitSplittingRates);
-
-  }
 
   /**
    * Determining the currently available desired flows along both the high and low-cost alternatives.

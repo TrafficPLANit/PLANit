@@ -108,8 +108,6 @@ public class sLtmAssignmentBushSingleOdTest1 {
     return demands;
   }
 
-  //todo --> will no longer hold because shortened alternatives link lengths to be of same length as middle route
-  // to aid the uncongested test
   private void testCongestedOutputs(StaticLtm sLTM) {
     double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
@@ -128,9 +126,9 @@ public class sLtmAssignmentBushSingleOdTest1 {
     double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
 
     assertEquals(8000,inflow0, Precision.EPSILON_6);
-    assertEquals( 2714.52991,inflow1, Precision.EPSILON_3);
-    assertEquals( 2642.73504,inflow5, Precision.EPSILON_3);
-    assertEquals( 2642.73504,inflow8, Precision.EPSILON_3);
+    assertEquals( 2666.666,inflow1, Precision.EPSILON_3);
+    assertEquals( 2666.666,inflow5, Precision.EPSILON_3);
+    assertEquals( 2666.666,inflow8, Precision.EPSILON_3);
     assertEquals( 7000,inflow2, Precision.EPSILON_6);
 
     double demand0 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
@@ -386,7 +384,7 @@ public class sLtmAssignmentBushSingleOdTest1 {
 
       sLTM.setActivateDetailedLogging(true);
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(100);
 
 
       sLTM.execute();
@@ -395,7 +393,7 @@ public class sLtmAssignmentBushSingleOdTest1 {
 
     } catch (Exception e) {
       e.printStackTrace();
-      fail("Error when testing sLTM conjugate bush based assignment");
+      fail("Error when testing sLTM congested conjugate bush based assignment");
     }
   }
 
@@ -414,7 +412,7 @@ public class sLtmAssignmentBushSingleOdTest1 {
 
       sLTM.setActivateDetailedLogging(true);
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(100);
       sLTM.execute();
 
       testUncongestedOutputs(sLTM);

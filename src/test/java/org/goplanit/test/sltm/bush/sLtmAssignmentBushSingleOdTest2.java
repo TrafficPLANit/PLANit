@@ -15,6 +15,7 @@ import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
+import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -75,7 +76,7 @@ public class sLtmAssignmentBushSingleOdTest2 {
     return demands;
   }
 
-  private void testOutputs(StaticLtm sLTM) {
+  private void testCongestedOutputs(StaticLtm sLTM) {
     double outflow0 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
     double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
@@ -88,13 +89,13 @@ public class sLtmAssignmentBushSingleOdTest2 {
     double outflow9 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
 
     assertEquals(8000, outflow0, Precision.EPSILON_3);
-    assertEquals(2484.8053168536194, outflow1, Precision.EPSILON_3);
+    assertEquals(2500.920569368789, outflow1, Precision.EPSILON_3);
     assertEquals(1111.111111111111, outflow2, Precision.EPSILON_3);
     assertEquals(2000.0, outflow3, Precision.EPSILON_3);
-    assertEquals(3521.575311898768, outflow4, Precision.EPSILON_3);
+    assertEquals(3556.0080978778165, outflow4, Precision.EPSILON_3);
     assertEquals(outflow4, outflow5, Precision.EPSILON_3);
-    assertEquals(1987.8442542873556, outflow6, Precision.EPSILON_3);
-    assertEquals(1972.649573691407, outflow7, Precision.EPSILON_3);
+    assertEquals(2000.736456268099, outflow6, Precision.EPSILON_3);
+    assertEquals(2000.0, outflow7, Precision.EPSILON_3);
     assertEquals(outflow7, outflow8, Precision.EPSILON_3);
     assertEquals(888.8888888888889, outflow9, Precision.EPSILON_3);
 
@@ -120,14 +121,14 @@ public class sLtmAssignmentBushSingleOdTest2 {
     double inflow9 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
 
     assertEquals(inflow0, 8000, Precision.EPSILON_3);
-    assertEquals(inflow1, 4478.424688101231, Precision.EPSILON_3);
+    assertEquals(inflow1, 4443.991902122183, Precision.EPSILON_3);
     assertEquals(inflow2, 2500, Precision.EPSILON_3);
     assertEquals(inflow3, 2000.0, Precision.EPSILON_3);
-    assertEquals(inflow4, 3521.575311898768, Precision.EPSILON_3);
+    assertEquals(inflow4, 3556.0080978778165, Precision.EPSILON_3);
     assertEquals(inflow5, inflow4, Precision.EPSILON_3);
     assertEquals(inflow6, inflow5, Precision.EPSILON_3);
-    assertEquals(inflow7, 1972.649573691407, Precision.EPSILON_3);
-    assertEquals(inflow8, inflow7, Precision.EPSILON_3);
+    assertEquals(inflow7, 2001.6570256372436, Precision.EPSILON_3);
+    assertEquals(inflow8, 2000.0, Precision.EPSILON_3);
     assertEquals(inflow9, inflow8, Precision.EPSILON_3);
 
     double demand0 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
@@ -145,6 +146,83 @@ public class sLtmAssignmentBushSingleOdTest2 {
     assertEquals(demand4, demand5, Precision.EPSILON_3);
     assertEquals(demand5, demand6, Precision.EPSILON_3);
     assertEquals(demand1+demand4, demand0, Precision.EPSILON_3);
+    assertEquals(demand2 + demand7, demand0, Precision.EPSILON_3);
+    assertEquals(demand7, demand8, Precision.EPSILON_3);
+    assertEquals(demand8, demand9, Precision.EPSILON_3);
+    assertEquals(demand0, demand3, Precision.EPSILON_3);
+  }
+
+  private void testUncongestedOutputs(StaticLtm sLTM) {
+    double outflow0 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+    double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+    double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+    double outflow3 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("3").getLinkSegmentAb());
+    double outflow4 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
+    double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+    double outflow6 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("6").getLinkSegmentAb());
+    double outflow7 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("7").getLinkSegmentAb());
+    double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+    double outflow9 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
+
+    // not symmetric because of different lane/capacity distributions (detours have on average less capacity)
+    assertEquals(2000, outflow0, Precision.EPSILON_3);
+    assertEquals(1077.396, outflow1, Precision.EPSILON_3);
+    assertEquals(1055.919, outflow2, Precision.EPSILON_3);
+    assertEquals(2000.0, outflow3, Precision.EPSILON_3);
+    assertEquals(922.604, outflow4, Precision.EPSILON_3);
+    assertEquals(outflow4, outflow5, Precision.EPSILON_3);
+    assertEquals(outflow4, outflow6, Precision.EPSILON_3);
+    assertEquals(944.081, outflow7, Precision.EPSILON_3);
+    assertEquals(outflow7, outflow8, Precision.EPSILON_3);
+    assertEquals(outflow7, outflow9, Precision.EPSILON_3);
+
+    // conectoid edge segments
+    double outflow10 = sLTM.getLinkSegmentOutflowsPcuHour()[10]; // A out
+    double outflow11 = sLTM.getLinkSegmentOutflowsPcuHour()[11]; // A in
+    double outflow12 = sLTM.getLinkSegmentOutflowsPcuHour()[12]; // A' out
+    double outflow13 = sLTM.getLinkSegmentOutflowsPcuHour()[13]; // A' in
+    assertEquals(outflow10, 2000, Precision.EPSILON_3);
+    assertEquals(outflow13, 2000, Precision.EPSILON_3);
+    assertEquals(outflow11, 0, Precision.EPSILON_3);
+    assertEquals(outflow11, outflow12, Precision.EPSILON_3);
+
+    double inflow0 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+    double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+    double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+    double inflow3 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("3").getLinkSegmentAb());
+    double inflow4 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
+    double inflow5 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+    double inflow6 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("6").getLinkSegmentAb());
+    double inflow7 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("7").getLinkSegmentAb());
+    double inflow8 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+    double inflow9 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
+
+    assertEquals(inflow0, outflow0, Precision.EPSILON_3);
+    assertEquals(inflow1, outflow1, Precision.EPSILON_3);
+    assertEquals(inflow2, outflow2, Precision.EPSILON_3);
+    assertEquals(inflow3, outflow3, Precision.EPSILON_3);
+    assertEquals(inflow4, outflow4, Precision.EPSILON_3);
+    assertEquals(inflow5, inflow4, Precision.EPSILON_3);
+    assertEquals(inflow6, inflow5, Precision.EPSILON_3);
+    assertEquals(inflow7, outflow7, Precision.EPSILON_3);
+    assertEquals(inflow8, inflow7, Precision.EPSILON_3);
+    assertEquals(inflow9, inflow8, Precision.EPSILON_3);
+
+    double demand0 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+    double demand1 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+    double demand2 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+    double demand3 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("3").getLinkSegmentAb());
+    double demand4 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
+    double demand5 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+    double demand6 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("6").getLinkSegmentAb());
+    double demand7 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("7").getLinkSegmentAb());
+    double demand8 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+    double demand9 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
+
+    assertEquals(demand0, 2000, Precision.EPSILON_3);
+    assertEquals(demand4, demand5, Precision.EPSILON_3);
+    assertEquals(demand5, demand6, Precision.EPSILON_3);
+    assertEquals(demand1 + demand4, demand0, Precision.EPSILON_3);
     assertEquals(demand2 + demand7, demand0, Precision.EPSILON_3);
     assertEquals(demand7, demand8, Precision.EPSILON_3);
     assertEquals(demand8, demand9, Precision.EPSILON_3);
@@ -177,6 +255,8 @@ public class sLtmAssignmentBushSingleOdTest2 {
     // Inspired by the network in Bliemer et al (2014). With 8000 demand, but with slightly altered
     //  capacities to ensure both PASs are indeed PASs, in the original work the first PAS would not be used
     //  in a deterministic setting.
+    //
+    // each detour is equally long as the "normal route", i.e., 1 km total.
     
     // 0=8000
     // 1=5000
@@ -202,8 +282,8 @@ public class sLtmAssignmentBushSingleOdTest2 {
       GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
       
       network = new MacroscopicNetwork(testToken);
-      network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
-      networkLayer = network.getTransportLayers().getFactory().registerNew(network.getModes().get(PredefinedModeType.CAR));
+      var carMode = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
+      networkLayer = network.getTransportLayers().getFactory().registerNew(carMode);
 
       {
         // 0
@@ -249,20 +329,24 @@ public class sLtmAssignmentBushSingleOdTest2 {
       var linkFactory = links.getFactory();
       //links
       final double oneKm = 1.0;
+      final double oneThirdKm = oneKm/3;
       linkFactory.registerNew(nodes.getByXmlId("0"), nodes.getByXmlId("1"), oneKm, true).setXmlId("0");
       linkFactory.registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("2"), oneKm, true).setXmlId("1");
       linkFactory.registerNew(nodes.getByXmlId("2"), nodes.getByXmlId("3"), oneKm, true).setXmlId("2");
       linkFactory.registerNew(nodes.getByXmlId("3"), nodes.getByXmlId("4"), oneKm, true).setXmlId("3");
-      linkFactory.registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("5"), oneKm, true).setXmlId("4");
-      linkFactory.registerNew(nodes.getByXmlId("5"), nodes.getByXmlId("6"), oneKm, true).setXmlId("5");
-      linkFactory.registerNew(nodes.getByXmlId("6"), nodes.getByXmlId("2"), oneKm, true).setXmlId("6");
-      linkFactory.registerNew(nodes.getByXmlId("2"), nodes.getByXmlId("7"), oneKm, true).setXmlId("7");
-      linkFactory.registerNew(nodes.getByXmlId("7"), nodes.getByXmlId("8"), oneKm, true).setXmlId("8");
-      linkFactory.registerNew(nodes.getByXmlId("8"), nodes.getByXmlId("3"), oneKm, true).setXmlId("9");
+      linkFactory.registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("5"), oneThirdKm, true).setXmlId("4");
+      linkFactory.registerNew(nodes.getByXmlId("5"), nodes.getByXmlId("6"), oneThirdKm, true).setXmlId("5");
+      linkFactory.registerNew(nodes.getByXmlId("6"), nodes.getByXmlId("2"), oneThirdKm, true).setXmlId("6");
+      linkFactory.registerNew(nodes.getByXmlId("2"), nodes.getByXmlId("7"), oneThirdKm, true).setXmlId("7");
+      linkFactory.registerNew(nodes.getByXmlId("7"), nodes.getByXmlId("8"), oneThirdKm, true).setXmlId("8");
+      linkFactory.registerNew(nodes.getByXmlId("8"), nodes.getByXmlId("3"), oneThirdKm, true).setXmlId("9");
       
       
       MacroscopicLinkSegmentTypes linkTypes = networkLayer.getLinkSegmentTypes();
-      linkTypes.getFactory().registerNew("500_per_lane", 500, 180, network.getModes().getFirst()).setXmlId("500_per_lane");
+      var linkType = linkTypes.getFactory().registerNew(
+          "500_per_lane", 500, 180, carMode);
+      linkType.setXmlId("500_per_lane");
+      linkType.getAccessProperties(carMode).setCriticalSpeedKmH(carMode.getMaximumSpeedKmH() * 0.75);
 
       var linkSegmentFactory = networkLayer.getLinkSegments().getFactory();
       linkSegmentFactory.registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(16);
@@ -307,8 +391,8 @@ public class sLtmAssignmentBushSingleOdTest2 {
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
 
-//      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-//      fixedStepSmoothing.setStepSize(1);
+      //var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      //fixedStepSmoothing.setStepSize(0.1);
       var msraSmoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
 
       /* DESTINATION BASED */
@@ -323,7 +407,7 @@ public class sLtmAssignmentBushSingleOdTest2 {
       sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
-      testOutputs(sLTM);
+      testCongestedOutputs(sLTM);
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -332,10 +416,10 @@ public class sLtmAssignmentBushSingleOdTest2 {
   }
 
   /**
-   * Test sLTM conjugate bush-based assignment on above network for a point queue model
+   * Test sLTM conjugate bush-based assignment on above network for a point queue model for congested demands
    */
   @Test
-  public void sLtmPointQueueBushConjugateDestinationBasedAssignmentTest() {
+  public void sLtmPointQueueBushConjugateCongestedAssignmentTest() {
     try {
 
       /* OD DEMANDS 8000 A->A` */
@@ -343,11 +427,11 @@ public class sLtmAssignmentBushSingleOdTest2 {
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+      sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
 
-//      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-//      fixedStepSmoothing.setStepSize(1);
-      var msraSmoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
+      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      fixedStepSmoothing.setStepSize(1);
 
       /* DESTINATION BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
@@ -364,11 +448,57 @@ public class sLtmAssignmentBushSingleOdTest2 {
 
       sLTM.execute();
 
-      testOutputs(sLTM);
+      testCongestedOutputs(sLTM);
 
     } catch (Exception e) {
       e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
+      fail("Error when testing sLTM congested bush based assignment");
+    }
+  }
+
+  /**
+   * Test sLTM conjugate bush-based assignment on above network for a point queue model for uncongested demands
+   */
+  @Test
+  public void sLtmPointQueueBushConjugateUncongestedAssignmentTest() {
+    try {
+
+      /* OD DEMANDS 2000 (instead of original 8000) A->A` */
+      Demands demands = createDemands();
+      demands.getFirst().multiply(0.25); // make uncongested
+
+      /* sLTM - POINT QUEUE */
+      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(
+          network.getIdGroupingToken(), null, demands, zoning, network);
+      sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
+      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(
+          StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+
+//      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+//      fixedStepSmoothing.setStepSize(1);
+      var msraSmoothing = (MSRASmoothingConfigurator)
+          sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
+
+      /* DESTINATION BASED */
+      sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
+
+      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
+      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+
+      StaticLtm sLTM = sLTMBuilder.build();
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
+      sLTM.setActivateDetailedLogging(true);
+
+      sLTM.addTrackOdForLoggingByXmlId("A","A`");
+
+      sLTM.execute();
+
+      testUncongestedOutputs(sLTM);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      fail("Error when testing sLTM uncongested bush based assignment");
     }
   }
 

@@ -636,7 +636,7 @@ public class StaticLtmConjugateBushStrategy
   protected Pair<Collection<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>, Collection<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>>
   updateBushPass(Mode mode, double[] nonConjugateLinkSegmentCosts, boolean updateGap, boolean logAll){
 
-    final int MAX_CONGESTED_PAS_ADD_PER_BUSH = 1;
+    final int MAX_CONGESTED_PAS_ADD_PER_BUSH = Integer.MAX_VALUE;
 
     final int MAX_PAS_ADD_PER_BUSH = Integer.MAX_VALUE;
     pasManager.reset();
@@ -721,7 +721,7 @@ public class StaticLtmConjugateBushStrategy
         ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
         for(var outgoingSegment : conjBushVertex.getExitEdgeSegments()){
 
-          if(outgoingSegment.hasXmlId() && outgoingSegment.getXmlId().equals("OA_1>0")){
+          if(outgoingSegment.hasXmlId() && outgoingSegment.getXmlId().equals("0>4")){
             int bla = 4;
           }
 

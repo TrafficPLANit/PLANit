@@ -1185,6 +1185,15 @@ public abstract class StaticLtmNetworkLoading {
   public double[] getCurrentInflowsPcuH() {
     return this.nlInFlowOutflowData.getInflows();
   }
+
+  /**
+   * Collect the most recently calculated total sending flows by the loading
+   *
+   * @return sendingflows in Pcu per hour
+   */
+  public double[] getCurrentSendingFlowsPcuH() {
+    return this.nlSendingFlowData.getCurrentSendingFlows();
+  }
   
   /**
    * Collect the most recently calculate total outflows by the loading

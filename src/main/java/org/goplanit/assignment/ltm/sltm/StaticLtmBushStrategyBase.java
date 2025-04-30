@@ -917,12 +917,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors =
               prepareForFlowShifts(theMode, simulationData);
 
-          /* UNCONGESTED FLOW SHIFTS (considering proposed shift) */
+          /* UNCONGESTED/CONGESTED FLOW SHIFTS (considering proposed shift) */
           Collection<Pas<V,ES>> updatedPass = performFlowShifts(
               theMode, pasExecutors, costsToUpdate, simulationData);
-
-          /* POTENTIALLY CONGESTED FLOW SHIFTS PER BUSH */
-          //todo --> this does not get equilibrated, this is a one shot update
 
           var justNewPass = newAndUpdatedPass.first();
           var newPassWithShiftedFlows = new ArrayList<>(justNewPass);
