@@ -66,7 +66,7 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
   }
 
   /**
-   * Test sLTM bush-conjugate destination-based assignment on grid based network which should result in an even
+   * Test sLTM bush-conjugate destination-based assignment on grid based network which should result in a logical
    * spread across uncongested links in the final solution. In this test we do not enforce a
    * max entropy flow distribution as the initial distribution is more intuitive to test for.
    */

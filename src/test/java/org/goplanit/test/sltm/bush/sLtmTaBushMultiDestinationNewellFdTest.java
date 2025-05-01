@@ -125,11 +125,11 @@ public class sLtmTaBushMultiDestinationNewellFdTest extends sLtmAssignmentMultiD
     assertTrue(Precision.smallerEqual(outflow8, 4000));
 
     assertEquals(outflow0, 8000, Precision.EPSILON_3);
-    assertEquals(outflow1, 4522.6, 1);
+    assertEquals(outflow1, 4523.076923076899, 1);
     assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow3, outflow2, Precision.EPSILON_3);
     //assertEquals(outflow4, 3750, 1); do not test due to non-uniqueness being allowed under no congestion and triangular FD
-    assertEquals(outflow5, 3190, 1);
+    assertEquals(outflow5, 3190.1840490795603, Precision.EPSILON_3);
     assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow7, outflow6, Precision.EPSILON_3);
     //assertEquals(outflow8, 3750, 1); do not test due to non-uniqueness being allowed under no congestion and triangular FD

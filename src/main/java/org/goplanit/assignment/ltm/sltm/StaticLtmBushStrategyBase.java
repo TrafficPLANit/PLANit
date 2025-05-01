@@ -239,9 +239,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     final Comparator<Pas<V,ES>> PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
       double p1Cost = p1.getNormalisedReducedCost() * pasExecutors.get(p1).getS2SendingFlow();
       double p2Cost = p2.getNormalisedReducedCost() * pasExecutors.get(p2).getS2SendingFlow();
-      if (Precision.greater(p1Cost, p2Cost, Precision.EPSILON_15)) {
+      if (p1Cost > p2Cost) {
         return -1;
-      } else if (Precision.smaller(p1Cost, p2Cost, Precision.EPSILON_15)) {
+      } else if (p1Cost < p2Cost) {
         return 1;
       } else {
         return 0;
@@ -356,7 +356,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     hookBeforeCongestedPasUpdate(pasExecutors.values());
     for (var pas : sortedPass) {
       // ignore uncongested PASs or PASs not on bush
-      if(pas.getStatus() == PasStatus.UNCONGESTED_WITH_SHIFT){
+      if(pas.getStatus() == PasStatus.UNCONGESTED_WITH_SHIFT || !pas.hasRegisteredBushes()){
         continue;
       }
 

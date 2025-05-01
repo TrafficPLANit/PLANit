@@ -366,13 +366,13 @@ public class sLtmAssignmentBushMultiOdTest {
           StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       sLTMBuilder.getConfigurator().activateDetailedLogging(false);
 
-//      var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
-//          sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-//      fixedStepSmoothing.setStepSize(0.5);
+      var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
+          sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      fixedStepSmoothing.setStepSize(1);
 
-      var smoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
-      smoothing.setKappaStep(1);
-      smoothing.setGammaStep(-0.01);
+//      var smoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
+//      smoothing.setKappaStep(1);
+//      smoothing.setGammaStep(-0.01);
 
       /* DESTINATION BASED */
       var slTMConfigurator = sLTMBuilder.getConfigurator();

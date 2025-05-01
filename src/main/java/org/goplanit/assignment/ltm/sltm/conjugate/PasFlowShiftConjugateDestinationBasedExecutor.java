@@ -970,6 +970,13 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       if(guaranteedS2SendingFlow <= 0 ){
         removeZeroFlowBushesFromPas(false);
+        // make sure it is not considered for congested processing, mark done for this iteration
+        // we cannot rely on zero flow check alone in congested processing because, other later uncongested PASs may
+        // add flow causing it to no longer have zero flow, in which case its old status will result in an attempt for
+        // congested processing:
+        // todo: split uncongested_without_shift into two statuses, so we only consider congested
+        //  and explicitly identified as potentially congested in the congested setup --> then this can be removed
+        pas.updateStatus(PasStatus.UNCONGESTED_WITH_SHIFT);
         break;
       }
 
@@ -984,7 +991,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double s1SlackFlow = determinePasAlternativeSlackFlow(
           networkLoading, true, ignoreInitialConjEdgeSegment).first();
       if(proposedFlowShift > s1SlackFlow){
-        // insufficient slack, do not process (further)
+        // insufficient slack, do not process (further) - mark for congested processing
         pas.updateStatus(PasStatus.UNCONGESTED_WITHOUT_SHIFT);
         break;
       }

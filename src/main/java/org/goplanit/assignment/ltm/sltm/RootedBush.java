@@ -396,7 +396,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
               edgeSegment.getIdsAsString(),
               getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
-        anyRemoved = localRemoved;
+        anyRemoved = anyRemoved || localRemoved;
       }
     }
     return anyRemoved;

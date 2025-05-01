@@ -130,11 +130,11 @@ public class sLtmAssignmentBushZeroFlowDiscontinuityTest {
     //
     //
     // Bottleneck: link 4
-    // Situation: O1->D2 will use bottleneck link initially, It is congested so revert to not using it
-    //            when not using it, it will use bottom route (and O1->D1 diverts as well). This route is longer.
+    // Situation: O1->D2 will use bottleneck link (4) initially, It is congested so revert to not using it.
+    //            When not using it, it will use bottom route (and O1->D1 diverts as well). This route is longer.
     //            When turn 2->4 is not used anymore, the derivative of cost on 2 becomes (near) 0 and the 2->4
     //            turn appears to be attractive again. The moment any flow is diverted here again, a big queue
-    //            materialises and we get a repeat.
+    //            materialises (because link 4 is still saturated due to O2->D2) and we get a repeat.
     //
     // Solution: the PAS for 2->4 should never be allowed to be selected/created after 4 becomes congested because
     // the non-zero flow cost/derivatives into 4 from 2 should be considered instead of the zero flow situation.
