@@ -635,6 +635,10 @@ public class StaticLtmConjugateBushStrategy
   @Override
   protected Pair<Collection<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>, Collection<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>>
   updateBushPass(Mode mode, double[] nonConjugateLinkSegmentCosts, boolean updateGap, boolean logAll){
+    // rationale, any gap multiplies cost with flow. Flow upper bound generally does not exceed 10k in PCU/h per link,
+    // so any route will be less than that. Hence, any gap in terms of normalised cost to this flow should be considered
+    // and will aid in bringing the network gap down.
+    final double MIN_REDUCED_COST = getGapFunction().getStopCriterion().getEpsilon()/10000.0;
 
     final int MAX_CONGESTED_PAS_ADD_PER_BUSH = Integer.MAX_VALUE;
 
@@ -739,7 +743,7 @@ public class StaticLtmConjugateBushStrategy
             }
             minPathInitialLinkNewToBush = true;
           }else if(conjBush.contains(outgoingSegment)){
-            boolean potentialReducedCost = Precision.EPSILON_12 <
+            boolean potentialReducedCost = MIN_REDUCED_COST <
                   (bushMinMaxTree.getMaxCostToReach(conjBushVertex) - bushMinMaxTree.getMinCostToReach(conjBushVertex));
             // for existing segments we at least require a potential reduced cost AND a split at the vertex
             // for the min and max path

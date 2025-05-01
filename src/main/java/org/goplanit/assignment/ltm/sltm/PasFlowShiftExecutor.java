@@ -270,19 +270,16 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param proposedFlowShift to use
    * @param upperBoundShift that is ideally the maximum
-   * @param discontinuityDampeningFactor to use
+   * @param slackFlowLeeway to use
    * @return adjusted proposed flow shift (if any)
    */
   private double adjustFlowShiftBasedOnSlackFlow(
-          double proposedFlowShift, double upperBoundShift, double discontinuityDampeningFactor) {
+          double proposedFlowShift, double upperBoundShift, double slackFlowLeeway) {
 
     if (proposedFlowShift <= upperBoundShift) {
       return proposedFlowShift;
     }
-
-    double assumedCongestedShift = proposedFlowShift - upperBoundShift;
-    double portion = (1 - pas.getAlternativeLowCost() / pas.getAlternativeHighCost());
-    return upperBoundShift + assumedCongestedShift * Math.min(1,discontinuityDampeningFactor);
+    return upperBoundShift + slackFlowLeeway;
   }
 
   /** local epsilon used in flow shifting */
@@ -322,12 +319,12 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param proposedFlowShift to adjust if needed
    * @param s1SlackFlow                  that is expected
-   * @param discontinuityDampeningFactor to use
+   * @param slackFlowLeeway to use
    * @return adjusted proposed flow shift (if any)
    */
   protected double adjustFlowShiftBasedOnS1SlackFlow(
-          double proposedFlowShift, double s1SlackFlow, double discontinuityDampeningFactor) {
-    return adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, s1SlackFlow, discontinuityDampeningFactor);
+          double proposedFlowShift, double s1SlackFlow, double slackFlowLeeway) {
+    return adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, s1SlackFlow, slackFlowLeeway);
   }
 
   /**
@@ -338,12 +335,12 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param proposedFlowShift to adjust if needed
    * @param s2SlackFlow that is expected
-   * @param discontinuityDampeningFactor to use
+   * @param slackFlowLeeway to use
    * @return adjusted proposed flow shift (if any)
    */
   protected double adjustFlowShiftBasedOnS2SlackFlow(
-          double proposedFlowShift, double s2SlackFlow, double discontinuityDampeningFactor) {
-    return adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, s2SlackFlow, discontinuityDampeningFactor);
+          double proposedFlowShift, double s2SlackFlow, double slackFlowLeeway) {
+    return adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, s2SlackFlow, slackFlowLeeway);
   }
 
   /**
@@ -360,7 +357,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param ignoreInitialSegment when true ignore initial segment when computing this
    * @return slack flow found
    */
-  protected abstract double determinePasAlternativeSlackFlow(
+  protected abstract Pair<Double,EdgeSegment>  determinePasAlternativeSlackFlow(
           StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment);
 
   /**
@@ -426,7 +423,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param physicalCost to use
    * @param virtualCost to use
    * @param networkLoading to use
-   * @param discontinuityDampeningFactor to use
+   * @param guaranteedS2SendingFlow  to use
    * @return proposed flow shift (in isolation) per network loading original network entry segment of the PAS, hence
    * using the edge segment in the return type and not the generics of this executor
    */
@@ -435,7 +432,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
           AbstractPhysicalCost physicalCost,
           AbstractVirtualCost virtualCost,
           StaticLtmLoadingBushBase<?> networkLoading,
-          double discontinuityDampeningFactor);
+          double guaranteedS2SendingFlow);
 
   /**
    * For each bush on this PAS determine if any link segments are not yet on the S1 that would be added

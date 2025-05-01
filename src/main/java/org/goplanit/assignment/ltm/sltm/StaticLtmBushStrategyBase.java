@@ -227,47 +227,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   }
 
   /**
-   * FLOW SHIFTING - STEP3: determine the proposed flow shift for each PAS as if it were performing
-   * its flow shift in isolation + update remaining gap based on current PAS flows (before shifts) and costs
-   *
-   * @param theMode        to use
-   * @param pasExecutors   to use
-   * @param simulationData to use
-   * @return proposed flow shifts per PAS per network entry segment of the PAS
-   *
-   * Deprecated in favour of doing this on the fly. Once all rewritten, phase this out
-   */
-  @Deprecated
-  private Map<Pas<V,ES>, Map<EdgeSegment, Double>> flowShiftingStepThreeDetermineProposedFlowShift(
-          Mode theMode,
-          Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
-          StaticLtmSimulationData simulationData) {
-
-    // result to populate, proposed flow shifts are always based on original network using edge segments as base class
-    final Map<Pas<V,ES>, Map<EdgeSegment, Double>> pasProposedFlowShifts = new HashMap<>();
-
-    // prep
-    var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
-    var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
-    var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
-
-    // the closer we are to convergence the less aggressive we want to approach any possible discontinuity
-    // in the cost functions, i.e., when we switch traffic states from uncongested to congested or vice versa on
-    // any link as a result of flow shifts. This is factored in when computing the proposed flow shifts
-    // For now, we use the gap since a small gap means high dampening (multiplying a delta flow with small number)
-    var discontinuityDampeningFactor = Math.min(1,gapFunction.getGap());
-
-    // Determine proposed flow shift per PAS
-    this.pasManager.forEachActivePas(pas -> {
-      var flowShifts = pasExecutors.get(pas).determineProposedFlowShiftByLoadingEntrySegment(
-              theMode, physicalCost, virtualCost, getLoading(), discontinuityDampeningFactor);
-      pasProposedFlowShifts.put(pas, flowShifts);
-    });
-
-    return pasProposedFlowShifts;
-  }
-
-  /**
    * FLOW SHIFTING - STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based
    * on relevant criterion.
    * @param pasExecutors to use for retrieving PAS information used in sorting

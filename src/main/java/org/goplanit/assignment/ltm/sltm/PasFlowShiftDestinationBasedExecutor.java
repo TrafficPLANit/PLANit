@@ -364,7 +364,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    * {@inheritDoc}
    */
   @Override
-  protected double determinePasAlternativeSlackFlow(
+  protected Pair<Double,EdgeSegment>  determinePasAlternativeSlackFlow(
           StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment) {
     assert (!ignoreInitialSegment);
 
@@ -378,6 +378,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
 
     int index = 0;
     int linkSegmentId = -1;
+    EdgeSegment minSlackSegment = null;
 
     for (var exitSegment : lastAlternativeSegment.getDownstreamVertex().getExitEdgeSegments()) {
       double splittingRate = splittingRates.get(index);
@@ -386,13 +387,16 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
         /* do not use outflows directly because they are only available on potentially blocking nodes in point queue basic solution scheme */
         var nextInflow = networkLoading.getCurrentInflowsPcuH()[(int) exitSegment.getId()];
         double currSlackFlow = ((PcuCapacitated) exitSegment).getCapacityOrDefaultPcuH() - nextInflow;
-        slackFlow = Math.min(slackFlow, currSlackFlow);
+        if(currSlackFlow < slackFlow){
+          minSlackSegment = exitSegment;
+          slackFlow = currSlackFlow;
+        }
       }
       ++index;
     }
 
     if (!Precision.positive(slackFlow, EPSILON)) {
-      return slackFlow;
+      return Pair.of(0.0, minSlackSegment);
     }
 
     EdgeSegment alternativeEdgeSegment = null;
@@ -403,10 +407,13 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
       /* do not use outflows directly because they are only available on potentially blocking nodes in point queue basic solution scheme */
       double inflow = networkLoading.getCurrentInflowsPcuH()[linkSegmentId];
       double currSlackFlow = ((PcuCapacitated) alternativeEdgeSegment).getCapacityOrDefaultPcuH() - inflow;
-      slackFlow = Math.min(slackFlow, currSlackFlow);
+      if(currSlackFlow < slackFlow){
+        minSlackSegment = alternativeEdgeSegment;
+        slackFlow = currSlackFlow;
+      }
     }
 
-    return slackFlow;
+    return Pair.of(0.0, minSlackSegment);
   }
 
   /**
@@ -422,8 +429,6 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    * @param physicalCost                 to use
    * @param virtualCost                  to use
    * @param networkLoading               to use
-   * @param discontinuityDampeningFactor to use in dampening any flow change in case of potential discontinuity
-   *                                     crossing
    * @return amount of flow to shift
    */
   protected double determineEntrySegmentFlowShift(
@@ -431,8 +436,9 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
           Mode theMode,
           AbstractPhysicalCost physicalCost,
           AbstractVirtualCost virtualCost,
-          StaticLtmLoadingBushBase<?> networkLoading,
-          double discontinuityDampeningFactor) {
+          StaticLtmLoadingBushBase<?> networkLoading) {
+    // 1% of capacity is accepted as leeway for state change undicing flow shifts
+    double stateChangeLeewayPercentage = 0.01;
 
     double denominatorS2 = 0;
     double denominatorS1 = 0;
@@ -454,14 +460,15 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
     double flowShift = 0;
     boolean pasCostEqual = pas.isCostEqual(EPSILON);
     double s2TotalEntrySendingFlow = getTotalEntrySegmentSendingFlow(entrySegment, false);
-    double slackFlowEstimate = determinePasAlternativeSlackFlow(networkLoading, true, ignoreFirstSegment);
+    var lowCostSlackResult = determinePasAlternativeSlackFlow(networkLoading, true, ignoreFirstSegment);
+    double s1SlackFlowEstimate = lowCostSlackResult.first();
+    double s1SlackFlowLeeway = ((PcuCapacitated) lowCostSlackResult.second()).getCapacityOrDefaultPcuH() * stateChangeLeewayPercentage;
     if (!pasCostEqual && smaller(denominatorS2,EPSILON) && smaller(denominatorS2, EPSILON)) {
-
       /* s1 & S2 UNCONGESTED - no derivative estimate possible (denominator zero) */
       /* move all towards cheaper alternative limited by slack + delta */
       /* obtain PAS-entry segment sub-path sending flows */
-      double proposedFlowShift = Math.min(s2TotalEntrySendingFlow - 10, slackFlowEstimate) + 10;
-      return adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, slackFlowEstimate, discontinuityDampeningFactor);
+      double proposedFlowShift = s2TotalEntrySendingFlow;
+      return adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, s1SlackFlowEstimate, s1SlackFlowLeeway);
     }
 
     /* s1 and/or s2 congested - derivative based flow shift possible */
@@ -494,7 +501,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
             (firstS1CongestedSegment == null || !s1FirstCongestedSegmentResult.second());
     if (pasEntrySegmentPotentialDiscontinuity || pasS1PotentialDiscontinuity) {
       /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
-      flowShift = adjustFlowShiftBasedOnS1SlackFlow(flowShift, slackFlowEstimate, discontinuityDampeningFactor);
+      flowShift = adjustFlowShiftBasedOnS1SlackFlow(flowShift, s1SlackFlowEstimate, s1SlackFlowLeeway);
     }
 
     // VERIFY CROSSING OF DISCONTINUITY on S2 travel time function - adjust shift if so to mitigate effect
@@ -514,7 +521,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
       s2DeltaFlowToStateChangeEstimate =
               networkLoading.getCurrentInflowsPcuH()[(int) refSegment.getId()] *
                       (1 - networkLoading.getCurrentFlowAcceptanceFactors()[(int) refSegment.getId()]);
-      flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2DeltaFlowToStateChangeEstimate, discontinuityDampeningFactor);
+      double s2SlackFlowLeeway = ((PcuCapacitated) refSegment).getCapacityOrDefaultPcuH() * stateChangeLeewayPercentage;
+      flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2DeltaFlowToStateChangeEstimate, s2SlackFlowLeeway);
     }
 
     // make sure we never shift more than flow than available
@@ -660,7 +668,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
           AbstractPhysicalCost physicalCost,
           AbstractVirtualCost virtualCost,
           StaticLtmLoadingBushBase<?> networkLoading,
-          double discontinuityDampeningFactor) {
+          double guaranteedS2SendingFlow) { // dummy for compliance
 
     Map<EdgeSegment, Double> result = new TreeMap<>();
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {
@@ -673,8 +681,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
                 theMode,
                 physicalCost,
                 virtualCost,
-                networkLoading,
-                discontinuityDampeningFactor);
+                networkLoading);
       }
       result.put(entrySegment, proposedPasFlowShift);
     }
