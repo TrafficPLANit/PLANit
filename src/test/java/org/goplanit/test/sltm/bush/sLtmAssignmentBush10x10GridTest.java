@@ -107,6 +107,7 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
       sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
+      //todo: add in 10x10 results to test against
       test4x4OutflowsNoQueue(sLTM);
 
     } catch (Exception e) {

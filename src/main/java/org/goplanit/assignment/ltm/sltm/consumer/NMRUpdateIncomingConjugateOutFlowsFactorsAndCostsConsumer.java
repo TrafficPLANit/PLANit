@@ -51,6 +51,9 @@ public class NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer implement
 
     // UPDATE CONJ COSTS for each turn
     for(var exitSegment : node.getExitEdgeSegments()) {
+      if(exitSegment.hasOppositeDirectionSegment() && exitSegment.getOppositeDirectionSegment() == entrySegment){
+        continue;
+      }
       var conjSegment = assignmentStrategy.getTurn2ConjugateSegmentMapping().get(entrySegment, exitSegment);
       if (conjSegment == null) {
         throw new PlanItRunTimeException("unable to find conjugate segment for turn [from: (%s), to: (%s)]",
