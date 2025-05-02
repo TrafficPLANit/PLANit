@@ -12,7 +12,7 @@ import org.ojalgo.array.Array1D;
  * @author markr
  *
  */
-public interface ApplyToNodeModelResult {
+public interface NodeModelRunResultConsumer {
 
   /**
    * A centroid node is a special node where all flow is always accepted (destination incoming links), or sending flows do not come from turns but from origin zone (origin exit

@@ -236,9 +236,23 @@ public class TampereNodeModel implements NodeModel {
           // into exit
           incomingLinkSegmentFlowAcceptanceFactors.set(inLinkSegmentIndex, flowAcceptanceFactor);
         }else if(!linkBasedDefault) {
-          // set alpha_a - on turn level regardless if there is turn flow, applied alpha on link-level can be
-          // deduced after the fact by multiplying out with turn-flows
-          turnFlowAcceptanceFactors.set(inLinkSegmentIndex, outLinkSegmentIndex, flowAcceptanceFactor);
+          // set alpha_a - on all flow outgoing turns from in link, unless a zero flow turn
+          // has already received a more restrictive alpha (discontinuity), via else
+          if(nonZeroTurnFlow) {
+            scaledRemainingTurnSendingFlows.loopRow(inLinkSegmentIndex,
+                (in, out) -> {
+                  if (turnFlowAcceptanceFactors.get(in, out) > flowAcceptanceFactor) {
+                    turnFlowAcceptanceFactors.set(in, out, flowAcceptanceFactor);
+                  }
+                });
+          }else{
+            // set alpha_a - on this one turn towards restrive outlink: there is no flow on this turn so it may
+            // represent a discontinuity with a different (more restrictive alpha) than on the other
+            // (non-processed turns). Ignore if the alpha is not more restrictive
+            if(turnFlowAcceptanceFactors.get(inLinkSegmentIndex, outLinkSegmentIndex) > flowAcceptanceFactor) {
+              turnFlowAcceptanceFactors.set(inLinkSegmentIndex, outLinkSegmentIndex, flowAcceptanceFactor);
+            }
+          }
         }
       }
     });

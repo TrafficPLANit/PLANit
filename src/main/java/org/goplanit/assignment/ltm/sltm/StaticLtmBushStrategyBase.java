@@ -389,11 +389,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       boolean pasFlowShifted =
           pasFlowShifter.performEquilibratedCongestedFlowShifts(
               theMode,
-              getLoading(),
-              getSmoothing(),
-              getGapFunction(),
-              getPhysicalCost(),
-              getVirtualCost(),
+              this,
               originalNetworkCosts,
               conjSegmentCosts,
               getBushes(),
@@ -433,7 +429,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors) {
     for (var pas : flowShiftedPass) {
       var pasFlowShifter = pasExecutors.get(pas);
-      pasFlowShifter.performAllBushesS1FlowShift(theMode, getLoading());
+      pasFlowShifter.performAllBushesS1FlowShift(theMode, this);
     }
   }
 

@@ -13,7 +13,7 @@ import org.ojalgo.array.Array1D;
  * @author markr
  *
  */
-public class NMRCollectMostRestrictingTurnConsumer implements ApplyToNodeModelResult {
+public class NMRCollectMostRestrictingTurnConsumer implements NodeModelRunResultConsumer {
 
   /** track most restricting out link by in link */
   private EdgeSegment mostRestrictingOutSegment;

@@ -126,7 +126,7 @@ public class TamperNodeModelTest {
       assertEquals(0.2, inLinkFlowAcceptanceFactors.get(0), Precision.EPSILON_6);
       assertEquals(0.3333333, inLinkFlowAcceptanceFactors.get(1), Precision.EPSILON_6);
 
-      // if we now remove the super small right-turn flow, we suddenly have no congestion at all anymore on
+      // if we now remove the super small right-turn flow, we suddenly have no congestion at all any more on
       // the right turn
 
       // rows: from, columns: to
@@ -145,7 +145,7 @@ public class TamperNodeModelTest {
       var turnFlowAcceptanceFactors = tampereNodeModel.runTurnBased();
       assertEquals(turnFlowAcceptanceFactors.get(0,2), 1, Precision.EPSILON_6);
       assertEquals(turnFlowAcceptanceFactors.get(0,3), 0.2, Precision.EPSILON_6);
-      assertEquals(turnFlowAcceptanceFactors.get(1, 2), 1, Precision.EPSILON_6);
+      assertEquals(turnFlowAcceptanceFactors.get(1, 2), 0.3333333, Precision.EPSILON_6);
       assertEquals(turnFlowAcceptanceFactors.get(1, 3), 0.3333333, Precision.EPSILON_6);
 
       // now we reduce the straight flow on the link with the right turn with the small flow to zero. This means
@@ -167,7 +167,7 @@ public class TamperNodeModelTest {
       turnFlowAcceptanceFactors = tampereNodeModel.runTurnBased();
       assertEquals(turnFlowAcceptanceFactors.get(0,2), 1, Precision.EPSILON_6);
       assertEquals(turnFlowAcceptanceFactors.get(0,3), 1, Precision.EPSILON_6);
-      assertEquals(turnFlowAcceptanceFactors.get(1, 2), 1, Precision.EPSILON_6);
+      assertEquals(turnFlowAcceptanceFactors.get(1, 2), 0.3333333, Precision.EPSILON_6);
       assertEquals(turnFlowAcceptanceFactors.get(1, 3), 0.3333333, Precision.EPSILON_6);
 
     } catch (Exception e) {

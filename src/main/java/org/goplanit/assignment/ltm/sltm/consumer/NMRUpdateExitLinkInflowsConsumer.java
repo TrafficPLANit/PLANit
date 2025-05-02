@@ -15,7 +15,7 @@ import org.ojalgo.function.aggregator.Aggregator;
  * @author markr
  *
  */
-public class NMRUpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult {
+public class NMRUpdateExitLinkInflowsConsumer implements NodeModelRunResultConsumer {
 
   /** the next sending flows to update based on the found accepted in flows on outgoing links of the node */
   private double[] inFlowsToUpdate;

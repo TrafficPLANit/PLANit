@@ -540,8 +540,9 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
           RootedBush<DirectedVertex, EdgeSegment> bush,
           EdgeSegment entrySegment,
           double bushFlowShift,
-          StaticLtmLoadingBushBase<?> networkLoading) {
-
+          Mode theMode,
+          StaticLtmAssignmentStrategy assignmentStrategy) {
+    var networkLoading = assignmentStrategy.getLoading();
     var destinationBush = (DestinationBush)bush;
     /* prep - pas */
     final var s2 = pas.getAlternative(false);
@@ -580,7 +581,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
           RootedBush<DirectedVertex, EdgeSegment> bush,
           EdgeSegment entrySegment,
           double bushFlowShift,
-          StaticLtmLoadingBushBase<?> networkLoading,
+          Mode theMode,
+          StaticLtmAssignmentStrategy assignmentStrategy,
           double[] mergeExitSplittingRates) {
     var destinationBush = (DestinationBush)bush;
 
@@ -591,7 +593,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
             entrySegment,
             bushFlowShift,
             s1,
-            networkLoading.getCurrentFlowAcceptanceFactors());
+            assignmentStrategy.getLoading().getCurrentFlowAcceptanceFactors());
 
     /* shift flow across final merge for S1 based on findings in s2 */
     executeBushS1FlowShiftEndMerge(destinationBush, s1FinalLabeledFlowShift, mergeExitSplittingRates);
@@ -699,8 +701,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    *
    * @param proposedFlowShifts proposed shifts per entry segment
    * @param theMode            to use
-   * @param networkLoading     to use
-   * @param smoothing          to apply to flow shift
+   * @param assignmentStrategy     to use
    * @param logAll             to use
    * @return true when flow is shifted, false otherwise
    */
@@ -708,10 +709,10 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
   public boolean performOneShotCongestedS2FlowShift(
           Map<EdgeSegment, Double> proposedFlowShifts,
           Mode theMode,
-          StaticLtmLoadingBushBase<?> networkLoading,
-          Smoothing smoothing,
+          StaticLtmAssignmentStrategy assignmentStrategy,
           boolean logAll) {
 
+    var networkLoading = (StaticLtmLoadingBushBase<?>)assignmentStrategy.getLoading();
     double totalProposedFlowShift = proposedFlowShifts.values().stream().mapToDouble(d->d).sum();
 
     // reset and repopulate the actually s2 shifted(removed) flow which is needed to later perform the equivalent s1 flow shifts (by adding)
@@ -800,7 +801,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
         continue;
       }
 
-      double smoothedProportionalPasflowShift = smoothing.executeRefZero(proposedPasFlowShift);
+      double smoothedProportionalPasflowShift =
+          assignmentStrategy.getSmoothing().executeRefZero(proposedPasFlowShift);
       /*test for eligibility to reduce to zero flow along S2 */
       if (smoothedProportionalPasflowShift >= guaranteedEntrySegmentS2SendingFlow) {
 
@@ -842,7 +844,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
 
         /* perform the flow shift for the current bush and its attributed portion */
         var endMergeSplittingRates = executeBushS2FlowShiftNoNodeModelUpdate(
-                destinationBush, entrySegment, entrySegmentBushPasflowShift, networkLoading);
+                destinationBush, entrySegment, entrySegmentBushPasflowShift, theMode, assignmentStrategy);
 
         // track what was shifted for later S1 update
         putFlowShiftedS2Data(entrySegment, destinationBush, new BushEntryShiftedS2FlowData(
@@ -859,11 +861,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
   @Override
   public boolean performEquilibratedCongestedFlowShifts(
       Mode theMode,
-      StaticLtmLoadingBushBase<?> networkLoading,
-      Smoothing smoothing,
-      GapFunction gapFunction,
-      AbstractPhysicalCost physicalCost,
-      AbstractVirtualCost virtualCost,
+      StaticLtmAssignmentStrategy assignmentStrategy,
       double[] originalNetworkCosts,
       double[] conjSegmentCosts,
       Set<? extends RootedBush<?,?>> bushes,
@@ -877,9 +875,10 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    */
   @Override
   public void performAllBushesS1FlowShift(
-          Mode theMode,
-          StaticLtmLoadingBushBase<?> networkLoading) {
-//    if(getFlowShiftedS2BushData().values().stream().flatMap(
+      Mode theMode,
+      StaticLtmAssignmentStrategy assignmentStrategy) {
+
+    //    if(getFlowShiftedS2BushData().values().stream().flatMap(
 //            e -> e.keySet().stream()).anyMatch(this::isDestinationTrackedForLogging)) {
 //      LOGGER.info(String.format("* S1 FLOW SHIFT on PAS: %s", pas));
 //    }
@@ -894,7 +893,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
           LOGGER.info(String.format("        Flow to shift: %.8f - entry segment (%s) - alpha: %.2f - bush (%s)",
                   flowShiftData.getS2Flowshifted(),
                   entrySegment.getIdsAsString(),
-                  networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()],
+                  assignmentStrategy.getLoading().getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()],
                   bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
 
@@ -902,7 +901,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
                 bush,
                 entrySegment,
                 flowShiftData.getS2Flowshifted(),
-                networkLoading,
+                theMode,
+                assignmentStrategy,
                 flowShiftData.getS2MergeExitSplittingRates());
       }
     }

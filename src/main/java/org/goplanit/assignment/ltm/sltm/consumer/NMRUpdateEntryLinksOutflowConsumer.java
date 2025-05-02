@@ -13,7 +13,7 @@ import org.ojalgo.function.aggregator.Aggregator;
  * @author markr
  *
  */
-public class NMRUpdateEntryLinksOutflowConsumer implements ApplyToNodeModelResult {
+public class NMRUpdateEntryLinksOutflowConsumer implements NodeModelRunResultConsumer {
 
   /** the array to store the accepted outflows in while updating the receiving flows */
   private final double[] outflowsToPopulate;

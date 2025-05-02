@@ -1,7 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
 import org.goplanit.algorithms.nodemodel.NodeModel;
-import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.ojalgo.array.Array1D;
@@ -13,7 +12,7 @@ import org.ojalgo.array.Array1D;
  * @author markr
  *
  */
-public class NMRCollectEntryLinkFlowAcceptanceFactorConsumer implements ApplyToNodeModelResult {
+public class NMRCollectEntryLinkFlowAcceptanceFactorConsumer implements NodeModelRunResultConsumer {
 
   private double flowAcceptanceFactor;
 

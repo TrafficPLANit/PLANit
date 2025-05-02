@@ -5,6 +5,7 @@ import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
 import org.goplanit.algorithms.shortest.*;
 import org.goplanit.assignment.ltm.sltm.*;
+import org.goplanit.assignment.ltm.sltm.consumer.DiscontinuityTurnCostReplacementConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
@@ -146,10 +147,7 @@ public class StaticLtmConjugateBushStrategy
       var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
       boolean pasFlowShifted = executor.executeUncongestedPasEquilibration(
         theMode,
-        getLoading(),
-        getGapFunction(),
-        getPhysicalCost(),
-        getVirtualCost(),
+        this,
         originalNetworkCosts,
         conjSegmentCosts,
         false);
@@ -243,48 +241,10 @@ public class StaticLtmConjugateBushStrategy
         es -> getLoading().getSplittingRateData().getSplittingRates(es).copy();
     // end prep
 
-    // TODO: currently we do not actuall check if it is a zero-flow turn, we should because due to slight
-    //  inconsistencies in the iterative loading procedure this sometimes gets triggered for turns with non-zero flow
-    //  which is not great.
-
     // Prep Lambda Function that will ultimately perform the cost update after the node model calculation
-    TriConsumer<EdgeSegment, EdgeSegment, Double> discontinuityTurnCostReplacementConsumer = (entry, exit, alpha) ->
-      {
-        if(entry.getOppositeDirectionSegment() == exit){
-          return;
-        }
-        var nlAppliedFlowAcceptanceFactor = flowAcceptanceFactors[(int)entry.getId()];
-        if(Precision.greaterEqual(alpha, nlAppliedFlowAcceptanceFactor, Precision.EPSILON_9)){
-          return;
-        }
-        // discontinuity found since the turn acceptance factor is more restricting than the link based one applied in loading
-        // this only happens at a zero flow discontinuity.
-
-        //HACK: because the cost calculation hides its internal workings for now we modify the link outflow locally
-        //      based on the changed alphas.
-        // TODO: create a nice fix so we can compute generalised cost on-the-fly for a given flow acceptance factor
-        double originalNlOutflow = getLoading().getCurrentOutflowsPcuH()[(int)entry.getId()];
-        double outflowConsistentWithNonZeroTurnFlow = getLoading().getCurrentInflowsPcuH()[(int)entry.getId()] * alpha;
-        getLoading().getCurrentOutflowsPcuH()[(int)entry.getId()] = outflowConsistentWithNonZeroTurnFlow;
-        double disContinuitySegmentCost = (entry instanceof ConnectoidSegment) ?
-            virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) entry):
-            physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) entry);
-        getLoading().getCurrentOutflowsPcuH()[(int)entry.getId()] = originalNlOutflow; // place original cost back
-        assert(originalNlOutflow >= outflowConsistentWithNonZeroTurnFlow);
-
-        //3. overwrite existing costs for turns where discontinuity was found
-        var conjugateSegment = turn2ConjugateSegmentMapping.get(entry, exit);
-        assert (conjSegmentCosts[(int)conjugateSegment.getId()] <= disContinuitySegmentCost);
-
-        // in case cost has not changed (can happen in change in drop in alpha is offset in increased inflow due to
-        // slight discrepancy when ending iterative loading procedure, then ignore update, otherwise, true
-        // discontinuity found and update
-        if(conjSegmentCosts[(int)conjugateSegment.getId()] < disContinuitySegmentCost) {
-          conjSegmentCosts[(int) conjugateSegment.getId()] = disContinuitySegmentCost;
-          numDiscontinuitiesUpdated.increment();
-        }
-      };
-    //
+    DiscontinuityTurnCostReplacementConsumer discontinuityTurnCostReplacementConsumer =
+        new DiscontinuityTurnCostReplacementConsumer(
+            getLoading(), theMode, physicalCost, virtualCost, turn2ConjugateSegmentMapping, conjSegmentCosts);
 
     //2. for each congested node rerun node in turn based form
     Predicate<DirectedVertex> hasCongestedEntrySegment = n -> IterableUtils.asStream(
@@ -306,9 +266,9 @@ public class StaticLtmConjugateBushStrategy
           node, turnBasedFlowAcceptanceFactors, discontinuityTurnCostReplacementConsumer);
     }
 
-    if(getSettings().isDetailedLogging() && numDiscontinuitiesUpdated.intValue()>0) {
+    if(getSettings().isDetailedLogging() && discontinuityTurnCostReplacementConsumer.getNumDiscontinuitiesUpdated()>0) {
       LOGGER.info(String.format("Updated costs for %d zero-flow turns with a discontinuous cost function",
-          numDiscontinuitiesUpdated.intValue()));
+          discontinuityTurnCostReplacementConsumer.getNumDiscontinuitiesUpdated()));
     }
   }
 
@@ -616,14 +576,6 @@ public class StaticLtmConjugateBushStrategy
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected StaticLtmLoadingBushConjugate getLoading() {
-    return (StaticLtmLoadingBushConjugate) super.getLoading();
-  }
-
-  /**
    * Based on provided original network link segment costs see if we can update the existing collection of PASs
    *
    * @param mode             to use
@@ -654,12 +606,14 @@ public class StaticLtmConjugateBushStrategy
         double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
         double linkCost = nonConjugateLinkSegmentCosts[(int) linkSegment.getId()];
         totalRealisedCostForGap += linkCost * linkDemand;
+        //LOGGER.warning(String.format("link [%s] - cost %.4f - demand %.1f - gapcost %.4f", linkSegment.getXmlId(), linkCost, linkDemand, linkCost*linkDemand));
       }
       var virtualLayer = getTransportNetwork().getVirtualNetwork().getLayer();
       for (var linkSegment : virtualLayer.getConnectoidSegments()) {
         double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
         double linkCost = nonConjugateLinkSegmentCosts[(int) linkSegment.getId()];
         totalRealisedCostForGap += linkCost * linkDemand;
+        //LOGGER.warning(String.format("link [%s] - cost %.4f - demand %.1f - gapcost %.4f", linkSegment.getXmlId(), linkCost, linkDemand, linkCost*linkDemand));
       }
     }
 
@@ -874,6 +828,18 @@ public class StaticLtmConjugateBushStrategy
     if(logMapping) {
       conjugateTransportModelNetwork.logConjugateToOriginalMapping();
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public StaticLtmLoadingBushConjugate getLoading() {
+    return (StaticLtmLoadingBushConjugate) super.getLoading();
+  }
+
+  public MultiKeyMap<Object, ConjugateEdgeSegment> getTurn2ConjugateSegmentMapping() {
+    return turn2ConjugateSegmentMapping;
   }
 
   /**

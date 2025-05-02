@@ -165,34 +165,6 @@ public abstract class StaticLtmAssignmentStrategy {
   }
 
   /**
-   * Convenience access to smoothing component
-   * @return smoothing component
-   */
-  protected Smoothing getSmoothing(){
-    return getTrafficAssignmentComponent(Smoothing.class);
-  }
-
-  protected AbstractPhysicalCost getPhysicalCost(){
-    return getTrafficAssignmentComponent(AbstractPhysicalCost.class);
-  }
-
-  protected AbstractVirtualCost getVirtualCost(){
-    return getTrafficAssignmentComponent(AbstractVirtualCost.class);
-  }
-
-  protected GapFunction getGapFunction(){
-    return getTrafficAssignmentComponent(GapFunction.class);
-  }
-
-  /**
-   * Convenience access to fundamental diagram component
-   * @return fundamental diagram component
-   */
-  protected FundamentalDiagramComponent getFundamentalDiagramComponent(){
-    return getTrafficAssignmentComponent(FundamentalDiagramComponent.class);
-  }
-
-  /**
    * Verify existence of a component based on its class component signature key
    *
    * @param <T>                 key type of component
@@ -547,4 +519,32 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   public abstract OdSkimMatrix createOdSkimMatrix(
           OdSkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData);
+
+  /**
+   * Convenience access to fundamental diagram component
+   * @return fundamental diagram component
+   */
+  public FundamentalDiagramComponent getFundamentalDiagramComponent(){
+    return getTrafficAssignmentComponent(FundamentalDiagramComponent.class);
+  }
+
+  /**
+   * Convenience access to smoothing component
+   * @return smoothing component
+   */
+  public Smoothing getSmoothing(){
+    return getTrafficAssignmentComponent(Smoothing.class);
+  }
+
+  public AbstractPhysicalCost getPhysicalCost(){
+    return getTrafficAssignmentComponent(AbstractPhysicalCost.class);
+  }
+
+  public AbstractVirtualCost getVirtualCost(){
+    return getTrafficAssignmentComponent(AbstractVirtualCost.class);
+  }
+
+  public GapFunction getGapFunction(){
+    return getTrafficAssignmentComponent(GapFunction.class);
+  }
 }

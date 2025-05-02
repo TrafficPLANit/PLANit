@@ -139,7 +139,10 @@ public class PathBasedGapFunction extends GapFunction {
     }
 
     if(scaledMeasuredPathCostGap <0.0){
-      LOGGER.severe(String.format("Gap between minimum and measured should always be positive, but it is not (%.2f)", scaledMeasuredPathCostGap));
+      LOGGER.warning(String.format(
+          "Gap between minimum and measured should always be positive, but it is not (%.2f)", scaledMeasuredPathCostGap));
+      scaledMeasuredPathCostGap = 0;
+      LOGGER.warning("Reset gap to zero");
     }
 
     /* regular non-zero measured cost */

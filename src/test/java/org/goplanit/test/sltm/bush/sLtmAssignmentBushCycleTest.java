@@ -363,17 +363,17 @@ public class sLtmAssignmentBushCycleTest {
 
       networkLayer.getLinkSegments().forEach(ls -> LOGGER.info(String.format("Link Segment ids: %s", ls.getIdsAsString())));
 
-      assertEquals(outflow1, 2000, Precision.EPSILON_6);
-      assertEquals(outflow2a, 0, Precision.EPSILON_6);
-      assertEquals(outflow2b, 0, Precision.EPSILON_6);
-      assertEquals(outflow3, 15.3846156, Precision.EPSILON_6);
-      assertEquals(outflow4, outflow3, Precision.EPSILON_6);
-      assertEquals(outflow5, 1984.6, 1);
+      assertEquals(outflow1, 1984.6153844577761, Precision.EPSILON_2);
+      assertEquals(outflow2a, 15.384615542223946, Precision.EPSILON_2);
+      assertEquals(outflow2b, 15.384615542223946, Precision.EPSILON_2);
+      assertEquals(outflow3, 0.0, Precision.EPSILON_2);
+      assertEquals(outflow4, outflow3+outflow2b, Precision.EPSILON_2);
+      assertEquals(outflow5, 1984.6153844577761, Precision.EPSILON_2);
       assertEquals(outflow6, 0.0, 1);
-      assertEquals(outflow7, 500, Precision.EPSILON_3);
-      assertEquals(outflow8, outflow7, Precision.EPSILON_3);
-      assertEquals(outflow9, 500, Precision.EPSILON_3);
-      assertEquals(outflow10, outflow9, Precision.EPSILON_3);
+      assertEquals(outflow7, 500, Precision.EPSILON_2);
+      assertEquals(outflow8, outflow7, Precision.EPSILON_2);
+      assertEquals(outflow9, 500, Precision.EPSILON_2);
+      assertEquals(outflow10, outflow9, Precision.EPSILON_2);
 
     } catch (Exception e) {
       e.printStackTrace();

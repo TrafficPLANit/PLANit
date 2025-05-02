@@ -4,14 +4,13 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.nodemodel.TampereNodeModel;
-import org.goplanit.algorithms.nodemodel.TampereNodeModelFixedInput;
-import org.goplanit.algorithms.nodemodel.TampereNodeModelInput;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
 import org.goplanit.assignment.ltm.sltm.LinkSegmentData;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
-import org.goplanit.assignment.ltm.sltm.consumer.ApplyToNodeModelResult;
+import org.goplanit.assignment.ltm.sltm.consumer.NodeModelRunResultConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.NMRUpdateEntryLinksOutflowConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.NMRUpdateExitLinkInflowsConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.NodeModelRunTurnBasedResultConsumer;
 import org.goplanit.demands.Demands;
 import org.goplanit.gap.NormBasedGapFunction;
 import org.goplanit.gap.StopCriterion;
@@ -317,7 +316,7 @@ public abstract class StaticLtmNetworkLoading {
    * 
    * @param consumer to apply to the result of each node model update of the considered nodes, may be null then ignored
    */
-  private void performNodeModelUpdate(final ApplyToNodeModelResult consumer) {
+  private void performNodeModelUpdate(final NodeModelRunResultConsumer consumer) {
     /* For each tracked node */
     for (var trackedNode : nlSplittingRateData.getTrackedNodes()) {
       StaticLtmNetworkLoading.performNodeModelUpdate(trackedNode, consumer, this);
@@ -649,7 +648,7 @@ public abstract class StaticLtmNetworkLoading {
    */
   public static void performNodeModelUpdate(
       DirectedVertex node,
-      ApplyToNodeModelResult consumer,
+      NodeModelRunResultConsumer consumer,
       StaticLtmNetworkLoading staticLtmNetworkLoading,
       double[] nodeModelSendingFlows) {
 
@@ -671,13 +670,9 @@ public abstract class StaticLtmNetworkLoading {
     /* C_a : in Array1D form, capped to maximum physical capacity in case we are dealing with connectoid with
      * infinite capacity */
     var inCapacities = TampereNodeModelUtils.createIncomingCapacities(node);
-
     /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
     Array2D<Double> turnSendingFlows = TampereNodeModelUtils.createTurnSendingFlowsUsingSplittingRates(
-        node,
-        nodeModelSendingFlows,
-        es -> splittingRateData.getSplittingRates(es).copy());
-
+        node, nodeModelSendingFlows, es -> splittingRateData.getSplittingRates(es).copy());
     /* r_a : in Array1D form */
     var outReceivingFlows = TampereNodeModelUtils.createOutgoingReceivingFlows(node);
 
@@ -686,13 +681,64 @@ public abstract class StaticLtmNetworkLoading {
       var nodeModel = TampereNodeModel.of(inCapacities, outReceivingFlows, turnSendingFlows);
       Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
 
-      if(node.getId() == 1164L){
-        LOGGER.info(String.format("DEBUG node (%s): alphas: %s (turn flows: %s) - (type: %s)",
-            node.getIdsAsString(), localFlowAcceptanceFactors, turnSendingFlows, consumer.getClass().getName()));
-      }
-
       /* delegate to consumer */
       consumer.acceptTurnBasedResult(node, localFlowAcceptanceFactors, nodeModel);
+
+    } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
+      LOGGER.severe(String.format("Unable to run Tampere node model on tracked node %s", node.getXmlId()));
+    }
+  }
+
+  /**
+   * conduct a node model update sLTM style but now invoke as runTurnBased() to obtain turn based alphas allowing for
+   * identification of discontuities used in rotue choice/cost calculation.
+   *
+   * todo: 99.9% identical to method above, only due to signatures not the same. Refactor to consolidate in general approach
+   *  to reduce duplicate code.
+   *
+   * @param node                    to compute
+   * @param consumer                to apply to the result of each node model update of the considered nodes, may be
+   *                                null then ignored
+   * @param staticLtmNetworkLoading sLTMloading containing the data to populate node with (using current splitting rates)
+   * @param nodeModelSendingFlows   node model sending flows to use (can be inflows, sending flows, or other flows)
+   */
+  public static void performNodeModelTurnBasedUpdate(
+      DirectedVertex node,
+      NodeModelRunTurnBasedResultConsumer consumer,
+      StaticLtmNetworkLoading staticLtmNetworkLoading,
+      double[] nodeModelSendingFlows) {
+
+    var splittingRateData = staticLtmNetworkLoading.getSplittingRateData();
+
+    /* tracked but non-blocking or centroidVertex is notified as non-blocking */
+    if (!splittingRateData.isPotentiallyBlocking(node) || node instanceof CentroidVertex) {
+      consumer.acceptNonBlockingLinkBasedResult(node, nodeModelSendingFlows);
+      return;
+    }
+
+    /* For each potentially blocking node */
+    int numEntrySegments = node.getNumberOfEntryEdgeSegments();
+    int numExitSegments = node.getNumberOfExitEdgeSegments();
+
+    // TODO: not computationally efficient, capacities are recomputed every time and construction of
+    // TODO: turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
+
+    /* C_a : in Array1D form, capped to maximum physical capacity in case we are dealing with connectoid with
+     * infinite capacity */
+    var inCapacities = TampereNodeModelUtils.createIncomingCapacities(node);
+    /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
+    Array2D<Double> turnSendingFlows = TampereNodeModelUtils.createTurnSendingFlowsUsingSplittingRates(
+        node, nodeModelSendingFlows, es -> splittingRateData.getSplittingRates(es).copy());
+    /* r_a : in Array1D form */
+    var outReceivingFlows = TampereNodeModelUtils.createOutgoingReceivingFlows(node);
+
+    /* Kappa(s,r,phi) : node model update */
+    try {
+      var nodeModel = TampereNodeModel.of(inCapacities, outReceivingFlows, turnSendingFlows);
+      var turnBasedFlowAcceptanceFactors = nodeModel.runTurnBased();
+      /* delegate to turn based consumer */
+      consumer.acceptTurnBasedResult(node, turnBasedFlowAcceptanceFactors, nodeModel);
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
@@ -710,7 +756,7 @@ public abstract class StaticLtmNetworkLoading {
    *                                (using current sending flows and splitting rates)
    */
   public static void performNodeModelUpdate(
-          DirectedVertex node, ApplyToNodeModelResult consumer, StaticLtmNetworkLoading staticLtmNetworkLoading) {
+          DirectedVertex node, NodeModelRunResultConsumer consumer, StaticLtmNetworkLoading staticLtmNetworkLoading) {
     performNodeModelUpdate(
         node, consumer, staticLtmNetworkLoading, staticLtmNetworkLoading.nlSendingFlowData.getCurrentSendingFlows());
   }
