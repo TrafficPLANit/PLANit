@@ -217,6 +217,15 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   }
 
   /**
+   * Remove all origin demand for bush. Should only be used for initialisation and then left as is.
+   *
+   * @param originDemandVertex to use
+   */
+  public void removeOriginDemandPcuH(V originDemandVertex) {
+    this.originDemandsPcuH.remove(originDemandVertex);
+  }
+
+  /**
    * The alternative subpath on the network we're finding a within-bush alternative for is provided through link
    * segment labels of value -1. The point at which they coincide with the bush is indicated with label 1 at the
    * given reference vertex (passed in). Here we do a breadth-first search on the bush in the direction towards

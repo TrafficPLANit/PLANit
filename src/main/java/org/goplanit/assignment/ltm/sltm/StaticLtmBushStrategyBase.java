@@ -189,7 +189,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * FLOW SHIFTING - STEP2: Based on current NL flows, if we have any PASs without any S2 flow, deregister bushes,
    * remove pas from manager, and remove from flow shift executors as they are no longer relevant
    *
-   * TODO: verify if this ever happens still in new algorithm setting, if not can be removed
    * @param pasExecutors to update and check for
    * @return number of removed PASs due to no remaining flow on s2 alternative
    */

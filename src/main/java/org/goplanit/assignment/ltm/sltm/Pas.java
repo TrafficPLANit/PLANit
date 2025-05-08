@@ -554,7 +554,7 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(s1, s2);
+    return (int)pasId;
   }
 
   /**

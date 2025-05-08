@@ -54,7 +54,7 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
       }
 
       if (Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(originVertex), Precision.EPSILON_3)) {
-        LOGGER.severe(String.format("conjugate bush (%s) origin's (%s) travel demand (%.8f pcu/h) not equal " +
+        LOGGER.severe(String.format("conjugate bush with root zone (%s) origin's (%s) travel demand (%.8f pcu/h) not equal " +
                         "to total flow (%.8f pcu/h), this shouldn't happen",
                 bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString(),
                 ((ConjugateConnectoidNode)originVertex).getCentroidVertex().getParent().getParentZone().getXmlId(),

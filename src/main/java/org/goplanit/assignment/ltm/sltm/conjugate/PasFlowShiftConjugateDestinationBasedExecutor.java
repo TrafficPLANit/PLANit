@@ -412,6 +412,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
         // original network entry --> add (exit link, turn flow) to map
         var originalExitLink = conjSegmentWithSharedEntry.getOriginalAdjacentEdgeSegments().second();
+        if(originalExitLink == null){
+          continue;
+        }
         double turnSendingFlow = conjBush.getTurnSendingFlow(conjSegmentWithSharedEntry);
         if(turnSendingFlow > 0) {
           networkExitSegmentSplittingRates.put(
@@ -1033,13 +1036,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       // sync costs to changes in flow, to allow for next proposed flow update
       boolean costSwitch = false;
       {
-        // todo: move to general implementation in as we go update
-//        // sync network flow to...
-//        syncUncongestedPasFlowShiftToNetworkFlow(networkLoading, totalPasShift);
-//        // sync conj expanded costs to ...
-//        updateOriginalAndConjugateNetworkCostsToCurrentPasFlows(
-//            theMode, networkLoading, conjStrategy.getPhysicalCost(), conjStrategy.getVirtualCost(), originalNetworkCosts, conjSegmentCosts);
-
         // sync local PAS cost based on synced network costs
         costSwitch = pas.updateCost(conjSegmentCosts);
       }

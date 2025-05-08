@@ -544,8 +544,14 @@ public class StaticLtmConjugateBushStrategy
         // todo: could be more efficient, if we'd only added the demands and then walk topologicially using the next
         // backlinks to add the demand
         bush.addOriginDemandPcuH(originConjugateReferenceVertex, currOdDemand);
-        allToOneResult.forEachNextEdgeSegment(destinationConjugateReferenceVertex, originConjugateReferenceVertex,
+        int numLinksInPath = allToOneResult.forEachNextEdgeSegment(destinationConjugateReferenceVertex, originConjugateReferenceVertex,
             es -> bush.addTurnSendingFlow((ConjugateEdgeSegment) es, currOdDemand));
+        if(numLinksInPath == 0){
+          LOGGER.warning(String.format("Origin (%s) has demand to Destination (%s), but no viable path could be created" +
+                  ", reset demand to zero"
+              , origin.getIdsAsString(), destination.getIdsAsString()));
+          bush.removeOriginDemandPcuH(originConjugateReferenceVertex);
+        }
       }
     }
 

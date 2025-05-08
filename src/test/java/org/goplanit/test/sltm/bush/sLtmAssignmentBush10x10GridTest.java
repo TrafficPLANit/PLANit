@@ -10,6 +10,9 @@ import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
+import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.test.sltm.sLtmAssignmentGridTestBase;
 import org.goplanit.utils.id.IdGenerator;
@@ -93,10 +96,14 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
       sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
       sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
 
+      // for uncongested, smoothing is currently ignored, so no need to set it
+      //var smoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      //smoothing.setStepSize(1);
+
       sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
       sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
-      sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
+      //sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
@@ -138,16 +145,20 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
       /* CONJUGATE DESTINATION BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
       sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
+
+      var smoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      smoothing.setStepSize(1);
+
       sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
 
       sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
       sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
-      sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
+      //sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
       sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
