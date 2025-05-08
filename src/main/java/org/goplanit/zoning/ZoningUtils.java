@@ -44,20 +44,20 @@ public class ZoningUtils {
       boolean towardConnectoid){
 
     var upstreamNodeFromStub = networkLayer.getNodes().getFactory().registerNew();
-    upstreamNodeFromStub.setXmlId("before0");
+    upstreamNodeFromStub.setXmlId(upstreamNodeFromStub.getId());
 
     var stubLink = networkLayer.getLinks().getFactory().registerNew(
         upstreamNodeFromStub, stubNode, stubLinkLengthKm, true /* registerOnNodes */);
 
     if(towardStub) {
       var linkSegmentToStub = networkLayer.getLinkSegments().getFactory().registerNew(
-          stubLink, towardStub, true);
+          stubLink, true, true);
       linkSegmentToStub.setNumberOfLanes(numberOfLanesPerDirection);
       linkSegmentToStub.setLinkSegmentType(linkSegmentType);
     }
     if(towardConnectoid) {
       var linkSegmentToConnectoid = networkLayer.getLinkSegments().getFactory().registerNew(
-          stubLink, towardConnectoid, true);
+          stubLink, false, true);
       linkSegmentToConnectoid.setNumberOfLanes(numberOfLanesPerDirection);
       linkSegmentToConnectoid.setLinkSegmentType(linkSegmentType);
     }

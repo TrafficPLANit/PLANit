@@ -379,6 +379,9 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entrysegment combination
    * @param theMode to use
    * @param assignmentStrategy     to use
+   * @param originalNetworkCosts to use
+   * @param conjSegmentCosts to use
+   * @param bushes to use
    * @return end merge splitting rates of s2 to be used in s1 flow shift
    */
   protected abstract double[] executeBushS2FlowShiftNoNodeModelUpdate(
@@ -386,7 +389,10 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
           final EdgeSegment entrySegment,
           double bushEntrySegmentFlowShift,
           Mode theMode,
-          StaticLtmAssignmentStrategy assignmentStrategy);
+          StaticLtmAssignmentStrategy assignmentStrategy,
+          double[] originalNetworkCosts,
+          double[] conjSegmentCosts,
+          Set<? extends RootedBush<?,?>> bushes);
 
   /**
    * Perform the flow shift for a given bush. Delegate to concrete class implementation
@@ -397,6 +403,9 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param theMode to use
    * @param assignmentStrategy     to use
    * @param endMergeSplittingRates    end merge splitting rates of s2 to be used in s1 flow shift
+   * @param originalNetworkCosts to use
+   * @param conjSegmentCosts to use
+   * @param bushes to use
    */
   protected abstract void executeBushS1FlowShiftNoNodeModelUpdate(
           final RootedBush<V,ES> bush,
@@ -404,7 +413,10 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
           double bushEntrySegmentFlowShift,
           Mode theMode,
           StaticLtmAssignmentStrategy assignmentStrategy,
-          double[] endMergeSplittingRates);
+          double[] endMergeSplittingRates,
+          double[] originalNetworkCosts,
+          double[] conjSegmentCosts,
+          Set<? extends RootedBush<?,?>> bushes);
 
   /**
    * Determining the currently available desired flows along both the high and low-cost alternatives.
@@ -455,25 +467,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
     return missingLinkSegmentsByBush;
   }
 
-
-  /**
-   * Shift flows for all bushes registered on the PAS proportionally. The S2 shifted flow per bush is tracked
-   * by resetting internal map of tracked S2 shifted flows which is then populated as part of this method. It is then
-   * to be used when invoking the all bush S1 flow shifts.
-   *
-   * @param proposedFlowShifts proposed shifts per original network's entry segment into the PAS
-   * @param theMode            to use
-   * @param assignmentStrategy     to use
-   * @param logAll             to use
-   * @return true when flow is shifted, false otherwise
-   */
-  public abstract boolean performOneShotCongestedS2FlowShift(
-      Map<EdgeSegment, Double> proposedFlowShifts,
-      Mode theMode,
-      StaticLtmAssignmentStrategy assignmentStrategy,
-      boolean logAll);
-
-
   public abstract boolean performEquilibratedCongestedFlowShifts(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy,
@@ -488,7 +481,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param theMode to use
    * @param assignmentStrategy to apply
    */
-  public abstract void performAllBushesS1FlowShift(
+  public abstract void performAllBushesRecordedOneShotS1FlowShift(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy);
 

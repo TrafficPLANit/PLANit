@@ -5,6 +5,7 @@ import org.goplanit.demands.Demands;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.MacroscopicNetworkUtils;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
@@ -85,7 +86,7 @@ public class sLtmAssignmentGridTestBase {
       /* add physical link in front of attaching zone to node 0 and 12 so that we can properly deal with any queue build
       up there*/
       int STUB_LENGTH_KM = 1;
-      int STUB_LANES = 2;
+      int STUB_LANES = 4;
       var linkSegmentType = networkLayer.getLinkSegmentTypes().getFirst();
       boolean CREATE_TO_STUB = true;
       boolean CREATE_FROM_STUB = true;
@@ -111,8 +112,10 @@ public class sLtmAssignmentGridTestBase {
       stubBefore0.second().forEachSegment(ls -> ls.setXmlId(""+ls.getId()));
       stubBefore12.second().forEachSegment(ls -> ls.setXmlId(""+ls.getId()));
 
-      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(7),  zoning.getOdZones().getByXmlId("A``"), 0);
-      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(11),  zoning.getOdZones().getByXmlId("A```"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(
+          networkLayer.getNodes().get(7),  zoning.getOdZones().getByXmlId("A``"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(
+          networkLayer.getNodes().get(11),  zoning.getOdZones().getByXmlId("A```"), 0);
                       
     }catch(Exception e) {
       e.printStackTrace();
@@ -157,32 +160,34 @@ public class sLtmAssignmentGridTestBase {
     //  A
 
     try {
+      double CONNECTOID_LINK_LENGTH_KM = 0;
+      double STUB_LINK_LENGTH_KM = 1;
+      int STUB_NUM_LANES = 4;
 
       network = MacroscopicNetworkUtils.createSimpleGrid(testToken, 10, 10);
       networkLayer = network.getTransportLayers().getFirst();
 
-      /* add physical link in front of attaching zone to node 0 so that we can properly deal with any queue build
-      up there*/
-      var nodeBefore0 = networkLayer.getNodes().getFactory().registerNew();
-      nodeBefore0.setXmlId("before0");
-      var linkBefore0 = networkLayer.getLinks().getFactory().registerNew(
-          nodeBefore0, networkLayer.getNodes().getByXmlId("0"), 1, true);
-      var linkSegmentsBefore0 = networkLayer.getLinkSegments().getFactory().registerNew(
-          linkBefore0, true);
-      linkSegmentsBefore0.<MacroscopicLinkSegment>both( ls -> ls.setXmlId(""+ls.getId()));
-      linkSegmentsBefore0.<MacroscopicLinkSegment>both( ls -> ls.setLinkSegmentType(networkLayer.getLinkSegmentTypes().getFirst()));
-      linkSegmentsBefore0.<MacroscopicLinkSegment>both( ls -> ls.setNumberOfLanes(2));
-
       networkLayer.getLinkSegmentTypes().forEach(
           ls -> ls.getAccessProperties(network.getModes().getFirst()).setMaximumSpeedKmH(MAX_SPEED_KM_H /* km/h */));
+      var linkSegmentType = networkLayer.getLinkSegmentTypes().getFirst();
 
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
-      zoning.getOdZones().getFactory().registerNew().setXmlId("A");
-      zoning.getOdZones().getFactory().registerNew().setXmlId("A`");
+      var zoneA = zoning.getOdZones().getFactory().registerNew();
+      zoneA.setXmlId("A");
+      var zoneAPrime = zoning.getOdZones().getFactory().registerNew();
+      zoneAPrime.setXmlId("A`");
 
-      zoning.getOdConnectoids().getFactory().registerNew(nodeBefore0,  zoning.getOdZones().getByXmlId("A"), 0);
-      zoning.getOdConnectoids().getFactory().registerNew(
-          networkLayer.getNodes().get(99),  zoning.getOdZones().getByXmlId("A`"), 0);
+      var node0 = networkLayer.getNodes().getByXmlId("0");
+      var node99 = networkLayer.getNodes().getByXmlId("99");
+      var stubBefore0 = ZoningUtils.createOdConnectoidOnNewPhysicalStub(
+          zoning, zoneA, CONNECTOID_LINK_LENGTH_KM, networkLayer, node0,
+          STUB_LINK_LENGTH_KM, STUB_NUM_LANES, linkSegmentType, true, false);
+      stubBefore0.second().forEachSegment(ls -> ls.setXmlId(""+ls.getId()));
+
+      var stubBefore99 = ZoningUtils.createOdConnectoidOnNewPhysicalStub(
+          zoning, zoneAPrime, CONNECTOID_LINK_LENGTH_KM, networkLayer, node99,
+          STUB_LINK_LENGTH_KM, STUB_NUM_LANES, linkSegmentType, false, true);
+      stubBefore99.second().forEachSegment(ls -> ls.setXmlId(""+ls.getId()));
 
     }catch(Exception e) {
       e.printStackTrace();
@@ -234,6 +239,51 @@ public class sLtmAssignmentGridTestBase {
     assertEquals(outflow14, outflow22,1);
     assertEquals(outflow13, outflow21,1);
     assertEquals(outflow12, outflow20,1);
+  }
+
+  public void test10x10OutflowsNoQueue(StaticLtm sLTM) {
+    // bottom left to top left of grid
+    double outflow0 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+    double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+    double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+    double outflow3 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("3").getLinkSegmentAb());
+    double outflow4 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
+    double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+    double outflow6 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("6").getLinkSegmentAb());
+    double outflow7 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("7").getLinkSegmentAb());
+    double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+    // bottom left to bottom right of grid
+    double outflow90 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("90").getLinkSegmentAb());
+    double outflow100 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("100").getLinkSegmentAb());
+    double outflow110 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("110").getLinkSegmentAb());
+    double outflow120 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("120").getLinkSegmentAb());
+    double outflow130 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("130").getLinkSegmentAb());
+    double outflow140 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("140").getLinkSegmentAb());
+    double outflow150 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("150").getLinkSegmentAb());
+    double outflow160 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("160").getLinkSegmentAb());
+    double outflow170 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("170").getLinkSegmentAb());
+
+    assertEquals(450, outflow0, Precision.EPSILON_1);
+    assertEquals(270.687, outflow1, Precision.EPSILON_1);
+    assertEquals(186.005, outflow2, Precision.EPSILON_1);
+    assertEquals(138.114, outflow3, Precision.EPSILON_1);
+    assertEquals(106.146, outflow4, Precision.EPSILON_1);
+    assertEquals(81.460, outflow5, Precision.EPSILON_1);
+    assertEquals(60.015, outflow6, Precision.EPSILON_1);
+    assertEquals(39.806, outflow7, Precision.EPSILON_1);
+    assertEquals(19.903, outflow8, Precision.EPSILON_1);
+
+    assertEquals(outflow90, outflow0, Precision.EPSILON_1);
+    assertEquals(outflow100, outflow1, Precision.EPSILON_1);
+    assertEquals(outflow110, outflow2, Precision.EPSILON_1);
+    assertEquals(outflow120, outflow3, Precision.EPSILON_1);
+    assertEquals(outflow130, outflow4, Precision.EPSILON_1);
+    assertEquals(outflow140, outflow5, Precision.EPSILON_1);
+    assertEquals(outflow150, outflow6, Precision.EPSILON_1);
+    assertEquals(outflow160, outflow7, Precision.EPSILON_1);
+    assertEquals(outflow170, outflow8, Precision.EPSILON_1);
+
+
   }
 
 }

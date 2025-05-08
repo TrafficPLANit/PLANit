@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 
 import org.goplanit.algorithms.nodemodel.NodeModel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
+import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateCostUtils;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -32,38 +33,6 @@ public class NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer implement
   private final DiscontinuityTurnCostReplacementConsumer discontinuityTurnCostReplacementConsumer;
 
   /**
-   * Update link and conjugate segment cost based on current prevailing network flows
-   *
-   * @param entrySegment to update
-   */
-  private void updateLinkAndConjugateSegmentCost(EdgeSegment entrySegment) {
-    // UPDATE LINK COSTS
-    double currentCost;
-    if(entrySegment instanceof MacroscopicLinkSegment) {
-      // will use current network flows (including any shift applied via syncUncongestedPasFlowShiftToNetworkFlow
-      currentCost = assignmentStrategy.getPhysicalCost().getGeneralisedCost(
-          theMode, (MacroscopicLinkSegment) entrySegment);
-    }else{
-      currentCost = assignmentStrategy.getVirtualCost().getGeneralisedCost(
-          theMode, (ConnectoidSegment) entrySegment);
-    }
-    originalNetworkCosts[(int)entrySegment.getId()]  = currentCost;
-
-    // UPDATE CONJ COSTS for each turn
-    for(var exitSegment : node.getExitEdgeSegments()) {
-      if(exitSegment.hasOppositeDirectionSegment() && exitSegment.getOppositeDirectionSegment() == entrySegment){
-        continue;
-      }
-      var conjSegment = assignmentStrategy.getTurn2ConjugateSegmentMapping().get(entrySegment, exitSegment);
-      if (conjSegment == null) {
-        throw new PlanItRunTimeException("unable to find conjugate segment for turn [from: (%s), to: (%s)]",
-            entrySegment.getIdsAsString(), exitSegment.getIdsAsString());
-      }
-      conjNetworkCosts[(int) conjSegment.getId()] = currentCost;
-    }
-  }
-
-  /**
    * Update flows and "normal" costs based on flows on a link level first
    *
    * @param entrySegment  at hand
@@ -84,7 +53,8 @@ public class NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer implement
       networkLoading.getCurrentSendingFlowsPcuH()[entrySegmentId] * flowAcceptanceFactor;
 
     // update cost
-    updateLinkAndConjugateSegmentCost(entrySegment);
+    ConjugateCostUtils.updateLinkAndConjugateSegmentCost(
+        entrySegment, assignmentStrategy, theMode, originalNetworkCosts, conjNetworkCosts);
   }
 
   /**

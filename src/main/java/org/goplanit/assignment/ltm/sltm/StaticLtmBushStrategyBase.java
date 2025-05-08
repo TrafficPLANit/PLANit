@@ -6,7 +6,6 @@ import org.goplanit.assignment.ltm.sltm.conjugate.PasFlowShiftConjugateDestinati
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.cost.CostUtils;
-import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.goplanit.gap.GapFunction;
@@ -414,26 +413,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   }
 
   /**
-   * FLOW_SHIFTING STEP7 - S1 shifting: Add the S2 removed flow to the low cost S1 segment now that the executor
-   * has logged for each PAS exactly how much flow could be shifted (this may differ from the proposed due to
-   * overlap between PASs and is stored on the executors). Thsi is then added on a per PAS bases in order that it was
-   * removed.
-   *
-   * @param theMode to use
-   * @param flowShiftedPass PASs that has flows removed in order of removal
-   * @param pasExecutors to use
-   */
-  private void doCongestedS1FlowShifting(
-          Mode theMode,
-          Collection<Pas<V,ES>> flowShiftedPass,
-          Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors) {
-    for (var pas : flowShiftedPass) {
-      var pasFlowShifter = pasExecutors.get(pas);
-      pasFlowShifter.performAllBushesS1FlowShift(theMode, this);
-    }
-  }
-
-  /**
    * Finalise flow shifting by deregistering bushes and PAs that have no more flow on their S2 alternatives
    * after finalising all shifts
    *
@@ -508,11 +487,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
             theMode, sortedPass, pasExecutors, originalNetworkCosts, simulationData);
     flowShiftedPass.addAll(flowShiftedAndObsoletePass.first());
     passWithoutBush.addAll(flowShiftedAndObsoletePass.second());
-
-    // STEP7 : S1 flow shifts
-    // Add removed S2 flows to low cost S1 segments for sorted PASs
-    // todo: remove this as no longer required at some point
-    //doCongestedS1FlowShifting(theMode, flowShiftedPass, pasExecutors);
 
     // STEP8 : Finalise
     // dispose of PASs that no longer have S2 flows

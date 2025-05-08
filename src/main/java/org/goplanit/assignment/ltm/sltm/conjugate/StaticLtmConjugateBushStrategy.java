@@ -150,6 +150,7 @@ public class StaticLtmConjugateBushStrategy
         this,
         originalNetworkCosts,
         conjSegmentCosts,
+        getBushes(),
         false);
 
       if (pasFlowShifted) {

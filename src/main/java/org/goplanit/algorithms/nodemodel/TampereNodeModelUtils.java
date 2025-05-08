@@ -15,6 +15,7 @@ import org.ojalgo.structure.Access1D;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 /**
  * Utils class for the Tampere node model. Aimed at simplifying to prepare inputs based on PLANit networks
@@ -23,6 +24,8 @@ import java.util.function.Function;
  * @author markr
  */
 public class TampereNodeModelUtils {
+
+  private static final Logger LOGGER = Logger.getLogger(TampereNodeModelUtils.class.getCanonicalName());
 
   /**
    * Method to create incoming capacities based on node's entry segments. It is assumed those implement the
@@ -97,8 +100,25 @@ public class TampereNodeModelUtils {
         // splitting rates must sum to 1 if any non-zero flow exists
         double summedSplittingRates = localTurnSendingFlows.aggregateAll(Aggregator.SUM);
         if((summedSplittingRates - Precision.EPSILON_6) > 1){
-          throw new PlanItRunTimeException(" Splitting rates exceed 100%% for link segment (%s): %s",
-                  entryEdgeSegment.getIdsAsString(), localTurnSendingFlows.toString());
+          if(sendingFlow < Precision.EPSILON_3){
+            // likely caused by input process rounding, most likely flow can be ignored as it is inconsequential and
+            // splitting rates not existing correctly indicates this as well
+            LOGGER.fine(String.format("node model turn sending flow; resetting sending flow of %.12f to zero, since " +
+                    "splitting rates exceed 100%% for link segment (%s) with parent link (%s) towards node (%s): %s",
+                sendingFlow,
+                entryEdgeSegment.getIdsAsString(),
+                entryEdgeSegment.getParent().getIdsAsString(),
+                entryEdgeSegment.getDownstreamVertex().getIdsAsString(), localTurnSendingFlows.toString()
+                ));
+            sendingFlow = 0;
+          }else {
+            throw new PlanItRunTimeException("Splitting rates exceed 100%% for link segment (%s) with sending flow %.2f and parent link (%s) " +
+                "towards node (%s): %s",
+                entryEdgeSegment.getIdsAsString(),
+                sendingFlow,
+                entryEdgeSegment.getParent().getIdsAsString(),
+                entryEdgeSegment.getDownstreamVertex().getIdsAsString(), localTurnSendingFlows.toString());
+          }
         }
       }
 
