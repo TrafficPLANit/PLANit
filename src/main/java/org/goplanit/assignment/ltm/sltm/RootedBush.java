@@ -398,6 +398,11 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
           remove(edgeSegment);
         }else{
           localRemoved = removeUnlessNodeDangling(edgeSegment);
+          if(!localRemoved && logRemoved){
+            LOGGER.info(String.format("     [No more flow --> only kept (%s) to avoid dangling node in bush (%s)]",
+                edgeSegment.getIdsAsString(),
+                getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+          }
         }
 
         if(localRemoved && logRemoved){

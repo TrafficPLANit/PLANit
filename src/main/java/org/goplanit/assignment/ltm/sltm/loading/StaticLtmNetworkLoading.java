@@ -1229,6 +1229,9 @@ public abstract class StaticLtmNetworkLoading {
    * @return inflows in Pcu per hour
    */
   public double[] getCurrentInflowsPcuH() {
+    if(this.getUnconstrainedFlowsPcuHour()[41] < this.nlInFlowOutflowData.getInflows()[41]){
+      int bla = 4;
+    }
     return this.nlInFlowOutflowData.getInflows();
   }
 

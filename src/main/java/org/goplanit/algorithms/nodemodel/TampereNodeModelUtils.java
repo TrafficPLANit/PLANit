@@ -112,7 +112,7 @@ public class TampereNodeModelUtils {
                 ));
             sendingFlow = 0;
           }else {
-            throw new PlanItRunTimeException("Splitting rates exceed 100%% for link segment (%s) with sending flow %.2f and parent link (%s) " +
+            throw new PlanItRunTimeException("Splitting rates exceed 100%% for link segment (%s) with sending flow %.5f and parent link (%s) " +
                 "towards node (%s): %s",
                 entryEdgeSegment.getIdsAsString(),
                 sendingFlow,

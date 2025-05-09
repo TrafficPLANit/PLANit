@@ -18,13 +18,16 @@ import org.goplanit.network.transport.ConjugateTransportModelNetworkUtils;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.functionalinterface.TriConsumer;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
@@ -44,6 +47,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Base implementation to support a bush based solution for sLTM
@@ -281,9 +285,10 @@ public class StaticLtmConjugateBushStrategy
    * @param linkSegment          to check
    * @param conjLinkSegmentCosts segment costs to use
    * @param conjBushMinMaxPaths  min max path cost to check
-   * @return true when eligible, false otherwise
+   * @return true when eligible, false otherwise, second result is the min bush cost to the root considering we
+   * add the link
    */
-  private boolean isEligibleForAdding(
+  private Pair<Boolean, Double> isEligibleForAdding(
       ConjugateEdgeSegment linkSegment, double[] conjLinkSegmentCosts, MinMaxPathResult conjBushMinMaxPaths) {
     var endVertex = linkSegment.getUpstreamVertex();
     var startVertex = linkSegment.getDownstreamVertex();
@@ -296,10 +301,10 @@ public class StaticLtmConjugateBushStrategy
       double maxCostEnd = conjBushMinMaxPaths.getMaxCostToReach(endVertex);
       double maxCostStart = conjBushMinMaxPaths.getMaxCostToReach(startVertex);
       if(maxCostStart + startToEndCost < maxCostEnd){
-        return true;
+        return Pair.of(true, minCostStart + startToEndCost);
       }
     }
-    return false;
+    return Pair.of(false, minCostStart + startToEndCost);
   }
 
   /**
@@ -607,21 +612,29 @@ public class StaticLtmConjugateBushStrategy
     double totalMinCostForGap = 0; // track during bush traversal to get min OD costs based on shortest paths
     double totalRealisedCostForGap = 0;
     if(updateGap) {
+      double totalPhysicalRealisedCost = 0;
+      double totalVirtualRealisedCost = 0;
       // costs as they currently are utilising the unconstrained demand as a point of reference
       var networkLayer = getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode);
       for (var linkSegment : networkLayer.getLinkSegments()) {
         double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
+        if(linkDemand <= 0.0){
+          continue;
+        }
         double linkCost = nonConjugateLinkSegmentCosts[(int) linkSegment.getId()];
-        totalRealisedCostForGap += linkCost * linkDemand;
+        totalPhysicalRealisedCost += linkCost * linkDemand;
         //LOGGER.warning(String.format("link [%s] - cost %.4f - demand %.1f - gapcost %.4f", linkSegment.getXmlId(), linkCost, linkDemand, linkCost*linkDemand));
       }
       var virtualLayer = getTransportNetwork().getVirtualNetwork().getLayer();
       for (var linkSegment : virtualLayer.getConnectoidSegments()) {
         double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
+        if(linkDemand <= 0.0){
+          continue;
+        }
         double linkCost = nonConjugateLinkSegmentCosts[(int) linkSegment.getId()];
-        totalRealisedCostForGap += linkCost * linkDemand;
-        //LOGGER.warning(String.format("link [%s] - cost %.4f - demand %.1f - gapcost %.4f", linkSegment.getXmlId(), linkCost, linkDemand, linkCost*linkDemand));
+        totalVirtualRealisedCost += linkCost * linkDemand;
       }
+      totalRealisedCostForGap = totalPhysicalRealisedCost + totalVirtualRealisedCost;
     }
 
     //todo --> should be sets
@@ -652,7 +665,6 @@ public class StaticLtmConjugateBushStrategy
                 "Unable to obtain conjugate min-max paths for bush, this shouldn't happen, skip updateBushPass"));
         continue;
       }
-      bushMinMaxTree.setMinPathState(false);
 
       /* network min-paths - searched in designated direction (inverted if ALL-TO-ONE, so it is compatible with bush
        * where destination is root) */
@@ -665,6 +677,8 @@ public class StaticLtmConjugateBushStrategy
         continue;
       }
 
+      Map<ConjugateConnectoidNode, Pair<Double,Double>> originNetworkBushDeltas = new TreeMap<>();
+      Set<EdgeSegment> segmentsThatDiffer = new TreeSet<>();
       if(updateGap) {
         // update/track total min cost across bushes(Ods) for gap calculation
         var odDemands = getOdDemands(mode);
@@ -672,65 +686,127 @@ public class StaticLtmConjugateBushStrategy
         for (var originVertex : conjBush.getOriginVertices()) {
           var origin = ((ConjugateConnectoidNode)originVertex).getCentroidVertex().getParent().getParentZone();
           double odDemand = odDemands.getValue(origin, destination);
+          if(odDemand <= 0.0){
+            continue;
+          }
           double minOdCost = conjNetworkMinPaths.getCostToReach(originVertex);
+          double deltaWithNetwork = bushMinMaxTree.getMinCostToReach(originVertex) - minOdCost;
+          double deltaInBush = bushMinMaxTree.getMaxCostToReach(originVertex) - bushMinMaxTree.getMinCostToReach(originVertex);
+          if(deltaInBush < Precision.EPSILON_9 && deltaWithNetwork > Precision.EPSILON_3){
+            originNetworkBushDeltas.put((ConjugateConnectoidNode)originVertex, Pair.of(deltaWithNetwork, deltaInBush));
+            var bushMinPath = bushMinMaxTree.createRawPath(originVertex, conjBush.getRootVertex());
+            //LOGGER.info(String.format("BUSH MIN PATH: %s", bushMinPath.stream().map(ExternalIdAble::getXmlId).collect(Collectors.joining())));
+            var networkMinPath = conjNetworkMinPaths.createRawPath(originVertex, conjBush.getRootVertex());
+            //LOGGER.info(String.format("NETW MIN PATH: %s", networkMinPath.stream().map(ExternalIdAble::getXmlId).collect(Collectors.joining())));
+            networkMinPath.removeAll(bushMinPath);
+            segmentsThatDiffer.addAll(networkMinPath);
+          }
           totalMinCostForGap += minOdCost * odDemand;
         }
+      }
+      bushMinMaxTree.setMinPathState(false);
+
+      // fix: before we only considered vertices with flow, but since we keep a spanning tree
+      // and that spanning tree for zero flow links may no longer be optimal once we start loading flow on the
+      // network level (through other bushes) changing zero flow link costs. Therefore, we now do one extra pre-pass
+      // where we first rejig all zero flow connections to cheaper connections without requiring any PASs.
+      // it will require a topological sort afterwards if anything has changed. That is why we do this first
+      // todo: move into its own method separate from bushPAS creation
+      Map<ConjugateEdgeSegment, ConjugateEdgeSegment> replaceZeroFlowSpanningTreeSegments = new TreeMap<>();
+      var bushVertexIter = conjBush.getTopologicalIterator();
+      while(bushVertexIter.hasNext()) {
+        ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
+        if (conjBush.containsSendingFlow(conjBushVertex)) {
+          continue;
+        }
+
+        bushMinMaxTree.setMinPathState(true);
+        var existingOutgoingSegment = (ConjugateEdgeSegment) bushMinMaxTree.getNextEdgeSegmentForVertex(conjBushVertex);
+        ConjugateEdgeSegment cheapestAltOutgoingSegment = null;
+        double cheapestAltOutgoingSegmentCost = Double.MAX_VALUE;
+        int countExisting = 0;
+        for (var outgoingSegment : conjBushVertex.getExitEdgeSegments()) {
+          if (!conjBush.contains(outgoingSegment)) {
+            var result = isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree);
+            if (!result.first()) {
+              continue;
+            }
+            if (result.second() < cheapestAltOutgoingSegmentCost) {
+              cheapestAltOutgoingSegment = outgoingSegment;
+              cheapestAltOutgoingSegmentCost = result.second();
+            }
+          } else {
+            ++countExisting;
+          }
+        }
+        if (cheapestAltOutgoingSegment != null) {
+          replaceZeroFlowSpanningTreeSegments.put(existingOutgoingSegment, cheapestAltOutgoingSegment);
+        }
+      }
+      if(!replaceZeroFlowSpanningTreeSegments.isEmpty()){
+        for(var entry : replaceZeroFlowSpanningTreeSegments.entrySet()){
+          conjBush.remove(entry.getKey());
+          var newSegment = entry.getValue();
+          conjBush.getDag().addEdgeSegment(newSegment);
+          // overwrite in min max tree to ensure we do not offer a segment that is not on the bush
+          // (costs are not correct but that will self-correct next iteration)
+          var upstreamVertex = newSegment.getUpstreamVertex();
+          bushMinMaxTree.overwriteNextSegmentForVertex(upstreamVertex, newSegment);
+          bushMinMaxTree.setMinPathState(false);
+          bushMinMaxTree.overwriteNextSegmentForVertex(upstreamVertex, newSegment);
+        }
+        // recalculate bush min/max tree as well since changes on zero flow links will result in different min/max
+        // paths
+        bushMinMaxTree = conjBush.computeMinMaxShortestPaths(
+            conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
       }
 
       /* find (new) matching PASs - start with new PAS close to destination exploration first */
       int countPassAddedForBush = 0;
       int countCongestedPassAddedForBush = 0;
-      var bushVertexIter = conjBush.getTopologicalIterator();
+      bushVertexIter = conjBush.getTopologicalIterator();
       BREAK_BUSH:
       while(bushVertexIter.hasNext()) {
         ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
+
+        if(!conjBush.containsSendingFlow(conjBushVertex)) {
+          continue;
+        }
+
+        // Regular approach for used portion of bush
         for(var outgoingSegment : conjBushVertex.getExitEdgeSegments()){
 
-          if(outgoingSegment.hasXmlId() && outgoingSegment.getXmlId().equals("0>4")){
+          if(segmentsThatDiffer.contains(outgoingSegment)){
             int bla = 4;
           }
 
           // TODO: temp try using ALL "NOW" PASs of all vertices if eligible and wipe after outer iteration
           //  so we allow any eligible reduced cost vertex for now to be considered
 
-//          if(conjBush.contains(outgoingSegment) ||
-//              !isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree)){
-//            continue;
-//          }
           boolean minPathInitialLinkNewToBush = false;
           if(!conjBush.contains(outgoingSegment)){
-            if(!isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree)){
+            if(!isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree).first()){
               continue;
             }
             minPathInitialLinkNewToBush = true;
           }else if(conjBush.contains(outgoingSegment)){
-            boolean potentialReducedCost = MIN_REDUCED_COST <
-                  (bushMinMaxTree.getMaxCostToReach(conjBushVertex) - bushMinMaxTree.getMinCostToReach(conjBushVertex));
-            // for existing segments we at least require a potential reduced cost AND a split at the vertex
+            // for existing segments we require a potential reduced cost (checked later) AND a split at the vertex
             // for the min and max path
             bushMinMaxTree.setMinPathState(true);
             var minNextEdge = bushMinMaxTree.getNextEdgeSegmentForVertex(conjBushVertex);
             bushMinMaxTree.setMinPathState(false);
             var maxNextEdge = bushMinMaxTree.getNextEdgeSegmentForVertex(conjBushVertex);
-            if(minNextEdge == maxNextEdge || !potentialReducedCost || minNextEdge != outgoingSegment){
+            if(minNextEdge == maxNextEdge || minNextEdge != outgoingSegment){
               continue; // (we match min path to current outgoing segment as this is what PAS creator expects)
             }
-            int bla = 4;
-          }
-
-          // we want to only consider eligible links which have flow leading into their upstream vertex, otherwise
-          // there is no flow to divert.
-          if(!conjBush.containsSendingFlow(conjBushVertex)){
-            continue;
           }
 
           double reducedCost = -1;
           if(minPathInitialLinkNewToBush) {
             // found segment to add -- necessitates creation of a new PAS because we are merging two possible routes
             conjBush.getDag().addEdgeSegment(outgoingSegment);
-            double minCostToVertexWithNewLink = conjLinkSegmentCosts[(int) outgoingSegment.getId()] + bushMinMaxTree.getMinCostToReach(outgoingSegment.getDownstreamVertex());
-//            minReducedCost =
-//                bushMinMaxTree.getMinCostToReach(conjBushVertex) - minCostToVertexWithNewLink;
+            double minCostToVertexWithNewLink = conjLinkSegmentCosts[(int) outgoingSegment.getId()] +
+                bushMinMaxTree.getMinCostToReach(outgoingSegment.getDownstreamVertex());
             reducedCost =
                 bushMinMaxTree.getMaxCostToReach(conjBushVertex) - minCostToVertexWithNewLink;
           }else{
@@ -773,7 +849,7 @@ public class StaticLtmConjugateBushStrategy
             ++countCongestedPassAddedForBush;
           }
           if(countCongestedPassAddedForBush == MAX_CONGESTED_PAS_ADD_PER_BUSH ||
-                  countPassAddedForBush - countCongestedPassAddedForBush >= MAX_PAS_ADD_PER_BUSH){
+              countPassAddedForBush - countCongestedPassAddedForBush >= MAX_PAS_ADD_PER_BUSH){
             break BREAK_BUSH;
           }
 

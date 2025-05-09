@@ -10,8 +10,10 @@ import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.network.virtual.physical.ConnectoidNode;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegment;
 
 /**
  * Conjugate Bush consumer to apply during conjugate bush based network loading flow update for each origin bush
@@ -154,6 +156,9 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
           if (dataConfig.isUnconstrainedFlowsUpdate()) {
             double bushLinkDemand = bushUnconstrainedFlows.get(conjEntrySegment);
             dataConfig.getUnconstrainedFlows()[originalEntrySegmentId] += bushLinkDemand;
+            if(originalEntrySegmentId==41){
+              LOGGER.severe("41 unconstrained: ("+conjEntrySegment.getXmlId()+") add: " + bushLinkDemand + " for bush " + bush.getRootZone().getIdsAsString());
+            }
           }
 
           /* v_a = SUM(v^o_a) (only when enabled) */
@@ -164,6 +169,11 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
 
         double splittingRateTotal = ArrayUtils.sumOf(splittingRates);
         if (splittingRateTotal <= 0.0) {
+          if(bushConjSegmentSendingFlow > 0 && !(currConjVertex instanceof ConnectoidNode)){
+            LOGGER.severe(String.format(
+                "Splitting rates 0%%, but sending flow present (%.4f), for segment %s on bush %s, this shouldn't happen",
+                bushConjSegmentSendingFlow, conjEntrySegment.getIdsAsString(), bush.getRootZone().getIdsAsString()));
+          }
           continue;
         }
 
@@ -193,6 +203,9 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
                       bushUnconstrainedFlows.getOrDefault(conjEntrySegment, 0.0) * splittingRate;
               bushUnconstrainedFlows.put(conjExitSegment,
                       bushUnconstrainedFlows.getOrDefault(conjExitSegment,0.0) + bushTurnDemand);
+              if(conjEntrySegment.getOriginalAdjacentEdgeSegments().second()!= null && conjEntrySegment.getOriginalAdjacentEdgeSegments().second().getId()==41){
+                LOGGER.severe("41 unConstrained turn ("+conjEntrySegment.getXmlId()+"): add: " + bushTurnDemand +" for bush " + bush.getRootZone().getIdsAsString());
+              }
             }
 
             /* update turn accepted flows as per derived class implementation (or do nothing) */

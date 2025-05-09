@@ -56,65 +56,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   private final static Logger LOGGER = Logger.getLogger(
           PasFlowShiftConjugateDestinationBasedExecutor.class.getCanonicalName());
 
-  private void syncUncongestedPasFlowShiftToNetworkFlow(
-      StaticLtmLoadingBushBase<ConjugateDestinationBush> networkLoading, double totalPasShift) {
-
-    for(var es : pas.getAlternative(true)){
-      var originalSegments = es.getOriginalAdjacentEdgeSegments();
-      if(originalSegments.firstNotNull()){
-        int id = (int) (originalSegments.first()).getId();
-        networkLoading.getUnconstrainedFlowsPcuHour()[id] += totalPasShift;
-        networkLoading.getCurrentOutflowsPcuH()[id] += totalPasShift;
-        networkLoading.getCurrentInflowsPcuH()[id] += totalPasShift;
-      }
-    }
-
-    for(var es : pas.getAlternative(false)) {
-      var originalSegments = es.getOriginalAdjacentEdgeSegments();
-      if(originalSegments.firstNotNull()){
-        int id = (int) (originalSegments.first()).getId();
-        networkLoading.getUnconstrainedFlowsPcuHour()[id] -= totalPasShift;
-        networkLoading.getCurrentOutflowsPcuH()[id] -= totalPasShift;
-        networkLoading.getCurrentInflowsPcuH()[id] -= totalPasShift;
-      }
-    }
-  }
-
-  private void updateOriginalAndConjugateNetworkCostsToCurrentPasFlows(
-      Mode theMode,
-      StaticLtmLoadingBushBase<ConjugateDestinationBush> networkLoading,
-      AbstractPhysicalCost physicalCost,
-      AbstractVirtualCost virtualCost,
-      double[] originalNetworkCosts,
-      double[] conjSegmentCosts) {
-
-    // for steady state travel time we technically do not need to update the original network cost because it is not
-    // used anywhere during the calculation of derivatives nor flow shift amount. We do it for consistency for now
-    // can potentially be removed if problematic (for example with persisting since it will be inconsistent with the
-    // loading of the iteration
-
-    Consumer<ConjugateEdgeSegment> syncNetworkCost = es -> {
-      if(!es.hasOriginalEntryEdgeSegment()){
-        return;
-      }
-      var originalEntrySegment = es.getOriginalAdjacentEdgeSegments().first();
-      double currentCost;
-      if(originalEntrySegment instanceof MacroscopicLinkSegment) {
-        // will use current network flows (including any shift applied via syncUncongestedPasFlowShiftToNetworkFlow
-        currentCost = physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) originalEntrySegment);
-      }else{
-        currentCost = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) originalEntrySegment);
-      }
-      originalNetworkCosts[(int)originalEntrySegment.getId()]  = currentCost;
-      conjSegmentCosts[(int) es.getId()] = currentCost;
-    };
-
-    pas.forEachEdgeSegment(true, syncNetworkCost);
-    pas.forEachEdgeSegment(false, syncNetworkCost);
-
-    // ignore last exit because it is shared and amount of flow added, is same as the amount being removed
-  }
-
   /**
    * Unregister bushes with zero flow from PAS
    *
@@ -133,7 +74,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           pas.getAlternative(false), allowDanglingNodes, isDestinationTrackedForLogging());
       if(anyRemoved){
         if(isDestinationTrackedForLogging(bush)){
-          LOGGER.info(String.format("   [Unregistering bush (%s) from PAS %s, no more S2 flow left]",
+          LOGGER.info(String.format("[Unregistering bush (%s) from PAS %s, no more S2 flow left]",
               bush.getRootZone().getIdsAsString(), pas));
         }
         iter.remove();
@@ -864,7 +805,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     boolean pasS1PotentialDiscontinuity = (firstS1CongestedSegment == null || !s1FirstCongestedSegmentResult.second());
     if (pasS1PotentialDiscontinuity) {
       /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
+      double oldFlowShift = flowShift;
       flowShift = adjustFlowShiftBasedOnS1SlackFlow(flowShift, s1SlackFlowEstimate, s1SlackFlowLeeway);
+      if(oldFlowShift > flowShift){
+        int bla;
+      }
     }
 
     // VERIFY CROSSING OF DISCONTINUITY on S2 travel time function - adjust shift if so, to mitigate effect
@@ -895,8 +840,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
               networkLoading.getCurrentInflowsPcuH()[originalCongestedS2SegmentId] *
                       (1 - networkLoading.getCurrentFlowAcceptanceFactors()[originalCongestedS2SegmentId]);
       double s2SlackFlowLeeway = ((PcuCapacitated) originalCongestedS2Segment).getCapacityOrDefaultPcuH() * stateChangeLeewayPercentage;
+      double oldFlowShift = flowShift;
       flowShift = adjustFlowShiftBasedOnS2SlackFlow(
               flowShift, s2DeltaFlowToStateChangeEstimate, s2SlackFlowLeeway);
+      if(oldFlowShift > flowShift){
+        int bla;
+      }
     }
 
     // make sure we never shift more than the flow that is available
@@ -1155,22 +1104,22 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double remainingS2SendingFlow = bushS2RemainingSendingFlows.values().stream().mapToDouble(e -> e).sum();
       double guaranteedS2SendingFlow = remainingS2SendingFlow; // use latest always as it may be higher than original
 
-      if(isDestinationTrackedForLogging() || logAll) {
-        LOGGER.info("* S2 FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
-      LOGGER.info("s1 alphas: "+
-              Arrays.stream(s1Alternative).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(
-                  es -> String.format("%s:%.2f",
-                      es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[
-                          (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(",")));
-      LOGGER.info("s2 alphas: "+
-              Arrays.stream(s2Alternative).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(es -> String.format("%s:%.2f",
-                      es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[
-                          (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(",")));
-      }
-
       if(guaranteedS2SendingFlow <= 0 ){
         removeZeroFlowBushesFromPas(false);
         break;
+      }
+
+      if(isDestinationTrackedForLogging() || logAll) {
+        LOGGER.info("* S2 FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
+        LOGGER.info("s1 alphas: "+
+            Arrays.stream(s1Alternative).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(
+                es -> String.format("%s:%.2f",
+                    es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[
+                        (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(",")));
+        LOGGER.info("s2 alphas: "+
+            Arrays.stream(s2Alternative).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(es -> String.format("%s:%.2f",
+                es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[
+                    (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(",")));
       }
 
       // determine proposed flow shift now that we have costs and available flows

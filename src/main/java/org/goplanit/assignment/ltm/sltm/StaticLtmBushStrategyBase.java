@@ -358,6 +358,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         continue;
       }
 
+      if(pas.pasId == 68L){
+        int bla = 4;
+      }
+
       var pasFlowShifter = pasExecutors.get(pas);
 
       /* cannot do overlapping PASs without network loading update, so skip those for now */
@@ -481,9 +485,17 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     ArrayList<Pas<V,ES>> flowShiftedPass = flowShiftedAndObsoletePass.first();
     ArrayList<Pas<V,ES>> passWithoutBush = flowShiftedAndObsoletePass.second();
 
+    //updatedPass.forEach( p -> LOGGER.info("Updated PAS: " + p.toString()));
+    LOGGER.info(String.format("%.2f%% Uncongested Flow shifts performed: %d ---- [#Uncongested PASs without remaining flows %d)]",
+        ((double)flowShiftedPass.size()*100.0)/sortedPass.size(), flowShiftedPass.size(), passWithoutBush.size()));
+
     // Perform flow shifts for CONGESTED AND BECOMING CONGESTED WITH SHIFT PASs
     flowShiftedAndObsoletePass = doCongestedFlowShifting(
             theMode, sortedPass, pasExecutors, originalNetworkCosts, simulationData);
+
+    LOGGER.info(String.format("%.2f%% Congested Flow shifts performed: %d ---- [#Uncongested PASs without remaining flows %d)]",
+        ((double)flowShiftedAndObsoletePass.first().size()*100.0)/sortedPass.size(), flowShiftedAndObsoletePass.first().size(), flowShiftedAndObsoletePass.second().size()));
+
     flowShiftedPass.addAll(flowShiftedAndObsoletePass.first());
     passWithoutBush.addAll(flowShiftedAndObsoletePass.second());
 
@@ -904,36 +916,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   public void verifyComponentCompatibility() {
     super.verifyComponentCompatibility();
 
-    // as long as conjugate network does not create a node per link segment and instead per link,
-    // it is possible to generate zero cost alternative paths that use a u-turn in a conjugate network
-    // if a link has zero cost. This should not be allowed. To avoid this we disallow zero-cost links in the virtual
-    // network
-    //
-    //                                     o
-    //     |                             / |
-    // X---o     --> conjugate -->   -->o  |         --> route via left is equal cost as straight if connector cost is 0
-    //     |                             \ |             but should never be allowed. Avoid by having non-zero connector costs
-    //                                     o
-    var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
-    if(virtualCost instanceof FixedConnectoidTravelTimeCost &&
-            ((FixedConnectoidTravelTimeCost)virtualCost).isFixedConnectoidCostZero()){
-
-      double ALT_COST_30_SECONDS_IN_HOUR_FORMAT = 30.0/3600; // assumed 30s travel time equivalent if cost is in hours.
-      LOGGER.warning("In a (conjugate) bush based setting, connectoid costs cannot be zero, this to avoid " +
-              "unrealistic PAS creations");
-      ((FixedConnectoidTravelTimeCost) virtualCost).setFixedConnectoidCost(ALT_COST_30_SECONDS_IN_HOUR_FORMAT);
-      LOGGER.warning(String.format("Updated connectoid costs to %.6f (30s equivalent in hour normalised cost", ALT_COST_30_SECONDS_IN_HOUR_FORMAT));
-      LOGGER.warning("If default change is not acceptable, consider manually overriding the virtual cost component");
-    }
-
 
     var gapFunction = getTrafficAssignmentComponent(GapFunction.class);
     /* gap function check */
     PlanItRunTimeException.throwIf(!(gapFunction instanceof PathBasedGapFunction),
             "%s bush based Static LTM currently requires PAS compatible PathBasedRelative gap function, but found %s", gapFunction.getClass().getCanonicalName());
-
-
-
   }
 
   /**
