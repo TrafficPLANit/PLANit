@@ -265,13 +265,20 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    *
    * @param <T> type of flow constraint data to use
    * @param subPathArray                to use (in bush segment representation)
-   * @param flowAcceptanceFactors       to use (in network segment indexed representation)
+   * @param onTheFlyFlowAcceptanceFactors       to use (in network segment indexed representation), these are the alphas
+   *                                            that are being updated on the fly during route choice
+   * @param nlNonConjugateFlowAcceptanceFactors to use (in network segment indexed representation), these are the alphas
+   *                                            that were in place absed on network loading and are not to be changed
+   *                                            during route choice
    * @param bushConstrainedFlowData     data on additional flow constraints to impose when determining the sub-path
    *                                    sending flow that is deemed available
    * @return sendingFlowPcuH between start and end vertex following the sub-path
    */
   public abstract <T> double determineConstrainedSubPathSendingFlow(
-      ES[] subPathArray, double[] flowAcceptanceFactors, T bushConstrainedFlowData);
+      ES[] subPathArray,
+      double[] onTheFlyFlowAcceptanceFactors,
+      double[] nlNonConjugateFlowAcceptanceFactors,
+      T bushConstrainedFlowData);
 
 
   /**

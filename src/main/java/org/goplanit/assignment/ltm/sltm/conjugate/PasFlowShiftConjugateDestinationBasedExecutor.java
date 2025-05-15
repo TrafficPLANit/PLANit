@@ -8,6 +8,7 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
+import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -951,9 +952,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         break;
       }
       pas.updateStatus(PasStatus.UNCONGESTED_WITH_SHIFT);
-      if(isDestinationTrackedForLogging() || logAll) {
-        LOGGER.info("* UNCONGESTED FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
-      }
+//      if(isDestinationTrackedForLogging() || logAll) {
+//        LOGGER.info("* UNCONGESTED FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
+//      }
 
       double totalPasShift = 0;
       for (var entry : bushS2RemainingSendingFlows.entrySet()) {
@@ -964,11 +965,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         double bushS2Portion = bushS2RemainingSendingFlow / guaranteedS2SendingFlow;
         double bushPasFlowShift = proposedFlowShift * bushS2Portion;
 
-        if(isDestinationTrackedForLogging(conjBush) || logAll) {
-          LOGGER.info(String.format(
-              "     Uncongested Shift: %.9f (available flow %.9f) - bush (%s) ",
-              bushPasFlowShift, bushS2RemainingSendingFlow,conjBush.getRootZone().getIdsAsString()));
-        }
+//        if(isDestinationTrackedForLogging(conjBush) || logAll) {
+//          LOGGER.info(String.format(
+//              "     Uncongested Shift: %.9f (available flow %.9f) - bush (%s) ",
+//              bushPasFlowShift, bushS2RemainingSendingFlow,conjBush.getRootZone().getIdsAsString()));
+//        }
 
         /* perform the flow shift IN FULL for S1 and S2 for the current bush and its attributed portion */
         // todo: for now use general flow shift, but can be optimised since we know no acceptance factors are needed
@@ -1030,6 +1031,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       StaticLtmAssignmentStrategy assignmentStrategy,
       double[] originalNetworkCosts,
       double[] conjSegmentCosts,
+      double[] originalNlConsistentFlowAcceptanceFactors,
       Set<? extends RootedBush<?,?>> bushes,
       boolean logAll) {
 
@@ -1046,18 +1048,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // cost to be outdated
     pas.updateCost(conjSegmentCosts);
 
-    var s1Alternative = pas.getAlternative(true);
-    double s1SendingFlow = 0;
-    for (var bush : pas.getRegisteredBushes()) {
-      s1SendingFlow += bush.determineSubPathSendingFlow(
-          s1Alternative, networkLoading.getCurrentFlowAcceptanceFactors());
-    }
-
     // Make sure original sending flows as a constraint are locked in via originalBushTurnFlowTracker
     // so we do not run the risk of
     // considering too much flow to shift as this will act as a bound for those cases where flow was added
-    // to a low cost segment. originalBushTurnFlowTracker is used in the determination of the constrained subpath
-    // sending flows later
+    // to a low cost segment by another PAS. originalBushTurnFlowTracker is used in the determination of the
+    // constrained subpath sending flows later
+    var s1Alternative = pas.getAlternative(true);
     var s2Alternative = pas.getAlternative(false);
     for(var bush : pas.getRegisteredBushes()){
       var conjBush = (ConjugateDestinationBush) bush;
@@ -1080,6 +1076,15 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
     }
 
+    double s1SendingFlow = 0;
+    for (var bush : pas.getRegisteredBushes()) {
+      s1SendingFlow += bush.determineConstrainedSubPathSendingFlow(
+          s1Alternative,
+          networkLoading.getCurrentFlowAcceptanceFactors(),
+          originalNlConsistentFlowAcceptanceFactors,
+          originalBushTurnFlowTracker.get(bush));
+    }
+
     // enter congested equilibration phase.
     boolean converged = false;
     int MAX_INTERAL_ITERATIONS_ALLOWED = 10;
@@ -1096,6 +1101,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         double remainingSubPathSendingFlow = conjBush.determineConstrainedSubPathSendingFlow(
             pas.getAlternative(false),
             networkLoading.getCurrentFlowAcceptanceFactors(),
+            originalNlConsistentFlowAcceptanceFactors,
             this.originalBushTurnFlowTracker.get(conjBush)); // <-- differs from uncongested equilibration
         if(remainingSubPathSendingFlow > 0) {
           bushS2RemainingSendingFlows.put(conjBush, remainingSubPathSendingFlow);
@@ -1113,11 +1119,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         LOGGER.info("* S2 FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
         LOGGER.info("s1 alphas: "+
             Arrays.stream(s1Alternative).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(
-                es -> String.format("%s:%.2f",
+                es -> String.format("%s:%.6f",
                     es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[
                         (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(",")));
         LOGGER.info("s2 alphas: "+
-            Arrays.stream(s2Alternative).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(es -> String.format("%s:%.2f",
+            Arrays.stream(s2Alternative).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(es -> String.format("%s:%.6f",
                 es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[
                     (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(",")));
       }

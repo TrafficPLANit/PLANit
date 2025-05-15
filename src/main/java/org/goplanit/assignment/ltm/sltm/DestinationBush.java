@@ -140,7 +140,10 @@ public class DestinationBush extends RootedLabelledBush {
 
   @Override
   public <T> double determineConstrainedSubPathSendingFlow(
-      EdgeSegment[] subPathArray, double[] flowAcceptanceFactors, T bushConstrainedFlowData) {
+      EdgeSegment[] subPathArray,
+      double[] onTheFlyFlowAcceptanceFactors,
+      double[] nlNonConjugateFlowAcceptanceFactors,
+      T bushConstrainedFlowData) {
     throw new PlanItRunTimeException("determineConstrainedSubPathSendingFlow not yet implemented in DestinationBush");
   }
 

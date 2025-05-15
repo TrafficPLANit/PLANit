@@ -344,6 +344,15 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
               theMode, originalNetworkCosts);
     }
 
+    // Capture original alphas, so we can use minimum of those and updated alphas to determine
+    // available sub path sending flow with the most restrictive ensuring we are not shifting too much flow
+    // as it is possible node model updates increased alphas making it seem more flow can be shifted when in reality
+    // doing so can cause zero flow links in the middle of a PAS (which we want to avoid as it causes issues with
+    // splitting rates at the end)
+    var nlConsistentFlowAcceptanceFactors =
+        Arrays.copyOf(
+            getLoading().getCurrentFlowAcceptanceFactors(),getLoading().getCurrentFlowAcceptanceFactors().length);
+
     // process on a per bush basis, so we have full control over ordering
     // TODO change ordering of PASs so we run from PAS closest to destination backward
     //  1. ONLY update PASs that have a gap worse than that of the overall gap
@@ -358,7 +367,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         continue;
       }
 
-      if(pas.pasId == 68L){
+      if(pas.pasId == 8303L){
         int bla = 4;
       }
 
@@ -394,6 +403,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
               this,
               originalNetworkCosts,
               conjSegmentCosts,
+              nlConsistentFlowAcceptanceFactors,
               getBushes(),
               logAll);
 

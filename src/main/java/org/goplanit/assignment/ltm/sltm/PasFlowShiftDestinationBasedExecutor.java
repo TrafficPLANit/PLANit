@@ -703,6 +703,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
       StaticLtmAssignmentStrategy assignmentStrategy,
       double[] originalNetworkCosts,
       double[] conjSegmentCosts,
+      double[] originalNlConsistentFlowAcceptanceFactors,
       Set<? extends RootedBush<?,?>> bushes,
       boolean logAll) {
     throw new PlanItRunTimeException("performEquilibratedCongestedS2FlowShift not yet implemented on " +

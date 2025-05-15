@@ -45,6 +45,7 @@ public class NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer implement
 
     int entrySegmentId = (int)entrySegment.getId();
     var networkLoading = assignmentStrategy.getLoading();
+
     // update all incoming flow acceptance factors (link level in sLTM currently)
     networkLoading.getCurrentFlowAcceptanceFactors()[entrySegmentId] = flowAcceptanceFactor;
 

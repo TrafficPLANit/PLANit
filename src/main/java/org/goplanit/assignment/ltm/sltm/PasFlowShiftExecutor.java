@@ -162,8 +162,8 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
     var mostRestrictingOutSegment = consumer.getMostRestrictingOutSegment();
     if (mostRestrictingOutSegment == null) {
       LOGGER.severe(String.format("Expected most restricting out segment to be present given that " +
-                      "incoming segment (%s) is congested, but not found, this shouldn't happen",
-              entrySegment.getXmlId()));
+                      "incoming segment (%s) of link (%s) is congested, but not found, this shouldn't happen",
+              entrySegment.getIdsAsString(), entrySegment.getParent().getIdsAsString()));
     }
     return mostRestrictingOutSegment;
   }
@@ -274,6 +274,9 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
           double proposedFlowShift, double upperBoundShift, double slackFlowLeeway) {
 
     if (proposedFlowShift <= upperBoundShift) {
+      return proposedFlowShift;
+    }
+    if(proposedFlowShift < (upperBoundShift + slackFlowLeeway)){
       return proposedFlowShift;
     }
     return upperBoundShift + slackFlowLeeway;
@@ -472,6 +475,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
       StaticLtmAssignmentStrategy assignmentStrategy,
       double[] originalNetworkCosts,
       double[] conjSegmentCosts,
+      double[] originalNlConsistentFlowAcceptanceFactors,
       Set<? extends RootedBush<?,?>> bushes,
       boolean logAll);
 

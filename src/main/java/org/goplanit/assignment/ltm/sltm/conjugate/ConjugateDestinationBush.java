@@ -107,7 +107,8 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
       double subPathAcceptedFlow,
       double compoundedFlowAcceptanceScalingFactor,
       int index,
-      double[] nonConjugateFlowAcceptanceFactors,
+      double[] onTheFlyFlowAcceptanceFactors,
+      double[] nlNonConjugateFlowAcceptanceFactors,
       final ConjugateEdgeSegment[] subPathArray,
       ConjugateBushTurnData bushConstrainedFlowData) {
 
@@ -127,14 +128,20 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
     double subPathSendingFlow = Math.min(subPathAcceptedFlow, currSendingFlow);
     if (index < subPathArray.length && Precision.positive(subPathAcceptedFlow)) {
+
       // restrict by what is available on our subpath
-      double flowAcceptanceFactor =
-          getConjugateFlowAcceptanceFactor(currConjugateSegment, nonConjugateFlowAcceptanceFactors);
+      double mostRecentFlowAcceptanceFactor =
+          getConjugateFlowAcceptanceFactor(currConjugateSegment, onTheFlyFlowAcceptanceFactors);
+      double networkLoadingFlowAcceptanceFactor =
+          getConjugateFlowAcceptanceFactor(currConjugateSegment, nlNonConjugateFlowAcceptanceFactors);
+      double flowAcceptanceFactor = Math.min(mostRecentFlowAcceptanceFactor,networkLoadingFlowAcceptanceFactor);
+
       return determineConstrainedSubPathSendingFlow(
           subPathSendingFlow * flowAcceptanceFactor,
           compoundedFlowAcceptanceScalingFactor * flowAcceptanceFactor,
           index,
-          nonConjugateFlowAcceptanceFactors,
+          onTheFlyFlowAcceptanceFactors,
+          nlNonConjugateFlowAcceptanceFactors,
           subPathArray,
           bushConstrainedFlowData);
     }
@@ -569,7 +576,8 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   @Override
   public <T> double determineConstrainedSubPathSendingFlow(
       ConjugateEdgeSegment[] subPathArray,
-      double[] nonConjugateFlowAcceptanceFactors,
+      double[] onTheFlyFlowAcceptanceFactors,
+      double[] nlNonConjugateFlowAcceptanceFactors,
       T bushConstrainedFlow){
     if(!(bushConstrainedFlow instanceof ConjugateBushTurnData)){
       throw new PlanItRunTimeException("invalid bush turn data type");
@@ -596,7 +604,8 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
         subPathSendingFlow,
         1,
         index,
-        nonConjugateFlowAcceptanceFactors,
+        onTheFlyFlowAcceptanceFactors,
+        nlNonConjugateFlowAcceptanceFactors,
         subPathArray,
         conjBushConstrainedFlowData);
     return subPathSendingFlow;
