@@ -48,7 +48,7 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
   /** registered origin bushes */
   private final Set<RootedBush<V,ES>> registeredBushes;
 
-  protected long pasId;
+  public long pasId;
 
   /** track status of PAS which determines how it is used */
   protected PasStatus pasStatus = PasStatus.UNKNOWN;

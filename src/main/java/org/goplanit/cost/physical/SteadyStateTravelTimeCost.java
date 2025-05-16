@@ -323,4 +323,12 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     return null;
   }
 
+  /**
+   * Access to the current time period in hours considered
+   * @return time period in hours
+   */
+  public double getCurrentTimePeriodH() {
+    return currentTimePeriodHours;
+  }
+
 }

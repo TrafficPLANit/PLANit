@@ -7,6 +7,7 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
+import org.goplanit.cost.physical.SteadyStateTravelTimeCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
@@ -106,6 +107,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * @param bushPasFlowShiftPcuH flow to shift
    * @param pasAlternative to apply to
    * @param theMode to use
+   * @param originalNlFlowAcceptanceFactors from loading rather than on-the-fly, used for bounding shifts when
+   *                                        propagating in case it is more restrictive than the most recent
    * @param assignmentStrategy to use
    * @param originalNetworkCosts to use (only needed when updating node model)
    * @param conjSegmentCosts to use (only needed when updating node model)
@@ -118,6 +121,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           double bushPasFlowShiftPcuH,
           ConjugateEdgeSegment[] pasAlternative,
           Mode theMode,
+          double[] originalNlFlowAcceptanceFactors,
           StaticLtmConjugateBushStrategy assignmentStrategy,
           double[] originalNetworkCosts,
           double[] conjSegmentCosts,
@@ -156,9 +160,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double appliedFlowShift = newFlow - currentFlow;
       if(Precision.notEqual(Math.abs(appliedFlowShift), Math.abs(flowShiftPcuH))){
         double diff= currentFlow + flowShiftPcuH;
-        flowShiftPcuH = appliedFlowShift;
         LOGGER.severe("sync shouldn't trigger");
       }
+      // ensure that when rounded to zero and diff is smaller than detectable above,
+      // we use exact change applied rather than proposed
+      flowShiftPcuH = appliedFlowShift;
 
       double acceptanceFactorBefore = 1;
       double acceptanceFactorAfter = acceptanceFactorBefore;
@@ -167,7 +173,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         EdgeSegment originalTurnEntrySegment = null;
         if (currentConjSegment.hasOriginalEntryEdgeSegment()) {
           originalTurnEntrySegment = currentConjSegment.getOriginalAdjacentEdgeSegments().first();
-          acceptanceFactorBefore = nonConjugateFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
+          var nlFlowAcceptanceFactorBefore = originalNlFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
+          var onTheFlyFlowAcceptanceFactorBefore = nonConjugateFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
+          acceptanceFactorBefore = Math.min(nlFlowAcceptanceFactorBefore, onTheFlyFlowAcceptanceFactorBefore);
         }
       }
 
@@ -185,27 +193,30 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
             bushes,
             updateNetworkNodeModel);
 
-      // adjust flow shift
-      // case 1: no change in factor -> proceed with same flow shift and propagate further
-      // case 2: change in factor but no change in outflow      - stop flow shift propagation since traffic
-      //    withholding makes that no downstream flow shift exists (it is all removed from the withheld traffic)
-      // case 3: change in factor and change in outflow         - determine non-withheld change in flow, namely
-      //    the new outflow - old outflow
-      if(acceptanceFactorBefore != acceptanceFactorAfter){
-        double outflowBefore = currentFlow * acceptanceFactorBefore;
-        double outflowAfter = newFlow * acceptanceFactorAfter;
-        if(Precision.equal(outflowBefore, outflowAfter, EPSILON_6)){
-          // case 2: nothing left, all consumed by the change in withheld flow
-          flowShiftPcuH = 0;
-          // we still need to make sure all outflows are present for cost calculation. switch to outflowsyncing only
-          restrictToOutflowUpdateOnly = true;
-        }else{
-          // case 3: we propagate the remaining difference that is not consumed by removing the previously withheld flow
-          flowShiftPcuH = flowShiftPcuH>0 ?
-              Math.min(flowShiftPcuH, outflowAfter - outflowBefore):
-              Math.max(flowShiftPcuH, outflowAfter - outflowBefore);
-        }
-      }
+      flowShiftPcuH *= Math.min(acceptanceFactorBefore, acceptanceFactorAfter);
+
+      // todo: remove below when the new approach bounded by original nl flow acceptance factors is working
+//      // adjust flow shift
+//      // case 1: no change in factor -> proceed with same flow shift and propagate further
+//      // case 2: change in factor but no change in outflow      - stop flow shift propagation since traffic
+//      //    withholding makes that no downstream flow shift exists (it is all removed from the withheld traffic)
+//      // case 3: change in factor and change in outflow         - determine non-withheld change in flow, namely
+//      //    the new outflow - old outflow
+//      if(acceptanceFactorBefore != acceptanceFactorAfter){
+//        double outflowBefore = currentFlow * acceptanceFactorBefore;
+//        double outflowAfter = newFlow * acceptanceFactorAfter;
+//        if(Precision.equal(outflowBefore, outflowAfter, EPSILON_6)){
+//          // case 2: nothing left, all consumed by the change in withheld flow
+//          flowShiftPcuH = 0;
+//          // we still need to make sure all outflows are present for cost calculation. switch to outflowsyncing only
+//          restrictToOutflowUpdateOnly = true;
+//        }else{
+//          // case 3: we propagate the remaining difference that is not consumed by removing the previously withheld flow
+//          flowShiftPcuH = flowShiftPcuH>0 ?
+//              Math.min(flowShiftPcuH, outflowAfter - outflowBefore):
+//              Math.max(flowShiftPcuH, outflowAfter - outflowBefore);
+//        }
+//      }
     }
     return flowShiftPcuH;
   }
@@ -474,61 +485,64 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       EdgeSegment mostRestrictingExit = null;
       if(!unCongested){
         mostRestrictingExit = identifyMostRestrictingOutEdgeSegment(originalEntrySegment, networkLoading); // todo should be done once and cached
-      }else if(isMerge && isLowCostAlternative){
-        // MERGE (part I)
-        // special case: when processing s1 and S2 is congested and most restricted by exit link at merge, then s1 turn
-        // is expected to also become congested (if not already). So treat it as such to avoid overshooting
-        // todo: to be replaced by analytical version  in due time
-        var otherAltMergeEntry = otherPasAlternative[otherPasAlternative.length -1].getOriginalAdjacentEdgeSegments().first();
-        if(otherAltMergeEntry!=null && isCongested(networkLoading, otherAltMergeEntry)) {
-          unCongested = false; // treat s1 as uncongested as well
-          mostRestrictingExit = identifyMostRestrictingOutEdgeSegment(otherAltMergeEntry, networkLoading); // todo should be done once and cached
-        }
+      }
+      else if(isMerge && isLowCostAlternative){
+        // MERGE
+        // todo: to be replaced by analytical version just like the one below, only merge should also consider
+        //  change from the other alternative adding to it for now ignore
+      }
+      // if for whatever reason we reverted to uncongested, no most restricting exists and we reset flag to avoid issues
+      // with derivatives
+      if(mostRestrictingExit == null){
+        unCongested = true;
       }
 
       double currDTravelTimeDFlow = 0.0;
+      boolean thisAltOnMostRestrictingTurn = (mostRestrictingExit == originalExitSegment);
+
+      // DIVERGE/ON PAS/MERGE (congested link)
+      // - case 1: flow not on most-restrictive turn --> compute hypo as if uncongested, allow to continue since
+      //           flow change is expected to continue + use special derivative
+      // - case 2: flow on most-restrictive turn --> treat as congested and stop after this link as flow change is not
+      //           expected to propagate further
+      if(!unCongested && !thisAltOnMostRestrictingTurn){
+        // case 1: use hypo critical uncongested derivative + special derivative for changing flow on uncongested turn
+        //         given another turn is congested and most restrictive
+        var alpha_i = networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntrySegment.getId()];
+        var splittingRateToMostRestricting = networkLoading.getSplittingRateData().getSplittingRate(originalEntrySegment, mostRestrictingExit);
+        var u_i = networkLoading.getCurrentInflowsPcuH()[(int) originalEntrySegment.getId()];
+        var u_ijMostRestricting = u_i * splittingRateToMostRestricting;
+        if(u_ijMostRestricting <= 0){
+          LOGGER.severe("should always have most restricting turn flow but NOT???");
+        }else {
+          var c_i = ((PcuCapacitated) originalEntrySegment).getCapacityOrDefaultPcuH();
+          var c_jMostRestr = ((PcuCapacitated) mostRestrictingExit).getCapacityOrDefaultPcuH();
+          var timePeriodH = ((SteadyStateTravelTimeCost) physicalCost).getCurrentTimePeriodH();
+          // b_j is the scaled sending flows of all other turns combined into the most restricting out link except for
+          // the turn coming from our in link to the most restricting out link
+          // b_j = (C_i*u_i_jMostRestr*(1-alpha_i))/(alpha_i*u_i) <-- see doc for how this was derived
+          var approximateBMostRestricting = (c_i * (c_jMostRestr - (alpha_i * u_ijMostRestricting))) / (alpha_i * u_i);
+          // d_hyper/du_ij for any j not going to the most restricting out link, given the link is congested due to
+          // another turn into the known most restricting out link:
+          // d_hyper/du_ij = (1/2*T*b_j*r_j)/(C_i*u_ijMostRestr^2)
+          currDTravelTimeDFlow =
+              (0.5 * timePeriodH * approximateBMostRestricting) /
+                  (c_i * c_jMostRestr);
+        }
+
+        unCongested = true; // triggers adding hypo critical delay via normal approach below
+      } // case 2 no action needed, remains congested on most restricting turn, or truly uncongested
+
       if (originalEntrySegment instanceof MacroscopicLinkSegment) {
-        currDTravelTimeDFlow =
-                physicalCost.getDTravelTimeDFlow(unCongested, theMode, (MacroscopicLinkSegment) originalEntrySegment);
+        currDTravelTimeDFlow +=
+            physicalCost.getDTravelTimeDFlow(unCongested, theMode, (MacroscopicLinkSegment) originalEntrySegment);
       } else if (originalEntrySegment instanceof ConnectoidSegment) {
-        currDTravelTimeDFlow =
-                virtualCost.getDTravelTimeDFlow(unCongested, theMode, (ConnectoidSegment) originalEntrySegment);
+        currDTravelTimeDFlow +=
+            virtualCost.getDTravelTimeDFlow(unCongested, theMode, (ConnectoidSegment) originalEntrySegment);
       } else {
         LOGGER.severe(String.format("Unsupported edge segment (%s) to obtain derivative of cost towards flow from",
-                originalEntrySegment.getIdsAsString()));
+            originalEntrySegment.getIdsAsString()));
       }
-
-      //TODO: below three cases written out, eventually they should be consolidated as they are largely the same
-      // WRONG TO SET TO ZERO --> WE SHOULD SET THEM TO HYPO DERIVATIVE IN THOSE CASES!!! --> compute hypo derivative
-      // separately and use that instead of zero...
-
-      // DIVERGE (congested entry link)
-      // - case 1: shifting from most-restrictive to not most restrictive --> not most restrictive gets zero
-      //      todo for case 1: if turn is going towards other congested out link that is less restrictive, we should be using that deravative instead of zero
-      // - case 2: shifting from most-restrictive to not most restrictive --> most restrictive gets derivative as is
-      // - case 3: shifting from non-most-restrictive to non-most restrictive --> set derivative to 0
-      boolean thisAltOnMostRestrictingTurn = (mostRestrictingExit == originalExitSegment);
-      if(isDiverge && !unCongested && !thisAltOnMostRestrictingTurn){
-          // case 1 and case 3
-          currDTravelTimeDFlow = 0;
-      } // case 2 no action needed
-
-      // ON PAS (congested entry link)
-      // - case 1: flow not on most-restrictive turn --> set derivative to zero
-      //      todo for case 1: if turn is going towards other congested out link that is less restrictive, we should be using that deravative instead of zero
-      // - case 2: flow on most-restrictive turn --> derivative as is
-      if(!isDiverge && !isMerge && !unCongested && !thisAltOnMostRestrictingTurn){
-        currDTravelTimeDFlow = 0; // case 1
-      } // case 2 no action needed
-
-      // MERGE
-      // - case 1: flow not on most-restrictive turn --> set derivative to zero
-      //      todo for case 1: if turn is going towards other congested out link that is less restrictive, we should be using that deravative instead of zero
-      // - case 2: flow on most-restrictive turn --> derivative as is
-      if(isMerge && !unCongested && !thisAltOnMostRestrictingTurn){
-        currDTravelTimeDFlow = 0; // case 1
-      }
-
 
       dTravelTimeDFlow += currDTravelTimeDFlow;
 
@@ -617,8 +631,15 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double flowShiftPcuH = -bushEntrySegmentFlowShift;
 
     flowShiftPcuH = executeBushPasFlowShift(
-        conjBush, flowShiftPcuH, s2, theMode, (StaticLtmConjugateBushStrategy) assignmentStrategy,
-        originalNetworkCosts, conjSegmentCosts, (Set<ConjugateDestinationBush>) bushes, false);
+        conjBush,
+        flowShiftPcuH,
+        s2,
+        theMode,
+        null, // not used because node model is not updated
+        (StaticLtmConjugateBushStrategy) assignmentStrategy,
+        originalNetworkCosts,
+        conjSegmentCosts,
+        (Set<ConjugateDestinationBush>) bushes, false);
 
     /*end splitting rates not required since we do not shift flow beyond end merge via its turn in conjugate form  */
     //todo: remove return value when we no longer have non-conjugate form for this
@@ -629,6 +650,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       RootedBush<ConjugateDirectedVertex, ConjugateEdgeSegment> bush,
       double bushEntrySegmentFlowShift,
       Mode theMode,
+      double[] originalNlFlowAcceptanceFactors,             // alphas from loading rather than on-the-fly, used for bounding shifts
       StaticLtmConjugateBushStrategy assignmentStrategy,
       double[] originalNetworkCosts,
       double[] conjSegmentCosts,
@@ -641,7 +663,15 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double flowShiftPcuH = -bushEntrySegmentFlowShift;
 
     flowShiftPcuH = executeBushPasFlowShift(
-        conjBush, flowShiftPcuH, s2, theMode, assignmentStrategy, originalNetworkCosts, conjSegmentCosts, bushes, true);
+        conjBush,
+        flowShiftPcuH,
+        s2, theMode,
+        originalNlFlowAcceptanceFactors,
+        assignmentStrategy,
+        originalNetworkCosts,
+        conjSegmentCosts,
+        bushes,
+        true);
 
     /*end splitting rates not required since we do not shift flow beyond end merge via its turn in conjugate form  */
     //todo: remove return value when we no longer have non-conjugate form for this
@@ -672,6 +702,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         bushEntrySegmentFlowShift,
         s1,
         theMode,
+        null, // not used because node model is not updated
         (StaticLtmConjugateBushStrategy) assignmentStrategy,
         originalNetworkCosts,
         conjSegmentCosts,
@@ -683,6 +714,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       RootedBush<ConjugateDirectedVertex, ConjugateEdgeSegment> bush,
       double bushEntrySegmentFlowShift,
       Mode theMode,
+      double[] originalNlFlowAcceptanceFactors,             // alphas from loading rather than on-the-fly, used for bounding shifts
       StaticLtmConjugateBushStrategy assignmentStrategy,
       double[] originalNetworkCosts,
       double[] conjSegmentCosts,
@@ -697,6 +729,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         bushEntrySegmentFlowShift,
         s1,
         theMode,
+        originalNlFlowAcceptanceFactors,
         assignmentStrategy,
         originalNetworkCosts,
         conjSegmentCosts,
@@ -952,9 +985,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         break;
       }
       pas.updateStatus(PasStatus.UNCONGESTED_WITH_SHIFT);
-//      if(isDestinationTrackedForLogging() || logAll) {
-//        LOGGER.info("* UNCONGESTED FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
-//      }
+      if(isDestinationTrackedForLogging() || logAll) {
+        LOGGER.info("* UNCONGESTED FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
+      }
 
       double totalPasShift = 0;
       for (var entry : bushS2RemainingSendingFlows.entrySet()) {
@@ -965,11 +998,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         double bushS2Portion = bushS2RemainingSendingFlow / guaranteedS2SendingFlow;
         double bushPasFlowShift = proposedFlowShift * bushS2Portion;
 
-//        if(isDestinationTrackedForLogging(conjBush) || logAll) {
-//          LOGGER.info(String.format(
-//              "     Uncongested Shift: %.9f (available flow %.9f) - bush (%s) ",
-//              bushPasFlowShift, bushS2RemainingSendingFlow,conjBush.getRootZone().getIdsAsString()));
-//        }
+        if(isDestinationTrackedForLogging(conjBush) || logAll) {
+          LOGGER.info(String.format(
+              "     Uncongested Shift: %.9f (available flow %.9f) - bush (%s) ",
+              bushPasFlowShift, bushS2RemainingSendingFlow,conjBush.getRootZone().getIdsAsString()));
+        }
 
         /* perform the flow shift IN FULL for S1 and S2 for the current bush and its attributed portion */
         // todo: for now use general flow shift, but can be optimised since we know no acceptance factors are needed
@@ -1175,9 +1208,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
         /* perform the flow shift IN FULL for S1 and S2 for the current bush and its attributed portion */
         executeBushS2FlowShiftNodeModelUpdate(
-            conjBush, bushPasFlowShift, theMode, conjStrategy, originalNetworkCosts, conjSegmentCosts, (Set<ConjugateDestinationBush>) bushes);
+            conjBush, bushPasFlowShift, theMode, originalNlConsistentFlowAcceptanceFactors, conjStrategy, originalNetworkCosts, conjSegmentCosts, (Set<ConjugateDestinationBush>) bushes);
         executeBushS1FlowShiftNodeModelUpdate(
-            conjBush,  bushPasFlowShift, theMode, conjStrategy, originalNetworkCosts, conjSegmentCosts, (Set<ConjugateDestinationBush>) bushes);
+            conjBush,  bushPasFlowShift, theMode, originalNlConsistentFlowAcceptanceFactors, conjStrategy, originalNetworkCosts, conjSegmentCosts, (Set<ConjugateDestinationBush>) bushes);
         totalPasShift += bushPasFlowShift;
       }
 

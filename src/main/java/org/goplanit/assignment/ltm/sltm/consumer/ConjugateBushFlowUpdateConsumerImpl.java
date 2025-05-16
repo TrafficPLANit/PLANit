@@ -156,9 +156,11 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
           if (dataConfig.isUnconstrainedFlowsUpdate()) {
             double bushLinkDemand = bushUnconstrainedFlows.get(conjEntrySegment);
             dataConfig.getUnconstrainedFlows()[originalEntrySegmentId] += bushLinkDemand;
-            if(originalEntrySegmentId==41){
-              LOGGER.severe("41 unconstrained: ("+conjEntrySegment.getXmlId()+") add: " + bushLinkDemand + " for bush " + bush.getRootZone().getIdsAsString());
-            }
+
+//            if(originalEntrySegmentId==41){
+//              LOGGER.severe("41 unconstrained: ("+conjEntrySegment.getXmlId()+") add: " + bushLinkDemand + " for bush " + bush.getRootZone().getIdsAsString());
+//            }
+
           }
 
           /* v_a = SUM(v^o_a) (only when enabled) */
@@ -203,9 +205,11 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
                       bushUnconstrainedFlows.getOrDefault(conjEntrySegment, 0.0) * splittingRate;
               bushUnconstrainedFlows.put(conjExitSegment,
                       bushUnconstrainedFlows.getOrDefault(conjExitSegment,0.0) + bushTurnDemand);
-              if(conjEntrySegment.getOriginalAdjacentEdgeSegments().second()!= null && conjEntrySegment.getOriginalAdjacentEdgeSegments().second().getId()==41){
-                LOGGER.severe("41 unConstrained turn ("+conjEntrySegment.getXmlId()+"): add: " + bushTurnDemand +" for bush " + bush.getRootZone().getIdsAsString());
-              }
+
+//              if(conjEntrySegment.getOriginalAdjacentEdgeSegments().second()!= null && conjEntrySegment.getOriginalAdjacentEdgeSegments().second().getId()==41){
+//                LOGGER.severe("41 unConstrained turn ("+conjEntrySegment.getXmlId()+"): add: " + bushTurnDemand +" for bush " + bush.getRootZone().getIdsAsString());
+//              }
+
             }
 
             /* update turn accepted flows as per derived class implementation (or do nothing) */

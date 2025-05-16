@@ -273,10 +273,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   private double adjustFlowShiftBasedOnSlackFlow(
           double proposedFlowShift, double upperBoundShift, double slackFlowLeeway) {
 
-    if (proposedFlowShift <= upperBoundShift) {
-      return proposedFlowShift;
-    }
-    if(proposedFlowShift < (upperBoundShift + slackFlowLeeway)){
+    if (proposedFlowShift <= (upperBoundShift + slackFlowLeeway)) {
       return proposedFlowShift;
     }
     return upperBoundShift + slackFlowLeeway;

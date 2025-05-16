@@ -149,6 +149,11 @@ public class StaticLtmConjugateBushStrategy
 
     for(var pas : sortedPass) {
       var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
+
+      if(pas.pasId == 162L || pas.pasId == 161L || pas.pasId == 159L ){
+        int bla = 4;
+      }
+
       boolean pasFlowShifted = executor.executeUncongestedPasEquilibration(
         theMode,
         this,

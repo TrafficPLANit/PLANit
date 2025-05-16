@@ -52,9 +52,11 @@ public class ConjugateBushTurnFlowUpdateConsumer
     if (dataConfig.isTrackAllNodeTurnFlows() ||
             dataConfig.getNlSplittingRateData().isTracked(conjEdgeSegment.getOriginalCentreVertex())) {
       dataConfig.addToAcceptedTurnFlows((int)conjEdgeSegment.getId(), turnAcceptedFlowPcuH); // network level
-      if(conjEdgeSegment.getOriginalAdjacentEdgeSegments().second()!= null && conjEdgeSegment.getOriginalAdjacentEdgeSegments().second().getId()==41){
-        LOGGER.severe("41 Constrained ("+conjEdgeSegment.getXmlId()+"): add: " + turnAcceptedFlowPcuH );
-      }
+
+//      if(conjEdgeSegment.getOriginalAdjacentEdgeSegments().second()!= null && conjEdgeSegment.getOriginalAdjacentEdgeSegments().second().getId()==41){
+//        LOGGER.severe("41 Constrained ("+conjEdgeSegment.getXmlId()+"): add: " + turnAcceptedFlowPcuH );
+//      }
+
     }
   }
 

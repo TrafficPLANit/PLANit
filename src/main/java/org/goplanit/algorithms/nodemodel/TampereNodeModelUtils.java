@@ -86,6 +86,7 @@ public class TampereNodeModelUtils {
       double[] sendingFlowsBySegmentId,
       Function<EdgeSegment, Array1D<Double>> createSplittingRatesForSegment){
 
+    boolean logTurnSendingFlows = false;
     int numEntrySegments = node.getNumberOfEntryEdgeSegments();
 
     Access1D<Double>[] tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[numEntrySegments];
@@ -95,6 +96,16 @@ public class TampereNodeModelUtils {
       /* s_ab = s_a*phi_ab */
       double sendingFlow = sendingFlowsBySegmentId[(int) entryEdgeSegment.getId()];
       Array1D<Double> localTurnSendingFlows = createSplittingRatesForSegment.apply(entryEdgeSegment).copy();
+
+      if(logTurnSendingFlows) {
+        int exitIndex = 0;
+        for (var iterExits = node.getExitEdgeSegments().iterator(); iterExits.hasNext(); ++exitIndex) {
+          EdgeSegment exitEdgeSegment = iterExits.next();
+          double turnSendingFlow = sendingFlow * localTurnSendingFlows.get(exitIndex);
+          LOGGER.info(String.format(
+              "turn from (%s) to (%s): turn sending flow %.8f",entryEdgeSegment,exitEdgeSegment, turnSendingFlow));
+        }
+      }
 
       if(sendingFlow > 0){
         // splitting rates must sum to 1 if any non-zero flow exists
