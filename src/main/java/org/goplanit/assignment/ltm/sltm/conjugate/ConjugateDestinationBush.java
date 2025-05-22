@@ -13,10 +13,7 @@ import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.graph.directed.acyclic.ConjugateACyclicSubGraphImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
-import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.graph.directed.acyclic.ConjugateACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -873,6 +870,15 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     });
 
     return removedConjSegments;
+  }
+
+  @Override
+  public String toString() {
+    /* log all edge segments with flow on bush */
+    return "Conj Bush ("+getRootZone().getIdsAsString()+"): [ " + IterableUtils.asStream(bushData).filter(
+        e -> e.getValue() > 0).map(
+            e -> e.getKey().getXmlId()).sorted().collect(
+                Collectors.joining(",")) + " ]";
   }
 
 }

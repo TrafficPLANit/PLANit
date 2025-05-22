@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm.conjugate;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -22,7 +23,7 @@ import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoid
  * @author markr
  *
  */
-public class ConjugateBushTurnData{
+public class ConjugateBushTurnData implements Iterable<Map.Entry<ConjugateEdgeSegment,Double>>{
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateBushTurnData.class.getCanonicalName());
@@ -303,4 +304,8 @@ public class ConjugateBushTurnData{
     return turnSendingFlows.isEmpty();
   }
 
+  @Override
+  public Iterator<Map.Entry<ConjugateEdgeSegment,Double>> iterator() {
+    return turnSendingFlows.entrySet().iterator();
+  }
 }

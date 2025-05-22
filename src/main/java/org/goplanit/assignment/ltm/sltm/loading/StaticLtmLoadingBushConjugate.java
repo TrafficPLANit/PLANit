@@ -2,10 +2,8 @@ package org.goplanit.assignment.ltm.sltm.loading;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
-import org.goplanit.assignment.ltm.sltm.consumer.ConjugateBushFlowUpdateConsumerImpl;
-import org.goplanit.assignment.ltm.sltm.consumer.ConjugateBushTurnFlowUpdateConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.*;
 import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
-import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
 import org.goplanit.network.transport.ConjugateTransportModelNetwork;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -51,6 +49,28 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
     int numConjugateSegments = conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers();
     return new ConjugateBushTurnFlowUpdateConsumer(
             createNetworkTurnFlowData(updateLinkSendingFlows, numConjugateSegments), turn2ConjugateSegmentMapping);
+  }
+
+  protected ConjugateBushSyncNetworkFlowConsumer createSyncAllNetworkFlowUpdateConsumer(){
+    nlSendingFlowData.reset();
+    nlInFlowOutflowData.resetInflows();
+    nlInFlowOutflowData.resetOutflows();
+    unconstrainedFlowData.reset();
+
+    int numConjugateSegments = conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers();
+
+    // all in one update (except for alphas), splitting rates are not updated, just populated in full
+    return new ConjugateBushSyncNetworkFlowConsumer(
+        new NetworkTurnFlowUpdateData(
+            true,
+            nlSendingFlowData,
+            nlSplittingRateData,
+            networkLoadingFactorData,
+            nlInFlowOutflowData.getInflows(),
+            nlInFlowOutflowData.getOutflows(),
+            unconstrainedFlowData,
+            numConjugateSegments),
+        turn2ConjugateSegmentMapping);
   }
 
   /**

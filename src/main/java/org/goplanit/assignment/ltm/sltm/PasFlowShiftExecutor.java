@@ -1,6 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import org.goplanit.assignment.ltm.sltm.consumer.NMRCollectMostRestrictingTurnConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.NmrDemandConstrainedFlowAndMostRestrictingTurnConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
@@ -149,13 +149,13 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param entrySegment   to use
    * @param networkLoading to use
-   * @return identified most restricting out edge segment
+   * @return identified most restricting out edge segment and any demand constrained flow into it
    */
-  protected static EdgeSegment identifyMostRestrictingOutEdgeSegment(
+  protected static Pair<EdgeSegment,Double> identifyMostRestrictingOutSegmentAndDemandConstrainedFlow(
           EdgeSegment entrySegment, StaticLtmLoadingBushBase<?> networkLoading) {
 
     // collect most restricting turn for entry segment
-    var consumer = new NMRCollectMostRestrictingTurnConsumer(entrySegment);
+    var consumer = new NmrDemandConstrainedFlowAndMostRestrictingTurnConsumer(entrySegment);
     StaticLtmNetworkLoading.performNodeModelUpdate(
         entrySegment.getDownstreamVertex(), consumer, networkLoading);
 
@@ -164,8 +164,12 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
       LOGGER.severe(String.format("Expected most restricting out segment to be present given that " +
                       "incoming segment (%s) of link (%s) is congested, but not found, this shouldn't happen",
               entrySegment.getIdsAsString(), entrySegment.getParent().getIdsAsString()));
+
+      consumer = new NmrDemandConstrainedFlowAndMostRestrictingTurnConsumer(entrySegment);
+      StaticLtmNetworkLoading.performNodeModelUpdate(
+          entrySegment.getDownstreamVertex(), consumer, networkLoading);
     }
-    return mostRestrictingOutSegment;
+    return Pair.of(mostRestrictingOutSegment, consumer.getMostRestrictingOutSegmentDemandConstrainedFlow());
   }
 
   /**

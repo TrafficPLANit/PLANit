@@ -36,6 +36,10 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
     int prevSegmentId = (int) movement.getSegmentFrom().getId();
     this.dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
 
+    if(this.dataConfig.isInflowsUpdate()){
+      this.dataConfig.inFlows[prevSegmentId] += turnSendingFlowPcuH;
+    }
+
     if(dataConfig.isUnconstrainedFlowsUpdate()){
       dataConfig.unconstrainedFlows[prevSegmentId] += turnUnconstrainedFlowPcuH;
     }
@@ -63,8 +67,15 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
           EdgeSegment lastEdgeSegment, double acceptedPathFlowRate, final double turnUnconstrainedFlowPcuH) {
     dataConfig.sendingFlows[(int) lastEdgeSegment.getId()] += acceptedPathFlowRate;
 
+    if(dataConfig.isInflowsUpdate()){
+      dataConfig.inFlows[(int) lastEdgeSegment.getId()] += acceptedPathFlowRate;
+    }
+    if(dataConfig.isOutflowsUpdate()){
+      dataConfig.outFlows[(int) lastEdgeSegment.getId()] += acceptedPathFlowRate;
+    }
+
     if(dataConfig.isUnconstrainedFlowsUpdate()){
-      dataConfig.sendingFlows[(int) lastEdgeSegment.getId()] += turnUnconstrainedFlowPcuH;
+      dataConfig.unconstrainedFlows[(int) lastEdgeSegment.getId()] += turnUnconstrainedFlowPcuH;
     }
   }
 

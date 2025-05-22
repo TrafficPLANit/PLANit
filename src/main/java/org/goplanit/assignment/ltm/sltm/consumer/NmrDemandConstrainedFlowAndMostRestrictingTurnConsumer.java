@@ -13,10 +13,14 @@ import org.ojalgo.array.Array1D;
  * @author markr
  *
  */
-public class NMRCollectMostRestrictingTurnConsumer implements NodeModelRunResultConsumer {
+public class NmrDemandConstrainedFlowAndMostRestrictingTurnConsumer implements NodeModelRunResultConsumer {
 
   /** track most restricting out link by in link */
   private EdgeSegment mostRestrictingOutSegment;
+
+  /** determine total demand constrained accepted flow into the most restricting out link for the provided
+   * entry segment */
+  private double totalDemandConstrainedAcceptedFlow;
 
   /**
    * entry segment to find most restricting out link for (if any)
@@ -28,7 +32,7 @@ public class NMRCollectMostRestrictingTurnConsumer implements NodeModelRunResult
    * 
    * @param entrySegment to collect most restricting out link for
    */
-  public NMRCollectMostRestrictingTurnConsumer(final EdgeSegment entrySegment) {
+  public NmrDemandConstrainedFlowAndMostRestrictingTurnConsumer(final EdgeSegment entrySegment) {
     this.mostRestrictingOutSegment = null;
     this.entrySegment = entrySegment;
   }
@@ -72,6 +76,21 @@ public class NMRCollectMostRestrictingTurnConsumer implements NodeModelRunResult
         break;
       }
     }
+
+    totalDemandConstrainedAcceptedFlow = 0;
+    // determine demand constrained turn flow into exit
+    var turnSendingFlows = ((TampereNodeModel) nodeModel).getInputs().getTurnSendingFlows();
+    iter = node.getEntryEdgeSegments().iterator();
+    index = 0;
+    while (iter.hasNext()) {
+      iter.next();
+      if(flowAcceptanceFactors.get(index) == 1 ){
+        // demand constrained
+        double otherEntryDemandConstrainedFlowIntoExit = turnSendingFlows.get(index, outSegmentIndex);
+        totalDemandConstrainedAcceptedFlow += otherEntryDemandConstrainedFlowIntoExit;
+      }
+      ++index;
+    }
   }
 
   public boolean hasMostRestrictingOutSegment() {
@@ -80,6 +99,10 @@ public class NMRCollectMostRestrictingTurnConsumer implements NodeModelRunResult
 
   public EdgeSegment getMostRestrictingOutSegment() {
     return mostRestrictingOutSegment;
+  }
+
+  public double getMostRestrictingOutSegmentDemandConstrainedFlow() {
+    return totalDemandConstrainedAcceptedFlow;
   }
 
 }

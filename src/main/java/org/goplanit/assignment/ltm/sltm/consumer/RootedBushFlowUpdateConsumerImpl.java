@@ -158,6 +158,10 @@ public class RootedBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData>
           dataConfig.sendingFlows[entrySegmentId] += bushLinkSendingFlow;
         }
 
+        if (dataConfig.isInflowsUpdate()) {
+          dataConfig.inFlows[entrySegmentId] += bushLinkSendingFlow;
+        }
+
         if(dataConfig.isUnconstrainedFlowsUpdate()){
           double bushLinkDemand = bushUnconstrainedFlows.get(entrySegment);
           dataConfig.unconstrainedFlows[entrySegmentId] += bushLinkDemand;

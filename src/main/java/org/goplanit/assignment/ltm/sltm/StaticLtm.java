@@ -221,9 +221,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     if (getOutputManager().isPersistAnyOutput(timePeriod, modes, converged)) {
 
       if(getAssignmentStrategy().isUpdateOnlyPotentiallyBlockingNodeCosts()) {
-        // for full node tracking the stepSixFinaliseForAnalysis is already done before cost update (maybe we shouldn't though)
-        // for now though doing it here again AFTER bush flow shifts causes problems for some reason, so implemented this ugly hack
-        // around it for now let's leave it TODO: streamline this as it is ugly
+        // for full node tracking the stepSixFinaliseForAnalysis is already done before cost update (maybe we shouldn't
+        // though) for now though doing it here again AFTER bush flow shifts causes problems for some reason, so
+        // implemented this ugly hack around it for now let's leave it TODO: streamline this as it is ugly
         assignmentStrategy.getLoading().stepSixFinaliseForAnalysis(modes.iterator().next());
       }
       getOutputManager().persistOutputData(timePeriod, modes, converged);

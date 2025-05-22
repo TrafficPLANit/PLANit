@@ -276,7 +276,7 @@ public abstract class StaticLtmNetworkLoading {
    * 
    * @param acceptedTurnFlows to use to determine splitting rates (movement id indexed array)
    */
-  private void updateNextSplittingRates(final TurnFlowAccessor acceptedTurnFlows) {
+  protected void updateNextSplittingRates(final TurnFlowAccessor acceptedTurnFlows) {
     var trackedNodes = nlSplittingRateData.getTrackedNodes();
     for (var node : trackedNodes) {
       for (var entrySegment : node.getEntryEdgeSegments()) {
@@ -607,6 +607,15 @@ public abstract class StaticLtmNetworkLoading {
    * @param mode to use
    */  
   protected abstract void networkLoadingSendingFlowOutflowUpdate(Mode mode);
+
+  /**
+   * After convergence of loading, we want all flows to be in sync for the current alphas. We update
+   * inflows, sending flows, and outflows all based on current alphas WITHOUT recomputing any node models nor splitting
+   * rates.
+   *
+   * @param mode to use
+   */
+  protected abstract void networkLoadingSyncFlowsUpdate(Mode mode);
 
   /**
    * Let derived loading implementation initialise which nodes are to be tracked for network splitting rates, e.g.
@@ -1125,19 +1134,28 @@ public abstract class StaticLtmNetworkLoading {
       initialiseTrackAllNodeTurnFlows(mode);
     }
 
-    /* conduct one full network loading to ensure all variables are available based on current route choice results */
-    {
-      stepOneSplittingRatesUpdate(mode);
-      stepTwoInflowSendingFlowUpdate(mode);
-      stepThreeSplittingRateUpdate(mode);
-      stepFourOutflowAndReceivingFlowUpdate(mode);
-      // Step 5 (make flow acceptance factors consistent without recomputing gap)
-      updateNextFlowAcceptanceFactors();
-      networkLoadingFactorData.swapCurrentAndNextFlowAcceptanceFactors();
-    }
+    /* we should do one full loading that DOES NOT update nodes and alphas, but does update
+     * ALL flow information. We cannot use normal step approach because that will implicitly use
+     * updated node results (alphas), causing inconcistency between inflows and outflows. We prefer
+     * to instead have slightly incorrect alphas as long as inflow * alpha = outflow is consistent
+     */
+    networkLoadingSyncFlowsUpdate(mode);
+
+//    /* conduct one full network loading to ensure all variables are available based on current route choice results */
+//    {
+//      stepOneSplittingRatesUpdate(mode);
+//      stepTwoInflowSendingFlowUpdate(mode);
+//      stepThreeSplittingRateUpdate(mode);
+//      stepFourOutflowAndReceivingFlowUpdate(mode);
+//      // Step 5 (make flow acceptance factors consistent without recomputing gap)
+//      updateNextFlowAcceptanceFactors();
+//      networkLoadingFactorData.swapCurrentAndNextFlowAcceptanceFactors();
+//    }
 
     /* limit to capacities in case loading + alphas caused slight discrepancies due to local convergence not being
      * exactly 0 */
+    // todo: this last bit should probably only be invoked for persisting or final iteration AFTER rotue choice
+    //  because it may lead to discrepancies between bush and network flows
     {
       //networkLoadingSendingFlowOutflowUpdate(mode);   // reworked above to trigger full update so not needed anymore
       nlSendingFlowData.limitCurrentSendingFlowsToCapacity(networkLayer.getLinkSegments());

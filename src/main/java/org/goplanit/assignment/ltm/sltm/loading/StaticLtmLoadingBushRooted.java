@@ -5,11 +5,7 @@ import java.util.logging.Logger;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.RootedLabelledBush;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
-import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
-import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
-import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
-import org.goplanit.assignment.ltm.sltm.consumer.RootedBushFlowUpdateConsumerImpl;
-import org.goplanit.assignment.ltm.sltm.consumer.RootedBushTurnFlowUpdateConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.*;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Movement;
 
@@ -46,6 +42,22 @@ public class StaticLtmLoadingBushRooted<B> extends StaticLtmLoadingBushBase<Root
     int numMovements = getTransportNetwork().getMovements().size();
     return new RootedBushTurnFlowUpdateConsumer(
             createNetworkTurnFlowData(updateLinkSendingFlows, numMovements), segmentPair2MovementMap);
+  }
+
+  protected RootedBushFlowUpdateConsumerImpl<NetworkFlowUpdateData> createSyncAllNetworkFlowUpdateConsumer(){
+    nlSendingFlowData.reset();
+    nlInFlowOutflowData.resetInflows();
+    nlInFlowOutflowData.resetOutflows();
+    unconstrainedFlowData.reset();
+
+    return new RootedBushFlowUpdateConsumerImpl(
+        new NetworkFlowUpdateData(
+            nlSendingFlowData,
+            networkLoadingFactorData.getCurrentFlowAcceptanceFactors(),
+            nlInFlowOutflowData.getInflows(),
+            nlInFlowOutflowData.getOutflows(),
+            unconstrainedFlowData),
+        segmentPair2MovementMap);
   }
 
 

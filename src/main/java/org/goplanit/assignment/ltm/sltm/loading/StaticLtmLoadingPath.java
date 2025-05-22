@@ -123,6 +123,22 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     return null;    
   }
 
+  private PathFlowUpdateConsumer<?> createSyncAllNetworkFlowUpdateConsumer(Mode theMode){
+    nlSendingFlowData.reset();
+    nlInFlowOutflowData.resetInflows();
+    nlInFlowOutflowData.resetOutflows();
+    unconstrainedFlowData.reset();
+
+    return new PathLinkFlowUpdateConsumer(
+        new NetworkFlowUpdateData(
+            nlSendingFlowData,
+            networkLoadingFactorData.getCurrentFlowAcceptanceFactors(),
+            nlInFlowOutflowData.getInflows(),
+            nlInFlowOutflowData.getOutflows(),
+            unconstrainedFlowData),
+        odMultiPathsByMode.get(theMode));
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -173,7 +189,20 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     
     /* execute */
     getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathLinkFlowUpdateConsumer);
-  }  
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void networkLoadingSyncFlowsUpdate(Mode mode) {
+
+    var syncFlowConsumer = createSyncAllNetworkFlowUpdateConsumer(mode);
+
+    /* execute */
+    getOdDemands(mode).forEachNonZeroOdDemand(
+        getTransportNetwork().getZoning().getOdZones(), syncFlowConsumer);
+  }
 
   /** In a path based implementation, tracked nodes overlap with potentially blocking nodes. Since potentially blocking nodes
    * are identified by the base class, there is no need for additional work in this implementation. Empty implementation
