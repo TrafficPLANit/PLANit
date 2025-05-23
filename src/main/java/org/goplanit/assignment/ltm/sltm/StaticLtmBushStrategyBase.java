@@ -55,7 +55,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     var alphas = getLoading().getCurrentFlowAcceptanceFactors();
     for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
       if(Precision.smaller(alphas[(int)ls.getId()], 1, Precision.EPSILON_9)){
-        idList.add(ls.getIdsAsString());
+        idList.add(ls.getIdsAsString()); // todo change to add in parent link id
         alphaCostInOutflowList.add(Quadruple.of(
             alphas[(int)ls.getId()],
             costs[(int)ls.getId()],
@@ -75,7 +75,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     }
     for(int index =0 ; index<idList.size();++index){
       var quad = alphaCostInOutflowList.get(index);
-      LOGGER.info(String.format("Congested Link (%s) - U: %.1f - V: %.1f - alpha: %.2f - cost: %.8f",
+      LOGGER.info(String.format("Congested Link (%s) - U: %.1f - V: %.1f - alpha: %.4f - cost: %.8f",
           idList.get(index), quad.third(), quad.fourth(), quad.first(), quad.second()));
     }
   }
@@ -388,7 +388,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         continue;
       }
 
-      if(pas.pasId == 6079L){
+      if(pas.pasId == 8923L){
         int bla = 4;
       }
 

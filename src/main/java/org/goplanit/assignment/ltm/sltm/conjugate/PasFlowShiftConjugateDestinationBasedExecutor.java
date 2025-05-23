@@ -1,5 +1,9 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
+import org.goplanit.algorithms.nodemodel.TampereNodeModel;
+import org.goplanit.algorithms.nodemodel.TampereNodeModelFixedInput;
+import org.goplanit.algorithms.nodemodel.TampereNodeModelInput;
+import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
 import org.goplanit.assignment.ltm.sltm.*;
 import org.goplanit.assignment.ltm.sltm.consumer.NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSplittingRateDataPartial;
@@ -517,9 +521,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         if(u_ijMostRestricting <= 0){
           LOGGER.severe("should always have most restricting turn flow but NOT???");
         }else {
-          var c_i = ((PcuCapacitated) originalEntrySegment).getCapacityOrDefaultPcuH();
+          var c_i = Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
+              ((PcuCapacitated) originalEntrySegment).getCapacityOrDefaultPcuH());
+          var c_j_mostRestricting = Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
+              ((PcuCapacitated) mostRestrictingExit).getCapacityOrDefaultPcuH());
           var r_jMostRestr =
-              ((PcuCapacitated) mostRestrictingExit).getCapacityOrDefaultPcuH() - mostRestrExitDemandConstrainedFlow;
+              c_j_mostRestricting - mostRestrExitDemandConstrainedFlow;
           var timePeriodH = ((SteadyStateTravelTimeCost) physicalCost).getCurrentTimePeriodH();
           // b_j is the scaled sending flows of all other turns combined into the most restricting out link except for
           // the turn coming from our in link to the most restricting out link
@@ -825,6 +832,19 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // flowShift = (tauw_s2-tauw_s1)/(1/v_s1_first_bottleneck + 1/v_s2_first_bottleneck))
     double denominator = denominatorS2 + denominatorS1;
     double numerator = pas.getAlternativeHighCost() - pas.getAlternativeLowCost();
+    if(logAll){
+      LOGGER.info(String.format("denominator: %.10f", denominator));
+      LOGGER.info(String.format("numerator: %.10f", numerator));
+
+      if(Double.isNaN(denominator)){
+        denominatorS1 = getDTravelTimeDFlow(
+            theMode, networkLoading, physicalCost, virtualCost, true, ignoreInitialConjEdgeSegment);
+        denominatorS2 = getDTravelTimeDFlow(
+            theMode, networkLoading, physicalCost, virtualCost, false, ignoreInitialConjEdgeSegment);
+      }
+    }
+
+
     if (numerator != 0) {
       flowShift = numerator / denominator;
 
@@ -1131,7 +1151,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // enter congested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 1;
+    int MAX_INTERAL_ITERATIONS_ALLOWED = 5;
     //int MAX_INTERAL_ITERATIONS_ALLOWED = 10;
     int internalIteration = 1;
     final Map<ConjugateDestinationBush, Double> bushS2RemainingSendingFlows = new TreeMap<>();
@@ -1164,8 +1184,15 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       var proposedShiftResult = determineProposedFlowShiftByLoadingEntrySegment(
           theMode, conjStrategy.getPhysicalCost(), conjStrategy.getVirtualCost(), networkLoading, guaranteedS2SendingFlow, logAll);
       double rawProposedFlowShift = proposedShiftResult.values().iterator().next();
+
+      // TODO TODO
+      // SEE SIOUX FALLS ON WHY --> SHIFT of >100 --> becomes ~5 due to discotninuity crossing --> then
+      // gets smoothed to ~0.5 WRONG --> WE SHOULD FIRST SMOOTH so ~100->10 --> then reduce due to discontinuity to ~5
+      //MOVE SMOOTHING INTO PROPOSED FLOW SHIFT --> APPLY BEFORE DISCONTINUITY ADJUSTMENT!
+
       //todo if possible get rid of smoothing
       double smoothedRawPasflowShift = conjStrategy.getSmoothing().executeRefZero(rawProposedFlowShift);
+
 
       if(isDestinationTrackedForLogging() || logAll) {
         LOGGER.info("* S2 FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
