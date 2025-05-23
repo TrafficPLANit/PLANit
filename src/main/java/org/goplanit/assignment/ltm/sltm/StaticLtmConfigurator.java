@@ -54,6 +54,8 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
   private static final String SET_NETWORKLOADING_RECEIVING_FLOW_GAP_EPSILON = "setNetworkLoadingReceivingFlowGapEpsilon";
 
+  private static final String SET_NETWORKLOADING_MIN_ITERATIONS = "setNetworkLoadingMinIterations";
+
   private static final String SET_NETWORKLOADING_INITIAL_SCHEME = "setNetworkLoadingInitialScheme";
 
   private static final String SET_TYPE = "setType";
@@ -99,6 +101,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
     setNetworkLoadingFlowAcceptanceGapEpsilon(StaticLtmSettings.DEFAULT_NETWORK_LOADING_GAP_EPSILON);
     setNetworkLoadingSendingFlowGapEpsilon(StaticLtmSettings.DEFAULT_NETWORK_LOADING_GAP_EPSILON);
     setNetworkLoadingReceivingFlowGapEpsilon(StaticLtmSettings.DEFAULT_NETWORK_LOADING_GAP_EPSILON);
+    setNetworkLoadingMinIterations(StaticLtmSettings.DEFAULT_NETWORK_LOADING_MIN_ITERATIONS);
     setAllowOverlappingPasUpdate(StaticLtmSettings.DEFAULT_ALLOW_OVERLAPPING_PAS_UPDATE);
 
     setType(DEFAULT_SLTM_TYPE);
@@ -188,6 +191,24 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
    */
   public void setNetworkLoadingReceivingFlowGapEpsilon(Double networkLoadingReceivingFlowGapEpsilon) {
     registerDelayedMethodCall(SET_NETWORKLOADING_RECEIVING_FLOW_GAP_EPSILON, networkLoadingReceivingFlowGapEpsilon);
+  }
+
+  /**
+   * Set the minimum number of internal iterations for network loading iterative sub procedure
+   *
+   * @param networkLoadingMinIterations to use
+   */
+  public void setNetworkLoadingMinIterations(Integer networkLoadingMinIterations) {
+    registerDelayedMethodCall(SET_NETWORKLOADING_MIN_ITERATIONS, networkLoadingMinIterations);
+  }
+
+  /**
+   * Get the minimum number of internal iterations for network loading iterative sub procedure
+   *
+   * @return iterations
+   */
+  public Integer getNetworkLoadingMinIterations() {
+    return getTypedFirstParameterOfDelayedMethodCall(SET_NETWORKLOADING_MIN_ITERATIONS);
   }
 
   /**

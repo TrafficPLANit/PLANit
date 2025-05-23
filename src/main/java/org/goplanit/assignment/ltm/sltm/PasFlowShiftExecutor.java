@@ -441,6 +441,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param virtualCost to use
    * @param networkLoading to use
    * @param guaranteedS2SendingFlow  to use
+   * @param logAll to use
    * @return proposed flow shift (in isolation) per network loading original network entry segment of the PAS, hence
    * using the edge segment in the return type and not the generics of this executor
    */
@@ -449,7 +450,8 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
           AbstractPhysicalCost physicalCost,
           AbstractVirtualCost virtualCost,
           StaticLtmLoadingBushBase<?> networkLoading,
-          double guaranteedS2SendingFlow);
+          double guaranteedS2SendingFlow,
+          boolean logAll);
 
   /**
    * For each bush on this PAS determine if any link segments are not yet on the S1 that would be added
@@ -471,7 +473,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
     return missingLinkSegmentsByBush;
   }
 
-  public abstract boolean performEquilibratedCongestedFlowShifts(
+  public abstract double performEquilibratedCongestedFlowShifts(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy,
       double[] originalNetworkCosts,

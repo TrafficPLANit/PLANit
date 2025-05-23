@@ -216,7 +216,6 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
   @Override
   protected void networkLoadingSyncFlowsUpdate(Mode mode) {
         
-    // todo: no support for non-conjugate yet
     var syncFlowConsumer = createSyncAllNetworkFlowUpdateConsumer();
     
     /* execute */

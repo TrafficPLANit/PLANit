@@ -6,6 +6,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -634,4 +635,11 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
     return proposedPasFlowShiftAdjustmentFactor;
   }
 
+  public double sumLengthAlternatives() {
+    return
+        Stream.concat(
+            Arrays.stream(getAlternative(true)),
+            Arrays.stream(getAlternative(false))).map(
+                EdgeSegment::getLengthKm).mapToDouble(e -> e).sum();
+  }
 }

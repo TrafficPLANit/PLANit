@@ -50,13 +50,17 @@ public class StaticLtmLoadingBushRooted<B> extends StaticLtmLoadingBushBase<Root
     nlInFlowOutflowData.resetOutflows();
     unconstrainedFlowData.reset();
 
+    int numMovements = getTransportNetwork().getMovements().size();
     return new RootedBushFlowUpdateConsumerImpl(
-        new NetworkFlowUpdateData(
+        new NetworkTurnFlowUpdateData(
+            true,
             nlSendingFlowData,
-            networkLoadingFactorData.getCurrentFlowAcceptanceFactors(),
+            nlSplittingRateData,
+            networkLoadingFactorData,
             nlInFlowOutflowData.getInflows(),
             nlInFlowOutflowData.getOutflows(),
-            unconstrainedFlowData),
+            unconstrainedFlowData,
+            numMovements),
         segmentPair2MovementMap);
   }
 

@@ -677,7 +677,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
           AbstractPhysicalCost physicalCost,
           AbstractVirtualCost virtualCost,
           StaticLtmLoadingBushBase<?> networkLoading,
-          double guaranteedS2SendingFlow) { // dummy for compliance
+          double guaranteedS2SendingFlow,
+          boolean logAll) { // dummy for compliance
 
     Map<EdgeSegment, Double> result = new TreeMap<>();
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {
@@ -698,7 +699,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
   }
 
   @Override
-  public boolean performEquilibratedCongestedFlowShifts(
+  public double performEquilibratedCongestedFlowShifts(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy,
       double[] originalNetworkCosts,

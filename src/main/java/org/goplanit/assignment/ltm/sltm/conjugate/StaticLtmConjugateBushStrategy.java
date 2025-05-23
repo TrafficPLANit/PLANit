@@ -112,13 +112,16 @@ public class StaticLtmConjugateBushStrategy
    * @return create shortest bush algorithm
    */
   @Override
-  protected ShortestPathGeneralised createNetworkShortestSearchTreeAlgo(
+  protected ShortestPathGeneralised createInitialNetworkShortestSearchTreeAlgo(
       Mode theMode, double[] nonConjugateLinkSegmentCosts) {
+
+    // for initialisation there is no flow, so no point in considering discontinuities
+    boolean considerDiscontinuities = false;
     //todo: once base implementation works, replace nonConjugateLinkSegment costs with turn based costs throughout
     // implementation. For now project non conjugate link segment costs to conjugate segments by using the entry segment
     // as the point of reference
-    double[] conjugateSegmentCosts =
-            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, nonConjugateLinkSegmentCosts);
+    double[] conjugateSegmentCosts = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
+        theMode, nonConjugateLinkSegmentCosts, considerDiscontinuities);
     return createNetworkShortestPathAlgo(conjugateSegmentCosts);
   }
 
@@ -145,7 +148,7 @@ public class StaticLtmConjugateBushStrategy
 
     // PASs on conjugate level, so expand link segment to conjugate segment costs as if first
     var conjSegmentCosts =
-        expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, originalNetworkCosts);
+        expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, originalNetworkCosts, true);
 
     for(var pas : sortedPass) {
       var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
@@ -194,8 +197,8 @@ public class StaticLtmConjugateBushStrategy
     pasManager.forEachActivePas( p -> countSwappedPassPrev.add(p.getCountS1Swaps().second().longValue()));
 
     // PASs on conjugate level, so expand link segment to conjugate segment costs as if first
-    var conjSegmentCosts =
-        expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, originalNetworkLinkSegmentCosts);
+    var conjSegmentCosts = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
+        theMode, originalNetworkLinkSegmentCosts, true);
 
     // execute cost update based on conjugate costs
     pasManager.updateActivePassCosts(conjSegmentCosts);
@@ -614,9 +617,12 @@ public class StaticLtmConjugateBushStrategy
     final int MAX_PAS_ADD_PER_BUSH = Integer.MAX_VALUE;
     pasManager.reset();
 
+
     double totalMinCostForGap = 0; // track during bush traversal to get min OD costs based on shortest paths
     double totalRealisedCostForGap = 0;
     if(updateGap) {
+      // GAP is currently based on non-discontinuous costs....so normal realised network level costs
+
       double totalPhysicalRealisedCost = 0;
       double totalVirtualRealisedCost = 0;
       // costs as they currently are utilising the unconstrained demand as a point of reference
@@ -640,6 +646,51 @@ public class StaticLtmConjugateBushStrategy
         totalVirtualRealisedCost += linkCost * linkDemand;
       }
       totalRealisedCostForGap = totalPhysicalRealisedCost + totalVirtualRealisedCost;
+
+      // for gap we cannot consider discontinuities otherwise we distort the costs compared to what is measured
+      // (for example if a discontinuous path would be shorter its unconstrained min cost could become higher than
+      // the current realised cost.
+      // todo: eventually move to a non network level min path based gap to avoid this and be faster
+      final var conjLinkSegmentCostsWithoutDiscontinuities = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
+          mode, nonConjugateLinkSegmentCosts, false);
+      final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCostsWithoutDiscontinuities);
+      for (var conjBush : getBushes()) {
+        if (conjBush == null) {
+          continue;
+        }
+
+        /* network min-paths - searched in designated direction (inverted if ALL-TO-ONE, so it is compatible with bush where destination is root) */
+        var networkMinPaths = conjNetworkShortestPathAlgo.execute(conjBush.getShortestSearchType(), conjBush.getRootVertex());
+        if (networkMinPaths == null) {
+          LOGGER.severe(String.format(
+              "Unable to obtain network min paths for bush, this shouldn't happen, skip updateBushPass"));
+          continue;
+        }
+
+        // update/track total min cost across bushes(Ods) for gap calculation
+        var odDemands = getOdDemands(mode);
+        var destination = conjBush.getDestination().getParent().getParentZone();
+        for (var originVertex : conjBush.getOriginVertices()) {
+          var origin = ((ConjugateConnectoidNode)originVertex).getCentroidVertex().getParent().getParentZone();
+          double odDemand = odDemands.getValue(origin, destination);
+          if(odDemand <= 0.0){
+            continue;
+          }
+          double minOdCost = networkMinPaths.getCostToReach(originVertex);
+          totalMinCostForGap += minOdCost * odDemand;
+        }
+      }
+
+      // finalise gap part
+      var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
+      // both costs have already been normalised to demand so use unity to transfer as is
+      // ideally we'd use a link based gap but this is not ideal with the path based implementation we also support
+      // for sLTM
+      gapFunction.increaseMinimumPathCosts(totalMinCostForGap,1);
+      gapFunction.increaseAbsolutePathGap(totalRealisedCostForGap, 1, totalMinCostForGap);
+      if(getSettings().isDetailedLogging()){
+        LOGGER.severe(String.format("Total Realised cost: (%.16f)", totalRealisedCostForGap));
+      }
     }
 
     //todo --> should be sets
@@ -647,10 +698,9 @@ public class StaticLtmConjugateBushStrategy
 
     // method overridden for conjugate implementation resulting in conjugate compatible shortest path search using
     // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...
+    // here we do use discontinuity costs because when considering new PASs it must be taken into account
     final var conjLinkSegmentCosts =
-            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(mode, nonConjugateLinkSegmentCosts);
-    // TODO: MIN NETWORK SEARCH ONLY USED FOR GAP CALCULATION CURRENTLY --> PHASE OUT WHEN SWAPPING TO MIN-MAX SHORTEST PATHS GAP
-    final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
+            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(mode, nonConjugateLinkSegmentCosts, true);
     for (var conjBush : getBushes()) {
       if (conjBush == null) {
         continue;
@@ -671,52 +721,13 @@ public class StaticLtmConjugateBushStrategy
         continue;
       }
 
-      /* network min-paths - searched in designated direction (inverted if ALL-TO-ONE, so it is compatible with bush
-       * where destination is root) */
-      var conjNetworkMinPaths =
-              conjNetworkShortestPathAlgo.execute(conjBush.getShortestSearchType(), conjBush.getRootVertex());
-      if (conjNetworkMinPaths == null) {
-        LOGGER.severe(String.format(
-                "Unable to obtain conjugate network min paths for conjugate bush, " +
-                        "this shouldn't happen, skip updateBushPass"));
-        continue;
-      }
-
-      Map<ConjugateConnectoidNode, Pair<Double,Double>> originNetworkBushDeltas = new TreeMap<>();
-      Set<EdgeSegment> segmentsThatDiffer = new TreeSet<>();
-      if(updateGap) {
-        // update/track total min cost across bushes(Ods) for gap calculation
-        var odDemands = getOdDemands(mode);
-        var destination = conjBush.getDestination().getParent().getParentZone();
-        for (var originVertex : conjBush.getOriginVertices()) {
-          var origin = ((ConjugateConnectoidNode)originVertex).getCentroidVertex().getParent().getParentZone();
-          double odDemand = odDemands.getValue(origin, destination);
-          if(odDemand <= 0.0){
-            continue;
-          }
-          double minOdCost = conjNetworkMinPaths.getCostToReach(originVertex);
-          double deltaWithNetwork = bushMinMaxTree.getMinCostToReach(originVertex) - minOdCost;
-          double deltaInBush = bushMinMaxTree.getMaxCostToReach(originVertex) - bushMinMaxTree.getMinCostToReach(originVertex);
-          if(deltaInBush < Precision.EPSILON_9 && deltaWithNetwork > Precision.EPSILON_3){
-            originNetworkBushDeltas.put((ConjugateConnectoidNode)originVertex, Pair.of(deltaWithNetwork, deltaInBush));
-            var bushMinPath = bushMinMaxTree.createRawPath(originVertex, conjBush.getRootVertex());
-            //LOGGER.info(String.format("BUSH MIN PATH: %s", bushMinPath.stream().map(ExternalIdAble::getXmlId).collect(Collectors.joining())));
-            var networkMinPath = conjNetworkMinPaths.createRawPath(originVertex, conjBush.getRootVertex());
-            //LOGGER.info(String.format("NETW MIN PATH: %s", networkMinPath.stream().map(ExternalIdAble::getXmlId).collect(Collectors.joining())));
-            networkMinPath.removeAll(bushMinPath);
-            segmentsThatDiffer.addAll(networkMinPath);
-          }
-          totalMinCostForGap += minOdCost * odDemand;
-        }
-      }
-      bushMinMaxTree.setMinPathState(false);
-
       // fix: before we only considered vertices with flow, but since we keep a spanning tree
       // and that spanning tree for zero flow links may no longer be optimal once we start loading flow on the
       // network level (through other bushes) changing zero flow link costs. Therefore, we now do one extra pre-pass
       // where we first rejig all zero flow connections to cheaper connections without requiring any PASs.
       // it will require a topological sort afterwards if anything has changed. That is why we do this first
       // todo: move into its own method separate from bushPAS creation
+      // todo: perhaps cheaper to create it from scratch on network level?
       Map<ConjugateEdgeSegment, ConjugateEdgeSegment> replaceZeroFlowSpanningTreeSegments = new TreeMap<>();
       var bushVertexIter = conjBush.getTopologicalIterator();
       while(bushVertexIter.hasNext()) {
@@ -780,10 +791,6 @@ public class StaticLtmConjugateBushStrategy
 
         // Regular approach for used portion of bush
         for(var outgoingSegment : conjBushVertex.getExitEdgeSegments()){
-
-          if(segmentsThatDiffer.contains(outgoingSegment)){
-            int bla = 4;
-          }
 
           // TODO: temp try using ALL "NOW" PASs of all vertices if eligible and wipe after outer iteration
           //  so we allow any eligible reduced cost vertex for now to be considered
@@ -868,15 +875,6 @@ public class StaticLtmConjugateBushStrategy
       }
     }
 
-    if(updateGap){
-      var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
-      // both costs have already been normalised to demand so use unity to transfer as is
-      // ideally we'd use a link based gap but this is not ideal with the path based implementation we also support
-      // for sLTM
-      gapFunction.increaseMinimumPathCosts(totalMinCostForGap,1);
-      gapFunction.increaseAbsolutePathGap(totalRealisedCostForGap, 1, totalMinCostForGap);
-    }
-
     return Pair.of(addedPass,new ArrayList<>(0));
   }
 
@@ -937,10 +935,12 @@ public class StaticLtmConjugateBushStrategy
    *
    * @param theMode to use
    * @param nonConjugateLinkSegmentCosts original costs
+   * @param considerDiscontinuities when true update turn costs in case of discontinuity for zero flow turn,
+   *                                false do not
    * @return conjugate projected costs
    */
   public double[] expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
-      Mode theMode, double[] nonConjugateLinkSegmentCosts){
+      Mode theMode, double[] nonConjugateLinkSegmentCosts, boolean considerDiscontinuities){
     final double[] conjugateSegmentCosts =
         new double[conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers()];
 
@@ -965,7 +965,9 @@ public class StaticLtmConjugateBushStrategy
     // turn level acceptance factors which we can then use to update the turn costs for zero flow
     // turns such that they become (realistically) unattractive as options for when finding new PASs
     // todo: costly, so ideally only do once per iteration, but we now do it on the fly
-    updateZeroFlowDiscontinuityCongestedTurnCosts(theMode, conjugateSegmentCosts);
+    if(considerDiscontinuities) {
+      updateZeroFlowDiscontinuityCongestedTurnCosts(theMode, conjugateSegmentCosts);
+    }
 
     return conjugateSegmentCosts;
   }

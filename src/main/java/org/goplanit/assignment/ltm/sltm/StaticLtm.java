@@ -193,6 +193,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
       // CONVERGENCE CHECK
       convergedOrStop = assignmentStrategy.hasConverged(getGapFunction(), simulationData.getIterationIndex());
+      if(getGapFunction().getGap() == 0){
+        int bla = 4;
+      }
 
       var iterationEndTime = Calendar.getInstance();
       var iterationRunTime = iterationEndTime.getTimeInMillis() - iterationStartTime.getTimeInMillis();
@@ -481,6 +484,11 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   // pass on to settings
   public void setNetworkLoadingReceivingFlowGapEpsilon(Double networkLoadingReceivingFlowGapEpsilon) {
     this.settings.setNetworkLoadingReceivingFlowGapEpsilon(networkLoadingReceivingFlowGapEpsilon);
+  }
+
+  // pass on to settings
+  public void setNetworkLoadingMinIterations(Integer networkLoadingMinIterations) {
+    this.settings.setNetworkLoadingMinIterations(networkLoadingMinIterations);
   }
 
   // pass on to setting

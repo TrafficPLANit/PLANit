@@ -6,8 +6,6 @@ import org.goplanit.assignment.ltm.sltm.conjugate.PasFlowShiftConjugateDestinati
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.cost.CostUtils;
-import org.goplanit.cost.virtual.AbstractVirtualCost;
-import org.goplanit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -256,6 +254,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       }
     };
 
+    // normalised cost * flow based comparator
+    Comparator<Pas<V,ES>> PAS_REDUCED_COST = (p1,p2) ->
+        Double.compare(p1.getReducedCost(), p2.getReducedCost());
+    PAS_REDUCED_COST = PAS_REDUCED_COST.reversed();
+
     /* Sort all remaining PAss based on comparator */
     return this.pasManager.getActivePassSortedByReducedCost(PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR);
   }
@@ -339,6 +342,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           double[] originalNetworkCosts,
           StaticLtmSimulationData simulationData) {
 
+    // debugging
+    boolean logAll = simulationData.getIterationIndex()>=5;
+
     Collection<ES> linkSegmentsUsed = new HashSet<>(100);
 
     var flowShiftedPass = new ArrayList<Pas<V,ES>>((int) this.pasManager.getNumberOfActivePass());
@@ -351,7 +357,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     if(isConjugateApproach){
       conjSegmentCosts =
           ((StaticLtmConjugateBushStrategy)this).expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
-              theMode, originalNetworkCosts);
+              theMode, originalNetworkCosts, true);
     }
 
     // Capture original alphas, so we can use minimum of those and updated alphas to determine
@@ -363,6 +369,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         Arrays.copyOf(
             getLoading().getCurrentFlowAcceptanceFactors(),getLoading().getCurrentFlowAcceptanceFactors().length);
 
+    double totalCongestedFlowShifted = 0;
+    double maxPasReducedCost = 0;
+    Pas<?,?> maxReducedCostPas = null;
+    double totalPasReducedCost = 0;
+    int numConsideredPas = 0;
     // process on a per bush basis, so we have full control over ordering
     // TODO change ordering of PASs so we run from PAS closest to destination backward
     //  1. ONLY update PASs that have a gap worse than that of the overall gap
@@ -397,8 +408,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         continue;
       }
 
-      // debugging
-      boolean logAll = false; //simulationData.getIterationIndex()>=200;
+      if(pas.getReducedCost() > maxPasReducedCost){
+        maxPasReducedCost = pas.getReducedCost();
+        maxReducedCostPas = pas;
+      }
+      totalPasReducedCost += pas.getReducedCost();
+      ++numConsideredPas;
 
       // ORIGINAL ONE SHOT
       /* untouched PAS (no flows shifted yet) in this iteration */
@@ -407,7 +422,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
 
       // equilibrated --> needs pas cost update because change of alphas and flows may impact low/high cost
-      boolean pasFlowShifted =
+      double pasFlowShifted =
           pasFlowShifter.performEquilibratedCongestedFlowShifts(
               theMode,
               this,
@@ -417,7 +432,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
               getBushes(),
               logAll);
 
-      if (pasFlowShifted) {
+      if (pasFlowShifted > 0) {
+        totalCongestedFlowShifted += pasFlowShifted;
         flowShiftedPass.add(pas);
 
         /* s1 */
@@ -429,8 +445,19 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         if (!pas.hasRegisteredBushes()) {
           passWithoutBush.add(pas);
         }
+
+        // so we only log the most prominent pas
+        if(logAll) {
+          logAll = false;
+          LOGGER.info(String.format("   Total pas flow shifted: %.10f", pasFlowShifted));
+        }
       }
     }
+
+    LOGGER.info(String.format("TOTAL CONGESTED FLOW SHIFTED: %.10f", totalCongestedFlowShifted));
+    LOGGER.info(String.format("MAX PAS COST DELTA: %.10f", maxPasReducedCost));
+    LOGGER.info(String.format("PAS of MAX COST DELTA: %s", maxReducedCostPas));
+    LOGGER.info(String.format("AVERAGE PAS COST DELTA: %.10f", totalPasReducedCost/numConsideredPas));
 
     return Pair.of(flowShiftedPass, passWithoutBush);
   }
@@ -547,6 +574,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
   /**
    * access to bushes
+   *
    * @return bushes
    */
   protected Set<B> getBushes(){
@@ -646,7 +674,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param linkSegmentCosts costs to use
    */
   protected void initialiseBushes(Mode mode, final double[] linkSegmentCosts){
-    final var shortestTreeAlgorithm = createNetworkShortestSearchTreeAlgo(mode, linkSegmentCosts);
+    final var shortestTreeAlgorithm = createInitialNetworkShortestSearchTreeAlgo(mode, linkSegmentCosts);
 
     Set<B> invalidBushesToRemove = new TreeSet<>();
     Zoning zoning = getTransportNetwork().getZoning();
@@ -673,11 +701,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * Create a network wide shortest search tree algorithm based on provided costs
    *
-   * @param theMode to use
+   * @param theMode          to use
    * @param linkSegmentCosts to use
    * @return one-to-all shortest tree search algorithm
    */
-  protected abstract ShortestPathGeneralised createNetworkShortestSearchTreeAlgo(
+  protected abstract ShortestPathGeneralised createInitialNetworkShortestSearchTreeAlgo(
           Mode theMode, final double[] linkSegmentCosts);
 
   /**
@@ -691,7 +719,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * Update all existing PASs costs based on provided original network link segment costs
    *
-   * @param theMode the mode to use
+   * @param theMode                         the mode to use
    * @param originalNetworkLinkSegmentCosts to use
    */
   protected abstract void updatePasCosts(Mode theMode, double[] originalNetworkLinkSegmentCosts);
@@ -703,7 +731,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * todo: optimisation could be to not do this for inactive PASs, but then we have to do this on the fly
    *  when a PAS changes from inactive to active.
    *
-   * @param theMode the mode to use
+   * @param theMode                                 the mode to use
    * @param networkLinkSegmentFlowAcceptanceFactors to determine if a link segment is congested or not
    */
   protected abstract void updatePasStatusBeforeFlowShifts(
@@ -714,7 +742,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * more efficiently, we will remove very low flow links from each bush, implicitly shifting this flow to
    * higher usage branches.
    *
-   * @param flowThreshold any links with flow below this threshold will be implictly branch shifted
+   * @param flowThreshold         any links with flow below this threshold will be implictly branch shifted
    * @param flowAcceptanceFactors to use
    */
   @SuppressWarnings("unchecked")
@@ -824,7 +852,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           double[] costsToUpdate,
           final StaticLtmSimulationData simulationData) {
     try {
-      
+
       /* 1 - NETWORK LOADING - UPDATE ALPHAS - USE BUSH SPLITTING RATES (i-1) -  MODE AGNOSTIC FOR NOW */
       {
         executeNetworkLoading(theMode);
@@ -857,7 +885,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         syncBushFlowsToNetworkFlows();
       }
 
-      /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */     
+      /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */
       {
         // debugging
         boolean logAll = false; //simulationData.getIterationIndex()>=200;
@@ -898,9 +926,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       }
 
       /* 5 - perform low flow branch shifts on the bush level */
-      {
-        performLowFlowBushBranchShifts(0.001, getLoading().getCurrentFlowAcceptanceFactors());
-      }
+//      {
+//        performLowFlowBushBranchShifts(0.001, getLoading().getCurrentFlowAcceptanceFactors());
+//      }
+
       
     }catch(Exception e) {
       LOGGER.severe(e.getMessage());

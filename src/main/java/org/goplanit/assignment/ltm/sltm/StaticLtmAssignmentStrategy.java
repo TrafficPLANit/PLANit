@@ -227,7 +227,7 @@ public abstract class StaticLtmAssignmentStrategy {
       boolean changedScheme = networkLoading.activateNextExtension(mode,true);
       if (!changedScheme) {
         LOGGER.warning(
-            String.format("%sDetected network loading is not converging as expected (internal loading iteration %d) " +
+            String.format("%sDetected network loading is no longer improving (internal loading iteration %d) " +
                             "- unable to activate further extensions, consider aborting",
                 LoggingUtils.runIdPrefix(getAssignmentId()), networkLoadingIterationIndex));
       }

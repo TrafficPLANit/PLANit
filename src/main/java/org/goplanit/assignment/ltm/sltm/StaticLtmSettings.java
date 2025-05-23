@@ -49,6 +49,9 @@ public class StaticLtmSettings {
   /** gap epsilon which is only relevant when using extended iterative schedule of sLTM */
   private Double networkLoadingReceivingFlowGapEpsilon = DEFAULT_NETWORK_LOADING_GAP_EPSILON;
 
+  /** sLTM minimum iterations to apply to loading regardless of gap */
+  private Integer networkLoadingMinIterations = DEFAULT_NETWORK_LOADING_MIN_ITERATIONS;
+
   // ---------------------- PATH BASED ONLY OPTIONS ----------------------------------------------------
   // todo: refactor in separate implementation proper at some point
 
@@ -90,6 +93,9 @@ public class StaticLtmSettings {
 
   /** default network loading gap epsilon to apply */
   public static double DEFAULT_NETWORK_LOADING_GAP_EPSILON = 0.001;
+
+  /** default network loading minimum iterations to apply */
+  public static int DEFAULT_NETWORK_LOADING_MIN_ITERATIONS = 1;
 
   /** default for disabling path generation after a certain iteration */
   public static int DEFAULT_DISABLE_PATH_GENERATION_AFTER_ITERATION = Integer.MAX_VALUE;
@@ -220,6 +226,14 @@ public class StaticLtmSettings {
 
   public void setNetworkLoadingReceivingFlowGapEpsilon(Double networkLoadingReceivingFlowGapEpsilon) {
     this.networkLoadingReceivingFlowGapEpsilon = networkLoadingReceivingFlowGapEpsilon;
+  }
+
+  public Integer getNetworkLoadingMinIterations() {
+    return networkLoadingMinIterations;
+  }
+
+  public void setNetworkLoadingMinIterations(Integer networkLoadingMinIterations) {
+    this.networkLoadingMinIterations = networkLoadingMinIterations;
   }
 
   /**
