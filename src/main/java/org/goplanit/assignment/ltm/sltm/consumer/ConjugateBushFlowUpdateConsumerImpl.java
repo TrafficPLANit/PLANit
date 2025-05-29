@@ -126,7 +126,8 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
 
       /* bush splitting rates by [exit segment, exit label] as key
       *  in conjugate setting all conjugate entry segments will have the same splitting rates */
-      double[] splittingRates = bush.getSplittingRates(currConjVertex);
+      double[] splittingRates = null;
+      double splittingRateTotal = -1;
       for (var conjEntrySegment : currConjVertex.getEntryEdgeSegments()) {
         if (!bush.contains(conjEntrySegment)) {
           continue;
@@ -167,19 +168,24 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
           }
         }
 
-        double splittingRateTotal = ArrayUtils.sumOf(splittingRates);
-        if (splittingRateTotal <= 0.0) {
-          if(bushConjSegmentSendingFlow > 0 && !(currConjVertex instanceof ConnectoidNode)){
-            LOGGER.severe(String.format(
-                "Splitting rates 0%%, but sending flow present (%.4f), for segment %s on bush %s, this shouldn't happen",
-                bushConjSegmentSendingFlow, conjEntrySegment.getIdsAsString(), bush.getRootZone().getIdsAsString()));
+        if(splittingRates == null){
+          splittingRates = bush.getSplittingRates(currConjVertex);
+          splittingRateTotal = ArrayUtils.sumOf(splittingRates);
+
+          if(!(currConjVertex instanceof ConnectoidNode)) {
+            if (splittingRateTotal <= 0.0 && bushConjSegmentSendingFlow > 0) {
+              LOGGER.severe(String.format(
+                  "Splitting rates 0%%, but sending flow present (%.4f), for segment %s on bush %s, this shouldn't happen",
+                  bushConjSegmentSendingFlow, conjEntrySegment.getIdsAsString(), bush.getRootZone().getIdsAsString()));
+              continue;
+            }
+
+            if (Precision.smaller(splittingRateTotal, 1, Precision.EPSILON_6)) {
+              LOGGER.severe("Splitting rates do not add up to 100%, this shouldn't happen");
+            }
           }
-          continue;
         }
 
-        if(Precision.smaller(splittingRateTotal, 1, Precision.EPSILON_6)){
-          LOGGER.severe("Splitting rates do not add up to 100%, this shouldn't happen");
-        }
         int splittingRateIndex = 0;
         double totalExitAcceptedFlow = 0;
         for (var conjExitSegment : currConjVertex.getExitEdgeSegments()) {

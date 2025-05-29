@@ -66,6 +66,16 @@ public interface NetworkLoadingSplittingRateData {
   public abstract void registerTrackedNode(final DirectedVertex node);
 
   /**
+   * Register a potentially blocking node so we not only track its splitting rates but also mark it as potentially
+   * blocking. This see to it that it is considered for node model updates which in turn might impact its splitting
+   * rates in a network setting
+   *
+   * @param potentiallyBlockingNode mark as potentially blocking (and track it if not already done so)
+   */
+  public abstract void registerPotentiallyBlockingNode(final DirectedVertex potentiallyBlockingNode);
+
+
+  /**
    * Obtain the downstream splitting rates of given node entry segment (can be modified)
    * 
    * @param entrySegment to obtain for

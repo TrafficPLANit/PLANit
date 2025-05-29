@@ -27,7 +27,7 @@ public class ConjugateCostUtils {
         double[] originalNetworkCosts,
         double[] conjNetworkCosts) {
 
-      DirectedVertex node = nonConjugateEntrySegment.getDownstreamVertex();
+    DirectedVertex node = nonConjugateEntrySegment.getDownstreamVertex();
 
     // UPDATE LINK COSTS
     double currentCost;

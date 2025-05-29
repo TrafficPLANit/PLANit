@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
+import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.assignment.ltm.sltm.conjugate.PasFlowShiftConjugateDestinationBasedExecutor;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
@@ -374,85 +375,90 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     Pas<?,?> maxReducedCostPas = null;
     double totalPasReducedCost = 0;
     int numConsideredPas = 0;
-    // process on a per bush basis, so we have full control over ordering
-    // TODO change ordering of PASs so we run from PAS closest to destination backward
-    //  1. ONLY update PASs that have a gap worse than that of the overall gap
-    //  2. have a minimum portion of PASs to update
-    //  3. have a maximum portion of PASs to update
-    //  4. we should do a local equilibration of multiple iterations that considers the flow shifted in the cost
-    //    even if we do not change it on the network level, this should assist in not overshooting TOO much
+
     hookBeforeCongestedPasUpdate(pasExecutors.values());
-    for (var pas : sortedPass) {
-      // ignore uncongested PASs or PASs not on bush
-      if(pas.getStatus() == PasStatus.UNCONGESTED_WITH_SHIFT || !pas.hasRegisteredBushes()){
-        continue;
-      }
 
-      if(pas.pasId == 8923L){
-        int bla = 4;
-      }
+    // for congested, do each PAS once, then repeat x times so PAS interaction is covered
+    // better by having internal loop here, rather than within the PAS
+    int MAX_ITERATIONS_ALLOWED = 5;
+    int iteration = 1;
+    boolean doNotStop = true;
+    do {
+      LOGGER.info(String.format("--- NEXT PAS INTERNAL ITERATION %d ----", iteration));
+      //todo re-sort PAS each iteration?
+      for (var pas : sortedPass) {
+        // ignore uncongested PASs or PASs not on bush
+        if (pas.getStatus() == PasStatus.UNCONGESTED_WITH_SHIFT || !pas.hasRegisteredBushes()) {
+          continue;
+        }
 
-      var pasFlowShifter = pasExecutors.get(pas);
+        if (pas.pasId == 23L || pas.pasId == 22L) {
+          int bla = 4;
+        }
 
-      /* cannot do overlapping PASs without network loading update, so skip those for now */
-      if(!getSettings().isAllowOverlappingPasUpdate() && pas.containsAny(linkSegmentsUsed))
-      {
-        continue;
-      }
+        var pasFlowShifter = pasExecutors.get(pas);
 
-      if (!(pasFlowShifter.getS2SendingFlow() > 0) || !pas.hasRegisteredBushes()) { // todo: this piece of code is duplication from line 166 -> consolidate
-        /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial
-         * overlapping S2 segments */
-        pas.removeAllRegisteredBushes();
-        passWithoutBush.add(pas);
-        continue;
-      }
+        /* cannot do overlapping PASs without network loading update, so skip those for now */
+        if (!getSettings().isAllowOverlappingPasUpdate() && pas.containsAny(linkSegmentsUsed)) {
+          continue;
+        }
 
-      if(pas.getReducedCost() > maxPasReducedCost){
-        maxPasReducedCost = pas.getReducedCost();
-        maxReducedCostPas = pas;
-      }
-      totalPasReducedCost += pas.getReducedCost();
-      ++numConsideredPas;
-
-      // ORIGINAL ONE SHOT
-      /* untouched PAS (no flows shifted yet) in this iteration */
-//      boolean pasFlowShifted = pasFlowShifter.performOneShotCongestedS2FlowShift(
-//          pasProposedFlowShifts.get(pas), theMode, getLoading(), getSmoothing(), logAll);
-
-
-      // equilibrated --> needs pas cost update because change of alphas and flows may impact low/high cost
-      double pasFlowShifted =
-          pasFlowShifter.performEquilibratedCongestedFlowShifts(
-              theMode,
-              this,
-              originalNetworkCosts,
-              conjSegmentCosts,
-              nlConsistentFlowAcceptanceFactors,
-              getBushes(),
-              logAll);
-
-      if (pasFlowShifted > 0) {
-        totalCongestedFlowShifted += pasFlowShifted;
-        flowShiftedPass.add(pas);
-
-        /* s1 */
-        pas.forEachEdgeSegment(true /* low cost */, linkSegmentsUsed::add);
-        /* s2 */
-        pas.forEachEdgeSegment(false /* high cost */, linkSegmentsUsed::add);
-
-        /* when s2 no longer used on any bush - mark PAS for overall removal */
-        if (!pas.hasRegisteredBushes()) {
+        if (!(pasFlowShifter.getS2SendingFlow() > 0) || !pas.hasRegisteredBushes()) { // todo: this piece of code is duplication from line 166 -> consolidate
+          /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial
+           * overlapping S2 segments */
+          pas.removeAllRegisteredBushes();
           passWithoutBush.add(pas);
+          continue;
         }
 
-        // so we only log the most prominent pas
-        if(logAll) {
-          logAll = false;
-          LOGGER.info(String.format("   Total pas flow shifted: %.10f", pasFlowShifted));
+        if (iteration==1){
+          if (pas.getReducedCost() > maxPasReducedCost) {
+            maxPasReducedCost = pas.getReducedCost();
+            maxReducedCostPas = pas;
+          }
+          totalPasReducedCost += pas.getReducedCost();
+          ++numConsideredPas;
+        }
+
+        // ORIGINAL ONE SHOT
+        /* untouched PAS (no flows shifted yet) in this iteration */
+        //      boolean pasFlowShifted = pasFlowShifter.performOneShotCongestedS2FlowShift(
+        //          pasProposedFlowShifts.get(pas), theMode, getLoading(), getSmoothing(), logAll);
+
+
+        // equilibrated --> needs pas cost update because change of alphas and flows may impact low/high cost
+        double pasFlowShifted =
+            pasFlowShifter.performEquilibratedCongestedFlowShifts(
+                theMode,
+                this,
+                originalNetworkCosts,
+                conjSegmentCosts,
+                nlConsistentFlowAcceptanceFactors,
+                getBushes(),
+                logAll);
+
+        if (pasFlowShifted > 0) {
+          totalCongestedFlowShifted += pasFlowShifted;
+          flowShiftedPass.add(pas);
+
+          /* s1 */
+          pas.forEachEdgeSegment(true /* low cost */, linkSegmentsUsed::add);
+          /* s2 */
+          pas.forEachEdgeSegment(false /* high cost */, linkSegmentsUsed::add);
+
+          /* when s2 no longer used on any bush - mark PAS for overall removal */
+          if (!pas.hasRegisteredBushes()) {
+            passWithoutBush.add(pas);
+          }
+
+          // so we only log the most prominent pas
+          if (logAll) {
+            logAll = false;
+            LOGGER.info(String.format("   Total pas flow shifted: %.10f", pasFlowShifted));
+          }
         }
       }
-    }
+    }while(iteration++ < MAX_ITERATIONS_ALLOWED);
 
     LOGGER.info(String.format("TOTAL CONGESTED FLOW SHIFTED: %.10f", totalCongestedFlowShifted));
     LOGGER.info(String.format("MAX PAS COST DELTA: %.10f", maxPasReducedCost));

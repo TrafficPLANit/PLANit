@@ -388,6 +388,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param bushes to use
    * @return end merge splitting rates of s2 to be used in s1 flow shift
    */
+  @Deprecated
   protected abstract double[] executeBushS2FlowShiftNoNodeModelUpdate(
           final RootedBush<V,ES> bush,
           final EdgeSegment entrySegment,
@@ -411,6 +412,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param conjSegmentCosts to use
    * @param bushes to use
    */
+  @Deprecated
   protected abstract void executeBushS1FlowShiftNoNodeModelUpdate(
           final RootedBush<V,ES> bush,
           final EdgeSegment entrySegment,

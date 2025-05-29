@@ -79,6 +79,13 @@ public class NetworkLoadingSplittingRateDataComplete extends NetworkLoadingSplit
     return activatedNodes.contains(nodeToVerify); // when tracked assumed potentially blocking
   }
 
+  @Override
+  public void registerPotentiallyBlockingNode(final DirectedVertex potentiallyBlockingNode) {
+    if (!isPotentiallyBlocking(potentiallyBlockingNode)) {
+      registerTrackedNode(potentiallyBlockingNode); // in case not already done so
+    }
+  }
+
 
   /**
    * {@inheritDoc}

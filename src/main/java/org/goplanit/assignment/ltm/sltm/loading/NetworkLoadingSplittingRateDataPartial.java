@@ -61,8 +61,9 @@ public class NetworkLoadingSplittingRateDataPartial extends NetworkLoadingSplitt
   }
 
   /**
-   * Register a potentially blocking node so we not only track its splitting rates but also mark it as potentially blocking. This see to it that it is considered for node model
-   * updates which in turn might impact its splitting rates in a network setting
+   * Register a potentially blocking node so we not only track its splitting rates but also mark it as potentially
+   * blocking. This see to it that it is considered for node model updates which in turn might impact its splitting
+   * rates in a network setting
    * 
    * @param potentiallyBlockingNode mark as potentially blocking (and track it if not already done so)
    */

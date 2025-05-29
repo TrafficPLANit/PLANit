@@ -18,24 +18,18 @@ import org.goplanit.network.transport.ConjugateTransportModelNetworkUtils;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.od.demand.OdDemands;
-import org.goplanit.utils.arrays.ArrayUtils;
-import org.goplanit.utils.functionalinterface.TriConsumer;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
-import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
@@ -47,7 +41,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Base implementation to support a bush based solution for sLTM
@@ -157,7 +150,7 @@ public class StaticLtmConjugateBushStrategy
         int bla = 4;
       }
 
-      boolean pasFlowShifted = executor.executeUncongestedPasEquilibration(
+      double pasFlowShifted = executor.performEquilibratedUncongestedFlowShifts(
         theMode,
         this,
         originalNetworkCosts,
@@ -165,7 +158,7 @@ public class StaticLtmConjugateBushStrategy
         getBushes(),
         false);
 
-      if (pasFlowShifted) {
+      if (pasFlowShifted > 0) {
         flowShiftedPass.add(pas);
 
         if (!pas.hasRegisteredBushes()) {
@@ -851,10 +844,10 @@ public class StaticLtmConjugateBushStrategy
 
           // truly new PAS
           addedPass.add(pasToAdd);
-          if(isDestinationTrackedForLogging(conjBush) || logAll){
-            LOGGER.info(String.format("Registered new PAS (%s) on conjugate bush (%s)",
-                pasToAdd, conjBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-          }
+//          if(isDestinationTrackedForLogging(conjBush) || logAll){
+//            LOGGER.info(String.format("Registered new PAS (%s) on conjugate bush (%s)",
+//                pasToAdd, conjBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+//          }
 
           ++countPassAddedForBush;
           if(pasToAdd.getStatus() == PasStatus.CONGESTED) {

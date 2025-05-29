@@ -437,7 +437,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * edge segments
    */
   public double[] getSplittingRates(final ConjugateDirectedVertex conjugateVertex) {
-    return bushData.getSplittingRates(conjugateVertex);
+    return bushData.getSplittingRates(conjugateVertex, getDag());
   }
 
   /**
@@ -671,18 +671,26 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
       double conjugateVertexAcceptedFlow =
               bushData.getTotalAcceptedFlowToPcuH(currConjugateVertex, originalNetworkFlowAcceptanceFactors);
 
+      if(conjugateVertexAcceptedFlow <= 0){
+        continue;
+      }
+
       /*
        * bush splitting rates by [conjugate exit segment index] - splitting rates are computed based on turn
        * flows but placed in new array. So once we have the splitting rates we can safely update the turn
        * flows without affecting these splitting rates
        */
-      double[] bushSplittingRates = getSplittingRates(currConjugateVertex);
+      double[] bushSplittingRates = null;
       int index = -1;
       for (var turnSegment : currConjugateVertex.getExitEdgeSegments()) {
         ++index;
         if (!containsConjugateSegment(turnSegment)) {
           continue;
         }
+        if(bushSplittingRates == null){
+          bushSplittingRates = getSplittingRates(currConjugateVertex);
+        }
+
         double currTurnSplittingRate = bushSplittingRates[index];
         if (currTurnSplittingRate > 0) {
           double bushTurnLabeledAcceptedFlow = conjugateVertexAcceptedFlow * currTurnSplittingRate;
@@ -711,7 +719,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     forEachTopologicalSortedVertex(isInverted(), currVertex -> {
 
       int index = 0;
-      double[] splittingRates = bushData.getSplittingRates(currVertex);
+      double[] splittingRates = getSplittingRates(currVertex);
 
       for (ConjugateEdgeSegment exitSegment : currVertex.getExitEdgeSegments()) {
         if (!contains(exitSegment)) {
@@ -849,7 +857,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
       if(newFlowtoRedistribute > 0) {
         // updated splitting rates now that flow has been removed, so distribution has changed, use this for
         // redistribution purposes.
-        var updatedSplittingRates = bushData.getSplittingRates(currVertex);
+        var updatedSplittingRates = getSplittingRates(currVertex);
         index = 0;
         for (var altExitSegment : currVertex.getExitEdgeSegments()) {
           var splittingRate = updatedSplittingRates[index++];

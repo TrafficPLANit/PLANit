@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.acyclic.ConjugateACyclicSubGraph;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 
@@ -233,12 +234,13 @@ public class ConjugateBushTurnData implements Iterable<Map.Entry<ConjugateEdgeSe
   /**
    * Collect the splitting rates for a given conjugate node (original link segment). Splitting rates are based on
    * the current turn sending flows s_ab. In case no flows are present zero splitting rates for all turns are returned.
-   * 
+   *
    * @param conjugateVertex to collect bush splitting rates for
+   * @param dag to use in case no splitting rates are available based on turn sending flows
    * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the
    * conjugate node
    */
-  public double[] getSplittingRates(final ConjugateDirectedVertex conjugateVertex) {
+  public double[] getSplittingRates(final ConjugateDirectedVertex conjugateVertex, ConjugateACyclicSubGraph dag) {
     var turns = conjugateVertex.getExitEdgeSegments();
 
     /* determining number of edge segment is costly, instead use edges (which is larger or equal) and then copy
@@ -252,7 +254,25 @@ public class ConjugateBushTurnData implements Iterable<Map.Entry<ConjugateEdgeSe
       splittingRates[index++] = s_ab;
       totalSendingFlow += s_ab;
     }
-    ArrayUtils.divideBy(splittingRates, totalSendingFlow, 0);
+    if(totalSendingFlow > 0) {
+      ArrayUtils.divideBy(splittingRates, totalSendingFlow, 0);
+    }else{
+      // backup
+      int containsIndex = 0;
+      boolean success = false;
+      for (var turn : turns) {
+        if(dag.containsEdgeSegment(turn)) {
+          splittingRates[containsIndex] = 1;
+          LOGGER.fine(String.format("...redirect 100%% of flow to (%s)", turn.getIdsAsString()));
+          success = true;
+          break;
+        }
+        ++containsIndex;
+        if(!success){
+          LOGGER.warning("splitting rates cannot be constructed from turn flows, unable to salvage by using DAG information");
+        }
+      }
+    }
 
     /* truncate */
     splittingRates = Arrays.copyOf(splittingRates, index);

@@ -14,6 +14,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
+import org.goplanit.utils.pcu.PcuCapacitated;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.unit.Unit;
 
@@ -103,6 +104,10 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
 
     double hypoCriticalDelay = 0;
     double hyperCriticalDelay = 0;
+
+    if(inflowRatePcuHour > ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH()){
+      int bla = 4;
+    }
 
     double inflowPcuHLane = inflowRatePcuHour/linkSegment.getNumberOfLanes();
     double outflowPcuHLane = outflowRatePcuHour/linkSegment.getNumberOfLanes();
