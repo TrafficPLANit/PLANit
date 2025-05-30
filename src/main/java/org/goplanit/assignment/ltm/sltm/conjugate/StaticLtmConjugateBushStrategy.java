@@ -725,6 +725,7 @@ public class StaticLtmConjugateBushStrategy
       var bushVertexIter = conjBush.getTopologicalIterator();
       while(bushVertexIter.hasNext()) {
         ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
+        if(conjBushVertex.
         if (conjBush.containsSendingFlow(conjBushVertex)) {
           continue;
         }
@@ -754,6 +755,9 @@ public class StaticLtmConjugateBushStrategy
       }
       if(!replaceZeroFlowSpanningTreeSegments.isEmpty()){
         for(var entry : replaceZeroFlowSpanningTreeSegments.entrySet()){
+
+
+
           conjBush.remove(entry.getKey());
           var newSegment = entry.getValue();
           conjBush.getDag().addEdgeSegment(newSegment);
@@ -836,6 +840,8 @@ public class StaticLtmConjugateBushStrategy
 
             // ending up not adding the PAS, so remove just added segment again
             if(minPathInitialLinkNewToBush) {
+
+
               conjBush.remove(outgoingSegment);
             }
             continue;

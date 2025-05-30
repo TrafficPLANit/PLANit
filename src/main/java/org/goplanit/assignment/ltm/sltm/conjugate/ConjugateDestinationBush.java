@@ -3,6 +3,7 @@ package org.goplanit.assignment.ltm.sltm.conjugate;
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -358,18 +359,10 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
     if (addFlowPcuH > 0) {
       if (!containsConjugateSegment(turn)) {
-
-        if (containsConjugateSegment(turn.getOppositeDirectionSegment())) {
-          //todo eventually phase this out as it should never get triggered anyway anymore with conjugate node per segment
-          // rather than link
-          var originalTurnSegments = turn.getOriginalAdjacentEdgeSegments();
-          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s) where the opposite direction turn" +
-                          "is already is part of the bush, this breaks acyclicity",
-                  originalTurnSegments.first().getXmlId(), originalTurnSegments.second().getXmlId(),
-                  getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+        if(LOGGER.getLevel() == Level.FINE) {
+          LOGGER.fine(String.format("Add turn (%s) in conjugate bush (%s), but this should have already happened earlier, " +
+              "should not happen", turn.getIdsAsString(), getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
-        LOGGER.warning(String.format("Add turn (%s) in conjugate bush (%s), but this should have already happened earlier, " +
-                "should not happen", turn.getIdsAsString(), getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         getDag().addEdgeSegment(turn);
         requireTopologicalSortUpdate = true;
       }

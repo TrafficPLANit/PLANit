@@ -1040,8 +1040,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           AbstractVirtualCost virtualCost,
           StaticLtmLoadingBushBase<?> networkLoading,
           double guaranteedS2SendingFlow, boolean logAll) {
-    // 1% of capacity is accepted as leeway for state change undicing flow shifts
-    double stateChangeLeewayPercentage = 0.01;
+    // 0.1% of capacity is accepted as leeway for state change inducing flow shifts
+    double stateChangeLeewayPercentage = 0.001;
 
     // todo: once we no longer have non-conjugate implementation remove any entry segment based tracking of flow shifts
     Map<EdgeSegment, Double> result = new TreeMap<>();
@@ -1432,7 +1432,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     boolean converged = false;
     int MAX_INTERAL_ITERATIONS_ALLOWED = 1; // set to one as we're trying loop one level higher up
     //int MAX_INTERAL_ITERATIONS_ALLOWED = 10;
-    int internalIteration = 1;
+    int internalIteration = 3;
     final Map<ConjugateDestinationBush, Double> bushS2RemainingSendingFlows = new TreeMap<>();
     boolean doNotStop = true;
     double totalPasShift = 0;
@@ -1468,7 +1468,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           networkLoading,
           guaranteedS2SendingFlow,
           logAll);
-      double smoothedRawPasflowShift = proposedShiftResult.values().iterator().next();
+      double rawProposedFlowShift = proposedShiftResult.values().iterator().next();
 
       // TODO TODO
       // SEE SIOUX FALLS ON WHY --> SHIFT of >100 --> becomes ~5 due to discotninuity crossing --> then
@@ -1557,7 +1557,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           (pas.getAlternativeLowCost() * Math.max(1,(s1SendingFlow + s2SendingFlow)));
       // reuse criterion of gap (overall gap is done wider, so we do not update gap as such here)
       //converged = pasGap <= gapFunction.getStopCriterion().getEpsilon();
-      converged = false;//pasGap <= conjStrategy.getGapFunction().getGap();
+      converged = pasGap <= conjStrategy.getGapFunction().getGap();
       ++internalIteration;
 
       doNotStop = !converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED;

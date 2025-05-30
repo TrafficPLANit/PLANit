@@ -380,6 +380,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
   @SuppressWarnings("unchecked")
   @Override
   public void removeEdgeSegment(E edgeSegment) {
+
+
     registeredLinkSegments.set((int) edgeSegment.getId(), false);
     if (!isConnectedToAnySubgraphEdgeSegment((V) edgeSegment.getDownstreamVertex())) {
       removeVertexData((V) edgeSegment.getDownstreamVertex());
