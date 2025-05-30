@@ -392,7 +392,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           continue;
         }
 
-        if (pas.pasId == 23L || pas.pasId == 22L) {
+        if (pas.pasId == 17215L) {
           int bla = 4;
         }
 

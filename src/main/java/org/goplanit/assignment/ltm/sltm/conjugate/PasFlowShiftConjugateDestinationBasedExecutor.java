@@ -258,11 +258,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         }
         double bushWeightedFlowShift = remainingPasFlowShift * bushPortion;
 
-        if (isDestinationTrackedForLogging(conjBush) || logAll) {
-          LOGGER.info(String.format(
-              "     Shift: %.9f - link segment (%s) - bush (%s) ",
-              bushWeightedFlowShift, currentConjSegment.getIdsAsString(), conjBush.getRootZone().getIdsAsString()));
-        }
+//        if (isDestinationTrackedForLogging(conjBush) || logAll) {
+//          LOGGER.info(String.format(
+//              "     Shift: %.9f - link segment (%s) - bush (%s) ",
+//              bushWeightedFlowShift, currentConjSegment.getIdsAsString(), conjBush.getRootZone().getIdsAsString()));
+//        }
 
         double currentFlow = conjBush.getTurnSendingFlow(currentConjSegment);
         if (currentFlow + bushWeightedFlowShift < 0) {
@@ -1422,7 +1422,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // enter congested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 1; // set to one as we're trying loop one level higher up
+    int MAX_INTERAL_ITERATIONS_ALLOWED = 3; // set to one as we're trying loop one level higher up
     //int MAX_INTERAL_ITERATIONS_ALLOWED = 10;
     int internalIteration = 1;
     final Map<ConjugateDestinationBush, Double> bushS2RemainingSendingFlows = new TreeMap<>();
@@ -1543,7 +1543,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           (pas.getAlternativeLowCost() * Math.max(1,(s1SendingFlow + s2SendingFlow)));
       // reuse criterion of gap (overall gap is done wider, so we do not update gap as such here)
       //converged = pasGap <= gapFunction.getStopCriterion().getEpsilon();
-      converged = pasGap <= conjStrategy.getGapFunction().getGap();
+      converged = false;//pasGap <= conjStrategy.getGapFunction().getGap();
       ++internalIteration;
 
       doNotStop = !converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED;
