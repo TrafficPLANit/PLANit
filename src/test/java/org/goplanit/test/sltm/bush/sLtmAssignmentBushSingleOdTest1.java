@@ -198,7 +198,7 @@ public class sLtmAssignmentBushSingleOdTest1 {
     sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
     var fixedSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-    fixedSmoothing.setStepSize(0.5);
+    fixedSmoothing.setStepSize(1);
 
     sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
 

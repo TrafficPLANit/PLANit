@@ -79,8 +79,9 @@ public class ConjugateBushTurnData implements Iterable<Map.Entry<ConjugateEdgeSe
           boolean force) {
 
     if (Double.isNaN(turnSendingFlow)) {
-      LOGGER.severe("Turn (%s to %s) sending flow is NAN, shouldn't happen - " +
-              "consider identifying issue as turn flow cannot be updated properly, reset to 0.0 flow");
+      LOGGER.severe(String.format("Turn (%s) sending flow is NAN, shouldn't happen - consider identifying issue " +
+              "as turn flow cannot be updated properly, reset to 0.0 flow",
+          turnSegment.getIdsAsString()));
       turnSendingFlow = 0.0;
     }else if(!force){
       // not forced, so apply some additional checking in situation of low flows and negative flows
@@ -241,6 +242,9 @@ public class ConjugateBushTurnData implements Iterable<Map.Entry<ConjugateEdgeSe
    * conjugate node
    */
   public double[] getSplittingRates(final ConjugateDirectedVertex conjugateVertex, ConjugateACyclicSubGraph dag) {
+    if(!conjugateVertex.hasExitEdgeSegments()){
+      return null;
+    }
     var turns = conjugateVertex.getExitEdgeSegments();
 
     /* determining number of edge segment is costly, instead use edges (which is larger or equal) and then copy
@@ -268,9 +272,10 @@ public class ConjugateBushTurnData implements Iterable<Map.Entry<ConjugateEdgeSe
           break;
         }
         ++containsIndex;
-        if(!success){
-          LOGGER.warning("splitting rates cannot be constructed from turn flows, unable to salvage by using DAG information");
-        }
+      }
+      if(!success){
+        LOGGER.warning("splitting rates cannot be constructed from turn flows, unable to salvage by " +
+            "using DAG information");
       }
     }
 

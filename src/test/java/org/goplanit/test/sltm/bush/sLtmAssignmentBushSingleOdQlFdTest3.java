@@ -331,7 +331,7 @@ public class sLtmAssignmentBushSingleOdQlFdTest3 {
 
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
               sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(1);
+      fixedStepSmoothing.setStepSize(0.2);
 
       /* CONJUGATE DESTINATION BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);

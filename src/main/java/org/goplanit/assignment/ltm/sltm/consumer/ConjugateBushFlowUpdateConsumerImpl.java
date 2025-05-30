@@ -168,7 +168,7 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
           }
         }
 
-        if(splittingRates == null){
+        if(splittingRates == null && currConjVertex.hasExitEdgeSegments()){
           splittingRates = bush.getSplittingRates(currConjVertex);
           splittingRateTotal = ArrayUtils.sumOf(splittingRates);
 

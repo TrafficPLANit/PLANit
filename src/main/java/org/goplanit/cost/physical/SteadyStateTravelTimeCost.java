@@ -106,7 +106,11 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double hyperCriticalDelay = 0;
 
     if(inflowRatePcuHour > ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH()){
-      int bla = 4;
+      if((inflowRatePcuHour - Precision.EPSILON_1) > ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH()) {
+        LOGGER.warning(String.format("Inflow rate (%.2f) exceed capacity for link (%s), truncate to capacity (%.2f): ",
+            inflowRatePcuHour, linkSegment.getIdsAsString(), ((PcuCapacitated) linkSegment).getCapacityOrDefaultPcuH()));
+      }
+      inflowRatePcuHour = ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH();
     }
 
     double inflowPcuHLane = inflowRatePcuHour/linkSegment.getNumberOfLanes();

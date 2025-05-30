@@ -71,7 +71,9 @@ public class BushTurnData {
       final EdgeSegment fromSegment, final EdgeSegment toSegment, double turnSendingFlow, boolean allowTurnRemoval) {
 
     if (Double.isNaN(turnSendingFlow)) {
-      LOGGER.severe("Turn (%s to %s) sending flow is NAN, shouldn't happen - consider identifying issue as turn flow cannot be updated properly, reset to 0.0 flow");
+      LOGGER.severe(String.format("Turn (%s to %s) sending flow is NAN, shouldn't happen - consider identifying issue " +
+          "as turn flow cannot be updated properly, reset to 0.0 flow",
+          fromSegment.getIdsAsString(), toSegment.getIdsAsString()));
       turnSendingFlow = 0.0;
     } else if (!Precision.positive(turnSendingFlow)) {
       if (allowTurnRemoval) {

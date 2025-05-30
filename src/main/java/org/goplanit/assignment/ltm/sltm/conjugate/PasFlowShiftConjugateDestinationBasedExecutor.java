@@ -289,7 +289,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       // network level splitting rates update
       var originalTurnEntrySegment = currentConjSegment.getOriginalAdjacentEdgeSegments().first();
-      var originalTurnExitSegment = currentConjSegment.getOriginalAdjacentEdgeSegments().first();
+      var originalTurnExitSegment = currentConjSegment.getOriginalAdjacentEdgeSegments().second();
       boolean connectorTurn = originalTurnEntrySegment==null || originalTurnExitSegment==null;
       if(totalBushAppliedFlowShift > 0 && !connectorTurn){
         // any additional flow to a turn may potentially cause congestion. to ensure node model calculates such a node
@@ -1105,7 +1105,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
     }
 
-
     if (numerator != 0) {
       flowShift = numerator / denominator;
 
@@ -1257,7 +1256,13 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       // determine proposed flow shift now that we have costs and available flows
       var proposedShiftResult = determineProposedFlowShiftByLoadingEntrySegment(
-          theMode, conjStrategy.getPhysicalCost(), conjStrategy.getVirtualCost(), networkLoading, guaranteedS2SendingFlow, logAll);
+          theMode,
+          conjStrategy.getPhysicalCost(),
+          conjStrategy.getVirtualCost(),
+
+          networkLoading,
+          guaranteedS2SendingFlow,
+          logAll);
       double rawProposedFlowShift = proposedShiftResult.values().iterator().next();
       double proposedFlowShift = Math.min(rawProposedFlowShift, guaranteedS2SendingFlow); // truncate to what is available
 
@@ -1267,6 +1272,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double s1SlackFlow = determinePasAlternativeSlackFlow(
           networkLoading, true, ignoreInitialConjEdgeSegment).first();
       if(proposedFlowShift > s1SlackFlow){
+        //todo: we already adjust for discontinuities in method, probably better to split that out so we do not
+        // do that and only do it here for uncongested!
+
         // insufficient slack, do not process (further) - mark for congested processing
         pas.updateStatus(PasStatus.UNCONGESTED_WITHOUT_SHIFT);
         break;
@@ -1422,7 +1430,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // enter congested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 3; // set to one as we're trying loop one level higher up
+    int MAX_INTERAL_ITERATIONS_ALLOWED = 1; // set to one as we're trying loop one level higher up
     //int MAX_INTERAL_ITERATIONS_ALLOWED = 10;
     int internalIteration = 1;
     final Map<ConjugateDestinationBush, Double> bushS2RemainingSendingFlows = new TreeMap<>();
@@ -1453,8 +1461,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       // determine proposed flow shift now that we have costs and available flows
       var proposedShiftResult = determineProposedFlowShiftByLoadingEntrySegment(
-          theMode, conjStrategy.getPhysicalCost(), conjStrategy.getVirtualCost(), networkLoading, guaranteedS2SendingFlow, logAll);
-      double rawProposedFlowShift = proposedShiftResult.values().iterator().next();
+          theMode,
+          conjStrategy.getPhysicalCost(),
+          conjStrategy.getVirtualCost(),
+
+          networkLoading,
+          guaranteedS2SendingFlow,
+          logAll);
+      double smoothedRawPasflowShift = proposedShiftResult.values().iterator().next();
 
       // TODO TODO
       // SEE SIOUX FALLS ON WHY --> SHIFT of >100 --> becomes ~5 due to discotninuity crossing --> then
