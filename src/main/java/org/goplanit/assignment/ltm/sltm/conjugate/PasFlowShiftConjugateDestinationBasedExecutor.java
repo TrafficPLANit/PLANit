@@ -3,7 +3,6 @@ package org.goplanit.assignment.ltm.sltm.conjugate;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.goplanit.assignment.ltm.sltm.*;
 import org.goplanit.assignment.ltm.sltm.consumer.NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer;
-import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSplittingRateDataPartial;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
@@ -16,11 +15,12 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.misc.Quadruple;
+import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.pcu.PcuCapacitated;
-import org.ojalgo.array.Array1D;
 import org.ojalgo.function.PrimitiveFunction;
 import org.ojalgo.function.aggregator.Aggregator;
 
@@ -520,6 +520,26 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     updateOriginalEntrySegmentSplittingRate(originalEntrySegment, networkExitSegmentSplittingRates, networkLoading);
   }
 
+  protected static double computeRegularDTravelTimeDFlowSingleLink(
+      final Mode theMode,
+      final AbstractPhysicalCost physicalCost,
+      final AbstractVirtualCost virtualCost,
+      EdgeSegment originalEntrySegment,
+      boolean unCongested) {
+
+      if (originalEntrySegment instanceof MacroscopicLinkSegment) {
+        return physicalCost.getDTravelTimeDFlow(
+            unCongested, theMode, (MacroscopicLinkSegment) originalEntrySegment);
+      } else if (originalEntrySegment instanceof ConnectoidSegment) {
+        return virtualCost.getDTravelTimeDFlow(
+            unCongested, theMode, (ConnectoidSegment) originalEntrySegment);
+      } else {
+        LOGGER.severe(String.format("Unsupported edge segment (%s) to obtain derivative of cost towards flow from",
+            originalEntrySegment.getIdsAsString()));
+        return 0.0;
+      }
+    }
+
   /**
    * Constructor
    *
@@ -544,11 +564,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    */
   @Override
   protected Pair<ConjugateEdgeSegment, Boolean> findFirstCongestedEdgeSegmentOnPasAlternative(
-          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment) {
+          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
 
     ConjugateEdgeSegment[] alternative = pas.getAlternative(lowCost);
     ConjugateEdgeSegment currConjSegment = null;
-    int index = ignoreInitialSegment ? 1 : 0;
+    int index = 0;
     for (; index < alternative.length; ++index) {
       currConjSegment = alternative[index];
 
@@ -591,34 +611,70 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     return null;
   }
 
+  /** Compute special derivative for changing flow on uncongested turn
+  *         given another turn is congested and most restrictive
+   *         This replaces the "normal" hypercritical derivative
+  */
+  protected double getHyperCriticalDTravelTimeDFlowNotMostRestrictiveTurnOnCongestedLink(
+      final StaticLtmLoadingBushBase<?> networkLoading,
+      final AbstractPhysicalCost physicalCost,
+      ConjugateEdgeSegment turn,
+      EdgeSegment mostRestrictingExit,
+      double mostRestrExitDemandConstrainedFlow) {
+
+    EdgeSegment originalEntrySegment = turn.getOriginalAdjacentEdgeSegments().first();
+    EdgeSegment originalExitSegment = turn.getOriginalAdjacentEdgeSegments().second();
+
+    var alpha_i = networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntrySegment.getId()];
+    var splittingRateToMostRestricting = networkLoading.getSplittingRateData().getSplittingRate(originalEntrySegment, mostRestrictingExit);
+    var u_i = networkLoading.getCurrentInflowsPcuH()[(int) originalEntrySegment.getId()];
+    var u_ijMostRestricting = u_i * splittingRateToMostRestricting;
+    if(u_ijMostRestricting <= 0){
+      LOGGER.severe("should always have most restricting turn flow but NOT???");
+      return 0;
+    }
+    var c_i = Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
+        ((PcuCapacitated) originalEntrySegment).getCapacityOrDefaultPcuH());
+    var c_j_mostRestricting = Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
+        ((PcuCapacitated) mostRestrictingExit).getCapacityOrDefaultPcuH());
+    var r_jMostRestr =
+        c_j_mostRestricting - mostRestrExitDemandConstrainedFlow;
+    var timePeriodH = ((SteadyStateTravelTimeCost) physicalCost).getCurrentTimePeriodH();
+    // b_j is the scaled sending flows of all other turns combined into the most restricting out link except for
+    // the turn coming from our in link to the most restricting out link
+    // b_j = (C_i*u_i_jMostRestr*(1-alpha_i))/(alpha_i*u_i) <-- see doc for how this was derived
+    var approximateBMostRestricting =
+        (c_i * (r_jMostRestr - (alpha_i * u_ijMostRestricting))) / (alpha_i * u_i);
+    // d_hyper/du_ij for any j not going to the most restricting out link, given the link is congested due to
+    // another turn into the known most restricting out link:
+    // d_hyper/du_ij = (1/2*T*b_j)/(C_i*r_j)
+    double dTravelTimeDFlow =
+        (0.5 * timePeriodH * approximateBMostRestricting) /
+            (c_i * r_jMostRestr);
+    return dTravelTimeDFlow;
+
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
-  protected double getDTravelTimeDFlow(
+  protected Pair<Double,Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
           final Mode theMode,
           final StaticLtmLoadingBushBase<?> networkLoading,
           final AbstractPhysicalCost physicalCost,
           final AbstractVirtualCost virtualCost,
-          boolean isLowCostAlternative,
-          boolean ignoreFirstSegment) {
+          boolean isLowCostAlternative) {
     double dTravelTimeDFlow = 0.0;
 
     var pasAlternative = this.pas.getAlternative(isLowCostAlternative);
-    var otherPasAlternative = this.pas.getAlternative(!isLowCostAlternative);
 
-    int index = ignoreFirstSegment? 1 : 0;
-    while(index < pasAlternative.length){
-      boolean isDiverge = (index == 0);
-      boolean isMerge = (index == (pasAlternative.length-1));
-
+    boolean continueWithMergeDerivative = true;
+    int index = 1;
+    while(index < (pasAlternative.length-1)){
       ConjugateEdgeSegment currSegment = pasAlternative[index++];
-      if(!currSegment.hasOriginalEntryEdgeSegment()){
-        continue;
-      }
       EdgeSegment originalEntrySegment = currSegment.getOriginalAdjacentEdgeSegments().first();
       EdgeSegment originalExitSegment = currSegment.getOriginalAdjacentEdgeSegments().second();
-
 
       boolean unCongested = !isCongested(networkLoading, originalEntrySegment);
       EdgeSegment mostRestrictingExit = null;
@@ -629,11 +685,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         mostRestrictingExit = mostRestrictingExitDemandConstrFlowResult.first();
         mostRestrExitDemandConstrainedFlow = mostRestrictingExitDemandConstrFlowResult.second();
       }
-      else if(isMerge && isLowCostAlternative){
-        // MERGE
-        // todo: to be replaced by analytical version just like the one below, only merge should also consider
-        //  change from the other alternative adding to it for now ignore
-      }
+
       // if for whatever reason we reverted to uncongested, no most restricting exists and we reset flag to avoid issues
       // with derivatives
       if(mostRestrictingExit == null){
@@ -643,63 +695,164 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double currDTravelTimeDFlow = 0.0;
       boolean thisAltOnMostRestrictingTurn = (mostRestrictingExit == originalExitSegment);
 
-      // DIVERGE/ON PAS/MERGE (congested link)
+      // ON PAS (congested link)
       // - case 1: flow not on most-restrictive turn --> compute hypo as if uncongested, allow to continue since
       //           flow change is expected to continue + use special derivative
       // - case 2: flow on most-restrictive turn --> treat as congested and stop after this link as flow change is not
       //           expected to propagate further
       if(!unCongested && !thisAltOnMostRestrictingTurn){
-        // case 1: use hypo critical uncongested derivative + special derivative for changing flow on uncongested turn
+        // case 1: use hypo critical uncongested derivative + special derivative for changing flow on
+        //          uncongested turn
         //         given another turn is congested and most restrictive
-        var alpha_i = networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntrySegment.getId()];
-        var splittingRateToMostRestricting = networkLoading.getSplittingRateData().getSplittingRate(originalEntrySegment, mostRestrictingExit);
-        var u_i = networkLoading.getCurrentInflowsPcuH()[(int) originalEntrySegment.getId()];
-        var u_ijMostRestricting = u_i * splittingRateToMostRestricting;
-        if(u_ijMostRestricting <= 0){
-          LOGGER.severe("should always have most restricting turn flow but NOT???");
-        }else {
-          var c_i = Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
-              ((PcuCapacitated) originalEntrySegment).getCapacityOrDefaultPcuH());
-          var c_j_mostRestricting = Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
-              ((PcuCapacitated) mostRestrictingExit).getCapacityOrDefaultPcuH());
-          var r_jMostRestr =
-              c_j_mostRestricting - mostRestrExitDemandConstrainedFlow;
-          var timePeriodH = ((SteadyStateTravelTimeCost) physicalCost).getCurrentTimePeriodH();
-          // b_j is the scaled sending flows of all other turns combined into the most restricting out link except for
-          // the turn coming from our in link to the most restricting out link
-          // b_j = (C_i*u_i_jMostRestr*(1-alpha_i))/(alpha_i*u_i) <-- see doc for how this was derived
-          var approximateBMostRestricting =
-              (c_i * (r_jMostRestr - (alpha_i * u_ijMostRestricting))) / (alpha_i * u_i);
-          // d_hyper/du_ij for any j not going to the most restricting out link, given the link is congested due to
-          // another turn into the known most restricting out link:
-          // d_hyper/du_ij = (1/2*T*b_j)/(C_i*r_j)
-          currDTravelTimeDFlow =
-              (0.5 * timePeriodH * approximateBMostRestricting) /
-                  (c_i * r_jMostRestr);
-        }
-
+        currDTravelTimeDFlow += getHyperCriticalDTravelTimeDFlowNotMostRestrictiveTurnOnCongestedLink(
+            networkLoading, physicalCost, currSegment, mostRestrictingExit, mostRestrExitDemandConstrainedFlow);
         unCongested = true; // triggers adding hypo critical delay via normal approach below
       } // case 2 no action needed, remains congested on most restricting turn, or truly uncongested
 
-      if (originalEntrySegment instanceof MacroscopicLinkSegment) {
-        currDTravelTimeDFlow +=
-            physicalCost.getDTravelTimeDFlow(unCongested, theMode, (MacroscopicLinkSegment) originalEntrySegment);
-      } else if (originalEntrySegment instanceof ConnectoidSegment) {
-        currDTravelTimeDFlow +=
-            virtualCost.getDTravelTimeDFlow(unCongested, theMode, (ConnectoidSegment) originalEntrySegment);
-      } else {
-        LOGGER.severe(String.format("Unsupported edge segment (%s) to obtain derivative of cost towards flow from",
-            originalEntrySegment.getIdsAsString()));
-      }
-
+      currDTravelTimeDFlow += computeRegularDTravelTimeDFlowSingleLink(
+          theMode, physicalCost, virtualCost, originalEntrySegment, unCongested);
       dTravelTimeDFlow += currDTravelTimeDFlow;
 
       if(!unCongested && thisAltOnMostRestrictingTurn){
         // no more flow change beyond here due to it being a bottleneck
+        continueWithMergeDerivative = false;
         break;
       }
     }
-    return dTravelTimeDFlow;
+    return Pair.of(dTravelTimeDFlow, continueWithMergeDerivative);
+  }
+
+  /**
+   *  compute diverge derivative from perspective of s2.
+   * @param theMode to use
+   * @param networkLoading to use
+   * @param physicalCost to use
+   * @param virtualCost to use
+   * @return [dTtdFlow (double), alpha (double), s1 continue (true/false), s2 continue (true/false)]
+   */
+  protected Object[] getDTravelTimeDFlowDiverge(
+      final Mode theMode,
+      final StaticLtmLoadingBushBase<?> networkLoading,
+      final AbstractPhysicalCost physicalCost,
+      final AbstractVirtualCost virtualCost) {
+    double dTravelTimeDFlow = 0.0;
+
+    // DIVERGE:
+    //
+    // (un)congested: no change in flow regardless, so no derivative exists really. We can only
+    //                consider to what extent the rest of the PAS should be considered.
+    // key here is the fact there is no combined change in flow at any time
+    // for NEWELL we will need some kind of proportionality otherwise we have infinite potential solutions
+
+    ConjugateEdgeSegment currS1Segment = this.pas.getFirstEdgeSegment(true);
+    ConjugateEdgeSegment currS2Segment = this.pas.getFirstEdgeSegment(false);
+    if(!currS1Segment.hasOriginalEntryEdgeSegment()){
+      return new Object[]{0.0, 1.0, true, true};
+    }
+
+//    EdgeSegment originalEntrySegment = currS1Segment.getOriginalAdjacentEdgeSegments().first();
+//    EdgeSegment originalS1ExitSegment = currS1Segment.getOriginalAdjacentEdgeSegments().second();
+//    EdgeSegment originalS2ExitSegment = currS2Segment.getOriginalAdjacentEdgeSegments().second();
+//
+//    boolean unCongested = !isCongested(networkLoading, originalEntrySegment);
+//    EdgeSegment mostRestrictingExit = null;
+//    double mostRestrExitDemandConstrainedFlow = 0;
+//    if(!unCongested){
+//      var mostRestrictingExitDemandConstrFlowResult = identifyMostRestrictingOutSegmentAndDemandConstrainedFlow(
+//          originalEntrySegment, networkLoading); // todo should be done once and cached
+//      mostRestrictingExit = mostRestrictingExitDemandConstrFlowResult.first();
+//      mostRestrExitDemandConstrainedFlow = mostRestrictingExitDemandConstrFlowResult.second();
+//    }
+//
+//    if(mostRestrictingExit == null){
+//      unCongested = true;
+//    }
+//
+//    // DIVERGE:
+//    //
+//    // (un)congested: no change in flow regardless, so no derivative exists really. We can only
+//    //                consider to what extent the rest of the PAS should be considered.
+//    // key here is the fact there is no combined change in flow at any time
+//    // for NEWELL we will need some kind of proportionality otherwise we have infinite potential solutions
+//    if(unCongested || (mostRestrictingExit!=originalS1ExitSegment && mostRestrictingExit!=originalS2ExitSegment)){
+//      //                der.,alpha, s1 continue y/n, s2 continue y/n
+//      return new Object[]{0.0, 1.0, true, true};
+//    }else{
+//      dTravelTimeDFlow = computeRegularDTravelTimeDFlowSingleLink(
+//          theMode, physicalCost, virtualCost, originalEntrySegment, unCongested);
+//      boolean s1MostRestricting = mostRestrictingExit==originalS1ExitSegment;
+//      double acceptanceFactor = networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntrySegment.getId()];
+//      return new Object[]{dTravelTimeDFlow, acceptanceFactor, !s1MostRestricting, s1MostRestricting};
+//    }
+
+  }
+
+  /**
+   * Compute merge derivative from perspective of S2 incorporating impact of s1
+   *
+   * @param theMode to use
+   * @param networkLoading to use
+   * @param physicalCost to use
+   * @param virtualCost to use
+   @return resultant derivative of the two entries combined
+   */
+  protected double getDTravelTimeDFlowMerge(
+      final Mode theMode,
+      final StaticLtmLoadingBushBase<?> networkLoading,
+      final AbstractPhysicalCost physicalCost,
+      final AbstractVirtualCost virtualCost) {
+    double dTravelTimeDFlow = 0.0;
+
+    ConjugateEdgeSegment currS1Segment = this.pas.getLastEdgeSegment(true);
+    ConjugateEdgeSegment currS2Segment = this.pas.getLastEdgeSegment(false);
+
+    EdgeSegment originalS1EntrySegment = currS1Segment.getOriginalAdjacentEdgeSegments().first();
+    EdgeSegment originalS2EntrySegment = currS2Segment.getOriginalAdjacentEdgeSegments().first();
+    EdgeSegment originalExitSegment = currS1Segment.getOriginalAdjacentEdgeSegments().second();
+
+    boolean s1UnCongested = !isCongested(networkLoading, originalS1EntrySegment);
+    boolean s2UnCongested = !isCongested(networkLoading, originalS2EntrySegment);
+    EdgeSegment s1MostRestrictingExit = null;
+    double s1MostRestrExitDemandConstrainedFlow = 0;
+    EdgeSegment s2MostRestrictingExit = null;
+    double s2MostRestrExitDemandConstrainedFlow = 0;
+    if(!s1UnCongested){
+      var mostRestrictingExitDemandConstrFlowResult = identifyMostRestrictingOutSegmentAndDemandConstrainedFlow(
+          originalS1EntrySegment, networkLoading); // todo should be done once and cached
+      s1MostRestrictingExit = mostRestrictingExitDemandConstrFlowResult.first();
+      s1MostRestrExitDemandConstrainedFlow = mostRestrictingExitDemandConstrFlowResult.second();
+    }
+    if(!s2UnCongested){
+      var mostRestrictingExitDemandConstrFlowResult = identifyMostRestrictingOutSegmentAndDemandConstrainedFlow(
+          originalS2EntrySegment, networkLoading); // todo should be done once and cached
+      s2MostRestrictingExit = mostRestrictingExitDemandConstrFlowResult.first();
+      s2MostRestrExitDemandConstrainedFlow = mostRestrictingExitDemandConstrFlowResult.second();
+    }
+
+    if(s1MostRestrictingExit == null){
+      s1UnCongested = true;
+    }
+    if(s2MostRestrictingExit == null){
+      s2UnCongested = true;
+    }
+
+    boolean s2OnMostRestricting = !s2UnCongested && s2MostRestrictingExit == originalExitSegment;
+    boolean s1OnMostRestricting = !s1UnCongested && s1MostRestrictingExit == originalExitSegment;
+
+    // MERGE
+    //  - case 1: both congested and s2 on most restricting and s1 is on same most restricting
+    //      compute regular full hypo and hyper critical derivatives. This is the simplest of cases
+    //
+    if(!s1UnCongested && !s2UnCongested && s2OnMostRestricting && s1OnMostRestricting) {
+      double s1DTravelTimeDFlow = computeRegularDTravelTimeDFlowSingleLink(
+          theMode, physicalCost, virtualCost, originalS1EntrySegment, s1UnCongested);
+      double s2DTravelTimeDFlow = computeRegularDTravelTimeDFlowSingleLink(
+          theMode, physicalCost, virtualCost, originalS2EntrySegment, s2UnCongested);
+
+      dTravelTimeDFlow = s2DTravelTimeDFlow + s1DTravelTimeDFlow;
+    }
+    TODO: CONTINUE HERE --> THEN COMBINE RESULTS IN RETURN --> THEN IMPOSE STOP/GO ON WHETHER
+        TO CALL THESE.
   }
 
   /**
@@ -707,7 +860,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    */
   @Override
   protected Pair<Double,EdgeSegment> determinePasAlternativeSlackFlow(
-          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment) {
+          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
 
     double slackFlow = Double.POSITIVE_INFINITY;
     EdgeSegment minSlackSegment = null;
@@ -716,7 +869,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     int linkSegmentId = -1;
     ConjugateEdgeSegment conjAltEdgeSegment = null;
     ConjugateEdgeSegment[] conjAltEdgeSegments = pas.getAlternative(lowCost);
-    int index = ignoreInitialSegment ? 0 : 1;
+    int index = 1;
     for (; index < conjAltEdgeSegments.length; ++index) {
       conjAltEdgeSegment = conjAltEdgeSegments[index];
       if(!conjAltEdgeSegment.hasOriginalEntryEdgeSegment()){
@@ -1051,24 +1204,32 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double denominatorS2 = 0;
     double denominatorS1 = 0;
 
-    boolean ignoreInitialConjEdgeSegment = false;
     var s1FirstCongestedSegmentResult =
-            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true, ignoreInitialConjEdgeSegment);
+            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true);
     var s2FirstCongestedSegmentResult =
-            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false, ignoreInitialConjEdgeSegment);
+            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false);
     var firstS1CongestedSegment = s1FirstCongestedSegmentResult!= null ? s1FirstCongestedSegmentResult.first() : null;
     var firstS2CongestedSegment = s2FirstCongestedSegmentResult!= null ? s2FirstCongestedSegmentResult.first() : null;
 
-    denominatorS1 = getDTravelTimeDFlow(
-            theMode, networkLoading, physicalCost, virtualCost, true, ignoreInitialConjEdgeSegment);
-    denominatorS2 = getDTravelTimeDFlow(
-            theMode, networkLoading, physicalCost, virtualCost, false, ignoreInitialConjEdgeSegment);
+    // todo: add multiplication factors using alphas to reduce impact of derivatives along the way to make them more
+    //  accurate
+    //todo: stitch together and determine if some should be run
+    var denominatorDivergeResult = getDTravelTimeDFlowDiverge(
+        theMode, networkLoading, physicalCost, virtualCost);
+
+    var denominatorS1Result = getDTravelTimeDFlowExcludingMergeDiverge(
+            theMode, networkLoading, physicalCost, virtualCost, true);
+    var denominatorS2Result = getDTravelTimeDFlowExcludingMergeDiverge(
+            theMode, networkLoading, physicalCost, virtualCost, false);
+
+    //todo add additional parameters indicating if high/los cost merge needs to be run at all
+    var denominatorMergeResult = getDTravelTimeDFlowMerge(
+        theMode, networkLoading, physicalCost, virtualCost);
 
     double flowShift = 0;
     boolean pasCostEqual = pas.isCostEqual(EPSILON);
 
-    var lowCostSlackResult = determinePasAlternativeSlackFlow(
-            networkLoading, true, ignoreInitialConjEdgeSegment);
+    var lowCostSlackResult = determinePasAlternativeSlackFlow(networkLoading, true);
     double s1SlackFlowEstimate = lowCostSlackResult.first();
     double s1SlackFlowLeeway = ((PcuCapacitated) lowCostSlackResult.second()).getCapacityOrDefaultPcuH() * stateChangeLeewayPercentage;
     if (!pasCostEqual && smallerEqual(denominatorS2,EPSILON,EPSILON) && smallerEqual(denominatorS1, EPSILON,EPSILON)) {
@@ -1089,8 +1250,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
 
     /* s1 and/or s2 congested - derivative based flow shift possible */
-    // tauw_s1 + dtauw_s1/ds_1 * (-flowShift) = tauw_s2 + dtauw_s2/ds_2 * (flowShift) we find:
-    // flowShift = (tauw_s2-tauw_s1)/(1/v_s1_first_bottleneck + 1/v_s2_first_bottleneck))
+    // tauw_s1 + dtauw_s1/ds_1 * (flowShift) = tauw_s2 + dtauw_s2/ds_2 * (-flowShift) we find:
+    // tauw_s1 - tauw_s2 = dtauw_s2/ds_2 * (-flowShift)  - dtauw_s1/ds_1 * (flowShift)
+    // tauw_s1 - tauw_s2 = flowShift * (-dtauw_s1/ds_1 - dtauw_s2/ds_2)
+    // flowShift = (tauw_s2 - tauw_s1) / (dtauw_s1/ds_1 + dtauw_s2/ds_2)
     double denominator = denominatorS2 + denominatorS1;
     double numerator = pas.getAlternativeHighCost() - pas.getAlternativeLowCost();
     if(logAll){
@@ -1098,10 +1261,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       LOGGER.info(String.format("numerator: %.10f", numerator));
 
       if(Double.isNaN(denominator)){
-        denominatorS1 = getDTravelTimeDFlow(
-            theMode, networkLoading, physicalCost, virtualCost, true, ignoreInitialConjEdgeSegment);
-        denominatorS2 = getDTravelTimeDFlow(
-            theMode, networkLoading, physicalCost, virtualCost, false, ignoreInitialConjEdgeSegment);
+        LOGGER.severe("Found denominator being a NaN should never happen");
       }
     }
 
@@ -1155,6 +1315,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       EdgeSegment originalCongestedS2Segment = firstS2CongestedSegment.getOriginalAdjacentEdgeSegments().first();
       int originalCongestedS2SegmentId = (int) originalCongestedS2Segment.getId();
+
       double s2DeltaFlowToStateChangeEstimate =
               networkLoading.getCurrentInflowsPcuH()[originalCongestedS2SegmentId] *
                       (1 - networkLoading.getCurrentFlowAcceptanceFactors()[originalCongestedS2SegmentId]);
@@ -1266,11 +1427,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double rawProposedFlowShift = proposedShiftResult.values().iterator().next();
       double proposedFlowShift = Math.min(rawProposedFlowShift, guaranteedS2SendingFlow); // truncate to what is available
 
-      // verify if uncongested considering the shift we decided to apply. If so continue (UNCONGESTED_WITH_SHIFT)
-      // Otherwise, stop equilibration process without shifting or part way through equilibration.
-      boolean ignoreInitialConjEdgeSegment = true; // ignore initial because shift will not change amount of flow on entry
-      double s1SlackFlow = determinePasAlternativeSlackFlow(
-          networkLoading, true, ignoreInitialConjEdgeSegment).first();
+      double s1SlackFlow = determinePasAlternativeSlackFlow(networkLoading, true).first();
       if(proposedFlowShift > s1SlackFlow){
         //todo: we already adjust for discontinuities in method, probably better to split that out so we do not
         // do that and only do it here for uncongested!

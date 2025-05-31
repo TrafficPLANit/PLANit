@@ -7,12 +7,9 @@ import java.util.TreeMap;
 import java.util.function.ToDoubleFunction;
 import java.util.logging.Logger;
 
-import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
-import org.goplanit.gap.GapFunction;
-import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -272,8 +269,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    */
   @Override
   protected Pair<EdgeSegment, Boolean> findFirstCongestedEdgeSegmentOnPasAlternative(
-          final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreFirstSegment) {
-    assert(!ignoreFirstSegment);
+          final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
 
     EdgeSegment[] alternative = pas.getAlternative(lowCost);
     int index = 0;
@@ -365,8 +361,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    */
   @Override
   protected Pair<Double,EdgeSegment>  determinePasAlternativeSlackFlow(
-          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment) {
-    assert (!ignoreInitialSegment);
+          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
 
     var lastAlternativeSegment = pas.getLastEdgeSegment(lowCost);
     double slackFlow = Double.POSITIVE_INFINITY;
@@ -444,23 +439,23 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
     double denominatorS1 = 0;
 
     /* get first congested edge segment that is affected when shifting flow, per alternative */
-    boolean ignoreFirstSegment = false;
     var s1FirstCongestedSegmentResult =
-            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true, ignoreFirstSegment);
+            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true);
     var s2FirstCongestedSegmentResult =
-            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false, ignoreFirstSegment);
+            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false);
     var firstS1CongestedSegment = s1FirstCongestedSegmentResult!= null ? s1FirstCongestedSegmentResult.first() : null;
     var firstS2CongestedSegment = s2FirstCongestedSegmentResult!= null ? s2FirstCongestedSegmentResult.first() : null;
 
-    denominatorS1 = getDTravelTimeDFlow(
-            theMode, networkLoading, physicalCost, virtualCost, true, ignoreFirstSegment);
-    denominatorS2 = getDTravelTimeDFlow(
-            theMode, networkLoading, physicalCost, virtualCost, false, ignoreFirstSegment);
+    // not rewritten to merge diverge excluded yet, all in one here
+    denominatorS1 = getDTravelTimeDFlowExcludingMergeDiverge(
+            theMode, networkLoading, physicalCost, virtualCost, true).first();
+    denominatorS2 = getDTravelTimeDFlowExcludingMergeDiverge(
+            theMode, networkLoading, physicalCost, virtualCost, false).first();
 
     double flowShift = 0;
     boolean pasCostEqual = pas.isCostEqual(EPSILON);
     double s2TotalEntrySendingFlow = getTotalEntrySegmentSendingFlow(entrySegment, false);
-    var lowCostSlackResult = determinePasAlternativeSlackFlow(networkLoading, true, ignoreFirstSegment);
+    var lowCostSlackResult = determinePasAlternativeSlackFlow(networkLoading, true);
     double s1SlackFlowEstimate = lowCostSlackResult.first();
     double s1SlackFlowLeeway = ((PcuCapacitated) lowCostSlackResult.second()).getCapacityOrDefaultPcuH() * stateChangeLeewayPercentage;
     if (!pasCostEqual && smaller(denominatorS2,EPSILON) && smaller(denominatorS2, EPSILON)) {

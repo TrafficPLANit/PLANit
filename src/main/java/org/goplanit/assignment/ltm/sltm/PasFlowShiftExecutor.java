@@ -128,19 +128,19 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @return dTravelTimedFlow or 0 if not possible to compute (with warning)
    */
   @Deprecated(forRemoval = true)
-  private static <ESs extends EdgeSegment> double getDTravelTimeDFlow(
+  private static <ESs extends EdgeSegment> Pair<Double,Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
           Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, ESs edgeSegment) {
 
     if (edgeSegment instanceof MacroscopicLinkSegment) {
-      return physicalCost.getDTravelTimeDFlow(false, theMode, (MacroscopicLinkSegment) edgeSegment);
+      return Pair.of(physicalCost.getDTravelTimeDFlow(false, theMode, (MacroscopicLinkSegment) edgeSegment),true);
     } else if (edgeSegment instanceof ConnectoidSegment) {
-      return virtualCost.getDTravelTimeDFlow(false, theMode, (ConnectoidSegment) edgeSegment);
+      return Pair.of(virtualCost.getDTravelTimeDFlow(false, theMode, (ConnectoidSegment) edgeSegment), true);
     } else {
       LOGGER.severe(String.format("Unsupported edge segment (%s) to obtain derivative of cost towards flow from",
               edgeSegment.getXmlId()));
     }
 
-    return 0;
+    return Pair.of(0.0, true);
   }
 
   /**
@@ -250,16 +250,14 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param physicalCost to use
    * @param virtualCost  to use
    * @param isLowCostAlternative to use
-   * @param ignoreInitialEdgeSegment when true, ignore initial segment for calculation
    * @return dTravelTimedFlow or 0 if not possible to compute (with warning)
    */
-  protected abstract double getDTravelTimeDFlow(
+  protected abstract Pair<Double, Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
           final Mode theMode,
           final StaticLtmLoadingBushBase<?> networkLoading,
           final AbstractPhysicalCost physicalCost,
           final AbstractVirtualCost virtualCost,
-          boolean isLowCostAlternative,
-          boolean ignoreInitialEdgeSegment);
+          boolean isLowCostAlternative);
 
   /**
    * Determine the adjusted flow shift by taking the proposed upper bound and reduce it by a
@@ -355,11 +353,10 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param networkLoading to collect outflow rates from
    * @param lowCost        when true determine for low cost alternative, when false for high cost alternative
-   * @param ignoreInitialSegment when true ignore initial segment when computing this
    * @return slack flow found
    */
   protected abstract Pair<Double,EdgeSegment>  determinePasAlternativeSlackFlow(
-          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment);
+          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost);
 
   /**
    * Find first congested segment on PAS for either alternative, note that we do use some slack on when
@@ -367,13 +364,12 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param networkLoading to use
    * @param lowCost flag indicating what alternative to apply
-   * @param ignoreInitialSegment when true ignore the first segment of the PAS alternative in this search.
    * @return found segments on alternative, null when not congested, second argument indicates whether it
    *  is truly congested already (true), or near congestion (false) but within threshold applied
    *
    */
   protected abstract Pair<ES, Boolean> findFirstCongestedEdgeSegmentOnPasAlternative(
-          final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment);
+          final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost);
 
   /**
    * Perform the flow shift for a given bush. Delegate to concrete class implementation

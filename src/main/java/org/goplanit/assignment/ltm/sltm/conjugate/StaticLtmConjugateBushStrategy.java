@@ -725,7 +725,6 @@ public class StaticLtmConjugateBushStrategy
       var bushVertexIter = conjBush.getTopologicalIterator();
       while(bushVertexIter.hasNext()) {
         ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
-        if(conjBushVertex.
         if (conjBush.containsSendingFlow(conjBushVertex)) {
           continue;
         }
