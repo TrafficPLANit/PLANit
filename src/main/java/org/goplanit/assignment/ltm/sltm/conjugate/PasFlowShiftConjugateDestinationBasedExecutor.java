@@ -737,53 +737,55 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       final AbstractVirtualCost virtualCost) {
     double dTravelTimeDFlow = 0.0;
 
-    // DIVERGE:
-    //
-    // (un)congested: no change in flow regardless, so no derivative exists really. We can only
-    //                consider to what extent the rest of the PAS should be considered.
-    // key here is the fact there is no combined change in flow at any time
-    // for NEWELL we will need some kind of proportionality otherwise we have infinite potential solutions
-
     ConjugateEdgeSegment currS1Segment = this.pas.getFirstEdgeSegment(true);
     ConjugateEdgeSegment currS2Segment = this.pas.getFirstEdgeSegment(false);
     if(!currS1Segment.hasOriginalEntryEdgeSegment()){
       return new Object[]{0.0, 1.0, true, true};
     }
 
-//    EdgeSegment originalEntrySegment = currS1Segment.getOriginalAdjacentEdgeSegments().first();
-//    EdgeSegment originalS1ExitSegment = currS1Segment.getOriginalAdjacentEdgeSegments().second();
-//    EdgeSegment originalS2ExitSegment = currS2Segment.getOriginalAdjacentEdgeSegments().second();
-//
-//    boolean unCongested = !isCongested(networkLoading, originalEntrySegment);
-//    EdgeSegment mostRestrictingExit = null;
-//    double mostRestrExitDemandConstrainedFlow = 0;
-//    if(!unCongested){
-//      var mostRestrictingExitDemandConstrFlowResult = identifyMostRestrictingOutSegmentAndDemandConstrainedFlow(
-//          originalEntrySegment, networkLoading); // todo should be done once and cached
-//      mostRestrictingExit = mostRestrictingExitDemandConstrFlowResult.first();
-//      mostRestrExitDemandConstrainedFlow = mostRestrictingExitDemandConstrFlowResult.second();
-//    }
-//
-//    if(mostRestrictingExit == null){
-//      unCongested = true;
-//    }
-//
-//    // DIVERGE:
-//    //
-//    // (un)congested: no change in flow regardless, so no derivative exists really. We can only
-//    //                consider to what extent the rest of the PAS should be considered.
-//    // key here is the fact there is no combined change in flow at any time
-//    // for NEWELL we will need some kind of proportionality otherwise we have infinite potential solutions
-//    if(unCongested || (mostRestrictingExit!=originalS1ExitSegment && mostRestrictingExit!=originalS2ExitSegment)){
-//      //                der.,alpha, s1 continue y/n, s2 continue y/n
-//      return new Object[]{0.0, 1.0, true, true};
-//    }else{
-//      dTravelTimeDFlow = computeRegularDTravelTimeDFlowSingleLink(
-//          theMode, physicalCost, virtualCost, originalEntrySegment, unCongested);
-//      boolean s1MostRestricting = mostRestrictingExit==originalS1ExitSegment;
-//      double acceptanceFactor = networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntrySegment.getId()];
-//      return new Object[]{dTravelTimeDFlow, acceptanceFactor, !s1MostRestricting, s1MostRestricting};
-//    }
+    EdgeSegment originalEntrySegment = currS1Segment.getOriginalAdjacentEdgeSegments().first();
+    EdgeSegment originalS1ExitSegment = currS1Segment.getOriginalAdjacentEdgeSegments().second();
+    EdgeSegment originalS2ExitSegment = currS2Segment.getOriginalAdjacentEdgeSegments().second();
+
+    boolean unCongested = !isCongested(networkLoading, originalEntrySegment);
+    EdgeSegment mostRestrictingExit = null;
+    if(!unCongested){
+      var mostRestrictingExitDemandConstrFlowResult = identifyMostRestrictingOutSegmentAndDemandConstrainedFlow(
+          originalEntrySegment, networkLoading);
+      mostRestrictingExit = mostRestrictingExitDemandConstrFlowResult.first();
+    }
+
+    if(mostRestrictingExit == null){
+      unCongested = true;
+    }
+
+    // DIVERGE:
+    //
+    // (un)congested: no change in flow regardless, so no derivative exists really. We can only
+    //                consider to what extent the rest of the PAS should be considered. So zero
+    // congested  : when s2 is on most restricting turn use hyper critical derivative
+    //                s1 is not on most restricting, so zero impact --> combined single hyper critical, s1 may containue
+    //              when s1 is on most restricting turn use hypercritical derivative
+    //                s2 is not on most restricting, so zero impact --> combined single hyper critical, s2 may continue
+    //              when neither is on most restricting: zero as flow shift has no impact on cost
+    if(unCongested || (mostRestrictingExit!=originalS1ExitSegment && mostRestrictingExit!=originalS2ExitSegment)){
+      //                der.,alpha, s1 continue y/n, s2 continue y/n
+      return new Object[]{
+          0.0, networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntrySegment.getId()], true, true};
+    }else{
+
+      // only hyper critical derivative differs between s1 and s2
+      double dTravelTimeDFlowHypoAndHyper = computeRegularDTravelTimeDFlowSingleLink(
+          theMode, physicalCost, virtualCost, originalEntrySegment, false);
+      double dTravelTimeDFlowHypo = computeRegularDTravelTimeDFlowSingleLink(
+          theMode, physicalCost, virtualCost, originalEntrySegment, true);
+      dTravelTimeDFlow = dTravelTimeDFlowHypoAndHyper - dTravelTimeDFlowHypo;
+
+      //determine which of the two may continue
+      boolean s1MostRestricting = mostRestrictingExit==originalS1ExitSegment;
+      double acceptanceFactor = networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntrySegment.getId()];
+      return new Object[]{dTravelTimeDFlow, acceptanceFactor, !s1MostRestricting, s1MostRestricting};
+    }
 
   }
 
@@ -840,19 +842,56 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     boolean s1OnMostRestricting = !s1UnCongested && s1MostRestrictingExit == originalExitSegment;
 
     // MERGE
-    //  - case 1: both congested and s2 on most restricting and s1 is on same most restricting
-    //      compute regular full hypo and hyper critical derivatives. This is the simplest of cases
-    //
+    //  - case 1: both congested: and s2 on most restricting and s1 is on same most restricting
+    //      compute regular full hypo and hyper critical derivatives for both. This is the simplest of cases
+    //  - case 2: both congested: s2 and s1 not on same, but both on most restricting
+    //      can only happen when s1 has no flow yet, but has flow exiting to other congested exit
+    //      derivatives work same way as in situation  s1 would be uncongested as impact on cost is identical
+    //  - case 3: both uncongested: same as case1 only now with only hypo critical component since there is
+    //            no congestion. No interaction between the two.
+    //  - case 4a: s1 uncongested and s2 congested but not to most restricting AND s1 has no flow to most restricting
+    //      in this case changes in s1 have no impact on the congestion of s2, simply use s1 regular derivative
+    //      changes in s2 affect its bargaining power towards the congested exit. Apply the same special derivative for
+    //      s2 as we use for the same on-pas situation
+    //  - case 4b: s1 uncongested and s2 congested but not to most restricting AND s1 has flow to most restricting
+    //      now s1 has impact on congestion on s2, but that flow does not change because it is not the PAS turn. Since
+    //      s1 is not congested, there is no change to this fixed flow and as such it can be treated exactly the same
+    //      as case 4a
+    //  - case 5a/5b: same as 4a only now swap s1 and s2: same result only apply derivatives the other way around
+    //  - case 6a: s1 uncongested and s2 congested to most restricting, this one is tricky because s1 is giving up its
+    //      whatever fair share slack it has to s2. So shifting flow impacts this.
+    //        for hypocritical aspect we can use the normal aspect for s1 and s2. Hyper is problematic though
+    //        for s1, hyper derivative is zero, for s2 it may be negative (if s1+s2> most restrictin capacity. This is
+    //        always the case if it is a two way merge, it may not be for a normal cross node , or if the s1 derivative
+    //        flow was diluted due to earlier alphas)
+    //        todo: for now, check if combined hypo + hyper of s2 is still positive, if not give warning (newell FD)
+    //          and simply assume we can combine the linear (negative) hyper derivative with the non-linear (larger)
+    //          hypo derivative, expectation is that this will lead to larger flow shifts which is what we want anyway
+    //          because a state change to both congested is needed to be able to equilibrate the two costs if it were
+    //          just this merge in isolation
+    //  - case 6b: same as 6a only now swap s1 and s2: same result only apply derivatives the other way around
     if(!s1UnCongested && !s2UnCongested && s2OnMostRestricting && s1OnMostRestricting) {
+      //case 1
+      if(s1MostRestrictingExit==s2MostRestrictingExit) {
+        double s1DTravelTimeDFlow = computeRegularDTravelTimeDFlowSingleLink(
+            theMode, physicalCost, virtualCost, originalS1EntrySegment, s1UnCongested);
+        double s2DTravelTimeDFlow = computeRegularDTravelTimeDFlowSingleLink(
+            theMode, physicalCost, virtualCost, originalS2EntrySegment, s2UnCongested);
+        return s2DTravelTimeDFlow + s1DTravelTimeDFlow;
+      }else {
+        //case 2
+        // todo
+      }
+    }else if(s1UnCongested && s2UnCongested){
+      // case 3 (identical to case 1, only now both are flagged uncongested yielding different derivative)
       double s1DTravelTimeDFlow = computeRegularDTravelTimeDFlowSingleLink(
           theMode, physicalCost, virtualCost, originalS1EntrySegment, s1UnCongested);
       double s2DTravelTimeDFlow = computeRegularDTravelTimeDFlowSingleLink(
           theMode, physicalCost, virtualCost, originalS2EntrySegment, s2UnCongested);
-
-      dTravelTimeDFlow = s2DTravelTimeDFlow + s1DTravelTimeDFlow;
+      return s2DTravelTimeDFlow + s1DTravelTimeDFlow;
     }
-    TODO: CONTINUE HERE --> THEN COMBINE RESULTS IN RETURN --> THEN IMPOSE STOP/GO ON WHETHER
-        TO CALL THESE.
+    //todo case 4-6
+
   }
 
   /**
