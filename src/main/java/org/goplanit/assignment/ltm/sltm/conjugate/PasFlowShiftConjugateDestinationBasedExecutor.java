@@ -771,8 +771,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         //         given another turn is congested and most restrictive
         currDTravelTimeDFlow += computeHyperCriticalDTravelTimeDFlowNotMostRestrictiveTurnOnCongestedLink(
             networkLoading, physicalCost, originalEntrySegment, mostRestrictingExit, mostRestrExitDemandConstrainedFlow);
-        var alpha = networkLoading.getCurrentFlowAcceptanceFactors()[(int)originalEntrySegment.getId()];
-        compoundedDerivativeReductionFactor *= alpha;
         unCongested = true; // triggers adding hypo critical delay via normal approach below
       } // case 2 no action needed, remains congested on most restricting turn, or truly uncongested
 
@@ -780,6 +778,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           theMode, physicalCost, virtualCost, originalEntrySegment, unCongested);
       // adjust with compounded alpha reduction
       dTravelTimeDFlow += currDTravelTimeDFlow * compoundedDerivativeReductionFactor;
+      if(!unCongested) {
+        var alpha = networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntrySegment.getId()];
+        compoundedDerivativeReductionFactor *= alpha;
+      }
 
       if(!unCongested && thisAltOnMostRestrictingTurn){
         // no more flow change beyond here due to it being a bottleneck
