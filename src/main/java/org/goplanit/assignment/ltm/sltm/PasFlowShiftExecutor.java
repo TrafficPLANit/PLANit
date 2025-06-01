@@ -8,6 +8,7 @@ import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
@@ -119,31 +120,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   }
 
   /**
-   * obtain derivative of cost towards flow for given segment, all parameters mut be non-null
-   *
-   * @param theMode      to use
-   * @param physicalCost to use
-   * @param virtualCost  to use
-   * @param edgeSegment  to use
-   * @return dTravelTimedFlow or 0 if not possible to compute (with warning)
-   */
-  @Deprecated(forRemoval = true)
-  private static <ESs extends EdgeSegment> Pair<Double,Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
-          Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, ESs edgeSegment) {
-
-    if (edgeSegment instanceof MacroscopicLinkSegment) {
-      return Pair.of(physicalCost.getDTravelTimeDFlow(false, theMode, (MacroscopicLinkSegment) edgeSegment),true);
-    } else if (edgeSegment instanceof ConnectoidSegment) {
-      return Pair.of(virtualCost.getDTravelTimeDFlow(false, theMode, (ConnectoidSegment) edgeSegment), true);
-    } else {
-      LOGGER.severe(String.format("Unsupported edge segment (%s) to obtain derivative of cost towards flow from",
-              edgeSegment.getXmlId()));
-    }
-
-    return Pair.of(0.0, true);
-  }
-
-  /**
    * Helper; based on the entry segment and current loading, recompute node model to identify most restricting out
    * edge segment for this entry segment
    *
@@ -245,19 +221,21 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   /**
    * obtain derivative of cost towards flow for given alternative, all parameters mut be non-null
    *
-   * @param theMode      to use
-   * @param networkLoading to use
-   * @param physicalCost to use
-   * @param virtualCost  to use
+   * @param theMode              to use
+   * @param networkLoading       to use
+   * @param physicalCost         to use
+   * @param virtualCost          to use
    * @param isLowCostAlternative to use
+   * @param derivativeReductionFactor to use
    * @return dTravelTimedFlow or 0 if not possible to compute (with warning)
    */
-  protected abstract Pair<Double, Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
-          final Mode theMode,
-          final StaticLtmLoadingBushBase<?> networkLoading,
-          final AbstractPhysicalCost physicalCost,
-          final AbstractVirtualCost virtualCost,
-          boolean isLowCostAlternative);
+  protected abstract Triple<Double, Double, Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
+      final Mode theMode,
+      final StaticLtmLoadingBushBase<?> networkLoading,
+      final AbstractPhysicalCost physicalCost,
+      final AbstractVirtualCost virtualCost,
+      boolean isLowCostAlternative,
+      double derivativeReductionFactor);
 
   /**
    * Determine the adjusted flow shift by taking the proposed upper bound and reduce it by a

@@ -448,9 +448,9 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
 
     // not rewritten to merge diverge excluded yet, all in one here
     denominatorS1 = getDTravelTimeDFlowExcludingMergeDiverge(
-            theMode, networkLoading, physicalCost, virtualCost, true).first();
+            theMode, networkLoading, physicalCost, virtualCost, true, 1).first();
     denominatorS2 = getDTravelTimeDFlowExcludingMergeDiverge(
-            theMode, networkLoading, physicalCost, virtualCost, false).first();
+            theMode, networkLoading, physicalCost, virtualCost, false, 1).first();
 
     double flowShift = 0;
     boolean pasCostEqual = pas.isCostEqual(EPSILON);

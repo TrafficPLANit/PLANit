@@ -15,12 +15,12 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.pcu.PcuCapacitated;
+import org.ojalgo.array.Array1D;
 import org.ojalgo.function.PrimitiveFunction;
 import org.ojalgo.function.aggregator.Aggregator;
 
@@ -615,15 +615,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   *         given another turn is congested and most restrictive
    *         This replaces the "normal" hypercritical derivative
   */
-  protected double getHyperCriticalDTravelTimeDFlowNotMostRestrictiveTurnOnCongestedLink(
+  protected static double computeHyperCriticalDTravelTimeDFlowNotMostRestrictiveTurnOnCongestedLink(
       final StaticLtmLoadingBushBase<?> networkLoading,
       final AbstractPhysicalCost physicalCost,
-      ConjugateEdgeSegment turn,
+      EdgeSegment originalEntrySegment,
       EdgeSegment mostRestrictingExit,
       double mostRestrExitDemandConstrainedFlow) {
-
-    EdgeSegment originalEntrySegment = turn.getOriginalAdjacentEdgeSegments().first();
-    EdgeSegment originalExitSegment = turn.getOriginalAdjacentEdgeSegments().second();
 
     var alpha_i = networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntrySegment.getId()];
     var splittingRateToMostRestricting = networkLoading.getSplittingRateData().getSplittingRate(originalEntrySegment, mostRestrictingExit);
@@ -652,25 +649,93 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         (0.5 * timePeriodH * approximateBMostRestricting) /
             (c_i * r_jMostRestr);
     return dTravelTimeDFlow;
-
   }
 
+  /** Compute special derivative for changing flow on merge where
+   *  uncongested turn and congested turn towards same congested exit compete
+   */
+  protected static double computeHyperCriticalDTravelTimeDFlowCombinedMergeSpecialCase(
+      final StaticLtmLoadingBushBase<?> networkLoading,
+      final AbstractPhysicalCost physicalCost,
+      EdgeSegment originalCongestedEntrySegment,
+      EdgeSegment originalUncongestedEntrySegment,
+      EdgeSegment mostRestrictingExit) {
+
+    var timePeriodH = ((SteadyStateTravelTimeCost) physicalCost).getCurrentTimePeriodH();
+
+    var c_j_mostRestricting = Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
+        ((PcuCapacitated) mostRestrictingExit).getCapacityOrDefaultPcuH());
+
+    var node = originalCongestedEntrySegment.getDownstreamVertex();
+    int exitSegmentIndex=0;
+    for(var exitSegment : node.getExitEdgeSegments()) {
+      if (exitSegment == mostRestrictingExit) {
+        break;
+      }
+      ++exitSegmentIndex;
+    }
+
+    // all accepted outflows from other turns not s1/s2 to  pas exit
+    double mostRestrictingExitNonMergeAcceptedFlows = 0 ;
+    // uncongested (s1/ors2)/congested (s2 or s1) sending flows to pas exit
+    double congestedEntryTurnSendingFlow = 0;
+    double unCongestedEntryTurnSendingFlow = 0;
+    for(var entrySegment : node.getEntryEdgeSegments()){
+      Array1D<Double> splittingRates = networkLoading.getSplittingRateData().getSplittingRates(entrySegment);
+      var splittingRateToMostRestricting = splittingRates.get(exitSegmentIndex);
+
+      int entrySegmentIndex = (int)entrySegment.getId();
+      var entrySendingFlow = networkLoading.getCurrentInflowsPcuH()[entrySegmentIndex];
+      if(entrySendingFlow <= 0){
+        continue;
+      }
+
+      if(entrySegment == originalCongestedEntrySegment ){
+        congestedEntryTurnSendingFlow = entrySendingFlow * splittingRateToMostRestricting;
+      }else if(entrySegment == originalUncongestedEntrySegment){
+        unCongestedEntryTurnSendingFlow = entrySendingFlow * splittingRateToMostRestricting;
+      }else {
+        var alphaEntrySegment = networkLoading.getCurrentFlowAcceptanceFactors()[entrySegmentIndex];
+        double acceptedFlowOnTurnToMostRestricting = entrySendingFlow * splittingRateToMostRestricting * alphaEntrySegment;
+        mostRestrictingExitNonMergeAcceptedFlows += acceptedFlowOnTurnToMostRestricting;
+      }
+    }
+
+    // actual derivative using above prep vars
+    double s1s2MergeEntriesSendingFlow = congestedEntryTurnSendingFlow +  unCongestedEntryTurnSendingFlow;
+    double x = (c_j_mostRestricting - s1s2MergeEntriesSendingFlow - mostRestrictingExitNonMergeAcceptedFlows);
+    double dTravelTimeDFlow =
+        (0.5 * timePeriodH * x)
+            /
+            Math.pow(x + congestedEntryTurnSendingFlow, 2);
+    return dTravelTimeDFlow;
+  }
+
+
   /**
-   * {@inheritDoc}
+   * @param theMode              to use
+   * @param networkLoading       to use
+   * @param physicalCost         to use
+   * @param virtualCost          to use
+   * @param isLowCostAlternative to use
+   * @param derivativeReductionFactor to use
+   * @return derivative and indicator whether to continue or not
    */
   @Override
-  protected Pair<Double,Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
-          final Mode theMode,
-          final StaticLtmLoadingBushBase<?> networkLoading,
-          final AbstractPhysicalCost physicalCost,
-          final AbstractVirtualCost virtualCost,
-          boolean isLowCostAlternative) {
+  protected Triple<Double, Double, Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
+      final Mode theMode,
+      final StaticLtmLoadingBushBase<?> networkLoading,
+      final AbstractPhysicalCost physicalCost,
+      final AbstractVirtualCost virtualCost,
+      boolean isLowCostAlternative,
+      double derivativeReductionFactor) {
     double dTravelTimeDFlow = 0.0;
 
     var pasAlternative = this.pas.getAlternative(isLowCostAlternative);
 
     boolean continueWithMergeDerivative = true;
     int index = 1;
+    double compoundedDerivativeReductionFactor = derivativeReductionFactor;
     while(index < (pasAlternative.length-1)){
       ConjugateEdgeSegment currSegment = pasAlternative[index++];
       EdgeSegment originalEntrySegment = currSegment.getOriginalAdjacentEdgeSegments().first();
@@ -704,14 +769,17 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         // case 1: use hypo critical uncongested derivative + special derivative for changing flow on
         //          uncongested turn
         //         given another turn is congested and most restrictive
-        currDTravelTimeDFlow += getHyperCriticalDTravelTimeDFlowNotMostRestrictiveTurnOnCongestedLink(
-            networkLoading, physicalCost, currSegment, mostRestrictingExit, mostRestrExitDemandConstrainedFlow);
+        currDTravelTimeDFlow += computeHyperCriticalDTravelTimeDFlowNotMostRestrictiveTurnOnCongestedLink(
+            networkLoading, physicalCost, originalEntrySegment, mostRestrictingExit, mostRestrExitDemandConstrainedFlow);
+        var alpha = networkLoading.getCurrentFlowAcceptanceFactors()[(int)originalEntrySegment.getId()];
+        compoundedDerivativeReductionFactor *= alpha;
         unCongested = true; // triggers adding hypo critical delay via normal approach below
       } // case 2 no action needed, remains congested on most restricting turn, or truly uncongested
 
       currDTravelTimeDFlow += computeRegularDTravelTimeDFlowSingleLink(
           theMode, physicalCost, virtualCost, originalEntrySegment, unCongested);
-      dTravelTimeDFlow += currDTravelTimeDFlow;
+      // adjust with compounded alpha reduction
+      dTravelTimeDFlow += currDTravelTimeDFlow * compoundedDerivativeReductionFactor;
 
       if(!unCongested && thisAltOnMostRestrictingTurn){
         // no more flow change beyond here due to it being a bottleneck
@@ -719,7 +787,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         break;
       }
     }
-    return Pair.of(dTravelTimeDFlow, continueWithMergeDerivative);
+    return Triple.of(dTravelTimeDFlow, compoundedDerivativeReductionFactor, continueWithMergeDerivative);
   }
 
   /**
@@ -796,14 +864,19 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * @param networkLoading to use
    * @param physicalCost to use
    * @param virtualCost to use
+   * @param considerS1 to use
+   * @param considerS2 to use
    @return resultant derivative of the two entries combined
    */
   protected double getDTravelTimeDFlowMerge(
       final Mode theMode,
       final StaticLtmLoadingBushBase<?> networkLoading,
       final AbstractPhysicalCost physicalCost,
-      final AbstractVirtualCost virtualCost) {
-    double dTravelTimeDFlow = 0.0;
+      final AbstractVirtualCost virtualCost,
+      boolean considerS1,
+      boolean considerS2,
+      double s1DerivativeReductionFactor,
+      double s2DerivativeReductionFactor) {
 
     ConjugateEdgeSegment currS1Segment = this.pas.getLastEdgeSegment(true);
     ConjugateEdgeSegment currS2Segment = this.pas.getLastEdgeSegment(false);
@@ -842,11 +915,15 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     boolean s1OnMostRestricting = !s1UnCongested && s1MostRestrictingExit == originalExitSegment;
 
     // MERGE
-    //  - case 1: both congested: and s2 on most restricting and s1 is on same most restricting
+    //  - case 1: both congested: and s2 on most restricting to pas exit and s1 is on same most restricting
     //      compute regular full hypo and hyper critical derivatives for both. This is the simplest of cases
-    //  - case 2: both congested: s2 and s1 not on same, but both on most restricting
-    //      can only happen when s1 has no flow yet, but has flow exiting to other congested exit
-    //      derivatives work same way as in situation  s1 would be uncongested as impact on cost is identical
+    //  - case 2: both congested: s2 and on most restricting to pas exit, but s1 most restricting does not
+    //      lead to PAS exit. Can only happen when s1 has no flow yet, but has flow exiting to other congested exit
+    //      derivatives for s1 work same as in ON PAS special case for congested turn on non-most restricting exit ,
+    //      while s2 derivatives are impacted by flow taken by s1. However for s2 we have a choice since s1 is at zero:
+    //      either use zero flow or as what it will have after regarding derivatives. We choose conservative approach
+    //      (less shift) which means for s2 we opt as if there is no flow from s1 and simply treat it as a regular
+    //      hypo + hyper approach
     //  - case 3: both uncongested: same as case1 only now with only hypo critical component since there is
     //            no congestion. No interaction between the two.
     //  - case 4a: s1 uncongested and s2 congested but not to most restricting AND s1 has no flow to most restricting
@@ -861,37 +938,107 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     //  - case 6a: s1 uncongested and s2 congested to most restricting, this one is tricky because s1 is giving up its
     //      whatever fair share slack it has to s2. So shifting flow impacts this.
     //        for hypocritical aspect we can use the normal aspect for s1 and s2. Hyper is problematic though
-    //        for s1, hyper derivative is zero, for s2 it may be negative (if s1+s2> most restrictin capacity. This is
+    //        for s1, hyper derivative is zero, for s2 it may be negative (if s1+s2> most restricting capacity. This is
     //        always the case if it is a two way merge, it may not be for a normal cross node , or if the s1 derivative
     //        flow was diluted due to earlier alphas)
-    //        todo: for now, check if combined hypo + hyper of s2 is still positive, if not give warning (newell FD)
-    //          and simply assume we can combine the linear (negative) hyper derivative with the non-linear (larger)
-    //          hypo derivative, expectation is that this will lead to larger flow shifts which is what we want anyway
-    //          because a state change to both congested is needed to be able to equilibrate the two costs if it were
-    //          just this merge in isolation
-    //  - case 6b: same as 6a only now swap s1 and s2: same result only apply derivatives the other way around
-    if(!s1UnCongested && !s2UnCongested && s2OnMostRestricting && s1OnMostRestricting) {
+     //  - case 6b: same as 6a only now swap s1 and s2: same result only apply derivatives the other way around
+    if(!s1UnCongested && !s2UnCongested && s2OnMostRestricting) {
       //case 1
       if(s1MostRestrictingExit==s2MostRestrictingExit) {
-        double s1DTravelTimeDFlow = computeRegularDTravelTimeDFlowSingleLink(
-            theMode, physicalCost, virtualCost, originalS1EntrySegment, s1UnCongested);
-        double s2DTravelTimeDFlow = computeRegularDTravelTimeDFlowSingleLink(
-            theMode, physicalCost, virtualCost, originalS2EntrySegment, s2UnCongested);
+        double s1DTravelTimeDFlow = considerS1 ? computeRegularDTravelTimeDFlowSingleLink(
+            theMode, physicalCost, virtualCost, originalS1EntrySegment, s1UnCongested) : 0;
+        double s2DTravelTimeDFlow = considerS2 ? computeRegularDTravelTimeDFlowSingleLink(
+            theMode, physicalCost, virtualCost, originalS2EntrySegment, s2UnCongested) : 0;
         return s2DTravelTimeDFlow + s1DTravelTimeDFlow;
       }else {
         //case 2
-        // todo
+        // s1 (congested)
+        double s1DTravelTimeDFlow = 0;
+        if(considerS1) {
+          s1DTravelTimeDFlow = computeHyperCriticalDTravelTimeDFlowNotMostRestrictiveTurnOnCongestedLink(
+              networkLoading, physicalCost, originalS1EntrySegment, s1MostRestrictingExit, s1MostRestrExitDemandConstrainedFlow);
+          s1DTravelTimeDFlow += computeRegularDTravelTimeDFlowSingleLink(
+              theMode, physicalCost, virtualCost, originalS1EntrySegment, true /* uncongested only*/);
+        }
+        // s2 (congested)
+        double s2DTravelTimeDFlow = considerS2 ? computeRegularDTravelTimeDFlowSingleLink(
+            theMode, physicalCost, virtualCost, originalS2EntrySegment, s2UnCongested) : 0;
+        return s2DerivativeReductionFactor * s2DTravelTimeDFlow + s1DerivativeReductionFactor * s1DTravelTimeDFlow;
       }
     }else if(s1UnCongested && s2UnCongested){
       // case 3 (identical to case 1, only now both are flagged uncongested yielding different derivative)
-      double s1DTravelTimeDFlow = computeRegularDTravelTimeDFlowSingleLink(
-          theMode, physicalCost, virtualCost, originalS1EntrySegment, s1UnCongested);
-      double s2DTravelTimeDFlow = computeRegularDTravelTimeDFlowSingleLink(
-          theMode, physicalCost, virtualCost, originalS2EntrySegment, s2UnCongested);
-      return s2DTravelTimeDFlow + s1DTravelTimeDFlow;
-    }
-    //todo case 4-6
+      // s1 (uncongested)
+      double s1DTravelTimeDFlow = considerS1 ? computeRegularDTravelTimeDFlowSingleLink(
+          theMode, physicalCost, virtualCost, originalS1EntrySegment, s1UnCongested) : 0;
+      // s2 (uncongested)
+      double s2DTravelTimeDFlow = considerS2 ?computeRegularDTravelTimeDFlowSingleLink(
+          theMode, physicalCost, virtualCost, originalS2EntrySegment, s2UnCongested) : 0;
+      return s2DerivativeReductionFactor * s2DTravelTimeDFlow + s1DerivativeReductionFactor * s1DTravelTimeDFlow;
+    }else if(s1UnCongested && !s2UnCongested && !s2OnMostRestricting) {
+      //case4(a and b)
+      // s1 (uncongested)
+      double s1DTravelTimeDFlow = considerS1 ? computeRegularDTravelTimeDFlowSingleLink(
+          theMode, physicalCost, virtualCost, originalS1EntrySegment, s1UnCongested) : 0;
+      // s2 (congested but s2 same as on-pas situation where link is congested but turn not to most restricting)
+      double s2DTravelTimeDFlow = 0;
+      if(considerS2) {
+        s2DTravelTimeDFlow = computeHyperCriticalDTravelTimeDFlowNotMostRestrictiveTurnOnCongestedLink(
+            networkLoading, physicalCost, originalS2EntrySegment, s2MostRestrictingExit, s2MostRestrExitDemandConstrainedFlow);
+        s2DTravelTimeDFlow += computeRegularDTravelTimeDFlowSingleLink(
+            theMode, physicalCost, virtualCost, originalS2EntrySegment, true /* uncongested only*/);
+      }
+      return s2DerivativeReductionFactor * s2DTravelTimeDFlow + s1DerivativeReductionFactor * s1DTravelTimeDFlow;
+    }else if(!s1UnCongested && !s1OnMostRestricting && s2UnCongested) {
+      //case5(a and b)
+      // s1 (congested but not relevant for merge)
+      double s1DTravelTimeDFlow = 0;
+      if(considerS1) {
+        s1DTravelTimeDFlow = computeHyperCriticalDTravelTimeDFlowNotMostRestrictiveTurnOnCongestedLink(
+            networkLoading, physicalCost, originalS1EntrySegment, s1MostRestrictingExit, s1MostRestrExitDemandConstrainedFlow);
+        s1DTravelTimeDFlow += computeRegularDTravelTimeDFlowSingleLink(
+            theMode, physicalCost, virtualCost, originalS1EntrySegment, true /* uncongested only*/);
+      }
+      // s2 (uncongested)
+      double s2DTravelTimeDFlow = considerS2 ? computeRegularDTravelTimeDFlowSingleLink(
+          theMode, physicalCost, virtualCost, originalS2EntrySegment, s2UnCongested) : 0;
+      return s2DerivativeReductionFactor * s2DTravelTimeDFlow + s1DerivativeReductionFactor * s1DTravelTimeDFlow;
+    }else if( (s1UnCongested && !s2UnCongested && s2OnMostRestricting) ||
+        (s2UnCongested && !s1UnCongested && s1OnMostRestricting)){
+      // case 6/6b
 
+      //note: when s1 is not considered it has no impact on s2 in which case the special merge derivative does not
+      // apply and instead we revert to the regular combined hypo + hyper critical derivative
+
+      // s1 (uncongested)
+      double s1HypoDTravelTimeDFlow = considerS1 ? computeRegularDTravelTimeDFlowSingleLink(
+          theMode, physicalCost, virtualCost, originalS1EntrySegment, true /* force uncongested */) : 0;
+      // s2 (uncongested) --> always uncongested unless s1 does not vary and we trigger full regular derivative
+      //                      as well as switching off special case below.
+      double s2HypoDTravelTimeDFlow = considerS2 ? computeRegularDTravelTimeDFlowSingleLink(
+          theMode, physicalCost, virtualCost, originalS2EntrySegment, considerS1 ? true : s2UnCongested) : 0;
+
+      var combinedDtravelTimeDflow = s1HypoDTravelTimeDFlow * s1DerivativeReductionFactor +
+          s2HypoDTravelTimeDFlow * s2DerivativeReductionFactor;
+      double specialCombinedHyperDTravelTimeDflow = 0;
+      if(considerS1 && considerS2) {
+        var uncongestedEntry = s1UnCongested ? originalS1EntrySegment : originalS2EntrySegment;
+        var congestedEntry = s1UnCongested ? originalS2EntrySegment : originalS1EntrySegment;
+        specialCombinedHyperDTravelTimeDflow = computeHyperCriticalDTravelTimeDFlowCombinedMergeSpecialCase(
+            networkLoading, physicalCost, congestedEntry, uncongestedEntry, s2MostRestrictingExit);
+        combinedDtravelTimeDflow += specialCombinedHyperDTravelTimeDflow * s2DerivativeReductionFactor;
+        if (combinedDtravelTimeDflow < 0) {
+          // for non linear FD branches the hypo derivative should generally avoid this, as only hyper derivative may be
+          // negative. Regardless, we want to avoid issues and instead truncate to zero. Log for debugging todo analyse impact
+          LOGGER.warning(String.format("Negative derivative on merge for pas %s. To avoid issues truncate to zero", pas));
+          combinedDtravelTimeDflow = 0;
+        }
+      }
+      return combinedDtravelTimeDflow;
+    }else{
+      LOGGER.severe(String.format("Unrecognised traffic state for merge derivative calculation on pas %s, " +
+          "should not happen", pas));
+      return 0;
+    }
   }
 
   /**
@@ -1253,17 +1400,60 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // todo: add multiplication factors using alphas to reduce impact of derivatives along the way to make them more
     //  accurate
     //todo: stitch together and determine if some should be run
+
     var denominatorDivergeResult = getDTravelTimeDFlowDiverge(
         theMode, networkLoading, physicalCost, virtualCost);
+    boolean s1Continue = (boolean) denominatorDivergeResult[2];
+    boolean s2Continue = (boolean) denominatorDivergeResult[3];
+    double derivativeReductionFactorDiverge = (double) denominatorDivergeResult[1];
+    double divergeDenominator = (double) denominatorDivergeResult[0];
 
-    var denominatorS1Result = getDTravelTimeDFlowExcludingMergeDiverge(
-            theMode, networkLoading, physicalCost, virtualCost, true);
-    var denominatorS2Result = getDTravelTimeDFlowExcludingMergeDiverge(
-            theMode, networkLoading, physicalCost, virtualCost, false);
+    double onPasS1Denominator = 0;
+    double onPasS2Denominator = 0;
+    double derivativeReductionFactorS1UpToMerge = 1;
+    double derivativeReductionFactorS2UpToMerge = 1;
+    if(s1Continue) {
+      var denominatorS1Result = getDTravelTimeDFlowExcludingMergeDiverge(
+          theMode, networkLoading, physicalCost, virtualCost, true, derivativeReductionFactorDiverge);
+      onPasS1Denominator = denominatorS1Result.first();
+      derivativeReductionFactorS1UpToMerge = denominatorS1Result.second();
+      s1Continue = denominatorS1Result.third();
+    }
+    if(s2Continue) {
+      var denominatorS2Result = getDTravelTimeDFlowExcludingMergeDiverge(
+          theMode, networkLoading, physicalCost, virtualCost, false, derivativeReductionFactorDiverge);
+      onPasS2Denominator = denominatorS2Result.first();
+      derivativeReductionFactorS2UpToMerge = denominatorS2Result.second();
+      s2Continue = denominatorS2Result.third();
+    }
 
-    //todo add additional parameters indicating if high/los cost merge needs to be run at all
-    var denominatorMergeResult = getDTravelTimeDFlowMerge(
-        theMode, networkLoading, physicalCost, virtualCost);
+    double mergeDenominator = 0;
+    if(s1Continue || s2Continue) {
+      mergeDenominator = getDTravelTimeDFlowMerge(
+          theMode, networkLoading, physicalCost, virtualCost, s1Continue, s2Continue,
+          derivativeReductionFactorS1UpToMerge, derivativeReductionFactorS2UpToMerge);
+    }
+
+    /* s1 and/or s2 congested - derivative based flow shift possible */
+    // tauw_s1 + dtauw_s1/ds_1 * (flowShift) = tauw_s2 + dtauw_s2/ds_2 * (-flowShift) we find:
+    // tauw_s1 - tauw_s2 = dtauw_s2/ds_2 * (-flowShift)  - dtauw_s1/ds_1 * (flowShift)
+    // tauw_s1 - tauw_s2 = flowShift * (-dtauw_s1/ds_1 - dtauw_s2/ds_2)
+    // flowShift = (tauw_s2 - tauw_s1) / (dtauw_s1/ds_1 + dtauw_s2/ds_2)
+    double denominator = divergeDenominator + onPasS1Denominator + onPasS2Denominator + mergeDenominator;
+    double numerator = pas.getAlternativeHighCost() - pas.getAlternativeLowCost();
+    if(logAll){
+      LOGGER.info(String.format("divergeDenominator: %.10f", divergeDenominator));
+      LOGGER.info(String.format("onPasS1Denominator: %.10f", onPasS1Denominator));
+      LOGGER.info(String.format("onPasS2Denominator: %.10f", onPasS2Denominator));
+      LOGGER.info(String.format("mergeDenominator: %.10f", mergeDenominator));
+      LOGGER.info(String.format("*Denominator: %.10f", denominator));
+      LOGGER.info(String.format("*numerator: %.10f", numerator));
+
+      if(Double.isNaN(denominator)){
+        LOGGER.severe("Found denominator being a NaN should never happen");
+      }
+    }
+
 
     double flowShift = 0;
     boolean pasCostEqual = pas.isCostEqual(EPSILON);
@@ -1286,22 +1476,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         result.put(pas.getFirstEdgeSegment(true), finalProposedShift);
       }
       return result;
-    }
-
-    /* s1 and/or s2 congested - derivative based flow shift possible */
-    // tauw_s1 + dtauw_s1/ds_1 * (flowShift) = tauw_s2 + dtauw_s2/ds_2 * (-flowShift) we find:
-    // tauw_s1 - tauw_s2 = dtauw_s2/ds_2 * (-flowShift)  - dtauw_s1/ds_1 * (flowShift)
-    // tauw_s1 - tauw_s2 = flowShift * (-dtauw_s1/ds_1 - dtauw_s2/ds_2)
-    // flowShift = (tauw_s2 - tauw_s1) / (dtauw_s1/ds_1 + dtauw_s2/ds_2)
-    double denominator = denominatorS2 + denominatorS1;
-    double numerator = pas.getAlternativeHighCost() - pas.getAlternativeLowCost();
-    if(logAll){
-      LOGGER.info(String.format("denominator: %.10f", denominator));
-      LOGGER.info(String.format("numerator: %.10f", numerator));
-
-      if(Double.isNaN(denominator)){
-        LOGGER.severe("Found denominator being a NaN should never happen");
-      }
     }
 
     if (numerator != 0) {
