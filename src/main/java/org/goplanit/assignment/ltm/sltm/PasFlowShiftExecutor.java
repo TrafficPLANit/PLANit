@@ -227,7 +227,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param virtualCost          to use
    * @param isLowCostAlternative to use
    * @param derivativeReductionFactor to use
-   * @return dTravelTimedFlow or 0 if not possible to compute (with warning)
+   * @return derivative, compounded derivative reduction factor and indicator whether to continue or not
    */
   protected abstract Triple<Double, Double, Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
       final Mode theMode,
@@ -346,7 +346,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *  is truly congested already (true), or near congestion (false) but within threshold applied
    *
    */
-  protected abstract Pair<ES, Boolean> findFirstCongestedEdgeSegmentOnPasAlternative(
+  protected abstract ES findFirstCongestedEdgeSegmentOnPasAlternative(
           final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost);
 
   /**

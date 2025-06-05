@@ -92,6 +92,10 @@ public interface NetworkLoadingSplittingRateData {
    */
   public default double getSplittingRate(EdgeSegment entrySegment, EdgeSegment exitSegment) {
     Array1D<Double> vertexSplittingRates = getSplittingRates(entrySegment);
+    if(vertexSplittingRates == null){
+      return 0;
+    }
+
     int index = 0;
     for (var currExitSegment : entrySegment.getDownstreamVertex().getExitEdgeSegments()) {
       if (currExitSegment.idEquals(exitSegment)) {

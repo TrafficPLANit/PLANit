@@ -563,7 +563,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * {@inheritDoc}
    */
   @Override
-  protected Pair<ConjugateEdgeSegment, Boolean> findFirstCongestedEdgeSegmentOnPasAlternative(
+  protected ConjugateEdgeSegment findFirstCongestedEdgeSegmentOnPasAlternative(
           StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
 
     ConjugateEdgeSegment[] alternative = pas.getAlternative(lowCost);
@@ -579,34 +579,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
       if (currConjSegment.hasOriginalEntryEdgeSegment() &&
               isCongested(networkLoading , currConjSegment.getOriginalAdjacentEdgeSegments().first())) {
-        return Pair.of(currConjSegment, true);
-      }else if(currConjSegment.hasOriginalExitEdgeSegment() &&
-              isNearCongested(
-                      networkLoading,
-                      currConjSegment.getOriginalAdjacentEdgeSegments().second(),
-                      UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH)){
-        //todo: once we have zero flow cost derivatives we should be able to get rid of this as it is ugly
-        return Pair.of(currConjSegment, false);
+        return currConjSegment;
       }
-    }
-    if(currConjSegment==null){
-      return null;
-    }
-
-    // for last segment consider all exit segments out of the PAS rather as we have no
-    // single next segment
-    if(!currConjSegment.hasOriginalExitEdgeSegment()){
-      return null;
-    }
-    //todo: once we have zero flow cost derivatives we should be able to get rid of this as it is ugly
-    var isCongestedResult =
-            isCongested(networkLoading,
-                    currConjSegment.getOriginalAdjacentEdgeSegments().first(),
-                    UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH);
-    if(isCongestedResult.first()){
-      return Pair.of(currConjSegment, true); // true congestion match
-    }else if(isCongestedResult.second()){
-      return Pair.of(currConjSegment, false); // near congestion match
     }
     return null;
   }
@@ -719,7 +693,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * @param virtualCost          to use
    * @param isLowCostAlternative to use
    * @param derivativeReductionFactor to use
-   * @return derivative and indicator whether to continue or not
+   * @return derivative, compounded derivative reduction factor and indicator whether to continue or not
    */
   @Override
   protected Triple<Double, Double, Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
@@ -1014,8 +988,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       // s1 (uncongested)
       double s1HypoDTravelTimeDFlow = considerS1 ? computeRegularDTravelTimeDFlowSingleLink(
           theMode, physicalCost, virtualCost, originalS1EntrySegment, true /* force uncongested */) : 0;
-      // s2 (uncongested) --> always uncongested unless s1 does not vary and we trigger full regular derivative
-      //                      as well as switching off special case below.
+      // s2 (uncongested) --> always flagged uncongested to only get hypo unless s1 does not vary and we trigger full
+      //                      regular derivative as well as switching off special case below. When hypo special case is
+      //                      used to determine hyper
       double s2HypoDTravelTimeDFlow = considerS2 ? computeRegularDTravelTimeDFlowSingleLink(
           theMode, physicalCost, virtualCost, originalS2EntrySegment, considerS1 ? true : s2UnCongested) : 0;
 
@@ -1043,6 +1018,105 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
   }
 
+  protected static Pair<Double, Boolean> determinePasLinkSegmentSlackFlow(
+      StaticLtmLoadingBushBase<?> networkLoading,
+      ConjugateEdgeSegment conjAltEdgeSegment,
+      boolean lowCostSlack){
+
+    boolean mostRestricting = false;
+    EdgeSegment originalEntrySegment = conjAltEdgeSegment.getOriginalAdjacentEdgeSegments().first();
+    EdgeSegment originalExitSegment = conjAltEdgeSegment.getOriginalAdjacentEdgeSegments().second();
+    if(originalExitSegment == null || originalEntrySegment == null){
+      return Pair.of(Double.MAX_VALUE, mostRestricting);
+    }
+    double turnAlpha = networkLoading.getCurrentFlowAcceptanceFactors()[(int)originalEntrySegment.getId()];
+    double turnSplittingRate = networkLoading.getSplittingRateData().getSplittingRate(originalEntrySegment, originalExitSegment);
+    double turnSendingFlow = networkLoading.getCurrentInflowsPcuH()[(int)originalEntrySegment.getId()] * turnSplittingRate;
+    double turnAcceptedFlow = turnSendingFlow * turnAlpha;
+
+    if(!lowCostSlack && turnAlpha>= 1.0){
+      // cannot change state further when already uncongested for high cost
+      // todo: can consider state change from most-restricting to non-most-restricting turn (remaining congested)....
+      return Pair.of(Double.MAX_VALUE, mostRestricting);
+    }
+
+    // determine fair share the turn has a right to claim given current state
+    double fairShareNumerator = ((PcuCapacitated)originalEntrySegment).getCapacityOrDefaultPcuH() * turnSplittingRate;
+    if(turnSplittingRate == 0){
+      if(lowCostSlack) {
+        // special case we'll be moving flow to this zero-flow turn based on findings, but without shift we do not know
+        // its bargaining power. Having it at zero is not an option because it would mean 0 slack which is not correct
+        // chicken-egg situation. Let's bootstrap it with 10% of entry link capacity, once it has flow it will be based
+        // on that (or if not congested using absolute slack anyway so not an issue if not fully correct).
+        fairShareNumerator = ((PcuCapacitated)originalEntrySegment).getCapacityOrDefaultPcuH() * 0.1;
+      }else{
+        LOGGER.warning("Attempting to find slack for a high cost segment without flow, shouldn't happen");
+        return Pair.of(Double.MAX_VALUE, mostRestricting);
+      }
+    }
+    double fairShareDenominator = fairShareNumerator;
+
+    // todo: (low cost) when having low flow and congested to most restricting, this could cause a very low slack because its low
+    //  flow on high volume entry link would reduce its bargaining power on exit. If that is the case we probably should
+    //  implement some kind of relaxation
+
+    double exitCapacity = ((PcuCapacitated)originalExitSegment).getCapacityOrDefaultPcuH();
+    double totalOtherConsumedExitCapacity = 0;
+    for(var currEntrySegment : originalEntrySegment.getDownstreamVertex().getEntryEdgeSegments()){
+      if(currEntrySegment == originalEntrySegment){
+        continue;
+      }
+      double currSplittingRate = networkLoading.getSplittingRateData().getSplittingRate(currEntrySegment, originalExitSegment);
+      double currAlpha = networkLoading.getCurrentFlowAcceptanceFactors()[(int)currEntrySegment.getId()];
+      double currTurnAcceptedFlow =
+          networkLoading.getCurrentInflowsPcuH()[(int)currEntrySegment.getId()] * currSplittingRate * currAlpha;
+      if(currTurnAcceptedFlow > 0){
+        // flow present towards "our" exit, so it may claim fair share hence included in calc
+        fairShareDenominator += ((PcuCapacitated)currEntrySegment).getCapacityOrDefaultPcuH()*currSplittingRate;
+        totalOtherConsumedExitCapacity += currTurnAcceptedFlow;
+      }
+    }
+    double fairShare = exitCapacity * (fairShareNumerator / fairShareDenominator);
+    double consumableExitCapacity =
+        ((PcuCapacitated) originalExitSegment).getCapacityOrDefaultPcuH() - totalOtherConsumedExitCapacity;
+    mostRestricting = Precision.equal(consumableExitCapacity, turnAcceptedFlow);
+
+    // knowing its fair share we determine the actual slack based on absolute observed slack and fair share
+    // combined
+
+    // LOW COST
+    if(lowCostSlack) {
+      double absoluteSlackFlow =
+          ((PcuCapacitated) originalExitSegment).getCapacityOrDefaultPcuH() -
+              (totalOtherConsumedExitCapacity + turnAcceptedFlow);
+      // slack to triggering congestion is slack until fair share is reached, or if more is left over, the absolute
+      // slack remaining
+      //todo: we can split this in two states and consider that a state change as well
+      double turnSlack = Math.max(absoluteSlackFlow, Math.max(0, fairShare - turnAcceptedFlow));
+      return Pair.of(turnSlack, mostRestricting);
+    }
+    // HIGH COST
+    else{
+      if((turnAcceptedFlow + EPSILON_6) < fairShare){
+        // already virtually uncongested (not on most restricting turn), so any reduction will not trigger
+        // a traffic state change (ignoring the fact we free up bargaining power for actual most restricting turn)
+        return Pair.of(Double.MAX_VALUE, false);
+      }
+      if((turnAcceptedFlow + EPSILON_6) < consumableExitCapacity){
+        // again virtually uncongested already (not on most restricting turn), because excess consumable turn flow not used yet
+        // hence further reduction will not cause a traffic state change (ignoring the fact we free up bargaining power
+        // for actual most restricting turn)
+        return Pair.of(Double.MAX_VALUE, false);
+      }
+
+      // slack to removing congestion is the minimum between when we would drop below fair share or when
+      // sending flow no longer exceeds available consumable exit capacity - other turn accepted flows
+      //todo: we can split this in two states and consider that a state change as well
+      double turnSlack = turnSendingFlow - Math.max(consumableExitCapacity, fairShare);
+      return Pair.of(turnSlack, mostRestricting);
+    }
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -1054,47 +1128,45 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     EdgeSegment minSlackSegment = null;
 
     // regular PAS traversal rework back to original link segments
-    int linkSegmentId = -1;
-    ConjugateEdgeSegment conjAltEdgeSegment = null;
+    ConjugateEdgeSegment conjAltEdgeSegment;
     ConjugateEdgeSegment[] conjAltEdgeSegments = pas.getAlternative(lowCost);
-    int index = 1;
+    int index = 0;
+    double compoundedAlpha = 1;
     for (; index < conjAltEdgeSegments.length; ++index) {
       conjAltEdgeSegment = conjAltEdgeSegments[index];
-      if(!conjAltEdgeSegment.hasOriginalEntryEdgeSegment()){
+      if (!conjAltEdgeSegment.hasOriginalEntryEdgeSegment()) {
         continue;
       }
-      EdgeSegment originalNetworkSegment = conjAltEdgeSegment.getOriginalAdjacentEdgeSegments().first();
-      linkSegmentId = (int) originalNetworkSegment.getId();
-      /* do not use outflows directly because they are only available on potentially blocking nodes in point queue basic solution scheme */
-      double inflow = networkLoading.getCurrentInflowsPcuH()[linkSegmentId];
-      double currSlackFlow = ((PcuCapacitated) originalNetworkSegment).getCapacityOrDefaultPcuH() - inflow;
-      if(currSlackFlow < slackFlow){
-        minSlackSegment = originalNetworkSegment;
-        slackFlow = currSlackFlow;
+      double turnAlpha =
+          networkLoading.getCurrentFlowAcceptanceFactors()[(int)conjAltEdgeSegment.getOriginalAdjacentEdgeSegments().first().getId()];
+      var rawTurnSlackResult = determinePasLinkSegmentSlackFlow(networkLoading, conjAltEdgeSegment, lowCost);
+      boolean onMostRestrictingTurn = rawTurnSlackResult.second();
+
+      boolean congestedOnMostRestricting = (turnAlpha + EPSILON_6) < 1 && onMostRestrictingTurn;
+      if(lowCost && congestedOnMostRestricting){
+        // - For low cost flow adding flow to THIS turn and onward will not trickle down, STOP BEFORE UPDATING
+        // - for high cost THIS turn is the final turn that matters, so we DO NOT break here, but after updating
+        //    the slack for this turn...and then break, see below.
+        break;
       }
 
-      if (!Precision.positive(slackFlow, EPSILON)) {
-        return Pair.of(0.0, minSlackSegment);
+      double rawTurnSlack = rawTurnSlackResult.first();
+      double turnSlack = rawTurnSlack * compoundedAlpha;
+      if(turnSlack < slackFlow){
+        minSlackSegment = conjAltEdgeSegment.getOriginalAdjacentEdgeSegments().first();
+        slackFlow = turnSlack;
       }
-    }
 
-    // beyond last segment special case tracking
-    ConjugateEdgeSegment lastAlternativeSegment = pas.getLastEdgeSegment(lowCost);
-    if(!lastAlternativeSegment.hasOriginalExitEdgeSegment()){
-      return Pair.of(slackFlow, minSlackSegment);
-    }
+      if(!lowCost && congestedOnMostRestricting){
+        // same as above only now we must consider the slack on this turn as it is the final slack that matters to trigger
+        // a state change for the high cost alt.
+        break;
+      }
 
-    /* do not use outflows directly because they are only available on potentially blocking nodes in point queue basic
-    solution scheme todo: should be fixed the below is ugly */
-    EdgeSegment lastOriginalSegment = lastAlternativeSegment.getOriginalAdjacentEdgeSegments().first();
-    EdgeSegment lastOriginalSegmentExit = lastAlternativeSegment.getOriginalAdjacentEdgeSegments().second();
-    double splittingRate =
-            networkLoading.getSplittingRateData().getSplittingRate(lastOriginalSegment, lastOriginalSegmentExit);
-    var nextInflow = networkLoading.getCurrentInflowsPcuH()[(int)lastOriginalSegment.getId()] * splittingRate;
-    double currSlackFlow = ((PcuCapacitated) lastOriginalSegmentExit).getCapacityOrDefaultPcuH() - nextInflow;
-    if(currSlackFlow < slackFlow){
-      minSlackSegment = lastOriginalSegmentExit;
-      slackFlow = currSlackFlow;
+      // note alpha<1 does not lead to stopping if it is not most restricting, in those cases flow changes still
+      // propagate only less, so, hence multiply with factor but continue
+
+      compoundedAlpha *= turnAlpha;
     }
     return Pair.of(slackFlow, minSlackSegment);
   }
@@ -1389,19 +1461,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     var originalEntrySegment =
         pas.getFirstEdgeSegment(false).getOriginalAdjacentEdgeSegments().first();
 
-    double denominatorS2 = 0;
-    double denominatorS1 = 0;
-
-    var s1FirstCongestedSegmentResult =
-            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true);
-    var s2FirstCongestedSegmentResult =
-            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false);
-    var firstS1CongestedSegment = s1FirstCongestedSegmentResult!= null ? s1FirstCongestedSegmentResult.first() : null;
-    var firstS2CongestedSegment = s2FirstCongestedSegmentResult!= null ? s2FirstCongestedSegmentResult.first() : null;
-
-    // todo: add multiplication factors using alphas to reduce impact of derivatives along the way to make them more
-    //  accurate
-    //todo: stitch together and determine if some should be run
+    var firstS2CongestedSegment = findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false);
+    boolean pasS2PotentialDiscontinuity = (firstS2CongestedSegment != null);
 
     var denominatorDivergeResult = getDTravelTimeDFlowDiverge(
         theMode, networkLoading, physicalCost, virtualCost);
@@ -1463,7 +1524,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     var lowCostSlackResult = determinePasAlternativeSlackFlow(networkLoading, true);
     double s1SlackFlowEstimate = lowCostSlackResult.first();
     double s1SlackFlowLeeway = ((PcuCapacitated) lowCostSlackResult.second()).getCapacityOrDefaultPcuH() * stateChangeLeewayPercentage;
-    if (!pasCostEqual && smallerEqual(denominatorS2,EPSILON,EPSILON) && smallerEqual(denominatorS1, EPSILON,EPSILON)) {
+    if (!pasCostEqual && smallerEqual(denominator,EPSILON,EPSILON)) {
       /* s1 & S2 UNCONGESTED - no derivative estimate possible (denominator zero) */
       /* move all towards cheaper alternative limited by slack + delta */
       /* obtain PAS-entry segment sub-path sending flows */
@@ -1482,21 +1543,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     if (numerator != 0) {
       flowShift = numerator / denominator;
-
-      /* debug only, test if shift solves travel time discrepancy, to be removed when it works */
-      double diff =
-              (pas.getAlternativeLowCost() + denominatorS1 * flowShift) -
-                      (pas.getAlternativeHighCost() + denominatorS2 * -flowShift);
-      if (Precision.notEqual(diff, 0.0)) {
-        LOGGER.severe("Computation of using derivatives to shift flows between PAS segments does not result in " +
-                "equal travel time after shift, this should not happen");
-      }
     }
 
-    // VERIFY CROSSING OF DISCONTINUITY on S1  - adjust shift if so to mitigate effect
-    // This is triggered when S1 alternative segments are not congested yet, or near congestion
-    boolean pasS1PotentialDiscontinuity = (firstS1CongestedSegment == null || !s1FirstCongestedSegmentResult.second());
-    if (pasS1PotentialDiscontinuity) {
+    // always adjust for possible s1 discontinuities
+    {
       /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
       double oldFlowShift = flowShift;
       flowShift = adjustFlowShiftBasedOnS1SlackFlow(flowShift, s1SlackFlowEstimate, s1SlackFlowLeeway);
@@ -1517,31 +1567,17 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       pasEntrySegmentCongestedResult = Pair.of(false,false); // dummy entry, no congestion by definition
     }
 
-    boolean pasS2PotentialDiscontinuity =
-            (firstS2CongestedSegment != null && s2FirstCongestedSegmentResult.second()) ||
-                    (pasEntrySegmentCongestedResult.first() && !pasEntrySegmentCongestedResult.second());
     if (pasS2PotentialDiscontinuity) {
-
-      //TODO: this is not a good estimate since we now assume the link flow as a whole drives the queue, but it may be
-      // that a tiny portion on one turn is causing the full reduction factor while the majority of flow would sail through
-      // were it not for that small turn flow --> we must compute the discontinuity slack flow for each turn separate and
-      // then use the minimum
-      // looking at spreadsheet with small example it may not be enough either
-
-      EdgeSegment originalCongestedS2Segment = firstS2CongestedSegment.getOriginalAdjacentEdgeSegments().first();
-      int originalCongestedS2SegmentId = (int) originalCongestedS2Segment.getId();
-
-      double s2DeltaFlowToStateChangeEstimate =
-              networkLoading.getCurrentInflowsPcuH()[originalCongestedS2SegmentId] *
-                      (1 - networkLoading.getCurrentFlowAcceptanceFactors()[originalCongestedS2SegmentId]);
-      double s2SlackFlowLeeway = ((PcuCapacitated) originalCongestedS2Segment).getCapacityOrDefaultPcuH() * stateChangeLeewayPercentage;
-      double oldFlowShift = flowShift;
-      flowShift = adjustFlowShiftBasedOnS2SlackFlow(
-              flowShift, s2DeltaFlowToStateChangeEstimate, s2SlackFlowLeeway);
-      if(logAll && oldFlowShift > flowShift){
-        LOGGER.info(String.format("S2 DISCONTINUITY ADJUSTMENT TRIGGERED on (%s) from %.10f, to %.10f",
-            firstS2CongestedSegment.getIdsAsString(),oldFlowShift, flowShift));
-      }
+      var highCostSlackResult = determinePasAlternativeSlackFlow(networkLoading, false);
+      double s2SlackFlowEstimate = highCostSlackResult.first();
+      double s2SlackFlowLeeway = ((PcuCapacitated) highCostSlackResult.second()).getCapacityOrDefaultPcuH() * stateChangeLeewayPercentage;
+        /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
+        double oldFlowShift = flowShift;
+        flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2SlackFlowEstimate, s2SlackFlowLeeway);
+        if(logAll && oldFlowShift > flowShift){
+          LOGGER.info(String.format("S2 DISCONTINUITY ADJUSTMENT TRIGGERED from %.10f, to %.10f",
+              oldFlowShift, flowShift));
+        }
     }
 
     if(originalEntrySegment != null) {

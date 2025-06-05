@@ -17,6 +17,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
@@ -268,7 +269,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    * {@inheritDoc}
    */
   @Override
-  protected Pair<EdgeSegment, Boolean> findFirstCongestedEdgeSegmentOnPasAlternative(
+  protected EdgeSegment findFirstCongestedEdgeSegmentOnPasAlternative(
           final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
 
     EdgeSegment[] alternative = pas.getAlternative(lowCost);
@@ -278,38 +279,21 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
     for (; index < alternative.length; ++index) {
       nextSegment = alternative[index];
       if (isCongested(networkLoading , currSegment)) {
-        return Pair.of(currSegment, true);
-      }else if(isNearCongested(networkLoading, nextSegment, UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH)){
-        return Pair.of(currSegment, false);
+        return currSegment;
       }
       currSegment = nextSegment;
-    }
-
-    // treat last segment differently because we must consider all exist segments out of the PAS rather as we have no
-    // single next segment
-    // todo: check could be made better by considering s1+s2 splitting rates on last segment
-    var isCongestedResult =
-            isCongested(networkLoading,  currSegment, UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH);
-    if(isCongestedResult.first()){
-      return Pair.of(currSegment, true); // true congestion match
-    }else if(isCongestedResult.second()){
-      return Pair.of(currSegment, false); // near congestion match
     }
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  protected double getDTravelTimeDFlow(
+  protected Triple<Double, Double, Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
           final Mode theMode,
           final StaticLtmLoadingBushBase<?> networkLoading,
           final AbstractPhysicalCost physicalCost,
           final AbstractVirtualCost virtualCost,
           boolean isLowCostAlternative,
-          boolean ignoreFirstSegment) {
-    assert(!ignoreFirstSegment);
+          double derivativeReductionFactor) {
 
     double dTravelTimeDFlow = 0.0;
 
@@ -353,8 +337,10 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
       currSegment = nextSegment;
       ++index;
     }
-    return dTravelTimeDFlow;
+    return Triple.of(dTravelTimeDFlow,1.0 /*dummy*/,true /*dummy*/);
   }
+
+
 
   /**
    * {@inheritDoc}
@@ -439,12 +425,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
     double denominatorS1 = 0;
 
     /* get first congested edge segment that is affected when shifting flow, per alternative */
-    var s1FirstCongestedSegmentResult =
-            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true);
-    var s2FirstCongestedSegmentResult =
-            findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false);
-    var firstS1CongestedSegment = s1FirstCongestedSegmentResult!= null ? s1FirstCongestedSegmentResult.first() : null;
-    var firstS2CongestedSegment = s2FirstCongestedSegmentResult!= null ? s2FirstCongestedSegmentResult.first() : null;
+    var firstS1CongestedSegment = findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, true);
+    var firstS2CongestedSegment = findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false);
 
     // not rewritten to merge diverge excluded yet, all in one here
     denominatorS1 = getDTravelTimeDFlowExcludingMergeDiverge(
@@ -492,26 +474,17 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
     boolean pasEntrySegmentDirectlyCongested = pasEntrySegmentCongestedResult.first();
     boolean pasEntrySegmentPotentialDiscontinuity =
             !pasEntrySegmentDirectlyCongested && pasEntrySegmentCongestedResult.second();
-    boolean pasS1PotentialDiscontinuity = !pasEntrySegmentDirectlyCongested &&
-            (firstS1CongestedSegment == null || !s1FirstCongestedSegmentResult.second());
+    boolean pasS1PotentialDiscontinuity = !pasEntrySegmentDirectlyCongested && firstS1CongestedSegment == null;
     if (pasEntrySegmentPotentialDiscontinuity || pasS1PotentialDiscontinuity) {
       /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
       flowShift = adjustFlowShiftBasedOnS1SlackFlow(flowShift, s1SlackFlowEstimate, s1SlackFlowLeeway);
     }
 
     // VERIFY CROSSING OF DISCONTINUITY on S2 travel time function - adjust shift if so to mitigate effect
+    // todo: see conjugate if we are to every update this, this is no longer correct
     if (firstS2CongestedSegment != null || pasEntrySegmentDirectlyCongested) {
       var refSegment = pasEntrySegmentDirectlyCongested ? entrySegment : firstS2CongestedSegment;
       double s2DeltaFlowToStateChangeEstimate = -1;
-
-//      var turnExitSegment = identifyMostRestrictingOutEdgeSegment(refSegment, networkLoading);
-//      var criticalExitSplittingRate = networkLoading.getSplittingRateData().getSplittingRate(refSegment, turnExitSegment);
-
-      //TODO: this is not a good estimate since we now assume the link flow as a whole drives the queue, but it may be
-      // that a tiny portion on one turn is causing the full reduction factor while the majority of flow would sail through
-      // were it not for that small turn flow --> we must compute the discontinuity slack flow for each turn separate and
-      // then use the minimum
-      // looking at spreadsheet with small exampl it may not be enough either
 
       s2DeltaFlowToStateChangeEstimate =
               networkLoading.getCurrentInflowsPcuH()[(int) refSegment.getId()] *

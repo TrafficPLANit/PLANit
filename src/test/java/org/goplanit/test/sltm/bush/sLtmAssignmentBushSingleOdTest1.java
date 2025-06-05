@@ -230,7 +230,7 @@ public class sLtmAssignmentBushSingleOdTest1 {
     //
     // Inspired by the network in Raadsen and Bliemer (2021), but not identical since we use three separate links for the 
     // alternative routes and capacities might be slightly different as well. Link 2 (7k capacity) is the bottleneck
-    // with the middle route being shorter, all link shave 8k capacity.
+    // with all routes equal length, all link shave 8k capacity.
     //  - Demand is 8k as well for the congested test
     //  - Demand is 7k with QL diagram and lower speeds for uncongested test
     //
