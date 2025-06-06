@@ -430,8 +430,8 @@ public class sLtmAssignmentBushSingleOdTest2 {
       sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
 
-      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(0.5);
+      var smoothing = sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
+//      fixedStepSmoothing.setStepSize(1);
 
       /* DESTINATION BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
@@ -474,10 +474,10 @@ public class sLtmAssignmentBushSingleOdTest2 {
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(
           StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
 
-//      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-//      fixedStepSmoothing.setStepSize(1);
-      var msraSmoothing = (MSRASmoothingConfigurator)
-          sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
+      var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      fixedStepSmoothing.setStepSize(1);
+//      var msraSmoothing = (MSRASmoothingConfigurator)
+//          sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
 
       /* DESTINATION BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);

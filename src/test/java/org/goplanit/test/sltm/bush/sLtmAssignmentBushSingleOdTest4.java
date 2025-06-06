@@ -13,6 +13,7 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.utils.id.IdGenerator;
@@ -288,9 +289,12 @@ public class sLtmAssignmentBushSingleOdTest4 {
       // NEWELL diagram
       sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
 
-      var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
-              sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(1);
+//      var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
+//              sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+//      fixedStepSmoothing.setStepSize(1);
+
+      var msraSmoothing = (MSRASmoothingConfigurator)
+          sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
 
       /* CONJUGATE DESTINATION BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);

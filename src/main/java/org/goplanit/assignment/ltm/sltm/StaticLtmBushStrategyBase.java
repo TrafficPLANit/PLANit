@@ -2,7 +2,6 @@ package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
-import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.assignment.ltm.sltm.conjugate.PasFlowShiftConjugateDestinationBasedExecutor;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
@@ -534,7 +533,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
     // UNCONGESTED ONLY
     var flowShiftedAndObsoletePass = attemptUncongestedFlowShift(
-        theMode, sortedPass, pasExecutors, originalNetworkCosts);
+        theMode, sortedPass, pasExecutors, originalNetworkCosts, simulationData);
     ArrayList<Pas<V,ES>> flowShiftedPass = flowShiftedAndObsoletePass.first();
     ArrayList<Pas<V,ES>> passWithoutBush = flowShiftedAndObsoletePass.second();
 
@@ -568,7 +567,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   protected Pair<ArrayList<Pas<V,ES>>, ArrayList<Pas<V,ES>>> attemptUncongestedFlowShift(
       Mode theMode, Collection<Pas<V,ES>> sortedPass,
       Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
-      double[] originalNetworkCosts) {
+      double[] originalNetworkCosts, StaticLtmSimulationData simulationData) {
     // stub implementation (not implemented for regular destination based yet
     return Pair.of(null, null);
   }

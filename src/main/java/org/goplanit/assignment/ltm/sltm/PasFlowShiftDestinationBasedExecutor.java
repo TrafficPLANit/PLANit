@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
+import org.goplanit.gap.GapFunction;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -641,12 +642,12 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    */
   @Override
   public Map<EdgeSegment, Double> determineProposedFlowShiftByLoadingEntrySegment(
-          Mode theMode,
-          AbstractPhysicalCost physicalCost,
-          AbstractVirtualCost virtualCost,
-          StaticLtmLoadingBushBase<?> networkLoading,
-          double guaranteedS2SendingFlow,
-          boolean logAll) { // dummy for compliance
+      Mode theMode,
+      GapFunction gapFunction, AbstractPhysicalCost physicalCost,
+      AbstractVirtualCost virtualCost,
+      StaticLtmLoadingBushBase<?> networkLoading,
+      double guaranteedS2SendingFlow,
+      boolean logAll) { // dummy for compliance
 
     Map<EdgeSegment, Double> result = new TreeMap<>();
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {

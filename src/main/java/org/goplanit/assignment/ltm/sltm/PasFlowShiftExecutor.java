@@ -5,13 +5,12 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
+import org.goplanit.gap.GapFunction;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.pcu.PcuCapacitated;
 import org.goplanit.utils.zoning.OdZone;
 
@@ -409,25 +408,26 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
           double[] flowAcceptanceFactors);
 
   /**
-   *  Determine proposed flow shift for the PAS of this flow shifter based on the (expected to be known) s1 and s2
-   *  sending flows and costs.
+   * Determine proposed flow shift for the PAS of this flow shifter based on the (expected to be known) s1 and s2
+   * sending flows and costs.
    *
-   * @param theMode to use
-   * @param physicalCost to use
-   * @param virtualCost to use
-   * @param networkLoading to use
-   * @param guaranteedS2SendingFlow  to use
-   * @param logAll to use
+   * @param theMode                 to use
+   * @param gapFunction
+   * @param physicalCost            to use
+   * @param virtualCost             to use
+   * @param networkLoading          to use
+   * @param guaranteedS2SendingFlow to use
+   * @param logAll                  to use
    * @return proposed flow shift (in isolation) per network loading original network entry segment of the PAS, hence
    * using the edge segment in the return type and not the generics of this executor
    */
   public abstract Map<EdgeSegment, Double> determineProposedFlowShiftByLoadingEntrySegment(
-          Mode theMode,
-          AbstractPhysicalCost physicalCost,
-          AbstractVirtualCost virtualCost,
-          StaticLtmLoadingBushBase<?> networkLoading,
-          double guaranteedS2SendingFlow,
-          boolean logAll);
+      Mode theMode,
+      GapFunction gapFunction, AbstractPhysicalCost physicalCost,
+      AbstractVirtualCost virtualCost,
+      StaticLtmLoadingBushBase<?> networkLoading,
+      double guaranteedS2SendingFlow,
+      boolean logAll);
 
   /**
    * For each bush on this PAS determine if any link segments are not yet on the S1 that would be added

@@ -133,7 +133,7 @@ public class StaticLtmConjugateBushStrategy
       Mode theMode,
       Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>> sortedPass,
       Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>, PasFlowShiftExecutor<ConjugateDirectedVertex,ConjugateEdgeSegment>> pasExecutors,
-      double[] originalNetworkCosts) {
+      double[] originalNetworkCosts, StaticLtmSimulationData simulationData) {
 
     var flowShiftedPass = new ArrayList<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>(
         (int) this.pasManager.getNumberOfActivePass());
@@ -142,6 +142,8 @@ public class StaticLtmConjugateBushStrategy
     // PASs on conjugate level, so expand link segment to conjugate segment costs as if first
     var conjSegmentCosts =
         expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, originalNetworkCosts, true);
+
+    boolean logAll = simulationData.getIterationIndex()>=5;
 
     for(var pas : sortedPass) {
       var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
@@ -156,7 +158,7 @@ public class StaticLtmConjugateBushStrategy
         originalNetworkCosts,
         conjSegmentCosts,
         getBushes(),
-        false);
+        logAll);
 
       if (pasFlowShifted > 0) {
         flowShiftedPass.add(pas);
