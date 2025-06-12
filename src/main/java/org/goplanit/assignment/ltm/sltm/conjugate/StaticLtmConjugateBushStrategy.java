@@ -155,7 +155,7 @@ public class StaticLtmConjugateBushStrategy
       for (var pas : sortedPass) {
         var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
 
-        if (pas.pasId == 2L) {
+        if (pas.pasId == 749L) {
           int bla = 4;
         }
 
@@ -766,9 +766,6 @@ public class StaticLtmConjugateBushStrategy
       }
       if(!replaceZeroFlowSpanningTreeSegments.isEmpty()){
         for(var entry : replaceZeroFlowSpanningTreeSegments.entrySet()){
-
-
-
           conjBush.remove(entry.getKey());
           var newSegment = entry.getValue();
           conjBush.getDag().addEdgeSegment(newSegment);
@@ -798,12 +795,21 @@ public class StaticLtmConjugateBushStrategy
         }
 
         // Regular approach for used portion of bush
+        bushMinMaxTree.setMinPathState(true);
+        var minNextEdge = (ConjugateEdgeSegment) bushMinMaxTree.getNextEdgeSegmentForVertex(conjBushVertex);
+        bushMinMaxTree.setMinPathState(false);
+        var maxNextEdge = (ConjugateEdgeSegment) bushMinMaxTree.getNextEdgeSegmentForVertex(conjBushVertex);
+        double entryAcceptanceFactor = conjBushVertex.hasOriginalEdgeSegment() ?
+            getLoading().getCurrentFlowAcceptanceFactors()[(int)conjBushVertex.getOriginalEdgeSegment().getId()] : 1;
         for(var outgoingSegment : conjBushVertex.getExitEdgeSegments()){
 
           // TODO: temp try using ALL "NOW" PASs of all vertices if eligible and wipe after outer iteration
           //  so we allow any eligible reduced cost vertex for now to be considered
 
           boolean minPathInitialLinkNewToBush = false;
+          boolean divergentMinMaxPaths = !(minNextEdge == maxNextEdge);
+          boolean preferredOutGoingSegment = (minNextEdge == outgoingSegment);
+          boolean congestedEntry = (entryAcceptanceFactor + Precision.EPSILON_6) < 1 ? true : false;
           if(!conjBush.contains(outgoingSegment)){
             if(!isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree).first()){
               continue;
@@ -811,13 +817,9 @@ public class StaticLtmConjugateBushStrategy
             minPathInitialLinkNewToBush = true;
           }else if(conjBush.contains(outgoingSegment)){
             // for existing segments we require a potential reduced cost (checked later) AND a split at the vertex
-            // for the min and max path
-            bushMinMaxTree.setMinPathState(true);
-            var minNextEdge = bushMinMaxTree.getNextEdgeSegmentForVertex(conjBushVertex);
-            bushMinMaxTree.setMinPathState(false);
-            var maxNextEdge = bushMinMaxTree.getNextEdgeSegmentForVertex(conjBushVertex);
-            if(minNextEdge == maxNextEdge || minNextEdge != outgoingSegment){
-              continue; // (we match min path to current outgoing segment as this is what PAS creator expects)
+            // for the min and max path and the current outgoing segment is the preferred (min cost) segment
+            if(!divergentMinMaxPaths || !preferredOutGoingSegment){
+              continue;
             }
           }
 
@@ -829,7 +831,7 @@ public class StaticLtmConjugateBushStrategy
                 bushMinMaxTree.getMinCostToReach(outgoingSegment.getDownstreamVertex());
             reducedCost =
                 bushMinMaxTree.getMaxCostToReach(conjBushVertex) - minCostToVertexWithNewLink;
-          }else{
+          }else /*if(divergentMinMaxPaths && preferredOutGoingSegment) <-- given*/ {
             reducedCost =
                 bushMinMaxTree.getMaxCostToReach(conjBushVertex) - bushMinMaxTree.getMinCostToReach(conjBushVertex);
           }

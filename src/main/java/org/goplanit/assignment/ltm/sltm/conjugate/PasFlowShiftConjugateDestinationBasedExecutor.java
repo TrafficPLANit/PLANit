@@ -433,8 +433,13 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     var networkLoading = assignmentStrategy.getLoading();
     var nonConjugateFlowAcceptanceFactors = networkLoading.getCurrentFlowAcceptanceFactors();
 
+    // prep by collecting before state per turn
+    // per turn: <nlFlowAcceptanceFactorBefore, onTheFlyFlowAcceptanceFactorBefore, onTheFlyTurnInflowBefore>
+    Triple<Double,Double,Double>[] beforeNodeModelUpdateInfo = new Triple[nodeTurnFlowShiftsToApply.length];
+    double nonConjugateNetworkSplittingRate = 1;
     boolean doSplittingRateUpdate = false;
-    for(var entry : nodeTurnFlowShiftsToApply) {
+    for(int index=0; index <nodeTurnFlowShiftsToApply.length; ++index) {
+      var entry = nodeTurnFlowShiftsToApply[index];
       var turn = entry.first();
       var flowShift = entry.second();
       var originalTurnEntrySegment = turn.getOriginalAdjacentEdgeSegments().first();
@@ -443,35 +448,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       if (flowShift > 0 && hasOriginalEntry) {
         // any additional flow to a turn may potentially cause congestion. to ensure node model calculates such a node
-        // it must be registered as potentially blocking. So we register it at such.
+        // it must be registered as potentially blocking. So we register it at such (if already done nothing happens).
         networkLoading.getSplittingRateData().registerPotentiallyBlockingNode(originalTurnEntrySegment.getDownstreamVertex());
-        break; // all turns should be for same node, so once hit, done
       }
-    }
 
-    double nonConjugateNetworkSplittingRate = 1;
-    if(doSplittingRateUpdate) {
-      // perform splitting rate update, required for correct network update below + we use splitting rate for
-      // determining flow shift restrictions downstream (if any)
-      for(var entry : nodeTurnFlowShiftsToApply) {
-        var turn = entry.first();
-        if(turn.hasOriginalEntryEdgeSegment()) {
-          executeNetworkSplittingRateUpdateForPasAlternativeSegment(turn, bushes, networkLoading);
-        }
-      }
-    }
-
-    // We can now update the network/node in one go across the adjusted turns knowing how much we are shifting for each
-    // and splitting rates being synced
-
-    // prep by collecting before state per turn
-    // per turn: <nlFlowAcceptanceFactorBefore, onTheFlyFlowAcceptanceFactorBefore, onTheFlyTurnInflowBefore>
-    Triple<Double,Double,Double>[] beforeNodeModelUpdateInfo = new Triple[nodeTurnFlowShiftsToApply.length];
-    for(int index=0; index <nodeTurnFlowShiftsToApply.length; ++index) {
-      var entry = nodeTurnFlowShiftsToApply[index];
-      var turn = entry.first();
-      boolean hasOriginalEntry = turn.hasOriginalEntryEdgeSegment();
-      var originalTurnEntrySegment = turn.getOriginalAdjacentEdgeSegments().first();
+      // must be splitting rate before we update the splitting rates otherwise we cannot use it to determine
+      // the before situation
       nonConjugateNetworkSplittingRate = (hasOriginalEntry && turn.hasOriginalExitEdgeSegment()) ?
           networkLoading.getSplittingRateData().getSplittingRate(
               turn.getOriginalAdjacentEdgeSegments().first(), turn.getOriginalAdjacentEdgeSegments().second())
@@ -489,7 +471,16 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
       beforeNodeModelUpdateInfo[index] = Triple.of(
           nlFlowAcceptanceFactorBefore, onTheFlyFlowAcceptanceFactorBefore, onTheFlyTurnInflowBefore);
+
+      if(doSplittingRateUpdate) {
+        // perform splitting rate update, required for correct network update below + we use splitting rate for
+        // determining flow shift restrictions downstream (if any)
+        executeNetworkSplittingRateUpdateForPasAlternativeSegment(turn, bushes, networkLoading);
+      }
     }
+
+    // We can now update the network/node in one go across the adjusted turns knowing how much we are shifting for each
+    // and splitting rates being synced
 
     // do the one-off network level update
     // sync network inflows/unconstrained flows/sending flows, splitting rates, alphas, and costs via network node
@@ -1824,6 +1815,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         LOGGER.info("* UNCONGESTED FLOW SHIFT "+proposedFlowShift+" on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
       }
 
+      if(proposedFlowShift <= 0 ){
+        break;
+      }
+
       double iterationPasShift = executePasFlowShiftNoNodeModelUpdate(
           guaranteedS2SendingFlow,
           bushS2RemainingSendingFlows,
@@ -2043,7 +2038,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         LOGGER.info(String.format("  Raw Proposed shift: %.10f Smoother proposed shift: %.10f",rawProposedFlowShift,smoothedRawPasflowShift));
       }
 
-      if(smoothedPasflowShift < 0){
+      if(smoothedPasflowShift <= 0){
         break;
       }
 

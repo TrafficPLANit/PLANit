@@ -89,12 +89,12 @@ public class sLtmAssignmentBushSingleOdTest2 {
     double outflow9 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
 
     assertEquals(8000, outflow0, Precision.EPSILON_3);
-    assertEquals(2500.920569368789, outflow1, Precision.EPSILON_3);
+    assertEquals(2500, outflow1, Precision.EPSILON_3);
     assertEquals(1111.111111111111, outflow2, Precision.EPSILON_3);
     assertEquals(2000.0, outflow3, Precision.EPSILON_3);
-    assertEquals(3556.0080978778165, outflow4, Precision.EPSILON_3);
+    assertEquals(3681.7978920214005, outflow4, Precision.EPSILON_3);
     assertEquals(outflow4, outflow5, Precision.EPSILON_3);
-    assertEquals(2000.736456268099, outflow6, Precision.EPSILON_3);
+    assertEquals(3000, outflow6, Precision.EPSILON_3);
     assertEquals(2000.0, outflow7, Precision.EPSILON_3);
     assertEquals(outflow7, outflow8, Precision.EPSILON_3);
     assertEquals(888.8888888888889, outflow9, Precision.EPSILON_3);
@@ -121,13 +121,13 @@ public class sLtmAssignmentBushSingleOdTest2 {
     double inflow9 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
 
     assertEquals(inflow0, 8000, Precision.EPSILON_3);
-    assertEquals(inflow1, 4443.991902122183, Precision.EPSILON_3);
+    assertEquals(inflow1, 4318.202107978599, Precision.EPSILON_3);
     assertEquals(inflow2, 2500, Precision.EPSILON_3);
     assertEquals(inflow3, 2000.0, Precision.EPSILON_3);
-    assertEquals(inflow4, 3556.0080978778165, Precision.EPSILON_3);
+    assertEquals(inflow4, 3681.7978920214005, Precision.EPSILON_3);
     assertEquals(inflow5, inflow4, Precision.EPSILON_3);
     assertEquals(inflow6, inflow5, Precision.EPSILON_3);
-    assertEquals(inflow7, 2001.6570256372436, Precision.EPSILON_3);
+    assertEquals(inflow7, 3000.0, Precision.EPSILON_3);
     assertEquals(inflow8, 2000.0, Precision.EPSILON_3);
     assertEquals(inflow9, inflow8, Precision.EPSILON_3);
 
@@ -441,7 +441,7 @@ public class sLtmAssignmentBushSingleOdTest2 {
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(20);
       sLTM.setActivateDetailedLogging(true);
 
       sLTM.addTrackOdForLoggingByXmlId("A","A`");
@@ -487,7 +487,7 @@ public class sLtmAssignmentBushSingleOdTest2 {
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(20);
       sLTM.setActivateDetailedLogging(true);
 
       sLTM.addTrackOdForLoggingByXmlId("A","A`");

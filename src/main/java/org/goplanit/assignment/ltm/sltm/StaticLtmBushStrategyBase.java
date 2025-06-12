@@ -55,7 +55,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     var alphas = getLoading().getCurrentFlowAcceptanceFactors();
     for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
       if(Precision.smaller(alphas[(int)ls.getId()], 1, Precision.EPSILON_9)){
-        idList.add(ls.getIdsAsString()); // todo change to add in parent link id
+        idList.add(ls.getParent().getIdsAsString());
         alphaCostInOutflowList.add(Quadruple.of(
             alphas[(int)ls.getId()],
             costs[(int)ls.getId()],
@@ -67,7 +67,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       if(Precision.smaller(alphas[(int)ls.getId()], 1, Precision.EPSILON_9)){
         idList.add(ls.getIdsAsString());
         alphaCostInOutflowList.add(Quadruple.of(
-            alphas[(int)ls.getId()],
+            alphas[(int)ls.getParent().getId()],
             costs[(int)ls.getId()],
             getLoading().getCurrentInflowsPcuH()[(int)ls.getId()],
             getLoading().getCurrentOutflowsPcuH()[(int)ls.getId()]));
@@ -391,7 +391,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           continue;
         }
 
-        if (pas.pasId == 5L) {
+        if (pas.pasId == 749L) {
           int bla = 4;
         }
 

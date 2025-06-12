@@ -288,7 +288,12 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(
             getDag(), requireTopologicalSortUpdate, conjugateLinkSegmentCosts, totalConjugateVertices);
     try {
-      return minMaxBushPaths.executeAllToOne(getRootVertex());
+      // make sure that for the max tree we only consider turns with flow otherwise there will be nothing
+      // to shift anyway
+      Predicate<EdgeSegment> maxPathEdgeSegmentFilter = turn -> getTurnSendingFlow((ConjugateEdgeSegment)turn) > 0;
+      //return minMaxBushPaths.executeAllToOne(getRootVertex());
+      return minMaxBushPaths.executeAllToOneWithFilter(
+          getRootVertex(), null, maxPathEdgeSegmentFilter);
     } catch (Exception e) {
       LOGGER.severe(String.format("Unable to complete minmax path three for conjugate destination-based bush ending at " +
               "destination %s", getDestination().getXmlId()));
