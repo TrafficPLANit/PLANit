@@ -274,7 +274,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       // perform shifts for current segment across all bushes and determine
       // to what extent we moved flow in total (in case we cannot meet total shift restricted by s2 availability)
       var acrossBushResult = executeAcrossBushesTurnFlowShift(
-          currentConjSegment, referenceWeight, bushWeights, pasFlowShift, false, logAll);
+          currentConjSegment, referenceWeight, bushWeights, remainingPasFlowShift, false, logAll);
       double totalBushAppliedFlowShift = acrossBushResult.first();
 
       // NETWORK LEVEL - UPDATE
@@ -1345,16 +1345,27 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double slackFlow = Double.POSITIVE_INFINITY;
     EdgeSegment minSlackSegment = null;
 
+    boolean pasUncongested =
+        pas.getStatus() != PasStatus.CONGESTED && pas.getStatus() != PasStatus.UNCONGESTED_POTENTIALLY_CONGESTED;
+
     // regular PAS traversal rework back to original link segments
     ConjugateEdgeSegment conjAltEdgeSegment;
     ConjugateEdgeSegment[] conjAltEdgeSegments = pas.getAlternative(lowCost);
     int index = 0;
+    int lastIndex = conjAltEdgeSegments.length-1;
     double compoundedAlpha = 1;
-    for (; index < conjAltEdgeSegments.length; ++index) {
+    for (; index <= lastIndex; ++index) {
       conjAltEdgeSegment = conjAltEdgeSegments[index];
       if (!conjAltEdgeSegment.hasOriginalEntryEdgeSegment()) {
         continue;
       }
+
+      if(index==lastIndex && lowCost && pasUncongested){
+        // merge in this situation would shift flow from high to low with no net change on exit --> ignore for slack flow
+        // calc as it would be too restricting otherwise
+        break;
+      }
+
       double turnAlpha =
           networkLoading.getCurrentFlowAcceptanceFactors()[(int)conjAltEdgeSegment.getOriginalAdjacentEdgeSegments().first().getId()];
       var rawTurnSlackResult = determinePasLinkSegmentSlackFlow(networkLoading, conjAltEdgeSegment, lowCost);
@@ -1736,7 +1747,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     var networkLoading = conjStrategy.getLoading();
 
     // only consider PAS when it is potentially uncongested, confirm later with explicit check
-    if(this.pas.getStatus() != PasStatus.UNCONGESTED_WITHOUT_SHIFT){
+    if(this.pas.getStatus() == PasStatus.CONGESTED
+        || this.pas.getStatus() == PasStatus.UNCONGESTED_POTENTIALLY_CONGESTED){
       return 0.0;
     }
 
@@ -1752,8 +1764,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // enter uncongested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 10;
-    int internalIteration = 0;
+    int MAX_INTERAL_ITERATIONS_ALLOWED = 5;
+    int internalIteration = 1;
     boolean doNotStop = true;
     boolean flowShifted = false;
     double totalPasShift = 0;
@@ -1804,12 +1816,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         // do that and only do it here for uncongested!
 
         // insufficient slack, do not process (further) - mark for congested processing
-        pas.updateStatus(PasStatus.UNCONGESTED_WITHOUT_SHIFT);
+        pas.updateStatus(PasStatus.UNCONGESTED_POTENTIALLY_CONGESTED);
         break;
       }
       pas.updateStatus(PasStatus.UNCONGESTED_WITH_SHIFT);
       if(isDestinationTrackedForLogging() || logAll) {
-        LOGGER.info("* UNCONGESTED FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
+        LOGGER.info("* UNCONGESTED FLOW SHIFT "+proposedFlowShift+" on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
       }
 
       double iterationPasShift = executePasFlowShiftNoNodeModelUpdate(
@@ -1853,10 +1865,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
 
       // reuse criterion of gap (overall gap is done wider, so we do not update gap as such here)
-      converged = pasGap <= conjStrategy.getGapFunction().getGap();
-      ++internalIteration;
-
-      doNotStop = !converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED;
+      converged = pasGap <= conjStrategy.getGapFunction().getStopCriterion().getEpsilon();
+      doNotStop = !converged && internalIteration++ < MAX_INTERAL_ITERATIONS_ALLOWED;
 
       // remove zero-flow S2 bushes from PAS when we know they won't get used again, or it is the final iteration
       if(!costSwitch || !doNotStop) {

@@ -58,8 +58,8 @@ public class DiscontinuityTurnCostReplacementConsumer implements TriConsumer<Edg
     if(entry.getOppositeDirectionSegment() == exit){
       return;
     }
-    var flowAcceptanceFactor = networkLoading.getCurrentFlowAcceptanceFactors()[(int)entry.getId()];
-    if(Precision.greaterEqual(alpha, flowAcceptanceFactor, Precision.EPSILON_9)){
+    var linkFlowAcceptanceFactor = networkLoading.getCurrentFlowAcceptanceFactors()[(int)entry.getId()];
+    if(Precision.greaterEqual(alpha, linkFlowAcceptanceFactor, Precision.EPSILON_9)){
       return;
     }
     // discontinuity found since the turn acceptance factor is more restricting than the link based one applied in loading

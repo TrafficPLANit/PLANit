@@ -289,12 +289,12 @@ public class sLtmAssignmentBushSingleOdTest4 {
       // NEWELL diagram
       sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
 
-//      var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
-//              sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-//      fixedStepSmoothing.setStepSize(1);
+      var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
+              sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      fixedStepSmoothing.setStepSize(1);
 
-      var msraSmoothing = (MSRASmoothingConfigurator)
-          sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
+//      var msraSmoothing = (MSRASmoothingConfigurator)
+//          sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
 
       /* CONJUGATE DESTINATION BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);

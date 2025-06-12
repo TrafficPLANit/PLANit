@@ -383,7 +383,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     int iteration = 1;
     boolean doNotStop = true;
     do {
-      LOGGER.info(String.format("--- NEXT PAS INTERNAL ITERATION %d ----", iteration));
+      LOGGER.info(String.format("--- NEXT CONGESTED PASs INTERNAL ITERATION %d ----", iteration));
       //todo re-sort PAS each iteration?
       for (var pas : sortedPass) {
         // ignore uncongested PASs or PASs not on bush
@@ -391,7 +391,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           continue;
         }
 
-        if (pas.pasId == 22L) {
+        if (pas.pasId == 5L) {
           int bla = 4;
         }
 
@@ -438,7 +438,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
         if (pasFlowShifted > 0) {
           totalCongestedFlowShifted += pasFlowShifted;
-          flowShiftedPass.add(pas);
+
+          if(iteration==1) {
+            flowShiftedPass.add(pas);
+          }
 
           /* s1 */
           pas.forEachEdgeSegment(true /* low cost */, linkSegmentsUsed::add);
@@ -448,6 +451,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           /* when s2 no longer used on any bush - mark PAS for overall removal */
           if (!pas.hasRegisteredBushes()) {
             passWithoutBush.add(pas);
+            break;
           }
 
           // so we only log the most prominent pas

@@ -145,30 +145,40 @@ public class StaticLtmConjugateBushStrategy
 
     boolean logAll = simulationData.getIterationIndex()>=5;
 
-    for(var pas : sortedPass) {
-      var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
+    // for uncongested, do each PAS (one or more times), then repeat x times so PAS interaction is
+    // covered better by having an internal loop here
+    int MAX_ITERATIONS_ALLOWED = 5;
+    int iteration = 1;
+    boolean doNotStop = true;
+    do {
+      LOGGER.info(String.format("--- NEXT UNCONGESTED PASs INTERNAL ITERATION %d ----", iteration));
+      for (var pas : sortedPass) {
+        var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
 
-      if(pas.pasId == 1054L || pas.pasId == 161L || pas.pasId == 159L ){
-        int bla = 4;
-      }
+        if (pas.pasId == 2L) {
+          int bla = 4;
+        }
 
-      double pasFlowShifted = executor.performEquilibratedUncongestedFlowShifts(
-        theMode,
-        this,
-        originalNetworkCosts,
-        conjSegmentCosts,
-        getBushes(),
-        logAll);
-
-      if (pasFlowShifted > 0) {
-        flowShiftedPass.add(pas);
+        double pasFlowShifted = executor.performEquilibratedUncongestedFlowShifts(
+            theMode,
+            this,
+            originalNetworkCosts,
+            conjSegmentCosts,
+            getBushes(),
+            logAll);
 
         if (!pas.hasRegisteredBushes()) {
           passWithoutBush.add(pas);
+          break;
         }
 
+        if(pasFlowShifted <= 0){
+          break;
+        }else if (iteration==1) {
+          flowShiftedPass.add(pas);
+        }
       }
-    }
+    }while(iteration++ < MAX_ITERATIONS_ALLOWED);
     return Pair.of(flowShiftedPass, passWithoutBush);
   }
 
