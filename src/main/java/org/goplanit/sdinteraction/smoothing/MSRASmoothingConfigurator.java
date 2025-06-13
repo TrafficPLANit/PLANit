@@ -28,7 +28,7 @@ public class MSRASmoothingConfigurator extends SmoothingConfigurator<MSRASmoothi
   }
 
   /**
-   * Return the gamma step to use
+   * Return the gamma step to use, gamma is applied after a good iteration
    *
    * @return the gamma step
    */
@@ -37,7 +37,7 @@ public class MSRASmoothingConfigurator extends SmoothingConfigurator<MSRASmoothi
   }
 
   /**
-   * Set the gamma step to use
+   * Set the gamma step to use, gamma is applied after a good iteration
    *
    * @param gammaStep the gamma step
    */

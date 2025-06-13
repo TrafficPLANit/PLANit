@@ -94,7 +94,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
     createAndRegisterGapFunction(GapFunction.PATH_BASED_GAP);
     createAndRegisterSmoothing(Smoothing.MSA);
     createAndRegisterPhysicalCost(PhysicalCost.STEADY_STATE);
-    createAndRegisterVirtualCost(VirtualCost.FIXED);
+    createAndRegisterVirtualCost(VirtualCost.STEADY_STATE);
 
     disableLinkStorageConstraints(DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
     activateDetailedLogging(DEFAULT_ACTIVATE_DETAILED_LOGGING);

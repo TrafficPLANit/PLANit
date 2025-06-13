@@ -19,6 +19,7 @@ import org.goplanit.utils.network.virtual.VirtualNetwork;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 /**
@@ -250,8 +251,7 @@ public abstract class StaticLtmBushStrategyRootLabelled<B extends RootedLabelled
    * @return newly created PASs and existing pass with newly registered bushes on them  (empty if no new PASs were created or newly assigned))
    */
   @Override
-  protected Pair<Collection<Pas<DirectedVertex,EdgeSegment>>, Collection<Pas<DirectedVertex,EdgeSegment>>>
-  updateBushPass(
+  protected Map<Long,Pas<DirectedVertex,EdgeSegment>> updateBushPass(
           Mode mode, final double[] linkSegmentCosts, boolean updateGap, boolean logAll){
 
     double totalMinCost = 0; // track during bush traversal to get min OD costs based on shortest paths
@@ -270,9 +270,7 @@ public abstract class StaticLtmBushStrategyRootLabelled<B extends RootedLabelled
       }
     }
 
-    //todo --> should be sets
-    var newPass = new ArrayList<Pas<DirectedVertex,EdgeSegment>>();
-    var existingPassWithNewBushes = new ArrayList<Pas<DirectedVertex,EdgeSegment>>();
+    var passToConsider = new TreeMap<Long,Pas<DirectedVertex,EdgeSegment>>();
 
     final var networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
     for (var bush : getBushes()) {
@@ -282,7 +280,7 @@ public abstract class StaticLtmBushStrategyRootLabelled<B extends RootedLabelled
 
       /* within-bush min/max-paths - searched from root in designated direction (inverted if ALL-TO-ONE, i.e., root is destination) */
       //todo: we do not yet account for if the path is used --> we should because we will likely get unused max cost paths now!
-      var minMaxPaths = bush.computeMinMaxShortestPaths(
+      var minMaxPaths = bush.computeMinMaxShortestPaths(false,
               linkSegmentCosts, this.getTransportNetwork().getNumberOfVerticesAllLayers());
       if (minMaxPaths == null) {
         LOGGER.severe(String.format(
@@ -346,7 +344,7 @@ public abstract class StaticLtmBushStrategyRootLabelled<B extends RootedLabelled
           if(isDestinationTrackedForLogging(bush) || logAll){
             LOGGER.info(String.format("Registered suitable existing PAS (%s) on bush (%s)", existingRegisteredPas, bush));
           }
-          existingPassWithNewBushes.add(existingRegisteredPas);
+          passToConsider.put(existingRegisteredPas.pasId,existingRegisteredPas);
           continue;
         }
 
@@ -357,7 +355,7 @@ public abstract class StaticLtmBushStrategyRootLabelled<B extends RootedLabelled
         }
 
         // truly new PAS
-        newPass.add(newPas);
+        passToConsider.put(newPas.pasId, newPas);
         newPas.updateCost(linkSegmentCosts);
         if(isDestinationTrackedForLogging(bush) || logAll){
           LOGGER.info(String.format("Registered new PAS (%s) on bush (%s)",
@@ -386,7 +384,7 @@ public abstract class StaticLtmBushStrategyRootLabelled<B extends RootedLabelled
       gapFunction.increaseAbsolutePathGap(totalRealisedCost, 1, totalMinCost);
     }
 
-    return Pair.of(newPass,existingPassWithNewBushes);
+    return passToConsider;
   }
 
   /**

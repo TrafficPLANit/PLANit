@@ -1,5 +1,6 @@
 package org.goplanit.cost.physical;
 
+import org.goplanit.cost.SteadyStateHyperCriticalTravelTimeCalculator;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.interactor.LinkInflowOutflowAccessor;
 import org.goplanit.network.LayeredNetwork;
@@ -113,9 +114,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
       inflowRatePcuHour = ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH();
     }
 
-    double inflowPcuHLane = inflowRatePcuHour/linkSegment.getNumberOfLanes();
-    double outflowPcuHLane = outflowRatePcuHour/linkSegment.getNumberOfLanes();
     if (Precision.positive(inflowRatePcuHour)) {
+      double inflowPcuHLane = inflowRatePcuHour / linkSegment.getNumberOfLanes();
       /* hypo critical delay */
       if (!fd.getFreeFlowBranch().isLinear()) {
         // hypocritical delay = hypocritical travel time - minimum travel time
@@ -123,22 +123,10 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
             (linkSegment.getParent().getLengthKm() /
                 fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflowPcuHLane)) - freeFlowTravelTime;
       }
-
-      /* average hyper critical delay */
-      if (Precision.smaller(outflowPcuHLane, inflowPcuHLane)) {
-
-        if (!Precision.positive(outflowRatePcuHour)) {
-          LOGGER.warning(String.format("Link segment (%s) appears to have no outflow while positive inflow (%.2f) " +
-                  "-> infinite travel time, this is unlikely",
-              linkSegment.getIdsAsString(), inflowRatePcuHour));
-          return Double.POSITIVE_INFINITY;
-        }
-
-        // hyperCriticalDelay = (excess inflow rate * 1/2* duration)/outflow rate)
-        hyperCriticalDelay = ((inflowPcuHLane - outflowPcuHLane) * 0.5 * currentTimePeriodHours / outflowPcuHLane);
-      }
     }
 
+    hyperCriticalDelay = SteadyStateHyperCriticalTravelTimeCalculator.computeHyperCriticalDelay(
+        inflowRatePcuHour, outflowRatePcuHour, linkSegment.getNumberOfLanes(), currentTimePeriodHours);
     /* min travel time + hypo critical delay + hypercritical delay */
     return freeFlowTravelTime + hypoCriticalDelay + hyperCriticalDelay;
   }
@@ -308,17 +296,11 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     }
 
     /* hyperCriticalDelay derivative */
-    if(!uncongested) {
-      double outflowRatePcuH = accessee.getLinkSegmentOutflowPcuHour(linkSegment);
-      if (outflowRatePcuH>0) {
-        /* congested derivative (T/2)*(1/v) */
-        hyperDerivative =  0.5 * currentTimePeriodHours / outflowRatePcuH;
-      } else {
-        /* avoid division by zero, if no outflow rate but congested, it is undesirable to use this link
-        (if it has any flow), we return infinity, or let congested portion have no impact if empty (or unknown)*/
-        hyperDerivative = accessee.getLinkSegmentInflowPcuHour(linkSegment) > 0.0 ? Double.POSITIVE_INFINITY : 0;
-      }
-    }
+    hyperDerivative = SteadyStateHyperCriticalTravelTimeCalculator.computeDTravelTimeDFlow(
+        uncongested,
+        accessee.getLinkSegmentInflowPcuHour(linkSegment),
+        accessee.getLinkSegmentOutflowPcuHour(linkSegment),
+        currentTimePeriodHours);
 
     return hypoDerivative + hyperDerivative;
   }

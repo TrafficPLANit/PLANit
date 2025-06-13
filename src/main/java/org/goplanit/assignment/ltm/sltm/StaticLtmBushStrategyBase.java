@@ -6,6 +6,7 @@ import org.goplanit.assignment.ltm.sltm.conjugate.PasFlowShiftConjugateDestinati
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.cost.CostUtils;
+import org.goplanit.cost.virtual.SteadyStateConnectoidTravelTimeCost;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -379,7 +380,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
     // for congested, do each PAS once, then repeat x times so PAS interaction is covered
     // better by having internal loop here, rather than within the PAS
-    int MAX_ITERATIONS_ALLOWED = 5;
+    int MAX_ITERATIONS_ALLOWED = 2;
     int iteration = 1;
     boolean doNotStop = true;
     do {
@@ -391,7 +392,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           continue;
         }
 
-        if (pas.pasId == 749L) {
+        if (pas.pasId == 82L) {
           int bla = 4;
         }
 
@@ -451,7 +452,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           /* when s2 no longer used on any bush - mark PAS for overall removal */
           if (!pas.hasRegisteredBushes()) {
             passWithoutBush.add(pas);
-            break;
+            continue;
           }
 
           // so we only log the most prominent pas
@@ -617,7 +618,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param logAll           flag
    * @return newly created PASs and existing PAss with newly assigned bushes
    */
-  protected abstract Pair<Collection<Pas<V,ES>>, Collection<Pas<V,ES>>> updateBushPass(
+  protected abstract Map<Long,Pas<V,ES>> updateBushPass(
           Mode mode, final double[] linkSegmentCosts, boolean updateGap, boolean logAll);
 
   /**
@@ -901,10 +902,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
         /* (NEW) PAS MATCHING FOR BUSHES */
         boolean updateGap = true; // we can cheaply determine gap while traversing bushes
-        var newAndUpdatedPass = updateBushPass(theMode, costsToUpdate, updateGap, logAll);
+        var passToConsider = updateBushPass(theMode, costsToUpdate, updateGap, logAll);
         if(getSettings().isDetailedLogging()) {
           LOGGER.info(String.format("Newly added PASs: %d (active: %d))",
-                  newAndUpdatedPass.first().size(), pasManager.getNumberOfActivePass()));
+                  passToConsider.size(), pasManager.getNumberOfActivePass()));
         }
 
 
@@ -918,19 +919,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           Collection<Pas<V,ES>> updatedPass = performFlowShifts(
               theMode, pasExecutors, costsToUpdate, simulationData);
 
-          var justNewPass = newAndUpdatedPass.first();
-          var newPassWithShiftedFlows = new ArrayList<>(justNewPass);
-          newPassWithShiftedFlows.retainAll(updatedPass);
-          long remainingPass = pasManager.getNumberOfActivePass();
-          //updatedPass.forEach( p -> LOGGER.info("Updated PAS: " + p.toString()));
-          LOGGER.info(String.format("Flow shifts performed: %d ---- [#PASs remaining %d (newly added with shifts: %d)]",
-              updatedPass.size(), remainingPass, newPassWithShiftedFlows.size()));
-
-
-          /* Remove unused new PASs, in case no flow shift is applied due to overlap with PAS with higher reduced cost
-           * In this case, the new PAS is not used and is to be removed identical to how existing PASs are removed during flow shifts when they no longer carry flow*/
-          justNewPass.removeAll(updatedPass);
-          justNewPass.forEach( pas -> pasManager.deactivatePas(pas, getSettings().isDetailedLogging()));
+          LOGGER.info(String.format("Flow shifts performed: %d (.2f%% of all pass)",
+              updatedPass.size(),((double)updatedPass.size())/passToConsider.size()));
         }
       }
 
@@ -979,6 +969,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     /* gap function check */
     PlanItRunTimeException.throwIf(!(gapFunction instanceof PathBasedGapFunction),
             "%s bush based Static LTM currently requires PAS compatible PathBasedRelative gap function, but found %s", gapFunction.getClass().getCanonicalName());
+
+    var virtualCost = getVirtualCost();
+    /* virtual cost check */
+    PlanItRunTimeException.throwIf(!(virtualCost instanceof SteadyStateConnectoidTravelTimeCost),
+        "%s bush based Static LTM currently requires SteadyStateVirtualCost so queues on connectors can provide a meaningful derivative for equilibration", virtualCost.getClass().getCanonicalName());
   }
 
   /**

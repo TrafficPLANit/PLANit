@@ -111,6 +111,7 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
     if (vertexIter == null) {
       LOGGER.severe(String.format("Topologically sorted conjugate bush (%s) not available, this shouldn't happen",
               bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+      LOGGER.severe(bush.toString());
       return;
     }
     var currConjVertex = vertexIter.next();

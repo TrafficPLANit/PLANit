@@ -274,13 +274,16 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * Compute the min-max path tree rooted in location depending on underlying dag configuration of derived
    * implementation and given the provided conjugate (network wide) costs. The provided costs are at the conjugate
    * network level so should contain all the conjugate segments active in the bush
-   * 
+   *
+   * @param excludeZeroFlowLinkSegmentsFromMaxPaths when true we do not consider link segments with zero flow when
+   *                                                constructing max paths.
    * @param conjugateLinkSegmentCosts to use
    * @param totalConjugateVertices    needed to be able to create primitive array recording the (partial) subgraph
    *                                  backward conjugate link segment results (efficiently)
    * @return minMaxPathResult, null if unable to complete
    */
-  public MinMaxPathResult computeMinMaxShortestPaths(
+  @Override
+  public MinMaxPathResult computeMinMaxShortestPaths(boolean excludeZeroFlowLinkSegmentsFromMaxPaths,
           final double[] conjugateLinkSegmentCosts, final int totalConjugateVertices) {
     //todo: effectively duplicated from non conjugate implementation, consider consolidating
 
@@ -288,12 +291,17 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(
             getDag(), requireTopologicalSortUpdate, conjugateLinkSegmentCosts, totalConjugateVertices);
     try {
-      // make sure that for the max tree we only consider turns with flow otherwise there will be nothing
-      // to shift anyway
-      Predicate<EdgeSegment> maxPathEdgeSegmentFilter = turn -> getTurnSendingFlow((ConjugateEdgeSegment)turn) > 0;
-      //return minMaxBushPaths.executeAllToOne(getRootVertex());
-      return minMaxBushPaths.executeAllToOneWithFilter(
-          getRootVertex(), null, maxPathEdgeSegmentFilter);
+
+      if(excludeZeroFlowLinkSegmentsFromMaxPaths) {
+        // make sure that for the max tree we only consider turns with flow otherwise there will be nothing
+        // to shift anyway
+        Predicate<EdgeSegment> maxPathEdgeSegmentFilter = turn -> getTurnSendingFlow((ConjugateEdgeSegment) turn) > 0;
+        //return minMaxBushPaths.executeAllToOne(getRootVertex());
+        return minMaxBushPaths.executeAllToOneWithFilter(
+            getRootVertex(), null, maxPathEdgeSegmentFilter);
+      }else{
+        return minMaxBushPaths.executeAllToOne(getRootVertex());
+      }
     } catch (Exception e) {
       LOGGER.severe(String.format("Unable to complete minmax path three for conjugate destination-based bush ending at " +
               "destination %s", getDestination().getXmlId()));

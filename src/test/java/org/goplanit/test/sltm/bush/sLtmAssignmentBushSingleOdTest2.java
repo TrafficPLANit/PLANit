@@ -13,6 +13,7 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
@@ -88,16 +89,29 @@ public class sLtmAssignmentBushSingleOdTest2 {
     double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
     double outflow9 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
 
+    // also valid equilibrium result - in this case turn 6->2 is NOT zero flow
     assertEquals(8000, outflow0, Precision.EPSILON_3);
-    assertEquals(2500, outflow1, Precision.EPSILON_3);
+    assertEquals(2500.9205661070932, outflow1, Precision.EPSILON_3);
     assertEquals(1111.111111111111, outflow2, Precision.EPSILON_3);
     assertEquals(2000.0, outflow3, Precision.EPSILON_3);
-    assertEquals(3681.7978920214005, outflow4, Precision.EPSILON_3);
+    assertEquals(3556.00809762169, outflow4, Precision.EPSILON_3);
     assertEquals(outflow4, outflow5, Precision.EPSILON_3);
-    assertEquals(3000, outflow6, Precision.EPSILON_3);
+    assertEquals(2000.7364528856745, outflow6, Precision.EPSILON_3);
     assertEquals(2000.0, outflow7, Precision.EPSILON_3);
     assertEquals(outflow7, outflow8, Precision.EPSILON_3);
     assertEquals(888.8888888888889, outflow9, Precision.EPSILON_3);
+
+    // below is also valid equilibrium result - in this case turn 6->2 is zero flow and identified as discontinuity cost
+//    assertEquals(8000, outflow0, Precision.EPSILON_3);
+//    assertEquals(2500, outflow1, Precision.EPSILON_3);
+//    assertEquals(1111.111111111111, outflow2, Precision.EPSILON_3);
+//    assertEquals(2000.0, outflow3, Precision.EPSILON_3);
+//    assertEquals(3681.7978920214005, outflow4, Precision.EPSILON_3);
+//    assertEquals(outflow4, outflow5, Precision.EPSILON_3);
+//    assertEquals(3000, outflow6, Precision.EPSILON_3);
+//    assertEquals(2000.0, outflow7, Precision.EPSILON_3);
+//    assertEquals(outflow7, outflow8, Precision.EPSILON_3);
+//    assertEquals(888.8888888888889, outflow9, Precision.EPSILON_3);
 
     // conectoid edge segments
     double outflow10 = sLTM.getLinkSegmentOutflowsPcuHour()[10]; // A out
@@ -120,16 +134,29 @@ public class sLtmAssignmentBushSingleOdTest2 {
     double inflow8 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
     double inflow9 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
 
+    // goes with other possible solution above
     assertEquals(inflow0, 8000, Precision.EPSILON_3);
-    assertEquals(inflow1, 4318.202107978599, Precision.EPSILON_3);
+    assertEquals(inflow1, 4443.9919023783095, Precision.EPSILON_3);
     assertEquals(inflow2, 2500, Precision.EPSILON_3);
     assertEquals(inflow3, 2000.0, Precision.EPSILON_3);
-    assertEquals(inflow4, 3681.7978920214005, Precision.EPSILON_3);
+    assertEquals(inflow4, 3556.008097622691, Precision.EPSILON_3);
     assertEquals(inflow5, inflow4, Precision.EPSILON_3);
     assertEquals(inflow6, inflow5, Precision.EPSILON_3);
-    assertEquals(inflow7, 3000.0, Precision.EPSILON_3);
+    assertEquals(inflow7, 2001.6570189879562, Precision.EPSILON_3);
     assertEquals(inflow8, 2000.0, Precision.EPSILON_3);
     assertEquals(inflow9, inflow8, Precision.EPSILON_3);
+
+    // goes with other possible solution above
+//    assertEquals(inflow0, 8000, Precision.EPSILON_3);
+//    assertEquals(inflow1, 4318.202107978599, Precision.EPSILON_3);
+//    assertEquals(inflow2, 2500, Precision.EPSILON_3);
+//    assertEquals(inflow3, 2000.0, Precision.EPSILON_3);
+//    assertEquals(inflow4, 3681.7978920214005, Precision.EPSILON_3);
+//    assertEquals(inflow5, inflow4, Precision.EPSILON_3);
+//    assertEquals(inflow6, inflow5, Precision.EPSILON_3);
+//    assertEquals(inflow7, 3000.0, Precision.EPSILON_3);
+//    assertEquals(inflow8, 2000.0, Precision.EPSILON_3);
+//    assertEquals(inflow9, inflow8, Precision.EPSILON_3);
 
     double demand0 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
     double demand1 = sLTM.getLinkSegmentUnconstrainedFlowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
@@ -430,8 +457,12 @@ public class sLtmAssignmentBushSingleOdTest2 {
       sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
 
-      var smoothing = sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
-//      fixedStepSmoothing.setStepSize(1);
+      var smoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
+      smoothing.setKappaStep(1);
+      smoothing.setGammaStep(-0.1);
+
+//      var smoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+//      smoothing.setStepSize(0.5);
 
       /* DESTINATION BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
@@ -440,8 +471,8 @@ public class sLtmAssignmentBushSingleOdTest2 {
       sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(20);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_15);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(100);
       sLTM.setActivateDetailedLogging(true);
 
       sLTM.addTrackOdForLoggingByXmlId("A","A`");
@@ -487,7 +518,7 @@ public class sLtmAssignmentBushSingleOdTest2 {
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(20);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(30);
       sLTM.setActivateDetailedLogging(true);
 
       sLTM.addTrackOdForLoggingByXmlId("A","A`");

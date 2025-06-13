@@ -162,7 +162,7 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(50);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(80);
       sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 

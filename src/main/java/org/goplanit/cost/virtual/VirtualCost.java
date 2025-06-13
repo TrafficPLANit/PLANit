@@ -19,6 +19,9 @@ public interface VirtualCost extends Cost<ConnectoidSegment> {
   /** short hand for configuring speed based virtual cost instance */
   public static final String SPEED = SpeedConnectoidTravelTimeCost.class.getCanonicalName();
 
+  /** short hand for configuring steady state based virtual cost instance */
+  public static final String STEADY_STATE = SteadyStateConnectoidTravelTimeCost.class.getCanonicalName();
+
   /**
    * Invoker expects (mode specific ) costs in passed in array to be filled, where each entry signifies a link segment by its id
    * 

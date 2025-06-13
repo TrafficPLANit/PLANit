@@ -24,6 +24,8 @@ public class VirtualCostConfiguratorFactory {
       return new FixedVirtualCostConfigurator();
     }else if(virtualCostType.equals(VirtualCost.SPEED)) {
       return new SpeedVirtualCostConfigurator();
+    }else if(virtualCostType.equals(VirtualCost.STEADY_STATE)) {
+      return new SteadyStateVirtualCostConfigurator();
     }else {
       throw new PlanItRunTimeException(
               String.format("unable to construct configurator for given virtualCostType %s", virtualCostType));

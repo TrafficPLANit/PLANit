@@ -383,7 +383,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * @param totalTransportNetworkVertices needed to be able to create primitive array recording the (partial) subgraph backward link segment results (efficiently)
    * @return minMaxPathResult, null if unable to complete
    */
-  public abstract MinMaxPathResult computeMinMaxShortestPaths(
+  public abstract MinMaxPathResult computeMinMaxShortestPaths(boolean excludeZeroFlowLinkSegmentsFromMaxPaths,
       final double[] linkSegmentCosts, final int totalTransportNetworkVertices);
 
   /**

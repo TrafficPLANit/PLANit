@@ -91,11 +91,11 @@ public class sLtmAssignmentBushSingleOdQlFdTest3 {
     double outflow6 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("6").getLinkSegmentAb());
     double outflow7 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("7").getLinkSegmentAb());
 
-    assertEquals(7421.59977, outflow0, Precision.EPSILON_3);
+    assertEquals(7438.46153835039, outflow0, Precision.EPSILON_3);
     assertEquals(4000, outflow1, Precision.EPSILON_3);
     assertEquals(4000, outflow2, Precision.EPSILON_3);
     assertEquals(6000, outflow3, Precision.EPSILON_3);
-    assertEquals(2421.599775766677, outflow4, Precision.EPSILON_3);
+    assertEquals(2438.4615382450806, outflow4, Precision.EPSILON_3);
     assertEquals(2000, outflow5, Precision.EPSILON_3);
     assertEquals(outflow5, outflow6, Precision.EPSILON_3);
     assertEquals(outflow5, outflow7, Precision.EPSILON_3);
@@ -123,7 +123,7 @@ public class sLtmAssignmentBushSingleOdQlFdTest3 {
     assertEquals(inflow1, 5000, Precision.EPSILON_3);
     assertEquals(inflow2, 4000, Precision.EPSILON_3);
     assertEquals(inflow3, 6000, Precision.EPSILON_3);
-    assertEquals(inflow4, 2421.599775766677, Precision.EPSILON_3);
+    assertEquals(inflow4, 2438.4615382450806, Precision.EPSILON_3);
     assertEquals(inflow5, inflow4, Precision.EPSILON_3);
     assertEquals(2000, inflow6, Precision.EPSILON_3);
     assertEquals(2000, inflow7, Precision.EPSILON_3);

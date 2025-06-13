@@ -71,15 +71,19 @@ public class DestinationBush extends RootedLabelledBush {
   /**
    * Compute the min-max path tree rooted at the destination towards all origins given the provided (network wide)
    * costs. The provided costs are at the network level so should contain all the segments active in the bush
-   * 
+   *
+   * @param excludeZeroFlowLinkSegmentsFromMaxPaths when true we do not consider link segments with zero flow when
+   *                                                constructing max paths.
    * @param linkSegmentCosts              to use
    * @param totalTransportNetworkVertices number of vertices in overall network needed to be able to construct result
    *                                      per vertex based on id
    * @return minMaxPathResult, null if unable to complete
    */
   @Override
-  public MinMaxPathResult computeMinMaxShortestPaths(
+  public MinMaxPathResult computeMinMaxShortestPaths(boolean excludeZeroFlowLinkSegmentsFromMaxPaths,
           final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
+
+    //todo: excludeZeroFlowLinkSegmentsFromMaxPaths ignored, see conjugate on how to use
 
     /* build min/max path tree */
     var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(

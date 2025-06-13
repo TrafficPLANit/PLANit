@@ -610,7 +610,7 @@ public class StaticLtmConjugateBushStrategy
    * @return newly created PASs
    */
   @Override
-  protected Pair<Collection<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>, Collection<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>>
+  protected Map<Long,Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>
   updateBushPass(Mode mode, double[] nonConjugateLinkSegmentCosts, boolean updateGap, boolean logAll){
     // rationale, any gap multiplies cost with flow. Flow upper bound generally does not exceed 10k in PCU/h per link,
     // so any route will be less than that. Hence, any gap in terms of normalised cost to this flow should be considered
@@ -699,7 +699,7 @@ public class StaticLtmConjugateBushStrategy
     }
 
     //todo --> should be sets
-    List<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> addedPass = new ArrayList<>();
+    Map<Long, Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> passToConsider = new TreeMap<>();
 
     // method overridden for conjugate implementation resulting in conjugate compatible shortest path search using
     // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...
@@ -718,7 +718,8 @@ public class StaticLtmConjugateBushStrategy
 
       /* within-bush min/max-paths - searched from root in designated direction (inverted if ALL-TO-ONE, i.e., root
        * is destination) */
-      var bushMinMaxTree = conjBush.computeMinMaxShortestPaths(
+      boolean excludeZeroFlowLinksFromMaxPaths = false;
+      var bushMinMaxTree = conjBush.computeMinMaxShortestPaths(excludeZeroFlowLinksFromMaxPaths,
               conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
       if (bushMinMaxTree == null) {
         LOGGER.severe(String.format(
@@ -726,20 +727,15 @@ public class StaticLtmConjugateBushStrategy
         continue;
       }
 
-      // fix: before we only considered vertices with flow, but since we keep a spanning tree
-      // and that spanning tree for zero flow links may no longer be optimal once we start loading flow on the
-      // network level (through other bushes) changing zero flow link costs. Therefore, we now do one extra pre-pass
-      // where we first rejig all zero flow connections to cheaper connections without requiring any PASs.
-      // it will require a topological sort afterwards if anything has changed. That is why we do this first
+      // fix: rejig entire bush regarding adding cheaper links currently not in the bush.
+      //      we consider both flow and non-flow carrying links in this situation and separate this out
+      //      from PAS creation.
       // todo: move into its own method separate from bushPAS creation
-      // todo: perhaps cheaper to create it from scratch on network level?
       Map<ConjugateEdgeSegment, ConjugateEdgeSegment> replaceZeroFlowSpanningTreeSegments = new TreeMap<>();
       var bushVertexIter = conjBush.getTopologicalIterator();
       while(bushVertexIter.hasNext()) {
         ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
-        if (conjBush.containsSendingFlow(conjBushVertex)) {
-          continue;
-        }
+        boolean zeroFlowVertex = !conjBush.containsSendingFlow(conjBushVertex);
 
         bushMinMaxTree.setMinPathState(true);
         var existingOutgoingSegment = (ConjugateEdgeSegment) bushMinMaxTree.getNextEdgeSegmentForVertex(conjBushVertex);
@@ -752,6 +748,8 @@ public class StaticLtmConjugateBushStrategy
             if (!result.first()) {
               continue;
             }
+
+            // find cheapest of the new alternatives that is deemed eligible
             if (result.second() < cheapestAltOutgoingSegmentCost) {
               cheapestAltOutgoingSegment = outgoingSegment;
               cheapestAltOutgoingSegmentCost = result.second();
@@ -761,14 +759,22 @@ public class StaticLtmConjugateBushStrategy
           }
         }
         if (cheapestAltOutgoingSegment != null) {
-          replaceZeroFlowSpanningTreeSegments.put(existingOutgoingSegment, cheapestAltOutgoingSegment);
+          // mark for replacing original zero flow cheapest bush segment with newly found
+          // this requires removing something from bush, so cache until we no longer traverse the bush
+          if(zeroFlowVertex) {
+            replaceZeroFlowSpanningTreeSegments.put(existingOutgoingSegment, cheapestAltOutgoingSegment);
+          }else{
+            // simply add the newly found cheapest alternative link segment directly as it will be picked up for a
+            // PAS later on
+            conjBush.getDag().addEdgeSegment(cheapestAltOutgoingSegment);
+          }
         }
       }
       if(!replaceZeroFlowSpanningTreeSegments.isEmpty()){
         for(var entry : replaceZeroFlowSpanningTreeSegments.entrySet()){
-          conjBush.remove(entry.getKey());
+          conjBush.remove(entry.getKey()); // remove old
           var newSegment = entry.getValue();
-          conjBush.getDag().addEdgeSegment(newSegment);
+          conjBush.getDag().addEdgeSegment(newSegment); // add new
           // overwrite in min max tree to ensure we do not offer a segment that is not on the bush
           // (costs are not correct but that will self-correct next iteration)
           var upstreamVertex = newSegment.getUpstreamVertex();
@@ -776,11 +782,16 @@ public class StaticLtmConjugateBushStrategy
           bushMinMaxTree.setMinPathState(false);
           bushMinMaxTree.overwriteNextSegmentForVertex(upstreamVertex, newSegment);
         }
-        // recalculate bush min/max tree as well since changes on zero flow links will result in different min/max
-        // paths
-        bushMinMaxTree = conjBush.computeMinMaxShortestPaths(
-            conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
       }
+
+      // recalculate bush min/max tree as well since any changes from above will result in different min/max
+      // paths
+      // NOTE: we now EXCLUDE zero flow links from max paths, to avoid generating high cost paths that are not eligible
+      //  for flow shifting. We can only do that because we already changed the bush earlier as for that we do require
+      // max paths for zero flow links to avoid cycles in adding new links.
+      excludeZeroFlowLinksFromMaxPaths = true;
+      bushMinMaxTree = conjBush.computeMinMaxShortestPaths(excludeZeroFlowLinksFromMaxPaths,
+          conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
 
       /* find (new) matching PASs - start with new PAS close to destination exploration first */
       int countPassAddedForBush = 0;
@@ -809,12 +820,15 @@ public class StaticLtmConjugateBushStrategy
           boolean minPathInitialLinkNewToBush = false;
           boolean divergentMinMaxPaths = !(minNextEdge == maxNextEdge);
           boolean preferredOutGoingSegment = (minNextEdge == outgoingSegment);
-          boolean congestedEntry = (entryAcceptanceFactor + Precision.EPSILON_6) < 1 ? true : false;
+          boolean congestedEntry = (entryAcceptanceFactor + Precision.EPSILON_6) < 1;
           if(!conjBush.contains(outgoingSegment)){
-            if(!isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree).first()){
-              continue;
-            }
-            minPathInitialLinkNewToBush = true;
+            //disallow because by disregarding zero flow links, we could be adding cycles as the eligibility
+            // check for adding would nto consider the full max cost spanning tree anymore
+            continue;
+//            if(!isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree).first()){
+//              continue;
+//            }
+//            minPathInitialLinkNewToBush = true;
           }else if(conjBush.contains(outgoingSegment)){
             // for existing segments we require a potential reduced cost (checked later) AND a split at the vertex
             // for the min and max path and the current outgoing segment is the preferred (min cost) segment
@@ -853,8 +867,6 @@ public class StaticLtmConjugateBushStrategy
 
             // ending up not adding the PAS, so remove just added segment again
             if(minPathInitialLinkNewToBush) {
-
-
               conjBush.remove(outgoingSegment);
             }
             continue;
@@ -862,7 +874,7 @@ public class StaticLtmConjugateBushStrategy
           var pasToAdd = bushPasExtensionResult.first();
 
           // truly new PAS
-          addedPass.add(pasToAdd);
+          passToConsider.put(pasToAdd.pasId, pasToAdd);
 //          if(isDestinationTrackedForLogging(conjBush) || logAll){
 //            LOGGER.info(String.format("Registered new PAS (%s) on conjugate bush (%s)",
 //                pasToAdd, conjBush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
@@ -887,7 +899,7 @@ public class StaticLtmConjugateBushStrategy
       }
     }
 
-    return Pair.of(addedPass,new ArrayList<>(0));
+    return passToConsider;
   }
 
   /**

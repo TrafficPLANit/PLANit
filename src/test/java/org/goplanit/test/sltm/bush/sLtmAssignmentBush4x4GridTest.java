@@ -13,6 +13,7 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
+import org.goplanit.supply.fundamentaldiagram.QuadraticLinearFundamentalDiagramConfigurator;
 import org.goplanit.test.sltm.sLtmAssignmentGridTestBase;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -179,7 +180,9 @@ public class sLtmAssignmentBush4x4GridTest extends sLtmAssignmentGridTestBase {
 
       /* CONJUGATE DESTINATION BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
-      sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
+      var qlDiagram = (QuadraticLinearFundamentalDiagramConfigurator)
+          sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
+      qlDiagram.setForceConcaveFreeFlowBranch(true);
       sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
 
       sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
