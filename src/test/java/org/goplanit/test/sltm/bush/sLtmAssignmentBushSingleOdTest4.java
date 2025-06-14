@@ -286,8 +286,7 @@ public class sLtmAssignmentBushSingleOdTest4 {
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(
               StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
 
-      // NEWELL diagram
-      sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
+        sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
 
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
               sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);

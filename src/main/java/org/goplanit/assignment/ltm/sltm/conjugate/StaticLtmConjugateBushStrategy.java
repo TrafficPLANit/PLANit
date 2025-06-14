@@ -266,8 +266,7 @@ public class StaticLtmConjugateBushStrategy
 
     //2. for each congested node rerun node in turn based form
     Predicate<DirectedVertex> hasCongestedEntrySegment = n -> IterableUtils.asStream(
-        n.getEntryEdgeSegments()).anyMatch(es -> Precision.smaller(
-            flowAcceptanceFactors[(int)es.getId()], 1, Precision.EPSILON_6));
+        n.getEntryEdgeSegments()).anyMatch(es -> (flowAcceptanceFactors[(int)es.getId()] + Precision.EPSILON_9) < 1);
     for(var node : trackedNodes){
       if(!hasCongestedEntrySegment.test(node)){
         continue;
@@ -318,6 +317,87 @@ public class StaticLtmConjugateBushStrategy
       }
     }
     return Pair.of(false, minCostStart + startToEndCost);
+  }
+
+  /**
+   * calculate realised cost for gap based on non-discontinuous costs....so normal realised network level costs
+   *
+   * @param theMode                      to use
+   * @param nonConjugateLinkSegmentCosts to use
+   * @return realised total cost
+   */
+  private double calculateRealisedCostForGap(Mode theMode, double[] nonConjugateLinkSegmentCosts) {
+    double totalPhysicalRealisedCost = 0;
+    double totalVirtualRealisedCost = 0;
+    // costs as they currently are utilising the unconstrained demand as a point of reference
+    var networkLayer = getTransportNetwork().getInfrastructureNetwork().getLayerByMode(theMode);
+    for (var linkSegment : networkLayer.getLinkSegments()) {
+      double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
+      if(linkDemand <= 0.0){
+        continue;
+      }
+      double linkCost = nonConjugateLinkSegmentCosts[(int) linkSegment.getId()];
+      totalPhysicalRealisedCost += linkCost * linkDemand;
+      //LOGGER.warning(String.format("link [%s] - cost %.4f - demand %.1f - gapcost %.4f", linkSegment.getXmlId(), linkCost, linkDemand, linkCost*linkDemand));
+    }
+    var virtualLayer = getTransportNetwork().getVirtualNetwork().getLayer();
+    for (var linkSegment : virtualLayer.getConnectoidSegments()) {
+      double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
+      if(linkDemand <= 0.0){
+        continue;
+      }
+      double linkCost = nonConjugateLinkSegmentCosts[(int) linkSegment.getId()];
+      totalVirtualRealisedCost += linkCost * linkDemand;
+    }
+    double totalRealisedCostForGap = totalPhysicalRealisedCost + totalVirtualRealisedCost;
+    return totalRealisedCostForGap;
+  }
+
+  /**
+   * calculate min cost for gap based on non-discontinuous costs....so normal realised network level costs
+   *
+   * @param theMode                      to use
+   * @param nonConjugateLinkSegmentCosts to use
+   * @param considerTurnDiscontinuities  to use when considerTurnDiscontinuities is true, otherwise use link based costs
+   * @return min total cost
+   */
+  private double calculateMinCostForGapBased(
+      Mode theMode, double[] nonConjugateLinkSegmentCosts, double[] conjugateLinkSegmentCosts, boolean considerTurnDiscontinuities) {
+    double totalMinCostForGap = 0;
+
+    var conjLinkSegmentCostsToUse = conjugateLinkSegmentCosts;
+    if(!considerTurnDiscontinuities) {
+      conjLinkSegmentCostsToUse = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
+          theMode, nonConjugateLinkSegmentCosts, false);
+    }
+    final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCostsToUse);
+    for (var conjBush : getBushes()) {
+      if (conjBush == null) {
+        continue;
+      }
+
+      /* network min-paths - searched in designated direction (inverted if ALL-TO-ONE, so it is compatible with bush where destination is root) */
+      var networkMinPaths = conjNetworkShortestPathAlgo.execute(
+          conjBush.getShortestSearchType(), conjBush.getRootVertex());
+      if (networkMinPaths == null) {
+        LOGGER.severe("Unable to obtain network min paths for bush, this shouldn't happen, skip updateBushPass");
+        continue;
+      }
+
+      // update/track total min cost across bushes(Ods) for gap calculation
+      var odDemands = getOdDemands(theMode);
+      var destination = conjBush.getDestination().getParent().getParentZone();
+      for (var originVertex : conjBush.getOriginVertices()) {
+        var origin = ((ConjugateConnectoidNode)originVertex).getCentroidVertex().getParent().getParentZone();
+        double odDemand = odDemands.getValue(origin, destination);
+        if(odDemand <= 0.0){
+          continue;
+        }
+        double minOdCost = networkMinPaths.getCostToReach(originVertex);
+        totalMinCostForGap += minOdCost * odDemand;
+      }
+    }
+    return totalMinCostForGap;
   }
 
   /**
@@ -622,69 +702,19 @@ public class StaticLtmConjugateBushStrategy
     final int MAX_PAS_ADD_PER_BUSH = Integer.MAX_VALUE;
     pasManager.reset();
 
+    // method overridden for conjugate implementation resulting in conjugate compatible shortest path search using
+    // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...
+    // here we do use discontinuity costs because when considering new PASs it must be taken into account
+    final var conjLinkSegmentCosts =
+        expandNonConjugateLinkSegmentCostToConjugateSegmentCost(mode, nonConjugateLinkSegmentCosts, true);
 
     double totalMinCostForGap = 0; // track during bush traversal to get min OD costs based on shortest paths
     double totalRealisedCostForGap = 0;
     if(updateGap) {
-      // GAP is currently based on non-discontinuous costs....so normal realised network level costs
-
-      double totalPhysicalRealisedCost = 0;
-      double totalVirtualRealisedCost = 0;
-      // costs as they currently are utilising the unconstrained demand as a point of reference
-      var networkLayer = getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode);
-      for (var linkSegment : networkLayer.getLinkSegments()) {
-        double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
-        if(linkDemand <= 0.0){
-          continue;
-        }
-        double linkCost = nonConjugateLinkSegmentCosts[(int) linkSegment.getId()];
-        totalPhysicalRealisedCost += linkCost * linkDemand;
-        //LOGGER.warning(String.format("link [%s] - cost %.4f - demand %.1f - gapcost %.4f", linkSegment.getXmlId(), linkCost, linkDemand, linkCost*linkDemand));
-      }
-      var virtualLayer = getTransportNetwork().getVirtualNetwork().getLayer();
-      for (var linkSegment : virtualLayer.getConnectoidSegments()) {
-        double linkDemand = this.getLoading().getUnconstrainedFlowsPcuHour()[(int) linkSegment.getId()];
-        if(linkDemand <= 0.0){
-          continue;
-        }
-        double linkCost = nonConjugateLinkSegmentCosts[(int) linkSegment.getId()];
-        totalVirtualRealisedCost += linkCost * linkDemand;
-      }
-      totalRealisedCostForGap = totalPhysicalRealisedCost + totalVirtualRealisedCost;
-
-      // for gap we cannot consider discontinuities otherwise we distort the costs compared to what is measured
-      // (for example if a discontinuous path would be shorter its unconstrained min cost could become higher than
-      // the current realised cost.
-      // todo: eventually move to a non network level min path based gap to avoid this and be faster
-      final var conjLinkSegmentCostsWithoutDiscontinuities = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
-          mode, nonConjugateLinkSegmentCosts, false);
-      final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCostsWithoutDiscontinuities);
-      for (var conjBush : getBushes()) {
-        if (conjBush == null) {
-          continue;
-        }
-
-        /* network min-paths - searched in designated direction (inverted if ALL-TO-ONE, so it is compatible with bush where destination is root) */
-        var networkMinPaths = conjNetworkShortestPathAlgo.execute(conjBush.getShortestSearchType(), conjBush.getRootVertex());
-        if (networkMinPaths == null) {
-          LOGGER.severe(String.format(
-              "Unable to obtain network min paths for bush, this shouldn't happen, skip updateBushPass"));
-          continue;
-        }
-
-        // update/track total min cost across bushes(Ods) for gap calculation
-        var odDemands = getOdDemands(mode);
-        var destination = conjBush.getDestination().getParent().getParentZone();
-        for (var originVertex : conjBush.getOriginVertices()) {
-          var origin = ((ConjugateConnectoidNode)originVertex).getCentroidVertex().getParent().getParentZone();
-          double odDemand = odDemands.getValue(origin, destination);
-          if(odDemand <= 0.0){
-            continue;
-          }
-          double minOdCost = networkMinPaths.getCostToReach(originVertex);
-          totalMinCostForGap += minOdCost * odDemand;
-        }
-      }
+      boolean considerTurnDiscontinuities = true;
+      totalRealisedCostForGap = calculateRealisedCostForGap(mode, nonConjugateLinkSegmentCosts);
+      totalMinCostForGap = calculateMinCostForGapBased(
+          mode, nonConjugateLinkSegmentCosts, conjLinkSegmentCosts, considerTurnDiscontinuities);
 
       // finalise gap part
       var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
@@ -700,12 +730,6 @@ public class StaticLtmConjugateBushStrategy
 
     //todo --> should be sets
     Map<Long, Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> passToConsider = new TreeMap<>();
-
-    // method overridden for conjugate implementation resulting in conjugate compatible shortest path search using
-    // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...
-    // here we do use discontinuity costs because when considering new PASs it must be taken into account
-    final var conjLinkSegmentCosts =
-            expandNonConjugateLinkSegmentCostToConjugateSegmentCost(mode, nonConjugateLinkSegmentCosts, true);
     for (var conjBush : getBushes()) {
       if (conjBush == null) {
         continue;
@@ -901,6 +925,7 @@ public class StaticLtmConjugateBushStrategy
 
     return passToConsider;
   }
+
 
   /**
    * Constructor

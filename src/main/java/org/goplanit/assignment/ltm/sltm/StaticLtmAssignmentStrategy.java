@@ -314,7 +314,7 @@ public abstract class StaticLtmAssignmentStrategy {
             double cost = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es);
             if(flowAcceptanceFactors[(int) es.getId()] < 1){
               LOGGER.warning(String.format("Queue build up on virtual link segment (%s) connected to node (%s), " +
-                      "applying virtual cost of %.4f instead, consider changing network geometry",
+                      "virtual cost of %.4f applied, consider changing network geometry",
                       es.getIdsAsString(), node.getIdsAsString(), cost));
             }
             costsToUpdate[(int) es.getId()] = cost;

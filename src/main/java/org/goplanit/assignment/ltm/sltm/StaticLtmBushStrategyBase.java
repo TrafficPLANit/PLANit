@@ -870,13 +870,16 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
       /* 2 - NETWORK COST UPDATE + UPDATE NETWORK REALISED COST GAP */
       {
-        boolean updateOnlyPotentiallyBlockingNodeCosts = isUpdateOnlyPotentiallyBlockingNodeCosts();
-        if(simulationData.isFirstIteration() && updateOnlyPotentiallyBlockingNodeCosts && simulationData.isInitialCostsAppliedInFirstIteration(theMode)){
-          /* initial costs will be inconsistent with loading performed in first iteration, recalculate all link segment costs for free flow conditions first
-           * and then for those that need tracking override with flow based costs */
-          CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
-                  theMode, getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments(), costsToUpdate);
-        }
+        // revert to always updating ALL link costs. This is simple and we know that we are using the right costs for the
+        // gap calculation.
+        boolean updateOnlyPotentiallyBlockingNodeCosts = false;
+//        boolean updateOnlyPotentiallyBlockingNodeCosts = isUpdateOnlyPotentiallyBlockingNodeCosts();
+//        if(simulationData.isFirstIteration() && updateOnlyPotentiallyBlockingNodeCosts && simulationData.isInitialCostsAppliedInFirstIteration(theMode)){
+//          /* initial costs will be inconsistent with loading performed in first iteration, recalculate all link segment costs for free flow conditions first
+//           * and then for those that need tracking override with flow based costs */
+//          CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
+//                  theMode, getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments(), costsToUpdate);
+//        }
         this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
 
         /* PAS COST UPDATE */
@@ -901,7 +904,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         boolean logAll = false; //simulationData.getIterationIndex()>=200;
 
         /* (NEW) PAS MATCHING FOR BUSHES */
-        boolean updateGap = true; // we can cheaply determine gap while traversing bushes
+        boolean updateGap = true; // todo consider computing gap directly after determining costs?
         var passToConsider = updateBushPass(theMode, costsToUpdate, updateGap, logAll);
         if(getSettings().isDetailedLogging()) {
           LOGGER.info(String.format("Newly added PASs: %d (active: %d))",
@@ -919,7 +922,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           Collection<Pas<V,ES>> updatedPass = performFlowShifts(
               theMode, pasExecutors, costsToUpdate, simulationData);
 
-          LOGGER.info(String.format("Flow shifts performed: %d (.2f%% of all pass)",
+          LOGGER.info(String.format("Flow shifts performed: %d (%.2f%% of all pass)",
               updatedPass.size(),((double)updatedPass.size())/passToConsider.size()));
         }
       }
