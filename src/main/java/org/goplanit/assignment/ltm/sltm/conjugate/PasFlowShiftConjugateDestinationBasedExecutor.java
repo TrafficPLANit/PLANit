@@ -441,7 +441,29 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // prep by collecting before state per turn
     // per turn: <nlFlowAcceptanceFactorBefore, onTheFlyFlowAcceptanceFactorBefore, onTheFlyTurnInflowBefore>
     Triple<Double,Double,Double>[] beforeNodeModelUpdateInfo = new Triple[nodeTurnFlowShiftsToApply.length];
-    double nonConjugateNetworkSplittingRate = 1;
+    // in case multiple of turns share same in-link we must capture the before before before we update any splitting rates
+    double[] beforeNonConjugateSplittingRates = new double[nodeTurnFlowShiftsToApply.length];
+    for(int index=0; index <nodeTurnFlowShiftsToApply.length; ++index) {
+      var entry = nodeTurnFlowShiftsToApply[index];
+      var turn = entry.first();
+      var flowShift = entry.second();
+      var originalTurnEntrySegment = turn.getOriginalAdjacentEdgeSegments().first();
+      boolean hasOriginalEntry = (originalTurnEntrySegment != null);
+      if (flowShift > 0 && hasOriginalEntry) {
+        // any additional flow to a turn may potentially cause congestion. to ensure node model calculates such a node
+        // it must be registered as potentially blocking. So we register it at such (if already done nothing happens).
+        networkLoading.getSplittingRateData().registerPotentiallyBlockingNode(originalTurnEntrySegment.getDownstreamVertex());
+      }
+
+      // must be splitting rate before we update the splitting rates otherwise we cannot use it to determine
+      // the before situation
+      double nonConjugateNetworkSplittingRate = (hasOriginalEntry && turn.hasOriginalExitEdgeSegment()) ?
+          networkLoading.getSplittingRateData().getSplittingRate(
+              turn.getOriginalAdjacentEdgeSegments().first(), turn.getOriginalAdjacentEdgeSegments().second())
+          : 1;
+      beforeNonConjugateSplittingRates[index] = nonConjugateNetworkSplittingRate;
+    }
+
     boolean doSplittingRateUpdate = false;
     for(int index=0; index <nodeTurnFlowShiftsToApply.length; ++index) {
       var entry = nodeTurnFlowShiftsToApply[index];
@@ -451,26 +473,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       boolean hasOriginalEntry = (originalTurnEntrySegment != null);
       doSplittingRateUpdate = flowShift != 0 && hasOriginalEntry;
 
-      if (flowShift > 0 && hasOriginalEntry) {
-        // any additional flow to a turn may potentially cause congestion. to ensure node model calculates such a node
-        // it must be registered as potentially blocking. So we register it at such (if already done nothing happens).
-        networkLoading.getSplittingRateData().registerPotentiallyBlockingNode(originalTurnEntrySegment.getDownstreamVertex());
-      }
-
-      // must be splitting rate before we update the splitting rates otherwise we cannot use it to determine
-      // the before situation
-      nonConjugateNetworkSplittingRate = (hasOriginalEntry && turn.hasOriginalExitEdgeSegment()) ?
-          networkLoading.getSplittingRateData().getSplittingRate(
-              turn.getOriginalAdjacentEdgeSegments().first(), turn.getOriginalAdjacentEdgeSegments().second())
-          : 1;
-
       double nlFlowAcceptanceFactorBefore = 1;
       double onTheFlyFlowAcceptanceFactorBefore = 1;
       double onTheFlyTurnInflowBefore = Double.MAX_VALUE;
       if (doNodeModelUpdate && hasOriginalEntry) {
         // we only do this if there is a chance of the alphas changing (so potentially congested)
+        double nonConjugateBeforeNetworkSplittingRate = beforeNonConjugateSplittingRates[index];
         onTheFlyTurnInflowBefore =
-            networkLoading.getCurrentInflowsPcuH()[(int) originalTurnEntrySegment.getId()] * nonConjugateNetworkSplittingRate;
+            networkLoading.getCurrentInflowsPcuH()[(int) originalTurnEntrySegment.getId()] * nonConjugateBeforeNetworkSplittingRate;
         nlFlowAcceptanceFactorBefore = originalNlFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
         onTheFlyFlowAcceptanceFactorBefore = nonConjugateFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
       }
@@ -478,6 +488,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           nlFlowAcceptanceFactorBefore, onTheFlyFlowAcceptanceFactorBefore, onTheFlyTurnInflowBefore);
 
       if(doSplittingRateUpdate) {
+        // todo: could be done per original in link, done per turn shift to keep it simple
         // perform splitting rate update, required for correct network update below + we use splitting rate for
         // determining flow shift restrictions downstream (if any)
         executeNetworkSplittingRateUpdateForPasAlternativeSegment(turn, bushes, networkLoading);
@@ -546,12 +557,21 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         }
       }
 
-      // lastly, we want to ensure we remain consistent with the most restricting situation compared to the original
-      // network loading, so we take the minimum of our proposed remaining flow shift and the nl alphas in case that is
-      // more restricting
-      double remainingPasFlowShift = appliedTurnFlowShift > 0 ?
-          Math.min( nlFlowAcceptanceFactorBefore * appliedTurnFlowShift,  proposedRemainingShift):
-          Math.max( nlFlowAcceptanceFactorBefore * appliedTurnFlowShift,  proposedRemainingShift);
+      if(appliedTurnFlowShift * proposedRemainingShift < 0){
+        LOGGER.severe(String.format("flow shift changed sign from %.2f to %.2f, that should never happen",
+            appliedTurnFlowShift, proposedRemainingShift));
+      }
+
+      //NOTE: we no longer restrict based on network loading because that is already handled by the above (should be)
+      // the adjustment in how much we can shift should ideally only be applied when determining the s2 sending flow
+
+//      // lastly, we want to ensure we remain consistent with the most restricting situation compared to the original
+//      // network loading, so we take the minimum of our proposed remaining flow shift and the nl alphas in case that is
+//      // more restricting
+//      double remainingPasFlowShift = appliedTurnFlowShift > 0 ?
+//          Math.min( nlFlowAcceptanceFactorBefore * appliedTurnFlowShift,  proposedRemainingShift):
+//          Math.max( nlFlowAcceptanceFactorBefore * appliedTurnFlowShift,  proposedRemainingShift);
+      double remainingPasFlowShift = proposedRemainingShift;
       resultToPopulate[index] = Pair.of(remainingPasFlowShift, restrictToDownstreamOutflowUpdateOnly);
     }
     return resultToPopulate;
@@ -595,6 +615,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       var pasAlternativeSegment = entry.first();
       var flowShiftToApply = entry.second();
 
+      if(flowShiftToApply == 0 ){
+        continue;
+      }
       var originalSegment = pasAlternativeSegment.getOriginalAdjacentEdgeSegments().first();
       if (originalSegment != null) {
         int segmentIndex = (int) originalSegment.getId();
@@ -1501,7 +1524,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   /**
    * New approach which is per PAS and then per alternative link for all bushes
    */
-  protected double executePasFlowShiftNodeModelUpdate(
+  protected boolean executePasFlowShiftNodeModelUpdate(
       double guaranteedS2SendingFlow,
       Map<ConjugateDestinationBush, Double> bushS2RemainingSendingFlows,
       double pasFlowShift,
@@ -1518,16 +1541,16 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     final var s1 = pas.getAlternative(true);
 
     // DIVERGE
-    var appliedFlowShiftPcuHPerBush = executeDivergeFlowShift(
+    // pair< pair<s1,s2 remaining shifts>, per bush weights>
+    var divergeFlowShiftResult = executeDivergeFlowShift(
         guaranteedS2SendingFlow, bushS2RemainingSendingFlows, pasFlowShift, theMode, originalNlFlowAcceptanceFactors,
         assignmentStrategy, originalNetworkCosts, conjSegmentCosts, bushes, true, logAll);
-    if(appliedFlowShiftPcuHPerBush==null || appliedFlowShiftPcuHPerBush.anyIsNull()){
-      return 0;
+    if(divergeFlowShiftResult==null || divergeFlowShiftResult.anyIsNull()){
+      return false;
     }
-    var s1Result = appliedFlowShiftPcuHPerBush.first()[0];
-    var s2Result = appliedFlowShiftPcuHPerBush.first()[1];
-    double appliedSendingFlowShift = -s2Result.first();
-    var bushWeights = appliedFlowShiftPcuHPerBush.second();
+    var s1Result = divergeFlowShiftResult.first()[0];
+    var s2Result = divergeFlowShiftResult.first()[1];
+    var bushWeights = divergeFlowShiftResult.second();
 
     // ON-PAS
       // S2
@@ -1544,7 +1567,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         theMode, originalNlFlowAcceptanceFactors, assignmentStrategy,
         originalNetworkCosts, conjSegmentCosts, bushes, true, logAll);
 
-    return appliedSendingFlowShift;
+    return true;
   }
 
   /**
@@ -2016,7 +2039,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
 
       if(isDestinationTrackedForLogging() || logAll) {
-        LOGGER.info("* FLOW SHIFT on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
+        LOGGER.info("* FLOW SHIFT on PAS:" + pas + " - S1 flow: " + s1SendingFlow +" S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
         LOGGER.info("   s1 alphas: "+
             Arrays.stream(s1Alternative).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(
                 es -> String.format("%s:%.6f",
@@ -2088,7 +2111,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         break;
       }
 
-      double appliedFlowShift = executePasFlowShiftNodeModelUpdate(
+      boolean flowShifted = executePasFlowShiftNodeModelUpdate(
           guaranteedS2SendingFlow,
           bushS2RemainingSendingFlows,
           smoothedPasflowShift,
@@ -2112,7 +2135,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
                     (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(",")));
       }
 
-
+      double appliedFlowShift = flowShifted ? smoothedPasflowShift: 0;
       totalPasShift += appliedFlowShift;
 
       // sync costs to changes in flow, to allow for next proposed flow update

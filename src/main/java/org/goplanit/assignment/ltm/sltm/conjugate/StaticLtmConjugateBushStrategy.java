@@ -155,7 +155,7 @@ public class StaticLtmConjugateBushStrategy
       for (var pas : sortedPass) {
         var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
 
-        if (pas.pasId == 749L) {
+        if (pas.pasId == 4L) {
           int bla = 4;
         }
 
@@ -173,7 +173,7 @@ public class StaticLtmConjugateBushStrategy
         }
 
         if(pasFlowShifted <= 0){
-          break;
+          continue;
         }else if (iteration==1) {
           flowShiftedPass.add(pas);
         }
