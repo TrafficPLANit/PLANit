@@ -294,7 +294,10 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
           final AbstractPhysicalCost physicalCost,
           final AbstractVirtualCost virtualCost,
           boolean isLowCostAlternative,
-          double derivativeReductionFactor) {
+          double derivativeReductionFactor,
+          Set<EdgeSegment> allowChainingBeyondBottleneck) {
+
+    // allowChainingBeyondBottleneck not used yet --> ignored
 
     double dTravelTimeDFlow = 0.0;
 
@@ -431,9 +434,9 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
 
     // not rewritten to merge diverge excluded yet, all in one here
     denominatorS1 = getDTravelTimeDFlowExcludingMergeDiverge(
-            theMode, networkLoading, physicalCost, virtualCost, true, 1).first();
+            theMode, networkLoading, physicalCost, virtualCost, true, 1, null).first();
     denominatorS2 = getDTravelTimeDFlowExcludingMergeDiverge(
-            theMode, networkLoading, physicalCost, virtualCost, false, 1).first();
+            theMode, networkLoading, physicalCost, virtualCost, false, 1, null).first();
 
     double flowShift = 0;
     boolean pasCostEqual = pas.isCostEqual(EPSILON);

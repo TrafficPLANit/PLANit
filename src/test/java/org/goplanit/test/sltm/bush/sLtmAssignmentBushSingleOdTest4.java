@@ -98,22 +98,22 @@ public class sLtmAssignmentBushSingleOdTest4 {
     double outflow4 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
     double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
 
-    assertEquals(7421.59977, outflow0, Precision.EPSILON_3);
-    assertEquals(4000, outflow1, Precision.EPSILON_3);
-    assertEquals(4000, outflow2, Precision.EPSILON_3);
-    assertEquals(6000, outflow3, Precision.EPSILON_3);
-    assertEquals(2421.599775766677, outflow4, Precision.EPSILON_3);
-    assertEquals(2000, outflow5, Precision.EPSILON_3);
+    assertEquals(6320, outflow0, Precision.EPSILON_3);
+    assertEquals(6312.252497544623, outflow1, Precision.EPSILON_3);
+    assertEquals(4014, outflow2, Precision.EPSILON_3);
+    assertEquals(6300, outflow3, Precision.EPSILON_3);
+    assertEquals(2286, outflow4, Precision.EPSILON_3);
+    assertEquals(2286, outflow5, Precision.EPSILON_3);
 
     // connectoid edge segments
-    double outflow10 = sLTM.getLinkSegmentOutflowsPcuHour()[8]; // A out
-    double outflow11 = sLTM.getLinkSegmentOutflowsPcuHour()[9]; // A in
-    double outflow12 = sLTM.getLinkSegmentOutflowsPcuHour()[10]; // A' out
-    double outflow13 = sLTM.getLinkSegmentOutflowsPcuHour()[11]; // A' in
-    assertEquals(outflow10, 8000, Precision.EPSILON_3);
-    assertEquals(outflow13, 6000, Precision.EPSILON_3);
-    assertEquals(outflow11, 0, Precision.EPSILON_3);
-    assertEquals(outflow11, outflow12, Precision.EPSILON_3);
+    double outflow6 = sLTM.getLinkSegmentOutflowsPcuHour()[6]; // A out
+    double outflow7 = sLTM.getLinkSegmentOutflowsPcuHour()[7]; // A in
+    double outflow8 = sLTM.getLinkSegmentOutflowsPcuHour()[8]; // A' out
+    double outflow9 = sLTM.getLinkSegmentOutflowsPcuHour()[9]; // A' in
+    assertEquals(outflow6, 6320, Precision.EPSILON_3);
+    assertEquals(outflow9, 6300, Precision.EPSILON_3);
+    assertEquals(outflow7, 0, Precision.EPSILON_3);
+    assertEquals(outflow7, outflow8, Precision.EPSILON_3);
 
     double inflow0 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
     double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
@@ -122,12 +122,12 @@ public class sLtmAssignmentBushSingleOdTest4 {
     double inflow4 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
     double inflow5 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
 
-    assertEquals(inflow0, 8000, Precision.EPSILON_3);
-    assertEquals(inflow1, 5000, Precision.EPSILON_3);
-    assertEquals(inflow2, 4000, Precision.EPSILON_3);
-    assertEquals(inflow3, 6000, Precision.EPSILON_3);
-    assertEquals(inflow4, 2421.599775766677, Precision.EPSILON_3);
-    assertEquals(inflow5, inflow4, Precision.EPSILON_3);
+    assertEquals(6320, inflow0, Precision.EPSILON_3);
+    assertEquals(outflow0, inflow1, Precision.EPSILON_3);
+    assertEquals(4026.252497544623, inflow2, Precision.EPSILON_3);
+    assertEquals(6300, inflow3, Precision.EPSILON_3);
+    assertEquals(2286, inflow4, Precision.EPSILON_3);
+    assertEquals(outflow4, inflow5, Precision.EPSILON_3);
   }
 
   /**
@@ -271,6 +271,9 @@ public class sLtmAssignmentBushSingleOdTest4 {
   /**
   /**
    * Test sLTM conjugate bush-based assignment on above network for a point queue model
+   * so far it has proven impossible to solve this without reducing the step size due to
+   * the interaction between diverge and merge bottlenecks. even with derivatives
+   * this will overshoot.
    */
   @Test
   public void sLtmPointQueueConjugateBushDestinationBasedAssignmentTest() {
@@ -290,7 +293,7 @@ public class sLtmAssignmentBushSingleOdTest4 {
 
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
               sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(1);
+      fixedStepSmoothing.setStepSize(0.5);
 
 //      var msraSmoothing = (MSRASmoothingConfigurator)
 //          sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);

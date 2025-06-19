@@ -551,15 +551,20 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         } else {
           // case 3: we propose to propagate the remaining difference that is not consumed by removing the previously
           // withheld flow
-          proposedRemainingShift = appliedTurnFlowShift > 0 ?
-              Math.min(appliedTurnFlowShift, onTheFlyTurnOutflowAfter - onTheFlyTurnOutflowBefore) :
-              Math.max(appliedTurnFlowShift, onTheFlyTurnOutflowAfter - onTheFlyTurnOutflowBefore);
+          // NOTE: if an alpha becomes less restrictive, it is possible that the flow shift INCREASES compared to the
+          // original flow shift (because flow previously withheld is now propagated in addition to the flow shift itself)
+          // ...
+          proposedRemainingShift = onTheFlyTurnOutflowAfter - onTheFlyTurnOutflowBefore;
+          // ... so we can't limit to the original applied turn flow shift, simply use the difference
+//          proposedRemainingShift = appliedTurnFlowShift > 0 ?
+//              Math.min(appliedTurnFlowShift, onTheFlyTurnOutflowAfter - onTheFlyTurnOutflowBefore) :
+//              Math.max(appliedTurnFlowShift, onTheFlyTurnOutflowAfter - onTheFlyTurnOutflowBefore);
         }
       }
 
       if(appliedTurnFlowShift * proposedRemainingShift < 0){
-        LOGGER.severe(String.format("flow shift changed sign from %.2f to %.2f, that should never happen",
-            appliedTurnFlowShift, proposedRemainingShift));
+        LOGGER.severe(String.format("flow shift changed sign from %.8f to %.8f after segment (%s), that should never happen",
+            appliedTurnFlowShift, proposedRemainingShift, entry.first().getIdsAsString()));
       }
 
       //NOTE: we no longer restrict based on network loading because that is already handled by the above (should be)
@@ -928,7 +933,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       final AbstractPhysicalCost physicalCost,
       final AbstractVirtualCost virtualCost,
       boolean isLowCostAlternative,
-      double derivativeReductionFactor) {
+      double derivativeReductionFactor,
+      Set<EdgeSegment> allowChainingBeyondBottleneck) {
     double dTravelTimeDFlow = 0.0;
 
     var pasAlternative = this.pas.getAlternative(isLowCostAlternative);
@@ -984,9 +990,13 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
 
       if(!unCongested && thisAltOnMostRestrictingTurn){
-        // no more flow change beyond here due to it being a bottleneck
-        continueWithMergeDerivative = false;
-        break;
+        boolean ignoreBottleneckChainTruncation =
+            allowChainingBeyondBottleneck!=null && allowChainingBeyondBottleneck.contains(originalEntrySegment);
+        if(!ignoreBottleneckChainTruncation) {
+          // no more flow change beyond here due to it being a bottleneck, and we are not allowed to ignore
+          continueWithMergeDerivative = false;
+          break;
+        }
       }
     }
     return Triple.of(dTravelTimeDFlow, compoundedDerivativeReductionFactor, continueWithMergeDerivative);
@@ -1039,7 +1049,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     //                s1 is not on most restricting, use compensatory special derivative case in On-PAS for this
     //              when s1 is on most restricting turn use hypercritical derivative --> combined single hyper critical, s1 may continue
     //                s2 is not on most restricting, use compensatory special derivative case in On-PAS for this --> combined single hyper critical, s2 may continue
-    //              when neither is on most restricting: zero as flow shift has no impact on cost
+    //              when neither is on most restricting: twice the special case derivative but in opposite directions, so
+    //               no impact on most restricting
     if(unCongested || (mostRestrictingExit!=originalS1ExitSegment && mostRestrictingExit!=originalS2ExitSegment)){
       //                der.,alpha, s1 continue y/n, s2 continue y/n
       return new Object[]{
@@ -1056,24 +1067,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       //determine which of the two may continue
       boolean s1MostRestricting = mostRestrictingExit==originalS1ExitSegment;
 
-      // determine special case hyper critical for non-most restricting turn and SUBTRACT it from the regular hyper
-      // critical derivative because from a derivative point of view, upping the flow on the most restricting means
-      // removing it from the non-most restricting (as this is a COMBINED derivative), or vice versa.
+      // determine special case hyper critical for non-most restricting turn and add it to the regular hyper
+      // critical derivative because from a derivative denominator point of view they should reflect the combined change
+      // in cost per unit flow
       double compensatoryHyperDTravelTimeDFlow =
           computeHyperCriticalDTravelTimeDFlowNotMostRestrictiveTurnOnCongestedLink(
       networkLoading, physicalCost, originalEntrySegment, mostRestrictingExit, mostRestrictingExitDemandConstrFlow);
       // todo: approximation --> derive this analytically because the below is unlikely to be entirely correct
-      if(!s1MostRestricting){
-        // from s2 perspective, adding flow to most restricting ups by regular hyper critical, but this is reduced by
-        // the  removal of s1 flow via the compensatory derivative. Then s1 adds this back in so it cancels out
-        dTravelTimeDFlow = dTravelTimeDFlow;// - compensatoryHyperDTravelTimeDFlow + compensatoryHyperDTravelTimeDFlow;
-      }else{
-        // from s2 perspective adding flow to non-most restricting will reduce cost, so this yields a negative derivative
-        // overall, upping the flow for s1 to the most restricting adds the regular dtravel time dflow, so that cancels out
-        dTravelTimeDFlow = compensatoryHyperDTravelTimeDFlow; // - dTravelTimeDFlow + dTravelTimeDFlow;
-      }
-
-
+      dTravelTimeDFlow += compensatoryHyperDTravelTimeDFlow;
       double acceptanceFactor = networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntrySegment.getId()];
       return new Object[]{dTravelTimeDFlow, acceptanceFactor, !s1MostRestricting, s1MostRestricting};
     }
@@ -1641,18 +1642,20 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   }
 
   /**
-   * {@inheritDoc}
+   * recursive version that can be called of determineProposedFlowShiftByLoadingEntrySegment
    */
-  @Override
-  public Map<EdgeSegment, Double> determineProposedFlowShiftByLoadingEntrySegment(
+  public Map<EdgeSegment, Double> determineProposedFlowShift(
       Mode theMode,
       GapFunction gapFunction,
       AbstractPhysicalCost physicalCost,
       AbstractVirtualCost virtualCost,
       StaticLtmLoadingBushBase<?> networkLoading,
-      double guaranteedS2SendingFlow, boolean logAll) {
-    // vary between 0.5% and 5% of capacity depending on how tight the current gap is
-    double stateChangeLeewayPercentage = Math.min(0.05, Math.max(0.005, gapFunction.getGap()));
+      double guaranteedS2SendingFlow,
+      boolean logAll,
+      Set<EdgeSegment> chainDerivativeBeyondBottleneckSegments) {
+
+    // vary between 0.5% and 0.05% of slack depending on how tight the current gap is
+    double stateChangeLeewayPercentage = Math.min(0.005, Math.max(0.0005, gapFunction.getGap()));
 
     // todo: once we no longer have non-conjugate implementation remove any entry segment based tracking of flow shifts
     Map<EdgeSegment, Double> result = new TreeMap<>();
@@ -1662,10 +1665,13 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     var firstS2CongestedSegment = findFirstCongestedEdgeSegmentOnPasAlternative(networkLoading, false);
     boolean pasS2PotentialDiscontinuity = (firstS2CongestedSegment != null);
 
-    var denominatorDivergeResult = getDTravelTimeDFlowDiverge(
-        theMode, networkLoading, physicalCost, virtualCost);
+    var denominatorDivergeResult = getDTravelTimeDFlowDiverge(theMode, networkLoading, physicalCost, virtualCost);
     boolean s1Continue = (boolean) denominatorDivergeResult[2];
     boolean s2Continue = (boolean) denominatorDivergeResult[3];
+    if(!s2Continue && chainDerivativeBeyondBottleneckSegments!= null && originalEntrySegment!=null
+        && chainDerivativeBeyondBottleneckSegments.contains(originalEntrySegment)) {
+      s2Continue = true;
+    }
     double derivativeReductionFactorDiverge = (double) denominatorDivergeResult[1];
     double divergeDenominator = (double) denominatorDivergeResult[0];
 
@@ -1675,14 +1681,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double derivativeReductionFactorS2UpToMerge = 1;
     if(s1Continue) {
       var denominatorS1Result = getDTravelTimeDFlowExcludingMergeDiverge(
-          theMode, networkLoading, physicalCost, virtualCost, true, derivativeReductionFactorDiverge);
+          theMode, networkLoading, physicalCost, virtualCost, true, derivativeReductionFactorDiverge, null);
       onPasS1Denominator = denominatorS1Result.first();
       derivativeReductionFactorS1UpToMerge = denominatorS1Result.second();
       s1Continue = denominatorS1Result.third();
     }
     if(s2Continue) {
       var denominatorS2Result = getDTravelTimeDFlowExcludingMergeDiverge(
-          theMode, networkLoading, physicalCost, virtualCost, false, derivativeReductionFactorDiverge);
+          theMode, networkLoading, physicalCost, virtualCost, false, derivativeReductionFactorDiverge, chainDerivativeBeyondBottleneckSegments);
       onPasS2Denominator = denominatorS2Result.first();
       derivativeReductionFactorS2UpToMerge = denominatorS2Result.second();
       s2Continue = denominatorS2Result.third();
@@ -1725,14 +1731,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     var lowCostSlackResult = determinePasAlternativeSlackFlow(networkLoading, true);
     double s1SlackFlowEstimate = lowCostSlackResult.first();
     double s1SlackSegmentCapacity = lowCostSlackResult.second()!=null ? ((PcuCapacitated) lowCostSlackResult.second()).getCapacityOrDefaultPcuH() : Double.POSITIVE_INFINITY;
-    double s1SlackFlowLeeway = s1SlackSegmentCapacity * stateChangeLeewayPercentage;
+    double s1SlackFlowLeeway = Math.max(0.1, s1SlackFlowEstimate * stateChangeLeewayPercentage); // in case of zero slack, up to 0.1 so we still shift something
     if (!pasCostEqual && smallerEqual(denominator,EPSILON,EPSILON)) {
       /* s1 & S2 UNCONGESTED - no derivative estimate possible (denominator zero) */
       /* move all towards cheaper alternative limited by slack + delta */
       /* obtain PAS-entry segment sub-path sending flows */
       double proposedFlowShift = guaranteedS2SendingFlow;
       double finalProposedShift =
-              adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, s1SlackFlowEstimate, s1SlackFlowLeeway);
+          adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, s1SlackFlowEstimate, s1SlackFlowLeeway);
       if(originalEntrySegment != null) {
         result.put(originalEntrySegment, finalProposedShift);
       }else{
@@ -1762,14 +1768,28 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       var highCostSlackResult = determinePasAlternativeSlackFlow(networkLoading, false);
       double s2SlackFlowEstimate = highCostSlackResult.first();
       double s2SlackSegmentCapacity = highCostSlackResult.second()!=null ? ((PcuCapacitated) highCostSlackResult.second()).getCapacityOrDefaultPcuH() : Double.POSITIVE_INFINITY;
-      double s2SlackFlowLeeway = s2SlackSegmentCapacity * stateChangeLeewayPercentage;
-        /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
-        double oldFlowShift = flowShift;
-        flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2SlackFlowEstimate, s2SlackFlowLeeway);
-        if(logAll && oldFlowShift > flowShift){
+      double s2SlackFlowLeeway = Math.max(0.1, s2SlackFlowEstimate * stateChangeLeewayPercentage);
+      /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
+      double oldFlowShift = flowShift;
+      flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2SlackFlowEstimate, s2SlackFlowLeeway);
+      if(oldFlowShift > flowShift){
+        if(logAll ) {
           LOGGER.info(String.format("S2 DISCONTINUITY ADJUSTMENT TRIGGERED from %.10f, to %.10f",
               oldFlowShift, flowShift));
         }
+        if(chainDerivativeBeyondBottleneckSegments == null){
+          chainDerivativeBeyondBottleneckSegments = new TreeSet<>();
+        }
+        EdgeSegment allowChainingDerivativesBeyondSegment = highCostSlackResult.second();
+        if(!chainDerivativeBeyondBottleneckSegments.contains(allowChainingDerivativesBeyondSegment)) {
+          // redo derivative calculation for S2 since we have to anticipate flow is no longer withheld at current
+          // congested entry (if we do not do this, our step might be too high)
+          chainDerivativeBeyondBottleneckSegments.add(allowChainingDerivativesBeyondSegment);
+          var adjustedResult = determineProposedFlowShift(theMode, gapFunction, physicalCost, virtualCost, networkLoading,
+              guaranteedS2SendingFlow, logAll, chainDerivativeBeyondBottleneckSegments);
+          flowShift = adjustedResult.values().iterator().next();
+        }
+      }
     }
 
     if(originalEntrySegment != null) {
@@ -1780,6 +1800,22 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       result.put(pas.getFirstEdgeSegment(true), flowShift);
     }
     return result;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<EdgeSegment, Double> determineProposedFlowShiftByLoadingEntrySegment(
+      Mode theMode,
+      GapFunction gapFunction,
+      AbstractPhysicalCost physicalCost,
+      AbstractVirtualCost virtualCost,
+      StaticLtmLoadingBushBase<?> networkLoading,
+      double guaranteedS2SendingFlow,
+      boolean logAll) {
+    return determineProposedFlowShift(
+        theMode, gapFunction, physicalCost, virtualCost, networkLoading, guaranteedS2SendingFlow, logAll, null);
   }
 
   /**
@@ -2017,6 +2053,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double totalPasShift = 0;
     do{
 
+      if (pas.pasId == 22L) { // local PAS update
+        int bla = 4;
+      }
+
       //--------------- UPDATE SENDING FLOWS THROUGH ALTERNATIVE ------------------------------------
       bushS2RemainingSendingFlows.clear();
       for (var bush : pas.getRegisteredBushes()) {
@@ -2142,7 +2182,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       boolean costSwitch = pas.updateCost(conjSegmentCosts);
 
       s1SendingFlow += appliedFlowShift;
-      double s2SendingFlow = guaranteedS2SendingFlow - totalPasShift;
+      double s2SendingFlow = guaranteedS2SendingFlow - appliedFlowShift;
       if(costSwitch){
         double prevS1SendingFlow = s1SendingFlow;
         s1SendingFlow = s2SendingFlow;

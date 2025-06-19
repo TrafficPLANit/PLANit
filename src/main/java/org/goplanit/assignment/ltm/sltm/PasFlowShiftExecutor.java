@@ -226,6 +226,9 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param virtualCost          to use
    * @param isLowCostAlternative to use
    * @param derivativeReductionFactor to use
+   * @param allowChainingBeyondBottleneck pretend these entry segments are non-blocking w.r.t. continuining to chain
+   *                                        derivatives beyond a congested link (derivative on link itself is still
+   *                                        regarded congested)
    * @return derivative, compounded derivative reduction factor and indicator whether to continue or not
    */
   protected abstract Triple<Double, Double, Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
@@ -234,7 +237,8 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
       final AbstractPhysicalCost physicalCost,
       final AbstractVirtualCost virtualCost,
       boolean isLowCostAlternative,
-      double derivativeReductionFactor);
+      double derivativeReductionFactor,
+      Set<EdgeSegment> allowChainingBeyondBottleneck);
 
   /**
    * Determine the adjusted flow shift by taking the proposed upper bound and reduce it by a
