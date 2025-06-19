@@ -11,6 +11,7 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.gap.GapFunction;
+import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -648,6 +649,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
       Mode theMode,
       GapFunction gapFunction, AbstractPhysicalCost physicalCost,
       AbstractVirtualCost virtualCost,
+      Smoothing smoothing,
+      double additionalSmoothingFactor,
       StaticLtmLoadingBushBase<?> networkLoading,
       double guaranteedS2SendingFlow,
       boolean logAll) { // dummy for compliance
@@ -678,7 +681,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
       double[] conjSegmentCosts,
       double[] originalNlConsistentFlowAcceptanceFactors,
       Set<? extends RootedBush<?,?>> bushes,
-      boolean logAll) {
+      boolean logAll,
+      double additionalSmoothingFactor) {
     throw new PlanItRunTimeException("performEquilibratedCongestedS2FlowShift not yet implemented on " +
         "non-conjugate destination based ");
   }

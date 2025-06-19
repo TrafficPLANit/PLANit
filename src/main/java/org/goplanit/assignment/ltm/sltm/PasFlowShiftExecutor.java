@@ -6,6 +6,7 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.gap.GapFunction;
+import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
@@ -419,6 +420,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param gapFunction
    * @param physicalCost            to use
    * @param virtualCost             to use
+   * @param smoothing               to apply
    * @param networkLoading          to use
    * @param guaranteedS2SendingFlow to use
    * @param logAll                  to use
@@ -429,6 +431,8 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
       Mode theMode,
       GapFunction gapFunction, AbstractPhysicalCost physicalCost,
       AbstractVirtualCost virtualCost,
+      Smoothing smoothing,
+      double additionalSmoothingFactor,
       StaticLtmLoadingBushBase<?> networkLoading,
       double guaranteedS2SendingFlow,
       boolean logAll);
@@ -460,7 +464,8 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
       double[] conjSegmentCosts,
       double[] originalNlConsistentFlowAcceptanceFactors,
       Set<? extends RootedBush<?,?>> bushes,
-      boolean logAll);
+      boolean logAll,
+      double additionalSmoothingFactor);
 
   /**
    * Perform S1 flow shift assuming the S2 flow shift has already been done (is prerequisite)

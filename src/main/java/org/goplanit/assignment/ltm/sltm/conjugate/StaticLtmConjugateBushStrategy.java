@@ -165,7 +165,8 @@ public class StaticLtmConjugateBushStrategy
             originalNetworkCosts,
             conjSegmentCosts,
             getBushes(),
-            logAll);
+            logAll,
+            1.0/MAX_ITERATIONS_ALLOWED);
 
         if (!pas.hasRegisteredBushes()) {
           passWithoutBush.add(pas);

@@ -435,7 +435,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
                 conjSegmentCosts,
                 nlConsistentFlowAcceptanceFactors,
                 getBushes(),
-                logAll);
+                logAll,
+                1.0/MAX_ITERATIONS_ALLOWED);
 
         if (pasFlowShifted > 0) {
           totalCongestedFlowShifted += pasFlowShifted;
