@@ -293,7 +293,7 @@ public class sLtmAssignmentBushSingleOdTest4 {
 
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
               sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(0.5);
+      fixedStepSmoothing.setStepSize(1);
 
 //      var msraSmoothing = (MSRASmoothingConfigurator)
 //          sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
