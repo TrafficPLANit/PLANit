@@ -352,7 +352,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
    */
   @Override
   protected Pair<Double,EdgeSegment>  determinePasAlternativeSlackFlow(
-          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
+          StaticLtmLoadingBushBase<?> networkLoading, double proposedFlowShift, boolean lowCost) {
 
     var lastAlternativeSegment = pas.getLastEdgeSegment(lowCost);
     double slackFlow = Double.POSITIVE_INFINITY;
@@ -442,34 +442,34 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
     double flowShift = 0;
     boolean pasCostEqual = pas.isCostEqual(EPSILON);
     double s2TotalEntrySendingFlow = getTotalEntrySegmentSendingFlow(entrySegment, false);
-    var lowCostSlackResult = determinePasAlternativeSlackFlow(networkLoading, true);
-    double s1SlackFlowEstimate = lowCostSlackResult.first();
-    double s1SlackFlowLeeway = ((PcuCapacitated) lowCostSlackResult.second()).getCapacityOrDefaultPcuH() * stateChangeLeewayPercentage;
     if (!pasCostEqual && smaller(denominatorS2,EPSILON) && smaller(denominatorS2, EPSILON)) {
       /* s1 & S2 UNCONGESTED - no derivative estimate possible (denominator zero) */
       /* move all towards cheaper alternative limited by slack + delta */
       /* obtain PAS-entry segment sub-path sending flows */
-      double proposedFlowShift = s2TotalEntrySendingFlow;
-      return adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, s1SlackFlowEstimate, s1SlackFlowLeeway);
-    }
+      flowShift = s2TotalEntrySendingFlow;
+    }else {
 
-    /* s1 and/or s2 congested - derivative based flow shift possible */
-    // tauw_s1 + dtauw_s1/ds_1 * (-flowShift) = tauw_s2 + dtauw_s2/ds_2 * (flowShift) we find:
-    // flowShift = (tauw_s2-tauw_s1)/(1/v_s1_first_bottleneck + 1/v_s2_first_bottleneck))
-    double denominator = denominatorS2 + denominatorS1;
-    double numerator = pas.getAlternativeHighCost() - pas.getAlternativeLowCost();
-    if (numerator != 0) {
-      flowShift = numerator / denominator;
+      /* s1 and/or s2 congested - derivative based flow shift possible */
+      // tauw_s1 + dtauw_s1/ds_1 * (-flowShift) = tauw_s2 + dtauw_s2/ds_2 * (flowShift) we find:
+      // flowShift = (tauw_s2-tauw_s1)/(1/v_s1_first_bottleneck + 1/v_s2_first_bottleneck))
+      double denominator = denominatorS2 + denominatorS1;
+      double numerator = pas.getAlternativeHighCost() - pas.getAlternativeLowCost();
+      if (numerator != 0) {
+        flowShift = numerator / denominator;
 
-      /* debug only, test if shift solves travel time discrepancy, to be removed when it works */
-      double diff =
-              (pas.getAlternativeLowCost() + denominatorS1 * flowShift) -
-                      (pas.getAlternativeHighCost() + denominatorS2 * -flowShift);
-      if (Precision.notEqual(diff, 0.0)) {
-        LOGGER.severe("Computation of using derivatives to shift flows between PAS segments does not result in " +
-                "equal travel time after shift, this should not happen");
+        /* debug only, test if shift solves travel time discrepancy, to be removed when it works */
+        double diff =
+            (pas.getAlternativeLowCost() + denominatorS1 * flowShift) -
+                (pas.getAlternativeHighCost() + denominatorS2 * -flowShift);
+        if (Precision.notEqual(diff, 0.0)) {
+          LOGGER.severe("Computation of using derivatives to shift flows between PAS segments does not result in " +
+              "equal travel time after shift, this should not happen");
+        }
       }
     }
+    var lowCostSlackResult = determinePasAlternativeSlackFlow(networkLoading, flowShift, true);
+    double s1SlackFlowEstimate = lowCostSlackResult.first();
+    double s1SlackFlowLeeway = ((PcuCapacitated) lowCostSlackResult.second()).getCapacityOrDefaultPcuH() * stateChangeLeewayPercentage;
 
     // VERIFY CROSSING OF DISCONTINUITY on S1  - adjust shift if so to mitigate effect
     // This is triggered when S1 alternative segments are not congested yet, or near congestion, or the entry segment

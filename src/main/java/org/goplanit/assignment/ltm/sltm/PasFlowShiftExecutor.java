@@ -338,7 +338,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @return slack flow found
    */
   protected abstract Pair<Double,EdgeSegment>  determinePasAlternativeSlackFlow(
-          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost);
+          StaticLtmLoadingBushBase<?> networkLoading, double proposedFlowShift, boolean lowCost);
 
   /**
    * Find first congested segment on PAS for either alternative, note that we do use some slack on when

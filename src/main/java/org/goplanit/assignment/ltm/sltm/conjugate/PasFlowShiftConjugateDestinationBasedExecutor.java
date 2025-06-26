@@ -1315,9 +1315,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   protected static Pair<Double, Boolean> determinePasLinkSegmentSlackFlow(
       StaticLtmLoadingBushBase<?> networkLoading,
       ConjugateEdgeSegment conjAltEdgeSegment,
+      double proposedFlowShift,
       boolean slackToTriggerCongestion){
     return determinePasLinkSegmentSlackFlow(
-        networkLoading, conjAltEdgeSegment, slackToTriggerCongestion, 0, null);
+        networkLoading, conjAltEdgeSegment, proposedFlowShift, slackToTriggerCongestion, 0, null);
   }
 
   /**
@@ -1325,6 +1326,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    *
    * @param networkLoading to use
    * @param conjAltEdgeSegment to compute for
+   * @param upperBoundFlowShift to use for improved estimate of slack (always positive, call will adjust for removal
+   *                            or addition based on #slackToTriggerCongestion
    * @param slackToTriggerCongestion type of slack
    * @param virtualChangeInConsumedExitCapacity additional consumed capacity (only relevant for merges, otherwise 0)
    * @return slack flow and whether it is on most restricting turn of entry link
@@ -1332,6 +1335,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   protected static Pair<Double, Boolean> determinePasLinkSegmentSlackFlow(
       StaticLtmLoadingBushBase<?> networkLoading,
       ConjugateEdgeSegment conjAltEdgeSegment,
+      double upperBoundFlowShift,
       boolean slackToTriggerCongestion,
       double virtualChangeInConsumedExitCapacity,
       EdgeSegment virtualChangeEntrySegment){
@@ -1348,8 +1352,13 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         ((PcuCapacitated) originalExitSegment).getCapacityOrDefaultPcuH());
 
     double turnAlpha = networkLoading.getCurrentFlowAcceptanceFactors()[(int)originalEntrySegment.getId()];
+
+    // todo: (low cost) when having low flow and congested to most restricting, this could cause a very low slack because its low
+    //  flow on high volume entry link would reduce its bargaining power on exit. If that is the case we probably should
+    //  implement some kind of relaxation
     double turnSplittingRate = networkLoading.getSplittingRateData().getSplittingRate(originalEntrySegment, originalExitSegment);
-    double turnSendingFlow = networkLoading.getCurrentInflowsPcuH()[(int)originalEntrySegment.getId()] * turnSplittingRate;
+    double totalInflow = networkLoading.getCurrentInflowsPcuH()[(int)originalEntrySegment.getId()];
+    double turnSendingFlow = totalInflow * turnSplittingRate;
     double turnAcceptedFlow = turnSendingFlow * turnAlpha;
 
     if(!slackToTriggerCongestion && turnAlpha>= 1.0){
@@ -1359,7 +1368,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
 
     // determine fair share the turn has a right to claim given current state
-    double fairShareNumerator = originalEntrySegmentCapacity * turnSplittingRate;
+    // NOTE: we adjust the actual splitting rate to a virtual splitting rate given that the flow shift impacts its
+    //       fair share it can claim. This is especially required for low flow, small splitting rate turns with added flow
+    //       that otherwise would get too small a fair share if we do not factor in its new (higher flow) for example
+    // todo: deal with negative values of upperbound (now always positive as passed in but sometimes it should be negative --> s2)
+    double virtualUpdatedSplittingRate = (turnSendingFlow+upperBoundFlowShift)/(totalInflow + upperBoundFlowShift);
+    double fairShareNumerator = originalEntrySegmentCapacity * virtualUpdatedSplittingRate;
     if(turnSplittingRate == 0){
       if(slackToTriggerCongestion) {
         // special case we'll be moving flow to this zero-flow turn based on findings, but without shift we do not know
@@ -1368,15 +1382,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         // on that (or if not congested using absolute slack anyway so not an issue if not fully correct).
         fairShareNumerator = originalEntrySegmentCapacity * 0.1;
       }else{
-        LOGGER.warning("Attempting to find slack for a high cost segment without flow, shouldn't happen");
+        // no possibility to move to uncongested when no flow on turn (already uncongested)
         return Pair.of(Double.MAX_VALUE, mostRestricting);
       }
     }
     double fairShareDenominator = fairShareNumerator;
-
-    // todo: (low cost) when having low flow and congested to most restricting, this could cause a very low slack because its low
-    //  flow on high volume entry link would reduce its bargaining power on exit. If that is the case we probably should
-    //  implement some kind of relaxation
 
     // find out if our turn is on most restricting without running node model
     double totalOtherConsumedExitCapacity = 0;
@@ -1387,7 +1397,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
       double currEntrySegmentCapacity = Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
           ((PcuCapacitated) currEntrySegment).getCapacityOrDefaultPcuH());
+
       double currSplittingRate = networkLoading.getSplittingRateData().getSplittingRate(currEntrySegment, originalExitSegment);
+
       double currAlpha = networkLoading.getCurrentFlowAcceptanceFactors()[(int)currEntrySegment.getId()];
       double currTurnAcceptedFlow =
           networkLoading.getCurrentInflowsPcuH()[(int)currEntrySegment.getId()] * currSplittingRate * currAlpha;
@@ -1425,10 +1437,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         return Pair.of(Double.MAX_VALUE, mostRestricting);
       }else {
         double absoluteSlackFlow = absoluteSlackFlowWithoutTurn - turnAcceptedFlow;
-        // slack to triggering congestion is slack until fair share is reached, or if more is left over, the absolute
-        // slack remaining
+        // slack to triggering congestion on our turn is the slack until fair share is reached, or if more is left over, the absolute
+        // slack remaining. Note it is possible that link is already congested due to other turn being most restricting,
+        // hence we multiple the fair share based slack with the reciprocal of the current alpha to account for that
         //todo: we can split this in two states and consider that a state change as well
-        double turnSlack = Math.max(absoluteSlackFlow, Math.max(0, fairShare - turnAcceptedFlow));
+        double turnSlack = (1/turnAlpha) * Math.max(absoluteSlackFlow, Math.max(0, fairShare - turnAcceptedFlow));
         return Pair.of(turnSlack, mostRestricting);
       }
     }
@@ -1456,7 +1469,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
   // s1, s2 result (slack,minsegment,continue)
   protected Pair<Triple<Double,EdgeSegment, Boolean>,Triple<Double,EdgeSegment, Boolean>> determinePasDivergeSlackFlow(
-      StaticLtmLoadingBushBase<?> networkLoading) {
+      StaticLtmLoadingBushBase<?> networkLoading, double proposedPasSendingFlowShift) {
     double s1SlackFlow = Double.MAX_VALUE;
     double s2SlackFlow = Double.MAX_VALUE;
     EdgeSegment s1MinSlackSegment = null;
@@ -1476,13 +1489,21 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double turnAlpha =
           networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntry.getId()];
       boolean congested = (turnAlpha + EPSILON_6) < 1;
-      var s1RawTurnSlackResult = determinePasLinkSegmentSlackFlow(networkLoading, s1ConjAltEdgeSegment, true);
+      var s1RawTurnSlackResult = determinePasLinkSegmentSlackFlow(
+          networkLoading,
+          s1ConjAltEdgeSegment,
+          proposedPasSendingFlowShift,
+          true);
       s1SlackFlow = s1RawTurnSlackResult.first();
       s1MinSlackSegment = originalEntry;
 
       if (congested) {
         // s2 may become uncongested
-        var s2RawTurnSlackResult = determinePasLinkSegmentSlackFlow(networkLoading, s2ConjAltEdgeSegment, false);
+        var s2RawTurnSlackResult = determinePasLinkSegmentSlackFlow(
+            networkLoading,
+            s2ConjAltEdgeSegment,
+            proposedPasSendingFlowShift,
+            false);
         boolean s1OnMostRestrictingTurn = s1RawTurnSlackResult.second();
         boolean s2OnMostRestrictingTurn = s2RawTurnSlackResult.second();
 
@@ -1507,6 +1528,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   // for given  alt: [slack flow on pas, min segment, continue downstream], compoundedAlpha
   protected Pair<Triple<Double,EdgeSegment, Boolean>, Double> determineOnPasSlackFlow(
       Triple<Double, EdgeSegment, Boolean> divergeResult,
+      double proposedPasSendingFlowShift,
       boolean slackToCongestion,
       double compoundedAlpha,
       StaticLtmLoadingBushBase<?> networkLoading) {
@@ -1529,7 +1551,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       double turnAlpha = networkLoading.getCurrentFlowAcceptanceFactors()[(int)originalEntry.getId()];
       boolean congested = (turnAlpha + EPSILON_6) < 1;
-      var rawTurnSlackResult = determinePasLinkSegmentSlackFlow(networkLoading, conjAltEdgeSegment, slackToCongestion);
+      var rawTurnSlackResult = determinePasLinkSegmentSlackFlow(
+          networkLoading,
+          conjAltEdgeSegment,
+          Math.min(compoundedAlpha * proposedPasSendingFlowShift, slackFlow),
+          slackToCongestion);
       boolean onMostRestrictingTurn = rawTurnSlackResult.second();
       boolean congestedOnMostRestricting = congested && onMostRestrictingTurn;
       if(slackToCongestion && congestedOnMostRestricting){
@@ -1571,7 +1597,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       Triple<Double, EdgeSegment, Boolean> s1OnPasResult, double s1CompoundedAlpha,
       Triple<Double, EdgeSegment, Boolean> s2OnPasResult, double s2CompoundedAlpha,
       StaticLtmLoadingBushBase<?> networkLoading,
-      double proposedFlowShift) {
+      double proposedPasSendingFlowShift) {
 
     // track if downstream turns are still to be considered or not
     boolean considerS1 = s1OnPasResult.third();
@@ -1634,13 +1660,19 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     Pair<Double, Boolean> s1ToFreeFlowMergeSlackResult = null;
     Pair<Double, Boolean> s2ToFreeFlowMergeSlackResult = null;
     if(s1Congested) {
-      s1ToFreeFlowMergeSlackResult =
-          determinePasLinkSegmentSlackFlow(networkLoading, s1ConjAltEdgeSegment, false);
+      s1ToFreeFlowMergeSlackResult = determinePasLinkSegmentSlackFlow(
+          networkLoading,
+          s1ConjAltEdgeSegment,
+          Math.min(proposedPasSendingFlowShift * s1CompoundedAlpha, s1SlackFlow),
+          false);
       s1OnMostRestricting = s1ToFreeFlowMergeSlackResult.second();
     }
     if(s2Congested) {
-      s2ToFreeFlowMergeSlackResult =
-          determinePasLinkSegmentSlackFlow(networkLoading, s2ConjAltEdgeSegment, false);
+      s2ToFreeFlowMergeSlackResult = determinePasLinkSegmentSlackFlow(
+          networkLoading,
+          s2ConjAltEdgeSegment,
+          Math.min(proposedPasSendingFlowShift * s2CompoundedAlpha, s2SlackFlow),
+          false);
       s2OnMostRestricting = s2ToFreeFlowMergeSlackResult.second();
     }
 
@@ -1673,7 +1705,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
     }
 
-    if(case1) {
+    if(case1) { //s1 merge congested, s2 merge uncongested
       if(!considerS2) {
         // can never remove more than we add, done
         return Pair.of(s1OnPasResult.asPairFirstSecond(), s2OnPasResult.asPairFirstSecond());
@@ -1682,24 +1714,24 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       if(!s1OnMostRestricting) {
         // treat as if s1 is uncongested
         case3 = true;
-      }
-
-      double currentMinSlackFlow = Math.min(s1SlackFlow,s2SlackFlow);
-      double s1ArrivingFlowShift = considerS1 ? Math.min(currentMinSlackFlow, proposedFlowShift) * s1CompoundedAlpha : 0;
-      double s2ArrivingFlowShift = Math.min(currentMinSlackFlow, -proposedFlowShift) * s2CompoundedAlpha;
-      double expectedDifferenceBetweenS1S2 = s1ArrivingFlowShift + s2ArrivingFlowShift;
-      if(expectedDifferenceBetweenS1S2 >= 0) {
-        // so far more to s1 than we  remove from s2, not possible to trigger free flow on s1, done
-        return Pair.of(s1OnPasResult.asPairFirstSecond(), s2OnPasResult.asPairFirstSecond());
-      }
-      // s1 may become free flow (net removal of flow on merge)
-      var s1MergeSlackFlow = s1ToFreeFlowMergeSlackResult.first();
-      double s1TurnSlack = s1MergeSlackFlow / s1CompoundedAlpha;
-      // apply as restriction on S2 because we should remove no more from S2 to avoid triggering the change on s1
-      // Weird one because it triggers free flow on S1 rather than S2
-      if (s1TurnSlack < s2SlackFlow) {
-        s2MinSlackSegment = s2OriginalEntry;
-        s2SlackFlow = s1TurnSlack;
+      }else {
+        double currentMinSlackFlow = Math.min(s1SlackFlow, s2SlackFlow);
+        double s1ArrivingFlowShift = considerS1 ? Math.min(currentMinSlackFlow, proposedPasSendingFlowShift) * s1CompoundedAlpha : 0;
+        double s2ArrivingFlowShift = Math.min(currentMinSlackFlow, -proposedPasSendingFlowShift) * s2CompoundedAlpha;
+        double expectedDifferenceBetweenS1S2 = s1ArrivingFlowShift + s2ArrivingFlowShift;
+        if (expectedDifferenceBetweenS1S2 >= 0) {
+          // so far more to s1 than we  remove from s2, not possible to trigger free flow on s1, done
+          return Pair.of(s1OnPasResult.asPairFirstSecond(), s2OnPasResult.asPairFirstSecond());
+        }
+        // s1 may become free flow (net removal of flow on merge)
+        var s1MergeSlackFlow = s1ToFreeFlowMergeSlackResult.first();
+        double s1TurnSlack = s1MergeSlackFlow / s1CompoundedAlpha;
+        // apply as restriction on S2 because we should remove no more from S2 to avoid triggering the change on s1
+        // Weird one because it triggers free flow on S1 rather than S2
+        if (s1TurnSlack < s2SlackFlow) {
+          s2MinSlackSegment = s2OriginalEntry;
+          s2SlackFlow = s1TurnSlack;
+        }
       }
     }else if(case2){ // s1 uncongested turn, s2 congested turn on merge
       // detect if on most restricting (before fiddling with additional flows which mess up that check).
@@ -1714,10 +1746,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           // consider expected remaining removal on s2 (use tentative to free flow slack instead of current s2 slack flow
           // which may be too loose (we fix that up later but want to avoid circular dependency))
           double s2ExpectedRemainingFlowShift = considerS2 ?
-              -Math.min(s2ToFreeFlowMergeSlackResult.first(), proposedFlowShift) * s2CompoundedAlpha : 0;
+              -Math.min(s2ToFreeFlowMergeSlackResult.first(), proposedPasSendingFlowShift) * s2CompoundedAlpha : 0;
           // s1 base slack + factor in base slack of s2 as maximum allowed change on s2 truncated by proposed shift
           var s1ToCongestedSlackResult = determinePasLinkSegmentSlackFlow(
-              networkLoading, s1ConjAltEdgeSegment, true, s2ExpectedRemainingFlowShift, s2OriginalEntry);
+              networkLoading, s1ConjAltEdgeSegment, TODO, true, s2ExpectedRemainingFlowShift, s2OriginalEntry);
           double s1MergeSlackFlow = s1ToCongestedSlackResult.first();
           double s1TurnSlack = s1MergeSlackFlow / s1CompoundedAlpha;
           if (s1TurnSlack < s1SlackFlow) {
@@ -1728,10 +1760,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         if (considerS2) {
           // update this to get better estimate for s2 slack by virtually conducting the flow shift as part of computation
           // (when s1 adds flow it becomes harder to become uncongested, so slack increases for s2, this is what we consider)
-          double s1ExpectedRemainingFlowShift = considerS1 ? Math.min(s1SlackFlow, proposedFlowShift) * s1CompoundedAlpha : 0;
+          double s1ExpectedRemainingFlowShift = considerS1 ? Math.min(s1SlackFlow, proposedPasSendingFlowShift) * s1CompoundedAlpha : 0;
           // s2 slack - considering difference between s1 and s2 additional s1 expected flow shift considering slack
           var s2ToFreeFlowSlackWithS1Adjustment = determinePasLinkSegmentSlackFlow(
-              networkLoading, s2ConjAltEdgeSegment, false, s1ExpectedRemainingFlowShift, s1OriginalEntry).first();
+              networkLoading, s2ConjAltEdgeSegment, TODO,false, s1ExpectedRemainingFlowShift, s1OriginalEntry).first();
           double s2TurnSlack = s2ToFreeFlowSlackWithS1Adjustment / s2CompoundedAlpha;
           if (s2TurnSlack < s2SlackFlow) {
             s2MinSlackSegment = s2OriginalEntry;
@@ -1741,10 +1773,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
     }
 
-    if(case3) {
+    if(case3) { //s1 uncongested, s2 uncongested for merge turn
       double currentMinSlackFlow = Math.min(s1SlackFlow,s2SlackFlow);
-      double s1ArrivingFlowShift = considerS1 ? Math.min(currentMinSlackFlow, proposedFlowShift) * s1CompoundedAlpha : 0;
-      double s2ArrivingFlowShift = considerS2 ? -Math.min(currentMinSlackFlow, proposedFlowShift) * s2CompoundedAlpha : 0;
+      double s1ArrivingFlowShift = considerS1 ? Math.min(currentMinSlackFlow, proposedPasSendingFlowShift) * s1CompoundedAlpha : 0;
+      double s2ArrivingFlowShift = considerS2 ? -Math.min(currentMinSlackFlow, proposedPasSendingFlowShift) * s2CompoundedAlpha : 0;
       if(!considerS1) {
         // if we do not add flow on s1, we cannot trigger a state change
         return Pair.of(s1OnPasResult.asPairFirstSecond(), s2OnPasResult.asPairFirstSecond());
@@ -1766,14 +1798,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       // adding to same uncongested exit, only single slack value exists. We add more to s1 than we remove from s2,
       // so we should compute s1 slack given the removal of expected s2 factored in
       var rawSlack = determinePasLinkSegmentSlackFlow(
-          networkLoading, s1ConjAltEdgeSegment, true, s2ArrivingFlowShift, s2OriginalEntry).first();
+          networkLoading, s1ConjAltEdgeSegment, TODO, true, s2ArrivingFlowShift, s2OriginalEntry).first();
       // it depends on the compounded alphas what the final sending flow slack will be, so update both
       double s1TurnSlack = rawSlack / s1CompoundedAlpha;
       if (s1TurnSlack < s1SlackFlow) {
         s1MinSlackSegment = s1OriginalEntry;
         s1SlackFlow = s1TurnSlack;
       }
-      if (considerS2 && !case2) { //exclude case2 (because we know s2 is congested already in case 2)
+      if (considerS2 && (!case2 && !case4)) { //exclude case2/4 (because we know s2 is congested already so computed slack is not representative)
         double s2TurnSlack = rawSlack / s2CompoundedAlpha;
         if (s2TurnSlack < s2SlackFlow) {
           s2MinSlackSegment = s2OriginalEntry;
@@ -1788,7 +1820,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * Determine pas slack flow considering the entire pas and interaction between the two alternatives.
    *
    * @param networkLoading to use
-   * @return proposedFlowShift proposedFlowShift to consider
+   * @return proposedFlowShift to consider
    */
   protected Pair<Pair<Double,EdgeSegment>,Pair<Double,EdgeSegment>> determinePasSlackFlow(
       double proposedFlowShift, StaticLtmLoadingBushBase<?> networkLoading) {
@@ -1803,13 +1835,16 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntry.getId()] : 1;
 
     // DIVERGE
-    var divergeResult = determinePasDivergeSlackFlow(networkLoading);
+    var divergeResult =
+        determinePasDivergeSlackFlow(networkLoading, proposedFlowShift);
 
     // ON-PAS
-    var s1OnPasResult = determineOnPasSlackFlow(divergeResult.first(), true, startAlpha, networkLoading);
+    var s1OnPasResult = determineOnPasSlackFlow(
+        divergeResult.first(), proposedFlowShift, true, startAlpha, networkLoading);
     double s1CompoundedAlpha = s1OnPasResult.second();
 
-    var s2OnPasResult = determineOnPasSlackFlow(divergeResult.second(), false, startAlpha, networkLoading);
+    var s2OnPasResult =
+        determineOnPasSlackFlow(divergeResult.second(), proposedFlowShift, false, startAlpha, networkLoading);
     double s2CompoundedAlpha = s2OnPasResult.second();
 
     //MERGE
@@ -1825,7 +1860,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    */
   @Override
   protected Pair<Double,EdgeSegment> determinePasAlternativeSlackFlow(
-          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
+          StaticLtmLoadingBushBase<?> networkLoading, double proposedFlowShift, boolean lowCost) {
 
     // NO LONGER USED --> USE CUSTOM ONE ABOVE
 
@@ -1855,7 +1890,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       double turnAlpha =
           networkLoading.getCurrentFlowAcceptanceFactors()[(int)conjAltEdgeSegment.getOriginalAdjacentEdgeSegments().first().getId()];
-      var rawTurnSlackResult = determinePasLinkSegmentSlackFlow(networkLoading, conjAltEdgeSegment, lowCost);
+      var rawTurnSlackResult =
+          determinePasLinkSegmentSlackFlow(networkLoading, conjAltEdgeSegment, proposedFlowShift, lowCost);
       boolean onMostRestrictingTurn = rawTurnSlackResult.second();
 
       boolean congestedOnMostRestricting = (turnAlpha + EPSILON_6) < 1 && onMostRestrictingTurn;
@@ -2193,8 +2229,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       smoothedPerIterationFlowShift =
           adjustFlowShiftBasedOnS1SlackFlow(smoothedPerIterationFlowShift, s1SlackFlowEstimate, s1SlackFlowLeeway);
       if(logAll && oldFlowShift > smoothedPerIterationFlowShift){
-        LOGGER.info(String.format("S1 DISCONTINUITY ADJUSTMENT TRIGGERED from %.10f, to %.10f",
-            oldFlowShift, smoothedPerIterationFlowShift));
+        LOGGER.info(String.format("S1 DISCONTINUITY ADJUSTMENT TRIGGERED (on segment %s) from %.10f, to %.10f",
+            lowCostSlackResult.second().getIdsAsString(), oldFlowShift, smoothedPerIterationFlowShift));
       }
     }
 
@@ -2205,8 +2241,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     smoothedPerIterationFlowShift = adjustFlowShiftBasedOnS2SlackFlow(smoothedPerIterationFlowShift, s2SlackFlowEstimate, s2SlackFlowLeeway);
     if(oldFlowShift > smoothedPerIterationFlowShift){
       if(logAll ) {
-        LOGGER.info(String.format("S2 DISCONTINUITY ADJUSTMENT TRIGGERED from %.10f, to %.10f",
-            oldFlowShift, smoothedPerIterationFlowShift));
+        LOGGER.info(String.format("S2 DISCONTINUITY ADJUSTMENT TRIGGERED (on segment %s) from %.10f, to %.10f",
+            highCostSlackResult.second().getIdsAsString(), oldFlowShift, smoothedPerIterationFlowShift));
       }
       if(chainDerivativeBeyondBottleneckSegments == null){
         chainDerivativeBeyondBottleneckSegments = new TreeSet<>();
@@ -2492,7 +2528,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double totalPasShift = 0;
     do{
 
-      if (pas.pasId == 22L) { // local PAS update
+      if (pas.pasId == 136L) { // local PAS update
         int bla = 4;
       }
 
