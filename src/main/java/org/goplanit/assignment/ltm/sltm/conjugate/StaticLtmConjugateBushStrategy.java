@@ -143,11 +143,11 @@ public class StaticLtmConjugateBushStrategy
     var conjSegmentCosts =
         expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, originalNetworkCosts, true);
 
-    boolean logAll = simulationData.getIterationIndex()>=5;
+    boolean logAll = simulationData.getIterationIndex()>=5 && getSettings().isDetailedLogging();
 
     // for uncongested, do each PAS (one or more times), then repeat x times so PAS interaction is
     // covered better by having an internal loop here
-    int MAX_ITERATIONS_ALLOWED = 5;
+    int MAX_ITERATIONS_ALLOWED = 3;
     int iteration = 1;
     boolean doNotStop = true;
     do {

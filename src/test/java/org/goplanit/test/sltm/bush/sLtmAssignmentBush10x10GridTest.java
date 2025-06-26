@@ -96,19 +96,18 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
       sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
       sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
 
-      // for uncongested, smoothing is currently ignored, so no need to set it
-      //var smoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      //smoothing.setStepSize(1);
+      var smoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      smoothing.setStepSize(1);
 
       sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
       sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
-      sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
+      //sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(50);
-      sLTM.setActivateDetailedLogging(true);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
+      sLTM.setActivateDetailedLogging(false);
       sLTM.execute();
 
       test10x10OutflowsNoQueue(sLTM);
@@ -162,8 +161,8 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(80);
-      sLTM.setActivateDetailedLogging(true);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
+      sLTM.setActivateDetailedLogging(false);
       sLTM.execute();
 
       test10x10OutflowsNoQueue(sLTM);

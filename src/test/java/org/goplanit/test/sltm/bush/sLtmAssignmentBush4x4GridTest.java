@@ -12,6 +12,7 @@ import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
+import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.supply.fundamentaldiagram.QuadraticLinearFundamentalDiagramConfigurator;
 import org.goplanit.test.sltm.sLtmAssignmentGridTestBase;
@@ -185,16 +186,18 @@ public class sLtmAssignmentBush4x4GridTest extends sLtmAssignmentGridTestBase {
       qlDiagram.setForceConcaveFreeFlowBranch(true);
       sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
 
+      sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+
       sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
       sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
-      sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A``"));
-      sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A`","A```"));
+      //sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A``"));
+      //sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A`","A```"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.setActivateDetailedLogging(true);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(100);
+      sLTM.setActivateDetailedLogging(false);
       sLTM.execute();
 
       test4x4OutflowsNoQueue(sLTM);

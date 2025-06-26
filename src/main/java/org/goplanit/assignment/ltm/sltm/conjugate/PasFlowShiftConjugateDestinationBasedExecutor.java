@@ -477,13 +477,15 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double nlFlowAcceptanceFactorBefore = 1;
       double onTheFlyFlowAcceptanceFactorBefore = 1;
       double onTheFlyTurnInflowBefore = Double.MAX_VALUE;
-      if (doNodeModelUpdate && hasOriginalEntry) {
+      if (hasOriginalEntry) {
         // we only do this if there is a chance of the alphas changing (so potentially congested)
         double nonConjugateBeforeNetworkSplittingRate = beforeNonConjugateSplittingRates[index];
         onTheFlyTurnInflowBefore =
             networkLoading.getCurrentInflowsPcuH()[(int) originalTurnEntrySegment.getId()] * nonConjugateBeforeNetworkSplittingRate;
-        nlFlowAcceptanceFactorBefore = originalNlFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
-        onTheFlyFlowAcceptanceFactorBefore = nonConjugateFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
+        if(doNodeModelUpdate) {
+          nlFlowAcceptanceFactorBefore = originalNlFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
+          onTheFlyFlowAcceptanceFactorBefore = nonConjugateFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
+        }
       }
       beforeNodeModelUpdateInfo[index] = Triple.of(
           nlFlowAcceptanceFactorBefore, onTheFlyFlowAcceptanceFactorBefore, onTheFlyTurnInflowBefore);
@@ -564,8 +566,25 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
 
       if(appliedTurnFlowShift * proposedRemainingShift < 0){
-        LOGGER.severe(String.format("flow shift changed sign from %.8f to %.8f after segment (%s), that should never happen",
-            appliedTurnFlowShift, proposedRemainingShift, entry.first().getIdsAsString()));
+
+        // should never happen unless this is a merge where it is possible that by removing flow on one entry
+        // and adding on another we get an increase in the output on the link where we remove flow.
+        // this is only possible if the merge is in fact a cross-node where we are shifting flow on a non-most
+        // restricting exit for the entry where we are removing flow. We currently test for all this except the
+        // non-most restricintg part to issue a warning or not
+        EdgeSegment originalExitLink = nodeTurnFlowShiftsToApply[0].first().hasOriginalExitEdgeSegment() ?
+            nodeTurnFlowShiftsToApply[0].first().getOriginalAdjacentEdgeSegments().second() : null;
+        boolean isMerge = originalExitLink != null &&
+         Arrays.stream(nodeTurnFlowShiftsToApply).allMatch( e ->
+            e.first().hasOriginalExitEdgeSegment() && originalExitLink.getId() == e.first().getOriginalAdjacentEdgeSegments().second().getId());
+
+        int uTurnAdjustment = turn.getOriginalAdjacentEdgeSegments().first().hasOppositeDirectionSegment() ? 1 : 0;
+        boolean isMergeOnCrossNode = isMerge &&
+          (originalExitLink.getUpstreamVertex().getNumberOfExitEdgeSegments() - uTurnAdjustment) > 1;
+        if(!isMergeOnCrossNode) {
+          LOGGER.severe(String.format("flow shift changed sign from %.8f to %.8f after segment (%s), that should never happen",
+              appliedTurnFlowShift, proposedRemainingShift, entry.first().getIdsAsString()));
+        }
       }
 
       //NOTE: we no longer restrict based on network loading because that is already handled by the above (should be)
@@ -1323,6 +1342,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     if(originalExitSegment == null || originalEntrySegment == null){
       return Pair.of(Double.MAX_VALUE, mostRestricting);
     }
+    double originalEntrySegmentCapacity = Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
+        ((PcuCapacitated) originalEntrySegment).getCapacityOrDefaultPcuH());
+    double originalExitSegmentCapacity = Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
+        ((PcuCapacitated) originalExitSegment).getCapacityOrDefaultPcuH());
+
     double turnAlpha = networkLoading.getCurrentFlowAcceptanceFactors()[(int)originalEntrySegment.getId()];
     double turnSplittingRate = networkLoading.getSplittingRateData().getSplittingRate(originalEntrySegment, originalExitSegment);
     double turnSendingFlow = networkLoading.getCurrentInflowsPcuH()[(int)originalEntrySegment.getId()] * turnSplittingRate;
@@ -1335,14 +1359,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
 
     // determine fair share the turn has a right to claim given current state
-    double fairShareNumerator = ((PcuCapacitated)originalEntrySegment).getCapacityOrDefaultPcuH() * turnSplittingRate;
+    double fairShareNumerator = originalEntrySegmentCapacity * turnSplittingRate;
     if(turnSplittingRate == 0){
       if(slackToTriggerCongestion) {
         // special case we'll be moving flow to this zero-flow turn based on findings, but without shift we do not know
         // its bargaining power. Having it at zero is not an option because it would mean 0 slack which is not correct
         // chicken-egg situation. Let's bootstrap it with 10% of entry link capacity, once it has flow it will be based
         // on that (or if not congested using absolute slack anyway so not an issue if not fully correct).
-        fairShareNumerator = ((PcuCapacitated)originalEntrySegment).getCapacityOrDefaultPcuH() * 0.1;
+        fairShareNumerator = originalEntrySegmentCapacity * 0.1;
       }else{
         LOGGER.warning("Attempting to find slack for a high cost segment without flow, shouldn't happen");
         return Pair.of(Double.MAX_VALUE, mostRestricting);
@@ -1355,12 +1379,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     //  implement some kind of relaxation
 
     // find out if our turn is on most restricting without running node model
-    double exitCapacity = ((PcuCapacitated)originalExitSegment).getCapacityOrDefaultPcuH();
     double totalOtherConsumedExitCapacity = 0;
+    double totalOtherCongestedConsumedExitCapacity = 0;
     for(var currEntrySegment : originalEntrySegment.getDownstreamVertex().getEntryEdgeSegments()){
       if(currEntrySegment == originalEntrySegment){
         continue;
       }
+      double currEntrySegmentCapacity = Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
+          ((PcuCapacitated) currEntrySegment).getCapacityOrDefaultPcuH());
       double currSplittingRate = networkLoading.getSplittingRateData().getSplittingRate(currEntrySegment, originalExitSegment);
       double currAlpha = networkLoading.getCurrentFlowAcceptanceFactors()[(int)currEntrySegment.getId()];
       double currTurnAcceptedFlow =
@@ -1370,26 +1396,41 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
       if(currTurnAcceptedFlow > 0){
         totalOtherConsumedExitCapacity += currTurnAcceptedFlow;
-        // flow present towards "our" exit, so it may claim fair share hence included in calc
-        fairShareDenominator += ((PcuCapacitated) currEntrySegment).getCapacityOrDefaultPcuH() * currSplittingRate;
+        if((currAlpha + EPSILON_6) < 1) {
+          // flow present towards "our" exit, so it may claim fair share hence included in calc
+          // todo: we should track if the turn is most restricting, only if it is most restricting
+          //  we should count it towards the fair share denominator otherwise we are being too restrictive, now
+          //  we count any flow from a congested entry towards this
+          fairShareDenominator += currEntrySegmentCapacity * currSplittingRate;
+          totalOtherCongestedConsumedExitCapacity += currTurnAcceptedFlow;
+        }
       }
     }
-    double fairShare = exitCapacity * (fairShareNumerator / fairShareDenominator);
+    // fair share is based on supply constrained demand towards the exit, so remove demand constrained flow from capacity
+    double guaranteedDemandConstrainedExitFlow = totalOtherConsumedExitCapacity - totalOtherCongestedConsumedExitCapacity;
+    double fairShare =
+        (originalExitSegmentCapacity - guaranteedDemandConstrainedExitFlow) *
+            (fairShareNumerator / fairShareDenominator);
     mostRestricting = ((turnAlpha + EPSILON_6) < 1.0) &&
-        Precision.equal(exitCapacity - totalOtherConsumedExitCapacity, turnAcceptedFlow);
+        Precision.equal(originalExitSegmentCapacity - totalOtherConsumedExitCapacity, turnAcceptedFlow);
 
     // knowing its fair share we determine the actual slack based on absolute observed slack and fair share
     // combined
-    double absoluteSlackFlowWithoutTurn =  exitCapacity - totalOtherConsumedExitCapacity;
+    double absoluteSlackFlowWithoutTurn =  originalExitSegmentCapacity - totalOtherConsumedExitCapacity;
 
     // LOW COST
     if(slackToTriggerCongestion) {
-      double absoluteSlackFlow = absoluteSlackFlowWithoutTurn - turnAcceptedFlow;
-      // slack to triggering congestion is slack until fair share is reached, or if more is left over, the absolute
-      // slack remaining
-      //todo: we can split this in two states and consider that a state change as well
-      double turnSlack = Math.max(absoluteSlackFlow, Math.max(0, fairShare - turnAcceptedFlow));
-      return Pair.of(turnSlack, mostRestricting);
+      if(mostRestricting){
+        // cannot change state further when already congested due to being on most restricting for low cost
+        return Pair.of(Double.MAX_VALUE, mostRestricting);
+      }else {
+        double absoluteSlackFlow = absoluteSlackFlowWithoutTurn - turnAcceptedFlow;
+        // slack to triggering congestion is slack until fair share is reached, or if more is left over, the absolute
+        // slack remaining
+        //todo: we can split this in two states and consider that a state change as well
+        double turnSlack = Math.max(absoluteSlackFlow, Math.max(0, fairShare - turnAcceptedFlow));
+        return Pair.of(turnSlack, mostRestricting);
+      }
     }
     // HIGH COST
     else{
@@ -1413,7 +1454,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
   }
 
-  // s1, s2 result (slack,minsegment,continye)
+  // s1, s2 result (slack,minsegment,continue)
   protected Pair<Triple<Double,EdgeSegment, Boolean>,Triple<Double,EdgeSegment, Boolean>> determinePasDivergeSlackFlow(
       StaticLtmLoadingBushBase<?> networkLoading) {
     double s1SlackFlow = Double.MAX_VALUE;
@@ -1436,12 +1477,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           networkLoading.getCurrentFlowAcceptanceFactors()[(int) originalEntry.getId()];
       boolean congested = (turnAlpha + EPSILON_6) < 1;
       var s1RawTurnSlackResult = determinePasLinkSegmentSlackFlow(networkLoading, s1ConjAltEdgeSegment, true);
+      s1SlackFlow = s1RawTurnSlackResult.first();
+      s1MinSlackSegment = originalEntry;
 
-      if (!congested) {
-        // track extent of slack as new minimum for s1, s2 has no restrictions yet, both continue downstream
-        s1SlackFlow = s1RawTurnSlackResult.first();
-        s1MinSlackSegment = originalEntry;
-      } else {
+      if (congested) {
         // s2 may become uncongested
         var s2RawTurnSlackResult = determinePasLinkSegmentSlackFlow(networkLoading, s2ConjAltEdgeSegment, false);
         boolean s1OnMostRestrictingTurn = s1RawTurnSlackResult.second();
@@ -1605,7 +1644,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       s2OnMostRestricting = s2ToFreeFlowMergeSlackResult.second();
     }
 
-    if(case4) {
+    if(case4) { //s1 and s2 congested
       // first delegate to other cases if needed
       if(!s1OnMostRestricting && !s2OnMostRestricting) {
         // treat both as uncongested
@@ -1662,7 +1701,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         s2MinSlackSegment = s2OriginalEntry;
         s2SlackFlow = s1TurnSlack;
       }
-    }else if(case2){
+    }else if(case2){ // s1 uncongested turn, s2 congested turn on merge
       // detect if on most restricting (before fiddling with additional flows which mess up that check).
       if(!s2OnMostRestricting){
         // we can treat s2 as uncongested --> become case 3 (with alpha adjustment)
@@ -1705,8 +1744,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     if(case3) {
       double currentMinSlackFlow = Math.min(s1SlackFlow,s2SlackFlow);
       double s1ArrivingFlowShift = considerS1 ? Math.min(currentMinSlackFlow, proposedFlowShift) * s1CompoundedAlpha : 0;
-      double s2ArrivingFlowShift = Math.min(currentMinSlackFlow, -proposedFlowShift) * s2CompoundedAlpha;
-      double expectedDifferenceBetweenS1S2 = s1ArrivingFlowShift + s2ArrivingFlowShift;
+      double s2ArrivingFlowShift = considerS2 ? -Math.min(currentMinSlackFlow, proposedFlowShift) * s2CompoundedAlpha : 0;
       if(!considerS1) {
         // if we do not add flow on s1, we cannot trigger a state change
         return Pair.of(s1OnPasResult.asPairFirstSecond(), s2OnPasResult.asPairFirstSecond());
@@ -1719,6 +1757,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         //adjust with turn alpha
         s2ArrivingFlowShift *= s2TurnAlpha;
       }
+      double expectedDifferenceBetweenS1S2 = s1ArrivingFlowShift + s2ArrivingFlowShift;
       if(expectedDifferenceBetweenS1S2 <= 0) {
         // negative so we remove more or equal from s2 than we add to s1, so no chance of traffic state change, done
         return Pair.of(s1OnPasResult.asPairFirstSecond(), s2OnPasResult.asPairFirstSecond());
@@ -2256,7 +2295,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // enter uncongested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 5;
+    int MAX_INTERAL_ITERATIONS_ALLOWED = 3;
     int internalIteration = 1;
     boolean doNotStop = true;
     boolean flowShifted = false;
@@ -2590,8 +2629,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           /
           (pas.getAlternativeLowCost() * Math.max(1,(s1SendingFlow + s2SendingFlow)));
       // reuse criterion of gap (overall gap is done wider, so we do not update gap as such here)
-      //converged = pasGap <= gapFunction.getStopCriterion().getEpsilon();
-      converged = pasGap <= conjStrategy.getGapFunction().getGap();
+      converged = pasGap <= conjStrategy.getGapFunction().getStopCriterion().getEpsilon();
+      //converged = pasGap <= conjStrategy.getGapFunction().getGap();
       ++internalIteration;
 
       doNotStop = !converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED;
