@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.*;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
-import org.goplanit.assignment.ltm.sltm.consumer.ConjugateBushFlowUpdateConsumerImpl;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;

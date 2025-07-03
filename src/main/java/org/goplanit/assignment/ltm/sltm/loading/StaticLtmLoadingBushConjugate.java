@@ -31,9 +31,9 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
    * {@inheritDoc}
    */
   @Override
-  protected ConjugateBushFlowUpdateConsumerImpl<NetworkFlowUpdateData> createBushLinkSendingFlowUpdateConsumer(
+  protected ConjugateBushNetworkFlowUpdateConsumerImpl<NetworkFlowUpdateData> createBushLinkSendingFlowUpdateConsumer(
           boolean updateLinkOutflows, boolean updateUnconstrainedLinkFlows){
-    return new ConjugateBushFlowUpdateConsumerImpl<>(
+    return new ConjugateBushNetworkFlowUpdateConsumerImpl<>(
             createNetworkLinkFlowData(updateLinkOutflows, updateUnconstrainedLinkFlows), turn2ConjugateSegmentMapping);
   }
 

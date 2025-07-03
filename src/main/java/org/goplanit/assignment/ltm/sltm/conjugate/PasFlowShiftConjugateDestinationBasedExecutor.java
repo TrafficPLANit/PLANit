@@ -2464,6 +2464,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       totalPasShift += iterationPasShift;
       flowShifted = flowShifted || totalPasShift>0;
 
+
       // sync costs to changes in flow, to allow for next proposed flow update
       boolean costSwitch = false;
       {
@@ -2581,7 +2582,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double totalPasShift = 0;
     do{
 
-      if (pas.pasId == 882L) { // local PAS update
+      if (pas.pasId == 532L) { // local PAS update
         int bla = 4;
 
         var theNode = ((ConjugateDirectedVertex)pas.getMergeVertex()).getOriginalEdgeSegment().getUpstreamVertex();

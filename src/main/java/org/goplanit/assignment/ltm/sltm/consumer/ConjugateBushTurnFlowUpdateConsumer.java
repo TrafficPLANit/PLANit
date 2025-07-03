@@ -24,7 +24,7 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
  *
  */
 public class ConjugateBushTurnFlowUpdateConsumer
-        extends ConjugateBushFlowUpdateConsumerImpl<NetworkTurnFlowUpdateData> {
+        extends ConjugateBushNetworkFlowUpdateConsumerImpl<NetworkTurnFlowUpdateData> {
 
   /** logger to use */
   @SuppressWarnings("unused")

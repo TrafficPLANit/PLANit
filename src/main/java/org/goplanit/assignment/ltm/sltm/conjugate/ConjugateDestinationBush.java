@@ -660,50 +660,62 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   @Override
   public void syncToNetworkFlows(double[] originalNetworkFlowAcceptanceFactors) {
 
-    /* get topological sorted vertices to process from origin to destination*/
-    var conjugateVertexIter = getInvertedTopologicalIterator();
-    if (conjugateVertexIter == null) {
-      LOGGER.severe(String.format("Topologically sorted vertices on bush not available, this shouldn't happen, " +
-              "skip turn flow update"));
-      return;
-    }
-    ConjugateDirectedVertex currConjugateVertex = null;
+    var syncBushToNetworkLoadingFlowsConsumer = new ConjugateBushSyncBushFlowConsumer(
+        this, originalNetworkFlowAcceptanceFactors);
+    forEachTopologicalSortedVertex(true, syncBushToNetworkLoadingFlowsConsumer);
 
-    /* pass over conjugate bush in topological order updating turn sending flows based on flow acceptance factors
-    *  these turn flows inform the network level splitting rates now that they are consistent with network loading */
-    final boolean allowTurnRemoval = false;
-    while (conjugateVertexIter.hasNext()) {
-      currConjugateVertex = conjugateVertexIter.next();
-      double conjugateVertexAcceptedFlow =
-              bushData.getTotalAcceptedFlowToPcuH(currConjugateVertex, originalNetworkFlowAcceptanceFactors);
 
-      if(conjugateVertexAcceptedFlow <= 0){
-        continue;
-      }
+    // TODO: remove once above works. Syncing using bush turn data and only apply alpha updates is
+    //  error prone. Any inconsistency that sneaks into the flow shifting will forever remain, e.g.,
+    //  ghost flows on turns. to avoid this, we do a proper propagation from origins, use only the
+    //  bush splitting rates instead of the actual turn flows, and then update the bush turn flows
+    //  by applying the alphas and original origin demands that we propagate. This should be much safer
+    //  and self correcting in case of inconsistencies.
 
-      /*
-       * bush splitting rates by [conjugate exit segment index] - splitting rates are computed based on turn
-       * flows but placed in new array. So once we have the splitting rates we can safely update the turn
-       * flows without affecting these splitting rates
-       */
-      double[] bushSplittingRates = null;
-      int index = -1;
-      for (var turnSegment : currConjugateVertex.getExitEdgeSegments()) {
-        ++index;
-        if (!containsConjugateSegment(turnSegment)) {
-          continue;
-        }
-        if(bushSplittingRates == null){
-          bushSplittingRates = getSplittingRates(currConjugateVertex);
-        }
-
-        double currTurnSplittingRate = bushSplittingRates[index];
-        if (currTurnSplittingRate > 0) {
-          double bushTurnLabeledAcceptedFlow = conjugateVertexAcceptedFlow * currTurnSplittingRate;
-          bushData.setTurnSendingFlow(turnSegment, bushTurnLabeledAcceptedFlow, allowTurnRemoval);
-        }
-      }
-    }
+//    /* get topological sorted vertices to process from origin to destination*/
+//    var conjugateVertexIter = getInvertedTopologicalIterator();
+//    if (conjugateVertexIter == null) {
+//      LOGGER.severe(String.format("Topologically sorted vertices on bush not available, this shouldn't happen, " +
+//              "skip turn flow update"));
+//      return;
+//    }
+//    ConjugateDirectedVertex currConjugateVertex = null;
+//
+//    /* pass over conjugate bush in topological order updating turn sending flows based on flow acceptance factors
+//    *  these turn flows inform the network level splitting rates now that they are consistent with network loading */
+//    final boolean allowTurnRemoval = false;
+//    while (conjugateVertexIter.hasNext()) {
+//      currConjugateVertex = conjugateVertexIter.next();
+//      double conjugateVertexAcceptedFlow =
+//              bushData.getTotalAcceptedFlowToPcuH(currConjugateVertex, originalNetworkFlowAcceptanceFactors);
+//
+//      if(conjugateVertexAcceptedFlow <= 0){
+//        continue;
+//      }
+//
+//      /*
+//       * bush splitting rates by [conjugate exit segment index] - splitting rates are computed based on turn
+//       * flows but placed in new array. So once we have the splitting rates we can safely update the turn
+//       * flows without affecting these splitting rates
+//       */
+//      double[] bushSplittingRates = null;
+//      int index = -1;
+//      for (var turnSegment : currConjugateVertex.getExitEdgeSegments()) {
+//        ++index;
+//        if (!containsConjugateSegment(turnSegment)) {
+//          continue;
+//        }
+//        if(bushSplittingRates == null){
+//          bushSplittingRates = getSplittingRates(currConjugateVertex);
+//        }
+//
+//        double currTurnSplittingRate = bushSplittingRates[index];
+//        if (currTurnSplittingRate > 0) {
+//          double bushTurnLabeledAcceptedFlow = conjugateVertexAcceptedFlow * currTurnSplittingRate;
+//          bushData.setTurnSendingFlow(turnSegment, bushTurnLabeledAcceptedFlow, allowTurnRemoval);
+//        }
+//      }
+//    }
   }
 
   /**

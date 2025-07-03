@@ -143,20 +143,19 @@ public class StaticLtmConjugateBushStrategy
     var conjSegmentCosts =
         expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, originalNetworkCosts, true);
 
-    boolean logAll = simulationData.getIterationIndex()>=30 && getSettings().isDetailedLogging();
-
     // for uncongested, do each PAS (one or more times), then repeat x times so PAS interaction is
     // covered better by having an internal loop here
     int MAX_ITERATIONS_ALLOWED = 3;
     int iteration = 1;
     boolean doNotStop = true;
     do {
+      boolean logAll = simulationData.getIterationIndex()>=30 && getSettings().isDetailedLogging();
       LOGGER.info(String.format("--- NEXT UNCONGESTED PASs INTERNAL ITERATION %d ----", iteration));
       for (var pas : sortedPass) {
         var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
 
-        if (pas.pasId == 882L) {
-          int bla = 4;
+        if (pas.pasId == 532L) {
+          int bla = 4; // uncongested
         }
 
         double pasFlowShifted = executor.performEquilibratedUncongestedFlowShifts(
@@ -177,6 +176,7 @@ public class StaticLtmConjugateBushStrategy
           continue;
         }else if (iteration==1) {
           flowShiftedPass.add(pas);
+          logAll = false;
         }
       }
     }while(iteration++ < MAX_ITERATIONS_ALLOWED);

@@ -343,9 +343,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           double[] originalNetworkCosts,
           StaticLtmSimulationData simulationData) {
 
-    // debugging
-    boolean logAll = simulationData.getIterationIndex()>=5;
-
     Collection<ES> linkSegmentsUsed = new HashSet<>(100);
 
     var flowShiftedPass = new ArrayList<Pas<V,ES>>((int) this.pasManager.getNumberOfActivePass());
@@ -384,6 +381,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     int iteration = 1;
     boolean doNotStop = true;
     do {
+      // debugging
+      boolean logAll = simulationData.getIterationIndex()>=5;
+
       LOGGER.info(String.format("--- NEXT CONGESTED PASs INTERNAL ITERATION %d ----", iteration));
       //todo re-sort PAS each iteration?
       for (var pas : sortedPass) {
@@ -392,7 +392,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           continue;
         }
 
-        if (pas.pasId == 957L) {
+        if (pas.pasId == 532L) {
           int bla = 4;
         }
 
@@ -459,7 +459,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           // so we only log the most prominent pas
           if (logAll) {
             logAll = false;
-            LOGGER.info(String.format("   Total pas flow shifted: %.10f", pasFlowShifted));
+            LOGGER.info(String.format("   pas flow shifted: %.10f", pasFlowShifted));
           }
         }
       }

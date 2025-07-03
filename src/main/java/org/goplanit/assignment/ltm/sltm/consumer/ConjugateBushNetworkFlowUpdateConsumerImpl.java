@@ -5,6 +5,7 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateBushUtils;
 import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
@@ -13,7 +14,6 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.virtual.physical.ConnectoidNode;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
-import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegment;
 
 /**
  * Conjugate Bush consumer to apply during conjugate bush based network loading flow update for each origin bush
@@ -23,48 +23,17 @@ import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoid
  * @author markr
  *
  */
-public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData>
+public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData>
         implements BushFlowUpdateConsumer<ConjugateDestinationBush> {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(ConjugateBushFlowUpdateConsumerImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(ConjugateBushNetworkFlowUpdateConsumerImpl.class.getCanonicalName());
 
   /** data and configuration used for a flow update by derived classes */
   protected T dataConfig;
 
   /** mapping from origin turn (segment, segment key) to conjugate segment */
   protected final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping;
-
-  /**
-   * Initialise the bush sending flows for the bush's root exit edge segments to bootstrap the loading for this bush
-   * 
-   * @param bush             at hand
-   * @param bushSendingFlows to populate as a starting point for the bush loading
-   */
-  private void initialiseOriginExitSegmentSendingFlows(
-          final ConjugateDestinationBush bush, final Map<ConjugateEdgeSegment, Double> bushSendingFlows) {
-
-    var originVertices = bush.getOriginVertices();
-    for (ConjugateDirectedVertex originVertex : originVertices) {
-      double totalOriginsSendingFlow = 0;
-      for (var originExit : originVertex.getExitEdgeSegments()) {
-        if (bush.contains(originExit)) {
-          double sendingFlow = bush.getTurnSendingFlow(originExit);
-          bushSendingFlows.put(originExit, sendingFlow);
-          totalOriginsSendingFlow += sendingFlow;
-        }
-      }
-
-      if (Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(originVertex), Precision.EPSILON_3)) {
-        LOGGER.severe(String.format("conjugate bush with root zone (%s) origin's (%s) travel demand (%.8f pcu/h) not equal " +
-                        "to total flow (%.8f pcu/h), this shouldn't happen",
-                bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString(),
-                ((ConjugateConnectoidNode)originVertex).getCentroidVertex().getParent().getParentZone().getXmlId(),
-                bush.getOriginDemandPcuH(originVertex), totalOriginsSendingFlow));
-      }
-    }
-
-  }
 
   /**
    * Register the conjugate bush accepted turn flow to the turn if required. Default implementation does nothing but provide a hook for derived classes that do require to do
@@ -83,7 +52,7 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
    * @param dataConfig              to use
    * @param turn2ConjSegmentMapping to use
    */
-  public ConjugateBushFlowUpdateConsumerImpl(
+  public ConjugateBushNetworkFlowUpdateConsumerImpl(
           final T dataConfig, final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping){
     this.dataConfig = dataConfig;
     this.turn2ConjSegmentMapping = turn2ConjSegmentMapping;
@@ -103,9 +72,6 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
      * is complete (converged) by using the network reduction factors
      */
 
-    /* key is conjugate segment, value is sending flow */
-    TreeMap<ConjugateEdgeSegment, Double> bushSendingFlows = new TreeMap<>();
-
     /* get topological sorted vertices to process */
     var vertexIter = bush.isInverted() ? bush.getInvertedTopologicalIterator() : bush.getTopologicalIterator();
     if (vertexIter == null) {
@@ -117,7 +83,7 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
     var currConjVertex = vertexIter.next();
 
     /* initialise origin vertex outgoing edge sending flows */
-    initialiseOriginExitSegmentSendingFlows(bush, bushSendingFlows);
+    var bushSendingFlows = ConjugateBushUtils.createOriginExitSegmentSendingFlows(bush);
     TreeMap<ConjugateEdgeSegment, Double> bushUnconstrainedFlows =
             dataConfig.isUnconstrainedFlowsUpdate() ? new TreeMap<>(bushSendingFlows) : null;
 
