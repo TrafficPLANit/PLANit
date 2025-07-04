@@ -344,6 +344,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           StaticLtmSimulationData simulationData) {
 
     Collection<ES> linkSegmentsUsed = new HashSet<>(100);
+    boolean smoothOverIterations = false;
 
     var flowShiftedPass = new ArrayList<Pas<V,ES>>((int) this.pasManager.getNumberOfActivePass());
     var passWithoutBush = new ArrayList<Pas<V,ES>>();
@@ -377,7 +378,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
     // for congested, do each PAS once, then repeat x times so PAS interaction is covered
     // better by having internal loop here, rather than within the PAS
-    int MAX_ITERATIONS_ALLOWED = 2;
+    int MAX_ITERATIONS_ALLOWED = 1;
     int iteration = 1;
     boolean doNotStop = true;
     do {
@@ -436,7 +437,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
                 nlConsistentFlowAcceptanceFactors,
                 getBushes(),
                 logAll,
-                1.0/MAX_ITERATIONS_ALLOWED);
+                smoothOverIterations? 1.0/MAX_ITERATIONS_ALLOWED : 1);
 
         if (pasFlowShifted > 0) {
           totalCongestedFlowShifted += pasFlowShifted;

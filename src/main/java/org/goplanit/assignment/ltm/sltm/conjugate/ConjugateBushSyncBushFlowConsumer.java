@@ -141,7 +141,8 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
         if(conjBush.containsTurnSendingFlow(conjEntrySegment)) {
           // should ideally not happen, but if we find ghost flow, we must make sure that it is now synced to zero
           LOGGER.warning(String.format(
-              "Found (node entry) turn (%s) with ghost bush turn flow, removing it", conjEntrySegment.getIdsAsString()));
+              "Found (node entry) turn (%s) with ghost turn flow on bush %s, removing it",
+              conjEntrySegment.getIdsAsString(), conjBush.getRootZone().getIdsAsString()));
           conjBush.bushData.removeTurnData(conjEntrySegment);
         }
         // no point in processing exits as there is no flow to propagate

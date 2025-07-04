@@ -21,6 +21,7 @@ import org.goplanit.utils.unit.Unit;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * Cost computation for travel times based on the work of Raadsen and Bliemer (2019), Steady-state link travel time
@@ -57,6 +58,9 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   /** tracking fundamental diagrams per link segment for performance reasons
    * todo: should be supported by mode eventually, in case there is a need to have separate FDs per mode */
   private FundamentalDiagram[] linkSegmentFundamentalDiagrams = null;
+
+  public static LongAdder logExceedCapacityCounter = new LongAdder();
+  private final int maxLogExceedCapacityCount = 1000;
 
   /**
    * Collect the fundamental diagram component from the accessee
@@ -107,7 +111,9 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double hyperCriticalDelay = 0;
 
     if(inflowRatePcuHour > ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH()){
-      if((inflowRatePcuHour - Precision.EPSILON_1) > ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH()) {
+      if((inflowRatePcuHour - Precision.EPSILON_1) > ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH() &&
+      logExceedCapacityCounter.intValue() < maxLogExceedCapacityCount) {
+        logExceedCapacityCounter.increment();
         LOGGER.warning(String.format("Inflow rate (%.2f) exceed capacity for link (%s), truncate to capacity (%.2f): ",
             inflowRatePcuHour, linkSegment.getIdsAsString(), ((PcuCapacitated) linkSegment).getCapacityOrDefaultPcuH()));
       }
