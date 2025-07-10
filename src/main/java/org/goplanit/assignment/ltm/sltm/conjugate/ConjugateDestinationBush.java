@@ -40,6 +40,14 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateDestinationBush.class.getCanonicalName());
 
+  private double demandScaledMinCostBush; // temp
+
+  private double demandScaledRealisedCostBush; // temp
+
+  public boolean currentActiveBush = false; // temp
+
+  public boolean converged = false; // temp
+
   /**
    * Based on non-conjugate flow acceptance factors in the network obtain the acceptance factor for the
    * conjugate segment by looking at its original incoming segment. If it does not exist then 1 is returned
@@ -253,6 +261,9 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     }
     this.destination = destinationCentroidVertex;
     this.turn2ConjugateSegmentMapping = turn2ConjugateSegmentMapping;
+
+    this.demandScaledMinCostBush = 0;
+    this.demandScaledRealisedCostBush = 0;
   }
 
   /**
@@ -905,6 +916,31 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
         e -> e.getValue() > 0).map(
             e -> e.getKey().getXmlId()).sorted().collect(
                 Collectors.joining(",")) + " ]";
+  }
+
+  // todo: replace with proper gap function for now just inject raw data
+  public void setMinCostForGap(double demandScaledMinCostBush) {
+    this.demandScaledMinCostBush = demandScaledMinCostBush;
+  }
+
+  public double getMinCostForGap() {
+    return this.demandScaledMinCostBush;
+  }
+
+  // todo: replace with proper gap function for now just inject raw data
+  public void setRealisedCostForGap(double demandScaledRealisedCostBush) {
+    this.demandScaledRealisedCostBush = demandScaledRealisedCostBush;
+  }
+
+  public double getRealisedCostForGap() {
+    return this.demandScaledRealisedCostBush;
+  }
+
+  public boolean isConvergedBeyond(double thresholdGap){
+    double bushGap = (demandScaledRealisedCostBush - demandScaledMinCostBush)/demandScaledMinCostBush;
+    // only apply margin if not interfering with precision of check
+    double margin = thresholdGap < Precision.EPSILON_12 ? 0 : Precision.EPSILON_12;
+    return (bushGap + margin) < thresholdGap;
   }
 
 }

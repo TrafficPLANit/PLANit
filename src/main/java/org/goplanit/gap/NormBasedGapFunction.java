@@ -185,21 +185,21 @@ public class NormBasedGapFunction extends GapFunction {
     // in an iterative fashion where we reset every iteration but need to keep track of the previous iteration gap
   }
 
-  /**
-   * Compute the gap
-   * 
-   * @return the gap for the current iteration
-   */
   @Override
-  public double computeGap() {
-    previousGap = gap;
-    if (count <= 0) {
-      gap = MAX_GAP;
-    } else {
-      double multiplicationFactor = isAveraged() ? (1.0 / count) : 1;
-      gap = multiplicationFactor * Math.pow(measuredValue, 1.0 / norm);
+  public double computeGap(boolean internalStateChange) {
+    if(internalStateChange) {
+      previousGap = gap;
     }
-    return gap;
+
+    double computedGap = MAX_GAP;
+    if (count > 0) {
+      double multiplicationFactor = isAveraged() ? (1.0 / count) : 1;
+      computedGap = multiplicationFactor * Math.pow(measuredValue, 1.0 / norm);
+    }
+    if(internalStateChange) {
+      gap = computedGap;
+    }
+    return computedGap;
   }
 
   /**

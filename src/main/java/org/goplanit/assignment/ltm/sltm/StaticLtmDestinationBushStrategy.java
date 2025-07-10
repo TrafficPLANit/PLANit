@@ -152,9 +152,9 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
    * @return created destination bushes
    */
   @Override
-  protected Set<DestinationBush> createEmptyBushes(Mode mode) {
+  protected TreeSet<DestinationBush> createEmptyBushes(Mode mode) {
     Zoning zoning = getTransportNetwork().getZoning();
-    Set<DestinationBush> destinationBushes = new TreeSet<>();
+    TreeSet<DestinationBush> destinationBushes = new TreeSet<>();
 
     OdDemands odDemands = getOdDemands(mode);
     for (var destination : zoning.getOdZones()) {

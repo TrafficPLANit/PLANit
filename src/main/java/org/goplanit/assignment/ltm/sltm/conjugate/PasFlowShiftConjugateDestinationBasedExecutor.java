@@ -2344,57 +2344,55 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       /* s1 & S2 UNCONGESTED - no derivative estimate possible (denominator zero) */
       /* move all towards cheaper alternative */
       proposedFlowShift = guaranteedS2SendingFlow;
-    }else{
+    }else if(numerator != 0){
+      proposedFlowShift = numerator / denominator;
+    }
 
-      if (numerator != 0) {
-        proposedFlowShift = numerator / denominator;
+    double chosenPerIterationFlowShift = 0;
+    if(proposedFlowShift > 0){
+      // apply smoothing (do before discontinuity truncation to avoid stalling any changes when close to a discontinuity)
+      double smoothedFlowShift = smoothing.executeRefZero(proposedFlowShift);
+      chosenPerIterationFlowShift = smoothedFlowShift * additionalSmoothingFactor;
+      if(isDestinationTrackedForLogging() || logAll) {
+        var message = String.format(" Proposed shift: %.10f, Smoothed shift: %.10f, per iteration shift: %.10f",
+            proposedFlowShift,smoothedFlowShift, chosenPerIterationFlowShift);
+        sb.append(message).append(System.lineSeparator());
+        //LOGGER.info(message);
       }
 
-    }
+      var slackResult = determinePasSlackFlow(chosenPerIterationFlowShift, networkLoading);
+      var lowCostSlackResult = slackResult.first();
+      var highCostSlackResult = slackResult.second();
 
-    // apply smoothing (do before discontinuity truncation to avoid stalling any changes when close to a discontinuity)
-    double smoothedFlowShift = smoothing.executeRefZero(proposedFlowShift);
-    double smoothedPerIterationFlowShift = smoothedFlowShift * additionalSmoothingFactor;
-    if(isDestinationTrackedForLogging() || logAll) {
-      var message = String.format(" Proposed shift: %.10f, Smoothed shift: %.10f, per iteration shift: %.10f",
-          proposedFlowShift,smoothedFlowShift, smoothedPerIterationFlowShift);
-      sb.append(message).append(System.lineSeparator());
-      //LOGGER.info(message);
-    }
+      double s1SlackFlowEstimate = lowCostSlackResult.first();
+      double s1SlackFlowLeeway = Math.max(0.1, s1SlackFlowEstimate * stateChangeLeewayPercentage); // in case of zero slack, up to 0.1 so we still shift something
+      // always adjust for possible s1 discontinuities
+      {
+        /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
+        double oldFlowShift = chosenPerIterationFlowShift;
+        chosenPerIterationFlowShift =
+            adjustFlowShiftBasedOnS1SlackFlow(chosenPerIterationFlowShift, s1SlackFlowEstimate, s1SlackFlowLeeway);
+        if((isDestinationTrackedForLogging() || logAll) && oldFlowShift > chosenPerIterationFlowShift){
+          var message = String.format("S1 DISCONTINUITY ADJUSTMENT TRIGGERED (on segment %s) from %.10f, to %.10f",
+              lowCostSlackResult.second().getIdsAsString(), oldFlowShift, chosenPerIterationFlowShift);
+          sb.append(message).append(System.lineSeparator());
+          //LOGGER.info(message);
+        }
+      }
 
-    var slackResult = determinePasSlackFlow(smoothedPerIterationFlowShift, networkLoading);
-    var lowCostSlackResult = slackResult.first();
-    var highCostSlackResult = slackResult.second();
-
-    double s1SlackFlowEstimate = lowCostSlackResult.first();
-    double s1SlackFlowLeeway = Math.max(0.1, s1SlackFlowEstimate * stateChangeLeewayPercentage); // in case of zero slack, up to 0.1 so we still shift something
-    // always adjust for possible s1 discontinuities
-    {
+      double s2SlackFlowEstimate = highCostSlackResult.first();
+      double s2SlackFlowLeeway = Math.max(0.1, s2SlackFlowEstimate * stateChangeLeewayPercentage);
       /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
-      double oldFlowShift = smoothedPerIterationFlowShift;
-      smoothedPerIterationFlowShift =
-          adjustFlowShiftBasedOnS1SlackFlow(smoothedPerIterationFlowShift, s1SlackFlowEstimate, s1SlackFlowLeeway);
-      if((isDestinationTrackedForLogging() || logAll) && oldFlowShift > smoothedPerIterationFlowShift){
-        var message = String.format("S1 DISCONTINUITY ADJUSTMENT TRIGGERED (on segment %s) from %.10f, to %.10f",
-            lowCostSlackResult.second().getIdsAsString(), oldFlowShift, smoothedPerIterationFlowShift);
-        sb.append(message).append(System.lineSeparator());
-        //LOGGER.info(message);
-      }
-    }
-
-    double s2SlackFlowEstimate = highCostSlackResult.first();
-    double s2SlackFlowLeeway = Math.max(0.1, s2SlackFlowEstimate * stateChangeLeewayPercentage);
-    /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
-    double oldFlowShift = smoothedPerIterationFlowShift;
-    smoothedPerIterationFlowShift = adjustFlowShiftBasedOnS2SlackFlow(smoothedPerIterationFlowShift, s2SlackFlowEstimate, s2SlackFlowLeeway);
-    if(oldFlowShift > smoothedPerIterationFlowShift){
-      if(isDestinationTrackedForLogging() || logAll ) {
-        var message = String.format("S2 DISCONTINUITY ADJUSTMENT TRIGGERED (on segment %s) from %.10f, to %.10f",
-            highCostSlackResult.second().getIdsAsString(), oldFlowShift, smoothedPerIterationFlowShift);
-        sb.append(message).append(System.lineSeparator());
-        //LOGGER.info(message);
-      }
-      // chaining, it works but impact is very low and it is costly, so disable for now
+      double oldFlowShift = chosenPerIterationFlowShift;
+      chosenPerIterationFlowShift = adjustFlowShiftBasedOnS2SlackFlow(chosenPerIterationFlowShift, s2SlackFlowEstimate, s2SlackFlowLeeway);
+      if(oldFlowShift > chosenPerIterationFlowShift){
+        if(isDestinationTrackedForLogging() || logAll ) {
+          var message = String.format("S2 DISCONTINUITY ADJUSTMENT TRIGGERED (on segment %s) from %.10f, to %.10f",
+              highCostSlackResult.second().getIdsAsString(), oldFlowShift, chosenPerIterationFlowShift);
+          sb.append(message).append(System.lineSeparator());
+          //LOGGER.info(message);
+        }
+        // chaining, it works but impact is very low and it is costly, so disable for now
 //      if(chainDerivativeBeyondBottleneckSegments == null){
 //        chainDerivativeBeyondBottleneckSegments = new TreeSet<>();
 //      }
@@ -2408,14 +2406,17 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 //            guaranteedS2SendingFlow, logAll, chainDerivativeBeyondBottleneckSegments);
 //        smoothedPerIterationFlowShift = adjustedResult.values().iterator().next();
 //      }
+      }
+    }else{
+      chosenPerIterationFlowShift = 0;
     }
 
     if(originalEntrySegment != null) {
-      result.put(originalEntrySegment, smoothedPerIterationFlowShift);
+      result.put(originalEntrySegment, chosenPerIterationFlowShift);
     }else{
       // use dummy since entry segment is not used in conjugate anyway, but it can't be null while
       // for conjuate connector turn there may be no original
-      result.put(pas.getFirstEdgeSegment(true), smoothedPerIterationFlowShift);
+      result.put(pas.getFirstEdgeSegment(true), chosenPerIterationFlowShift);
     }
     return result;
   }
@@ -2460,6 +2461,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       boolean logAll,
       double additionalSmoothingFactor) {
 
+    boolean smoothOverIterations = false;
+
     var conjStrategy = (StaticLtmConjugateBushStrategy) assignmentStrategy;
     var networkLoading = conjStrategy.getLoading();
 
@@ -2481,7 +2484,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // enter uncongested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 3;
+    int MAX_INTERAL_ITERATIONS_ALLOWED = 50;
     int internalIteration = 1;
     boolean doNotStop = true;
     boolean flowShifted = false;
@@ -2522,7 +2525,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           assignmentStrategy.getGapFunction(), conjStrategy.getPhysicalCost(),
           conjStrategy.getVirtualCost(),
           conjStrategy.getSmoothing(),
-          additionalSmoothingFactor * (1.0/MAX_INTERAL_ITERATIONS_ALLOWED),
+          additionalSmoothingFactor * (smoothOverIterations ?  (1.0/MAX_INTERAL_ITERATIONS_ALLOWED) : 1),
           networkLoading,
           guaranteedS2SendingFlow,
           isDestinationTrackedForLogging() || logAll,
@@ -2679,7 +2682,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // enter congested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 50; //lowest level loop
+    int MAX_INTERAL_ITERATIONS_ALLOWED = 10; //lowest level loop
     double internalIterationSmoothingFactor = additionalSmoothingFactor *
         (smoothOverIterations ? additionalSmoothingFactor * (1.0/MAX_INTERAL_ITERATIONS_ALLOWED) : 1);
     int internalIteration = 1;
@@ -2689,7 +2692,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     var sb = (isDestinationTrackedForLogging() || logAll) ? new StringBuilder() : null;
     do{
 
-      if (pas.pasId == 460L) { // local PAS update
+      if (pas.pasId == 296L) { // local PAS update
         int bla = 4;
 
         var theNode = ((ConjugateDirectedVertex)pas.getMergeVertex()).getOriginalEdgeSegment().getUpstreamVertex();

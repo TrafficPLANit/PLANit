@@ -87,17 +87,17 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
     assertEquals(outflow1, 4529.133218275822, Precision.EPSILON_1);
     assertEquals(outflow2, 1500.0, Precision.EPSILON_1);
     assertEquals(outflow3, outflow2, Precision.EPSILON_1);
-    assertEquals(outflow4, 3739.366982496271, Precision.EPSILON_1);
-    assertEquals(outflow5, 3191.3135246284505, Precision.EPSILON_1);
+    assertEquals(3738.32669477709, outflow4, Precision.EPSILON_1);
+    assertEquals(3191.3136689485964, outflow5, Precision.EPSILON_1);
     assertEquals(outflow6, 1500.0, Precision.EPSILON_1);
     assertEquals(outflow7, outflow6, Precision.EPSILON_1);
-    assertEquals(outflow8, 3760.633017503729, Precision.EPSILON_1);
+    assertEquals(3761.673305222909, outflow8, Precision.EPSILON_1);
     assertEquals(outflow9, 3000.0, Precision.EPSILON_1);
     assertEquals(outflow10, 1500.0, Precision.EPSILON_1);
     assertEquals(outflow11, outflow10, Precision.EPSILON_1);
     assertEquals(outflow12, 4500.0, Precision.EPSILON_1);
-    assertEquals(outflow13, 2239.366982496271, Precision.EPSILON_1);
-    assertEquals(outflow14, 2260.633017503729, Precision.EPSILON_1);
+    assertEquals(2238.32669477709, outflow13, Precision.EPSILON_1);
+    assertEquals(2261.6733052229097, outflow14, Precision.EPSILON_1);
 
     double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());

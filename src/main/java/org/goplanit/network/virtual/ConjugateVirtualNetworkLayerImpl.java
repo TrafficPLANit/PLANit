@@ -95,6 +95,8 @@ public class ConjugateVirtualNetworkLayerImpl
       var cVertex = referenceConnectoidSegment.getParent().getCentroidVertex();
 
       // attach original centroid vertex to the dummy node and create conjugate vertex for it (without original)
+      // todo: we should have two dummies, one per direction and NOT a shared one, otherwise the conjugate network may
+      //  produce weird cycles via the centroids
       var conjugateDummyNode = dummyConjugateNodePerCentroidVertex.computeIfAbsent(cVertex,
               v -> getVertices().getFactory().registerNew(null, deriveXmlIdFromOriginalEntities, xmlIdPostFix));
 

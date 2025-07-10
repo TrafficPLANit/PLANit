@@ -89,10 +89,21 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
 
   /**
    * Compute the gap and return it
-   * 
+   *
+   * @param internalStateChange when true update the intenral gap and previous gap, when false leave it untouched and
+   *                            only compute on the fly
    * @return the gap for the current iteration
    */
-  public abstract double computeGap();
+  public abstract double computeGap(boolean internalStateChange);
+
+  /**
+   * Compute the gap, update internal state (gap and previous gap)
+   *
+   * @return the computed gap for the current iteration
+   */
+  public double computeGap(){
+    return computeGap(true);
+  }
 
   /**
    * Returns the last computed gap

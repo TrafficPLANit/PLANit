@@ -48,7 +48,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * tracked bushes (with non-zero demand)
    */
-  private Set<B> bushes;
+  private TreeSet<B> bushes;
 
   private void logCongestedSegmentInfo(double[] costs, Mode theMode) {
     List<String> idList = new ArrayList<>();
@@ -378,7 +378,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
     // for congested, do each PAS once, then repeat x times so PAS interaction is covered
     // better by having internal loop here, rather than within the PAS
-    int MAX_ITERATIONS_ALLOWED = 1;
+    int MAX_ITERATIONS_ALLOWED = 5;
     int iteration = 1;
     boolean doNotStop = true;
     do {
@@ -651,7 +651,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param mode to use
    * @return created empty bushes suitable for this strategy
    */
-  protected abstract Set<B> createEmptyBushes(Mode mode);
+  protected abstract TreeSet<B> createEmptyBushes(Mode mode);
 
   /**
    * Initialise the sLTM bush by including the relevant DAGs based on available demand and bush layout.
@@ -900,6 +900,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         syncBushFlowsToNetworkFlows();
       }
 
+
+
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */
       {
         // debugging
@@ -925,7 +927,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
               theMode, pasExecutors, costsToUpdate, simulationData);
 
           LOGGER.info(String.format("Flow shifts performed: %d (%.2f%% of all pass)",
-              updatedPass.size(),((double)updatedPass.size())/passToConsider.size()));
+              updatedPass.size(),((double)updatedPass.size()*100)/passToConsider.size()));
         }
       }
 
