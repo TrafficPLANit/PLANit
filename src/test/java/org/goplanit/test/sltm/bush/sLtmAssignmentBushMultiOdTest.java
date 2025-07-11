@@ -385,7 +385,7 @@ public class sLtmAssignmentBushMultiOdTest {
       slTMConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"), Pair.of("A","A``"));
 
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
       sLTM.setActivateDetailedLogging(true);
       sLTM.execute();

@@ -378,16 +378,17 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
     // for congested, do each PAS once, then repeat x times so PAS interaction is covered
     // better by having internal loop here, rather than within the PAS
-    int MAX_ITERATIONS_ALLOWED = 5;
+    int MAX_ITERATIONS_ALLOWED = 1; // disallow because interactions between PASs cause issues with alpha updates and golden ration bounds
     int iteration = 1;
     boolean doNotStop = true;
     do {
       // debugging
-      boolean logAll = simulationData.getIterationIndex()>=5;
+      boolean logAll = false;//simulationData.getIterationIndex()>=5;
 
       LOGGER.info(String.format("--- NEXT CONGESTED PASs INTERNAL ITERATION %d ----", iteration));
       //todo re-sort PAS each iteration?
       for (var pas : sortedPass) {
+
         // ignore uncongested PASs or PASs not on bush
         if (pas.getStatus() == PasStatus.UNCONGESTED_WITH_SHIFT || !pas.hasRegisteredBushes()) {
           continue;

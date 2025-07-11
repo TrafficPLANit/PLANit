@@ -2356,8 +2356,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       if(isDestinationTrackedForLogging() || logAll) {
         var message = String.format(" Proposed shift: %.10f, Smoothed shift: %.10f, per iteration shift: %.10f",
             proposedFlowShift,smoothedFlowShift, chosenPerIterationFlowShift);
-        sb.append(message).append(System.lineSeparator());
-        //LOGGER.info(message);
+        //sb.append(message).append(System.lineSeparator());
+        LOGGER.info(message);
       }
 
       var slackResult = determinePasSlackFlow(chosenPerIterationFlowShift, networkLoading);
@@ -2375,8 +2375,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         if((isDestinationTrackedForLogging() || logAll) && oldFlowShift > chosenPerIterationFlowShift){
           var message = String.format("S1 DISCONTINUITY ADJUSTMENT TRIGGERED (on segment %s) from %.10f, to %.10f",
               lowCostSlackResult.second().getIdsAsString(), oldFlowShift, chosenPerIterationFlowShift);
-          sb.append(message).append(System.lineSeparator());
-          //LOGGER.info(message);
+          //sb.append(message).append(System.lineSeparator());
+          LOGGER.info(message);
         }
       }
 
@@ -2389,8 +2389,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         if(isDestinationTrackedForLogging() || logAll ) {
           var message = String.format("S2 DISCONTINUITY ADJUSTMENT TRIGGERED (on segment %s) from %.10f, to %.10f",
               highCostSlackResult.second().getIdsAsString(), oldFlowShift, chosenPerIterationFlowShift);
-          sb.append(message).append(System.lineSeparator());
-          //LOGGER.info(message);
+          //sb.append(message).append(System.lineSeparator());
+          LOGGER.info(message);
         }
         // chaining, it works but impact is very low and it is costly, so disable for now
 //      if(chainDerivativeBeyondBottleneckSegments == null){
@@ -2533,6 +2533,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           null);
       double rawProposedFlowShift = proposedShiftResult.values().iterator().next();
       double proposedFlowShift = Math.min(rawProposedFlowShift, guaranteedS2SendingFlow); // truncate to what is available
+      if(proposedFlowShift <= 0 ){
+        break;
+      }
 
       double s1SlackFlow = determinePasSlackFlow(proposedFlowShift, networkLoading).first().first();
       if(proposedFlowShift > s1SlackFlow){
@@ -2548,10 +2551,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         LOGGER.info("* UNCONGESTED FLOW SHIFT "+proposedFlowShift+" on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
       }
 
-      if(proposedFlowShift <= 0 ){
-        break;
-      }
-
       double iterationPasShift = executePasFlowShiftNoNodeModelUpdate(
           guaranteedS2SendingFlow,
           bushS2RemainingSendingFlows,
@@ -2565,7 +2564,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       totalPasShift += iterationPasShift;
       flowShifted = flowShifted || totalPasShift>0;
-
 
       // sync costs to changes in flow, to allow for next proposed flow update
       boolean costSwitch = false;
@@ -2677,12 +2675,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     double prevPasGap = Double.MAX_VALUE;
     double pasGap = prevPasGap;
-    double goldenRatioShiftBound = Double.MAX_VALUE;
-
 
     // enter congested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 10; //lowest level loop
+    int MAX_INTERAL_ITERATIONS_ALLOWED = 20; //lowest level loop
     double internalIterationSmoothingFactor = additionalSmoothingFactor *
         (smoothOverIterations ? additionalSmoothingFactor * (1.0/MAX_INTERAL_ITERATIONS_ALLOWED) : 1);
     int internalIteration = 1;
@@ -2692,7 +2688,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     var sb = (isDestinationTrackedForLogging() || logAll) ? new StringBuilder() : null;
     do{
 
-      if (pas.pasId == 296L) { // local PAS update
+      if (pas.pasId == 3186L) { // local PAS update
         int bla = 4;
 
         var theNode = ((ConjugateDirectedVertex)pas.getMergeVertex()).getOriginalEdgeSegment().getUpstreamVertex();
@@ -2727,8 +2723,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       if(isDestinationTrackedForLogging() || logAll) {
         var message = "* FLOW SHIFT on PAS:" + pas + " - cost-diff: " + pas.getReducedCost() + " (guaranteed) S2 flow: "
             + guaranteedS2SendingFlow + " - S1 flow: " + s1SendingFlow;
-        sb.append(message).append(System.lineSeparator());
-        //LOGGER.info(message);
+        //sb.append(message).append(System.lineSeparator());
+        LOGGER.info(message);
       }
 
       // determine proposed flow shift now that we have costs and available flows
@@ -2745,14 +2741,18 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           sb,
           null);
       double proposedFlowShift = proposedShiftResult.values().iterator().next();
-      if(proposedFlowShift > goldenRatioShiftBound){
+      if(proposedFlowShift <= 0){
+        break;
+      }
+
+      if(proposedFlowShift > pas.goldenRatioShiftBound){
         if((isDestinationTrackedForLogging() || logAll)) {
           var message = String.format("BISECTION BOUND VIOLATION: truncate from %.10f to %10f",
-              proposedFlowShift, goldenRatioShiftBound);
-          sb.append(message).append(System.lineSeparator());
-          //LOGGER.info(s1Message);
+              proposedFlowShift, pas.goldenRatioShiftBound);
+          //sb.append(message).append(System.lineSeparator());
+          LOGGER.info(message);
         }
-        proposedFlowShift = goldenRatioShiftBound;
+        proposedFlowShift = pas.goldenRatioShiftBound;
       }
 
       if(isDestinationTrackedForLogging() || logAll) {
@@ -2761,14 +2761,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
                 es -> String.format("%s:%.6f",
                     es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[
                         (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(","));
-        sb.append(s1Message).append(System.lineSeparator());
-        //LOGGER.info(s1Message);
+        //sb.append(s1Message).append(System.lineSeparator());
+        LOGGER.info(s1Message);
         var s2Message = "   (before shift) s2 alphas: "+
             Arrays.stream(s2Alternative).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(es -> String.format("%s:%.6f",
                 es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[
                     (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(","));
-        sb.append(s2Message).append(System.lineSeparator());
-        //LOGGER.info(s2Message);
+        //sb.append(s2Message).append(System.lineSeparator());
+        LOGGER.info(s2Message);
       }
 
       double chosenFlowShift = Math.min(proposedFlowShift, guaranteedS2SendingFlow);
@@ -2791,8 +2791,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       if (proposedFlowShift >= guaranteedS2SendingFlow && (isDestinationTrackedForLogging() || logAll)) {
         var message = String.format("     [removal --> final proposed shift %.10f equal or higher than s2 sending flow %.10f, truncate]",
             proposedFlowShift, guaranteedS2SendingFlow);
-        sb.append(message).append(System.lineSeparator());
-        //LOGGER.info(message);
+        //sb.append(message).append(System.lineSeparator());
+        LOGGER.info(message);
       }
 
       if(!Double.isNaN(pas.getProposedPasFlowShiftAdjustmentFactor()) &&
@@ -2802,9 +2802,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       if(isDestinationTrackedForLogging() || logAll && proposedFlowShift!=chosenFlowShift) {
         var message = String.format("  Proposed shift: %.10f, Final shift: %.10f",
-            proposedFlowShift,chosenFlowShift, chosenFlowShift);
-        sb.append(message).append(System.lineSeparator());
-        //LOGGER.info(message);
+            proposedFlowShift,chosenFlowShift);
+        //sb.append(message).append(System.lineSeparator());
+        LOGGER.info(message);
       }
 
       if(chosenFlowShift <= 0){
@@ -2839,13 +2839,13 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
             Arrays.stream(s2Alternative).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(es -> String.format("%s:%.6f",
                 es.getXmlId(), networkLoading.getCurrentFlowAcceptanceFactors()[
                     (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(","));
-        sb.append(s1Message).append(System.lineSeparator());
-        sb.append(s2Message).append(System.lineSeparator());
-        //LOGGER.info(s1Message);
-        //LOGGER.info(s2Message);
+        //sb.append(s1Message).append(System.lineSeparator());
+        //sb.append(s2Message).append(System.lineSeparator());
+        LOGGER.info(s1Message);
+        LOGGER.info(s2Message);
         var message = "   (after shift) cost diff: "+pas.getReducedCost();
-        sb.append(message).append(System.lineSeparator());
-        //LOGGER.info(message);
+        //sb.append(message).append(System.lineSeparator());
+        LOGGER.info(message);
       }
 
       s1SendingFlow += appliedFlowShift;
@@ -2876,12 +2876,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         //                           ^
         // -  -   -   -   -   -  -   |
         //                           impose bound according to golden ratio
-        goldenRatioShiftBound = appliedFlowShift * 0.618;
+        pas.goldenRatioShiftBound = appliedFlowShift * 0.618;
         if(isDestinationTrackedForLogging() || logAll) {
-          var message = String.format("S1/S2 Cost SWITCH + worse gap --> BISECTION BOUND=half the shift: %.10f/2=%.10f",
-              appliedFlowShift, goldenRatioShiftBound);
-          sb.append(message).append(System.lineSeparator());
-          //LOGGER.info(s1Message);
+          var message = String.format("S1/S2 Cost SWITCH + worse gap --> GOLDEN RATIO BOUND: %.10f * 0.618=%.10f",
+              appliedFlowShift, pas.goldenRatioShiftBound);
+          //sb.append(message).append(System.lineSeparator());
+          LOGGER.info(message);
         }
       }
 
@@ -2889,8 +2889,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       converged = pasGap <= conjStrategy.getGapFunction().getStopCriterion().getEpsilon();
       if(converged && (isDestinationTrackedForLogging() || logAll)) {
         var message = "*********************CONVERGED PAS*************************";
-        sb.append(message).append(System.lineSeparator());
-        //LOGGER.info(message);
+        //sb.append(message).append(System.lineSeparator());
+        LOGGER.info(message);
       }
       //converged = pasGap <= conjStrategy.getGapFunction().getGap();
       ++internalIteration;
@@ -2904,7 +2904,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }while(!converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED);
 
     if(!converged && sb != null){
-      LOGGER.info(sb.toString());
+      //LOGGER.info(sb.toString());
     }
 
     return totalPasShift;

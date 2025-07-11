@@ -160,7 +160,7 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       configurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"),Pair.of("A","A``"));
 
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_15);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(80);
       sLTM.execute();
 

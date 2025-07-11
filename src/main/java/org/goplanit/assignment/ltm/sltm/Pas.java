@@ -46,6 +46,9 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
    * to the newly calculated proposed flow shift to improve the magnitude of the shift */
   private double proposedPasFlowShiftAdjustmentFactor = 1;
 
+  /** allow to track a bound on the flow shift, if we know we should not overshoot */
+  public double goldenRatioShiftBound = Double.MAX_VALUE;
+
   /** registered origin bushes */
   private final Set<RootedBush<V,ES>> registeredBushes;
 
