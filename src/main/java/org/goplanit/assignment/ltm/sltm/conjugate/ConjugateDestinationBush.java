@@ -273,6 +273,10 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
     this.demandScaledMinCostBush = 0;
     this.demandScaledRealisedCostBush = 0;
+
+    bushSmoothing.setGammaStep(0.00);// make sure we only reduce gap with bad iteration otherwise not
+    bushSmoothing.setActivateLambda(false);
+    bushSmoothing.setKappaStep(0.5);
   }
 
   /**
@@ -288,6 +292,8 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     // container wrapper with primitives, so always clone
     this.bushData = bush.bushData.shallowClone();
     this.turn2ConjugateSegmentMapping = bush.turn2ConjugateSegmentMapping.clone();
+
+    throw new PlanItRunTimeException("incomplete");
   }
 
   /**

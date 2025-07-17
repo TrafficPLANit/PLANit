@@ -886,15 +886,17 @@ public class StaticLtmConjugateBushStrategy
         (scaledMinCostBush - theActiveBush.getMinCostForGap())/theActiveBush.getMinCostForGap();
 
     // bush smoothing
-    theActiveBush.bushSmoothing.updateIsBadIteration(theActiveBush.prevIterationInitialGap, bushUpperBoundGap);
+    // when lower bound gap is zero we only consider upper bound, wehn non-zero and inching towards upper the bush itself is con
+    theActiveBush.bushSmoothing.updateIsBadIteration(
+        theActiveBush.prevIterationInitialGap, bushUpperBoundGap-bushLowerBoundGap);
     theActiveBush.bushSmoothing.updateIteration(theActiveBush.bushSmoothing.getIteration() + 1);
-    theActiveBush.prevIterationInitialGap = bushUpperBoundGap;
+    theActiveBush.prevIterationInitialGap = bushUpperBoundGap-bushLowerBoundGap;
 
     // here we update step --> once a PAS has converged, we then scale back by performing one final flow shift between the
     // original setup and the final one to get the correct shift (and network state).
-    theActiveBush.bushSmoothing.updateStepSize();
     if(theActiveBush.bushSmoothing.isBadIteration()){
       LOGGER.info("BUSH GAP NOT IMPROVING --> BAD ITERATION FOUND --> CONSTRAINING STEP");
+      theActiveBush.bushSmoothing.updateStepSize();
     }
 
     boolean bushReachedNetworkGapConvergence = bushUpperBoundGap <= getGapFunction().getStopCriterion().getEpsilon();

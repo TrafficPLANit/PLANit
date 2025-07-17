@@ -93,6 +93,16 @@ public class MSRASmoothing extends IterationBasedSmoothing {
   }
 
   /**
+   * Constructor
+   *
+   * @param groupId contiguous id generation within this group for instances of this class
+   */
+  public MSRASmoothing(IdGroupingToken groupId, boolean activateLambda) {
+    super(groupId);
+    this.activateLambda = activateLambda;
+  }
+
+  /**
    * Copy constructor
    *
    * @param other to copy
