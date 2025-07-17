@@ -805,7 +805,7 @@ public class StaticLtmConjugateBushStrategy
         // pas flow leading to problems (when switching active bush, rejig
         optimiseZeroFlowSpanningTreeConnections(conjBush, conjLinkSegmentCosts);
       }
-    }
+    } 
 
 //    // BUSH SELECTION - WORST BUSH
 //    ConjugateDestinationBush worstBush = null;
