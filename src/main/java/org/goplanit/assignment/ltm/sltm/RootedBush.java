@@ -1,14 +1,7 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.logging.Logger;
-
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
-import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateBushTurnData;
-import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -19,6 +12,10 @@ import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.zoning.Zone;
+
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 /**
  * A rooted bush is an acyclic directed graph comprising implicit paths along a network. It has a root which can be any

@@ -18,6 +18,7 @@ import org.goplanit.network.transport.ConjugateTransportModelNetworkUtils;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
@@ -31,7 +32,6 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
-import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
@@ -292,55 +292,6 @@ public class StaticLtmConjugateBushStrategy
       LOGGER.info(String.format("Updated costs for %d zero-flow turns with a discontinuous cost function",
           discontinuityTurnCostReplacementConsumer.getNumDiscontinuitiesUpdated()));
     }
-  }
-
-  /**
-   * Check if segment is worth adding based on whether it is both in the min and in the max path search.
-   * Consistent with intersection of P1 and P2 sets in Nie (2009) - A class of bush-based algorithms for the traffic
-   * assignment problem.
-   *
-   * @param linkSegment          to check
-   * @param conjLinkSegmentCosts segment costs to use
-   * @param conjBushMinMaxPaths  min max path cost to check
-   * @return true when eligible, false otherwise, second result is the min bush cost to the root considering we
-   * add the link
-   */
-  private Pair<Boolean, Double> isEligibleForAdding(
-      ConjugateEdgeSegment linkSegment, double[] conjLinkSegmentCosts, MinMaxPathResult conjBushMinMaxPaths) {
-    var endVertex = linkSegment.getUpstreamVertex();
-    var startVertex = linkSegment.getDownstreamVertex();
-
-    // connectoids are guaranteed to be one way and be a leaf, so they can never cause a cycle
-    // currently we must check this because it may otherwise deny some links to be added based on for example
-    // max cost paths appearing to possibly cause a cycle while we know they cannot
-    //      1
-    //      / --> ----- ----\
-    //   O--|                |-->D
-    //          ------ -----/
-    //      2
-    // if O>1 is in bush for D and has a large max cost, and O>2 is not in bush yet and would have a lower min cost
-    // we'd want to add it, but if its max cost becomes higher it is rejected. However, we know its max cost can only
-    // go up due to downstream differences, NOT because of a cycle since no flow other than the origin can go the
-    // upstream of 2 (which would cause this alleged cycle), so for those links we'll bypass this condition.
-    //
-    // todo: ideally we'd use a more "scientific" check than this reasoning.
-    boolean forceAllow = false;
-    if(!endVertex.hasOriginalEdgeSegment() || endVertex.getOriginalEdgeSegment() instanceof ConnectoidSegment){
-      forceAllow = true;
-    }
-
-    double startToEndCost = conjLinkSegmentCosts[(int)linkSegment.getId()];
-
-    double minCostEnd = conjBushMinMaxPaths.getMinCostToReach(endVertex);
-    double minCostStart = conjBushMinMaxPaths.getMinCostToReach(startVertex);
-    if(forceAllow || (minCostStart + startToEndCost < minCostEnd) ){
-      double maxCostEnd = conjBushMinMaxPaths.getMaxCostToReach(endVertex);
-      double maxCostStart = conjBushMinMaxPaths.getMaxCostToReach(startVertex);
-      if(forceAllow || (maxCostStart + startToEndCost < maxCostEnd)){
-        return Pair.of(true, minCostStart + startToEndCost);
-      }
-    }
-    return Pair.of(false, minCostStart + startToEndCost);
   }
 
   /**
@@ -753,7 +704,7 @@ public class StaticLtmConjugateBushStrategy
       int countExisting = 0;
       for (var outgoingSegment : conjBushVertex.getExitEdgeSegments()) {
         if (!conjBush.contains(outgoingSegment)) {
-          var result = isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree);
+          var result = ConjugateBushUtils.isEligibleForAdding(outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree);
           if (!result.first()) {
             continue;
           }
@@ -921,60 +872,31 @@ public class StaticLtmConjugateBushStrategy
     ConjugateDestinationBush theActiveBush = getBushes().stream().dropWhile(b -> !b.currentActiveBush).findFirst().orElse(
         getBushes().stream().findFirst().get());
     theActiveBush.currentActiveBush = true;
-    boolean excludeZeroFlowLinksFromMaxPaths = true;
-    var bushMinMaxTree = theActiveBush.computeMinMaxShortestPaths(excludeZeroFlowLinksFromMaxPaths,
-        conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
 
     final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
     var networkMinPaths = conjNetworkShortestPathAlgo.execute(
         theActiveBush.getShortestSearchType(), theActiveBush.getRootVertex());
 
+    double scaledMinCostBush = theActiveBush.updateBushRealisedGapInformation(
+        conjugateTransportModelNetwork, conjNetworkShortestPathAlgo, getOdDemands(mode), conjLinkSegmentCosts);
 
-    double scaledMinCostBush = 0;
-    double scaledMaxCostBush = 0;
-    bushMinMaxTree.setMinPathState(false);
-    var odDemands = getOdDemands(mode);
-    var destination = theActiveBush.getDestination().getParent().getParentZone();
-    for (var originVertex : theActiveBush.getOriginVertices()) {
-      var origin = ((ConjugateConnectoidNode)originVertex).getCentroidVertex().getParent().getParentZone();
-      double odDemand = odDemands.getValue(origin, destination);
-      if(odDemand <= 0.0){
-        continue;
-      }
-      double maxOdCost = bushMinMaxTree.getCostToReach(originVertex);
-      double scaledMaxCostBushOd = maxOdCost * odDemand;
-      scaledMaxCostBush += scaledMaxCostBushOd;
-
-      double minOdCost = bushMinMaxTree.getMinCostToReach(originVertex);
-      double minNetworkOdCost = networkMinPaths.getCostToReach(originVertex);
-
-      if( (minOdCost - Precision.EPSILON_12) > minNetworkOdCost) {
-        var bushMinPath = bushMinMaxTree.createRawPath(originVertex, theActiveBush.getRootVertex());
-        var networkMinPath = networkMinPaths.createRawPath(originVertex, theActiveBush.getRootVertex());
-        if(!bushMinPath.equals(networkMinPath)) {
-          for(var segment: networkMinPath){
-            if(!theActiveBush.contains((ConjugateEdgeSegment)segment)) {
-              var result = isEligibleForAdding((ConjugateEdgeSegment) segment, conjLinkSegmentCosts, bushMinMaxTree);
-              if(!result.first()){
-                LOGGER.info("bush od path cost: " + minOdCost + "vs network min cost: " + minNetworkOdCost);
-                LOGGER.info("bush min od path: " + bushMinPath);
-                LOGGER.info("network min od path: " + networkMinPath);
-                LOGGER.info(String.format("segment %s denied for adding",segment.getXmlId()));
-                result = isEligibleForAdding((ConjugateEdgeSegment) segment, conjLinkSegmentCosts, bushMinMaxTree);
-                break; // there maybe more, but for now just print one
-              }
-            }
-          }
-        }
-      }
-
-      scaledMinCostBush += minOdCost * odDemand;
-    }
-    theActiveBush.setRealisedCostForGap(scaledMaxCostBush);
     double bushUpperBoundGap =
         (theActiveBush.getRealisedCostForGap() - theActiveBush.getMinCostForGap())/theActiveBush.getMinCostForGap();
     double bushLowerBoundGap =
         (scaledMinCostBush - theActiveBush.getMinCostForGap())/theActiveBush.getMinCostForGap();
+
+    // bush smoothing
+    theActiveBush.bushSmoothing.updateIsBadIteration(theActiveBush.prevIterationInitialGap, bushUpperBoundGap);
+    theActiveBush.bushSmoothing.updateIteration(theActiveBush.bushSmoothing.getIteration() + 1);
+    theActiveBush.prevIterationInitialGap = bushUpperBoundGap;
+
+    // here we update step --> once a PAS has converged, we then scale back by performing one final flow shift between the
+    // original setup and the final one to get the correct shift (and network state).
+    theActiveBush.bushSmoothing.updateStepSize();
+    if(theActiveBush.bushSmoothing.isBadIteration()){
+      LOGGER.info("BUSH GAP NOT IMPROVING --> BAD ITERATION FOUND --> CONSTRAINING STEP");
+    }
+
     boolean bushReachedNetworkGapConvergence = bushUpperBoundGap <= getGapFunction().getStopCriterion().getEpsilon();
     boolean bushReachMaxConvergenceUnderCycleLimitation = bushLowerBoundGap>0 &&
         (bushUpperBoundGap-bushLowerBoundGap)/bushLowerBoundGap < Precision.EPSILON_3;
@@ -999,7 +921,12 @@ public class StaticLtmConjugateBushStrategy
         }
         if (conjBush.currentActiveBush) {
           activateNext = true;
-          conjBush.currentActiveBush = false;
+          conjBush.currentActiveBush = false; //reset
+          conjBush.prevIterationInitialGap = Double.MAX_VALUE; //reset
+          theActiveBush.bushSmoothing.reset();
+          //requires explicit reset because normally we wouldn't reset to zero, but for bush smoothing we currently
+          // reset it once the bush has converged as this is its only purpose, not across outer loop iterations
+          theActiveBush.bushSmoothing.updateIteration(0);
         }
       }
       if(activateNext) {
@@ -1099,8 +1026,8 @@ public class StaticLtmConjugateBushStrategy
       // NOTE: we now EXCLUDE zero flow links from max paths, to avoid generating high cost paths that are not eligible
       //  for flow shifting. We can only do that because we already changed the bush earlier as for that we do require
       // max paths for zero flow links to avoid cycles in adding new links.
-      excludeZeroFlowLinksFromMaxPaths = true;
-      bushMinMaxTree = conjBush.computeMinMaxShortestPaths(excludeZeroFlowLinksFromMaxPaths,
+      boolean excludeZeroFlowLinksFromMaxPaths = true;
+      var bushMinMaxTree = conjBush.computeMinMaxShortestPaths(excludeZeroFlowLinksFromMaxPaths,
           conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
 
       /* find (new) matching PASs - start with new PAS close to destination exploration first */

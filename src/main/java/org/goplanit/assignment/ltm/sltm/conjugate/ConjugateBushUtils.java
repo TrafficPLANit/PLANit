@@ -1,8 +1,11 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
+import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 
 import java.util.Map;
@@ -49,4 +52,54 @@ public class ConjugateBushUtils {
     }
     return bushSendingFlows;
   }
+
+  /**
+   * Check if segment is worth adding based on whether it is both in the min and in the max path search.
+   * Consistent with intersection of P1 and P2 sets in Nie (2009) - A class of bush-based algorithms for the traffic
+   * assignment problem.
+   *
+   * @param linkSegment          to check
+   * @param conjLinkSegmentCosts segment costs to use
+   * @param conjBushMinMaxPaths  min max path cost to check
+   * @return true when eligible, false otherwise, second result is the min bush cost to the root considering we
+   * add the link
+   */
+  public static Pair<Boolean, Double> isEligibleForAdding(
+      ConjugateEdgeSegment linkSegment, double[] conjLinkSegmentCosts, MinMaxPathResult conjBushMinMaxPaths) {
+    var endVertex = linkSegment.getUpstreamVertex();
+    var startVertex = linkSegment.getDownstreamVertex();
+
+    // connectoids are guaranteed to be one way and be a leaf, so they can never cause a cycle
+    // currently we must check this because it may otherwise deny some links to be added based on for example
+    // max cost paths appearing to possibly cause a cycle while we know they cannot
+    //      1
+    //      / --> ----- ----\
+    //   O--|                |-->D
+    //          ------ -----/
+    //      2
+    // if O>1 is in bush for D and has a large max cost, and O>2 is not in bush yet and would have a lower min cost
+    // we'd want to add it, but if its max cost becomes higher it is rejected. However, we know its max cost can only
+    // go up due to downstream differences, NOT because of a cycle since no flow other than the origin can go the
+    // upstream of 2 (which would cause this alleged cycle), so for those links we'll bypass this condition.
+    //
+    // todo: ideally we'd use a more "scientific" check than this reasoning.
+    boolean forceAllow = false;
+    if(!endVertex.hasOriginalEdgeSegment() || endVertex.getOriginalEdgeSegment() instanceof ConnectoidSegment){
+      forceAllow = true;
+    }
+
+    double startToEndCost = conjLinkSegmentCosts[(int)linkSegment.getId()];
+
+    double minCostEnd = conjBushMinMaxPaths.getMinCostToReach(endVertex);
+    double minCostStart = conjBushMinMaxPaths.getMinCostToReach(startVertex);
+    if(forceAllow || (minCostStart + startToEndCost < minCostEnd) ){
+      double maxCostEnd = conjBushMinMaxPaths.getMaxCostToReach(endVertex);
+      double maxCostStart = conjBushMinMaxPaths.getMaxCostToReach(startVertex);
+      if(forceAllow || (maxCostStart + startToEndCost < maxCostEnd)){
+        return Pair.of(true, minCostStart + startToEndCost);
+      }
+    }
+    return Pair.of(false, minCostStart + startToEndCost);
+  }
+
 }

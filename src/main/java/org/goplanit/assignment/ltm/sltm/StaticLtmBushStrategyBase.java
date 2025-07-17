@@ -377,8 +377,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     hookBeforeCongestedPasUpdate(pasExecutors.values());
 
     // for congested, do each PAS once, then repeat x times so PAS interaction is covered
-    // better by having internal loop here, rather than within the PAS
-    int MAX_ITERATIONS_ALLOWED = 1; // disallow because interactions between PASs cause issues with alpha updates and golden ration bounds
+
+    // disallow looping here because interactions between PASs cause issues with alpha updates and golden ration bounds
+    // if there are issues with convergence, we should deal with it at the lowest level after internal PAS convergence
+    // and smooth it out there.
+    int MAX_ITERATIONS_ALLOWED = 1;
     int iteration = 1;
     boolean doNotStop = true;
     do {
