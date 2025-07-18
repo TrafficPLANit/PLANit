@@ -471,7 +471,7 @@ public class sLtmAssignmentBushSingleOdTest2 {
       sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_15);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(100);
       sLTM.setActivateDetailedLogging(true);
 

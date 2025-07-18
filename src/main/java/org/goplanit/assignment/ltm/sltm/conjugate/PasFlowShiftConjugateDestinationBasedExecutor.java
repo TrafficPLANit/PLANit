@@ -110,6 +110,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double pasFlowShift,
       boolean updateBushWeights,
       boolean logAll) {
+
     Map<ConjugateDestinationBush, Double> perBushStartingFlowShifts = new TreeMap<>();
 
     double totalBushAppliedFlowShift = 0;
@@ -201,6 +202,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         executeAcrossBushesTurnFlowShift(s2Turn, referenceWeight, bushWeights, -pasFlowShift,true, logAll);
     double pasAppliedS2FlowShift = s2Result.first();
     Map<ConjugateDestinationBush, Double> s2PerBushStartingFlowShifts = s2Result.second();
+
+    if(pasAppliedS2FlowShift == 0){
+      return null;
+    }
 
     // S1
     double s1ToApplyFlowShift = -pasAppliedS2FlowShift;
@@ -2462,19 +2467,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       return 0.0;
     }
 
-    // post-convergence smoothing --> since s1/s2 may flip, we track by initial turn. this is used
-    // to establish final flow shift based on smoothing post-converged
-    // new altflow = step * original alt flow + (1-step) * converged alt flow
-    // just know we have to work our way backward from final siutation to construct the new alt flow as we work with flow shifts
-    ConjugateDestinationBush originalBush = (ConjugateDestinationBush) pas.getRegisteredBushes().stream().findAny().get();
-    if(pas.getRegisteredBushes().size() > 1){
-      throw new PlanItRunTimeException("current testing out for one bush, if we have more than one this process needs refinement");
-    }
-    Map<ConjugateEdgeSegment, Double> originalAlternativeSendingFlows = new TreeMap<>();
-    originalAlternativeSendingFlows.put(pas.getFirstEdgeSegment(true),s1S2SendingFlows.first());
-    originalAlternativeSendingFlows.put(pas.getFirstEdgeSegment(false),s1S2SendingFlows.second());
-
-
     // update costs because if another overlapping uncongested PAS was updated previously, current costs are no longer
     // up to date
     pas.updateCost(conjSegmentCosts);
@@ -2485,6 +2477,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           pas.getAlternative(true), networkLoading.getCurrentFlowAcceptanceFactors());
     }
 
+    // post-convergence smoothing --> since s1/s2 may flip, we track by initial turn. this is used
+    // to establish final flow shift based on smoothing post-converged
+    // new altflow = step * original alt flow + (1-step) * converged alt flow
+    // just know we have to work our way backward from final situation to construct the new alt flow as we work with flow shifts
+    Map<ConjugateEdgeSegment, Double> originalAlternativeSendingFlows = new TreeMap<>();
+    originalAlternativeSendingFlows.put(pas.getFirstEdgeSegment(true),s1SendingFlow);
+    // do high cost within loop as it is calculated there in first iteration anyway
+    var originalPasBushes = new TreeSet<RootedBush<?,?>>(pas.getRegisteredBushes());
 
     // enter uncongested equilibration phase.
     boolean converged = false;
@@ -2509,6 +2509,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           bushS2RemainingSendingFlows.put((ConjugateDestinationBush) bush, remainingSubPathSendingFlow);
           guaranteedS2SendingFlow += remainingSubPathSendingFlow;
         }
+      }
+
+      //smoothing reference (see above)
+      if(internalIteration == 1) {
+        originalAlternativeSendingFlows.put(pas.getFirstEdgeSegment(false),guaranteedS2SendingFlow);
       }
 
       if(guaranteedS2SendingFlow <= 0 ){
@@ -2576,6 +2581,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         costSwitch = pas.updateCost(conjSegmentCosts);
       }
 
+      if(isDestinationTrackedForLogging() || logAll) {
+        LOGGER.info("  (after shift) PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
+        LOGGER.info("  (after shift) cost-diff: " + pas.getReducedCost());
+      }
+
       s1SendingFlow += iterationPasShift;
       double s2SendingFlow = Math.max(0, guaranteedS2SendingFlow - totalPasShift);
       if(costSwitch){
@@ -2606,7 +2616,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }while(doNotStop);
 
     // bush smoothing - final shift when smoothing is deemed required
-    double finalAppliedFlowShift = performFinalShiftForSmoothing(originalBush, originalAlternativeSendingFlows, theMode,
+    originalPasBushes.forEach( b -> pas.registerBush((RootedBush<ConjugateDirectedVertex, ConjugateEdgeSegment>) b));
+    double finalAppliedFlowShift = performFinalShiftForSmoothing(
+        originalAlternativeSendingFlows,
+        theMode,
         conjStrategy,
         null, // not used if no node model update
         originalNetworkCosts,
@@ -2642,18 +2655,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     //NOT NEEDED WE DO IT IN ONE GO!
     //getFlowShiftedS2BushData().clear();
-
-    // post-convergence smoothing --> since s1/s2 may flip, we track by initial turn. this is used
-    // to establish final flow shift based on smoothing post-converged
-    // new altflow = step * original alt flow + (1-step) * converged alt flow
-    // just know we have to work our way backward from final siutation to construct the new alt flow as we work with flow shifts
-    ConjugateDestinationBush originalBush = (ConjugateDestinationBush) pas.getRegisteredBushes().stream().findAny().get();
-    if(pas.getRegisteredBushes().size() > 1){
-      throw new PlanItRunTimeException("current testing out for one bush, if we have more than one this process needs refinement");
-    }
-    Map<ConjugateEdgeSegment, Double> originalAlternativeSendingFlows = new TreeMap<>();
-    originalAlternativeSendingFlows.put(pas.getFirstEdgeSegment(true),s1S2SendingFlows.first());
-    originalAlternativeSendingFlows.put(pas.getFirstEdgeSegment(false),s1S2SendingFlows.second());
 
     // update before we start since any overlap with other PASs that have been updated already will cause the current
     // cost to be outdated
@@ -2699,6 +2700,15 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           ((ConjugateDestinationBush)bush).bushData); // no need to constrain on s1
     }
 
+    // post-convergence smoothing --> since s1/s2 may flip, we track by initial turn. this is used
+    // to establish final flow shift based on smoothing post-converged
+    // new altflow = step * original alt flow + (1-step) * converged alt flow
+    // just know we have to work our way backward from final situation to construct the new alt flow as we work with flow shifts
+    Map<ConjugateEdgeSegment, Double> originalAlternativeSendingFlows = new TreeMap<>();
+    originalAlternativeSendingFlows.put(pas.getFirstEdgeSegment(true),s1SendingFlow);
+    // high cost is populated in first internal iteration as it is computed their anyway
+    var originalPasBushes = new TreeSet<RootedBush<?,?>>(pas.getRegisteredBushes());
+
     double prevPasGap = Double.MAX_VALUE;
     double pasGap = prevPasGap;
 
@@ -2714,7 +2724,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     var sb = (isDestinationTrackedForLogging() || logAll) ? new StringBuilder() : null;
     do{
 
-      if (pas.pasId == 26L) { // local PAS update
+      if (pas.pasId == 6781L) { // local PAS update
         int bla = 4;
 
         var theNode = ((ConjugateDirectedVertex)pas.getMergeVertex()).getOriginalEdgeSegment().getUpstreamVertex();
@@ -2739,6 +2749,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
       double remainingS2SendingFlow = bushS2RemainingSendingFlows.values().stream().mapToDouble(e -> e).sum();
       double guaranteedS2SendingFlow = remainingS2SendingFlow; // use latest always as it may be higher than original
+
+      // for smoothing, see above
+      if(internalIteration == 1){
+        originalAlternativeSendingFlows.put(pas.getFirstEdgeSegment(false),guaranteedS2SendingFlow);
+      }
 
       if(guaranteedS2SendingFlow <= 0 ){
         removeZeroFlowBushesFromPas(false);
@@ -2931,10 +2946,13 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }while(!converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED);
 
     // bush smoothing - final shift if stepsize is reduced
-    if(!pas.hasRegisteredBush(originalBush)){
-      pas.registerBush(originalBush); // re-register as smoothing will add some flow back in to zero flow alt.
-    }
-    double finalAppliedFlowShift = performFinalShiftForSmoothing(originalBush, originalAlternativeSendingFlows, theMode,
+    // re-register all as smoothing will add some flow back in to zero flow alt if shifts occurred.
+    // todo: very ugly, we probably should simply not unregister bushes and have a better mechanism in the final shift
+    //  to deal with near zero situations if this approach works...
+    originalPasBushes.forEach( b -> pas.registerBush((RootedBush<ConjugateDirectedVertex, ConjugateEdgeSegment>) b));
+    double finalAppliedFlowShift = performFinalShiftForSmoothing(
+        originalAlternativeSendingFlows,
+        theMode,
         conjStrategy,
         originalNlConsistentFlowAcceptanceFactors,
         originalNetworkCosts,
@@ -2953,7 +2971,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   // only exists to have common code between no node model update and node model update evrsion of bush smoothing after
   // internal pas convergence/stoppage
   private double performFinalShiftForSmoothing(
-      ConjugateDestinationBush originalBush,
       Map<ConjugateEdgeSegment, Double> originalAlternativeSendingFlows,
       Mode theMode,
       StaticLtmConjugateBushStrategy conjStrategy,
@@ -2962,66 +2979,94 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double[] conjSegmentCosts,
       Set<ConjugateDestinationBush> bushes, boolean logAll, boolean networkNodeModelUpdate) {
 
-    double finalHighCostSubPathSendingFlow = originalBush.determineSubPathSendingFlow(
-        pas.getAlternative(false), conjStrategy.getLoading().getCurrentFlowAcceptanceFactors());
-    double finalLowCostSubPathSendingFlow = originalBush.determineSubPathSendingFlow(
-        pas.getAlternative(true), conjStrategy.getLoading().getCurrentFlowAcceptanceFactors());
+    double originalHighCostSendingFlow = originalAlternativeSendingFlows.get(pas.getFirstEdgeSegment(false));
+    double originalLowCostSendingFlow = originalAlternativeSendingFlows.get(pas.getFirstEdgeSegment(true));
 
-    if(finalHighCostSubPathSendingFlow == 0 || finalLowCostSubPathSendingFlow==0){
-      // for now we ignore smoothing on PASs that are no longer considered due to zero flow after shifting.
-      // reason is to not get stuck with incrementally small shifts that never make a PAS go away.
-      // if it turns out this is too aggressive, we can apply a check like done for congested where if <5 flow
-      // and we removed all of it then we can consider removing it or something
+    ConjugateDestinationBush mostRestrictiveSmoothingBush = null;
+    double mostRestrictiveSmoothingFactor = Double.MAX_VALUE;
+
+    // per bush determine the final subpath sending flow, so we can apply smoothing per bush based on the
+    // per bush smoothing step size.
+    Map<ConjugateDestinationBush, Double> bushFinalHighCostSendingFlows = new TreeMap<>();
+    double finalHighCostSubPathSendingFlow = 0;
+    for (var bush : pas.getRegisteredBushes()) {
+      double remainingHighCostSendingFlow = bush.determineSubPathSendingFlow(
+          pas.getAlternative(false), conjStrategy.getLoading().getCurrentFlowAcceptanceFactors());
+      double remainingLowCostSendingFlow = bush.determineSubPathSendingFlow(
+          pas.getAlternative(true), conjStrategy.getLoading().getCurrentFlowAcceptanceFactors());
+      if(remainingLowCostSendingFlow == 0 || remainingHighCostSendingFlow==0){
+        // todo:
+        //  for now we ignore smoothing on bush-PAS combinations that are no longer considered due to zero flow
+        //  after shifting. reason is to try and avoid getting stuck with incrementally small shifts that never make
+        //  a PAS go away on a bush if it turns out this is too aggressive, we can apply a check like done for
+        //  congested where if <5 flow and we removed all of it then we can consider removing it or something
+        continue;
+      }
+
+      double stepSize = ((ConjugateDestinationBush)bush).bushSmoothing.executeRefZero(1);
+      if(stepSize < mostRestrictiveSmoothingFactor) {
+        mostRestrictiveSmoothingFactor = stepSize;
+        mostRestrictiveSmoothingBush = (ConjugateDestinationBush) bush;
+      }
+
+      finalHighCostSubPathSendingFlow += remainingHighCostSendingFlow;
+      bushFinalHighCostSendingFlows.put((ConjugateDestinationBush) bush, remainingHighCostSendingFlow);
+    }
+
+    // find the most restricting stepsize across the bushes involved, that will be the step size we use for
+    // smoothing overall for the PAS
+    double compensatoryShiftToMeetTarget = 0;
+    if(mostRestrictiveSmoothingBush!=null){
+      // we can use one of the alts as reference as they should be symmetric anyway
+      double totalShiftedFlow = Math.abs(originalHighCostSendingFlow - finalHighCostSubPathSendingFlow);
+      boolean refShiftReduced = finalHighCostSubPathSendingFlow < originalHighCostSendingFlow;
+      double proposedSmoothedTargetShiftedFlow = mostRestrictiveSmoothingBush.bushSmoothing.executeRefZero(totalShiftedFlow);
+      if((totalShiftedFlow - proposedSmoothedTargetShiftedFlow) > EPSILON_12) {
+        compensatoryShiftToMeetTarget = totalShiftedFlow - proposedSmoothedTargetShiftedFlow;
+        // since we used the currently labelled high cost alternative for reference:
+        // case 1: if that alternative has a flow reduction --> we should now add to high cost to smooth ->
+        //  s1-- and s2++ --> negate the flow shift since base line expects a positive value leading to s1++/s2--
+        // case 2: if that alternative has a flow increase --> we should now remove from high cost to smooth ->
+        //  s1++ and s2-- --> keep comp flow shift positive as is since base line expects a positive value leading to s1++/s2--
+        compensatoryShiftToMeetTarget *= refShiftReduced ? -1 : 1;
+
+        if(isDestinationTrackedForLogging() || logAll) {
+          var message = String.format("  SMOOTHING COMP SHIFT - appl shift to conv: %.10f - target: %.10f --> comp shift: %.10f",
+              totalShiftedFlow,
+              proposedSmoothedTargetShiftedFlow,
+              compensatoryShiftToMeetTarget);
+          //sb.append(message).append(System.lineSeparator());
+          LOGGER.info(message);
+        }
+    }
+
+    if(compensatoryShiftToMeetTarget == 0) {
       return 0;
     }
 
-    double originalHighCostSendingFlow = originalAlternativeSendingFlows.get(pas.getFirstEdgeSegment(false));
-    double originalLowCostSendingFlow = originalAlternativeSendingFlows.get(pas.getFirstEdgeSegment(true));
-    double totalOriginalSendingFlow =  originalHighCostSendingFlow + originalLowCostSendingFlow;
-    double totalFinalSendingFlow =  finalLowCostSubPathSendingFlow + finalHighCostSubPathSendingFlow;
-
-    // we can use one of the alts as reference as they should be symmetric anyway
-    double totalShiftedFlow = Math.abs(originalHighCostSendingFlow - finalHighCostSubPathSendingFlow);
-    boolean refShiftReduced = finalHighCostSubPathSendingFlow < originalHighCostSendingFlow;
-    double proposedSmoothedTargetShiftedFlow = originalBush.bushSmoothing.executeRefZero(totalShiftedFlow);
-    if((totalShiftedFlow - proposedSmoothedTargetShiftedFlow) > EPSILON_12) {
-      double compensatoryShiftToMeetTarget = totalShiftedFlow - proposedSmoothedTargetShiftedFlow;
-      // since we used the currently labelled high cost alternative for reference:
-      // case 1: if that alternative has a flow reduction --> we should now add to high cost to smooth ->
-      //  s1-- and s2++ --> negate the flow shift since base line expects a positive value leading to s1++/s2--
-      // case 2: if that alternative has a flow increase --> we should now remove from high cost to smooth ->
-      //  s1++ and s2-- --> keep comp flow shift positive as is since base line expects a positive value leading to s1++/s2--
-      compensatoryShiftToMeetTarget *= refShiftReduced ? -1 : 1;
-
-      if(isDestinationTrackedForLogging() || logAll) {
-        var message = String.format("  SMOOTHING COMP SHIFT - appl shift to conv: %.10f - target: %.10f --> comp shift: %.10f",
-            totalShiftedFlow,
-            proposedSmoothedTargetShiftedFlow,
-            compensatoryShiftToMeetTarget);
-        //sb.append(message).append(System.lineSeparator());
-        LOGGER.info(message);
-      }
-      if(isDestinationTrackedForLogging() || logAll) {
-        var s1Message = "   (before shift) s1 alphas: "+
+    if(isDestinationTrackedForLogging() || logAll) {
+      if(networkNodeModelUpdate) {
+        var s1Message = "   (before shift) s1 alphas: " +
             Arrays.stream(pas.getAlternative(true)).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(
                 es -> String.format("%s:%.6f",
                     es.getXmlId(), conjStrategy.getLoading().getCurrentFlowAcceptanceFactors()[
                         (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(","));
         //sb.append(s1Message).append(System.lineSeparator());
         LOGGER.info(s1Message);
-        var s2Message = "   (before shift) s2 alphas: "+
+        var s2Message = "   (before shift) s2 alphas: " +
             Arrays.stream(pas.getAlternative(false)).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(es -> String.format("%s:%.6f",
                 es.getXmlId(), conjStrategy.getLoading().getCurrentFlowAcceptanceFactors()[
                     (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(","));
         //sb.append(s2Message).append(System.lineSeparator());
         LOGGER.info(s2Message);
       }
+    }
 
-      double singleBushWeight = totalOriginalSendingFlow;
+      double referenceWeight = finalHighCostSubPathSendingFlow;
       if(!networkNodeModelUpdate) {
         executePasFlowShiftNoNodeModelUpdate(
-            singleBushWeight,
-            Map.of(originalBush, singleBushWeight),
+            referenceWeight,
+            bushFinalHighCostSendingFlows,
             compensatoryShiftToMeetTarget,
             theMode,
             conjStrategy,
@@ -3031,8 +3076,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
             logAll);
       }else{
         executePasFlowShiftNodeModelUpdate(
-            singleBushWeight,
-            Map.of(originalBush, singleBushWeight),
+            referenceWeight,
+            bushFinalHighCostSendingFlows,
             compensatoryShiftToMeetTarget,
             theMode,
             originalNlConsistentFlowAcceptanceFactors,
@@ -3044,19 +3089,21 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
       pas.updateCost(conjSegmentCosts);
       if(isDestinationTrackedForLogging() || logAll) {
-        var s1Message = "   (after shift) s1 alphas: "+
-            Arrays.stream(pas.getAlternative(true)).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(
-                es -> String.format("%s:%.6f",
-                    es.getXmlId(), conjStrategy.getLoading().getCurrentFlowAcceptanceFactors()[
-                        (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(","));
-        var s2Message = "   (after shift) s2 alphas: "+
-            Arrays.stream(pas.getAlternative(false)).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(es -> String.format("%s:%.6f",
-                es.getXmlId(), conjStrategy.getLoading().getCurrentFlowAcceptanceFactors()[
-                    (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(","));
-        //sb.append(s1Message).append(System.lineSeparator());
-        //sb.append(s2Message).append(System.lineSeparator());
-        LOGGER.info(s1Message);
-        LOGGER.info(s2Message);
+        if(networkNodeModelUpdate) {
+          var s1Message = "   (after shift) s1 alphas: " +
+              Arrays.stream(pas.getAlternative(true)).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(
+                  es -> String.format("%s:%.6f",
+                      es.getXmlId(), conjStrategy.getLoading().getCurrentFlowAcceptanceFactors()[
+                          (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(","));
+          var s2Message = "   (after shift) s2 alphas: " +
+              Arrays.stream(pas.getAlternative(false)).filter(ConjugateEdgeSegment::hasOriginalEntryEdgeSegment).map(es -> String.format("%s:%.6f",
+                  es.getXmlId(), conjStrategy.getLoading().getCurrentFlowAcceptanceFactors()[
+                      (int) es.getOriginalAdjacentEdgeSegments().first().getId()])).collect(Collectors.joining(","));
+          //sb.append(s1Message).append(System.lineSeparator());
+          //sb.append(s2Message).append(System.lineSeparator());
+          LOGGER.info(s1Message);
+          LOGGER.info(s2Message);
+        }
         var message = "   (after shift) cost diff: "+pas.getReducedCost();
         //sb.append(message).append(System.lineSeparator());
         LOGGER.info(message);

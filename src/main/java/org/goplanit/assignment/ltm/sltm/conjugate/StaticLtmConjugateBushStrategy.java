@@ -57,6 +57,8 @@ public class StaticLtmConjugateBushStrategy
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmConjugateBushStrategy.class.getCanonicalName());
 
+  private double prevNetworkRealisedCost = Double.MAX_VALUE; // use as an additional way to update bush smoothing steps
+
   /** access to original bush turn flows. To be used for constraining identifying available sending flows
    * for flow shifts. Requires updating when constraining further as part of this instance conducting
    * flow shifts, so it is available to other PASs as a constraint.
@@ -158,7 +160,7 @@ public class StaticLtmConjugateBushStrategy
       for (var pas : sortedPass) {
         var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
 
-        if (pas.pasId == 149L) {
+        if (pas.pasId == 3941L) {
           int bla = 4; // uncongested
         }
 
@@ -795,17 +797,17 @@ public class StaticLtmConjugateBushStrategy
       }
     }
 
-    // REJIGG ZERO FLOW SHORTEST PATH TREE
-    for (var conjBush : getBushes()) {
-      if (conjBush == null) {
-        continue;
-      }
-      if(conjBush.currentActiveBush) {
-        // only optimise current active bush otherwise we are adding segments that are not populated with
-        // pas flow leading to problems (when switching active bush, rejig
-        optimiseZeroFlowSpanningTreeConnections(conjBush, conjLinkSegmentCosts);
-      }
-    } 
+//    // REJIGG ZERO FLOW SHORTEST PATH TREE
+//    for (var conjBush : getBushes()) {
+//      if (conjBush == null) {
+//        continue;
+//      }
+//      // optimise active bush otherwise we are adding segments that are not populated with
+//      // pas flow leading to problems (when switching active bush, rejig
+//      if(conjBush.currentActiveBush) {
+//        optimiseZeroFlowSpanningTreeConnections(conjBush, conjLinkSegmentCosts);
+//      }
+//    }
 
 //    // BUSH SELECTION - WORST BUSH
 //    ConjugateDestinationBush worstBush = null;
@@ -868,79 +870,82 @@ public class StaticLtmConjugateBushStrategy
 ////      }
 //    }
 
-    // BUSH SELECTION - ACTIVE BUSH UNLESS CONVERGED --> NEXT
-    ConjugateDestinationBush theActiveBush = getBushes().stream().dropWhile(b -> !b.currentActiveBush).findFirst().orElse(
-        getBushes().stream().findFirst().get());
-    theActiveBush.currentActiveBush = true;
+    // BUSH SELECTION - FIRST ACTIVE BUSH UNLESS CONVERGED --> NEXT
+//    ConjugateDestinationBush theActiveBush = getBushes().stream().dropWhile(b -> !b.currentActiveBush).findFirst().orElse(
+//        getBushes().stream().findFirst().get());
+//    theActiveBush.currentActiveBush = true;
+//
+//    final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
+//    var networkMinPaths = conjNetworkShortestPathAlgo.execute(
+//        theActiveBush.getShortestSearchType(), theActiveBush.getRootVertex());
+//
+//    double scaledMinCostBush = theActiveBush.updateBushRealisedGapInformation(
+//        conjugateTransportModelNetwork, conjNetworkShortestPathAlgo, getOdDemands(mode), conjLinkSegmentCosts);
+//
+//    double bushUpperBoundGap =
+//        (theActiveBush.getRealisedCostForGap() - theActiveBush.getMinCostForGap())/theActiveBush.getMinCostForGap();
+//    double bushLowerBoundGap =
+//        (scaledMinCostBush - theActiveBush.getMinCostForGap())/theActiveBush.getMinCostForGap();
+//
+//    // bush smoothing
+//    // when lower bound gap is zero we only consider upper bound, wehn non-zero and inching towards upper the bush itself is con
+//    theActiveBush.bushSmoothing.updateIsBadIteration(
+//        theActiveBush.prevIterationInitialGap, bushUpperBoundGap-bushLowerBoundGap);
+//    theActiveBush.bushSmoothing.updateIteration(theActiveBush.bushSmoothing.getIteration() + 1);
+//    theActiveBush.prevIterationInitialGap = bushUpperBoundGap-bushLowerBoundGap;
+//
+//    // here we update step --> once a PAS has converged, we then scale back by performing one final flow shift between the
+//    // original setup and the final one to get the correct shift (and network state).
+//    if(theActiveBush.bushSmoothing.isBadIteration()){
+//      LOGGER.info("BUSH GAP NOT IMPROVING --> BAD ITERATION FOUND --> CONSTRAINING STEP");
+//      theActiveBush.bushSmoothing.updateStepSize();
+//    }
+//
+//    boolean bushReachedNetworkGapConvergence = bushUpperBoundGap <= getGapFunction().getStopCriterion().getEpsilon();
+//    boolean bushReachMaxConvergenceUnderCycleLimitation = bushLowerBoundGap>0 &&
+//        (bushUpperBoundGap-bushLowerBoundGap)/bushLowerBoundGap < Precision.EPSILON_3;
+//    if(bushReachedNetworkGapConvergence || bushReachMaxConvergenceUnderCycleLimitation) {
+//      if(bushReachedNetworkGapConvergence) {
+//        LOGGER.info(String.format("******************* BUSH %s CONVERGED SWITCHING ******************", theActiveBush.getRootZone().getIdsAsString()));
+//      }else{
+//        // cannot added certain shortest paths due to cycle detection, unable to fully converge, move to other bush instead
+//        LOGGER.info(String.format("!!!!!!!!!!!!!!!!!!! BUSH %s CYCLE LIMITED, SWITCHING !!!!!!!!!!!!!!!!!!", theActiveBush.getRootZone().getIdsAsString()));
+//      }
+//      // change current active bush to next one in rotation, otherwise keep going as we haven't converged
+//      boolean activateNext = false;
+//      for (var conjBush : getBushes()) {
+//        if (conjBush == null) {
+//          continue;
+//        }
+//        if(activateNext) {
+//          theActiveBush = conjBush;
+//          theActiveBush.currentActiveBush = true;
+//          activateNext = false;
+//          break;
+//        }
+//        if (conjBush.currentActiveBush) {
+//          activateNext = true;
+//          conjBush.currentActiveBush = false; //reset
+//          conjBush.prevIterationInitialGap = Double.MAX_VALUE; //reset
+//          theActiveBush.bushSmoothing.reset();
+//          //requires explicit reset because normally we wouldn't reset to zero, but for bush smoothing we currently
+//          // reset it once the bush has converged as this is its only purpose, not across outer loop iterations
+//          theActiveBush.bushSmoothing.updateIteration(0);
+//        }
+//      }
+//      if(activateNext) {
+//        //wrap around, start with first again
+//        theActiveBush = getBushes().stream().filter(Objects::nonNull).findFirst().get();
+//        theActiveBush.currentActiveBush = true;
+//      }
+//
+//      // rejig new active bush, otherwise we won't get correct PASs as things have changed on network level
+//      // since last bush update
+//      optimiseZeroFlowSpanningTreeConnections(theActiveBush, conjLinkSegmentCosts);
+//      LOGGER.info(String.format("******************* BUSH %s TO UPDATE (gap %.10f )******************",theActiveBush));
+//    }
+//    Set<ConjugateDestinationBush> eligibleBushes = Set.of(theActiveBush);
 
-    final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
-    var networkMinPaths = conjNetworkShortestPathAlgo.execute(
-        theActiveBush.getShortestSearchType(), theActiveBush.getRootVertex());
-
-    double scaledMinCostBush = theActiveBush.updateBushRealisedGapInformation(
-        conjugateTransportModelNetwork, conjNetworkShortestPathAlgo, getOdDemands(mode), conjLinkSegmentCosts);
-
-    double bushUpperBoundGap =
-        (theActiveBush.getRealisedCostForGap() - theActiveBush.getMinCostForGap())/theActiveBush.getMinCostForGap();
-    double bushLowerBoundGap =
-        (scaledMinCostBush - theActiveBush.getMinCostForGap())/theActiveBush.getMinCostForGap();
-
-    // bush smoothing
-    // when lower bound gap is zero we only consider upper bound, wehn non-zero and inching towards upper the bush itself is con
-    theActiveBush.bushSmoothing.updateIsBadIteration(
-        theActiveBush.prevIterationInitialGap, bushUpperBoundGap-bushLowerBoundGap);
-    theActiveBush.bushSmoothing.updateIteration(theActiveBush.bushSmoothing.getIteration() + 1);
-    theActiveBush.prevIterationInitialGap = bushUpperBoundGap-bushLowerBoundGap;
-
-    // here we update step --> once a PAS has converged, we then scale back by performing one final flow shift between the
-    // original setup and the final one to get the correct shift (and network state).
-    if(theActiveBush.bushSmoothing.isBadIteration()){
-      LOGGER.info("BUSH GAP NOT IMPROVING --> BAD ITERATION FOUND --> CONSTRAINING STEP");
-      theActiveBush.bushSmoothing.updateStepSize();
-    }
-
-    boolean bushReachedNetworkGapConvergence = bushUpperBoundGap <= getGapFunction().getStopCriterion().getEpsilon();
-    boolean bushReachMaxConvergenceUnderCycleLimitation = bushLowerBoundGap>0 &&
-        (bushUpperBoundGap-bushLowerBoundGap)/bushLowerBoundGap < Precision.EPSILON_3;
-    if(bushReachedNetworkGapConvergence || bushReachMaxConvergenceUnderCycleLimitation) {
-      if(bushReachedNetworkGapConvergence) {
-        LOGGER.info(String.format("******************* BUSH %s CONVERGED SWITCHING ******************", theActiveBush.getRootZone().getIdsAsString()));
-      }else{
-        // cannot added certain shortest paths due to cycle detection, unable to fully converge, move to other bush instead
-        LOGGER.info(String.format("!!!!!!!!!!!!!!!!!!! BUSH %s CYCLE LIMITED, SWITCHING !!!!!!!!!!!!!!!!!!", theActiveBush.getRootZone().getIdsAsString()));
-      }
-      // change current active bush to next one in rotation, otherwise keep going as we haven't converged
-      boolean activateNext = false;
-      for (var conjBush : getBushes()) {
-        if (conjBush == null) {
-          continue;
-        }
-        if(activateNext) {
-          theActiveBush = conjBush;
-          theActiveBush.currentActiveBush = true;
-          activateNext = false;
-          break;
-        }
-        if (conjBush.currentActiveBush) {
-          activateNext = true;
-          conjBush.currentActiveBush = false; //reset
-          conjBush.prevIterationInitialGap = Double.MAX_VALUE; //reset
-          theActiveBush.bushSmoothing.reset();
-          //requires explicit reset because normally we wouldn't reset to zero, but for bush smoothing we currently
-          // reset it once the bush has converged as this is its only purpose, not across outer loop iterations
-          theActiveBush.bushSmoothing.updateIteration(0);
-        }
-      }
-      if(activateNext) {
-        //wrap around, start with first again
-        theActiveBush = getBushes().stream().filter(Objects::nonNull).findFirst().get();
-        theActiveBush.currentActiveBush = true;
-      }
-
-      // rejig new active bush, otherwise we won't get correct PASs as things have changed on network level
-      // since last bush update
-      optimiseZeroFlowSpanningTreeConnections(theActiveBush, conjLinkSegmentCosts);
-    }
 
     // ALTERNATIVE BUSH PRUNING BASED ON BUSH GAP CALC
     int countGapSkippedBushes = 0;
@@ -950,72 +955,60 @@ public class StaticLtmConjugateBushStrategy
         continue;
       }
 
-      // TEST --> ONLY CONSIDER ONE BUSH
-//      if (conjBush != worstBush) {
-//        continue;
-//      }
-      if (!conjBush.currentActiveBush) {
-        continue;
-      }
-      LOGGER.info(String.format("******************* BUSH %s TO UPDATE (gap %.10f )******************",
-          conjBush.getRootZone().getIdsAsString(), bushUpperBoundGap));
-//
-//      boolean excludeZeroFlowLinksFromMaxPaths = true; // as before we only want paths with flow
-//      var bushMinMaxTree = conjBush.computeMinMaxShortestPaths(excludeZeroFlowLinksFromMaxPaths,
-//          conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
-//
-//      // update upper bound of realised cost across bushes(Ods) for gap calculation
-//      // (using max bush cost as actual realised cost will be lower as not all flow is on the worst used path)
-//      // NOTE: we could compute actual realised cost but then we'd have to traverse the entire bush first and
-//      // since we use this as a selection mechanism only for what bushes to update. If this works well enough then
-//      // we can void processing the entire bush and save more time.
-//      // todo: if this does not work well enough we can pivot to compute the true gap to have a better estimate
-//      double scaledMaxCostBush = 0;
-//      double totalDestinationDemand = 0;
-//      bushMinMaxTree.setMinPathState(false);
-//      var odDemands = getOdDemands(mode);
-//      var destination = conjBush.getDestination().getParent().getParentZone();
-//      for (var originVertex : conjBush.getOriginVertices()) {
-//        var origin = ((ConjugateConnectoidNode) originVertex).getCentroidVertex().getParent().getParentZone();
-//        double odDemand = odDemands.getValue(origin, destination);
-//        if (odDemand <= 0.0) {
-//          continue;
-//        }
-//        totalDestinationDemand += odDemand;
-//        double maxOdCost = bushMinMaxTree.getCostToReach(originVertex);
-//        double scaledMaxCostBushOd = maxOdCost * odDemand;
-//        scaledMaxCostBush += scaledMaxCostBushOd;
-//      }
-//      conjBush.setRealisedCostForGap(scaledMaxCostBush);
-//      if (!(getGapFunction() instanceof PathBasedGapFunction)) {
-//        throw new PlanItRunTimeException("current bush gap calculation incompatible with applied gap function on assignment");
-//      }
-//
-//      double bushUpperBoundGap =
-//          (conjBush.getRealisedCostForGap() - conjBush.getMinCostForGap()) / conjBush.getMinCostForGap();
-//      LOGGER.info(String.format("BUSH (%s) - totalDemand %.4f : upper bound GAP %.15f",
-//          conjBush.getRootZone().getIdsAsString(), totalDestinationDemand, bushUpperBoundGap));
-//      // compute gap based on most recent info (but do not update previous gap as this is handled by
-//      // generic gap logging in iteration processing
-//      if (conjBush.isConvergedBeyond(getGapFunction().computeGap(false))) {
-//        // bush is converged more than network wide gap carried over from previous iteration,
-//        // skip for processing, do not generate PASs, or register on PASs, shift focus on more problematic bushes
-//        // first
-//        ++countGapSkippedBushes;
-//      }else{
-        eligibleBushes.add(conjBush);
-//      }
-    }
+      // for each bush determine if we're converging, moving away from convergence or have converged
+      // to determine its step size for smoothing
+      final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
+      double scaledMinCostBush = conjBush.updateBushRealisedGapInformation(
+          conjugateTransportModelNetwork, conjNetworkShortestPathAlgo, getOdDemands(mode), conjLinkSegmentCosts);
 
+      double bushUpperBoundGap =
+          (conjBush.getRealisedCostForGap() - conjBush.getMinCostForGap())/conjBush.getMinCostForGap();
+      double bushLowerBoundGap =
+          (scaledMinCostBush - conjBush.getMinCostForGap())/conjBush.getMinCostForGap();
+
+      // bush smoothing
+      // when lower bound gap is zero we only consider upper bound, when non-zero and inching towards upper the bush itself is con
+      conjBush.bushSmoothing.updateIsBadIteration(
+          conjBush.prevIterationInitialGap, bushUpperBoundGap);
+      conjBush.bushSmoothing.updateIteration(conjBush.bushSmoothing.getIteration() + 1);
+      // here we update step --> once a PAS has converged, we then scale back by performing one final flow shift between the
+      // original setup and the final one to get the correct shift (and network state).
+      if(conjBush.bushSmoothing.isBadIteration() && prevNetworkRealisedCost<totalRealisedCostForGap){
+        LOGGER.info(String.format(
+            "BUSH (%s) GAP NOT IMPROVING --> BAD ITERATION FOUND --> CONSTRAINING STEP", conjBush.getRootZone().getIdsAsString()));
+        conjBush.bushSmoothing.updateStepSize();
+      }
+      conjBush.prevIterationInitialGap = bushUpperBoundGap;
+
+      boolean bushReachedNetworkGapConvergence = bushUpperBoundGap <= getGapFunction().getStopCriterion().getEpsilon();
+      boolean bushReachMaxConvergenceUnderCycleLimitation = bushLowerBoundGap>0 &&
+          (bushUpperBoundGap-bushLowerBoundGap)/bushLowerBoundGap < Precision.EPSILON_3;
+      if(bushReachedNetworkGapConvergence || bushReachMaxConvergenceUnderCycleLimitation) {
+        if (bushReachedNetworkGapConvergence) {
+          LOGGER.info(String.format("******************* BUSH %s CONVERGED (no update) ******************", conjBush.getRootZone().getIdsAsString()));
+        } else {
+          // cannot add certain shortest paths due to cycle detection, unable to fully converge (for now)
+          LOGGER.info(String.format("!!!!!!!!!!!!!!!!!!! BUSH %s CYCLE LIMITED (UPDATE) !!!!!!!!!!!!!!!!!!", conjBush.getRootZone().getIdsAsString()));
+          eligibleBushes.add(conjBush);
+        }
+      }else{
+        LOGGER.info(String.format("++++++++++++++++++++ BUSH %s ELIGIBLE FOR UPDATE ++++++++++++++++++", conjBush.getRootZone().getIdsAsString()));
+        eligibleBushes.add(conjBush);
+      }
+    }
+    prevNetworkRealisedCost = totalRealisedCostForGap;
 
     // **********************************************************************************************
     // FIND PASs for eligible bushes
-    //todo --> should be sets
     Map<Long, Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> passToConsider = new TreeMap<>();
     for (var conjBush : eligibleBushes) {
-      if (conjBush == null) {
-        continue;
-      }
+      // make sure we use the latest zero flow optimal connections --> can only do this now because
+      // we should only add/change zero flow connections when we KNOW they will by used in a PAS and will become
+      // non-zero flow. Otherwise this leads to problems later on with cycle detection
+      // todo: when we compute gap earlier it is not entirely right because we use the pre-updated spanning tree
+      //  however, we cannot update it there because if we do not consider the bush the new added links won't be used
+      //  leading to the problem mentioned, so we accept we're trailing an iteration with that...
+      optimiseZeroFlowSpanningTreeConnections(conjBush, conjLinkSegmentCosts);
 
       // track vertices that have been added due to PAS s1 alternative
       // any new PAS that touches these vertices will not be added because they overlap
