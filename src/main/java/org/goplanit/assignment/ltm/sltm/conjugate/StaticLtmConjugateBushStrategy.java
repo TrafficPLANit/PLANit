@@ -966,35 +966,42 @@ public class StaticLtmConjugateBushStrategy
       double bushLowerBoundGap =
           (scaledMinCostBush - conjBush.getMinCostForGap())/conjBush.getMinCostForGap();
 
-      // bush smoothing
-      // when lower bound gap is zero we only consider upper bound, when non-zero and inching towards upper the bush itself is con
-      conjBush.bushSmoothing.updateIsBadIteration(
-          conjBush.prevIterationInitialGap, bushUpperBoundGap);
-      conjBush.bushSmoothing.updateIteration(conjBush.bushSmoothing.getIteration() + 1);
-      // here we update step --> once a PAS has converged, we then scale back by performing one final flow shift between the
-      // original setup and the final one to get the correct shift (and network state).
-      if(conjBush.bushSmoothing.isBadIteration() && prevNetworkRealisedCost<totalRealisedCostForGap){
-        LOGGER.info(String.format(
-            "BUSH (%s) GAP NOT IMPROVING --> BAD ITERATION FOUND --> CONSTRAINING STEP", conjBush.getRootZone().getIdsAsString()));
-        conjBush.bushSmoothing.updateStepSize();
-      }
-      conjBush.prevIterationInitialGap = bushUpperBoundGap;
-
       boolean bushReachedNetworkGapConvergence = bushUpperBoundGap <= getGapFunction().getStopCriterion().getEpsilon();
       boolean bushReachMaxConvergenceUnderCycleLimitation = bushLowerBoundGap>0 &&
           (bushUpperBoundGap-bushLowerBoundGap)/bushLowerBoundGap < Precision.EPSILON_3;
       if(bushReachedNetworkGapConvergence || bushReachMaxConvergenceUnderCycleLimitation) {
         if (bushReachedNetworkGapConvergence) {
           LOGGER.info(String.format("******************* BUSH %s CONVERGED (no update) ******************", conjBush.getRootZone().getIdsAsString()));
+          // make sure we keep tracking gap even if we're not updating and skipping the rest of the gap/step update
+          conjBush.prevIterationInitialGap = bushUpperBoundGap;
+          continue;
         } else {
           // cannot add certain shortest paths due to cycle detection, unable to fully converge (for now)
           LOGGER.info(String.format("!!!!!!!!!!!!!!!!!!! BUSH %s CYCLE LIMITED (UPDATE) !!!!!!!!!!!!!!!!!!", conjBush.getRootZone().getIdsAsString()));
           eligibleBushes.add(conjBush);
         }
       }else{
-        LOGGER.info(String.format("++++++++++++++++++++ BUSH %s ELIGIBLE FOR UPDATE ++++++++++++++++++", conjBush.getRootZone().getIdsAsString()));
+        LOGGER.info(String.format("++++++++++++++++++++ BUSH %s ELIGIBLE FOR UPDATE (gap %.8f) (step %.4f) ++++++++++++++++++",
+            conjBush.getRootZone().getIdsAsString(), bushUpperBoundGap, conjBush.bushSmoothing.executeRefZero(1)));
         eligibleBushes.add(conjBush);
       }
+
+      // bush smoothing
+      // when lower bound gap is zero we only consider upper bound, when non-zero and inching towards upper the bush itself is con
+      conjBush.bushSmoothing.updateIsBadIteration(conjBush.prevIterationInitialGap, bushUpperBoundGap);
+      conjBush.bushSmoothing.updateIteration(conjBush.bushSmoothing.getIteration() + 1);
+      // here we update step --> once a PAS has converged, we then scale back by performing one final flow shift between the
+      // original setup and the final one to get the correct shift (and network state).
+      if(conjBush.bushSmoothing.isBadIteration() &&
+          getGapFunction().getPreviousGap()<getGapFunction().getGap() &&
+          prevNetworkRealisedCost<totalRealisedCostForGap){
+        LOGGER.info(String.format(
+            "BUSH (%s) GAP NOT IMPROVING (%.6f -> %.6f) --> BAD ITERATION FOUND --> CONSTRAINING STEP",
+            conjBush.getRootZone().getIdsAsString(), conjBush.prevIterationInitialGap, bushUpperBoundGap));
+        conjBush.bushSmoothing.updateStepSize();
+      }
+      conjBush.prevIterationInitialGap = bushUpperBoundGap;
+
     }
     prevNetworkRealisedCost = totalRealisedCostForGap;
 
