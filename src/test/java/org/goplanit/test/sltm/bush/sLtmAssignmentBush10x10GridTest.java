@@ -157,11 +157,11 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
       sLTMBuilder.getConfigurator().setNetworkLoadingSendingFlowGapEpsilon(0.000001);
       sLTMBuilder.getConfigurator().setNetworkLoadingReceivingFlowGapEpsilon(0.000001);
 
-      sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
+      //sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(250);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
       sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 

@@ -2,10 +2,10 @@ package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
+import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.assignment.ltm.sltm.conjugate.PasFlowShiftConjugateDestinationBasedExecutor;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
-import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.virtual.SteadyStateConnectoidTravelTimeCost;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.PathBasedGapFunction;
@@ -344,7 +344,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           StaticLtmSimulationData simulationData) {
 
     Collection<ES> linkSegmentsUsed = new HashSet<>(100);
-    boolean smoothOverIterations = false;
+    boolean smoothOverIterations = true;
 
     var flowShiftedPass = new ArrayList<Pas<V,ES>>((int) this.pasManager.getNumberOfActivePass());
     var passWithoutBush = new ArrayList<Pas<V,ES>>();
@@ -388,7 +388,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       // debugging
       boolean logAll = false;//simulationData.getIterationIndex()>=5;
 
-      LOGGER.info(String.format("--- NEXT CONGESTED PASs INTERNAL ITERATION %d ----", iteration));
+      if(getSettings().isDetailedLogging()) {
+        LOGGER.info(String.format("--- NEXT CONGESTED PASs INTERNAL ITERATION %d ----", iteration));
+      }
       //todo re-sort PAS each iteration?
       for (var pas : sortedPass) {
 
@@ -397,11 +399,23 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           continue;
         }
 
-        if (pas.pasId == 532L) {
+        if (pas.pasId == 2946L) {
           int bla = 4;
         }
 
         var pasFlowShifter = pasExecutors.get(pas);
+
+        if(iteration == 1 && pasFlowShifter instanceof PasFlowShiftConjugateDestinationBasedExecutor){
+          // initialise with original sending flow
+          for (var bush : pas.getRegisteredBushes()) {
+            double remainingSubPathSendingFlow = bush.determineSubPathSendingFlow(
+                pas.getAlternative(false), getLoading().getCurrentFlowAcceptanceFactors());
+            if(remainingSubPathSendingFlow > 0) {
+              ((PasFlowShiftConjugateDestinationBasedExecutor)pasFlowShifter).
+                  originalSendingFlowForInitialAltTurn.put((ConjugateDestinationBush) bush, remainingSubPathSendingFlow);
+            }
+          }
+        }
 
         /* cannot do overlapping PASs without network loading update, so skip those for now */
         if (!getSettings().isAllowOverlappingPasUpdate() && pas.containsAny(linkSegmentsUsed)) {
@@ -544,11 +558,15 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
     // UNCONGESTED ONLY
     var flowShiftedAndObsoletePass = attemptUncongestedFlowShift(
-        theMode, sortedPass, pasExecutors, originalNetworkCosts, simulationData);
+        theMode,
+        sortedPass,
+        pasExecutors,
+        originalNetworkCosts,
+        simulationData);
     ArrayList<Pas<V,ES>> flowShiftedPass = flowShiftedAndObsoletePass.first();
     ArrayList<Pas<V,ES>> passWithoutBush = flowShiftedAndObsoletePass.second();
 
-    //updatedPass.forEach( p -> LOGGER.info("Updated PAS: " + p.toString()));
+      //updatedPass.forEach( p -> LOGGER.info("Updated PAS: " + p.toString()));
     LOGGER.info(String.format("%.2f%% Uncongested Flow shifts performed: %d ---- [#Uncongested PASs without remaining flows %d)]",
         ((double)flowShiftedPass.size()*100.0)/sortedPass.size(), flowShiftedPass.size(), passWithoutBush.size()));
 
@@ -559,6 +577,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     LOGGER.info(String.format("%.2f%% Congested Flow shifts performed: %d ---- [#Uncongested PASs without remaining flows %d)]",
         ((double)flowShiftedAndObsoletePass.first().size()*100.0)/sortedPass.size(), flowShiftedAndObsoletePass.first().size(), flowShiftedAndObsoletePass.second().size()));
 
+    // smoothing - final shift based on tracked turn flow for uncongested and congested shifts
+    // TODO: we should integrate the uncongested and congested shifts in a single outer-inner loop!
+    performPasSmoothing(theMode, originalNetworkCosts, pasExecutors, false);
+
     flowShiftedPass.addAll(flowShiftedAndObsoletePass.first());
     passWithoutBush.addAll(flowShiftedAndObsoletePass.second());
 
@@ -567,6 +589,38 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     flowShiftingStepEightFinalise(passWithoutBush);
 
     return flowShiftedPass;
+  }
+
+  private void performPasSmoothing(
+      Mode theMode,
+      double[] originalNetworkCosts,
+      Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
+      boolean logAll) {
+    for(var pasExecutor : pasExecutors.values()){
+      // ugly, refactor when only conjugate is used
+      if(pasExecutor instanceof PasFlowShiftConjugateDestinationBasedExecutor) {
+
+        var conjStrategy = (StaticLtmConjugateBushStrategy)this;
+        double[] conjSegmentCosts = ((StaticLtmConjugateBushStrategy)this).expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
+                  theMode, originalNetworkCosts, true);
+
+        boolean nodeModelUpdate = pasExecutor.pas.pasStatus == PasStatus.CONGESTED || pasExecutor.pas.pasStatus == PasStatus.UNCONGESTED_POTENTIALLY_CONGESTED;
+
+        // not consistent anymore but since we are only smoothing it does not really matter which factors we provide
+        // in refactored version we should be able to remove this entirely from this call (same goes for costs)
+        var originalNlConsistentFlowAcceptanceFactors = getLoading().getCurrentFlowAcceptanceFactors();
+        ((PasFlowShiftConjugateDestinationBasedExecutor)pasExecutor).performFinalShiftForSmoothing(
+            theMode,
+            conjStrategy,
+            originalNlConsistentFlowAcceptanceFactors,
+            originalNetworkCosts,
+            conjSegmentCosts,
+            (Set<ConjugateDestinationBush>) bushes,
+            logAll,
+            nodeModelUpdate /*nodeModelUpdate*/,
+            1);
+      }
+    }
   }
 
   /**
@@ -917,8 +971,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         if(getSettings().isDetailedLogging()) {
           LOGGER.info(String.format("Newly added PASs: %d (active: %d))",
                   passToConsider.size(), pasManager.getNumberOfActivePass()));
+          for(var pas : passToConsider.values()){
+            LOGGER.info(String.format("PAS: %s ",pas));
+          }
         }
-
 
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
         {
