@@ -48,7 +48,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   //todo: remove when no longer needed, now identified beforehand via missing s1 links method
   private final Map<ES, Set<RootedBush<V,ES>>> addedEdgeSegmentsForBushes = new TreeMap<>();
 
-  /** track (local) flow shifted data from S2 flow shifts to be used for S1 flow shifts in opposite direction */
+  /** track flow shifted data from S2 flow shifts to be used for S1 flow shifts in opposite direction */
   private final Map<EdgeSegment, Map<RootedBush<V,ES>, BushEntryShiftedS2FlowData>>
           flowShiftedS2BushData = new TreeMap<>();
 
