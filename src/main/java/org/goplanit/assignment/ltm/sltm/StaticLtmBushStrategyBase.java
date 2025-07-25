@@ -255,10 +255,29 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       }
     };
 
+    // regular reduced cost * flow based comparator
+    final Comparator<Pas<V,ES>> PAS_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
+      double p1Cost = p1.getReducedCost() * pasExecutors.get(p1).getS2SendingFlow();
+      double p2Cost = p2.getReducedCost() * pasExecutors.get(p2).getS2SendingFlow();
+      if (p1Cost > p2Cost) {
+        return -1;
+      } else if (p1Cost < p2Cost) {
+        return 1;
+      } else {
+        return 0;
+      }
+    };
+
     // normalised cost * flow based comparator
     Comparator<Pas<V,ES>> PAS_REDUCED_COST = (p1,p2) ->
         Double.compare(p1.getReducedCost(), p2.getReducedCost());
     PAS_REDUCED_COST = PAS_REDUCED_COST.reversed();
+
+    // flow based comparator
+    Comparator<Pas<V,ES>> PAS_FLOW = (p1,p2) ->
+        Double.compare(pasExecutors.get(p1).getS1SendingFlow() + pasExecutors.get(p1).getS2SendingFlow(),
+            pasExecutors.get(p2).getS1SendingFlow() + pasExecutors.get(p2).getS2SendingFlow());
+    PAS_FLOW = PAS_FLOW.reversed();
 
     /* Sort all remaining PAss based on comparator */
     return this.pasManager.getActivePassSortedByReducedCost(PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR);

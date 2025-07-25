@@ -2710,7 +2710,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // post-convergence smoothing --> since s1/s2 may flip, we track by initial turn. this is used
     // to establish final flow shift based on smoothing post-converged
     // new altflow = step * original alt flow + (1-step) * converged alt flow
-    Map<ConjugateEdgeSegment, Double> flowShiftTrackerByInitialAltTurn = new TreeMap<>();
     var originalPasBushes = new TreeSet<RootedBush<?,?>>(pas.getRegisteredBushes());
 
     double prevPasGap = Double.MAX_VALUE;
@@ -2736,7 +2735,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
     do{
 
-      if (pas.pasId == 6781L) { // local PAS update
+      if (pas.pasId == 1677L) { // local PAS update
         int bla = 4;
 
         var theNode = ((ConjugateDirectedVertex)pas.getMergeVertex()).getOriginalEdgeSegment().getUpstreamVertex();
@@ -2920,7 +2919,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           (pas.getAlternativeLowCost() * Math.max(1,(s1SendingFlow + s2SendingFlow)));
 
 
-      if(costSwitch && prevPasGap<pasGap){
+      if(costSwitch){
         // stepping over optimal result and in doing so moving farther away from solution --> impose bisection bound
         // halfway since we know it must reside in between the previous state and the new state with the current
         // flow shift applied
@@ -3029,6 +3028,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         mostRestrictiveSmoothingBush = bush;
       }
     }
+
+    assert totalRemovedFlow <= 0;
 
     // find the most restricting stepsize across the bushes involved, that will be the step size we use for
     // smoothing overall for the PAS
