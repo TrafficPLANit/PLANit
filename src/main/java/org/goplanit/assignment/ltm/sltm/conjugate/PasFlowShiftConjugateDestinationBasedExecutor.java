@@ -42,6 +42,18 @@ import static org.goplanit.utils.math.Precision.*;
 public class PasFlowShiftConjugateDestinationBasedExecutor
         extends PasFlowShiftExecutor<ConjugateDirectedVertex, ConjugateEdgeSegment> {
 
+  private static final double STATE_CHANGE_LEEWAY_PERCENTAGE = 0.005;
+  private static final double SLACK_ABSOLUTE_FLOW_LEEWAY = 1;
+
+  private static double adjustFlowShiftBasedOnSlackFlow(double proposedShift, double slackFlowEstimate, boolean isS1){
+    double leeway = Math.max(SLACK_ABSOLUTE_FLOW_LEEWAY, slackFlowEstimate * STATE_CHANGE_LEEWAY_PERCENTAGE);
+    if(isS1) {
+      return adjustFlowShiftBasedOnS1SlackFlow(proposedShift, slackFlowEstimate, leeway);
+    }else{
+      return adjustFlowShiftBasedOnS2SlackFlow(proposedShift, slackFlowEstimate, leeway);
+    }
+  }
+
   /** track total sending flow on s1 and s2 alternatives of this flow shift executor's PAS */
   private Pair<Double,Double> s1S2SendingFlows;
 
@@ -60,6 +72,31 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    */
   private final static Logger LOGGER = Logger.getLogger(
           PasFlowShiftConjugateDestinationBasedExecutor.class.getCanonicalName());
+
+  private void updateOriginalBushTurnFlowTracker() {
+    var s1Alternative = pas.getAlternative(true);
+    var s2Alternative = pas.getAlternative(false);
+    for(var bush : pas.getRegisteredBushes()){
+      var conjBush = (ConjugateDestinationBush) bush;
+      if(!originalBushTurnFlowTracker.containsKey(conjBush)){
+        originalBushTurnFlowTracker.put(conjBush, new ConjugateBushTurnData(conjBush));
+      }
+      var originalBushTurnData = originalBushTurnFlowTracker.get(bush);
+      boolean forceOriginalFlowRegistration  = true;
+      for(var segment : s1Alternative){
+        double flow = bush.getSendingFlowPcuH(segment);
+        if(!originalBushTurnData.containsTurnSendingFlow(segment) && conjBush.contains(segment)){
+          originalBushTurnData.addTurnSendingFlow(segment, flow, forceOriginalFlowRegistration);
+        }
+      }
+      for(var segment : s2Alternative){
+        double flow = bush.getSendingFlowPcuH(segment);
+        if(!originalBushTurnData.containsTurnSendingFlow(segment)){
+          originalBushTurnData.addTurnSendingFlow(segment, flow, forceOriginalFlowRegistration);
+        }
+      }
+    }
+  }
 
   /**
    * Unregister bushes with zero flow from PAS
@@ -278,22 +315,27 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           currentConjSegment, referenceWeight, bushWeights, remainingPasFlowShift, false, logAll);
       double totalBushAppliedFlowShift = acrossBushResult.first();
 
-      // NETWORK LEVEL - UPDATE
-      var networkResult = executeNetworkLevelTurnUpdate(
-          theMode,
-          originalNlFlowAcceptanceFactors,
-          assignmentStrategy,
-          originalNetworkCosts,
-          conjSegmentCosts,
-          bushes,
-          updateNetworkNodeModel,
-          Pair.of(currentConjSegment, totalBushAppliedFlowShift));
-      if(networkResult == null || networkResult.length != 1 || networkResult[0] == null){
-        throw new PlanItRunTimeException("Result of a network update should always be present, should not happen");
+      if(totalBushAppliedFlowShift != 0){
+        // NETWORK LEVEL - UPDATE
+        var networkResult = executeNetworkLevelTurnUpdate(
+            theMode,
+            originalNlFlowAcceptanceFactors,
+            assignmentStrategy,
+            originalNetworkCosts,
+            conjSegmentCosts,
+            bushes,
+            updateNetworkNodeModel,
+            Pair.of(currentConjSegment, totalBushAppliedFlowShift));
+        if(networkResult == null || networkResult.length != 1 || networkResult[0] == null){
+          throw new PlanItRunTimeException("Result of a network update should always be present, should not happen");
+        }
+        var singleResult = networkResult[0];
+        remainingPasFlowShift = singleResult.first();
+        restrictToOutflowUpdateOnly = singleResult.second();
+      }else{
+        remainingPasFlowShift = 0.0;
+        break;
       }
-      var singleResult = networkResult[0];
-      remainingPasFlowShift = singleResult.first();
-      restrictToOutflowUpdateOnly = singleResult.second();
     }
     return Pair.of(remainingPasFlowShift, restrictToOutflowUpdateOnly);
   }
@@ -473,14 +515,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double onTheFlyFlowAcceptanceFactorBefore = 1;
       double onTheFlyTurnInflowBefore = Double.MAX_VALUE;
       if (hasOriginalEntry) {
-        // we only do this if there is a chance of the alphas changing (so potentially congested)
         double nonConjugateBeforeNetworkSplittingRate = beforeNonConjugateSplittingRates[index];
         onTheFlyTurnInflowBefore =
             networkLoading.getCurrentInflowsPcuH()[(int) originalTurnEntrySegment.getId()] * nonConjugateBeforeNetworkSplittingRate;
-        if(doNodeModelUpdate) {
-          nlFlowAcceptanceFactorBefore = originalNlFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
-          onTheFlyFlowAcceptanceFactorBefore = nonConjugateFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
-        }
+        nlFlowAcceptanceFactorBefore = originalNlFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
+        onTheFlyFlowAcceptanceFactorBefore = nonConjugateFlowAcceptanceFactors[(int) originalTurnEntrySegment.getId()];
       }
       beforeNodeModelUpdateInfo[index] = Triple.of(
           nlFlowAcceptanceFactorBefore, onTheFlyFlowAcceptanceFactorBefore, onTheFlyTurnInflowBefore);
@@ -563,17 +602,15 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         // and adding on another we get an increase in the output on the link where we remove flow.
         // this is only possible if the merge is in fact a cross-node where we are shifting flow on a non-most
         // restricting exit for the entry where we are removing flow. We currently test for all this except the
-        // non-most restricintg part to issue a warning or not
+        // non-most restricting part to issue a warning or not
         EdgeSegment originalExitLink = nodeTurnFlowShiftsToApply[0].first().hasOriginalExitEdgeSegment() ?
             nodeTurnFlowShiftsToApply[0].first().getOriginalAdjacentEdgeSegments().second() : null;
-        boolean isMerge = originalExitLink != null &&
+        boolean isMerge = originalExitLink != null && nodeTurnFlowShiftsToApply.length>1 &&
          Arrays.stream(nodeTurnFlowShiftsToApply).allMatch( e ->
             e.first().hasOriginalExitEdgeSegment() && originalExitLink.getId() == e.first().getOriginalAdjacentEdgeSegments().second().getId());
 
         int uTurnAdjustment = turn.getOriginalAdjacentEdgeSegments().first().hasOppositeDirectionSegment() ? 1 : 0;
-        boolean isMergeOnCrossNode = isMerge &&
-          (originalExitLink.getUpstreamVertex().getNumberOfExitEdgeSegments() - uTurnAdjustment) > 1;
-        if(!isMergeOnCrossNode) {
+        if(!isMerge && Math.abs(proposedRemainingShift)>1) {
           LOGGER.severe(String.format("flow shift changed sign from %.8f to %.8f after segment (%s), that should never happen",
               appliedTurnFlowShift, proposedRemainingShift, entry.first().getIdsAsString()));
         }
@@ -606,8 +643,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * @param assignmentStrategy        to use
    * @param originalNetworkCosts  to use
    * @param conjNetworkCosts      to use
-   * @param doNodeModelUpdate flag to indicate if we run a ndoe model update toconsider potential congestion
-   * @param segmentFlowShiftsToApply turn flow shifts to apply (requried to all be turns on the same node)
+   * @param doNodeModelUpdate flag to indicate if we run a node model update to consider potential congestion
+   * @param segmentFlowShiftsToApply turn flow shifts to apply (required to all be turns on the same node)
    */
   private static void executeNetworkLevelTurnFlowShiftsOnNode(
       Mode theMode,
@@ -627,14 +664,17 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // so we need to sync those as well
     var sendingFlows = networkLoading.getCurrentSendingFlowsPcuH();
 
+
+    boolean anyNonZeroShiftApplied = false;
     DirectedVertex theNode = null;
     for (Pair<ConjugateEdgeSegment, Double> entry : segmentFlowShiftsToApply) {
       var pasAlternativeSegment = entry.first();
       var flowShiftToApply = entry.second();
-
       if(flowShiftToApply == 0 ){
         continue;
       }
+      anyNonZeroShiftApplied = true;
+
       var originalSegment = pasAlternativeSegment.getOriginalAdjacentEdgeSegments().first();
       if (originalSegment != null) {
         int segmentIndex = (int) originalSegment.getId();
@@ -652,21 +692,28 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         unconstrainedFlows[segmentIndex] = newUnconstrainedFlow;
       }
     }
+    if(!anyNonZeroShiftApplied){
+      // no remaining shifts
+      return;
+    }
 
     if(doNodeModelUpdate && theNode != null) {
       var consumer = new NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer(
           theNode, theMode, assignmentStrategy, originalNetworkCosts, conjNetworkCosts);
-      StaticLtmNetworkLoading.performNodeModelTurnBasedUpdate(
-          theNode, consumer, networkLoading, constrainedFlows);
+      StaticLtmNetworkLoading.performNodeModelTurnBasedUpdate(theNode, consumer, networkLoading, constrainedFlows);
     }else {
+      // update outflow based on new sending flow capped by in link capacity when we ignore node model impact
       for (Pair<ConjugateEdgeSegment, Double> entry : segmentFlowShiftsToApply) {
-        // update outflow based on new sending flow
         var turnSegment = entry.first();
         var originalSegment = turnSegment.getOriginalAdjacentEdgeSegments().first();
         if (originalSegment != null){
           int segmentIndex = (int) originalSegment.getId();
+
+          double updatedNetworkOutflow =
+              networkLoading.getCurrentSendingFlowsPcuH()[segmentIndex] * networkLoading.getCurrentFlowAcceptanceFactors()[segmentIndex];
           networkLoading.getCurrentOutflowsPcuH()[segmentIndex] =
-              networkLoading.getCurrentSendingFlowsPcuH()[segmentIndex];
+              Math.min(((PcuCapacitated)originalSegment).getCapacityOrDefaultPcuH(), updatedNetworkOutflow);
+
           // update cost
           ConjugateCostUtils.updateLinkAndConjugateSegmentCost(
               originalSegment, assignmentStrategy, theMode, originalNetworkCosts, conjNetworkCosts);
@@ -1954,7 +2001,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * Determine pas slack flow considering the entire pas and interaction between the two alternatives.
    *
    * @param networkLoading to use
-   * @return proposedFlowShift to consider
+   * @return proposedFlowShift to consider (both provided in positive numbers)
    */
   protected Pair<Pair<Double,EdgeSegment>,Pair<Double,EdgeSegment>> determinePasSlackFlow(
       double proposedFlowShift, StaticLtmLoadingBushBase<?> networkLoading) {
@@ -2131,7 +2178,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * New approach which is per PAS and then per alternative link for all bushes
    * returns applied shifts per bush on initial diverge
    */
-  protected Map<ConjugateDestinationBush, Double> executePasFlowShiftNodeModelUpdate(
+  protected Map<ConjugateDestinationBush, Double> executePasFlowShift(
       double initialReferenceWeight,
       Map<ConjugateDestinationBush, Double> initialBushWeights,
       double pasFlowShift,
@@ -2141,6 +2188,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double[] originalNetworkCosts,
       double[] conjSegmentCosts,
       Set<ConjugateDestinationBush> bushes,
+      boolean updateNetworkAcceptanceFactors,
       boolean logAll) {
 
     /* prep - pas */
@@ -2151,7 +2199,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // pair< pair<s1,s2 remaining shifts>, per bush weights/applied shifts>
     var divergeFlowShiftResult = executeDivergeFlowShift(
         initialReferenceWeight, initialBushWeights, pasFlowShift, theMode, originalNlFlowAcceptanceFactors,
-        assignmentStrategy, originalNetworkCosts, conjSegmentCosts, bushes, true, logAll);
+        assignmentStrategy, originalNetworkCosts, conjSegmentCosts, bushes, updateNetworkAcceptanceFactors, logAll);
     if(divergeFlowShiftResult==null || divergeFlowShiftResult.anyIsNull()){
       return null;
     }
@@ -2163,68 +2211,70 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       // S2
     var s2RemainingFlowShiftResult = executeOnPasPerAlternativeFlowShift(
         bushDivergeAppliedShiftsAsWeights, s2Result, s2, theMode, originalNlFlowAcceptanceFactors, assignmentStrategy,
-        originalNetworkCosts, conjSegmentCosts, bushes,true, logAll);
+        originalNetworkCosts, conjSegmentCosts, bushes,updateNetworkAcceptanceFactors, logAll);
       //S1
     var s1RemainingFlowShiftResult = executeOnPasPerAlternativeFlowShift(
         bushDivergeAppliedShiftsAsWeights, s1Result, s1, theMode, originalNlFlowAcceptanceFactors, assignmentStrategy,
-        originalNetworkCosts, conjSegmentCosts, bushes,true, logAll);
+        originalNetworkCosts, conjSegmentCosts, bushes,updateNetworkAcceptanceFactors, logAll);
 
     // MERGE
     executeMergeFlowShift(bushDivergeAppliedShiftsAsWeights, s1RemainingFlowShiftResult, s2RemainingFlowShiftResult,
         theMode, originalNlFlowAcceptanceFactors, assignmentStrategy,
-        originalNetworkCosts, conjSegmentCosts, bushes, true, logAll);
+        originalNetworkCosts, conjSegmentCosts, bushes, updateNetworkAcceptanceFactors, logAll);
 
     return bushDivergeAppliedShiftsAsWeights;
   }
 
-  /**
-   * identical to executePasFlowShiftNodeModelUpdate, except passing in different parameters
-   * todo: consolidate into single general method with above
-   */
-  protected Map<ConjugateDestinationBush, Double> executePasFlowShiftNoNodeModelUpdate(
-      double startingReferenceWeight,
-      Map<ConjugateDestinationBush, Double> startingBushWeights,
-      double pasFlowShift,
-      Mode theMode,
-      StaticLtmConjugateBushStrategy assignmentStrategy,
-      double[] originalNetworkCosts,
-      double[] conjSegmentCosts,
-      Set<ConjugateDestinationBush> bushes,
-      boolean logAll) {
-
-    /* prep - pas */
-    final var s2 = pas.getAlternative(false);
-    final var s1 = pas.getAlternative(true);
-
-    // DIVERGE
-    var appliedFlowShiftPcuHPerBush = executeDivergeFlowShift(
-        startingReferenceWeight, startingBushWeights, pasFlowShift, theMode, null,
-        assignmentStrategy, originalNetworkCosts, conjSegmentCosts, bushes, false, logAll);
-    if(appliedFlowShiftPcuHPerBush==null || appliedFlowShiftPcuHPerBush.anyIsNull()){
-      return null;
-    }
-    var s1Result = appliedFlowShiftPcuHPerBush.first()[0];
-    var s2Result = appliedFlowShiftPcuHPerBush.first()[1];
-    double appliedSendingFlowShift = -s2Result.first();
-    var bushAppliedDivergeShiftsAsWeights = appliedFlowShiftPcuHPerBush.second();
-
-    // ON-PAS
-    // S2
-    var s2RemainingFlowShiftResult = executeOnPasPerAlternativeFlowShift(
-        bushAppliedDivergeShiftsAsWeights, s2Result, s2, theMode, null, assignmentStrategy,
-        originalNetworkCosts, conjSegmentCosts, bushes,false, logAll);
-    //S1
-    var s1RemainingFlowShiftResult = executeOnPasPerAlternativeFlowShift(
-        bushAppliedDivergeShiftsAsWeights, s1Result, s1, theMode, null, assignmentStrategy,
-        originalNetworkCosts, conjSegmentCosts, bushes,false, logAll);
-
-    // MERGE
-    executeMergeFlowShift(bushAppliedDivergeShiftsAsWeights, s1RemainingFlowShiftResult, s2RemainingFlowShiftResult,
-        theMode, null, assignmentStrategy,
-        originalNetworkCosts, conjSegmentCosts, bushes, false, logAll);
-
-    return bushAppliedDivergeShiftsAsWeights;
-  }
+  // remove when consolidation works
+//
+//  /**
+//   * identical to executePasFlowShiftNodeModelUpdate, except passing in different parameters
+//   * todo: consolidate into single general method with above
+//   */
+//  protected Map<ConjugateDestinationBush, Double> executePasFlowShiftNoNodeModelUpdate(
+//      double startingReferenceWeight,
+//      Map<ConjugateDestinationBush, Double> startingBushWeights,
+//      double pasFlowShift,
+//      Mode theMode,
+//      StaticLtmConjugateBushStrategy assignmentStrategy,
+//      double[] originalNetworkCosts,
+//      double[] conjSegmentCosts,
+//      Set<ConjugateDestinationBush> bushes,
+//      boolean logAll) {
+//
+//    /* prep - pas */
+//    final var s2 = pas.getAlternative(false);
+//    final var s1 = pas.getAlternative(true);
+//
+//    // DIVERGE
+//    var appliedFlowShiftPcuHPerBush = executeDivergeFlowShift(
+//        startingReferenceWeight, startingBushWeights, pasFlowShift, theMode, null,
+//        assignmentStrategy, originalNetworkCosts, conjSegmentCosts, bushes, false, logAll);
+//    if(appliedFlowShiftPcuHPerBush==null || appliedFlowShiftPcuHPerBush.anyIsNull()){
+//      return null;
+//    }
+//    var s1Result = appliedFlowShiftPcuHPerBush.first()[0];
+//    var s2Result = appliedFlowShiftPcuHPerBush.first()[1];
+//    double appliedSendingFlowShift = -s2Result.first();
+//    var bushAppliedDivergeShiftsAsWeights = appliedFlowShiftPcuHPerBush.second();
+//
+//    // ON-PAS
+//    // S2
+//    var s2RemainingFlowShiftResult = executeOnPasPerAlternativeFlowShift(
+//        bushAppliedDivergeShiftsAsWeights, s2Result, s2, theMode, null, assignmentStrategy,
+//        originalNetworkCosts, conjSegmentCosts, bushes,false, logAll);
+//    //S1
+//    var s1RemainingFlowShiftResult = executeOnPasPerAlternativeFlowShift(
+//        bushAppliedDivergeShiftsAsWeights, s1Result, s1, theMode, null, assignmentStrategy,
+//        originalNetworkCosts, conjSegmentCosts, bushes,false, logAll);
+//
+//    // MERGE
+//    executeMergeFlowShift(bushAppliedDivergeShiftsAsWeights, s1RemainingFlowShiftResult, s2RemainingFlowShiftResult,
+//        theMode, null, assignmentStrategy,
+//        originalNetworkCosts, conjSegmentCosts, bushes, false, logAll);
+//
+//    return bushAppliedDivergeShiftsAsWeights;
+//  }
 
   /**
    * {@inheritDoc}
@@ -2249,8 +2299,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
   /**
    * recursive version that can be called of determineProposedFlowShiftByLoadingEntrySegment
+   * boolean returned indicates if proposed shift was truncated based on discontinuity check
    */
-  public Map<EdgeSegment, Double> determineProposedFlowShift(
+  public Pair<Map<EdgeSegment, Double>,Boolean> determineProposedFlowShift(
       Mode theMode,
       GapFunction gapFunction,
       AbstractPhysicalCost physicalCost,
@@ -2263,8 +2314,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       StringBuilder sb, // for logging
       Set<EdgeSegment> chainDerivativeBeyondBottleneckSegments) {
 
-    // vary between 0.5% and 0.05% of slack depending on how tight the current gap is
-    double stateChangeLeewayPercentage = Math.min(0.005, Math.max(0.0005, gapFunction.getGap()));
+    boolean discontinuityTruncation = false;
 
     // todo: once we no longer have non-conjugate implementation remove any entry segment based tracking of flow shifts
     Map<EdgeSegment, Double> result = new TreeMap<>();
@@ -2361,27 +2411,30 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       var highCostSlackResult = slackResult.second();
 
       double s1SlackFlowEstimate = lowCostSlackResult.first();
-      double s1SlackFlowLeeway = Math.max(0.1, s1SlackFlowEstimate * stateChangeLeewayPercentage); // in case of zero slack, up to 0.1 so we still shift something
       // always adjust for possible s1 discontinuities
       {
         /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
         double oldFlowShift = chosenPerIterationFlowShift;
         chosenPerIterationFlowShift =
-            adjustFlowShiftBasedOnS1SlackFlow(chosenPerIterationFlowShift, s1SlackFlowEstimate, s1SlackFlowLeeway);
-        if((isDestinationTrackedForLogging() || logAll) && oldFlowShift > chosenPerIterationFlowShift){
-          var message = String.format("S1 DISCONTINUITY ADJUSTMENT TRIGGERED (on segment %s) from %.10f, to %.10f",
-              lowCostSlackResult.second().getIdsAsString(), oldFlowShift, chosenPerIterationFlowShift);
-          //sb.append(message).append(System.lineSeparator());
-          LOGGER.info(message);
+            adjustFlowShiftBasedOnSlackFlow(chosenPerIterationFlowShift, s1SlackFlowEstimate, true);
+        if(oldFlowShift > chosenPerIterationFlowShift){
+          discontinuityTruncation = true;
+          if((isDestinationTrackedForLogging() || logAll)){
+            var message = String.format("S1 DISCONTINUITY ADJUSTMENT TRIGGERED (on segment %s) from %.10f, to %.10f",
+                lowCostSlackResult.second().getIdsAsString(), oldFlowShift, chosenPerIterationFlowShift);
+            //sb.append(message).append(System.lineSeparator());
+            LOGGER.info(message);
+          }
         }
       }
 
       double s2SlackFlowEstimate = highCostSlackResult.first();
-      double s2SlackFlowLeeway = Math.max(0.1, s2SlackFlowEstimate * stateChangeLeewayPercentage);
+
       /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
       double oldFlowShift = chosenPerIterationFlowShift;
-      chosenPerIterationFlowShift = adjustFlowShiftBasedOnS2SlackFlow(chosenPerIterationFlowShift, s2SlackFlowEstimate, s2SlackFlowLeeway);
+      chosenPerIterationFlowShift = adjustFlowShiftBasedOnSlackFlow(chosenPerIterationFlowShift, s2SlackFlowEstimate, false);
       if(oldFlowShift > chosenPerIterationFlowShift){
+        discontinuityTruncation = true;
         if(isDestinationTrackedForLogging() || logAll ) {
           var message = String.format("S2 DISCONTINUITY ADJUSTMENT TRIGGERED (on segment %s) from %.10f, to %.10f",
               highCostSlackResult.second().getIdsAsString(), oldFlowShift, chosenPerIterationFlowShift);
@@ -2414,7 +2467,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       // for conjuate connector turn there may be no original
       result.put(pas.getFirstEdgeSegment(true), chosenPerIterationFlowShift);
     }
-    return result;
+    return Pair.of(result, discontinuityTruncation);
   }
 
   /**
@@ -2451,6 +2504,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   public double performEquilibratedUncongestedFlowShifts(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy,
+      double[] nlConsistentFlowAcceptanceFactors,
       double[] originalNetworkCosts,
       double[] conjSegmentCosts,
       Set<ConjugateDestinationBush> bushes,
@@ -2458,6 +2512,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double additionalSmoothingFactor) {
 
     boolean smoothOverIterations = false;
+    boolean updateNetworkAcceptanceFactors = true;
+    // when alphas not updated, we must initialise this to the original slack found to minimise risk of traffic state changes while shifting
+    // ie when budget is spent we stop updating.
+    double initialFlowShiftBudget = Double.MAX_VALUE;
 
     var conjStrategy = (StaticLtmConjugateBushStrategy) assignmentStrategy;
     var networkLoading = conjStrategy.getLoading();
@@ -2471,6 +2529,13 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // update costs because if another overlapping uncongested PAS was updated previously, current costs are no longer
     // up to date
     pas.updateCost(conjSegmentCosts);
+
+    // Make sure original sending flows as a constraint are locked in via originalBushTurnFlowTracker
+    // so we do not run the risk of
+    // considering too much flow to shift as this will act as a bound for those cases where flow was added
+    // to a low cost segment by another PAS. originalBushTurnFlowTracker is used in the determination of the
+    // constrained subpath sending flows later
+    updateOriginalBushTurnFlowTracker();
 
     double s1SendingFlow = 0;
     for (var bush : pas.getRegisteredBushes()) {
@@ -2536,35 +2601,49 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           isDestinationTrackedForLogging() || logAll,
           new StringBuilder(), //todo: use stringbuilder for uncongested logging as well
           null);
-      double rawProposedFlowShift = proposedShiftResult.values().iterator().next();
+      boolean discontinuityTruncated = proposedShiftResult.second();
+      double rawProposedFlowShift = proposedShiftResult.first().values().iterator().next();
       double proposedFlowShift = Math.min(rawProposedFlowShift, guaranteedS2SendingFlow); // truncate to what is available
       if(proposedFlowShift <= 0 ){
         break;
       }
 
-      double s1SlackFlow = determinePasSlackFlow(proposedFlowShift, networkLoading).first().first();
-      if(proposedFlowShift > s1SlackFlow){
-        //todo: we already adjust for discontinuities in method, probably better to split that out so we do not
-        // do that and only do it here for uncongested!
-
+      if(discontinuityTruncated || initialFlowShiftBudget<totalPasShift){
         // insufficient slack, do not process (further) - mark for congested processing
         pas.updateStatus(PasStatus.UNCONGESTED_POTENTIALLY_CONGESTED);
         break;
       }
+
+      if(initialFlowShiftBudget==Double.MAX_VALUE) {
+        // todo if PASs overlap then this won't be able to capture how much was already shifted
+
+        // initialise shift budget
+        // compute WITHOUT leeway because that is only allowed for (potentially) congested PASs
+        // in a way this is more strict that the truncation check as that includes leeway
+        var slackResult = determinePasSlackFlow(proposedFlowShift, networkLoading);
+        initialFlowShiftBudget = Math.min(slackResult.first().first(),slackResult.second().first());
+        if(initialFlowShiftBudget < proposedFlowShift){
+          break; // can happen as this does not consider any leeway
+        }
+      }
+
+
       pas.updateStatus(PasStatus.UNCONGESTED_WITH_SHIFT);
       if(isDestinationTrackedForLogging() || logAll) {
         LOGGER.info("* UNCONGESTED FLOW SHIFT "+proposedFlowShift+" on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
       }
 
-      var iterationS2FlowShiftPerBush = executePasFlowShiftNoNodeModelUpdate(
+      var iterationS2FlowShiftPerBush = executePasFlowShift(
           guaranteedS2SendingFlow,
           bushS2RemainingSendingFlows,
           proposedFlowShift,
           theMode,
+          nlConsistentFlowAcceptanceFactors,
           conjStrategy,
           originalNetworkCosts,
           conjSegmentCosts,
           bushes,
+          updateNetworkAcceptanceFactors,
           logAll);
 
       // track applied shifts per bush for smoothing
@@ -2611,7 +2690,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       // reuse criterion of gap (overall gap is done wider, so we do not update gap as such here)
       converged = pasGap <= conjStrategy.getGapFunction().getStopCriterion().getEpsilon();
-      doNotStop = !converged && internalIteration++ < MAX_INTERAL_ITERATIONS_ALLOWED;
+      doNotStop = !converged && internalIteration++ < MAX_INTERAL_ITERATIONS_ALLOWED &&
+        initialFlowShiftBudget > totalPasShift; // stop when we exceeded the budget (only relevant when no updating alphas)
 
       // remove zero-flow S2 bushes from PAS when we know they won't get used again, or it is the final iteration
       if(!costSwitch || !doNotStop) {
@@ -2627,12 +2707,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           initialAltTurn,
           theMode,
           conjStrategy,
-          null, // not used if no node model update
+          nlConsistentFlowAcceptanceFactors,
           originalNetworkCosts,
           conjSegmentCosts,
           bushes,
           logAll,
-          false /*nodeModelUpdate*/);
+          updateNetworkAcceptanceFactors);
     }
 
     return totalPasShift;
@@ -2653,6 +2733,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double additionalSmoothingFactor) {
 
     boolean smoothOverIterations = false;
+    boolean updateNetworkAcceptanceFactors = true;
+    // when alphas not updated, we must initialise this to the original slack found to minimise risk of traffic state changes while shifting
+    // ie when budget is spent we stop updating.
+    double initialFlowShiftBudget = Double.MAX_VALUE;
 
     //TODO: largely equivalent to uncongested setup but with some tweaks to account for complexities of
     // alphas being potentially < 1, see if can be consolidated at some point as now there is a lot of duplicate
@@ -2675,28 +2759,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // considering too much flow to shift as this will act as a bound for those cases where flow was added
     // to a low cost segment by another PAS. originalBushTurnFlowTracker is used in the determination of the
     // constrained subpath sending flows later
+    updateOriginalBushTurnFlowTracker();
+
     var s1Alternative = pas.getAlternative(true);
     var s2Alternative = pas.getAlternative(false);
-    for(var bush : pas.getRegisteredBushes()){
-      var conjBush = (ConjugateDestinationBush) bush;
-      if(!originalBushTurnFlowTracker.containsKey(conjBush)){
-        originalBushTurnFlowTracker.put(conjBush, new ConjugateBushTurnData(conjBush));
-      }
-      var originalBushTurnData = originalBushTurnFlowTracker.get(bush);
-      boolean forceOriginalFlowRegistration  = true;
-      for(var segment : s1Alternative){
-        double flow = bush.getSendingFlowPcuH(segment);
-        if(!originalBushTurnData.containsTurnSendingFlow(segment) && conjBush.contains(segment)){
-          originalBushTurnData.addTurnSendingFlow(segment, flow, forceOriginalFlowRegistration);
-        }
-      }
-      for(var segment : s2Alternative){
-        double flow = bush.getSendingFlowPcuH(segment);
-        if(!originalBushTurnData.containsTurnSendingFlow(segment)){
-          originalBushTurnData.addTurnSendingFlow(segment, flow, forceOriginalFlowRegistration);
-        }
-      }
-    }
 
     double s1SendingFlow = 0;
     for (var bush : pas.getRegisteredBushes()) {
@@ -2717,7 +2783,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // enter congested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 20; //lowest level loop
+    int MAX_INTERAL_ITERATIONS_ALLOWED = !updateNetworkAcceptanceFactors ? 1 : 20; //lowest level loop
     double internalIterationSmoothingFactor = additionalSmoothingFactor *
         (smoothOverIterations ? additionalSmoothingFactor * (1.0/MAX_INTERAL_ITERATIONS_ALLOWED) : 1);
     int internalIteration = 1;
@@ -2735,14 +2801,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
     do{
 
-      if (pas.pasId == 1677L) { // local PAS update
+      if (pas.pasId == 16L) { // local PAS update
         int bla = 4;
 
-        var theNode = ((ConjugateDirectedVertex)pas.getMergeVertex()).getOriginalEdgeSegment().getUpstreamVertex();
-        var consumer = new NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer(
-            theNode, theMode, (StaticLtmConjugateBushStrategy) assignmentStrategy, originalNetworkCosts, conjSegmentCosts);
-        StaticLtmNetworkLoading.performNodeModelTurnBasedUpdate(
-            theNode, consumer, networkLoading, networkLoading.getCurrentInflowsPcuH());
+//        var theNode = pas.getLastEdgeSegment(false).getOriginalAdjacentEdgeSegments().first().getUpstreamVertex();
+//        var consumer = new NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer(
+//            theNode, theMode, (StaticLtmConjugateBushStrategy) assignmentStrategy, originalNetworkCosts, conjSegmentCosts);
+//        StaticLtmNetworkLoading.performNodeModelTurnBasedUpdate(
+//            theNode, consumer, networkLoading, networkLoading.getCurrentInflowsPcuH());
       }
 
       //--------------- UPDATE SENDING FLOWS THROUGH ALTERNATIVE ------------------------------------
@@ -2787,7 +2853,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           isDestinationTrackedForLogging() || logAll,
           sb,
           null);
-      double proposedFlowShift = proposedShiftResult.values().iterator().next();
+      boolean discontinuityTruncated = proposedShiftResult.second();
+      double proposedFlowShift = proposedShiftResult.first().values().iterator().next();
       if(proposedFlowShift <= 0){
         break;
       }
@@ -2800,6 +2867,24 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           LOGGER.info(message);
         }
         proposedFlowShift = pas.goldenRatioShiftBound;
+      }
+
+      if(!updateNetworkAcceptanceFactors && initialFlowShiftBudget==Double.MAX_VALUE) {
+        // todo if PASs overlap then this won't be able to capture how much was already shifted
+        if(discontinuityTruncated){
+          initialFlowShiftBudget = proposedFlowShift; // will terminate after shift
+        }else{
+          // initialise shift budget (by doing it this way we ensure we include leeway in budget
+          var slackResult = determinePasSlackFlow(proposedFlowShift, networkLoading);
+          double rawMinSlack = Math.min(slackResult.first().first(),slackResult.second().first());
+          double slackAdjustedFlowshift =
+              adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, rawMinSlack, false);
+          if(slackAdjustedFlowshift < proposedFlowShift){
+            initialFlowShiftBudget = slackAdjustedFlowshift;
+          }else {
+            initialFlowShiftBudget = rawMinSlack;
+          }
+        }
       }
 
       if(isDestinationTrackedForLogging() || logAll) {
@@ -2852,7 +2937,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         break;
       }
 
-      var iterationS2FlowShiftPerBush = executePasFlowShiftNodeModelUpdate(
+      var iterationS2FlowShiftPerBush = executePasFlowShift(
           guaranteedS2SendingFlow,
           bushS2RemainingSendingFlows,
           chosenFlowShift,
@@ -2862,6 +2947,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           originalNetworkCosts,
           conjSegmentCosts,
           (Set<ConjugateDestinationBush>) bushes,
+          updateNetworkAcceptanceFactors,
           logAll);
 
       // track for smoothing
@@ -2948,14 +3034,16 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       //converged = pasGap <= conjStrategy.getGapFunction().getGap();
       ++internalIteration;
 
-      doNotStop = !converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED;
+      doNotStop = !converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED &&
+          (initialFlowShiftBudget - EPSILON_6) > totalPasShift; // stop when we exceeded the budget (only relevant when no updating alphas)
+
       // remove zero-flow S2 bushes from PAS when we know they won't get used again, or it is the final iteration
       if(!costSwitch || !doNotStop) {
         removeZeroFlowBushesFromPas(false /* no dangling nodes */);
       }
       // todo account for switching so can't jut add everything
       totalCongestedFlowShifted += totalPasShift;
-    }while(!converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED);
+    }while(!converged && doNotStop);
 
     if(totalPasShift > 0) {
       // bush smoothing - final shift if stepsize is reduced
@@ -2973,7 +3061,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           conjSegmentCosts,
           (Set<ConjugateDestinationBush>) bushes,
           logAll,
-          true /*nodeModelUpdate*/);
+          updateNetworkAcceptanceFactors);
 
       if (!converged && sb != null) {
         //LOGGER.info(sb.toString());
@@ -3009,7 +3097,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double[] originalNlConsistentFlowAcceptanceFactors,
       double[] originalNetworkCosts,
       double[] conjSegmentCosts,
-      Set<ConjugateDestinationBush> bushes, boolean logAll, boolean networkNodeModelUpdate) {
+      Set<ConjugateDestinationBush> bushes,
+      boolean logAll,
+      boolean networkNodeModelUpdate) {
 
     ConjugateDestinationBush mostRestrictiveSmoothingBush = null;
     double mostRestrictiveSmoothingFactor = Double.MAX_VALUE;
@@ -3029,7 +3119,16 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
     }
 
-    assert totalRemovedFlow <= 0;
+    if(totalRemovedFlow > 0){
+      // this may happen when preceding flow shifts beforehand that did not trigger a node/alpha update somehow caused
+      // an inconsistency such that the starting pas costs are not entirely accurate. In which case more flow could be
+      // added than removed to reach convergence --> this is still not correct though and points to a potential bug or
+      // opportunity for improvement. For now we'll skip the smoothing to keep it simple
+      // todo: track down the exact reason in a simple setting and then fix.
+      LOGGER.severe(String.format("reference removed flow should not be positive when smoothing, SKIPPING SMOOTHING for pas %d",
+          pas.pasId));
+      return 0;
+    }
 
     // find the most restricting stepsize across the bushes involved, that will be the step size we use for
     // smoothing overall for the PAS
@@ -3125,30 +3224,19 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       return 0;
     }
 
-    if(!networkNodeModelUpdate) {
-      executePasFlowShiftNoNodeModelUpdate(
-          totalRemovedFlow,
-          appliedNegativeFlowShiftsForInitialTurn,
-          compensatoryShiftToApply,
-          theMode,
-          conjStrategy,
-          originalNetworkCosts,
-          conjSegmentCosts,
-          bushes,
-          logAll);
-    }else{
-      executePasFlowShiftNodeModelUpdate(
-          totalRemovedFlow,
-          appliedNegativeFlowShiftsForInitialTurn,
-          compensatoryShiftToApply,
-          theMode,
-          originalNlConsistentFlowAcceptanceFactors,
-          conjStrategy,
-          originalNetworkCosts,
-          conjSegmentCosts,
-          bushes,
-          logAll);
-    }
+    executePasFlowShift(
+        totalRemovedFlow,
+        appliedNegativeFlowShiftsForInitialTurn,
+        compensatoryShiftToApply,
+        theMode,
+        originalNlConsistentFlowAcceptanceFactors,
+        conjStrategy,
+        originalNetworkCosts,
+        conjSegmentCosts,
+        bushes,
+        networkNodeModelUpdate,
+        logAll);
+
     pas.updateCost(conjSegmentCosts);
     if(isDestinationTrackedForLogging() || logAll) {
       if(networkNodeModelUpdate) {

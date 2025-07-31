@@ -154,7 +154,7 @@ public class MSRASmoothing extends IterationBasedSmoothing {
       beta = Math.max(1,previousBeta + gammaStep);
     }
     this.stepSize = 1.0 / Math.max(1, Math.pow(Math.abs(beta),lambdaPower));
-    LOGGER.info(String.format("Stepsize: %.10f  (lambda=%.2f beta=%.2f)",stepSize, lambdaPower, beta));
+    //LOGGER.info(String.format("Stepsize: %.10f  (lambda=%.2f beta=%.2f)",stepSize, lambdaPower, beta));
   }
 
   /**

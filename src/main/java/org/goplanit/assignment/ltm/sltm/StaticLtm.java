@@ -209,7 +209,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
               createLoggingPrefix(getIterationIndex()), getGapFunction().getGap(), iterationRunTime));
 
     } while (!convergedOrStop);
-
   }
 
   /**

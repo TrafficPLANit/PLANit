@@ -5,7 +5,6 @@ import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
 import org.goplanit.assignment.ltm.sltm.conjugate.PasFlowShiftConjugateDestinationBasedExecutor;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
-import org.goplanit.cost.CostUtils;
 import org.goplanit.cost.virtual.SteadyStateConnectoidTravelTimeCost;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.PathBasedGapFunction;
@@ -359,6 +358,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           Mode theMode,
           Collection<Pas<V,ES>> sortedPass,
           Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
+          double[] nlConsistentFlowAcceptanceFactors,
           double[] originalNetworkCosts,
           StaticLtmSimulationData simulationData) {
 
@@ -378,22 +378,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
               theMode, originalNetworkCosts, true);
     }
 
-    // Capture original alphas, so we can use minimum of those and updated alphas to determine
-    // available sub path sending flow with the most restrictive ensuring we are not shifting too much flow
-    // as it is possible node model updates increased alphas making it seem more flow can be shifted when in reality
-    // doing so can cause zero flow links in the middle of a PAS (which we want to avoid as it causes issues with
-    // splitting rates at the end)
-    var nlConsistentFlowAcceptanceFactors =
-        Arrays.copyOf(
-            getLoading().getCurrentFlowAcceptanceFactors(),getLoading().getCurrentFlowAcceptanceFactors().length);
-
     double totalCongestedFlowShifted = 0;
     double maxPasReducedCost = 0;
     Pas<?,?> maxReducedCostPas = null;
     double totalPasReducedCost = 0;
     int numConsideredPas = 0;
-
-    hookBeforeCongestedPasUpdate(pasExecutors.values());
 
     // for congested, do each PAS once, then repeat x times so PAS interaction is covered
 
@@ -405,7 +394,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     boolean doNotStop = true;
     do {
       // debugging
-      boolean logAll = false;//simulationData.getIterationIndex()>=5;
+      boolean logAll = simulationData.getIterationIndex()>=40;
 
       LOGGER.info(String.format("--- NEXT CONGESTED PASs INTERNAL ITERATION %d ----", iteration));
       //todo re-sort PAS each iteration?
@@ -442,6 +431,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           }
           totalPasReducedCost += pas.getReducedCost();
           ++numConsideredPas;
+          logAll = false;
         }
 
         // ORIGINAL ONE SHOT
@@ -561,9 +551,20 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // the affected bush where the higher priority new PAS is kept and the lower priority one discarded (for such a bush)
     //flowShiftingStepFiveRemoveConflictingNewPass(sortedPass, pasExecutors, newAndUpdatedPass);
 
+    hookBeforePasUpdate(pasExecutors.values());
+
+    // Capture original alphas, so we can use minimum of those and updated alphas to determine
+    // available sub path sending flow with the most restrictive ensuring we are not shifting too much flow
+    // as it is possible node model updates increased alphas making it seem more flow can be shifted when in reality
+    // doing so can cause zero flow links in the middle of a PAS (which we want to avoid as it causes issues with
+    // splitting rates at the end)
+    var nlConsistentFlowAcceptanceFactors =
+        Arrays.copyOf(
+            getLoading().getCurrentFlowAcceptanceFactors(),getLoading().getCurrentFlowAcceptanceFactors().length);
+
     // UNCONGESTED ONLY
     var flowShiftedAndObsoletePass = attemptUncongestedFlowShift(
-        theMode, sortedPass, pasExecutors, originalNetworkCosts, simulationData);
+        theMode, sortedPass, pasExecutors, nlConsistentFlowAcceptanceFactors, originalNetworkCosts, simulationData);
     ArrayList<Pas<V,ES>> flowShiftedPass = flowShiftedAndObsoletePass.first();
     ArrayList<Pas<V,ES>> passWithoutBush = flowShiftedAndObsoletePass.second();
 
@@ -573,7 +574,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
     // Perform flow shifts for CONGESTED AND BECOMING CONGESTED WITH SHIFT PASs
     flowShiftedAndObsoletePass = doCongestedFlowShifting(
-            theMode, sortedPass, pasExecutors, originalNetworkCosts, simulationData);
+            theMode, sortedPass, pasExecutors, nlConsistentFlowAcceptanceFactors, originalNetworkCosts, simulationData);
 
     LOGGER.info(String.format("%.2f%% Congested Flow shifts performed: %d ---- [#Uncongested PASs without remaining flows %d)]",
         ((double)flowShiftedAndObsoletePass.first().size()*100.0)/sortedPass.size(), flowShiftedAndObsoletePass.first().size(), flowShiftedAndObsoletePass.second().size()));
@@ -592,11 +593,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * Allow implementations to do prep before we enter loop of per congested PAS update, e.g.
    * initialise some across PAS tracking information for example
    */
-  protected abstract void hookBeforeCongestedPasUpdate(Collection<PasFlowShiftExecutor<V, ES>> pasExecutors);
+  protected abstract void hookBeforePasUpdate(Collection<PasFlowShiftExecutor<V, ES>> pasExecutors);
 
   protected Pair<ArrayList<Pas<V,ES>>, ArrayList<Pas<V,ES>>> attemptUncongestedFlowShift(
       Mode theMode, Collection<Pas<V,ES>> sortedPass,
       Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
+      double[] nlConsistentFlowAcceptanceFactors,
       double[] originalNetworkCosts, StaticLtmSimulationData simulationData) {
     // stub implementation (not implemented for regular destination based yet
     return Pair.of(null, null);

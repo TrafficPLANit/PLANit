@@ -254,7 +254,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param slackFlowLeeway to use
    * @return adjusted proposed flow shift (if any)
    */
-  private double adjustFlowShiftBasedOnSlackFlow(
+  protected static double adjustFlowShiftBasedOnSlackFlow(
           double proposedFlowShift, double upperBoundShift, double slackFlowLeeway) {
 
     if (proposedFlowShift <= (upperBoundShift + slackFlowLeeway)) {
@@ -303,7 +303,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param slackFlowLeeway to use
    * @return adjusted proposed flow shift (if any)
    */
-  protected double adjustFlowShiftBasedOnS1SlackFlow(
+  protected static double adjustFlowShiftBasedOnS1SlackFlow(
           double proposedFlowShift, double s1SlackFlow, double slackFlowLeeway) {
     return adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, s1SlackFlow, slackFlowLeeway);
   }
@@ -319,7 +319,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param slackFlowLeeway to use
    * @return adjusted proposed flow shift (if any)
    */
-  protected double adjustFlowShiftBasedOnS2SlackFlow(
+  protected static double adjustFlowShiftBasedOnS2SlackFlow(
           double proposedFlowShift, double s2SlackFlow, double slackFlowLeeway) {
     return adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, s2SlackFlow, slackFlowLeeway);
   }

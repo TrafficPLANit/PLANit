@@ -137,7 +137,9 @@ public class StaticLtmConjugateBushStrategy
       Mode theMode,
       Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>> sortedPass,
       Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>, PasFlowShiftExecutor<ConjugateDirectedVertex,ConjugateEdgeSegment>> pasExecutors,
-      double[] originalNetworkCosts, StaticLtmSimulationData simulationData) {
+      double[] nlConsistentFlowAcceptanceFactors,
+      double[] originalNetworkCosts,
+      StaticLtmSimulationData simulationData) {
 
     boolean smoothOverIterations = false;
 
@@ -155,7 +157,7 @@ public class StaticLtmConjugateBushStrategy
     int iteration = 1;
     boolean doNotStop = true;
     do {
-      boolean logAll = simulationData.getIterationIndex()>=30 && getSettings().isDetailedLogging();
+      boolean logAll = simulationData.getIterationIndex()>=40 && getSettings().isDetailedLogging();
       LOGGER.info(String.format("--- NEXT UNCONGESTED PASs INTERNAL ITERATION %d ----", iteration));
       for (var pas : sortedPass) {
         var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
@@ -167,6 +169,7 @@ public class StaticLtmConjugateBushStrategy
         double pasFlowShifted = executor.performEquilibratedUncongestedFlowShifts(
             theMode,
             this,
+            nlConsistentFlowAcceptanceFactors,
             originalNetworkCosts,
             conjSegmentCosts,
             getBushes(),
@@ -190,7 +193,7 @@ public class StaticLtmConjugateBushStrategy
   }
 
   @Override
-  protected void hookBeforeCongestedPasUpdate(
+  protected void hookBeforePasUpdate(
       Collection<PasFlowShiftExecutor<ConjugateDirectedVertex, ConjugateEdgeSegment>> pasExecutors) {
     // reset and inject empty tracking container for original turn flows that may get adjusted and therefore need to
     // be preserved and accessible as a constraint on available flow to shift
@@ -950,6 +953,10 @@ public class StaticLtmConjugateBushStrategy
     // ALTERNATIVE BUSH PRUNING BASED ON BUSH GAP CALC
     int countGapSkippedBushes = 0;
     Set<ConjugateDestinationBush> eligibleBushes = new TreeSet<>();
+    int totalConvergedBushes = 0;
+    int totalCycleLimitedBushes = 0;
+    int totalRegularUnconvergedBushes = 0;
+    int totalNonImprovingBushes = 0;
     for (var conjBush : getBushes()) {
       if (conjBush == null) {
         continue;
@@ -971,19 +978,22 @@ public class StaticLtmConjugateBushStrategy
           (bushUpperBoundGap-bushLowerBoundGap)/bushLowerBoundGap < Precision.EPSILON_3;
       if(bushReachedNetworkGapConvergence || bushReachMaxConvergenceUnderCycleLimitation) {
         if (bushReachedNetworkGapConvergence) {
-          LOGGER.info(String.format("******************* BUSH %s CONVERGED (no update) ******************", conjBush.getRootZone().getIdsAsString()));
+          //LOGGER.info(String.format("******************* BUSH %s CONVERGED (no update) ******************", conjBush.getRootZone().getIdsAsString()));
           // make sure we keep tracking gap even if we're not updating and skipping the rest of the gap/step update
           conjBush.prevIterationInitialGap = bushUpperBoundGap;
+          ++totalConvergedBushes;
           continue;
         } else {
           // cannot add certain shortest paths due to cycle detection, unable to fully converge (for now)
-          LOGGER.info(String.format("!!!!!!!!!!!!!!!!!!! BUSH %s CYCLE LIMITED (UPDATE) !!!!!!!!!!!!!!!!!!", conjBush.getRootZone().getIdsAsString()));
+          //LOGGER.info(String.format("!!!!!!!!!!!!!!!!!!! BUSH %s CYCLE LIMITED (UPDATE) !!!!!!!!!!!!!!!!!!", conjBush.getRootZone().getIdsAsString()));
           eligibleBushes.add(conjBush);
+          ++totalCycleLimitedBushes;
         }
       }else{
-        LOGGER.info(String.format("++++++++++++++++++++ BUSH %s ELIGIBLE FOR UPDATE (gap %.8f) (step %.4f) ++++++++++++++++++",
-            conjBush.getRootZone().getIdsAsString(), bushUpperBoundGap, conjBush.bushSmoothing.executeRefZero(1)));
+//        LOGGER.info(String.format("++++++++++++++++++++ BUSH %s ELIGIBLE FOR UPDATE (gap %.8f) (step %.4f) ++++++++++++++++++",
+//            conjBush.getRootZone().getIdsAsString(), bushUpperBoundGap, conjBush.bushSmoothing.executeRefZero(1)));
         eligibleBushes.add(conjBush);
+        ++totalRegularUnconvergedBushes;
       }
 
       // bush smoothing
@@ -992,17 +1002,18 @@ public class StaticLtmConjugateBushStrategy
       conjBush.bushSmoothing.updateIteration(conjBush.bushSmoothing.getIteration() + 1);
       // here we update step --> once a PAS has converged, we then scale back by performing one final flow shift between the
       // original setup and the final one to get the correct shift (and network state).
-      if(conjBush.bushSmoothing.isBadIteration() &&
-          getGapFunction().getPreviousGap()<getGapFunction().getGap() &&
-          prevNetworkRealisedCost<totalRealisedCostForGap){
-        LOGGER.info(String.format(
-            "BUSH (%s) GAP NOT IMPROVING (%.6f -> %.6f) --> BAD ITERATION FOUND --> CONSTRAINING STEP",
-            conjBush.getRootZone().getIdsAsString(), conjBush.prevIterationInitialGap, bushUpperBoundGap));
+      if(conjBush.bushSmoothing.isBadIteration() && !bushReachMaxConvergenceUnderCycleLimitation){
+//        LOGGER.info(String.format(
+//            "BUSH (%s) GAP NOT IMPROVING (%.6f -> %.6f) --> BAD ITERATION FOUND --> CONSTRAINING STEP",
+//            conjBush.getRootZone().getIdsAsString(), conjBush.prevIterationInitialGap, bushUpperBoundGap));
         conjBush.bushSmoothing.updateStepSize();
+        ++totalNonImprovingBushes;
       }
       conjBush.prevIterationInitialGap = bushUpperBoundGap;
 
     }
+    LOGGER.info(String.format("++++ Updating %d bushes (%.2f%%): %d cycleLimited - %d not improving - %d converged",
+      eligibleBushes.size(), ((double)eligibleBushes.size()*100)/getBushes().size(), totalCycleLimitedBushes, totalConvergedBushes, totalNonImprovingBushes));
     prevNetworkRealisedCost = totalRealisedCostForGap;
 
     // **********************************************************************************************

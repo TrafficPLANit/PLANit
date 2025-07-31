@@ -998,10 +998,11 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
             if(!contains((ConjugateEdgeSegment)segment)) {
               var result = ConjugateBushUtils.isEligibleForAdding((ConjugateEdgeSegment) segment, conjLinkSegmentCosts, bushMinMaxTree);
               if(!result.first()){
-                LOGGER.info("bush od path cost: " + minOdCost + "vs network min cost: " + minNetworkOdCost);
-                LOGGER.info("bush min od path: " + bushMinPath);
-                LOGGER.info("network min od path: " + networkMinPath);
-                LOGGER.info(String.format("segment %s denied for adding",segment.getXmlId()));
+                //LOGGER.info("bush od path cost: " + minOdCost + "vs network min cost: " + minNetworkOdCost);
+                //LOGGER.info("bush min od path: " + bushMinPath);
+                //LOGGER.info("network min od path: " + networkMinPath);
+                //LOGGER.info(String.format("segment %s denied for adding",segment.getXmlId()));
+
                 //result = ConjugateBushUtils.isEligibleForAdding((ConjugateEdgeSegment) segment, conjLinkSegmentCosts, bushMinMaxTree);
                 break; // there maybe more, but for now just print one
               }

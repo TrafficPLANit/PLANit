@@ -188,7 +188,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
   }
 
   @Override
-  protected void hookBeforeCongestedPasUpdate(
+  protected void hookBeforePasUpdate(
       Collection<PasFlowShiftExecutor<DirectedVertex, EdgeSegment>> pasExecutors) {
     throw new PlanItRunTimeException("hookBeforeCongestedPasUpdate not implemented in non-conjugate destination based");
   }
