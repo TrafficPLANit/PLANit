@@ -2552,7 +2552,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // enter uncongested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 50;
+    int MAX_INTERAL_ITERATIONS_ALLOWED = 10;
     int internalIteration = 1;
     boolean doNotStop = true;
     boolean flowShifted = false;
@@ -2595,7 +2595,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           assignmentStrategy.getGapFunction(), conjStrategy.getPhysicalCost(),
           conjStrategy.getVirtualCost(),
           conjStrategy.getSmoothing(),
-          additionalSmoothingFactor * (smoothOverIterations ?  (1.0/MAX_INTERAL_ITERATIONS_ALLOWED) : 1),
+          1,
           networkLoading,
           guaranteedS2SendingFlow,
           isDestinationTrackedForLogging() || logAll,
@@ -2623,6 +2623,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         var slackResult = determinePasSlackFlow(proposedFlowShift, networkLoading);
         initialFlowShiftBudget = Math.min(slackResult.first().first(),slackResult.second().first());
         if(initialFlowShiftBudget < proposedFlowShift){
+          pas.updateStatus(PasStatus.UNCONGESTED_POTENTIALLY_CONGESTED);
           break; // can happen as this does not consider any leeway
         }
       }
@@ -2712,7 +2713,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           conjSegmentCosts,
           bushes,
           logAll,
-          updateNetworkAcceptanceFactors);
+          updateNetworkAcceptanceFactors,
+          additionalSmoothingFactor);
     }
 
     return totalPasShift;
@@ -2780,12 +2782,13 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     double prevPasGap = Double.MAX_VALUE;
     double pasGap = prevPasGap;
+    pas.goldenRatioShiftBound = Double.MAX_VALUE; // reset
 
     // enter congested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = !updateNetworkAcceptanceFactors ? 1 : 20; //lowest level loop
-    double internalIterationSmoothingFactor = additionalSmoothingFactor *
-        (smoothOverIterations ? additionalSmoothingFactor * (1.0/MAX_INTERAL_ITERATIONS_ALLOWED) : 1);
+    int MAX_INTERAL_ITERATIONS_ALLOWED = !updateNetworkAcceptanceFactors ? 1 : 10; //lowest level loop
+    double internalIterationSmoothingFactor = 1; /*additionalSmoothingFactor *
+        (smoothOverIterations ? (1.0/MAX_INTERAL_ITERATIONS_ALLOWED) : 1); //<-- commented out was used for best until now, but it is nto logical this works*/
     int internalIteration = 1;
     final Map<ConjugateDestinationBush, Double> bushS2RemainingSendingFlows = new TreeMap<>();
     boolean doNotStop = true;
@@ -3061,7 +3064,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           conjSegmentCosts,
           (Set<ConjugateDestinationBush>) bushes,
           logAll,
-          updateNetworkAcceptanceFactors);
+          updateNetworkAcceptanceFactors,
+          additionalSmoothingFactor);
 
       if (!converged && sb != null) {
         //LOGGER.info(sb.toString());
@@ -3099,7 +3103,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double[] conjSegmentCosts,
       Set<ConjugateDestinationBush> bushes,
       boolean logAll,
-      boolean networkNodeModelUpdate) {
+      boolean networkNodeModelUpdate,
+      double additionalSmoothingFactor) {
 
     ConjugateDestinationBush mostRestrictiveSmoothingBush = null;
     double mostRestrictiveSmoothingFactor = Double.MAX_VALUE;
@@ -3135,15 +3140,18 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double compensatoryS2ShiftToMeetTarget = 0;
     if(mostRestrictiveSmoothingBush!=null){
       if (isDestinationTrackedForLogging() || logAll) {
-        var message = String.format("  SMOOTHING most restrictive bush (%s) - step %.10f",
+        //var message = String.format("  SMOOTHING most restrictive bush (%s) - step %.10f * additional %.10f",
+        var message = String.format("  SMOOTHING most restrictive bush (%s) - step %.10f (disabled) * additional %.10f",
             mostRestrictiveSmoothingBush.getRootZone().getIdsAsString(),
-            mostRestrictiveSmoothingBush.bushSmoothing.executeRefZero(1));
+            mostRestrictiveSmoothingBush.bushSmoothing.executeRefZero(1),
+            additionalSmoothingFactor);
         //sb.append(message).append(System.lineSeparator());
         LOGGER.info(message);
       }
 
       double totalShiftedFlow = totalRemovedFlow * -1;
-      double proposedSmoothedTargetShiftedFlow = mostRestrictiveSmoothingBush.bushSmoothing.executeRefZero(totalShiftedFlow);
+      double proposedSmoothedTargetShiftedFlow = totalShiftedFlow * additionalSmoothingFactor;
+          //mostRestrictiveSmoothingBush.bushSmoothing.executeRefZero(totalShiftedFlow) * additionalSmoothingFactor;
       if((totalShiftedFlow - proposedSmoothedTargetShiftedFlow) > EPSILON_12) {
         compensatoryS2ShiftToMeetTarget = totalShiftedFlow - proposedSmoothedTargetShiftedFlow;
         // case 1: if current high cost is same as initial alt turn (high cost) it had flow removed to converge,

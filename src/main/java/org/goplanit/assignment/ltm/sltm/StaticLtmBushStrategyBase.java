@@ -30,6 +30,7 @@ import org.goplanit.zoning.Zoning;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Base implementation to support a bush based solution for sLTM
@@ -238,7 +239,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param pasExecutors to use for retrieving PAS information used in sorting
    * @return sorted PASs in descending order of importance
    */
-  private Collection<Pas<V,ES>> flowShiftingStepFourOrderPassInDescendingOrder(
+  protected Collection<Pas<V,ES>> flowShiftingStepFourOrderPassInDescendingOrder(
           Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors) {
 
     // normalised cost * flow based comparator
@@ -363,7 +364,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           StaticLtmSimulationData simulationData) {
 
     Collection<ES> linkSegmentsUsed = new HashSet<>(100);
-    boolean smoothOverIterations = false;
+    boolean smoothOverIterations = true;
 
     var flowShiftedPass = new ArrayList<Pas<V,ES>>((int) this.pasManager.getNumberOfActivePass());
     var passWithoutBush = new ArrayList<Pas<V,ES>>();
@@ -389,21 +390,35 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // disallow looping here because interactions between PASs cause issues with alpha updates and golden ration bounds
     // if there are issues with convergence, we should deal with it at the lowest level after internal PAS convergence
     // and smooth it out there.
-    int MAX_ITERATIONS_ALLOWED = 1;
+    int MAX_ITERATIONS_ALLOWED = 3;
     int iteration = 1;
     boolean doNotStop = true;
     do {
+
+      var updatedOrder = flowShiftingStepFourOrderPassInDescendingOrder(pasExecutors);
+      sortedPass = updatedOrder;
+
       // debugging
-      boolean logAll = simulationData.getIterationIndex()>=40;
+      boolean logAll = simulationData.getIterationIndex()>=50;
 
       LOGGER.info(String.format("--- NEXT CONGESTED PASs INTERNAL ITERATION %d ----", iteration));
-      //todo re-sort PAS each iteration?
+
+//      int MAX_PAS_UPDATES = Math.max(5,sortedPass.size()/10); // top 10% with minimum of 5 PASs
+      int congestedPasCounter = 0;
+
+      long numCongestedPass = sortedPass.stream().filter(
+          p -> p.getStatus()!=PasStatus.UNCONGESTED_WITH_SHIFT).count();
+      double perPasPercentageOfTotal = 1.0/numCongestedPass;
+
       for (var pas : sortedPass) {
+        //double importanceSmoothingFactor = 1 - (pasCounter * perPasImportanceReduction);
 
         // ignore uncongested PASs or PASs not on bush
         if (pas.getStatus() == PasStatus.UNCONGESTED_WITH_SHIFT || !pas.hasRegisteredBushes()) {
           continue;
         }
+        double importanceSmoothingFactor = Math.pow(0.01, (congestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
+        ++congestedPasCounter;
 
         if (pas.pasId == 532L) {
           int bla = 4;
@@ -431,7 +446,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           }
           totalPasReducedCost += pas.getReducedCost();
           ++numConsideredPas;
-          logAll = false;
         }
 
         // ORIGINAL ONE SHOT
@@ -450,10 +464,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
                 nlConsistentFlowAcceptanceFactors,
                 getBushes(),
                 logAll,
-                smoothOverIterations? 1.0/MAX_ITERATIONS_ALLOWED : 1);
+                smoothOverIterations? 1.0/MAX_ITERATIONS_ALLOWED * importanceSmoothingFactor : importanceSmoothingFactor);
 
         if (pasFlowShifted > 0) {
           totalCongestedFlowShifted += pasFlowShifted;
+          //++pasCounter;
 
           if(iteration==1) {
             flowShiftedPass.add(pas);
@@ -470,13 +485,20 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
             continue;
           }
 
-          // so we only log the most prominent pas
           if (logAll) {
-            logAll = false;
             LOGGER.info(String.format("   pas flow shifted: %.10f", pasFlowShifted));
+            if(congestedPasCounter > 5) {
+              // do only first 5 PASs
+              logAll = false;
+            }
           }
         }
+
+//        if(pasCounter > MAX_PAS_UPDATES){
+//          break;
+//        }
       }
+
     }while(iteration++ < MAX_ITERATIONS_ALLOWED);
 
     LOGGER.info(String.format("TOTAL CONGESTED FLOW SHIFTED: %.10f", totalCongestedFlowShifted));

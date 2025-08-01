@@ -141,7 +141,7 @@ public class StaticLtmConjugateBushStrategy
       double[] originalNetworkCosts,
       StaticLtmSimulationData simulationData) {
 
-    boolean smoothOverIterations = false;
+    boolean smoothOverIterations = true;
 
     var flowShiftedPass = new ArrayList<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>(
         (int) this.pasManager.getNumberOfActivePass());
@@ -153,14 +153,25 @@ public class StaticLtmConjugateBushStrategy
 
     // for uncongested, do each PAS (one or more times), then repeat x times so PAS interaction is
     // covered better by having an internal loop here
-    int MAX_ITERATIONS_ALLOWED = 1;
+    int MAX_ITERATIONS_ALLOWED = 3;
     int iteration = 1;
     boolean doNotStop = true;
     do {
-      boolean logAll = simulationData.getIterationIndex()>=40 && getSettings().isDetailedLogging();
+
+      var updatedOrder = flowShiftingStepFourOrderPassInDescendingOrder(pasExecutors);
+      sortedPass = updatedOrder;
+
+//      int MAX_PAS_UPDATES = Math.max(5,sortedPass.size()/10); // top 10% with minimum of 5 PASs
+      int uncongestedPasCounter = 0;
+
+      long numUncongestedPass = sortedPass.stream().filter(p -> p.getStatus()==PasStatus.UNCONGESTED_WITHOUT_SHIFT).count();
+      double perPasPercentageOfTotal = 1.0/numUncongestedPass;
+
+      boolean logAll = simulationData.getIterationIndex()>=50 && getSettings().isDetailedLogging();
       LOGGER.info(String.format("--- NEXT UNCONGESTED PASs INTERNAL ITERATION %d ----", iteration));
       for (var pas : sortedPass) {
         var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
+        double importanceSmoothingFactor = Math.pow(0.01, (uncongestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
 
         if (pas.pasId == 3941L) {
           int bla = 4; // uncongested
@@ -174,7 +185,7 @@ public class StaticLtmConjugateBushStrategy
             conjSegmentCosts,
             getBushes(),
             logAll,
-            smoothOverIterations ? 1.0/MAX_ITERATIONS_ALLOWED : 1);
+            smoothOverIterations ? 1.0/MAX_ITERATIONS_ALLOWED * importanceSmoothingFactor : importanceSmoothingFactor);
 
         if (!pas.hasRegisteredBushes()) {
           passWithoutBush.add(pas);
@@ -184,10 +195,12 @@ public class StaticLtmConjugateBushStrategy
         if(pasFlowShifted <= 0){
           continue;
         }else if (iteration==1) {
+          ++uncongestedPasCounter;
           flowShiftedPass.add(pas);
           logAll = false;
         }
       }
+
     }while(iteration++ < MAX_ITERATIONS_ALLOWED);
     return Pair.of(flowShiftedPass, passWithoutBush);
   }
@@ -800,79 +813,6 @@ public class StaticLtmConjugateBushStrategy
       }
     }
 
-//    // REJIGG ZERO FLOW SHORTEST PATH TREE
-//    for (var conjBush : getBushes()) {
-//      if (conjBush == null) {
-//        continue;
-//      }
-//      // optimise active bush otherwise we are adding segments that are not populated with
-//      // pas flow leading to problems (when switching active bush, rejig
-//      if(conjBush.currentActiveBush) {
-//        optimiseZeroFlowSpanningTreeConnections(conjBush, conjLinkSegmentCosts);
-//      }
-//    }
-
-//    // BUSH SELECTION - WORST BUSH
-//    ConjugateDestinationBush worstBush = null;
-//    double maxGap =0;
-//    for (var conjBush : getBushes()) {
-//      if (conjBush == null) {
-//        continue;
-//      }
-//
-//      // only used max paths to be used here since we do not want an unused high cost path
-//      boolean excludeZeroFlowLinksFromMaxPaths = true;
-//      var bushMinMaxTree = conjBush.computeMinMaxShortestPaths(excludeZeroFlowLinksFromMaxPaths,
-//          conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
-//      if (bushMinMaxTree == null) {
-//        continue;
-//      }
-//
-//      double scaledMinCostBush = 0;
-//      double scaledMaxCostBush = 0;
-//      double totalDestinationDemand = 0;
-//      bushMinMaxTree.setMinPathState(false);
-//      var odDemands = getOdDemands(mode);
-//      var destination = conjBush.getDestination().getParent().getParentZone();
-//      for (var originVertex : conjBush.getOriginVertices()) {
-//        var origin = ((ConjugateConnectoidNode)originVertex).getCentroidVertex().getParent().getParentZone();
-//        double odDemand = odDemands.getValue(origin, destination);
-//        if(odDemand <= 0.0){
-//          continue;
-//        }
-//        totalDestinationDemand += odDemand;
-//        double maxOdCost = bushMinMaxTree.getCostToReach(originVertex);
-//        double scaledMaxCostBushOd = maxOdCost * odDemand;
-//        scaledMaxCostBush += scaledMaxCostBushOd;
-//
-//        double minOdCost = bushMinMaxTree.getMinCostToReach(originVertex);
-//        scaledMinCostBush += minOdCost * odDemand;
-//      }
-//      conjBush.setRealisedCostForGap(scaledMaxCostBush);
-//      if(!(getGapFunction() instanceof PathBasedGapFunction)){
-//        throw new PlanItRunTimeException("current bush gap calculation incompatible with applied gap function on assignment");
-//      }
-//
-//      double bushUpperBoundGap =
-//          (conjBush.getRealisedCostForGap() - conjBush.getMinCostForGap())/conjBush.getMinCostForGap();
-//      double bushLowerBoundGap =
-//          (scaledMinCostBush - conjBush.getMinCostForGap())/conjBush.getMinCostForGap();
-//      double bushInternalGap =
-//          (conjBush.getRealisedCostForGap() - scaledMinCostBush)/scaledMinCostBush;
-//      // internal gap seems a better fit than upper bound gap, as for some reason
-//      // the mincost based on network shortest path causes issues
-//      // Example: we see a network shortest path min cost that appears to allow for signifcant improvements but
-//      //          they do not materialise when updating PASs...
-//      if(bushUpperBoundGap > maxGap){
-//        worstBush = conjBush;
-//        maxGap = bushUpperBoundGap;
-//      }
-////      if(bushInternalGap > maxGap){
-////        worstBush = conjBush;
-////        maxGap = bushInternalGap;
-////      }
-//    }
-
     // BUSH SELECTION - FIRST ACTIVE BUSH UNLESS CONVERGED --> NEXT
 //    ConjugateDestinationBush theActiveBush = getBushes().stream().dropWhile(b -> !b.currentActiveBush).findFirst().orElse(
 //        getBushes().stream().findFirst().get());
@@ -973,9 +913,12 @@ public class StaticLtmConjugateBushStrategy
       double bushLowerBoundGap =
           (scaledMinCostBush - conjBush.getMinCostForGap())/conjBush.getMinCostForGap();
 
+      //double bushInternalGap = (conjBush.getRealisedCostForGap() - scaledMinCostBush)/scaledMinCostBush;
+
       boolean bushReachedNetworkGapConvergence = bushUpperBoundGap <= getGapFunction().getStopCriterion().getEpsilon();
       boolean bushReachMaxConvergenceUnderCycleLimitation = bushLowerBoundGap>0 &&
           (bushUpperBoundGap-bushLowerBoundGap)/bushLowerBoundGap < Precision.EPSILON_3;
+
       if(bushReachedNetworkGapConvergence || bushReachMaxConvergenceUnderCycleLimitation) {
         if (bushReachedNetworkGapConvergence) {
           //LOGGER.info(String.format("******************* BUSH %s CONVERGED (no update) ******************", conjBush.getRootZone().getIdsAsString()));
@@ -1013,7 +956,8 @@ public class StaticLtmConjugateBushStrategy
 
     }
     LOGGER.info(String.format("++++ Updating %d bushes (%.2f%%): %d cycleLimited - %d not improving - %d converged",
-      eligibleBushes.size(), ((double)eligibleBushes.size()*100)/getBushes().size(), totalCycleLimitedBushes, totalConvergedBushes, totalNonImprovingBushes));
+      eligibleBushes.size(), ((double)eligibleBushes.size()*100)/getBushes().size(),
+        totalCycleLimitedBushes, totalNonImprovingBushes, totalConvergedBushes));
     prevNetworkRealisedCost = totalRealisedCostForGap;
 
     // **********************************************************************************************

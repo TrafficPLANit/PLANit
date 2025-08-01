@@ -276,7 +276,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
     bushSmoothing.setGammaStep(0.00);// make sure we only reduce gap with bad iteration otherwise not
     bushSmoothing.setActivateLambda(false);
-    bushSmoothing.setKappaStep(0.5);
+    bushSmoothing.setKappaStep(0.2);
   }
 
   /**
