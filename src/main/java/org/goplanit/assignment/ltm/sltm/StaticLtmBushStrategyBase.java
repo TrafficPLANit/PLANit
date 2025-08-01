@@ -390,7 +390,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // disallow looping here because interactions between PASs cause issues with alpha updates and golden ration bounds
     // if there are issues with convergence, we should deal with it at the lowest level after internal PAS convergence
     // and smooth it out there.
-    int MAX_ITERATIONS_ALLOWED = 3;
+    int MAX_ITERATIONS_ALLOWED = 5;
     int iteration = 1;
     boolean doNotStop = true;
     do {
@@ -399,7 +399,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       sortedPass = updatedOrder;
 
       // debugging
-      boolean logAll = simulationData.getIterationIndex()>=50;
+      boolean logAll = false;//simulationData.getIterationIndex()>=50;
 
       LOGGER.info(String.format("--- NEXT CONGESTED PASs INTERNAL ITERATION %d ----", iteration));
 

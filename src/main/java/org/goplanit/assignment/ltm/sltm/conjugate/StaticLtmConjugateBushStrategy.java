@@ -153,7 +153,7 @@ public class StaticLtmConjugateBushStrategy
 
     // for uncongested, do each PAS (one or more times), then repeat x times so PAS interaction is
     // covered better by having an internal loop here
-    int MAX_ITERATIONS_ALLOWED = 3;
+    int MAX_ITERATIONS_ALLOWED = 5;
     int iteration = 1;
     boolean doNotStop = true;
     do {
@@ -167,7 +167,7 @@ public class StaticLtmConjugateBushStrategy
       long numUncongestedPass = sortedPass.stream().filter(p -> p.getStatus()==PasStatus.UNCONGESTED_WITHOUT_SHIFT).count();
       double perPasPercentageOfTotal = 1.0/numUncongestedPass;
 
-      boolean logAll = simulationData.getIterationIndex()>=50 && getSettings().isDetailedLogging();
+      boolean logAll = false; //simulationData.getIterationIndex()>=50 && getSettings().isDetailedLogging();
       LOGGER.info(String.format("--- NEXT UNCONGESTED PASs INTERNAL ITERATION %d ----", iteration));
       for (var pas : sortedPass) {
         var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
@@ -189,7 +189,12 @@ public class StaticLtmConjugateBushStrategy
 
         if (!pas.hasRegisteredBushes()) {
           passWithoutBush.add(pas);
-          break;
+          if(pasFlowShifted > 0){
+            ++uncongestedPasCounter;
+            flowShiftedPass.add(pas);
+            logAll = false;
+          }
+          continue;
         }
 
         if(pasFlowShifted <= 0){
