@@ -420,7 +420,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         if (pas.getStatus() == PasStatus.UNCONGESTED_WITH_SHIFT || !pas.hasRegisteredBushes()) {
           continue;
         }
-        double importanceSmoothingFactor = Math.pow(0.2, (congestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
+        double importanceSmoothingFactor = Math.pow(0.01, (congestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
         ++congestedPasCounter;
 
         if (pas.pasId == 532L) {
@@ -583,62 +583,62 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           es -> pasS2EdgeSegmentCounter.computeIfAbsent(es, dummy -> new LongAdder()).increment());
     }
 
-    var conflicting = new HashSet<>(pasS1EdgeSegmentCounter.keySet());
-    conflicting.retainAll(pasS2EdgeSegmentCounter.keySet());
-    Map<EdgeSegment, Pair<Integer,Integer>> pasConflictingSegmentOverlapCounter = new HashMap<>();
-    for(var es : conflicting){
-      int s1Count = pasS1EdgeSegmentCounter.get(es).intValue();
-      int s2Count = pasS2EdgeSegmentCounter.get(es).intValue();
-      pasConflictingSegmentOverlapCounter.put(es, Pair.of(s1Count, s2Count));
-      LOGGER.info(String.format("EDGE SEGMENT (%s) in PASs where s1 (%d) /s2 (%d) conflict", es.getIdsAsString(),
-          s1Count, s2Count));
-    }
-    LOGGER.info(String.format("%.2f%% of PAS edge segments in conflict (%d of %d)",
-        ((double)pasConflictingSegmentOverlapCounter.size()*100)/(pasS1EdgeSegmentCounter.size()+pasS2EdgeSegmentCounter.size()),
-        pasConflictingSegmentOverlapCounter.size(),
-        pasS1EdgeSegmentCounter.size()+pasS2EdgeSegmentCounter.size()));
+//    var conflicting = new HashSet<>(pasS1EdgeSegmentCounter.keySet());
+//    conflicting.retainAll(pasS2EdgeSegmentCounter.keySet());
+//    Map<EdgeSegment, Pair<Integer,Integer>> pasConflictingSegmentOverlapCounter = new HashMap<>();
+//    for(var es : conflicting){
+//      int s1Count = pasS1EdgeSegmentCounter.get(es).intValue();
+//      int s2Count = pasS2EdgeSegmentCounter.get(es).intValue();
+//      pasConflictingSegmentOverlapCounter.put(es, Pair.of(s1Count, s2Count));
+//      LOGGER.info(String.format("EDGE SEGMENT (%s) in PASs where s1 (%d) /s2 (%d) conflict", es.getIdsAsString(),
+//          s1Count, s2Count));
+//    }
+//    LOGGER.info(String.format("%.2f%% of PAS edge segments in conflict (%d of %d)",
+//        ((double)pasConflictingSegmentOverlapCounter.size()*100)/(pasS1EdgeSegmentCounter.size()+pasS2EdgeSegmentCounter.size()),
+//        pasConflictingSegmentOverlapCounter.size(),
+//        pasS1EdgeSegmentCounter.size()+pasS2EdgeSegmentCounter.size()));
 
 
-    // for each PAS determine the maximum overlap link and use that to impose an additional smoothing factor
-    // ensuring that for sections with a lot of PASs that overlap we do notintroduce  bias because of it
-    int countConflictingPass = 0;
-    Pair<Integer,Integer> dummy1 = Pair.of(0,0);
-    double CONFLICTRATIO_LEEWAY = 0.2;
-    for(var pas : sortedPass) {
-      var s1 = pas.getAlternative(true);
-      var s2 = pas.getAlternative(false);
-
-      double conflictingAlternativeSmoothingFactor = 1.0;
-      if(!pasConflictingSegmentOverlapCounter.isEmpty()) {
-        // most conflicting when in absolute terms it has the most occurrences in both s1 and s2 segments
-        EdgeSegment pasMostConflictingEdgeSegment = Stream.concat(Arrays.stream(s1), Arrays.stream(s2)).reduce(
-            (e1, e2) -> {
-              var e1Pair = pasConflictingSegmentOverlapCounter.getOrDefault(e1, dummy1);
-              var e2Pair = pasConflictingSegmentOverlapCounter.getOrDefault(e2, dummy1);
-              return (e1Pair.first() + e1Pair.second() > e2Pair.first() + e2Pair.second()) ?
-                  e1 : e2;
-            }).get();
-        var totalPasConflictCounter = pasConflictingSegmentOverlapCounter.getOrDefault(pasMostConflictingEdgeSegment, Pair.of(1, 0));
-        boolean hasConflicts = totalPasConflictCounter.first() + totalPasConflictCounter.second() > 1;
-        if(hasConflicts) {
-          double s1s2ConflictRatio = ((double) totalPasConflictCounter.first()) / (totalPasConflictCounter.first() + totalPasConflictCounter.second());
-
-          boolean isOnS1 = pas.containsEdgeSegment((ES) pasMostConflictingEdgeSegment, true);
-          //if(s1s2ConflictRatio > (0.5-CONFLICTRATIO_LEEWAY) && s1s2ConflictRatio < (0.5 + CONFLICTRATIO_LEEWAY)) {
-          double numerator = isOnS1 ? totalPasConflictCounter.first() : totalPasConflictCounter.second();
-          conflictingAlternativeSmoothingFactor = numerator / (totalPasConflictCounter.first() + totalPasConflictCounter.second());
-          ++countConflictingPass;
-        }
-        //}
-      }
-      pas.proposedPasFlowShiftAdjustmentFactor = conflictingAlternativeSmoothingFactor;
-    }
-    LOGGER.info(String.format("%.2f%% of PASs in conflict (%d of %d) so smoothing applied ",
-        ((double)countConflictingPass*100)/sortedPass.size(),
-        countConflictingPass,
-        sortedPass.size(),
-        0.5-CONFLICTRATIO_LEEWAY,
-        0.5+CONFLICTRATIO_LEEWAY));
+//    // for each PAS determine the maximum overlap link and use that to impose an additional smoothing factor
+//    // ensuring that for sections with a lot of PASs that overlap we do notintroduce  bias because of it
+//    int countConflictingPass = 0;
+//    Pair<Integer,Integer> dummy1 = Pair.of(0,0);
+//    double CONFLICTRATIO_LEEWAY = 0.2;
+//    for(var pas : sortedPass) {
+//      var s1 = pas.getAlternative(true);
+//      var s2 = pas.getAlternative(false);
+//
+//      double conflictingAlternativeSmoothingFactor = 1.0;
+//      if(!pasConflictingSegmentOverlapCounter.isEmpty()) {
+//        // most conflicting when in absolute terms it has the most occurrences in both s1 and s2 segments
+//        EdgeSegment pasMostConflictingEdgeSegment = Stream.concat(Arrays.stream(s1), Arrays.stream(s2)).reduce(
+//            (e1, e2) -> {
+//              var e1Pair = pasConflictingSegmentOverlapCounter.getOrDefault(e1, dummy1);
+//              var e2Pair = pasConflictingSegmentOverlapCounter.getOrDefault(e2, dummy1);
+//              return (e1Pair.first() + e1Pair.second() > e2Pair.first() + e2Pair.second()) ?
+//                  e1 : e2;
+//            }).get();
+//        var totalPasConflictCounter = pasConflictingSegmentOverlapCounter.getOrDefault(pasMostConflictingEdgeSegment, Pair.of(1, 0));
+//        boolean hasConflicts = totalPasConflictCounter.first() + totalPasConflictCounter.second() > 1;
+//        if(hasConflicts) {
+//          double s1s2ConflictRatio = ((double) totalPasConflictCounter.first()) / (totalPasConflictCounter.first() + totalPasConflictCounter.second());
+//
+//          boolean isOnS1 = pas.containsEdgeSegment((ES) pasMostConflictingEdgeSegment, true);
+//          //if(s1s2ConflictRatio > (0.5-CONFLICTRATIO_LEEWAY) && s1s2ConflictRatio < (0.5 + CONFLICTRATIO_LEEWAY)) {
+//          double numerator = isOnS1 ? totalPasConflictCounter.first() : totalPasConflictCounter.second();
+//          conflictingAlternativeSmoothingFactor = numerator / (totalPasConflictCounter.first() + totalPasConflictCounter.second());
+//          ++countConflictingPass;
+//        }
+//        //}
+//      }
+//      pas.proposedPasFlowShiftAdjustmentFactor = conflictingAlternativeSmoothingFactor;
+//    }
+//    LOGGER.info(String.format("%.2f%% of PASs in conflict (%d of %d) so smoothing applied ",
+//        ((double)countConflictingPass*100)/sortedPass.size(),
+//        countConflictingPass,
+//        sortedPass.size(),
+//        0.5-CONFLICTRATIO_LEEWAY,
+//        0.5+CONFLICTRATIO_LEEWAY));
 
 
     //todo: <-- should not be necessary anymore now that we use P1/P2 intersection of constructing bush (see Nie 2009)

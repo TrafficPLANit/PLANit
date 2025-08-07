@@ -173,7 +173,7 @@ public class StaticLtmConjugateBushStrategy
       LOGGER.info(String.format("--- NEXT UNCONGESTED PASs INTERNAL ITERATION %d ----", iteration));
       for (var pas : sortedPass) {
         var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
-        double importanceSmoothingFactor = Math.pow(0.2, (uncongestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
+        double importanceSmoothingFactor = Math.pow(0.01, (uncongestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
 
         if (pas.pasId == 3941L) {
           int bla = 4; // uncongested
