@@ -153,7 +153,7 @@ public class StaticLtmConjugateBushStrategy
 
     // for uncongested, do each PAS (one or more times), then repeat x times so PAS interaction is
     // covered better by having an internal loop here
-    int MAX_ITERATIONS_ALLOWED = 5;
+    int MAX_ITERATIONS_ALLOWED = 2;
     int iteration = 1;
     boolean doNotStop = true;
     do {
@@ -164,14 +164,16 @@ public class StaticLtmConjugateBushStrategy
 //      int MAX_PAS_UPDATES = Math.max(5,sortedPass.size()/10); // top 10% with minimum of 5 PASs
       int uncongestedPasCounter = 0;
 
-      long numUncongestedPass = sortedPass.stream().filter(p -> p.getStatus()==PasStatus.UNCONGESTED_WITHOUT_SHIFT).count();
+      long numUncongestedPass = sortedPass.stream().filter(
+          p -> p.getStatus()==PasStatus.UNCONGESTED_WITHOUT_SHIFT ||
+              p.getStatus()==PasStatus.UNCONGESTED_WITH_SHIFT).count();
       double perPasPercentageOfTotal = 1.0/numUncongestedPass;
 
       boolean logAll = false; //simulationData.getIterationIndex()>=50 && getSettings().isDetailedLogging();
       LOGGER.info(String.format("--- NEXT UNCONGESTED PASs INTERNAL ITERATION %d ----", iteration));
       for (var pas : sortedPass) {
         var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
-        double importanceSmoothingFactor = Math.pow(0.01, (uncongestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
+        double importanceSmoothingFactor = Math.pow(0.2, (uncongestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
 
         if (pas.pasId == 3941L) {
           int bla = 4; // uncongested
@@ -185,7 +187,7 @@ public class StaticLtmConjugateBushStrategy
             conjSegmentCosts,
             getBushes(),
             logAll,
-            smoothOverIterations ? 1.0/MAX_ITERATIONS_ALLOWED * importanceSmoothingFactor : importanceSmoothingFactor);
+            smoothOverIterations ? (1.0/MAX_ITERATIONS_ALLOWED) * importanceSmoothingFactor : importanceSmoothingFactor);
 
         if (!pas.hasRegisteredBushes()) {
           passWithoutBush.add(pas);
@@ -199,10 +201,12 @@ public class StaticLtmConjugateBushStrategy
 
         if(pasFlowShifted <= 0){
           continue;
-        }else if (iteration==1) {
+        }else {
           ++uncongestedPasCounter;
-          flowShiftedPass.add(pas);
-          logAll = false;
+          if (iteration==1) {
+            flowShiftedPass.add(pas);
+            logAll = false;
+          }
         }
       }
 

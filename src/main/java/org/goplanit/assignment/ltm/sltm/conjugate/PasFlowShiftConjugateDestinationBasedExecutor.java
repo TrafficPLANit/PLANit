@@ -2595,7 +2595,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           assignmentStrategy.getGapFunction(), conjStrategy.getPhysicalCost(),
           conjStrategy.getVirtualCost(),
           conjStrategy.getSmoothing(),
-          1,
+          1, // not here, dealt with in final smoothing now
           networkLoading,
           guaranteedS2SendingFlow,
           isDestinationTrackedForLogging() || logAll,
@@ -2627,7 +2627,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           break; // can happen as this does not consider any leeway
         }
       }
-
 
       pas.updateStatus(PasStatus.UNCONGESTED_WITH_SHIFT);
       if(isDestinationTrackedForLogging() || logAll) {
@@ -2701,6 +2700,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }while(doNotStop);
 
     if(totalPasShift > 0) {
+
+      // consider adjustment factor (only possible when smaller than one otherwise exceed bound for traffic state change)
+      if(!Double.isNaN(pas.getProposedPasFlowShiftAdjustmentFactor()) &&
+          !Double.isInfinite(pas.getProposedPasFlowShiftAdjustmentFactor()) &&
+          pas.getProposedPasFlowShiftAdjustmentFactor()<1){
+        additionalSmoothingFactor *= pas.getProposedPasFlowShiftAdjustmentFactor();
+      }
+
       // bush smoothing - final shift when smoothing is deemed required
       originalPasBushes.forEach(b -> pas.registerBush((RootedBush<ConjugateDirectedVertex, ConjugateEdgeSegment>) b));
       double finalAppliedFlowShift = performFinalShiftForSmoothing(
@@ -2924,10 +2931,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         LOGGER.info(message);
       }
 
-      if(!Double.isNaN(pas.getProposedPasFlowShiftAdjustmentFactor()) &&
-          !Double.isInfinite(pas.getProposedPasFlowShiftAdjustmentFactor())){
-        chosenFlowShift *= pas.getProposedPasFlowShiftAdjustmentFactor();
-      }
+
 
       if(isDestinationTrackedForLogging() || logAll && proposedFlowShift!=chosenFlowShift) {
         var message = String.format("  Proposed shift: %.10f, Final shift: %.10f",
@@ -3049,6 +3053,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }while(!converged && doNotStop);
 
     if(totalPasShift > 0) {
+
+      if(!Double.isNaN(pas.getProposedPasFlowShiftAdjustmentFactor()) &&
+          !Double.isInfinite(pas.getProposedPasFlowShiftAdjustmentFactor())){
+        additionalSmoothingFactor *= pas.getProposedPasFlowShiftAdjustmentFactor();
+      }
+
       // bush smoothing - final shift if stepsize is reduced
       // re-register all as smoothing will add some flow back in to zero flow alt if shifts occurred.
       // todo: very ugly, we probably should simply not unregister bushes and have a better mechanism in the final shift
@@ -3145,6 +3155,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
             mostRestrictiveSmoothingBush.getRootZone().getIdsAsString(),
             mostRestrictiveSmoothingBush.bushSmoothing.executeRefZero(1),
             additionalSmoothingFactor);
+        assert additionalSmoothingFactor<=1;
         //sb.append(message).append(System.lineSeparator());
         LOGGER.info(message);
       }

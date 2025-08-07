@@ -814,7 +814,7 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    */
   public void updateActivePassCosts(final double[] linkSegmentCosts) {
     for (Collection<Pas<V,ES>> pass : activePassByVertex.values()) {
-      updatePassCosts(pass, linkSegmentCosts, true);
+      updatePassCosts(pass, linkSegmentCosts, false);
     }
   }
 

@@ -41,10 +41,8 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
   /** expensive path cost */
   private double s2Cost;
 
-  /** based on the change in cost (see cost update) between iterations, a second-derivative like measure is computed
-   * that is based on the measured change in cost vs expected equilibrium cost. This adjustment factor can be applied
-   * to the newly calculated proposed flow shift to improve the magnitude of the shift */
-  private double proposedPasFlowShiftAdjustmentFactor = 1;
+  /** can be used to adjust smoothing for PASs individually based on some (external) metric */
+  public double proposedPasFlowShiftAdjustmentFactor = 1;
 
   /** allow to track a bound on the flow shift, if we know we should not overshoot */
   public double goldenRatioShiftBound = Double.MAX_VALUE;
