@@ -31,6 +31,12 @@ import static org.goplanit.utils.math.Precision.*;
  */
 public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends EdgeSegment> {
 
+  public enum FlowShiftSmoothingApproach{
+    OFF,    // do not apply any smoothing (effectively a factor of 100%)
+    RESET,  // apply smoothing by resetting to original starting point (effectively a factor of 0%)
+    NORMAL, // regular smoothing based on computed smoothing factor
+  }
+
   /**
    * Threshold used to trigger derivatives based on congested situation even if we are not yet congested.
    * This threshold is the difference between those two states on the segment level for that to happen,
@@ -227,9 +233,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param virtualCost          to use
    * @param isLowCostAlternative to use
    * @param derivativeReductionFactor to use
-   * @param allowChainingBeyondBottleneck pretend these entry segments are non-blocking w.r.t. continuining to chain
-   *                                        derivatives beyond a congested link (derivative on link itself is still
-   *                                        regarded congested)
    * @return derivative, compounded derivative reduction factor and indicator whether to continue or not
    */
   protected abstract Triple<Double, Double, Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
@@ -238,8 +241,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
       final AbstractPhysicalCost physicalCost,
       final AbstractVirtualCost virtualCost,
       boolean isLowCostAlternative,
-      double derivativeReductionFactor,
-      Set<EdgeSegment> allowChainingBeyondBottleneck);
+      double derivativeReductionFactor);
 
   /**
    * Determine the adjusted flow shift by taking the proposed upper bound and reduce it by a
@@ -457,7 +459,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
     return missingLinkSegmentsByBush;
   }
 
-  public abstract double performEquilibratedCongestedFlowShifts(
+  public abstract Pair<EdgeSegment,Double> performEquilibratedCongestedFlowShifts(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy,
       double[] originalNetworkCosts,
@@ -465,6 +467,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
       double[] originalNlConsistentFlowAcceptanceFactors,
       Set<? extends RootedBush<?,?>> bushes,
       boolean logAll,
+      FlowShiftSmoothingApproach smoothingApproach,
       double additionalSmoothingFactor);
 
   /**

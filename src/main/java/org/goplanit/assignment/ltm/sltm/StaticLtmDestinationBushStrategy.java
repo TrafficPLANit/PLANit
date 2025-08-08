@@ -1,30 +1,24 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
-import com.sun.source.tree.Tree;
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestBushResult;
 import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
-import org.goplanit.assignment.ltm.sltm.conjugate.PasFlowShiftConjugateDestinationBasedExecutor;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
-import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
@@ -185,6 +179,17 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
   protected PasFlowShiftExecutor<DirectedVertex, EdgeSegment> createPasFlowShiftExecutor(
       final Pas<DirectedVertex, EdgeSegment> pas, final StaticLtmSettings settings) {
     return new PasFlowShiftDestinationBasedExecutor(pas, settings);
+  }
+
+  @Override
+  protected void performLocalisedPasNetworkLoading(
+      Mode theMode,
+      Map<Pas<DirectedVertex, EdgeSegment>, Pair<EdgeSegment, Double>> pasDesiredFlowShifts,
+      Map<Pas<DirectedVertex, EdgeSegment>, PasFlowShiftExecutor<DirectedVertex, EdgeSegment>> pasExecutors,
+      double[] originalNetworkCosts,
+      Set<DestinationBush> bushes,
+      boolean logAll) {
+    throw new PlanItRunTimeException("performLocalisedPasNetworkLoading not supported yet");
   }
 
   @Override

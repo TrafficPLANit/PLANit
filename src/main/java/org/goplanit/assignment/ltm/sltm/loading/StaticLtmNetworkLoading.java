@@ -855,6 +855,7 @@ public abstract class StaticLtmNetworkLoading {
    * 2. Update splitting rates Eq. (6),(4)
    * (Extension B)
    * 3. If not first iteration then update splitting rates, Eq. (13)
+   * </p>
    *
    * @param mode                    to use
    */

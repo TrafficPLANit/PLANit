@@ -6,8 +6,10 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
@@ -21,7 +23,7 @@ import org.goplanit.utils.misc.Pair;
  * @author markr
  *
  */
-public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
+public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Comparable<Pas<V, ES>> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(Pas.class.getCanonicalName());
@@ -642,5 +644,32 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> {
             Arrays.stream(getAlternative(true)),
             Arrays.stream(getAlternative(false))).map(
                 EdgeSegment::getLengthKm).mapToDouble(e -> e).sum();
+  }
+
+  /**
+   * Verify if given array of segments is contained in this PAS' alternative in full
+   *
+   * @param lowCostAlternative alternative to check
+   * @param toVerify segments to verify if contained
+   * @return true when contained (in order), false otherwise
+   */
+  public boolean alternativeContains(boolean lowCostAlternative, ES[] toVerify) {
+    var thisPasAlternative = getAlternative(lowCostAlternative);
+    if (toVerify == null) {
+      return false;
+    }
+    int thisStartIndex = ArrayUtils.findIndex(thisPasAlternative, toVerify[0]).get();
+    var s1AsList = Arrays.stream(
+        thisPasAlternative, thisStartIndex, thisPasAlternative.length).collect(Collectors.toList());
+    var toVerifyAsList = Arrays.stream(toVerify).collect(Collectors.toList());
+    if (s1AsList.containsAll(toVerifyAsList)) {
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public int compareTo(Pas<V, ES> o) {
+    return Long.compare(this.pasId, o.pasId);
   }
 }

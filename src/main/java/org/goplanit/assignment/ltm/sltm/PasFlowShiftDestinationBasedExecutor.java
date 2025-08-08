@@ -295,8 +295,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
           final AbstractPhysicalCost physicalCost,
           final AbstractVirtualCost virtualCost,
           boolean isLowCostAlternative,
-          double derivativeReductionFactor,
-          Set<EdgeSegment> allowChainingBeyondBottleneck) {
+          double derivativeReductionFactor) {
 
     // allowChainingBeyondBottleneck not used yet --> ignored
 
@@ -435,9 +434,9 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
 
     // not rewritten to merge diverge excluded yet, all in one here
     denominatorS1 = getDTravelTimeDFlowExcludingMergeDiverge(
-            theMode, networkLoading, physicalCost, virtualCost, true, 1, null).first();
+            theMode, networkLoading, physicalCost, virtualCost, true, 1).first();
     denominatorS2 = getDTravelTimeDFlowExcludingMergeDiverge(
-            theMode, networkLoading, physicalCost, virtualCost, false, 1, null).first();
+            theMode, networkLoading, physicalCost, virtualCost, false, 1).first();
 
     double flowShift = 0;
     boolean pasCostEqual = pas.isCostEqual(EPSILON);
@@ -674,7 +673,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
   }
 
   @Override
-  public double performEquilibratedCongestedFlowShifts(
+  public Pair<EdgeSegment,Double> performEquilibratedCongestedFlowShifts(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy,
       double[] originalNetworkCosts,
@@ -682,6 +681,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
       double[] originalNlConsistentFlowAcceptanceFactors,
       Set<? extends RootedBush<?,?>> bushes,
       boolean logAll,
+      FlowShiftSmoothingApproach smoothingApproach,
       double additionalSmoothingFactor) {
     throw new PlanItRunTimeException("performEquilibratedCongestedS2FlowShift not yet implemented on " +
         "non-conjugate destination based ");

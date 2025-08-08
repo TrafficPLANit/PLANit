@@ -26,7 +26,7 @@ public class StaticLtmLoadingBushRooted<B> extends StaticLtmLoadingBushBase<Root
    * {@inheritDoc}
    */
   @Override
-  protected RootedBushFlowUpdateConsumerImpl<NetworkFlowUpdateData> createBushLinkSendingFlowUpdateConsumer(
+  public RootedBushFlowUpdateConsumerImpl<NetworkFlowUpdateData> createBushLinkSendingFlowUpdateConsumer(
           boolean updateLinkOutflows, boolean updateUnconstrainedLinkFlows){
     return new RootedBushFlowUpdateConsumerImpl<>(
             createNetworkLinkFlowData(updateLinkOutflows, updateUnconstrainedLinkFlows), segmentPair2MovementMap);
@@ -36,7 +36,7 @@ public class StaticLtmLoadingBushRooted<B> extends StaticLtmLoadingBushBase<Root
    * {@inheritDoc}
    */
   @Override
-  protected RootedBushTurnFlowUpdateConsumer createBushTurnFlowUpdateConsumer(
+  public RootedBushTurnFlowUpdateConsumer createBushTurnFlowUpdateConsumer(
           boolean updateLinkSendingFlows) {
     /* turn based + optional link sending flow based */
     int numMovements = getTransportNetwork().getMovements().size();
@@ -44,7 +44,7 @@ public class StaticLtmLoadingBushRooted<B> extends StaticLtmLoadingBushBase<Root
             createNetworkTurnFlowData(updateLinkSendingFlows, numMovements), segmentPair2MovementMap);
   }
 
-  protected RootedBushFlowUpdateConsumerImpl<NetworkFlowUpdateData> createSyncAllNetworkFlowUpdateConsumer(){
+  public RootedBushFlowUpdateConsumerImpl<NetworkFlowUpdateData> createSyncAllNetworkFlowUpdateConsumer(){
     nlSendingFlowData.reset();
     nlInFlowOutflowData.resetInflows();
     nlInFlowOutflowData.resetOutflows();

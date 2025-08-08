@@ -42,7 +42,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    * @param updateUnconstrainedLinkFlows when true make sure data contains reference to the network unconstrained flows
    * @return network flow data created
    */
-  protected NetworkFlowUpdateData createNetworkLinkFlowData(
+  public NetworkFlowUpdateData createNetworkLinkFlowData(
           boolean updateLinkOutflows, boolean updateUnconstrainedLinkFlows) {
 
       if (updateLinkOutflows) {
@@ -68,7 +68,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    *                               the container
    * @return network turn flow data created
    */
-  protected NetworkTurnFlowUpdateData createNetworkTurnFlowData(
+  public NetworkTurnFlowUpdateData createNetworkTurnFlowData(
           boolean updateLinkSendingFlows, int numTurnSegments) {
     if (updateLinkSendingFlows) {
       return new NetworkTurnFlowUpdateData(
@@ -96,7 +96,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    *                                     by this consumer in addition to sending flows
    * @return created link (sending/outflow/unconsitrained) flow update consumer
    */
-  protected abstract BushFlowUpdateConsumer<B> createBushLinkSendingFlowUpdateConsumer(
+  public abstract BushFlowUpdateConsumer<B> createBushLinkSendingFlowUpdateConsumer(
           boolean updateLinkOutflows, boolean updateUnconstrainedLinkFlows);
 
   /**
@@ -107,10 +107,10 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    *                               as well
    * @return created turn (and potentially link) flow update consumer
    */
-  protected abstract BushFlowUpdateConsumer<B> createBushTurnFlowUpdateConsumer(boolean updateLinkSendingFlows);
+  public abstract BushFlowUpdateConsumer<B> createBushTurnFlowUpdateConsumer(boolean updateLinkSendingFlows);
 
   /** bush sync all network flow consumer, to be used only after convergence of internal iterative procedure */
-  protected abstract BushFlowUpdateConsumer<B> createSyncAllNetworkFlowUpdateConsumer();
+  public abstract BushFlowUpdateConsumer<B> createSyncAllNetworkFlowUpdateConsumer();
 
   /**
    * Factory method to create the right flow update consumer to use when conducting a bush based flow update.
@@ -124,7 +124,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    * @param updateUnconstrainedFlows flag indicating if the unconstrained link flows are to be tracked/updated by this consumer
    * @return created flow update consumer
    */
-  protected BushFlowUpdateConsumer<B> createRegularBushLoadingFlowUpdateConsumer(
+  public BushFlowUpdateConsumer<B> createRegularBushLoadingFlowUpdateConsumer(
           boolean updateTurnAcceptedFlows,
           boolean updateSendingFlows,
           boolean updateLinkOutflows,

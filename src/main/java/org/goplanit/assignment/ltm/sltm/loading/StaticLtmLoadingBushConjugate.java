@@ -31,7 +31,7 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
    * {@inheritDoc}
    */
   @Override
-  protected ConjugateBushNetworkFlowUpdateConsumerImpl<NetworkFlowUpdateData> createBushLinkSendingFlowUpdateConsumer(
+  public ConjugateBushNetworkFlowUpdateConsumerImpl<NetworkFlowUpdateData> createBushLinkSendingFlowUpdateConsumer(
           boolean updateLinkOutflows, boolean updateUnconstrainedLinkFlows){
     return new ConjugateBushNetworkFlowUpdateConsumerImpl<>(
             createNetworkLinkFlowData(updateLinkOutflows, updateUnconstrainedLinkFlows), turn2ConjugateSegmentMapping);
@@ -41,7 +41,7 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
    * {@inheritDoc}
    */
   @Override
-  protected ConjugateBushTurnFlowUpdateConsumer createBushTurnFlowUpdateConsumer(
+  public ConjugateBushTurnFlowUpdateConsumer createBushTurnFlowUpdateConsumer(
           boolean updateLinkSendingFlows) {
     /* original turn (so conjugate link segment) based + optional original link sending flow based (so conjugate node) */
 
@@ -51,7 +51,7 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
             createNetworkTurnFlowData(updateLinkSendingFlows, numConjugateSegments), turn2ConjugateSegmentMapping);
   }
 
-  protected ConjugateBushSyncNetworkFlowConsumer createSyncAllNetworkFlowUpdateConsumer(){
+  public ConjugateBushSyncNetworkFlowConsumer createSyncAllNetworkFlowUpdateConsumer(){
     nlSendingFlowData.reset();
     nlInFlowOutflowData.resetInflows();
     nlInFlowOutflowData.resetOutflows();
