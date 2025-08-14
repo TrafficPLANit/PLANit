@@ -1,6 +1,7 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
@@ -11,6 +12,7 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
+import org.goplanit.utils.pcu.PcuCapacitated;
 
 /**
  * Perform the conjugate turn based cost update after the node model calculation if a discontinuity is found
@@ -68,13 +70,16 @@ public class DiscontinuityTurnCostReplacementConsumer implements TriConsumer<Edg
     //HACK: because the cost calculation hides its internal workings for now we modify the link outflow locally
     //      based on the changed alphas.
     // TODO: create a nice fix so we can compute generalised cost on-the-fly for a given flow acceptance factor
+    double entryCapacity = Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,
+        ((PcuCapacitated) entry).getCapacityOrDefaultPcuH());
     double originalNlOutflow = networkLoading.getCurrentOutflowsPcuH()[(int)entry.getId()];
-    double outflowConsistentWithNonZeroTurnFlow = networkLoading.getCurrentInflowsPcuH()[(int)entry.getId()] * alpha;
+    double outflowConsistentWithNonZeroTurnFlow = Math.min(
+        networkLoading.getCurrentInflowsPcuH()[(int)entry.getId()] * alpha, entryCapacity);
     networkLoading.getCurrentOutflowsPcuH()[(int)entry.getId()] = outflowConsistentWithNonZeroTurnFlow;
     double disContinuitySegmentCost = (entry instanceof ConnectoidSegment) ?
         virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) entry):
         physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) entry);
-    networkLoading.getCurrentOutflowsPcuH()[(int)entry.getId()] = originalNlOutflow; // place original cost back
+    networkLoading.getCurrentOutflowsPcuH()[(int)entry.getId()] = originalNlOutflow; // place original back
     assert(originalNlOutflow >= outflowConsistentWithNonZeroTurnFlow);
 
     //3. overwrite existing costs for turns where discontinuity was found

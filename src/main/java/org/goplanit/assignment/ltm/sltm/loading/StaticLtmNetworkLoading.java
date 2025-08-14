@@ -1,6 +1,7 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.nodemodel.TampereNodeModel;
@@ -316,9 +317,9 @@ public abstract class StaticLtmNetworkLoading {
    * 
    * @param consumer to apply to the result of each node model update of the considered nodes, may be null then ignored
    */
-  private void performNodeModelUpdate(final NodeModelRunResultConsumer consumer) {
+  private void performNodeModelUpdate(TreeSet<DirectedVertex> trackedNodes, final NodeModelRunResultConsumer consumer) {
     /* For each tracked node */
-    for (var trackedNode : nlSplittingRateData.getTrackedNodes()) {
+    for (var trackedNode : trackedNodes) {
       StaticLtmNetworkLoading.performNodeModelUpdate(trackedNode, consumer, this);
     }
   }
@@ -876,12 +877,16 @@ public abstract class StaticLtmNetworkLoading {
      * there is no need for a full copy of the entire splitting rate data (create per node/entry link local copy
      * of existing splitting rates, then compute new ones, and apply smoothing on the two, before moving to the next
      * entry link -> SEE NOTE IN PAPER ON TRACKING PREVIOUS SPLITTING RATES PER TYPE OF UPDATE*/    
-  }  
+  }
+
+  public void stepTwoInflowSendingFlowUpdate(Mode mode) {
+    stepTwoInflowSendingFlowUpdate(mode, getSplittingRateData().getTrackedNodes());
+  }
   
   //@formatter:off
   /**
    * Perform inflow and sending flow update:
-   * 
+   * <p>
    * 1. Update node model to compute new inflows, Eq. (5)
    * 2. Update next sending flows via inflows, Eq. (7) (this is local propagation compared to network full
    * loading of previous step)
@@ -891,9 +896,10 @@ public abstract class StaticLtmNetworkLoading {
    * (Extension B)
    * 6. Update smoothed storage capacity factors, Eq. (14)
    *
-   * @param mode to use
+   * @param mode         to use
+   * @param trackedNodes to update inflows/sending flows for
    */
-  public void stepTwoInflowSendingFlowUpdate(Mode mode) {
+  public void stepTwoInflowSendingFlowUpdate(Mode mode, TreeSet<DirectedVertex> trackedNodes) {
     if(this.solutionScheme.isPhysicalQueue()) {
       LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.runIdPrefix(runId)));
       return;
@@ -906,7 +912,7 @@ public abstract class StaticLtmNetworkLoading {
       /* 1. Update node model to compute new inflows, Eq. (5)
        * 2. Update next sending flows via inflows, Eq. (7) */
       LinkSegmentData.copyTo(this.nlSendingFlowData.getCurrentSendingFlows(), this.nlInFlowOutflowData.getInflows());
-      performNodeModelUpdate(new NMRUpdateExitLinkInflowsConsumer(this.nlInFlowOutflowData.getInflows()));
+      performNodeModelUpdate(trackedNodes, new NMRUpdateExitLinkInflowsConsumer(this.nlInFlowOutflowData.getInflows()));
       /* s_a^tilde = u_a */
       LinkSegmentData.copyTo(this.nlInFlowOutflowData.getInflows(), this.nlSendingFlowData.getNextSendingFlows());
             
@@ -978,7 +984,11 @@ public abstract class StaticLtmNetworkLoading {
      * there is no need for a full copy of the entire splitting rate data (create per node/entry link local copy
      * of existing splitting rates, then compute new ones, and apply smoothing on the two, before moving to the next
      * entry link  -> SEE NOTE IN PAPER ON TRACKING PREVIOUS SPLITTING RATES PER TYPE OF UPDATE*/    
-  }  
+  }
+
+  public void stepFourOutflowAndReceivingFlowUpdate(Mode mode) {
+    stepFourOutflowAndReceivingFlowUpdate(mode, getSplittingRateData().getTrackedNodes());
+  }
   
   /**
    * 1. Update node model, to compute outflows Eq. (5)
@@ -994,7 +1004,7 @@ public abstract class StaticLtmNetworkLoading {
    *
    * @param mode to use
    */
-  public void stepFourOutflowAndReceivingFlowUpdate(Mode mode) {
+  public void stepFourOutflowAndReceivingFlowUpdate(Mode mode, TreeSet<DirectedVertex> trackedNodes) {
     /* update the outflows and receiving flows */      
 
     /* for now */
@@ -1009,7 +1019,8 @@ public abstract class StaticLtmNetworkLoading {
     do {
       
       /* 1. Update node model to compute new outflows, Eq. (5) */
-      performNodeModelUpdate(new NMRUpdateEntryLinksOutflowConsumer(this.nlInFlowOutflowData.getOutflows()));
+      performNodeModelUpdate(
+          trackedNodes, new NMRUpdateEntryLinksOutflowConsumer(this.nlInFlowOutflowData.getOutflows()));
       
       /* POINT QUEUE -> only run as iterative procedure with physical queues are present and r can vary, now
        * we only require an update of outflows v to use for updating flow capacity factors */  

@@ -4,12 +4,9 @@ import org.goplanit.algorithms.nodemodel.NodeModel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
 import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateCostUtils;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.ojalgo.array.Array2D;
 import org.ojalgo.function.aggregator.Aggregator;
 
@@ -28,6 +25,8 @@ public class NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer implement
   private final Mode theMode;
   private final double[] originalNetworkCosts;
   private final double[] conjNetworkCosts;
+  private final boolean doCostUpdate;
+  private final boolean doOutflowUpdate;
 
   /** consumer to use to apply discontinuity cost update */
   private final DiscontinuityTurnCostReplacementConsumer discontinuityTurnCostReplacementConsumer;
@@ -50,12 +49,42 @@ public class NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer implement
     networkLoading.getCurrentFlowAcceptanceFactors()[entrySegmentId] = flowAcceptanceFactor;
 
     // update outflow based on new acceptance factor
-    networkLoading.getCurrentOutflowsPcuH()[entrySegmentId] =
-      networkLoading.getCurrentSendingFlowsPcuH()[entrySegmentId] * flowAcceptanceFactor;
+    if(doOutflowUpdate) {
+      networkLoading.getCurrentOutflowsPcuH()[entrySegmentId] =
+          networkLoading.getCurrentSendingFlowsPcuH()[entrySegmentId] * flowAcceptanceFactor;
+    }
 
     // update cost
-    ConjugateCostUtils.updateLinkAndConjugateSegmentCost(
-        entrySegment, assignmentStrategy, theMode, originalNetworkCosts, conjNetworkCosts);
+    if(doCostUpdate) {
+      ConjugateCostUtils.updateLinkAndConjugateSegmentCost(
+          entrySegment, assignmentStrategy, theMode, originalNetworkCosts, conjNetworkCosts);
+    }
+  }
+
+  /**
+   * Constructor for simplified approach where we do not update costs
+   *
+   * @param node           the model is run for
+   * @param theMode        to use
+   * @param assignmentStrategy to update
+   * @param updateNetworkOutflows flag indicating if outflows are to be updated
+   */
+  public NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer(
+      DirectedVertex node,
+      Mode theMode,
+      final StaticLtmConjugateBushStrategy assignmentStrategy,
+      boolean updateNetworkOutflows) {
+    this.assignmentStrategy = assignmentStrategy;
+    this.node = node;
+
+    this.theMode = theMode;
+
+    this.doOutflowUpdate = updateNetworkOutflows;
+
+    this.doCostUpdate = false;
+    this.originalNetworkCosts = null;
+    this.conjNetworkCosts = null;
+    this.discontinuityTurnCostReplacementConsumer = null;
   }
 
   /**
@@ -66,17 +95,23 @@ public class NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer implement
    * @param assignmentStrategy to update
    * @param originalNetworkCosts to update
    * @param conjNetworkCosts to update
+   * @param updateNetworkOutflows flag indicating if outflows are to be updated
    */
   public NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer(
       DirectedVertex node,
       Mode theMode,
       final StaticLtmConjugateBushStrategy assignmentStrategy,
       double[] originalNetworkCosts,
-      double[] conjNetworkCosts) {
+      double[] conjNetworkCosts,
+      boolean updateNetworkOutflows) {
     this.assignmentStrategy = assignmentStrategy;
     this.node = node;
 
     this.theMode = theMode;
+
+    this.doOutflowUpdate = updateNetworkOutflows;
+
+    this.doCostUpdate = true;
     this.originalNetworkCosts = originalNetworkCosts;
     this.conjNetworkCosts = conjNetworkCosts;
 
@@ -110,9 +145,12 @@ public class NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer implement
     // update acceptance factors and outflow for each incoming link
     TampereNodeModelUtils.forEachLinkBasedResult(
         node, this::processLinkBasedResult, flowAcceptanceFactors.reduceRows(Aggregator.MAXIMUM));
-    // update discontinuity based costs if any change for each affected turn
-    TampereNodeModelUtils.forEachTurnBasedResult(
-        node, flowAcceptanceFactors, discontinuityTurnCostReplacementConsumer);
+
+    if(doCostUpdate) {
+      // update discontinuity based costs if any change for each affected turn
+      TampereNodeModelUtils.forEachTurnBasedResult(
+          node, flowAcceptanceFactors, discontinuityTurnCostReplacementConsumer);
+    }
   }
 
 }

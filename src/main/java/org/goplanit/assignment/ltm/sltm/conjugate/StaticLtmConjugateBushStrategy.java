@@ -42,6 +42,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Base implementation to support a bush based solution for sLTM
@@ -316,21 +318,47 @@ public class StaticLtmConjugateBushStrategy
       Set<ConjugateDestinationBush> bushes,
       boolean logAll) {
 
-    // Step 1: splitting rate update --> create custom PAS based consumer equivalent (opposed to regular bush based version)
-    //getLoading().stepOneSplittingRatesUpdate(mode); <-- PAS equivalent of this
-    for (var pasEntry : pasDesiredFlowShifts.entrySet()) {
-      double flowShift = pasEntry.getValue().second();
-      if(flowShift != 0) {
-        var executor = (PasFlowShiftConjugateDestinationBasedExecutor)pasExecutors.get(pasEntry.getKey());
-        executor.performOneShotFlowShift(
-            theMode,
-            this,
-            (ConjugateEdgeSegment) pasEntry.getValue().first(),
-            flowShift,
-            bushes,
-            logAll);
+    int localisedNetworkLoadingIterationIndex = 0;
+    do{
+      TreeSet<DirectedVertex> pasTouchedNodes = new TreeSet<>();
+      // Step 1: splitting rate update
+      //getLoading().stepOneSplittingRatesUpdate(mode); <-- PAS equivalent of this
+      // per PAS do:
+      //  update bush flows + network level splitting rates on each link based on this change
+      //  no node model update, no sending flow update, no outflow update, no cost update
+      for (var pasEntry : pasDesiredFlowShifts.entrySet()) {
+        double flowShift = pasEntry.getValue().second();
+        if(flowShift != 0) {
+          var executor = (PasFlowShiftConjugateDestinationBasedExecutor)pasExecutors.get(pasEntry.getKey());
+          executor.performOneShotFlowShiftWithNetworkSplittingRateUpdate(
+              theMode,
+              this,
+              (ConjugateEdgeSegment) pasEntry.getValue().first(),
+              flowShift,
+              bushes,
+              logAll);
+          // extract all vertices touched by PAS
+          pasTouchedNodes.addAll(
+              Stream.concat(
+                  Arrays.stream(pasEntry.getKey().getAlternative(true)),
+                  Arrays.stream(pasEntry.getKey().getAlternative(false))).map(
+                  ConjugateEdgeSegment::getOriginalCentreVertex).collect(Collectors.toSet()));
+        }
       }
-    }
+
+      /* STEP 2 - Network sending flow update (including node model update) but limited to nodes touching PASs that we're updating*/
+      // todo: gap is determined based on network which is not ideal, probably better to base it off links involved....
+      getLoading().stepTwoInflowSendingFlowUpdate(theMode, pasTouchedNodes);
+
+      /* STEP 3 - Splitting rates update before receiving flow update (ony for physical queues) */
+      getLoading().stepThreeSplittingRateUpdate(theMode);
+
+      /* STEP 4 - Receiving flow update */
+      getLoading().stepFourOutflowAndReceivingFlowUpdate(theMode, pasTouchedNodes);
+
+      /* STEP 5 - Network loading convergence */
+    } while (!getLoading().stepFiveCheckNetworkLoadingConvergence(localisedNetworkLoadingIterationIndex++));
+
   }
 
   /**

@@ -664,19 +664,20 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     if(v2Activated && getSettings().getSltmType()==StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED){
 
       // DETERMINE PER PAS THE DESIRED STEP TO MAKE (to reach convergence individually)
-      Map<Pas<V, ES>,Pair<EdgeSegment,Double>>  pasDesiredFlowShifts = null;
+      Map<Pas<V, ES>,Pair<EdgeSegment,Double>>  pasDesiredFlowShifts = new TreeMap<>();
       {
         var uncongestedPasDesiredFlowShifts = determineConvergenceBasedUncongestedFlowShiftsV2(
             theMode, sortedPass, pasExecutors, nlConsistentFlowAcceptanceFactors, originalNetworkCosts, simulationData);
+        pasDesiredFlowShifts.putAll(uncongestedPasDesiredFlowShifts);
 
-        // remove reclassified PASs for congested processing to avoid duplicates
-        var toBeRemoved = uncongestedPasDesiredFlowShifts.keySet().stream().filter(
-            p -> p.getStatus() != PasStatus.UNCONGESTED_POTENTIALLY_CONGESTED).collect(Collectors.toList());
-        toBeRemoved.stream().forEach(uncongestedPasDesiredFlowShifts::remove);
-
-        pasDesiredFlowShifts = determineConvergenceBasedCongestedFlowShiftsV2(
+        var congestedPasDesiredFlowShifts = determineConvergenceBasedCongestedFlowShiftsV2(
             theMode, sortedPass, pasExecutors, nlConsistentFlowAcceptanceFactors, originalNetworkCosts, simulationData);
-        pasDesiredFlowShifts.entrySet().addAll(uncongestedPasDesiredFlowShifts.entrySet());
+        // add values together if both existing in uncongested and congested, otherwise take value as is
+        congestedPasDesiredFlowShifts.forEach((key, value) ->
+            pasDesiredFlowShifts.merge(
+                key, value,
+                (uncongVal, congVal) -> Pair.of(uncongVal.first(), uncongVal.second() + congVal.second())));
+
       }
 
       //todo: if we are going to apply smoothing --> decay function formerly applied within outer-inner loop of v1
@@ -685,7 +686,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           theMode, pasDesiredFlowShifts, pasExecutors, originalNetworkCosts, getBushes(), false);
 
     }else{
-      // V1 approach - if V2 works depcrecate and remove
+      // V1 approach - if V2 works deprecate and remove, or apply in first x iterations before switching to v2
       // UNCONGESTED ONLY
       var flowShiftedAndObsoletePass = doUncongestedFlowShiftingV1(
           theMode, sortedPass, pasExecutors, nlConsistentFlowAcceptanceFactors, originalNetworkCosts, simulationData);
