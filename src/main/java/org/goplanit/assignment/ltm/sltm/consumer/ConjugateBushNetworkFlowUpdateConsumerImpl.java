@@ -1,7 +1,9 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -10,7 +12,9 @@ import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.network.virtual.physical.ConnectoidNode;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
@@ -35,6 +39,12 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
   /** mapping from origin turn (segment, segment key) to conjugate segment */
   protected final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping;
 
+  /** when null all bushes are processed */
+  protected final Set<ConjugateDestinationBush> bushesToUpdate;
+
+  /** when null all vertices are updated */
+  protected final Set<DirectedVertex> verticesToUpdate;
+
   /**
    * Register the conjugate bush accepted turn flow to the turn if required. Default implementation does nothing but provide a hook for derived classes that do require to do
    * something with turn accepted flows
@@ -56,6 +66,28 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
           final T dataConfig, final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping){
     this.dataConfig = dataConfig;
     this.turn2ConjSegmentMapping = turn2ConjSegmentMapping;
+    this.bushesToUpdate = null;   // so all are updated
+    this.verticesToUpdate = null; // so all are updated
+  }
+
+  /**
+   * Constructor for selective bush and node updating, in which case we skip non-selected bushes from updating and
+   * only update the selected nodes and skip all others for the selected bushes.
+   *
+   * @param dataConfig              to use
+   * @param turn2ConjSegmentMapping to use
+   * @param bushesToUpdate selective bushes to update, when null all are updated
+   * @param verticesToUpdate selective vertices to update, when null all are updated
+   */
+  public ConjugateBushNetworkFlowUpdateConsumerImpl(
+      final T dataConfig,
+      final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping,
+      Set<ConjugateDestinationBush> bushesToUpdate,
+      Set<DirectedVertex> verticesToUpdate){
+    this.dataConfig = dataConfig;
+    this.turn2ConjSegmentMapping = turn2ConjSegmentMapping;
+    this.bushesToUpdate = bushesToUpdate;
+    this.verticesToUpdate = verticesToUpdate;
   }
 
   /**
@@ -65,6 +97,10 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
    */
   @Override
   public void accept(final ConjugateDestinationBush bush) {
+    if(!CollectionUtils.nullOrEmpty(bushesToUpdate) && !bushesToUpdate.contains(bush)){
+      // skip if not slated for update
+      return;
+    }
     /*
      * track bush sending flows propagated from the origin. Note: We cannot use the bush's own turn sending flows
      * because we are performing a network loading based on the most recent bush's splitting rates, we only use
@@ -83,7 +119,7 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
     var currConjVertex = vertexIter.next();
 
     /* initialise origin vertex outgoing edge sending flows */
-    var bushSendingFlows = ConjugateBushUtils.createOriginExitSegmentSendingFlows(bush);
+    var bushSendingFlows = ConjugateBushUtils.createOriginExitSegmentSendingFlows(bush, verticesToUpdate);
     TreeMap<ConjugateEdgeSegment, Double> bushUnconstrainedFlows =
             dataConfig.isUnconstrainedFlowsUpdate() ? new TreeMap<>(bushSendingFlows) : null;
 
@@ -99,14 +135,44 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
         if (!bush.contains(conjEntrySegment)) {
           continue;
         }
+        var originalTurnEntrySegment = conjEntrySegment.getOriginalAdjacentEdgeSegments().first();
+
+        boolean isSelectiveUpdate = false;
+        if(!CollectionUtils.nullOrEmpty(verticesToUpdate)){
+          var originalCentreVertex = conjEntrySegment.getOriginalCentreVertex();
+          if(!verticesToUpdate.contains(originalCentreVertex)) {
+            // skip if not slated for update
+            continue;
+          }else{
+            isSelectiveUpdate = true;
+          }
+        }
+
+        boolean skip = false;
         Double bushConjSegmentSendingFlow = bushSendingFlows.get(conjEntrySegment);
+        // can happen in case it is there to maintain spanning tree or when it is a starting point for partial update
+        // when the latter is the case we use the current bush sending flow as reference starting point
         if (bushConjSegmentSendingFlow == null ) {
-          // can happen in case it is there to maintain spanning tree
+          if(isSelectiveUpdate){
+            if(!bush.containsTurnSendingFlow(conjEntrySegment)) {
+              skip = true;
+            }else {
+              // initialise for partial update as this is expected to be a local point of origin
+              bushConjSegmentSendingFlow = bush.getSendingFlowPcuH(conjEntrySegment);
+              bushSendingFlows.put(conjEntrySegment, bushConjSegmentSendingFlow);
+              double initialAlpha = originalTurnEntrySegment!=null ?
+                  dataConfig.getFlowAcceptanceFactors()[(int)originalTurnEntrySegment.getId()] : 1.0;
+              applyAcceptedTurnFlowUpdate(conjEntrySegment, bushConjSegmentSendingFlow*initialAlpha);
+            }
+          }else {
+            skip = true;
+          }
+        }
+        if(skip){
           continue;
         }
 
         double bushConjSegmentAcceptedFlow = bushConjSegmentSendingFlow;
-        var originalTurnEntrySegment = conjEntrySegment.getOriginalAdjacentEdgeSegments().first();
 
         // ....otherwise propagate with alphas and update "real" network as we go
         if(originalTurnEntrySegment!=null) {

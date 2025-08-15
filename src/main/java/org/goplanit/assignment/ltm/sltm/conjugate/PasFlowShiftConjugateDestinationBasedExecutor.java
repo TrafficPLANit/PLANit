@@ -2587,6 +2587,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     boolean updateOutFlows = true;
     boolean updateCosts = true;
 
+    if(pas.pasId == 42L){
+      int bla = 4;
+    }
+
     // when alphas not updated, we must initialise this to the original slack found to minimise risk of traffic state changes while shifting
     // ie when budget is spent we stop updating.
     double initialFlowShiftBudget = Double.MAX_VALUE;
@@ -2703,7 +2707,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       pas.updateStatus(PasStatus.UNCONGESTED_WITH_SHIFT);
       if(isDestinationTrackedForLogging() || logAll) {
-        LOGGER.info("* UNCONGESTED FLOW SHIFT "+proposedFlowShift+" on PAS:" + pas + " - S2 flow: " + guaranteedS2SendingFlow + " - cost-diff: " + pas.getReducedCost());
+        LOGGER.info("* UNCONGESTED FLOW SHIFT "+proposedFlowShift+" on PAS:" + pas + "- cost-diff: " + pas.getReducedCost()+ " - S2 flow: " + guaranteedS2SendingFlow + " - S1 flow: " + s1SendingFlow);
       }
 
       var iterationS2FlowShiftPerBush = executePasFlowShift(
@@ -3120,7 +3124,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // this value will be the overall shift applied (unless we have chosen to reset in which case it will be
     // the applied flow shift before resetting (since after resetting the change is zero which is pointless to provide)
     double totalFlowShift = flowShiftTrackerForInitialAltTurn.values().stream().mapToDouble(d->d).sum();
-    if(totalFlowShift > 0 && smoothingApproach!=FlowShiftSmoothingApproach.OFF) {
+    if(totalFlowShift != 0 && smoothingApproach!=FlowShiftSmoothingApproach.OFF) {
 
       double smoothingFactor = additionalSmoothingFactor;
       if(smoothingApproach==FlowShiftSmoothingApproach.NORMAL) {
@@ -3161,7 +3165,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
   // one shot flow shift to update bush/network splitting rates in preparation for PAS mini-loading support we are
   // implementing (see todos.doc)
-  public void performOneShotFlowShiftWithNetworkSplittingRateUpdate(
+  public Pair<EdgeSegment,Double> performOneShotFlowShiftWithNetworkSplittingRateUpdate(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy,
       ConjugateEdgeSegment referenceTurn,
@@ -3194,7 +3198,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     if(guaranteedS2SendingFlow <= 0 ){
       removeZeroFlowBushesFromPas(false);
-      return;
+      return Pair.of(pas.getFirstEdgeSegment(true), 0.0);
     }
 
     if(isDestinationTrackedForLogging() || logAll) {
@@ -3208,7 +3212,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     boolean snapToZero = false;
     double delta = 1;
     double chosenFlowShift = proposedFlowShift<0 ?
-        Math.max(s1SendingFlow,proposedFlowShift) : Math.min(proposedFlowShift, guaranteedS2SendingFlow);
+        Math.min(s1SendingFlow, Math.abs(proposedFlowShift)) : Math.min(proposedFlowShift, guaranteedS2SendingFlow);
     boolean s1ApproachingZero = proposedFlowShift < 0 && s1SendingFlow + proposedFlowShift < delta;
     boolean s2ApproachingZero = proposedFlowShift > 0 && guaranteedS2SendingFlow - proposedFlowShift < delta;
     if(s1ApproachingZero || s2ApproachingZero){
@@ -3230,11 +3234,15 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       LOGGER.info(message);
     }
     if(chosenFlowShift == 0){
-      return;
+      return Pair.of(pas.getFirstEdgeSegment(true), 0.0);
     }
 
     var iterationS2FlowShiftPerBush = executePasFlowShiftSplittingRatesOnly(
         guaranteedS2SendingFlow, bushS2RemainingSendingFlows, chosenFlowShift, theMode, conjStrategy, bushes, logAll);
+
+    // track for smoothing
+    double iterationFlowShift = iterationS2FlowShiftPerBush.values().stream().mapToDouble(d -> d).sum();
+    return Pair.of(pas.getFirstEdgeSegment(true), iterationFlowShift);
   }
 
   // common code for checking if we should allow bypassing any smoothing to ensure we can still remove

@@ -3,13 +3,17 @@ package org.goplanit.assignment.ltm.sltm.conjugate;
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 /**
@@ -28,11 +32,28 @@ public class ConjugateBushUtils {
    */
   public static TreeMap<ConjugateEdgeSegment, Double> createOriginExitSegmentSendingFlows(
       final ConjugateDestinationBush bush) {
+    return createOriginExitSegmentSendingFlows(bush, null /* all origin vertices*/);
+  }
+
+  /**
+   * construct the bush sending flows for the bush's root exit edge segments based on origin demand and
+   * splitting rates at origin
+   *
+   * @param bush             at hand
+   * @param verticesToConsider when null all (origin) vertices are considered, otherwise only the origins that are in this
+   *                         set are considered
+   * @return bushSendingFlows by origin exit segment
+   */
+  public static TreeMap<ConjugateEdgeSegment, Double> createOriginExitSegmentSendingFlows(
+      final ConjugateDestinationBush bush, Set<DirectedVertex> verticesToConsider) {
 
     var bushSendingFlows = new TreeMap<ConjugateEdgeSegment, Double>();
 
     var originVertices = bush.getOriginVertices();
     for (ConjugateDirectedVertex originVertex : originVertices) {
+      if(!(CollectionUtils.nullOrEmpty(verticesToConsider) || !verticesToConsider.contains(originVertex))){
+        continue;
+      }
       double totalOriginsSendingFlow = 0;
       for (var originExit : originVertex.getExitEdgeSegments()) {
         if (bush.contains(originExit)) {

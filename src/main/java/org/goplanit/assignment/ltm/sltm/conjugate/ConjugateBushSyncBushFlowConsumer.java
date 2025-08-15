@@ -70,7 +70,7 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
     this.originalNetworkFlowAcceptanceFactors = originalNetworkFlowAcceptanceFactors;
 
     // starting point of tracking te sending flows, are the origin sending flows
-    this.bushSendingFlows = ConjugateBushUtils.createOriginExitSegmentSendingFlows( conjBush);
+    this.bushSendingFlows = ConjugateBushUtils.createOriginExitSegmentSendingFlows(conjBush);
   }
 
   /**

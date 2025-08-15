@@ -274,12 +274,13 @@ public abstract class StaticLtmNetworkLoading {
 
   /**
    * Update the splitting rates based on the provided accepted turn flows
-   * 
+   *
    * @param acceptedTurnFlows to use to determine splitting rates (movement id indexed array)
+   * @param nodesToUpdate the nodes to update
    */
-  protected void updateNextSplittingRates(final TurnFlowAccessor acceptedTurnFlows) {
-    var trackedNodes = nlSplittingRateData.getTrackedNodes();
-    for (var node : trackedNodes) {
+  protected void updateNextSplittingRates(
+      final TurnFlowAccessor acceptedTurnFlows, TreeSet<DirectedVertex> nodesToUpdate){
+    for (var node : nodesToUpdate) {
       for (var entrySegment : node.getEntryEdgeSegments()) {
 
         /* construct splitting rates by first imposing absolute turn flows */
@@ -309,6 +310,16 @@ public abstract class StaticLtmNetworkLoading {
         }
       }
     }
+
+  }
+
+  /**
+   * Update the splitting rates based on the provided accepted turn flows
+   * 
+   * @param acceptedTurnFlows to use to determine splitting rates (movement id indexed array)
+   */
+  protected void updateNextSplittingRates(final TurnFlowAccessor acceptedTurnFlows) {
+    updateNextSplittingRates(acceptedTurnFlows, nlSplittingRateData.getTrackedNodes());
   }
 
   /**

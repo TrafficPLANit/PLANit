@@ -182,7 +182,8 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
   }
 
   @Override
-  protected void performLocalisedPasNetworkLoading(
+  protected Pair<Set<Pas<DirectedVertex, EdgeSegment>>, Set<Pas<DirectedVertex, EdgeSegment>>>
+  performLocalisedPasNetworkLoading(
       Mode theMode,
       Map<Pas<DirectedVertex, EdgeSegment>, Pair<EdgeSegment, Double>> pasDesiredFlowShifts,
       Map<Pas<DirectedVertex, EdgeSegment>, PasFlowShiftExecutor<DirectedVertex, EdgeSegment>> pasExecutors,

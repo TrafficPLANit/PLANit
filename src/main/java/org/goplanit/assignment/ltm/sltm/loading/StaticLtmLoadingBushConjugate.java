@@ -1,14 +1,30 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.assignment.ltm.sltm.Pas;
+import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateBushUtils;
 import org.goplanit.assignment.ltm.sltm.consumer.*;
 import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.network.transport.ConjugateTransportModelNetwork;
+import org.goplanit.utils.arrays.ArrayUtils;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.virtual.physical.ConnectoidNode;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 
+import java.util.Collection;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * The conjugate rooted bush based network loading scheme for sLTM
@@ -99,4 +115,33 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
   public ConjugateTransportModelNetwork getConjugateTransportModelNetwork() {
     return conjugateTransportModelNetwork;
   }
+
+  // special version of network splitting rate loading update where we limit ourselves to propagating PAS flows instead
+  // of full bush loading - used in route choice update to get a better estimate of rotue choice impact for internal
+  // iterations
+  public void stepOneSplittingRatesUpdateNotBushButPasBased(
+      Mode theMode,
+      TreeSet<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> passToPropagate,
+      TreeSet<DirectedVertex> pasTouchedNodes) {
+
+    // identify all touched bushes
+    var touchedBushes = (Set<ConjugateDestinationBush>)
+        passToPropagate.stream().map(Pas::getRegisteredBushes).flatMap(Collection::stream).collect(Collectors.toSet());
+
+    boolean updateLinkSendingFlows = false;
+    int numConjugateSegments = conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers();
+    var selectiveBushPasNodeTurnFlowUpdateConsumer = new ConjugateBushTurnFlowUpdateConsumer(
+        createNetworkTurnFlowData(updateLinkSendingFlows, numConjugateSegments),
+        turn2ConjugateSegmentMapping,
+        touchedBushes,
+        pasTouchedNodes);
+
+    /* execute loading - for selective bushes with selective nodes - */
+    executeNetworkLoadingUpdate(selectiveBushPasNodeTurnFlowUpdateConsumer);
+
+    /* update splitting rates - for selective nodes - Eq. (6),(4) */
+    updateNextSplittingRates(selectiveBushPasNodeTurnFlowUpdateConsumer.getAcceptedTurnFlows(), pasTouchedNodes);
+  }
 }
+
+

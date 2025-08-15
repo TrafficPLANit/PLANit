@@ -518,7 +518,7 @@ public class sLtmAssignmentBushSingleOdTest2 {
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(300);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(15);
       sLTM.setActivateDetailedLogging(true);
 
       sLTM.addTrackOdForLoggingByXmlId("A","A`");

@@ -386,7 +386,6 @@ public class sLtmAssignmentBushSingleOdTest1 {
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(100);
 
-
       sLTM.execute();
 
       testCongestedOutputs(sLTM);
@@ -412,7 +411,7 @@ public class sLtmAssignmentBushSingleOdTest1 {
 
       sLTM.setActivateDetailedLogging(true);
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(100);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(40);
       sLTM.execute();
 
       testUncongestedOutputs(sLTM);

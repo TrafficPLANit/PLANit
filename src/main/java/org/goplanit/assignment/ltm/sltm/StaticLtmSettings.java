@@ -28,6 +28,9 @@ public class StaticLtmSettings {
    */
   private Map<IdMapperType, Map<String, Set<String>>> trackedOds = new HashMap<>();
 
+  /** tracked ods are by default active unless overwritten */
+  private boolean trackedOdsActive = true;
+
   /** flag indicating of storage constraints (spillback) are disabled */
   private Boolean disableStorageConstraints = null;
 
@@ -301,13 +304,17 @@ public class StaticLtmSettings {
   }
 
   /**
-   * Check if a given od is marked for extended logging or not
+   * Check if a given od is marked for extended logging or not (will return false of tracking of ods is
+   * disabled)
    *
    * @param originZone origin to check
    * @param destinationZone destination to check
    * @return true when tracked, false otherwise
    */
   public boolean isTrackOdForLogging(OdZone originZone, OdZone destinationZone){
+    if(!trackedOdsActive){
+      return false;
+    }
     /* try each id type which has registered zones, if available... */
     for(var entry : trackedOds.entrySet()){
       var odsForType = entry.getValue();
@@ -326,12 +333,16 @@ public class StaticLtmSettings {
   }
 
   /**
-   * Check if a given destination is marked for extended logging or not
+   * Check if a given destination is marked for extended logging or not. (will return false of tracking of ods is
+   * disabled)
    *
    * @param destinationZone destination to check
    * @return true when tracked, false otherwise
    */
   public boolean isTrackDestinationForLogging(OdZone destinationZone){
+    if(!trackedOdsActive){
+      return false;
+    }
     /* try each id type which has registered zones, if available... */
     for(var entry : trackedOds.entrySet()){
       var odsForType = entry.getValue();
@@ -342,6 +353,15 @@ public class StaticLtmSettings {
       }
     }
     return false;
+  }
+
+  /**
+   * enable or disable tracking of ods (temporarily)
+   *
+   * @param activate flag to set
+   */
+  public void enableTrackedOds(boolean activate){
+    this.trackedOdsActive = activate;
   }
 
 
