@@ -502,7 +502,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       var flowShift = entry.second();
       var originalTurnEntrySegment = turn.getOriginalAdjacentEdgeSegments().first();
       boolean hasOriginalEntry = (originalTurnEntrySegment != null);
-      if (flowShift > 0 && hasOriginalEntry) {
+      if (flowShift != 0 && hasOriginalEntry) {
         // any additional flow to a turn may potentially cause congestion. to ensure node model calculates such a node
         // it must be registered as potentially blocking. So we register it at such (if already done nothing happens).
         networkLoading.getSplittingRateData().registerPotentiallyBlockingNode(originalTurnEntrySegment.getDownstreamVertex());
@@ -2568,9 +2568,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * @param logAll               to use
    * @param smoothingApproach  to apply
    * @param additionalSmoothingFactor to factor in if regular smoothing is applied
-   * @return total shifted flow for the reference turn used
+   * @return total shifted flow for the reference turn used and indicator if we snapped to zero for the high cost segment
    */
-  public Pair<EdgeSegment,Double> performEquilibratedUncongestedFlowShifts(
+  public Triple<EdgeSegment,Double,Boolean> performEquilibratedUncongestedFlowShifts(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy,
       double[] nlConsistentFlowAcceptanceFactors,
@@ -2601,7 +2601,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // only consider PAS when it is potentially uncongested, confirm later with explicit check
     if(this.pas.getStatus() == PasStatus.CONGESTED
         || this.pas.getStatus() == PasStatus.UNCONGESTED_POTENTIALLY_CONGESTED){
-      return Pair.of(pas.getFirstEdgeSegment(false),0.0);
+      return Triple.of(pas.getFirstEdgeSegment(false),0.0, false);
     }
 
     // update costs because if another overlapping uncongested PAS was updated previously, current costs are no longer
@@ -2637,6 +2637,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double totalPasShift = 0;
     Map<ConjugateDestinationBush, Double> bushS2RemainingSendingFlows = new TreeMap<>();
     double guaranteedS2SendingFlow = 0;
+    boolean snappedToZeroByPassedFinalSmoothing = false;
     do{
 
       //--------------- UPDATE SENDING FLOWS THROUGH ALTERNATIVE ------------------------------------
@@ -2661,8 +2662,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         // we cannot rely on zero flow check alone in congested processing because, other later uncongested PASs may
         // add flow causing it to no longer have zero flow, in which case its old status will result in an attempt for
         // congested processing:
-        // todo: split uncongested_without_shift into two statuses, so we only consider congested
-        //  and explicitly identified as potentially congested in the congested setup --> then this can be removed
         pas.updateStatus(PasStatus.UNCONGESTED_WITH_SHIFT);
         break;
       }
@@ -2797,7 +2796,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       // bush smoothing - final shift when smoothing is deemed required
       originalPasBushes.forEach(b -> pas.registerBush((RootedBush<ConjugateDirectedVertex, ConjugateEdgeSegment>) b));
-      double finalAppliedFlowShift = performFinalShiftForSmoothing(
+      var smoothedShiftResult = performFinalShiftForSmoothing(
           flowShiftTrackerForInitialAltTurn,
           initialAltTurn,
           theMode,
@@ -2808,10 +2807,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           bushes,
           logAll,
           updateNodeModel, updateSendingFlows, updateOutFlows, updateCosts, // flags
-          smoothingFactor);
+          smoothingFactor,
+          smoothingApproach);
+      snappedToZeroByPassedFinalSmoothing = smoothedShiftResult.second();
     }
 
-    return Pair.of(initialAltTurn, totalFlowShift);
+    return Triple.of(initialAltTurn, totalFlowShift, snappedToZeroByPassedFinalSmoothing);
   }
 
   public double determinePasSubPathSendingFlow(
@@ -2857,7 +2858,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * {@inheritDoc}
    */
   @Override
-  public Pair<EdgeSegment,Double> performEquilibratedCongestedFlowShifts(
+  public Triple<EdgeSegment,Double, Boolean> performEquilibratedCongestedFlowShifts(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy,
       double[] originalNetworkCosts,
@@ -2915,6 +2916,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       //sb.append(message).append(System.lineSeparator());
       LOGGER.info(message);
     }
+    boolean snappedToZeroByPassedFinalSmoothing = false;
     do{
 
       if (pas.pasId == 16L) { // local PAS update
@@ -3142,7 +3144,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       // todo: very ugly, we probably should simply not unregister bushes and have a better mechanism in the final shift
       //  to deal with near zero situations if this approach works...
       originalPasBushes.forEach(b -> pas.registerBush((RootedBush<ConjugateDirectedVertex, ConjugateEdgeSegment>) b));
-      double finalAppliedFlowShift = performFinalShiftForSmoothing(
+      var smoothedShiftResult = performFinalShiftForSmoothing(
           flowShiftTrackerForInitialAltTurn,
           initialAltTurn,
           theMode,
@@ -3153,14 +3155,16 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           (Set<ConjugateDestinationBush>) bushes,
           logAll,
           true, true, true, true, // update all
-          smoothingFactor);
+          smoothingFactor,
+          smoothingApproach);
+      snappedToZeroByPassedFinalSmoothing = smoothedShiftResult.second();
 
       if(!converged && sb != null) {
         //LOGGER.info(sb.toString());
       }
     }
 
-    return Pair.of(initialAltTurn, totalFlowShift);
+    return Triple.of(initialAltTurn, totalFlowShift, snappedToZeroByPassedFinalSmoothing);
   }
 
   // one shot flow shift to update bush/network splitting rates in preparation for PAS mini-loading support we are
@@ -3241,7 +3245,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         guaranteedS2SendingFlow, bushS2RemainingSendingFlows, chosenFlowShift, theMode, conjStrategy, bushes, logAll);
 
     // track for smoothing
-    double iterationFlowShift = iterationS2FlowShiftPerBush.values().stream().mapToDouble(d -> d).sum();
+    double iterationFlowShift = 0;
+    if(iterationS2FlowShiftPerBush!=null){
+      iterationFlowShift = iterationS2FlowShiftPerBush.values().stream().mapToDouble(d -> d).sum();
+    }
     return Pair.of(pas.getFirstEdgeSegment(true), iterationFlowShift);
   }
 
@@ -3263,7 +3270,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   //
   // provided flow shifts are expected to be for the initial high cost alt segment on pas at the start of shifting
   // (may no longer be the case in the final state now) --> so this should be a negative value for each bush
-  private double performFinalShiftForSmoothing(
+  // returned boolean indicates of we snapped to zero or not
+  private Pair<Double,Boolean> performFinalShiftForSmoothing(
       Map<ConjugateDestinationBush, Double> appliedNegativeFlowShiftsForInitialTurn,
       ConjugateEdgeSegment referenceAltInitialTurn,
       Mode theMode,
@@ -3277,7 +3285,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       boolean updateNetworkSendingFlows,
       boolean updateNetworkOutFlows,
       boolean updateNetworkCosts,
-      double smoothingFactor) {
+      double smoothingFactor,
+      FlowShiftSmoothingApproach smoothingApproach) {
 
     ConjugateDestinationBush mostRestrictiveSmoothingBush = null;
     double mostRestrictiveBushSmoothingFactor = Double.MAX_VALUE;
@@ -3305,7 +3314,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       // todo: track down the exact reason in a simple setting and then fix.
       LOGGER.severe(String.format("reference removed flow should not be positive when smoothing, SKIPPING SMOOTHING for pas %d",
           pas.pasId));
-      return 0;
+      return Pair.of(0.0, false);
     }
 
     // find the most restricting stepsize across the bushes involved, that will be the step size we use for
@@ -3346,7 +3355,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
 
     if(compensatoryS2ShiftToMeetTarget == 0) {
-      return 0;
+      return Pair.of(0.0, false);
     }
 
     if(isDestinationTrackedForLogging() || logAll) {
@@ -3376,14 +3385,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double remainingSendingFlow = 0;
     for (var bush : pas.getRegisteredBushes()) {
       ConjugateDestinationBush conjBush = (ConjugateDestinationBush) bush;
-      if(updateNetworkNodeModel) {
+      if (updateNetworkNodeModel) {
         double remainingSubPathSendingFlow = conjBush.determineConstrainedSubPathSendingFlow(
             pas.getAlternative(s1SlatedForAddingSmoothedFlow),
             conjStrategy.getLoading().getCurrentFlowAcceptanceFactors(),
             originalNlConsistentFlowAcceptanceFactors,
             this.originalBushTurnFlowTracker.get(conjBush));
         remainingSendingFlow += remainingSubPathSendingFlow;
-      }else{
+      } else {
         double remainingSubPathSendingFlow = bush.determineSubPathSendingFlow(
             pas.getAlternative(s1SlatedForAddingSmoothedFlow), conjStrategy.getLoading().getCurrentFlowAcceptanceFactors());
         remainingSendingFlow += remainingSubPathSendingFlow;
@@ -3396,16 +3405,16 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     // gap even after removal
     // todo: we do not know here what the proposed original flow shift was, to avoid that disallowing the snapping we
     //  set it to infinite --> again eventually this call should only be made here and there we should improve this as it is ugly
-    if(remainingSendingFlow <= 0 &&
-        shouldSnapToAllowS2Removal(Double.MAX_VALUE, Math.abs(totalRemovedFlow), pas.getReducedCost())){
-      if(isDestinationTrackedForLogging() || logAll) {
+    if (remainingSendingFlow <= 0 &&
+        shouldSnapToAllowS2Removal(Double.MAX_VALUE, Math.abs(totalRemovedFlow), pas.getReducedCost())) {
+      if (isDestinationTrackedForLogging() || logAll) {
         var message = "   Skip smoothing - snapping to zero allowed!";
         LOGGER.info(message);
       }
-      return 0;
+      return Pair.of(0.0, true);
     }
 
-    executePasFlowShift(
+    var appliedShiftResult = executePasFlowShift(
         totalRemovedFlow,
         appliedNegativeFlowShiftsForInitialTurn,
         compensatoryShiftToApply,
@@ -3438,7 +3447,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       //sb.append(message).append(System.lineSeparator());
       LOGGER.info(message);
     }
-    return 0;
+    return Pair.of(appliedShiftResult.values().stream().mapToDouble(e->e).sum(), false);
   }
 
   /**

@@ -673,7 +673,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
   }
 
   @Override
-  public Pair<EdgeSegment,Double> performEquilibratedCongestedFlowShifts(
+  public Triple<EdgeSegment, Double, Boolean> performEquilibratedCongestedFlowShifts(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy,
       double[] originalNetworkCosts,

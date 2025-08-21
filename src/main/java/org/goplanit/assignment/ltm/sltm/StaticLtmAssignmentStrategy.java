@@ -12,7 +12,6 @@ import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.demands.Demands;
 import org.goplanit.gap.GapFunction;
-import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
@@ -264,6 +263,7 @@ public abstract class StaticLtmAssignmentStrategy {
       /* STEP 5 - Network loading convergence */
     } while (!getLoading().stepFiveCheckNetworkLoadingConvergence(networkLoadingIterationIndex++));
   }
+
 
   /**
    * Factory method to create the desired network loading

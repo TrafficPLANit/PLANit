@@ -1,23 +1,20 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateBushUtils;
 import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.utils.arrays.ArrayUtils;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.network.virtual.physical.ConnectoidNode;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
-import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 
 /**
  * Conjugate Bush consumer to apply during conjugate bush based network loading flow update for each origin bush
@@ -39,11 +36,8 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
   /** mapping from origin turn (segment, segment key) to conjugate segment */
   protected final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping;
 
-  /** when null all bushes are processed */
-  protected final Set<ConjugateDestinationBush> bushesToUpdate;
-
-  /** when null all vertices are updated */
-  protected final Set<DirectedVertex> verticesToUpdate;
+  /** when null all edge segments are processed (Default during regular loading) */
+  protected final Set<EdgeSegment> edgeSegmentsToUpdate;
 
   /**
    * Register the conjugate bush accepted turn flow to the turn if required. Default implementation does nothing but provide a hook for derived classes that do require to do
@@ -66,8 +60,7 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
           final T dataConfig, final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping){
     this.dataConfig = dataConfig;
     this.turn2ConjSegmentMapping = turn2ConjSegmentMapping;
-    this.bushesToUpdate = null;   // so all are updated
-    this.verticesToUpdate = null; // so all are updated
+    this.edgeSegmentsToUpdate = null;   // so all are updated
   }
 
   /**
@@ -76,18 +69,15 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
    *
    * @param dataConfig              to use
    * @param turn2ConjSegmentMapping to use
-   * @param bushesToUpdate selective bushes to update, when null all are updated
-   * @param verticesToUpdate selective vertices to update, when null all are updated
+   * @param edgeSegmentsToUpdate selective edge segments to update (all turn flows of all bushes of these edge segments)
    */
   public ConjugateBushNetworkFlowUpdateConsumerImpl(
       final T dataConfig,
       final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping,
-      Set<ConjugateDestinationBush> bushesToUpdate,
-      Set<DirectedVertex> verticesToUpdate){
+      Set<EdgeSegment> edgeSegmentsToUpdate){
     this.dataConfig = dataConfig;
     this.turn2ConjSegmentMapping = turn2ConjSegmentMapping;
-    this.bushesToUpdate = bushesToUpdate;
-    this.verticesToUpdate = verticesToUpdate;
+    this.edgeSegmentsToUpdate = edgeSegmentsToUpdate;
   }
 
   /**
@@ -97,10 +87,6 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
    */
   @Override
   public void accept(final ConjugateDestinationBush bush) {
-    if(!CollectionUtils.nullOrEmpty(bushesToUpdate) && !bushesToUpdate.contains(bush)){
-      // skip if not slated for update
-      return;
-    }
     /*
      * track bush sending flows propagated from the origin. Note: We cannot use the bush's own turn sending flows
      * because we are performing a network loading based on the most recent bush's splitting rates, we only use
@@ -119,7 +105,7 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
     var currConjVertex = vertexIter.next();
 
     /* initialise origin vertex outgoing edge sending flows */
-    var bushSendingFlows = ConjugateBushUtils.createOriginExitSegmentSendingFlows(bush, verticesToUpdate);
+    var bushSendingFlows = ConjugateBushUtils.createOriginExitSegmentSendingFlows(bush, edgeSegmentsToUpdate);
     TreeMap<ConjugateEdgeSegment, Double> bushUnconstrainedFlows =
             dataConfig.isUnconstrainedFlowsUpdate() ? new TreeMap<>(bushSendingFlows) : null;
 
@@ -135,18 +121,17 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
         if (!bush.contains(conjEntrySegment)) {
           continue;
         }
+
         var originalTurnEntrySegment = conjEntrySegment.getOriginalAdjacentEdgeSegments().first();
 
         boolean isSelectiveUpdate = false;
-        if(!CollectionUtils.nullOrEmpty(verticesToUpdate)){
-          var originalCentreVertex = conjEntrySegment.getOriginalCentreVertex();
-          if(!verticesToUpdate.contains(originalCentreVertex)) {
-            // skip if not slated for update
-            continue;
-          }else{
+        if(!CollectionUtils.nullOrEmpty(edgeSegmentsToUpdate) && edgeSegmentsToUpdate.contains(originalTurnEntrySegment)){
             isSelectiveUpdate = true;
-          }
+        }else{
+          // skip if not slated for update
+          continue;
         }
+
 
         boolean skip = false;
         Double bushConjSegmentSendingFlow = bushSendingFlows.get(conjEntrySegment);

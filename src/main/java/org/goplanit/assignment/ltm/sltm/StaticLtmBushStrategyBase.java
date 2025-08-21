@@ -14,6 +14,7 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -29,9 +30,7 @@ import org.goplanit.zoning.Zoning;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Base implementation to support a bush based solution for sLTM
@@ -568,9 +567,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
               PasFlowShiftExecutor.FlowShiftSmoothingApproach.RESET, // only obtaining shift to get to convergence, then reset
               1 /* not relevant when resetting */);
 
+      boolean snappedToZero = pasFlowShiftByRefTurn.third();
       double pasFlowShifted = Math.abs(pasFlowShiftByRefTurn.second());
-      if (pasFlowShifted > 0) {
-        pasDesiredFlowShifts.put(pas, pasFlowShiftByRefTurn);
+      if (pasFlowShifted > 0 && !snappedToZero) {
+        // we only apply smoothing on non-snapped PASs as the snapped PASs are fully effectuated and are to be ignored
+        pasDesiredFlowShifts.put(pas, Pair.of(pasFlowShiftByRefTurn.first(), pasFlowShiftByRefTurn.second()));
       }
     }
 
@@ -652,8 +653,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         Arrays.copyOf(
             getLoading().getCurrentFlowAcceptanceFactors(),getLoading().getCurrentFlowAcceptanceFactors().length);
 
-    Set<Pas<V,ES>> flowShiftedPass = null;
-    Set<Pas<V,ES>> passWithoutBush = null;
+    Set<Pas<V,ES>> flowShiftedPass = new TreeSet<>();
+    Set<Pas<V,ES>> passWithoutBush = new TreeSet<>();
 
     // v1 = approach with internal PAS equilibration in full with per pas alpha/splittingrates/cost updates and
     //      do that x times sequentially across PASs. Results on Leuven can get you to 6*10^-5
@@ -687,12 +688,29 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           getSettings().enableTrackedOds(true); // switch back on
         }
 
+        // determine overlap based smoothing per PAS
+        // check shift on each link, determine total proposed value and then per PAS per link determine portion
+        // the PAS takes up, then take minimum of all portions as the smoothing factor
+        var smoothedPasDesiredFlowShifts =
+            applyOverlapSmoothingToProposedPasShifts(theMode, pasDesiredFlowShifts);
+
         //todo: if we are going to apply smoothing --> decay function formerly applied within outer-inner loop of v1
         //  should be applied here before we are going to apply the shifts.
         var flowShiftedAndObsoletePass = performLocalisedPasNetworkLoading(
-            theMode, pasDesiredFlowShifts, pasExecutors, originalNetworkCosts, getBushes(), false);
-        flowShiftedPass = flowShiftedAndObsoletePass.first();
-        passWithoutBush = flowShiftedAndObsoletePass.second();
+            theMode, smoothedPasDesiredFlowShifts, pasExecutors, originalNetworkCosts, getBushes(), false);
+        flowShiftedPass.addAll(flowShiftedAndObsoletePass.first());
+        passWithoutBush.addAll(flowShiftedAndObsoletePass.second());
+
+        // update NL loading consistent alphas for next iteration
+        nlConsistentFlowAcceptanceFactors =
+            Arrays.copyOf(
+                getLoading().getCurrentFlowAcceptanceFactors(),getLoading().getCurrentFlowAcceptanceFactors().length);
+
+        // update costs
+        // todo: this is network wide, but this is not needed for localised loading --> speed up by just
+        //  updating touched links
+        executeCostUpdateAfterLoading(theMode, originalNetworkCosts);
+
       }while(crossPassUpdateIndex++ < MAX_UPDATE_ITERATIONS);
 
     }else{
@@ -725,6 +743,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
     return flowShiftedPass;
   }
+
+  // given desired shifts, smooth based on identified overlap, returned map is the final smoother shift we propose
+  protected abstract Map<Pas<V,ES>, Pair<EdgeSegment, Double>> applyOverlapSmoothingToProposedPasShifts(
+      Mode theMode, Map<Pas<V,ES>, Pair<EdgeSegment, Double>> pasDesiredFlowShifts);
 
   // given the desired shifts, perform network loading not based on full bushes, but only on the individual PAS level.
   // objective is to update costs afterwards to inform next inner iteration of route choice considering PAS interactions
@@ -982,6 +1004,30 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     }
   }
 
+  protected void executeCostUpdateAfterLoading(Mode theMode, double[] costsToUpdate) {
+    // revert to always updating ALL link costs. This is simple and we know that we are using the right costs for the
+    // gap calculation.
+    boolean updateOnlyPotentiallyBlockingNodeCosts = false;
+//        boolean updateOnlyPotentiallyBlockingNodeCosts = isUpdateOnlyPotentiallyBlockingNodeCosts();
+//        if(simulationData.isFirstIteration() && updateOnlyPotentiallyBlockingNodeCosts && simulationData.isInitialCostsAppliedInFirstIteration(theMode)){
+//          /* initial costs will be inconsistent with loading performed in first iteration, recalculate all link segment costs for free flow conditions first
+//           * and then for those that need tracking override with flow based costs */
+//          CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
+//                  theMode, getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments(), costsToUpdate);
+//        }
+    this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
+
+    /* PAS COST UPDATE */
+    updatePasCosts(theMode, costsToUpdate);
+    /* PAS STATUS UPDATE (used to truncate search for PASs on bush) */
+    updatePasStatusBeforeFlowShifts(theMode, this.getLoading().getCurrentFlowAcceptanceFactors());
+
+    // DEBUGGING
+    if(getSettings().isDetailedLogging()) {
+      logCongestedSegmentInfo(costsToUpdate, theMode);
+    }
+  }
+
   /**
    * Create bush based network loading implementation
    *
@@ -1054,35 +1100,13 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
       /* 2 - NETWORK COST UPDATE + UPDATE NETWORK REALISED COST GAP */
       {
-        // revert to always updating ALL link costs. This is simple and we know that we are using the right costs for the
-        // gap calculation.
-        boolean updateOnlyPotentiallyBlockingNodeCosts = false;
-//        boolean updateOnlyPotentiallyBlockingNodeCosts = isUpdateOnlyPotentiallyBlockingNodeCosts();
-//        if(simulationData.isFirstIteration() && updateOnlyPotentiallyBlockingNodeCosts && simulationData.isInitialCostsAppliedInFirstIteration(theMode)){
-//          /* initial costs will be inconsistent with loading performed in first iteration, recalculate all link segment costs for free flow conditions first
-//           * and then for those that need tracking override with flow based costs */
-//          CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
-//                  theMode, getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments(), costsToUpdate);
-//        }
-        this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
-
-        /* PAS COST UPDATE */
-        updatePasCosts(theMode, costsToUpdate);
-        /* PAS STATUS UPDATE (used to truncate search for PASs on bush) */
-        updatePasStatusBeforeFlowShifts(theMode, this.getLoading().getCurrentFlowAcceptanceFactors());
-
-        // DEBUGGING
-        if(getSettings().isDetailedLogging()) {
-          logCongestedSegmentInfo(costsToUpdate, theMode);
-        }
+        executeCostUpdateAfterLoading(theMode, costsToUpdate);
       }
 
       /* 3 - BUSH LOADING - SYNC BUSH TURN FLOWS - USE NETWORK LOADING ALPHAS - MODE AGNOSTIC FOR NOW */
       {
         syncBushFlowsToNetworkFlows();
       }
-
-
 
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */
       {

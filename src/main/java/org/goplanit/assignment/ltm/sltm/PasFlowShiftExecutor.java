@@ -11,6 +11,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Triple;
+import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.pcu.PcuCapacitated;
 import org.goplanit.utils.zoning.OdZone;
@@ -339,7 +340,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param lowCost        when true determine for low cost alternative, when false for high cost alternative
    * @return slack flow found
    */
-  protected abstract Pair<Double,EdgeSegment>  determinePasAlternativeSlackFlow(
+  protected abstract Pair<Double,EdgeSegment> determinePasAlternativeSlackFlow(
           StaticLtmLoadingBushBase<?> networkLoading, double proposedFlowShift, boolean lowCost);
 
   /**
@@ -459,7 +460,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
     return missingLinkSegmentsByBush;
   }
 
-  public abstract Pair<EdgeSegment,Double> performEquilibratedCongestedFlowShifts(
+  public abstract Triple<EdgeSegment,Double, Boolean> performEquilibratedCongestedFlowShifts(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy,
       double[] originalNetworkCosts,

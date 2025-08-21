@@ -194,6 +194,12 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
   }
 
   @Override
+  protected Map<Pas<DirectedVertex, EdgeSegment>, Pair<EdgeSegment, Double>> applyOverlapSmoothingToProposedPasShifts(
+      Mode theMode, Map<Pas<DirectedVertex, EdgeSegment>, Pair<EdgeSegment, Double>> pasDesiredFlowShifts){
+    throw new PlanItRunTimeException("applyOverlapSmoothingToProposedPasShifts not supported yet");
+  }
+
+  @Override
   protected void hookBeforePasUpdate(
       Collection<PasFlowShiftExecutor<DirectedVertex, EdgeSegment>> pasExecutors) {
     throw new PlanItRunTimeException("hookBeforeCongestedPasUpdate not implemented in non-conjugate destination based");

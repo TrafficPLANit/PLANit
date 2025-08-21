@@ -9,6 +9,7 @@ import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessorConjugateSegments;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
  * Consumer to apply during bush based network loading turn flow update for each non-zero demand bush
@@ -39,15 +40,13 @@ public class ConjugateBushTurnFlowUpdateConsumer
    *
    * @param dataConfig to use
    * @param turn2ConjSegmentMapping to use
-   * @param bushesToUpdate selective bushes to update, when null all are updated
-   * @param verticesToUpdate selective vertices to update, when null all are updated
+   * @param edgeSegmentsToUpdate selective edge segments to update (all turn flows of all bushes of these edge segments)
    */
   public ConjugateBushTurnFlowUpdateConsumer(
       final NetworkTurnFlowUpdateData dataConfig,
       final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping,
-      Set<ConjugateDestinationBush> bushesToUpdate,
-      Set<DirectedVertex> verticesToUpdate) {
-    super(dataConfig, turn2ConjSegmentMapping, bushesToUpdate, verticesToUpdate);
+      Set<EdgeSegment> edgeSegmentsToUpdate) {
+    super(dataConfig, turn2ConjSegmentMapping, edgeSegmentsToUpdate);
   }
 
   /**

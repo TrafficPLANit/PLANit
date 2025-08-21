@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
+import com.sun.source.tree.Tree;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
@@ -208,7 +209,8 @@ public class StaticLtmConjugateBushStrategy
   }
 
   @Override
-  protected Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>,Pair<EdgeSegment,Double>> determineConvergenceBasedUncongestedFlowShiftsV2(
+  protected Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>,Pair<EdgeSegment,Double>>
+  determineConvergenceBasedUncongestedFlowShiftsV2(
       Mode theMode,
       Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>> sortedPass,
       Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>, PasFlowShiftExecutor<ConjugateDirectedVertex,ConjugateEdgeSegment>> pasExecutors,
@@ -234,7 +236,7 @@ public class StaticLtmConjugateBushStrategy
         int bla = 4; // uncongested
       }
 
-      var pasFlowShiftedByRefTurn = executor.performEquilibratedUncongestedFlowShifts(
+      var pasFlowShiftByRefTurn = executor.performEquilibratedUncongestedFlowShifts(
           theMode,
           this,
           nlConsistentFlowAcceptanceFactors,
@@ -244,8 +246,13 @@ public class StaticLtmConjugateBushStrategy
           logAll,
           PasFlowShiftConjugateDestinationBasedExecutor.FlowShiftSmoothingApproach.RESET,
           1 /*not relevant*/);
-      pasDesiredFlowShifts.put(pas, pasFlowShiftedByRefTurn);
 
+      boolean snappedToZero = pasFlowShiftByRefTurn.third();
+      double pasFlowShifted = Math.abs(pasFlowShiftByRefTurn.second());
+      if (pasFlowShifted > 0 && !snappedToZero) {
+        // we only apply smoothing on non-snapped PASs as the snapped PASs are fully effectuated and are to be ignored
+        pasDesiredFlowShifts.put(pas, Pair.of(pasFlowShiftByRefTurn.first(), pasFlowShiftByRefTurn.second()));
+      }
     }
     return pasDesiredFlowShifts;
   }
@@ -298,6 +305,48 @@ public class StaticLtmConjugateBushStrategy
     pasManager.forEachInactivePas(p -> updatePasStatusBeforeFlowShift(p, networkLinkSegmentFlowAcceptanceFactors));
   }
 
+  protected Map<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>, Pair<EdgeSegment, Double>> applyOverlapSmoothingToProposedPasShifts(
+      Mode theMode, Map<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>, Pair<EdgeSegment, Double>> pasDesiredFlowShifts){
+
+    var result = new TreeMap<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>, Pair<EdgeSegment, Double>>();
+    // concept: we treat negative/positive shifts equal here. We want to avoid that -100 and +100 means no shift will
+    // occur on a pas. In that case we simply use 100/(100+100) and both will apply half which for the link in question
+    // still means no net change but overall (on other links) still caters for shifts
+
+    final double[] conjugateSegmentTotalShifts =
+        new double[conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers()];
+    for(var entry : pasDesiredFlowShifts.entrySet()){
+      var currPas = entry.getKey();
+      double refShift = Math.abs(entry.getValue().second());
+//      double s1Shift =  currPas.getFirstEdgeSegment(true) == refTurn ? refShift : -refShift;
+//      double s2Shift =  currPas.getFirstEdgeSegment(false) == refTurn ? refShift : -refShift;
+      for(var segment : currPas.getAlternative(true)){
+        conjugateSegmentTotalShifts[(int)segment.getId()] += refShift;
+      }
+      for(var segment : currPas.getAlternative(false)){
+        conjugateSegmentTotalShifts[(int)segment.getId()] += refShift;
+      }
+    }
+    // now based on total for each link, we can determine per PAS step based on its contribution to the total
+    // e.g. when total is (100+300+50=)450 and PAS has 100 on that link, we get a factor of 2/9 for that link. Then
+    // we take the minimum contribution across all links and that will be the shift to apply.
+    for(var entry : pasDesiredFlowShifts.entrySet()) {
+      var currPas = entry.getKey();
+      double minFactor = 1;
+      double refShift = Math.abs(entry.getValue().second());
+      for(var segment : currPas.getAlternative(true)){
+        double currLinkPasFactor = refShift/conjugateSegmentTotalShifts[(int)segment.getId()];
+        minFactor = Math.min(currLinkPasFactor, minFactor);
+      }
+      for(var segment : currPas.getAlternative(false)){
+        double currLinkPasFactor = refShift/conjugateSegmentTotalShifts[(int)segment.getId()];
+        minFactor = Math.min(currLinkPasFactor, minFactor);
+      }
+      result.put(currPas, Pair.of(entry.getValue().first(), entry.getValue().second() * minFactor));
+    }
+    return result;
+  }
+
   // given the desired shifts, perform network loading not based on full bushes, but only on the individual PAS level.
   // objective is to update costs afterwards to inform next inner iteration of route choice considering PAS interactions
   @Override
@@ -314,7 +363,11 @@ public class StaticLtmConjugateBushStrategy
     var passWithoutBush = new TreeSet<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>();
 
     int localisedNetworkLoadingIterationIndex = 0;
-    TreeSet<DirectedVertex> pasTouchedNodes = new TreeSet<>();
+    var onPasTouchedSegments = new TreeSet<EdgeSegment>();
+    var onPasTouchedNodes = new TreeSet<DirectedVertex>();
+    // needed to sync outflows to updated inflows on link-level. This to avoid inconsistent u/v causing invalid alphas
+    var pasMergeExitDownstreamNodesForOutFlowUpdate = new TreeSet<DirectedVertex>();
+    var entrySegmentOutflowUpdateNodes = new TreeSet<DirectedVertex>();
     do{
 
       // Step 1: splitting rate update
@@ -324,11 +377,15 @@ public class StaticLtmConjugateBushStrategy
       //  no node model update, no sending flow update, no outflow update, no cost update
       if(localisedNetworkLoadingIterationIndex == 0){
         for (var pasEntry : pasDesiredFlowShifts.entrySet()) {
+          var pas = pasEntry.getKey();
           double flowShift = pasEntry.getValue().second();
 
           //todo: instead do not do the network splitting rate update as part of this, but only do the bush flow
           // shift. Then we can use the else clause to be always executed which would be cleaner...
           if (flowShift != 0) {
+
+            //var originalPasBushes = new TreeSet<RootedBush<?,?>>(pas.getRegisteredBushes());
+
             var executor = (PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pasEntry.getKey());
             var pasFlowShiftedByRefTurn = executor.performOneShotFlowShiftWithNetworkSplittingRateUpdate(
                 theMode,
@@ -339,7 +396,6 @@ public class StaticLtmConjugateBushStrategy
                 logAll);
 
             double pasFlowShifted = Math.abs(pasFlowShiftedByRefTurn.second());
-            var pas = pasEntry.getKey();
             if (!pas.hasRegisteredBushes()) {
               passWithoutBush.add(pas);
             }
@@ -347,13 +403,21 @@ public class StaticLtmConjugateBushStrategy
             if (pasFlowShifted != 0) {
               flowShiftedPass.add(pas);
 
-              // extract all vertices touched by PAS
-              pasTouchedNodes.addAll(
+              // extract all edge segments touched by PAS nodes that require updating regarding
+              // inflow/outflow/splitting rates
+              onPasTouchedSegments.addAll(
                   Stream.concat(
                       Arrays.stream(pasEntry.getKey().getAlternative(true)),
                       Arrays.stream(pasEntry.getKey().getAlternative(false))).map(
-                      ConjugateEdgeSegment::getOriginalCentreVertex).collect(Collectors.toSet()));
+                      ces -> ces.getOriginalAdjacentEdgeSegments().first()).filter(Objects::nonNull).collect(Collectors.toSet()));
+              onPasTouchedNodes = onPasTouchedSegments.stream().map(
+                  EdgeSegment::getDownstreamVertex).collect(Collectors.toCollection(TreeSet::new));
+              pasMergeExitDownstreamNodesForOutFlowUpdate.addAll(
+                  pasEntry.getKey().getLastEdgeSegment(true).getOriginalCentreVertex().
+                      streamExitSegments().map(EdgeSegment::getDownstreamVertex).collect(Collectors.toSet()));
             }
+            entrySegmentOutflowUpdateNodes.addAll(onPasTouchedNodes);
+            entrySegmentOutflowUpdateNodes.addAll(pasMergeExitDownstreamNodesForOutFlowUpdate);
           }
         }
       }else{
@@ -361,18 +425,18 @@ public class StaticLtmConjugateBushStrategy
         // update
         //todo: create PAS based "loading update" to refresh the network splitting rates  instead of a bush based
         // version we use in network wide loading procedure.
-        getLoading().stepOneSplittingRatesUpdateNotBushButPasBased(theMode, flowShiftedPass, pasTouchedNodes);
+        getLoading().stepOneSplittingRatesUpdateNotBushButPasBased(theMode, flowShiftedPass, onPasTouchedSegments);
       }
 
       /* STEP 2 - Network sending flow update (including node model update) but limited to nodes touching PASs that we're updating*/
       // todo: gap is determined based on network which is not ideal, probably better to base it off links involved....
-      getLoading().stepTwoInflowSendingFlowUpdate(theMode, pasTouchedNodes);
+      getLoading().stepTwoInflowSendingFlowUpdate(theMode, onPasTouchedNodes);
 
       /* STEP 3 - Splitting rates update before receiving flow update (ony for physical queues) */
       getLoading().stepThreeSplittingRateUpdate(theMode);
 
-      /* STEP 4 - Receiving flow update */
-      getLoading().stepFourOutflowAndReceivingFlowUpdate(theMode, pasTouchedNodes);
+      /* STEP 4 - Receiving/Outflow update */
+      getLoading().stepFourOutflowAndReceivingFlowUpdate(theMode, entrySegmentOutflowUpdateNodes);
 
       /* STEP 5 - Network loading convergence */
     } while (!getLoading().stepFiveCheckNetworkLoadingConvergence(localisedNetworkLoadingIterationIndex++));
@@ -912,7 +976,11 @@ public class StaticLtmConjugateBushStrategy
     final int MAX_CONGESTED_PAS_ADD_PER_BUSH = Integer.MAX_VALUE;
 
     final int MAX_PAS_ADD_PER_BUSH = Integer.MAX_VALUE;
-    pasManager.reset();
+
+    boolean resetPass = true; // to be investigated, likely better when we keep PASs from earlier iterations!
+    if(resetPass) {
+      pasManager.reset();
+    }
 
     // method overridden for conjugate implementation resulting in conjugate compatible shortest path search using
     // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...

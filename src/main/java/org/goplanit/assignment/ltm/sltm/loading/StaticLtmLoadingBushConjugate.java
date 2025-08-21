@@ -13,6 +13,7 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
@@ -122,25 +123,20 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
   public void stepOneSplittingRatesUpdateNotBushButPasBased(
       Mode theMode,
       TreeSet<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> passToPropagate,
-      TreeSet<DirectedVertex> pasTouchedNodes) {
-
-    // identify all touched bushes
-    var touchedBushes = (Set<ConjugateDestinationBush>)
-        passToPropagate.stream().map(Pas::getRegisteredBushes).flatMap(Collection::stream).collect(Collectors.toSet());
+      TreeSet<EdgeSegment> pasTouchedSegments) {
 
     boolean updateLinkSendingFlows = false;
     int numConjugateSegments = conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers();
     var selectiveBushPasNodeTurnFlowUpdateConsumer = new ConjugateBushTurnFlowUpdateConsumer(
         createNetworkTurnFlowData(updateLinkSendingFlows, numConjugateSegments),
         turn2ConjugateSegmentMapping,
-        touchedBushes,
-        pasTouchedNodes);
+        pasTouchedSegments);
 
     /* execute loading - for selective bushes with selective nodes - */
     executeNetworkLoadingUpdate(selectiveBushPasNodeTurnFlowUpdateConsumer);
 
     /* update splitting rates - for selective nodes - Eq. (6),(4) */
-    updateNextSplittingRates(selectiveBushPasNodeTurnFlowUpdateConsumer.getAcceptedTurnFlows(), pasTouchedNodes);
+    updateNextSplittingRates(selectiveBushPasNodeTurnFlowUpdateConsumer.getAcceptedTurnFlows(), pasTouchedSegments);
   }
 }
 
