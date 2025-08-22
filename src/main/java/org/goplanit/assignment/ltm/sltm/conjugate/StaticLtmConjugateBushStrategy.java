@@ -1,6 +1,5 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
-import com.sun.source.tree.Tree;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
@@ -28,6 +27,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
@@ -42,7 +42,6 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -155,7 +154,7 @@ public class StaticLtmConjugateBushStrategy
 
     // for uncongested, do each PAS (one or more times), then repeat x times so PAS interaction is
     // covered better by having an internal loop here
-    int MAX_ITERATIONS_ALLOWED = 2;
+    int MAX_ITERATIONS_ALLOWED = 4;
     int iteration = 1;
     boolean doNotStop = true;
     do {
@@ -175,7 +174,7 @@ public class StaticLtmConjugateBushStrategy
       LOGGER.info(String.format("--- NEXT UNCONGESTED PASs INTERNAL ITERATION %d ----", iteration));
       for (var pas : sortedPass) {
         var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
-        double importanceSmoothingFactor = Math.pow(0.01, (uncongestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
+        double importanceSmoothingFactor = 1; //Math.pow(0.01, (uncongestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
 
         if (pas.pasId == 39L) {
           int bla = 4; // uncongested
@@ -227,7 +226,7 @@ public class StaticLtmConjugateBushStrategy
     var updatedOrder = flowShiftingStepFourOrderPassInDescendingOrder(pasExecutors);
     sortedPass = updatedOrder;
 
-    boolean logAll = false; //simulationData.getIterationIndex()>=50 && getSettings().isDetailedLogging();
+    boolean logAll = getSettings().isDetailedLogging() && simulationData.getIterationIndex()>=50;
     LOGGER.info("--- V2 UNCONGESTED PASs FIND SHIFT ----");
     for (var pas : sortedPass) {
       var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
@@ -273,9 +272,6 @@ public class StaticLtmConjugateBushStrategy
    */
   @Override
   protected void updatePasCosts(Mode theMode, double[] originalNetworkLinkSegmentCosts) {
-    LongAdder countSwappedPassPrev = new LongAdder();
-    pasManager.forEachActivePas( p -> countSwappedPassPrev.add(p.getCountS1Swaps().second().longValue()));
-
     // PASs on conjugate level, so expand link segment to conjugate segment costs as if first
     var conjSegmentCosts = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
         theMode, originalNetworkLinkSegmentCosts, true);
@@ -283,16 +279,6 @@ public class StaticLtmConjugateBushStrategy
     // execute cost update based on conjugate costs
     pasManager.updateActivePassCosts(conjSegmentCosts);
     pasManager.updateInactivePassCosts(conjSegmentCosts);
-
-    LongAdder countSwappedPassCurr = new LongAdder();
-    pasManager.forEachActivePas( p -> countSwappedPassCurr.add(p.getCountS1Swaps().second().longValue()));
-    long numSwaps = countSwappedPassCurr.longValue() - countSwappedPassPrev.longValue();
-    if(pasManager.getNumberOfActivePass()>0) {
-      double percentageSwapped = (numSwaps * 100) / (double) pasManager.getNumberOfActivePass();
-      LOGGER.info(String.format("%.2f%% (%d/%d) of Active PASs  swapped which alternative was cheapest",
-              percentageSwapped, numSwaps, pasManager.getNumberOfActivePass()));
-    }
-
   }
 
   /**
@@ -347,6 +333,38 @@ public class StaticLtmConjugateBushStrategy
     return result;
   }
 
+  protected Triple<TreeSet<DirectedVertex>,TreeSet<EdgeSegment>,TreeSet<DirectedVertex> >
+  constructPasTouchedNetworkEntities(Set<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>> passToConsider) {
+
+    var onPasTouchedNodes = new TreeSet<DirectedVertex>();
+    var onPasTouchedSegments = new TreeSet<EdgeSegment>();
+    // needed to sync outflows to updated inflows on link-level. This to avoid inconsistent u/v causing invalid alphas
+    var pasMergeExitDownstreamNodesForOutFlowUpdate = new TreeSet<DirectedVertex>();
+    var entrySegmentOutflowUpdateNodes = new TreeSet<DirectedVertex>();
+    for (var pas : passToConsider) {
+      if (!pas.hasRegisteredBushes()) {
+        continue;
+      }
+
+      // extract all edge segments touched by PAS nodes that require updating regarding
+      // inflow/outflow/splitting rates
+      onPasTouchedSegments.addAll(
+          Stream.concat(
+              Arrays.stream(pas.getAlternative(true)),
+              Arrays.stream(pas.getAlternative(false))).map(
+              ces -> ces.getOriginalAdjacentEdgeSegments().first()).filter(Objects::nonNull).collect(Collectors.toSet()));
+      onPasTouchedNodes = onPasTouchedSegments.stream().map(
+          EdgeSegment::getDownstreamVertex).collect(Collectors.toCollection(TreeSet::new));
+      pasMergeExitDownstreamNodesForOutFlowUpdate.addAll(
+          pas.getLastEdgeSegment(true).getOriginalCentreVertex().
+              streamExitSegments().map(EdgeSegment::getDownstreamVertex).collect(Collectors.toSet()));
+    }
+    entrySegmentOutflowUpdateNodes.addAll(onPasTouchedNodes);
+    entrySegmentOutflowUpdateNodes.addAll(pasMergeExitDownstreamNodesForOutFlowUpdate);
+    return Triple.of(onPasTouchedNodes, onPasTouchedSegments, entrySegmentOutflowUpdateNodes);
+  }
+
+
   // given the desired shifts, perform network loading not based on full bushes, but only on the individual PAS level.
   // objective is to update costs afterwards to inform next inner iteration of route choice considering PAS interactions
   @Override
@@ -357,17 +375,15 @@ public class StaticLtmConjugateBushStrategy
       Map<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>, PasFlowShiftExecutor<ConjugateDirectedVertex, ConjugateEdgeSegment>> pasExecutors,
       double[] originalNetworkCosts,
       Set<ConjugateDestinationBush> bushes,
-      boolean logAll) {
+      boolean logAll,
+      TreeSet<DirectedVertex> onPasTouchedNodes,
+      TreeSet<EdgeSegment> onPasTouchedSegments,
+      TreeSet<DirectedVertex> entrySegmentOutflowUpdateNodes) {
 
     var flowShiftedPass = new TreeSet<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>();
     var passWithoutBush = new TreeSet<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>();
 
     int localisedNetworkLoadingIterationIndex = 0;
-    var onPasTouchedSegments = new TreeSet<EdgeSegment>();
-    var onPasTouchedNodes = new TreeSet<DirectedVertex>();
-    // needed to sync outflows to updated inflows on link-level. This to avoid inconsistent u/v causing invalid alphas
-    var pasMergeExitDownstreamNodesForOutFlowUpdate = new TreeSet<DirectedVertex>();
-    var entrySegmentOutflowUpdateNodes = new TreeSet<DirectedVertex>();
     do{
 
       // Step 1: splitting rate update
@@ -383,8 +399,6 @@ public class StaticLtmConjugateBushStrategy
           //todo: instead do not do the network splitting rate update as part of this, but only do the bush flow
           // shift. Then we can use the else clause to be always executed which would be cleaner...
           if (flowShift != 0) {
-
-            //var originalPasBushes = new TreeSet<RootedBush<?,?>>(pas.getRegisteredBushes());
 
             var executor = (PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pasEntry.getKey());
             var pasFlowShiftedByRefTurn = executor.performOneShotFlowShiftWithNetworkSplittingRateUpdate(
@@ -402,22 +416,7 @@ public class StaticLtmConjugateBushStrategy
 
             if (pasFlowShifted != 0) {
               flowShiftedPass.add(pas);
-
-              // extract all edge segments touched by PAS nodes that require updating regarding
-              // inflow/outflow/splitting rates
-              onPasTouchedSegments.addAll(
-                  Stream.concat(
-                      Arrays.stream(pasEntry.getKey().getAlternative(true)),
-                      Arrays.stream(pasEntry.getKey().getAlternative(false))).map(
-                      ces -> ces.getOriginalAdjacentEdgeSegments().first()).filter(Objects::nonNull).collect(Collectors.toSet()));
-              onPasTouchedNodes = onPasTouchedSegments.stream().map(
-                  EdgeSegment::getDownstreamVertex).collect(Collectors.toCollection(TreeSet::new));
-              pasMergeExitDownstreamNodesForOutFlowUpdate.addAll(
-                  pasEntry.getKey().getLastEdgeSegment(true).getOriginalCentreVertex().
-                      streamExitSegments().map(EdgeSegment::getDownstreamVertex).collect(Collectors.toSet()));
             }
-            entrySegmentOutflowUpdateNodes.addAll(onPasTouchedNodes);
-            entrySegmentOutflowUpdateNodes.addAll(pasMergeExitDownstreamNodesForOutFlowUpdate);
           }
         }
       }else{
@@ -959,15 +958,16 @@ public class StaticLtmConjugateBushStrategy
   /**
    * Based on provided original network link segment costs see if we can update the existing collection of PASs
    *
-   * @param mode             to use
+   * @param mode                         to use
    * @param nonConjugateLinkSegmentCosts to use
-   * @param updateGap        flag
-   * @param logAll           flag
+   * @param updateGap                    flag
+   * @param simulationData               to use
+   * @param logAll                       flag
    * @return newly created PASs
    */
   @Override
   protected Map<Long,Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>
-  updateBushPass(Mode mode, double[] nonConjugateLinkSegmentCosts, boolean updateGap, boolean logAll){
+  updateBushPass(Mode mode, double[] nonConjugateLinkSegmentCosts, boolean updateGap, StaticLtmSimulationData simulationData, boolean logAll){
     // rationale, any gap multiplies cost with flow. Flow upper bound generally does not exceed 10k in PCU/h per link,
     // so any route will be less than that. Hence, any gap in terms of normalised cost to this flow should be considered
     // and will aid in bringing the network gap down.
@@ -977,7 +977,7 @@ public class StaticLtmConjugateBushStrategy
 
     final int MAX_PAS_ADD_PER_BUSH = Integer.MAX_VALUE;
 
-    boolean resetPass = true; // to be investigated, likely better when we keep PASs from earlier iterations!
+    boolean resetPass = simulationData.getIterationIndex() % 10 == 0; // to be investigated,
     if(resetPass) {
       pasManager.reset();
     }
@@ -1007,83 +1007,6 @@ public class StaticLtmConjugateBushStrategy
         LOGGER.severe(String.format("Total Realised cost: (%.16f)", totalRealisedCostForGap));
       }
     }
-
-    // BUSH SELECTION - FIRST ACTIVE BUSH UNLESS CONVERGED --> NEXT
-//    ConjugateDestinationBush theActiveBush = getBushes().stream().dropWhile(b -> !b.currentActiveBush).findFirst().orElse(
-//        getBushes().stream().findFirst().get());
-//    theActiveBush.currentActiveBush = true;
-//
-//    final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
-//    var networkMinPaths = conjNetworkShortestPathAlgo.execute(
-//        theActiveBush.getShortestSearchType(), theActiveBush.getRootVertex());
-//
-//    double scaledMinCostBush = theActiveBush.updateBushRealisedGapInformation(
-//        conjugateTransportModelNetwork, conjNetworkShortestPathAlgo, getOdDemands(mode), conjLinkSegmentCosts);
-//
-//    double bushUpperBoundGap =
-//        (theActiveBush.getRealisedCostForGap() - theActiveBush.getMinCostForGap())/theActiveBush.getMinCostForGap();
-//    double bushLowerBoundGap =
-//        (scaledMinCostBush - theActiveBush.getMinCostForGap())/theActiveBush.getMinCostForGap();
-//
-//    // bush smoothing
-//    // when lower bound gap is zero we only consider upper bound, wehn non-zero and inching towards upper the bush itself is con
-//    theActiveBush.bushSmoothing.updateIsBadIteration(
-//        theActiveBush.prevIterationInitialGap, bushUpperBoundGap-bushLowerBoundGap);
-//    theActiveBush.bushSmoothing.updateIteration(theActiveBush.bushSmoothing.getIteration() + 1);
-//    theActiveBush.prevIterationInitialGap = bushUpperBoundGap-bushLowerBoundGap;
-//
-//    // here we update step --> once a PAS has converged, we then scale back by performing one final flow shift between the
-//    // original setup and the final one to get the correct shift (and network state).
-//    if(theActiveBush.bushSmoothing.isBadIteration()){
-//      LOGGER.info("BUSH GAP NOT IMPROVING --> BAD ITERATION FOUND --> CONSTRAINING STEP");
-//      theActiveBush.bushSmoothing.updateStepSize();
-//    }
-//
-//    boolean bushReachedNetworkGapConvergence = bushUpperBoundGap <= getGapFunction().getStopCriterion().getEpsilon();
-//    boolean bushReachMaxConvergenceUnderCycleLimitation = bushLowerBoundGap>0 &&
-//        (bushUpperBoundGap-bushLowerBoundGap)/bushLowerBoundGap < Precision.EPSILON_3;
-//    if(bushReachedNetworkGapConvergence || bushReachMaxConvergenceUnderCycleLimitation) {
-//      if(bushReachedNetworkGapConvergence) {
-//        LOGGER.info(String.format("******************* BUSH %s CONVERGED SWITCHING ******************", theActiveBush.getRootZone().getIdsAsString()));
-//      }else{
-//        // cannot added certain shortest paths due to cycle detection, unable to fully converge, move to other bush instead
-//        LOGGER.info(String.format("!!!!!!!!!!!!!!!!!!! BUSH %s CYCLE LIMITED, SWITCHING !!!!!!!!!!!!!!!!!!", theActiveBush.getRootZone().getIdsAsString()));
-//      }
-//      // change current active bush to next one in rotation, otherwise keep going as we haven't converged
-//      boolean activateNext = false;
-//      for (var conjBush : getBushes()) {
-//        if (conjBush == null) {
-//          continue;
-//        }
-//        if(activateNext) {
-//          theActiveBush = conjBush;
-//          theActiveBush.currentActiveBush = true;
-//          activateNext = false;
-//          break;
-//        }
-//        if (conjBush.currentActiveBush) {
-//          activateNext = true;
-//          conjBush.currentActiveBush = false; //reset
-//          conjBush.prevIterationInitialGap = Double.MAX_VALUE; //reset
-//          theActiveBush.bushSmoothing.reset();
-//          //requires explicit reset because normally we wouldn't reset to zero, but for bush smoothing we currently
-//          // reset it once the bush has converged as this is its only purpose, not across outer loop iterations
-//          theActiveBush.bushSmoothing.updateIteration(0);
-//        }
-//      }
-//      if(activateNext) {
-//        //wrap around, start with first again
-//        theActiveBush = getBushes().stream().filter(Objects::nonNull).findFirst().get();
-//        theActiveBush.currentActiveBush = true;
-//      }
-//
-//      // rejig new active bush, otherwise we won't get correct PASs as things have changed on network level
-//      // since last bush update
-//      optimiseZeroFlowSpanningTreeConnections(theActiveBush, conjLinkSegmentCosts);
-//      LOGGER.info(String.format("******************* BUSH %s TO UPDATE (gap %.10f )******************",theActiveBush));
-//    }
-//    Set<ConjugateDestinationBush> eligibleBushes = Set.of(theActiveBush);
-
 
     // ALTERNATIVE BUSH PRUNING BASED ON BUSH GAP CALC
     int countGapSkippedBushes = 0;

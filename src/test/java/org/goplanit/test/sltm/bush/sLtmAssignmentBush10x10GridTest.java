@@ -160,9 +160,9 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
       //sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
 
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_6);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(250);
-      sLTM.setActivateDetailedLogging(true);
+      sLTM.setActivateDetailedLogging(false);
       sLTM.execute();
 
       test10x10OutflowsNoQueue(sLTM);

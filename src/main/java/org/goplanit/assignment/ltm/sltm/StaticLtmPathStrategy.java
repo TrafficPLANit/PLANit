@@ -681,7 +681,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
                 mode, getInfrastructureNetwork().getLayerByMode(mode).getLinkSegments(), costsToUpdate);
       }
-      this.executeNetworkCostsUpdate(mode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
+      this.executeNetworkCostsUpdate(
+          mode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate, true);
 
       /* DERIVATIVES per link segment (so we can construct Newton step) */
       double[] dCostDFlow = this.constructLinkBasedDCostDFlow(mode, updateOnlyPotentiallyBlockingNodeCosts);

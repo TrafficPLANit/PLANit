@@ -11,10 +11,8 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.logging.Logger;
 
 /**
@@ -31,9 +29,9 @@ public class ConjugateBushUtils {
    * @param bush             at hand
    * @return bushSendingFlows by origin exit segment
    */
-  public static TreeMap<ConjugateEdgeSegment, Double> createOriginExitSegmentSendingFlows(
+  public static TreeMap<ConjugateEdgeSegment, Double> createAllOriginExitSegmentSendingFlows(
       final ConjugateDestinationBush bush) {
-    return createOriginExitSegmentSendingFlows(bush, null /* all origin vertices*/);
+    return createOriginExitSegmentSendingFlowsNodeFiltered(bush, null /* all*/);
   }
 
   /**
@@ -45,7 +43,7 @@ public class ConjugateBushUtils {
    *                               that are in this set are considered
    * @return bushSendingFlows by origin exit segment
    */
-  public static TreeMap<ConjugateEdgeSegment, Double> createOriginExitSegmentSendingFlows(
+  public static TreeMap<ConjugateEdgeSegment, Double> createOriginExitSegmentSendingFlowsSegmentFiltered(
       final ConjugateDestinationBush bush, Set<EdgeSegment> edgeSegmentsToConsider) {
 
     var bushSendingFlows = new TreeMap<ConjugateEdgeSegment, Double>();
@@ -65,7 +63,47 @@ public class ConjugateBushUtils {
         }
       }
 
-      if (Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(originVertex), Precision.EPSILON_3)) {
+      if (CollectionUtils.nullOrEmpty(edgeSegmentsToConsider) &&
+          Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(originVertex), Precision.EPSILON_3)) {
+        LOGGER.severe(String.format("conjugate bush with root zone (%s) origin's (%s) travel demand (%.8f pcu/h) not equal " +
+                "to total flow (%.8f pcu/h), this shouldn't happen",
+            bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString(),
+            ((ConjugateConnectoidNode)originVertex).getCentroidVertex().getParent().getParentZone().getXmlId(),
+            bush.getOriginDemandPcuH(originVertex), totalOriginsSendingFlow));
+      }
+    }
+    return bushSendingFlows;
+  }
+
+  /**
+   * construct the bush sending flows for the bush's root exit edge segments based on origin demand and
+   * splitting rates at origin
+   *
+   * @param bush             at hand
+   * @param nodesToConsider when null all (origins) are considered, otherwise only the selected
+   * @return bushSendingFlows by origin exit segment
+   */
+  public static TreeMap<ConjugateEdgeSegment, Double> createOriginExitSegmentSendingFlowsNodeFiltered(
+      final ConjugateDestinationBush bush, Set<DirectedVertex> nodesToConsider) {
+    var bushSendingFlows = new TreeMap<ConjugateEdgeSegment, Double>();
+
+    var originVertices = bush.getOriginVertices();
+    for (ConjugateDirectedVertex originVertex : originVertices) {
+      double totalOriginsSendingFlow = 0;
+      if(!CollectionUtils.nullOrEmpty(nodesToConsider) &&
+          !nodesToConsider.contains(originVertex)){
+        continue;
+      }
+      for (var originExit : originVertex.getExitEdgeSegments()) {
+        if (bush.contains(originExit)) {
+          double sendingFlow = bush.getTurnSendingFlow(originExit);
+          bushSendingFlows.put(originExit, sendingFlow);
+          totalOriginsSendingFlow += sendingFlow;
+        }
+      }
+
+      if (CollectionUtils.nullOrEmpty(nodesToConsider) &&
+          Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(originVertex), Precision.EPSILON_3)) {
         LOGGER.severe(String.format("conjugate bush with root zone (%s) origin's (%s) travel demand (%.8f pcu/h) not equal " +
                 "to total flow (%.8f pcu/h), this shouldn't happen",
             bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString(),

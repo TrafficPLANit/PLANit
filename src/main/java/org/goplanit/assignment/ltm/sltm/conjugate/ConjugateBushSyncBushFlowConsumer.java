@@ -3,10 +3,13 @@ package org.goplanit.assignment.ltm.sltm.conjugate;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.network.virtual.physical.ConnectoidNode;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -46,6 +49,8 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
   /** bush sending flows to track/propagate during syncing */
   private final TreeMap<ConjugateEdgeSegment, Double> bushSendingFlows;
 
+  private final Set<DirectedVertex> nodesToSync;
+
   /**
    * Register the conjugate bush accepted turn flow to the turn if required. Default implementation does nothing but provide a hook for derived classes that do require to do
    * something with turn accepted flows
@@ -66,11 +71,30 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
   public ConjugateBushSyncBushFlowConsumer(
           final ConjugateDestinationBush conjBush,
           double[] originalNetworkFlowAcceptanceFactors){
+    this(conjBush, originalNetworkFlowAcceptanceFactors, null);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param conjBush to sync
+   * @param originalNetworkFlowAcceptanceFactors  to use
+   * @param nodesToSync when null all nodes will be updated, otherwise only selected
+   */
+  public ConjugateBushSyncBushFlowConsumer(
+      final ConjugateDestinationBush conjBush,
+      double[] originalNetworkFlowAcceptanceFactors,
+      Set<DirectedVertex> nodesToSync){
     this.conjBush = conjBush;
     this.originalNetworkFlowAcceptanceFactors = originalNetworkFlowAcceptanceFactors;
+    this.nodesToSync = nodesToSync;
 
-    // starting point of tracking te sending flows, are the origin sending flows
-    this.bushSendingFlows = ConjugateBushUtils.createOriginExitSegmentSendingFlows(conjBush);
+    // starting point of tracking the sending flows, are the origin sending flows
+    if(nodesToSync == null) {
+      this.bushSendingFlows = ConjugateBushUtils.createAllOriginExitSegmentSendingFlows(conjBush);
+    }else{
+      this.bushSendingFlows = ConjugateBushUtils.createOriginExitSegmentSendingFlowsNodeFiltered(conjBush, nodesToSync);
+    }
   }
 
   /**
@@ -122,7 +146,22 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
         continue;
       }
 
+      boolean allowSendingFlowAsSeedFlowInsteadOfOrigin = false;
+      if (!CollectionUtils.nullOrEmpty(nodesToSync)) {
+        if(nodesToSync.contains(conjEntrySegment.getOriginalCentreVertex())) {
+          allowSendingFlowAsSeedFlowInsteadOfOrigin = true;
+        }else{
+          // only when selective update and not part of those nodes, we do not require processing
+          return;
+        }
+      }
+
       Double bushConjSegmentSendingFlow = bushSendingFlows.get(conjEntrySegment);
+      if(bushConjSegmentSendingFlow == null && allowSendingFlowAsSeedFlowInsteadOfOrigin){
+        // initialise from sending flow as this is a mid-way local starting point
+        bushConjSegmentSendingFlow = conjBush.getSendingFlowPcuH(conjEntrySegment);
+      }
+
       Double bushConjSegmentAcceptedFlow = bushConjSegmentSendingFlow;
       if (bushConjSegmentSendingFlow != null ) {
         var originalTurnEntrySegment = conjEntrySegment.getOriginalAdjacentEdgeSegments().first();

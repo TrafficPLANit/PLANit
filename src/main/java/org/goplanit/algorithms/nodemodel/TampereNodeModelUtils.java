@@ -111,7 +111,7 @@ public class TampereNodeModelUtils {
         // splitting rates must sum to 1 if any non-zero flow exists
         double summedSplittingRates = localTurnSendingFlows.aggregateAll(Aggregator.SUM);
         if((summedSplittingRates - Precision.EPSILON_6) > 1){
-          if(sendingFlow < Precision.EPSILON_3){
+          if(sendingFlow < Precision.EPSILON_3) {
             // likely caused by input process rounding, most likely flow can be ignored as it is inconsequential and
             // splitting rates not existing correctly indicates this as well
             LOGGER.fine(String.format("node model turn sending flow; resetting sending flow of %.12f to zero, since " +
@@ -120,7 +120,7 @@ public class TampereNodeModelUtils {
                 entryEdgeSegment.getIdsAsString(),
                 entryEdgeSegment.getParent().getIdsAsString(),
                 entryEdgeSegment.getDownstreamVertex().getIdsAsString(), localTurnSendingFlows.toString()
-                ));
+            ));
             sendingFlow = 0;
           }else {
             throw new PlanItRunTimeException("Splitting rates exceed 100%% for link segment (%s) with sending flow %.5f and parent link (%s) " +

@@ -19,6 +19,7 @@ import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
@@ -189,7 +190,10 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
       Map<Pas<DirectedVertex, EdgeSegment>, PasFlowShiftExecutor<DirectedVertex, EdgeSegment>> pasExecutors,
       double[] originalNetworkCosts,
       Set<DestinationBush> bushes,
-      boolean logAll) {
+      boolean logAll,
+      TreeSet<DirectedVertex> onPasTouchedNodes,
+      TreeSet<EdgeSegment> onPasTouchedSegments,
+      TreeSet<DirectedVertex> pasMergeExitDownstreamNodesForOutFlowUpdate) {
     throw new PlanItRunTimeException("performLocalisedPasNetworkLoading not supported yet");
   }
 
@@ -205,23 +209,19 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootL
     throw new PlanItRunTimeException("hookBeforeCongestedPasUpdate not implemented in non-conjugate destination based");
   }
 
+  @Override
+  protected Triple<TreeSet<DirectedVertex>, TreeSet<EdgeSegment>, TreeSet<DirectedVertex>>
+  constructPasTouchedNetworkEntities(Set<Pas<DirectedVertex, EdgeSegment>> passToConsider) {
+    throw new PlanItRunTimeException("constructPasTouchedNetworkEntities not implemented in non-conjugate destination based");
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
   protected void updatePasCosts(Mode theMode, double[] originalNetworkLinkSegmentCosts) {
-    LongAdder countSwappedPassPrev = new LongAdder();
-    pasManager.forEachActivePas( p -> countSwappedPassPrev.add(p.getCountS1Swaps().second().longValue()));
-
     pasManager.updateActivePassCosts(originalNetworkLinkSegmentCosts);
     pasManager.updateInactivePassCosts(originalNetworkLinkSegmentCosts);
-    if(getSettings().isDetailedLogging()){
-      LongAdder countSwappedPassCurr = new LongAdder();
-      pasManager.forEachActivePas( p -> countSwappedPassCurr.add(p.getCountS1Swaps().second().longValue()));
-      long numSwaps = countSwappedPassCurr.longValue() - countSwappedPassPrev.longValue();
-      double percentageSwapped = (numSwaps * 100) /(double)pasManager.getNumberOfActivePass();
-      LOGGER.info("%.2f% of Active PASs swapped which alternative was cheapest");
-    }
   }
 
   @Override

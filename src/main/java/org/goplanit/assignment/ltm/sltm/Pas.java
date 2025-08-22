@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.goplanit.utils.arrays.ArrayUtils;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
@@ -56,10 +57,6 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
 
   /** track status of PAS which determines how it is used */
   protected PasStatus pasStatus = PasStatus.UNKNOWN;
-
-  /** track how often the PAS swapped its S1 segment versus how often its costs was updated
-   * (cost may be updated regardless whether it is active or not) */
-  protected Pair<LongAdder,LongAdder> countS1Swap = Pair.of(new LongAdder(),new LongAdder());
 
   /**
    * Constructor
@@ -338,7 +335,6 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
     // value
     double localPasFlowShiftAdjustmentFactor = 1;
     if(updateAdjustmentFactor) {
-      countS1Swap.first().increment();
       localPasFlowShiftAdjustmentFactor = 1 / Math.max(s2CostChangeMismatchFactor,s1CostChangeMismatchFactor);
     }
 
@@ -360,17 +356,7 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
     }
 
     if(updateAdjustmentFactor){
-      if(cheapCostAlternativeSwap) {
-        countS1Swap.second().increment();
-      }
-      proposedPasFlowShiftAdjustmentFactor = localPasFlowShiftAdjustmentFactor;
-      if(countS1Swap.first().intValue()<=1){
-        proposedPasFlowShiftAdjustmentFactor = localPasFlowShiftAdjustmentFactor;
-      }else {
-        double portion = (1.0 / countS1Swap.first().intValue());
-        proposedPasFlowShiftAdjustmentFactor =
-                (1 - portion) * proposedPasFlowShiftAdjustmentFactor + portion * localPasFlowShiftAdjustmentFactor;
-      }
+      throw new PlanItRunTimeException("no longer supported updateAdjustmentFactor");
     }
 
     return cheapCostAlternativeSwap;
@@ -391,17 +377,6 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
 
   public PasStatus getStatus(){
     return this.pasStatus;
-  }
-
-  /**
-   * Access to stats on how often the S1 alternative swapped between the two options in relation to
-   * how often this was updated.
-   *
-   * @return pair with first containing how often the cost was updated and second containing how often this meant that
-   *  the S1 segment swapped over.
-   */
-  public Pair<LongAdder, LongAdder> getCountS1Swaps(){
-    return countS1Swap;
   }
 
   /**

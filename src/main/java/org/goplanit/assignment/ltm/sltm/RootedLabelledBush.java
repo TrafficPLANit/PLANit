@@ -436,10 +436,11 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    * {@inheritDoc}
    */
   @Override
-  public void syncToNetworkFlows(double[] flowAcceptanceFactors) {
+  public void syncToNetworkFlows(double[] flowAcceptanceFactors, Set<DirectedVertex> nodesToSync) {
 
     /* traverse form origin->destination */
     forEachTopologicalSortedVertex(isInverted(), currVertex -> {
+
       for (var entrySegment : currVertex.getEntryEdgeSegments()) {
         if (!contains(entrySegment)) {
           continue; // next vertex

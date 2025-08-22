@@ -9,7 +9,6 @@ import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateBushUtils;
 import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CollectionUtils;
@@ -105,7 +104,8 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
     var currConjVertex = vertexIter.next();
 
     /* initialise origin vertex outgoing edge sending flows */
-    var bushSendingFlows = ConjugateBushUtils.createOriginExitSegmentSendingFlows(bush, edgeSegmentsToUpdate);
+    var bushSendingFlows =
+        ConjugateBushUtils.createOriginExitSegmentSendingFlowsSegmentFiltered(bush, edgeSegmentsToUpdate);
     TreeMap<ConjugateEdgeSegment, Double> bushUnconstrainedFlows =
             dataConfig.isUnconstrainedFlowsUpdate() ? new TreeMap<>(bushSendingFlows) : null;
 
@@ -124,21 +124,21 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
 
         var originalTurnEntrySegment = conjEntrySegment.getOriginalAdjacentEdgeSegments().first();
 
-        boolean isSelectiveUpdate = false;
-        if(!CollectionUtils.nullOrEmpty(edgeSegmentsToUpdate) && edgeSegmentsToUpdate.contains(originalTurnEntrySegment)){
-            isSelectiveUpdate = true;
-        }else{
-          // skip if not slated for update
-          continue;
+        boolean allowSendingFlowAsSeedFlowInsteadOfOrigin = false;
+        if(originalTurnEntrySegment!=null && !CollectionUtils.nullOrEmpty(edgeSegmentsToUpdate)){
+          if(!edgeSegmentsToUpdate.contains(originalTurnEntrySegment)){
+            // skip if not slated for update
+            continue;
+          }
+          allowSendingFlowAsSeedFlowInsteadOfOrigin = true;
         }
-
 
         boolean skip = false;
         Double bushConjSegmentSendingFlow = bushSendingFlows.get(conjEntrySegment);
         // can happen in case it is there to maintain spanning tree or when it is a starting point for partial update
         // when the latter is the case we use the current bush sending flow as reference starting point
         if (bushConjSegmentSendingFlow == null ) {
-          if(isSelectiveUpdate){
+          if(allowSendingFlowAsSeedFlowInsteadOfOrigin){
             if(!bush.containsTurnSendingFlow(conjEntrySegment)) {
               skip = true;
             }else {

@@ -331,8 +331,9 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * whenever one is encountered.
    *
    * @param flowAcceptanceFactors to use
+   * @param nodesToSync if null all nodes are synced, otherwise selection only
    */
-  public abstract void syncToNetworkFlows(double[] flowAcceptanceFactors);
+  public abstract void syncToNetworkFlows(double[] flowAcceptanceFactors, Set<DirectedVertex> nodesToSync);
 
   /**
    * To avoid bushes keeping low flow links occupied and limiting options to use links or opposite links

@@ -135,7 +135,7 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
     /* execute loading - for selective bushes with selective nodes - */
     executeNetworkLoadingUpdate(selectiveBushPasNodeTurnFlowUpdateConsumer);
 
-    /* update splitting rates - for selective nodes - Eq. (6),(4) */
+    /* update splitting rates - for selective segments - Eq. (6),(4) */
     updateNextSplittingRates(selectiveBushPasNodeTurnFlowUpdateConsumer.getAcceptedTurnFlows(), pasTouchedSegments);
   }
 }

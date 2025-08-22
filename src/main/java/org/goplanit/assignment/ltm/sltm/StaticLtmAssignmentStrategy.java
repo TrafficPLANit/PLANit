@@ -20,6 +20,7 @@ import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
@@ -279,9 +280,21 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param updateOnlyPotentiallyBlockingNodeCosts flag indicating if only the costs of the entry link segments of potentially blocking nodes are to be updated, or all link segment
    *                                               costs are to be updated
    * @param costsToUpdate                          the network wide costs to update (fully or partially), this is an output
+   * @param doLoadingAllFlowUpdatePriorToCostUpdate only when we update all nodes this can be activated. When true we
+   *                                                perform a one shot loading to ensure all flow information on all
+   *                                                links is synced and ready for cost calc. When false we use current
+   *                                                state.
    */
   protected void executeNetworkCostsUpdate(
-          Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts, double[] costsToUpdate){
+          Mode theMode,
+          boolean updateOnlyPotentiallyBlockingNodeCosts,
+          double[] costsToUpdate,
+          boolean doLoadingAllFlowUpdatePriorToCostUpdate){
+    if(updateOnlyPotentiallyBlockingNodeCosts && doLoadingAllFlowUpdatePriorToCostUpdate){
+      // could change this but see no use case
+      throw new PlanItRunTimeException("Not supporting a one shot flow update prior to cost calculation when only" +
+          "potentially blocking nodes are cost calculated");
+    }
 
     final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
@@ -325,12 +338,13 @@ public abstract class StaticLtmAssignmentStrategy {
     /* OTHER -> all nodes (and attached links) are updated, update all costs */
     else {
 
-      /* make sure that all links have the full flow information populated to support cost computation, since the loading
-       * may track only a subset of links even when costs require all information, e.g., when using non-linear FD the costs
-       * require all information to determine step, but loading does not since route choice is fixed during loading
-       * todo costly and maybe not necessary for part of what is done in this method, could be revisited for optimisation later
-       */
-      getLoading().stepSixFinaliseForAnalysis(theMode);
+      if(doLoadingAllFlowUpdatePriorToCostUpdate) {
+        /* make sure that all links have the full flow information populated to support cost computation, since the loading
+         * may track only a subset of links even when costs require all information, e.g., when using non-linear FD the costs
+         * require all information to determine step, but loading does not since route choice is fixed during loading
+         */
+        getLoading().stepSixFinaliseForAnalysis(theMode);
+      }
 
       /* virtual cost */
       virtualCost.populateWithCost(getTransportNetwork().getVirtualNetwork(), theMode, costsToUpdate);

@@ -12,12 +12,9 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -247,12 +244,13 @@ public abstract class StaticLtmBushStrategyRootLabelled<B extends RootedLabelled
    * @param mode             to use
    * @param linkSegmentCosts to use to construct min-max path three rooted at each bush's origin
    * @param updateGap        flag
+   * @param simulationData
    * @param logAll           flag
    * @return newly created PASs and existing pass with newly registered bushes on them  (empty if no new PASs were created or newly assigned))
    */
   @Override
   protected Map<Long,Pas<DirectedVertex,EdgeSegment>> updateBushPass(
-          Mode mode, final double[] linkSegmentCosts, boolean updateGap, boolean logAll){
+      Mode mode, final double[] linkSegmentCosts, boolean updateGap, StaticLtmSimulationData simulationData, boolean logAll){
 
     double totalMinCost = 0; // track during bush traversal to get min OD costs based on shortest paths
     double totalRealisedCost = 0;

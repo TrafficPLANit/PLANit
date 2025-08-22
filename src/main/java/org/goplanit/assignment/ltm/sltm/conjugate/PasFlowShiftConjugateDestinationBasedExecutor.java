@@ -767,6 +767,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   }
 
   // given an original entry segment and turn flows, update to splitting rates on network level
+  // similar to regular loading version in staticLtmNetworkLoading::updateNextSplittingRates todo consolidate to avoid duplicate code
   private static void updateOriginalEntrySegmentSplittingRate(
       EdgeSegment originalEntrySegment, Map<EdgeSegment, Double> exitSegmentFlowsToConvertToSplittingRates,
       StaticLtmLoadingBushConjugate networkLoading) {
@@ -798,7 +799,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     if (totalEntryFlow > 0) {
       entrySegmentSplittingRates.modifyAll(PrimitiveFunction.DIVIDE.by(totalEntryFlow));
     } else {
-      entrySegmentSplittingRates.fillAll(1.0);
+      // just distribute equally over exits as a default (should never be effectuated since flows are zero anyway
+      // but we want to keep a valid result as a placeholder.
+      entrySegmentSplittingRates.fillAll(1.0/entrySegmentSplittingRates.size());
     }
   }
 
@@ -3211,10 +3214,12 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       LOGGER.info(message);
     }
 
-    // zero check differs from non-AON because here it should be truly due to rounding as we already snapped previously
-    // hence check is more strict.
+    // if by removing flow we get close to zero we want to avoid lingering with ever smaller steps, so instead
+    // we snap to zero once we get within delta threshold (considering removing flow) and go all the way.
+    // this is especially important as discontinuous costs at zero flow can be quite different so we want to
+    // be able to explore this as it may have impact
     boolean snapToZero = false;
-    double delta = 1;
+    double delta = 2;
     double chosenFlowShift = proposedFlowShift<0 ?
         Math.min(s1SendingFlow, Math.abs(proposedFlowShift)) : Math.min(proposedFlowShift, guaranteedS2SendingFlow);
     boolean s1ApproachingZero = proposedFlowShift < 0 && s1SendingFlow + proposedFlowShift < delta;
@@ -3228,7 +3233,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     /*test for eligibility to reduce to zero flow along S2 */
     if (snapToZero && (isDestinationTrackedForLogging() || logAll)) {
-      var message = String.format("     [removal --> final proposed shift %.10f equal or higher than s2 sending flow %.10f, truncate]",
+      var message = String.format("     [removal --> snap to zero (proposed shift %.10f, s2 sending flow %.10f)]",
           proposedFlowShift, guaranteedS2SendingFlow);
       LOGGER.info(message);
     }

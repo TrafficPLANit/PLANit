@@ -12,6 +12,7 @@ import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
@@ -270,18 +271,16 @@ public class sLtmAssignmentBushZeroFlowDiscontinuityTest {
       sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("O1", "D2"));
       sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("O1", "D1"));
 
-      var smoothing = (MSRASmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.MSRA);
-      smoothing.setKappaStep(1);
-      smoothing.setGammaStep(0.0);
-      smoothing.setActivateLambda(true);
+      var smoothing = (FixedStepSmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      smoothing.setStepSize(1);
 
       sltmConfigurator.activateOutput(OutputType.LINK);
       sltmConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.setActivateDetailedLogging(true);
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(500);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(50);
       sLTM.execute();
 
       double finalGap = sLTM.getGapFunction().getGap();
@@ -335,6 +334,12 @@ public class sLtmAssignmentBushZeroFlowDiscontinuityTest {
    */
   @Test
   public void sLtmPointQueueConjugateBushDestinationBasedAssignmentTest() {
+
+    // with new v2 approach it takes ~45 iterations whereas before it only took 2. Main reason is that
+    // we account for overlap smoothing causing the removal of 2>4 flow to be slowed down until it hits
+    // a threshold after which is it removed (i=44). This is very much an edge case so deemed acceptable if it
+    // means that on general networks our new approach will work better.
+    // todo: consider a hybrid where we first apply v1 for 20 iterations or so after which we apply v2?
     commonTest(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
   }
 }

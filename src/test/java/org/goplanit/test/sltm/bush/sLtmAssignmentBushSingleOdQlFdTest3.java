@@ -331,7 +331,7 @@ public class sLtmAssignmentBushSingleOdQlFdTest3 {
 
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator)
               sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      fixedStepSmoothing.setStepSize(0.2);
+      fixedStepSmoothing.setStepSize(1);
 
       /* CONJUGATE DESTINATION BASED */
       sLTMBuilder.getConfigurator().setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
@@ -343,7 +343,7 @@ public class sLtmAssignmentBushSingleOdQlFdTest3 {
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(10);
       sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 

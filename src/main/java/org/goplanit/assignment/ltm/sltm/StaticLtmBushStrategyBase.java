@@ -14,7 +14,6 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.enums.OdSkimSubOutputType;
-import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -22,6 +21,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Quadruple;
+import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.zoning.OdZone;
@@ -390,7 +390,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // disallow looping here because interactions between PASs cause issues with alpha updates and golden ration bounds
     // if there are issues with convergence, we should deal with it at the lowest level after internal PAS convergence
     // and smooth it out there.
-    int MAX_ITERATIONS_ALLOWED = 2;
+    int MAX_ITERATIONS_ALLOWED = 4;
     int iteration = 1;
     boolean doNotStop = true;
     do {
@@ -535,7 +535,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     sortedPass = updatedOrder;
 
     // debugging
-    boolean logAll = simulationData.getIterationIndex()>=50;
+    boolean logAll = getSettings().isDetailedLogging() && simulationData.getIterationIndex()>=50;
     LOGGER.info("--- NEXT V2 CONGESTED PASs FIND SHIFT ----");
 
     for (var pas : sortedPass) {
@@ -662,7 +662,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     //      shifts and perform ACROSS PASs mini-loading for updating alphas/splittingrates/cost jointly across PAs and
     //      do that x times. The idea here is that by updating the network alphas and splitting rates across PASs should
     //      add to stability
-    boolean v2Activated = true;
+    boolean v2Activated = false;
     if(v2Activated && getSettings().getSltmType()==StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED){
 
       int crossPassUpdateIndex = 1;
@@ -694,10 +694,17 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         var smoothedPasDesiredFlowShifts =
             applyOverlapSmoothingToProposedPasShifts(theMode, pasDesiredFlowShifts);
 
+        var resultContainers = constructPasTouchedNetworkEntities(smoothedPasDesiredFlowShifts.keySet());
+        var onPasTouchedNodes = resultContainers.first();
+        var onPasTouchedSegments = resultContainers.second();
+        // needed to sync outflows to updated inflows on link-level. This to avoid inconsistent u/v causing invalid alphas
+        var entrySegmentOutflowUpdateNodes = resultContainers.third();
+
         //todo: if we are going to apply smoothing --> decay function formerly applied within outer-inner loop of v1
         //  should be applied here before we are going to apply the shifts.
         var flowShiftedAndObsoletePass = performLocalisedPasNetworkLoading(
-            theMode, smoothedPasDesiredFlowShifts, pasExecutors, originalNetworkCosts, getBushes(), false);
+            theMode, smoothedPasDesiredFlowShifts, pasExecutors, originalNetworkCosts, getBushes(), false,
+            onPasTouchedNodes, onPasTouchedSegments, entrySegmentOutflowUpdateNodes);
         flowShiftedPass.addAll(flowShiftedAndObsoletePass.first());
         passWithoutBush.addAll(flowShiftedAndObsoletePass.second());
 
@@ -707,9 +714,14 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
                 getLoading().getCurrentFlowAcceptanceFactors(),getLoading().getCurrentFlowAcceptanceFactors().length);
 
         // update costs
-        // todo: this is network wide, but this is not needed for localised loading --> speed up by just
-        //  updating touched links
-        executeCostUpdateAfterLoading(theMode, originalNetworkCosts);
+        {
+          // localised, so we DO NOT want to do a full loading sync as it defies the purpose of the localised loading
+          boolean syncFullNetworkFlowsBeforeCostUpdate = false;
+          executeCostUpdateAfterLoading(theMode, originalNetworkCosts, syncFullNetworkFlowsBeforeCostUpdate);
+        }
+
+        // sync bush flows to loading (but only for localised parts of the bush)
+        syncBushFlowsToNetworkFlows(onPasTouchedNodes);
 
       }while(crossPassUpdateIndex++ < MAX_UPDATE_ITERATIONS);
 
@@ -744,6 +756,17 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     return flowShiftedPass;
   }
 
+  /**
+   * When conducting a localised loading update, we need to know what (original) nodes and edge segments are touched
+   * and are eligible for updates (while the rest is not). This method based on provided PASs determines this.
+   *
+   * @param passToConsider pass to consider
+   * @return triple of (i) touched on PAS nodes, (ii) touched entry segments of PAS nodes, (iii) same as (ii) but
+   * with merge exits added as those require syncing since their sending flows are updated (so outflows also need updating)
+   */
+  protected abstract Triple<TreeSet<DirectedVertex>,TreeSet<EdgeSegment>,TreeSet<DirectedVertex> >
+  constructPasTouchedNetworkEntities(Set<Pas<V,ES>> passToConsider);
+
   // given desired shifts, smooth based on identified overlap, returned map is the final smoother shift we propose
   protected abstract Map<Pas<V,ES>, Pair<EdgeSegment, Double>> applyOverlapSmoothingToProposedPasShifts(
       Mode theMode, Map<Pas<V,ES>, Pair<EdgeSegment, Double>> pasDesiredFlowShifts);
@@ -756,7 +779,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       Map<Pas<V, ES>, PasFlowShiftExecutor<V, ES>> pasExecutors,
       double[] originalNetworkCosts,
       Set<B> bushes,
-      boolean logAll);
+      boolean logAll,
+      TreeSet<DirectedVertex> onPasTouchedNodes,
+      TreeSet<EdgeSegment> onPasTouchedSegments,
+      TreeSet<DirectedVertex> pasMergeExitDownstreamNodesForOutFlowUpdate);
 
   /**
    * Allow implementations to do prep before we enter loop of per congested PAS update, e.g.
@@ -806,12 +832,21 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * Based on the network loading results, update the bush' turn sending flows
    */
   protected void syncBushFlowsToNetworkFlows() {
+    syncBushFlowsToNetworkFlows(null);
+  }
+
+  /**
+   * Based on the network loading results, update the bush' turn sending flows
+   *
+   * @param nodesToSync if null all nodes are synced, otherwise selection only
+   */
+  protected void syncBushFlowsToNetworkFlows(Set<DirectedVertex> nodesToSync) {
     for (var bush : bushes) {
       if (bush == null) {
         continue;
       }
 
-      bush.syncToNetworkFlows(getLoading().getCurrentFlowAcceptanceFactors());
+      bush.syncToNetworkFlows(getLoading().getCurrentFlowAcceptanceFactors(), nodesToSync);
     }
   }
 
@@ -821,11 +856,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param mode             to use
    * @param linkSegmentCosts to use
    * @param updateGap        flag
+   * @param simulationData   to use
    * @param logAll           flag
    * @return newly created PASs and existing PAss with newly assigned bushes
    */
   protected abstract Map<Long,Pas<V,ES>> updateBushPass(
-          Mode mode, final double[] linkSegmentCosts, boolean updateGap, boolean logAll);
+      Mode mode, final double[] linkSegmentCosts, boolean updateGap, StaticLtmSimulationData simulationData, boolean logAll);
 
   /**
    * Constructor
@@ -1004,7 +1040,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     }
   }
 
-  protected void executeCostUpdateAfterLoading(Mode theMode, double[] costsToUpdate) {
+  protected void executeCostUpdateAfterLoading(
+      Mode theMode, double[] costsToUpdate, boolean doLoadingAllFlowUpdatePriorToCostUpdate) {
     // revert to always updating ALL link costs. This is simple and we know that we are using the right costs for the
     // gap calculation.
     boolean updateOnlyPotentiallyBlockingNodeCosts = false;
@@ -1015,7 +1052,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 //          CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
 //                  theMode, getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments(), costsToUpdate);
 //        }
-    this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
+    this.executeNetworkCostsUpdate(
+        theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate, doLoadingAllFlowUpdatePriorToCostUpdate);
 
     /* PAS COST UPDATE */
     updatePasCosts(theMode, costsToUpdate);
@@ -1100,7 +1138,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
       /* 2 - NETWORK COST UPDATE + UPDATE NETWORK REALISED COST GAP */
       {
-        executeCostUpdateAfterLoading(theMode, costsToUpdate);
+        executeCostUpdateAfterLoading(theMode, costsToUpdate, true);
       }
 
       /* 3 - BUSH LOADING - SYNC BUSH TURN FLOWS - USE NETWORK LOADING ALPHAS - MODE AGNOSTIC FOR NOW */
@@ -1115,7 +1153,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
         /* (NEW) PAS MATCHING FOR BUSHES */
         boolean updateGap = true; // todo consider computing gap directly after determining costs?
-        var passToConsider = updateBushPass(theMode, costsToUpdate, updateGap, logAll);
+        var passToConsider = updateBushPass(theMode, costsToUpdate, updateGap, simulationData, logAll);
         if(getSettings().isDetailedLogging()) {
           LOGGER.info(String.format("Newly added PASs: %d (active: %d))",
                   passToConsider.size(), pasManager.getNumberOfActivePass()));
@@ -1133,7 +1171,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
               theMode, pasExecutors, costsToUpdate, simulationData);
 
           LOGGER.info(String.format("Flow shifts performed: %d (%.2f%% of all pass)",
-              updatedPass.size(),((double)updatedPass.size()*100)/passToConsider.size()));
+              updatedPass.size(),((double)updatedPass.size()*100)/pasManager.getNumberOfActivePass()));
         }
       }
 
