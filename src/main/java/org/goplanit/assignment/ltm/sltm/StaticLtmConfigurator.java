@@ -42,6 +42,7 @@ import java.util.logging.Logger;
  */
 public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
+
   private static final Logger LOGGER = Logger.getLogger(StaticLtmConfigurator.class.getCanonicalName());
 
   private static final String DISABLE_LINK_STORAGE_CONSTRAINTS = "setDisableLinkStorageConstraints";

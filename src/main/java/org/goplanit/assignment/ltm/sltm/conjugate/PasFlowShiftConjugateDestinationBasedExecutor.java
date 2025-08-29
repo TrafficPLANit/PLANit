@@ -104,7 +104,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    *
    * @param allowDanglingNodes flag indicating if we allow dangling nodes after removal
    */
-  private void removeZeroFlowBushesFromPas(boolean allowDanglingNodes) {
+  private void removeBushesFromPasIfZeroFlowSegmentCanBeRemoved(boolean allowDanglingNodes) {
 
     var iter = pas.getRegisteredBushes().iterator();
     while (iter.hasNext()) {
@@ -2660,8 +2660,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       }
 
       if(guaranteedS2SendingFlow <= 0 ){
-        removeZeroFlowBushesFromPas(false);
-        // make sure it is not considered for congested processing, mark done for this iteration
+        removeBushesFromPasIfZeroFlowSegmentCanBeRemoved(false);
+        pas.removeAllRegisteredBushes();
+        // make sure it is not considered for congested processing either, mark done for this iteration
         // we cannot rely on zero flow check alone in congested processing because, other later uncongested PASs may
         // add flow causing it to no longer have zero flow, in which case its old status will result in an attempt for
         // congested processing:
@@ -2774,7 +2775,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       // remove zero-flow S2 bushes from PAS when we know they won't get used again, or it is the final iteration
       if(!costSwitch || !doNotStop) {
-        removeZeroFlowBushesFromPas(false /* no dangling nodes */);
+        removeBushesFromPasIfZeroFlowSegmentCanBeRemoved(false /* no dangling nodes */);
       }
     }while(doNotStop);
 
@@ -2816,24 +2817,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     }
 
     return Triple.of(initialAltTurn, totalFlowShift, snappedToZeroByPassedFinalSmoothing);
-  }
-
-  public double determinePasSubPathSendingFlow(
-      Pas<ConjugateDirectedVertex,ConjugateEdgeSegment> pas,
-      boolean lowCostSegment,
-      double[] currentFlowAcceptanceFactors,
-      double[] originalFlowAcceptanceFactors){
-
-    double totalFlow = 0;
-    ConjugateEdgeSegment[] alt = pas.getAlternative(lowCostSegment);
-    for (var bush : pas.getRegisteredBushes()) {
-      totalFlow += bush.determineConstrainedSubPathSendingFlow(
-          alt,
-          currentFlowAcceptanceFactors,
-          originalFlowAcceptanceFactors,
-          ((ConjugateDestinationBush)bush).bushData);
-    }
-    return totalFlow;
   }
 
   public void populateBushSubPathSendingFlows(
@@ -2940,7 +2923,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double guaranteedS2SendingFlow = remainingS2SendingFlow; // use latest always as it may be higher than original
 
       if(guaranteedS2SendingFlow <= 0 ){
-        removeZeroFlowBushesFromPas(false);
+        removeBushesFromPasIfZeroFlowSegmentCanBeRemoved(false);
+        pas.removeAllRegisteredBushes();
         converged = true; // effectively converged
         break;
       }
@@ -3084,11 +3068,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       // normalise to a flow of at least 1 to ensure that low flow PASs do not stop equilibrating as gap is multiplied by very small number
       // despite perhaps a large reduced cost which would hinder convergence, especially if it is heading towards removing low turn flows entirely
       prevPasGap = pasGap;
-      pasGap = pas.getReducedCost() * Math.max(1,s2SendingFlow)
-          /
-          (pas.getAlternativeLowCost() * Math.max(1,(s1SendingFlow + s2SendingFlow)));
-
-
+      pasGap = pas.computeGap(s1SendingFlow, s2SendingFlow);
       if(costSwitch){
         // stepping over optimal result and in doing so moving farther away from solution --> impose bisection bound
         // halfway since we know it must reside in between the previous state and the new state with the current
@@ -3122,7 +3102,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       // remove zero-flow S2 bushes from PAS when we know they won't get used again, or it is the final iteration
       if(!costSwitch || !doNotStop) {
-        removeZeroFlowBushesFromPas(false /* no dangling nodes */);
+        removeBushesFromPasIfZeroFlowSegmentCanBeRemoved(false /* no dangling nodes */);
       }
     }while(!converged && doNotStop);
 
@@ -3165,6 +3145,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       if(!converged && sb != null) {
         //LOGGER.info(sb.toString());
       }
+
     }
 
     return Triple.of(initialAltTurn, totalFlowShift, snappedToZeroByPassedFinalSmoothing);
@@ -3204,7 +3185,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double guaranteedS2SendingFlow = bushS2RemainingSendingFlows.values().stream().mapToDouble(e -> e).sum();
 
     if(guaranteedS2SendingFlow <= 0 ){
-      removeZeroFlowBushesFromPas(false);
+      removeBushesFromPasIfZeroFlowSegmentCanBeRemoved(false);
+      pas.removeAllRegisteredBushes();
       return Pair.of(pas.getFirstEdgeSegment(true), 0.0);
     }
 
@@ -3419,6 +3401,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       return Pair.of(0.0, true);
     }
 
+    double reducedCostBefore = pas.getReducedCost();
     var appliedShiftResult = executePasFlowShift(
         totalRemovedFlow,
         appliedNegativeFlowShiftsForInitialTurn,
@@ -3432,6 +3415,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         logAll);
 
     pas.updateCost(conjSegmentCosts);
+//    if(pas.getStatus() != PasStatus.UNCONGESTED_WITH_SHIFT && compensatoryShiftToApply!=0) {
+//      LOGGER.info(String.format("X %.10f (best int: %.10f) - %.4f smoothing - %s", pas.getReducedCost(), reducedCostBefore, smoothingFactor, pas));
+//    }
+
     if(isDestinationTrackedForLogging() || logAll) {
       if(updateNetworkNodeModel) {
         var s1Message = "   (after shift) s1 alphas: " +

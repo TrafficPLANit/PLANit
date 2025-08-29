@@ -1,17 +1,30 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
+import org.goplanit.network.transport.ConjugateTransportModelNetwork;
+import org.goplanit.output.formatter.CsvFileOutputFormatter;
 import org.goplanit.utils.arrays.ArrayUtils;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ConjugateACyclicSubGraph;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
+import org.goplanit.utils.zoning.OdZone;
 
 /**
  * Track conjugate edge segment based data, i.e., original network turns in a conjugate bush form.
@@ -332,5 +345,59 @@ public class ConjugateBushTurnData implements Iterable<Map.Entry<ConjugateEdgeSe
   @Override
   public Iterator<Map.Entry<ConjugateEdgeSegment,Double>> iterator() {
     return turnSendingFlows.entrySet().iterator();
+  }
+
+  // todo: ugly as heck but for now allows for warm starting bushes
+  public void writeToCsv(Path filePathWithoutFile){
+    if(parent == null){
+      return;
+    }
+    String bushDataFileName = StringUtils.removeAllNonAlphaNumeric(this.parent.getRootZone().getIdsAsString()) + ".csv";
+    var fullPath = Path.of(filePathWithoutFile.toAbsolutePath().toString(), bushDataFileName).toAbsolutePath();
+    String[] headers = {"CONJ_EDGESEGMENT_XML_ID", "TURN_FLOW"};
+    try (FileWriter writer = new FileWriter(fullPath.toString());
+         CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.builder().setHeader(headers).build())) {
+
+        for( var entry : turnSendingFlows.entrySet()){
+          csvPrinter.printRecord(entry.getKey().getXmlId(), String.format("%.6f", entry.getValue()));
+        }
+      csvPrinter.flush(); // Ensure all data is written to the file
+      System.out.println("CSV file '" + fullPath + "' written successfully.");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  // todo: not for production
+  public static Map<ConjugateEdgeSegment, Double> readTurnFlowDataFromCsv(
+      Path filePathWithoutFile, OdZone rootZone, ConjugateTransportModelNetwork conjNetwork){
+    String bushDataFileName = StringUtils.removeAllNonAlphaNumeric(rootZone.getIdsAsString()) + ".csv";
+    var fullPath = Path.of(filePathWithoutFile.toAbsolutePath().toString(), bushDataFileName).toAbsolutePath();
+
+    Map<ConjugateEdgeSegment, Double> resultMap = new HashMap<>();
+
+    String[] headers = {"CONJ_EDGESEGMENT_XML_ID", "TURN_FLOW"};
+    try (FileReader reader = new FileReader(fullPath.toString());
+         CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.builder().setHeader(headers).setSkipHeaderRecord(true).build())) {
+
+      for(var record : csvParser){
+        var conjSegmentXmlId = record.get(0);
+        ConjugateEdgeSegment conjSegment =
+            conjNetwork.getInfrastructureNetwork().getTransportLayers().getFirst().getLinkSegments().getByXmlId(
+                conjSegmentXmlId);
+        if(conjSegment == null) {
+          conjSegment = conjNetwork.getVirtualNetwork().getLayer().getConnectoidSegments().getByXmlId(
+              conjSegmentXmlId);
+        }
+        if(conjSegment == null){
+          throw new PlanItRunTimeException("invalid segment");
+        }
+        resultMap.put(conjSegment, Double.parseDouble(record.get(1)));
+      }
+      System.out.println("CSV file '" + fullPath + "' parsed successfully.");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return resultMap;
   }
 }

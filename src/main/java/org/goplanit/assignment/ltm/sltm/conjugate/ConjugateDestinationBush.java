@@ -134,7 +134,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     var currConjugateSegment = subPathArray[index++];
 
     // restrict by what is available on our subpath
-    // todo: ugly to use 0 as magic number, ideally change at some point if possible
     double constrainedSendingFlow = bushConstrainedFlowData.getTurnSendingFlowPcuH(currConjugateSegment);
     double currSendingFlow = bushData.getTurnSendingFlowPcuH(currConjugateSegment);
     if(constrainedSendingFlow > 0) {
@@ -148,7 +147,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
       double mostRecentFlowAcceptanceFactor =
           getConjugateFlowAcceptanceFactor(currConjugateSegment, onTheFlyFlowAcceptanceFactors);
       double networkLoadingFlowAcceptanceFactor =
-          getConjugateFlowAcceptanceFactor(currConjugateSegment, nlNonConjugateFlowAcceptanceFactors);
+          Math.min(1, getConjugateFlowAcceptanceFactor(currConjugateSegment, nlNonConjugateFlowAcceptanceFactors));
       double flowAcceptanceFactor = Math.min(mostRecentFlowAcceptanceFactor,networkLoadingFlowAcceptanceFactor);
 
       return determineConstrainedSubPathSendingFlow(
@@ -169,7 +168,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   protected final CentroidVertex destination;
 
   /** track bush specific data */
-  protected final ConjugateBushTurnData bushData;
+  public final ConjugateBushTurnData bushData;
 
   /** inverse mapping from turn edge segments (double key) to conjugate edge segment */
   protected final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjugateSegmentMapping;
@@ -944,10 +943,10 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
             if(!contains((ConjugateEdgeSegment)segment)) {
               var result = ConjugateBushUtils.isEligibleForAdding((ConjugateEdgeSegment) segment, conjLinkSegmentCosts, bushMinMaxTree);
               if(!result.first()){
-                //LOGGER.info("bush od path cost: " + minOdCost + "vs network min cost: " + minNetworkOdCost);
-                //LOGGER.info("bush min od path: " + bushMinPath);
-                //LOGGER.info("network min od path: " + networkMinPath);
-                //LOGGER.info(String.format("segment %s denied for adding",segment.getXmlId()));
+//                LOGGER.info("bush od path cost: " + minOdCost + "vs network min cost: " + minNetworkOdCost);
+//                LOGGER.info("bush min od path: " + bushMinPath);
+//                LOGGER.info("network min od path: " + networkMinPath);
+                LOGGER.info(String.format("segment (%s) denied for adding on bush (%s)",segment.getIdsAsString(), getRootZone().getIdsAsString()));
 
                 //result = ConjugateBushUtils.isEligibleForAdding((ConjugateEdgeSegment) segment, conjLinkSegmentCosts, bushMinMaxTree);
                 break; // there maybe more, but for now just print one

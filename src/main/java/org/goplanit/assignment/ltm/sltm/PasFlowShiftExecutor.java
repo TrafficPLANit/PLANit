@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
 import org.goplanit.assignment.ltm.sltm.consumer.NmrDemandConstrainedFlowAndMostRestrictingTurnConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
@@ -404,6 +405,24 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
           double[] originalNetworkCosts,
           double[] conjSegmentCosts,
           Set<? extends RootedBush<?,?>> bushes);
+
+  public static <T extends DirectedVertex, U extends EdgeSegment> double determinePasSubPathSendingFlow(
+      Pas<T,U> pas,
+      boolean lowCostSegment,
+      double[] currentFlowAcceptanceFactors,
+      double[] originalFlowAcceptanceFactors){
+
+    double totalFlow = 0;
+    U[] alt = pas.getAlternative(lowCostSegment);
+    for (var bush : pas.getRegisteredBushes()) {
+      totalFlow += bush.determineConstrainedSubPathSendingFlow(
+          alt,
+          currentFlowAcceptanceFactors,
+          originalFlowAcceptanceFactors,
+          ((ConjugateDestinationBush)bush).bushData); // not sustainable
+    }
+    return totalFlow;
+  }
 
   /**
    * Determining the currently available desired flows along both the high and low-cost alternatives.

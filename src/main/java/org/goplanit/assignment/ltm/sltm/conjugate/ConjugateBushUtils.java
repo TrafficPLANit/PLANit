@@ -114,6 +114,14 @@ public class ConjugateBushUtils {
     return bushSendingFlows;
   }
 
+  public static Pair<Boolean, Double> isEligibleForAdding(
+      ConjugateEdgeSegment linkSegment,
+      double[] conjLinkSegmentCosts,
+      MinMaxPathResult conjBushMinMaxPaths) {
+    // restricted mode P1&P2
+    return isEligibleForAdding(linkSegment, conjLinkSegmentCosts, conjBushMinMaxPaths, false);
+  }
+
   /**
    * Check if segment is worth adding based on whether it is both in the min and in the max path search.
    * Consistent with intersection of P1 and P2 sets in Nie (2009) - A class of bush-based algorithms for the traffic
@@ -126,7 +134,10 @@ public class ConjugateBushUtils {
    * add the link
    */
   public static Pair<Boolean, Double> isEligibleForAdding(
-      ConjugateEdgeSegment linkSegment, double[] conjLinkSegmentCosts, MinMaxPathResult conjBushMinMaxPaths) {
+      ConjugateEdgeSegment linkSegment,
+      double[] conjLinkSegmentCosts,
+      MinMaxPathResult conjBushMinMaxPaths,
+      boolean allowEligibilityBasedOnOnlyP2) {
     var endVertex = linkSegment.getUpstreamVertex();
     var startVertex = linkSegment.getDownstreamVertex();
 
@@ -153,9 +164,9 @@ public class ConjugateBushUtils {
 
     double minCostEnd = conjBushMinMaxPaths.getMinCostToReach(endVertex);
     double minCostStart = conjBushMinMaxPaths.getMinCostToReach(startVertex);
-    if(forceAllow || (minCostStart + startToEndCost < minCostEnd) ){
+    if(forceAllow || (minCostStart + startToEndCost < minCostEnd) || allowEligibilityBasedOnOnlyP2 ){
       double maxCostEnd = conjBushMinMaxPaths.getMaxCostToReach(endVertex);
-      double maxCostStart = conjBushMinMaxPaths.getMaxCostToReach(startVertex);
+      double maxCostStart = Math.abs(conjBushMinMaxPaths.getMaxCostToReach(startVertex));
       if(forceAllow || (maxCostStart + startToEndCost < maxCostEnd)){
         return Pair.of(true, minCostStart + startToEndCost);
       }

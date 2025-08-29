@@ -115,6 +115,18 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
   }
 
   /**
+   * Convenience method to compute norm1Gap
+   * @param s1Flow to use
+   * @param s2Flow to use
+   * @return gap
+   */
+  public double computeGap(double s1Flow, double s2Flow){
+    return getReducedCost() * Math.max(1,s2Flow)
+        /
+        (getAlternativeLowCost() * Math.max(1,(s1Flow + s2Flow)));
+  }
+
+  /**
    * Collect the end vertex of the PAS
    * 
    * @return end vertex

@@ -236,14 +236,45 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * FLOW SHIFTING - STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based
    * on relevant criterion.
-   * @param pasExecutors to use for retrieving PAS information used in sorting
+   *
+   * @param pasExecutors                      to use for retrieving PAS information used in sorting
+   * @param nlConsistentFlowAcceptanceFactors
    * @return sorted PASs in descending order of importance
    */
-  protected Collection<Pas<V,ES>> flowShiftingStepFourOrderPassInDescendingOrder(
-          Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors) {
+  protected Collection<Pas<V,ES>> flowShiftingStepFourOrderPass(
+      Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
+      double[] nlConsistentFlowAcceptanceFactors) {
+
+    Map<Pas<V,ES>, Double> pasGaps = new HashMap<>();
+    for(var exec : pasExecutors.entrySet()){
+      var pas = exec.getKey();
+      var executor = (PasFlowShiftConjugateDestinationBasedExecutor) exec.getValue(); // not sustainable
+      double s1Flow = PasFlowShiftConjugateDestinationBasedExecutor.determinePasSubPathSendingFlow(
+          pas, true, getLoading().getCurrentFlowAcceptanceFactors(),nlConsistentFlowAcceptanceFactors);
+      double s2Flow = PasFlowShiftConjugateDestinationBasedExecutor.determinePasSubPathSendingFlow(
+          pas, false, getLoading().getCurrentFlowAcceptanceFactors(),nlConsistentFlowAcceptanceFactors);
+      pas.computeGap(s1Flow, s2Flow);
+      pasGaps.put(pas, pas.computeGap(s1Flow, s2Flow));
+    }
+
+    pasGaps.entrySet().stream().sorted(Map.Entry.comparingByValue()).forEach( e ->
+        LOGGER.info(String.format("%.10f - %s", e.getValue(), e.getKey())));
+
+    // PAS GAP
+    Comparator<Pas<V,ES>> PAS_GAP_COMPARATOR = (p1, p2) -> {
+      double p1Gap = pasGaps.get(p1);
+      double p2Gap = pasGaps.get(p2);
+      if (p1Gap > p2Gap) {
+        return -1;
+      } else if (p1Gap < p2Gap) {
+        return 1;
+      } else {
+        return 0;
+      }
+    };
 
     // normalised cost * flow based comparator
-    final Comparator<Pas<V,ES>> PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
+    Comparator<Pas<V,ES>> PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
       double p1Cost = p1.getNormalisedReducedCost() * pasExecutors.get(p1).getS2SendingFlow();
       double p2Cost = p2.getNormalisedReducedCost() * pasExecutors.get(p2).getS2SendingFlow();
       if (p1Cost > p2Cost) {
@@ -254,6 +285,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         return 0;
       }
     };
+    PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR = PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR.reversed();
 
     // regular reduced cost * flow based comparator
     final Comparator<Pas<V,ES>> PAS_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
@@ -271,7 +303,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // normalised cost * flow based comparator
     Comparator<Pas<V,ES>> PAS_REDUCED_COST = (p1,p2) ->
         Double.compare(p1.getReducedCost(), p2.getReducedCost());
-    PAS_REDUCED_COST = PAS_REDUCED_COST.reversed();
+    //PAS_REDUCED_COST = PAS_REDUCED_COST.reversed();
 
     // flow based comparator
     Comparator<Pas<V,ES>> PAS_FLOW = (p1,p2) ->
@@ -279,19 +311,23 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
             pasExecutors.get(p2).getS1SendingFlow() + pasExecutors.get(p2).getS2SendingFlow());
     PAS_FLOW = PAS_FLOW.reversed();
 
+    //var chosenComparator = PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR;
+    var chosenComparator = PAS_GAP_COMPARATOR;
     /* Sort all remaining PAss based on comparator */
-    return this.pasManager.getActivePassSortedByReducedCost(PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR);
+    var result = this.pasManager.getActivePassSortedByReducedCost(chosenComparator);
+    return result;
   }
 
-  /** STEP5: Any new PASs that were identified may be in conflict with each other regarding introducing cycles. Using
+  /**
+   * STEP5: Any new PASs that were identified may be in conflict with each other regarding introducing cycles. Using
    * the established ordering, we verify if a conflict exists between such newly identified PASs (adding both would
    * introduce a cycle). If so, remove one of the two PASs from the affected bush where the higher priority new PAS
    * is kept and the lower priority one discarded (for such a bush)
    * <p>
-   *   Note that this check is needed, because during the creation of new PASs we can only verify if it would not
-   *   introduce a cycle in relation to the existing bush(es), if the s1 alternative would add segments to the bush this
-   *   is only established after shifts are performed. Also we do not know the ordering at that point so we can't
-   *   determine which new PAS is more favourable on a network level.
+   * Note that this check is needed, because during the creation of new PASs we can only verify if it would not
+   * introduce a cycle in relation to the existing bush(es), if the s1 alternative would add segments to the bush this
+   * is only established after shifts are performed. Also we do not know the ordering at that point so we can't
+   * determine which new PAS is more favourable on a network level.
    * </p>
    */
   @Deprecated
@@ -347,11 +383,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * FLOW_SHIFTING : Do this for all but the UNCONGESTED PASs as they have already been processed in full
    *
-   * @param theMode               to use
-   * @param sortedPass            list of sorted PASs in processing order
-   * @param pasExecutors          flow shift executors for each PAS
-   * @param originalNetworkCosts  to use
-   * @param simulationData        for debugging
+   * @param theMode              to use
+   * @param sortedPass           list of sorted PASs in processing order
+   * @param pasExecutors         flow shift executors for each PAS
+   * @param originalNetworkCosts to use
+   * @param simulationData       for debugging
    * @return list of PASs with shifted flows, and PASs with no flow remaining (the latter may also be listed as flow
    * shifted since, after the shift it may be that it has no more flow left, then it appears in both lists)
    */
@@ -363,8 +399,13 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           double[] originalNetworkCosts,
           StaticLtmSimulationData simulationData) {
 
+    // experiment where we (if no interactions and full convergence internally is assumed we visit each PAS once
+    // however, if due to interactions some PASs bounce back, we revisit them prior to other less contributing PASs
+    // as this approach is married to always process ONLY the currently worst PAS.
+    boolean worstPasFirstUpdateOrderingPerPas = true;
+
     Collection<ES> linkSegmentsUsed = new HashSet<>(100);
-    boolean smoothOverIterations = true;
+    boolean smoothOverIterations = worstPasFirstUpdateOrderingPerPas? false : true;
 
     var flowShiftedPass = new TreeSet<Pas<V,ES>>();
     var passWithoutBush = new TreeSet<Pas<V,ES>>();
@@ -372,11 +413,13 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // todo very ugly, refactor
     boolean isConjugateApproach = pasExecutors.values().stream().findAny().isPresent() &&
         pasExecutors.values().stream().findAny().get() instanceof PasFlowShiftConjugateDestinationBasedExecutor;
-    double[] conjSegmentCosts = null;
+    double[] conjSegmentCosts;
     if(isConjugateApproach){
       conjSegmentCosts =
           ((StaticLtmConjugateBushStrategy)this).expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
               theMode, originalNetworkCosts, true);
+    } else {
+      conjSegmentCosts = null;
     }
 
     double totalCongestedFlowShifted = 0;
@@ -385,18 +428,26 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     double totalPasReducedCost = 0;
     int numConsideredPas = 0;
 
-    // for congested, do each PAS once, then repeat x times so PAS interaction is covered
-
-    // disallow looping here because interactions between PASs cause issues with alpha updates and golden ration bounds
-    // if there are issues with convergence, we should deal with it at the lowest level after internal PAS convergence
-    // and smooth it out there.
-    int MAX_ITERATIONS_ALLOWED = 4;
+    int MAX_ITERATIONS_ALLOWED = worstPasFirstUpdateOrderingPerPas ? sortedPass.size() : 1;
     int iteration = 1;
     boolean doNotStop = true;
     do {
 
-      var updatedOrder = flowShiftingStepFourOrderPassInDescendingOrder(pasExecutors);
+      if(!passWithoutBush.isEmpty()){
+        sortedPass.removeAll(passWithoutBush);
+        passWithoutBush.forEach(pasExecutors::remove);
+        passWithoutBush.forEach(p -> pasManager.deactivatePas(p, true));
+      }
+
+      // sync costs as order matters
+      sortedPass.stream().filter(p -> p.getStatus()!=PasStatus.UNCONGESTED_WITH_SHIFT).forEach(
+          p ->p.updateCost(conjSegmentCosts));
+      var updatedOrder = flowShiftingStepFourOrderPass(pasExecutors, nlConsistentFlowAcceptanceFactors);
       sortedPass = updatedOrder;
+
+//      sortedPass.stream().sorted(Comparator.comparingDouble(Pas::getReducedCost)).filter(
+//          p -> p.getStatus()!=PasStatus.UNCONGESTED_WITH_SHIFT).map(p ->
+//          String.format("%.10f - %s",p.getReducedCost(),p)).forEach(LOGGER::info);
 
       // debugging
       boolean logAll = simulationData.getIterationIndex()>=50;
@@ -415,12 +466,21 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
         // ignore uncongested PASs or PASs not on bush
         if (pas.getStatus() == PasStatus.UNCONGESTED_WITH_SHIFT || !pas.hasRegisteredBushes()) {
+          if(!pas.hasRegisteredBushes()){
+            passWithoutBush.add(pas);
+          }
           continue;
         }
-        double importanceSmoothingFactor = Math.pow(0.01, (congestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
+
+        double importanceSmoothingFactor = 1;
+        if(!worstPasFirstUpdateOrderingPerPas) { // NOTE: no decay when we go per PAS and the current is always the worst
+          // we start with least important because it is sequentially run, so the last should not be overridden hence
+          // it also gets the largest importance, so we invert the decay to accommodate
+          importanceSmoothingFactor = (1 - Math.pow(0.1, (congestedPasCounter * perPasPercentageOfTotal))) + 0.1; // run from 100% exponential decay to 1% of leat important PAS
+        }
         ++congestedPasCounter;
 
-        if (pas.pasId == 532L) {
+        if (pas.pasId == 74L) {
           int bla = 4;
         }
 
@@ -465,7 +525,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
                 getBushes(),
                 logAll,
                 PasFlowShiftExecutor.FlowShiftSmoothingApproach.NORMAL,
-                smoothOverIterations? (1.0/MAX_ITERATIONS_ALLOWED) * importanceSmoothingFactor : importanceSmoothingFactor);
+                smoothOverIterations? (1.0/(iteration+1)) * importanceSmoothingFactor : importanceSmoothingFactor);
 
         double pasFlowShifted = Math.abs(pasFlowShiftByRefTurn.second());
         if (pasFlowShifted > 0) {
@@ -499,6 +559,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 //        if(pasCounter > MAX_PAS_UPDATES){
 //          break;
 //        }
+
+        if(worstPasFirstUpdateOrderingPerPas){
+          // immediately break so we can reorder
+          break;
+        }
       }
 
     }while(iteration++ < MAX_ITERATIONS_ALLOWED);
@@ -531,7 +596,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
               theMode, originalNetworkCosts, true);
     }
 
-    var updatedOrder = flowShiftingStepFourOrderPassInDescendingOrder(pasExecutors);
+    var updatedOrder = flowShiftingStepFourOrderPass(pasExecutors, nlConsistentFlowAcceptanceFactors);
     sortedPass = updatedOrder;
 
     // debugging
@@ -632,18 +697,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       double[] originalNetworkCosts,
       final StaticLtmSimulationData simulationData) {
 
-    // STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based on relevant
-    // criterion. todo: in future we can use this to not equilibrate all of them, currently we do all
-    Collection<Pas<V,ES>> sortedPass = flowShiftingStepFourOrderPassInDescendingOrder(pasExecutors);
-
-    //todo: <-- should not be necessary anymore now that we use P1/P2 intersection of constructing bush (see Nie 2009)
-    // STEP5: Any new PASs that were identified may be in conflict with each other regarding introducing cycles. Using
-    // the established ordering, we verify if a conflict exists, and if it does, remove cycle introducing PASs from
-    // the affected bush where the higher priority new PAS is kept and the lower priority one discarded (for such a bush)
-    //flowShiftingStepFiveRemoveConflictingNewPass(sortedPass, pasExecutors, newAndUpdatedPass);
-
-    hookBeforePasUpdate(pasExecutors.values());
-
     // Capture original alphas, so we can use minimum of those and updated alphas to determine
     // available sub path sending flow with the most restrictive ensuring we are not shifting too much flow
     // as it is possible node model updates increased alphas making it seem more flow can be shifted when in reality
@@ -652,6 +705,19 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     var nlConsistentFlowAcceptanceFactors =
         Arrays.copyOf(
             getLoading().getCurrentFlowAcceptanceFactors(),getLoading().getCurrentFlowAcceptanceFactors().length);
+
+    // STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based on relevant
+    // criterion. todo: in future we can use this to not equilibrate all of them, currently we do all
+    Collection<Pas<V,ES>> sortedPass =
+        flowShiftingStepFourOrderPass(pasExecutors, nlConsistentFlowAcceptanceFactors);
+
+    //todo: <-- should not be necessary anymore now that we use P1/P2 intersection of constructing bush (see Nie 2009)
+    // STEP5: Any new PASs that were identified may be in conflict with each other regarding introducing cycles. Using
+    // the established ordering, we verify if a conflict exists, and if it does, remove cycle introducing PASs from
+    // the affected bush where the higher priority new PAS is kept and the lower priority one discarded (for such a bush)
+    //flowShiftingStepFiveRemoveConflictingNewPass(sortedPass, pasExecutors, newAndUpdatedPass);
+
+    hookBeforePasUpdate(pasExecutors.values());
 
     Set<Pas<V,ES>> flowShiftedPass = new TreeSet<>();
     Set<Pas<V,ES>> passWithoutBush = new TreeSet<>();
@@ -831,7 +897,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * Based on the network loading results, update the bush' turn sending flows
    */
-  protected void syncBushFlowsToNetworkFlows() {
+  public void syncBushFlowsToNetworkFlows() {
     syncBushFlowsToNetworkFlows(null);
   }
 
@@ -840,13 +906,23 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    *
    * @param nodesToSync if null all nodes are synced, otherwise selection only
    */
-  protected void syncBushFlowsToNetworkFlows(Set<DirectedVertex> nodesToSync) {
+  public void syncBushFlowsToNetworkFlows(Set<DirectedVertex> nodesToSync) {
     for (var bush : bushes) {
       if (bush == null) {
         continue;
       }
 
       bush.syncToNetworkFlows(getLoading().getCurrentFlowAcceptanceFactors(), nodesToSync);
+    }
+  }
+
+  public void syncBushFlowsToNetworkFlowsForSelectedBushes(Set<? extends RootedBush<?,?>> bushesToSync) {
+    for (var bush : bushesToSync) {
+      if (bush == null) {
+        continue;
+      }
+
+      bush.syncToNetworkFlows(getLoading().getCurrentFlowAcceptanceFactors(), null);
     }
   }
 
@@ -1146,6 +1222,18 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         syncBushFlowsToNetworkFlows();
       }
 
+      // UGLY
+      if(this instanceof StaticLtmConjugateBushStrategy){
+//      LOGGER.severe("#############################################################");
+//      var the140dBush = getBushes().stream().filter(b -> b.getRootZone().getXmlId().equals("140")).findFirst().get();
+//      LOGGER.severe(the140dBush.toString());
+        StaticLtmConjugateBushStrategy conjStrat = (StaticLtmConjugateBushStrategy) this;
+        if(conjStrat.PERSIST_WARM_START_TO_DISK_TURN_FLOW_ITERATION == simulationData.getIterationIndex()){
+          LOGGER.info("PERSISTING BUSH DATA FOR FUTURE WARM START PURPOSES TO "+conjStrat.WARM_START_LOCATION);
+          conjStrat.persistBushDataForWarmStart();
+        }
+      }
+
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */
       {
         // debugging
@@ -1158,6 +1246,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           LOGGER.info(String.format("Newly added PASs: %d (active: %d))",
                   passToConsider.size(), pasManager.getNumberOfActivePass()));
         }
+
+//        passToConsider.values().stream().sorted(Comparator.comparingDouble(Pas::getReducedCost)).map(p ->
+//            String.format("%.10f - %s",p.getReducedCost(),p)).forEach(LOGGER::info);
 
 
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */

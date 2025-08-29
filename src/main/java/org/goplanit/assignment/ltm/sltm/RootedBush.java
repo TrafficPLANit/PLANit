@@ -439,6 +439,33 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   }
 
   /**
+   * Check if vertex is dangling on bush, i.e., has no segments connected
+   * @param vertex to check
+   * @return true when dangling, false otherwise
+   */
+  public boolean isDangling(DirectedVertex vertex){
+    return !hasRegisteredExitSegments(vertex) && !hasRegisteredEntrySegments(vertex);
+  }
+
+  /**
+   * Check if vertex has any exit segments registered on bush, i.e., has no segments connected
+   * @param vertex to check
+   * @return true when present, false otherwise
+   */
+  public boolean hasRegisteredExitSegments(DirectedVertex vertex){
+    return IterableUtils.asStream(vertex.getExitEdgeSegments()).anyMatch(es -> this.contains(es.getId()));
+  }
+
+  /**
+   * Check if vertex has any entry segments registered on bush, i.e., has no segments connected
+   * @param vertex to check
+   * @return true when present, false otherwise
+   */
+  public boolean hasRegisteredEntrySegments(DirectedVertex vertex){
+    return IterableUtils.asStream(vertex.getEntryEdgeSegments()).anyMatch(es -> this.contains(es.getId()));
+  }
+
+  /**
    * Remove from the bush in terms of flow and dag
    *
    * @param edgeSegment to remove explicitly
