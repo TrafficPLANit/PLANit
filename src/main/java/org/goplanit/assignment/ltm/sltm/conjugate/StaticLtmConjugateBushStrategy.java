@@ -62,10 +62,12 @@ public class StaticLtmConjugateBushStrategy
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmConjugateBushStrategy.class.getCanonicalName());
 
-  public static final boolean INITIALISE_WARM_START_FROM_DISK_TURN_FLOWS = true;
-  public static final int PERSIST_WARM_START_TO_DISK_TURN_FLOW_ITERATION = Integer.MAX_VALUE; //when > max iterations it does not happen
+  public static final boolean INITIALISE_WARM_START_FROM_DISK_TURN_FLOWS = false;
+  public static final int PERSIST_WARM_START_TO_DISK_TURN_FLOW_ITERATION = Integer.MAX_VALUE;//50; //when > max iterations it does not happen
   public static final Path WARM_START_LOCATION =
-      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","leuven_plus20perc","warm_start_perpas_110");
+      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","leuven_plus20perc","warmstart_perpas_nodecay_relaxedp2_50");
+//  public static final Path WARM_START_LOCATION =
+//      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","siouxfalls","warmstart");
 
   private double prevNetworkRealisedCost = Double.MAX_VALUE; // use as an additional way to update bush smoothing steps
 
@@ -171,6 +173,7 @@ public class StaticLtmConjugateBushStrategy
       sortedPass.stream().filter(p -> p.getStatus()!=PasStatus.UNCONGESTED_POTENTIALLY_CONGESTED).forEach(
           p ->p.updateCost(conjSegmentCosts));
       var updatedOrder = flowShiftingStepFourOrderPass(pasExecutors, nlConsistentFlowAcceptanceFactors);
+      Collections.reverse(updatedOrder); // largest difference last, so it is not "overwritten"
       sortedPass = updatedOrder;
 
 //      int MAX_PAS_UPDATES = Math.max(5,sortedPass.size()/10); // top 10% with minimum of 5 PASs
@@ -185,7 +188,7 @@ public class StaticLtmConjugateBushStrategy
       LOGGER.info(String.format("--- NEXT UNCONGESTED PASs INTERNAL ITERATION %d ----", iteration));
       for (var pas : sortedPass) {
         var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
-        double importanceSmoothingFactor = 1; //Math.pow(0.01, (uncongestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
+        double importanceSmoothingFactor = 1 ;//Math.pow(0.1, (uncongestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
 
         if (pas.pasId == 39L) {
           int bla = 4; // uncongested
@@ -835,8 +838,8 @@ public class StaticLtmConjugateBushStrategy
     final var destinationConjugateReferenceVertex =
         centroid2ConjugateNodeMapping.get(destinationCentroidVertex);
 
-    var shortestPAthAlgorithm = (ShortestPathDijkstra) shortestTreeAlgorithm;
-    ShortestPathResult allToOneResult = shortestPAthAlgorithm.executeAllToOne(destinationConjugateReferenceVertex);
+    var shortestPathAlgorithm = (ShortestPathDijkstra) shortestTreeAlgorithm;
+    ShortestPathResult allToOneResult = shortestPathAlgorithm.executeAllToOne(destinationConjugateReferenceVertex);
     // TODO: UGLY HARD CODED HACK FOR TESTING WARM STARTS
     if(INITIALISE_WARM_START_FROM_DISK_TURN_FLOWS){
       // ugly hack, but we can load from disk
@@ -932,6 +935,112 @@ public class StaticLtmConjugateBushStrategy
             getSettings());
   }
 
+  private Set<ConjugateEdgeSegment> improveZeroFlowBushConnectivity(
+      ConjugateDestinationBush conjBush,
+      double[] conjLinkSegmentCosts){
+
+    double magicFlowThresholdForPruningIfInconsequential = 0.01;         // 0.01 flow
+    double magicSplittingRateFactorForPruningIfInconsequential = 0.01; // 1%
+
+    Set<ConjugateEdgeSegment> addedSegments = new HashSet<>();
+
+    // for truly optimal links
+    var shortestTreeAlgorithm = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
+    var conjRootVertex = centroid2ConjugateNodeMapping.get(conjBush.getRootZoneVertex());
+    ShortestPathResult allToOneResult = shortestTreeAlgorithm.executeAllToOne(conjRootVertex);
+
+    // for bush optimal links if truly optimal is not possible
+    boolean excludeZeroFlowLinksFromMaxPaths = false;
+    var bushMinMaxTree = conjBush.computeMinMaxShortestPaths(excludeZeroFlowLinksFromMaxPaths,
+        conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
+    bushMinMaxTree.setMinPathState(true);
+
+    ConjugateEdgeSegment[] allSegments = Stream.concat(
+            conjugateTransportModelNetwork.getVirtualNetwork().getLayer().getConnectoidSegments().stream(),
+            conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst().getLinkSegments().stream()).
+        toArray(ConjugateEdgeSegment[]::new);
+
+    for(var edgeSegment :allSegments) {
+      if (conjBush.getDag().containsEdgeSegment(edgeSegment)){
+
+        if(conjBush.getSendingFlowPcuH(edgeSegment)>0 &&
+            conjBush.getSendingFlowPcuH(edgeSegment) < magicFlowThresholdForPruningIfInconsequential) {
+          double splittingRate = conjBush.getSplittingRate(edgeSegment);
+          if (splittingRate < magicSplittingRateFactorForPruningIfInconsequential) {
+            conjBush.bushData.removeTurnData(edgeSegment);
+            LOGGER.info(String.format("     [NEAR zero flow (%s)- truncate to zero flow on bush (%s)]",
+                edgeSegment.getIdsAsString(), conjBush.getRootZone().getIdsAsString()));
+          }
+        }
+
+        // remove zero flow segments
+        //  if dangling, make sure it is the on the least-cost network path
+        //    if not allowed, make sure it is the on the least-cost bush path (could be that nothing changes)
+        //    if not allowed, make sure it is the on the best possible max cost path (could be that nothing changes)
+        if(conjBush.getSendingFlowPcuH(edgeSegment) <= 0.0) {
+          var minCostSegment = allToOneResult.getNextEdgeSegmentForVertex(edgeSegment.getUpstreamVertex());
+          if (edgeSegment != minCostSegment) {
+            LOGGER.info(String.format("     [Zero flow - Not on Min Path --> remove : (%s) from bush (%s)]",
+                edgeSegment.getIdsAsString(),
+                conjBush.getRootZone().getIdsAsString()));
+            conjBush.remove(edgeSegment);
+
+            if (!conjBush.hasRegisteredExitSegments(edgeSegment.getUpstreamVertex()) &&
+                minCostSegment!=null) {
+              var result = isEligibleForAdding((ConjugateEdgeSegment) minCostSegment, conjLinkSegmentCosts, bushMinMaxTree);
+              if(result.first()){
+                conjBush.getDag().addEdgeSegment((ConjugateEdgeSegment) minCostSegment);
+                addedSegments.add((ConjugateEdgeSegment) minCostSegment);
+                LOGGER.info(String.format("        [Upstream node disconnected  - inject NETWORK min Path segment (%s) on bush (%s)]",
+                    minCostSegment.getIdsAsString(),
+                    conjBush.getRootZone().getIdsAsString()));
+              }else{
+                var bushMinSegment =
+                    (ConjugateEdgeSegment) bushMinMaxTree.getNextEdgeSegmentForVertex(edgeSegment.getUpstreamVertex());
+                result = isEligibleForAdding(bushMinSegment, conjLinkSegmentCosts, bushMinMaxTree);
+                if(result.first() || bushMinSegment == edgeSegment) {
+                  conjBush.getDag().addEdgeSegment(bushMinSegment);
+                  if(bushMinSegment != edgeSegment) {
+                    addedSegments.add((ConjugateEdgeSegment) minCostSegment);
+                  }
+                  LOGGER.info(String.format("        [Upstream node disconnected  - inject BUSH min Path segment (%s) on bush (%s) - network min cost segment rejected]",
+                      minCostSegment.getIdsAsString(),
+                      conjBush.getRootZone().getIdsAsString()));
+                }else{
+                  // find cheapest max path instead (could be the same we had before)
+                  bushMinMaxTree.setMinPathState(false);
+                  // find cheapest exit available
+                  var cheapestMaxOption = edgeSegment;
+                  double cheapestMaxCost = bushMinMaxTree.getMaxCostToReach(edgeSegment.getUpstreamVertex());
+                  boolean p2OnlyAllowed = true;
+                  for(var alExit : edgeSegment.getUpstreamVertex().getExitEdgeSegments()){
+                    if(alExit == edgeSegment){
+                      continue;
+                    }
+                    result = isEligibleForAdding(alExit, conjLinkSegmentCosts, bushMinMaxTree, p2OnlyAllowed);
+                    if(result.first() && result.second()<cheapestMaxCost){
+                      cheapestMaxOption = alExit;
+                      cheapestMaxCost = result.second();
+                    }
+                  }
+                  LOGGER.info(String.format("        [Upstream node now disconnected  - replaced with Path segment (%s) on bush (%s) - network and bush min cost segment rejected]",
+                      cheapestMaxOption.getIdsAsString(),
+                      conjBush.getRootZone().getIdsAsString()));
+                  conjBush.getDag().addEdgeSegment(cheapestMaxOption);
+                  if(cheapestMaxOption != edgeSegment) {
+                    addedSegments.add(cheapestMaxOption);
+                  }
+                  bushMinMaxTree.setMinPathState(true);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return addedSegments;
+  }
+
   /**
    * In case restricted update resulted in no adding of any new segments, apply relaxed approach where
    * we allow for adding P2 based (max cost) satisfying edge segments. if set to false run in restricted mode
@@ -939,11 +1048,14 @@ public class StaticLtmConjugateBushStrategy
    *
    * @param conjBush
    * @param conjLinkSegmentCosts
-   * @return
+   * @return added segments and a boolean indicating if any P1 (low cost) segment was eligible
    */
-  private Set<ConjugateEdgeSegment> addAndRemoveEligibleZeroFlowSegmentsIncludingZeroFlowSpanningTree(
-      ConjugateDestinationBush conjBush, double[] conjLinkSegmentCosts, boolean allowEligibilityBasedOnOnlyP2) {
-    Set<ConjugateEdgeSegment> nonZeroFlowVertexAddedSegments = new HashSet<>();
+  private Pair<Set<ConjugateEdgeSegment>,Boolean> improveNonZeroFlowBushConnectivity(
+      ConjugateDestinationBush conjBush,
+      double[] conjLinkSegmentCosts,
+      boolean allowEligibilityBasedOnOnlyP2) {
+
+    Set<ConjugateEdgeSegment> addedSegments = new HashSet<>();
 
     /* within-bush min/max-paths - searched from root in designated direction (inverted if ALL-TO-ONE, i.e., root
      * is destination) */
@@ -953,92 +1065,136 @@ public class StaticLtmConjugateBushStrategy
     if (bushMinMaxTree == null) {
       LOGGER.severe(String.format(
           "Unable to obtain conjugate min-max paths for bush, this shouldn't happen, skip updateBushPass"));
-      return nonZeroFlowVertexAddedSegments;
+      return Pair.of(addedSegments, false);
     }
 
-    // fix: rejig entire bush regarding adding cheaper links currently not in the bush.
-    //      we consider both flow and non-flow carrying links in this situation and separate this out
-    //      from PAS creation.
-    Map<ConjugateEdgeSegment, ConjugateEdgeSegment> replaceZeroFlowSpanningTreeSegments = new TreeMap<>();
+//    // fix: rejig entire bush regarding adding cheaper links currently not in the bush.
+//    //      we consider both flow and non-flow carrying links in this situation and separate this out
+//    //      from PAS creation.
+//
+//    double magicFlowThresholdForPruningIfInconsequential = 0.01;         // 0.01 flow
+//    double magicSplittingRateFactorForPruningIfInconsequential = 0.01; // 1%
+//    Map<ConjugateEdgeSegment, ConjugateEdgeSegment> replaceZeroFlowSpanningTreeSegments = new TreeMap<>();
+//    var bushVertexIter = conjBush.getTopologicalIterator();
+//    while (bushVertexIter.hasNext()) {
+//      ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
+//      var splittingRates = conjBush.getSplittingRates(conjBushVertex);
+//      int index = 0;
+//      for (var outgoingSegment : conjBushVertex.getExitEdgeSegments()) {
+//        double splittingRate = splittingRates[index++];
+//        double turnFlow = conjBush.getSendingFlowPcuH(outgoingSegment);
+//        if (turnFlow > 0 && turnFlow < magicFlowThresholdForPruningIfInconsequential &&
+//            splittingRate < magicSplittingRateFactorForPruningIfInconsequential) {
+//          // prune to zero to make sure it gets removed or rejigged if not optimal next
+//          // important because due to rounding, and PAS updates causing locally inconsistent flows due to cap constr.
+//          // we want to prune as soon as possible to avoid breakdown due to very small flows limiting flow shifts
+//          conjBush.bushData.removeTurnData(outgoingSegment);
+//        }
+//      }
+//
+//      boolean zeroFlowVertex = !conjBush.containsSendingFlow(conjBushVertex);
+//
+//      bushMinMaxTree.setMinPathState(true);
+//      var existingOutgoingSegment = (ConjugateEdgeSegment) bushMinMaxTree.getNextEdgeSegmentForVertex(conjBushVertex);
+//      ConjugateEdgeSegment cheapestAltOutgoingSegment = null;
+//      double cheapestAltOutgoingSegmentCost = bushMinMaxTree.getMinCostToReach(conjBushVertex);
+//      for (var outgoingSegment : conjBushVertex.getExitEdgeSegments()) {
+//        if (!conjBush.contains(outgoingSegment)) {
+//          var result = isEligibleForAdding(
+//              outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree, allowEligibilityBasedOnOnlyP2 && !zeroFlowVertex);
+//          if (!result.first()) {
+//            continue;
+//          }
+//
+//          // find cheapest of the new alternatives that is deemed eligible
+//          if (result.second() < cheapestAltOutgoingSegmentCost) {
+//            cheapestAltOutgoingSegment = outgoingSegment;
+//            cheapestAltOutgoingSegmentCost = result.second();
+//          }
+//        } else if(!zeroFlowVertex && conjBush.getSendingFlowPcuH(outgoingSegment) <= 0){
+//          conjBush.remove(outgoingSegment);
+//        }
+//      }
+//      if (cheapestAltOutgoingSegment != null) {
+//        // mark for replacing original zero flow cheapest bush segment with newly found
+//        // this requires removing something from bush, so cache until we no longer traverse the bush
+//        if (zeroFlowVertex) {
+//          replaceZeroFlowSpanningTreeSegments.put(existingOutgoingSegment, cheapestAltOutgoingSegment);
+//        } else {
+//          // simply add the newly found cheapest alternative link segment directly as it will be picked up for a
+//          // PAS later on (make sure we only add if we are sure we are generating PASs for this bush otherwise
+//          // we are dding links that do not get used which is BAD since it would trigger incorrect cycle detection
+//          // as in it would think a cycle exists when it in fact does not (for used flow)
+//          conjBush.getDag().addEdgeSegment(cheapestAltOutgoingSegment);
+//          addedSegments.add(cheapestAltOutgoingSegment);
+//          LOGGER.info(String.format("ADDING NEW LINK (non zero flow vertex) (%s) TO BUSH (%s)",
+//              cheapestAltOutgoingSegment, conjBush.getRootZone().getIdsAsString()));
+//        }
+//      }
+//    }
+//    if (!replaceZeroFlowSpanningTreeSegments.isEmpty()) {
+//      for (var entry : replaceZeroFlowSpanningTreeSegments.entrySet()) {
+//        conjBush.remove(entry.getKey()); // remove old
+//        var newSegment = entry.getValue();
+//        conjBush.getDag().addEdgeSegment(newSegment); // add new
+////        LOGGER.info(String.format("ADDING NEW LINK (ZERO flow vertex) (%s) TO BUSH (%s)",
+////            newSegment, conjBush.getRootZone().getIdsAsString()));
+//        // overwrite in min max tree to ensure we do not offer a segment that is not on the bush
+//        // (costs are not correct but that will self-correct next iteration)
+//        var upstreamVertex = newSegment.getUpstreamVertex();
+//        bushMinMaxTree.overwriteNextSegmentForVertex(upstreamVertex, newSegment);
+//        bushMinMaxTree.setMinPathState(false);
+//        bushMinMaxTree.overwriteNextSegmentForVertex(upstreamVertex, newSegment);
+//      }
+//    }
+
+    // fix: ONLY update non-zero flow vertices by adding segments for PAS updates
+    boolean anyP1Eligible = false;
     var bushVertexIter = conjBush.getTopologicalIterator();
     while (bushVertexIter.hasNext()) {
       ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
-      boolean zeroFlowVertex = !conjBush.containsSendingFlow(conjBushVertex);
 
       bushMinMaxTree.setMinPathState(true);
-      var existingOutgoingSegment = (ConjugateEdgeSegment) bushMinMaxTree.getNextEdgeSegmentForVertex(conjBushVertex);
-      ConjugateEdgeSegment cheapestAltOutgoingSegment = null;
-      double cheapestAltOutgoingSegmentCost = bushMinMaxTree.getMinCostToReach(conjBushVertex);
-      int countExisting = 0;
       for (var outgoingSegment : conjBushVertex.getExitEdgeSegments()) {
         if (!conjBush.contains(outgoingSegment)) {
           var result = isEligibleForAdding(
-              outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree, allowEligibilityBasedOnOnlyP2 && !zeroFlowVertex);
-          if (!result.first()) {
+              outgoingSegment, conjLinkSegmentCosts, bushMinMaxTree, allowEligibilityBasedOnOnlyP2);
+          anyP1Eligible = anyP1Eligible || result.third();
+          if (!result.first() || outgoingSegment.isOriginalEdgeSegmentsUTurn()) {
             continue;
           }
-
-          // find cheapest of the new alternatives that is deemed eligible
-          if (result.second() < cheapestAltOutgoingSegmentCost) {
-            cheapestAltOutgoingSegment = outgoingSegment;
-            cheapestAltOutgoingSegmentCost = result.second();
-          }
-        } else {
-          ++countExisting;
-        }
-      }
-      if (cheapestAltOutgoingSegment != null) {
-        // mark for replacing original zero flow cheapest bush segment with newly found
-        // this requires removing something from bush, so cache until we no longer traverse the bush
-        if (zeroFlowVertex) {
-          replaceZeroFlowSpanningTreeSegments.put(existingOutgoingSegment, cheapestAltOutgoingSegment);
-        } else {
-          // simply add the newly found cheapest alternative link segment directly as it will be picked up for a
-          // PAS later on (make sure we only add if we are sure we are generating PASs for this bush otherwise
-          // we are dding links that do not get used which is BAD since it would trigger incorrect cycle detection
-          // as in it would think a cycle exists when it in fact does not (for used flow)
-          conjBush.getDag().addEdgeSegment(cheapestAltOutgoingSegment);
-          nonZeroFlowVertexAddedSegments.add(cheapestAltOutgoingSegment);
-          LOGGER.info(String.format("ADDING NEW LINK (non zero flow vertex) (%s) TO BUSH (%s)",
-              cheapestAltOutgoingSegment, conjBush.getRootZone().getIdsAsString()));
+          conjBush.getDag().addEdgeSegment(outgoingSegment);
+          addedSegments.add(outgoingSegment);
+          LOGGER.info(String.format("ADDING NEW LINK (%s) TO BUSH (%s)",
+              outgoingSegment, conjBush.getRootZone().getIdsAsString()));
         }
       }
     }
-    if (!replaceZeroFlowSpanningTreeSegments.isEmpty()) {
-      for (var entry : replaceZeroFlowSpanningTreeSegments.entrySet()) {
-        conjBush.remove(entry.getKey()); // remove old
-        var newSegment = entry.getValue();
-        conjBush.getDag().addEdgeSegment(newSegment); // add new
-//        LOGGER.info(String.format("ADDING NEW LINK (ZERO flow vertex) (%s) TO BUSH (%s)",
-//            newSegment, conjBush.getRootZone().getIdsAsString()));
-        // overwrite in min max tree to ensure we do not offer a segment that is not on the bush
-        // (costs are not correct but that will self-correct next iteration)
-        var upstreamVertex = newSegment.getUpstreamVertex();
-        bushMinMaxTree.overwriteNextSegmentForVertex(upstreamVertex, newSegment);
-        bushMinMaxTree.setMinPathState(false);
-        bushMinMaxTree.overwriteNextSegmentForVertex(upstreamVertex, newSegment);
-      }
-    }
-    return nonZeroFlowVertexAddedSegments;
-
+    return Pair.of(addedSegments,anyP1Eligible);
   }
 
-  private Set<ConjugateEdgeSegment> addAndRemoveEligibleZeroFlowSegmentsIncludingZeroFlowSpanningTree(
+  private Set<ConjugateEdgeSegment> improveNonZeroFlowBushConnectivity(
       ConjugateDestinationBush conjBush, double[] conjLinkSegmentCosts) {
 
-    // delegate in strict mode (P1&P2)
+    //***********************************************************************************************
+    // make sure (near) zero flow links are all on network shortest paths and remove otherwise
+    var addedZeroFlowSegments = improveZeroFlowBushConnectivity(conjBush, conjLinkSegmentCosts);
+
+    //***********************************************************************************************
+    // add new link segments that potentially will improve bush convergence based on (P1&P2)
     boolean allowRelaxedAddingMode = false;
-    var nonZeroFlowVertexAddedSegments =  addAndRemoveEligibleZeroFlowSegmentsIncludingZeroFlowSpanningTree(
-        conjBush, conjLinkSegmentCosts, allowRelaxedAddingMode);
-    if(nonZeroFlowVertexAddedSegments.isEmpty()){
+    var result =  improveNonZeroFlowBushConnectivity(conjBush, conjLinkSegmentCosts, allowRelaxedAddingMode);
+    boolean anyP1Eligible = result.second();
+    if(result.first().isEmpty() && anyP1Eligible){
       allowRelaxedAddingMode = true;
-      nonZeroFlowVertexAddedSegments =  addAndRemoveEligibleZeroFlowSegmentsIncludingZeroFlowSpanningTree(
+      result =  improveNonZeroFlowBushConnectivity(
           conjBush, conjLinkSegmentCosts, allowRelaxedAddingMode);
       LOGGER.info(String.format(
           "BUSH (%s) unable to add new segments - switched to relaxed P2 mode and found %s new segments",
-          conjBush.getRootZone().getIdsAsString(), nonZeroFlowVertexAddedSegments.toString()));
+          conjBush.getRootZone().getIdsAsString(), result.first()));
     }
-    return nonZeroFlowVertexAddedSegments;
+    addedZeroFlowSegments.addAll(result.first());
+    return addedZeroFlowSegments;
   }
 
   /**
@@ -1054,6 +1210,8 @@ public class StaticLtmConjugateBushStrategy
   @Override
   protected Map<Long,Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>
   updateBushPass(Mode mode, double[] nonConjugateLinkSegmentCosts, boolean updateGap, StaticLtmSimulationData simulationData, boolean logAll){
+
+
     // rationale, any gap multiplies cost with flow. Flow upper bound generally does not exceed 10k in PCU/h per link,
     // so any route will be less than that. Hence, any gap in terms of normalised cost to this flow should be considered
     // and will aid in bringing the network gap down.
@@ -1063,19 +1221,14 @@ public class StaticLtmConjugateBushStrategy
 
     final int MAX_PAS_ADD_PER_BUSH = Integer.MAX_VALUE;
 
-    // not resetting PASs does seem to allow for cycles issues
-    // todo: if that is the case, we are not pruning previous PASs correctly for bushes that are no longer
-    //  eligible for them, since if we reset we do not seem to get this issue
-    boolean resetPass = true; //simulationData.getIterationIndex() % 10 == 0; // to be investigated,
-    if(resetPass) {
-      pasManager.reset();
-    }
+    Map<Long, Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> passToConsider = new TreeMap<>();
 
     // method overridden for conjugate implementation resulting in conjugate compatible shortest path search using
     // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...
     // here we do use discontinuity costs because when considering new PASs it must be taken into account
     final var conjLinkSegmentCosts =
         expandNonConjugateLinkSegmentCostToConjugateSegmentCost(mode, nonConjugateLinkSegmentCosts, true);
+
 
     double totalMinCostForGap = 0; // track during bush traversal to get min OD costs based on shortest paths
     double totalRealisedCostForGap = 0;
@@ -1169,18 +1322,31 @@ public class StaticLtmConjugateBushStrategy
         totalCycleLimitedBushes, totalNonImprovingBushes, totalConvergedBushes));
     prevNetworkRealisedCost = totalRealisedCostForGap;
 
+    // not resetting PASs does seem to allow for cycles issues
+    // todo: if that is the case, we are not pruning previous PASs correctly for bushes that are no longer
+    //  eligible for them, since if we reset we do not seem to get this issue
+    boolean createNewPass = true; //simulationData.getIterationIndex() <= 2 || simulationData.getIterationIndex() % 10 == 0; // to be investigated,
+    if(createNewPass) {
+      pasManager.reset();
+    }
+//    else{
+//      pasManager.getActivePass().values().stream().flatMap(Collection::stream).forEach(
+//          p -> passToConsider.put(p.pasId, p));
+//      return passToConsider;
+//    }
+
+
     // **********************************************************************************************
     // FIND PASs for eligible bushes
-    Map<Long, Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> passToConsider = new TreeMap<>();
     for (var conjBush : eligibleBushes) {
-      // make sure we use the latest zero flow optimal connections --> can only do this now because
+      // make sure we use the latest flow optimal connections --> can only do this now because
       // we should only add/change zero flow connections when we KNOW they will by used in a PAS and will become
       // non-zero flow. Otherwise this leads to problems later on with cycle detection
       // todo: when we compute gap earlier it is not entirely right because we use the pre-updated spanning tree
       //  however, we cannot update it there because if we do not consider the bush the new added links won't be used
       //  leading to the problem mentioned, so we accept we're trailing an iteration with that...
-      var newlyAddedNonZeroVertexBushLinkSegments =
-          addAndRemoveEligibleZeroFlowSegmentsIncludingZeroFlowSpanningTree(conjBush, conjLinkSegmentCosts);
+      var newlyAddedBushLinkSegments =
+          improveNonZeroFlowBushConnectivity(conjBush, conjLinkSegmentCosts);
 
       // track vertices that have been added due to PAS s1 alternative
       // any new PAS that touches these vertices will not be added because they overlap
@@ -1220,7 +1386,7 @@ public class StaticLtmConjugateBushStrategy
 
           //adding of segments done while rejigging spanning tree already
 
-          boolean minPathInitialLinkNewToBush = newlyAddedNonZeroVertexBushLinkSegments.contains(outgoingSegment);
+          boolean minPathInitialLinkNewToBush = newlyAddedBushLinkSegments.contains(outgoingSegment);
           boolean divergentMinMaxPaths = !(minNextEdge == maxNextEdge);
           boolean preferredOutGoingSegment = (minNextEdge == outgoingSegment);
           boolean congestedEntry = (entryAcceptanceFactor + Precision.EPSILON_6) < 1;
@@ -1386,6 +1552,55 @@ public class StaticLtmConjugateBushStrategy
     }
 
     return conjugateSegmentCosts;
+  }
+
+  public void removeAllButProtectedZeroFlowBushSegments(double[] conjLinkSegmentCosts){
+
+    //todo: placeholder in case we need it
+//    ConjugateEdgeSegment[] allSegments = Stream.concat(
+//            conjugateTransportModelNetwork.getVirtualNetwork().getLayer().getConnectoidSegments().stream(),
+//            conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst().getLinkSegments().stream()).
+//        toArray(ConjugateEdgeSegment[]::new);
+//
+//    for (var conjBush : getBushes()) {
+//      boolean excludeZeroFlowLinksFromMaxPaths = true;
+//      var bushMinMaxTree = conjBush.computeMinMaxShortestPaths(excludeZeroFlowLinksFromMaxPaths,
+//          conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
+//
+//      for(var edgeSegment :allSegments){
+//        if(conjBush.getSendingFlowPcuH(edgeSegment) <= 0.0 && conjBush.getDag().containsEdgeSegment(edgeSegment)){
+//          boolean zeroFlowVertex = conjBush.getSendingFlowPcuH(edgeSegment.getUpstreamVertex()) <= 0;
+//          if(!zeroFlowVertex){
+//            conjBush.remove(edgeSegment); // zero flow turn on non-zero flow vertex -> remove not dangling
+//          }else{
+//            var cheapestPathSegment = bushMinMaxTree.getNextEdgeSegmentForVertex(edgeSegment.getDownstreamVertex());
+//            if(cheapestPathSegment != edgeSegment){
+//              conjBush.remove(edgeSegment); // zero flow turn on zero flow vertex -> remove if not on cheapest path
+//            }
+//            if(!conjBush.contains(cheapestPathSegment.getId())){
+//              conjBush.getDag().addEdgeSegment();
+//            }
+//          }
+//
+//          if(allowDanglingNodes){
+//            localRemoved = true;
+//            remove(edgeSegment);
+//          }else{
+//            localRemoved = removeUnlessNodeDangling(edgeSegment);
+//          }
+//
+//          if(localRemoved && logRemoved){
+//            LOGGER.info(String.format("     [No flow --> remove : (%s) from bush (%s)]",
+//                edgeSegment.getIdsAsString(),
+//                getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+//          }
+//          anyRemoved = anyRemoved || localRemoved;
+//        }
+//      }
+//      return anyRemoved;
+//
+//      conjBush.removeZeroFlowSegmentsIn(allSegments, false, true);
+//    }
   }
 
 

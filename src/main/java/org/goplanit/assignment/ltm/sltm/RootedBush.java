@@ -403,15 +403,10 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
           remove(edgeSegment);
         }else{
           localRemoved = removeUnlessNodeDangling(edgeSegment);
-          if(!localRemoved && logRemoved){
-            LOGGER.info(String.format("     [No more flow --> only kept (%s) to avoid dangling node in bush (%s)]",
-                edgeSegment.getIdsAsString(),
-                getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-          }
         }
 
         if(localRemoved && logRemoved){
-          LOGGER.info(String.format("     [No more flow --> remove : (%s) from bush (%s)]",
+          LOGGER.info(String.format("     [No flow --> remove : (%s) from bush (%s)]",
               edgeSegment.getIdsAsString(),
               getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         }
@@ -423,6 +418,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
 
   /**
    * Remove edgeSegment from the bush. In case any of its nodes become dangling, do not remove
+   * (assumes a destination based bush setup!)
    *
    * @param edgeSegment of the turn
    * @return true when removed, false when not removed because a dangling node would remain
@@ -640,5 +636,4 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
     sb.append("]");
     return sb.toString();
   }
-
-}
+  }

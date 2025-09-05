@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
+import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.conjugate.PasFlowShiftConjugateDestinationBasedExecutor;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
@@ -15,6 +16,8 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
+import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -31,6 +34,8 @@ import org.goplanit.zoning.Zoning;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Base implementation to support a bush based solution for sLTM
@@ -236,12 +241,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * FLOW SHIFTING - STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based
    * on relevant criterion.
-   *
+   * todo: provide option for sorting order...
    * @param pasExecutors                      to use for retrieving PAS information used in sorting
    * @param nlConsistentFlowAcceptanceFactors
    * @return sorted PASs in descending order of importance
    */
-  protected Collection<Pas<V,ES>> flowShiftingStepFourOrderPass(
+  protected List<Pas<V,ES>> flowShiftingStepFourOrderPass(
       Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
       double[] nlConsistentFlowAcceptanceFactors) {
 
@@ -257,8 +262,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       pasGaps.put(pas, pas.computeGap(s1Flow, s2Flow));
     }
 
-    pasGaps.entrySet().stream().sorted(Map.Entry.comparingByValue()).forEach( e ->
-        LOGGER.info(String.format("%.10f - %s", e.getValue(), e.getKey())));
+    pasGaps.entrySet().stream().sorted(Map.Entry.comparingByValue()).skip(pasGaps.entrySet().size()-Math.min(pasGaps.size(), 3)).forEach(
+        e -> LOGGER.info(String.format("%.10f - %s", e.getValue(), e.getKey())));
 
     // PAS GAP
     Comparator<Pas<V,ES>> PAS_GAP_COMPARATOR = (p1, p2) -> {
@@ -402,7 +407,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // experiment where we (if no interactions and full convergence internally is assumed we visit each PAS once
     // however, if due to interactions some PASs bounce back, we revisit them prior to other less contributing PASs
     // as this approach is married to always process ONLY the currently worst PAS.
-    boolean worstPasFirstUpdateOrderingPerPas = true;
+    boolean worstPasFirstUpdateOrderingPerPas = false;
 
     Collection<ES> linkSegmentsUsed = new HashSet<>(100);
     boolean smoothOverIterations = worstPasFirstUpdateOrderingPerPas? false : true;
@@ -428,7 +433,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     double totalPasReducedCost = 0;
     int numConsideredPas = 0;
 
-    int MAX_ITERATIONS_ALLOWED = worstPasFirstUpdateOrderingPerPas ? sortedPass.size() : 1;
+    int MAX_ITERATIONS_ALLOWED = worstPasFirstUpdateOrderingPerPas ? sortedPass.size() : 4;
     int iteration = 1;
     boolean doNotStop = true;
     do {
@@ -443,6 +448,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       sortedPass.stream().filter(p -> p.getStatus()!=PasStatus.UNCONGESTED_WITH_SHIFT).forEach(
           p ->p.updateCost(conjSegmentCosts));
       var updatedOrder = flowShiftingStepFourOrderPass(pasExecutors, nlConsistentFlowAcceptanceFactors);
+      if(!worstPasFirstUpdateOrderingPerPas){
+        Collections.reverse(updatedOrder);
+      }
       sortedPass = updatedOrder;
 
 //      sortedPass.stream().sorted(Comparator.comparingDouble(Pas::getReducedCost)).filter(
@@ -450,7 +458,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 //          String.format("%.10f - %s",p.getReducedCost(),p)).forEach(LOGGER::info);
 
       // debugging
-      boolean logAll = simulationData.getIterationIndex()>=50;
+      boolean logAll = false; //simulationData.getIterationIndex()>=50;
 
       LOGGER.info(String.format("--- NEXT CONGESTED PASs INTERNAL ITERATION %d ----", iteration));
 
@@ -458,8 +466,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       int congestedPasCounter = 0;
 
       long numCongestedPass = sortedPass.stream().filter(
-          p -> p.getStatus()!=PasStatus.UNCONGESTED_WITH_SHIFT).count();
-      double perPasPercentageOfTotal = 1.0/numCongestedPass;
+          p -> p.getStatus()!=PasStatus.UNCONGESTED_WITH_SHIFT || !p.hasRegisteredBushes()).count();
+      double perPasPercentageOfTotal =
+          worstPasFirstUpdateOrderingPerPas ? 1.0/MAX_ITERATIONS_ALLOWED : 1.0/numCongestedPass;
 
       for (var pas : sortedPass) {
         //double importanceSmoothingFactor = 1 - (pasCounter * perPasImportanceReduction);
@@ -474,13 +483,18 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
         double importanceSmoothingFactor = 1;
         if(!worstPasFirstUpdateOrderingPerPas) { // NOTE: no decay when we go per PAS and the current is always the worst
-          // we start with least important because it is sequentially run, so the last should not be overridden hence
-          // it also gets the largest importance, so we invert the decay to accommodate
-          importanceSmoothingFactor = (1 - Math.pow(0.1, (congestedPasCounter * perPasPercentageOfTotal))) + 0.1; // run from 100% exponential decay to 1% of leat important PAS
+          // we start with most important as this will have biggest shift, we apply least of it, to try and ease the smoothing
+          // this seems to work best
+          importanceSmoothingFactor = (Math.pow(0.1, (congestedPasCounter * perPasPercentageOfTotal))); // run from 10% exponential decay to 100% of most important PAS
         }
+//        else{
+//          //todo: in this approach if we ever see the same pas more than 3 times in a row something
+//          // is fishy and we should check what is going on....we do see that...
+//          importanceSmoothingFactor = Math.pow(0.1, (iteration * perPasPercentageOfTotal)); // run from 100% from first to 10% of last PAS
+//        }
         ++congestedPasCounter;
 
-        if (pas.pasId == 74L) {
+        if (pas.pasId == 44L) {
           int bla = 4;
         }
 
@@ -1264,6 +1278,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           LOGGER.info(String.format("Flow shifts performed: %d (%.2f%% of all pass)",
               updatedPass.size(),((double)updatedPass.size()*100)/pasManager.getNumberOfActivePass()));
         }
+
       }
 
       /* 5 - perform low flow branch shifts on the bush level */
@@ -1280,6 +1295,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     }
     return true;
   }
+
 
   /**
    * Unlike the default convergence check, we also see if the solution is proportional if relevant; in a bush setting with a triangular fundamental diagram we do not obtain a

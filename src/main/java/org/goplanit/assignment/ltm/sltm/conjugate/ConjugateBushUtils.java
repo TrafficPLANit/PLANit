@@ -8,6 +8,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 
@@ -114,7 +115,7 @@ public class ConjugateBushUtils {
     return bushSendingFlows;
   }
 
-  public static Pair<Boolean, Double> isEligibleForAdding(
+  public static Triple<Boolean, Double, Boolean> isEligibleForAdding(
       ConjugateEdgeSegment linkSegment,
       double[] conjLinkSegmentCosts,
       MinMaxPathResult conjBushMinMaxPaths) {
@@ -131,9 +132,9 @@ public class ConjugateBushUtils {
    * @param conjLinkSegmentCosts segment costs to use
    * @param conjBushMinMaxPaths  min max path cost to check
    * @return true when eligible, false otherwise, second result is the min bush cost to the root considering we
-   * add the link
+   * add the link, third result is indicates if it was accepted by P1 test, false otherwise
    */
-  public static Pair<Boolean, Double> isEligibleForAdding(
+  public static Triple<Boolean, Double, Boolean> isEligibleForAdding(
       ConjugateEdgeSegment linkSegment,
       double[] conjLinkSegmentCosts,
       MinMaxPathResult conjBushMinMaxPaths,
@@ -141,37 +142,20 @@ public class ConjugateBushUtils {
     var endVertex = linkSegment.getUpstreamVertex();
     var startVertex = linkSegment.getDownstreamVertex();
 
-    // connectoids are guaranteed to be one way and be a leaf, so they can never cause a cycle
-    // currently we must check this because it may otherwise deny some links to be added based on for example
-    // max cost paths appearing to possibly cause a cycle while we know they cannot
-    //      1
-    //      / --> ----- ----\
-    //   O--|                |-->D
-    //          ------ -----/
-    //      2
-    // if O>1 is in bush for D and has a large max cost, and O>2 is not in bush yet and would have a lower min cost
-    // we'd want to add it, but if its max cost becomes higher it is rejected. However, we know its max cost can only
-    // go up due to downstream differences, NOT because of a cycle since no flow other than the origin can go the
-    // upstream of 2 (which would cause this alleged cycle), so for those links we'll bypass this condition.
-    //
-    // todo: ideally we'd use a more "scientific" check than this reasoning.
-    boolean forceAllow = false;
-    if(!endVertex.hasOriginalEdgeSegment() || endVertex.getOriginalEdgeSegment() instanceof ConnectoidSegment){
-      forceAllow = true;
-    }
-
     double startToEndCost = conjLinkSegmentCosts[(int)linkSegment.getId()];
 
     double minCostEnd = conjBushMinMaxPaths.getMinCostToReach(endVertex);
     double minCostStart = conjBushMinMaxPaths.getMinCostToReach(startVertex);
-    if(forceAllow || (minCostStart + startToEndCost < minCostEnd) || allowEligibilityBasedOnOnlyP2 ){
-      double maxCostEnd = conjBushMinMaxPaths.getMaxCostToReach(endVertex);
-      double maxCostStart = Math.abs(conjBushMinMaxPaths.getMaxCostToReach(startVertex));
-      if(forceAllow || (maxCostStart + startToEndCost < maxCostEnd)){
-        return Pair.of(true, minCostStart + startToEndCost);
-      }
-    }
-    return Pair.of(false, minCostStart + startToEndCost);
-  }
+    double maxCostEnd = conjBushMinMaxPaths.getMaxCostToReach(endVertex);
+    double maxCostStart = Math.abs(conjBushMinMaxPaths.getMaxCostToReach(startVertex));
 
+    boolean p1Eligible = (minCostStart + startToEndCost < minCostEnd);
+    boolean p2Eligible = (maxCostStart + startToEndCost < maxCostEnd);
+
+    if(allowEligibilityBasedOnOnlyP2){
+      return Triple.of(p2Eligible, maxCostStart + startToEndCost, p1Eligible);
+    }else{
+      return Triple.of(p1Eligible && p2Eligible, minCostStart + startToEndCost, p1Eligible);
+    }
+  }
 }

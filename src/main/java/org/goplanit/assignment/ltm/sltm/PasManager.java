@@ -669,6 +669,10 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
     return activePassByVertex.get(referenceVertex);
   }
 
+  public Map<V, Collection<Pas<V,ES>>> getActivePass() {
+    return Collections.unmodifiableMap(activePassByVertex);
+  }
+
   /**
    * Collect all inactive PASs that share the same reference vertex.
    *
@@ -848,7 +852,7 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    * @param pasComparator to use
    * @return sorted PAS queue in descending order, i.e., highest reduced cost first
    */
-  public Collection<Pas<V,ES>> getActivePassSortedByReducedCost(Comparator<Pas<V,ES>> pasComparator) {
+  public List<Pas<V,ES>> getActivePassSortedByReducedCost(Comparator<Pas<V,ES>> pasComparator) {
     var sortedList = new ArrayList<Pas<V,ES>>((int) getNumberOfActivePass());
     forEachActivePas(sortedList::add);
     sortedList.sort(pasComparator);
