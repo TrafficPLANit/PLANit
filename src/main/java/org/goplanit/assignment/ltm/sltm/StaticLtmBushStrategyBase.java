@@ -61,7 +61,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     var alphas = getLoading().getCurrentFlowAcceptanceFactors();
     for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
       if(Precision.smaller(alphas[(int)ls.getId()], 1, Precision.EPSILON_9)){
-        idList.add(ls.getParent().getIdsAsString());
+        idList.add(ls.getIdsAsString());
         alphaCostInOutflowList.add(Quadruple.of(
             alphas[(int)ls.getId()],
             costs[(int)ls.getId()],
@@ -73,7 +73,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       if(Precision.smaller(alphas[(int)ls.getId()], 1, Precision.EPSILON_9)){
         idList.add(ls.getIdsAsString());
         alphaCostInOutflowList.add(Quadruple.of(
-            alphas[(int)ls.getParent().getId()],
+            alphas[(int)ls.getId()],
             costs[(int)ls.getId()],
             getLoading().getCurrentInflowsPcuH()[(int)ls.getId()],
             getLoading().getCurrentOutflowsPcuH()[(int)ls.getId()]));
@@ -483,8 +483,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
         double importanceSmoothingFactor = 1;
         if(!worstPasFirstUpdateOrderingPerPas) { // NOTE: no decay when we go per PAS and the current is always the worst
-          // we start with most important as this will have biggest shift, we apply least of it, to try and ease the smoothing
-          // this seems to work best
+          // we start with most important as this will have biggest shift
           importanceSmoothingFactor = (Math.pow(0.1, (congestedPasCounter * perPasPercentageOfTotal))); // run from 10% exponential decay to 100% of most important PAS
         }
 //        else{

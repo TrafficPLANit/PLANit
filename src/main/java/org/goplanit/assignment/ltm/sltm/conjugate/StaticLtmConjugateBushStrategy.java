@@ -63,9 +63,11 @@ public class StaticLtmConjugateBushStrategy
   private static final Logger LOGGER = Logger.getLogger(StaticLtmConjugateBushStrategy.class.getCanonicalName());
 
   public static final boolean INITIALISE_WARM_START_FROM_DISK_TURN_FLOWS = false;
-  public static final int PERSIST_WARM_START_TO_DISK_TURN_FLOW_ITERATION = Integer.MAX_VALUE;//50; //when > max iterations it does not happen
+  public static final int PERSIST_WARM_START_TO_DISK_TURN_FLOW_ITERATION = Integer.MAX_VALUE; //50; //when > max iterations it does not happen
   public static final Path WARM_START_LOCATION =
-      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","leuven_plus20perc","warmstart_perpas_nodecay_relaxedp2_50");
+      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","leuven_plus20perc","warm_start_50");
+//  public static final Path WARM_START_LOCATION =
+//      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","leuven","warm_start_50");
 //  public static final Path WARM_START_LOCATION =
 //      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","siouxfalls","warmstart");
 
@@ -985,8 +987,7 @@ public class StaticLtmConjugateBushStrategy
                 conjBush.getRootZone().getIdsAsString()));
             conjBush.remove(edgeSegment);
 
-            if (!conjBush.hasRegisteredExitSegments(edgeSegment.getUpstreamVertex()) &&
-                minCostSegment!=null) {
+            if (!conjBush.hasRegisteredExitSegments(edgeSegment.getUpstreamVertex()) && minCostSegment!=null) {
               var result = isEligibleForAdding((ConjugateEdgeSegment) minCostSegment, conjLinkSegmentCosts, bushMinMaxTree);
               if(result.first()){
                 conjBush.getDag().addEdgeSegment((ConjugateEdgeSegment) minCostSegment);

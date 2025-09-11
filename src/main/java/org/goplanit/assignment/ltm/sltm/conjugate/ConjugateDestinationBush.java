@@ -946,7 +946,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
                 LOGGER.info("bush od path cost: " + minOdCost + "vs network min cost: " + minNetworkOdCost);
                 LOGGER.info("bush min od path: " + bushMinPath);
                 LOGGER.info("network min od path: " + networkMinPath);
-                LOGGER.info(String.format("segment (%s) denied for adding on bush (%s)",segment.getIdsAsString(), getRootZone().getIdsAsString()));
+                LOGGER.info(String.format("segment (%s) (parent link %s) denied for adding on bush (%s)",segment.getIdsAsString(), segment.getParent().getIdsAsString(), getRootZone().getIdsAsString()));
 
                 result = ConjugateBushUtils.isEligibleForAdding((ConjugateEdgeSegment) segment, conjLinkSegmentCosts, bushMinMaxTree);
                 break; // there maybe more, but for now just print one
