@@ -22,6 +22,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.utils.misc.Triple;
@@ -36,6 +37,7 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Base implementation to support a bush based solution for sLTM
@@ -49,6 +51,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategyBase.class.getCanonicalName());
+
+  public double minNetworkGapAsThreshold = 1;
 
   /**
    * tracked bushes (with non-zero demand)
@@ -238,6 +242,35 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     return numRemovedPASs;
   }
 
+  public Map<Pas<V,ES>, Double> computePasGaps(Collection<Pas<V,ES>> pass,
+                                               double[] nlConsistentFlowAcceptanceFactors){
+    Map<Pas<V,ES>, Double> pasGaps = new HashMap<>();
+    for(var pas : pass){
+      double s1Flow = PasFlowShiftConjugateDestinationBasedExecutor.determinePasSubPathSendingFlow(
+          pas, true, getLoading().getCurrentFlowAcceptanceFactors(),nlConsistentFlowAcceptanceFactors);
+      double s2Flow = PasFlowShiftConjugateDestinationBasedExecutor.determinePasSubPathSendingFlow(
+          pas, false, getLoading().getCurrentFlowAcceptanceFactors(),nlConsistentFlowAcceptanceFactors);
+      pas.computeGap(s1Flow, s2Flow);
+      pasGaps.put(pas, pas.computeGap(s1Flow, s2Flow));
+    }
+    return pasGaps;
+  }
+
+  public Comparator<Pas<V,ES>> getPasGapComparator(Map<Pas<V,ES>, Double> pasGaps){
+    Comparator<Pas<V,ES>> PAS_GAP_COMPARATOR = (p1, p2) -> {
+      double p1Gap = pasGaps.get(p1);
+      double p2Gap = pasGaps.get(p2);
+      if (p1Gap > p2Gap) {
+        return -1;
+      } else if (p1Gap < p2Gap) {
+        return 1;
+      } else {
+        return 0;
+      }
+    };
+    return PAS_GAP_COMPARATOR;
+  }
+
   /**
    * FLOW SHIFTING - STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based
    * on relevant criterion.
@@ -250,74 +283,52 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
       double[] nlConsistentFlowAcceptanceFactors) {
 
-    Map<Pas<V,ES>, Double> pasGaps = new HashMap<>();
-    for(var exec : pasExecutors.entrySet()){
-      var pas = exec.getKey();
-      var executor = (PasFlowShiftConjugateDestinationBasedExecutor) exec.getValue(); // not sustainable
-      double s1Flow = PasFlowShiftConjugateDestinationBasedExecutor.determinePasSubPathSendingFlow(
-          pas, true, getLoading().getCurrentFlowAcceptanceFactors(),nlConsistentFlowAcceptanceFactors);
-      double s2Flow = PasFlowShiftConjugateDestinationBasedExecutor.determinePasSubPathSendingFlow(
-          pas, false, getLoading().getCurrentFlowAcceptanceFactors(),nlConsistentFlowAcceptanceFactors);
-      pas.computeGap(s1Flow, s2Flow);
-      pasGaps.put(pas, pas.computeGap(s1Flow, s2Flow));
-    }
-
+    Map<Pas<V,ES>, Double> pasGaps = computePasGaps(pasExecutors.keySet(), nlConsistentFlowAcceptanceFactors);
     pasGaps.entrySet().stream().sorted(Map.Entry.comparingByValue()).skip(pasGaps.entrySet().size()-Math.min(pasGaps.size(), 3)).forEach(
         e -> LOGGER.info(String.format("%.10f - %s", e.getValue(), e.getKey())));
 
-    // PAS GAP
-    Comparator<Pas<V,ES>> PAS_GAP_COMPARATOR = (p1, p2) -> {
-      double p1Gap = pasGaps.get(p1);
-      double p2Gap = pasGaps.get(p2);
-      if (p1Gap > p2Gap) {
-        return -1;
-      } else if (p1Gap < p2Gap) {
-        return 1;
-      } else {
-        return 0;
-      }
-    };
-
-    // normalised cost * flow based comparator
-    Comparator<Pas<V,ES>> PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
-      double p1Cost = p1.getNormalisedReducedCost() * pasExecutors.get(p1).getS2SendingFlow();
-      double p2Cost = p2.getNormalisedReducedCost() * pasExecutors.get(p2).getS2SendingFlow();
-      if (p1Cost > p2Cost) {
-        return -1;
-      } else if (p1Cost < p2Cost) {
-        return 1;
-      } else {
-        return 0;
-      }
-    };
-    PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR = PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR.reversed();
-
-    // regular reduced cost * flow based comparator
-    final Comparator<Pas<V,ES>> PAS_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
-      double p1Cost = p1.getReducedCost() * pasExecutors.get(p1).getS2SendingFlow();
-      double p2Cost = p2.getReducedCost() * pasExecutors.get(p2).getS2SendingFlow();
-      if (p1Cost > p2Cost) {
-        return -1;
-      } else if (p1Cost < p2Cost) {
-        return 1;
-      } else {
-        return 0;
-      }
-    };
-
-    // normalised cost * flow based comparator
-    Comparator<Pas<V,ES>> PAS_REDUCED_COST = (p1,p2) ->
-        Double.compare(p1.getReducedCost(), p2.getReducedCost());
-    //PAS_REDUCED_COST = PAS_REDUCED_COST.reversed();
-
-    // flow based comparator
-    Comparator<Pas<V,ES>> PAS_FLOW = (p1,p2) ->
-        Double.compare(pasExecutors.get(p1).getS1SendingFlow() + pasExecutors.get(p1).getS2SendingFlow(),
-            pasExecutors.get(p2).getS1SendingFlow() + pasExecutors.get(p2).getS2SendingFlow());
-    PAS_FLOW = PAS_FLOW.reversed();
+//
+//    // normalised cost * flow based comparator
+//    Comparator<Pas<V,ES>> PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
+//      double p1Cost = p1.getNormalisedReducedCost() * pasExecutors.get(p1).getS2SendingFlow();
+//      double p2Cost = p2.getNormalisedReducedCost() * pasExecutors.get(p2).getS2SendingFlow();
+//      if (p1Cost > p2Cost) {
+//        return -1;
+//      } else if (p1Cost < p2Cost) {
+//        return 1;
+//      } else {
+//        return 0;
+//      }
+//    };
+//    PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR = PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR.reversed();
+//
+//    // regular reduced cost * flow based comparator
+//    final Comparator<Pas<V,ES>> PAS_REDUCED_COST_BY_FLOW_COMPARATOR = (p1, p2) -> {
+//      double p1Cost = p1.getReducedCost() * pasExecutors.get(p1).getS2SendingFlow();
+//      double p2Cost = p2.getReducedCost() * pasExecutors.get(p2).getS2SendingFlow();
+//      if (p1Cost > p2Cost) {
+//        return -1;
+//      } else if (p1Cost < p2Cost) {
+//        return 1;
+//      } else {
+//        return 0;
+//      }
+//    };
+//
+//    // normalised cost * flow based comparator
+//    Comparator<Pas<V,ES>> PAS_REDUCED_COST = (p1,p2) ->
+//        Double.compare(p1.getReducedCost(), p2.getReducedCost());
+//    //PAS_REDUCED_COST = PAS_REDUCED_COST.reversed();
+//
+//    // flow based comparator
+//    Comparator<Pas<V,ES>> PAS_FLOW = (p1,p2) ->
+//        Double.compare(pasExecutors.get(p1).getS1SendingFlow() + pasExecutors.get(p1).getS2SendingFlow(),
+//            pasExecutors.get(p2).getS1SendingFlow() + pasExecutors.get(p2).getS2SendingFlow());
+//    PAS_FLOW = PAS_FLOW.reversed();
 
     //var chosenComparator = PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR;
-    var chosenComparator = PAS_GAP_COMPARATOR;
+    var chosenComparator =
+        getPasGapComparator(computePasGaps(pasExecutors.keySet(), nlConsistentFlowAcceptanceFactors));
     /* Sort all remaining PAss based on comparator */
     var result = this.pasManager.getActivePassSortedByReducedCost(chosenComparator);
     return result;
@@ -410,7 +421,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     boolean worstPasFirstUpdateOrderingPerPas = false;
 
     Collection<ES> linkSegmentsUsed = new HashSet<>(100);
-    boolean smoothOverIterations = worstPasFirstUpdateOrderingPerPas? false : true;
+    boolean smoothOverIterations = worstPasFirstUpdateOrderingPerPas? false : false;
 
     var flowShiftedPass = new TreeSet<Pas<V,ES>>();
     var passWithoutBush = new TreeSet<Pas<V,ES>>();
@@ -433,9 +444,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     double totalPasReducedCost = 0;
     int numConsideredPas = 0;
 
-    int MAX_ITERATIONS_ALLOWED = worstPasFirstUpdateOrderingPerPas ? sortedPass.size() : 4;
+    int MAX_ITERATIONS_ALLOWED = worstPasFirstUpdateOrderingPerPas ? sortedPass.size()*simulationData.getIterationIndex() : 2;
     int iteration = 1;
-    boolean doNotStop = true;
+    boolean internalConvergence = false;
+    minNetworkGapAsThreshold = Math.min(minNetworkGapAsThreshold, getGapFunction().getGap());
     do {
 
       if(!passWithoutBush.isEmpty()){
@@ -482,9 +494,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         }
 
         double importanceSmoothingFactor = 1;
-        if(!worstPasFirstUpdateOrderingPerPas) { // NOTE: no decay when we go per PAS and the current is always the worst
-          // we start with most important as this will have biggest shift
-          importanceSmoothingFactor = (Math.pow(0.1, (congestedPasCounter * perPasPercentageOfTotal))); // run from 10% exponential decay to 100% of most important PAS
+        if(!worstPasFirstUpdateOrderingPerPas) {// NOTE: no decay when we go per PAS
+           // first is least worst gap, last is worst gap,
+          // therefore last is given biggest step to make it more dominant while the rest is somewhat scaled back to
+          // reduce interactions (but not ignore the interaction)
+          importanceSmoothingFactor = 1-(Math.pow(0.1, (congestedPasCounter * perPasPercentageOfTotal))) + 0.1; // run from 10% exponential decay to 100% of most important PAS
         }
 //        else{
 //          //todo: in this approach if we ever see the same pas more than 3 times in a row something
@@ -538,6 +552,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
                 getBushes(),
                 logAll,
                 PasFlowShiftExecutor.FlowShiftSmoothingApproach.NORMAL,
+                //smoothOverIterations? (1.0/(iteration+1)) * importanceSmoothingFactor : importanceSmoothingFactor);
                 smoothOverIterations? (1.0/(iteration+1)) * importanceSmoothingFactor : importanceSmoothingFactor);
 
         double pasFlowShifted = Math.abs(pasFlowShiftByRefTurn.second());
@@ -579,7 +594,17 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         }
       }
 
-    }while(iteration++ < MAX_ITERATIONS_ALLOWED);
+      //todo: not needed to be recomputed, fix up
+      var pasGaps = computePasGaps(pasExecutors.keySet(), nlConsistentFlowAcceptanceFactors);
+      double maxPasGap = pasGaps.values().stream().mapToDouble(e->e).max().getAsDouble();
+      internalConvergence = maxPasGap < Math.min(1, minNetworkGapAsThreshold);
+      if(!internalConvergence) {
+        LOGGER.info(String.format("INTERNAL MAX PAS GAP %.10f > MIN NETWORK GAP %.10f", maxPasGap, minNetworkGapAsThreshold));
+      }else{
+        LOGGER.info(String.format("INTERNAL CONVERGENCE: INTERNAL MAX PAS GAP %.10f < MIN NETWORK GAP %.10f", maxPasGap, minNetworkGapAsThreshold));
+      }
+      iteration++;
+    }while(!internalConvergence && iteration < MAX_ITERATIONS_ALLOWED);
 
     LOGGER.info(String.format("TOTAL CONGESTED FLOW SHIFTED: %.10f", totalCongestedFlowShifted));
     LOGGER.info(String.format("MAX PAS COST DELTA: %.10f", maxPasReducedCost));
@@ -805,19 +830,19 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       }while(crossPassUpdateIndex++ < MAX_UPDATE_ITERATIONS);
 
     }else{
-      // V1 approach - if V2 works deprecate and remove, or apply in first x iterations before switching to v2
-      // UNCONGESTED ONLY
-      var flowShiftedAndObsoletePass = doUncongestedFlowShiftingV1(
-          theMode, sortedPass, pasExecutors, nlConsistentFlowAcceptanceFactors, originalNetworkCosts, simulationData);
-      flowShiftedPass = flowShiftedAndObsoletePass.first();
-      passWithoutBush = flowShiftedAndObsoletePass.second();
-
-      //updatedPass.forEach( p -> LOGGER.info("Updated PAS: " + p.toString()));
-      LOGGER.info(String.format("%.2f%% Uncongested Flow shifts performed: %d ---- [#Uncongested PASs without remaining flows %d)]",
-          ((double)flowShiftedPass.size()*100.0)/sortedPass.size(), flowShiftedPass.size(), passWithoutBush.size()));
+//      // V1 approach - if V2 works deprecate and remove, or apply in first x iterations before switching to v2
+//      // UNCONGESTED ONLY
+//      var flowShiftedAndObsoletePass = doUncongestedFlowShiftingV1(
+//          theMode, sortedPass, pasExecutors, nlConsistentFlowAcceptanceFactors, originalNetworkCosts, simulationData);
+//      flowShiftedPass = flowShiftedAndObsoletePass.first();
+//      passWithoutBush = flowShiftedAndObsoletePass.second();
+//
+//      //updatedPass.forEach( p -> LOGGER.info("Updated PAS: " + p.toString()));
+//      LOGGER.info(String.format("%.2f%% Uncongested Flow shifts performed: %d ---- [#Uncongested PASs without remaining flows %d)]",
+//          ((double)flowShiftedPass.size()*100.0)/sortedPass.size(), flowShiftedPass.size(), passWithoutBush.size()));
 
       // Perform flow shifts for CONGESTED AND BECOMING CONGESTED WITH SHIFT PASs
-      flowShiftedAndObsoletePass = doCongestedFlowShiftingV1(
+      var flowShiftedAndObsoletePass = doCongestedFlowShiftingV1(
           theMode, sortedPass, pasExecutors, nlConsistentFlowAcceptanceFactors, originalNetworkCosts, simulationData);
 
       LOGGER.info(String.format("%.2f%% Congested Flow shifts performed: %d ---- [#Uncongested PASs without remaining flows %d)]",

@@ -188,6 +188,8 @@ public class MSRASmoothing extends IterationBasedSmoothing {
   public void reset() {
     this.badIteration = false;
     this.isBadIterationFlagUpdated = true;
+    this.beta = DEFAULT_INITIAL;
+    this.previousBeta = beta;
     this.stepSize = DEFAULT_INITIAL;
   }
 

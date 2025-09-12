@@ -648,8 +648,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor<D
       Mode theMode,
       GapFunction gapFunction, AbstractPhysicalCost physicalCost,
       AbstractVirtualCost virtualCost,
-      Smoothing smoothing,
-      double additionalSmoothingFactor,
+      //Smoothing smoothing,
+      //double additionalSmoothingFactor,
       StaticLtmLoadingBushBase<?> networkLoading,
       double guaranteedS2SendingFlow,
       boolean logAll) { // dummy for compliance

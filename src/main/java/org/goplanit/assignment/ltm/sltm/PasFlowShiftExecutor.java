@@ -442,7 +442,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param gapFunction
    * @param physicalCost            to use
    * @param virtualCost             to use
-   * @param smoothing               to apply
    * @param networkLoading          to use
    * @param guaranteedS2SendingFlow to use
    * @param logAll                  to use
@@ -453,8 +452,8 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
       Mode theMode,
       GapFunction gapFunction, AbstractPhysicalCost physicalCost,
       AbstractVirtualCost virtualCost,
-      Smoothing smoothing,
-      double additionalSmoothingFactor,
+      //Smoothing smoothing,
+      //double additionalSmoothingFactor,
       StaticLtmLoadingBushBase<?> networkLoading,
       double guaranteedS2SendingFlow,
       boolean logAll);

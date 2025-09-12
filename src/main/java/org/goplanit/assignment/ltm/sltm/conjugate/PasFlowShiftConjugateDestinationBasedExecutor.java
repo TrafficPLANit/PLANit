@@ -2395,8 +2395,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       GapFunction gapFunction,
       AbstractPhysicalCost physicalCost,
       AbstractVirtualCost virtualCost,
-      Smoothing smoothing,
-      double additionalSmoothingFactor,
+      //Smoothing smoothing,
+      //double additionalSmoothingFactor,
       StaticLtmLoadingBushBase<?> networkLoading,
       double guaranteedS2SendingFlow,
       boolean logAll,
@@ -2480,15 +2480,23 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     double chosenPerIterationFlowShift = 0;
     if(proposedFlowShift > 0){
-      // apply smoothing (do before discontinuity truncation to avoid stalling any changes when close to a discontinuity)
-      double smoothedFlowShift = smoothing.executeRefZero(proposedFlowShift); // deprecated, should not be active
-      chosenPerIterationFlowShift = smoothedFlowShift * additionalSmoothingFactor;
+      // we no longer do any smoothing when determining HOW MUCH we want to shift
+      chosenPerIterationFlowShift = proposedFlowShift;
       if(isDestinationTrackedForLogging() || logAll) {
-        var message = String.format(" Proposed shift: %.10f, Smoothed shift: %.10f, per iteration shift: %.10f",
-            proposedFlowShift,smoothedFlowShift, chosenPerIterationFlowShift);
+        var message = String.format(" Proposed shift: %.10f",chosenPerIterationFlowShift);
         //sb.append(message).append(System.lineSeparator());
         LOGGER.info(message);
       }
+
+//      // apply smoothing (do before discontinuity truncation to avoid stalling any changes when close to a discontinuity)
+//      double smoothedFlowShift = smoothing.executeRefZero(proposedFlowShift); // deprecated, should not be active
+//      chosenPerIterationFlowShift = smoothedFlowShift * additionalSmoothingFactor;
+//      if(isDestinationTrackedForLogging() || logAll) {
+//        var message = String.format(" Proposed shift: %.10f, Smoothed shift: %.10f, per iteration shift: %.10f",
+//            proposedFlowShift,smoothedFlowShift, chosenPerIterationFlowShift);
+//        //sb.append(message).append(System.lineSeparator());
+//        LOGGER.info(message);
+//      }
 
       var slackResult = determinePasSlackFlow(chosenPerIterationFlowShift, networkLoading);
       var lowCostSlackResult = slackResult.first();
@@ -2549,8 +2557,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       GapFunction gapFunction,
       AbstractPhysicalCost physicalCost,
       AbstractVirtualCost virtualCost,
-      Smoothing smoothing,
-      double additionalSmoothingFactor,
+      //Smoothing smoothing,
+      //double additionalSmoothingFactor,
       StaticLtmLoadingBushBase<?> networkLoading,
       double guaranteedS2SendingFlow,
       boolean logAll) {
@@ -2675,8 +2683,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           theMode,
           assignmentStrategy.getGapFunction(), conjStrategy.getPhysicalCost(),
           conjStrategy.getVirtualCost(),
-          conjStrategy.getSmoothing(),
-          1, // not here, dealt with in final smoothing now
+          //conjStrategy.getSmoothing(),
+          //1, // not here, dealt with in final smoothing now
           networkLoading,
           guaranteedS2SendingFlow,
           isDestinationTrackedForLogging() || logAll,
@@ -2784,7 +2792,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double totalFlowShift = flowShiftTrackerForInitialAltTurn.values().stream().mapToDouble(d->d).sum();
     if(totalPasShift > 0 && smoothingApproach != FlowShiftSmoothingApproach.OFF) {
 
-      double smoothingFactor = additionalSmoothingFactor;
+      double smoothingFactor = additionalSmoothingFactor * conjStrategy.getSmoothing().executeRefZero(1);
+      if(smoothingFactor < additionalSmoothingFactor){
+        int bla = 4;
+      }
       if(smoothingApproach == FlowShiftSmoothingApproach.NORMAL) {
         // consider adjustment factor (only possible when smaller than one otherwise exceed bound for traffic state change)
         if (!Double.isNaN(pas.getProposedPasFlowShiftAdjustmentFactor()) &&
@@ -2889,7 +2900,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // enter congested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 10; //lowest level loop
+    int MAX_INTERAL_ITERATIONS_ALLOWED = 100; //lowest level loop
     int internalIteration = 1;
     final Map<ConjugateDestinationBush, Double> bushS2RemainingSendingFlows = new TreeMap<>();
     boolean doNotStop = true;
@@ -2942,8 +2953,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
           assignmentStrategy.getGapFunction(),
           conjStrategy.getPhysicalCost(),
           conjStrategy.getVirtualCost(),
-          conjStrategy.getSmoothing(),
-          1,
+          //conjStrategy.getSmoothing(),
+          //1,
           networkLoading,
           guaranteedS2SendingFlow,
           isDestinationTrackedForLogging() || logAll,
@@ -3111,7 +3122,10 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     double totalFlowShift = flowShiftTrackerForInitialAltTurn.values().stream().mapToDouble(d->d).sum();
     if(totalFlowShift != 0 && smoothingApproach!=FlowShiftSmoothingApproach.OFF) {
 
-      double smoothingFactor = additionalSmoothingFactor;
+      double smoothingFactor = additionalSmoothingFactor * conjStrategy.getSmoothing().executeRefZero(1);
+      if(smoothingFactor < additionalSmoothingFactor){
+        int bla = 4;
+      }
       if(smoothingApproach==FlowShiftSmoothingApproach.NORMAL) {
         if (!Double.isNaN(pas.getProposedPasFlowShiftAdjustmentFactor()) &&
             !Double.isInfinite(pas.getProposedPasFlowShiftAdjustmentFactor())) {
