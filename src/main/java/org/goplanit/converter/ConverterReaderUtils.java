@@ -1,9 +1,9 @@
 package org.goplanit.converter;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.geo.PlanitCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.misc.StringUtils;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import java.util.logging.Logger;
 

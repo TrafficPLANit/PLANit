@@ -190,7 +190,7 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
 
   /**
    * Create the default link segment type on the given layer, supported modes capacity and jam density are registered
-   * based ons settings
+   * based on settings
    * 
    * @param networkLayer to register on
    */
@@ -198,6 +198,7 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
     final var linkSegmentType =
             networkLayer.getLinkSegmentTypes().getFactory().registerNew(
                     linkSegmentTypeName, defaultLinkSegmentCapacityPcuH, defaultLinkSegmentJamDensityPcuKm);
+    linkSegmentType.setXmlId(linkSegmentType.getId());
     final var accessGroupProperties = AccessGroupPropertiesFactory.create(modes);
     linkSegmentType.addAccessGroupProperties(accessGroupProperties, true);
   }

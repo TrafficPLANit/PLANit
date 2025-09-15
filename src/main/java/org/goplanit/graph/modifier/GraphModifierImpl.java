@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.graph.modifier.event.RecreatedGraphEntitiesManagedIdsEvent;
 import org.goplanit.graph.modifier.event.*;
 import org.goplanit.utils.event.Event;
@@ -24,7 +25,6 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.misc.Pair;
 import org.locationtech.jts.geom.LineString;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Apply modifications to the graph in an integrated fashion.
