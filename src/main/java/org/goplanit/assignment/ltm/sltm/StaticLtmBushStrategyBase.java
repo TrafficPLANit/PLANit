@@ -3,6 +3,7 @@ package org.goplanit.assignment.ltm.sltm;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
+import org.goplanit.assignment.SimulationData;
 import org.goplanit.assignment.ltm.sltm.conjugate.PasFlowShiftConjugateDestinationBasedExecutor;
 import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
@@ -244,14 +245,15 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
   public Map<Pas<V,ES>, Double> computePasGaps(Collection<Pas<V,ES>> pass,
                                                double[] nlConsistentFlowAcceptanceFactors){
+    final double maxGapCap = 1; // in rare occasion low cost is zero or very high, avoid distortion or problems
     Map<Pas<V,ES>, Double> pasGaps = new HashMap<>();
     for(var pas : pass){
       double s1Flow = PasFlowShiftConjugateDestinationBasedExecutor.determinePasSubPathSendingFlow(
           pas, true, getLoading().getCurrentFlowAcceptanceFactors(),nlConsistentFlowAcceptanceFactors);
       double s2Flow = PasFlowShiftConjugateDestinationBasedExecutor.determinePasSubPathSendingFlow(
           pas, false, getLoading().getCurrentFlowAcceptanceFactors(),nlConsistentFlowAcceptanceFactors);
-      pas.computeGap(s1Flow, s2Flow);
-      pasGaps.put(pas, pas.computeGap(s1Flow, s2Flow));
+      var gap = Math.min(maxGapCap, pas.computeGap(s1Flow, s2Flow));
+      pasGaps.put(pas, gap);
     }
     return pasGaps;
   }
@@ -276,7 +278,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * on relevant criterion.
    * todo: provide option for sorting order...
    * @param pasExecutors                      to use for retrieving PAS information used in sorting
-   * @param nlConsistentFlowAcceptanceFactors
+   * @param nlConsistentFlowAcceptanceFactors to use
    * @return sorted PASs in descending order of importance
    */
   protected List<Pas<V,ES>> flowShiftingStepFourOrderPass(
@@ -284,7 +286,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       double[] nlConsistentFlowAcceptanceFactors) {
 
     Map<Pas<V,ES>, Double> pasGaps = computePasGaps(pasExecutors.keySet(), nlConsistentFlowAcceptanceFactors);
-    pasGaps.entrySet().stream().sorted(Map.Entry.comparingByValue()).skip(pasGaps.entrySet().size()-Math.min(pasGaps.size(), 3)).forEach(
+    pasGaps.entrySet().stream().sorted(Map.Entry.comparingByValue()).skip(pasGaps.entrySet().size()-Math.min(pasGaps.size(), 10)).forEach(
         e -> LOGGER.info(String.format("%.10f - %s", e.getValue(), e.getKey())));
 
 //
@@ -421,7 +423,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     boolean worstPasFirstUpdateOrderingPerPas = false;
 
     Collection<ES> linkSegmentsUsed = new HashSet<>(100);
-    boolean smoothOverIterations = worstPasFirstUpdateOrderingPerPas? false : false;
+    boolean smoothOverIterations = worstPasFirstUpdateOrderingPerPas? false : true;
 
     var flowShiftedPass = new TreeSet<Pas<V,ES>>();
     var passWithoutBush = new TreeSet<Pas<V,ES>>();
@@ -444,7 +446,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     double totalPasReducedCost = 0;
     int numConsideredPas = 0;
 
-    int MAX_ITERATIONS_ALLOWED = worstPasFirstUpdateOrderingPerPas ? sortedPass.size()*simulationData.getIterationIndex() : 2;
+    var pasGaps = computePasGaps(pasExecutors.keySet(), nlConsistentFlowAcceptanceFactors);
+    double startingAveragePasGap = pasGaps.values().stream().mapToDouble(e->e).average().getAsDouble();
+
+    int MAX_ITERATIONS_ALLOWED =
+        worstPasFirstUpdateOrderingPerPas ? sortedPass.size()*simulationData.getIterationIndex() :
+            Math.min((simulationData.getIterationIndex()/10)+1,20);
     int iteration = 1;
     boolean internalConvergence = false;
     minNetworkGapAsThreshold = Math.min(minNetworkGapAsThreshold, getGapFunction().getGap());
@@ -468,6 +475,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 //      sortedPass.stream().sorted(Comparator.comparingDouble(Pas::getReducedCost)).filter(
 //          p -> p.getStatus()!=PasStatus.UNCONGESTED_WITH_SHIFT).map(p ->
 //          String.format("%.10f - %s",p.getReducedCost(),p)).forEach(LOGGER::info);
+
+      pasGaps = computePasGaps(pasExecutors.keySet(), nlConsistentFlowAcceptanceFactors);
+      double maxPasGap = pasGaps.values().stream().mapToDouble(e->e).max().getAsDouble();
 
       // debugging
       boolean logAll = false; //simulationData.getIterationIndex()>=50;
@@ -498,7 +508,15 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
            // first is least worst gap, last is worst gap,
           // therefore last is given biggest step to make it more dominant while the rest is somewhat scaled back to
           // reduce interactions (but not ignore the interaction)
-          importanceSmoothingFactor = 1-(Math.pow(0.1, (congestedPasCounter * perPasPercentageOfTotal))) + 0.1; // run from 10% exponential decay to 100% of most important PAS
+
+//          boolean invertImportance = simulationData.getIterationIndex()%2 ==0;
+//          if(invertImportance){
+//            importanceSmoothingFactor = Math.pow(0.1, (congestedPasCounter * perPasPercentageOfTotal)); // run from 10% exponential decay to 100% of most important PAS
+//          }
+          //importanceSmoothingFactor = (1 - (Math.pow(0.01, (congestedPasCounter * perPasPercentageOfTotal))) + 0.01); // run from 10% exponential decay to 100% of most important PAS
+
+          var currPasGap = pasGaps.get(pas);
+          importanceSmoothingFactor = Math.min(1,currPasGap/maxPasGap);
         }
 //        else{
 //          //todo: in this approach if we ever see the same pas more than 3 times in a row something
@@ -507,7 +525,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 //        }
         ++congestedPasCounter;
 
-        if (pas.pasId == 44L) {
+        if (pas.pasId == 2945L && simulationData.getIterationIndex()>23 && iteration == 8) {
           int bla = 4;
         }
 
@@ -540,7 +558,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         //      boolean pasFlowShifted = pasFlowShifter.performOneShotCongestedS2FlowShift(
         //          pasProposedFlowShifts.get(pas), theMode, getLoading(), getSmoothing(), logAll);
 
-
         // equilibrated --> needs pas cost update because change of alphas and flows may impact low/high cost
         var pasFlowShiftByRefTurn =
             pasFlowShifter.performEquilibratedCongestedFlowShifts(
@@ -552,8 +569,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
                 getBushes(),
                 logAll,
                 PasFlowShiftExecutor.FlowShiftSmoothingApproach.NORMAL,
-                //smoothOverIterations? (1.0/(iteration+1)) * importanceSmoothingFactor : importanceSmoothingFactor);
-                smoothOverIterations? (1.0/(iteration+1)) * importanceSmoothingFactor : importanceSmoothingFactor);
+                smoothOverIterations? (1.0/(iteration)) * importanceSmoothingFactor : importanceSmoothingFactor);
+                //smoothOverIterations? (1.0/MAX_ITERATIONS_ALLOWED) * importanceSmoothingFactor : importanceSmoothingFactor);
 
         double pasFlowShifted = Math.abs(pasFlowShiftByRefTurn.second());
         if (pasFlowShifted > 0) {
@@ -595,16 +612,17 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       }
 
       //todo: not needed to be recomputed, fix up
-      var pasGaps = computePasGaps(pasExecutors.keySet(), nlConsistentFlowAcceptanceFactors);
-      double maxPasGap = pasGaps.values().stream().mapToDouble(e->e).max().getAsDouble();
-      internalConvergence = maxPasGap < Math.min(1, minNetworkGapAsThreshold);
+      pasGaps = computePasGaps(pasExecutors.keySet(), nlConsistentFlowAcceptanceFactors);
+      maxPasGap = pasGaps.values().stream().mapToDouble(e->e).max().getAsDouble();
+      double averagePasGap = pasGaps.values().stream().mapToDouble(e->e).average().getAsDouble();
+      internalConvergence = maxPasGap < startingAveragePasGap; //Math.min(1, minNetworkGapAsThreshold); //maxPasGap < Math.min(1, minNetworkGapAsThreshold);
       if(!internalConvergence) {
         LOGGER.info(String.format("INTERNAL MAX PAS GAP %.10f > MIN NETWORK GAP %.10f", maxPasGap, minNetworkGapAsThreshold));
       }else{
         LOGGER.info(String.format("INTERNAL CONVERGENCE: INTERNAL MAX PAS GAP %.10f < MIN NETWORK GAP %.10f", maxPasGap, minNetworkGapAsThreshold));
       }
       iteration++;
-    }while(!internalConvergence && iteration < MAX_ITERATIONS_ALLOWED);
+    }while(!internalConvergence && iteration <= MAX_ITERATIONS_ALLOWED);
 
     LOGGER.info(String.format("TOTAL CONGESTED FLOW SHIFTED: %.10f", totalCongestedFlowShifted));
     LOGGER.info(String.format("MAX PAS COST DELTA: %.10f", maxPasReducedCost));
@@ -734,6 +752,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
       double[] originalNetworkCosts,
       final StaticLtmSimulationData simulationData) {
+
+    if(pasExecutors.isEmpty())
+    {
+      return Collections.emptyList();
+    }
 
     // Capture original alphas, so we can use minimum of those and updated alphas to determine
     // available sub path sending flow with the most restrictive ensuring we are not shifting too much flow
@@ -891,6 +914,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * Allow implementations to do prep before we enter loop of per congested PAS update, e.g.
    * initialise some across PAS tracking information for example
+   *
+   * @param pasExecutors used
    */
   protected abstract void hookBeforePasUpdate(Collection<PasFlowShiftExecutor<V, ES>> pasExecutors);
 

@@ -244,7 +244,7 @@ public abstract class StaticLtmBushStrategyRootLabelled<B extends RootedLabelled
    * @param mode             to use
    * @param linkSegmentCosts to use to construct min-max path three rooted at each bush's origin
    * @param updateGap        flag
-   * @param simulationData
+   * @param simulationData   to use
    * @param logAll           flag
    * @return newly created PASs and existing pass with newly registered bushes on them  (empty if no new PASs were created or newly assigned))
    */

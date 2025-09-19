@@ -2,11 +2,11 @@ package org.goplanit.network;
 
 import java.util.logging.Logger;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.locationtech.jts.geom.Envelope;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.id.IdGroupingToken;

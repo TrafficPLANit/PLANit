@@ -131,6 +131,7 @@ public class ConjugateBushUtils {
    * @param linkSegment          to check
    * @param conjLinkSegmentCosts segment costs to use
    * @param conjBushMinMaxPaths  min max path cost to check
+   * @param allowEligibilityBasedOnOnlyP2  flag
    * @return true when eligible, false otherwise, second result is the min bush cost to the root considering we
    * add the link, third result is indicates if it was accepted by P1 test, false otherwise
    */

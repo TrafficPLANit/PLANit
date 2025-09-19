@@ -1,11 +1,11 @@
 package org.goplanit.network;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.layers.UntypedPhysicalNetworkLayers;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * A network that comprises physical topological transport network elements, i.e., roads, rail, etc.

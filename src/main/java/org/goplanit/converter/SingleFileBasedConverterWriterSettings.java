@@ -3,7 +3,7 @@ package org.goplanit.converter;
 import org.goplanit.converter.ConverterWriterSettings;
 import org.goplanit.utils.locale.CountryNames;
 import org.goplanit.utils.misc.StringUtils;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import java.util.logging.Logger;
 

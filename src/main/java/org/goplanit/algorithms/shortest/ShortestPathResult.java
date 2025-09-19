@@ -70,6 +70,7 @@ public interface ShortestPathResult extends ShortestResult{
    * It is a subgraph because it will be a subset of the network (graph), but it will be a full spanning tree, so all
    * vertices in the network will be connected
    *
+   * @param idToken to use
    * @return created graph
    */
   public abstract UntypedACyclicSubGraph<?,?> createAndPopulateDirectedAcyclicSubGraphSpanningTree(
@@ -81,7 +82,7 @@ public interface ShortestPathResult extends ShortestResult{
    *
    * @param <V> vertex type
    * @param <E> edge segment type
-   * @return populated graph
+   * @param dagToPopulate the dag to populate
    */
   public abstract <V extends DirectedVertex, E extends EdgeSegment> void populateDirectedAcyclicSubGraphSpanningTree(
       UntypedACyclicSubGraph<V,E> dagToPopulate);

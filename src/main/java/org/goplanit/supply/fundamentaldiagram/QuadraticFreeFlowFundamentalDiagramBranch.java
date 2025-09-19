@@ -214,7 +214,7 @@ public class QuadraticFreeFlowFundamentalDiagramBranch implements FundamentalDia
    *
    * To get dSpeed/dFlow for a given flow, we then take the derivative of the above, resulting in:
    *
-   * take dSpeed/dFlow(FLOW) of 1/2 * ( (-maxWaveSpeed)^2 - 4 * 1 * alpha * FLOW )^1/2 -->
+   * take dSpeed/dFlow(FLOW) of 1/2 * ( (-maxWaveSpeed)^2 - 4 * 1 * alpha * FLOW )^1/2 so
    * dSpeed/dFlow(FLOW) = -alpha / SQRT( (-maxWaveSpeed)^2 - 4 * alpha * FLOW)
    *
    * @param flowPcuHour to use (not needed for QL fd)

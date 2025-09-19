@@ -339,6 +339,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param networkLoading to collect outflow rates from
    * @param lowCost        when true determine for low cost alternative, when false for high cost alternative
+   * @param proposedFlowShift the proposed shift
    * @return slack flow found
    */
   protected abstract Pair<Double,EdgeSegment> determinePasAlternativeSlackFlow(
@@ -439,7 +440,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * sending flows and costs.
    *
    * @param theMode                 to use
-   * @param gapFunction
+   * @param gapFunction             to use
    * @param physicalCost            to use
    * @param virtualCost             to use
    * @param networkLoading          to use

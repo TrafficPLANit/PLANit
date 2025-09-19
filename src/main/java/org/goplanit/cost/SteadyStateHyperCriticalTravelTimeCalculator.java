@@ -56,8 +56,6 @@ public final class SteadyStateHyperCriticalTravelTimeCalculator {
    * assuming both inflow and outflow rate are positive
    *
    * @param uncongested flag indicating if link is congested or not, if false, zero is returned
-   * @param mode to use
-   * @param linkSegment to use
    * @param inFlowRatePcuH inflow on link (across all lanes)
    * @param outflowRatePcuH outflow on link (across all lanes)
    * @param timePeriodHours time period in hours

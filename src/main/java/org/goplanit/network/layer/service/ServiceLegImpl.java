@@ -2,6 +2,9 @@ package org.goplanit.network.layer.service;
 
 import java.util.logging.Logger;
 
+import org.geotools.api.geometry.MismatchedDimensionException;
+import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.api.referencing.operation.TransformException;
 import org.goplanit.graph.directed.DirectedEdgeImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsUtils;
@@ -13,12 +16,10 @@ import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.MultiLineString;
-import org.opengis.geometry.MismatchedDimensionException;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
 
 /**
- * A service leg connects two service nodes. Underlying are one or more physical links represented by this single service leg.
+ * A service leg connects two service nodes. Underlying are one or more physical links represented by this single
+ * service leg.
  * 
  * @author markr
  *
@@ -79,7 +80,8 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
    */
   @Override
   public void transformGeometry(MathTransform transformer) throws MismatchedDimensionException, TransformException {
-    throw new TransformException("Not allowed to transform geometry on service leg since it holds no geometry. Consider transforming underlying parent links instead");
+    throw new TransformException("Not allowed to transform geometry on service leg since it holds no geometry. " +
+        "Consider transforming underlying parent links instead");
   }
 
   /**

@@ -837,6 +837,7 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
    * Update cost for a selection of PASs only
    * 
    * @param pass             collection of specific PASs to update
+   * @param updateAdjustmentFactor factor to apply
    * @param linkSegmentCosts to use
    */
   public void updatePassCosts(Collection<Pas<V,ES>> pass, double[] linkSegmentCosts, boolean updateAdjustmentFactor) {

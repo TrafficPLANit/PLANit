@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
 import org.goplanit.network.virtual.VirtualNetworkImpl;
@@ -23,7 +24,6 @@ import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
 import org.goplanit.zoning.modifier.ZoningModifierImpl;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Zoning class which holds a particular zoning

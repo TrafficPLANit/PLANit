@@ -12,6 +12,8 @@ import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.supply.fundamentaldiagram.QuadraticLinearFundamentalDiagramConfigurator;
@@ -186,7 +188,8 @@ public class sLtmAssignmentBush4x4GridTest extends sLtmAssignmentGridTestBase {
       qlDiagram.setForceConcaveFreeFlowBranch(true);
       sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
 
-      sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      var smoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      smoothing.setStepSize(1);
 
       sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
       sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));

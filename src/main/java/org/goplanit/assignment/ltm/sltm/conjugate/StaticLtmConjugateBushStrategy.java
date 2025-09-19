@@ -62,12 +62,12 @@ public class StaticLtmConjugateBushStrategy
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmConjugateBushStrategy.class.getCanonicalName());
 
-  public static final boolean INITIALISE_WARM_START_FROM_DISK_TURN_FLOWS = true;
-  public static final int PERSIST_WARM_START_TO_DISK_TURN_FLOW_ITERATION = Integer.MAX_VALUE; //50; //when > max iterations it does not happen
-  public static final Path WARM_START_LOCATION =
-      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","leuven_plus20perc","warm_start_50");
+  public static final boolean INITIALISE_WARM_START_FROM_DISK_TURN_FLOWS = false;
+  public static final int PERSIST_WARM_START_TO_DISK_TURN_FLOW_ITERATION = 50; //when > max iterations it does not happen
 //  public static final Path WARM_START_LOCATION =
-//      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","leuven","warm_start_50");
+//      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","leuven_plus20perc","warm_start_50");
+  public static final Path WARM_START_LOCATION =
+      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","leuven","warm_start_50");
 //  public static final Path WARM_START_LOCATION =
 //      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","siouxfalls","warmstart");
 
@@ -1230,7 +1230,6 @@ public class StaticLtmConjugateBushStrategy
     final var conjLinkSegmentCosts =
         expandNonConjugateLinkSegmentCostToConjugateSegmentCost(mode, nonConjugateLinkSegmentCosts, true);
 
-
     double totalMinCostForGap = 0; // track during bush traversal to get min OD costs based on shortest paths
     double totalRealisedCostForGap = 0;
     if(updateGap) {
@@ -1335,7 +1334,7 @@ public class StaticLtmConjugateBushStrategy
     boolean allActiveConverged = activePasGaps.entrySet().stream().allMatch((entry) -> entry.getValue() < minNetworkGapAsThreshold);
 
     boolean createNewPass = true; //simulationData.getIterationIndex() <= 2 || simulationData.getIterationIndex() % 10 == 0; // to be investigated,
-    boolean updateBushStructure = gap < minNetworkGapAsThreshold || pasManager.getNumberOfActivePass() ==0;
+    boolean updateBushStructure = true ;//gap < minNetworkGapAsThreshold || pasManager.getNumberOfActivePass() ==0;simulationData.getIterationIndex()%5 == 0 || simulationData.getIterationIndex() < 10;
     if(updateBushStructure) {
       LOGGER.info(String.format("CURR NETWORK GAP (%.10f) IMPROVED OVER MIN NETWORK GAP SO FAR  (%.10f)", gap, minNetworkGapAsThreshold));
     }

@@ -1,5 +1,6 @@
 package org.goplanit.network.layer.modifier;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.network.layer.service.ServiceNetworkLayerImpl;
@@ -11,7 +12,6 @@ import org.goplanit.utils.network.layer.modifier.ServiceNetworkLayerModifier;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import java.util.List;
 import java.util.Map;

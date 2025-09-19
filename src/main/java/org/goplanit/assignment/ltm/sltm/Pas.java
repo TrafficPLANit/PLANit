@@ -121,7 +121,8 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
    * @return gap
    */
   public double computeGap(double s1Flow, double s2Flow){
-    return getReducedCost() * Math.max(1,s2Flow)
+    return
+        getReducedCost() * Math.max(1,s2Flow)
         /
         (getAlternativeLowCost() * Math.max(1,(s1Flow + s2Flow)));
   }

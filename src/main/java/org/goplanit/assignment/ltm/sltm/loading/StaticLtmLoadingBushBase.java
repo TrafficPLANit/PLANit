@@ -109,7 +109,9 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    */
   public abstract BushFlowUpdateConsumer<B> createBushTurnFlowUpdateConsumer(boolean updateLinkSendingFlows);
 
-  /** bush sync all network flow consumer, to be used only after convergence of internal iterative procedure */
+  /** bush sync all network flow consumer, to be used only after convergence of internal iterative procedure
+   * @return consumer
+   */
   public abstract BushFlowUpdateConsumer<B> createSyncAllNetworkFlowUpdateConsumer();
 
   /**

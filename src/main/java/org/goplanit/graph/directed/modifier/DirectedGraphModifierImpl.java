@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.graph.modifier.GraphModifierImpl;
 import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
 import org.goplanit.graph.directed.modifier.event.RecreatedDirectedGraphEntitiesManagedIdsEvent;
@@ -26,7 +27,6 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.misc.Pair;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Implementation of a directed graph modifier that supports making changes to any untyped directed graph. The benefit of using the untyped directed graph is that it does not rely

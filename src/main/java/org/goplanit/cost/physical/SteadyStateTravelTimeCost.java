@@ -289,6 +289,11 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double hypoDerivative = 0.0;
     double hyperDerivative = 0.0;
 
+    double capacity = ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH();
+    if(accessee.getLinkSegmentInflowPcuHour(linkSegment) / capacity > 2){
+      int bla = 4;
+    }
+
     /* hypo critical delay derivative */
     if (!fd.getFreeFlowBranch().isLinear()) {
       // since tt = L/speed(flow) and speed(flow) is unknown function of ff branch, we must apply chain rule to find

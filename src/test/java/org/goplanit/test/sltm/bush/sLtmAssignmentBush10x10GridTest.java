@@ -97,12 +97,10 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
       sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
 
       var smoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      smoothing.setStepSize(1);
+      smoothing.setStepSize(0.5);
 
       sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
       sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-
-      //sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
@@ -146,16 +144,16 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
       sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
 
       var smoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      smoothing.setStepSize(1);
+      smoothing.setStepSize(0.5);
 
       sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
 
       sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
       sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
-      sLTMBuilder.getConfigurator().setNetworkLoadingFlowAcceptanceGapEpsilon(0.000001);
-      sLTMBuilder.getConfigurator().setNetworkLoadingSendingFlowGapEpsilon(0.000001);
-      sLTMBuilder.getConfigurator().setNetworkLoadingReceivingFlowGapEpsilon(0.000001);
+      sLTMBuilder.getConfigurator().setNetworkLoadingFlowAcceptanceGapEpsilon(0.0001);
+      sLTMBuilder.getConfigurator().setNetworkLoadingSendingFlowGapEpsilon(0.0001);
+      sLTMBuilder.getConfigurator().setNetworkLoadingReceivingFlowGapEpsilon(0.0001);
 
       //sLTMBuilder.getConfigurator().addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"));
 

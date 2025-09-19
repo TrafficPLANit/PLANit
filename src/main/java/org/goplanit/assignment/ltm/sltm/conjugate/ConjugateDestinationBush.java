@@ -938,6 +938,9 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
       if( (minOdCost - Precision.EPSILON_12) > minNetworkOdCost) {
         var bushMinPath = bushMinMaxTree.createRawPath(originVertex, getRootVertex());
         var networkMinPath = networkMinPaths.createRawPath(originVertex, getRootVertex());
+        if(bushMinPath == null || networkMinPath == null){
+          int bla = 4;
+        }
         if(!bushMinPath.equals(networkMinPath)) {
           for(var segment: networkMinPath){
             if(!contains((ConjugateEdgeSegment)segment)) {

@@ -53,6 +53,9 @@ public class NetworkFlowUpdateData {
    * during flow update
    *
    * @param networkLoadingSendingFlowData          to use
+   * @param flowAcceptanceFactors to use
+   * @param inflows to use
+   * @param outflows to use
    * @param unconstrainedFlowData to use
    */
   public NetworkFlowUpdateData(

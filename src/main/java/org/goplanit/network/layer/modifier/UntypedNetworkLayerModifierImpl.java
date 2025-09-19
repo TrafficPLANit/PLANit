@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.graph.directed.modifier.DirectedGraphModifierImpl;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -14,7 +15,6 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Modifier class for model free network layer, generics used to allow derived classes to provide typed versions

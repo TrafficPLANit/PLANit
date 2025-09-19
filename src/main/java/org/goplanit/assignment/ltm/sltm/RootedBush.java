@@ -376,7 +376,8 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   /**
    * Compute the min-max path tree rooted in location depending on underlying dag configuration of derived implementation and given the provided (network wide) costs. The provided
    * costs are at the network level so should contain all the segments active in the bush
-   * 
+   *
+   * @param excludeZeroFlowLinkSegmentsFromMaxPaths  flag
    * @param linkSegmentCosts              to use
    * @param totalTransportNetworkVertices needed to be able to create primitive array recording the (partial) subgraph backward link segment results (efficiently)
    * @return minMaxPathResult, null if unable to complete
