@@ -3,16 +3,15 @@ package org.goplanit.test.sltm.bush;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
-import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
-import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
-import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
@@ -20,9 +19,7 @@ import org.goplanit.supply.fundamentaldiagram.QuadraticLinearFundamentalDiagramC
 import org.goplanit.test.sltm.sLtmAssignmentGridTestBase;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.zoning.OdZones;
 import org.junit.jupiter.api.AfterAll;
@@ -115,49 +112,6 @@ public class sLtmAssignmentBush4x4GridTest extends sLtmAssignmentGridTestBase {
   }
 
   /**
-   * Test sLTM bush-destination-based assignment on grid based network which should result in an even spread across
-   * uncongested links in the final solution. In this test we do not enforce a
-   * max entropy flow distribution as the initial distribution is more intuitive to test for.
-   */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentNoQueueTest() {
-    try {
-
-      Demands demands = createDemands(testToken);
-
-      /* OD DEMANDS 1800 A->A``, 3600 A->A``` (1800 pcu/h for two hours) */
-      OdZones odZones = zoning.getOdZones();
-      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
-      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 1800.0);
-      odDemands.setValue(odZones.getByXmlId("A`"), odZones.getByXmlId("A```"), 1800.0);
-      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      
-      /* ORIGIN BASED */
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.DESTINATION_BUSH_BASED);
-      sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
-
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-
-      StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.setActivateDetailedLogging(true);
-      sLTM.execute();
-
-      test4x4OutflowsNoQueue(sLTM);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
-    }
-  }
-
-  /**
    * Test sLTM bush-conjugate destination-based assignment on grid based network which should result in a logical
    * spread across uncongested links in the final solution.
    */
@@ -186,7 +140,6 @@ public class sLtmAssignmentBush4x4GridTest extends sLtmAssignmentGridTestBase {
       var qlDiagram = (QuadraticLinearFundamentalDiagramConfigurator)
           sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
       qlDiagram.setForceConcaveFreeFlowBranch(true);
-      sLTMBuilder.getConfigurator().activateMaxEntropyFlowDistribution(false);
 
       var smoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
       smoothing.setStepSize(1);

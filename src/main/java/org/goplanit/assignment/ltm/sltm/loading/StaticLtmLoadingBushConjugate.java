@@ -1,31 +1,19 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.Pas;
-import org.goplanit.assignment.ltm.sltm.RootedBush;
-import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
-import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateBushUtils;
+import org.goplanit.assignment.common.pas.Pas;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.*;
-import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
+import org.goplanit.assignment.common.bush.ConjugateDestinationBush;
 import org.goplanit.network.transport.ConjugateTransportModelNetwork;
-import org.goplanit.utils.arrays.ArrayUtils;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.virtual.physical.ConnectoidNode;
-import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * The conjugate rooted bush based network loading scheme for sLTM

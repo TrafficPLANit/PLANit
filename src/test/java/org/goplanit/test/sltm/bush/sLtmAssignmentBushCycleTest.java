@@ -4,18 +4,16 @@ import java.util.logging.Logger;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
-import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
-import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
-import org.goplanit.output.formatter.FileOutputFormatter;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
-import org.goplanit.output.formatter.OutputFormatter;
 import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
@@ -240,82 +238,6 @@ public class sLtmAssignmentBushCycleTest {
   //@formatter:on
 
   /**
-   * Test sLTM bush-destination based assignment on above network for a point queue model --> unable to solve properly
-   * yet due to requiring a "cycle" based on definition of DAG yet this "cycle" seems needed to solve...see conjugate version
-   * which can solve
-   */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
-    try {
-      Demands demands = createDemands();
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      var sltmConfigurator = sLTMBuilder.getConfigurator();
-      sltmConfigurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      sltmConfigurator.activateDetailedLogging(false);
-
-      /* DESTINATION BASED */
-      sltmConfigurator.setType(StaticLtmType.DESTINATION_BUSH_BASED);
-
-      //todo: due to cycle the alternative that is a reduced cost for A'->A'' can't be added but it is needed
-      // to converge. Now the algorithm thinks it has converged because the two available PASs have finished but
-      // in reality it hasn't.
-      // ALSO: this is not truly a cycle because there is no flow circulating from the point of view of turns
-      // so moving to a conjugate representation would solve this.
-      //
-      // solution -> each PAS update should also perform local loading update for all its bushes
-      sltmConfigurator.setAllowOverlappingPasUpdate(true);
-
-      sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("x","A``"));
-
-      var smoothing = (MSRASmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.MSRA);
-      smoothing.setKappaStep(1);
-      smoothing.setGammaStep(0.0);
-      smoothing.setActivateLambda(true);
-
-      sltmConfigurator.activateOutput(OutputType.LINK);
-      sltmConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-
-      StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.setActivateDetailedLogging(true);
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(2000);
-      sLTM.execute();
-
-      double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
-      double outflow2a = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2a").getLinkSegmentAb());
-      double outflow2b = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2b").getLinkSegmentAb());
-      double outflow3 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("3").getLinkSegmentAb());
-      double outflow4 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
-      double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
-      double outflow6 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("6").getLinkSegmentAb());
-      double outflow7 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("7").getLinkSegmentAb());
-      double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
-      double outflow9 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
-      double outflow10 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("10").getLinkSegmentAb());
-
-      networkLayer.getLinkSegments().forEach(ls -> LOGGER.info(String.format("Link Segment ids: %s", ls.getIdsAsString())));
-
-      assertEquals(outflow1, 2000, Precision.EPSILON_6);
-      assertEquals(outflow2a, 0, Precision.EPSILON_6);
-      assertEquals(outflow2b, 0, Precision.EPSILON_6);
-      assertEquals(outflow3, 15.3846156, Precision.EPSILON_6);
-      assertEquals(outflow4, outflow3, Precision.EPSILON_6);
-      assertEquals(outflow5, 1984.6, 1);
-      assertEquals(outflow6, 0.0, 1);
-      assertEquals(outflow7, 500, Precision.EPSILON_3);
-      assertEquals(outflow8, outflow7, Precision.EPSILON_3);
-      assertEquals(outflow9, 500, Precision.EPSILON_3);
-      assertEquals(outflow10, outflow9, Precision.EPSILON_3);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
-    }
-  }
-
-  /**
    * Test sLTM conjugate bush-destination based assignment on above network for a point queue model
    */
   @Test
@@ -330,10 +252,9 @@ public class sLtmAssignmentBushCycleTest {
 
       /* DESTINATION BASED */
       sltmConfigurator.setType(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
-      sltmConfigurator.setAllowOverlappingPasUpdate(true);
 
-      sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A``"));
-      sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A`","A``"));
+//      sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A``"));
+//      sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A`","A``"));
 
       var smoothing = (MSRASmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.MSRA);
       smoothing.setKappaStep(1);

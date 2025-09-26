@@ -1,6 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
-import org.goplanit.assignment.ltm.sltm.LinkSegmentData;
+import org.goplanit.assignment.ltm.sltm.common.LinkSegmentData;
 
 /**
  * POJO to store the sLTM variables used for unconstrained flow updates in network loading when requried

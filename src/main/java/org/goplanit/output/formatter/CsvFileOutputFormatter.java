@@ -2,7 +2,7 @@ package org.goplanit.output.formatter;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.goplanit.assignment.ltm.sltm.RootedBush;
+import org.goplanit.assignment.common.bush.RootedBush;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.od.skim.OdSkimMatrix.OdSkimMatrixIterator;
@@ -23,7 +23,6 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.unit.VehiclesUnit;
 

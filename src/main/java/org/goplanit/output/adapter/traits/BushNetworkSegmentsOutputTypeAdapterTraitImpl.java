@@ -1,8 +1,6 @@
 package org.goplanit.output.adapter.traits;
 
 import org.goplanit.assignment.TrafficAssignment;
-import org.goplanit.assignment.ltm.sltm.RootedBush;
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 
 import java.util.logging.Logger;

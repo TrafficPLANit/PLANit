@@ -2,9 +2,9 @@ package org.goplanit.test.sltm.bush;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
-import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
-import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
@@ -13,8 +13,6 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
-import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
-import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.utils.id.IdGenerator;
@@ -405,44 +403,6 @@ public class sLtmAssignmentBushSingleOdTest2 {
   //@formatter:on
 
   /**
-   * Test sLTM bush-based assignment on above network for a point queue model
-   */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
-    try {
-
-      /* OD DEMANDS 8000 A->A` */
-      Demands demands = createDemands();
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-
-      //var fixedStepSmoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
-      //fixedStepSmoothing.setStepSize(0.1);
-      var msraSmoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
-
-      /* DESTINATION BASED */
-      sLTMBuilder.getConfigurator().setType(StaticLtmType.DESTINATION_BUSH_BASED);
-
-      sLTMBuilder.getConfigurator().activateOutput(OutputType.LINK);
-      sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
-
-      StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.setActivateDetailedLogging(true);
-      sLTM.execute();
-
-      testCongestedOutputs(sLTM);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
-    }
-  }
-
-  /**
    * Test sLTM conjugate bush-based assignment on above network for a point queue model for congested demands
    */
   @Test
@@ -456,10 +416,6 @@ public class sLtmAssignmentBushSingleOdTest2 {
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       sLTMBuilder.getConfigurator().createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
       sLTMBuilder.getConfigurator().disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-
-//      var smoothing = (MSRASmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.MSRA);
-//      smoothing.setKappaStep(1);
-//      smoothing.setGammaStep(-0.1);
 
       var smoothing = (FixedStepSmoothingConfigurator) sLTMBuilder.getConfigurator().createAndRegisterSmoothing(Smoothing.FIXED_STEP);
       smoothing.setStepSize(1);

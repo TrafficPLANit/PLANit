@@ -1,11 +1,15 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmSimulationData;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSplittingRateData;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
@@ -22,7 +26,9 @@ import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
@@ -81,6 +87,37 @@ public abstract class StaticLtmAssignmentStrategy {
   /** have a mapping between two link segments (keys) - from and to - towards a movement used for network loading*/
   private final MultiKeyMap<Object, Movement> nlSegmentPair2MovementMap;
 
+  protected  void logCongestedSegmentInfo(double[] costs, Mode theMode) {
+    List<String> idList = new ArrayList<>();
+    List<Quadruple<Double, Double, Double,Double>> alphaCostInOutflowList = new ArrayList<>();
+    var alphas = getLoading().getCurrentFlowAcceptanceFactors();
+    for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
+      if(Precision.smaller(alphas[(int)ls.getId()], 1, Precision.EPSILON_9)){
+        idList.add(ls.getIdsAsString());
+        alphaCostInOutflowList.add(Quadruple.of(
+            alphas[(int)ls.getId()],
+            costs[(int)ls.getId()],
+            getLoading().getCurrentInflowsPcuH()[(int)ls.getId()],
+            getLoading().getCurrentOutflowsPcuH()[(int)ls.getId()]));
+      }
+    }
+    for(var ls : getTransportNetwork().getVirtualNetwork().getLayer().getConnectoidSegments()){
+      if(Precision.smaller(alphas[(int)ls.getId()], 1, Precision.EPSILON_9)){
+        idList.add(ls.getIdsAsString());
+        alphaCostInOutflowList.add(Quadruple.of(
+            alphas[(int)ls.getId()],
+            costs[(int)ls.getId()],
+            getLoading().getCurrentInflowsPcuH()[(int)ls.getId()],
+            getLoading().getCurrentOutflowsPcuH()[(int)ls.getId()]));
+      }
+    }
+    for(int index =0 ; index<idList.size();++index){
+      var quad = alphaCostInOutflowList.get(index);
+      LOGGER.info(String.format("Congested Link (%s) - U: %.1f - V: %.1f - alpha: %.4f - cost: %.8f",
+          idList.get(index), quad.third(), quad.fourth(), quad.first(), quad.second()));
+    }
+  }
+
   /**
    * The transport model network used
    * 
@@ -96,7 +133,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * @return the infrastructure network
    */
   protected MacroscopicNetwork getInfrastructureNetwork() {
-    return (MacroscopicNetwork) getTransportNetwork().getInfrastructureNetwork();
+    return getTransportNetwork().getInfrastructureNetwork();
   }
 
   /**
@@ -290,11 +327,6 @@ public abstract class StaticLtmAssignmentStrategy {
           boolean updateOnlyPotentiallyBlockingNodeCosts,
           double[] costsToUpdate,
           boolean doLoadingAllFlowUpdatePriorToCostUpdate){
-    if(updateOnlyPotentiallyBlockingNodeCosts && doLoadingAllFlowUpdatePriorToCostUpdate){
-      // could change this but see no use case
-      throw new PlanItRunTimeException("Not supporting a one shot flow update prior to cost calculation when only" +
-          "potentially blocking nodes are cost calculated");
-    }
 
     final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
@@ -431,6 +463,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param settings              the sLTM settings to use
    * @param taComponents          to use
    */
+  @SuppressWarnings("unchecked")
   public StaticLtmAssignmentStrategy(
       final IdGroupingToken idGroupingToken,
       long assignmentId,

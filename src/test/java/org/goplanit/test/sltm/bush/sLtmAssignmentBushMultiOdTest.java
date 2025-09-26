@@ -2,9 +2,9 @@ package org.goplanit.test.sltm.bush;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
-import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
-import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
@@ -13,8 +13,6 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
-import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
-import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -381,7 +379,6 @@ public class sLtmAssignmentBushMultiOdTest {
       slTMConfigurator.activateOutput(OutputType.LINK);
       slTMConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
-      slTMConfigurator.setAllowOverlappingPasUpdate(true);
       slTMConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"), Pair.of("A","A``"));
 
       StaticLtm sLTM = sLTMBuilder.build();
@@ -396,14 +393,6 @@ public class sLtmAssignmentBushMultiOdTest {
       e.printStackTrace();
       fail("Error when testing sLTM bush based assignment");
     }
-  }
-
-  /**
-   * Test sLTM bush-destination-based assignment on above network for a point queue model
-   */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
-    runTest(StaticLtmType.DESTINATION_BUSH_BASED);
   }
 
   /**

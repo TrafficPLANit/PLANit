@@ -6,37 +6,32 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
-import org.goplanit.algorithms.shortest.ShortestBushResult;
-import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
 import org.goplanit.assignment.ltm.LtmAssignment;
-import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmSimulationData;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
+import org.goplanit.assignment.ltm.sltm.output.*;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
-import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
 import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.time.RunTimesTracker;
 import org.goplanit.utils.time.TimePeriod;
-import org.goplanit.utils.zoning.OdZone;
 
 /**
  * Static Link Transmission Model implementation (sLTM) for network loading based on solution method presented in Raadsen and Bliemer (2021) General solution scheme for the Static
@@ -78,10 +73,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* create the assignment solution to apply */
     StaticLtmAssignmentStrategy strategy;
     switch (settings.getSltmType()) {
-      case DESTINATION_BUSH_BASED:
-        strategy =  new StaticLtmDestinationBushStrategy(
-                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
-        break;
       case CONJUGATE_DESTINATION_BUSH_BASED:
         strategy =  new StaticLtmConjugateBushStrategy(
                 getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
@@ -301,17 +292,8 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    *
    * @return simulation data
    */
-  protected StaticLtmSimulationData getIterationData() {
+  public StaticLtmSimulationData getIterationData() {
     return simulationData;
-  }
-
-  /**
-   * Return the assignment solution strategy used
-   * 
-   * @return used assignment strategy
-   */
-  protected StaticLtmAssignmentStrategy getStrategy() {
-    return assignmentStrategy;
   }
 
   /**
@@ -445,14 +427,13 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     settings.setSltmType(type);
   }
 
-  // pass on to settings
-  public boolean isActivateDetailedLogging() {
-    return settings.isDetailedLogging();
+  public StaticLtmType getType() {
+    return settings.getSltmType();
   }
 
   // pass on to settings
-  public boolean isEnforceMaxEntropyFlowSolution() {
-    return settings.isEnforceMaxEntropyFlowSolution();
+  public boolean isActivateDetailedLogging() {
+    return settings.isDetailedLogging();
   }
 
   // pass on to settings
@@ -468,11 +449,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   // pass on to settings
   public void addTrackOdForLoggingByExternalId(String originId, String destinationId){
     settings.addTrackOdForLoggingByExternalId(originId, destinationId);
-  }
-
-  // pass on to settings
-  public void setEnforceMaxEntropyFlowSolution(boolean enforceMaxEntropyFlowSolution) {
-    settings.setEnforceMaxEntropyFlowSolution(enforceMaxEntropyFlowSolution);
   }
 
   // pass on to settings
@@ -533,16 +509,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   // pass on to settings
   public Integer getDisableRelativeScalingFactorUpdateAfterIteration(){
     return this.settings.getDisableRelativeScalingFactorUpdateAfterIteration();
-  }
-
-  // pass on to settings
-  public void setAllowOverlappingPasUpdate(Boolean flag){
-    this.settings.setAllowOverlappingPasUpdate(flag);
-  }
-
-  // pass on to settings
-  public Boolean isAllowOverlappingPasUpdate(){
-    return this.settings.isAllowOverlappingPasUpdate();
   }
 
   // OVERRIDES

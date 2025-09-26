@@ -5,8 +5,8 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateBushUtils;
-import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
+import org.goplanit.assignment.ltm.sltm.util.ConjugateBushUtils;
+import org.goplanit.assignment.common.bush.ConjugateDestinationBush;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegment;

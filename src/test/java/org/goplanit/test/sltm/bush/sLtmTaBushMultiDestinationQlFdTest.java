@@ -1,14 +1,13 @@
 package org.goplanit.test.sltm.bush;
 
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
-import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
-import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
-import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
@@ -150,7 +149,6 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       configurator.setType(sltmType);
 
       // to test if it works without smoothing we disallow overlapping PAS updates and set step-size to 1
-      configurator.setAllowOverlappingPasUpdate(true);
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator) configurator.createAndRegisterSmoothing(
               Smoothing.FIXED_STEP);
       fixedStepSmoothing.setStepSize(1);
@@ -171,15 +169,6 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       e.printStackTrace();
       fail("Error when testing sLTM bush based assignment");
     }
-  }
-
-
-  /**
-   * Test sLTM bush-destination-based assignment on above network for a point queue model
-   */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
-    runTest(StaticLtmType.DESTINATION_BUSH_BASED);
   }
 
   /**

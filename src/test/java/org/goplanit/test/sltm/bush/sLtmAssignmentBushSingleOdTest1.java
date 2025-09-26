@@ -2,14 +2,13 @@ package org.goplanit.test.sltm.bush;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
-import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
-import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
-import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesImpl;
 import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
@@ -23,7 +22,6 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedMode;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
@@ -40,8 +38,6 @@ import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -341,33 +337,6 @@ public class sLtmAssignmentBushSingleOdTest1 {
     }
   }
   //@formatter:on
-
-
-  /**
-   * Test sLTM bush-destination based assignment on above network for a point queue model
-   */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
-    try {
-
-      /* OD DEMANDS 8000 A->A` */
-      Demands demands = createCongestedDemands();
-
-      /* DESTINATION BASED */
-      var sLTM = initialiseSltm(StaticLtmType.DESTINATION_BUSH_BASED, FundamentalDiagram.NEWELL, demands);
-
-      sLTM.setActivateDetailedLogging(true);
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
-      sLTM.execute();
-
-      testCongestedOutputs(sLTM);
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
-    }
-  }
 
   /**
    * Test sLTM conjugate bush-destination based conjugate assignment on above network for a point queue model

@@ -1,9 +1,9 @@
 package org.goplanit.test.sltm.bush;
 
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
-import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
-import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.output.enums.OutputType;
@@ -167,15 +167,6 @@ public class sLtmTaBushMultiDestinationNewellFdTest extends sLtmAssignmentMultiD
     assertEquals(outflow9 + outflow11, inflow12, Precision.EPSILON_6);
     assertEquals(outflow10, inflow11, Precision.EPSILON_6);
     assertEquals(outflow12, inflow13 + inflow14, Precision.EPSILON_6);
-  }
-
-  /**
-   * Test sLTM bush-destination-based assignment on above network for a point queue model
-   * <p>Triangular (Newell) FD used</p>
-   */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
-    runTest(StaticLtmType.DESTINATION_BUSH_BASED);
   }
 
   /**

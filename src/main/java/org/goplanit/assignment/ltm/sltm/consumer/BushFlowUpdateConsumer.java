@@ -2,7 +2,7 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 
 import java.util.function.Consumer;
 
-import org.goplanit.assignment.ltm.sltm.Bush;
+import org.goplanit.assignment.common.bush.Bush;
 import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessor;
 
 /**

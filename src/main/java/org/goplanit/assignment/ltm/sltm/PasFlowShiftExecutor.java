@@ -1,17 +1,18 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
-import org.goplanit.assignment.ltm.sltm.consumer.NmrDemandConstrainedFlowAndMostRestrictingTurnConsumer;
+import org.goplanit.assignment.common.bush.RootedBush;
+import org.goplanit.assignment.common.bush.ConjugateDestinationBush;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.consumer.nodemodel.NmrDemandConstrainedFlowAndMostRestrictingTurnConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
+import org.goplanit.assignment.common.pas.Pas;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.gap.GapFunction;
-import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.pcu.PcuCapacitated;
@@ -55,10 +56,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   /** track any removed edge segments as a result of a flow shift on a bush level */
   //todo: remove when no longer needed, now identified beforehand via missing s1 links method
   private final Map<ES, Set<RootedBush<V,ES>>> addedEdgeSegmentsForBushes = new TreeMap<>();
-
-  /** track flow shifted data from S2 flow shifts to be used for S1 flow shifts in opposite direction */
-  private final Map<EdgeSegment, Map<RootedBush<V,ES>, BushEntryShiftedS2FlowData>>
-          flowShiftedS2BushData = new TreeMap<>();
 
   /**
    * Verify if entry segment is congested.
@@ -358,55 +355,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   protected abstract ES findFirstCongestedEdgeSegmentOnPasAlternative(
           final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost);
 
-  /**
-   * Perform the flow shift for a given bush. Delegate to concrete class implementation
-   *
-   * @param bush                      to perform shift for
-   * @param entrySegment              entry segment from original network to apply flow shift for
-   * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entrysegment combination
-   * @param theMode to use
-   * @param assignmentStrategy     to use
-   * @param originalNetworkCosts to use
-   * @param conjSegmentCosts to use
-   * @param bushes to use
-   * @return end merge splitting rates of s2 to be used in s1 flow shift
-   */
-  @Deprecated
-  protected abstract double[] executeBushS2FlowShiftNoNodeModelUpdate(
-          final RootedBush<V,ES> bush,
-          final EdgeSegment entrySegment,
-          double bushEntrySegmentFlowShift,
-          Mode theMode,
-          StaticLtmAssignmentStrategy assignmentStrategy,
-          double[] originalNetworkCosts,
-          double[] conjSegmentCosts,
-          Set<? extends RootedBush<?,?>> bushes);
-
-  /**
-   * Perform the flow shift for a given bush. Delegate to concrete class implementation
-   *
-   * @param bush                      to perform shift for
-   * @param entrySegment              original network entry segment at hand to apply flow shift for
-   * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entry segment combination
-   * @param theMode to use
-   * @param assignmentStrategy     to use
-   * @param endMergeSplittingRates    end merge splitting rates of s2 to be used in s1 flow shift
-   * @param originalNetworkCosts to use
-   * @param conjSegmentCosts to use
-   * @param bushes to use
-   */
-  @Deprecated
-  protected abstract void executeBushS1FlowShiftNoNodeModelUpdate(
-          final RootedBush<V,ES> bush,
-          final EdgeSegment entrySegment,
-          double bushEntrySegmentFlowShift,
-          Mode theMode,
-          StaticLtmAssignmentStrategy assignmentStrategy,
-          double[] endMergeSplittingRates,
-          double[] originalNetworkCosts,
-          double[] conjSegmentCosts,
-          Set<? extends RootedBush<?,?>> bushes);
-
   public static <T extends DirectedVertex, U extends EdgeSegment> double determinePasSubPathSendingFlow(
       Pas<T,U> pas,
       boolean lowCostSegment,
@@ -434,30 +382,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    */
   public abstract void stepOneDetermineNetworkLoadingConsistentS1S2SendingFlows(
           double[] flowAcceptanceFactors);
-
-  /**
-   * Determine proposed flow shift for the PAS of this flow shifter based on the (expected to be known) s1 and s2
-   * sending flows and costs.
-   *
-   * @param theMode                 to use
-   * @param gapFunction             to use
-   * @param physicalCost            to use
-   * @param virtualCost             to use
-   * @param networkLoading          to use
-   * @param guaranteedS2SendingFlow to use
-   * @param logAll                  to use
-   * @return proposed flow shift (in isolation) per network loading original network entry segment of the PAS, hence
-   * using the edge segment in the return type and not the generics of this executor
-   */
-  public abstract Map<EdgeSegment, Double> determineProposedFlowShiftByLoadingEntrySegment(
-      Mode theMode,
-      GapFunction gapFunction, AbstractPhysicalCost physicalCost,
-      AbstractVirtualCost virtualCost,
-      //Smoothing smoothing,
-      //double additionalSmoothingFactor,
-      StaticLtmLoadingBushBase<?> networkLoading,
-      double guaranteedS2SendingFlow,
-      boolean logAll);
 
   /**
    * For each bush on this PAS determine if any link segments are not yet on the S1 that would be added
@@ -491,16 +415,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
       double additionalSmoothingFactor);
 
   /**
-   * Perform S1 flow shift assuming the S2 flow shift has already been done (is prerequisite)
-   *
-   * @param theMode to use
-   * @param assignmentStrategy to apply
-   */
-  public abstract void performAllBushesRecordedOneShotS1FlowShift(
-      Mode theMode,
-      StaticLtmAssignmentStrategy assignmentStrategy);
-
-  /**
    * Sending flow along PAS high cost segment
    * 
    * @return high cost alternative desired flow
@@ -513,26 +427,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @return low cost alternative desired flow
    */
   public abstract double getS1SendingFlow();
-
-  /** track the actually performed flow shifts on S2, to know what to apply to S1 when shifting flow
-   *
-   * @return map with data
-   */
-  public Map<EdgeSegment, Map<RootedBush<V, ES>, BushEntryShiftedS2FlowData>> getFlowShiftedS2BushData() {
-    return flowShiftedS2BushData;
-  }
-
-  /**
-   * put entry in flow shifted S2 data
-   *
-   * @param entrySegment to use
-   * @param bush to use
-   * @param data to place
-   */
-  public void putFlowShiftedS2Data(EdgeSegment entrySegment, RootedBush<V,ES> bush, BushEntryShiftedS2FlowData data){
-    getFlowShiftedS2BushData().putIfAbsent(entrySegment, new TreeMap<>());
-    getFlowShiftedS2BushData().get(entrySegment).put(bush, data);
-  }
 
   /**
    * Verify if any edge segments have been added by a bush as a result of the PAS flow shift

@@ -1,9 +1,12 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathOneToAll;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmSimulationData;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
+import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
+import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPathFactory;
 import org.goplanit.choice.ChoiceModel;
 import org.goplanit.choice.logit.BoundedMultinomialLogit;
 import org.goplanit.cost.CostUtils;
@@ -30,7 +33,6 @@ import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.od.OdData;
 import org.goplanit.utils.od.OdHashedImpl;
 import org.goplanit.utils.path.ManagedDirectedPath;
@@ -595,7 +597,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * Access to added paths counter for persistence
    * @return added paths counter
    */
-  protected LongAdder getAddedPathsCounter(){
+  public LongAdder getAddedPathsCounter(){
     return addedRemovedPathCounters.first();
   }
 
@@ -603,7 +605,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * Access to removed paths counter for persistence
    * @return added paths counter
    */
-  protected LongAdder getRemovedPathsCounter(){
+  public LongAdder getRemovedPathsCounter(){
     return addedRemovedPathCounters.second();
   }
 

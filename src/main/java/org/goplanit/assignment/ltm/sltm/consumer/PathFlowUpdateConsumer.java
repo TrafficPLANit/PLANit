@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
+import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.utils.functionalinterface.TriConsumer;
 import org.goplanit.utils.graph.directed.EdgeSegment;

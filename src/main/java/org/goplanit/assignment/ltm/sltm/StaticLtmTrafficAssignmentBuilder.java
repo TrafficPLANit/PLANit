@@ -1,7 +1,7 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import org.goplanit.assignment.ltm.LtmConfigurator;
 import org.goplanit.assignment.ltm.LtmTrafficAssignmentBuilder;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.demands.Demands;
 import org.goplanit.input.InputBuilderListener;
 import org.goplanit.network.LayeredNetwork;

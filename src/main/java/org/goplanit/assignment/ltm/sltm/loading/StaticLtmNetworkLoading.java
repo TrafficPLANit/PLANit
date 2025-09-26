@@ -6,12 +6,12 @@ import java.util.logging.Logger;
 
 import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
-import org.goplanit.assignment.ltm.sltm.LinkSegmentData;
-import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
-import org.goplanit.assignment.ltm.sltm.consumer.NodeModelRunResultConsumer;
-import org.goplanit.assignment.ltm.sltm.consumer.NMRUpdateEntryLinksOutflowConsumer;
-import org.goplanit.assignment.ltm.sltm.consumer.NMRUpdateExitLinkInflowsConsumer;
-import org.goplanit.assignment.ltm.sltm.consumer.NodeModelRunTurnBasedResultConsumer;
+import org.goplanit.assignment.ltm.sltm.common.LinkSegmentData;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.consumer.nodemodel.NodeModelRunResultConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.nodemodel.NMRUpdateEntryLinksOutflowConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.nodemodel.NMRUpdateExitLinkInflowsConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.nodemodel.NodeModelRunTurnBasedResultConsumer;
 import org.goplanit.demands.Demands;
 import org.goplanit.gap.NormBasedGapFunction;
 import org.goplanit.gap.StopCriterion;

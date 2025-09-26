@@ -1,6 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
-import org.goplanit.assignment.ltm.sltm.LinkSegmentData;
+import org.goplanit.assignment.ltm.sltm.common.LinkSegmentData;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 
 /**
