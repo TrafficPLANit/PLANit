@@ -1,10 +1,6 @@
 package org.goplanit.graph;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
@@ -107,6 +103,22 @@ public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Verte
   }
 
   // Getters-Setters
+
+  @Override
+  public boolean hasInputProperty() {
+    return inputProperties != null && !inputProperties.isEmpty();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<String> getInputPropertyKeys(){
+    if (inputProperties == null) {
+      return null;
+    }
+    return inputProperties.keySet();
+  }
 
   /**
    * {@inheritDoc}
