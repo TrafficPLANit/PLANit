@@ -2,6 +2,7 @@ package org.goplanit.graph;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.Edge;
@@ -167,6 +168,22 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
   public boolean removeVertexA() {
     setVertexA(null);
     return true;
+  }
+
+  @Override
+  public boolean hasInputProperty() {
+    return inputProperties != null && !inputProperties.isEmpty();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<String> getInputPropertyKeys(){
+    if (inputProperties == null) {
+      return null;
+    }
+    return inputProperties.keySet();
   }
 
   /**

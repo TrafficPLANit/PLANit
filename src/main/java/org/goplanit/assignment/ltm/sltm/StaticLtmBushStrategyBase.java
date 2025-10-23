@@ -182,6 +182,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * on relevant criterion.
    * todo: provide option for sorting order...
    * @param pasExecutors                      to use for retrieving PAS information used in sorting
+   * @param pasGaps current gaps of PASs
    * @return sorted PASs in descending order of importance
    */
   protected List<Pas<V,ES>> flowShiftingStepFourOrderPass(
@@ -713,6 +714,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     this.executeNetworkCostsUpdate(
         theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate, doLoadingAllFlowUpdatePriorToCostUpdate);
 
+    // todo below is not strictly needed anymore since pas costs are always updated on the fly and
+    //  congested and uncongested pass are currently not separated out
     /* PAS COST UPDATE */
     updatePasCosts(theMode, costsToUpdate);
     /* PAS STATUS UPDATE (used to truncate search for PASs on bush) */

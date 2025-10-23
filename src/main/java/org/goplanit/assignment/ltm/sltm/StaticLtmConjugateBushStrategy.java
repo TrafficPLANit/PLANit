@@ -826,6 +826,7 @@ public class StaticLtmConjugateBushStrategy
                   bushMinMaxTree.setMinPathState(false);
                   // find cheapest exit available
                   var cheapestMaxOption = edgeSegment;
+                  //todo: I think this is wrong, we should still be using the min cost, only we should check all of them!
                   double cheapestMaxCost = bushMinMaxTree.getMaxCostToReach(edgeSegment.getUpstreamVertex());
                   boolean p2OnlyAllowed = true;
                   for(var alExit : edgeSegment.getUpstreamVertex().getExitEdgeSegments()){
