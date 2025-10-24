@@ -281,7 +281,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         ++congestedPasCounter;
 
         // run from 1% exponential decay to 100% of most important PAS
-        double importanceSmoothingFactor = (1 - (Math.pow(0.01, (congestedPasCounter * perPasPercentageOfTotal))) + 0.01);
+        double importanceSmoothingFactor =
+            Math.min(1, (1 - (Math.pow(0.01, (congestedPasCounter * perPasPercentageOfTotal))) + 0.01));
         var pasFlowShifter = pasExecutors.get(pas);
 
         if (!(pasFlowShifter.getS2SendingFlow() > 0) || !pas.hasRegisteredBushes()) { // todo: this piece of code is duplication from line 166 -> consolidate
