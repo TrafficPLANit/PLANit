@@ -55,9 +55,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   // track previous (outer) iteration gap to see if bush is converging over iterations
   public double prevIterationInitialGap = Double.MAX_VALUE; // temp
 
-  // when not converging over iterations track smoothing per bush to reduce applied changes
-  public final MSRASmoothing bushSmoothing = new MSRASmoothing(BUSH_SMOOTHING_TOKEN); // ugly but will do for now
-
   /**
    * Based on non-conjugate flow acceptance factors in the network obtain the acceptance factor for the
    * conjugate segment by looking at its original incoming segment. If it does not exist then 1 is returned
@@ -273,10 +270,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
     this.demandScaledMinCostBush = 0;
     this.demandScaledRealisedCostBush = 0;
-
-    bushSmoothing.setGammaStep(0.00);// make sure we only reduce gap with bad iteration otherwise not
-    bushSmoothing.setActivateLambda(false);
-    bushSmoothing.setKappaStep(0.2);
   }
 
   /**
