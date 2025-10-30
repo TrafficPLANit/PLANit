@@ -6,8 +6,6 @@ import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
 import org.goplanit.algorithms.shortest.*;
 import org.goplanit.assignment.common.bush.ConjugateBushTurnData;
 import org.goplanit.assignment.common.bush.ConjugateDestinationBush;
-import org.goplanit.assignment.common.pas.PasGroup;
-import org.goplanit.assignment.common.pas.PasUtils;
 import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.common.StaticLtmSimulationData;
 import org.goplanit.assignment.ltm.sltm.consumer.nodemodel.DiscontinuityTurnCostReplacementConsumer;
@@ -34,7 +32,6 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
@@ -51,7 +48,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.goplanit.assignment.ltm.sltm.util.ConjugateBushUtils.isEligibleForAdding;
@@ -155,85 +151,6 @@ public class StaticLtmConjugateBushStrategy
   }
 
   @Override
-  protected Pair<Set<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>, Set<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>>
-  doUncongestedFlowShiftingV1(
-      Mode theMode,
-      Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>> sortedPass,
-      Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>, PasFlowShiftExecutor<ConjugateDirectedVertex,ConjugateEdgeSegment>> pasExecutors,
-      double[] nlConsistentFlowAcceptanceFactors,
-      double[] originalNetworkCosts,
-      StaticLtmSimulationData simulationData) {
-
-    boolean smoothOverIterations = false;
-
-    var flowShiftedPass = new TreeSet<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>();
-    var passWithoutBush = new TreeSet<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>();
-
-    // PASs on conjugate level, so expand link segment to conjugate segment costs as if first
-    var conjSegmentCosts =
-        expandNonConjugateLinkSegmentCostToConjugateSegmentCost(theMode, originalNetworkCosts, true);
-
-    // for uncongested, do each PAS (one or more times), then repeat x times so PAS interaction is
-    // covered better by having an internal loop here
-    int MAX_ITERATIONS_ALLOWED = 4;
-    int iteration = 1;
-    boolean doNotStop = true;
-    do {
-
-      // update costs for pass first
-      sortedPass.stream().filter(p -> p.getStatus()!=PasStatus.UNCONGESTED_POTENTIALLY_CONGESTED).forEach(
-          p ->p.updateCost(conjSegmentCosts));
-      var pasGaps = computePasGaps(pasExecutors.keySet(), nlConsistentFlowAcceptanceFactors);
-      var updatedOrder = flowShiftingStepFourOrderPass(pasExecutors, pasGaps);
-      Collections.reverse(updatedOrder); // largest difference last, so it is not "overwritten"
-      sortedPass = updatedOrder;
-
-//      int MAX_PAS_UPDATES = Math.max(5,sortedPass.size()/10); // top 10% with minimum of 5 PASs
-      int uncongestedPasCounter = 0;
-
-      long numUncongestedPass = sortedPass.stream().filter(
-          p -> p.getStatus()== PasStatus.UNCONGESTED_WITHOUT_SHIFT ||
-              p.getStatus()==PasStatus.UNCONGESTED_WITH_SHIFT).count();
-      double perPasPercentageOfTotal = 1.0/numUncongestedPass;
-
-      boolean logAll = false; //simulationData.getIterationIndex()>=50 && getSettings().isDetailedLogging();
-      LOGGER.info(String.format("--- NEXT UNCONGESTED PASs INTERNAL ITERATION %d ----", iteration));
-      for (var pas : sortedPass) {
-        var executor = ((PasFlowShiftConjugateDestinationBasedExecutor) pasExecutors.get(pas));
-        double importanceSmoothingFactor = 1 ;//Math.pow(0.1, (uncongestedPasCounter*perPasPercentageOfTotal)); // run from 100% exponential decay to 1% of leat important PAS
-
-        if (pas.pasId == 39L) {
-          int bla = 4; // uncongested
-        }
-
-        var pasFlowShiftedByRefTurn = executor.performEquilibratedUncongestedFlowShifts(
-            theMode,
-            this,
-            nlConsistentFlowAcceptanceFactors,
-            originalNetworkCosts,
-            conjSegmentCosts,
-            getBushes(),
-            logAll,
-            PasFlowShiftConjugateDestinationBasedExecutor.FlowShiftSmoothingApproach.NORMAL,
-            smoothOverIterations ? (1.0/MAX_ITERATIONS_ALLOWED) * importanceSmoothingFactor : importanceSmoothingFactor);
-
-        double pasFlowShifted = Math.abs(pasFlowShiftedByRefTurn.second());
-        if (!pas.hasRegisteredBushes()) {
-          passWithoutBush.add(pas);
-        }
-
-        if(pasFlowShifted != 0){
-          ++uncongestedPasCounter;
-          flowShiftedPass.add(pas);
-          logAll = false;
-        }
-      }
-
-    }while(iteration++ < MAX_ITERATIONS_ALLOWED);
-    return Pair.of(flowShiftedPass, passWithoutBush);
-  }
-
-  @Override
   protected void hookBeforePasUpdate(
       Collection<PasFlowShiftExecutor<ConjugateDirectedVertex, ConjugateEdgeSegment>> pasExecutors) {
     // reset and inject empty tracking container for original turn flows that may get adjusted and therefore need to
@@ -242,11 +159,6 @@ public class StaticLtmConjugateBushStrategy
     pasExecutors.forEach(
         pe -> ((PasFlowShiftConjugateDestinationBasedExecutor)pe).injectOriginalBushTurnFlowAccess(
             originalBushTurnFlowTracker));
-  }
-
-  protected Collection<PasGroup<ConjugateDirectedVertex,ConjugateEdgeSegment>> createPasGroups(
-      Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>> pass){
-    return PasUtils.createConjugatePasGroups(pass);
   }
 
   /**
