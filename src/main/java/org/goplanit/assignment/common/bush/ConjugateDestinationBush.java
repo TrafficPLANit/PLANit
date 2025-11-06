@@ -10,11 +10,9 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.*;
 import org.goplanit.assignment.ltm.sltm.consumer.ConjugateBushSyncBushFlowConsumer;
-import org.goplanit.assignment.ltm.sltm.util.ConjugateBushUtils;
 import org.goplanit.graph.directed.acyclic.ConjugateACyclicSubGraphImpl;
 import org.goplanit.network.transport.ConjugateTransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
-import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.graph.directed.acyclic.ConjugateACyclicSubGraph;
@@ -44,15 +42,14 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
   private static final IdGroupingToken BUSH_SMOOTHING_TOKEN = IdGroupingToken.create("Bush MSRA smoothing");
 
-  private double demandScaledMinCostBush; // temp
-
-  private double demandScaledRealisedCostBush; // temp
-
-  public boolean currentActiveBush = false; // temp
+  // BUSH GAP VARIABLES - todo:  provide a GapFunction Component instance to each bush to simplify
+  private double demandScaledNetworkMinPathCostBush;
+  private double demandScaledRealisedCostBush;
+  private double demandScaledWithinBushMinPathCost;
 
   public boolean converged = false; // temp
 
-  // track previous (outer) iteration gap to see if bush is converging over iterations
+  // track previous gap to see if bush is converging over assignment iterations
   public double prevIterationInitialGap = Double.MAX_VALUE; // temp
 
   /**
@@ -268,8 +265,9 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     this.destination = destinationCentroidVertex;
     this.turn2ConjugateSegmentMapping = turn2ConjugateSegmentMapping;
 
-    this.demandScaledMinCostBush = 0;
+    this.demandScaledNetworkMinPathCostBush = 0;
     this.demandScaledRealisedCostBush = 0;
+    this.demandScaledWithinBushMinPathCost = 0;
   }
 
   /**
@@ -285,6 +283,10 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     // container wrapper with primitives, so always clone
     this.bushData = bush.bushData.shallowClone();
     this.turn2ConjugateSegmentMapping = bush.turn2ConjugateSegmentMapping.clone();
+
+    this.demandScaledNetworkMinPathCostBush = 0;
+    this.demandScaledRealisedCostBush = 0;
+    this.demandScaledWithinBushMinPathCost = 0;
 
     throw new PlanItRunTimeException("incomplete");
   }
@@ -873,15 +875,22 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   }
 
   // todo: replace with proper gap function for now just inject raw data
-  public void setMinCostForGap(double demandScaledMinCostBush) {
-    this.demandScaledMinCostBush = demandScaledMinCostBush;
+  public void setNetworkBasedMinCostForGap(double demandScaledNetworkMinPathCostBush) {
+    this.demandScaledNetworkMinPathCostBush = demandScaledNetworkMinPathCostBush;
   }
 
-  public double getMinCostForGap() {
-    return this.demandScaledMinCostBush;
+  public double getNetworkBasedMinCostForGap() {
+    return this.demandScaledNetworkMinPathCostBush;
   }
 
-  // todo: replace with proper gap function for now just inject raw data
+  public void setWithinBushMinCostForGap(double demandScaledWithinBushMinPathCost) {
+    this.demandScaledWithinBushMinPathCost = demandScaledWithinBushMinPathCost;
+  }
+
+  public double getWithinBushMinCostForGap() {
+    return this.demandScaledWithinBushMinPathCost;
+  }
+
   public void setRealisedCostForGap(double demandScaledRealisedCostBush) {
     this.demandScaledRealisedCostBush = demandScaledRealisedCostBush;
   }
@@ -891,16 +900,21 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   }
 
   public boolean isConvergedBeyond(double thresholdGap){
-    double bushGap = (demandScaledRealisedCostBush - demandScaledMinCostBush)/demandScaledMinCostBush;
+    double bushGap = (demandScaledRealisedCostBush - demandScaledNetworkMinPathCostBush)/ demandScaledNetworkMinPathCostBush;
     // only apply margin if not interfering with precision of check
     double margin = thresholdGap < Precision.EPSILON_12 ? 0 : Precision.EPSILON_12;
     return (bushGap + margin) < thresholdGap;
   }
 
-  // temp for computing gap data --> should not be in this class
-  // set reaslied cost based on bush max path * demand and return the bush min path * demand (for comaprison
-  // to network based min path for bush (which may not only traverse links present in bush and differ)
-  public double updateBushRealisedGapInformation(
+  /**
+   * Calculate within-bush OD min cost and realised cost (both scaled yb unconstrained demand) for gap based on
+   * non-discontinuous costs. Result stored on bush itself.
+   *
+   * @param conjugateTransportModelNetwork        to use
+   * @param odDemands                             to use
+   * @param conjLinkSegmentCosts                  to use (assumed without considering discontinuities)
+   */
+  public void updateWithinBushMinCostAndRealisedCostGapInformation(
       ConjugateTransportModelNetwork conjugateTransportModelNetwork,
       OdDemands odDemands,
       double[] conjLinkSegmentCosts) {
@@ -909,8 +923,8 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     var bushMinMaxTree = computeMinMaxShortestPaths(excludeZeroFlowLinksFromMaxPaths,
         conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
 
-    double totalBushMinPathCost = 0;
-    double scaledMaxCostBush = 0;
+    double totalWithinBushMinPathCost = 0;
+    double totalWithinBushMaxPathCost = 0;
     bushMinMaxTree.setMinPathState(false);
     var destination = getDestination().getParent().getParentZone();
     for (var originVertex : getOriginVertices()) {
@@ -921,13 +935,13 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
       }
       double maxOdCost = bushMinMaxTree.getCostToReach(originVertex);
       double scaledMaxCostBushOd = maxOdCost * odDemand;
-      scaledMaxCostBush += scaledMaxCostBushOd;
+      totalWithinBushMaxPathCost += scaledMaxCostBushOd;
 
       double minOdCost = bushMinMaxTree.getMinCostToReach(originVertex);
-      totalBushMinPathCost += minOdCost * odDemand;
+      totalWithinBushMinPathCost += minOdCost * odDemand;
     }
     // update
-    setRealisedCostForGap(scaledMaxCostBush);
-    return totalBushMinPathCost; // bush only min bush path scaled to demand
+    setRealisedCostForGap(totalWithinBushMaxPathCost);
+    setWithinBushMinCostForGap(totalWithinBushMinPathCost);
   }
 }
