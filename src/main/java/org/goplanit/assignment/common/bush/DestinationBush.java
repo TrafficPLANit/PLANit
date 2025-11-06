@@ -159,7 +159,7 @@ public class DestinationBush extends RootedBush<DirectedVertex, EdgeSegment> {
    * {@inheritDoc}
    */
   @Override
-  public void syncToNetworkFlows(double[] flowAcceptanceFactors, Set<DirectedVertex> nodesToSync) {
+  public void syncToNetworkFlows(double[] flowAcceptanceFactors) {
 
     /* traverse form origin->destination */
     forEachTopologicalSortedVertex(isInverted(), currVertex -> {

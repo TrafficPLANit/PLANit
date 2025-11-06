@@ -438,21 +438,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * Based on the network loading results, update the bush' turn sending flows
    */
   public void syncBushFlowsToNetworkFlows() {
-    syncBushFlowsToNetworkFlows(null);
-  }
-
-  /**
-   * Based on the network loading results, update the bush' turn sending flows
-   *
-   * @param nodesToSync if null all nodes are synced, otherwise selection only
-   */
-  public void syncBushFlowsToNetworkFlows(Set<DirectedVertex> nodesToSync) {
     for (var bush : bushes) {
       if (bush == null) {
         continue;
       }
 
-      bush.syncToNetworkFlows(getLoading().getCurrentFlowAcceptanceFactors(), nodesToSync);
+      bush.syncToNetworkFlows(getLoading().getCurrentFlowAcceptanceFactors());
     }
   }
 
@@ -652,7 +643,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     // gap calculation.
     boolean updateOnlyPotentiallyBlockingNodeCosts = false;
 //        boolean updateOnlyPotentiallyBlockingNodeCosts = isUpdateOnlyPotentiallyBlockingNodeCosts();
-//        if(simulationData.isFirstIteration() && updateOnlyPotentiallyBlockingNodeCosts && simulationData.isInitialCostsAppliedInFirstIteration(theMode)){
+//        if(updateOnlyPotentiallyBlockingNodeCosts && simulationData.isFirstIteration() && simulationData.isInitialCostsAppliedInFirstIteration(theMode)){
 //          /* initial costs will be inconsistent with loading performed in first iteration, recalculate all link segment costs for free flow conditions first
 //           * and then for those that need tracking override with flow based costs */
 //          CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
@@ -752,15 +743,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       /* 3 - BUSH LOADING - SYNC BUSH TURN FLOWS - USE NETWORK LOADING ALPHAS - MODE AGNOSTIC FOR NOW */
       {
         syncBushFlowsToNetworkFlows();
-      }
-
-      // todo: UGLY
-      if(this instanceof StaticLtmConjugateBushStrategy){
-        StaticLtmConjugateBushStrategy conjStrat = (StaticLtmConjugateBushStrategy) this;
-        if(conjStrat.PERSIST_WARM_START_TO_DISK_TURN_FLOW_ITERATION == simulationData.getIterationIndex()){
-          LOGGER.info("PERSISTING BUSH DATA FOR FUTURE WARM START PURPOSES TO "+conjStrat.WARM_START_LOCATION);
-          conjStrat.persistBushDataForWarmStart();
-        }
       }
 
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */

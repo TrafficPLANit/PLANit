@@ -677,9 +677,9 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    *
    */
   @Override
-  public void syncToNetworkFlows(double[] originalNetworkFlowAcceptanceFactors, Set<DirectedVertex> nodesToSync) {
+  public void syncToNetworkFlows(double[] originalNetworkFlowAcceptanceFactors) {
     var syncBushToNetworkLoadingFlowsConsumer = new ConjugateBushSyncBushFlowConsumer(
-        this, originalNetworkFlowAcceptanceFactors, nodesToSync);
+        this, originalNetworkFlowAcceptanceFactors);
     forEachTopologicalSortedVertex(true, syncBushToNetworkLoadingFlowsConsumer);
   }
 

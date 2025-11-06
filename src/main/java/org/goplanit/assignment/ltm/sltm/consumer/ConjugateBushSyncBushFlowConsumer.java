@@ -51,17 +51,16 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
   /** bush sending flows to track/propagate during syncing */
   private final TreeMap<ConjugateEdgeSegment, Double> bushSendingFlows;
 
-  private final Set<DirectedVertex> nodesToSync;
-
   /**
-   * Register the conjugate bush accepted turn flow to the turn if required. Default implementation does nothing but provide a hook for derived classes that do require to do
-   * something with turn accepted flows
+   * Register the conjugate bush accepted turn flow to the turn if required. Default implementation does nothing but
+   * provide a hook for derived classes that do require to do something with turn accepted flows
    *
    * @param turnSegment          of turn
    * @param turnAcceptedFlowPcuH sending flow rate of turn
    */
   protected void applyAcceptedTurnFlowUpdate(final ConjugateEdgeSegment turnSegment, double turnAcceptedFlowPcuH) {
-    // default implementation does nothing but provide a hook for derived classes that do require to do something with turn accepted flows
+    // default implementation does nothing but provide a hook for derived classes that do require to do something
+    // with turn accepted flows
   }
 
   /**
@@ -73,30 +72,9 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
   public ConjugateBushSyncBushFlowConsumer(
           final ConjugateDestinationBush conjBush,
           double[] originalNetworkFlowAcceptanceFactors){
-    this(conjBush, originalNetworkFlowAcceptanceFactors, null);
-  }
-
-  /**
-   * Constructor
-   *
-   * @param conjBush to sync
-   * @param originalNetworkFlowAcceptanceFactors  to use
-   * @param nodesToSync when null all nodes will be updated, otherwise only selected
-   */
-  public ConjugateBushSyncBushFlowConsumer(
-      final ConjugateDestinationBush conjBush,
-      double[] originalNetworkFlowAcceptanceFactors,
-      Set<DirectedVertex> nodesToSync){
     this.conjBush = conjBush;
     this.originalNetworkFlowAcceptanceFactors = originalNetworkFlowAcceptanceFactors;
-    this.nodesToSync = nodesToSync;
-
-    // starting point of tracking the sending flows, are the origin sending flows
-    if(nodesToSync == null) {
-      this.bushSendingFlows = ConjugateBushUtils.createAllOriginExitSegmentSendingFlows(conjBush);
-    }else{
-      this.bushSendingFlows = ConjugateBushUtils.createOriginExitSegmentSendingFlowsNodeFiltered(conjBush, nodesToSync);
-    }
+    this.bushSendingFlows = ConjugateBushUtils.createAllOriginExitSegmentSendingFlows(conjBush);
   }
 
   /**
@@ -112,10 +90,7 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
   @Override
   public void accept(final ConjugateDirectedVertex currConjVertex) {
 
-    // use existing (unsynced) splitting rates as truth, scale the flow up or down depending
-    // on the actual propagated flow.
-    // DO NOT USE THE ACTUAL TURN SENDING FLOWS directly because they may be wrong, we can only trust
-    // the splitting rates as they are normalised and used in loading.
+    // splitting rates for turns on original link (conjugate vertex)
     double[] splittingRates = conjBush.getSplittingRates(currConjVertex);
     if(!currConjVertex.hasExitEdgeSegments()) {
       return;
@@ -136,7 +111,6 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
 
     /* bush splitting rates by [exit segment, exit label] as key
     *  in conjugate setting all conjugate entry segments will have the same splitting rates */
-
     for (var conjEntrySegment : currConjVertex.getEntryEdgeSegments()) {
       if (!conjBush.contains(conjEntrySegment)) {
         if(conjBush.containsTurnSendingFlow(conjEntrySegment)){
@@ -148,37 +122,8 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
         continue;
       }
 
-      boolean allowSendingFlowAsSeedFlowInsteadOfOrigin = false;
-      if (!CollectionUtils.nullOrEmpty(nodesToSync)) {
-        if(nodesToSync.contains(conjEntrySegment.getOriginalCentreVertex())) {
-          allowSendingFlowAsSeedFlowInsteadOfOrigin = true;
-        }else{
-          // only when selective update and not part of those nodes, we do not require processing
-          return;
-        }
-      }
-
       Double bushConjSegmentSendingFlow = bushSendingFlows.get(conjEntrySegment);
-      if(bushConjSegmentSendingFlow == null && allowSendingFlowAsSeedFlowInsteadOfOrigin){
-        // initialise from sending flow as this is a mid-way local starting point
-        bushConjSegmentSendingFlow = conjBush.getSendingFlowPcuH(conjEntrySegment);
-      }
-
-      Double bushConjSegmentAcceptedFlow = bushConjSegmentSendingFlow;
-      if (bushConjSegmentSendingFlow != null ) {
-        var originalTurnEntrySegment = conjEntrySegment.getOriginalAdjacentEdgeSegments().first();
-
-        // IMPOSE SENDING FLOW ON BUSH
-        conjBush.bushData.setTurnSendingFlow(conjEntrySegment, bushConjSegmentSendingFlow, false);
-
-        // ....otherwise propagate with alphas and update local bush sending flows as we go
-        if (originalTurnEntrySegment != null) {
-          var originalEntrySegmentId = (int) originalTurnEntrySegment.getId();
-          double alpha = Math.min(1,originalNetworkFlowAcceptanceFactors[originalEntrySegmentId]);
-          bushConjSegmentAcceptedFlow *= alpha;
-        }
-      }else{
-
+      if (bushConjSegmentSendingFlow == null) {
         if(conjBush.containsTurnSendingFlow(conjEntrySegment)) {
           // should ideally not happen, but possible due to shifting not being fully consistent with loading as it
           // happens locally, when we find ghost flow, we make sure that it is truncated to zero
@@ -189,6 +134,18 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
         }
         // no point in processing exits as there is no flow to propagate
         continue;
+      }
+
+      // IMPOSE SENDING FLOW ON BUSH
+      conjBush.bushData.setTurnSendingFlow(conjEntrySegment, bushConjSegmentSendingFlow, false);
+
+      // ....otherwise propagate with alphas and update local bush sending flows as we go
+      var originalTurnEntrySegment = conjEntrySegment.getOriginalAdjacentEdgeSegments().first();
+      double bushConjSegmentAcceptedFlow = bushConjSegmentSendingFlow;
+      if (originalTurnEntrySegment != null) {
+        var originalEntrySegmentId = (int) originalTurnEntrySegment.getId();
+        double alpha = Math.min(1,originalNetworkFlowAcceptanceFactors[originalEntrySegmentId]);
+        bushConjSegmentAcceptedFlow *= alpha;
       }
 
       int splittingRateIndex = 0;
@@ -207,7 +164,7 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
             conjBush.remove(conjEntrySegment);
             if(bushConjSegmentAcceptedFlow > 0 && splittingRate>0){
               // removing ghost flow is not problematic but if we have a segment not on the bush but with flow and
-              // propagated flow we do have an issue
+              // propagated flow we do have an issue as it limits rearranging/improving the bush structure
               LOGGER.warning(String.format(
                   "removed (node exit) propagated flow was non-zero either (%.4f), bush flow propagation compromised",
                   bushConjSegmentAcceptedFlow * splittingRate));

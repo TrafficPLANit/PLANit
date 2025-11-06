@@ -65,17 +65,6 @@ public class StaticLtmConjugateBushStrategy
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmConjugateBushStrategy.class.getCanonicalName());
 
-  public static final boolean INITIALISE_WARM_START_FROM_DISK_TURN_FLOWS = false;
-//  public static final boolean INITIALISE_WARM_START_FROM_DISK_TURN_FLOWS = true;
-  public static final int PERSIST_WARM_START_TO_DISK_TURN_FLOW_ITERATION = 50; //when > max iterations it does not happen
-  //public static final int PERSIST_WARM_START_TO_DISK_TURN_FLOW_ITERATION = Integer.MAX_VALUE; //when > max iterations it does not happen
-//  public static final Path WARM_START_LOCATION =
-//      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","leuven_plus20perc","warm_start_50");
-  public static final Path WARM_START_LOCATION =
-      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","leuven","warm_start_50");
-//  public static final Path WARM_START_LOCATION =
-//      Path.of("C:","projects","git","IntegrationTest","src","test","resources","planit","siouxfalls","warmstart");
-
   private double prevNetworkRealisedCost = Double.MAX_VALUE; // use as an additional way to update bush smoothing steps
 
   /** access to original bush turn flows. To be used for constraining identifying available sending flows
@@ -541,75 +530,36 @@ public class StaticLtmConjugateBushStrategy
 
     var shortestPathAlgorithm = (ShortestPathDijkstra) shortestTreeAlgorithm;
     ShortestPathResult allToOneResult = shortestPathAlgorithm.executeAllToOne(destinationConjugateReferenceVertex);
-    // TODO: UGLY HARD CODED HACK FOR TESTING WARM STARTS
-    if(INITIALISE_WARM_START_FROM_DISK_TURN_FLOWS){
-      // ugly hack, but we can load from disk
-      var turnFlowData = ConjugateBushTurnData.readTurnFlowDataFromCsv(
-          WARM_START_LOCATION, destination,getConjugateTransportModelNetwork());
-      // add all turns and turn flows (splitting rates) to bush
-      turnFlowData.forEach((key, value) -> {
-        bush.getDag().addEdgeSegment(key);
-        bush.bushData.setTurnSendingFlow(key, value, false);
-      });
 
-      // demand to OD-shortest paths
-      for (var origin : zoning.getOdZones()) {
-        if (origin.idEquals(destination)) {
-          continue;
-        }
-        Double currOdDemand = odDemands.getValue(origin, destination);
-        if (currOdDemand != null && currOdDemand > 0) {
-          var originConjugateReferenceVertex =
-              centroid2ConjugateNodeMapping.get(findOriginCentroidVertex(origin));
-          bush.addOriginDemandPcuH(originConjugateReferenceVertex, currOdDemand);
+    // shortest path search + spanning tree creation
+    allToOneResult.populateDirectedAcyclicSubGraphSpanningTree(bush.getDag());
 
-          // ensure spanning tree
-          Stream.concat(conjugateTransportModelNetwork.getVirtualNetwork().getLayer().getVertices().stream(),
-                  conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().getFirst().getNodes().stream()).
-              forEach(v -> {
-                var es = allToOneResult.getNextEdgeSegmentForVertex(v);
-                if (es!=null && !bush.hasRegisteredExitSegments(v)) {
-                  bush.getDag().addEdgeSegment((ConjugateEdgeSegment) es);
-                }
-              });
-        }
+    // demand to OD-shortest paths
+    for (var origin : zoning.getOdZones()) {
+      if (origin.idEquals(destination)) {
+        continue;
       }
 
-    }else{
-      // shortest path search + spanning tree creation
-      allToOneResult.populateDirectedAcyclicSubGraphSpanningTree(bush.getDag());
+      Double currOdDemand = odDemands.getValue(origin, destination);
+      if (currOdDemand != null && currOdDemand > 0) {
+        var originConjugateReferenceVertex =
+            centroid2ConjugateNodeMapping.get(findOriginCentroidVertex(origin));
 
-      // demand to OD-shortest paths
-      for (var origin : zoning.getOdZones()) {
-        if (origin.idEquals(destination)) {
-          continue;
-        }
-
-        Double currOdDemand = odDemands.getValue(origin, destination);
-        if (currOdDemand != null && currOdDemand > 0) {
-          var originConjugateReferenceVertex =
-              centroid2ConjugateNodeMapping.get(findOriginCentroidVertex(origin));
-
-          /* add demand along conjugate bush's shortest path from destination back to origin */
-          // todo: could be more efficient, if we'd only added the demands and then walk topologicially using the next
-          // backlinks to add the demand
-          bush.addOriginDemandPcuH(originConjugateReferenceVertex, currOdDemand);
-          int numLinksInPath = allToOneResult.forEachNextEdgeSegment(destinationConjugateReferenceVertex, originConjugateReferenceVertex,
-              es -> bush.addTurnSendingFlow((ConjugateEdgeSegment) es, currOdDemand));
-          if(numLinksInPath == 0){
-            LOGGER.warning(String.format("Origin (%s) has demand to Destination (%s), but no viable path could be created" +
-                    ", reset demand to zero"
-                , origin.getIdsAsString(), destination.getIdsAsString()));
-            bush.removeOriginDemandPcuH(originConjugateReferenceVertex);
-          }
+        /* add demand along conjugate bush's shortest path from destination back to origin */
+        // todo: could be more efficient, if we'd only added the demands and then walk topologicially using the next
+        // backlinks to add the demand
+        bush.addOriginDemandPcuH(originConjugateReferenceVertex, currOdDemand);
+        int numLinksInPath = allToOneResult.forEachNextEdgeSegment(destinationConjugateReferenceVertex, originConjugateReferenceVertex,
+            es -> bush.addTurnSendingFlow((ConjugateEdgeSegment) es, currOdDemand));
+        if(numLinksInPath == 0){
+          LOGGER.warning(String.format("Origin (%s) has demand to Destination (%s), but no viable path could be created" +
+                  ", reset demand to zero"
+              , origin.getIdsAsString(), destination.getIdsAsString()));
+          bush.removeOriginDemandPcuH(originConjugateReferenceVertex);
         }
       }
     }
     return !bush.getDag().isEmpty();
-  }
-
-  public void persistBushDataForWarmStart(){
-    getBushes().forEach(b -> b.bushData.writeToCsv(WARM_START_LOCATION));
   }
 
   /**
