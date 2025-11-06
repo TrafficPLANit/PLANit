@@ -2,12 +2,10 @@ package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
-import org.goplanit.assignment.SimulationData;
 import org.goplanit.assignment.common.bush.RootedBush;
 import org.goplanit.assignment.common.pas.*;
 import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.common.StaticLtmSimulationData;
-import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.cost.virtual.SteadyStateConnectoidTravelTimeCost;
 import org.goplanit.gap.GapFunction;
@@ -22,10 +20,6 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.misc.Quadruple;
-import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.zoning.OdZone;
@@ -33,7 +27,6 @@ import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 /**
@@ -452,13 +445,15 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    *
    * @param mode             to use
    * @param linkSegmentCosts to use
-   * @param updateGap        flag
    * @param simulationData   to use
    * @param logAll           flag
    * @return newly created PASs and existing PAss with newly assigned bushes
    */
-  protected abstract Map<Long,Pas<V,ES>> updateBushPass(
-      Mode mode, final double[] linkSegmentCosts, boolean updateGap, StaticLtmSimulationData simulationData, boolean logAll);
+  protected abstract Map<Long,Pas<V,ES>> updateBushPassAndGap(
+      Mode mode,
+      final double[] linkSegmentCosts,
+      StaticLtmSimulationData simulationData,
+      boolean logAll);
 
   /**
    * Constructor
@@ -534,8 +529,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       }
       boolean validBush = initialiseBush(bush, zoning, odDemands, shortestTreeAlgorithm);
       if(!validBush){
-        LOGGER.warning(String.format("Bush for root zone (%s) could not be initialised, likely due to lack of connectivity " +
-                "as a destination, discard", bush.getRootZone().getIdsAsString()));
+        LOGGER.warning(String.format("Bush for root zone (%s) could not be initialised, likely due to lack of " +
+            "connectivity as a destination, discard", bush.getRootZone().getIdsAsString()));
         invalidBushesToRemove.add(bush);
         continue;
       }
@@ -710,11 +705,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   //@formatter:off
   /**
    * Perform an iteration by:
-   *  
-   * 1. Identify new PASs and shift flow from affected bushes
-   * 2. Conduct another loading update based on adjusted PASs and bushes
-   * 3. Update Bushes by shifting flow between existing PASs 
-   * 4. Conducting a loading to obtain network costs 
+   *  <ol>
+   * <li>Conducting a loading to obtain network costs</li>
+   * <li>sync bush flows to network flows based on acceptance factors found in loading</li>
+   * <li>Identify new PASs and shift flow from affected bushes</li>
+   * </ol>
    * 
    * @param theMode to use
    * @param prevCosts the previously used costs from the previous iteration
@@ -751,8 +746,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         boolean logAll = false; //simulationData.getIterationIndex()>=200;
 
         /* (NEW) PAS MATCHING FOR BUSHES */
-        boolean updateGap = true; // todo consider computing gap directly after determining costs?
-        var passToConsider = updateBushPass(theMode, costsToUpdate, updateGap, simulationData, logAll);
+        var passToConsider = updateBushPassAndGap(theMode, costsToUpdate, simulationData, logAll);
         if(getSettings().isDetailedLogging()) {
           LOGGER.info(String.format("Newly added PASs: %d (active: %d))",
                   passToConsider.size(), pasManager.getNumberOfActivePass()));

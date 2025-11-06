@@ -902,7 +902,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   // to network based min path for bush (which may not only traverse links present in bush and differ)
   public double updateBushRealisedGapInformation(
       ConjugateTransportModelNetwork conjugateTransportModelNetwork,
-      ShortestPathDijkstra conjNetworkShortestPathAlgo,
       OdDemands odDemands,
       double[] conjLinkSegmentCosts) {
 
@@ -910,9 +909,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     var bushMinMaxTree = computeMinMaxShortestPaths(excludeZeroFlowLinksFromMaxPaths,
         conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
 
-    var networkMinPaths = conjNetworkShortestPathAlgo.execute(getShortestSearchType(), getRootVertex());
-
-    double scaledMinCostBush = 0;
+    double totalBushMinPathCost = 0;
     double scaledMaxCostBush = 0;
     bushMinMaxTree.setMinPathState(false);
     var destination = getDestination().getParent().getParentZone();
@@ -927,36 +924,10 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
       scaledMaxCostBush += scaledMaxCostBushOd;
 
       double minOdCost = bushMinMaxTree.getMinCostToReach(originVertex);
-      double minNetworkOdCost = networkMinPaths.getCostToReach(originVertex);
-
-//      if( (minOdCost - Precision.EPSILON_12) > minNetworkOdCost) {
-//        var bushMinPath = bushMinMaxTree.createRawPath(originVertex, getRootVertex());
-//        var networkMinPath = networkMinPaths.createRawPath(originVertex, getRootVertex());
-//        if(bushMinPath == null || networkMinPath == null){
-//          int bla = 4;
-//        }
-//        if(!bushMinPath.equals(networkMinPath)) {
-//          for(var segment: networkMinPath){
-//            if(!contains((ConjugateEdgeSegment)segment)) {
-//              var result = ConjugateBushUtils.isEligibleForAdding((ConjugateEdgeSegment) segment, conjLinkSegmentCosts, bushMinMaxTree);
-//              if(!result.first()){
-////                LOGGER.info("bush od path cost: " + minOdCost + "vs network min cost: " + minNetworkOdCost);
-////                LOGGER.info("bush min od path: " + bushMinPath);
-////                LOGGER.info("network min od path: " + networkMinPath);
-////                LOGGER.info(String.format("segment (%s) (parent link %s) denied for adding on bush (%s)",segment.getIdsAsString(), segment.getParent().getIdsAsString(), getRootZone().getIdsAsString()));
-//
-//                result = ConjugateBushUtils.isEligibleForAdding((ConjugateEdgeSegment) segment, conjLinkSegmentCosts, bushMinMaxTree);
-//                break; // there maybe more, but for now just print one
-//              }
-//            }
-//          }
-//        }
-//      }
-
-      scaledMinCostBush += minOdCost * odDemand;
+      totalBushMinPathCost += minOdCost * odDemand;
     }
     // update
     setRealisedCostForGap(scaledMaxCostBush);
-    return scaledMinCostBush; // bush only min path scaled to demand
+    return totalBushMinPathCost; // bush only min bush path scaled to demand
   }
 }

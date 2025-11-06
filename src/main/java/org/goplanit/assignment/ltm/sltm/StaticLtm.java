@@ -109,29 +109,62 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
     /* for now only a single mode is supported (although written for more), todo: https://github.com/TrafficPLANit/PLANit/issues/112 */
     for(var mode : modes){
-      /* construct costs on all link segments to start with */
 
       /* empty entries for all link segments by mode */
-      final double[] initialLinkSegmentCosts = CostUtils.createEmptyLinkSegmentCostArray(getInfrastructureNetwork(), getZoning());
+      final double[] initialLinkSegmentCosts =
+          CostUtils.createEmptyLinkSegmentCostArray(getInfrastructureNetwork(), getZoning());
+
       /* virtual component */
-      CostUtils.populateModalVirtualLinkSegmentCosts(mode, getVirtualCost(), getZoning().getVirtualNetwork(), initialLinkSegmentCosts);
+      CostUtils.populateModalVirtualLinkSegmentCosts(
+          mode, getVirtualCost(), getZoning().getVirtualNetwork(), initialLinkSegmentCosts);
+
       /* physical component (including initial costs if present)*/
-      if(populateWithPhysicalInitialCostIfAvailable(mode, timePeriod, getUsedNetworkLayer().getLinkSegments(), initialLinkSegmentCosts)) {
-        LOGGER.info(String.format("%sPrepared sLTM initial costs for traffic assignment time period (%s)",LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
+      if(populateWithPhysicalInitialCostIfAvailable(
+          mode, timePeriod, getUsedNetworkLayer().getLinkSegments(), initialLinkSegmentCosts)) {
+        LOGGER.info(String.format("%sPrepared sLTM initial costs for traffic assignment time period (%s)",
+            LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
         simulationData.setInitialCostsAppliedInFirstIteration(mode, true);
       }else{
-        LOGGER.info(String.format("%sNo initial costs for traffic assignment time period (%s), utilising free flow costs",LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
-        CostUtils.populateModalPhysicalLinkSegmentCosts(mode, getPhysicalCost(), getInfrastructureNetwork(), initialLinkSegmentCosts);
+        LOGGER.info(String.format("%sNo initial costs for traffic assignment time period (%s), " +
+            "utilising free flow costs",LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
+        CostUtils.populateModalPhysicalLinkSegmentCosts(
+            mode, getPhysicalCost(), getInfrastructureNetwork(), initialLinkSegmentCosts);
       }
       simulationData.setLinkSegmentTravelTimePcuH(mode, initialLinkSegmentCosts);
 
-      /* create initial solution as starting point for equilibration */
+      // use to create initial starting solution
       assignmentStrategy.createInitialSolution(
           mode, getZoning().getOdZones(), initialLinkSegmentCosts, simulationData.getIterationIndex());
       LOGGER.info("Created initial solution, proceeding with iterative procedure");
     }
 
     return simulationData;
+  }
+
+  /**
+   * Before invoking to performing the iteration on the underlying static LTM assignment strategy, this method is called
+   * to allow all relevant traffic assignment components to prepare for the upcoming iterations.
+   */
+  private void prepareComponentsBeforePerformIteration() {
+
+    // Smoothing: depending on supported smoothing types, prepare their state
+    var smoothing = getSmoothing();
+    if (smoothing instanceof IterationBasedSmoothing) {
+      ((IterationBasedSmoothing) smoothing).updateIteration(simulationData.getIterationIndex());
+      if(smoothing instanceof MSRASmoothing) {
+        ((MSRASmoothing)smoothing).updateIsBadIteration(getGapFunction().getPreviousGap(), getGapFunction().getGap());
+        if(settings.isDetailedLogging() && ((MSRASmoothing)smoothing).isBadIteration()){
+          ((MSRASmoothing)smoothing).logStepSize();
+        }
+      }
+      smoothing.updateStepSize();
+    }
+
+    // Gap function: reset internal state for tracking anything else but gaps (those are only reet when calling reset())
+    getGapFunction().resetIteration();
+
+    // Loading: reset to initial state
+    assignmentStrategy.getLoading().resetIteration();
   }
 
   /**
@@ -145,7 +178,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* prep */
     setTimePeriod(timePeriod);
     this.simulationData = initialiseTimePeriodSpecificData(timePeriod, modes);
-    var runTimeTracker = getIterationData().getRunTimesTracker().get(RunTimesTracker.GENERAL);
+    var runTimeTracker = simulationData.getRunTimesTracker().get(RunTimesTracker.GENERAL);
     if (simulationData.getSupportedModes().size() != 1) {
       LOGGER.warning(
           String.format("%ssLTM only supports a single mode for now, found %d, aborting assignment for time period %s",
@@ -158,25 +191,14 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* ASSIGNMENT LOOP */
     do {
       runTimeTracker.resetIterationTime();
-
       simulationData.incrementIterationIndex();
-      var smoothing = getSmoothing();
-      if (smoothing instanceof IterationBasedSmoothing) {
-        ((IterationBasedSmoothing) smoothing).updateIteration(simulationData.getIterationIndex());
-        if(smoothing instanceof MSRASmoothing) {
-          ((MSRASmoothing)smoothing).updateIsBadIteration(getGapFunction().getPreviousGap(), getGapFunction().getGap());
-          if(settings.isDetailedLogging() && ((MSRASmoothing)smoothing).isBadIteration()){
-            ((MSRASmoothing)smoothing).logStepSize();
-          }
-        }
-        smoothing.updateStepSize();
-      }
-      getGapFunction().resetIteration();
-      assignmentStrategy.getLoading().resetIteration();
 
-      /* LOADING UPDATE + PATH/BUSH UPDATE */
+      // prep/reset TA components (smoothing, gap, loading) so they are ready for upcoming iteration
+      prepareComponentsBeforePerformIteration();
+
+      /* LOADING UPDATE + PATH/BUSH ROUTE CHOICE UPDATE */
       for(var mode : simulationData.getSupportedModes()) {
-        double[] prevCosts = getIterationData().getLinkSegmentTravelTimePcuH(mode);
+        double[] prevCosts = simulationData.getLinkSegmentTravelTimePcuH(mode);
         double[] costsToUpdate = Arrays.copyOf(prevCosts, prevCosts.length);
         boolean success = assignmentStrategy.performIteration(mode, prevCosts, costsToUpdate, simulationData);
         if (!success) {
@@ -184,14 +206,11 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
           throw new PlanItRunTimeException("Aborting PLANit assignment");
         }
         // COST UPDATE
-        getIterationData().setLinkSegmentTravelTimePcuH(mode, costsToUpdate);
+        simulationData.setLinkSegmentTravelTimePcuH(mode, costsToUpdate);
       }
 
       // CONVERGENCE CHECK
       convergedOrStop = assignmentStrategy.hasConverged(getGapFunction(), simulationData.getIterationIndex());
-      if(getGapFunction().getGap() == 0){
-        int bla = 4;
-      }
 
       var iterationEndTime = Calendar.getInstance();
       var iterationRunTime = iterationEndTime.getTimeInMillis() - iterationStartTime.getTimeInMillis();

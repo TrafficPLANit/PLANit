@@ -41,7 +41,6 @@ import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
 import org.ojalgo.array.Array1D;
 
-import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
@@ -281,7 +280,7 @@ public class StaticLtmConjugateBushStrategy
    * @param theMode                      to use
    * @param nonConjugateLinkSegmentCosts to use
    * @param considerTurnDiscontinuities  to use when considerTurnDiscontinuities is true, otherwise use link based costs
-   * @return min total cost
+   * @return min total cost for network (bush min gaps are tracked on the bush instances themselves)
    */
   private double calculateMinCostForNetworkAndBushGap(
       Mode theMode,
@@ -299,7 +298,7 @@ public class StaticLtmConjugateBushStrategy
 
     final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCostsToUse);
     for (var conjBush : getBushes()) {
-      double scaledMinCostBush = 0;
+      double totalMinCostForBushGap = 0;
       if (conjBush == null) {
         continue;
       }
@@ -325,10 +324,10 @@ public class StaticLtmConjugateBushStrategy
         double minOdCost = networkMinPaths.getCostToReach(originVertex);
         double scaledMinCostBushOd = minOdCost * odDemand;
         totalMinCostForGap += scaledMinCostBushOd;
-        scaledMinCostBush += scaledMinCostBushOd;
+        totalMinCostForBushGap += scaledMinCostBushOd;
       }
       // we'll set the measured cost when traversing the bushes in search fo pass.
-      conjBush.setMinCostForGap(scaledMinCostBush);
+      conjBush.setMinCostForGap(totalMinCostForBushGap);
     }
     return totalMinCostForGap;
   }
@@ -546,10 +545,12 @@ public class StaticLtmConjugateBushStrategy
             centroid2ConjugateNodeMapping.get(findOriginCentroidVertex(origin));
 
         /* add demand along conjugate bush's shortest path from destination back to origin */
-        // todo: could be more efficient, if we'd only added the demands and then walk topologicially using the next
-        // backlinks to add the demand
+        // todo: could be more efficient, if we'd only added the demands and then walk topologically using the next
+        //  backlinks to add the demand
         bush.addOriginDemandPcuH(originConjugateReferenceVertex, currOdDemand);
-        int numLinksInPath = allToOneResult.forEachNextEdgeSegment(destinationConjugateReferenceVertex, originConjugateReferenceVertex,
+        int numLinksInPath = allToOneResult.forEachNextEdgeSegment(
+            destinationConjugateReferenceVertex,
+            originConjugateReferenceVertex,
             es -> bush.addTurnSendingFlow((ConjugateEdgeSegment) es, currOdDemand));
         if(numLinksInPath == 0){
           LOGGER.warning(String.format("Origin (%s) has demand to Destination (%s), but no viable path could be created" +
@@ -769,64 +770,84 @@ public class StaticLtmConjugateBushStrategy
   }
 
   /**
-   * Based on provided original network link segment costs see if we can update the existing collection of PASs
+   * Compute the network convergence gap by updating the gapfunction component utilising latest link costs and flows
+   * on the original network. In addition, also populate each bush's totalNetworkMinCost = min OD cost * demand
+   * (for all O's on the D-bush) that can be used for computing a bush specific gap if needed. The latter is tracked
+   * on the bush instance itself.
+   *
+   * @param mode to use
+   * @param nonConjugateLinkSegmentCosts to use
+   * @param conjLinkSegmentCosts to use
+   * @return totalNetworkMinCost and totalNetworkRealisedCost as a pair both scaled to unconstrained demand utilisning
+   *  the network shortest paths for each OD.
+   */
+  private Pair<Double,Double> updateNetworkConvergenceGapAndBushMinCostForBushGap(
+      Mode mode,
+      double[] nonConjugateLinkSegmentCosts,
+      double[] conjLinkSegmentCosts) {
+
+    double totalMinCostForGap = 0;
+    double totalRealisedCostForGap = 0;
+
+    boolean considerTurnDiscontinuities = true;
+    totalRealisedCostForGap = calculateRealisedCostForNetworkGap(mode, nonConjugateLinkSegmentCosts);
+    totalMinCostForGap = calculateMinCostForNetworkAndBushGap(
+        mode, nonConjugateLinkSegmentCosts, conjLinkSegmentCosts, considerTurnDiscontinuities);
+
+    // finalise gap part
+    var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
+    // both costs have already been normalised to demand so use unity to transfer as is
+    // ideally we'd use a link based gap but this is not ideal with the path based implementation we also support
+    // for sLTM
+    gapFunction.increaseMinimumPathCosts(totalMinCostForGap,1);
+    gapFunction.increaseAbsolutePathGap(totalRealisedCostForGap, 1, totalMinCostForGap);
+    if(getSettings().isDetailedLogging()){
+      LOGGER.severe(String.format("Total Realised cost: (%.16f)", totalRealisedCostForGap));
+    }
+
+    return Pair.of(totalMinCostForGap,totalRealisedCostForGap);
+  }
+
+  /**
+   * Based on provided original network link segment costs determine the collection of conjugate PASs to consider for
+   * flow shifting.
    *
    * @param mode                         to use
    * @param nonConjugateLinkSegmentCosts to use
-   * @param updateGap                    flag
    * @param simulationData               to use
    * @param logAll                       flag
    * @return newly created PASs
    */
   @Override
   protected Map<Long,Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>>
-  updateBushPass(
+  updateBushPassAndGap(
       Mode mode,
       double[] nonConjugateLinkSegmentCosts,
-      boolean updateGap,
       StaticLtmSimulationData simulationData,
       boolean logAll){
-
-
-    // rationale, any gap multiplies cost with flow. Flow upper bound generally does not exceed 10k in PCU/h per link,
-    // so any route will be less than that. Hence, any gap in terms of normalised cost to this flow should be considered
-    // and will aid in bringing the network gap down.
-    final double MIN_REDUCED_COST = getGapFunction().getStopCriterion().getEpsilon()/10000.0;
 
     Map<Long, Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> passToConsider = new TreeMap<>();
 
     // method overridden for conjugate implementation resulting in conjugate compatible shortest path search using
-    // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within method for now...
-    // here we do use discontinuity costs because when considering new PASs it must be taken into account
-    final var conjLinkSegmentCosts =
-        expandNonConjugateLinkSegmentCostToConjugateSegmentCost(mode, nonConjugateLinkSegmentCosts, true);
+    // conjugate link segment costs. For maintainability/readability expansion to conjugate costs occurs within
+    // method for now...
+    // Here we do consider discontinuity costs because when considering new PASs it must be taken into account
+    final var conjLinkSegmentCosts = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
+        mode, nonConjugateLinkSegmentCosts, true);
 
-    double totalMinCostForGap = 0; // track during bush traversal to get min OD costs based on shortest paths
-    double totalRealisedCostForGap = 0;
-    if(updateGap) {
-      boolean considerTurnDiscontinuities = true;
-      totalRealisedCostForGap = calculateRealisedCostForNetworkGap(mode, nonConjugateLinkSegmentCosts);
-      totalMinCostForGap = calculateMinCostForNetworkAndBushGap(
-          mode, nonConjugateLinkSegmentCosts, conjLinkSegmentCosts, considerTurnDiscontinuities);
-
-      // finalise gap part
-      var gapFunction = (PathBasedGapFunction) getTrafficAssignmentComponent(GapFunction.class);
-      // both costs have already been normalised to demand so use unity to transfer as is
-      // ideally we'd use a link based gap but this is not ideal with the path based implementation we also support
-      // for sLTM
-      gapFunction.increaseMinimumPathCosts(totalMinCostForGap,1);
-      gapFunction.increaseAbsolutePathGap(totalRealisedCostForGap, 1, totalMinCostForGap);
-      if(getSettings().isDetailedLogging()){
-        LOGGER.severe(String.format("Total Realised cost: (%.16f)", totalRealisedCostForGap));
-      }
-    }
+    // compute network convergence gap as well as per bush min cost information to calculate bush specific gaps next
+    // todo: move this out of this method as a stand alone precursor to calling this once construction of of conj
+    //  link segment costs is abstracted out
+    var networkGapCalcResult = updateNetworkConvergenceGapAndBushMinCostForBushGap(
+        mode, nonConjugateLinkSegmentCosts, conjLinkSegmentCosts);
+    double totalMinCostForGap = networkGapCalcResult.first();
+    double totalRealisedCostForGap = networkGapCalcResult.second();
 
     // ALTERNATIVE BUSH PRUNING BASED ON BUSH GAP CALC
     int countGapSkippedBushes = 0;
     Set<ConjugateDestinationBush> eligibleBushes = new TreeSet<>();
     int totalConvergedBushes = 0;
     int totalCycleLimitedBushes = 0;
-    int totalRegularUnconvergedBushes = 0;
     int totalNonImprovingBushes = 0;
     double summedInternalBushGaps = 0;
     for (var conjBush : getBushes()) {
@@ -836,9 +857,9 @@ public class StaticLtmConjugateBushStrategy
 
       // for each bush determine if we're converging, moving away from convergence or have converged
       // to determine its step size for smoothing
-      final var conjNetworkShortestPathAlgo = createNetworkShortestPathAlgo(conjLinkSegmentCosts);
       double scaledMinCostBush = conjBush.updateBushRealisedGapInformation(
-          conjugateTransportModelNetwork, conjNetworkShortestPathAlgo, getOdDemands(mode), conjLinkSegmentCosts);
+          conjugateTransportModelNetwork, getOdDemands(mode), conjLinkSegmentCosts);
+      conjBush.getRealisedCostForGap();
 
       double bushUpperBoundGap =
           (conjBush.getRealisedCostForGap() - conjBush.getMinCostForGap())/conjBush.getMinCostForGap();
@@ -865,7 +886,6 @@ public class StaticLtmConjugateBushStrategy
         }
       }else{
         eligibleBushes.add(conjBush);
-        ++totalRegularUnconvergedBushes;
       }
       conjBush.prevIterationInitialGap = bushUpperBoundGap;
 
