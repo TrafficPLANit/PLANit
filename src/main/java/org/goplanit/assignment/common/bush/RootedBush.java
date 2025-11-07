@@ -206,19 +206,6 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   public abstract void syncToNetworkFlows(double[] flowAcceptanceFactors);
 
   /**
-   * To avoid bushes keeping low flow links occupied and limiting options to use links or opposite links
-   * more efficiently, we will remove very low flow links from each bush, implicitly shifting this flow to
-   * higher usage branches.
-   *
-   * @param flowThreshold         any links with flow below this threshold will be implicitly branch shifted
-   * @param flowAcceptanceFactors edge segment flow acceptance factors indexed by internal id
-   * @param detailedLogging       when true log what branch shifted links are affected
-   * @return the edge segments that were removed during the flow shifts from this bush
-   */
-  public abstract TreeSet<? extends ES> performLowFlowBranchShifts(
-          double flowThreshold, double[] flowAcceptanceFactors, boolean detailedLogging);
-
-  /**
    * Constructor
    *
    * @param dag        to use for the subgraph representation

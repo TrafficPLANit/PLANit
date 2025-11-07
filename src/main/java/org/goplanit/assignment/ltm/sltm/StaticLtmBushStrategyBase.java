@@ -440,6 +440,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     }
   }
 
+  public void performGlobalGapCalculationAndTrackBushGapInformation() {
+
+  }
+
   /**
    * Update the PASs for bushes given the network costs and current bushes DAGs
    *
@@ -582,56 +586,12 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           Mode theMode, double[] networkLinkSegmentFlowAcceptanceFactors);
 
   /**
-   * To avoid bushes keeping low flow links occupied and limiting options to use links or opposite links
-   * more efficiently, we will remove very low flow links from each bush, implicitly shifting this flow to
-   * higher usage branches.
+   * Update costs on original network links as well as for all PASs.
    *
-   * @param flowThreshold         any links with flow below this threshold will be implictly branch shifted
-   * @param flowAcceptanceFactors to use
+   * @param theMode to use
+   * @param costsToUpdate to costs to be updated on this raw array
+   * @param doLoadingAllFlowUpdatePriorToCostUpdate flag
    */
-  @SuppressWarnings("unchecked")
-  protected void performLowFlowBushBranchShifts(double flowThreshold, double[] flowAcceptanceFactors) {
-    int numShifts = 0;
-    Map<ES, Set<B>> removedSegmentsForBushes = new TreeMap<>();
-    for (B bush : bushes) {
-
-      if(bush == null){
-        continue;
-      }
-
-      var removedEdgeSegments =
-              bush.performLowFlowBranchShifts(
-                      flowThreshold, flowAcceptanceFactors, isDestinationTrackedForLogging(bush));
-      if(removedEdgeSegments==null || removedEdgeSegments.isEmpty()){
-        continue;
-      }
-
-      ++numShifts;
-      // signal that this bush should be removed from any PAS that utilises the removed edge segment on S1/S2
-      for(var removedSegment : removedEdgeSegments){
-        removedSegmentsForBushes.computeIfAbsent(removedSegment, es -> new TreeSet<>()).add(bush);
-      }
-    }
-
-    // deregister bushes from PASs that have edge segments that were removed for that bush as a result of the branch shift
-    this.pasManager.forEachActivePas(pas -> {
-      for(var removedSegmentsEntry : removedSegmentsForBushes.entrySet()){
-        if(pas.getRegisteredBushes().stream().noneMatch(b -> removedSegmentsEntry.getValue().contains(b))){
-          continue;
-        }
-        // potential for removing one or more bushes but only if removed segment(s) overlap with the PAS
-        if(pas.containsEdgeSegment(removedSegmentsEntry.getKey())){
-          // overlap found, remove bush from PAS since it is no longer valid
-          pas.removeBushes((Collection<RootedBush<V, ES>>) removedSegmentsEntry.getValue());
-        }
-      }
-    });
-
-    if(getSettings().isDetailedLogging()){
-      LOGGER.info(String.format("Performed %d low flow branch shifts", numShifts));
-    }
-  }
-
   protected void executeCostUpdateAfterLoading(
       Mode theMode, double[] costsToUpdate, boolean doLoadingAllFlowUpdatePriorToCostUpdate) {
     // revert to always updating ALL link costs. This is simple and we know that we are using the right costs for the
@@ -743,22 +703,22 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */
       {
         // debugging
-        boolean logAll = false; //simulationData.getIterationIndex()>=200;
+        boolean logAll = false;
 
-        /* (NEW) PAS MATCHING FOR BUSHES */
+        /* (NEW) PAS MATCHING FOR BUSHES  + GAP calc*/
         var passToConsider = updateBushPassAndGap(theMode, costsToUpdate, simulationData, logAll);
         if(getSettings().isDetailedLogging()) {
           LOGGER.info(String.format("Newly added PASs: %d (active: %d))",
                   passToConsider.size(), pasManager.getNumberOfActivePass()));
         }
 
-        /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
+        /* DO FLOW SHIFTS  */
         {
-          // STEP1 + STEP2 (flow shifters + deactivate unused PASs)
+          // code for flow shifting in dedicated executor instances. Create them here, one for each PAS.
           final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors =
               prepareForFlowShifts(theMode, simulationData);
 
-          /* UNCONGESTED/CONGESTED FLOW SHIFTS (considering proposed shift) */
+          // actual flow shifting
           Collection<Pas<V,ES>> updatedPass = performFlowShifts(
               theMode, pasExecutors, costsToUpdate, simulationData);
 
@@ -768,12 +728,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
       }
 
-      /* 5 - perform low flow branch shifts on the bush level */
-//      {
-//        performLowFlowBushBranchShifts(0.001, getLoading().getCurrentFlowAcceptanceFactors());
-//      }
-
-      
     }catch(Exception e) {
       LOGGER.severe(e.getMessage());
       LOGGER.severe("Unable to complete sLTM iteration, print stack trace when enabling detailed logging");
