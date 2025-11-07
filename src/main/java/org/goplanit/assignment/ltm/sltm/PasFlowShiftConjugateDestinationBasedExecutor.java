@@ -2480,10 +2480,9 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
     // enter congested equilibration phase.
     boolean converged = false;
-    int MAX_INTERAL_ITERATIONS_ALLOWED = 100; //lowest level loop
     int internalIteration = 1;
     final Map<ConjugateDestinationBush, Double> bushS2RemainingSendingFlows = new TreeMap<>();
-    boolean doNotStop = true;
+    boolean stop = false;
     var sb = (isDestinationTrackedForLogging() || logAll) ? new StringBuilder() : null;
 
     final Map<ConjugateDestinationBush,Double> flowShiftTrackerForInitialAltTurn = new TreeMap<>();
@@ -2690,16 +2689,16 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         //sb.append(message).append(System.lineSeparator());
         LOGGER.info(message);
       }
-      //converged = pasGap <= conjStrategy.getGapFunction().getGap();
       ++internalIteration;
 
-      doNotStop = !converged && internalIteration <= MAX_INTERAL_ITERATIONS_ALLOWED;
+      stop = settings.getBushBasedInnerIterationStopCheck().test(
+          internalIteration, pasGap, conjStrategy.getGapFunction().getStopCriterion().getEpsilon());
 
       // remove zero-flow S2 bushes from PAS when we know they won't get used again, or it is the final iteration
-      if(!costSwitch || !doNotStop) {
+      if(!costSwitch || stop) {
         removeBushesFromPasIfZeroFlowSegmentCanBeRemoved(false /* no dangling nodes */);
       }
-    }while(!converged && doNotStop);
+    }while(!stop);
 
     // this value will be the overall shift applied (unless we have chosen to reset in which case it will be
     // the applied flow shift before resetting (since after resetting the change is zero which is pointless to provide)
@@ -2707,9 +2706,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     if(totalFlowShift != 0 && smoothingApproach!=FlowShiftSmoothingApproach.OFF) {
 
       double smoothingFactor = additionalSmoothingFactor * conjStrategy.getSmoothing().executeRefZero(1);
-      if(smoothingFactor < additionalSmoothingFactor){
-        int bla = 4;
-      }
       if(smoothingApproach==FlowShiftSmoothingApproach.NORMAL) {
         if (!Double.isNaN(pas.getProposedPasFlowShiftAdjustmentFactor()) &&
             !Double.isInfinite(pas.getProposedPasFlowShiftAdjustmentFactor())) {

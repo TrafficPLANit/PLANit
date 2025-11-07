@@ -281,10 +281,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     double totalPasReducedCost = 0;
     int numConsideredPas = 0;
 
-    double startingAveragePasGap = -1;
-
     minNetworkGapAsThreshold = Math.min(minNetworkGapAsThreshold, getGapFunction().getGap());
-    int MAX_ITERATIONS = ((int) -Math.log10(minNetworkGapAsThreshold)+1) * 4;
     int iteration = 1;
     do {
 
@@ -299,18 +296,22 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
       var pasGaps = computePasGaps(pasExecutors.keySet(), nlConsistentFlowAcceptanceFactors);
       var sortedPass = flowShiftingStepFourOrderPass(pasExecutors, pasGaps);
-      Collections.reverse(sortedPass);
+      if(getSettings().isBushBasedPasOrderDirectionAscending()) {
+        Collections.reverse(sortedPass);
+      }
 
       // debugging
       boolean logAll = false; //simulationData.getIterationIndex()>=50;
 
-      LOGGER.info(String.format("--- NEXT CONGESTED PASs INTERNAL ITERATION %d ----", iteration));
+      LOGGER.info(String.format("--- NEXT ROUTE CHOICE OUTER ITERATION %d ----", iteration));
 
       int congestedPasCounter = 0;
       long numCongestedPass = pasExecutors.keySet().stream().filter(
           p -> p.getStatus()!=PasStatus.UNCONGESTED_WITH_SHIFT || !p.hasRegisteredBushes()).count();
       double perPasPercentageOfTotal = 1.0/numCongestedPass;
 
+      final double outerIterationSmoothingFactor =
+          getSettings().getBushBasedOuterIterationSmoothingFunction().apply(iteration);
       for (var pas : sortedPass) {
         // ignore uncongested PASs or PASs not on bush
         if (pas.getStatus() == PasStatus.UNCONGESTED_WITH_SHIFT || !pas.hasRegisteredBushes()) {
@@ -322,11 +323,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
         ++congestedPasCounter;
 
-        // run from 1% exponential decay to 100% of most important PAS
-        double importanceSmoothingFactor =
-            Math.min(1, (1 - (Math.pow(0.01, (congestedPasCounter * perPasPercentageOfTotal))) + 0.01));
         var pasFlowShifter = pasExecutors.get(pas);
-
         if (!(pasFlowShifter.getS2SendingFlow() > 0) || !pas.hasRegisteredBushes()) { // todo: this piece of code is duplication from line 166 -> consolidate
           /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial
            * overlapping S2 segments */
@@ -344,7 +341,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           ++numConsideredPas;
         }
 
-        // equilibrated --> needs pas cost update because change of alphas and flows may impact low/high cost
+        // run from 1% exponential decay to 100% of most important PAS (if default function is used)
+        double pasImportanceSmoothingFactor = getSettings().getBushBasedPasImportanceSmoothingFunction().apply(
+            congestedPasCounter, perPasPercentageOfTotal);
+
+        // equilibrate --> needs pas cost update because change of alphas and flows may impact low/high cost
         var pasFlowShiftByRefTurn =
             pasFlowShifter.performEquilibratedCongestedFlowShifts(
                 theMode,
@@ -355,7 +356,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
                 getBushes(),
                 logAll,
                 PasFlowShiftExecutor.FlowShiftSmoothingApproach.NORMAL,
-                (1.0/(Math.pow(iteration,0.66))) * importanceSmoothingFactor);
+                outerIterationSmoothingFactor * pasImportanceSmoothingFactor);
 
         double pasFlowShifted = Math.abs(pasFlowShiftByRefTurn.second());
         if (pasFlowShifted > 0) {
@@ -383,7 +384,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       }
 
       iteration++;
-    }while(iteration <= MAX_ITERATIONS);
+    }while(!getSettings().getBushBasedOuterIterationStopCheck().test(iteration, minNetworkGapAsThreshold));
 
     LOGGER.info(String.format("TOTAL FLOW SHIFTED: %.10f", totalCongestedFlowShifted));
     LOGGER.info(String.format("MAX PAS COST DELTA: %.10f", maxPasReducedCost));
@@ -588,8 +589,8 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * Update costs on original network links as well as for all PASs.
    *
-   * @param theMode to use
-   * @param costsToUpdate to costs to be updated on this raw array
+   * @param theMode                                 to use
+   * @param costsToUpdate                           to costs to be updated on this raw array
    * @param doLoadingAllFlowUpdatePriorToCostUpdate flag
    */
   protected void executeCostUpdateAfterLoading(
@@ -715,8 +716,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         /* DO FLOW SHIFTS  */
         {
           // code for flow shifting in dedicated executor instances. Create them here, one for each PAS.
-          final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors =
-              prepareForFlowShifts(theMode, simulationData);
+          Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors = prepareForFlowShifts(theMode, simulationData);
 
           // actual flow shifting
           Collection<Pas<V,ES>> updatedPass = performFlowShifts(

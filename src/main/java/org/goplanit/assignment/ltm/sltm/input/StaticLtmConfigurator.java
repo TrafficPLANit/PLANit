@@ -14,10 +14,15 @@ import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.functionalinterface.TriPredicate;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.misc.Pair;
 
 import java.util.Arrays;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 /**
@@ -50,6 +55,16 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
   private static final String DISABLE_LINK_STORAGE_CONSTRAINTS = "setDisableLinkStorageConstraints";
 
   private static final String ACTIVATE_DETAILED_LOGGING = "setActivateDetailedLogging";
+
+  private static final String BUSH_BASED_OUTER_ITERATION_STOP_CHECK =  "setBushBasedOuterIterationStopCheck";
+
+  private static final String BUSH_BASED_OUTER_ITERATION_SMOOTHING_FUNCTION =  "setBushBasedOuterIterationSmoothingFunction";
+
+  private static final String BUSH_BASED_INNER_ITERATION_STOP_CHECK =  "setBushBasedInnerIterationStopCheck";
+
+  private static final String BUSH_BASED_PAS_ORDER_DIRECTION_ASCENDING = "setBushBasedPasOrderDirectionAscending";
+
+  private static final String BUSH_BASED_PAS_IMPORTANCE_SMOOTHING_FUNCTION =  "setBushBasedPasImportanceSmoothingFunction";
 
   private static final String SET_NETWORKLOADING_FLOW_ACCEPTANCE_GAP_EPSILON = "setNetworkLoadingFlowAcceptanceGapEpsilon";
 
@@ -135,6 +150,110 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
    */
   public void activateDetailedLogging(boolean flag) {
     registerDelayedMethodCall(ACTIVATE_DETAILED_LOGGING, flag);
+  }
+
+  /**
+   * Set stoppage check via a predicate. When it returns true, the loop is exited.
+   *
+   * @param outerIterationPredicate integer is current iteration index, double is the global minimum network gap
+   *                                experienced up to this point in the simulation
+   */
+  public void setBushBasedOuterIterationStopCheck(BiPredicate<Integer,Double> outerIterationPredicate){
+    registerDelayedMethodCall(BUSH_BASED_OUTER_ITERATION_STOP_CHECK, outerIterationPredicate);
+  }
+
+
+  /** Access stoppage check via a predicate. When it returns true, the outer PAS flow shifting loop is exited.
+   *
+   * @return integer is current iteration index, double is the global minimum network gap experienced up to this
+   * point in the simulation
+   */
+  public BiPredicate<Integer,Double> getBushBasedOuterIterationStopCheck(){
+    return getTypedFirstParameterOfDelayedMethodCall(BUSH_BASED_OUTER_ITERATION_STOP_CHECK);
+  }
+
+  /**
+   * Set outer iteration smoothing function based on the outer iteration index provided
+   *
+   * @param outerIterationSmoothingFunction integer is current iteration index, should return smoothing factor between
+   *                                       zero and one
+   */
+  public void setBushBasedOuterIterationSmoothingFunction(Function<Integer,Double> outerIterationSmoothingFunction){
+    registerDelayedMethodCall(BUSH_BASED_OUTER_ITERATION_SMOOTHING_FUNCTION, outerIterationSmoothingFunction);
+  }
+
+
+  /** Outer iteration smoothing function based on the outer iteration index provided, when applied the returned value
+   * is the factor applied to reduce the amount of flow shifted.
+   *
+   * @return function where integer is current iteration index, should return smoothing factor between
+   *        zero and one
+   */
+  public Function<Integer,Double> getBushBasedOuterIterationSmoothingFunction(){
+    return getTypedFirstParameterOfDelayedMethodCall(BUSH_BASED_OUTER_ITERATION_SMOOTHING_FUNCTION);
+  }
+
+  /**
+   * Set stoppage check via a predicate. When it returns true, the inner PAS flow shifting loop is exited.
+   *
+   * @param innerIterationPredicate integer is current iteration index, double is the current pas gap, while
+   *   the last double is the global gap stoppage criterion one can use as a criterion
+   */
+  public void setBushBasedInnerIterationStopCheck(TriPredicate<Integer,Double, Double> innerIterationPredicate){
+    registerDelayedMethodCall(BUSH_BASED_INNER_ITERATION_STOP_CHECK, innerIterationPredicate);
+  }
+
+  /** Access stoppage check via a predicate. When it returns true, the PAS flow shifting loop is exited.
+   *
+   * @return integer is current iteration index, double is the current pas gap, while
+   *    the last double is the global gap stoppage criterion one can use as a criterion
+   */
+  public BiPredicate<Integer,Double> getBushBasedInnerIterationStopCheck(){
+    return getTypedFirstParameterOfDelayedMethodCall(BUSH_BASED_INNER_ITERATION_STOP_CHECK);
+  }
+
+  /**
+   * Indicate if we process PASs in ascending order when conducting flow shifts (or not, so descending).
+   * When ascending we go from least important to most important.
+   *
+   * @param ascendingOrder flag
+   */
+  public void setBushBasedPasOrderDirectionAscending(Boolean ascendingOrder){
+    registerDelayedMethodCall(BUSH_BASED_PAS_ORDER_DIRECTION_ASCENDING, ascendingOrder);
+  }
+
+  /**
+   * Check if we process PASs in ascending order when conducting flow shifts (or not, so descending).
+   * When ascending we go from least important to most important.
+   *
+   * @return current ascendingOrder flag
+   */
+  public Boolean isBushBasedPasOrderDirectionAscending(){
+    return getTypedFirstParameterOfDelayedMethodCall(BUSH_BASED_PAS_ORDER_DIRECTION_ASCENDING);
+  }
+
+  /**
+   * Set smoothing function based on the PAS importance in the ordered PAS list
+   *
+   * @param pasImportanceSmoothingFunction integer is current PAS index, double is the relative location frm the start
+   *                                       of the ordered PAS list running between zero and 1. function should return
+   *                                       smoothing factor between zero and one as well
+   */
+  public void setBushBasedPasImportanceSmoothingFunction(
+      BiFunction<Integer,Double, Double> pasImportanceSmoothingFunction){
+    registerDelayedMethodCall(BUSH_BASED_PAS_IMPORTANCE_SMOOTHING_FUNCTION, pasImportanceSmoothingFunction);
+  }
+
+
+  /**
+   * get smoothing function based on the PAS importance in the ordered PAS list
+   *
+   * @return bi function with integer is current PAS index, double is the relative location frm the start
+   *         of the ordered PAS list running between zero and 1. function should return
+   *         smoothing factor between zero and one as well
+   */
+  public BiFunction<Integer,Double, Double> getBushBasedPasImportanceSmoothingFunction(){
+    return getTypedFirstParameterOfDelayedMethodCall(BUSH_BASED_PAS_IMPORTANCE_SMOOTHING_FUNCTION);
   }
 
   /**
@@ -227,7 +346,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
    * @return loading scheme if set explicitly
    */
   public StaticLtmLoadingScheme getNetworkLoadingInitialScheme() {
-    return (StaticLtmLoadingScheme) getTypedFirstParameterOfDelayedMethodCall(SET_NETWORKLOADING_RECEIVING_FLOW_GAP_EPSILON);
+    return getTypedFirstParameterOfDelayedMethodCall(SET_NETWORKLOADING_RECEIVING_FLOW_GAP_EPSILON);
   }
 
   /**

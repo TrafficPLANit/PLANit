@@ -2,11 +2,15 @@ package org.goplanit.assignment.ltm.sltm.input;
 
 import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
+import org.goplanit.utils.functionalinterface.TriPredicate;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.zoning.OdZone;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
@@ -39,6 +43,33 @@ public class StaticLtmSettings {
   private Boolean detailedLogging = null;
 
   // USER SETTINGS
+
+  /** user configurable stoppage predicate for bush-based outer iterations in between network loading,
+   * integer is current outer iteration, double is the global network convergence gap up to current traffic
+   * assignment iteration found */
+  private BiPredicate<Integer,Double> outerIterationStoppagePredicate = DEFAULT_OUTER_ITERATION_PREDICATE;
+
+  /** user configurable smoothing function for bush-based outer iterations in between network loading,
+   * integer is current outer iteration should return a factor between zero and one to adjust flow shifts with */
+  Function<Integer,Double> outerIterationSmoothingFunction = DEFAULT_OUTER_ITERATION_SMOOTHING_FUNCTION;
+
+  /** user configurable stoppage predicate for bush-based inner iterations in between network loading,
+   * integer in predicate is current inner iteration, double is the current PAS gap, while
+   * the last double is the global gap stoppage criterion one can use as a criterion
+   */
+  private TriPredicate<Integer,Double, Double> innerIterationStoppagePredicate = DEFAULT_INNER_ITERATION_PREDICATE;
+
+  /** User configurable function for smoothing the flow shift for a PAS based on the pas importance ordering.
+   * provides the index of the PAS and the relative location (between zero and 1) of the PAS in the importance ordering
+   * (running from least important, to most important), expects to return a double between zero and one with which to
+   * smooth the flow shift to apply
+   */
+  private BiFunction<Integer,Double, Double> innerIterationPasImportanceSmoothingFunction =
+      DEFAULT_PAS_IMPORTANCE_SMOOTHING_FUNCTION;
+
+  /** flag that ndicates if we process PASs in ascending order when conducting flow shifts (or not, so descending).
+   * When ascending we go from least important to most important. */
+  private boolean pasProcessingAscendingOrder = DEFAULT_IS_PAS_ORDER_DIRECTION_ASCENDING;
 
   /** flag indicating the type of sLTM assignment to apply, bush or path based */
   private StaticLtmType sLtmType = DEFAULT_SLTM_TYPE;
@@ -74,6 +105,46 @@ public class StaticLtmSettings {
   /** default setting for assignment is to apply a path based rather than an origin-based bush-based type of implementation*/
   //public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmType.DESTINATION_BUSH_BASED;
   public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmType.PATH_BASED;
+
+  /**
+   * Default threshold for number of outer iterations in bush-based internal loops between loading is set to:
+   * (-log_10(minNetworkGapSoFar)+1) * 4, so number of decimals in global convergence gap * 4 is the maximum we allow.
+   * The idea being that with an ever tighter global gap, the inner gap needs to be better as well. to avoid spending
+   * time there while we are far away from convergence we make it a function of the global convergence
+   */
+  public static BiPredicate<Integer,Double> DEFAULT_OUTER_ITERATION_PREDICATE =
+      (outerIteration, minNetworkGapAsThreshold) ->
+          outerIteration > ((int) -Math.log10(minNetworkGapAsThreshold)+1) * 4;
+
+  /**
+   * Default function for smoothing the flow shift for a PAS based on the outer iteration it occurs in. We use a simple MSA
+   * approach with a Polyak power function.
+   */
+  public static Function<Integer,Double> DEFAULT_OUTER_ITERATION_SMOOTHING_FUNCTION =
+      outerIteration -> 1.0/(Math.pow(outerIteration,0.66));
+
+  /**
+   * Default threshold for number of inner iterations in bush-based internal loops between loading is set to:
+   * either a 100 or stop earlier when the current PAS gap drops below the global convergence gap epsilon set by the
+   * user (the latter is passed in, so it is safe to change the predicate before this epsilon is configured by the user)
+   */
+  public static TriPredicate<Integer,Double, Double> DEFAULT_INNER_ITERATION_PREDICATE =
+      (innerIteration, currPasGap, globalGapStopCriterionEpsilon) -> {
+        boolean converged = currPasGap <= globalGapStopCriterionEpsilon;
+        return (innerIteration > 100 || converged);
+      };
+
+  /**
+   * Default function for smoothing the flow shift for a PAS based on the pas importance ordering. For now we use
+   * an exponential decay function based on the relative location (between zero and 1) of the PAS in the importance
+   * ordering (running from least important, to most important).
+   */
+  public static BiFunction<Integer,Double, Double> DEFAULT_PAS_IMPORTANCE_SMOOTHING_FUNCTION =
+      (currPasCounterIndex, perPasPercentageOfTotal) ->
+          Math.min(1, (1 - (Math.pow(0.01, (currPasCounterIndex * perPasPercentageOfTotal))) + 0.01));;
+
+  /** default order for PAS processing is in ascending order, from least important to most important */
+  public static boolean DEFAULT_IS_PAS_ORDER_DIRECTION_ASCENDING = true;
 
   /** default network loading gap epsilon to apply */
   public static double DEFAULT_NETWORK_LOADING_GAP_EPSILON = 0.001;
@@ -117,9 +188,20 @@ public class StaticLtmSettings {
    * @param staticLtmSettings to copy
    */
   public StaticLtmSettings(StaticLtmSettings staticLtmSettings) {
-    this.sLtmType = staticLtmSettings.sLtmType;
-    this.detailedLogging = staticLtmSettings.detailedLogging.booleanValue();
-    this.disableStorageConstraints = staticLtmSettings.disableStorageConstraints.booleanValue();
+    setSltmType(staticLtmSettings.getSltmType());
+    setBushBasedOuterIterationStopCheck(staticLtmSettings.getBushBasedOuterIterationStopCheck());
+    setBushBasedOuterIterationSmoothingFunction(staticLtmSettings.getBushBasedOuterIterationSmoothingFunction());
+    setBushBasedInnerIterationStopCheck(staticLtmSettings.getBushBasedInnerIterationStopCheck());
+    setBushBasedPasOrderDirectionAscending(staticLtmSettings.isBushBasedPasOrderDirectionAscending());
+    setNetworkLoadingFlowAcceptanceGapEpsilon(staticLtmSettings.getNetworkLoadingFlowAcceptanceGapEpsilon());
+    setNetworkLoadingReceivingFlowGapEpsilon(staticLtmSettings.getNetworkLoadingReceivingFlowGapEpsilon());
+    setNetworkLoadingSendingFlowGapEpsilon(staticLtmSettings.getNetworkLoadingSendingFlowGapEpsilon());
+    setDisableStorageConstraints(staticLtmSettings.isDisableStorageConstraints());
+    setDetailedLogging(staticLtmSettings.isDetailedLogging());
+    setActivateRelativeScalingFactor(staticLtmSettings.isActivateRelativeScalingFactor());
+    setDisablePathGenerationAfterIteration(staticLtmSettings.getDisablePathGenerationAfterIteration());
+    setNetworkLoadingInitialScheme(staticLtmSettings.getNetworkLoadingInitialScheme());
+    setNetworkLoadingMinIterations(staticLtmSettings.getNetworkLoadingMinIterations());
   }
 
   /**
@@ -168,6 +250,115 @@ public class StaticLtmSettings {
 
   public void setDetailedLogging(Boolean detailedLogging) {
     this.detailedLogging = detailedLogging;
+  }
+
+  /**
+   *  Stoppage predicate for bush-based outer iteration in between network loadings,
+   *  integer in predicate is current outer iteration, double is the global network convergence gap up to current traffic
+   *  assignment iteration found
+   *
+   * @param outerIterationPredicate to apply as stoppage check
+   */
+  public void setBushBasedOuterIterationStopCheck(BiPredicate<Integer,Double> outerIterationPredicate){
+    this.outerIterationStoppagePredicate = outerIterationPredicate;
+  }
+
+  /**
+   *  Stoppage predicate for bush-based outer iteration in between network loadings,
+   *  integer in predicate is current outer iteration, double is the global network convergence gap up to current traffic
+   *  assignment iteration found
+   *
+   * @return outerIterationPredicate applied as stoppage check
+   */
+  public BiPredicate<Integer,Double> getBushBasedOuterIterationStopCheck(){
+    return this.outerIterationStoppagePredicate;
+  }
+
+  /**
+   * Set outer iteration smoothing function based on the outer iteration index provided
+   *
+   * @param outerIterationSmoothingFunction integer is current iteration index, should return smoothing factor between
+   *                                       zero and one
+   */
+  public void setBushBasedOuterIterationSmoothingFunction(Function<Integer,Double> outerIterationSmoothingFunction){
+    this.outerIterationSmoothingFunction = outerIterationSmoothingFunction;
+  }
+
+  /** Outer iteration smoothing function based on the outer iteration index provided, when applied the returned value
+   * is the factor applied to reduce the amount of flow shifted.
+   *
+   * @return function where integer is current iteration index, should return smoothing factor between
+   *        zero and one
+   */
+  public Function<Integer,Double> getBushBasedOuterIterationSmoothingFunction(){
+    return this.outerIterationSmoothingFunction;
+  }
+
+  /**
+   *  Stoppage predicate for bush-based outer iteration in between network loadings,
+   *  integer in predicate is current inner iteration,
+   *  double is the current PAS gap, while
+   *  the last double is the global gap stoppage criterion one can use as a criterion
+   *
+   *
+   * @param innerIterationPredicate to apply as stoppage check
+   */
+  public void setBushBasedInnerIterationStopCheck(TriPredicate<Integer,Double, Double> innerIterationPredicate){
+    this.innerIterationStoppagePredicate = innerIterationPredicate;
+  }
+
+  /**
+   *  Stoppage predicate for bush-based inner iterations in between network loadings,
+   *  integer in predicate is current inner iteration, double is the current PAS gap, whil
+   *  the last double is the global gap stoppage criterion one can use as a criterion
+   *
+   * @return innerIterationPredicate applied as stoppage check
+   */
+  public TriPredicate<Integer,Double, Double> getBushBasedInnerIterationStopCheck(){
+    return this.innerIterationStoppagePredicate;
+  }
+
+  /**
+   * Set smoothing function based on the PAS importance in the ordered PAS list
+   *
+   * @param pasImportanceSmoothingFunction integer is current PAS index, double is the relative location frm the start
+   *                                       of the ordered PAS list running between zero and 1. function should return
+   *                                       smoothing factor between zero and one as well
+   */
+  public void setBushBasedPasImportanceSmoothingFunction(
+      BiFunction<Integer,Double, Double> pasImportanceSmoothingFunction){
+    this.innerIterationPasImportanceSmoothingFunction = pasImportanceSmoothingFunction;
+  }
+
+  /**
+   * get smoothing function based on the PAS importance in the ordered PAS list
+   *
+   * @return bi function with integer is current PAS index, double is the relative location frm the start
+   *         of the ordered PAS list running between zero and 1. function should return
+   *         smoothing factor between zero and one as well
+   */
+  public BiFunction<Integer,Double, Double> getBushBasedPasImportanceSmoothingFunction(){
+    return innerIterationPasImportanceSmoothingFunction;
+  }
+
+  /**
+   * Indicate if we process PASs in ascending order when conducting flow shifts (or not, so descending).
+   * When ascending we go from least important to most important.
+   *
+   * @param ascendingOrder flag
+   */
+  public void setBushBasedPasOrderDirectionAscending(Boolean ascendingOrder){
+    this.pasProcessingAscendingOrder = ascendingOrder;
+  }
+
+  /**
+   * Check if we process PASs in ascending order when conducting flow shifts (or not, so descending).
+   * When ascending we go from least important to most important.
+   *
+   * @return current ascendingOrder flag
+   */
+  public Boolean isBushBasedPasOrderDirectionAscending(){
+    return this.pasProcessingAscendingOrder;
   }
 
   public Boolean isBushBased() {

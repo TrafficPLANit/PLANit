@@ -6,6 +6,9 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.LtmAssignment;
@@ -24,6 +27,7 @@ import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
 import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.functionalinterface.TriPredicate;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
@@ -439,6 +443,57 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   // pass on to settings
   public void setActivateDetailedLogging(boolean flag) {
     settings.setDetailedLogging(flag);
+  }
+
+  // pass on to settings
+  public void setBushBasedOuterIterationStopCheck(BiPredicate<Integer,Double> outerIterationPredicate){
+    this.settings.setBushBasedOuterIterationStopCheck(outerIterationPredicate);
+  }
+
+  // pass on to settings
+  public BiPredicate<Integer,Double> getBushBasedOuterIterationStopCheck(){
+    return this.settings.getBushBasedOuterIterationStopCheck();
+  }
+
+  // pass on to settings
+  public void setBushBasedOuterIterationSmoothingFunction(Function<Integer,Double> outerIterationSmoothingFunction){
+    this.settings.setBushBasedOuterIterationSmoothingFunction(outerIterationSmoothingFunction);
+  }
+
+  // pass on to settings
+  public Function<Integer,Double> getBushBasedOuterIterationSmoothingFunction(){
+    return this.settings.getBushBasedOuterIterationSmoothingFunction();
+  }
+
+  // pass on to settings
+  public void setBushBasedInnerIterationStopCheck(TriPredicate<Integer,Double, Double> innerIterationPredicate){
+    this.settings.setBushBasedInnerIterationStopCheck(innerIterationPredicate);
+  }
+
+  // pass on to settings
+  public TriPredicate<Integer,Double, Double> getBushBasedInnerIterationStopCheck(){
+    return this.settings.getBushBasedInnerIterationStopCheck();
+  }
+
+  // pass on to settings
+  public void setBushBasedPasImportanceSmoothingFunction(
+      BiFunction<Integer,Double, Double> pasImportanceSmoothingFunction){
+    this.settings.setBushBasedPasImportanceSmoothingFunction(pasImportanceSmoothingFunction);
+  }
+
+  // pass on to settings
+  public BiFunction<Integer,Double, Double> getBushBasedPasImportanceSmoothingFunction(){
+    return this.settings.getBushBasedPasImportanceSmoothingFunction();
+  }
+
+  // pass on to settings
+  public void setBushBasedPasOrderDirectionAscending(Boolean ascendingOrder){
+    this.settings.setBushBasedPasOrderDirectionAscending(ascendingOrder);
+  }
+
+  // pass on to settings
+  public Boolean isBushBasedPasOrderDirectionAscending(){
+    return this.settings.isBushBasedPasOrderDirectionAscending();
   }
 
   // pass on to settings
