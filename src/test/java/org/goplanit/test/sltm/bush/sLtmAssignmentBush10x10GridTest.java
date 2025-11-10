@@ -99,8 +99,8 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
       sLTMBuilder.getConfigurator().registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_6);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(250);
       sLTM.setActivateDetailedLogging(false);
       sLTM.execute();
 
@@ -157,7 +157,7 @@ public class sLtmAssignmentBush10x10GridTest extends sLtmAssignmentGridTestBase 
       sLTM.setActivateDetailedLogging(false);
       sLTM.execute();
 
-      test10x10OutflowsNoQueue(sLTM);
+      test10x10OutflowsQueue(sLTM);
 
     } catch (Exception e) {
       e.printStackTrace();
