@@ -54,9 +54,8 @@ public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentC
    * Constructor
    * 
    * @param ltmClass used
-   * @throws PlanItException thrown when error
    */
-  public LtmConfigurator(Class<T> ltmClass) throws PlanItException {
+  public LtmConfigurator(Class<T> ltmClass){
     super(ltmClass);
     createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
     createAndRegisterNodeModel(NodeModel.TAMPERE);
@@ -71,10 +70,9 @@ public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentC
    * 
    * @param fundamentalDiagramType type to choose
    * @return configurator
-   * @throws PlanItException thrown if error
    */
   public FundamentalDiagramConfigurator<? extends FundamentalDiagramComponent> createAndRegisterFundamentalDiagram(
-          final String fundamentalDiagramType) throws PlanItException {
+          final String fundamentalDiagramType){
     fundamentalDiagramConfigurator = FundamentalDiagramConfiguratorFactory.createConfigurator(fundamentalDiagramType);
     return fundamentalDiagramConfigurator;
   }
@@ -93,9 +91,8 @@ public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentC
    * 
    * @param nodeModelType type to choose
    * @return configurator
-   * @throws PlanItException thrown if error
    */
-  public NodeModelConfigurator<? extends NodeModelComponent> createAndRegisterNodeModel(final String nodeModelType) throws PlanItException {
+  public NodeModelConfigurator<? extends NodeModelComponent> createAndRegisterNodeModel(final String nodeModelType){
     nodeModelConfigurator = NodeModelConfiguratorFactory.createConfigurator(nodeModelType);
     return nodeModelConfigurator;
   }
@@ -114,9 +111,8 @@ public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentC
    * 
    * @param pathChoiceType type to choose
    * @return path choice configurator
-   * @throws PlanItException thrown if error
    */
-  public PathChoiceConfigurator<? extends PathChoice> createAndRegisterPathChoice(final String pathChoiceType) throws PlanItException {
+  public PathChoiceConfigurator<? extends PathChoice> createAndRegisterPathChoice(final String pathChoiceType){
     pathChoiceConfigurator = PathChoiceConfiguratorFactory.createConfigurator(pathChoiceType);
     return pathChoiceConfigurator;
   }

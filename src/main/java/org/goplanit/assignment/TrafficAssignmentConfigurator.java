@@ -185,10 +185,9 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    *
    * @param gapFunctionType the type of gap function component to be created
    * @return gap function configuration object
-   * @throws PlanItException thrown if there is an error
    */
   public GapFunctionConfigurator<? extends GapFunction> createAndRegisterGapFunction(
-          final String gapFunctionType) throws PlanItException {
+          final String gapFunctionType){
     gapFunctionConfigurator = GapFunctionConfiguratorFactory.createConfigurator(gapFunctionType);
     return gapFunctionConfigurator;
   }
@@ -209,10 +208,9 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    *
    * @param physicalTravelTimeCostFunctionType the type of cost function to be created
    * @return the physical cost created
-   * @throws PlanItException thrown if there is an error
    */
   public PhysicalCostConfigurator<? extends AbstractPhysicalCost> createAndRegisterPhysicalCost(
-          final String physicalTravelTimeCostFunctionType) throws PlanItException {
+          final String physicalTravelTimeCostFunctionType){
     physicalCostConfigurator = PhysicalCostConfiguratorFactory.createConfigurator(physicalTravelTimeCostFunctionType);
     return physicalCostConfigurator;
   }

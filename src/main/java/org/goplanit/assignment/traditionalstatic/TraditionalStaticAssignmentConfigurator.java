@@ -5,7 +5,6 @@ import org.goplanit.cost.physical.BprLinkTravelTimeCost;
 import org.goplanit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.sdinteraction.smoothing.MSASmoothing;
-import org.goplanit.utils.exceptions.PlanItException;
 
 /**
  * Configurator for traditional static assignment. It initialises the following defaults:
@@ -20,15 +19,14 @@ import org.goplanit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class TraditionalStaticAssignmentConfigurator extends TrafficAssignmentConfigurator<TraditionalStaticAssignment> {
+public class TraditionalStaticAssignmentConfigurator extends TrafficAssignmentConfigurator<TraditionalStaticAssignment>{
 
   /**
    * Constructor
    * 
    * @param instanceType the type we are configuring for
-   * @throws PlanItException thrown if error
    */
-  public TraditionalStaticAssignmentConfigurator(Class<TraditionalStaticAssignment> instanceType) throws PlanItException {
+  public TraditionalStaticAssignmentConfigurator(Class<TraditionalStaticAssignment> instanceType){
     super(instanceType);
 
     // initialise defaults

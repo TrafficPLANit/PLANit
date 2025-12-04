@@ -24,7 +24,7 @@ public class StaticLtmTrafficAssignmentBuilder extends LtmTrafficAssignmentBuild
    * @return sLTM configurator
    */
   @Override
-  protected StaticLtmConfigurator createConfigurator() throws PlanItException {
+  protected StaticLtmConfigurator createConfigurator(){
     return new StaticLtmConfigurator();
   }
 

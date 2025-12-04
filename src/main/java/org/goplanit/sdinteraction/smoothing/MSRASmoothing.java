@@ -143,7 +143,7 @@ public class MSRASmoothing extends IterationBasedSmoothing {
 
     double lambdaPower = 1;
     if(isActivateLambda()) {
-      lambdaPower = 0.66;//1 / Math.max(1, Math.log10(getIteration()));
+      lambdaPower = 0.66;
     }
 
     previousBeta = beta;

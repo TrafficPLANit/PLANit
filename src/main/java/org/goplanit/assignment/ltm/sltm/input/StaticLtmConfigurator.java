@@ -99,9 +99,8 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
   /**
    * Constructor
    * 
-   * @throws PlanItException thrown when error
    */
-  public StaticLtmConfigurator() throws PlanItException {
+  public StaticLtmConfigurator(){
     super(StaticLtm.class);
     createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
     createAndRegisterNodeModel(NodeModel.TAMPERE);
@@ -470,13 +469,13 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
    *
    * @param pathChoiceType type to choose
    * @return path choice configurator
-   * @throws PlanItException thrown if error
    */
   @Override
-  public PathChoiceConfigurator<? extends PathChoice> createAndRegisterPathChoice(final String pathChoiceType) throws PlanItException {
+  public PathChoiceConfigurator<? extends PathChoice> createAndRegisterPathChoice(final String pathChoiceType){
     if(getType() != StaticLtmType.PATH_BASED){
       setType(StaticLtmType.PATH_BASED);
-      LOGGER.info(String.format("PathChoice activated, this requires sLTM type to be path based, switching to type: %s", getType()));
+      LOGGER.info(String.format(
+          "PathChoice activated, this requires sLTM type to be path based, switching to type: %s", getType()));
     }
     return super.createAndRegisterPathChoice(pathChoiceType);
   }

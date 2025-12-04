@@ -1,6 +1,7 @@
 package org.goplanit.gap;
 
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 
 /**
  * factory for the gap function types supported directory by PLANit
@@ -15,9 +16,8 @@ public class GapFunctionConfiguratorFactory {
    * 
    * @param gapFunctionType type of gap function to create
    * @return the created configurator
-   * @throws PlanItException thrown if error
    */
-  public static GapFunctionConfigurator<? extends GapFunction> createConfigurator(final String gapFunctionType) throws PlanItException {
+  public static GapFunctionConfigurator<? extends GapFunction> createConfigurator(final String gapFunctionType){
 
     if (gapFunctionType.equals(GapFunction.LINK_BASED_RELATIVE_GAP)) {
       return new LinkBasedRelativeGapConfigurator();
@@ -27,7 +27,8 @@ public class GapFunctionConfiguratorFactory {
       return new PathBasedGapConfigurator();
     } else {
       // TODO use value of string to use reflection and try and instantiate instead before throwing exception
-      throw new PlanItException(String.format("unable to construct configurator for given gapFunctionType %s", gapFunctionType));
+      throw new PlanItRunTimeException(
+          String.format("unable to construct configurator for given gapFunctionType %s", gapFunctionType));
     }
   }
 }
