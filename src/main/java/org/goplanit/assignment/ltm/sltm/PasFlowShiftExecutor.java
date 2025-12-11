@@ -326,23 +326,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   }
 
   /**
-   * For the given PAS determine the amount of slack flow on chosen alternative, i.e., the minimum difference between the link outflow rate and the capacity across all its link
-   * segments, including the link segments beyond its alternative it is directing the flows to. It is assumed the cheap cost alternative of the PAS has already been found to be
-   * uncongested and as such should have a zero or higher slack flow.
-   * <p>
-   * In the special case that it passes through (or directs to) a segment that is at capacity (due to for example one or more of its other in-links being congested), then we return
-   * a slack capacity of zero.
-   * </p>
-   *
-   * @param networkLoading to collect outflow rates from
-   * @param lowCost        when true determine for low cost alternative, when false for high cost alternative
-   * @param proposedFlowShift the proposed shift
-   * @return slack flow found
-   */
-  protected abstract Pair<Double,EdgeSegment> determinePasAlternativeSlackFlow(
-          StaticLtmLoadingBushBase<?> networkLoading, double proposedFlowShift, boolean lowCost);
-
-  /**
    * Find first congested segment on PAS for either alternative, note that we do use some slack on when
    * to consider something congested where we treat near capacity flows as congested already
    *

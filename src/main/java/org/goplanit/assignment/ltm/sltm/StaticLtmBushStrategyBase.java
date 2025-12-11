@@ -170,24 +170,22 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * alternatives
    *
    * @param updatedPass to consider
-   * @param passWithoutBush to consider
    */
-  private void logFlowShiftPerformedAndDeregisterEmptyPass(
-      Collection<Pas<V,ES>> updatedPass, Collection<Pas<V,ES>> passWithoutBush) {
+  private void logFlowShiftPerformedAndDeregisterEmptyPass(Collection<Pas<V,ES>> updatedPass) {
 
-    if (!passWithoutBush.isEmpty()) {
-      passWithoutBush.forEach((pas) -> this.pasManager.deactivatePas(pas, getSettings().isDetailedLogging()));
-    }
-
+    var passWithoutBush = new ArrayList<Pas<V,ES>>(100);
+    this.pasManager.forEachActivePas(p -> {
+      if(!p.hasRegisteredBushes()){
+        passWithoutBush.add(p);
+      }
+    });
+    passWithoutBush.forEach((pas) -> this.pasManager.deactivatePas(pas, getSettings().isDetailedLogging()));
     int numRemovedPASs = passWithoutBush.size();
     if(getSettings().isDetailedLogging()){
       LOGGER.info(String.format(
               "Deactivated %d PASs that were found to have no remaining flow on their high cost segment " +
                   "- After flow shifting", numRemovedPASs));
     }
-
-    LOGGER.info(String.format("Flow shifts performed: %d (%.2f%% of all pass)",
-        updatedPass.size(),((double)updatedPass.size()*100)/pasManager.getNumberOfActivePass()));
   }
 
   /**
@@ -218,10 +216,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param pasExecutors         to use
    * @param originalNetworkCosts to use and update
    * @param simulationData       to use
-   * @return pair of collections with (i) all PASs where non-zero flow was shifted on, (ii) PASs without any
-   * remaining bushes registered on them
+   * @return collection with all PASs where non-zero flow was shifted on
    */
-  protected abstract Pair<Collection<Pas<V,ES>>,Collection<Pas<V,ES>>> performFlowShifts(
+  protected abstract Collection<Pas<V,ES>> performFlowShifts(
       final Mode theMode,
       final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
       double[] originalNetworkCosts,
@@ -430,7 +427,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     //  congested and uncongested pass are currently not separated out
     /* PAS COST UPDATE */
     updatePasCosts(theMode, costsToUpdate);
-    /* PAS STATUS UPDATE (used to truncate search for PASs on bush) */
+    /* PAS STATUS UPDATE (used to optimize flow shifts calcs, no longer used but leave status calc for now) */
     updatePasStatusBeforeFlowShifts(theMode, this.getLoading().getCurrentFlowAcceptanceFactors());
 
     // DEBUGGING
@@ -536,11 +533,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
           // code for flow shifting in dedicated executor instances. Create them here, one for each PAS.
           Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors = prepareForFlowShifts(theMode, simulationData);
           // execute actual flow shifting per PAS
-          var result = performFlowShifts(theMode, pasExecutors, costsToUpdate, simulationData);
-          Collection<Pas<V,ES>> updatedPass = result.first();
-          Collection<Pas<V,ES>> passWithoutBush = result.second();
+          Collection<Pas<V,ES>> updatedPass = performFlowShifts(theMode, pasExecutors, costsToUpdate, simulationData);
           // Dispose of PASs that no longer have S2 flows
-          logFlowShiftPerformedAndDeregisterEmptyPass(updatedPass, passWithoutBush);
+          logFlowShiftPerformedAndDeregisterEmptyPass(updatedPass);
         }
 
       }

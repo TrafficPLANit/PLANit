@@ -575,8 +575,7 @@ public class StaticLtmConjugateBushStrategy
   /**
    * {@inheritDoc}
    */
-  protected Pair<Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>,
-      Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>> performFlowShifts(
+  protected Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>> performFlowShifts(
           final Mode theMode,
           final Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>,
               PasFlowShiftExecutor<ConjugateDirectedVertex,ConjugateEdgeSegment>> pasExecutors,
@@ -584,7 +583,7 @@ public class StaticLtmConjugateBushStrategy
           final StaticLtmSimulationData simulationData) {
 
     if(pasExecutors.isEmpty()){
-      return Pair.of(Collections.emptyList(),Collections.emptyList());
+      return Collections.emptyList();
     }
 
     // todo: for both of these we should revisit to what extend they are really needed or can be simplified/consolidated
@@ -614,13 +613,7 @@ public class StaticLtmConjugateBushStrategy
     int iteration = 1;
 
     var flowShiftedPass = new TreeSet<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>();
-    var passWithoutBush = new TreeSet<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>();
     do {
-
-      if(!passWithoutBush.isEmpty()){
-        pasExecutors.entrySet().removeAll(passWithoutBush);
-        passWithoutBush.forEach(p -> pasManager.deactivatePas(p, true));
-      }
 
       // sync costs as order matters
       pasExecutors.keySet().stream().filter(p -> p.getStatus()!=PasStatus.UNCONGESTED_WITH_SHIFT).forEach(
@@ -638,31 +631,22 @@ public class StaticLtmConjugateBushStrategy
       LOGGER.info(String.format("--- NEXT ROUTE CHOICE OUTER ITERATION %d ----", iteration));
 
       int congestedPasCounter = 0;
-      long numCongestedPass = pasExecutors.keySet().stream().filter(
-          p -> p.getStatus()!=PasStatus.UNCONGESTED_WITH_SHIFT || !p.hasRegisteredBushes()).count();
+      long numCongestedPass = sortedPass.size();
       double perPasPercentageOfTotal = 1.0/numCongestedPass;
 
       final double outerIterationSmoothingFactor =
           getSettings().getBushBasedOuterIterationSmoothingFunction().apply(iteration);
       for (var pas : sortedPass) {
-        // ignore uncongested PASs or PASs not on bush
-        if (pas.getStatus() == PasStatus.UNCONGESTED_WITH_SHIFT || !pas.hasRegisteredBushes()) {
-          if(!pas.hasRegisteredBushes()){
-            passWithoutBush.add(pas);
-          }
+
+        // ignore PASs without any remaining bushes
+        if (!pas.hasRegisteredBushes()) {
           continue;
         }
-
-        ++congestedPasCounter;
 
         var pasFlowShifter = pasExecutors.get(pas);
-        if (!(pasFlowShifter.getS2SendingFlow() > 0) || !pas.hasRegisteredBushes()) { // todo: this piece of code is duplication from line 166 -> consolidate
-          /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial
-           * overlapping S2 segments */
-          pas.removeAllRegisteredBushes();
-          passWithoutBush.add(pas);
-          continue;
-        }
+        //todo: technically this should happen before above check as it now may get bypassed, but this may lead
+        // to non-convergence in some cases as documented in https://github.com/TrafficPLANit/PLANit/issues/137
+        ++congestedPasCounter;
 
         if (iteration==1){
           if (pas.getReducedCost() > maxPasReducedCost) {
@@ -699,16 +683,10 @@ public class StaticLtmConjugateBushStrategy
             flowShiftedPass.add(pas);
           }
 
-          /* when s2 no longer used on any bush - mark PAS for overall removal */
-          if (!pas.hasRegisteredBushes()) {
-            passWithoutBush.add(pas);
-            continue;
-          }
-
           if (logAll) {
             LOGGER.info(String.format("   pas flow shifted: %.10f", pasFlowShifted));
-            if(congestedPasCounter > 5) {
-              // do only first 5 PASs
+            if(numCongestedPass - congestedPasCounter < 5) {
+              // do only last 5 PASs
               logAll = false;
             }
           }
@@ -723,10 +701,9 @@ public class StaticLtmConjugateBushStrategy
     LOGGER.info(String.format("PAS of MAX COST DELTA: %s", maxReducedCostPas));
     LOGGER.info(String.format("AVERAGE PAS COST DELTA: %.10f", totalPasReducedCost/numConsideredPas));
 
-    LOGGER.info(String.format("%.2f%% Flow shifts performed: %d ---- [#PASs without remaining flows %d)]",
-        ((double)flowShiftedPass.size()*100.0)/pasExecutors.size(), flowShiftedPass.size(), passWithoutBush.size()));
-
-    return Pair.of(flowShiftedPass,passWithoutBush);
+    LOGGER.info(String.format("%.2f%% Flow shifts performed on total of %d eligible PASs",
+        ((double)flowShiftedPass.size()*100.0)/pasExecutors.size(), flowShiftedPass.size()));
+    return flowShiftedPass;
   }
 
   private Set<ConjugateEdgeSegment> improveZeroFlowBushConnectivity(
