@@ -1108,7 +1108,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   }
 
   /**
-   *  compute diverge derivative from perspective of s2.
+   *  Compute diverge derivative from perspective of s2.
    * @param theMode to use
    * @param networkLoading to use
    * @param physicalCost to use

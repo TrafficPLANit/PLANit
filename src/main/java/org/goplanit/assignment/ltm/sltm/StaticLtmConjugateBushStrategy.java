@@ -51,7 +51,7 @@ import java.util.stream.Stream;
 import static org.goplanit.assignment.ltm.sltm.util.ConjugateBushUtils.isEligibleForAdding;
 
 /**
- * Base implementation to support a bush based solution for sLTM
+ * Implementation to support a conjugate bush-based solution for sLTM
  * 
  * @author markr
  *
@@ -303,17 +303,6 @@ public class StaticLtmConjugateBushStrategy
   protected ShortestPathDijkstra createNetworkShortestPathAlgo(final double[] conjugateLinkSegmentCosts) {
     final int numberOfVertices = this.conjugateTransportModelNetwork.getNumberOfVerticesAllLayers();
     return new ShortestPathDijkstra(conjugateLinkSegmentCosts, numberOfVertices);
-  }
-
-  @Override
-  protected void hookBeforePasUpdate(
-      Collection<PasFlowShiftExecutor<ConjugateDirectedVertex, ConjugateEdgeSegment>> pasExecutors) {
-    // reset and inject empty tracking container for original turn flows that may get adjusted and therefore need to
-    // be preserved and accessible as a constraint on available flow to shift
-    this.originalBushTurnFlowTracker = new HashMap<>();
-    pasExecutors.forEach(
-        pe -> ((PasFlowShiftConjugateDestinationBasedExecutor)pe).injectOriginalBushTurnFlowAccess(
-            originalBushTurnFlowTracker));
   }
 
   /**
@@ -582,6 +571,164 @@ public class StaticLtmConjugateBushStrategy
             getSettings());
   }
 
+
+  /**
+   * {@inheritDoc}
+   */
+  protected Pair<Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>,
+      Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>> performFlowShifts(
+          final Mode theMode,
+          final Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>,
+              PasFlowShiftExecutor<ConjugateDirectedVertex,ConjugateEdgeSegment>> pasExecutors,
+          double[] originalNetworkCosts,
+          final StaticLtmSimulationData simulationData) {
+
+    if(pasExecutors.isEmpty()){
+      return Pair.of(Collections.emptyList(),Collections.emptyList());
+    }
+
+    // todo: for both of these we should revisit to what extend they are really needed or can be simplified/consolidated
+    // Capture original alphas, we use minimum of those and updated alphas to determine available sub path sending
+    // flow ensuring we are not shifting too much flow as it is possible node model updates increased alphas making
+    // it seem more flow can be shifted when in reality doing so can cause zero flow links in the middle of a PAS
+    // (which we want to avoid as it causes issues with splitting rates at the end)
+    var nlConsistentFlowAcceptanceFactors = Arrays.copyOf(
+        getLoading().getCurrentFlowAcceptanceFactors(),getLoading().getCurrentFlowAcceptanceFactors().length);
+    // Reset and inject empty tracking container for original turn flows (to be populated on-the-fly). As turn flows get
+    // adjusted original needs to be preserved and accessible as a constraint on available flow to shift
+    this.originalBushTurnFlowTracker = new HashMap<>();
+    pasExecutors.values().forEach(
+        pe -> ((PasFlowShiftConjugateDestinationBasedExecutor)pe).injectOriginalBushTurnFlowAccess(
+            originalBushTurnFlowTracker));
+
+    // Expand to discontinuous conjugate costs to use during shift calcs
+    double[] conjSegmentCosts = expandNonConjugateLinkSegmentCostToConjugateSegmentCost(
+              theMode, originalNetworkCosts, true);
+    // final prep
+    double totalCongestedFlowShifted = 0;
+    double maxPasReducedCost = 0;
+    Pas<?,?> maxReducedCostPas = null;
+    double totalPasReducedCost = 0;
+    int numConsideredPas = 0;
+    minNetworkGapAsThreshold = Math.min(minNetworkGapAsThreshold, getGapFunction().getGap());
+    int iteration = 1;
+
+    var flowShiftedPass = new TreeSet<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>();
+    var passWithoutBush = new TreeSet<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>>();
+    do {
+
+      if(!passWithoutBush.isEmpty()){
+        pasExecutors.entrySet().removeAll(passWithoutBush);
+        passWithoutBush.forEach(p -> pasManager.deactivatePas(p, true));
+      }
+
+      // sync costs as order matters
+      pasExecutors.keySet().stream().filter(p -> p.getStatus()!=PasStatus.UNCONGESTED_WITH_SHIFT).forEach(
+          p ->p.updateCost(conjSegmentCosts));
+
+      var pasGaps = computePasGaps(pasExecutors.keySet(), nlConsistentFlowAcceptanceFactors);
+      var sortedPass = orderPass(pasExecutors, pasGaps);
+      if(getSettings().isBushBasedPasOrderDirectionAscending()) {
+        Collections.reverse(sortedPass);
+      }
+
+      // debugging
+      boolean logAll = false; //simulationData.getIterationIndex()>=50;
+
+      LOGGER.info(String.format("--- NEXT ROUTE CHOICE OUTER ITERATION %d ----", iteration));
+
+      int congestedPasCounter = 0;
+      long numCongestedPass = pasExecutors.keySet().stream().filter(
+          p -> p.getStatus()!=PasStatus.UNCONGESTED_WITH_SHIFT || !p.hasRegisteredBushes()).count();
+      double perPasPercentageOfTotal = 1.0/numCongestedPass;
+
+      final double outerIterationSmoothingFactor =
+          getSettings().getBushBasedOuterIterationSmoothingFunction().apply(iteration);
+      for (var pas : sortedPass) {
+        // ignore uncongested PASs or PASs not on bush
+        if (pas.getStatus() == PasStatus.UNCONGESTED_WITH_SHIFT || !pas.hasRegisteredBushes()) {
+          if(!pas.hasRegisteredBushes()){
+            passWithoutBush.add(pas);
+          }
+          continue;
+        }
+
+        ++congestedPasCounter;
+
+        var pasFlowShifter = pasExecutors.get(pas);
+        if (!(pasFlowShifter.getS2SendingFlow() > 0) || !pas.hasRegisteredBushes()) { // todo: this piece of code is duplication from line 166 -> consolidate
+          /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial
+           * overlapping S2 segments */
+          pas.removeAllRegisteredBushes();
+          passWithoutBush.add(pas);
+          continue;
+        }
+
+        if (iteration==1){
+          if (pas.getReducedCost() > maxPasReducedCost) {
+            maxPasReducedCost = pas.getReducedCost();
+            maxReducedCostPas = pas;
+          }
+          totalPasReducedCost += pas.getReducedCost();
+          ++numConsideredPas;
+        }
+
+        // run from 1% exponential decay to 100% of most important PAS (if default function is used)
+        double pasImportanceSmoothingFactor = getSettings().getBushBasedPasImportanceSmoothingFunction().apply(
+            congestedPasCounter, perPasPercentageOfTotal);
+
+        // equilibrate --> needs pas cost update because change of alphas and flows may impact low/high cost
+        var pasFlowShiftByRefTurn =
+            pasFlowShifter.performEquilibratedCongestedFlowShifts(
+                theMode,
+                this,
+                originalNetworkCosts,
+                conjSegmentCosts,
+                nlConsistentFlowAcceptanceFactors,
+                getBushes(),
+                logAll,
+                PasFlowShiftExecutor.FlowShiftSmoothingApproach.NORMAL,
+                outerIterationSmoothingFactor * pasImportanceSmoothingFactor);
+
+        double pasFlowShifted = Math.abs(pasFlowShiftByRefTurn.second());
+        if (pasFlowShifted > 0) {
+          totalCongestedFlowShifted += pasFlowShifted;
+          //++pasCounter;
+
+          if(iteration==1) {
+            flowShiftedPass.add(pas);
+          }
+
+          /* when s2 no longer used on any bush - mark PAS for overall removal */
+          if (!pas.hasRegisteredBushes()) {
+            passWithoutBush.add(pas);
+            continue;
+          }
+
+          if (logAll) {
+            LOGGER.info(String.format("   pas flow shifted: %.10f", pasFlowShifted));
+            if(congestedPasCounter > 5) {
+              // do only first 5 PASs
+              logAll = false;
+            }
+          }
+        }
+      }
+
+      iteration++;
+    }while(!getSettings().getBushBasedOuterIterationStopCheck().test(iteration, minNetworkGapAsThreshold));
+
+    LOGGER.info(String.format("TOTAL FLOW SHIFTED: %.10f", totalCongestedFlowShifted));
+    LOGGER.info(String.format("MAX PAS COST DELTA: %.10f", maxPasReducedCost));
+    LOGGER.info(String.format("PAS of MAX COST DELTA: %s", maxReducedCostPas));
+    LOGGER.info(String.format("AVERAGE PAS COST DELTA: %.10f", totalPasReducedCost/numConsideredPas));
+
+    LOGGER.info(String.format("%.2f%% Flow shifts performed: %d ---- [#PASs without remaining flows %d)]",
+        ((double)flowShiftedPass.size()*100.0)/pasExecutors.size(), flowShiftedPass.size(), passWithoutBush.size()));
+
+    return Pair.of(flowShiftedPass,passWithoutBush);
+  }
+
   private Set<ConjugateEdgeSegment> improveZeroFlowBushConnectivity(
       ConjugateDestinationBush conjBush,
       double[] conjLinkSegmentCosts){
@@ -792,7 +939,7 @@ public class StaticLtmConjugateBushStrategy
    * @param mode to use
    * @param nonConjugateLinkSegmentCosts to use
    * @param conjLinkSegmentCosts to use
-   * @return totalNetworkMinCost and totalNetworkRealisedCost as a pair both scaled to unconstrained demand utilisning
+   * @return totalNetworkMinCost and totalNetworkRealisedCost as a pair both scaled to unconstrained demand utilising
    *  the network shortest paths for each OD.
    */
   private Pair<Double,Double> calculateNetworkConvergenceGapCostsAndTrackBushSpecificGapCosts(
@@ -806,9 +953,9 @@ public class StaticLtmConjugateBushStrategy
     boolean considerTurnDiscontinuities = true;
     // network wide realised cost across all ODs - demand scaled
     totalRealisedCostForGap = calculateRealisedCostForNetworkGap(mode, nonConjugateLinkSegmentCosts);
-    // per bush - within bush min cost and realised cost across all Os of bush D - demand scaled, stored on bush
+    // per BUSH - within bush min cost and realised cost across all Os of bush D - demand scaled, stored on bush
     calculateWithinBushMinCostAndRealisedCostForGap(mode, conjLinkSegmentCosts);
-    // per bush - network wide min cost across all O's of each bush D - demand scaled, stored on bush +
+    // per BUSH - network wide min cost across all O's of each bush D - demand scaled, stored on bush +
     // total returned for global network wide gap calc
     totalMinCostForGap = calculateMinCostForNetworkAndBushGap(
         mode, nonConjugateLinkSegmentCosts, conjLinkSegmentCosts, considerTurnDiscontinuities);
@@ -920,7 +1067,8 @@ public class StaticLtmConjugateBushStrategy
 
     // GAP CALCULATIONS
     {
-      // compute network convergence gap as well as per bush scaled cost information to calculate bush specific gaps next
+      // compute network convergence gap as well as per bush scaled cost information to calculate bush specific
+      // gaps next
       calculateNetworkConvergenceGapCostsAndTrackBushSpecificGapCosts(
           mode, nonConjugateLinkSegmentCosts, conjLinkSegmentCosts);
     }
@@ -946,7 +1094,7 @@ public class StaticLtmConjugateBushStrategy
         return passToConsider;
       }
 
-      // 1. improve bush spanning tree where possible
+      // 1. Improve bush zero flow spanning tree where possible based on current costs
       // 2. Find PASs
       for (var conjBush : eligibleBushes) {
         if(updateBushStructure) {
@@ -955,15 +1103,15 @@ public class StaticLtmConjugateBushStrategy
           improveBushSpanningTree(conjBush, conjLinkSegmentCosts);
         }
 
-        // recalculate bush min/max tree as well since any changes from above will result in different min/max
+        // Recalculate bush min/max tree as well since changes to bush spanning trees result in different min/max
         // paths.
-        // NOTE: we now EXCLUDE zero flow links from max paths, to avoid generating high cost paths that are not eligible
+        // NOTE: here we EXCLUDE zero flow links from max paths, to avoid generating high cost paths not eligible
         //  for flow shifting.
         boolean excludeZeroFlowLinksFromMaxPaths = true;
         var bushMinMaxTree = conjBush.computeMinMaxShortestPaths(excludeZeroFlowLinksFromMaxPaths,
             conjLinkSegmentCosts, conjugateTransportModelNetwork.getNumberOfVerticesAllLayers());
 
-        // Find (new) matching PASs - per bush traverse min/max paths to find divergent vertices to construct  PASs
+        // Find (new) matching PASs - per bush traverse min/max paths to find divergent vertices to construct PASs
         var bushVertexIter = conjBush.getTopologicalIterator();
         while(bushVertexIter.hasNext()) {
           ConjugateDirectedVertex conjBushVertex = bushVertexIter.next();
