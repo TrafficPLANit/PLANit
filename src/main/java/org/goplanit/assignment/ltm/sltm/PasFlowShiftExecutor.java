@@ -338,6 +338,18 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   protected abstract ES findFirstCongestedEdgeSegmentOnPasAlternative(
           final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost);
 
+  /**
+   * Determine the sub-path sending flow for a PAS alternative by tracing the PAS registered bushes sending flows across
+   * the turns. this is constrained by the current and original flow acceptance factors
+   *
+   * @param <T> type of vertex
+   * @param <U> type of edge segment
+   * @param pas to consider
+   * @param lowCostSegment alternative to consider
+   * @param currentFlowAcceptanceFactors current alphas
+   * @param originalFlowAcceptanceFactors original network loading alphas
+   * @return the sending flow at the starting vertex and edge of the PAS alternative that is following the alternative
+   */
   public static <T extends DirectedVertex, U extends EdgeSegment> double determinePasSubPathSendingFlow(
       Pas<T,U> pas,
       boolean lowCostSegment,
@@ -386,7 +398,23 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
     return missingLinkSegmentsByBush;
   }
 
-  public abstract Triple<EdgeSegment,Double, Boolean> performEquilibratedCongestedFlowShifts(
+  /**
+   * Run the executor to perform the flow shifts on its PAS to (ideally) equilibrate to convergence based on provided
+   * information
+   *
+   * @param theMode mode
+   * @param assignmentStrategy access to assignment
+   * @param originalNetworkCosts non-conjugate link segment costs
+   * @param conjSegmentCosts conjugate turn costs
+   * @param originalNlConsistentFlowAcceptanceFactors network loading consistent original flow acceptance factors
+   * @param bushes all available bushes
+   * @param logAll flag to indicate logging information
+   * @param smoothingApproach how to deal with smoothing when equilibrating
+   * @param additionalSmoothingFactor additional smoothing to apply exogenous to this equilibration internal smoothing
+   *                                  (if any)
+   * @return the total flow shifted and whether it was snapped to zero so we bypassed any final smoothing
+   */
+  public abstract Pair<Double, Boolean> performEquilibratedCongestedFlowShifts(
       Mode theMode,
       StaticLtmAssignmentStrategy assignmentStrategy,
       double[] originalNetworkCosts,

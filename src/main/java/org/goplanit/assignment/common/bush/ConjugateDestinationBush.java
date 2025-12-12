@@ -597,6 +597,9 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     return subPathSendingFlow;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public <T> double determineConstrainedSubPathSendingFlow(
       ConjugateEdgeSegment[] subPathArray,

@@ -332,6 +332,9 @@ public class DestinationBush extends RootedBush<DirectedVertex, EdgeSegment> {
     return bushData.addTurnSendingFlow(from, to, addFlowPcuH);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public <T> double determineConstrainedSubPathSendingFlow(
       EdgeSegment[] subPathArray,
