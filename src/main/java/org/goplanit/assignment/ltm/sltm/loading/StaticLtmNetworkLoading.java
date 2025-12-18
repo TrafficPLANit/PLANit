@@ -722,7 +722,7 @@ public abstract class StaticLtmNetworkLoading {
 
   /**
    * conduct a node model update sLTM style but now invoke as runTurnBased() to obtain turn based alphas allowing for
-   * identification of discontuities used in rotue choice/cost calculation.
+   * identification of disconinuities used in route choice/cost calculation.
    *
    * todo: 99.9% identical to method above, only due to signatures not the same. Refactor to consolidate in general approach
    *  to reduce duplicate code.

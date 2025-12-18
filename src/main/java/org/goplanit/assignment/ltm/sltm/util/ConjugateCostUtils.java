@@ -11,7 +11,7 @@ import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 public class ConjugateCostUtils {
 
   /**
-   * Update network link segment and conjugate segment cost based on current prevailing network incoming link) flows
+   * Update network link segment and conjugate segment cost based on current prevailing network incoming link flows
    *
    * @param nonConjugateEntrySegment to update costs for
    * @param assignmentStrategy to use
