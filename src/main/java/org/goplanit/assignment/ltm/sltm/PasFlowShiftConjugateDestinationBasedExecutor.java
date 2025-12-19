@@ -1703,7 +1703,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
         double absoluteSlackFlow = absoluteSlackFlowWithoutTurn - turnAcceptedFlow;
         // slack to triggering congestion on our turn is the slack until fair share is reached, or if more is left over, the absolute
         // slack remaining. Note it is possible that link is already congested due to other turn being most restricting,
-        // hence we multiple the fair share based slack with the reciprocal of the current alpha to account for that
+        // hence we multiply the fair share based slack with the reciprocal of the current alpha to account for that
         //todo: we can split this in two states and consider that a state change as well
         double turnSlack = (1/turnAlpha) * Math.max(absoluteSlackFlow, Math.max(0, fairShare - turnAcceptedFlow));
         return Pair.of(turnSlack, currentlyMostRestricting);
@@ -1725,7 +1725,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       // slack to removing congestion is the minimum between when we would drop below fair share or when
       // sending flow no longer exceeds available consumable exit capacity - other turn accepted flows
-      //todo: we can split this in two states and consider that a state change as well
       double turnSlack = turnSendingFlow - Math.max(absoluteSlackFlowWithoutTurn, fairShare);
       return Pair.of(turnSlack, currentlyMostRestricting);
     }
@@ -2154,9 +2153,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   protected Pair<Pair<Double,EdgeSegment>,Pair<Double,EdgeSegment>> determinePasSlackFlow(
       double proposedFlowShift, StaticLtmLoadingBushBase<?> networkLoading) {
 
-//    boolean pasUncongested =
-//        pas.getStatus() != PasStatus.CONGESTED && pas.getStatus() != PasStatus.UNCONGESTED_POTENTIALLY_CONGESTED;
-
     var pasConjAltEdgeSegment = this.pas.getAlternative(true)[0];
     EdgeSegment originalEntry = pasConjAltEdgeSegment.hasOriginalEntryEdgeSegment() ?
         pasConjAltEdgeSegment.getOriginalAdjacentEdgeSegments().first() : null;
@@ -2330,7 +2326,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     s1S2SendingFlows = Pair.of(s1SendingFlow, s2SendingFlow);
   }
 
-  /** Determine the proposed flow shift by taking appropriate derivatives along the PAS alternatives.
+  /** Determine the proposed flow shift by taking appropriate derivatives along the PAS alternatives. Potentially truncate
+   * based on slack flow (traffic state change bound)
    *
    * @param theMode the mode
    * @param physicalCost cost to use
@@ -2449,7 +2446,6 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       if(isDestinationTrackedForLogging() || logAll ) {
         var message = String.format("S2 DISCONTINUITY ADJUSTMENT TRIGGERED (on segment %s) from %.10f, to %.10f",
             highCostSlackResult.second().getIdsAsString(), oldFlowShift, chosenPerIterationFlowShift);
-        //sb.append(message).append(System.lineSeparator());
         LOGGER.info(message);
       }
     }
@@ -2619,8 +2615,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
       /*test for eligibility to reduce to zero flow along S2 */
       if (proposedFlowShift >= guaranteedS2SendingFlow && (isDestinationTrackedForLogging() || logAll)) {
-        var message = String.format("     [removal --> final proposed shift %.10f equal or higher than s2 sending flow %.10f, truncate]",
-            proposedFlowShift, guaranteedS2SendingFlow);
+        var message = String.format("     [removal --> final proposed shift %.10f equal or higher than s2 sending " +
+                "flow %.10f, truncate]", proposedFlowShift, guaranteedS2SendingFlow);
         LOGGER.info(message);
       }
 
