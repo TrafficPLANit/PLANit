@@ -141,7 +141,7 @@ public class StaticLtmSettings {
    */
   public static BiFunction<Integer,Double, Double> DEFAULT_PAS_IMPORTANCE_SMOOTHING_FUNCTION =
       (currPasCounterIndex, perPasPercentageOfTotal) ->
-          Math.min(1, (1 - (Math.pow(0.01, (currPasCounterIndex * perPasPercentageOfTotal))) + 0.01));;
+          Math.min(1, (1 - (Math.pow(0.01, (currPasCounterIndex * perPasPercentageOfTotal))) + 0.01))
 
   /** default order for PAS processing is in ascending order, from least important to most important */
   public static boolean DEFAULT_IS_PAS_ORDER_DIRECTION_ASCENDING = true;
