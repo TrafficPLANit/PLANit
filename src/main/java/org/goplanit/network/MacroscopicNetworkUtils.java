@@ -25,7 +25,6 @@ public class MacroscopicNetworkUtils {
    */
   public static MacroscopicNetwork createSimpleGrid(final IdGroupingToken tokenId, int rows, int columns) {
     var network = new MacroscopicNetwork(tokenId);
-
     network.setCoordinateReferenceSystem(PlanitJtsCrsUtils.CARTESIANCRS);
     var carMode = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
 

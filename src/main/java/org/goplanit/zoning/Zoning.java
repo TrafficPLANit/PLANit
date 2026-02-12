@@ -143,8 +143,10 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
         ConnectoidUtils.updateAccessZoneMapping(odConnectoids, odZoneMapper::getMapping, true);
       }
       if(transferZoneMapper != null){
-        ConnectoidUtils.updateAccessZoneMapping(transferConnectoids, transferZoneMapper::getMapping, true);
-        TransferZoneGroupUtils.updateTransferZoneMapping(transferZoneGroups, transferZoneMapper::getMapping, true);
+        ConnectoidUtils.updateAccessZoneMapping(
+                transferConnectoids, transferZoneMapper::getMapping, true);
+        TransferZoneGroupUtils.updateTransferZoneMapping(
+                transferZoneGroups, transferZoneMapper::getMapping, true);
       }
 
       var connectoidEdgeMapper = new GraphEntityDeepCopyMapper<ConnectoidDirectedEdge>();
@@ -153,7 +155,8 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
       this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(
           connectoidEdgeMapper, connectoidEdgeSegmentMapper, centroidVertexMapper);
 
-      // make sure centroid vertex's parent centroid is updated properly (this goes across zones that own  zone and centroids and virtual network, so done here)
+      // make sure centroid vertex's parent centroid is updated properly (this goes across zones that own  zone
+      // and centroids and virtual network, so done here)
       var centroidMapper = centroidVertexMapper.stream().collect(
           Collectors.toMap(entry -> entry.getKey().getParent(), entry -> entry.getValue().getParent()));
       CentroidVertexUtils.updateCentroidVertexCentroidMapping(
@@ -179,11 +182,13 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    */
   public void logInfo(String prefix) {
     LOGGER.info(String.format("%s XML id %s (external id: %s) ", prefix, getXmlId(), getExternalId()));
-    LOGGER.info(String.format("%s #od zones: %d (#centroids: %d)", prefix, odZones.size(), odZones.getNumberOfCentroids()));
+    LOGGER.info(String.format("%s #od zones: %d (#centroids: %d)",
+            prefix, odZones.size(), odZones.getNumberOfCentroids()));
     LOGGER.info(String.format("%s #od connectoids: %d", prefix, odConnectoids.size()));
     if (!transferZones.isEmpty()) {
       LOGGER.info(String.format("%s #transfer connectoids: %d", prefix, transferConnectoids.size()));
-      LOGGER.info(String.format("%s #transfer zones: %d (centroids %d)", prefix, transferZones.size(), transferZones.getNumberOfCentroids()));
+      LOGGER.info(String.format("%s #transfer zones: %d (centroids %d)",
+              prefix, transferZones.size(), transferZones.getNumberOfCentroids()));
       LOGGER.info(String.format("%s #transfer zone groups: %d", prefix, transferZoneGroups.size()));
     }
   }

@@ -47,6 +47,16 @@
 			<artifactId>commons-csv</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-main</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-referencing</artifactId>
+		</dependency>
+
 		<!-- version inherited from parent -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>

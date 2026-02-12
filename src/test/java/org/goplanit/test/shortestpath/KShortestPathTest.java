@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import java.util.Map;
 import java.util.logging.Logger;
