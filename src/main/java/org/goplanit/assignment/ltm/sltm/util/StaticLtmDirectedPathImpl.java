@@ -96,7 +96,8 @@ public class StaticLtmDirectedPathImpl extends ExternalIdAbleImpl implements Sta
   public void setPathChoiceProbability(double probability){
     if(Double.compare(probability, Double.NaN) == 0){
       LOGGER.warning(String.format(
-              "Probability for path %s cannot be NaN, setting to 0 instead, check validity of procedure", getIdsAsString()));
+              "Probability for path %s cannot be NaN, setting to 0 instead, check validity of procedure",
+          getIdsAsString()));
       probability = 0.0;
     }
     this.currentPathChoiceProbability = probability;

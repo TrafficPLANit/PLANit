@@ -19,7 +19,8 @@ import java.util.logging.Logger;
 /**
  * A rooted bush is an acyclic directed graph comprising implicit paths along a network. It has a root which can be any
  * vertex with only outgoing edge segments (or ingoing ones if it is an inverted bushed), so
- * while acyclic its direction can be either be in up or downstream direction compared to the super network it is situated on.
+ * while acyclic its direction can be either be in up or downstream direction compared to the super network it is
+ * situated on.
  * <p>
  * The vertices in the bush represent link segments in the physical network, whereas each edge represents a turn from
  * one link to another. This way each splitting rate uniquely relates to a single turn and all outgoing edges of a
@@ -44,7 +45,8 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   /** token for id generation unique within this bush */
   protected final IdGroupingToken bushGroupingToken;
 
-  /** track if underlying acyclic graph is modified, if so, an update of the topological sort is required flagged by this member */
+  /** track if underlying acyclic graph is modified, if so, an update of the topological sort is required flagged
+   * by this member */
   protected boolean requireTopologicalSortUpdate = true;
 
   /**
@@ -183,7 +185,8 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
     /* get topological sorted vertices to process in indicated direction */
     var vertexIter = invertIterator ? getInvertedTopologicalIterator() : getTopologicalIterator();
     if (vertexIter == null) {
-      LOGGER.severe(String.format("Topologically sorted vertices on bush not available, this shouldn't happen, skip vertex traversal"));
+      LOGGER.severe("Topologically sorted vertices on bush not available, this shouldn't happen, " +
+          "skip vertex traversal");
       LOGGER.info(String.format("Bush at risk: %s", this));
       return;
     }
@@ -231,12 +234,14 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   }
 
   /**
-   * Compute the min-max path tree rooted in location depending on underlying dag configuration of derived implementation and given the provided (network wide) costs. The provided
+   * Compute the min-max path tree rooted in location depending on underlying dag configuration of derived
+   * implementation and given the provided (network wide) costs. The provided
    * costs are at the network level so should contain all the segments active in the bush
    *
    * @param excludeZeroFlowLinkSegmentsFromMaxPaths  flag
    * @param linkSegmentCosts              to use
-   * @param totalTransportNetworkVertices needed to be able to create primitive array recording the (partial) subgraph backward link segment results (efficiently)
+   * @param totalTransportNetworkVertices needed to be able to create primitive array recording the (partial) subgraph
+   *                                      backward link segment results (efficiently)
    * @return minMaxPathResult, null if unable to complete
    */
   public abstract MinMaxPathResult computeMinMaxShortestPaths(boolean excludeZeroFlowLinkSegmentsFromMaxPaths,

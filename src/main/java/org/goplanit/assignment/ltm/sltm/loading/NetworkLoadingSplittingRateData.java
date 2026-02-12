@@ -9,11 +9,13 @@ import org.ojalgo.array.Array1D;
 /**
  * Interface for the different implementations that track splitting rates during sLTM network loading.
  * <p>
- * We make a distinction by tracking node (turn) flows to be able to construct splitting rates and whether or not a node is potentially blocking. When a node is potentially
- * blocking we must always track its (turn) flows and splitting rates otherwise we cannot compute to what extent it is blocking. However, when it is not blocking (yet) we might
- * still be required to track it. For example when we want to be able to know how much flow is using a sub-path through the network used by - for example - a PAS in a bush-based
- * implementation of sLTM. For Path based implementations we only need to track nodes that are potentially blocking because there is no need to know the flow on sub-paths to be
- * able to determine how to distribute flows.
+ * We make a distinction by tracking node (turn) flows to be able to construct splitting rates and whether or not a
+ * node is potentially blocking. When a node is potentially blocking we must always track its (turn) flows and
+ * splitting rates otherwise we cannot compute to what extent it is blocking. However, when it is not blocking (yet)
+ * we might still be required to track it. For example when we want to be able to know how much flow is using a
+ * sub-path through the network used by - for example - a PAS in a bush-based implementation of sLTM. For Path based
+ * implementations we only need to track nodes that are potentially blocking because there is no need to know the flow
+ * on sub-paths to be able to determine how to distribute flows.
  * 
  * @author markr
  *

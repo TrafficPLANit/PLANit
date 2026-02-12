@@ -20,7 +20,6 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.zoning.OdZone;
@@ -132,13 +131,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     Comparator<Pas<V,ES>> PAS_GAP_COMPARATOR = (p1, p2) -> {
       double p1Gap = pasGaps.get(p1);
       double p2Gap = pasGaps.get(p2);
-      if (p1Gap > p2Gap) {
-        return -1;
-      } else if (p1Gap < p2Gap) {
-        return 1;
-      } else {
-        return 0;
-      }
+      return Double.compare(p2Gap, p1Gap);
     };
     return PAS_GAP_COMPARATOR;
   }
@@ -147,31 +140,25 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * FLOW SHIFTING - STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based
    * on relevant criterion.
    * todo: provide option for sorting order...
-   * @param pasExecutors                      to use for retrieving PAS information used in sorting
    * @param pasGaps current gaps of PASs
    * @return sorted PASs in descending order of importance
    */
-  protected List<Pas<V,ES>> orderPass(
-      Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
-      Map<Pas<V,ES>, Double> pasGaps) {
+  protected List<Pas<V,ES>> orderPass(Map<Pas<V,ES>, Double> pasGaps) {
 
-    pasGaps.entrySet().stream().sorted(Map.Entry.comparingByValue()).skip(pasGaps.entrySet().size()-Math.min(pasGaps.size(), 10)).forEach(
+    pasGaps.entrySet().stream().sorted(Map.Entry.comparingByValue()).skip(
+        pasGaps.entrySet().size()-Math.min(pasGaps.size(), 10)).forEach(
         e -> LOGGER.info(String.format("%.10f - %s", e.getValue(), e.getKey())));
 
-    //var chosenComparator = PAS_NORMALISED_REDUCED_COST_BY_FLOW_COMPARATOR;
     var chosenComparator = getPasGapComparator(pasGaps);
     /* Sort all remaining PAss based on comparator */
-    var result = this.pasManager.getActivePassSortedByReducedCost(chosenComparator);
-    return result;
+    return this.pasManager.getActivePassSortedByReducedCost(chosenComparator);
   }
 
   /**
    * Log how many flow shifts were performed and deregister bushes and PAs that have no more flow on their S2
    * alternatives
-   *
-   * @param updatedPass to consider
    */
-  private void logFlowShiftPerformedAndDeregisterEmptyPass(Collection<Pas<V,ES>> updatedPass) {
+  private void logFlowShiftPerformedAndDeregisterEmptyPass() {
 
     var passWithoutBush = new ArrayList<Pas<V,ES>>(100);
     this.pasManager.forEachActivePas(p -> {
@@ -191,12 +178,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   /**
    * Create PAS executors for each active PAS, deactivate PASs without flow remaining
    *
-   * @param theMode to use
-   * @param simulationData to use
    * @return pas executors for each pas
    */
-  private Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> prepareForFlowShifts(
-      final Mode theMode, final StaticLtmSimulationData simulationData){
+  private Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> prepareForFlowShifts(){
     
     // Create dedicated executors for flow shifting per PAS
     final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors = createPasFlowShiftersWithLoadingS1S2SendingFlows();
@@ -244,7 +228,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
   }
 
   /**
-   * Based on the network loading results, update the bush' turn sending flows
+   * Based on the network loading results, update the bush's turn sending flows
    */
   public void syncBushFlowsToNetworkFlows() {
     for (var bush : bushes) {
@@ -254,10 +238,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
 
       bush.syncToNetworkFlows(getLoading().getCurrentFlowAcceptanceFactors());
     }
-  }
-
-  public void performGlobalGapCalculationAndTrackBushGapInformation() {
-
   }
 
   /**
@@ -474,7 +454,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
       LOGGER.severe(String.format("Unable to create initial bushes for sLTM %d", getAssignmentId()));
-      e.printStackTrace();
     }
   }
 
@@ -531,11 +510,11 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
         /* DO FLOW SHIFTS  */
         {
           // code for flow shifting in dedicated executor instances. Create them here, one for each PAS.
-          Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors = prepareForFlowShifts(theMode, simulationData);
+          Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors = prepareForFlowShifts( );
           // execute actual flow shifting per PAS
-          Collection<Pas<V,ES>> updatedPass = performFlowShifts(theMode, pasExecutors, costsToUpdate, simulationData);
+          performFlowShifts(theMode, pasExecutors, costsToUpdate, simulationData);
           // Dispose of PASs that no longer have S2 flows
-          logFlowShiftPerformedAndDeregisterEmptyPass(updatedPass);
+          logFlowShiftPerformedAndDeregisterEmptyPass();
         }
 
       }
@@ -543,7 +522,9 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
     }catch(Exception e) {
       LOGGER.severe(e.getMessage());
       LOGGER.severe("Unable to complete sLTM iteration, print stack trace when enabling detailed logging");
-      e.printStackTrace();
+      if(getSettings().isDetailedLogging()){
+        e.printStackTrace();
+      }
       return false;
     }
     return true;
@@ -562,8 +543,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    */
   @Override
   public boolean hasConverged(GapFunction gapFunction, int iterationIndex) {
-    boolean converged = super.hasConverged(gapFunction, iterationIndex);
-    return converged;
+    return super.hasConverged(gapFunction, iterationIndex);
   }
 
   /**
@@ -597,8 +577,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
             this.getClass().getCanonicalName(), odSkimOutputType, mode.getIdsAsString()));
 
     // for time being use empty skim matrix
-    var emptySkimMatrix = new OdSkimMatrix(getTransportNetwork().getZoning().getOdZones(), odSkimOutputType);
-    return emptySkimMatrix;
+    return new OdSkimMatrix(getTransportNetwork().getZoning().getOdZones(), odSkimOutputType);
   }
 
 }

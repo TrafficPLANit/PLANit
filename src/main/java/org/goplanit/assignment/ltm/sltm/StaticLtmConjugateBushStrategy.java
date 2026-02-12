@@ -620,7 +620,7 @@ public class StaticLtmConjugateBushStrategy
       // sync costs as it determines order, so should be up to date
       pasExecutors.keySet().forEach(p ->p.updateCost(conjSegmentCosts));
       var pasGaps = computePasGaps(pasExecutors.keySet(), nlConsistentFlowAcceptanceFactors);
-      var sortedPass = orderPass(pasExecutors, pasGaps);
+      var sortedPass = orderPass(pasGaps);
       if(getSettings().isBushBasedPasOrderDirectionAscending()) {
         Collections.reverse(sortedPass);
       }

@@ -30,8 +30,8 @@ public interface Bush extends IdAble {
   public abstract Iterator<? extends DirectedVertex> getInvertedTopologicalIterator();
 
   /**
-   * determine the search type supported by the bush based on the underlying dag's construction, i.e., a destination-based dag results in All-To-One, whereas an origin based dag
-   * results in One-To-All searches.
+   * determine the search type supported by the bush based on the underlying dag's construction, i.e.,
+   * a destination-based dag results in All-To-One, whereas an origin based dag results in One-To-All searches.
    * 
    * @return shortest search type compatible with this bush implementation
    */

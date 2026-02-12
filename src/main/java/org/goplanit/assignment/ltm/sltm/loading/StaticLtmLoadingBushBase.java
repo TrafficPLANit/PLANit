@@ -28,11 +28,13 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingBushBase.class.getCanonicalName());
 
-  /** the bushes managed by the bush strategy but provided to be able to conduct a network loading based on the current state (bush splitting rates) of each bush */
+  /** the bushes managed by the bush strategy but provided to be able to conduct a network loading based on the
+   * current state (bush splitting rates) of each bush */
   private Set<B> bushes;
 
   /**
-   * the PAS manager with all the currently active PASs, used to determine which nodes to track flows and splitting rates for during network loading, namely all links and nodes
+   * the PAS manager with all the currently active PASs, used to determine which nodes to track flows and splitting
+   * rates for during network loading, namely all links and nodes
    * present in the active PASs
    */
   private PasManager<?,?> pasManager;
@@ -179,8 +181,8 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
   protected TurnFlowAccessor networkLoadingTurnFlowUpdate(Mode mode) {
    
     /* update network turn flows (and sending flows if POINT_QUEUE_BASIC) by performing a network loading
-     * on all bushes using the bush-splitting rates (and updating the bush turn sending flows in the process, so they remain consistent
-     * with the loading)
+     * on all bushes using the bush-splitting rates (and updating the bush turn sending flows in the process,
+     * so they remain consistent with the loading)
      */
     boolean updateTurnAcceptedFlows = true;
     boolean updateSendingFlowDuringLoading = !isIterativeSendingFlowUpdateActivated();
@@ -228,25 +230,6 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
     // construct splitting rates
     var turnFlows = syncFlowConsumer.getAcceptedTurnFlows();
     updateNextSplittingRates(turnFlows);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected void networkLoadingSendingFlowOutflowUpdate(Mode mode) {
-
-    /* configure to only update all link segment sending flows */
-    boolean updateTurnAcceptedFlows = false;
-    boolean updateSendingFlow = true;
-    boolean updateOutflowFlow= true;
-    boolean updateUnconstrainedFlows = false;
-    var bushFlowUpdateConsumer =
-        createRegularBushLoadingFlowUpdateConsumer(
-            updateTurnAcceptedFlows, updateSendingFlow, updateOutflowFlow, updateUnconstrainedFlows);
-
-    /* execute */
-    executeNetworkLoadingUpdate(bushFlowUpdateConsumer);
   }
 
   /**
@@ -298,8 +281,9 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
   } 
 
   /** For each PAS we must be able to determine the network level flows along the segments, see computeSubPathSendingFlow(). 
-   * This requires knowing the network level splitting rates on the network level as well as the sending flows and acceptance factors, otherwise we cannot determine this. 
-   * Therefore, for each newly identified PAS we activate node tracking for all (eligible) nodes along the segments of this PAS, if not already done so 
+   * This requires knowing the network level splitting rates on the network level as well as the sending flows and
+   * acceptance factors, otherwise we cannot determine this. Therefore, for each newly identified PAS we activate
+   * node tracking for all (eligible) nodes along the segments of this PAS, if not already done so
    *
    *@param newPas to activate nodes on segments for
    */
@@ -308,7 +292,8 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
       LOGGER.severe("Provided PAS is null, unable to activate node tracking for alternative segments");
       return;
     }
-    /* only when not all turn flows are tracked, we must expand the tracked nodes, otherwise they are already available */
+    /* only when not all turn flows are tracked, we must expand the tracked nodes, otherwise they are already
+    available */
     if(!isTrackAllNodeTurnFlowsDuringLoading()) {
       var pointQueueBasicSplittingRates = (NetworkLoadingSplittingRateDataPartial) this.getSplittingRateData();
 
@@ -319,7 +304,8 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
         DirectedVertex candidateVertex = v;
         if(v instanceof ConjugateDirectedVertex && ((ConjugateDirectedVertex)v).hasOriginalEdgeSegment()){
           if(newPas.getMergeVertex() == v){
-            return; // last conjugate vertex we ignore, because downstream original edge is beyond point of interest for tracking
+            // last conjugate vertex we ignore, because downstream original edge is beyond point of interest for tracking
+            return;
           }
           candidateVertex = ((ConjugateDirectedVertex)v).getOriginalEdgeSegment().getDownstreamVertex();
         }

@@ -43,7 +43,8 @@ public class ConjugateCostUtils {
 
     // UPDATE CONJ COSTS for each turn
     for(var exitSegment : node.getExitEdgeSegments()) {
-      if(exitSegment.hasOppositeDirectionSegment() && exitSegment.getOppositeDirectionSegment() == nonConjugateEntrySegment){
+      if(exitSegment.hasOppositeDirectionSegment() &&
+          exitSegment.getOppositeDirectionSegment() == nonConjugateEntrySegment){
         continue;
       }
       var conjSegment = assignmentStrategy.getTurn2ConjugateSegmentMapping().get(nonConjugateEntrySegment, exitSegment);

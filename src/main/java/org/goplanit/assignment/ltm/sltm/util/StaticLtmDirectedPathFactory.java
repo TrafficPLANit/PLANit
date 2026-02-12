@@ -15,7 +15,8 @@ import java.util.logging.Logger;
  * 
  * @author markr
  */
-public class StaticLtmDirectedPathFactory extends ManagedIdEntityFactoryImpl<StaticLtmDirectedPath> implements ManagedDirectedPathFactory<StaticLtmDirectedPath> {
+public class StaticLtmDirectedPathFactory extends ManagedIdEntityFactoryImpl<StaticLtmDirectedPath>
+    implements ManagedDirectedPathFactory<StaticLtmDirectedPath> {
 
   private static final Logger LOGGER = Logger.getLogger(StaticLtmDirectedPathFactory.class.getCanonicalName());
 
@@ -38,7 +39,8 @@ public class StaticLtmDirectedPathFactory extends ManagedIdEntityFactoryImpl<Sta
       var edgeSegment = edgeSegmentIter.next();
       var movement = segmentPair2MovementMap.get(prevSegment, edgeSegment);
       if(movement == null){
-        LOGGER.severe(String.format("Unable to find movement for segment pair (%s)-(%s)", prevSegment.getIdsAsString(), edgeSegment.getIdsAsString()));
+        LOGGER.severe(String.format("Unable to find movement for segment pair (%s)-(%s)",
+            prevSegment.getIdsAsString(), edgeSegment.getIdsAsString()));
       }
       movements[index++] = movement;
       prevSegment = edgeSegment;

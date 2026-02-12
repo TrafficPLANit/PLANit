@@ -11,7 +11,8 @@ import org.goplanit.utils.mode.Mode;
 import java.util.Optional;
 
 /**
- * Adapter providing access to the data of the StaticLtm class relevant for path outputs without exposing the internals of the traffic assignment class itself
+ * Adapter providing access to the data of the StaticLtm class relevant for path outputs without exposing the
+ * internals of the traffic assignment class itself
  *
  * @author markr
  *

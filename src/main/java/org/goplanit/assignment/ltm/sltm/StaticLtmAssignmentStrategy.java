@@ -43,8 +43,8 @@ import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.utils.zoning.Zone;
 
 /**
- * Base class for dealing with different assignment solution methods within sLTM. These solution methods differ regarding their approach to representing path choices, e.g. bush
- * based, or path based.
+ * Base class for dealing with different assignment solution methods within sLTM. These solution methods differ
+ * regarding their approach to representing path choices, e.g. bush based, or path based.
  * 
  * @author markr
  *

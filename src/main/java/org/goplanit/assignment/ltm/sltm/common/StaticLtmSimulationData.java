@@ -29,7 +29,8 @@ public class StaticLtmSimulationData extends SimulationData {
   private final TreeMap<Mode, Boolean> initialCostsAppliedInFirstIteration;
 
   /**
-   * Track the mode link segment costs in a 2d raw array where the first dimension is based on mode id while the second uses the link segment id to place the cost
+   * Track the mode link segment costs in a 2d raw array where the first dimension is based on mode id while the
+   * second uses the link segment id to place the cost
    */
   private double[][] modeLinkSegmentCost;
 
@@ -55,7 +56,8 @@ public class StaticLtmSimulationData extends SimulationData {
    * 
    * @param timePeriod                currently in action
    * @param supportedModes            used by the simulation
-   * @param numberOfTotalLinkSegments used to correctly initialise the size of the internal data arrays for link segment data
+   * @param numberOfTotalLinkSegments used to correctly initialise the size of the internal data arrays for link
+   *                                  segment data
    */
   public StaticLtmSimulationData(final TimePeriod timePeriod, Set<Mode> supportedModes, long numberOfTotalLinkSegments) {
     super();
@@ -78,9 +80,11 @@ public class StaticLtmSimulationData extends SimulationData {
   public StaticLtmSimulationData(final StaticLtmSimulationData simulationData) {
     super(simulationData, false);
     if (simulationData.modeLinkSegmentCost.length > 0) {
-      this.modeLinkSegmentCost = new double[simulationData.modeLinkSegmentCost.length][simulationData.modeLinkSegmentCost[0].length];
+      this.modeLinkSegmentCost =
+          new double[simulationData.modeLinkSegmentCost.length][simulationData.modeLinkSegmentCost[0].length];
       for (int index = 0; index < simulationData.modeLinkSegmentCost.length; ++index) {
-        this.modeLinkSegmentCost[index] = Arrays.copyOf(simulationData.modeLinkSegmentCost[index], simulationData.modeLinkSegmentCost[index].length);
+        this.modeLinkSegmentCost[index] =
+            Arrays.copyOf(simulationData.modeLinkSegmentCost[index], simulationData.modeLinkSegmentCost[index].length);
       }
     } else {
       this.modeLinkSegmentCost = null;

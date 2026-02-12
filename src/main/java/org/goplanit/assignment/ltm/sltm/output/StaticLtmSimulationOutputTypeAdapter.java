@@ -44,7 +44,8 @@ public class StaticLtmSimulationOutputTypeAdapter extends SimulationOutputTypeAd
    */
   @Override
   protected Optional<?> getRouteChoiceIterationRunTime() {
-    return Optional.of(getAssignment().getIterationData().getRunTimesTracker().get(RunTimesTracker.GENERAL).getIterationTimeInMillis());
+    return Optional.of(getAssignment().getIterationData().getRunTimesTracker().get(RunTimesTracker.GENERAL).
+        getIterationTimeInMillis());
   }
 
   /**

@@ -215,11 +215,13 @@ public class StaticLtmSettings {
       field.setAccessible(true);
       try {
         if (field.get(this) == null) {
-          LOGGER.severe(String.format("%s has not been set as part of sLTM network loading settings, this should not happen", field.getName()));
+          LOGGER.severe(String.format("%s has not been set as part of sLTM network loading settings, " +
+              "this should not happen", field.getName()));
           valid = false;
         }
       } catch (Exception e) {
-        LOGGER.severe(String.format("Unable to collect field %s from class instance %s, this should not happen", field.getName(), this.getClass().getName()));
+        LOGGER.severe(String.format("Unable to collect field %s from class instance %s, this should not happen",
+            field.getName(), this.getClass().getName()));
         e.printStackTrace();
         valid = false;
       }

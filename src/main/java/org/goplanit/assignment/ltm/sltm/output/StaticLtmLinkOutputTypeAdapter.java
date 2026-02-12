@@ -39,7 +39,8 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    */
   private Optional<Double> getCalculatedSpeed(final MacroscopicLinkSegment linkSegment, final Mode mode) {
     final int id = (int) linkSegment.getId();
-    final double[] modalLinkSegmentsTravelTimeHour = getAssignment().getIterationData().getLinkSegmentTravelTimePcuH(mode);
+    final double[] modalLinkSegmentsTravelTimeHour =
+        getAssignment().getIterationData().getLinkSegmentTravelTimePcuH(mode);
     final double travelTimeHour = modalLinkSegmentsTravelTimeHour[id];
     final double length = linkSegment.getParent().getLengthKm();
     return Optional.of(length / travelTimeHour);

@@ -8,7 +8,8 @@ import org.ojalgo.array.Array2D;
 import org.ojalgo.function.aggregator.Aggregator;
 
 /**
- * A functional class that consumes the result of a node model update in order to determine the next accepted outflows of incoming links of all nodes it is applied to
+ * A functional class that consumes the result of a node model update in order to determine the next accepted outflows
+ * of incoming links of all nodes it is applied to
  * 
  * @author markr
  *

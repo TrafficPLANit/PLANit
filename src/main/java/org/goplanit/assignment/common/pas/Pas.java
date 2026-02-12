@@ -18,8 +18,9 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CollectionUtils;
 
 /**
- * Paired Alternative Segment (PAS) implementation comprising two subpaths (segments), one of a higher cost than the other. In a PAS both subpaths start at the same vertex and end
- * at the same vertex without any intermediate links overlapping.
+ * Paired Alternative Segment (PAS) implementation comprising two subpaths (segments), one of a higher cost than the
+ * other. In a PAS both subpaths start at the same vertex and end at the same vertex without any intermediate
+ * links overlapping.
  * 
  * @author markr
  *
@@ -334,7 +335,8 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
    * high cost path
    * 
    * @param edgeSegmentCosts to use
-   * @param updateAdjustmentFactor when tru update the adjustment factor based on cost that cna be used to alter proposed flow shifts
+   * @param updateAdjustmentFactor when tru update the adjustment factor based on cost that cna be used to alter
+   *                               proposed flow shifts
    * @return true when updated costs caused a switch in what is the high and low cost path
    */
   public boolean updateCost(final double[] edgeSegmentCosts, boolean updateAdjustmentFactor) {
@@ -560,7 +562,8 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
   }
 
   /**
-   * A PAS equals another pas if the alternative segments are the same. The registered origins or current cost are not considered in this equality test
+   * A PAS equals another pas if the alternative segments are the same. The registered origins or current cost are
+   * not considered in this equality test
    */
   @Override
   public boolean equals(Object obj) {

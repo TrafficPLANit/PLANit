@@ -9,8 +9,9 @@ import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
- * A cumulative event represents a cumulative pcu point in space-time with (potential) additional information. The content of the event is stored in a raw object array which is
- * initialised here. The first two entries are populated with the unique id of the event and the cumulative information.
+ * A cumulative event represents a cumulative pcu point in space-time with (potential) additional information.
+ * The content of the event is stored in a raw object array which is initialised here. The first two entries are
+ * populated with the unique id of the event and the cumulative information.
  * 
  * @author markr
  *
@@ -57,7 +58,8 @@ public abstract class CumulativeEvent extends EventImpl {
    * @param cumulativePoint contains the cumulative information
    * @param singleParameter create room in the content array for additional content of derived event classes
    */
-  protected CumulativeEvent(EventType type, Object source, CumulativePoint cumulativePoint, Serializable singleParameter) {
+  protected CumulativeEvent(
+      EventType type, Object source, CumulativePoint cumulativePoint, Serializable singleParameter) {
     super(type, source, new Object[] { generateEventId(), cumulativePoint, singleParameter });
   }
 
@@ -70,7 +72,8 @@ public abstract class CumulativeEvent extends EventImpl {
    * @param cumulativePoint   contains the cumulative information
    * @param additionalContent create room in the content array for additional content of derived event classes
    */
-  protected CumulativeEvent(EventType type, Serializable sourceId, CumulativePoint cumulativePoint, Serializable... additionalContent) {
+  protected CumulativeEvent(
+      EventType type, Serializable sourceId, CumulativePoint cumulativePoint, Serializable... additionalContent) {
     super(type, sourceId, new Object[additionalContent.length + 2]);
     // place fixed content in object array structure
     setEventContentByIndex(0, generateEventId());

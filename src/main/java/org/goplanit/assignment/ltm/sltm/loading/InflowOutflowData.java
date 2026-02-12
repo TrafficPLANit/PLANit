@@ -4,7 +4,8 @@ import org.goplanit.assignment.ltm.sltm.common.LinkSegmentData;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 
 /**
- * During sLTM loading we use temporary inflow and outflow rates resulting from node model updates. These flows are then used to determine the factors for the relevant algorithm
+ * During sLTM loading we use temporary inflow and outflow rates resulting from node model updates. These flows are
+ * then used to determine the factors for the relevant algorithm
  * step upon convergence of that step.
  * 
  * @author markr

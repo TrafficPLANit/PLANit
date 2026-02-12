@@ -12,7 +12,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Event based Link Transmission Model implementation (eLTM) for network loading using a capacity constrained (Deterministic) assignment
+ * Event based Link Transmission Model implementation (eLTM) for network loading using a capacity constrained
+ * (Deterministic) assignment
  *
  * @author markr
  *

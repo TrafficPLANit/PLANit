@@ -79,8 +79,8 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
       }
     };
 
-    /* Normalised cost version to ensure that small PASs are not disadvantaged compared to overlapping larger PASs since the
-     * smaller the PAS the better the convergence so if anything they should be favoured and processed earlier
+    /* Normalised cost version to ensure that small PASs are not disadvantaged compared to overlapping larger PASs
+    since the smaller the PAS the better the convergence so if anything they should be favoured and processed earlier
      */
     PAS_REDUCED_COST_PER_KM_COMPARATOR = (p1, p2) -> {
       if (Precision.greater(p1.getNormalisedReducedCost(), p2.getNormalisedReducedCost(), Precision.EPSILON_15)) {
@@ -96,7 +96,8 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   /** flag for detailed logging */
   private boolean detailedLogging = DETAILED_LOGGING;
 
-  /** Based on the reference vertex relative to the PAS we obtain the correct vertex from a list of edge segments that are assumed to represent a PAS alternative
+  /** Based on the reference vertex relative to the PAS we obtain the correct vertex from a list of edge segments that
+   * are assumed to represent a PAS alternative
    * 
    * @param alternative to collect from
    * @return found reference vertex

@@ -18,11 +18,13 @@ import org.ojalgo.array.Array1D;
  * @author markr
  *
  */
-public class NetworkLoadingSplittingRateDataComplete extends NetworkLoadingSplittingRateDataBase implements NetworkLoadingSplittingRateData {
+public class NetworkLoadingSplittingRateDataComplete extends NetworkLoadingSplittingRateDataBase
+    implements NetworkLoadingSplittingRateData {
 
   /** logger to use */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(NetworkLoadingSplittingRateDataComplete.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(
+      NetworkLoadingSplittingRateDataComplete.class.getCanonicalName());
 
   /** the activated nodes for which we are tracking splitting rates for their entry link segments */
   private final TreeSet<DirectedVertex> activatedNodes;

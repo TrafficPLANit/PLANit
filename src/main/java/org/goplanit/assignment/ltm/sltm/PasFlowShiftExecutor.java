@@ -268,8 +268,9 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   protected static final double EPSILON = EPSILON_12;
 
   /**
-   * whenever a PAS S2 alternative's flow drops below this threshold for a given bush, we allow the flow shift to move all remaining flow towards the S1 segment across all entry
-   * segments and unregister the bush for this PAS as it is no longer deemed a true alternative.
+   * whenever a PAS S2 alternative's flow drops below this threshold for a given bush, we allow the flow shift to move
+   * all remaining flow towards the S1 segment across all entry segments and unregister the bush for this PAS as it
+   * is no longer deemed a true alternative.
    */
   protected static final double PAS_MIN_S2_FLOW_THRESHOLD = 1;
 

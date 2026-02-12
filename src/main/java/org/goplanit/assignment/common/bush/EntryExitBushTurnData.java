@@ -66,7 +66,8 @@ public class EntryExitBushTurnData {
    * @param toSegment        of turn
    * @param turnSendingFlow  to update
    * @param force if not forced perform additional checks to see if valid before applying
-   * @return true when turn has any labelled turn sending flow left after setting flow, false when labelled turn sending flow no longer exists
+   * @return true when turn has any labelled turn sending flow left after setting flow, false when labelled turn
+   * sending flow no longer exists
    */
   public boolean setTurnSendingFlow(
       final EdgeSegment fromSegment,
@@ -75,11 +76,13 @@ public class EntryExitBushTurnData {
       boolean force) {
 
     if (Double.isNaN(turnSendingFlow)) {
-      LOGGER.severe("Turn (%s to %s) sending flow is NAN, shouldn't happen - consider identifying issue as turn flow cannot be updated properly, reset to 0.0 flow");
+      LOGGER.severe("Turn (%s to %s) sending flow is NAN, shouldn't happen - consider identifying issue as turn " +
+          "flow cannot be updated properly, reset to 0.0 flow");
       turnSendingFlow = 0.0;
     }else if(!force){
       // not forced, so apply some additional checking in situation of low flows and negative flows
-      // note forced may be helpful for small positive flows that otherwise would be regarded as zero flow with the below checks
+      // note forced may be helpful for small positive flows that otherwise would be regarded as zero flow with the
+      // below checks
       if(!Precision.positive(turnSendingFlow)) {
         // when negative flow but extremely close to zero, remove the turn flow and accept
         removeTurn(fromSegment, toSegment);
@@ -87,7 +90,8 @@ public class EntryExitBushTurnData {
       }else if(turnSendingFlow < 0) {
         // too negative, warn user as this is unexpected behaviour possibly beyond a rounding situation
         LOGGER.warning(String.format(
-                "** Turn (%s to %s) sending flow negative (%.9f) on bush (%s), this is not allowed, removing turn flow", fromSegment.getXmlId(), toSegment.getXmlId(),
+                "** Turn (%s to %s) sending flow negative (%.9f) on bush (%s), this is not allowed, removing " +
+                    "turn flow", fromSegment.getXmlId(), toSegment.getXmlId(),
                 turnSendingFlow, parent.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
         removeTurn(fromSegment, toSegment);
         return false;
@@ -99,7 +103,8 @@ public class EntryExitBushTurnData {
   }
 
   /**
-   * Add turn sending flow for a given turn (can be negative), flow labelling can be removed if desired depdning on flags set if desired
+   * Add turn sending flow for a given turn (can be negative), flow labelling can be removed if desired depending on
+   * flags set if desired
    * 
    * @param from             of turn
    * @param to               of turn
@@ -160,7 +165,8 @@ public class EntryExitBushTurnData {
   }
 
   /**
-   * Collect the accepted flow towards an edge segment in the bush with the specified label, if not present, zero flow is returned
+   * Collect the accepted flow towards an edge segment in the bush with the specified label, if not present,
+   * zero flow is returned
    * 
    * @param edgeSegment           to collect sending flow towards to
    * @param flowAcceptanceFactors to convert sending flow to accepted flow
@@ -193,11 +199,13 @@ public class EntryExitBushTurnData {
   }
 
   /**
-   * Collect the splitting rates for a given link segment and composition. Splitting rates are based on the current (labelled) turn sending flows s_ab. In case no flows are present
-   * for the given composition label, zero splitting rates for all turns are returned.
+   * Collect the splitting rates for a given link segment and composition. Splitting rates are based on the current
+   * (labelled) turn sending flows s_ab. In case no flows are present for the given composition label, zero splitting
+   * rates for all turns are returned.
    * 
    * @param fromSegment to collect bush splitting rates for
-   * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the downstream from segment vertex
+   * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the
+   * downstream from segment vertex
    */
   public double[] getSplittingRates(final EdgeSegment fromSegment) {
     var exitEdgeSegments = fromSegment.getDownstreamVertex().getExitEdgeSegments();

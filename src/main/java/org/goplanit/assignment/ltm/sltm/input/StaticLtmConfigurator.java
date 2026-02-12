@@ -449,8 +449,10 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
    * </p>
    * @param disableRelativeScalingFactorUpdateAfterIteration iteration to disable relative scaling factor update after
    */
-  public void setDisableRelativeScalingFactorUpdateAfterIteration(Integer disableRelativeScalingFactorUpdateAfterIteration){
-    registerDelayedMethodCall(SET_DISABLE_RELATIVE_SCALING_FACTOR_UPDATE_AFTER_ITERATION, disableRelativeScalingFactorUpdateAfterIteration);
+  public void setDisableRelativeScalingFactorUpdateAfterIteration(
+      Integer disableRelativeScalingFactorUpdateAfterIteration){
+    registerDelayedMethodCall(
+        SET_DISABLE_RELATIVE_SCALING_FACTOR_UPDATE_AFTER_ITERATION, disableRelativeScalingFactorUpdateAfterIteration);
   }
 
   /**

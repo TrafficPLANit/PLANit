@@ -22,9 +22,10 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 
 /**
- * A destination bush is an (inverted) acyclic directed graph rooted at many origins going to a single destination representing all implicit paths along a network to the given
- * destination. Demand on the bush is placed along its root node(s) which is then split across the graph by (bush specific) splitting rates that reside on each edge. The sum of the
- * edge splitting rates originating from a vertex must always sum to 1.
+ * A destination bush is an (inverted) acyclic directed graph rooted at many origins going to a single destination
+ * representing all implicit paths along a network to the given destination. Demand on the bush is placed along its
+ * root node(s) which is then split across the graph by (bush specific) splitting rates that reside on each edge.
+ * The sum of the edge splitting rates originating from a vertex must always sum to 1.
  * 
  * @author markr
  *
@@ -104,7 +105,8 @@ public class DestinationBush extends RootedBush<DirectedVertex, EdgeSegment> {
    * 
    * @param idToken                 the token to base the id generation on
    * @param destination             destination of the bush
-   * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
+   * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent
+   *                                network it is a subset of
    */
   public DestinationBush(final IdGroupingToken idToken, CentroidVertex destination, long maxSubGraphEdgeSegments) {
     super(new ACyclicSubGraphImpl(idToken, destination, true /* inverted */, (int) maxSubGraphEdgeSegments));
@@ -186,8 +188,11 @@ public class DestinationBush extends RootedBush<DirectedVertex, EdgeSegment> {
                 entrySegment, exitSegment, bushTurnLabeledAcceptedFlow, true);
           }else if(bushExitSegmentSplittingRate > 0){
             LOGGER.warning(String.format(
-                "Minute splitting rate found on turn from (%s) to (%s) on bush %s, ignored, but should probably be dealt with properly!",
-                entrySegment.getIdsAsString(), exitSegment.getIdsAsString(), this.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
+                "Minute splitting rate found on turn from (%s) to (%s) on bush %s, ignored, but should probably be " +
+                    "dealt with properly!",
+                entrySegment.getIdsAsString(),
+                exitSegment.getIdsAsString(),
+                this.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
           }
           ++splittingRateIndex;
         }
@@ -236,7 +241,8 @@ public class DestinationBush extends RootedBush<DirectedVertex, EdgeSegment> {
     try {
       return minMaxBushPaths.executeAllToOne(getRootVertex());
     } catch (Exception e) {
-      LOGGER.severe(String.format("Unable to complete minmax path three for destination-based bush ending at destination %s", getDestination().getXmlId()));
+      LOGGER.severe(String.format("Unable to complete minmax path three for destination-based bush ending at " +
+          "destination %s", getDestination().getXmlId()));
     }
     return null;
   }
@@ -297,8 +303,9 @@ public class DestinationBush extends RootedBush<DirectedVertex, EdgeSegment> {
   }
 
   /**
-   * Add turn sending flow to the bush. In case the turn does not yet exist on the bush it is newly registered. If it does exist and there is already flow present, the provided
-   * flow is added to it. If by adding the flow (can be negative) the turn no longer has any flow, the labels are removed
+   * Add turn sending flow to the bush. In case the turn does not yet exist on the bush it is newly registered. If it
+   * does exist and there is already flow present, the provided flow is added to it. If by adding the flow
+   * (can be negative) the turn no longer has any flow, the labels are removed
    *
    * @param from             from segment of the turn
    * @param to               to segment of the turn
@@ -314,7 +321,8 @@ public class DestinationBush extends RootedBush<DirectedVertex, EdgeSegment> {
     if (addFlowPcuH > 0) {
       if (!contains(from)) {
         if (contains(from.getOppositeDirectionSegment())) {
-          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s) where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
+          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s) where the opposite direction " +
+                  "(of segment %s) already is part of the bush, this break acyclicity",
               from.getXmlId(), to.getXmlId(), getRootZoneVertex().getParent().getParentZone().getIdsAsString(), from.getXmlId()));
         }
         getDag().addEdgeSegment(from);
@@ -322,7 +330,8 @@ public class DestinationBush extends RootedBush<DirectedVertex, EdgeSegment> {
       }
       if (!contains(to)) {
         if (contains(to.getOppositeDirectionSegment())) {
-          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s) where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
+          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush (%s) where the opposite direction " +
+                  "(of segment %s) already is part of the bush, this break acyclicity",
               from.getXmlId(), to.getXmlId(), getRootZoneVertex().getParent().getParentZone().getIdsAsString(), to.getXmlId()));
         }
         getDag().addEdgeSegment(to);
@@ -474,8 +483,8 @@ public class DestinationBush extends RootedBush<DirectedVertex, EdgeSegment> {
 
     // cannot use the initial segment that is part of the cheapest option.
     // Note that we cannot check for the -1 marking here because it is possible that the shortest alternative loops
-    // around and the alternative we are looking is exactly 1 link long starting at vertex marked with 1 and ending at vertex marked -1
-    // so actual initial rival edge segment is needed for exclusion
+    // around and the alternative we are looking is exactly 1 link long starting at vertex marked with 1 and ending
+    // at vertex marked -1 so actual initial rival edge segment is needed for exclusion
     Predicate<EdgeSegment> initialInclusionCondition = es -> !es.equals(forbiddenInitialSegment);
 
     // only consider turns with positive flow on bush
@@ -500,12 +509,14 @@ public class DestinationBush extends RootedBush<DirectedVertex, EdgeSegment> {
         terminationCondition);
 
     /*
-     * no result could be found, only possible when cycle is detected before reaching origin Not sure this will actually happen, so created warning to check, when it does happen
-     * investigate and see if this expected behaviour (if so remove statement). this would equate to finding a vertex marked with a '1' in Xie & Xie, which I do not do because I
-     * don't think it is needed, but I might be wrong.
+     * no result could be found, only possible when cycle is detected before reaching origin Not sure this will
+     * actually happen, so created warning to check, when it does happen investigate and see if this expected
+     * behaviour (if so remove statement). this would equate to finding a vertex marked with a '1' in Xie & Xie,
+     * which I do not do because I don't think it is needed, but I might be wrong.
      */
     if(result== null || result.first() == null) {
-      LOGGER.warning(String.format("Cycle found when finding alternative subpath on bush merging at vertex %s", referenceVertex.getXmlId()));
+      LOGGER.warning(String.format("Cycle found when finding alternative subpath on bush merging at vertex %s",
+          referenceVertex.getXmlId()));
     }
     return result;
   }
@@ -565,7 +576,11 @@ public class DestinationBush extends RootedBush<DirectedVertex, EdgeSegment> {
     }
     double flowAcceptanceFactor = flowAcceptanceFactors[(int)entrySegment.getId()];
     subPathSendingFlow = determineSubPathSendingFlow(
-        subPathSendingFlow * flowAcceptanceFactor, flowAcceptanceFactor, index, flowAcceptanceFactors, subPathArray);
+        subPathSendingFlow * flowAcceptanceFactor,
+        flowAcceptanceFactor,
+        index,
+        flowAcceptanceFactors,
+        subPathArray);
     return subPathSendingFlow;
   }
 
