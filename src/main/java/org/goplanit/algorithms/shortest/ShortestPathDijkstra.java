@@ -67,8 +67,9 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised
     /* shortest path costs to each vertex for start vertex */
     double[] vertexMeasuredCost = super.execute(
             searchType, isShorterPredicate, shortestNextEdgeSegmentConsumer, bannedThroughVertices);
-    /* pass on to result object for user friendly dissemination */
-    return new ShortestPathResultGeneralised(vertexMeasuredCost, shortestEdgeSegmentOfVertex, searchType);
+    /* pass on to result object for user-friendly dissemination */
+    return new ShortestPathResultGeneralised(
+        currentSource, vertexMeasuredCost, shortestEdgeSegmentOfVertex, searchType, edgeSegmentCosts.length);
   }
 
   /**

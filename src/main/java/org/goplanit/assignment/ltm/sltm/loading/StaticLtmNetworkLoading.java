@@ -1,17 +1,17 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.nodemodel.TampereNodeModel;
-import org.goplanit.algorithms.nodemodel.TampereNodeModelFixedInput;
-import org.goplanit.algorithms.nodemodel.TampereNodeModelInput;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
-import org.goplanit.assignment.ltm.sltm.LinkSegmentData;
-import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
-import org.goplanit.assignment.ltm.sltm.consumer.ApplyToNodeModelResult;
-import org.goplanit.assignment.ltm.sltm.consumer.NMRUpdateEntryLinksOutflowConsumer;
-import org.goplanit.assignment.ltm.sltm.consumer.NMRUpdateExitLinkInflowsConsumer;
+import org.goplanit.assignment.ltm.sltm.common.LinkSegmentData;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.consumer.nodemodel.NodeModelRunResultConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.nodemodel.NMRUpdateEntryLinksOutflowConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.nodemodel.NMRUpdateExitLinkInflowsConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.nodemodel.NodeModelRunTurnBasedResultConsumer;
 import org.goplanit.demands.Demands;
 import org.goplanit.gap.NormBasedGapFunction;
 import org.goplanit.gap.StopCriterion;
@@ -22,6 +22,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
@@ -55,7 +56,7 @@ public abstract class StaticLtmNetworkLoading {
   private final IdGroupingToken idToken;
 
   /**
-   * run Id of the loading's parent assignment
+   * run id of the loading's parent assignment
    */
   private final long runId;
 
@@ -79,7 +80,7 @@ public abstract class StaticLtmNetworkLoading {
    * model described in Bliemer et al (2014). Both solution schemes can be altered in case they do not converge by
    * activating various extensions see also {@link #activateNextExtension(Mode, boolean)}
    * 
-   * @boolean logSolutionScheme when true log the set solution scheme, when false do not
+   * @param logSolutionScheme when true log the set solution scheme, when false do not
    */
   private void initialiseStaticLtmSolutionSchemeApproach(boolean logSolutionScheme) {
     if (getSettings().isDisableStorageConstraints()) {
@@ -140,7 +141,8 @@ public abstract class StaticLtmNetworkLoading {
       this.unconstrainedFlowData.reset();
     }
     networkLoadingLinkSegmentSendingFlowUpdate(mode, updateUnconstrainedFlows);
-    LinkSegmentData.copyTo(this.nlSendingFlowData.getCurrentSendingFlows(), this.nlSendingFlowData.getNextSendingFlows());
+    LinkSegmentData.copyTo(
+        this.nlSendingFlowData.getCurrentSendingFlows(), this.nlSendingFlowData.getNextSendingFlows());
   }
 
   /**
@@ -239,13 +241,6 @@ public abstract class StaticLtmNetworkLoading {
      */
     boolean initialiseTrackedNodes = true;
     this.nlSplittingRateData = createSplittingRateData(nlSplittingRateData);
-//    if (!prevIterationFinalSolutionScheme.equals(getActivatedSolutionScheme())) {
-//      this.splittingRateData = createSplittingRateData(splittingRateData);
-//      initialiseTrackedNodes = true;
-//    }else{
-//      this.splittingRateData.initialisePrevIterationData(splittingRateData);
-//    }
-
     if (initialiseTrackedNodes) {
       if (isTrackAllNodeTurnFlowsDuringLoading()) {
         /*
@@ -274,13 +269,21 @@ public abstract class StaticLtmNetworkLoading {
 
   /**
    * Update the splitting rates based on the provided accepted turn flows
-   * 
+   *
    * @param acceptedTurnFlows to use to determine splitting rates (movement id indexed array)
+   * @param entrySegmentsToUpdate the segments to update (if null all are updated)
    */
-  private void updateNextSplittingRates(final TurnFlowAccessor acceptedTurnFlows) {
-    var trackedNodes = nlSplittingRateData.getTrackedNodes();
-    for (var node : trackedNodes) {
+  protected void updateNextSplittingRates(
+      final TurnFlowAccessor acceptedTurnFlows, TreeSet<EdgeSegment> entrySegmentsToUpdate){
+    var nodesToUpdate = nlSplittingRateData.getTrackedNodes();
+    if(nodesToUpdate==null){
+      return;
+    }
+    for (var node : nodesToUpdate) {
       for (var entrySegment : node.getEntryEdgeSegments()) {
+        if(!CollectionUtils.nullOrEmpty(entrySegmentsToUpdate) && !entrySegmentsToUpdate.contains(entrySegment)){
+          continue;
+        }
 
         /* construct splitting rates by first imposing absolute turn flows */
         Array1D<Double> nextSplittingRates = nlSplittingRateData.getSplittingRates(entrySegment);
@@ -305,22 +308,33 @@ public abstract class StaticLtmNetworkLoading {
         if (totalEntryFlow > 0) {
           nextSplittingRates.modifyAll(PrimitiveFunction.DIVIDE.by(totalEntryFlow));
         } else {
-          nextSplittingRates.fillAll(1.0);
+          nextSplittingRates.fillAll(1.0/nextSplittingRates.size());
         }
       }
     }
+
+  }
+
+  /**
+   * Update the splitting rates based on the provided accepted turn flows
+   * 
+   * @param acceptedTurnFlows to use to determine splitting rates (movement id indexed array)
+   */
+  protected void updateNextSplittingRates(final TurnFlowAccessor acceptedTurnFlows) {
+    updateNextSplittingRates(acceptedTurnFlows, null);
   }
 
   /**
    * For all potentially blocking nodes: perform a node model update based on: 1) sending flows, 2) receiving flows,
    * 3) splitting rates resulting in newly accepted local outflows and inflows.
-   * 
+   *
+   * @param nodesToUpdate the nodes to update
    * @param consumer to apply to the result of each node model update of the considered nodes, may be null then ignored
    */
-  private void performNodeModelUpdate(final ApplyToNodeModelResult consumer) {
+  private void performNodeModelUpdate(TreeSet<DirectedVertex> nodesToUpdate, final NodeModelRunResultConsumer consumer) {
     /* For each tracked node */
-    for (var trackedNode : nlSplittingRateData.getTrackedNodes()) {
-      StaticLtmNetworkLoading.performNodeModelUpdate(trackedNode, consumer, this);
+    for (var currNode : nodesToUpdate) {
+      StaticLtmNetworkLoading.performNodeModelUpdate(currNode, consumer, this);
     }
   }
 
@@ -497,7 +511,8 @@ public abstract class StaticLtmNetworkLoading {
       return false;
     }
 
-    if (!modes.stream().allMatch( m -> transportNetwork.getInfrastructureNetwork().getLayerByMode(m) instanceof MacroscopicNetworkLayer)) {
+    if (!modes.stream().allMatch(
+        m -> transportNetwork.getInfrastructureNetwork().getLayerByMode(m) instanceof MacroscopicNetworkLayer)) {
       LOGGER.severe("One or more network layers for mode not compatible, expected MacroscopicNetworkLayer");
       return false;
     }
@@ -517,7 +532,7 @@ public abstract class StaticLtmNetworkLoading {
    * 
    * @return transport model network
    */
-  protected TransportModelNetwork getTransportNetwork() {
+  protected TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> getTransportNetwork() {
     return transportNetwork;
   }
 
@@ -541,7 +556,8 @@ public abstract class StaticLtmNetworkLoading {
    * @param sendingFlowsPcuH to use
    */
   protected void updatePotentiallyBlockingNodes(MacroscopicNetworkLayer layer, final double[] sendingFlowsPcuH) {
-    NetworkLoadingSplittingRateDataPartial pointQueueBasicSplittingRates = (NetworkLoadingSplittingRateDataPartial) this.nlSplittingRateData;
+    NetworkLoadingSplittingRateDataPartial pointQueueBasicSplittingRates =
+        (NetworkLoadingSplittingRateDataPartial) this.nlSplittingRateData;
     pointQueueBasicSplittingRates.resetPotentiallyBlockingNodes();
 
     for (MacroscopicLinkSegment linkSegment : layer.getLinkSegments()) {
@@ -601,13 +617,13 @@ public abstract class StaticLtmNetworkLoading {
   protected abstract void networkLoadingLinkSegmentSendingFlowUpdate(Mode mode, boolean updateUnconstrainedFlows);
 
   /**
-   * Conduct a network loading to compute updated current sending flow, and outflow rates
-   * (without tracking turn flows). Used to finalize a loading after convergence to ensure consistency in flows
-   * that might be compromised during local updates
+   * After convergence of loading, we want all flows to be in sync for the current alphas. We update
+   * inflows, sending flows, and outflows all based on current alphas WITHOUT recomputing any node models nor splitting
+   * rates.
    *
    * @param mode to use
-   */  
-  protected abstract void networkLoadingSendingFlowOutflowUpdate(Mode mode);
+   */
+  protected abstract void networkLoadingSyncFlowsUpdate(Mode mode);
 
   /**
    * Let derived loading implementation initialise which nodes are to be tracked for network splitting rates, e.g.
@@ -640,61 +656,122 @@ public abstract class StaticLtmNetworkLoading {
 
   /**
    * conduct a node model update sLTM style with
-   * 
+   *
    * @param node                    to compute
    * @param consumer                to apply to the result of each node model update of the considered nodes, may be
    *                                null then ignored
-   * @param staticLtmNetworkLoading sLTMloading containing the data to populate node with (using current sending flows)
+   * @param staticLtmNetworkLoading sLTMloading containing the data to populate node with (using current splitting rates)
+   * @param nodeModelSendingFlows   node model sending flows to use (can be inflows, sending flows, or other flows)
    */
   public static void performNodeModelUpdate(
-          DirectedVertex node, ApplyToNodeModelResult consumer, StaticLtmNetworkLoading staticLtmNetworkLoading) {
+      DirectedVertex node,
+      NodeModelRunResultConsumer consumer,
+      StaticLtmNetworkLoading staticLtmNetworkLoading,
+      double[] nodeModelSendingFlows) {
 
     var splittingRateData = staticLtmNetworkLoading.getSplittingRateData();
-    var sendingFlowData = staticLtmNetworkLoading.nlSendingFlowData;
-      
+
     /* tracked but non-blocking or centroidVertex is notified as non-blocking */
     if (!splittingRateData.isPotentiallyBlocking(node) || node instanceof CentroidVertex) {
-      consumer.acceptNonBlockingLinkBasedResult(node, sendingFlowData.getCurrentSendingFlows());
+      consumer.acceptNonBlockingLinkBasedResult(node, nodeModelSendingFlows);
       return;
     }
-  
+
     /* For each potentially blocking node */
-    int numEntrySegments = node.getNumberOfEntryEdgeSegments();
-    int numExitSegments = node.getNumberOfExitEdgeSegments();
-  
     // TODO: not computationally efficient, capacities are recomputed every time and construction of
     // TODO: turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
-  
+
     /* C_a : in Array1D form, capped to maximum physical capacity in case we are dealing with connectoid with
      * infinite capacity */
     var inCapacities = TampereNodeModelUtils.createIncomingCapacities(node);
-  
     /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
     Array2D<Double> turnSendingFlows = TampereNodeModelUtils.createTurnSendingFlowsUsingSplittingRates(
-        node,
-        sendingFlowData.getCurrentSendingFlows(),
-        es -> splittingRateData.getSplittingRates(es).copy());
-  
+        node, nodeModelSendingFlows, es -> splittingRateData.getSplittingRates(es).copy());
     /* r_a : in Array1D form */
     var outReceivingFlows = TampereNodeModelUtils.createOutgoingReceivingFlows(node);
-  
+
     /* Kappa(s,r,phi) : node model update */
     try {
       var nodeModel = TampereNodeModel.of(inCapacities, outReceivingFlows, turnSendingFlows);
       Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
 
-      if(node.getId() == 1164L){
-        LOGGER.info(String.format("DEBUG node (%s): alphas: %s (turn flows: %s) - (type: %s)",
-                node.getIdsAsString(), localFlowAcceptanceFactors, turnSendingFlows, consumer.getClass().getName()));
-      }
-        
       /* delegate to consumer */
       consumer.acceptTurnBasedResult(node, localFlowAcceptanceFactors, nodeModel);
-  
+
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
       LOGGER.severe(String.format("Unable to run Tampere node model on tracked node %s", node.getXmlId()));
     }
+  }
+
+  /**
+   * conduct a node model update sLTM style but now invoke as runTurnBased() to obtain turn based alphas allowing for
+   * identification of disconinuities used in route choice/cost calculation.
+   * todo: 99.9% identical to method above, only due to signatures not the same. Refactor to consolidate in general approach
+   *  to reduce duplicate code.
+   *
+   * @param node                    to compute
+   * @param consumer                to apply to the result of each node model update of the considered nodes, may be
+   *                                null then ignored
+   * @param staticLtmNetworkLoading sLTMloading containing the data to populate node with (using current splitting rates)
+   * @param nodeModelSendingFlows   node model sending flows to use (can be inflows, sending flows, or other flows)
+   */
+  public static void performNodeModelTurnBasedUpdate(
+      DirectedVertex node,
+      NodeModelRunTurnBasedResultConsumer consumer,
+      StaticLtmNetworkLoading staticLtmNetworkLoading,
+      double[] nodeModelSendingFlows) {
+
+    var splittingRateData = staticLtmNetworkLoading.getSplittingRateData();
+
+    /* tracked but non-blocking or centroidVertex is notified as non-blocking */
+    if (!splittingRateData.isPotentiallyBlocking(node) || node instanceof CentroidVertex) {
+      consumer.acceptNonBlockingLinkBasedResult(node, nodeModelSendingFlows);
+      return;
+    }
+
+    /* For each potentially blocking node */
+    int numEntrySegments = node.getNumberOfEntryEdgeSegments();
+    int numExitSegments = node.getNumberOfExitEdgeSegments();
+
+    // TODO: not computationally efficient, capacities are recomputed every time and construction of
+    // TODO: turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
+
+    /* C_a : in Array1D form, capped to maximum physical capacity in case we are dealing with connectoid with
+     * infinite capacity */
+    var inCapacities = TampereNodeModelUtils.createIncomingCapacities(node);
+    /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
+    Array2D<Double> turnSendingFlows = TampereNodeModelUtils.createTurnSendingFlowsUsingSplittingRates(
+        node, nodeModelSendingFlows, es -> splittingRateData.getSplittingRates(es).copy());
+    /* r_a : in Array1D form */
+    var outReceivingFlows = TampereNodeModelUtils.createOutgoingReceivingFlows(node);
+
+    /* Kappa(s,r,phi) : node model update */
+    try {
+      var nodeModel = TampereNodeModel.of(inCapacities, outReceivingFlows, turnSendingFlows);
+      var turnBasedFlowAcceptanceFactors = nodeModel.runTurnBased();
+      /* delegate to turn based consumer */
+      consumer.acceptTurnBasedResult(node, turnBasedFlowAcceptanceFactors, nodeModel);
+
+    } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
+      LOGGER.severe(String.format("Unable to run Tampere node model on tracked node %s", node.getXmlId()));
+    }
+  }
+
+  /**
+   * conduct a node model update sLTM style with
+   * 
+   * @param node                    to compute
+   * @param consumer                to apply to the result of each node model update of the considered nodes, may be
+   *                                null then ignored
+   * @param staticLtmNetworkLoading sLTMloading containing the data to populate node with
+   *                                (using current sending flows and splitting rates)
+   */
+  public static void performNodeModelUpdate(
+          DirectedVertex node, NodeModelRunResultConsumer consumer, StaticLtmNetworkLoading staticLtmNetworkLoading) {
+    performNodeModelUpdate(
+        node, consumer, staticLtmNetworkLoading, staticLtmNetworkLoading.nlSendingFlowData.getCurrentSendingFlows());
   }
 
   /** Initialise the loading with the given inputs
@@ -740,14 +817,14 @@ public abstract class StaticLtmNetworkLoading {
   //@formatter:off
   /**
    * Perform initialisation of the network loading. This method can only be called once.
-   * 
+   * <p>
    * 1. Initial acceptance flow, capacity, and storage factors, all set to one  
    * 2. Initial in/outflows via network loading Eq. (3)-(4) in paper: unconstrained network loading
    * 3. Initial sending and receiving flows: s_a=u_a, r_a=capacity_a for all link segments a
    * 4. Set iteration number to one (to be done exogenously)
    * (Extension A):  
    * 5. Restrict receiving flows to storage capacity Eq. (8) - only relevant when storage capacity is activated
-   *
+   *</p>
    * @param mode to use
    * @param logSolutionScheme flag indicating whether to log the solution scheme used
    * @return true when successful, false otherwise 
@@ -782,6 +859,7 @@ public abstract class StaticLtmNetworkLoading {
    * 2. Update splitting rates Eq. (6),(4)
    * (Extension B)
    * 3. If not first iteration then update splitting rates, Eq. (13)
+   * </p>
    *
    * @param mode                    to use
    */
@@ -802,12 +880,16 @@ public abstract class StaticLtmNetworkLoading {
      * there is no need for a full copy of the entire splitting rate data (create per node/entry link local copy
      * of existing splitting rates, then compute new ones, and apply smoothing on the two, before moving to the next
      * entry link -> SEE NOTE IN PAPER ON TRACKING PREVIOUS SPLITTING RATES PER TYPE OF UPDATE*/    
-  }  
+  }
+
+  public void stepTwoInflowSendingFlowUpdate(Mode mode) {
+    stepTwoInflowSendingFlowUpdate(mode, getSplittingRateData().getTrackedNodes());
+  }
   
   //@formatter:off
   /**
    * Perform inflow and sending flow update:
-   * 
+   * <p>
    * 1. Update node model to compute new inflows, Eq. (5)
    * 2. Update next sending flows via inflows, Eq. (7) (this is local propagation compared to network full
    * loading of previous step)
@@ -817,22 +899,24 @@ public abstract class StaticLtmNetworkLoading {
    * (Extension B)
    * 6. Update smoothed storage capacity factors, Eq. (14)
    *
-   * @param mode to use
+   * @param mode         to use
+   * @param nodesToUpdate to update inflows/sending flows for
    */
-  public void stepTwoInflowSendingFlowUpdate(Mode mode) {
+  public void stepTwoInflowSendingFlowUpdate(Mode mode, TreeSet<DirectedVertex> nodesToUpdate) {
     if(this.solutionScheme.isPhysicalQueue()) {
-      LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.runIdPrefix(runId)));
+      LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage " +
+          "constraints and try again",LoggingUtils.runIdPrefix(runId)));
       return;
     }
     
     int sendingFlowIterationIndex = 0;
-    double sendingFlowGap = this.sendingFlowGapFunction.getGap();
+    double sendingFlowGap;
     
     do {      
       /* 1. Update node model to compute new inflows, Eq. (5)
        * 2. Update next sending flows via inflows, Eq. (7) */
       LinkSegmentData.copyTo(this.nlSendingFlowData.getCurrentSendingFlows(), this.nlInFlowOutflowData.getInflows());
-      performNodeModelUpdate(new NMRUpdateExitLinkInflowsConsumer(this.nlInFlowOutflowData.getInflows()));
+      performNodeModelUpdate(nodesToUpdate, new NMRUpdateExitLinkInflowsConsumer(this.nlInFlowOutflowData.getInflows()));
       /* s_a^tilde = u_a */
       LinkSegmentData.copyTo(this.nlInFlowOutflowData.getInflows(), this.nlSendingFlowData.getNextSendingFlows());
             
@@ -904,7 +988,11 @@ public abstract class StaticLtmNetworkLoading {
      * there is no need for a full copy of the entire splitting rate data (create per node/entry link local copy
      * of existing splitting rates, then compute new ones, and apply smoothing on the two, before moving to the next
      * entry link  -> SEE NOTE IN PAPER ON TRACKING PREVIOUS SPLITTING RATES PER TYPE OF UPDATE*/    
-  }  
+  }
+
+  public void stepFourOutflowAndReceivingFlowUpdate(Mode mode) {
+    stepFourOutflowAndReceivingFlowUpdate(mode, getSplittingRateData().getTrackedNodes());
+  }
   
   /**
    * 1. Update node model, to compute outflows Eq. (5)
@@ -919,8 +1007,9 @@ public abstract class StaticLtmNetworkLoading {
    * 7. Update smoothed flow capacity factors, Eq. (14)
    *
    * @param mode to use
+   * @param trackedNodes to use
    */
-  public void stepFourOutflowAndReceivingFlowUpdate(Mode mode) {
+  public void stepFourOutflowAndReceivingFlowUpdate(Mode mode, TreeSet<DirectedVertex> trackedNodes) {
     /* update the outflows and receiving flows */      
 
     /* for now */
@@ -931,11 +1020,12 @@ public abstract class StaticLtmNetworkLoading {
     }
      
     int receivingFlowIterationIndex = 0;
-    double receivingFlowGap = this.receivingFlowGapFunction.getGap();    
+    double receivingFlowGap;
     do {
       
       /* 1. Update node model to compute new outflows, Eq. (5) */
-      performNodeModelUpdate(new NMRUpdateEntryLinksOutflowConsumer(this.nlInFlowOutflowData.getOutflows()));
+      performNodeModelUpdate(
+          trackedNodes, new NMRUpdateEntryLinksOutflowConsumer(this.nlInFlowOutflowData.getOutflows()));
       
       /* POINT QUEUE -> only run as iterative procedure with physical queues are present and r can vary, now
        * we only require an update of outflows v to use for updating flow capacity factors */  
@@ -1021,6 +1111,9 @@ public abstract class StaticLtmNetworkLoading {
     
     boolean converged = this.flowAcceptanceGapFunction.getStopCriterion().hasConverged(
             globalGap, networkLoadingIteration);
+    if(converged && networkLoadingIteration < getSettings().getNetworkLoadingMinIterations()){
+      converged = false;
+    }
     if(converged && getSettings().isDetailedLogging()) {
       LOGGER.info(String.format("%ssLTM network loading converged in %d iterations (remaining gap: %.10f)",
               LoggingUtils.runIdPrefix(runId), networkLoadingIteration, globalGap));
@@ -1061,19 +1154,17 @@ public abstract class StaticLtmNetworkLoading {
       initialiseTrackAllNodeTurnFlows(mode);
     }
 
-    /* conduct one full network loading to ensure all variables are available based on current route choice results */
-    {
-      stepOneSplittingRatesUpdate(mode);
-      stepTwoInflowSendingFlowUpdate(mode);
-      stepThreeSplittingRateUpdate(mode);
-      stepFourOutflowAndReceivingFlowUpdate(mode);
-      // Step 5 (make flow acceptance factors consistent without recomputing gap)
-      updateNextFlowAcceptanceFactors();
-      networkLoadingFactorData.swapCurrentAndNextFlowAcceptanceFactors();
-    }
+    /* we should do one full loading that DOES NOT update nodes and alphas, but does update
+     * ALL flow information. We cannot use normal step approach because that will implicitly use
+     * updated node results (alphas), causing inconsistency between inflows and outflows. We prefer
+     * to instead have slightly incorrect alphas as long as inflow * alpha = outflow is consistent
+     */
+    networkLoadingSyncFlowsUpdate(mode);
 
     /* limit to capacities in case loading + alphas caused slight discrepancies due to local convergence not being
      * exactly 0 */
+    // todo: this last bit should probably only be invoked for persisting or final iteration AFTER rotue choice
+    //  because it may lead to discrepancies between bush and network flows
     {
       //networkLoadingSendingFlowOutflowUpdate(mode);   // reworked above to trigger full update so not needed anymore
       nlSendingFlowData.limitCurrentSendingFlowsToCapacity(networkLayer.getLinkSegments());
@@ -1129,7 +1220,7 @@ public abstract class StaticLtmNetworkLoading {
         initialiseTrackAllNodeTurnFlows(mode);
 
       }else {
-        /* no other extensions available, so deactivate any further extensions by maximising the offset */
+        /* no other extensions available, so deactivate any further extensions by maximizing the offset */
         convergenceAnalyser.setMinIterationThreshold(Integer.MAX_VALUE);
         solutionSchemeChanged = false;
       }
@@ -1160,12 +1251,21 @@ public abstract class StaticLtmNetworkLoading {
   }
 
   /**
-   * Collect the most recently calculate total inflows by the loading
+   * Collect the most recently calculated total inflows by the loading
    * 
    * @return inflows in Pcu per hour
    */
   public double[] getCurrentInflowsPcuH() {
     return this.nlInFlowOutflowData.getInflows();
+  }
+
+  /**
+   * Collect the most recently calculated total sending flows by the loading
+   *
+   * @return sendingflows in Pcu per hour
+   */
+  public double[] getCurrentSendingFlowsPcuH() {
+    return this.nlSendingFlowData.getCurrentSendingFlows();
   }
   
   /**

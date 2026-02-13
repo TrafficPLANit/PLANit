@@ -78,7 +78,8 @@ public class ConjugateVirtualNetworkLayerImpl
   public void recreateFromReferenceLayer(boolean resetManagedIds) {
     reset(resetManagedIds);
 
-    Map<DirectedVertex, ConjugateConnectoidNode> dummyConjugateNodePerCentroidVertex = new HashMap<>();
+    Map<DirectedVertex, ConjugateConnectoidNode> dummyConjugateNodePerOriginCentroidVertex = new HashMap<>();
+    Map<DirectedVertex, ConjugateConnectoidNode> dummyConjugateNodePerDestinationCentroidVertex = new HashMap<>();
     if(referenceLayer.isEmpty()){
       LOGGER.warning("Reference layer of virtual conjugate layer is empty, unable to populate conjugate virtual " +
               "layer, aborting update, consider integrating virtual network with physical network first through " +
@@ -92,20 +93,36 @@ public class ConjugateVirtualNetworkLayerImpl
     /* connectoid edge segment -> conjugate connectoid node  + conjugate connectoid link(segments) from dummy
        to conjugate node*/
     for (var referenceConnectoidSegment : getReferenceLayer().getConnectoidSegments()) {
-      var cVertex = referenceConnectoidSegment.getParent().getCentroidVertex();
-
-      // attach original centroid vertex to the dummy node and create conjugate vertex for it (without original)
-      var conjugateDummyNode = dummyConjugateNodePerCentroidVertex.computeIfAbsent(cVertex,
-              v -> getVertices().getFactory().registerNew(null, deriveXmlIdFromOriginalEntities, xmlIdPostFix));
 
       // register conjugate node with the reference segment as original
       var conjugateNode = getVertices().getFactory().registerNew(
-              referenceConnectoidSegment, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
+          referenceConnectoidSegment, deriveXmlIdFromOriginalEntities, xmlIdPostFix);
 
       boolean upstreamIsDummy =
-              referenceConnectoidSegment.getParent().getCentroidVertex() == referenceConnectoidSegment.getUpstreamVertex();
-      var upstreamNode = upstreamIsDummy ? conjugateDummyNode : conjugateNode;
-      var downstreamNode = upstreamIsDummy ? conjugateNode : conjugateDummyNode;
+          referenceConnectoidSegment.getParent().getCentroidVertex() == referenceConnectoidSegment.getUpstreamVertex();
+
+      var cVertex = referenceConnectoidSegment.getParent().getCentroidVertex();
+
+      ConjugateConnectoidNode upstreamNode = null;
+      ConjugateConnectoidNode downstreamNode = null;
+      // origin -> outwards
+      if(upstreamIsDummy){
+        // create conjugate origin dummy vertex if non-existing
+        var conjugateDummyNode = dummyConjugateNodePerOriginCentroidVertex.computeIfAbsent(cVertex,
+            v -> getVertices().getFactory().registerNew(null, deriveXmlIdFromOriginalEntities, xmlIdPostFix));
+        conjugateDummyNode.setXmlId("O_"+cVertex.getParent().getParentZone().getXmlId());
+        // arrange order
+        upstreamNode = conjugateDummyNode;
+        downstreamNode = conjugateNode;
+      }else{
+        // destination <-- inwards
+        var conjugateDummyNode = dummyConjugateNodePerDestinationCentroidVertex.computeIfAbsent(cVertex,
+            v -> getVertices().getFactory().registerNew(null, deriveXmlIdFromOriginalEntities, xmlIdPostFix));
+        conjugateDummyNode.setXmlId("D_"+cVertex.getParent().getParentZone().getXmlId());
+        // arrange order
+        upstreamNode = conjugateNode;
+        downstreamNode = conjugateDummyNode;
+      }
 
       /* create "fake" conjugate connectoid edge (where one of the two conjugate connectoid nodes has no original
        * network equivalent but reflects a conjugate centroid) */

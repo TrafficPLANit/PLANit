@@ -44,6 +44,34 @@ public class NetworkFlowUpdateData {
   protected final double[] outFlows;
 
   /**
+   * The inflows to update if flagged as such
+   */
+  protected final double[] inFlows;
+
+  /**
+   * Constructor to update ALL flows, inflows, , sending flows, outflows and unconstrained flows
+   * during flow update
+   *
+   * @param networkLoadingSendingFlowData          to use
+   * @param flowAcceptanceFactors to use
+   * @param inflows to use
+   * @param outflows to use
+   * @param unconstrainedFlowData to use
+   */
+  public NetworkFlowUpdateData(
+      final NetworkLoadingSendingFlowData networkLoadingSendingFlowData,
+      final double[] flowAcceptanceFactors,
+      final double[] inflows,
+      final double[] outflows,
+      final UnconstrainedFlowData unconstrainedFlowData) {
+    this.flowAcceptanceFactors = flowAcceptanceFactors;
+    this.sendingFlows = networkLoadingSendingFlowData.getCurrentSendingFlows();
+    this.outFlows = outflows;
+    this.inFlows = inflows;
+    this.unconstrainedFlows = unconstrainedFlowData.getUnconstrainedFlows();
+  }
+
+  /**
    * Constructor to update sending flows, outflows and unconstrained flows during flow update
    *
    * @param networkLoadingSendingFlowData          to use
@@ -59,6 +87,7 @@ public class NetworkFlowUpdateData {
     this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
     this.sendingFlows = networkLoadingSendingFlowData.getCurrentSendingFlows();
     this.outFlows = inflowOutflowData.getOutflows();
+    this.inFlows = null;
     this.unconstrainedFlows = unconstrainedFlowData.getUnconstrainedFlows();
   }
 
@@ -76,6 +105,7 @@ public class NetworkFlowUpdateData {
     this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
     this.sendingFlows = networkLoadingSendingFlowData.getCurrentSendingFlows();
     this.outFlows = inflowOutflowdata.getOutflows();
+    this.inFlows = null;
     this.unconstrainedFlows = null;
   }
 
@@ -93,6 +123,7 @@ public class NetworkFlowUpdateData {
     this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
     this.sendingFlows = networkLoadingSendingFlowData.getCurrentSendingFlows();
     this.outFlows = null;
+    this.inFlows = null;
     this.unconstrainedFlows = unconstrainedFlowData.getUnconstrainedFlows();
   }
 
@@ -108,6 +139,7 @@ public class NetworkFlowUpdateData {
     this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
     this.sendingFlows = networkLoadingSendingFlowData.getCurrentSendingFlows();
     this.outFlows = null;
+    this.inFlows = null;
     this.unconstrainedFlows = null;
   }
 
@@ -120,6 +152,7 @@ public class NetworkFlowUpdateData {
     this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
     this.sendingFlows = null;
     this.outFlows = null;
+    this.inFlows = null;
     this.unconstrainedFlows = null;
   }
 
@@ -129,6 +162,10 @@ public class NetworkFlowUpdateData {
 
   public boolean isOutflowsUpdate() {
     return outFlows != null;
+  }
+
+  public boolean isInflowsUpdate() {
+    return inFlows != null;
   }
 
   public boolean isUnconstrainedFlowsUpdate() {
@@ -149,5 +186,9 @@ public class NetworkFlowUpdateData {
 
   public double[] getOutFlows() {
     return outFlows;
+  }
+
+  public double[] getInFlows() {
+    return inFlows;
   }
 }

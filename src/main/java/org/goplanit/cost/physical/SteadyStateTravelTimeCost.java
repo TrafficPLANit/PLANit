@@ -1,5 +1,6 @@
 package org.goplanit.cost.physical;
 
+import org.goplanit.cost.SteadyStateHyperCriticalTravelTimeCalculator;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.interactor.LinkInflowOutflowAccessor;
 import org.goplanit.network.LayeredNetwork;
@@ -14,11 +15,13 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
+import org.goplanit.utils.pcu.PcuCapacitated;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.unit.Unit;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * Cost computation for travel times based on the work of Raadsen and Bliemer (2019), Steady-state link travel time
@@ -55,6 +58,9 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   /** tracking fundamental diagrams per link segment for performance reasons
    * todo: should be supported by mode eventually, in case there is a need to have separate FDs per mode */
   private FundamentalDiagram[] linkSegmentFundamentalDiagrams = null;
+
+  public static LongAdder logExceedCapacityCounter = new LongAdder();
+  private final int maxLogExceedCapacityCount = 1000;
 
   /**
    * Collect the fundamental diagram component from the accessee
@@ -104,9 +110,18 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double hypoCriticalDelay = 0;
     double hyperCriticalDelay = 0;
 
-    double inflowPcuHLane = inflowRatePcuHour/linkSegment.getNumberOfLanes();
-    double outflowPcuHLane = outflowRatePcuHour/linkSegment.getNumberOfLanes();
+    if(inflowRatePcuHour > ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH()){
+      if((inflowRatePcuHour - Precision.EPSILON_1) > ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH() &&
+      logExceedCapacityCounter.intValue() < maxLogExceedCapacityCount) {
+        logExceedCapacityCounter.increment();
+//        LOGGER.warning(String.format("Inflow rate (%.2f) exceed capacity for link (%s), truncate to capacity (%.2f): ",
+//            inflowRatePcuHour, linkSegment.getIdsAsString(), ((PcuCapacitated) linkSegment).getCapacityOrDefaultPcuH()));
+      }
+      inflowRatePcuHour = ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH();
+    }
+
     if (Precision.positive(inflowRatePcuHour)) {
+      double inflowPcuHLane = inflowRatePcuHour / linkSegment.getNumberOfLanes();
       /* hypo critical delay */
       if (!fd.getFreeFlowBranch().isLinear()) {
         // hypocritical delay = hypocritical travel time - minimum travel time
@@ -114,22 +129,10 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
             (linkSegment.getParent().getLengthKm() /
                 fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflowPcuHLane)) - freeFlowTravelTime;
       }
-
-      /* average hyper critical delay */
-      if (Precision.smaller(outflowPcuHLane, inflowPcuHLane)) {
-
-        if (!Precision.positive(outflowRatePcuHour)) {
-          LOGGER.warning(String.format("Link segment (%s) appears to have no outflow while positive inflow (%.2f) " +
-                  "-> infinite travel time, this is unlikely",
-              linkSegment.getIdsAsString(), inflowRatePcuHour));
-          return Double.POSITIVE_INFINITY;
-        }
-
-        // hyperCriticalDelay = (excess inflow rate * 1/2* duration)/outflow rate)
-        hyperCriticalDelay = ((inflowPcuHLane - outflowPcuHLane) * 0.5 * currentTimePeriodHours / outflowPcuHLane);
-      }
     }
 
+    hyperCriticalDelay = SteadyStateHyperCriticalTravelTimeCalculator.computeHyperCriticalDelay(
+        inflowRatePcuHour, outflowRatePcuHour, linkSegment.getNumberOfLanes(), currentTimePeriodHours);
     /* min travel time + hypo critical delay + hypercritical delay */
     return freeFlowTravelTime + hypoCriticalDelay + hyperCriticalDelay;
   }
@@ -286,31 +289,29 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double hypoDerivative = 0.0;
     double hyperDerivative = 0.0;
 
+    double capacity = ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH();
+    if(accessee.getLinkSegmentInflowPcuHour(linkSegment) / capacity > 2){
+      int bla = 4;
+    }
+
     /* hypo critical delay derivative */
     if (!fd.getFreeFlowBranch().isLinear()) {
-      // since tt = L/speed(flow) and speed(flow) is unknown function of ff branch, we must apply chain rule to find derivative
-      // so d_tt/d_flow = -L/speed(flow)^2 * dspeed/dflow
+      // since tt = L/speed(flow) and speed(flow) is unknown function of ff branch, we must apply chain rule to find
+      // derivative, so
+      // d_tt/d_flow = -L/speed(flow)^2 * dspeed/dflow
       var ffBranch = fd.getFreeFlowBranch();
       // adjust to compute per lane
       double inflowPerLane = accessee.getLinkSegmentInflowPcuHour(linkSegment)/linkSegment.getNumberOfLanes();
       hypoDerivative = (-linkSegment.getLengthKm() / Math.pow(ffBranch.getSpeedKmHourByFlow(inflowPerLane), 2))
                         * ffBranch.getDSpeedDFlowAtFlow(inflowPerLane);
-      // re-instate to link level again (a unit flow per lane is #lanes more impactful, so scale back by #lanes)
-      hypoDerivative /= linkSegment.getNumberOfLanes();
     }
 
     /* hyperCriticalDelay derivative */
-    if(!uncongested) {
-      double outflowRatePcuH = accessee.getLinkSegmentOutflowPcuHour(linkSegment);
-      if (outflowRatePcuH>0) {
-        /* congested derivative (T/2)*(1/v) */
-        hyperDerivative =  0.5 * currentTimePeriodHours / outflowRatePcuH;
-      } else {
-        /* avoid division by zero, if no outflow rate but congested, it is undesirable to use this link
-        (if it has any flow), we return infinity, or let congested portion have no impact if empty (or unknown)*/
-        hyperDerivative = accessee.getLinkSegmentInflowPcuHour(linkSegment) > 0.0 ? Double.POSITIVE_INFINITY : 0;
-      }
-    }
+    hyperDerivative = SteadyStateHyperCriticalTravelTimeCalculator.computeDTravelTimeDFlow(
+        uncongested,
+        accessee.getLinkSegmentInflowPcuHour(linkSegment),
+        accessee.getLinkSegmentOutflowPcuHour(linkSegment),
+        currentTimePeriodHours);
 
     return hypoDerivative + hyperDerivative;
   }
@@ -322,6 +323,14 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   public Map<String, String> collectSettingsAsKeyValueMap() {
     // no settings
     return null;
+  }
+
+  /**
+   * Access to the current time period in hours considered
+   * @return time period in hours
+   */
+  public double getCurrentTimePeriodH() {
+    return currentTimePeriodHours;
   }
 
 }

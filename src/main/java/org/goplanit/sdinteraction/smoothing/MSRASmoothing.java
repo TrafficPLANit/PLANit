@@ -93,6 +93,17 @@ public class MSRASmoothing extends IterationBasedSmoothing {
   }
 
   /**
+   * Constructor
+   *
+   * @param groupId contiguous id generation within this group for instances of this class
+   * @param activateLambda flag
+   */
+  public MSRASmoothing(IdGroupingToken groupId, boolean activateLambda) {
+    super(groupId);
+    this.activateLambda = activateLambda;
+  }
+
+  /**
    * Copy constructor
    *
    * @param other to copy
@@ -132,7 +143,7 @@ public class MSRASmoothing extends IterationBasedSmoothing {
 
     double lambdaPower = 1;
     if(isActivateLambda()) {
-      lambdaPower = 0.66;//1 / Math.max(1, Math.log10(getIteration()));
+      lambdaPower = 0.66;
     }
 
     previousBeta = beta;
@@ -144,7 +155,7 @@ public class MSRASmoothing extends IterationBasedSmoothing {
       beta = Math.max(1,previousBeta + gammaStep);
     }
     this.stepSize = 1.0 / Math.max(1, Math.pow(Math.abs(beta),lambdaPower));
-    LOGGER.info(String.format("Stepsize: %.2f  (lambda=%.2f beta=%.2f)",stepSize, lambdaPower, beta));
+    //LOGGER.info(String.format("Stepsize: %.10f  (lambda=%.2f beta=%.2f)",stepSize, lambdaPower, beta));
   }
 
   /**
@@ -178,6 +189,8 @@ public class MSRASmoothing extends IterationBasedSmoothing {
   public void reset() {
     this.badIteration = false;
     this.isBadIterationFlagUpdated = true;
+    this.beta = DEFAULT_INITIAL;
+    this.previousBeta = beta;
     this.stepSize = DEFAULT_INITIAL;
   }
 

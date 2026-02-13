@@ -1,5 +1,6 @@
 package org.goplanit.test.shortestpath;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
 import org.goplanit.algorithms.shortest.ShortestPathAStar;
@@ -7,7 +8,6 @@ import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathKShortestYen;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -19,7 +19,6 @@ import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.path.SimpleDirectedPathFactoryImpl;
 import org.goplanit.utils.zoning.Centroid;
-import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.AfterAll;

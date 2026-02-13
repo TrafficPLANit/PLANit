@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.graph.modifier.GraphModifierImpl;
 import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
 import org.goplanit.graph.directed.modifier.event.RecreatedDirectedGraphEntitiesManagedIdsEvent;

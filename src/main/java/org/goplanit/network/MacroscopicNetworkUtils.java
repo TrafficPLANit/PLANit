@@ -27,6 +27,7 @@ public class MacroscopicNetworkUtils {
     var network = new MacroscopicNetwork(tokenId);
     network.setCoordinateReferenceSystem(PlanitJtsCrsUtils.CARTESIANCRS);
     var carMode = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
+
     MacroscopicGridNetworkLayerGenerator.create(rows, columns, network.getTransportLayers(), carMode).generate();
     return network;
   }

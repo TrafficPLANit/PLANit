@@ -132,7 +132,7 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised
     var vertexMeasuredCost = super.executeOneToAll(
             this::isShorterOrEqual, this::processShorterOrEqualIncomingEdgeSegment, bannedThroughVertices);
     return new ShortestBushResultGeneralised(
-            vertexMeasuredCost, nextEdgeSegments, edgeSegmentCosts.length, ShortestSearchType.ONE_TO_ALL);
+        currentSource, vertexMeasuredCost, nextEdgeSegments, edgeSegmentCosts.length, ShortestSearchType.ONE_TO_ALL);
   }
 
   /**
@@ -162,6 +162,6 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised
     var vertexMeasuredCost = super.executeAllToOne(
             this::isShorterOrEqual, this::processShorterOrEqualIncomingEdgeSegment, bannedThroughVertices);
     return new ShortestBushResultGeneralised(
-            vertexMeasuredCost, nextEdgeSegments, edgeSegmentCosts.length, ShortestSearchType.ALL_TO_ONE);
+        currentSource, vertexMeasuredCost, nextEdgeSegments, edgeSegmentCosts.length, ShortestSearchType.ALL_TO_ONE);
   }
 }

@@ -1,7 +1,6 @@
 package org.goplanit.output.adapter.traits;
 
-import org.goplanit.assignment.ltm.sltm.RootedBush;
-import org.goplanit.output.adapter.traits.NetworkSegmentsOutputTypeAdapterTrait;
+import org.goplanit.assignment.common.bush.RootedBush;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 
@@ -24,4 +23,14 @@ public interface UntypedBushSegmentsOutputTypeAdapterTrait<ES extends EdgeSegmen
    * @return collection of bushes
    */
   public abstract Set<RootedBush<? extends DirectedVertex, ? extends ES>> getBushes();
+
+  /**
+   * Allow to check on non zero flow using edge segment rather than concrete bush segment derived version
+   *
+   * @param bush to use
+   * @param edgeSegment to check
+   * @return true when flow present, false otherwise
+   */
+  public abstract boolean hasNonZeroFlow(
+      RootedBush<? extends DirectedVertex, ? extends EdgeSegment> bush, EdgeSegment edgeSegment);
 }

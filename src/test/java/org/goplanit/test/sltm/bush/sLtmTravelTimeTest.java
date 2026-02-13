@@ -2,15 +2,14 @@ package org.goplanit.test.sltm.bush;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
-import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
-import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
-import org.goplanit.output.OutputManager;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.output.property.OutputPropertyType;
@@ -106,10 +105,7 @@ public class sLtmTravelTimeTest {
       linkConf.removeProperty(OutputPropertyType.DOWNSTREAM_NODE_XML_ID);
       linkConf.addProperty(OutputPropertyType.LINK_SEGMENT_XML_ID);
 
-      slTMConfigurator.setAllowOverlappingPasUpdate(true);
-
       StaticLtm sLTM = sLTMBuilder.build();
-
 
       var om = sLTM.getOutputManager();
       var outputFormatter = new MemoryOutputFormatter(network.getIdGroupingToken());

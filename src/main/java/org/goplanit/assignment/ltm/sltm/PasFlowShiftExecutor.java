@@ -1,18 +1,20 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import org.goplanit.assignment.ltm.sltm.consumer.NMRCollectMostRestrictingTurnConsumer;
+import org.goplanit.assignment.common.bush.RootedBush;
+import org.goplanit.assignment.common.bush.ConjugateDestinationBush;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.consumer.nodemodel.NmrDemandConstrainedFlowAndMostRestrictingTurnConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
+import org.goplanit.assignment.common.pas.Pas;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
-import org.goplanit.sdinteraction.smoothing.Smoothing;
-import org.goplanit.utils.graph.Edge;
+import org.goplanit.gap.GapFunction;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.misc.Triple;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.pcu.PcuCapacitated;
 import org.goplanit.utils.zoning.OdZone;
 
@@ -32,6 +34,12 @@ import static org.goplanit.utils.math.Precision.*;
  */
 public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends EdgeSegment> {
 
+  public enum FlowShiftSmoothingApproach{
+    OFF,    // do not apply any smoothing (effectively a factor of 100%)
+    RESET,  // apply smoothing by resetting to original starting point (effectively a factor of 0%)
+    NORMAL, // regular smoothing based on computed smoothing factor
+  }
+
   /**
    * Threshold used to trigger derivatives based on congested situation even if we are not yet congested.
    * This threshold is the difference between those two states on the segment level for that to happen,
@@ -46,15 +54,8 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   private final static Logger LOGGER = Logger.getLogger(PasFlowShiftExecutor.class.getCanonicalName());
 
   /** track any removed edge segments as a result of a flow shift on a bush level */
-  private final Map<ES, Set<RootedBush<V,ES>>> removedEdgeSegmentsForBushes = new TreeMap<>();
-
-  /** track any removed edge segments as a result of a flow shift on a bush level */
   //todo: remove when no longer needed, now identified beforehand via missing s1 links method
   private final Map<ES, Set<RootedBush<V,ES>>> addedEdgeSegmentsForBushes = new TreeMap<>();
-
-  /** track flow shifted data from S2 flow shifts to be used for S1 flow shifts in opposite direction */
-  private final Map<EdgeSegment, Map<RootedBush<V,ES>, BushEntryShiftedS2FlowData>>
-          flowShiftedS2BushData = new TreeMap<>();
 
   /**
    * Verify if entry segment is congested.
@@ -124,52 +125,32 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   }
 
   /**
-   * obtain derivative of cost towards flow for given segment, all parameters mut be non-null
-   *
-   * @param theMode      to use
-   * @param physicalCost to use
-   * @param virtualCost  to use
-   * @param edgeSegment  to use
-   * @return dTravelTimedFlow or 0 if not possible to compute (with warning)
-   */
-  @Deprecated(forRemoval = true)
-  private static <ESs extends EdgeSegment> double getDTravelTimeDFlow(
-          Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, ESs edgeSegment) {
-
-    if (edgeSegment instanceof MacroscopicLinkSegment) {
-      return physicalCost.getDTravelTimeDFlow(false, theMode, (MacroscopicLinkSegment) edgeSegment);
-    } else if (edgeSegment instanceof ConnectoidSegment) {
-      return virtualCost.getDTravelTimeDFlow(false, theMode, (ConnectoidSegment) edgeSegment);
-    } else {
-      LOGGER.severe(String.format("Unsupported edge segment (%s) to obtain derivative of cost towards flow from",
-              edgeSegment.getXmlId()));
-    }
-
-    return 0;
-  }
-
-  /**
    * Helper; based on the entry segment and current loading, recompute node model to identify most restricting out
    * edge segment for this entry segment
    *
    * @param entrySegment   to use
    * @param networkLoading to use
-   * @return identified most restricting out edge segment
+   * @return identified most restricting out edge segment and any demand constrained flow into it
    */
-  protected static EdgeSegment identifyMostRestrictingOutEdgeSegment(
+  protected static Pair<EdgeSegment,Double> identifyMostRestrictingOutSegmentAndDemandConstrainedFlow(
           EdgeSegment entrySegment, StaticLtmLoadingBushBase<?> networkLoading) {
 
     // collect most restricting turn for entry segment
-    var consumer = new NMRCollectMostRestrictingTurnConsumer(entrySegment);
-    StaticLtmNetworkLoading.performNodeModelUpdate(entrySegment.getDownstreamVertex(), consumer, networkLoading);
+    var consumer = new NmrDemandConstrainedFlowAndMostRestrictingTurnConsumer(entrySegment);
+    StaticLtmNetworkLoading.performNodeModelUpdate(
+        entrySegment.getDownstreamVertex(), consumer, networkLoading);
 
     var mostRestrictingOutSegment = consumer.getMostRestrictingOutSegment();
     if (mostRestrictingOutSegment == null) {
       LOGGER.severe(String.format("Expected most restricting out segment to be present given that " +
-                      "incoming segment (%s) is congested, but not found, this shouldn't happen",
-              entrySegment.getXmlId()));
+                      "incoming segment (%s) of link (%s) is congested, but not found, this shouldn't happen",
+              entrySegment.getIdsAsString(), entrySegment.getParent().getIdsAsString()));
+
+      consumer = new NmrDemandConstrainedFlowAndMostRestrictingTurnConsumer(entrySegment);
+      StaticLtmNetworkLoading.performNodeModelUpdate(
+          entrySegment.getDownstreamVertex(), consumer, networkLoading);
     }
-    return mostRestrictingOutSegment;
+    return Pair.of(mostRestrictingOutSegment, consumer.getMostRestrictingOutSegmentDemandConstrainedFlow());
   }
 
   /**
@@ -245,21 +226,21 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   /**
    * obtain derivative of cost towards flow for given alternative, all parameters mut be non-null
    *
-   * @param theMode      to use
-   * @param networkLoading to use
-   * @param physicalCost to use
-   * @param virtualCost  to use
+   * @param theMode              to use
+   * @param networkLoading       to use
+   * @param physicalCost         to use
+   * @param virtualCost          to use
    * @param isLowCostAlternative to use
-   * @param ignoreInitialEdgeSegment when true, ignore initial segment for calculation
-   * @return dTravelTimedFlow or 0 if not possible to compute (with warning)
+   * @param derivativeReductionFactor to use
+   * @return derivative, compounded derivative reduction factor and indicator whether to continue or not
    */
-  protected abstract double getDTravelTimeDFlow(
-          final Mode theMode,
-          final StaticLtmLoadingBushBase<?> networkLoading,
-          final AbstractPhysicalCost physicalCost,
-          final AbstractVirtualCost virtualCost,
-          boolean isLowCostAlternative,
-          boolean ignoreInitialEdgeSegment);
+  protected abstract Triple<Double, Double, Boolean> getDTravelTimeDFlowExcludingMergeDiverge(
+      final Mode theMode,
+      final StaticLtmLoadingBushBase<?> networkLoading,
+      final AbstractPhysicalCost physicalCost,
+      final AbstractVirtualCost virtualCost,
+      boolean isLowCostAlternative,
+      double derivativeReductionFactor);
 
   /**
    * Determine the adjusted flow shift by taking the proposed upper bound and reduce it by a
@@ -271,27 +252,25 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param proposedFlowShift to use
    * @param upperBoundShift that is ideally the maximum
-   * @param discontinuityDampeningFactor to use
+   * @param slackFlowLeeway to use
    * @return adjusted proposed flow shift (if any)
    */
-  private double adjustFlowShiftBasedOnSlackFlow(
-          double proposedFlowShift, double upperBoundShift, double discontinuityDampeningFactor) {
+  protected static double adjustFlowShiftBasedOnSlackFlow(
+          double proposedFlowShift, double upperBoundShift, double slackFlowLeeway) {
 
-    if (proposedFlowShift <= upperBoundShift) {
+    if (proposedFlowShift <= (upperBoundShift + slackFlowLeeway)) {
       return proposedFlowShift;
     }
-
-    double assumedCongestedShift = proposedFlowShift - upperBoundShift;
-    double portion = (1 - pas.getAlternativeLowCost() / pas.getAlternativeHighCost());
-    return upperBoundShift + assumedCongestedShift * Math.min(1,discontinuityDampeningFactor);
+    return upperBoundShift + slackFlowLeeway;
   }
 
   /** local epsilon used in flow shifting */
   protected static final double EPSILON = EPSILON_12;
 
   /**
-   * whenever a PAS S2 alternative's flow drops below this threshold for a given bush, we allow the flow shift to move all remaining flow towards the S1 segment across all entry
-   * segments and unregister the bush for this PAS as it is no longer deemed a true alternative.
+   * whenever a PAS S2 alternative's flow drops below this threshold for a given bush, we allow the flow shift to move
+   * all remaining flow towards the S1 segment across all entry segments and unregister the bush for this PAS as it
+   * is no longer deemed a true alternative.
    */
   protected static final double PAS_MIN_S2_FLOW_THRESHOLD = 1;
 
@@ -323,12 +302,12 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param proposedFlowShift to adjust if needed
    * @param s1SlackFlow                  that is expected
-   * @param discontinuityDampeningFactor to use
+   * @param slackFlowLeeway to use
    * @return adjusted proposed flow shift (if any)
    */
-  protected double adjustFlowShiftBasedOnS1SlackFlow(
-          double proposedFlowShift, double s1SlackFlow, double discontinuityDampeningFactor) {
-    return adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, s1SlackFlow, discontinuityDampeningFactor);
+  protected static double adjustFlowShiftBasedOnS1SlackFlow(
+          double proposedFlowShift, double s1SlackFlow, double slackFlowLeeway) {
+    return adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, s1SlackFlow, slackFlowLeeway);
   }
 
   /**
@@ -339,30 +318,13 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param proposedFlowShift to adjust if needed
    * @param s2SlackFlow that is expected
-   * @param discontinuityDampeningFactor to use
+   * @param slackFlowLeeway to use
    * @return adjusted proposed flow shift (if any)
    */
-  protected double adjustFlowShiftBasedOnS2SlackFlow(
-          double proposedFlowShift, double s2SlackFlow, double discontinuityDampeningFactor) {
-    return adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, s2SlackFlow, discontinuityDampeningFactor);
+  protected static double adjustFlowShiftBasedOnS2SlackFlow(
+          double proposedFlowShift, double s2SlackFlow, double slackFlowLeeway) {
+    return adjustFlowShiftBasedOnSlackFlow(proposedFlowShift, s2SlackFlow, slackFlowLeeway);
   }
-
-  /**
-   * For the given PAS determine the amount of slack flow on chosen alternative, i.e., the minimum difference between the link outflow rate and the capacity across all its link
-   * segments, including the link segments beyond its alternative it is directing the flows to. It is assumed the cheap cost alternative of the PAS has already been found to be
-   * uncongested and as such should have a zero or higher slack flow.
-   * <p>
-   * In the special case that it passes through (or directs to) a segment that is at capacity (due to for example one or more of its other in-links being congested), then we return
-   * a slack capacity of zero.
-   * </p>
-   *
-   * @param networkLoading to collect outflow rates from
-   * @param lowCost        when true determine for low cost alternative, when false for high cost alternative
-   * @param ignoreInitialSegment when true ignore initial segment when computing this
-   * @return slack flow found
-   */
-  protected abstract double determinePasAlternativeSlackFlow(
-          StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment);
 
   /**
    * Find first congested segment on PAS for either alternative, note that we do use some slack on when
@@ -370,67 +332,41 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @param networkLoading to use
    * @param lowCost flag indicating what alternative to apply
-   * @param ignoreInitialSegment when true ignore the first segment of the PAS alternative in this search.
    * @return found segments on alternative, null when not congested, second argument indicates whether it
    *  is truly congested already (true), or near congestion (false) but within threshold applied
    *
    */
-  protected abstract Pair<ES, Boolean> findFirstCongestedEdgeSegmentOnPasAlternative(
-          final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost, boolean ignoreInitialSegment);
+  protected abstract ES findFirstCongestedEdgeSegmentOnPasAlternative(
+          final StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost);
 
   /**
-   * Perform the flow shift for a given bush. Delegate to concrete class implementation
+   * Determine the sub-path sending flow for a PAS alternative by tracing the PAS registered bushes sending flows across
+   * the turns. this is constrained by the current and original flow acceptance factors
    *
-   * @param bush                      to perform shift for
-   * @param entrySegment              entry segment from original network to apply flow shift for
-   * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entrysegment combination
-   * @param flowAcceptanceFactors     to use
-   * @return end merge splitting rates of s2 to be used in s1 flow shift
+   * @param <T> type of vertex
+   * @param <U> type of edge segment
+   * @param pas to consider
+   * @param lowCostSegment alternative to consider
+   * @param currentFlowAcceptanceFactors current alphas
+   * @param originalFlowAcceptanceFactors original network loading alphas
+   * @return the sending flow at the starting vertex and edge of the PAS alternative that is following the alternative
    */
-  protected abstract double[] executeBushS2FlowShift(
-          final RootedBush<V,ES> bush,
-          final EdgeSegment entrySegment,
-          double bushEntrySegmentFlowShift,
-          final double[] flowAcceptanceFactors);
+  public static <T extends DirectedVertex, U extends EdgeSegment> double determinePasSubPathSendingFlow(
+      Pas<T,U> pas,
+      boolean lowCostSegment,
+      double[] currentFlowAcceptanceFactors,
+      double[] originalFlowAcceptanceFactors){
 
-  /**
-   * Perform the flow shift for a given bush. Delegate to concrete class implementation
-   *
-   * @param bush                      to perform shift for
-   * @param entrySegment              original network entry segment at hand to apply flow shift for
-   * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entry segment combination
-   * @param flowAcceptanceFactors     to use
-   * @param endMergeSplittingRates    end merge splitting rates of s2 to be used in s1 flow shift
-   */
-  protected abstract void executeBushS1FlowShift(
-          final RootedBush<V,ES> bush,
-          final EdgeSegment entrySegment,
-          double bushEntrySegmentFlowShift,
-          final double[] flowAcceptanceFactors,
-          double[] endMergeSplittingRates);
-
-  /**
-   * Perform the flow shift for a given bush. Delegate to concrete class implementation
-   * 
-   * @param bush                      to perform shift for
-   * @param entrySegment              entry segment at hand to apply flow shift for
-   * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entrysegment combination
-   * @param flowAcceptanceFactors     to use
-   * @deprecated to be replaced by separate calls
-   */
-  @Deprecated
-  public void executeBushFlowShift(
-          final RootedBush<V,ES> bush,
-          final ES entrySegment,
-          double bushEntrySegmentFlowShift,
-          final double[] flowAcceptanceFactors){
-
-    /* shift flows for S2 */
-    var bushS2MergeExitSplittingRates =
-            executeBushS2FlowShift(bush, entrySegment, bushEntrySegmentFlowShift, flowAcceptanceFactors);
-    /* shift flows for S1 */
-    executeBushS1FlowShift(bush, entrySegment, bushEntrySegmentFlowShift, flowAcceptanceFactors, bushS2MergeExitSplittingRates);
-
+    double totalFlow = 0;
+    U[] alt = pas.getAlternative(lowCostSegment);
+    for (var bush : pas.getRegisteredBushes()) {
+      totalFlow += bush.determineConstrainedSubPathSendingFlow(
+          alt,
+          currentFlowAcceptanceFactors,
+          originalFlowAcceptanceFactors,
+          ((ConjugateDestinationBush)bush).bushData); // not sustainable
+    }
+    return totalFlow;
   }
 
   /**
@@ -442,25 +378,6 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    */
   public abstract void stepOneDetermineNetworkLoadingConsistentS1S2SendingFlows(
           double[] flowAcceptanceFactors);
-
-  /**
-   *  Determine proposed flow shift for the PAS of this flow shifter based on the (expected to be known) s1 and s2
-   *  sending flows and costs.
-   *
-   * @param theMode to use
-   * @param physicalCost to use
-   * @param virtualCost to use
-   * @param networkLoading to use
-   * @param discontinuityDampeningFactor to use
-   * @return proposed flow shift (in isolation) per network loading original network entry segment of the PAS, hence
-   * using the edge segment in the return type and not the generics of this executor
-   */
-  public abstract Map<EdgeSegment, Double> determineProposedFlowShiftByLoadingEntrySegment(
-          Mode theMode,
-          AbstractPhysicalCost physicalCost,
-          AbstractVirtualCost virtualCost,
-          StaticLtmLoadingBushBase<?> networkLoading,
-          double discontinuityDampeningFactor);
 
   /**
    * For each bush on this PAS determine if any link segments are not yet on the S1 that would be added
@@ -482,38 +399,32 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
     return missingLinkSegmentsByBush;
   }
 
-
   /**
-   * We account for the fact that per bush different incoming links to the PAS might be used so each incoming link that is used and that is congested should be the basis for the
-   * flow shift instead of the first congested one within the PAS. This is currently not accounted for + if an incoming link is congested, then it has the same alpha for both
-   * alternatives BUT the most restricting one might be linked to one of those. If so then we should shift towards the other! This does not exist yet. If neither is the most
-   * restricting then revert to situation where we shift as if uncongested as it has no impact. So, split flow shift and execution to per incoming link rather than combining them
-   * as we do in run!! Later we can optimise possibly
-   * <p>
-   * Each PAS per bush is split in x PASs where x is the number of used in links for each bush
+   * Run the executor to perform the flow shifts on its PAS to (ideally) equilibrate to convergence based on provided
+   * information
    *
-   * @param proposedFlowShifts proposed shifts per original network's entry segment into the PAS
-   * @param theMode            to use
-   * @param networkLoading     to use
-   * @param smoothing          to apply to flow shift
-   * @param logAll             to use
-   * @return true when flow is shifted, false otherwise
+   * @param theMode mode
+   * @param assignmentStrategy access to assignment
+   * @param originalNetworkCosts non-conjugate link segment costs
+   * @param conjSegmentCosts conjugate turn costs
+   * @param originalNlConsistentFlowAcceptanceFactors network loading consistent original flow acceptance factors
+   * @param bushes all available bushes
+   * @param logAll flag to indicate logging information
+   * @param smoothingApproach how to deal with smoothing when equilibrating
+   * @param additionalSmoothingFactor additional smoothing to apply exogenous to this equilibration internal smoothing
+   *                                  (if any)
+   * @return the total flow shifted and whether it was snapped to zero so we bypassed any final smoothing
    */
-  public abstract boolean performS2FlowShift(
-      Map<EdgeSegment, Double> proposedFlowShifts,
+  public abstract Pair<Double, Boolean> performEquilibratedCongestedFlowShifts(
       Mode theMode,
-      StaticLtmLoadingBushBase<?> networkLoading,
-      Smoothing smoothing,
-      boolean logAll);
-
-  /**
-   * Perform S1 flow shift assuming the S2 flow shift has already been done (is prerequisite)
-   *
-   * @param theMode to use
-   * @param networkLoading to apply
-   */
-  public abstract void performS1FlowShift(
-          Mode theMode, StaticLtmLoadingBushBase<?> networkLoading);
+      StaticLtmAssignmentStrategy assignmentStrategy,
+      double[] originalNetworkCosts,
+      double[] conjSegmentCosts,
+      double[] originalNlConsistentFlowAcceptanceFactors,
+      Set<? extends RootedBush<?,?>> bushes,
+      boolean logAll,
+      FlowShiftSmoothingApproach smoothingApproach,
+      double additionalSmoothingFactor);
 
   /**
    * Sending flow along PAS high cost segment
@@ -529,51 +440,14 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    */
   public abstract double getS1SendingFlow();
 
-  /** track the actually performed flow shifts on S2, to know what to apply to S1 when shifting flow
-   *
-   * @return map with data
-   */
-  public Map<EdgeSegment, Map<RootedBush<V, ES>, BushEntryShiftedS2FlowData>> getFlowShiftedS2BushData() {
-    return flowShiftedS2BushData;
-  }
-
-  /**
-   * put entry in flow shifted S2 data
-   *
-   * @param entrySegment to use
-   * @param bush to use
-   * @param data to place
-   */
-  public void putFlowShiftedS2Data(EdgeSegment entrySegment, RootedBush<V,ES> bush, BushEntryShiftedS2FlowData data){
-    getFlowShiftedS2BushData().putIfAbsent(entrySegment, new TreeMap<>());
-    getFlowShiftedS2BushData().get(entrySegment).put(bush, data);
-  }
-
-  /**
-   * Verify if any edge segments have been removed by a bush as a result of the PAS flow shift
-   *
-   * @return true if confirmed, false otherwise
-   */
-  public boolean hasAnyBushRemovedLinkSegments() {
-    return removedEdgeSegmentsForBushes != null && !removedEdgeSegmentsForBushes.isEmpty();
-  }
-
   /**
    * Verify if any edge segments have been added by a bush as a result of the PAS flow shift
    *
    * @return true if confirmed, false otherwise
    */
+  @Deprecated
   public boolean hasAnyBushAddedLinkSegments() {
     return addedEdgeSegmentsForBushes != null && !addedEdgeSegmentsForBushes.isEmpty();
-  }
-
-  /**
-   * access bushes that have removed link segments due to a flow shift
-   *
-   * @return tracked findings or empty map
-   */
-  public Map<ES, Set<RootedBush<V,ES>>> getBushRemovedLinkSegments() {
-    return removedEdgeSegmentsForBushes;
   }
 
   /**
@@ -581,20 +455,9 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    *
    * @return tracked findings or empty map
    */
+  @Deprecated
   public Map<ES, Set<RootedBush<V,ES>>> getBushAddedLinkSegments() {
     return addedEdgeSegmentsForBushes;
-  }
-
-  /**
-   * access bushes that have removed the given link segment due to a flow shift
-   *
-   * @param linkSegment to check for
-   * @return tracked findings or empty list
-   */
-  public Set<RootedBush<V,ES>> getBushRemovedLinkSegments(ES linkSegment) {
-    var bushes =
-        removedEdgeSegmentsForBushes.computeIfAbsent(linkSegment, k -> new TreeSet<>());
-    return bushes;
   }
 
   /**
@@ -603,26 +466,11 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param linkSegment to check for
    * @return tracked findings or empty list
    */
+  @Deprecated
   public Set<RootedBush<V,ES>> getBushAddedLinkSegments(ES linkSegment) {
     var bushes =
         addedEdgeSegmentsForBushes.computeIfAbsent(linkSegment, k -> new TreeSet<>());
     return bushes;
-  }
-
-  /**
-   * Mark segment as removed from bush due to flow shift
-   *
-   * @param bush to use
-   * @param linkSegment to register
-   */
-  public void addBushRemovedLinkSegment(
-          RootedBush<V,ES> bush, ES linkSegment){
-    if(settings.hasTrackOdsForLogging() && isDestinationTrackedForLogging(bush)){
-      LOGGER.info(String.format(
-          "           Removed link segment (%s) from bush (%s)",
-          linkSegment.getIdsAsString(), bush.getRootZoneVertex().getParent().getParentZone().getIdsAsString()));
-    }
-    getBushRemovedLinkSegments(linkSegment).add(bush);
   }
 
   /**
@@ -631,6 +479,7 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
    * @param bush to use
    * @param linkSegment to register
    */
+  @Deprecated
   public void addBushAddedLinkSegment(
           RootedBush<V,ES> bush, ES linkSegment){
     if(settings.hasTrackOdsForLogging() && isDestinationTrackedForLogging(bush)){

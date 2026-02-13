@@ -1,10 +1,12 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessorConjugateSegments;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
  * Consumer to apply during bush based network loading turn flow update for each non-zero demand bush
@@ -24,11 +26,25 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
  *
  */
 public class ConjugateBushTurnFlowUpdateConsumer
-        extends ConjugateBushFlowUpdateConsumerImpl<NetworkTurnFlowUpdateData> {
+        extends ConjugateBushNetworkFlowUpdateConsumerImpl<NetworkTurnFlowUpdateData> {
 
   /** logger to use */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ConjugateBushTurnFlowUpdateConsumer.class.getCanonicalName());
+
+  /**
+   * constructor
+   *
+   * @param dataConfig to use
+   * @param turn2ConjSegmentMapping to use
+   * @param edgeSegmentsToUpdate selective edge segments to update (all turn flows of all bushes of these edge segments)
+   */
+  public ConjugateBushTurnFlowUpdateConsumer(
+      final NetworkTurnFlowUpdateData dataConfig,
+      final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping,
+      Set<EdgeSegment> edgeSegmentsToUpdate) {
+    super(dataConfig, turn2ConjSegmentMapping, edgeSegmentsToUpdate);
+  }
 
   /**
    * constructor
@@ -52,6 +68,11 @@ public class ConjugateBushTurnFlowUpdateConsumer
     if (dataConfig.isTrackAllNodeTurnFlows() ||
             dataConfig.getNlSplittingRateData().isTracked(conjEdgeSegment.getOriginalCentreVertex())) {
       dataConfig.addToAcceptedTurnFlows((int)conjEdgeSegment.getId(), turnAcceptedFlowPcuH); // network level
+
+//      if(conjEdgeSegment.getOriginalAdjacentEdgeSegments().second()!= null && conjEdgeSegment.getOriginalAdjacentEdgeSegments().second().getId()==41){
+//        LOGGER.severe("41 Constrained ("+conjEdgeSegment.getXmlId()+"): add: " + turnAcceptedFlowPcuH );
+//      }
+
     }
   }
 

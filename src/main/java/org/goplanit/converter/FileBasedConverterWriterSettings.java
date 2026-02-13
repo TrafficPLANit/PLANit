@@ -1,5 +1,6 @@
 package org.goplanit.converter;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.locale.CountryNames;
 import org.goplanit.utils.misc.StringUtils;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;

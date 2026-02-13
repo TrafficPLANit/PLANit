@@ -1,8 +1,8 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.StaticLtmDirectedPath;
-import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.*;
 import org.goplanit.od.path.OdMultiPaths;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -53,7 +53,8 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
           boolean updateOutflows,
           boolean updateUnconstrainedFlows) {
     if (!updateSendingFlows && !updateTurnAcceptedFlows) {
-      LOGGER.warning("Network flow updates using paths must either updating link sending flows or turn accepted flows, neither are selected");
+      LOGGER.warning("Network flow updates using paths must either updating link sending flows or turn " +
+          "accepted flows, neither are selected");
       return null;
     }
     
@@ -96,13 +97,15 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
 
       if (updateUnconstrainedFlows) {
         LOGGER.warning("Network flow updates using paths cannot update turn accepted flows and unconstrained flows, " +
-                "this is not yet supported when creating the NetworkTurnFlowUpdateData class (functionally not an issue though)");
+                "this is not yet supported when creating the NetworkTurnFlowUpdateData class (functionally not " +
+            "an issue though)");
         return null;
       }
 
       if (updateSendingFlows) {
         if (updateOutflows) {
-          LOGGER.warning("Network flow updates using paths cannot update turn accepted flows and outflows, this is not yet supported");
+          LOGGER.warning("Network flow updates using paths cannot update turn accepted flows and outflows, this " +
+              "is not yet supported");
           return null;
         } else {        
           dataConfig = new NetworkTurnFlowUpdateData(
@@ -123,14 +126,31 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     return null;    
   }
 
+  private PathFlowUpdateConsumer<?> createSyncAllNetworkFlowUpdateConsumer(Mode theMode){
+    nlSendingFlowData.reset();
+    nlInFlowOutflowData.resetInflows();
+    nlInFlowOutflowData.resetOutflows();
+    unconstrainedFlowData.reset();
+
+    return new PathLinkFlowUpdateConsumer(
+        new NetworkFlowUpdateData(
+            nlSendingFlowData,
+            networkLoadingFactorData.getCurrentFlowAcceptanceFactors(),
+            nlInFlowOutflowData.getInflows(),
+            nlInFlowOutflowData.getOutflows(),
+            unconstrainedFlowData),
+        odMultiPathsByMode.get(theMode));
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
   protected TurnFlowAccessor networkLoadingTurnFlowUpdate(Mode mode) {
     
-    /* when one-shot sending flow update in step-2 of the algorithm is active, the sending flows are to be updated during the update here, 
-     * otherwise not. In the latter case it is taken care of by step-2 in the solution algorithm via the iterative procedure */
+    /* when one-shot sending flow update in step-2 of the algorithm is active, the sending flows are to be updated
+    during the update here, otherwise not. In the latter case it is taken care of by step-2 in the solution algorithm
+    via the iterative procedure */
     boolean updateTurnAcceptedFlows = true;
     boolean updateSendingFlows = !isIterativeSendingFlowUpdateActivated();
     boolean updateOutflows = false, updateUnconstrainedFlows = false;
@@ -139,7 +159,8 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
                     mode, updateTurnAcceptedFlows, updateSendingFlows, updateOutflows, updateUnconstrainedFlows);
     
     /* execute */
-    getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathTurnFlowUpdateConsumer);
+    getOdDemands(mode).forEachNonZeroOdDemand(
+        getTransportNetwork().getZoning().getOdZones(), pathTurnFlowUpdateConsumer);
     return pathTurnFlowUpdateConsumer.getAcceptedTurnFlows();
   }
   
@@ -156,27 +177,26 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
                     mode, updateTurnAcceptedFlows, updateSendingFlows, updateOutflows, updateUnconstrainedFlows);
     
     /* execute */
-    getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathLinkFlowUpdateConsumer);
+    getOdDemands(mode).forEachNonZeroOdDemand(
+        getTransportNetwork().getZoning().getOdZones(), pathLinkFlowUpdateConsumer);
   }
 
   /**
    * {@inheritDoc}
-   */ 
+   */
   @Override
-  protected void networkLoadingSendingFlowOutflowUpdate(Mode mode) {
-    /* update link sending flows and outflows */
-    boolean updateTurnAcceptedFlows = false, updateUnconstrainedFlows = false;
-    boolean updateSendingFlows = true, updateOutflows = true;
-    var pathLinkFlowUpdateConsumer = (PathLinkFlowUpdateConsumer)
-            createPathFlowUpdateConsumer(
-                    mode, updateTurnAcceptedFlows, updateSendingFlows, updateOutflows, updateUnconstrainedFlows);
-    
-    /* execute */
-    getOdDemands(mode).forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathLinkFlowUpdateConsumer);
-  }  
+  protected void networkLoadingSyncFlowsUpdate(Mode mode) {
 
-  /** In a path based implementation, tracked nodes overlap with potentially blocking nodes. Since potentially blocking nodes
-   * are identified by the base class, there is no need for additional work in this implementation. Empty implementation
+    var syncFlowConsumer = createSyncAllNetworkFlowUpdateConsumer(mode);
+
+    /* execute */
+    getOdDemands(mode).forEachNonZeroOdDemand(
+        getTransportNetwork().getZoning().getOdZones(), syncFlowConsumer);
+  }
+
+  /** In a path based implementation, tracked nodes overlap with potentially blocking nodes. Since potentially
+   * blocking nodes are identified by the base class, there is no need for additional work in this implementation.
+   * Empty implementation
    */
   @Override
   protected void activateEligibleSplittingRateTrackedNodes() {
@@ -207,7 +227,8 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * @param mode mode of the paths
    * @param odMultiPaths to use
    */
-  public void setOdMultiPaths(final Mode mode, OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths) {
+  public void setOdMultiPaths(
+      final Mode mode, OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths) {
     this.odMultiPathsByMode.put(mode, odMultiPaths);
   }
 

@@ -119,8 +119,11 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    * {@inheritDoc}
    */
   @Override
-  public double computeGap() {
-    previousGap = gap;
+  public double computeGap(boolean internalStateChange) {
+    if(internalStateChange) {
+      previousGap = gap;
+    }
+
     if (Precision.smaller(measuredNetworkCost, minimumNetworkCost)) {
       LOGGER.severe(String.format("Minimum network cost (%.2f) exceeds measured network cost (%.2f), this should not happen", minimumNetworkCost, measuredNetworkCost));
     }
@@ -128,8 +131,10 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
     /* special case, both might be zero for example - unlikely but technically this is considered converged */
     double absoluteGap = measuredNetworkCost - minimumNetworkCost;
     if (absoluteGap == 0) {
-      gap = absoluteGap;
-      return gap;
+      if(internalStateChange) {
+        gap = absoluteGap;
+      }
+      return absoluteGap;
     }
 
     if (!Precision.positive(measuredNetworkCost)) {
@@ -138,8 +143,11 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
     }
 
     /* regular non-zero measured cost */
-    gap = absoluteGap / measuredNetworkCost;
-    return gap;
+    double computedGap = absoluteGap / measuredNetworkCost;
+    if(internalStateChange) {
+      gap = computedGap;
+    }
+    return computedGap;
   }
 
   /**

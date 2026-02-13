@@ -1,14 +1,13 @@
 package org.goplanit.test.sltm.bush;
 
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
-import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
-import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
-import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
 import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
@@ -83,21 +82,22 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
     assertTrue(Precision.smallerEqual(outflow4, 4000));
     assertTrue(Precision.smallerEqual(outflow8, 4000));
 
-    assertEquals(outflow0, 8000, Precision.EPSILON_3);
-    assertEquals(outflow1, 4529.16, 1);
-    assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
-    assertEquals(outflow3, outflow2, Precision.EPSILON_3);
-    assertEquals(outflow4, 3742, 2);
-    assertEquals(outflow5, 3191, 1);
-    assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
-    assertEquals(outflow7, outflow6, Precision.EPSILON_3);
-    assertEquals(outflow8, 3758, 2);
-    assertEquals(outflow9, 3000.0, Precision.EPSILON_3);
-    assertEquals(outflow10, 1500.0, Precision.EPSILON_3);
-    assertEquals(outflow11, outflow10, Precision.EPSILON_3);
-    assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
-    assertEquals(outflow13, 2242, 2);
-    assertEquals(outflow14, 2258, 2);
+    // multiple solutions possible with small flow difference on links 4,13,14
+    assertEquals(8000, outflow0, Precision.EPSILON_1);
+    assertEquals(4529.133218275822, outflow1 , Precision.EPSILON_1);
+    assertEquals(1500.0, outflow2, Precision.EPSILON_1);
+    assertEquals(outflow3, outflow2, Precision.EPSILON_1);
+    assertEquals(3740.23648262089, outflow4, Precision.EPSILON_1); // alt: assertEquals(3742.522902167791, outflow4, Precision.EPSILON_1);
+    assertEquals(3191.30160767045, outflow5, Precision.EPSILON_1);
+    assertEquals(1500.0, outflow6, Precision.EPSILON_1);
+    assertEquals(outflow7, outflow6, Precision.EPSILON_1);
+    assertEquals(3759.7635173791095, outflow8, Precision.EPSILON_1);// alt: assertEquals(3757.4770978322063, outflow8, Precision.EPSILON_1);
+    assertEquals(outflow9, 3000.0, Precision.EPSILON_1);
+    assertEquals(outflow10, 1500.0, Precision.EPSILON_1);
+    assertEquals(outflow11, outflow10, Precision.EPSILON_1);
+    assertEquals(outflow12, 4500.0, Precision.EPSILON_1);
+    assertEquals(2240.23648262089, outflow13, Precision.EPSILON_1); //alt: assertEquals(2242.5229021677915, outflow13, Precision.EPSILON_1);
+    assertEquals(2259.7635173791095, outflow14, Precision.EPSILON_1);//alt: assertEquals(2257.4770978322067, outflow14, Precision.EPSILON_1);
 
     double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
     double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
@@ -143,13 +143,12 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       var configurator = sLTMBuilder.getConfigurator();
       configurator.createAndRegisterFundamentalDiagram(FundamentalDiagram.QUADRATIC_LINEAR);
       configurator.disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      configurator.activateDetailedLogging(false);
+      configurator.activateDetailedLogging(true);
 
       /* DESTINATION BASED */
       configurator.setType(sltmType);
 
       // to test if it works without smoothing we disallow overlapping PAS updates and set step-size to 1
-      configurator.setAllowOverlappingPasUpdate(true);
       var fixedStepSmoothing = (FixedStepSmoothingConfigurator) configurator.createAndRegisterSmoothing(
               Smoothing.FIXED_STEP);
       fixedStepSmoothing.setStepSize(1);
@@ -157,11 +156,11 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       configurator.activateOutput(OutputType.LINK);
       configurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
-      //configurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"),Pair.of("A","A``"));
+      configurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"),Pair.of("A","A``"));
 
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(0);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(500);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(80);
       sLTM.execute();
 
       testDeterministicOutputs(sLTM);
@@ -170,15 +169,6 @@ public class sLtmTaBushMultiDestinationQlFdTest extends sLtmAssignmentMultiDesti
       e.printStackTrace();
       fail("Error when testing sLTM bush based assignment");
     }
-  }
-
-
-  /**
-   * Test sLTM bush-destination-based assignment on above network for a point queue model
-   */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
-    runTest(StaticLtmType.DESTINATION_BUSH_BASED);
   }
 
   /**

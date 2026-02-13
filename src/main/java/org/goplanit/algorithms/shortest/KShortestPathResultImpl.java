@@ -4,6 +4,9 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
+import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
+import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.path.DirectedPathFactory;
 import org.goplanit.utils.path.SimpleDirectedPath;
@@ -122,6 +125,22 @@ public class KShortestPathResultImpl implements KShortestPathResult {
   }
 
   @Override
+  public EdgeSegment overwriteNextSegmentForVertex(Vertex vertex, EdgeSegment nextSegment) {
+    throw new PlanItRunTimeException("overwriteNextSegmentForVertex not yet supported for k-shortest path result");
+  }
+
+  @Override
+  public UntypedACyclicSubGraph<?,?> createAndPopulateDirectedAcyclicSubGraphSpanningTree(IdGroupingToken idToken) {
+    throw new PlanItRunTimeException("createDirectedAcyclicSubGraph not yet supported for min/max result");
+  }
+
+  @Override
+  public <V extends DirectedVertex, E extends EdgeSegment>  void populateDirectedAcyclicSubGraphSpanningTree(
+      UntypedACyclicSubGraph<V,E> dagToPopulate) {
+    throw new PlanItRunTimeException("createDirectedAcyclicSubGraph not yet supported for min/max result");
+  }
+
+  @Override
   public DirectedVertex getNextVertexForEdgeSegment(EdgeSegment edgeSegment) {
     throw new PlanItRunTimeException("getNextVertexForEdgeSegment not yet supported for k-shortest path result");
   }
@@ -138,5 +157,16 @@ public class KShortestPathResultImpl implements KShortestPathResult {
   @Override
   public ShortestSearchType getSearchType() {
     throw new PlanItRunTimeException("getSearchType not yet supported for k-shortest path result");
+  }
+
+  /**
+   * In k shortest path we have two roots, as it is a one-to-one. We choose to return the origin(start) used for
+   * the search
+   *
+   * @return start of search
+   */
+  @Override
+  public DirectedVertex getRootSearchVertex() {
+    return origin;
   }
 }

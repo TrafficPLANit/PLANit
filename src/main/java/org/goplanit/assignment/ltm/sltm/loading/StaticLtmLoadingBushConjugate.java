@@ -1,15 +1,18 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
-import org.goplanit.assignment.ltm.sltm.consumer.ConjugateBushFlowUpdateConsumerImpl;
-import org.goplanit.assignment.ltm.sltm.consumer.ConjugateBushTurnFlowUpdateConsumer;
-import org.goplanit.assignment.ltm.sltm.conjugate.ConjugateDestinationBush;
-import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
+import org.goplanit.assignment.common.pas.Pas;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.consumer.*;
+import org.goplanit.assignment.common.bush.ConjugateDestinationBush;
 import org.goplanit.network.transport.ConjugateTransportModelNetwork;
+import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.Mode;
 
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 /**
@@ -33,9 +36,9 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
    * {@inheritDoc}
    */
   @Override
-  protected ConjugateBushFlowUpdateConsumerImpl<NetworkFlowUpdateData> createBushLinkSendingFlowUpdateConsumer(
+  public ConjugateBushNetworkFlowUpdateConsumerImpl<NetworkFlowUpdateData> createBushLinkSendingFlowUpdateConsumer(
           boolean updateLinkOutflows, boolean updateUnconstrainedLinkFlows){
-    return new ConjugateBushFlowUpdateConsumerImpl<>(
+    return new ConjugateBushNetworkFlowUpdateConsumerImpl<>(
             createNetworkLinkFlowData(updateLinkOutflows, updateUnconstrainedLinkFlows), turn2ConjugateSegmentMapping);
   }
 
@@ -43,7 +46,7 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
    * {@inheritDoc}
    */
   @Override
-  protected ConjugateBushTurnFlowUpdateConsumer createBushTurnFlowUpdateConsumer(
+  public ConjugateBushTurnFlowUpdateConsumer createBushTurnFlowUpdateConsumer(
           boolean updateLinkSendingFlows) {
     /* original turn (so conjugate link segment) based + optional original link sending flow based (so conjugate node) */
 
@@ -51,6 +54,28 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
     int numConjugateSegments = conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers();
     return new ConjugateBushTurnFlowUpdateConsumer(
             createNetworkTurnFlowData(updateLinkSendingFlows, numConjugateSegments), turn2ConjugateSegmentMapping);
+  }
+
+  public ConjugateBushSyncNetworkFlowConsumer createSyncAllNetworkFlowUpdateConsumer(){
+    nlSendingFlowData.reset();
+    nlInFlowOutflowData.resetInflows();
+    nlInFlowOutflowData.resetOutflows();
+    unconstrainedFlowData.reset();
+
+    int numConjugateSegments = conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers();
+
+    // all in one update (except for alphas), splitting rates are not updated, just populated in full
+    return new ConjugateBushSyncNetworkFlowConsumer(
+        new NetworkTurnFlowUpdateData(
+            true,
+            nlSendingFlowData,
+            nlSplittingRateData,
+            networkLoadingFactorData,
+            nlInFlowOutflowData.getInflows(),
+            nlInFlowOutflowData.getOutflows(),
+            unconstrainedFlowData,
+            numConjugateSegments),
+        turn2ConjugateSegmentMapping);
   }
 
   /**
@@ -79,4 +104,28 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
   public ConjugateTransportModelNetwork getConjugateTransportModelNetwork() {
     return conjugateTransportModelNetwork;
   }
+
+  // special version of network splitting rate loading update where we limit ourselves to propagating PAS flows instead
+  // of full bush loading - used in route choice update to get a better estimate of rotue choice impact for internal
+  // iterations
+  public void stepOneSplittingRatesUpdateNotBushButPasBased(
+      Mode theMode,
+      TreeSet<Pas<ConjugateDirectedVertex, ConjugateEdgeSegment>> passToPropagate,
+      TreeSet<EdgeSegment> pasTouchedSegments) {
+
+    boolean updateLinkSendingFlows = false;
+    int numConjugateSegments = conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers();
+    var selectiveBushPasNodeTurnFlowUpdateConsumer = new ConjugateBushTurnFlowUpdateConsumer(
+        createNetworkTurnFlowData(updateLinkSendingFlows, numConjugateSegments),
+        turn2ConjugateSegmentMapping,
+        pasTouchedSegments);
+
+    /* execute loading - for selective bushes with selective nodes - */
+    executeNetworkLoadingUpdate(selectiveBushPasNodeTurnFlowUpdateConsumer);
+
+    /* update splitting rates - for selective segments - Eq. (6),(4) */
+    updateNextSplittingRates(selectiveBushPasNodeTurnFlowUpdateConsumer.getAcceptedTurnFlows(), pasTouchedSegments);
+  }
 }
+
+

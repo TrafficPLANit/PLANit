@@ -109,7 +109,8 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * {@inheritDoc}
    */
   @Override
-  public void populateWithCost(final VirtualNetwork virtualNetwork, final Mode mode, double[] costToFill) {
+  public void populateWithCost(
+      final VirtualNetwork virtualNetwork, final Mode mode, double[] costToFill) {
     for (var virtualSegment : virtualNetwork.getLayer().getConnectoidSegments()) {
       costToFill[(int) virtualSegment.getId()] = fixedConnectoidCost;
     }

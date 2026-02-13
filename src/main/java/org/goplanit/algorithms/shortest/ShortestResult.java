@@ -45,4 +45,10 @@ public interface ShortestResult {
     return getSearchType().isInverted();
   }
 
+  /**
+   * Get the root search vertex that was used (especially relevant for all-to-one, one-to-all searches)
+   *
+   * @return root search vertex
+   */
+  public abstract DirectedVertex getRootSearchVertex();
 }

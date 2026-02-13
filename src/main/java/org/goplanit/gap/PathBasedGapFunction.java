@@ -125,28 +125,44 @@ public class PathBasedGapFunction extends GapFunction {
    * {@inheritDoc}
    */
   @Override
-  public double computeGap() {
-    previousGap = gap;
+  public double computeGap(boolean internalStateChange) {
+    if(internalStateChange) {
+      previousGap = gap;
+    }
+
+    double computedGap = 0;
     if (scaledMeasuredPathCostGap == 0 && scaledMinimumPathCosts == 0) {
-      gap = 0;
-      return gap;
+      if(internalStateChange) {
+        gap = computedGap;
+      }
+      return computedGap;
     }
 
     if(scaledMinimumPathCosts == 0.0){
       LOGGER.severe(String.format("Minimum network cost (%.2f) cannot be zero in order to compute gap, this is not the case", scaledMinimumPathCosts));
-      gap = 0;
-      return gap;
+      if(internalStateChange) {
+        gap = computedGap;
+      }
+      return computedGap;
     }
 
     if(scaledMeasuredPathCostGap <0.0){
-      LOGGER.severe(String.format("Gap between minimum and measured should always be positive, but it is not (%.2f)", scaledMeasuredPathCostGap));
+      LOGGER.warning(String.format(
+          "Gap between minimum and measured should always be positive, but it is not (%.2f)", scaledMeasuredPathCostGap));
+      scaledMeasuredPathCostGap = 0;
+      LOGGER.warning("Reset gap to previous gap");
+      computedGap = previousGap;
+      return computedGap;
     }
 
     /* regular non-zero measured cost */
-    gap = scaledMeasuredPathCostGap / Math.abs(scaledMinimumPathCosts);
-    LOGGER.severe(String.format("Measured cost diff (%.10f)", scaledMeasuredPathCostGap));
-    LOGGER.severe(String.format("Scaled minimum path costs (%.10f)", scaledMinimumPathCosts));
-    return gap;
+    computedGap = scaledMeasuredPathCostGap / Math.abs(scaledMinimumPathCosts);
+    if(internalStateChange) {
+      gap = computedGap;
+      LOGGER.severe(String.format("Measured cost diff (%.15f)", scaledMeasuredPathCostGap));
+      LOGGER.severe(String.format("Scaled minimum path costs (%.10f)", scaledMinimumPathCosts));
+    }
+    return computedGap;
   }
 
   /**

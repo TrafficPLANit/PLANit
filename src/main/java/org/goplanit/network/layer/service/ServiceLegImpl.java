@@ -16,7 +16,8 @@ import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.LineString;
 
 /**
- * A service leg connects two service nodes. Underlying are one or more physical links represented by this single service leg.
+ * A service leg connects two service nodes. Underlying are one or more physical links represented by this single
+ * service leg.
  * 
  * @author markr
  *
@@ -77,7 +78,8 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
    */
   @Override
   public void transformGeometry(MathTransform transformer) throws MismatchedDimensionException, TransformException {
-    throw new TransformException("Not allowed to transform geometry on service leg since it holds no geometry. Consider transforming underlying parent links instead");
+    throw new TransformException("Not allowed to transform geometry on service leg since it holds no geometry. " +
+        "Consider transforming underlying parent links instead");
   }
 
   /**

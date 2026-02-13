@@ -16,9 +16,7 @@ import java.util.stream.Collectors;
 
 /**
  * The configuration for the (per iteration/time period/mode) SIMULATION output type.
- * 
  * The following OutputProperty values are included by default:
- * 
  * <ul>
  * <li>TIME_PERIOD_XML_ID</li>
  * <li>MODE_XML_ID</li>
@@ -42,18 +40,17 @@ public class SimulationOutputTypeConfiguration extends OutputTypeConfiguration {
   private void initialiseDefaultOutputProperties() {
     // add default output properties
 
-    // keys - Note that path id is a key since there may be multiple paths per origin-destination-mode-time period combination
+    // primary key properties
     addProperty(OutputPropertyType.TIME_PERIOD_XML_ID);
     addProperty(OutputPropertyType.MODE_XML_ID);
     addProperty(OutputPropertyType.ITERATION_INDEX);
 
-    // value
+    // non-primary key properties
     addProperty(OutputPropertyType.ROUTE_CHOICE_CONVERGENCE_GAP);
   }
 
   /**
-   * Constructor
-   *
+   * Constructor.
    * Define the default output properties here.
    */
   public SimulationOutputTypeConfiguration(){
@@ -77,20 +74,25 @@ public class SimulationOutputTypeConfiguration extends OutputTypeConfiguration {
 
     // make sure all default keys are present as they are not supposed to be removed
     if(!OutputProperty.containsAnyTimePeriodIdType(originalOutputKeyProperties)){
-      outputKeyPropertiesArray = Arrays.copyOf(originalOutputKeyProperties,originalOutputKeyProperties.length + 1);
-      outputKeyPropertiesArray[outputKeyPropertiesArray.length-1] = OutputProperty.of(OutputPropertyType.TIME_PERIOD_XML_ID);
+      outputKeyPropertiesArray =
+          Arrays.copyOf(originalOutputKeyProperties,originalOutputKeyProperties.length + 1);
+      outputKeyPropertiesArray[outputKeyPropertiesArray.length-1] =
+          OutputProperty.of(OutputPropertyType.TIME_PERIOD_XML_ID);
       LOGGER.warning("Simulation output configuration is missing time period key property, adding default");
     }
 
     if(!OutputProperty.containsAnyModeIdType(originalOutputKeyProperties)){
-      outputKeyPropertiesArray = Arrays.copyOf(originalOutputKeyProperties,originalOutputKeyProperties.length + 1);
+      outputKeyPropertiesArray =
+          Arrays.copyOf(originalOutputKeyProperties,originalOutputKeyProperties.length + 1);
       outputKeyPropertiesArray[outputKeyPropertiesArray.length-1] = OutputProperty.of(OutputPropertyType.MODE_XML_ID);
       LOGGER.warning("Simulation output configuration is missing mode key property, adding default");
     }
 
     if(!OutputProperty.containsPropertyOfType(originalOutputKeyProperties, OutputPropertyType.ITERATION_INDEX)){
-      outputKeyPropertiesArray = Arrays.copyOf(originalOutputKeyProperties,originalOutputKeyProperties.length + 1);
-      outputKeyPropertiesArray[outputKeyPropertiesArray.length-1] = OutputProperty.of(OutputPropertyType.ITERATION_INDEX);
+      outputKeyPropertiesArray =
+          Arrays.copyOf(originalOutputKeyProperties,originalOutputKeyProperties.length + 1);
+      outputKeyPropertiesArray[outputKeyPropertiesArray.length-1] =
+          OutputProperty.of(OutputPropertyType.ITERATION_INDEX);
       LOGGER.warning("Simulation output configuration is missing iteration index key property, adding it");
     }
 

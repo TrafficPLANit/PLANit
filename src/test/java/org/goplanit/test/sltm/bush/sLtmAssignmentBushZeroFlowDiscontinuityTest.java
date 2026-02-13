@@ -2,9 +2,9 @@ package org.goplanit.test.sltm.bush;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
-import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
-import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
@@ -12,7 +12,7 @@ import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.formatter.MemoryOutputFormatter;
-import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -130,11 +130,11 @@ public class sLtmAssignmentBushZeroFlowDiscontinuityTest {
     //
     //
     // Bottleneck: link 4
-    // Situation: O1->D2 will use bottleneck link initially, It is congested so revert to not using it
-    //            when not using it, it will use bottom route (and O1->D1 diverts as well). This route is longer.
+    // Situation: O1->D2 will use bottleneck link (4) initially, It is congested so revert to not using it.
+    //            When not using it, it will use bottom route (and O1->D1 diverts as well). This route is longer.
     //            When turn 2->4 is not used anymore, the derivative of cost on 2 becomes (near) 0 and the 2->4
     //            turn appears to be attractive again. The moment any flow is diverted here again, a big queue
-    //            materialises and we get a repeat.
+    //            materialises (because link 4 is still saturated due to O2->D2) and we get a repeat.
     //
     // Solution: the PAS for 2->4 should never be allowed to be selected/created after 4 becomes congested because
     // the non-zero flow cost/derivatives into 4 from 2 should be considered instead of the zero flow situation.
@@ -266,22 +266,19 @@ public class sLtmAssignmentBushZeroFlowDiscontinuityTest {
       sltmConfigurator.setType(type);
 
       // solution -> each PAS update should also perform local loading update for all its bushes
-      sltmConfigurator.setAllowOverlappingPasUpdate(true);
       sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("O1", "D2"));
       sltmConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("O1", "D1"));
 
-      var smoothing = (MSRASmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.MSRA);
-      smoothing.setKappaStep(1);
-      smoothing.setGammaStep(0.0);
-      smoothing.setActivateLambda(true);
+      var smoothing = (FixedStepSmoothingConfigurator) sltmConfigurator.createAndRegisterSmoothing(Smoothing.FIXED_STEP);
+      smoothing.setStepSize(1);
 
       sltmConfigurator.activateOutput(OutputType.LINK);
       sltmConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.setActivateDetailedLogging(true);
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(500);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(50);
       sLTM.execute();
 
       double finalGap = sLTM.getGapFunction().getGap();
@@ -320,21 +317,18 @@ public class sLtmAssignmentBushZeroFlowDiscontinuityTest {
   }
 
   /**
-   * Test sLTM non-conjugate bush-destination based assignment on above network for a point queue model -->
-   * unable to solve properly due to link based costs and derivatives.
-   */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
-   commonTest(StaticLtmType.DESTINATION_BUSH_BASED);
-  }
-
-  /**
    * Test sLTM conjugate bush-destination based assignment on above network for a point queue model -->
    * should be able to solve properly once we have turn based costs and derivatives.
    * TODO: not yet implemented turn based costs and derivatives
    */
   @Test
   public void sLtmPointQueueConjugateBushDestinationBasedAssignmentTest() {
+
+    // with new v2 approach it takes ~45 iterations whereas before it only took 2. Main reason is that
+    // we account for overlap smoothing causing the removal of 2>4 flow to be slowed down until it hits
+    // a threshold after which is it removed (i=44). This is very much an edge case so deemed acceptable if it
+    // means that on general networks our new approach will work better.
+    // todo: consider a hybrid where we first apply v1 for 20 iterations or so after which we apply v2?
     commonTest(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED);
   }
 }

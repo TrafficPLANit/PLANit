@@ -1,10 +1,11 @@
 package org.goplanit.output.adapter;
 
+import org.goplanit.assignment.common.bush.RootedBush;
 import org.goplanit.output.adapter.traits.UntypedBushSegmentsOutputTypeAdapterTrait;
 import org.goplanit.output.property.OutputProperty;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.time.TimePeriod;
 
 import java.util.Optional;
@@ -32,4 +33,13 @@ public interface BushLinkOutputTypeAdapter
   public Optional<?> getEdgeSegmentOutputPropertyValue(
       OutputProperty outputProperty, EdgeSegment linkSegment, Mode mode, TimePeriod timePeriod);
 
+  /**
+   * current via adapter because we require trait to cast edge segment (ugly)
+   * todo: once we no longer have generics in the bushes we can fix this
+   *
+   * @param edgeSegment to check
+   * @return true when flow is present, false otherwise
+   */
+  public abstract boolean hasNonZeroFlow(
+      RootedBush<? extends DirectedVertex, ? extends EdgeSegment> bush, EdgeSegment edgeSegment);
 }

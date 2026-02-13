@@ -5,8 +5,8 @@ import org.goplanit.assignment.traditionalstatic.TraditionalStaticAssignmentBuil
 import org.goplanit.demands.Demands;
 import org.goplanit.input.InputBuilderListener;
 import org.goplanit.network.LayeredNetwork;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.zoning.Zoning;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -18,7 +18,11 @@ import org.goplanit.utils.id.IdGroupingToken;
 public class TrafficAssignmentBuilderFactory {
 
   /**
-   * Create a builder for given assignment type
+   * Create a builder for given assignment type. currently supports the following types:
+   * <ul>
+   *   <li>TrafficAssignment.TRADITIONAL_STATIC_ASSIGNMENT, yielding a TraditionalStaticAssignmentBuilder</li>
+   *   <li>TrafficAssignment.SLTM, yielding a StaticLtmTrafficAssignmentBuilder</li>
+   * </ul>
    * 
    * @param trafficAssignmentType type of assignment the builder is created for
    * @param projectToken          id group this builder is created for
@@ -27,10 +31,14 @@ public class TrafficAssignmentBuilderFactory {
    * @param theZoning             zoning to register
    * @param theDemands            demands to register
    * @return the created builder
-   * @throws PlanItException thrown if error
    */
-  public static TrafficAssignmentBuilder<?> createBuilder(final String trafficAssignmentType, IdGroupingToken projectToken, InputBuilderListener inputBuilder, Demands theDemands,
-      Zoning theZoning, LayeredNetwork<?, ?> theNetwork) throws PlanItException {
+  public static TrafficAssignmentBuilder<?> createBuilder(
+      final String trafficAssignmentType,
+      IdGroupingToken projectToken,
+      InputBuilderListener inputBuilder,
+      Demands theDemands,
+      Zoning theZoning,
+      LayeredNetwork<?, ?> theNetwork){
 
     if (trafficAssignmentType.equals(TrafficAssignment.TRADITIONAL_STATIC_ASSIGNMENT)) {
       return new TraditionalStaticAssignmentBuilder(projectToken, inputBuilder, theDemands, theZoning, theNetwork);
@@ -38,7 +46,7 @@ public class TrafficAssignmentBuilderFactory {
       return new StaticLtmTrafficAssignmentBuilder(projectToken, inputBuilder, theDemands, theZoning, theNetwork);
 
     } else {
-      throw new PlanItException(
+      throw new PlanItRunTimeException(
               "Unable to construct builder for given trafficAssignmentType %s", trafficAssignmentType);
     }
   }

@@ -1,11 +1,13 @@
 package org.goplanit.algorithms.shortest;
 
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Build a min/max shortest path tree for a given start vertex based on the configuration used. This implementation
@@ -74,12 +76,19 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
    * more attractive than the same search on a cyclic graph.
    * 
    * @param startVertex to conduct search for
+   * @param searchType used
    * @param bannedThroughVertices set of vertices that do not allow paths to go through them. They may only serve as
    *                              start and/or end points
+   * @param minPathFilter to apply, keep when true, discard when false (may be null)
+   * @param maxPathFilter to use, keep when true, discard when false (may be null)
    * @return created result
    */
   public MinMaxPathResultImpl execute(
-          final DirectedVertex startVertex, Set<DirectedVertex> bannedThroughVertices) {
+          final DirectedVertex startVertex,
+          ShortestSearchType searchType,
+          Set<DirectedVertex> bannedThroughVertices,
+          Predicate<EdgeSegment> minPathFilter,
+          Predicate<EdgeSegment> maxPathFilter) {
 
     /* prep cost arrays */
     double[] minCost = new double[numParentNetworkVertices];
@@ -88,6 +97,12 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
     Arrays.fill(maxCost, Double.NEGATIVE_INFINITY);
     if(bannedThroughVertices == null){
       bannedThroughVertices = Collections.emptySet();
+    }
+    if(minPathFilter == null){
+      minPathFilter = e -> true;
+    }
+    if(maxPathFilter == null){
+      maxPathFilter = e -> true;
     }
 
     /* prep backward link reference arrays */
@@ -115,14 +130,14 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
           double minCostCurrVertex = minCost[vertexIndex];
           double foundCostToNextVertex = minCost[vertexIndex] + edgeCost;
           double minCostNextVertex = minCost[nextVertexIndex];
-          if (foundCostToNextVertex < minCostNextVertex) {
+          if (foundCostToNextVertex < minCostNextVertex && minPathFilter.test(currEdgeSegment)) {
             minCost[nextVertexIndex] = foundCostToNextVertex;
             minCostNextEdgeSegments[nextVertexIndex] = currEdgeSegment;
           }
 
           /* max cost update */
           foundCostToNextVertex = maxCost[vertexIndex] + edgeCost;
-          if (foundCostToNextVertex >= maxCost[nextVertexIndex]) {
+          if (foundCostToNextVertex >= maxCost[nextVertexIndex] && maxPathFilter.test(currEdgeSegment)) {
             maxCost[nextVertexIndex] = foundCostToNextVertex;
             maxCostNextEdgeSegments[nextVertexIndex] = currEdgeSegment;
           }
@@ -130,7 +145,14 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
       }
     }
 
-    return new MinMaxPathResultImpl(minCost, minCostNextEdgeSegments, maxCost, maxCostNextEdgeSegments);
+    return new MinMaxPathResultImpl(
+        startVertex,
+        searchType,
+        minCost,
+        minCostNextEdgeSegments,
+        maxCost,
+        maxCostNextEdgeSegments,
+        edgeSegmentCosts.length);
   }
 
   /**
@@ -142,8 +164,30 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
     this.getEdgeSegmentsInDirection =
             ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ALL_TO_ONE);
     this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ALL_TO_ONE);
-    return execute(currentDestination, bannedThroughVertices);
+    return execute(
+        currentDestination, ShortestSearchType.ALL_TO_ONE, bannedThroughVertices, null, null);
   }
+
+  /**
+   * min max variant of running a shortest path with a single filer. Only now applied to min/max path separately
+   *
+   * @param currentDestination to consider
+   * @param minPathFilter to use (may be null)
+   * @param maxPathFilter to use (may be null)
+   * @return found min/max paths result
+   */
+  public MinMaxPathResult executeAllToOneWithFilter(
+      DirectedVertex currentDestination,
+      Predicate<EdgeSegment> minPathFilter,
+      Predicate<EdgeSegment> maxPathFilter) {
+
+    this.getEdgeSegmentsInDirection =
+        ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ALL_TO_ONE);
+    this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ALL_TO_ONE);
+    return execute(
+        currentDestination, ShortestSearchType.ALL_TO_ONE, null, minPathFilter, maxPathFilter);
+  }
+
 
   /**
    * {@inheritDoc}
@@ -162,7 +206,8 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
     this.getEdgeSegmentsInDirection =
             ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ONE_TO_ALL);
     this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ONE_TO_ALL);
-    return execute(currentOrigin, bannedThroughVertices);
+    return execute(
+        currentOrigin, ShortestSearchType.ONE_TO_ALL, bannedThroughVertices, null, null);
   }
 
   /**

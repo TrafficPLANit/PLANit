@@ -33,6 +33,7 @@ import org.goplanit.cost.physical.initial.InitialPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.goplanit.cost.virtual.SpeedConnectoidTravelTimeCost;
+import org.goplanit.cost.virtual.SteadyStateConnectoidTravelTimeCost;
 import org.goplanit.demands.Demands;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
@@ -135,6 +136,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(InitialMacroscopicLinkSegmentCost.class);
     registerPlanitComponentType(FixedConnectoidTravelTimeCost.class);
     registerPlanitComponentType(SpeedConnectoidTravelTimeCost.class);
+    registerPlanitComponentType(SteadyStateConnectoidTravelTimeCost.class);
     registerPlanitComponentType(NewellFundamentalDiagramComponent.class);
     registerPlanitComponentType(QuadraticLinearFundamentalDiagramComponent.class);
     registerPlanitComponentType(TampereNodeModelComponent.class);

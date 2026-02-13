@@ -39,18 +39,20 @@ public class ShortestBushResultGeneralised extends ShortestResultGeneralised imp
 
   /**
    * Constructor only to be used by shortest path algorithms
-   * 
+   *
+   * @param rootSearchVertex             that was used for the search
    * @param vertexMeasuredCost       measured costs to get to the vertex (by id)
    * @param nextEdgeSegmentsByVertex the found next edge segment for each vertex (by id)
    * @param numberOfEdgeSegments     on the parent network
    * @param searchType               used (one-to-all, all-to-one, etc)
    */
   protected ShortestBushResultGeneralised(
+          DirectedVertex rootSearchVertex,
           double[] vertexMeasuredCost,
           Object[] nextEdgeSegmentsByVertex,
           int numberOfEdgeSegments,
           ShortestSearchType searchType) {
-    super(vertexMeasuredCost, searchType);
+    super(rootSearchVertex, vertexMeasuredCost, searchType);
     this.nextEdgeSegments = nextEdgeSegmentsByVertex;
     this.numberOfEdgeSegments = numberOfEdgeSegments;
   }
@@ -117,5 +119,6 @@ public class ShortestBushResultGeneralised extends ShortestResultGeneralised imp
   public double getCostToReach(Vertex vertex) {
     return vertexMeasuredCost[(int) vertex.getId()];
   }
+
 
 }

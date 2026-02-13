@@ -53,7 +53,8 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
           LtmConfigurator<? extends LtmAssignment> configurator) throws PlanItException {
     var pathChoiceFactory = new PlanitComponentFactory<PathChoice>(PathChoice.class);
     pathChoiceFactory.addListener(getInputBuilderListener());
-    return pathChoiceFactory.createAndDispatch(configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
+    return pathChoiceFactory.createAndDispatch(
+        configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 
   /**
@@ -67,12 +68,14 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
 
     /* Fundamental diagram sub component */
     if (getConfigurator().getFundamentalDiagram() != null) {
-      var fundamentalDiagramComponent = createFundamentalDiagramComponentInstance(ltmAssignmentInstance.getUsedNetworkLayer());
+      var fundamentalDiagramComponent =
+          createFundamentalDiagramComponentInstance(ltmAssignmentInstance.getUsedNetworkLayer());
       ltmAssignmentInstance.setFundamentalDiagram(fundamentalDiagramComponent);
     }
 
     /*
-     * path choice subcomponent... ...because it has subcomponents of its own, we must construct a builder for it instead of instantiating it directly here
+     * path choice subcomponent... ...because it has subcomponents of its own, we must construct a builder for it
+     * instead of instantiating it directly here
      */
     if (getConfigurator().getPathChoice() != null) {
       var pathChoiceBuilder = PathChoiceBuilderFactory.createBuilder(
@@ -93,8 +96,13 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
    * @param zoning                 the zoning
    * @param network                the network
    */
-  public LtmTrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands,
-      final Zoning zoning, final LayeredNetwork<?, ?> network) {
+  public LtmTrafficAssignmentBuilder(
+      final Class<T> trafficAssignmentClass,
+      IdGroupingToken groupId,
+      final InputBuilderListener inputBuilderListener,
+      final Demands demands,
+      final Zoning zoning,
+      final LayeredNetwork<?, ?> network) {
     super(trafficAssignmentClass, groupId, inputBuilderListener, demands, zoning, network);
   }
 

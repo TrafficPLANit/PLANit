@@ -41,7 +41,8 @@ import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoid
  * @author markr
  *
  */
-public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends EdgeSegment> implements UntypedACyclicSubGraph<V, E> {
+public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends EdgeSegment>
+    implements UntypedACyclicSubGraph<V, E> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(UntypedACyclicSubGraphImpl.class.getCanonicalName());
@@ -379,6 +380,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
   @SuppressWarnings("unchecked")
   @Override
   public void removeEdgeSegment(E edgeSegment) {
+
+
     registeredLinkSegments.set((int) edgeSegment.getId(), false);
     if (!isConnectedToAnySubgraphEdgeSegment((V) edgeSegment.getDownstreamVertex())) {
       removeVertexData((V) edgeSegment.getDownstreamVertex());

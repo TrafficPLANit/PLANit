@@ -1,5 +1,6 @@
 package org.goplanit.network.layer.modifier;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.network.layer.service.ServiceNetworkLayerImpl;

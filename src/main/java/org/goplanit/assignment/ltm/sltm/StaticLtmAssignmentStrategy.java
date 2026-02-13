@@ -1,11 +1,15 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmSimulationData;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSplittingRateData;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
@@ -20,8 +24,11 @@ import org.goplanit.od.skim.OdSkimMatrix;
 import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
@@ -36,8 +43,8 @@ import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.utils.zoning.Zone;
 
 /**
- * Base class for dealing with different assignment solution methods within sLTM. These solution methods differ regarding their approach to representing path choices, e.g. bush
- * based, or path based.
+ * Base class for dealing with different assignment solution methods within sLTM. These solution methods differ
+ * regarding their approach to representing path choices, e.g. bush based, or path based.
  * 
  * @author markr
  *
@@ -80,6 +87,37 @@ public abstract class StaticLtmAssignmentStrategy {
   /** have a mapping between two link segments (keys) - from and to - towards a movement used for network loading*/
   private final MultiKeyMap<Object, Movement> nlSegmentPair2MovementMap;
 
+  protected  void logCongestedSegmentInfo(double[] costs, Mode theMode) {
+    List<String> idList = new ArrayList<>();
+    List<Quadruple<Double, Double, Double,Double>> alphaCostInOutflowList = new ArrayList<>();
+    var alphas = getLoading().getCurrentFlowAcceptanceFactors();
+    for(var ls : getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments()){
+      if(Precision.smaller(alphas[(int)ls.getId()], 1, Precision.EPSILON_9)){
+        idList.add(ls.getIdsAsString());
+        alphaCostInOutflowList.add(Quadruple.of(
+            alphas[(int)ls.getId()],
+            costs[(int)ls.getId()],
+            getLoading().getCurrentInflowsPcuH()[(int)ls.getId()],
+            getLoading().getCurrentOutflowsPcuH()[(int)ls.getId()]));
+      }
+    }
+    for(var ls : getTransportNetwork().getVirtualNetwork().getLayer().getConnectoidSegments()){
+      if(Precision.smaller(alphas[(int)ls.getId()], 1, Precision.EPSILON_9)){
+        idList.add(ls.getIdsAsString());
+        alphaCostInOutflowList.add(Quadruple.of(
+            alphas[(int)ls.getId()],
+            costs[(int)ls.getId()],
+            getLoading().getCurrentInflowsPcuH()[(int)ls.getId()],
+            getLoading().getCurrentOutflowsPcuH()[(int)ls.getId()]));
+      }
+    }
+    for(int index =0 ; index<idList.size();++index){
+      var quad = alphaCostInOutflowList.get(index);
+      LOGGER.info(String.format("Congested Link (%s) - U: %.1f - V: %.1f - alpha: %.4f - cost: %.8f",
+          idList.get(index), quad.third(), quad.fourth(), quad.first(), quad.second()));
+    }
+  }
+
   /**
    * The transport model network used
    * 
@@ -95,7 +133,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * @return the infrastructure network
    */
   protected MacroscopicNetwork getInfrastructureNetwork() {
-    return (MacroscopicNetwork) getTransportNetwork().getInfrastructureNetwork();
+    return getTransportNetwork().getInfrastructureNetwork();
   }
 
   /**
@@ -164,22 +202,6 @@ public abstract class StaticLtmAssignmentStrategy {
   }
 
   /**
-   * Convenience access to smoothing component
-   * @return smoothing component
-   */
-  protected Smoothing getSmoothing(){
-    return getTrafficAssignmentComponent(Smoothing.class);
-  }
-
-  /**
-   * Convenience access to fundamental diagram component
-   * @return fundamental diagram component
-   */
-  protected FundamentalDiagramComponent getFundamentalDiagramComponent(){
-    return getTrafficAssignmentComponent(FundamentalDiagramComponent.class);
-  }
-
-  /**
    * Verify existence of a component based on its class component signature key
    *
    * @param <T>                 key type of component
@@ -242,7 +264,7 @@ public abstract class StaticLtmAssignmentStrategy {
       boolean changedScheme = networkLoading.activateNextExtension(mode,true);
       if (!changedScheme) {
         LOGGER.warning(
-            String.format("%sDetected network loading is not converging as expected (internal loading iteration %d) " +
+            String.format("%sDetected network loading is no longer improving (internal loading iteration %d) " +
                             "- unable to activate further extensions, consider aborting",
                 LoggingUtils.runIdPrefix(getAssignmentId()), networkLoadingIterationIndex));
       }
@@ -280,6 +302,7 @@ public abstract class StaticLtmAssignmentStrategy {
     } while (!getLoading().stepFiveCheckNetworkLoadingConvergence(networkLoadingIterationIndex++));
   }
 
+
   /**
    * Factory method to create the desired network loading
    *
@@ -294,9 +317,16 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param updateOnlyPotentiallyBlockingNodeCosts flag indicating if only the costs of the entry link segments of potentially blocking nodes are to be updated, or all link segment
    *                                               costs are to be updated
    * @param costsToUpdate                          the network wide costs to update (fully or partially), this is an output
+   * @param doLoadingAllFlowUpdatePriorToCostUpdate only when we update all nodes this can be activated. When true we
+   *                                                perform a one shot loading to ensure all flow information on all
+   *                                                links is synced and ready for cost calc. When false we use current
+   *                                                state.
    */
   protected void executeNetworkCostsUpdate(
-          Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts, double[] costsToUpdate){
+          Mode theMode,
+          boolean updateOnlyPotentiallyBlockingNodeCosts,
+          double[] costsToUpdate,
+          boolean doLoadingAllFlowUpdatePriorToCostUpdate){
 
     final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
@@ -329,7 +359,7 @@ public abstract class StaticLtmAssignmentStrategy {
             double cost = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es);
             if(flowAcceptanceFactors[(int) es.getId()] < 1){
               LOGGER.warning(String.format("Queue build up on virtual link segment (%s) connected to node (%s), " +
-                      "applying virtual cost of %.4f instead, consider changing network geometry",
+                      "virtual cost of %.4f applied, consider changing network geometry",
                       es.getIdsAsString(), node.getIdsAsString(), cost));
             }
             costsToUpdate[(int) es.getId()] = cost;
@@ -340,12 +370,13 @@ public abstract class StaticLtmAssignmentStrategy {
     /* OTHER -> all nodes (and attached links) are updated, update all costs */
     else {
 
-      /* make sure that all links have the full flow information populated to support cost computation, since the loading
-       * may track only a subset of links even when costs require all information, e.g., when using non-linear FD the costs
-       * require all information to determine step, but loading does not since route choice is fixed during loading
-       * todo costly and maybe not necessary for part of what is done in this method, could be revisited for optimisation later
-       */
-      getLoading().stepSixFinaliseForAnalysis(theMode);
+      if(doLoadingAllFlowUpdatePriorToCostUpdate) {
+        /* make sure that all links have the full flow information populated to support cost computation, since the loading
+         * may track only a subset of links even when costs require all information, e.g., when using non-linear FD the costs
+         * require all information to determine step, but loading does not since route choice is fixed during loading
+         */
+        getLoading().stepSixFinaliseForAnalysis(theMode);
+      }
 
       /* virtual cost */
       virtualCost.populateWithCost(getTransportNetwork().getVirtualNetwork(), theMode, costsToUpdate);
@@ -432,6 +463,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param settings              the sLTM settings to use
    * @param taComponents          to use
    */
+  @SuppressWarnings("unchecked")
   public StaticLtmAssignmentStrategy(
       final IdGroupingToken idGroupingToken,
       long assignmentId,
@@ -494,19 +526,25 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param initialLinkSegmentCosts to use for this mode
    * @param iterationIndex          to use
    */
-  public abstract void createInitialSolution(Mode mode, OdZones odZones, double[] initialLinkSegmentCosts, int iterationIndex);
+  public abstract void createInitialSolution(
+      Mode mode, OdZones odZones, double[] initialLinkSegmentCosts, int iterationIndex);
 
   /**
    * Perform a single iteration where we perform a loading and then an equilibration step resulting in updated costs
    *
    * @param theMode        to use
-   * @param prevCosts  the link segment costs we experienced during the previous iteration (for all link segments considered in the loading)
-   * @param costsToUpdate  the link segment costs we are updating (possibly partially for all link segments that might have been affected by a loading)
+   * @param prevCosts  the link segment costs we experienced during the previous iteration (for all link segments
+   *                   considered in the loading)
+   * @param costsToUpdate  the link segment costs we are updating (possibly partially for all link segments that might
+   *                       have been affected by a loading)
    * @param simulationData tracking relevant simulation information for the strategy
    * @return true when iteration could be successfully completed, false otherwise
    */
   public abstract boolean performIteration(
-          final Mode theMode, final double[] prevCosts, final double[] costsToUpdate, final StaticLtmSimulationData simulationData);
+          final Mode theMode,
+          final double[] prevCosts,
+          final double[] costsToUpdate,
+          final StaticLtmSimulationData simulationData);
 
   /**
    * Description of the chosen sLTM strategy for equilibration
@@ -534,4 +572,32 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   public abstract OdSkimMatrix createOdSkimMatrix(
           OdSkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData);
+
+  /**
+   * Convenience access to fundamental diagram component
+   * @return fundamental diagram component
+   */
+  public FundamentalDiagramComponent getFundamentalDiagramComponent(){
+    return getTrafficAssignmentComponent(FundamentalDiagramComponent.class);
+  }
+
+  /**
+   * Convenience access to smoothing component
+   * @return smoothing component
+   */
+  public Smoothing getSmoothing(){
+    return getTrafficAssignmentComponent(Smoothing.class);
+  }
+
+  public AbstractPhysicalCost getPhysicalCost(){
+    return getTrafficAssignmentComponent(AbstractPhysicalCost.class);
+  }
+
+  public AbstractVirtualCost getVirtualCost(){
+    return getTrafficAssignmentComponent(AbstractVirtualCost.class);
+  }
+
+  public GapFunction getGapFunction(){
+    return getTrafficAssignmentComponent(GapFunction.class);
+  }
 }

@@ -4,10 +4,13 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-import org.goplanit.assignment.ltm.sltm.*;
+import org.goplanit.assignment.common.bush.RootedBush;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
+import org.goplanit.assignment.common.pas.Pas;
+import org.goplanit.assignment.common.pas.PasManager;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -25,27 +28,16 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingBushBase.class.getCanonicalName());
 
-  /** the bushes managed by the bush strategy but provided to be able to conduct a network loading based on the current state (bush splitting rates) of each bush */
+  /** the bushes managed by the bush strategy but provided to be able to conduct a network loading based on the
+   * current state (bush splitting rates) of each bush */
   private Set<B> bushes;
 
   /**
-   * the PAS manager with all the currently active PASs, used to determine which nodes to track flows and splitting rates for during network loading, namely all links and nodes
+   * the PAS manager with all the currently active PASs, used to determine which nodes to track flows and splitting
+   * rates for during network loading, namely all links and nodes
    * present in the active PASs
    */
   private PasManager<?,?> pasManager;
-
-  /**
-   * Conduct a loading update based on the provided consumer functionality
-   * 
-   * @param bushFlowUpdateConsumer to use
-   */
-  private void executeNetworkLoadingUpdate(final BushFlowUpdateConsumer<B> bushFlowUpdateConsumer) {
-    for (var bush : bushes) {
-      if (bush != null) {
-        bushFlowUpdateConsumer.accept(bush);
-      }
-    }
-  }
 
   /**
    * Factory method to create network link flow data container based on coniguration provided. to be used in
@@ -55,7 +47,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    * @param updateUnconstrainedLinkFlows when true make sure data contains reference to the network unconstrained flows
    * @return network flow data created
    */
-  protected NetworkFlowUpdateData createNetworkLinkFlowData(
+  public NetworkFlowUpdateData createNetworkLinkFlowData(
           boolean updateLinkOutflows, boolean updateUnconstrainedLinkFlows) {
 
       if (updateLinkOutflows) {
@@ -81,7 +73,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    *                               the container
    * @return network turn flow data created
    */
-  protected NetworkTurnFlowUpdateData createNetworkTurnFlowData(
+  public NetworkTurnFlowUpdateData createNetworkTurnFlowData(
           boolean updateLinkSendingFlows, int numTurnSegments) {
     if (updateLinkSendingFlows) {
       return new NetworkTurnFlowUpdateData(
@@ -109,7 +101,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    *                                     by this consumer in addition to sending flows
    * @return created link (sending/outflow/unconsitrained) flow update consumer
    */
-  protected abstract BushFlowUpdateConsumer<B> createBushLinkSendingFlowUpdateConsumer(
+  public abstract BushFlowUpdateConsumer<B> createBushLinkSendingFlowUpdateConsumer(
           boolean updateLinkOutflows, boolean updateUnconstrainedLinkFlows);
 
   /**
@@ -120,7 +112,12 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    *                               as well
    * @return created turn (and potentially link) flow update consumer
    */
-  protected abstract BushFlowUpdateConsumer<B> createBushTurnFlowUpdateConsumer(boolean updateLinkSendingFlows);
+  public abstract BushFlowUpdateConsumer<B> createBushTurnFlowUpdateConsumer(boolean updateLinkSendingFlows);
+
+  /** bush sync all network flow consumer, to be used only after convergence of internal iterative procedure
+   * @return consumer
+   */
+  public abstract BushFlowUpdateConsumer<B> createSyncAllNetworkFlowUpdateConsumer();
 
   /**
    * Factory method to create the right flow update consumer to use when conducting a bush based flow update.
@@ -134,7 +131,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    * @param updateUnconstrainedFlows flag indicating if the unconstrained link flows are to be tracked/updated by this consumer
    * @return created flow update consumer
    */
-  protected BushFlowUpdateConsumer<B> createBushFlowUpdateConsumer(
+  public BushFlowUpdateConsumer<B> createRegularBushLoadingFlowUpdateConsumer(
           boolean updateTurnAcceptedFlows,
           boolean updateSendingFlows,
           boolean updateLinkOutflows,
@@ -184,14 +181,14 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
   protected TurnFlowAccessor networkLoadingTurnFlowUpdate(Mode mode) {
    
     /* update network turn flows (and sending flows if POINT_QUEUE_BASIC) by performing a network loading
-     * on all bushes using the bush-splitting rates (and updating the bush turn sending flows in the process, so they remain consistent
-     * with the loading)
+     * on all bushes using the bush-splitting rates (and updating the bush turn sending flows in the process,
+     * so they remain consistent with the loading)
      */
     boolean updateTurnAcceptedFlows = true;
     boolean updateSendingFlowDuringLoading = !isIterativeSendingFlowUpdateActivated();
     boolean updateOutflows = false;
     boolean updateUnconstrainedFlows = false;
-    var bushTurnFlowUpdateConsumer = createBushFlowUpdateConsumer(
+    var bushTurnFlowUpdateConsumer = createRegularBushLoadingFlowUpdateConsumer(
             updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows, updateUnconstrainedFlows);
     
     /* execute */
@@ -212,7 +209,7 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
     boolean updateSendingFlowDuringLoading = true;
     boolean updateOutflows = false;
     var bushFlowUpdateConsumer =
-        createBushFlowUpdateConsumer(
+        createRegularBushLoadingFlowUpdateConsumer(
                 updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows, updateUnconstrainedFlows);
     
     /* execute */
@@ -223,20 +220,17 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    * {@inheritDoc}
    */
   @Override
-  protected void networkLoadingSendingFlowOutflowUpdate(Mode mode) {
+  protected void networkLoadingSyncFlowsUpdate(Mode mode) {
         
-    /* configure to only update all link segment sending flows */
-    boolean updateTurnAcceptedFlows = false;
-    boolean updateSendingFlow = true;
-    boolean updateOutflowFlow= true;
-    boolean updateUnconstrainedFlows = false;
-    var bushFlowUpdateConsumer =
-            createBushFlowUpdateConsumer(
-                    updateTurnAcceptedFlows, updateSendingFlow, updateOutflowFlow, updateUnconstrainedFlows);
+    var syncFlowConsumer = createSyncAllNetworkFlowUpdateConsumer();
     
     /* execute */
-    executeNetworkLoadingUpdate(bushFlowUpdateConsumer);    
-  }   
+    executeNetworkLoadingUpdate(syncFlowConsumer);
+
+    // construct splitting rates
+    var turnFlows = syncFlowConsumer.getAcceptedTurnFlows();
+    updateNextSplittingRates(turnFlows);
+  }
 
   /**
    * Initialise tracking of splitting rates and network flows on all nodes that are used by any currently
@@ -287,8 +281,9 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
   } 
 
   /** For each PAS we must be able to determine the network level flows along the segments, see computeSubPathSendingFlow(). 
-   * This requires knowing the network level splitting rates on the network level as well as the sending flows and acceptance factors, otherwise we cannot determine this. 
-   * Therefore, for each newly identified PAS we activate node tracking for all (eligible) nodes along the segments of this PAS, if not already done so 
+   * This requires knowing the network level splitting rates on the network level as well as the sending flows and
+   * acceptance factors, otherwise we cannot determine this. Therefore, for each newly identified PAS we activate
+   * node tracking for all (eligible) nodes along the segments of this PAS, if not already done so
    *
    *@param newPas to activate nodes on segments for
    */
@@ -297,7 +292,8 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
       LOGGER.severe("Provided PAS is null, unable to activate node tracking for alternative segments");
       return;
     }
-    /* only when not all turn flows are tracked, we must expand the tracked nodes, otherwise they are already available */
+    /* only when not all turn flows are tracked, we must expand the tracked nodes, otherwise they are already
+    available */
     if(!isTrackAllNodeTurnFlowsDuringLoading()) {
       var pointQueueBasicSplittingRates = (NetworkLoadingSplittingRateDataPartial) this.getSplittingRateData();
 
@@ -308,7 +304,8 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
         DirectedVertex candidateVertex = v;
         if(v instanceof ConjugateDirectedVertex && ((ConjugateDirectedVertex)v).hasOriginalEdgeSegment()){
           if(newPas.getMergeVertex() == v){
-            return; // last conjugate vertex we ignore, because downstream original edge is beyond point of interest for tracking
+            // last conjugate vertex we ignore, because downstream original edge is beyond point of interest for tracking
+            return;
           }
           candidateVertex = ((ConjugateDirectedVertex)v).getOriginalEdgeSegment().getDownstreamVertex();
         }
@@ -323,6 +320,19 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
       newPas.forEachVertex(lowCostSegment, lambda);
     }
     
+  }
+
+  /**
+   * Conduct a loading update based on the provided consumer functionality
+   *
+   * @param bushFlowUpdateConsumer to use
+   */
+  public void executeNetworkLoadingUpdate(final BushFlowUpdateConsumer<B> bushFlowUpdateConsumer) {
+    for (var bush : bushes) {
+      if (bush != null) {
+        bushFlowUpdateConsumer.accept(bush);
+      }
+    }
   }
 
 }

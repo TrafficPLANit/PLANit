@@ -242,20 +242,23 @@ public class CustomPlanItProject {
   }
 
   /**
-   * Create and register a traffic assignment instance of a given type
+   * Create and register a traffic assignment instance of a given type. Supports the following types:
+   * <ul>
+   *   <li>TrafficAssignment.TRADITIONAL_STATIC_ASSIGNMENT, yielding a TraditionalStaticAssignmentConfigurator</li>
+   *   <li>TrafficAssignment.SLTM, yielding a StaticLtmConfigurator</li>
+   * </ul>
    *
    * @param trafficAssignmentType the class name of the traffic assignment type object to be created
    * @param theDemands            the demands
    * @param theZoning             the zoning
    * @param theNetwork            the network
    * @return the traffic assignment configurator object
-   * @throws PlanItException thrown if there is an error
    */
   public TrafficAssignmentConfigurator<? extends TrafficAssignment> createAndRegisterTrafficAssignment(
           final String trafficAssignmentType,
           final Demands theDemands,
           final Zoning theZoning,
-          final LayeredNetwork<?, ?> theNetwork) throws PlanItException {
+          final LayeredNetwork<?, ?> theNetwork){
 
     TrafficAssignmentBuilder<?> taBuilder =
             TrafficAssignmentBuilderFactory.createBuilder(

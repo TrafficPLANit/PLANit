@@ -13,16 +13,17 @@ import org.goplanit.utils.misc.Pair;
 
 /**
  * 
- * An acyclic sub graph contains a subset of the full graph without cycles. The active subset of the graph is tracked by explicitly registering edge segments. Edge segments are by
- * definition directed.
+ * An acyclic sub graph contains a subset of the full graph without cycles. The active subset of the graph is tracked
+ * by explicitly registering edge segments. Edge segments are by definition directed.
  * 
- * Whenever edge segments are added it is verified that no cycles are created. Also each edge segment that is added must connect to the existing subgraph's contents
- * 
- * 
+ * Whenever edge segments are added it is verified that no cycles are created. Also, each edge segment that is
+ * added must connect to the existing subgraph's contents
+ *
  * @author markr
  *
  */
-public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVertex, EdgeSegment> implements ACyclicSubGraph {
+public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVertex, EdgeSegment>
+    implements ACyclicSubGraph {
 
   /** logger to use */
   @SuppressWarnings("unused")
@@ -33,10 +34,15 @@ public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVert
    * 
    * @param groupId                    generate id based on the group it resides in
    * @param rootVertex                 of the dag
-   * @param invertedDirection          when true dag ends at root and all other vertices precede it, when false the root is the starting point and all other vertices succeed it
+   * @param invertedDirection          when true dag ends at root and all other vertices precede it, when false the
+   *                                   root is the starting point and all other vertices succeed it
    * @param numberOfParentEdgeSegments number of directed edge segments of the parent this subgraph is a subset from
    */
-  public ACyclicSubGraphImpl(final IdGroupingToken groupId, DirectedVertex rootVertex, boolean invertedDirection, int numberOfParentEdgeSegments) {
+  public ACyclicSubGraphImpl(
+      final IdGroupingToken groupId,
+      DirectedVertex rootVertex,
+      boolean invertedDirection,
+      int numberOfParentEdgeSegments) {
     super(groupId, rootVertex, invertedDirection, numberOfParentEdgeSegments);
   }
 

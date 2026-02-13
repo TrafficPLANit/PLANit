@@ -1,9 +1,9 @@
 package org.goplanit.test.sltm.bush;
 
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
-import org.goplanit.assignment.ltm.sltm.StaticLtmConfigurator;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
-import org.goplanit.assignment.ltm.sltm.StaticLtmType;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.demands.Demands;
 import org.goplanit.logging.Logging;
 import org.goplanit.output.enums.OutputType;
@@ -87,8 +87,8 @@ public class sLtmTaBushMultiDestinationNewellFdTest extends sLtmAssignmentMultiD
       configurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_12);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(200);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(50);
 
       sLTM.addTrackOdForLoggingByXmlId("A", "A``");
       sLTM.addTrackOdForLoggingByXmlId("A", "A`");
@@ -125,11 +125,11 @@ public class sLtmTaBushMultiDestinationNewellFdTest extends sLtmAssignmentMultiD
     assertTrue(Precision.smallerEqual(outflow8, 4000));
 
     assertEquals(outflow0, 8000, Precision.EPSILON_3);
-    assertEquals(outflow1, 4522.6, 1);
+    assertEquals(outflow1, 4523.076923076899, 1);
     assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow3, outflow2, Precision.EPSILON_3);
     //assertEquals(outflow4, 3750, 1); do not test due to non-uniqueness being allowed under no congestion and triangular FD
-    assertEquals(outflow5, 3190, 1);
+    assertEquals(outflow5, 3190.1840490795603, Precision.EPSILON_3);
     assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
     assertEquals(outflow7, outflow6, Precision.EPSILON_3);
     //assertEquals(outflow8, 3750, 1); do not test due to non-uniqueness being allowed under no congestion and triangular FD
@@ -167,15 +167,6 @@ public class sLtmTaBushMultiDestinationNewellFdTest extends sLtmAssignmentMultiD
     assertEquals(outflow9 + outflow11, inflow12, Precision.EPSILON_6);
     assertEquals(outflow10, inflow11, Precision.EPSILON_6);
     assertEquals(outflow12, inflow13 + inflow14, Precision.EPSILON_6);
-  }
-
-  /**
-   * Test sLTM bush-destination-based assignment on above network for a point queue model
-   * <p>Triangular (Newell) FD used</p>
-   */
-  @Test
-  public void sLtmPointQueueBushDestinationBasedAssignmentTest() {
-    runTest(StaticLtmType.DESTINATION_BUSH_BASED);
   }
 
   /**

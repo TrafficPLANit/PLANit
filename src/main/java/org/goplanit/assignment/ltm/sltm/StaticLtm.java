@@ -6,12 +6,17 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.LtmAssignment;
-import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmConjugateBushStrategy;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmSimulationData;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
+import org.goplanit.assignment.ltm.sltm.output.*;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.network.MacroscopicNetwork;
@@ -22,12 +27,11 @@ import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
 import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.functionalinterface.TriPredicate;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.time.RunTimesTracker;
@@ -73,10 +77,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* create the assignment solution to apply */
     StaticLtmAssignmentStrategy strategy;
     switch (settings.getSltmType()) {
-      case DESTINATION_BUSH_BASED:
-        strategy =  new StaticLtmDestinationBushStrategy(
-                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
-        break;
       case CONJUGATE_DESTINATION_BUSH_BASED:
         strategy =  new StaticLtmConjugateBushStrategy(
                 getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
@@ -113,29 +113,62 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
     /* for now only a single mode is supported (although written for more), todo: https://github.com/TrafficPLANit/PLANit/issues/112 */
     for(var mode : modes){
-      /* construct costs on all link segments to start with */
 
       /* empty entries for all link segments by mode */
-      final double[] initialLinkSegmentCosts = CostUtils.createEmptyLinkSegmentCostArray(getInfrastructureNetwork(), getZoning());
+      final double[] initialLinkSegmentCosts =
+          CostUtils.createEmptyLinkSegmentCostArray(getInfrastructureNetwork(), getZoning());
+
       /* virtual component */
-      CostUtils.populateModalVirtualLinkSegmentCosts(mode, getVirtualCost(), getZoning().getVirtualNetwork(), initialLinkSegmentCosts);
+      CostUtils.populateModalVirtualLinkSegmentCosts(
+          mode, getVirtualCost(), getZoning().getVirtualNetwork(), initialLinkSegmentCosts);
+
       /* physical component (including initial costs if present)*/
-      if(populateWithPhysicalInitialCostIfAvailable(mode, timePeriod, getUsedNetworkLayer().getLinkSegments(), initialLinkSegmentCosts)) {
-        LOGGER.info(String.format("%sPrepared sLTM initial costs for traffic assignment time period (%s)",LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
+      if(populateWithPhysicalInitialCostIfAvailable(
+          mode, timePeriod, getUsedNetworkLayer().getLinkSegments(), initialLinkSegmentCosts)) {
+        LOGGER.info(String.format("%sPrepared sLTM initial costs for traffic assignment time period (%s)",
+            LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
         simulationData.setInitialCostsAppliedInFirstIteration(mode, true);
       }else{
-        LOGGER.info(String.format("%sNo initial costs for traffic assignment time period (%s), utilising free flow costs",LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
-        CostUtils.populateModalPhysicalLinkSegmentCosts(mode, getPhysicalCost(), getInfrastructureNetwork(), initialLinkSegmentCosts);
+        LOGGER.info(String.format("%sNo initial costs for traffic assignment time period (%s), " +
+            "utilising free flow costs",LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
+        CostUtils.populateModalPhysicalLinkSegmentCosts(
+            mode, getPhysicalCost(), getInfrastructureNetwork(), initialLinkSegmentCosts);
       }
       simulationData.setLinkSegmentTravelTimePcuH(mode, initialLinkSegmentCosts);
 
-      /* create initial solution as starting point for equilibration */
+      // use to create initial starting solution
       assignmentStrategy.createInitialSolution(
           mode, getZoning().getOdZones(), initialLinkSegmentCosts, simulationData.getIterationIndex());
       LOGGER.info("Created initial solution, proceeding with iterative procedure");
     }
 
     return simulationData;
+  }
+
+  /**
+   * Before invoking to performing the iteration on the underlying static LTM assignment strategy, this method is called
+   * to allow all relevant traffic assignment components to prepare for the upcoming iterations.
+   */
+  private void prepareComponentsBeforePerformIteration() {
+
+    // Smoothing: depending on supported smoothing types, prepare their state
+    var smoothing = getSmoothing();
+    if (smoothing instanceof IterationBasedSmoothing) {
+      ((IterationBasedSmoothing) smoothing).updateIteration(simulationData.getIterationIndex());
+      if(smoothing instanceof MSRASmoothing) {
+        ((MSRASmoothing)smoothing).updateIsBadIteration(getGapFunction().getPreviousGap(), getGapFunction().getGap());
+        if(settings.isDetailedLogging() && ((MSRASmoothing)smoothing).isBadIteration()){
+          ((MSRASmoothing)smoothing).logStepSize();
+        }
+      }
+      smoothing.updateStepSize();
+    }
+
+    // Gap function: reset internal state for tracking anything else but gaps (those are only reet when calling reset())
+    getGapFunction().resetIteration();
+
+    // Loading: reset to initial state
+    assignmentStrategy.getLoading().resetIteration();
   }
 
   /**
@@ -149,7 +182,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* prep */
     setTimePeriod(timePeriod);
     this.simulationData = initialiseTimePeriodSpecificData(timePeriod, modes);
-    var runTimeTracker = getIterationData().getRunTimesTracker().get(RunTimesTracker.GENERAL);
+    var runTimeTracker = simulationData.getRunTimesTracker().get(RunTimesTracker.GENERAL);
     if (simulationData.getSupportedModes().size() != 1) {
       LOGGER.warning(
           String.format("%ssLTM only supports a single mode for now, found %d, aborting assignment for time period %s",
@@ -162,25 +195,14 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* ASSIGNMENT LOOP */
     do {
       runTimeTracker.resetIterationTime();
-
       simulationData.incrementIterationIndex();
-      var smoothing = getSmoothing();
-      if (smoothing instanceof IterationBasedSmoothing) {
-        ((IterationBasedSmoothing) smoothing).updateIteration(simulationData.getIterationIndex());
-        if(smoothing instanceof MSRASmoothing) {
-          ((MSRASmoothing)smoothing).updateIsBadIteration(getGapFunction().getPreviousGap(), getGapFunction().getGap());
-          if(settings.isDetailedLogging() && ((MSRASmoothing)smoothing).isBadIteration()){
-            ((MSRASmoothing)smoothing).logStepSize();
-          }
-        }
-        smoothing.updateStepSize();
-      }
-      getGapFunction().resetIteration();
-      assignmentStrategy.getLoading().resetIteration();
 
-      /* LOADING UPDATE + PATH/BUSH UPDATE */
+      // prep/reset TA components (smoothing, gap, loading) so they are ready for upcoming iteration
+      prepareComponentsBeforePerformIteration();
+
+      /* LOADING UPDATE + PATH/BUSH ROUTE CHOICE UPDATE */
       for(var mode : simulationData.getSupportedModes()) {
-        double[] prevCosts = getIterationData().getLinkSegmentTravelTimePcuH(mode);
+        double[] prevCosts = simulationData.getLinkSegmentTravelTimePcuH(mode);
         double[] costsToUpdate = Arrays.copyOf(prevCosts, prevCosts.length);
         boolean success = assignmentStrategy.performIteration(mode, prevCosts, costsToUpdate, simulationData);
         if (!success) {
@@ -188,7 +210,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
           throw new PlanItRunTimeException("Aborting PLANit assignment");
         }
         // COST UPDATE
-        getIterationData().setLinkSegmentTravelTimePcuH(mode, costsToUpdate);
+        simulationData.setLinkSegmentTravelTimePcuH(mode, costsToUpdate);
       }
 
       // CONVERGENCE CHECK
@@ -206,7 +228,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
               createLoggingPrefix(getIterationIndex()), getGapFunction().getGap(), iterationRunTime));
 
     } while (!convergedOrStop);
-
   }
 
   /**
@@ -221,9 +242,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     if (getOutputManager().isPersistAnyOutput(timePeriod, modes, converged)) {
 
       if(getAssignmentStrategy().isUpdateOnlyPotentiallyBlockingNodeCosts()) {
-        // for full node tracking the stepSixFinaliseForAnalysis is already done before cost update (maybe we shouldn't though)
-        // for now though doing it here again AFTER bush flow shifts causes problems for some reason, so implemented this ugly hack
-        // around it for now let's leave it TODO: streamline this as it is ugly
+        // for full node tracking the stepSixFinaliseForAnalysis is already done before cost update (maybe we shouldn't
+        // though) for now though doing it here again AFTER bush flow shifts causes problems for some reason, so
+        // implemented this ugly hack around it for now let's leave it TODO: streamline this as it is ugly
         assignmentStrategy.getLoading().stepSixFinaliseForAnalysis(modes.iterator().next());
       }
       getOutputManager().persistOutputData(timePeriod, modes, converged);
@@ -294,17 +315,8 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    *
    * @return simulation data
    */
-  protected StaticLtmSimulationData getIterationData() {
+  public StaticLtmSimulationData getIterationData() {
     return simulationData;
-  }
-
-  /**
-   * Return the assignment solution strategy used
-   * 
-   * @return used assignment strategy
-   */
-  protected StaticLtmAssignmentStrategy getStrategy() {
-    return assignmentStrategy;
   }
 
   /**
@@ -434,18 +446,68 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   }
 
   // pass on to settings
+  public void setBushBasedOuterIterationStopCheck(BiPredicate<Integer,Double> outerIterationPredicate){
+    this.settings.setBushBasedOuterIterationStopCheck(outerIterationPredicate);
+  }
+
+  // pass on to settings
+  public BiPredicate<Integer,Double> getBushBasedOuterIterationStopCheck(){
+    return this.settings.getBushBasedOuterIterationStopCheck();
+  }
+
+  // pass on to settings
+  public void setBushBasedOuterIterationSmoothingFunction(Function<Integer,Double> outerIterationSmoothingFunction){
+    this.settings.setBushBasedOuterIterationSmoothingFunction(outerIterationSmoothingFunction);
+  }
+
+  // pass on to settings
+  public Function<Integer,Double> getBushBasedOuterIterationSmoothingFunction(){
+    return this.settings.getBushBasedOuterIterationSmoothingFunction();
+  }
+
+  // pass on to settings
+  public void setBushBasedInnerIterationStopCheck(TriPredicate<Integer,Double, Double> innerIterationPredicate){
+    this.settings.setBushBasedInnerIterationStopCheck(innerIterationPredicate);
+  }
+
+  // pass on to settings
+  public TriPredicate<Integer,Double, Double> getBushBasedInnerIterationStopCheck(){
+    return this.settings.getBushBasedInnerIterationStopCheck();
+  }
+
+  // pass on to settings
+  public void setBushBasedPasImportanceSmoothingFunction(
+      BiFunction<Integer,Double, Double> pasImportanceSmoothingFunction){
+    this.settings.setBushBasedPasImportanceSmoothingFunction(pasImportanceSmoothingFunction);
+  }
+
+  // pass on to settings
+  public BiFunction<Integer,Double, Double> getBushBasedPasImportanceSmoothingFunction(){
+    return this.settings.getBushBasedPasImportanceSmoothingFunction();
+  }
+
+  // pass on to settings
+  public void setBushBasedPasOrderDirectionAscending(Boolean ascendingOrder){
+    this.settings.setBushBasedPasOrderDirectionAscending(ascendingOrder);
+  }
+
+  // pass on to settings
+  public Boolean isBushBasedPasOrderDirectionAscending(){
+    return this.settings.isBushBasedPasOrderDirectionAscending();
+  }
+
+  // pass on to settings
   public void setType(StaticLtmType type) {
     settings.setSltmType(type);
+  }
+
+  public StaticLtmType getType() {
+    return settings.getSltmType();
   }
 
   // pass on to settings
   public boolean isActivateDetailedLogging() {
     return settings.isDetailedLogging();
-  }
-
-  // pass on to settings
-  public boolean isEnforceMaxEntropyFlowSolution() {
-    return settings.isEnforceMaxEntropyFlowSolution();
   }
 
   // pass on to settings
@@ -464,11 +526,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   }
 
   // pass on to settings
-  public void setEnforceMaxEntropyFlowSolution(boolean enforceMaxEntropyFlowSolution) {
-    settings.setEnforceMaxEntropyFlowSolution(enforceMaxEntropyFlowSolution);
-  }
-
-  // pass on to settings
   public void setNetworkLoadingFlowAcceptanceGapEpsilon(Double networkLoadingFlowAcceptanceGapEpsilon) {
     this.settings.setNetworkLoadingFlowAcceptanceGapEpsilon(networkLoadingFlowAcceptanceGapEpsilon);
   }
@@ -481,6 +538,11 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   // pass on to settings
   public void setNetworkLoadingReceivingFlowGapEpsilon(Double networkLoadingReceivingFlowGapEpsilon) {
     this.settings.setNetworkLoadingReceivingFlowGapEpsilon(networkLoadingReceivingFlowGapEpsilon);
+  }
+
+  // pass on to settings
+  public void setNetworkLoadingMinIterations(Integer networkLoadingMinIterations) {
+    this.settings.setNetworkLoadingMinIterations(networkLoadingMinIterations);
   }
 
   // pass on to setting
@@ -521,16 +583,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   // pass on to settings
   public Integer getDisableRelativeScalingFactorUpdateAfterIteration(){
     return this.settings.getDisableRelativeScalingFactorUpdateAfterIteration();
-  }
-
-  // pass on to settings
-  public void setAllowOverlappingPasUpdate(Boolean flag){
-    this.settings.setAllowOverlappingPasUpdate(flag);
-  }
-
-  // pass on to settings
-  public Boolean isAllowOverlappingPasUpdate(){
-    return this.settings.isAllowOverlappingPasUpdate();
   }
 
   // OVERRIDES

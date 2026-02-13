@@ -65,7 +65,8 @@ public interface UntypedEdgeOutputTypeAdapter<T extends EdgeSegment> extends Out
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<String> getDownstreamNodeExternalId(T edgeSegment) throws PlanItException {
-    return Optional.of(edgeSegment.getDownstreamVertex().getExternalId());
+    return Optional.of(edgeSegment.getDownstreamVertex().hasExternalId() ?
+        edgeSegment.getDownstreamVertex().getExternalId() : "");
   }
 
   /**
@@ -157,7 +158,8 @@ public interface UntypedEdgeOutputTypeAdapter<T extends EdgeSegment> extends Out
     if(edgeSegment.getParent() == null){
       return Optional.empty();
     }
-    return Optional.of(edgeSegment.getParent().getExternalId());
+    return Optional.of(edgeSegment.getParent().hasExternalId() ?
+        edgeSegment.getParent().getExternalId() : "");
   }
 
   /**
@@ -220,7 +222,8 @@ public interface UntypedEdgeOutputTypeAdapter<T extends EdgeSegment> extends Out
    * @return the external Id of the upstream node
    */
   public default Optional<String> getUpstreamNodeExternalId(T edgeSegment){
-    return Optional.of(edgeSegment.getUpstreamVertex().getExternalId());
+    return Optional.of(edgeSegment.getUpstreamVertex().hasExternalId() ?
+        edgeSegment.getUpstreamVertex().getExternalId() : "");
   }
 
   /**

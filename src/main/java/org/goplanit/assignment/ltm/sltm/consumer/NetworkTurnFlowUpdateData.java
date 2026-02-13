@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingFactorData;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSendingFlowData;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSplittingRateData;
+import org.goplanit.assignment.ltm.sltm.loading.UnconstrainedFlowData;
 import org.goplanit.utils.network.layer.physical.Movement;
 
 /**
@@ -61,6 +62,40 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
    */
   protected void addToAcceptedTurnFlows(final int turnFlowIndex, double flowToAddPcuH) {
     acceptedTurnFlows[turnFlowIndex] += flowToAddPcuH;
+  }
+
+  /**
+   * Constructor
+   *
+   * @param trackAllNodeTurnFlows    to apply
+   * @param networkLoadingSendingFlowData          to use
+   * @param splittingRateData        to use
+   * @param networkLoadingFactorData to use
+   * @param inflows to use
+   * @param outflows to use
+   * @param unconstrainedFlowData to use
+   * @param numMovements the number of movements available in the layer/network used
+   */
+  public NetworkTurnFlowUpdateData(
+      final boolean trackAllNodeTurnFlows,
+      NetworkLoadingSendingFlowData networkLoadingSendingFlowData,
+      final NetworkLoadingSplittingRateData splittingRateData,
+      NetworkLoadingFactorData networkLoadingFactorData,
+      final double[] inflows,
+      final double[] outflows,
+      final UnconstrainedFlowData unconstrainedFlowData,
+      final int numMovements) {
+    super(
+        networkLoadingSendingFlowData,
+        networkLoadingFactorData.getCurrentFlowAcceptanceFactors(),
+        inflows,
+        outflows,
+        unconstrainedFlowData);
+    this.acceptedTurnFlows = new double[numMovements];
+    this.nlSplittingRateData = splittingRateData;
+
+    /* see class description on why we use these flags */
+    this.trackAllNodeTurnFlows = trackAllNodeTurnFlows;
   }
 
   /**

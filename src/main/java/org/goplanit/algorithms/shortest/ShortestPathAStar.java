@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Set;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
@@ -194,7 +195,8 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
               destination.getIdsAsString(), origin.getIdsAsString());
     }
 
-    return new ShortestPathResultGeneralised(vertexMeasuredCost, incomingEdgeSegment, ShortestSearchType.ONE_TO_ONE);
+    return new ShortestPathResultGeneralised(
+         origin, vertexMeasuredCost, incomingEdgeSegment, ShortestSearchType.ONE_TO_ONE, numberOfEdgeSegments);
   }
 
   @Override
