@@ -26,7 +26,10 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.unit.VehiclesUnit;
 
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -395,7 +398,11 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    */
   protected CSVPrinter createCsvPrinter(String csvFileName) throws Exception {
     return new CSVPrinter(
-        new FileWriter(csvFileName),
+        // use this instead of FileWriter to enforce consistent use of UTF8
+        new OutputStreamWriter(
+            new FileOutputStream(csvFileName),
+            StandardCharsets.UTF_8
+        ),
         CSVFormat.Builder.create(CSVFormat.DEFAULT).setIgnoreSurroundingSpaces(true).build());
   }
 
