@@ -32,6 +32,7 @@ public interface IntermodalWriter<T extends ServiceNetwork, U extends RoutedServ
    * @param routedServices to write
    * @throws PlanItException thrown if error
    */
-  public abstract void writeWithServices(MacroscopicNetwork physicalNetwork, Zoning zoning, T serviceNetwork, U routedServices) throws PlanItException;
+  public abstract void writeWithServices(
+      MacroscopicNetwork physicalNetwork, Zoning zoning, T serviceNetwork, U routedServices) throws PlanItException;
 
 }

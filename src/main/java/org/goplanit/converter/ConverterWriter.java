@@ -22,9 +22,8 @@ public interface ConverterWriter<T> extends ConverterEntity {
    * write a network to the writer's output format.
    * 
    * @param entity entity to write
-   * @throws PlanItException thrown if error
    */
-  public abstract void write(T entity) throws PlanItException;
+  public abstract void write(T entity);
 
   /**
    * collect the way the ids should be mapped

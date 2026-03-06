@@ -2,6 +2,7 @@ package org.goplanit.converter;
 
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdMapperType;
+import org.goplanit.utils.misc.Pair;
 
 /**
  * Interface for classes able to write a PLANit entities of given type to disk
@@ -25,9 +26,17 @@ public interface PairConverterWriter<T, U> extends ConverterEntity {
    * 
    * @param entity1 to write
    * @param entity2 to write
-   * @throws PlanItException thrown if error
    */
-  void write(T entity1, U entity2) throws PlanItException;
+  void write(T entity1, U entity2);
+
+  /**
+   * Write a network to the writer's output format.
+   *
+   * @param entityPair to write
+   */
+  public default void write(Pair<T, U> entityPair){
+    write(entityPair.first(), entityPair.second());
+  }
 
   /**
    * collect the way the ids should be mapped
