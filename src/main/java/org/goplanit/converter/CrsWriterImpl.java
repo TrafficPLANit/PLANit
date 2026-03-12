@@ -90,7 +90,8 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
     if (destinationCrs == null) {
       destinationCrs = fallBackCrs;
     }
-    PlanItRunTimeException.throwIfNull(destinationCrs, "Destination Coordinate Reference System is null, this is not allowed");
+    PlanItRunTimeException.throwIfNull(destinationCrs, "Destination Coordinate Reference System is null, " +
+        "this is not allowed");
     return destinationCrs;
   }
 
