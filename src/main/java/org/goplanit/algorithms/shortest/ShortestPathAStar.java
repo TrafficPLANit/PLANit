@@ -6,6 +6,7 @@ import java.util.PriorityQueue;
 import java.util.Set;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.goplanit.utils.containers.BinaryMinHeapOpenSet;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
@@ -119,6 +120,11 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
 
     PriorityQueue<Pair<DirectedVertex, Double>> openVertices =
             new PriorityQueue<>(numberOfVertices, pairSecondComparator);
+
+    // New: binary heap open set
+    // todo: replace with below --> pass in way to obtain vertex by id then reprofile
+    //BinaryMinHeapOpenSet openSet = new BinaryMinHeapOpenSet(numberOfVertices);
+
 
     // initialise for origin
     openVertices.add(Pair.of(origin, 0.0));
