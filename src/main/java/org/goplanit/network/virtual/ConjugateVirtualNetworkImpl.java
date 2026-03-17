@@ -2,6 +2,7 @@ package org.goplanit.network.virtual;
 
 import java.util.logging.Logger;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.network.Network;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -133,6 +134,17 @@ public class ConjugateVirtualNetworkImpl extends Network implements ConjugateVir
   @Override
   public boolean isEmpty() {
     return getLayer().isEmpty();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void transform(
+          CoordinateReferenceSystem fromCoordinateReferenceSystem,
+          CoordinateReferenceSystem toCoordinateReferenceSystem){
+    //delegate to single available layer
+    getLayer().transform(fromCoordinateReferenceSystem,toCoordinateReferenceSystem);
   }
 
   /**

@@ -111,16 +111,17 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
   }
 
   /**
-   * change the coordinate system, which will result in an update of all geometries in the network layers from the original CRS to the new CRS. If the network is empty and no CRS
-   * is set then this is identical to calling setCoordinateReferenceSystem, otherwise it will change the CRS while the set method will throw an exception
+   * change the coordinate system, which will result in an update of all geometries in the network layers from the
+   * original CRS to the new CRS. If the network is empty and no CRS is set then this is identical to calling
+   * setCoordinateReferenceSystem, otherwise it will change the CRS while the set method will throw a runtime exception
    * 
    * @param newCoordinateReferenceSystem to transform the network to
-   * @throws PlanItException thrown if error
    */
-  public void transform(final CoordinateReferenceSystem newCoordinateReferenceSystem) throws PlanItException {
+  public void transform(final CoordinateReferenceSystem newCoordinateReferenceSystem){
     for (TopologicalLayer layer : getTransportLayers()) {
       layer.transform(coordinateReferenceSystem, newCoordinateReferenceSystem);
     }
+    coordinateReferenceSystem = newCoordinateReferenceSystem;
   }
 
   /**

@@ -6,6 +6,7 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.layer.modifier.UntypedNetworkLayerModifierImpl;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.ManagedGraphEntities;
@@ -114,13 +115,14 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   @Override
   public void transform(
           CoordinateReferenceSystem fromCoordinateReferenceSystem,
-          CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException {
+          CoordinateReferenceSystem toCoordinateReferenceSystem){
     try {
       getDirectedGraph().transformGeometries(
               PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
     } catch (Exception e) {
       PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
-      throw new PlanItException(String.format("%s error during transformation of physical network %s CRS", NetworkLayer.createLayerLogPrefix(this), getXmlId()), e);
+      throw new PlanItRunTimeException(String.format("%s error during transformation of physical network %s CRS",
+              NetworkLayer.createLayerLogPrefix(this), getXmlId()), e);
     }
   }
 

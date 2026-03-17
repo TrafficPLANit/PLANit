@@ -1,11 +1,15 @@
 package org.goplanit.network.virtual;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.network.Network;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
@@ -110,6 +114,17 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
   @Override
   public boolean isEmpty() {
     return getLayer().isEmpty();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void transform(
+          CoordinateReferenceSystem fromCoordinateReferenceSystem,
+          CoordinateReferenceSystem toCoordinateReferenceSystem){
+    //delegate to single available layer
+   getLayer().transform(fromCoordinateReferenceSystem,toCoordinateReferenceSystem);
   }
 
   /**

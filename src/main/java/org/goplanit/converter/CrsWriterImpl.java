@@ -4,7 +4,7 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.api.referencing.operation.MathTransform;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
-import org.goplanit.utils.epsg.EpsgCodesByCountry;
+import org.goplanit.utils.epsg.ProjectedEpsgCodesByCountry;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
@@ -85,7 +85,7 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
     /* CRS and transformer (if needed) */
     CoordinateReferenceSystem destinationCrs = overwriteCrs;
     if (destinationCrs == null && countryName != null) {
-      destinationCrs = PlanitCrsUtils.createCoordinateReferenceSystem(EpsgCodesByCountry.getEpsg(countryName));
+      destinationCrs = PlanitCrsUtils.createCoordinateReferenceSystem(ProjectedEpsgCodesByCountry.getEpsg(countryName));
     }
     if (destinationCrs == null) {
       destinationCrs = fallBackCrs;

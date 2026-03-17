@@ -5,16 +5,21 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Streams;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
 import org.goplanit.network.virtual.VirtualNetworkImpl;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
+import org.goplanit.utils.network.layer.NetworkLayer;
+import org.goplanit.utils.network.layer.TopologicalLayer;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.graph.CentroidVertexUtils;
@@ -411,5 +416,35 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    */
   public void setCoordinateReferenceSystem(final CoordinateReferenceSystem crs){
     this.crs = crs;
+  }
+
+  /**
+   * change the coordinate system, which will result in an update of all geometries in zoning from the
+   * original CRS to the new CRS. If the zoning is empty and no CRS is set then this is identical to calling
+   * setCoordinateReferenceSystem, otherwise it will change the CRS while the set method will throw a runtime exception
+   *
+   * @param newCoordinateReferenceSystem to transform the zoning to
+   */
+  public void transform(CoordinateReferenceSystem newCoordinateReferenceSystem) {
+
+    // od zone connectoids and transfer connectoids have no geometry of their own, so no need to transform
+
+    // virtual network does have geometries, so transform:
+    getVirtualNetwork().transform(getCoordinateReferenceSystem(), newCoordinateReferenceSystem);
+
+    //OdZones and Transfer zones may have geometry so need transforming, they are not yet captured by a layer
+    // todo make them layered
+    // so we do them individually, not pretty but works fine
+    var transform = PlanitJtsUtils.findMathTransform(crs, newCoordinateReferenceSystem);
+    Streams.concat(getOdZones().stream(), getTransferZones().stream()).forEach( zone -> {
+              PlanitJtsUtils.transformGeometry(zone.getGeometry(), transform);
+              if (zone.getCentroid().hasPosition()) {
+                PlanitJtsUtils.transformGeometry(zone.getCentroid().getPosition(), transform);
+              }
+            }
+    );
+    // replace CRS for zoning as it is now based on another CRS than before
+    crs = newCoordinateReferenceSystem;
+
   }
 }

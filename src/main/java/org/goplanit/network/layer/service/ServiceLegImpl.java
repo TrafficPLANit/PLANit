@@ -8,6 +8,7 @@ import org.geotools.api.referencing.operation.TransformException;
 import org.goplanit.graph.directed.DirectedEdgeImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
@@ -156,7 +157,7 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
   @Override
   public double getLengthKm(LengthType lengthType){
     double resultIfAbsent = 0;
-    var streamOfLinkSegmentLengths = getLegSegments().stream().mapToDouble(ls -> ls.getLengthKm());
+    var streamOfLinkSegmentLengths = getLegSegments().stream().mapToDouble(EdgeSegment::getLengthKm);
     switch (lengthType){
       case MAX:
         return streamOfLinkSegmentLengths.max().orElse(resultIfAbsent);
@@ -165,7 +166,8 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
       case AVERAGE:
         return streamOfLinkSegmentLengths.average().orElse(resultIfAbsent);
       default:
-        LOGGER.warning(String.format("Unsupported length type %s when constructing length for service leg %s, revert to default %.2f", getIdsAsString(), resultIfAbsent));
+        LOGGER.warning(String.format("Unsupported length type %s when constructing length for service leg %s, " +
+                "revert to default %.2f", lengthType, getIdsAsString(), resultIfAbsent));
         return  resultIfAbsent;
     }
   }
