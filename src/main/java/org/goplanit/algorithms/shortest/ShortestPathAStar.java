@@ -47,6 +47,9 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
    */
   protected final int numberOfVertices;
 
+  /** vertices by their id */
+  protected final DirectedVertex[] verticesById;
+
   /**
    * CRS based utility class to interpret the position information of vertices
    */
@@ -67,7 +70,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
    * Constructor for an edge cost based A* algorithm for finding shortest paths.
    * 
    * @param edgeSegmentCosts            Edge segment costs
-   * @param numberOfVertices            number of vertices in the network
+   * @param verticesById                Vertices by tjeri (assumed) contiguous ids from 0-max
    * @param crs                         the coordinate reference system used in the network, i.e., we can draw upon
    *                                    the geo information of the vertices to compute our heuristic component
    * @param heuristicDistanceMultiplier used to convert the distance between two vertices to a cost, in transport
@@ -76,12 +79,13 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
    */
   public ShortestPathAStar(
           final double[] edgeSegmentCosts,
-          int numberOfVertices,
+          DirectedVertex[] verticesById,
           CoordinateReferenceSystem crs,
           double heuristicDistanceMultiplier) {
 
     this.edgeSegmentCosts = edgeSegmentCosts;
-    this.numberOfVertices = numberOfVertices;
+    this.numberOfVertices = verticesById.length;
+    this.verticesById = verticesById;
     this.numberOfEdgeSegments = edgeSegmentCosts.length;
     geoUtils = new PlanitJtsCrsUtils(crs);
     this.heuristicDistanceMultiplier = heuristicDistanceMultiplier;
@@ -118,16 +122,15 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
     boolean[] closedVertex = new boolean[numberOfVertices];
     Arrays.fill(closedVertex, Boolean.FALSE);
 
-    PriorityQueue<Pair<DirectedVertex, Double>> openVertices =
-            new PriorityQueue<>(numberOfVertices, pairSecondComparator);
+//    PriorityQueue<Pair<DirectedVertex, Double>> openVertices =
+//            new PriorityQueue<>(numberOfVertices, pairSecondComparator);
 
     // New: binary heap open set
-    // todo: replace with below --> pass in way to obtain vertex by id then reprofile
-    //BinaryMinHeapOpenSet openSet = new BinaryMinHeapOpenSet(numberOfVertices);
+    BinaryMinHeapOpenSet openSet = new BinaryMinHeapOpenSet(numberOfVertices);
 
 
     // initialise for origin
-    openVertices.add(Pair.of(origin, 0.0));
+    openSet.insertOrDecrease((int) origin.getId(), 0.0);
     vertexMeasuredCost[(int) origin.getId()] = 0.0;
     vertexHeuristicCost[(int) origin.getId()] =
             geoUtils.getDistanceInKilometres(
@@ -135,9 +138,9 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
     incomingEdgeSegment[(int) origin.getId()] = null;
 
     DirectedVertex currentVertex = null;
-    while (!openVertices.isEmpty()) {
-      Pair<DirectedVertex, Double> cheapestNextVertex = openVertices.poll();
-      currentVertex = cheapestNextVertex.first();
+    while (!openSet.isEmpty()) {
+      int cheapestNextVertexId = openSet.poll();
+      currentVertex = verticesById[cheapestNextVertexId];
       int vertexId = (int) currentVertex.getId();
       // reached destination with lowest cost possible
       if (vertexId == destination.getId()) {
@@ -147,12 +150,9 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
       // when vertex has already been processed in between adding it and it becoming the highest priority ignore...
       if (closedVertex[vertexId]) {
         continue;
-      } else {
-        // ..otherwise mark as processed (after this)...
-        closedVertex[vertexId] = true;
-      } // ... we use closed vertex array to filter entries that are no longer viable. We cannot remove entries
-        // from a priority queue, so this mechanism is in place to create the same effect with as little as
-        // possible computational overhead
+      }
+      // ..otherwise mark as processed (after this)...
+      closedVertex[vertexId] = true;
 
       // cost to here
       double costToVertex = vertexMeasuredCost[vertexId];
@@ -190,7 +190,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
 
             // prioritise exploring the new vertex based on f-score (measured + heuristic)
             double priorityCost = tentativeCost + vertexHeuristicCost[adjacentVertexId];
-            openVertices.add(Pair.of(adjacentVertex, priorityCost)); // place on queue
+            openSet.insertOrDecrease( (int) adjacentVertex.getId(), priorityCost); // place on queue
           }
         }
       }

@@ -16,7 +16,8 @@ import org.goplanit.utils.network.layers.NetworkLayers;
  * @author markr
  *
  */
-public abstract class TransportLayersImpl<T extends NetworkLayer> extends ManagedIdEntitiesImpl<T> implements NetworkLayers<T> {
+public abstract class TransportLayersImpl<T extends NetworkLayer>
+        extends ManagedIdEntitiesImpl<T> implements NetworkLayers<T> {
 
   /** the logger */
   @SuppressWarnings("unused")

@@ -211,7 +211,8 @@ public class KShortestPathTest {
 
       // cost used is based on distance in this example, so roughly 1:1, to be conservative we assume a multiplier of 2
       final double multiplier = 2;
-      var aStar = new ShortestPathAStar(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers(), crs, multiplier);
+      var aStar = new ShortestPathAStar(
+              linkSegmentCosts, transportNetwork.getIdIndexedVerticesAllLayers(), crs, multiplier);
 
       int k = 8; // try to find 8 shortest paths (only 7 exist)
       var kShortest = new ShortestPathKShortestYen(dijkstra, aStar, k);

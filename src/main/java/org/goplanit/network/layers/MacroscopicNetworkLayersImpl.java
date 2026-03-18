@@ -16,7 +16,8 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class MacroscopicNetworkLayersImpl extends UntypedPhysicalNetworkLayersImpl<MacroscopicNetworkLayer> implements MacroscopicNetworkLayers {
+public class MacroscopicNetworkLayersImpl extends UntypedPhysicalNetworkLayersImpl<MacroscopicNetworkLayer>
+        implements MacroscopicNetworkLayers {
 
   /** factory to use for creating layer instances */
   protected final MacroscopicNetworkLayerFactory factory;
@@ -38,7 +39,10 @@ public class MacroscopicNetworkLayersImpl extends UntypedPhysicalNetworkLayersIm
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper apply to each mapping from original to copy
    */
-  public MacroscopicNetworkLayersImpl(MacroscopicNetworkLayersImpl other, boolean deepCopy, BiConsumer<MacroscopicNetworkLayer, MacroscopicNetworkLayer> mapper) {
+  public MacroscopicNetworkLayersImpl(
+          MacroscopicNetworkLayersImpl other,
+          boolean deepCopy,
+          BiConsumer<MacroscopicNetworkLayer, MacroscopicNetworkLayer> mapper) {
     super(other, deepCopy, mapper);
     this.factory =
             new MacroscopicNetworkLayerFactoryImpl(other.factory.getIdGroupingToken(), this);

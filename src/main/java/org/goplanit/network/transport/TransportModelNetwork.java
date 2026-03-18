@@ -2,6 +2,7 @@ package org.goplanit.network.transport;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.network.UntypedPhysicalNetwork;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.layer.physical.Movements;
@@ -96,6 +97,16 @@ public interface TransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V
    */
   public default int getNumberOfVerticesAllLayers(){
     return TransportModelNetworkUtils.getNumberOfVerticesAllLayers(
+            getInfrastructureNetwork(), getVirtualNetwork());
+  }
+
+  /**
+   * Returns combined raw array of all vertices in the transport network indexed by their internal id
+   *
+   * @return raw vertex array
+   */
+  public default DirectedVertex[] getIdIndexedVerticesAllLayers(){
+    return TransportModelNetworkUtils.getIdIndexedVerticesAllLayers(
             getInfrastructureNetwork(), getVirtualNetwork());
   }
 

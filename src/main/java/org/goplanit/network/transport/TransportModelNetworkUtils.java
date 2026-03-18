@@ -3,10 +3,16 @@ package org.goplanit.network.transport;
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.MacroscopicNetworkUtils;
+import org.goplanit.network.UntypedPhysicalNetwork;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.UntypedVirtualNetwork;
 import org.goplanit.zoning.Zoning;
+
+import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Consumer;
 
 public class TransportModelNetworkUtils {
 
@@ -65,8 +71,29 @@ public class TransportModelNetworkUtils {
    * @return the total number of vertices
    */
   public static int getNumberOfVerticesAllLayers(
-          LayeredNetwork<?, ?> physicalNetwork, UntypedVirtualNetwork<?> virtualNetwork) {
+          UntypedPhysicalNetwork<?, ?> physicalNetwork, UntypedVirtualNetwork<?> virtualNetwork) {
     return virtualNetwork.getLayer().getVertices().size() + getNumberOfPhysicalNodesAllLayers(physicalNetwork);
+  }
+
+  public static DirectedVertex[] getIdIndexedVerticesAllLayers(
+          UntypedPhysicalNetwork<?, ?> physicalNetwork, UntypedVirtualNetwork<?>  virtualNetwork) {
+    int numberOfVertices = getNumberOfVerticesAllLayers(physicalNetwork, virtualNetwork);
+    DirectedVertex[] indexedVertices = new DirectedVertex[numberOfVertices];
+    LongAdder count = new LongAdder();
+    Consumer<DirectedVertex> lambda = v -> {
+      indexedVertices[(int)v.getId()] = v;
+      count.increment();
+    };
+
+    // ids for vertex internal id should be unique and adjacent across entire transport network, if so this works
+    virtualNetwork.getLayer().getVertices().forEach(lambda);
+    physicalNetwork.getTransportLayers().stream().flatMap( l -> l.getNodes().stream()).forEach(lambda);
+
+    if( (int)count.longValue() != numberOfVertices){
+      throw new PlanItRunTimeException("vertex internal ids across virtual and physical network are not unique, unable" +
+              "to created id indexed vertex array transport network wide");
+    }
+    return indexedVertices;
   }
 
   /**
@@ -96,4 +123,6 @@ public class TransportModelNetworkUtils {
     return MacroscopicNetworkUtils.generateDerivedConjugateIdGroupingToken(
             (MacroscopicNetwork) transportModelNetwork.getInfrastructureNetwork());
   }
+
+
 }

@@ -333,10 +333,12 @@ public class ShortestPathTest {
   public void aStarTest() {
     try {
 
-      // each link is 1 km long. Yet smallest cost for a link is 3 in the network, so the maximum pace per km is 3 which we would use as a multiplier
+      // each link is 1 km long. Yet smallest cost for a link is 3 in the network, so the maximum pace per km is 3
+      // which we would use as a multiplier
       double multiplier = 3;
 
-      ShortestPathAStar aStar = new ShortestPathAStar(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers(), crs, multiplier);
+      ShortestPathAStar aStar = new ShortestPathAStar(
+              linkSegmentCosts, transportNetwork.getIdIndexedVerticesAllLayers(), crs, multiplier);
 
       final var originCentroidVertexA = zone2SourceVertexMapping.get(centroidA.getParentZone());
       final var destCentroidVertexB = zone2SinkVertexMapping.get(centroidB.getParentZone());

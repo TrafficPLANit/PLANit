@@ -15,7 +15,8 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public abstract class TopologicalLayersImpl<T extends TopologicalLayer> extends TransportLayersImpl<T> implements TopologicalLayers<T> {
+public abstract class TopologicalLayersImpl<T extends TopologicalLayer>
+        extends TransportLayersImpl<T> implements TopologicalLayers<T> {
 
   /**
    * Constructor
