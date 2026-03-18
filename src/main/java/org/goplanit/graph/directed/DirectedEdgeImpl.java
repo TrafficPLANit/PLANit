@@ -15,7 +15,8 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment> extends EdgeImpl<V> implements DirectedEdge {
+public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment>
+        extends EdgeImpl<V> implements DirectedEdge {
 
   // Protected
 

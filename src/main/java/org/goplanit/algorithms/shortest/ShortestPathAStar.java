@@ -2,19 +2,15 @@ package org.goplanit.algorithms.shortest;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.PriorityQueue;
 import java.util.Set;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
-import org.goplanit.utils.containers.BinaryMinHeapOpenSet;
-import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.containers.FourAryMinHeapOpenSet;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
-import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
-import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * A* shortest path algorithm
@@ -60,6 +56,11 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
    */
   protected final double heuristicDistanceMultiplier;
 
+  /** keep in cache to avoid re-creation */
+  protected final FourAryMinHeapOpenSet binaryMinHeapOpenSet;
+
+  protected EdgeSegment[][] exitSegmentsAsRawArrayByVertexId;
+
   /**
    * Comparator to sort based on the second elements minimum value (ascending order)
    */
@@ -89,6 +90,9 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
     this.numberOfEdgeSegments = edgeSegmentCosts.length;
     geoUtils = new PlanitJtsCrsUtils(crs);
     this.heuristicDistanceMultiplier = heuristicDistanceMultiplier;
+    this.binaryMinHeapOpenSet = new FourAryMinHeapOpenSet(numberOfVertices);
+    // will populate as we go to cache
+    exitSegmentsAsRawArrayByVertexId = new EdgeSegment[numberOfVertices][];
   }
 
   /**
@@ -126,11 +130,11 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
 //            new PriorityQueue<>(numberOfVertices, pairSecondComparator);
 
     // New: binary heap open set
-    BinaryMinHeapOpenSet openSet = new BinaryMinHeapOpenSet(numberOfVertices);
+    binaryMinHeapOpenSet.reset();
 
 
     // initialise for origin
-    openSet.insertOrDecrease((int) origin.getId(), 0.0);
+    binaryMinHeapOpenSet.insertOrDecrease((int) origin.getId(), 0.0);
     vertexMeasuredCost[(int) origin.getId()] = 0.0;
     vertexHeuristicCost[(int) origin.getId()] =
             geoUtils.getDistanceInKilometres(
@@ -138,10 +142,9 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
     incomingEdgeSegment[(int) origin.getId()] = null;
 
     DirectedVertex currentVertex = null;
-    while (!openSet.isEmpty()) {
-      int cheapestNextVertexId = openSet.poll();
-      currentVertex = verticesById[cheapestNextVertexId];
-      int vertexId = (int) currentVertex.getId();
+    while (!binaryMinHeapOpenSet.isEmpty()) {
+      int vertexId = binaryMinHeapOpenSet.poll();
+      currentVertex = verticesById[vertexId];
       // reached destination with lowest cost possible
       if (vertexId == destination.getId()) {
         break;
@@ -156,9 +159,14 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
 
       // cost to here
       double costToVertex = vertexMeasuredCost[vertexId];
+      if(exitSegmentsAsRawArrayByVertexId[vertexId] == null) {
+        exitSegmentsAsRawArrayByVertexId[vertexId] = currentVertex.createExitEdgeSegmentsArray();
+      }
+      var currVertexExitSegments = exitSegmentsAsRawArrayByVertexId[vertexId];
 
       // for all exiting edges
-      for (var adjacentEdgeSegment : currentVertex.getExitEdgeSegments()) {
+      for(int index = 0; index < currVertexExitSegments.length;++index){
+        var adjacentEdgeSegment = currVertexExitSegments[index];
         if(bannedSegments!= null && !bannedSegments.isEmpty() && bannedSegments.contains(adjacentEdgeSegment)){
           // todo: replace banned segments with infinite cost to avoid searching on them every time which is costly
           continue;
@@ -190,7 +198,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
 
             // prioritise exploring the new vertex based on f-score (measured + heuristic)
             double priorityCost = tentativeCost + vertexHeuristicCost[adjacentVertexId];
-            openSet.insertOrDecrease( (int) adjacentVertex.getId(), priorityCost); // place on queue
+            binaryMinHeapOpenSet.insertOrDecrease( (int) adjacentVertex.getId(), priorityCost); // place on queue
           }
         }
       }
@@ -210,4 +218,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
     return executeOneToOne(origin, destination, null);
   }
 
+  public int getMaxHeapSize() {
+    return this.binaryMinHeapOpenSet.getMaxHeapSize();
+  }
 }
