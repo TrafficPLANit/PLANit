@@ -38,8 +38,8 @@ public class SyncDeparturesXmlIdToIdHandler extends SyncXmlIdToIdHandler impleme
 
     /* visit all departures in the layer and sync their XML ids to their internal id */
     var routedServicesLayer = ((ModifiedTripScheduleDepartureIdsEvent)event).getModifiedRoutedServicesLayer();
-    routedServicesLayer.forEach( rsm -> rsm.forEach( rs -> rs.getTripInfo().getScheduleBasedTrips().forEach( routedTripSchedule ->
-        routedTripSchedule.getDepartures().forEach( departure -> syncXmlIdToInternalId(departure)))));
+    routedServicesLayer.forEach( rsm -> rsm.forEach( rs -> rs.getTripInfo().getScheduleBasedTrips().forEach(
+        routedTripSchedule -> routedTripSchedule.getDepartures().forEach(this::syncXmlIdToInternalId))));
   }
 
 }

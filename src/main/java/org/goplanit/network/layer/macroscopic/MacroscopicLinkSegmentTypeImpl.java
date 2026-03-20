@@ -12,8 +12,8 @@ import org.goplanit.utils.network.layer.macroscopic.AccessGroupProperties;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 
 /**
- * Each macroscopic link segment is of a particular type reflecting segment specific properties. On top of the segment specific properties each segment can have user class specific
- * properties as well.
+ * Each macroscopic link segment is of a particular type reflecting segment specific properties. On top of the segment
+ * specific properties each segment can have user class specific properties as well.
  * 
  * @author markr
  *
