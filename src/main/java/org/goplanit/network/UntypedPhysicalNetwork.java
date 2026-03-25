@@ -73,20 +73,27 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
    *
    */
   public void removeDanglingSubnetworks(){
-    removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
+    removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true, true);
   }
 
   /**
-   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
-   * 
-   * @param belowSize         remove subnetworks below the given size
-   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
-   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
+   * {@inheritDoc}
    */
-  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
+  public void removeDanglingSubnetworks(
+          Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, boolean recreateManagedIds) {
     for (L infrastructureLayer : getTransportLayers()) {
-      infrastructureLayer.getLayerModifier().removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest);
+      infrastructureLayer.getLayerModifier().removeDanglingSubnetworks(
+              belowSize, aboveSize, alwaysKeepLargest, recreateManagedIds);
     }
+  }
+
+  /**
+   * Recreate the managed ids of all layers and modes
+   */
+  @Override
+  public void recreateManagedIds(){
+    getModes().recreateIds(); //todo: not proper just recreates its own ids any dependent other inideces will suffer
+    getTransportLayers().recreateIds(); // proper delegates internally to layer modifier via events
   }
 
   /**

@@ -56,7 +56,8 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
    * todo: implement by breaking service leg + update underlying physical link segments by assigning them to either part of broken service leg
    */
   @Override
-  public Map<Long, Pair<E, E>> breakAt(List<E> serviceLegsToBreak, V serviceNodeToBreakAt, CoordinateReferenceSystem crs) {
+  public Map<Long, Pair<E, E>> breakAt(
+          List<E> serviceLegsToBreak, V serviceNodeToBreakAt, CoordinateReferenceSystem crs) {
     throw new PlanItRunTimeException("Not yet implemented");
   }
 
@@ -65,7 +66,8 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
    * for now not yet supported. If we implement it in the strict sense, we can simply borrow the functionality from super class and remove override
    */
   @Override
-  public void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
+  public void removeDanglingSubnetworks(
+          final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, boolean recreateManagedIds) {
     throw new PlanItRunTimeException("Not yet supported");
   }
 

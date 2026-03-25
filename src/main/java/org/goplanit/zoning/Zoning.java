@@ -349,11 +349,19 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   public void reset() {
     this.virtualNetwork.reset();
     this.odConnectoids.reset();
-    this.odZones.reset();
     this.transferConnectoids.reset();
-    this.odConnectoids.reset();
-    this.transferZoneGroups.reset();
+    this.odZones.reset();
     this.transferZones.reset();
+    this.transferZoneGroups.reset();
+  }
+
+  /**
+   * Recreate the managed ids of virtual network layer(s) and zoning containers
+   */
+  @Override
+  public void recreateManagedIds(){
+    // too complicated to do directly has to go through modifier and event based pipeline
+    getZoningModifier().recreateManagedIdEntities();
   }
 
   /**

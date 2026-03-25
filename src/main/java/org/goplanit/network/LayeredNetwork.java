@@ -191,13 +191,13 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
   @Override
   public abstract LayeredNetwork<U,T> deepClone();
 
-  /**
-   * Recreate the managed ids of all layers and modes
-   */
-  @Override
-  public void recreateManagedIds(){
-    modes.recreateIds();
-    transportLayers.recreateIds();
-  }
+//  /**
+//   * Recreate the managed ids of all layers and modes
+//   */
+//  @Override
+//  public void recreateManagedIds(){
+//    modes.recreateIds();
+//    transportLayers.recreateIds();
+//  }
 
 }

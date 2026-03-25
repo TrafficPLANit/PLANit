@@ -32,9 +32,10 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
    * Update all transfer zone groups' id mappings for underlying transfer zones since the transfer zone id might have changed
    */
   protected void recreateTransferZoneGroupsZoneIdMapping() {
-    for (TransferZoneGroup group : this) {
+    for (var group : this) {
       if (!(group instanceof TransferZoneGroupImpl)) {
-        LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of TransferZoneGroup interface when attempting to update references");
+        LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of " +
+                "TransferZoneGroup interface when attempting to update references");
       }
       ((TransferZoneGroupImpl) group).recreateTransferZoneIdMapping();
     }
@@ -68,7 +69,8 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
    * @param deepCopy when true, create a eep copy, shallow copy otherwise
    * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public TransferZoneGroupsImpl(TransferZoneGroupsImpl other, boolean deepCopy, BiConsumer<TransferZoneGroup, TransferZoneGroup> mapper) {
+  public TransferZoneGroupsImpl(
+          TransferZoneGroupsImpl other, boolean deepCopy, BiConsumer<TransferZoneGroup, TransferZoneGroup> mapper) {
     super(other, deepCopy, mapper);
     this.transferZoneGroupFactory =
             new TransferZoneGroupFactoryImpl(other.transferZoneGroupFactory.getIdGroupingToken(), this);

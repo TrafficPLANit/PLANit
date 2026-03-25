@@ -1,8 +1,5 @@
 package org.goplanit.network;
 
-import org.goplanit.graph.directed.modifier.event.handler.SyncXmlIdToIdDirectedGraphEntitiesHandler;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-
 /**
  * Utilities to make it easier to use network wide network modifier options
  */
@@ -14,7 +11,7 @@ public class MacroscopicNetworkModifierUtils {
    *
    * @param network to apply to
    */
-  public static void syncManagedIdEntitiesContainerXmlIdsToIds(MacroscopicNetwork network) {
-    NetworkModifierUtils.syncManagedIdEntitiesContainerXmlIdsToIds(network);
+  public static void updateAndSyncManagedIdEntitiesContainerXmlIdsToIds(MacroscopicNetwork network) {
+    NetworkModifierUtils.updateAndSyncManagedIdEntitiesContainerXmlIdsToIds(network);
   }
 }

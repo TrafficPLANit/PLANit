@@ -64,7 +64,8 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
     } else if (toRemove instanceof TransferZone) {
       zoning.getTransferZones().remove((TransferZone) toRemove);
     } else {
-      LOGGER.severe(String.format("Unsupported zone %s to be removed by zoning modifier, ignored", Zone.class.getCanonicalName()));
+      LOGGER.severe(String.format("Unsupported zone %s to be removed by zoning modifier, ignored",
+              Zone.class.getCanonicalName()));
     }
   }
 
@@ -122,13 +123,16 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   @Override
   public void recreateZoneIds() {
     /*
-     * both connectoids containers use the same underlying id generated for the zone managed id, so it is unique across the two containers. Hence, we should only reset it once,
-     * otherwise it is no longer unique across both when recreating the ids
+     * both connectoids containers use the same underlying id generated for the zone managed id, so it is unique
+     * across the two containers. Hence, we should only reset it once, otherwise it is no longer unique across
+     * both when recreating the ids
      */
     recreateOdZoneIds(true);
     recreateTransferZoneIds(false);
 
-    // used internally by connectoids for example, todo: ideally replace by using the RecreatedZoningEntitiesManagedIdsEvent instead, ugly to have two different events for the same thing
+    // used internally by connectoids for example,
+    // todo: ideally replace by using the RecreatedZoningEntitiesManagedIdsEvent instead, ugly to have two different
+    //  events for the same thing
     fireEvent(new ModifiedZoneIdsEvent(this, zoning));
   }
 
@@ -164,7 +168,8 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
         recreateZoneIds();
       }
 
-      LOGGER.info(String.format("%sRemoved %d dangling transfer zones", LoggingUtils.zoningPrefix(zoning.getId()), danglingZones.size()));
+      LOGGER.info(String.format("%sRemoved %d dangling transfer zones",
+              LoggingUtils.zoningPrefix(zoning.getId()), danglingZones.size()));
     }
   }
 
@@ -196,17 +201,22 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
    * {@inheritDoc}
    */
   @Override
-  public void removeDanglingZones() {
-    /* remove all dangling zones, recreate ids only at the end for both (since they share uniqueness of the ids) */
-    removeDanglingTransferZones(false);
-    removeDanglingOdZones(true);
+  public void removeDanglingZones(boolean recreateIds) {
+    if(recreateIds) {
+      /* remove all dangling zones, recreate ids only at the end for both (since they share uniqueness of the ids) */
+      removeDanglingTransferZones(false);
+      removeDanglingOdZones(true);
+    }else{
+      removeDanglingTransferZones(false);
+      removeDanglingOdZones(false);
+    }
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void removeDanglingTransferZoneGroups() {
+  public void removeDanglingTransferZoneGroups(boolean recreateIds) {
 
     LongAdder counter = new LongAdder();
     /* remove group if dangling */
@@ -220,11 +230,12 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
     }
 
     /* recreate the ids if any */
-    if (counter.longValue()>0) {
+    if (counter.longValue()>0 && recreateIds) {
       recreateTransferZoneGroupIds();
-
-      LOGGER.info(String.format("%sRemoved %d dangling transfer zone groups", LoggingUtils.zoningPrefix(zoning.getId()), counter.longValue()));
     }
+
+    LOGGER.info(String.format("%sRemoved %d dangling transfer zone groups",
+            LoggingUtils.zoningPrefix(zoning.getId()), counter.longValue()));
   }
 
   /**

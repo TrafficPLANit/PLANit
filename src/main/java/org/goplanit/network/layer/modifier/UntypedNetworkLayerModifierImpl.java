@@ -90,12 +90,16 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
    * @param belowSize         remove subnetworks below the given size
    * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
    * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
+   * @param recreateManagedIds when true recreate managed id entities so they are contiguous again
    */
   @Override
-  public void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
+  public void removeDanglingSubnetworks(
+          final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, boolean recreateManagedIds) {
     /* perform removal */
     graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest);
-    graphModifier.recreateManagedEntitiesIds();
+    if(recreateManagedIds) {
+      recreateManagedIdEntities();
+    }
   }
 
   /**
