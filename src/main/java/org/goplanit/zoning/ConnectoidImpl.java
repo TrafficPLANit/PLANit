@@ -247,7 +247,8 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   public Optional<Double> getLengthKm(Zone accessZone) {
     if (!hasAccessZone(accessZone)) {
       LOGGER.warning(
-          String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when collecting length", accessZone.getXmlId(), accessZone.getId(), getXmlId(), getId()));
+          String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when collecting length",
+              accessZone.getXmlId(), accessZone.getId(), getXmlId(), getId()));
       return Optional.empty();
     }
     return Optional.of(accessZones.get(accessZone.getId()).lengthKm);
@@ -271,8 +272,8 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   @Override
   public boolean isModeAllowed(Zone accessZone, Mode mode) {
     if (!hasAccessZone(accessZone)) {
-      LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when checking if mode is allowed", accessZone.getXmlId(), accessZone.getId(),
-          getXmlId(), getId()));
+      LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when checking if mode " +
+              "is allowed", accessZone.getXmlId(), accessZone.getId(), getXmlId(), getId()));
       return false;
     }
     Map<Long, Mode> allowedModes = accessZones.get(accessZone.getId()).allowedModes;
@@ -299,7 +300,8 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
     if (hasAccessZone(accessZone)) {
       accessZones.get(accessZone.getId()).lengthKm = lengthKm;
     } else {
-      LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when setting length", accessZone.getXmlId(), accessZone.getId(), getXmlId(), getId()));
+      LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when setting length",
+          accessZone.getXmlId(), accessZone.getId(), getXmlId(), getId()));
     }
   }
 
