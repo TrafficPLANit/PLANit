@@ -4,22 +4,19 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import com.google.common.collect.Streams;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
 import org.goplanit.network.virtual.VirtualNetworkImpl;
 import org.goplanit.od.demand.OdDemands;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
-import org.goplanit.utils.network.layer.NetworkLayer;
-import org.goplanit.utils.network.layer.TopologicalLayer;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.graph.CentroidVertexUtils;
@@ -444,7 +441,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     // todo make them layered
     // so we do them individually, not pretty but works fine
     var transform = PlanitJtsUtils.findMathTransform(crs, newCoordinateReferenceSystem);
-    Streams.concat(getOdZones().stream(), getTransferZones().stream()).forEach( zone -> {
+    Stream.concat(getOdZones().stream(), getTransferZones().stream()).forEach(zone -> {
               PlanitJtsUtils.transformGeometry(zone.getGeometry(), transform);
               if (zone.getCentroid().hasPosition()) {
                 PlanitJtsUtils.transformGeometry(zone.getCentroid().getPosition(), transform);
