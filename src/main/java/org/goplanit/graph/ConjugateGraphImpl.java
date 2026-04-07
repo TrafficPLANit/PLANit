@@ -12,7 +12,8 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class ConjugateGraphImpl<V extends ConjugateVertex, E extends ConjugateEdge> extends UntypedGraphImpl<V, E> implements Graph<V, E> {
+public class ConjugateGraphImpl<V extends ConjugateVertex, E extends ConjugateEdge> extends
+        UntypedGraphImpl<V, E> implements Graph<V, E> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -27,7 +28,10 @@ public class ConjugateGraphImpl<V extends ConjugateVertex, E extends ConjugateEd
    * @param conjugateVertices to use
    * @param conjugateEdges    to use
    */
-  public ConjugateGraphImpl(final IdGroupingToken groupId, final GraphEntities<V> conjugateVertices, final GraphEntities<E> conjugateEdges) {
+  public ConjugateGraphImpl(
+          final IdGroupingToken groupId,
+          final GraphEntities<V> conjugateVertices,
+          final GraphEntities<E> conjugateEdges) {
     super(groupId, conjugateVertices, conjugateEdges);
   }
 
@@ -41,7 +45,11 @@ public class ConjugateGraphImpl<V extends ConjugateVertex, E extends ConjugateEd
    * @param conjVertexMapper tracking how original vertices are mapped to new vertices in case of deep copy
    * @param conjEdgeMapper tracking how original edges are mapped to new edges in case of deep copy
    */
-  public ConjugateGraphImpl(final ConjugateGraphImpl<V, E> other, boolean deepCopy, GraphEntityDeepCopyMapper<V> conjVertexMapper, GraphEntityDeepCopyMapper<E> conjEdgeMapper) {
+  public ConjugateGraphImpl(
+          final ConjugateGraphImpl<V, E> other,
+          boolean deepCopy,
+          GraphEntityDeepCopyMapper<V> conjVertexMapper,
+          GraphEntityDeepCopyMapper<E> conjEdgeMapper) {
     super(other, deepCopy, conjVertexMapper, conjEdgeMapper);
   }
 

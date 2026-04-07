@@ -49,7 +49,11 @@ public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E ext
    * @param conjEdgeSegmentMapper tracking how original edge segments are mapped to new edge segments in case of deep copy
    */
   public ConjugateDirectedGraphImpl(
-      final ConjugateDirectedGraphImpl<V, E, ES> other, boolean deepCopy, GraphEntityDeepCopyMapper<V> conjVertexMapper, GraphEntityDeepCopyMapper<E> conjEdgeMapper, GraphEntityDeepCopyMapper<ES> conjEdgeSegmentMapper) {
+      final ConjugateDirectedGraphImpl<V, E, ES> other,
+          boolean deepCopy,
+          GraphEntityDeepCopyMapper<V> conjVertexMapper,
+          GraphEntityDeepCopyMapper<E> conjEdgeMapper,
+          GraphEntityDeepCopyMapper<ES> conjEdgeSegmentMapper) {
     super(other, deepCopy, conjVertexMapper, conjEdgeMapper, conjEdgeSegmentMapper);
   }
 
@@ -58,7 +62,8 @@ public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E ext
    */
   @Override
   public ConjugateDirectedGraphImpl<V, E, ES> shallowClone() {
-    return new ConjugateDirectedGraphImpl<>(this, false, null, null, null);
+    return new ConjugateDirectedGraphImpl<>(
+            this, false, null, null, null);
   }
 
   /**
@@ -69,7 +74,11 @@ public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E ext
   @Override
   public ConjugateDirectedGraphImpl<V, E, ES> deepClone() {
     return new ConjugateDirectedGraphImpl<>(
-        this, true, new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
+        this,
+            true,
+            new GraphEntityDeepCopyMapper<>(),
+            new GraphEntityDeepCopyMapper<>(),
+            new GraphEntityDeepCopyMapper<>());
   }
 
 }

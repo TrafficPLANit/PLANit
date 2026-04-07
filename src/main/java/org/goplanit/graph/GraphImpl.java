@@ -41,7 +41,11 @@ public class GraphImpl<V extends Vertex, E extends Edge> extends UntypedGraphImp
    * @param edgeMapper mapper to tracking mapping
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public GraphImpl(final GraphImpl<V, E> graphImpl, boolean deepCopy, GraphEntityDeepCopyMapper<V> vertexMapper, GraphEntityDeepCopyMapper<E> edgeMapper) {
+  public GraphImpl(
+          final GraphImpl<V, E> graphImpl,
+          boolean deepCopy,
+          GraphEntityDeepCopyMapper<V> vertexMapper,
+          GraphEntityDeepCopyMapper<E> edgeMapper) {
     super(graphImpl, deepCopy, vertexMapper, edgeMapper);
   }
 

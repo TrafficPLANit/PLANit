@@ -52,7 +52,8 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
    * @param vertices to use
    * @param edges    to use
    */
-  public UntypedGraphImpl(final IdGroupingToken groupId, final GraphEntities<V> vertices, final GraphEntities<E> edges) {
+  public UntypedGraphImpl(
+          final IdGroupingToken groupId, final GraphEntities<V> vertices, final GraphEntities<E> edges) {
     super(generatedGraphId(groupId));
     this.groupId = groupId;
     this.edges = edges;
@@ -65,7 +66,8 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public UntypedGraphImpl(final UntypedGraphImpl<V, E> other, boolean deepCopy) {
+  public UntypedGraphImpl(
+          UntypedGraphImpl<V, E> other, boolean deepCopy) {
     this(other, deepCopy, null, null);
   }
 
@@ -77,7 +79,11 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
    * @param vertexMapper to use for tracking mapping between original and copied vertices
    * @param edgesMapper to use for tracking mapping between original and copied edges
    */
-  public UntypedGraphImpl(final UntypedGraphImpl<V, E> other, boolean deepCopy, GraphEntityDeepCopyMapper<V> vertexMapper, GraphEntityDeepCopyMapper<E> edgesMapper) {
+  public UntypedGraphImpl(
+          final UntypedGraphImpl<V, E> other,
+          boolean deepCopy,
+          GraphEntityDeepCopyMapper<V> vertexMapper,
+          GraphEntityDeepCopyMapper<E> edgesMapper) {
     super(other);
 
     if(deepCopy){

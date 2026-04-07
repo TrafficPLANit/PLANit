@@ -2,6 +2,7 @@ package org.goplanit.converter.zoning;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitEntityGeoUtils;
@@ -20,6 +21,7 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
+import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -745,5 +747,33 @@ public class ZoningConverterUtils {
     });
 
     return createdConnectoids;
+  }
+
+  /**
+   * Identify transfer zones from provided container that have no connectoids supporting any of the provided main modes
+   * but do not support any connectoid with the provided altModes.
+   *
+   * @param connectoidsByTransferZoneMapping mapping can be obtained from zoning
+   * @param mainModes to filter by
+   * @param altModes modes to search for mismatches within main mode(s) transfer zones
+   * @return identified transfer zones supporting main mode(s) [first] and of those transfer zones, the ones not
+   * supporting alt modes while supporting one or more main mode(s), so a subset [second]
+   */
+  public static Pair<Collection<TransferZone>,Collection<TransferZone>>
+  findTransferZonesForModesWithoutConnectoidsSupportingAltModesProvided(
+          Map<Zone, Set<DirectedConnectoid>> connectoidsByTransferZoneMapping,
+          Collection<Mode> mainModes,
+          List<Mode> altModes) {
+
+    // reduce to zones with main mode connectoid listed
+    var mainModeTransferZones = connectoidsByTransferZoneMapping.entrySet().stream().filter( entry ->
+            entry.getValue().stream().anyMatch( transferConnectoid ->
+                    transferConnectoid.isAnyModeAllowed(entry.getKey(), mainModes))).map(
+            e -> (TransferZone)e.getKey()).collect(Collectors.toList());
+    // reduce to transfer zones with main mode but NO alt mode connectoids
+    var transferZonesDisconnectedFromAltModes =
+            mainModeTransferZones.stream().filter( tz -> connectoidsByTransferZoneMapping.get(tz).stream().noneMatch(
+                    transferConnectoid -> transferConnectoid.isAnyModeAllowed(tz, altModes))).collect(Collectors.toList());
+    return Pair.of(mainModeTransferZones, transferZonesDisconnectedFromAltModes);
   }
 }
