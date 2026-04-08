@@ -227,7 +227,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * {@inheritDoc}
    */
   @Override
-  public Zone getFirstAccessZone() {
+  public Zone getFirstAccessZoneEntry() {
     return iterator().next();
   }
 
@@ -235,7 +235,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * {@inheritDoc}
    */
   @Override
-  public int getNumberOfAccessZones() {
+  public int getNumberOfAccessZoneEntries() {
     return accessZones.size();
   }
 
@@ -245,7 +245,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   @Override
   public Optional<Double> getLengthKm(Zone accessZone) {
-    if (!hasAccessZone(accessZone)) {
+    if (!hasAccessZoneEntry(accessZone)) {
       LOGGER.warning(
           String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when collecting length",
               accessZone.getXmlId(), accessZone.getId(), getXmlId(), getId()));
@@ -271,7 +271,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   @Override
   public boolean isModeAllowed(Zone accessZone, Mode mode) {
-    if (!hasAccessZone(accessZone)) {
+    if (!hasAccessZoneEntry(accessZone)) {
       LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when checking if mode " +
               "is allowed", accessZone.getXmlId(), accessZone.getId(), getXmlId(), getId()));
       return false;
@@ -285,7 +285,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * {@inheritDoc}
    */
   @Override
-  public boolean hasAccessZone(Zone accessZone) {
+  public boolean hasAccessZoneEntry(Zone accessZone) {
     if (accessZone == null) {
       return false;
     }
@@ -297,7 +297,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   @Override
   public void setLengthKm(Zone accessZone, double lengthKm) {
-    if (hasAccessZone(accessZone)) {
+    if (hasAccessZoneEntry(accessZone)) {
       accessZones.get(accessZone.getId()).lengthKm = lengthKm;
     } else {
       LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when setting length",
@@ -310,7 +310,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   @Override
   public void addAllowedMode(Zone accessZone, Mode allowedMode) {
-    if (hasAccessZone(accessZone)) {
+    if (hasAccessZoneEntry(accessZone)) {
       final AccessZoneProperties accessZoneProperties = accessZones.get(accessZone.getId());
       accessZoneProperties.addAllowedMode(allowedMode);
     } else {
@@ -325,7 +325,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   @Override
   public Collection<Mode> getExplicitlyAllowedModes(Zone accessZone) {
-    if (hasAccessZone(accessZone)) {
+    if (hasAccessZoneEntry(accessZone)) {
       final AccessZoneProperties accessZoneProperties = accessZones.get(accessZone.getId());
       if (accessZoneProperties.allowedModes != null && !accessZoneProperties.allowedModes.isEmpty()) {
         return Collections.unmodifiableCollection(accessZoneProperties.allowedModes.values());

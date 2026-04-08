@@ -1,8 +1,6 @@
 package org.goplanit.zoning.modifier;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -11,6 +9,8 @@ import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.network.layer.ServiceNetworkLayer;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.network.layers.ServiceNetworkLayers;
 import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
@@ -242,28 +242,37 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
    * {@inheritDoc}
    */
   @Override
-  public void removeUnusedTransferConnectoids(final ServiceNetworkLayers serviceNetworkLayers, boolean recreateManagedConnectoidIds) {
-    /* partition by physical layer - because a connectoids only relates to a single layer, entries do not occur twice */
-    var physicalLayers = serviceNetworkLayers.stream().map(snl -> snl.getParentNetworkLayer()).collect(Collectors.toList());
+  public void removeUnusedTransferConnectoids(
+          final ServiceNetworkLayers serviceNetworkLayers, boolean recreateManagedConnectoidIds) {
+
+    /* partition by physical layer - assume connectoids only relates to a single layer, entries do not occur twice */
+    // todo: this may change in future in which case this is no longer a safe implementation
+    var physicalLayers = serviceNetworkLayers.stream().map(
+            ServiceNetworkLayer::getParentNetworkLayer).collect(Collectors.toList());
     var transferConnectoidsByPhysicalLayer =
-        this.zoning.getTransferConnectoids().groupByPhysicalLayerAndCustomKey(physicalLayers, DirectedConnectoid::getAccessNode);
+        this.zoning.getTransferConnectoids().groupByPhysicalLayerAndCustomKey(
+                physicalLayers, DirectedConnectoid::getAccessNode);
 
     LongAdder counter = new LongAdder();
     for(var serviceNetworkLayer : serviceNetworkLayers){
 
-      var serviceNodesByPhysicalNodes = serviceNetworkLayer.getServiceNodes().groupBy( sn -> sn.getPhysicalParentNodes());
+      var serviceNodesByPhysicalNodes = serviceNetworkLayer.getServiceNodes().groupBy(
+              ServiceNode::getPhysicalParentNodes);
       serviceNodesByPhysicalNodes.remove(null); // make sure that unmapped service nodes do not cause issues
 
       /* from all entries, remove the entries for which a service node exists --> remaining entries are the ones to remove*/
-      var transferConnectoidsByPhysicalAccessNodeToRemove = transferConnectoidsByPhysicalLayer.get(serviceNetworkLayer.getParentNetworkLayer());
+      var transferConnectoidsByPhysicalAccessNodeToRemove =
+              transferConnectoidsByPhysicalLayer.get(serviceNetworkLayer.getParentNetworkLayer());
       var physicalNodesWithServices = serviceNodesByPhysicalNodes.keySet();
-      physicalNodesWithServices.stream().flatMap(e -> e.stream()).forEach(accessNode -> transferConnectoidsByPhysicalAccessNodeToRemove.remove(accessNode)); // prune
+      physicalNodesWithServices.stream().flatMap(Collection::stream).forEach(
+              transferConnectoidsByPhysicalAccessNodeToRemove::remove); // prune
 
       /* remove identified entries from zoning */
-      if(transferConnectoidsByPhysicalAccessNodeToRemove!=null && transferConnectoidsByPhysicalAccessNodeToRemove.isEmpty()) {
-        transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().flatMap(l -> l.stream()).forEach(
+      if(transferConnectoidsByPhysicalAccessNodeToRemove!=null &&
+              transferConnectoidsByPhysicalAccessNodeToRemove.isEmpty()) {
+        transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().flatMap(Collection::stream).forEach(
             transferConnectoidToRemove -> zoning.getTransferConnectoids().remove(transferConnectoidToRemove));
-        counter.add(transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().collect(Collectors.summingInt(l -> l.size())));
+        counter.add(transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().mapToInt(List::size).sum());
       }
     }
 
