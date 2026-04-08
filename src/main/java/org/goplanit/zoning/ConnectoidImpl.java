@@ -314,7 +314,8 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
       final AccessZoneProperties accessZoneProperties = accessZones.get(accessZone.getId());
       accessZoneProperties.addAllowedMode(allowedMode);
     } else {
-      LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when adding allowed mode %s (id: %d)", accessZone.getXmlId(), accessZone.getId(),
+      LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when adding " +
+                      "allowed mode %s (id: %d)", accessZone.getXmlId(), accessZone.getId(),
           getXmlId(), getId(), allowedMode.getXmlId(), allowedMode.getId()));
     }
   }
@@ -340,7 +341,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   public Iterator<Zone> iterator() {
     Iterator<Zone> it = new Iterator<>() {
 
-      private Iterator<AccessZoneProperties> iterator = accessZones.values().iterator();
+      private final Iterator<AccessZoneProperties> iterator = accessZones.values().iterator();
 
       @Override
       public boolean hasNext() {

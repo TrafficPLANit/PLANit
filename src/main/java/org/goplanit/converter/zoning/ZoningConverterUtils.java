@@ -29,6 +29,8 @@ import org.locationtech.jts.geom.LineSegment;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.linearref.LinearLocation;
 
+import javax.annotation.Nullable;
+
 /**
  * Utilities regarding Zoning conversions that might be useful for implementations supporting the mapping of
  * non-PLANit geometry based entities to PLANit transfer zones and connectoids
@@ -685,25 +687,28 @@ public class ZoningConverterUtils {
    * modes provided. When the link segment does not have any of the passed in modes listed as allowed, no connectoid
    * is created and null is returned
    *
+   * @param connectoidExternalId external id (allowed to be null)
    * @param zoning to register on
    * @param accessZone to relate connectoids to
    * @param downstreamAccessNode when true access node is chosen as the downstream node, when false, upstream node is chosen
-   * @param linkSegment to create connectoid for
+   * @param accessLinkSegment to create connectoid for
    * @param allowedModes used for the connectoid
    * @return created connectoid when at least one of the allowed modes is also allowed on the link segment
    */
   public static DirectedConnectoid createAndRegisterDirectedConnectoid(
-      Zoning zoning,
-      final TransferZone accessZone,
-      final boolean downstreamAccessNode,
-      final MacroscopicLinkSegment linkSegment,
-      final Set<Mode> allowedModes){
+          @Nullable String connectoidExternalId,
+          Zoning zoning,
+          final TransferZone accessZone,
+          final boolean downstreamAccessNode,
+          final MacroscopicLinkSegment accessLinkSegment,
+          final Set<Mode> allowedModes){
 
-    final Set<Mode> realAllowedModes = linkSegment.getAllowedModesFrom(allowedModes);
+    final Set<Mode> realAllowedModes = accessLinkSegment.getAllowedModesFrom(allowedModes);
     if(realAllowedModes!= null && !realAllowedModes.isEmpty()) {
       var connectoid =
-          zoning.getTransferConnectoids().getFactory().registerNew(
-                  downstreamAccessNode, linkSegment, accessZone, true, realAllowedModes);
+              zoning.getTransferConnectoids().getFactory().registerNew(
+                      downstreamAccessNode, accessLinkSegment, accessZone, true, realAllowedModes);
+      connectoid.setExternalId(connectoidExternalId);
       return connectoid;
     }
     return null;
@@ -713,6 +718,7 @@ public class ZoningConverterUtils {
    * access modes provided. Connectoids are only created when the access link segment has at least one of the
    * allowed modes as an eligible mode.
    *
+   * @param connectoidExternalId external id (allowed to be null)
    * @param zoning to register on
    * @param transferZone to relate connectoids to
    * @param accessNode the access node the connectoid utilises (determine the up/downstream connection of the
@@ -722,6 +728,7 @@ public class ZoningConverterUtils {
    * @return created connectoids
    */
   public static Collection<DirectedConnectoid> createAndRegisterDirectedConnectoids(
+      @Nullable String connectoidExternalId,
       Zoning zoning,
       final TransferZone transferZone,
       final Node accessNode,
@@ -740,7 +747,7 @@ public class ZoningConverterUtils {
       }
 
       DirectedConnectoid newConnectoid = createAndRegisterDirectedConnectoid(
-          zoning, transferZone, downstreamAccessNode, accessLinkSegment, allowedModes);
+              connectoidExternalId, zoning, transferZone, downstreamAccessNode, accessLinkSegment, allowedModes);
       if(newConnectoid != null) {
         createdConnectoids.add(newConnectoid);
       }

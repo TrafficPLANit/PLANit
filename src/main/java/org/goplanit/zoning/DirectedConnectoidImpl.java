@@ -19,8 +19,6 @@ import org.goplanit.utils.zoning.Zone;
  */
 public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedConnectoid {
 
-  /** generated UID */
-
   /** the logger */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(DirectedConnectoidImpl.class.getCanonicalName());
@@ -76,7 +74,11 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    * @param length            for the connection (not of the edge segment, but to access the zone)
    */
   protected DirectedConnectoidImpl(
-      final IdGroupingToken idToken, final boolean downstreamAccessNode, final LinkSegment accessLinkSegment, final Zone accessZone, double length) {
+      final IdGroupingToken idToken,
+      final boolean downstreamAccessNode,
+      final LinkSegment accessLinkSegment,
+      final Zone accessZone,
+      double length) {
     super(idToken, accessZone, length);
     setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
     setAccessLinkSegment(accessLinkSegment);
@@ -161,7 +163,8 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    */
   @Override
   public DirectedVertex getAccessVertex() {
-    return isNodeAccessDownstream() ? getAccessLinkSegment().getDownstreamVertex() : getAccessLinkSegment().getUpstreamVertex();
+    return isNodeAccessDownstream() ?
+            getAccessLinkSegment().getDownstreamVertex() : getAccessLinkSegment().getUpstreamVertex();
   }
 
   /**
