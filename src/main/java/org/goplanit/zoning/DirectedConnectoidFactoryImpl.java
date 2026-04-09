@@ -3,6 +3,7 @@ package org.goplanit.zoning;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.DirectedConnectoidFactory;
@@ -32,6 +33,9 @@ public class DirectedConnectoidFactoryImpl extends
     this.directedConnectoids = directedConnectoids;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public DirectedConnectoid registerNew(
       Zone accessZone, boolean downstreamAccessNode, LinkSegment accessLinkSegment, double length) {
@@ -50,6 +54,17 @@ public class DirectedConnectoidFactoryImpl extends
     var accessNode = downstreamAccessNode ? accessLinkSegment.getDownstreamNode() : accessLinkSegment.getUpstreamNode();
     DirectedConnectoid newConnectoid =
         new DirectedConnectoidImpl(getIdGroupingToken(), accessZone, accessNode, accessLinkSegment);
+    directedConnectoids.register(newConnectoid);
+    return newConnectoid;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedConnectoid registerNew(Node accessNode) {
+    DirectedConnectoid newConnectoid =
+        new DirectedConnectoidImpl(getIdGroupingToken(), accessNode);
     directedConnectoids.register(newConnectoid);
     return newConnectoid;
   }

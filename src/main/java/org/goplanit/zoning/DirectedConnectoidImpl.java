@@ -5,6 +5,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.DirectedConnectoidAccessZoneEntry;
 import org.goplanit.utils.zoning.Zone;
@@ -71,6 +72,20 @@ public class DirectedConnectoidImpl
    * Constructor
    *
    * @param idToken           contiguous id generation within this group for instances of this class
+   * @param accessNode        the access node
+   */
+  protected DirectedConnectoidImpl(
+      final IdGroupingToken idToken,
+      Node accessNode) {
+    super(idToken);
+    setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
+    setAccessVertex(accessNode);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param idToken           contiguous id generation within this group for instances of this class
    * @param accessZone        the access zone
    * @param accessVertex      the access vertex
    * @param accessSegment     initial access segment
@@ -112,7 +127,6 @@ public class DirectedConnectoidImpl
     super(other, deepCopy);
     setDirectedConnectoidId(other.getDirectedConnectoidId());
     setNodeAccessDownstream(other.isAccessNodeAlwaysDownstream());
-
   }
 
   // Public
