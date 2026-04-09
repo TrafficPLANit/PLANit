@@ -63,7 +63,7 @@ public class ZoningUtils {
     }
 
     var odConnectoid = zoning.getOdConnectoids().getFactory().registerNew(
-        upstreamNodeFromStub, zone, connectoidLengthKm);
+        zone, upstreamNodeFromStub, connectoidLengthKm);
     return Pair.of(odConnectoid, stubLink);
   }
 }

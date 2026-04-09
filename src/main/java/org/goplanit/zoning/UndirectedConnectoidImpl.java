@@ -64,7 +64,7 @@ public class UndirectedConnectoidImpl extends
    */
   protected UndirectedConnectoidImpl(
       final IdGroupingToken idToken, final DirectedVertex accessVertex, final Zone accessZone, double length) {
-    super(idToken, accessZone, length);
+    super(idToken, accessZone, accessVertex, length);
     setUndirectedConnectoidId(generateUndirectedConnectoidId(idToken));
     setAccessVertex(accessVertex);
   }
@@ -73,12 +73,12 @@ public class UndirectedConnectoidImpl extends
    * Constructor
    *
    * @param idToken      contiguous id generation within this group for instances of this class
-   * @param accessVertex the node in the network (layer) the connectoid connects with
    * @param accessZone   for the connectoid
+   * @param accessVertex the node in the network (layer) the connectoid connects with
    */
   public UndirectedConnectoidImpl(
-      final IdGroupingToken idToken, final DirectedVertex accessVertex, final Zone accessZone) {
-    super(idToken, accessZone);
+      final IdGroupingToken idToken, final Zone accessZone, final DirectedVertex accessVertex) {
+    super(idToken, accessZone, accessVertex);
     setUndirectedConnectoidId(generateUndirectedConnectoidId(idToken));
     setAccessVertex(accessVertex);
   }
