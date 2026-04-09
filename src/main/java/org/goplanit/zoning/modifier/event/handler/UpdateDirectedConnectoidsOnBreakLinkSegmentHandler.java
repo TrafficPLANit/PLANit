@@ -1,9 +1,11 @@
 package org.goplanit.zoning.modifier.event.handler;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.locationtech.jts.geom.Point;
 import org.goplanit.utils.event.EventType;
@@ -14,24 +16,31 @@ import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 
 /**
- * Whenever links are broken and these link are references by connectoids, it is possible we must update the access vertex/link segment of this connectoid. This is what this class
- * ensures by listening to break edge segment events and taking action accordingly absed on the provided connectoids if they are affected.
- * 
- * Class specifically designed to be used in tandem with breakLinksWithInternalNode. Make sure you identify original downstream vertices of the access link segments for the
- * directed connectoids that could be affected by any break link action on the network. After a break link action this might no be the downstream vertex of the registered access
- * link segments because of the break link action. If changed (due to break links conducted) then we assume the access link segment has been split in two where the original is not
- * closest to the vertex anymore, but the farthest. Hence, we look one link segment downstream and identify if we can match to the desired vertex. If so, we replace the access link
- * segment, if not we let the user know something strange has happened.
+ * Whenever links are broken and these links are referenced by connectoids, it is possible we must update the access
+ * vertex/link segment of this connectoid. This is what this class
+ * ensures by listening to break edge segment events and taking action accordingly based on the provided connectoids
+ * if they are affected.
+ * <p>
+ * Class is specifically designed to be used in tandem with breakLinksWithInternalNode. Make sure you identify
+ * original downstream vertices of the access link segments for the directed connectoids that could be affected by
+ * any break link action on the network. After a break link action this might no be the downstream vertex of the
+ * registered access link segments because of the break link action. If changed (due to break links conducted)
+ * then we assume the access link segment has been split in two where the original is not closest to the vertex
+ * anymore, but the farthest. Hence, we look one link segment downstream and identify if we can match to the
+ * desired vertex. If so, we replace the access link segment, if not we let the user know something strange
+ * has happened.
+ * </p>
  * 
  * @author markr
  *
  */
 public class UpdateDirectedConnectoidsOnBreakLinkSegmentHandler implements DirectedGraphModifierListener {
 
-  private static final Logger LOGGER = Logger.getLogger(UpdateDirectedConnectoidsOnBreakLinkSegmentHandler.class.getCanonicalName());
+  private static final Logger LOGGER =
+      Logger.getLogger(UpdateDirectedConnectoidsOnBreakLinkSegmentHandler.class.getCanonicalName());
 
   /** information on the connectoid's desired access node location (before the break link action) */
-  private final Map<Point, DirectedConnectoid> connectoidsAccessNodeLocationBeforeBreakLink;
+  private final Map<Point, Set<DirectedConnectoid>> connectoidsAccessNodeLocationBeforeBreakLink;
 
   /**
    * perform the actual update of the connectoids based on the broken edge segment
@@ -41,42 +50,75 @@ public class UpdateDirectedConnectoidsOnBreakLinkSegmentHandler implements Direc
    */
   protected void updateConnectedAccessLinkSegment(DirectedVertex vertex, LinkSegment brokenEdgeSegment) {
 
-    /* determine if connectoid is related to this broken edge segment somehow */
-    DirectedConnectoid connectoid = null;
-    if (connectoidsAccessNodeLocationBeforeBreakLink.containsKey(brokenEdgeSegment.getDownstreamVertex().getPosition())) {
-      connectoid = connectoidsAccessNodeLocationBeforeBreakLink.get(brokenEdgeSegment.getDownstreamVertex().getPosition());
-      if (!connectoid.isNodeAccessDownstream()) {
-        LOGGER.severe(
-            String.format("update of connectoids only supported when access node resides on downstream end of access link segment, but for connectoid %d this is not the case",
-                connectoid.getId()));
+    /* determine if connectoids exist that are related to this broken edge segment somehow */
+    Set<DirectedConnectoid> connectoids = null;
+    if (connectoidsAccessNodeLocationBeforeBreakLink.containsKey(
+        brokenEdgeSegment.getDownstreamVertex().getPosition())) {
+      connectoids = connectoidsAccessNodeLocationBeforeBreakLink.get(
+          brokenEdgeSegment.getDownstreamVertex().getPosition());
+      if (connectoids == null || connectoids.isEmpty()){
+        return;
+      }
+
+      if (!connectoids.stream().allMatch(c -> c.getAccessVertex().equals(vertex))) {
+        LOGGER.severe("update of connectoids only supported when access node matches vertex at hand, " +
+                    "this is not the case");
         return;
       }
     }
 
-    if (connectoid != null && !connectoid.getAccessLinkSegment().idEquals(brokenEdgeSegment)) {
-      /*
-       * mismatch: connectoid access node no longer corresponds to access link segment downstream vertex, meaning that because of breaking the link/linksegment and reusing the old
-       * link/linksegment for part of the broken link its downstream node now resides halfway the link instead of its original location, causing an inconsistency between the access
-       * node and access link segment of the connectoid. correct this
-       */
-      if (brokenEdgeSegment.getUpstreamVertex().idEquals(connectoid.getAccessLinkSegment().getDownstreamVertex()) && brokenEdgeSegment.getUpstreamVertex().idEquals(vertex)) {
-        /*
-         * the broken edge segment upstream vertex is the location where we broke the link and the original access link segment now ends at this vertex even though it should end at
-         * the access node (which is the downstream node of the broken edge segment -> hence, the broken edge segment is now the access link segment directly upstream the access
-         * node AND it resides on the right link since it is directly connected to the original access link segment via the broken vertex
-         */
-        connectoid.replaceAccessLinkSegment(brokenEdgeSegment);
+    for(var connectoid : connectoids){
+      var refVertex = connectoid.getAccessVertex();
+      // check per zone
+      for(var connectoidZoneEntry : connectoid.getAccessZoneEntries().values()){
+        // since only a single link is broken and a directed connectoid may support multiple access segments connected to
+        // a single node, only a single entry per connectoid zone combination will be affected by a break link.
+        // So identify each entry separately and patch it
+        for(var currAccessSegment : connectoidZoneEntry.getAccessLinkSegments()){
+          if (!currAccessSegment.hasAnyVertex(refVertex)) {
+            /*
+             * mismatch: connectoid access node no longer corresponds access link segment, meaning
+             * that because of breaking the link/linksegment and reusing the old link/linksegment for part of the broken
+             * link its node is replaced and now resides halfway the link instead of its original location, causing an
+             * inconsistency between the access node and access link segment of the connectoid. correct this
+             */
+            if (brokenEdgeSegment.getUpstreamVertex().idEquals(currAccessSegment.getDownstreamVertex()) &&
+                brokenEdgeSegment.getUpstreamVertex().idEquals(vertex)) {
+              /*
+               * the broken edge segment upstream vertex is the location where we broke the link and the original access
+               * link segment now ends at this vertex even though it should end at the access node (which is the downstream
+               * node of the broken edge segment -> hence, the broken edge segment is now the access link segment directly
+               * upstream the access node AND it resides on the right link since it is directly connected to the original
+               * access link segment via the broken vertex
+               */
+              connectoidZoneEntry.removeAccessLinkSegment(currAccessSegment);
+              connectoidZoneEntry.addAccessLinkSegment(brokenEdgeSegment);
+            } else if (brokenEdgeSegment.getDownstreamVertex().idEquals(currAccessSegment.getUpstreamVertex()) &&
+                brokenEdgeSegment.getDownstreamVertex().idEquals(vertex)) {
+              /* inverse situation, but equally viable, so replace */
+              connectoidZoneEntry.removeAccessLinkSegment(currAccessSegment);
+              connectoidZoneEntry.addAccessLinkSegment(brokenEdgeSegment);
+            } else {
+              // invalid situation found, should not happen
+              throw new PlanItRunTimeException(" invalid situation encountered where access link segment does not " +
+                  "relate to connectoids access vertex, should not happen");
+            }
+          }
+        }
       }
     }
+
   }
 
   /**
-   * Constructor taking information regarding the access link segment downstream vertex that the connectoid is attached to before any breaking of links. This will be used to update
+   * Constructor taking information regarding the access link segment downstream vertex that the connectoid is
+   * attached to before any breaking of links. This will be used to update
    * the connectoid to this same location after the break link in case this has been compromised
    * 
    * @param connectoidsAccessNodeLocationBeforeBreakLink to consider
    */
-  public UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(Map<Point, DirectedConnectoid> connectoidsAccessNodeLocationBeforeBreakLink) {
+  public UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(
+      Map<Point, Set<DirectedConnectoid>> connectoidsAccessNodeLocationBeforeBreakLink) {
     super();
     this.connectoidsAccessNodeLocationBeforeBreakLink = connectoidsAccessNodeLocationBeforeBreakLink;
   }
@@ -103,13 +145,15 @@ public class UpdateDirectedConnectoidsOnBreakLinkSegmentHandler implements Direc
   @Override
   public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
     if (!event.getType().equals(BreakEdgeSegmentEvent.EVENT_TYPE)) {
-      LOGGER.warning(String.format("%s only supports break edge segment events", UpdateDirectedConnectoidsOnBreakLinkSegmentHandler.class.getName()));
+      LOGGER.warning(String.format("%s only supports break edge segment events",
+          UpdateDirectedConnectoidsOnBreakLinkSegmentHandler.class.getName()));
       return;
     }
 
     /* update the access link segment of the relevant connectoids (if any) based on broken edge segment */
     BreakEdgeSegmentEvent breakEdgeSegmentEvent = BreakEdgeSegmentEvent.class.cast(event);
-    updateConnectedAccessLinkSegment(breakEdgeSegmentEvent.getVertexToBreakAt(), (LinkSegment) breakEdgeSegmentEvent.getNewlyBrokenEdgeSegment());
+    updateConnectedAccessLinkSegment(
+        breakEdgeSegmentEvent.getVertexToBreakAt(), (LinkSegment) breakEdgeSegmentEvent.getNewlyBrokenEdgeSegment());
   }
 
 }

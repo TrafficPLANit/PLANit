@@ -23,7 +23,7 @@ import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
  * @author markr
  *
  */
-public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEntitiesImpl<T> implements Connectoids<T> {
+public abstract class ConnectoidsImpl<T extends Connectoid<?>> extends ManagedIdEntitiesImpl<T> implements Connectoids<T> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConnectoidsImpl.class.getCanonicalName());
@@ -34,7 +34,8 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
   protected void updateConnectoidAccessZoneIdReferences() {
     for (Connectoid connectoid : this) {
       if (!(connectoid instanceof ConnectoidImpl)) {
-        LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of connectoids interface when attempting to update access zone references");
+        LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of connectoids " +
+            "interface when attempting to update access zone references");
       }
       ((ConnectoidImpl) connectoid).recreateAccessZoneIdMapping();
     }
@@ -86,10 +87,10 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
   @Override
   public Map<Zone, Set<T>> createIndexByAccessZone() {
     HashMap<Zone,Set<T>> indexByAccessZone = new HashMap<>();
-    for( var connectoid : this){
-      for(var validAccessZone : connectoid){
+    for( Connectoid<?> connectoid : this){
+      for(Zone validAccessZone : connectoid){
         indexByAccessZone.putIfAbsent(validAccessZone,new HashSet<>());
-        indexByAccessZone.get(validAccessZone).add(connectoid);
+        indexByAccessZone.get(validAccessZone).add((T) connectoid);
       }
     }
     return indexByAccessZone;

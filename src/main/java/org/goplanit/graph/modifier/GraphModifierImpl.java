@@ -296,12 +296,14 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
           final Vertex vertexToBreakAt, final Ex edgeToBreak, final PlanitJtsCrsUtils geoUtils) {
     Ex aToBreak = edgeToBreak;
 
-    /* create unique copy of edge with unique id and register it, do a deep copy to ensure any input properties are duplicated */
+    /* create unique copy of edge with unique id and register it, do a deep copy to ensure any input properties
+     are duplicated */
     Ex breakToB = (Ex) theGraph.getEdges().getFactory().createUniqueDeepCopyOf(edgeToBreak);
     ((GraphEntities<Ex>) theGraph.getEdges()).register(breakToB);
 
     if (edgeToBreak.getVertexA() == null || edgeToBreak.getVertexB() == null) {
-      LOGGER.severe(String.format("unable to break edge since edge to break %s (id:%d) is missing one or more vertices", edgeToBreak.getExternalId(), edgeToBreak.getId()));
+      LOGGER.severe(String.format("unable to break edge since edge to break %s (id:%d) is missing one or " +
+          "more vertices", edgeToBreak.getExternalId(), edgeToBreak.getId()));
       return null;
     } else {
 

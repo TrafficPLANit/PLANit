@@ -14,7 +14,8 @@ import org.goplanit.utils.zoning.Zone;
  * 
  * @author markr
  */
-public class DirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<DirectedConnectoid> implements DirectedConnectoidFactory {
+public class DirectedConnectoidFactoryImpl extends
+    ManagedIdEntityFactoryImpl<DirectedConnectoid> implements DirectedConnectoidFactory {
 
   /** container to use */
   protected final DirectedConnectoids directedConnectoids;
@@ -25,18 +26,18 @@ public class DirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<Di
    * @param groupId             to use
    * @param directedConnectoids to use
    */
-  protected DirectedConnectoidFactoryImpl(final IdGroupingToken groupId, final DirectedConnectoids directedConnectoids) {
+  protected DirectedConnectoidFactoryImpl(
+      final IdGroupingToken groupId, final DirectedConnectoids directedConnectoids) {
     super(groupId);
     this.directedConnectoids = directedConnectoids;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public DirectedConnectoid registerNew(boolean downstreamAccessNode, LinkSegment accessLinkSegment) {
+  public DirectedConnectoid registerNew(
+      Zone accessZone, boolean downstreamAccessNode, LinkSegment accessLinkSegment, double length) {
+    var accessNode = downstreamAccessNode ? accessLinkSegment.getDownstreamNode() : accessLinkSegment.getUpstreamNode();
     DirectedConnectoid newConnectoid =
-        new DirectedConnectoidImpl(getIdGroupingToken(), downstreamAccessNode, accessLinkSegment);
+        new DirectedConnectoidImpl(getIdGroupingToken(), accessZone, accessNode, accessLinkSegment, length);
     directedConnectoids.register(newConnectoid);
     return newConnectoid;
   }
@@ -45,11 +46,13 @@ public class DirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<Di
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(final boolean downstreamAccessNode, LinkSegment accessLinkSegment, Zone parentZone, double length) {
+  public DirectedConnectoid registerNew(Zone accessZone, boolean downstreamAccessNode, LinkSegment accessLinkSegment) {
+    var accessNode = downstreamAccessNode ? accessLinkSegment.getDownstreamNode() : accessLinkSegment.getUpstreamNode();
     DirectedConnectoid newConnectoid =
-        new DirectedConnectoidImpl(getIdGroupingToken(), downstreamAccessNode, accessLinkSegment, parentZone, length);
+        new DirectedConnectoidImpl(getIdGroupingToken(), accessZone, accessNode, accessLinkSegment);
     directedConnectoids.register(newConnectoid);
     return newConnectoid;
   }
+
 
 }
