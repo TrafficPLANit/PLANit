@@ -111,7 +111,8 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
    */
   @Override
   public Collection<Mode> getExplicitlyAllowedModes() {
-    return Collections.unmodifiableCollection(explicitAllowedModes.values());
+    return explicitAllowedModes==null ? Collections.emptySet() :
+        Collections.unmodifiableCollection(explicitAllowedModes.values());
   }
 
   @Override

@@ -157,8 +157,9 @@ public class DirectedConnectoidImpl
           getIdsAsString(), accessZone.getIdsAsString()));
       return null;
     }
-    return getAccessZoneEntries().put(
-        accessZone.getId(), new DirectedConnectoidAccessZoneEntryImpl(this, accessZone));
+    var newEntry = new DirectedConnectoidAccessZoneEntryImpl(this, accessZone);
+    getAccessZoneEntries().put(accessZone.getId(), newEntry);
+    return newEntry;
   }
 
   /**
@@ -180,19 +181,6 @@ public class DirectedConnectoidImpl
       return;
     }
     this.nodeAccessDownstream = nodeAccessDownstream;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isModeAllowed(Zone accessZone, Mode mode) {
-    if (!hasAccessZoneEntry(accessZone)) {
-      LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when checking if mode " +
-          "is allowed", accessZone.getXmlId(), accessZone.getId(), getXmlId(), getId()));
-      return false;
-    }
-    return accessZoneEntries.get(accessZone.getId()).isModeAllowed(mode);
   }
 
   /**

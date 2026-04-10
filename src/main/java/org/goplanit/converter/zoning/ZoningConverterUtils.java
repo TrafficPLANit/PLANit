@@ -9,6 +9,7 @@ import org.goplanit.utils.geo.PlanitEntityGeoUtils;
 import org.goplanit.utils.geo.PlanitGraphGeoUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.locale.DrivingDirectionDefaultByCountry;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.IterableUtils;
@@ -852,7 +853,7 @@ public class ZoningConverterUtils {
    * @param connectoidExternalId external id (allowed to be null)
    * @param zoning to register on
    * @param transferZone to relate connectoids to
-   * @param accessNode the access node the connectoid utilises (determine the up/downstream connection of the
+   * @param accessVertex the access node the connectoid utilises (determine the up/downstream connection of the
    *                   attached link segment(s)
    * @param accessLinkSegments to create connectoids for (one per segment)
    * @param allowedModes used for each connectoid
@@ -862,7 +863,7 @@ public class ZoningConverterUtils {
       @Nullable String connectoidExternalId,
       Zoning zoning,
       final TransferZone transferZone,
-      final Node accessNode,
+      final DirectedVertex accessVertex,
       final Iterable<? extends MacroscopicLinkSegment> accessLinkSegments,
       final Set<Mode> allowedModes){
     Set<DirectedConnectoid> createdConnectoids = new HashSet<>();
@@ -870,11 +871,11 @@ public class ZoningConverterUtils {
     // we sort to ensure connectoids are always created in same deterministic order
     IterableUtils.asStream(accessLinkSegments).sorted(
             Comparator.comparing(MacroscopicLinkSegment::getId)).forEach( accessLinkSegment -> {
-      boolean downstreamAccessNode = accessLinkSegment.isDownstreamNode(accessNode);
-      if(!accessLinkSegment.hasNode(accessNode)){
+      boolean downstreamAccessNode = accessLinkSegment.isDownstreamVertex(accessVertex);
+      if(!accessLinkSegment.hasAnyVertex(accessVertex)){
         throw new PlanItRunTimeException(
                 "Chosen access node %s not attached to link segment %s",
-                accessNode.getIdsAsString(), accessLinkSegment.getIdsAsString());
+                accessVertex.getIdsAsString(), accessLinkSegment.getIdsAsString());
       }
 
       DirectedConnectoid newConnectoid = createAndRegisterDirectedConnectoid(

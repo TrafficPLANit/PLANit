@@ -7,12 +7,14 @@ import java.util.logging.Logger;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.ConnectoidAccessZoneEntry;
 import org.goplanit.utils.zoning.UndirectedConnectoid;
 import org.goplanit.utils.zoning.Zone;
 
 /**
- * Undirected connectoid connecting one or more (transfer/OD) zone(s) to the physical road network, each connection will yield a connectoid edge and two connectoid segments when
+ * Undirected connectoid connecting one or more (transfer/OD) zone(s) to the physical road network, each connection
+ * will yield a connectoid edge and two connectoid segments when
  * constructing the transport network internally based on the referenced node
  *
  * @author markr
@@ -126,14 +128,12 @@ public class UndirectedConnectoidImpl extends
   @Override
   public ConnectoidAccessZoneEntry createAccessZoneEntry(Zone accessZone){
     if (accessZone == null) {
-      LOGGER.warning(String.format("unable to add access zone to undirected connectoid %s, it is null", getIdsAsString()));
+      LOGGER.warning(String.format("unable to add access zone to undirected connectoid %s, it is null",
+          getIdsAsString()));
     }
-    return getAccessZoneEntries().put(accessZone.getId(), new ConnectoidAccessZoneEntryImpl(accessZone));
-  }
-
-  @Override
-  public ConnectoidAccessZoneEntry getAccessZoneEntry(Zone accessZone) {
-    return null;
+    var newEntry = new ConnectoidAccessZoneEntryImpl(accessZone);
+    getAccessZoneEntries().put(accessZone.getId(), newEntry);
+    return newEntry;
   }
 
   /**

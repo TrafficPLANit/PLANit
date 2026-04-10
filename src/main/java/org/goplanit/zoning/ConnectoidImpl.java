@@ -213,6 +213,19 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry> extend
    * {@inheritDoc}
    */
   @Override
+  public boolean isModeAllowed(Zone accessZone, Mode mode) {
+    if (!hasAccessZoneEntry(accessZone)) {
+      LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when checking if mode " +
+          "is allowed", accessZone.getXmlId(), accessZone.getId(), getXmlId(), getId()));
+      return false;
+    }
+    return accessZoneEntries.get(accessZone.getId()).isModeAllowed(mode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Iterator<Zone> iterator() {
     Iterator<Zone> it = new Iterator<>() {
 

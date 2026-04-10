@@ -32,11 +32,20 @@ public class UndirectedConnectoidFactoryImpl
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoid registerNew(Zone accessZone, Node accessNode, double length) {
+  public UndirectedConnectoid registerNew(Zone accessZone, Node accessNode, ZoneConnectoidType type, double length) {
     UndirectedConnectoid newConnectoid = registerNew(accessNode);
     var entry = newConnectoid.createAccessZoneEntry(accessZone);
+    entry.setType(ZoneConnectoidType.TRAVELLER_ACCESS);
     entry.setLengthKm(length);
     return newConnectoid;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UndirectedConnectoid registerNew(Zone accessZone, Node accessNode, double length) {
+    return registerNew(accessZone, accessNode, ZoneConnectoidType.NONE, length);
   }
 
   /**
