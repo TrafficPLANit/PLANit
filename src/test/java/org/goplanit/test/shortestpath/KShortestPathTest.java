@@ -156,8 +156,8 @@ public class KShortestPathTest {
       createPhysicalLinkSegment("F","H", 1.0);
       createPhysicalLinkSegment("G","H", 2.0);
 
-      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().getByXmlId("C"),  zoneA, 0.1);
-      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().getByXmlId("H"), zoneB, 0.1);
+      zoning.getOdConnectoids().getFactory().registerNew(zoneA, networkLayer.getNodes().getByXmlId("C"),  0.1);
+      zoning.getOdConnectoids().getFactory().registerNew(zoneB, networkLayer.getNodes().getByXmlId("H"), 0.1);
 
       transportNetwork = new TransportModelNetworkImpl(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids(false);

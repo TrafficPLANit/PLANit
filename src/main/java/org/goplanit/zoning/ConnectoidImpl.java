@@ -107,6 +107,7 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry> extend
    *
    * @param idToken    contiguous id generation within this group for instances of this class
    * @param accessZone for the connectoid
+   * @param accessVertex to use
    */
   protected ConnectoidImpl(final IdGroupingToken idToken, Zone accessZone, DirectedVertex accessVertex) {
     this(idToken, accessZone, accessVertex, DEFAULT_LENGTH_KM.get());

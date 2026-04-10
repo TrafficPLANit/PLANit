@@ -335,10 +335,10 @@ public class sLtmAssignmentBushMultiOdTest {
       zoning.getOdZones().getFactory().registerNew().setXmlId("A```");
 
       var connectoidFactory = zoning.getOdConnectoids().getFactory();
-      connectoidFactory.registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
-      connectoidFactory.registerNew(nodes.getByXmlId("5"),  zoning.getOdZones().getByXmlId("A`"), 0);
-      connectoidFactory.registerNew(nodes.getByXmlId("9"),  zoning.getOdZones().getByXmlId("A``"), 0);
-      connectoidFactory.registerNew(nodes.getByXmlId("13"),  zoning.getOdZones().getByXmlId("A```"), 0);
+      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A"), nodes.getByXmlId("0"),   0);
+      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A`"), nodes.getByXmlId("5"), 0);
+      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A``"), nodes.getByXmlId("9"), 0);
+      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A```"), nodes.getByXmlId("13"),  0);
                       
     }catch(Exception e) {
       e.printStackTrace();

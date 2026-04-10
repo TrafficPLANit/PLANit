@@ -130,14 +130,14 @@ public class ConjugateNetworkTest {
       // OD connectoid
       //  ORIGINS
       zoning.getOdConnectoids().getFactory().registerNew(
-          nodeBefore0,  zoning.getOdZones().getByXmlId("A"), 0);
+          zoning.getOdZones().getByXmlId("A"), nodeBefore0,   0);
       zoning.getOdConnectoids().getFactory().registerNew(
-          nodeBefore12,  zoning.getOdZones().getByXmlId("A`"), 0);
+          zoning.getOdZones().getByXmlId("A`"), nodeBefore12,   0);
       //  DESTINATIONS
       zoning.getOdConnectoids().getFactory().registerNew(
-          networkLayer.getNodes().get(7),  zoning.getOdZones().getByXmlId("A``"), 0);
+          zoning.getOdZones().getByXmlId("A``"), networkLayer.getNodes().get(7),  0);
       zoning.getOdConnectoids().getFactory().registerNew(
-          networkLayer.getNodes().get(11),  zoning.getOdZones().getByXmlId("A```"), 0);
+          zoning.getOdZones().getByXmlId("A```"), networkLayer.getNodes().get(11),  0);
 
       // combine in overall network
       transportModelNetwork = new TransportModelNetworkImpl(network, zoning);

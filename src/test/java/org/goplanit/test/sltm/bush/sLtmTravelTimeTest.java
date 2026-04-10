@@ -244,8 +244,8 @@ public class sLtmTravelTimeTest {
       zoning.getOdZones().getFactory().registerNew().setXmlId("A`");
 
       var connectoidFactory = zoning.getOdConnectoids().getFactory();
-      connectoidFactory.registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
-      connectoidFactory.registerNew(nodes.getByXmlId("4"),  zoning.getOdZones().getByXmlId("A`"), 0);
+      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A"),  nodes.getByXmlId("0"),   0);
+      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A`"), nodes.getByXmlId("4"),   0);
 
     }catch(Exception e) {
       e.printStackTrace();

@@ -113,9 +113,9 @@ public class sLtmAssignmentGridTestBase {
       stubBefore12.second().forEachSegment(ls -> ls.setXmlId(""+ls.getId()));
 
       zoning.getOdConnectoids().getFactory().registerNew(
-          networkLayer.getNodes().get(7),  zoning.getOdZones().getByXmlId("A``"), 0);
+          zoning.getOdZones().getByXmlId("A``"), networkLayer.getNodes().get(7),   0);
       zoning.getOdConnectoids().getFactory().registerNew(
-          networkLayer.getNodes().get(11),  zoning.getOdZones().getByXmlId("A```"), 0);
+          zoning.getOdZones().getByXmlId("A```"), networkLayer.getNodes().get(11),   0);
                       
     }catch(Exception e) {
       e.printStackTrace();

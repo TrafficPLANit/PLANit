@@ -20,9 +20,6 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
   private static final Logger LOGGER =
       Logger.getLogger(DirectedConnectoidAccessZoneEntryImpl.class.getCanonicalName());
 
-  /** the explicitly allowed modes, when null all modes allowed */
-  private TreeMap<Long, Mode> explicitAllowedModes = null;
-
   /** required to determine consistency of orientation of edge segments w.r.t. access node */
   private final DirectedConnectoid parentConnectoid;
 
@@ -73,10 +70,6 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
     super(other);
     this.parentConnectoid = other.parentConnectoid;
 
-    /* shallow */
-    if (other.explicitAllowedModes != null) {
-      this.explicitAllowedModes = new TreeMap<>(other.explicitAllowedModes);
-    }
     this.accessEdgeSegments = new TreeMap<>(other.accessEdgeSegments);
   }
 
@@ -86,8 +79,8 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
   @Override
   public boolean addAccessLinkSegment(EdgeSegment accessEdgeSegment) {
     if(!isValidOrientation(accessEdgeSegment)){
-      LOGGER.warning(String.format("Unable to add access segment (%s) to directed connectoid (%s), it is inconsistent in" +
-          "orientation compared to other access segments",
+      LOGGER.warning(String.format("Unable to add access segment (%s) to directed connectoid (%s), " +
+              "it is inconsistent in orientation compared to other access segments",
           accessEdgeSegment.getIdsAsString(), parentConnectoid.getIdsAsString()));
     }
     var old = accessEdgeSegments.put(accessEdgeSegment.getId(), accessEdgeSegment);
@@ -108,37 +101,6 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
   @Override
   public Collection<? extends EdgeSegment> getAccessLinkSegments() {
     return Collections.unmodifiableCollection(accessEdgeSegments.values());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void addExplicitAllowedMode(Mode mode) {
-    if (explicitAllowedModes == null) {
-      explicitAllowedModes = new TreeMap<>();
-    }
-    explicitAllowedModes.put(mode.getId(), mode);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isModeAllowed(Mode mode) {
-    if (explicitAllowedModes == null) {
-      return true;
-    }else{
-      return explicitAllowedModes.containsKey(mode.getId());
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Collection<Mode> getExplicitlyAllowedModes() {
-    return Collections.unmodifiableCollection(explicitAllowedModes.values());
   }
 
   /**

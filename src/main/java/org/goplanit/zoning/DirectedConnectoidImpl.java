@@ -151,6 +151,12 @@ public class DirectedConnectoidImpl
       LOGGER.warning(String.format(
           "Unable to add access zone to directed connectoid %s, it is null", getIdsAsString()));
     }
+    if(hasAccessZoneEntry(accessZone)){
+      LOGGER.warning(String.format("Cannot create access zone entry for connectoid (%s) as one already exists for zone" +
+              "(%d)",
+          getIdsAsString(), accessZone.getIdsAsString()));
+      return null;
+    }
     return getAccessZoneEntries().put(
         accessZone.getId(), new DirectedConnectoidAccessZoneEntryImpl(this, accessZone));
   }

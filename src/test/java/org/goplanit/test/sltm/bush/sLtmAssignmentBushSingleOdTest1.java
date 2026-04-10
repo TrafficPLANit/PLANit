@@ -313,23 +313,41 @@ public class sLtmAssignmentBushSingleOdTest1 {
       bottleneckType.setAccessGroupProperties(access);
 
       var linkSegmentFactory = networkLayer.getLinkSegments().getFactory();
-      linkSegmentFactory.registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4).setXmlId("0");
-      linkSegmentFactory.registerNew(links.getByXmlId("1"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4).setXmlId("1");
-      linkSegmentFactory.registerNew(links.getByXmlId("2"), linkTypes.getByXmlId("BottleNeckType"), true, true).setNumberOfLanes(4).setXmlId("2");
-      linkSegmentFactory.registerNew(links.getByXmlId("3"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4).setXmlId("3");
-      linkSegmentFactory.registerNew(links.getByXmlId("4"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4).setXmlId("4");
-      linkSegmentFactory.registerNew(links.getByXmlId("5"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4).setXmlId("5");
-      linkSegmentFactory.registerNew(links.getByXmlId("6"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4).setXmlId("6");
-      linkSegmentFactory.registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4).setXmlId("7");
-      linkSegmentFactory.registerNew(links.getByXmlId("8"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4).setXmlId("8");
+      linkSegmentFactory.registerNew(
+          links.getByXmlId("0"), linkTypes.getByXmlId("MainType"), true, true).
+          setNumberOfLanes(4).setXmlId("0");
+      linkSegmentFactory.registerNew(
+          links.getByXmlId("1"), linkTypes.getByXmlId("MainType"), true, true).
+          setNumberOfLanes(4).setXmlId("1");
+      linkSegmentFactory.registerNew(
+          links.getByXmlId("2"), linkTypes.getByXmlId("BottleNeckType"), true, true).
+          setNumberOfLanes(4).setXmlId("2");
+      linkSegmentFactory.registerNew(
+          links.getByXmlId("3"), linkTypes.getByXmlId("MainType"), true, true).
+          setNumberOfLanes(4).setXmlId("3");
+      linkSegmentFactory.registerNew(
+          links.getByXmlId("4"), linkTypes.getByXmlId("MainType"), true, true).
+          setNumberOfLanes(4).setXmlId("4");
+      linkSegmentFactory.registerNew(
+          links.getByXmlId("5"), linkTypes.getByXmlId("MainType"), true, true).
+          setNumberOfLanes(4).setXmlId("5");
+      linkSegmentFactory.registerNew(
+          links.getByXmlId("6"), linkTypes.getByXmlId("MainType"), true, true).
+          setNumberOfLanes(4).setXmlId("6");
+      linkSegmentFactory.registerNew(
+          links.getByXmlId("7"), linkTypes.getByXmlId("MainType"), true, true).
+          setNumberOfLanes(4).setXmlId("7");
+      linkSegmentFactory.registerNew(
+          links.getByXmlId("8"), linkTypes.getByXmlId("MainType"), true, true).
+          setNumberOfLanes(4).setXmlId("8");
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
       zoning.getOdZones().getFactory().registerNew().setXmlId("A");
       zoning.getOdZones().getFactory().registerNew().setXmlId("A`");
 
       var connectoidFactory = zoning.getOdConnectoids().getFactory();
-      connectoidFactory.registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
-      connectoidFactory.registerNew(nodes.getByXmlId("3"),  zoning.getOdZones().getByXmlId("A`"), 0);
+      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A"), nodes.getByXmlId("0") , 0);
+      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A`"), nodes.getByXmlId("3"),   0);
                       
     }catch(Exception e) {
       e.printStackTrace();

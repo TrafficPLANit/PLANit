@@ -226,9 +226,9 @@ public class sLtmAssignmentBushCycleTest {
       zoneFactory.registerNew().setXmlId("A``");
 
       var connectoidFactory = zoning.getOdConnectoids().getFactory();
-      connectoidFactory.registerNew(nodes.getByXmlId("8"),  zoning.getOdZones().getByXmlId("A"), 0);
-      connectoidFactory.registerNew(nodes.getByXmlId("6"),  zoning.getOdZones().getByXmlId("A`"), 0);
-      connectoidFactory.registerNew(nodes.getByXmlId("7"),  zoning.getOdZones().getByXmlId("A``"), 0);
+      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A"),   nodes.getByXmlId("8"),   0);
+      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A`"),  nodes.getByXmlId("6"),   0);
+      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A``"), nodes.getByXmlId("7"),   0);
                       
     }catch(Exception e) {
       e.printStackTrace();

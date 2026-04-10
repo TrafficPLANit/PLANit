@@ -1,11 +1,11 @@
 package org.goplanit.zoning;
 
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.ConnectoidAccessZoneEntry;
 import org.goplanit.utils.zoning.ZoneConnectoidType;
 import org.goplanit.utils.zoning.Zone;
 
-import java.util.Iterator;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Stores access properties for each zone for a given connectoid
@@ -15,35 +15,43 @@ import java.util.Optional;
  */
 public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry {
 
-    /** access zone for these properties */
-    protected Zone accessZone;
+  /** access zone for these properties */
+  protected Zone accessZone;
 
-    /** length to connectoid */
-    protected Optional<Double> lengthKm = DEFAULT_LENGTH_KM;
+  /** length to connectoid */
+  protected Optional<Double> lengthKm = DEFAULT_LENGTH_KM;
 
-    /** type of the connectoid to zone combination */
-    protected ZoneConnectoidType type = DEFAULT_CONNECTOID_TYPE;
+  /** type of the connectoid to zone combination */
+  protected ZoneConnectoidType type = DEFAULT_CONNECTOID_TYPE;
 
-    /**
-     * constructor
-     *
-     * @param accessZone to use
-     */
-    protected ConnectoidAccessZoneEntryImpl(Zone accessZone) {
-      this.accessZone = accessZone;
+  /** the explicitly allowed modes, when null all modes allowed */
+  private TreeMap<Long, Mode> explicitAllowedModes = null;
+
+  /**
+   * constructor
+   *
+   * @param accessZone to use
+   */
+  protected ConnectoidAccessZoneEntryImpl(Zone accessZone) {
+    this.accessZone = accessZone;
+  }
+
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   */
+  @SuppressWarnings("unchecked")
+  public ConnectoidAccessZoneEntryImpl(ConnectoidAccessZoneEntryImpl other) {
+    this.accessZone = other.accessZone;
+    this.lengthKm = other.lengthKm;
+    this.type = other.type;
+
+    /* shallow */
+    if (other.explicitAllowedModes != null) {
+      this.explicitAllowedModes = new TreeMap<>(other.explicitAllowedModes);
     }
-
-    /**
-     * Copy constructor
-     *
-     * @param other to copy
-     */
-    @SuppressWarnings("unchecked")
-    public ConnectoidAccessZoneEntryImpl(ConnectoidAccessZoneEntryImpl other) {
-      this.accessZone = other.accessZone;
-      this.lengthKm = other.lengthKm;
-      this.type = other.type;
-    }
+  }
 
   @Override
   public void setType(ZoneConnectoidType type) {
@@ -73,6 +81,37 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
   @Override
   public Optional<Double> getLengthKm() {
     return lengthKm;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addExplicitAllowedMode(Mode mode) {
+    if (explicitAllowedModes == null) {
+      explicitAllowedModes = new TreeMap<>();
+    }
+    explicitAllowedModes.put(mode.getId(), mode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isModeAllowed(Mode mode) {
+    if (explicitAllowedModes == null) {
+      return true;
+    }else{
+      return explicitAllowedModes.containsKey(mode.getId());
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Collection<Mode> getExplicitlyAllowedModes() {
+    return Collections.unmodifiableCollection(explicitAllowedModes.values());
   }
 
   @Override
