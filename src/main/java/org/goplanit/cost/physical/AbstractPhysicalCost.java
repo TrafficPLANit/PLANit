@@ -31,7 +31,7 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
   /** Logger ot use */
   private static final Logger LOGGER = Logger.getLogger(AbstractPhysicalCost.class.getCanonicalName());
 
-  /**
+  /** Constructor
    * @param groupId, contiguous id generation within this group for instances of this class
    */
   protected AbstractPhysicalCost(IdGroupingToken groupId) {

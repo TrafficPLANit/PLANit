@@ -10,6 +10,7 @@ import org.goplanit.choice.ChoiceModelConfigurator;
  */
 public class BoundedMultinomialLogitConfigurator extends ChoiceModelConfigurator<BoundedMultinomialLogit> {
 
+  /** set delta reflection */
   protected static final String SET_DELTA = "setDelta";
 
   /**

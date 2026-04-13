@@ -22,6 +22,9 @@ public class ConjugateBushUtils {
 
   private static final Logger LOGGER = Logger.getLogger(ConjugateBushUtils.class.getCanonicalName());
 
+  /** Dummy constructor */
+  private ConjugateBushUtils(){}
+
   /**
    * construct the bush sending flows for the bush's root exit edge segments based on origin demand and
    * splitting rates at origin

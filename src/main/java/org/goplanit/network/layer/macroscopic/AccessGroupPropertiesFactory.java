@@ -17,6 +17,12 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 public class AccessGroupPropertiesFactory {
 
   /**
+   * Dummy constructor 
+   */
+  private AccessGroupPropertiesFactory(){
+  }
+
+  /**
    * Factory method
    * 
    * @param maxSpeedKmH      maximum speed for this mode in this context

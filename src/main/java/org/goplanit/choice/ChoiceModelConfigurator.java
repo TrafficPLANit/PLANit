@@ -13,6 +13,7 @@ import org.goplanit.utils.exceptions.PlanItException;
  */
 public class ChoiceModelConfigurator<T extends ChoiceModel> extends Configurator<T> {
 
+  /** set scaling factor */
   public static final String SET_SCALING_FACTOR = "setScalingFactor";
 
   /**

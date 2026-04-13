@@ -15,6 +15,9 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
  */
 public class ChoiceModelConfiguratorFactory {
 
+  /** Dummy constructor */
+  private ChoiceModelConfiguratorFactory(){}
+
   /**
    * Create a configurator for given choice model type
    * 

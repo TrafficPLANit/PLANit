@@ -10,6 +10,10 @@ import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 
 public class ConjugateCostUtils {
 
+
+  /** Dummy constructor */
+  private ConjugateCostUtils(){}
+
   /**
    * Update network link segment and conjugate segment cost based on current prevailing network incoming link flows
    *

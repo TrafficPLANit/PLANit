@@ -272,10 +272,18 @@ public class BoundedMultinomialLogit extends ChoiceModel {
     // No internal state (yet), do nothing
   }
 
+  /**
+   * access to delta
+   * @return the delta
+   */
   public double getDelta() {
     return delta;
   }
 
+  /**
+   * set  delta
+   * @param delta
+   */
   public void setDelta(double delta) {
     this.delta = delta;
   }

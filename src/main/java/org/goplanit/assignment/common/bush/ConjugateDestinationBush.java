@@ -47,9 +47,10 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   private double demandScaledRealisedCostBush;
   private double demandScaledWithinBushMinPathCost;
 
+  /** converged */
   public boolean converged = false; // temp
 
-  // track previous gap to see if bush is converging over assignment iterations
+  /** track previous gap to see if bush is converging over assignment iterations */
   public double prevIterationInitialGap = Double.MAX_VALUE; // temp
 
   /**

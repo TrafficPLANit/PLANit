@@ -24,6 +24,10 @@ import java.util.Map;
  */
 public class ConjugateTransportModelNetworkUtils {
 
+
+  /** Dummy constructor */
+  private ConjugateTransportModelNetworkUtils(){}
+
   /**
    * Create an inverted mapping from the original network turns (segment,segment combination) to the conjugate
    * edge and connectoid segments in the conjugate transport model

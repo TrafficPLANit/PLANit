@@ -23,17 +23,18 @@ import org.goplanit.utils.mode.UseOfModeType;
  */
 public class CarHighOccupancyMode extends PredefinedModeImpl {
 
-  /* default max speed value for car hov mode */
+  /** default max speed value for car hov mode */
   public static final double DEFAULT_MAX_SPEED_KMH = CarMode.DEFAULT_MAX_SPEED_KMH;
 
-  /* default pcu value for car hov mode */
+  /** default pcu value for car hov mode */
   public static final double DEFAULT_PCU = CarMode.DEFAULT_PCU;
 
-  /* default physical features of car hov (VEHICLE, MOTORISED, ROAD) */
+  /** default physical features of car hov (VEHICLE, MOTORISED, ROAD) */
   public static final PhysicalModeFeatures CAR_HOV_PHYSICAL_FEATURES = CarMode.CAR_PHYSICAL_FEATURES;
 
-  /* default usability features of car hov (RIDE_SHARE) */
-  public static final UsabilityModeFeatures CAR_HOV_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.HIGH_OCCUPANCY);
+  /** default usability features of car hov (RIDE_SHARE) */
+  public static final UsabilityModeFeatures CAR_HOV_USABLITY_FEATURES =
+          new UsabilityModeFeaturesImpl(UseOfModeType.HIGH_OCCUPANCY);
 
   /**
    * Constructor for car hov mode
@@ -41,7 +42,8 @@ public class CarHighOccupancyMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected CarHighOccupancyMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.CAR_HIGH_OCCUPANCY, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, CAR_HOV_PHYSICAL_FEATURES, CAR_HOV_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.CAR_HIGH_OCCUPANCY, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU,
+            CAR_HOV_PHYSICAL_FEATURES, CAR_HOV_USABLITY_FEATURES);
   }
 
   /**

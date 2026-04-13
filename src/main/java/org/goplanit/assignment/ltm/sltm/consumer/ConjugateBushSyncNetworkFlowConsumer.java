@@ -5,6 +5,9 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 
 import java.util.logging.Logger;
 
+/**
+ * ConjugateBushSyncNetworkFlowConsumer
+ */
 public class ConjugateBushSyncNetworkFlowConsumer
         extends ConjugateBushTurnFlowUpdateConsumer {
 
