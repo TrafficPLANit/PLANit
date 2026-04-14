@@ -121,7 +121,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
       TimePeriod timePeriod){
 
     Optional<Boolean> flowPositive = linkOutputTypeAdapter.isFlowPositive(linkSegment, mode);
-    flowPositive.orElseThrow(() -> new PlanItRunTimeException("unable to determine if flow is positive on link segment"));
+    flowPositive.orElseThrow(() ->
+            new PlanItRunTimeException("unable to determine if flow is positive on link segment"));
 
     if (flowPositive.get()) {
       updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
@@ -181,7 +182,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 
       final int pathIndex = multiPathIndex;
       updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys,
-              (label) -> pathOutputTypeAdapter.getPathOutputPropertyValue(label, odMultiPathIterator, pathIndex, mode, timePeriod, pathIdType).get());
+              (label) -> pathOutputTypeAdapter.getPathOutputPropertyValue(
+                      label, odMultiPathIterator, pathIndex, mode, timePeriod, pathIdType).get());
     }
   }
 
@@ -237,11 +239,13 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     OutputType outputType = (OutputType) currentOutputType;
     OutputProperty[] outputProperties = outputValueProperties.get(outputType);
     OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
-    SimulationOutputTypeAdapter simulationOutputTypeAdapter = (SimulationOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+    SimulationOutputTypeAdapter simulationOutputTypeAdapter =
+            (SimulationOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
 
     for (Mode mode : modes) {
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
-      updateOutputAndKeyValuesForSimulation(multiKeyPlanItData, outputProperties, outputKeys, simulationOutputTypeAdapter, mode, timePeriod);
+      updateOutputAndKeyValuesForSimulation(
+              multiKeyPlanItData, outputProperties, outputKeys, simulationOutputTypeAdapter, mode, timePeriod);
       timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
     }
   }
@@ -250,8 +254,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * {@inheritDoc}
    */
   @Override
-  protected void writeGeneralResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
-      OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex){
+  protected void writeGeneralResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex){
     //LOGGER.warning("memory Output for OutputType GENERAL has not been implemented yet");
   }
 
@@ -259,8 +269,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * {@inheritDoc}
    */
   @Override
-  protected void writeLinkResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
-      OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex){
+  protected void writeLinkResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex){
     // for links we assume no sub-output types exist (yet), hence this check to make sure we can
     // cast safely
     PlanItRunTimeException.throwIf(!(currentOutputType instanceof OutputType) && currentOutputType == OutputType.LINK,
@@ -273,7 +289,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
             (MacroscopicLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
 
     for (Mode mode : modes) {
-      // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+      // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion
+      // factor is applied, namely
       // the current mode's conversion factor
       VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
 
@@ -284,7 +301,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 
       for (MacroscopicLinkSegment linkSegment : linkOutputTypeAdapter.getLinkSegmentsForLayer(networkLayerId.get())) {
         Optional<Boolean> flowPositive = linkOutputTypeAdapter.isFlowPositive(linkSegment, mode);
-        flowPositive.orElseThrow(() -> new PlanItRunTimeException("unable to determine if flow is positive on link segment"));
+        flowPositive.orElseThrow(() ->
+                new PlanItRunTimeException("unable to determine if flow is positive on link segment"));
 
         if (outputConfiguration.isPersistZeroFlow() || flowPositive.get()) {
           updateOutputAndKeyValuesForLink(
@@ -325,7 +343,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
     OdOutputTypeAdapter odOutputTypeAdapter = (OdOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
     for (Mode mode : modes) {
-      // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+      // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor
+      // is applied, namely
       // the current mode's conversion factor
       VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
 
@@ -335,11 +354,13 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 
       for (OdSkimMatrixIterator odIterator = odSkimMatrix.get().iterator(); odIterator.hasNext();) {
         odIterator.next();
-        Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getOdOutputPropertyValue(OD_COST_PROPERTY, odIterator, mode, timePeriod);
+        Optional<Double> cost = (Optional<Double>)
+                odOutputTypeAdapter.getOdOutputPropertyValue(OD_COST_PROPERTY, odIterator, mode, timePeriod);
         cost.orElseThrow(() -> new PlanItRunTimeException("cost could not be retrieved when persisting"));
 
         if (outputConfiguration.isPersistZeroFlow() || cost.get() > Precision.EPSILON_6) {
-          updateOutputAndKeyValuesForOd(multiKeyPlanItData, outputProperties, outputKeys, odIterator, odOutputTypeAdapter, mode, timePeriod);
+          updateOutputAndKeyValuesForOd(
+                  multiKeyPlanItData, outputProperties, outputKeys, odIterator, odOutputTypeAdapter, mode, timePeriod);
         }
       }
       timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
@@ -351,21 +372,27 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * {@inheritDoc}
    */
   @Override
-  protected void writePathResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
+  protected void writePathResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
       OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex){
 
     // for links we assume no sub-output types exist (yet), hence this check to make sure we can
     // cast safely
-    PlanItRunTimeException.throwIf(!(currentOutputType instanceof OutputType) && ((OutputType) currentOutputType) == OutputType.PATH,
+    PlanItRunTimeException.throwIf(
+            !(currentOutputType instanceof OutputType) && ((OutputType) currentOutputType) == OutputType.PATH,
         "currentOutputTypeEnum is not compatible with outputType configuration");
 
     OutputType outputType = (OutputType) currentOutputType;
     OutputProperty[] outputProperties = outputValueProperties.get(outputType);
     OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
-    PathOutputTypeAdapter pathOutputTypeAdapter = (PathOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+    PathOutputTypeAdapter pathOutputTypeAdapter =
+            (PathOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
     PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
     for (Mode mode : modes) {
-      // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+      // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor
+      // is applied, namely
       // the current mode's conversion factor
       VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
 
@@ -393,7 +420,13 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 
   @Override
   protected void writeBushResultsForCurrentTimePeriod(
-      OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) {
+      OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex) {
     // in absence of general support for an external key (bush) that is not always present, the memory output formatter
     // does not yet support bush based results link results
     LOGGER.info("Memory output formatter does not yet support bush-based link results, ignored");
@@ -420,9 +453,16 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @return data map for the specified keys
    * @throws PlanItException thrown if there is an error
    */
-  public Object getOutputDataValue(Mode mode, TimePeriod timePeriod, Integer iterationIndex, OutputType outputType, OutputPropertyType outputProperty, Object[] keyValues)
+  public Object getOutputDataValue(
+          Mode mode,
+          TimePeriod timePeriod,
+          Integer iterationIndex,
+          OutputType outputType,
+          OutputPropertyType outputProperty,
+          Object[] keyValues)
       throws PlanItException {
-    MultiKeyPlanItData multiKeyPlanItData = timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
+    MultiKeyPlanItData multiKeyPlanItData =
+            timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
     return multiKeyPlanItData.getRowValue(outputProperty, keyValues);
   }
 
@@ -434,8 +474,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  public void initialiseBeforeSimulation(OutputConfiguration outputConfiguration, long runId) throws PlanItException {
-    timeModeOutputTypeIterationDataMap = new MultiKeyMap<Object, MultiKeyPlanItData>();
+  public void initialiseBeforeSimulation(OutputConfiguration outputConfiguration, long runId){
+    timeModeOutputTypeIterationDataMap = new MultiKeyMap<>();
   }
 
   /**
@@ -448,7 +488,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    */
   @Override
   public void finaliseAfterSimulation(
-          OutputConfiguration outputConfiguration, OutputAdapter outputAdapter, TimePeriod timePeriod, int iterationIndex){
+          OutputConfiguration outputConfiguration,
+          OutputAdapter outputAdapter,
+          TimePeriod timePeriod,
+          int iterationIndex){
     // do nothing
   }
 

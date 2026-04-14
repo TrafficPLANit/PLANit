@@ -61,9 +61,8 @@ public interface OutputFormatter {
    * 
    * @param outputConfiguration OutputTypeConfiguration for the assignment to be saved
    * @param runId               the id number of the run
-   * @throws PlanItException thrown if there is an error
    */
-  public void initialiseBeforeSimulation(OutputConfiguration outputConfiguration, long runId) throws PlanItException;
+  public void initialiseBeforeSimulation(OutputConfiguration outputConfiguration, long runId);
 
   /**
    * Close resources to store results
