@@ -282,7 +282,7 @@ public class BoundedMultinomialLogit extends ChoiceModel {
 
   /**
    * set  delta
-   * @param delta
+   * @param delta to set
    */
   public void setDelta(double delta) {
     this.delta = delta;

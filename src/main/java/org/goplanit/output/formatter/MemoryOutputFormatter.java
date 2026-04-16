@@ -451,7 +451,6 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @param outputProperty output property to identify the column
    * @param keyValues      values of keys to identify the row
    * @return data map for the specified keys
-   * @throws PlanItException thrown if there is an error
    */
   public Object getOutputDataValue(
           Mode mode,
@@ -459,8 +458,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
           Integer iterationIndex,
           OutputType outputType,
           OutputPropertyType outputProperty,
-          Object[] keyValues)
-      throws PlanItException {
+          Object[] keyValues){
     MultiKeyPlanItData multiKeyPlanItData =
             timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
     return multiKeyPlanItData.getRowValue(outputProperty, keyValues);
@@ -471,7 +469,6 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * 
    * @param outputConfiguration OutputTypeConfiguration for the assignment
    * @param runId               the traffic assignments runId
-   * @throws PlanItException thrown if there is an error
    */
   @Override
   public void initialiseBeforeSimulation(OutputConfiguration outputConfiguration, long runId){

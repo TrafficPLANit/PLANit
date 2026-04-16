@@ -175,11 +175,12 @@ public class MultiKeyPlanItData {
    *
    * @param keyValues array storing the key values
    * @return array storing the data values
-   * @throws PlanItException thrown if the key values array is invalid
    */
-  public Object[] getRowValues(final Object... keyValues) throws PlanItException {
-    PlanItException.throwIf(keyValues.length != outputKeyProperties.length, "Call to getRowValues() has the wrong number of key values");
-    PlanItException.throwIf(!isKeyValuesValid(keyValues), "Call to getRowValues() with one or more keys of the wrong type");
+  public Object[] getRowValues(final Object... keyValues) {
+    PlanItRunTimeException.throwIf(keyValues.length != outputKeyProperties.length,
+        "Call to getRowValues() has the wrong number of key values");
+    PlanItRunTimeException.throwIf(!isKeyValuesValid(keyValues),
+        "Call to getRowValues() with one or more keys of the wrong type");
 
     switch (outputKeyProperties.length) {
     case 1:
@@ -204,9 +205,8 @@ public class MultiKeyPlanItData {
    * @param outputProperty output property of the required column
    * @param keyValues      array storing the key values
    * @return the value of the specified cell
-   * @throws PlanItException thrown if there is an error
    */
-  public Object getRowValue(final OutputPropertyType outputProperty, final Object... keyValues) throws PlanItException {
+  public Object getRowValue(final OutputPropertyType outputProperty, final Object... keyValues) {
     final Object[] rowValues = getRowValues(keyValues);
     final int pos = getPositionOfOutputValueProperty(outputProperty);
     return rowValues[pos];
@@ -228,7 +228,8 @@ public class MultiKeyPlanItData {
     for (int i = 0; i < outputValueProperties.length; i++) {
       if(!outputValues[i].equals(OutputFormatter.NOT_AVAILABLE) &&
           !isValueTypeCorrect(outputValues[i], outputValueProperties[i].getDataType())){
-        throw new PlanItRunTimeException("Property: [%s] of type [%s] in position %d in setRowValues() is of the wrong value type",
+        throw new PlanItRunTimeException(
+            "Property: [%s] of type [%s] in position %d in setRowValues() is of the wrong value type",
                 outputValueProperties[i].getName(), outputValueProperties[i].getDataType(), i);
       }
     }
@@ -258,10 +259,10 @@ public class MultiKeyPlanItData {
    * @param outputProperty output property value specifying the column
    * @param value          data value to be inserted
    * @param keyValues      array of key values specifying the row
-   * @throws PlanItException thrown if there is an error
    */
-  public void putRowValue(final OutputPropertyType outputProperty, final Object value, final Object... keyValues) throws PlanItException {
-    PlanItException.throwIf(keyValues.length != outputKeyProperties.length, "Wrong number of keys used in call to MultiKeyPlanItData");
+  public void putRowValue(final OutputPropertyType outputProperty, final Object value, final Object... keyValues){
+    PlanItRunTimeException.throwIf(keyValues.length != outputKeyProperties.length,
+        "Wrong number of keys used in call to MultiKeyPlanItData");
 
     Object[] outputValues = null;
     switch (outputKeyProperties.length) {

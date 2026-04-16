@@ -48,7 +48,7 @@ public abstract class Converter<T> extends ConverterBase {
    *
    * @param readEntity  read content
    */
-  protected void write(T readEntity) throws PlanItException {
+  protected void write(T readEntity) {
     ConverterWriter<T> writer = ((ConverterWriter<T>) getWriter());
     LOGGER.info(String.format("****************** [START] CONVERTER: WRITE %s [START] ********************",
             writer.getTypeDescription()));
@@ -59,12 +59,12 @@ public abstract class Converter<T> extends ConverterBase {
   }
 
   /**
-   * Convert the reader's parsed content by passing it on to the writer. It is assumed both reader and writer are fully configured when this method is called
-   * 
-   * @throws PlanItException thrown if error
+   * Convert the reader's parsed content by passing it on to the writer. It is assumed both reader and writer are
+   * fully configured when this method is called
+   *
    */
   @SuppressWarnings("unchecked")
-  public void convert() throws PlanItException {
+  public void convert() {
     write(read());
   }
 

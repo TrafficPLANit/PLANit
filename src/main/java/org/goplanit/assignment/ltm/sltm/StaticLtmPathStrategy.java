@@ -332,6 +332,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     var newOdShortestPaths = new OdPathsHashed<>(
             getIdGroupingToken(), StaticLtmDirectedPath.class, getTransportNetwork().getZoning().getOdZones());
 
+    LongAdder pathCounter = new LongAdder();
     Zoning zoning = getTransportNetwork().getZoning();
     OdDemands odDemands = getOdDemands(mode);
     for (var origin : zoning.getOdZones()) {
@@ -355,8 +356,13 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
             continue;
           }
           newOdShortestPaths.setValue(origin, destination, sltmPath);
+          pathCounter.increment();
         }
       }
+    }
+    if(pathCounter.sum() <= 0){
+      LOGGER.warning(String.format("No paths were created for mode %s during OD matrix path creation pass, " +
+              "verify correctness", mode.getIdsAsString()));
     }
     return newOdShortestPaths;
   }

@@ -50,7 +50,8 @@ public class IntermodalConverter<T extends ServiceNetwork, U extends RoutedServi
    * @throws PlanItException thrown when error
    */
   public void convert() throws PlanItException {
-    LOGGER.info("Converting without services, invoke convertWithServices() if you wish to include services in this conversion");
+    LOGGER.info("Converting without services, invoke convertWithServices() if you wish to include services " +
+        "in this conversion");
     super.convert();
   }
 
@@ -61,16 +62,20 @@ public class IntermodalConverter<T extends ServiceNetwork, U extends RoutedServi
    */
   public void convertWithServices() throws PlanItException {
     var reader = ((IntermodalReader<T,U>) getReader());
-    LOGGER.info(String.format("****************** [START] INTERMODAL CONVERTER WITH SERVICES: READ %s [START] ********************", reader.getTypeDescription()));
+    LOGGER.info(String.format("****************** [START] INTERMODAL CONVERTER WITH SERVICES: READ %s [START] " +
+        "********************", reader.getTypeDescription()));
     var quadResult = reader.readWithServices();
     reader.reset();
-    LOGGER.info(String.format("****************** [END]   INTERMODAL CONVERTER WITH SERVICES: READ %s [END]   ********************", reader.getTypeDescription()));
+    LOGGER.info(String.format("****************** [END]   INTERMODAL CONVERTER WITH SERVICES: READ %s [END]   " +
+        "********************", reader.getTypeDescription()));
 
     var writer = (IntermodalWriter<T, U>) getWriter();
-    LOGGER.info(String.format("****************** [START] INTERMODAL CONVERTER WITH SERVICES: WRITE %s [START] ********************", writer.getTypeDescription()));
+    LOGGER.info(String.format("****************** [START] INTERMODAL CONVERTER WITH SERVICES: WRITE %s [START] " +
+        "********************", writer.getTypeDescription()));
     writer.writeWithServices(quadResult.first(), quadResult.second(), quadResult.third(), quadResult.fourth());
     writer.reset();
-    LOGGER.info(String.format("****************** [END]   INTERMODAL CONVERTER WITH SERVICES: WRITE %s [END]   ********************", writer.getTypeDescription()));
+    LOGGER.info(String.format("****************** [END]   INTERMODAL CONVERTER WITH SERVICES: WRITE %s [END]   " +
+        "********************", writer.getTypeDescription()));
   }
 
 }

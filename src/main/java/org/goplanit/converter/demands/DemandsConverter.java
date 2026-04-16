@@ -27,10 +27,9 @@ public class DemandsConverter extends Converter<Demands> {
    * (if not already available)
    *
    * @param demands demands to write
-   * @throws PlanItException thrown when error
    */
   @Override
-  protected void write(Demands demands) throws PlanItException {
+  protected void write(Demands demands) {
     var reader = getReader();
     var writer = getWriter();
 
