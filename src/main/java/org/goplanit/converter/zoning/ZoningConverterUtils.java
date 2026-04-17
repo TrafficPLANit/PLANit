@@ -824,6 +824,7 @@ public class ZoningConverterUtils {
    * @param downstreamAccessNode when true access node is chosen as the downstream node, when false, upstream node is chosen
    * @param accessLinkSegment to create connectoid for
    * @param allowedModes used for the connectoid
+   * @param type         the type of the zone connectoid combination reflecting how it is envisaged to be used
    * @return created connectoid when at least one of the allowed modes is also allowed on the link segment
    */
   public static DirectedConnectoid createAndRegisterDirectedConnectoid(
@@ -857,6 +858,7 @@ public class ZoningConverterUtils {
    *                   attached link segment(s)
    * @param accessLinkSegments to create connectoids for (one per segment)
    * @param allowedModes used for each connectoid
+   * @param type         the type of the zone connectoid combination reflecting how it is envisaged to be used
    * @return created connectoids
    */
   public static Collection<DirectedConnectoid> createAndRegisterDirectedConnectoids(
