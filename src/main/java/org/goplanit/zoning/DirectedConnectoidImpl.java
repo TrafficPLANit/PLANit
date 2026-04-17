@@ -9,8 +9,12 @@ import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.DirectedConnectoidAccessZoneEntry;
 import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.zoning.ZoneConnectoidType;
 
+import java.util.Optional;
 import java.util.logging.Logger;
+
+import static org.goplanit.utils.zoning.ConnectoidAccessZoneEntry.DEFAULT_LENGTH_KM;
 
 
 /**
@@ -34,9 +38,6 @@ public class DirectedConnectoidImpl
 
   /** unique id across directed connectoids */
   protected long directedConnectoidId;
-
-  /** the node access for all access edge segments is either up or downstream */
-  protected Boolean nodeAccessDownstream = null;
 
   /**
    * Generate directed connectoid id
@@ -77,44 +78,64 @@ public class DirectedConnectoidImpl
   protected DirectedConnectoidImpl(
       final IdGroupingToken idToken,
       Node accessNode) {
-    super(idToken);
+    super(idToken, accessNode);
     setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
-    setAccessVertex(accessNode);
   }
 
   /**
    * Constructor
    *
    * @param idToken           contiguous id generation within this group for instances of this class
-   * @param accessZone        the access zone
    * @param accessVertex      the access vertex
+   * @param accessZone        the access zone
    * @param accessSegment     initial access segment
    */
   protected DirectedConnectoidImpl(
-      final IdGroupingToken idToken, Zone accessZone, DirectedVertex accessVertex, EdgeSegment accessSegment) {
-    super(idToken, accessZone, accessVertex);
-    setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
-    getAccessZoneEntry(accessZone).addAccessLinkSegment(accessSegment);
+      final IdGroupingToken idToken, DirectedVertex accessVertex, Zone accessZone, EdgeSegment accessSegment) {
+    this(idToken, accessVertex, accessZone, accessSegment, DEFAULT_LENGTH_KM.get());
   }
 
   /**
    * Constructor
    *
    * @param idToken           contiguous id generation within this group for instances of this class
-   * @param accessZone        the access zone
    * @param accessVertex      the access vertex
+   * @param accessZone        the access zone
    * @param accessSegment     initial access segment
    * @param lengthKm for zone connectoid combination
    */
   protected DirectedConnectoidImpl(
       final IdGroupingToken idToken,
-      Zone accessZone,
       DirectedVertex accessVertex,
+      Zone accessZone,
       EdgeSegment accessSegment,
       double lengthKm) {
-    super(idToken, accessZone, accessVertex, lengthKm);
+    this(idToken, accessVertex, accessZone, accessSegment, lengthKm, ZoneConnectoidType.NONE);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param idToken           contiguous id generation within this group for instances of this class
+   * @param accessVertex      the access vertex
+   * @param accessZone        the access zone for the initial access entry
+   * @param accessSegment     initial access segment for access zone entry
+   * @param lengthKm          length for initial access zone entry
+   * @param type              type for initial access zone entry
+   */
+  protected DirectedConnectoidImpl(
+      final IdGroupingToken idToken,
+      DirectedVertex accessVertex,
+      Zone accessZone,
+      EdgeSegment accessSegment,
+      double lengthKm,
+      ZoneConnectoidType type) {
+    super(idToken, accessVertex, accessZone, lengthKm, type);
     setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
-    getAccessZoneEntry(accessZone).addAccessLinkSegment(accessSegment);
+
+    var initialEntry = getAccessZoneEntry(accessZone);
+    initialEntry.addAccessLinkSegment(accessSegment);
+    initialEntry.setType(type);
   }
 
   /**
@@ -126,7 +147,6 @@ public class DirectedConnectoidImpl
   protected DirectedConnectoidImpl(final DirectedConnectoidImpl other, boolean deepCopy) {
     super(other, deepCopy);
     setDirectedConnectoidId(other.getDirectedConnectoidId());
-    setNodeAccessDownstream(other.isAccessNodeAlwaysDownstream());
   }
 
   // Public
@@ -166,21 +186,20 @@ public class DirectedConnectoidImpl
    * {@inheritDoc}
    */
   @Override
-  public boolean isAccessNodeAlwaysDownstream() {
-    return nodeAccessDownstream;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setNodeAccessDownstream(boolean nodeAccessDownstream) {
-    if(this.nodeAccessDownstream != null && hasAccessLinkSegments()){
-      LOGGER.warning("Unable to change node access direction as it is set and access link segments are still " +
-          "present");
-      return;
+  public boolean isAccessNodeDownstreamOfSegments() {
+    if(!hasAccessZoneEntries()){
+      LOGGER.warning(String.format("Unable to verify access node directionality as no access zones are " +
+          "registered for connectoid (%s)", getIdsAsString()));
+      return false;
     }
-    this.nodeAccessDownstream = nodeAccessDownstream;
+    // assumes when an entry is present it has access segments
+    if(!getFirstAccessZoneEntry().hasAccessLinkSegments()){
+      LOGGER.warning(String.format("Unable to verify access node directionality as no access segments are " +
+          "registered for connectoid (%s)", getIdsAsString()));
+      return false;
+    }
+    // all access segments are vetted upon addition, so we can pick any to verify
+    return getFirstAccessZoneEntry().getFirstAccessLinkSegment().getDownstreamVertex().equals(getAccessVertex());
   }
 
   /**

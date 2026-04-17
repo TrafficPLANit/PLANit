@@ -11,6 +11,9 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.ConnectoidAccessZoneEntry;
 import org.goplanit.utils.zoning.UndirectedConnectoid;
 import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.zoning.ZoneConnectoidType;
+
+import static org.goplanit.utils.zoning.ConnectoidAccessZoneEntry.DEFAULT_LENGTH_KM;
 
 /**
  * Undirected connectoid connecting one or more (transfer/OD) zone(s) to the physical road network, each connection
@@ -61,12 +64,17 @@ public class UndirectedConnectoidImpl extends
    *
    * @param idToken      contiguous id generation within this group for instances of this class
    * @param accessVertex the node in the network (layer) the connectoid connects with
-   * @param accessZone   for the connectoid
+   * @param accessZone   the zone for the zone connectoid combination
    * @param length       for the connection
+   * @param type         the type of the zone connectoid combination reflecting how it is envisaged to be used
    */
   protected UndirectedConnectoidImpl(
-      final IdGroupingToken idToken, final DirectedVertex accessVertex, final Zone accessZone, double length) {
-    super(idToken, accessZone, accessVertex, length);
+      final IdGroupingToken idToken,
+      final DirectedVertex accessVertex,
+      final Zone accessZone,
+      double length,
+      ZoneConnectoidType type) {
+    super(idToken, accessVertex, accessZone, length, type);
     setUndirectedConnectoidId(generateUndirectedConnectoidId(idToken));
     setAccessVertex(accessVertex);
   }
@@ -75,14 +83,16 @@ public class UndirectedConnectoidImpl extends
    * Constructor
    *
    * @param idToken      contiguous id generation within this group for instances of this class
-   * @param accessZone   for the connectoid
    * @param accessVertex the node in the network (layer) the connectoid connects with
+   * @param accessZone   the zone for the zone connectoid combination
+   * @param type         the type of the zone connectoid combination reflecting how it is envisaged to be used
    */
   public UndirectedConnectoidImpl(
-      final IdGroupingToken idToken, final Zone accessZone, final DirectedVertex accessVertex) {
-    super(idToken, accessZone, accessVertex);
-    setUndirectedConnectoidId(generateUndirectedConnectoidId(idToken));
-    setAccessVertex(accessVertex);
+      final IdGroupingToken idToken,
+      final DirectedVertex accessVertex,
+      final Zone accessZone,
+      ZoneConnectoidType type) {
+    this(idToken, accessVertex, accessZone, DEFAULT_LENGTH_KM.get(), type);
   }
 
   /**

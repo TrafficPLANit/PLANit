@@ -9,20 +9,19 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.zoning.Connectoid;
-import org.goplanit.utils.zoning.ConnectoidAccessZoneEntry;
-import org.goplanit.utils.zoning.DirectedConnectoidAccessZoneEntry;
-import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.zoning.*;
 
 import static org.goplanit.utils.zoning.ConnectoidAccessZoneEntry.DEFAULT_LENGTH_KM;
 
 /**
- * connectoid connecting one or more (transfer/OD) zone(s) to the physical road network, the type of connectoid depends on the implementing class
+ * connectoid connecting one or more (transfer/OD) zone(s) to the physical road network, the type of
+ * connectoid depends on the implementing class
  *
  * @author markr
  *
  */
-public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry> extends ExternalIdAbleImpl implements Connectoid<T> {
+public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
+    extends ExternalIdAbleImpl implements Connectoid<T> {
 
   /** generated UID */
   @SuppressWarnings("unused")
@@ -89,28 +88,50 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry> extend
   /**
    * Constructor
    *
-   * @param idToken    contiguous id generation within this group for instances of this class
-   * @param accessZone for the connectoid
+   * @param idToken contiguous id generation within this group for instances of this class
    * @param accessVertex for the connectoid
-   * @param length     for the connection
    */
-  protected ConnectoidImpl(final IdGroupingToken idToken, Zone accessZone, DirectedVertex accessVertex, double length) {
-    this(idToken);
+  public ConnectoidImpl(IdGroupingToken idToken, DirectedVertex accessVertex) {
+    super(generateId(idToken));
     setAccessVertex(accessVertex);
-
-    var entry = createAccessZoneEntry(accessZone);
-    entry.setLengthKm(length);
   }
 
   /**
    * Constructor
    *
    * @param idToken    contiguous id generation within this group for instances of this class
-   * @param accessZone for the connectoid
-   * @param accessVertex to use
+   * @param accessVertex for the connectoid
+   * @param accessZone zone for the zone connectoid combination
+   * @param length    length for the zone connectoid combination
+   * @param type      the type of the zone connectoid combination reflecting how it is envisaged to be used
    */
-  protected ConnectoidImpl(final IdGroupingToken idToken, Zone accessZone, DirectedVertex accessVertex) {
-    this(idToken, accessZone, accessVertex, DEFAULT_LENGTH_KM.get());
+  protected ConnectoidImpl(
+      final IdGroupingToken idToken,
+      DirectedVertex accessVertex,
+      Zone accessZone,
+      double length,
+      ZoneConnectoidType type) {
+    this(idToken, accessVertex);
+
+    var entry = createAccessZoneEntry(accessZone);
+    entry.setLengthKm(length);
+    entry.setType(type);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param idToken    contiguous id generation within this group for instances of this class
+   * @param accessVertex to use
+   * @param accessZone zone for the zone connectoid combination
+   * @param type the type of the zone connectoid combination reflecting how it is envisaged to be used
+   */
+  protected ConnectoidImpl(
+      final IdGroupingToken idToken,
+      DirectedVertex accessVertex,
+      Zone accessZone,
+      ZoneConnectoidType type) {
+    this(idToken, accessVertex, accessZone, DEFAULT_LENGTH_KM.get(), type);
   }
 
   /**

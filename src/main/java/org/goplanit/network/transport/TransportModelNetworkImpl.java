@@ -6,7 +6,6 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
@@ -25,7 +24,6 @@ import org.locationtech.jts.geom.Polygon;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Transport network implementation that is being modeled including both the physical and virtual aspects of it as
@@ -201,11 +199,9 @@ public class TransportModelNetworkImpl
    */
   @Override
   public TransportModelNetworkImpl integrateTransportNetworkViaConnectoids(boolean resetAndRecreateManagedIds){
-    LOGGER.info(String.format("Integrating physical network %d (XML id %s) with zoning %d (XML id %s)",
-            infrastructureNetwork.getId(),
-            infrastructureNetwork.getXmlId() != null ? infrastructureNetwork.getXmlId() : "N/A",
-            zoning.getId(),
-            zoning.getXmlId() != null ? zoning.getXmlId() : "N/A"));
+    LOGGER.info(String.format("Integrating physical network (%s) with zoning (%s)",
+            infrastructureNetwork.getIdsAsString(),
+            zoning.getIdsAsString()));
 
     VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
     if(resetAndRecreateManagedIds){
@@ -248,7 +244,7 @@ public class TransportModelNetworkImpl
       if (accessVertex == null) {
         throw new PlanItRunTimeException("No access vertex found for directed connectoid, this shouldn't happen");
       }
-      boolean isSource = dConnectoid.isAccessNodeAlwaysUpstream();
+      boolean isSource = dConnectoid.isAccessNodeUpstreamOfSegments();
       for(var accessZoneEntry : dConnectoid.getAccessZoneEntries().values()){
         var accessZone = accessZoneEntry.getAccessZone();
         var sourceVertex = zone2SourceCentroidVertexMapping.computeIfAbsent(
@@ -256,7 +252,7 @@ public class TransportModelNetworkImpl
         var sinkVertex = zone2SinkCentroidVertexMapping.computeIfAbsent(
                 accessZone, z -> centroidVertexFactory.registerNew(z.getCentroid()));
 
-        if(accessZoneEntry.hasAccessLinkSegments()){
+        if(!accessZoneEntry.hasAccessLinkSegments()){
           LOGGER.warning("No access link segments registered for directed connectoid (%s), ignored");
           continue;
         }

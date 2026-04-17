@@ -4,11 +4,9 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.zoning.Connectoid;
-import org.goplanit.utils.zoning.DirectedConnectoid;
-import org.goplanit.utils.zoning.DirectedConnectoidFactory;
-import org.goplanit.utils.zoning.DirectedConnectoids;
-import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.zoning.*;
+
+import static org.goplanit.utils.zoning.ConnectoidAccessZoneEntry.DEFAULT_LENGTH_KM;
 
 /**
  * Factory for creating directed connectoids (on container)
@@ -38,10 +36,16 @@ public class DirectedConnectoidFactoryImpl extends
    */
   @Override
   public DirectedConnectoid registerNew(
-      Zone accessZone, boolean downstreamAccessNode, LinkSegment accessLinkSegment, double length) {
+      Zone accessZone,
+      boolean downstreamAccessNode,
+      LinkSegment accessLinkSegment,
+      double length,
+      ZoneConnectoidType type) {
+
     var accessNode = downstreamAccessNode ? accessLinkSegment.getDownstreamNode() : accessLinkSegment.getUpstreamNode();
     DirectedConnectoid newConnectoid =
-        new DirectedConnectoidImpl(getIdGroupingToken(), accessZone, accessNode, accessLinkSegment, length);
+        new DirectedConnectoidImpl(
+            getIdGroupingToken(), accessNode, accessZone, accessLinkSegment, length, type);
     directedConnectoids.register(newConnectoid);
     return newConnectoid;
   }
@@ -50,12 +54,9 @@ public class DirectedConnectoidFactoryImpl extends
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(Zone accessZone, boolean downstreamAccessNode, LinkSegment accessLinkSegment) {
-    var accessNode = downstreamAccessNode ? accessLinkSegment.getDownstreamNode() : accessLinkSegment.getUpstreamNode();
-    DirectedConnectoid newConnectoid =
-        new DirectedConnectoidImpl(getIdGroupingToken(), accessZone, accessNode, accessLinkSegment);
-    directedConnectoids.register(newConnectoid);
-    return newConnectoid;
+  public DirectedConnectoid registerNew(
+      Zone accessZone, boolean downstreamAccessNode, LinkSegment accessLinkSegment, ZoneConnectoidType type) {
+    return registerNew(accessZone, downstreamAccessNode, accessLinkSegment, DEFAULT_LENGTH_KM.get(), type);
   }
 
   /**

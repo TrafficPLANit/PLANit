@@ -23,6 +23,7 @@ import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.zoning.ZoneConnectoidType;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -500,10 +501,7 @@ public class ZoningConverterUtils {
       boolean isLeftHandDrive = DrivingDirectionDefaultByCountry.isLeftHandDrive(countryName);
       boolean onWrongSide = !identifyLinkSegmentsOnWrongSideOf(
           waitingAreaGeometry, Collections.singleton(accessLinkSegment), isLeftHandDrive, geoUtils).isEmpty();
-
-      if(onWrongSide) {
-        return false;
-      }
+      return !onWrongSide;
     }
     return true;
   }
@@ -829,17 +827,19 @@ public class ZoningConverterUtils {
    * @return created connectoid when at least one of the allowed modes is also allowed on the link segment
    */
   public static DirectedConnectoid createAndRegisterDirectedConnectoid(
-          @Nullable String connectoidExternalId,
-          Zoning zoning,
-          final TransferZone accessZone,
-          final boolean downstreamAccessNode,
-          final MacroscopicLinkSegment accessLinkSegment,
-          final Set<Mode> allowedModes){
+      @Nullable String connectoidExternalId,
+      Zoning zoning,
+      final TransferZone accessZone,
+      final boolean downstreamAccessNode,
+      final MacroscopicLinkSegment accessLinkSegment,
+      final Set<Mode> allowedModes,
+      final ZoneConnectoidType type){
 
     final Set<Mode> realAllowedModes = accessLinkSegment.getAllowedModesFrom(allowedModes);
     if(realAllowedModes!= null && !realAllowedModes.isEmpty()) {
+      // CREATE
       var connectoid = zoning.getTransferConnectoids().getFactory().registerNew(
-          accessZone, downstreamAccessNode, accessLinkSegment, true, realAllowedModes);
+          accessZone, downstreamAccessNode, accessLinkSegment, true, realAllowedModes, type);
       connectoid.setExternalId(connectoidExternalId);
       return connectoid;
     }
@@ -865,7 +865,8 @@ public class ZoningConverterUtils {
       final TransferZone transferZone,
       final DirectedVertex accessVertex,
       final Iterable<? extends MacroscopicLinkSegment> accessLinkSegments,
-      final Set<Mode> allowedModes){
+      final Set<Mode> allowedModes,
+      ZoneConnectoidType type){
     Set<DirectedConnectoid> createdConnectoids = new HashSet<>();
 
     // we sort to ensure connectoids are always created in same deterministic order
@@ -877,9 +878,9 @@ public class ZoningConverterUtils {
                 "Chosen access node %s not attached to link segment %s",
                 accessVertex.getIdsAsString(), accessLinkSegment.getIdsAsString());
       }
-
+      // CREATE
       DirectedConnectoid newConnectoid = createAndRegisterDirectedConnectoid(
-              connectoidExternalId, zoning, transferZone, downstreamAccessNode, accessLinkSegment, allowedModes);
+              connectoidExternalId, zoning, transferZone, downstreamAccessNode, accessLinkSegment, allowedModes, type);
       if(newConnectoid != null) {
         createdConnectoids.add(newConnectoid);
       }

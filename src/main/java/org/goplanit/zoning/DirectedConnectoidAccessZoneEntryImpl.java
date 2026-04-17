@@ -82,6 +82,7 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
       LOGGER.warning(String.format("Unable to add access segment (%s) to directed connectoid (%s), " +
               "it is inconsistent in orientation compared to other access segments",
           accessEdgeSegment.getIdsAsString(), parentConnectoid.getIdsAsString()));
+      return false;
     }
     var old = accessEdgeSegments.put(accessEdgeSegment.getId(), accessEdgeSegment);
     return old != null;

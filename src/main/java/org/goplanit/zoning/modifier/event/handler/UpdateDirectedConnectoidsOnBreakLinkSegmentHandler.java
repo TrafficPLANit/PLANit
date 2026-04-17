@@ -56,15 +56,16 @@ public class UpdateDirectedConnectoidsOnBreakLinkSegmentHandler implements Direc
         brokenEdgeSegment.getDownstreamVertex().getPosition())) {
       connectoids = connectoidsAccessNodeLocationBeforeBreakLink.get(
           brokenEdgeSegment.getDownstreamVertex().getPosition());
-      if (connectoids == null || connectoids.isEmpty()){
-        return;
-      }
+    }
 
-      if (!connectoids.stream().allMatch(c -> c.getAccessVertex().equals(vertex))) {
-        LOGGER.severe("update of connectoids only supported when access node matches vertex at hand, " +
-                    "this is not the case");
-        return;
-      }
+    if (connectoids == null || connectoids.isEmpty()){
+      return;
+    }
+
+    if (!connectoids.stream().allMatch(c -> c.getAccessVertex().equals(vertex))) {
+      LOGGER.severe("update of connectoids only supported when access node matches vertex at hand, " +
+          "this is not the case");
+      return;
     }
 
     for(var connectoid : connectoids){

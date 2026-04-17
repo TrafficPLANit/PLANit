@@ -36,7 +36,8 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
    * @param groupId                     to use for creating ids for instances
    * @param undirectedConnectoidFactory the factory to use
    */
-  public UndirectedConnectoidsImpl(final IdGroupingToken groupId, UndirectedConnectoidFactory undirectedConnectoidFactory) {
+  public UndirectedConnectoidsImpl(
+      final IdGroupingToken groupId, UndirectedConnectoidFactory undirectedConnectoidFactory) {
     super(groupId);
     this.undirectedConnectoidFactory = undirectedConnectoidFactory;
   }
@@ -48,10 +49,15 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
    * @param deepCopy when true, create a eep copy, shallow copy otherwise
    * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public UndirectedConnectoidsImpl(UndirectedConnectoidsImpl other, boolean deepCopy, BiConsumer<UndirectedConnectoid, UndirectedConnectoid> mapper) {
+  public UndirectedConnectoidsImpl(
+      UndirectedConnectoidsImpl other,
+      boolean deepCopy,
+      BiConsumer<UndirectedConnectoid, UndirectedConnectoid> mapper) {
+
     super(other, deepCopy, mapper);
     this.undirectedConnectoidFactory =
-            new UndirectedConnectoidFactoryImpl(other.undirectedConnectoidFactory.getIdGroupingToken(), this);
+            new UndirectedConnectoidFactoryImpl(
+                other.undirectedConnectoidFactory.getIdGroupingToken(), this);
   }
 
   /**

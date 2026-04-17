@@ -30,8 +30,10 @@ import org.goplanit.utils.misc.Pair;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 /**
- * Implementation of a directed graph modifier that supports making changes to any untyped directed graph. The benefit of using the untyped directed graph is that it does not rely
- * on knowing the specific typed containers used for vertices, edges, edge segments which in turn signals that no information on the underlying factories is required.
+ * Implementation of a directed graph modifier that supports making changes to any untyped directed graph.
+ * The benefit of using the untyped directed graph is that it does not rely
+ * on knowing the specific typed containers used for vertices, edges, edge segments which in turn signals
+ * that no information on the underlying factories is required.
  * 
  * @author markr
  *
@@ -43,7 +45,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
   private static final Logger LOGGER = Logger.getLogger(DirectedGraphModifierImpl.class.getCanonicalName());
 
   /**
-   * Reuse for non-directed modifications aspects while being able to override signatures and generic types for directed graph aspects
+   * Reuse for non-directed modifications aspects while being able to override signatures and generic types for
+   * directed graph aspects
    */
   private final GraphModifierImpl graphModifier;
 
@@ -53,7 +56,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
   @Override
   protected void fireEvent(EventListener eventListener, Event event) {
     if (event.getType() instanceof DirectedGraphModifierEventType) {
-      ((DirectedGraphModifierListener) eventListener).onDirectedGraphModificationEvent(DirectedGraphModificationEvent.class.cast(event));
+      ((DirectedGraphModifierListener) eventListener).onDirectedGraphModificationEvent(
+          DirectedGraphModificationEvent.class.cast(event));
     } else {
       graphModifier.fireEvent(eventListener, event);
     }
@@ -69,7 +73,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
   }
 
   /**
-   * For each broken edge, its underlying edge segments are simply copies of the original edge. These require updating as well. the two original segments are reused on one of the
+   * For each broken edge, its underlying edge segments are simply copies of the original edge. These require
+   * updating as well. the two original segments are reused on one of the
    * two sections of the broken edge, whereas two new segments are created for the other part
    * 
    * @param <Ex>     type of directed edge
@@ -88,8 +93,10 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
         EdgeSegment newEdgeSegmentAb = oldEdgeSegmentAb;
 
         if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentAb)) {
-          /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
-          newEdgeSegmentAb = getUntypedDirectedGraph().getEdgeSegments().getFactory().createUniqueDeepCopyOf(oldEdgeSegmentAb);
+          /* edge segment shallow copy present from breaking link in super implementation, replace by register a
+          unique copy of edge segment on this edge */
+          newEdgeSegmentAb =
+              getUntypedDirectedGraph().getEdgeSegments().getFactory().createUniqueDeepCopyOf(oldEdgeSegmentAb);
           ((GraphEntities<EdgeSegment>) getUntypedDirectedGraph().getEdgeSegments()).register(newEdgeSegmentAb);
           newEdgeSegmentAb.setParent(brokenEdge);
         } else {
@@ -115,8 +122,10 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
         EdgeSegment newEdgeSegmentBa = oldEdgeSegmentBa;
 
         if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentBa)) {
-          /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
-          newEdgeSegmentBa = getUntypedDirectedGraph().getEdgeSegments().getFactory().createUniqueDeepCopyOf(oldEdgeSegmentBa);
+          /* edge segment shallow copy present from breaking link in super implementation,
+          replace by register a unique copy of edge segment on this edge */
+          newEdgeSegmentBa = getUntypedDirectedGraph().getEdgeSegments().getFactory().
+              createUniqueDeepCopyOf(oldEdgeSegmentBa);
           ((GraphEntities<EdgeSegment>) getUntypedDirectedGraph().getEdgeSegments()).register(newEdgeSegmentBa);
           newEdgeSegmentBa.setParent(brokenEdge);
         } else {
@@ -205,12 +214,14 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
     graphModifier.recreateManagedEntitiesIds();
     if (getUntypedDirectedGraph().getEdgeSegments() instanceof ManagedIdEntities<?>) {
       ((ManagedIdEntities<?>) getUntypedDirectedGraph().getEdgeSegments()).recreateIds();
-      fireEvent(new RecreatedDirectedGraphEntitiesManagedIdsEvent(this, (ManagedIdEntities<?>) getUntypedDirectedGraph().getEdgeSegments()));
+      fireEvent(new RecreatedDirectedGraphEntitiesManagedIdsEvent(
+          this, (ManagedIdEntities<?>) getUntypedDirectedGraph().getEdgeSegments()));
     }
   }
 
   /**
-   * Identical to the {@code GraphImpl} implementation except that we now also account for the edge segments present on the edge. Copies of the original edge segments are placed on
+   * Identical to the {@code GraphImpl} implementation except that we now also account for the edge segments
+   * present on the edge. Copies of the original edge segments are placed on
    * (vertexToBreakAt,vertexB), while the original ones are retained at (vertexA,vertexToBreakAt)
    * 
    * @param edgeToBreak     edge to break
@@ -219,7 +230,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * @return newly created edge due to breaking, null if not feasible
    */
   @Override
-  public <Ex extends DirectedEdge> Ex breakEdgeAt(DirectedVertex vertexToBreakAt, Ex edgeToBreak, PlanitJtsCrsUtils geoUtils) {
+  public <Ex extends DirectedEdge> Ex breakEdgeAt(
+      DirectedVertex vertexToBreakAt, Ex edgeToBreak, PlanitJtsCrsUtils geoUtils) {
     Ex aToBreak = edgeToBreak;
     Ex breakToB = graphModifier.breakEdgeAt(vertexToBreakAt, edgeToBreak, geoUtils);
 
