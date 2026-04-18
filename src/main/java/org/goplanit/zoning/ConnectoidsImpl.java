@@ -23,7 +23,8 @@ import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
  * @author markr
  *
  */
-public abstract class ConnectoidsImpl<T extends Connectoid<?>> extends ManagedIdEntitiesImpl<T> implements Connectoids<T> {
+public abstract class ConnectoidsImpl<T extends Connectoid<?>> extends ManagedIdEntitiesImpl<T>
+    implements Connectoids<T> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConnectoidsImpl.class.getCanonicalName());
@@ -32,13 +33,7 @@ public abstract class ConnectoidsImpl<T extends Connectoid<?>> extends ManagedId
    * update the references to all access zones for all connectoids
    */
   protected void updateConnectoidAccessZoneIdReferences() {
-    for (Connectoid connectoid : this) {
-      if (!(connectoid instanceof ConnectoidImpl)) {
-        LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of connectoids " +
-            "interface when attempting to update access zone references");
-      }
-      ((ConnectoidImpl) connectoid).recreateAccessZoneIdMapping();
-    }
+    forEach(c -> c.recreateAccessZoneIdMapping());
   }
 
   /**
@@ -88,9 +83,10 @@ public abstract class ConnectoidsImpl<T extends Connectoid<?>> extends ManagedId
   public Map<Zone, Set<T>> createIndexByAccessZone() {
     HashMap<Zone,Set<T>> indexByAccessZone = new HashMap<>();
     for( Connectoid<?> connectoid : this){
-      for(Zone validAccessZone : connectoid){
-        indexByAccessZone.putIfAbsent(validAccessZone,new HashSet<>());
-        indexByAccessZone.get(validAccessZone).add((T) connectoid);
+      for(var accessZoneEntry : connectoid){
+        var accessZone = accessZoneEntry.getAccessZone();
+        indexByAccessZone.putIfAbsent(accessZone,new HashSet<>());
+        indexByAccessZone.get(accessZone).add((T) connectoid);
       }
     }
     return indexByAccessZone;
@@ -112,5 +108,5 @@ public abstract class ConnectoidsImpl<T extends Connectoid<?>> extends ManagedId
    * {@inheritDoc}
    */
   @Override
-  public abstract ConnectoidsImpl deepCloneWithMapping(BiConsumer<T, T> mapper);
+  public abstract ConnectoidsImpl<T> deepCloneWithMapping(BiConsumer<T, T> mapper);
 }

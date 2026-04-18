@@ -2,7 +2,6 @@ package org.goplanit.zoning;
 
 import java.util.*;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
@@ -43,8 +42,8 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
   protected DirectedVertex accessVertex;
 
 
-  /** the zones and their properties accessible from this connectoid */
-  protected TreeMap<Long,T> accessZoneEntries = new TreeMap<>();
+  /** the zones and their properties accessible from this connectoid by type */
+  protected TreeMap<Long,Map<ZoneConnectoidType, T>> accessZoneEntriesByZoneAndType = new TreeMap<>();
 
   /**
    * Generate connectoid id
@@ -54,17 +53,6 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
    */
   protected static long generateId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Connectoid.class);
-  }
-
-  /**
-   * recreate the id mapping for the registered access zones
-   */
-  protected void recreateAccessZoneIdMapping() {
-    var accessZoneEntriesCloned = new TreeMap<>(getAccessZoneEntries());
-    this.accessZoneEntries = new TreeMap<>();
-    accessZoneEntriesCloned.forEach( (k, v) ->
-        this.accessZoneEntries.put(
-            v.getAccessZone().getId(), v));
   }
 
   /**
@@ -113,9 +101,8 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
       ZoneConnectoidType type) {
     this(idToken, accessVertex);
 
-    var entry = createAccessZoneEntry(accessZone);
+    var entry = createAccessZoneEntry(accessZone, type);
     entry.setLengthKm(length);
-    entry.setType(type);
   }
 
   /**
@@ -146,10 +133,14 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
     this.name = other.name;
     this.accessVertex = other.accessVertex;
 
-    this.accessZoneEntries.clear();
-    other.accessZoneEntries.forEach( (k, v) ->
-        accessZoneEntries.put( k, (T) (deepCopy ? v.deepClone() : v.shallowClone())));
-
+    this.accessZoneEntriesByZoneAndType.clear();
+    other.accessZoneEntriesByZoneAndType.forEach( (k, v) ->
+        {
+          var newV = new TreeMap<>(v);
+          accessZoneEntriesByZoneAndType.put( k, newV);
+          v.forEach( (type,entry) -> newV.put(
+              type,  (T) (deepCopy ? entry.deepClone() : entry.shallowClone()) ));
+        });
   }
 
   // Public
@@ -194,80 +185,41 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
    * {@inheritDoc}
    */
   @Override
-  public Map<Long, T> getAccessZoneEntries() {
-    return accessZoneEntries;
-  }
-
-  @Override
-  public T getAccessZoneEntry(Zone accessZone) {
-    return getAccessZoneEntries().get(accessZone.getId());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public T getFirstAccessZoneEntry() {
-    return getAccessZoneEntries().values().iterator().next();
+  public T removeAccessZoneEntry(Zone accessZone, ZoneConnectoidType type){
+    if(!hasAccessZoneEntry(accessZone)){
+      return null;
+    }
+    return getAccessZoneEntriesByType(accessZone).remove(type);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public int getNumberOfAccessZoneEntries() {
-    return accessZoneEntries.size();
+  public Map<Long, Map<ZoneConnectoidType, T>> getAccessZoneEntriesByType() {
+    return accessZoneEntriesByZoneAndType;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public boolean hasAccessZoneEntry(Zone accessZone) {
-    if (accessZone == null) {
+  public boolean isModeAllowed(Zone accessZone, ZoneConnectoidType type, Mode mode) {
+    if (!hasAccessZoneEntry(accessZone, type)) {
+      LOGGER.warning(String.format("unknown access zone (%s) with type %s for connectoid (%s) " +
+          "when checking if mode is allowed", accessZone.getIdsAsString(), type, getIdsAsString()));
       return false;
     }
-    return accessZoneEntries.containsKey(accessZone.getId());
+    return getAccessZoneEntry(accessZone, type).isModeAllowed(mode);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public boolean isModeAllowed(Zone accessZone, Mode mode) {
-    if (!hasAccessZoneEntry(accessZone)) {
-      LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when checking if mode " +
-          "is allowed", accessZone.getXmlId(), accessZone.getId(), getXmlId(), getId()));
-      return false;
-    }
-    return accessZoneEntries.get(accessZone.getId()).isModeAllowed(mode);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Iterator<Zone> iterator() {
-    Iterator<Zone> it = new Iterator<>() {
-
-      private final Iterator<? extends T> iterator = getAccessZoneEntries().values().iterator();
-
-      @Override
-      public boolean hasNext() {
-        return iterator.hasNext();
-      }
-
-      @Override
-      public Zone next() {
-        return iterator.next().getAccessZone();
-      }
-
-      @Override
-      public void remove() {
-        throw new UnsupportedOperationException();
-      }
-    };
-    return it;
+  public Iterator<T> iterator() {
+    return getAccessZoneEntriesByType().values().stream().flatMap(
+        e -> e.values().stream()).iterator();
   }
 
   /**
@@ -278,6 +230,19 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
     long newId = generateId(tokenId);
     setId(newId);
     return newId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateAccessZoneIdMapping() {
+    var accessZoneEntriesCloned = new TreeMap<>(this.accessZoneEntriesByZoneAndType);
+    this.accessZoneEntriesByZoneAndType = new TreeMap<>();
+    accessZoneEntriesCloned.forEach( (k, v) -> {
+      this.accessZoneEntriesByZoneAndType.put(
+          v.values().iterator().next().getAccessZone().getId(), v);
+    });
   }
 
   /**

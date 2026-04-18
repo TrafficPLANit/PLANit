@@ -442,8 +442,12 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     // so we do them individually, not pretty but works fine
     var transform = PlanitJtsUtils.findMathTransform(crs, newCoordinateReferenceSystem);
     Stream.concat(getOdZones().stream(), getTransferZones().stream()).forEach(zone -> {
-              PlanitJtsUtils.transformGeometry(zone.getGeometry(), transform);
-              if (zone.getCentroid().hasPosition()) {
+              if(!zone.hasGeometry()){
+                return;
+              }else {
+                PlanitJtsUtils.transformGeometry(zone.getGeometry(), transform);
+              }
+              if (zone.hasCentroid() && zone.getCentroid().hasPosition()) {
                 PlanitJtsUtils.transformGeometry(zone.getCentroid().getPosition(), transform);
               }
             }

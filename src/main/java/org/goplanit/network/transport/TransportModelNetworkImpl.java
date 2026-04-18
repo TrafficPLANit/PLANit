@@ -8,14 +8,12 @@ import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.CentroidVertexFactory;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
 import org.goplanit.utils.network.virtual.physical.ConnectoidLinkFactory;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegmentFactory;
-import org.goplanit.utils.zoning.Connectoid;
-import org.goplanit.utils.zoning.DirectedConnectoid;
-import org.goplanit.utils.zoning.UndirectedConnectoid;
-import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.zoning.*;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
@@ -23,6 +21,7 @@ import org.locationtech.jts.geom.Polygon;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 /**
@@ -151,6 +150,7 @@ public class TransportModelNetworkImpl
    * @param connectoidSegmentFactory factory to use
    * @param centroidVertex           centroid vertex created for the access zone
    * @param accessZone               at hand for the current connectoid
+   * @param type                     type of connectoid zone entry
    * @param connectoid               the connectoid at hand used to extract length to access zone
    * @param geoTools                 to use for geometry creation
    * @param fromSource               when true create link and segment away from provided centroid vertex, otherwise
@@ -161,11 +161,12 @@ public class TransportModelNetworkImpl
       ConnectoidSegmentFactory connectoidSegmentFactory,
       CentroidVertex centroidVertex,
       Zone accessZone,
-      Connectoid connectoid,
+      ZoneConnectoidType type,
+      Connectoid<?> connectoid,
       PlanitJtsCrsUtils geoTools,
       boolean fromSource) {
 
-    double connectoidLength = connectoid.getAccessZoneEntry(accessZone).getLengthKm().orElseThrow(
+    double connectoidLength = connectoid.getAccessZoneEntry(accessZone, type).getLengthKm().orElseThrow(
         () -> new PlanItRunTimeException(
                 "Unable to retrieve length for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
     var connectoidEdge =
@@ -180,6 +181,70 @@ public class TransportModelNetworkImpl
     /* populate geometry as well */
     populateConnectoidGeometry(connectoidEdge, geoTools);
   }
+
+  /**
+   * Create connectoid links/segments for transfer connectoids. We create a single link and segment in indicated
+   * direction for each unique access segment of a connectoids zone/type combination. We do so because we assume
+   * that the type imposes restrictions on the allowed modes and as such is allowed to have different lengths specified
+   * and therefore must be kept separate from other types. within this, we collate all unique access segment across all
+   * modes and create a single link/segment.
+   *
+   * @param isSource flag whether we do source/sink
+   * @param zone2CentroidVertexMappingToPopulate mapping to update if centroid of zone processed for connectoid
+   *                                             not already tracked
+   * @param centroidVertexFactory factory for centroid vertices
+   * @param cLinkFactory factory for connectoid links
+   * @param cSegmentFactory factory for connectoid segments
+   * @param geoTools geo tools to use
+   */
+  protected void createTransferConnectoidVirtualLinksAndSegments(
+      boolean isSource,
+      Map<Zone, CentroidVertex> zone2CentroidVertexMappingToPopulate,
+      CentroidVertexFactory centroidVertexFactory,
+      ConnectoidLinkFactory cLinkFactory,
+      ConnectoidSegmentFactory cSegmentFactory,
+      PlanitJtsCrsUtils geoTools){
+
+    Predicate<DirectedConnectoid> accessNodeLocationFilter = null;
+    if(isSource){
+      accessNodeLocationFilter = DirectedConnectoid::isAccessNodeUpstreamOfSegments;
+    }else{
+      accessNodeLocationFilter = DirectedConnectoid::isAccessNodeDownstreamOfSegments;
+    }
+
+    zoning.getTransferConnectoids().stream().filter(accessNodeLocationFilter).forEach(
+        c -> {
+          var accessVertex = c.getAccessVertex();
+          if (accessVertex == null) {
+            throw new PlanItRunTimeException("No access vertex found for directed connectoid, this shouldn't happen");
+          }
+
+          // populate mapping for source vertices/centroids and vreate lniks/segments
+          c.getAccessZoneStream().forEach(accessZone -> {
+            zone2CentroidVertexMappingToPopulate.computeIfAbsent(
+                accessZone, theZ -> centroidVertexFactory.registerNew(theZ.getCentroid()));
+
+            var sourceVertex = zone2CentroidVertexMappingToPopulate.get(accessZone);
+            var entriesForZoneByType = c.getAccessZoneEntriesByType(accessZone);
+            if(entriesForZoneByType== null || entriesForZoneByType.isEmpty()){
+              return;
+            }
+
+            entriesForZoneByType.forEach((currType, value) -> {
+              //all source entries filtered to current zone/type combo - for now we disregard modes on the
+              // virtual links/segments. For all unique access segments known we create source virtual links
+              Predicate<DirectedConnectoidAccessZoneEntry> zoneTypeFilter =
+                  e -> e.getAccessZone() == accessZone &&
+                      e.getType().equals(currType);
+
+              c.getAccessLinkSegmentsStream(zoneTypeFilter).forEach(ls -> {
+                createAndRegisterConnectoidLinkAndEdgeSegment(
+                    cLinkFactory, cSegmentFactory, sourceVertex, accessZone, currType, c, geoTools, isSource);
+              }); //  link segments
+            }); // type/entries
+          }); // zones
+    }); //connectoids
+}
 
   // Public
 
@@ -214,61 +279,47 @@ public class TransportModelNetworkImpl
     var centroidVertexFactory = virtualNetwork.getLayer().getVertices().getFactory();
     var cLinkFactory = virtualNetwork.getLayer().getConnectoidLinks().getFactory();
     var cSegmentFactory = virtualNetwork.getLayer().getConnectoidSegments().getFactory();
-
     var geoTools = new PlanitJtsCrsUtils(getInfrastructureNetwork().getCoordinateReferenceSystem());
 
     // create two centroid vertices per centroid one for the source and one for the sink
     //  for origin-destination zones these two should not be connected to eac other to avoid traffic through centroids..
+    // todo: migrate to transfer connectoid approach which is more elegant once structure of od connectoids is updated
     Map<Zone, CentroidVertex> zone2SourceCentroidVertexMapping = new HashMap<>();
     Map<Zone, CentroidVertex> zone2SinkCentroidVertexMapping = new HashMap<>();
     for (UndirectedConnectoid uConnectoid : zoning.getOdConnectoids()) {
-      for(var accessZoneEntry : uConnectoid.getAccessZoneEntries().values()){
-        var accessZone = accessZoneEntry.getAccessZone();
-        var sourceVertex = zone2SourceCentroidVertexMapping.computeIfAbsent(
-            accessZone, z -> centroidVertexFactory.registerNew(z.getCentroid()));
-        var sinkVertex = zone2SinkCentroidVertexMapping.computeIfAbsent(
-            accessZone, z -> centroidVertexFactory.registerNew(z.getCentroid()));
-        boolean fromSource = true;
-        createAndRegisterConnectoidLinkAndEdgeSegment(
-            cLinkFactory, cSegmentFactory, sourceVertex, accessZone, uConnectoid, geoTools, fromSource);
-        fromSource = false;
-        createAndRegisterConnectoidLinkAndEdgeSegment(
-                cLinkFactory, cSegmentFactory, sinkVertex, accessZone, uConnectoid, geoTools, fromSource);
-      }
-    }
-
-    //  .. for transfer zones this may depend on how the transfers are modelled, one layers sink is another
-    //  layer's source, we now check this and only create it as sink or source depending on the connectoid
-    for (DirectedConnectoid dConnectoid : zoning.getTransferConnectoids()) {
-      var accessVertex = dConnectoid.getAccessVertex();
-      if (accessVertex == null) {
-        throw new PlanItRunTimeException("No access vertex found for directed connectoid, this shouldn't happen");
-      }
-      boolean isSource = dConnectoid.isAccessNodeUpstreamOfSegments();
-      for(var accessZoneEntry : dConnectoid.getAccessZoneEntries().values()){
-        var accessZone = accessZoneEntry.getAccessZone();
-        var sourceVertex = zone2SourceCentroidVertexMapping.computeIfAbsent(
-                accessZone, z -> centroidVertexFactory.registerNew(z.getCentroid()));
-        var sinkVertex = zone2SinkCentroidVertexMapping.computeIfAbsent(
-                accessZone, z -> centroidVertexFactory.registerNew(z.getCentroid()));
-
-        if(!accessZoneEntry.hasAccessLinkSegments()){
-          LOGGER.warning("No access link segments registered for directed connectoid (%s), ignored");
-          continue;
-        }
-
-        // todo: should consider supported modes this is missing
-        if(isSource) {
+      for(var zoneIdToTypeEntriesMapEntry : uConnectoid.getAccessZoneEntriesByType().entrySet()){
+        var accessZone = zoning.getZone(zoneIdToTypeEntriesMapEntry.getKey());
+        for(var typeZoneConnectoidEntries : zoneIdToTypeEntriesMapEntry.getValue().entrySet()){
+          var type = typeZoneConnectoidEntries.getKey();
+          var sourceVertex = zone2SourceCentroidVertexMapping.computeIfAbsent(
+              accessZone, z -> centroidVertexFactory.registerNew(z.getCentroid()));
+          var sinkVertex = zone2SinkCentroidVertexMapping.computeIfAbsent(
+              accessZone, z -> centroidVertexFactory.registerNew(z.getCentroid()));
+          boolean fromSource = true;
           createAndRegisterConnectoidLinkAndEdgeSegment(
-              cLinkFactory, cSegmentFactory, sourceVertex, accessZone, dConnectoid, geoTools, isSource);
-        }else {
+              cLinkFactory, cSegmentFactory, sourceVertex, accessZone, type, uConnectoid, geoTools, fromSource);
+          fromSource = false;
           createAndRegisterConnectoidLinkAndEdgeSegment(
-              cLinkFactory, cSegmentFactory, sinkVertex, accessZone, dConnectoid, geoTools, isSource);
+              cLinkFactory, cSegmentFactory, sinkVertex, accessZone, type, uConnectoid, geoTools, fromSource);
         }
       }
     }
+
+    //  .. for transfer zones this may depend on how the transfers are modeled, also we keep it simple for now by not
+    //  creating separate links/segments based on mode access, but rely on the connectoid entry segment entries for that
+    // to be picked up.
+
+    // source connectoids first, then sinks
+    boolean isSource = true;
+    createTransferConnectoidVirtualLinksAndSegments(
+        isSource, zone2SourceCentroidVertexMapping, centroidVertexFactory, cLinkFactory, cSegmentFactory, geoTools);
+    isSource = false;
+    createTransferConnectoidVirtualLinksAndSegments(
+        isSource, zone2SinkCentroidVertexMapping, centroidVertexFactory, cLinkFactory, cSegmentFactory, geoTools);
     return this;
   }
+
+
 
   /**
    * {@inheritDoc}

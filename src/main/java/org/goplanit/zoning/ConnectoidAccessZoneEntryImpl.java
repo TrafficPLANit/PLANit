@@ -22,7 +22,7 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
   protected Optional<Double> lengthKm = DEFAULT_LENGTH_KM;
 
   /** type of the connectoid to zone combination */
-  protected ZoneConnectoidType type = DEFAULT_CONNECTOID_TYPE;
+  protected final ZoneConnectoidType type;
 
   /** the explicitly allowed modes, when null all modes allowed */
   private TreeMap<Long, Mode> explicitAllowedModes = null;
@@ -32,8 +32,9 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
    *
    * @param accessZone to use
    */
-  protected ConnectoidAccessZoneEntryImpl(Zone accessZone) {
+  protected ConnectoidAccessZoneEntryImpl(Zone accessZone, ZoneConnectoidType type) {
     this.accessZone = accessZone;
+    this.type = type;
   }
 
   /**
@@ -51,11 +52,6 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
     if (other.explicitAllowedModes != null) {
       this.explicitAllowedModes = new TreeMap<>(other.explicitAllowedModes);
     }
-  }
-
-  @Override
-  public void setType(ZoneConnectoidType type) {
-    this.type = type;
   }
 
   @Override

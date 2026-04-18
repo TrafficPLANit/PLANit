@@ -4,14 +4,13 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.DirectedConnectoidAccessZoneEntry;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.utils.zoning.ZoneConnectoidType;
 
-import java.util.Optional;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import static org.goplanit.utils.zoning.ConnectoidAccessZoneEntry.DEFAULT_LENGTH_KM;
@@ -133,9 +132,8 @@ public class DirectedConnectoidImpl
     super(idToken, accessVertex, accessZone, lengthKm, type);
     setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
 
-    var initialEntry = getAccessZoneEntry(accessZone);
+    var initialEntry = getAccessZoneEntry(accessZone, type);
     initialEntry.addAccessLinkSegment(accessSegment);
-    initialEntry.setType(type);
   }
 
   /**
@@ -166,19 +164,21 @@ public class DirectedConnectoidImpl
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoidAccessZoneEntry createAccessZoneEntry(Zone accessZone){
+  public DirectedConnectoidAccessZoneEntry createAccessZoneEntry(Zone accessZone, ZoneConnectoidType type){
     if (accessZone == null) {
       LOGGER.warning(String.format(
           "Unable to add access zone to directed connectoid %s, it is null", getIdsAsString()));
+      return null;
     }
-    if(hasAccessZoneEntry(accessZone)){
-      LOGGER.warning(String.format("Cannot create access zone entry for connectoid (%s) as one already exists for zone" +
-              "(%d)",
+    if(hasAccessZoneEntry(accessZone, type)){
+      LOGGER.warning(String.format("Cannot create access zone entry for connectoid (%s) as " +
+              "one already exists for zone (%s)",
           getIdsAsString(), accessZone.getIdsAsString()));
       return null;
     }
-    var newEntry = new DirectedConnectoidAccessZoneEntryImpl(this, accessZone);
-    getAccessZoneEntries().put(accessZone.getId(), newEntry);
+    var newEntry = new DirectedConnectoidAccessZoneEntryImpl(this, accessZone, type);
+    getAccessZoneEntriesByType().putIfAbsent(accessZone.getId(),new TreeMap<>());
+    getAccessZoneEntriesByType().get(accessZone.getId()).put(type, newEntry);
     return newEntry;
   }
 

@@ -1,13 +1,11 @@
 package org.goplanit.zoning;
 
-import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.ConnectoidAccessZoneEntry;
 import org.goplanit.utils.zoning.UndirectedConnectoid;
 import org.goplanit.utils.zoning.Zone;
@@ -136,13 +134,21 @@ public class UndirectedConnectoidImpl extends
    * {@inheritDoc}
    */
   @Override
-  public ConnectoidAccessZoneEntry createAccessZoneEntry(Zone accessZone){
+  public ConnectoidAccessZoneEntry createAccessZoneEntry(Zone accessZone, ZoneConnectoidType type){
     if (accessZone == null) {
-      LOGGER.warning(String.format("unable to add access zone to undirected connectoid %s, it is null",
-          getIdsAsString()));
+      LOGGER.warning(String.format(
+          "Unable to add access zone to undirected connectoid %s, it is null", getIdsAsString()));
+      return null;
     }
-    var newEntry = new ConnectoidAccessZoneEntryImpl(accessZone);
-    getAccessZoneEntries().put(accessZone.getId(), newEntry);
+    if(hasAccessZoneEntry(accessZone, type)){
+      LOGGER.warning(String.format("Cannot create access zone entry for undirected connectoid (%s) as " +
+              "one already exists for zone (%s)",
+          getIdsAsString(), accessZone.getIdsAsString()));
+      return null;
+    }
+    var newEntry = new ConnectoidAccessZoneEntryImpl(accessZone, type);
+    getAccessZoneEntriesByType().putIfAbsent(accessZone.getId(),new TreeMap<>());
+    getAccessZoneEntriesByType().get(accessZone.getId()).put(type, newEntry);
     return newEntry;
   }
 

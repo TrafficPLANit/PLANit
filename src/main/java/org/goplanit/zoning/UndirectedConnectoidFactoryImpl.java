@@ -36,8 +36,7 @@ public class UndirectedConnectoidFactoryImpl
       Zone accessZone, Node accessNode, ZoneConnectoidType type, double length) {
 
     UndirectedConnectoid newConnectoid = registerNew(accessNode);
-    var entry = newConnectoid.createAccessZoneEntry(accessZone);
-    entry.setType(type);
+    var entry = newConnectoid.createAccessZoneEntry(accessZone, type);
     entry.setLengthKm(length);
     return newConnectoid;
   }

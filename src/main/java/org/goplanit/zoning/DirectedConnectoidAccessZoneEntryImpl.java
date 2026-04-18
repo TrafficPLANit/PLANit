@@ -55,9 +55,11 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
    *
    * @param parentConnectoid parent
    * @param accessZone to use
+   * @param type the type
    */
-  protected DirectedConnectoidAccessZoneEntryImpl(DirectedConnectoid parentConnectoid, Zone accessZone) {
-    super(accessZone);
+  protected DirectedConnectoidAccessZoneEntryImpl(
+      DirectedConnectoid parentConnectoid, Zone accessZone, ZoneConnectoidType type) {
+    super(accessZone, type);
     this.parentConnectoid = parentConnectoid;
   }
 
