@@ -297,7 +297,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
     Ex aToBreak = edgeToBreak;
 
     /* create unique copy of edge with unique id and register it, do a deep copy to ensure any input properties
-     are duplicated */
+     are duplicated (but shallow copy of non-owned entries) */
     Ex breakToB = (Ex) theGraph.getEdges().getFactory().createUniqueDeepCopyOf(edgeToBreak);
     ((GraphEntities<Ex>) theGraph.getEdges()).register(breakToB);
 

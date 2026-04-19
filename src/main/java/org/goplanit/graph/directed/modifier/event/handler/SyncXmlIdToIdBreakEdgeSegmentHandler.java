@@ -45,18 +45,21 @@ public class SyncXmlIdToIdBreakEdgeSegmentHandler implements DirectedGraphModifi
    */
   @Override
   public void onGraphModificationEvent(GraphModificationEvent event) {
-    LOGGER.warning(String.format("%s only supports break edge segment events", SyncXmlIdToIdBreakEdgeSegmentHandler.class.getName()));
+    LOGGER.warning(String.format("%s only supports break edge segment events",
+        SyncXmlIdToIdBreakEdgeSegmentHandler.class.getName()));
   }
 
   @Override
   public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
     if (!event.getType().equals(BreakEdgeSegmentEvent.EVENT_TYPE)) {
-      LOGGER.warning(String.format("%s only supports break edge segment events", SyncXmlIdToIdBreakEdgeSegmentHandler.class.getName()));
+      LOGGER.warning(String.format("%s only supports break edge segment events",
+          SyncXmlIdToIdBreakEdgeSegmentHandler.class.getName()));
       return;
     }
 
     BreakEdgeSegmentEvent breakEdgeSegmentEvent = BreakEdgeSegmentEvent.class.cast(event);
-    breakEdgeSegmentEvent.getNewlyBrokenEdgeSegment().setXmlId(String.valueOf(breakEdgeSegmentEvent.getNewlyBrokenEdgeSegment().getId()));
+    breakEdgeSegmentEvent.getNewlyBrokenEdgeSegment().setXmlId(
+        String.valueOf(breakEdgeSegmentEvent.getNewlyBrokenEdgeSegment().getId()));
   }
 
 }

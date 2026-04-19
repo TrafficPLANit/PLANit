@@ -63,9 +63,9 @@ public class DirectedConnectoidFactoryImpl extends
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(Node accessNode) {
+  public DirectedConnectoid registerNew(Node accessNode, boolean accessNodeDownstreamOfSegments) {
     DirectedConnectoid newConnectoid =
-        new DirectedConnectoidImpl(getIdGroupingToken(), accessNode);
+        new DirectedConnectoidImpl(getIdGroupingToken(), accessNode, accessNodeDownstreamOfSegments);
     directedConnectoids.register(newConnectoid);
     return newConnectoid;
   }

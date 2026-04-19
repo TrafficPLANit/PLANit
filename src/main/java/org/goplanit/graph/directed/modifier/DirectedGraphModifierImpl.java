@@ -109,7 +109,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
         newEdgeSegmentAb.setParent(brokenEdge);
 
         if (hasListener(BreakEdgeSegmentEvent.EVENT_TYPE)) {
-          fireEvent(new BreakEdgeSegmentEvent(this, vertexAtBreak, newEdgeSegmentAb));
+          fireEvent(new BreakEdgeSegmentEvent(this, vertexAtBreak, newEdgeSegmentAb, oldEdgeSegmentAb));
         }
 
         /* useful for debugging */
@@ -136,7 +136,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
         newEdgeSegmentBa.setParent(brokenEdge);
 
         if (hasListener(BreakEdgeSegmentEvent.EVENT_TYPE)) {
-          fireEvent(new BreakEdgeSegmentEvent(this, vertexAtBreak, newEdgeSegmentBa));
+          fireEvent(new BreakEdgeSegmentEvent(this, vertexAtBreak, newEdgeSegmentBa, oldEdgeSegmentBa));
         }
 
         /* useful for debugging */

@@ -38,6 +38,10 @@ public class DirectedConnectoidImpl
   /** unique id across directed connectoids */
   protected long directedConnectoidId;
 
+  /** explicitly tracked rather than derived because when we modify network and start breaking links we otherwise
+   * lose this information or it is inferred incorrectly. So be safe and track state */
+  protected final boolean accessNodeDownstreamOfSegments;
+
   /**
    * Generate directed connectoid id
    *
@@ -61,24 +65,16 @@ public class DirectedConnectoidImpl
    * Constructor
    *
    * @param idToken           contiguous id generation within this group for instances of this class
-   */
-  protected DirectedConnectoidImpl(
-      final IdGroupingToken idToken) {
-    super(idToken);
-    setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
-  }
-
-  /**
-   * Constructor
-   *
-   * @param idToken           contiguous id generation within this group for instances of this class
    * @param accessNode        the access node
+   * @param accessNodeDownstreamOfSegments set directionality
    */
   protected DirectedConnectoidImpl(
       final IdGroupingToken idToken,
-      Node accessNode) {
+      Node accessNode,
+      boolean accessNodeDownstreamOfSegments) {
     super(idToken, accessNode);
     setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
+    this.accessNodeDownstreamOfSegments = accessNodeDownstreamOfSegments;
   }
 
   /**
@@ -134,6 +130,8 @@ public class DirectedConnectoidImpl
 
     var initialEntry = getAccessZoneEntry(accessZone, type);
     initialEntry.addAccessLinkSegment(accessSegment);
+
+    this.accessNodeDownstreamOfSegments = accessSegment.getDownstreamVertex().equals(getAccessVertex());
   }
 
   /**
@@ -145,6 +143,7 @@ public class DirectedConnectoidImpl
   protected DirectedConnectoidImpl(final DirectedConnectoidImpl other, boolean deepCopy) {
     super(other, deepCopy);
     setDirectedConnectoidId(other.getDirectedConnectoidId());
+    this.accessNodeDownstreamOfSegments = other.isAccessNodeDownstreamOfSegments();
   }
 
   // Public
@@ -187,19 +186,7 @@ public class DirectedConnectoidImpl
    */
   @Override
   public boolean isAccessNodeDownstreamOfSegments() {
-    if(!hasAccessZoneEntries()){
-      LOGGER.warning(String.format("Unable to verify access node directionality as no access zones are " +
-          "registered for connectoid (%s)", getIdsAsString()));
-      return false;
-    }
-    // assumes when an entry is present it has access segments
-    if(!getFirstAccessZoneEntry().hasAccessLinkSegments()){
-      LOGGER.warning(String.format("Unable to verify access node directionality as no access segments are " +
-          "registered for connectoid (%s)", getIdsAsString()));
-      return false;
-    }
-    // all access segments are vetted upon addition, so we can pick any to verify
-    return getFirstAccessZoneEntry().getFirstAccessLinkSegment().getDownstreamVertex().equals(getAccessVertex());
+    return this.accessNodeDownstreamOfSegments;
   }
 
   /**
