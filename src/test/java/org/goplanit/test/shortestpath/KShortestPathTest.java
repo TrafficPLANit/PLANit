@@ -20,6 +20,7 @@ import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.path.SimpleDirectedPathFactoryImpl;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
+import org.goplanit.utils.zoning.ZoneConnectoidType;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,7 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import java.util.Map;
 import java.util.logging.Logger;
@@ -156,8 +156,10 @@ public class KShortestPathTest {
       createPhysicalLinkSegment("F","H", 1.0);
       createPhysicalLinkSegment("G","H", 2.0);
 
-      zoning.getOdConnectoids().getFactory().registerNew(zoneA, networkLayer.getNodes().getByXmlId("C"),  0.1);
-      zoning.getOdConnectoids().getFactory().registerNew(zoneB, networkLayer.getNodes().getByXmlId("H"), 0.1);
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(
+          zoneA, networkLayer.getNodes().getByXmlId("C"),  ZoneConnectoidType.ZONE_ACCESS_EGRESS, 0.1);
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(
+          zoneB, networkLayer.getNodes().getByXmlId("H"), ZoneConnectoidType.ZONE_ACCESS_EGRESS, 0.1);
 
       transportNetwork = new TransportModelNetworkImpl(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids(false);

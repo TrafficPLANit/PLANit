@@ -236,10 +236,10 @@ public class sLtmAssignmentBushZeroFlowDiscontinuityTest {
       zoneFactory.registerNew().setXmlId("D2");
 
       var connectoidFactory = zoning.getOdConnectoids().getFactory();
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("O1"), nodes.getByXmlId("0"),   0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("O2"), nodes.getByXmlId("3"),   0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("D2"), nodes.getByXmlId("5"),   0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("D1"), nodes.getByXmlId("6"),   0);
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("O1"), nodes.getByXmlId("0"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("O2"), nodes.getByXmlId("3"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("D2"), nodes.getByXmlId("5"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("D1"), nodes.getByXmlId("6"));
                       
     }catch(Exception e) {
       e.printStackTrace();

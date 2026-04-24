@@ -140,10 +140,10 @@ public class SLtmNetworkLoadingPathTest {
       zoning.getOdZones().getFactory().registerNew().setXmlId("D");
 
       var connectoidFactory = zoning.getOdConnectoids().getFactory();
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A"), nodes.getByXmlId("7"),   0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("B"), nodes.getByXmlId("4"),   0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("C"), nodes.getByXmlId("0"),   0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("D"), nodes.getByXmlId("3"),   0);
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A"), nodes.getByXmlId("7"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("B"), nodes.getByXmlId("4"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("C"), nodes.getByXmlId("0"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("D"), nodes.getByXmlId("3"));
                       
     }catch(Exception e) {
       e.printStackTrace();

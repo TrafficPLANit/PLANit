@@ -3,7 +3,6 @@ package org.goplanit.zoning;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
-import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.id.IdGroupingToken;

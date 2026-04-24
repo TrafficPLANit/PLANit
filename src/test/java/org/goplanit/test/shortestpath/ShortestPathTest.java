@@ -10,7 +10,6 @@ import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -20,7 +19,6 @@ import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.zoning.Centroid;
-import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.AfterAll;
@@ -173,11 +171,11 @@ public class ShortestPathTest {
       centroidE = zoneE.getCentroid();
       centroidE.setPosition(geoFactory.createPoint(new Coordinate(4*1000, 4*1000)));
       
-      zoning.getOdConnectoids().getFactory().registerNew(zoneA, networkLayer.getNodes().get(0),   0);
-      zoning.getOdConnectoids().getFactory().registerNew(zoneB, networkLayer.getNodes().get(21),  0);
-      zoning.getOdConnectoids().getFactory().registerNew(zoneC, networkLayer.getNodes().get(12),  0);
-      zoning.getOdConnectoids().getFactory().registerNew(zoneD, networkLayer.getNodes().get(23),  0);
-      zoning.getOdConnectoids().getFactory().registerNew(zoneE, networkLayer.getNodes().get(24),  0);
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zoneA, networkLayer.getNodes().get(0));
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zoneB, networkLayer.getNodes().get(21));
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zoneC, networkLayer.getNodes().get(12));
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zoneD, networkLayer.getNodes().get(23));
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zoneE, networkLayer.getNodes().get(24));
       
       transportNetwork = new TransportModelNetworkImpl(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids(false);

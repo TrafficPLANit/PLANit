@@ -20,10 +20,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.zoning.DirectedConnectoid;
-import org.goplanit.utils.zoning.TransferZone;
-import org.goplanit.utils.zoning.Zone;
-import org.goplanit.utils.zoning.ZoneConnectoidType;
+import org.goplanit.utils.zoning.*;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -715,7 +712,7 @@ public class ZoningConverterUtils {
    * shape point on the link yet, or null if no valid position could be found
    */
   @Deprecated // usage should be replaced by using the link segment equivalent above #findConnectoidLocationForWaitingAreaOnLinkSegment
-  public static Point findConnectoidLocationForWaitingAreaOnLink(
+  public static Point findTransferConnectoidLocationForWaitingAreaOnLink(
       String waitingAreaSourceId,
       final Geometry waitingAreaGeometry,
       final MacroscopicLink accessLink,
@@ -814,7 +811,7 @@ public class ZoningConverterUtils {
     return connectoidLocation;
   }
 
-  /** create directed connectoid for the link segment provided, all related to the given transfer zone and with access
+  /** create transfer connectoid for the link segment provided, all related to the given transfer zone and with access
    * modes provided. When the link segment does not have any of the passed in modes listed as allowed, no connectoid
    * is created and null is returned
    *
@@ -827,7 +824,7 @@ public class ZoningConverterUtils {
    * @param type         the type of the zone connectoid combination reflecting how it is envisaged to be used
    * @return created connectoid when at least one of the allowed modes is also allowed on the link segment
    */
-  public static DirectedConnectoid createAndRegisterDirectedConnectoid(
+  public static TransferConnectoid createAndRegisterTransferConnectoidWithDirectedAccessEntry(
       @Nullable String connectoidExternalId,
       Zoning zoning,
       final TransferZone accessZone,
@@ -839,7 +836,7 @@ public class ZoningConverterUtils {
     final Set<Mode> realAllowedModes = accessLinkSegment.getAllowedModesFrom(allowedModes);
     if(realAllowedModes!= null && !realAllowedModes.isEmpty()) {
       // CREATE
-      var connectoid = zoning.getTransferConnectoids().getFactory().registerNew(
+      var connectoid = zoning.getTransferConnectoids().getFactory().registerNewWithDirectedEntry(
           accessZone, downstreamAccessNode, accessLinkSegment, true, realAllowedModes, type);
       connectoid.setExternalId(connectoidExternalId);
       return connectoid;
@@ -847,7 +844,38 @@ public class ZoningConverterUtils {
     return null;
   }
 
-  /** create directed connectoids, one per link segment provided, all related to the given transfer zone and with
+  /** create transfer connectoid for the link segment provided, all related to the given transfer zone and with access
+   * modes provided. When the link segment does not have any of the passed in modes listed as allowed, no connectoid
+   * is created and null is returned
+   *
+   * @param connectoidExternalId external id (allowed to be null)
+   * @param zoning to register on
+   * @param accessZone to relate connectoids to
+   * @param accessNode when true access node is chosen as the downstream node, when false, upstream node is chosen
+   * @param allowedModes used for the connectoid
+   * @param type         the type of the zone connectoid combination reflecting how it is envisaged to be used
+   * @return created connectoid when at least one of the allowed modes is also allowed on the link segment
+   */
+  public static TransferConnectoid createAndRegisterTransferConnectoidWithUndirectedAccessEntry(
+      @Nullable String connectoidExternalId,
+      Zoning zoning,
+      final TransferZone accessZone,
+      final DirectedVertex accessNode,
+      final Set<Mode> allowedModes,
+      final ZoneConnectoidType type){
+
+    // CREATE
+    var connectoid = zoning.getTransferConnectoids().getFactory().registerNew(accessNode);
+    connectoid.setExternalId(connectoidExternalId);
+
+    // undirected entry
+    var entry = connectoid.createUndirectedAccessZoneEntry(accessZone, type);
+    entry.addAllowedModes(allowedModes);
+
+    return connectoid;
+  }
+
+  /** create connectoids with directed entries, all related to the given transfer zone and with
    * access modes provided. Connectoids are only created when the access link segment has at least one of the
    * allowed modes as an eligible mode.
    *
@@ -861,7 +889,7 @@ public class ZoningConverterUtils {
    * @param type         the type of the zone connectoid combination reflecting how it is envisaged to be used
    * @return created connectoids
    */
-  public static Collection<DirectedConnectoid> createAndRegisterDirectedConnectoids(
+  public static Collection<TransferConnectoid> createAndRegisterTransferConnectoids(
       @Nullable String connectoidExternalId,
       Zoning zoning,
       final TransferZone transferZone,
@@ -869,7 +897,7 @@ public class ZoningConverterUtils {
       final Iterable<? extends MacroscopicLinkSegment> accessLinkSegments,
       final Set<Mode> allowedModes,
       ZoneConnectoidType type){
-    Set<DirectedConnectoid> createdConnectoids = new HashSet<>();
+    Set<TransferConnectoid> createdConnectoids = new HashSet<>();
 
     // we sort to ensure connectoids are always created in same deterministic order
     IterableUtils.asStream(accessLinkSegments).sorted(
@@ -883,7 +911,7 @@ public class ZoningConverterUtils {
                       accessVertex.getIdsAsString(), accessLinkSegment.getIdsAsString());
                   }
                   // CREATE
-                  DirectedConnectoid newConnectoid = createAndRegisterDirectedConnectoid(
+                  TransferConnectoid newConnectoid = createAndRegisterTransferConnectoidWithDirectedAccessEntry(
                       connectoidExternalId, zoning, transferZone, downstreamAccessNode,
                       accessLinkSegment, allowedModes, type);
                   if(newConnectoid != null) {
@@ -897,133 +925,161 @@ public class ZoningConverterUtils {
   /**
    * Identify transfer zones from provided container that have connectoids supporting any of the provided modes for
    * PT_STOP labelled connectoids as well as the transfer zones from the set that on top do not support
-   * any of the traveller access type modes provided.
+   * any of the access/egress type modes provided.
+   *
+   * todo: not great should be for single accessEgress mode at the time, as now partial support is classified
+   *  as no support (some modes supported, some not, then we still say no support)
    *
    * @param connectoidsByTransferZoneMapping mapping can be obtained from zoning
    * @param ptStopAccessModes to filter by (pt stop is type filter)
-   * @param travellerAccessModes modes to search for mismatches within pt stop mode(s) transfer zones (traveller access
-   *                             is also a type filter)
+   * @param accessEgressModes modes to search for mismatches within pt stop mode(s) transfer zones
    * @return identified transfer zones supporting main mode(s) [first] and of those transfer zones, the ones not
    * supporting alt modes while supporting one or more main mode(s), so a subset [second]
    */
   public static Pair<Collection<TransferZone>,Collection<TransferZone>>
-  findPtStopModeTransferZonesWithoutTravellerAccessModeConnectoids(
-          Map<Zone, Set<DirectedConnectoid>> connectoidsByTransferZoneMapping,
+  findPtStopModeTransferZonesWithoutAccessEgressModeSupport(
+          Map<Zone, Set<TransferConnectoid>> connectoidsByTransferZoneMapping,
           Collection<Mode> ptStopAccessModes,
-          List<Mode> travellerAccessModes) {
+          Set<Mode> accessEgressModes) {
 
-    // reduce to zones with main mode connectoid listed
-    var mainModeTransferZones = connectoidsByTransferZoneMapping.entrySet().stream().filter(
-        entry -> entry.getValue().stream().anyMatch( transferConnectoid ->
-            transferConnectoid.isAnyModeAllowed(
-                entry.getKey(), ZoneConnectoidType.PT_VEHICLE_STOP, ptStopAccessModes))).map(
-                    e -> (TransferZone)e.getKey()).collect(Collectors.toList());
-    // reduce to transfer zones with main mode but NO alt mode connectoids
-    var transferZonesDisconnectedFromAltModes =
-            mainModeTransferZones.stream().filter(
-                tz -> connectoidsByTransferZoneMapping.get(tz).stream().noneMatch(
-                    transferConnectoid -> transferConnectoid.isAnyModeAllowed(
-                        tz, ZoneConnectoidType.TRAVELLER_ACCESS, travellerAccessModes))).collect(Collectors.toList());
+    var accessEgressTypes =
+        Set.of(ZoneConnectoidType.ZONE_ACCESS,ZoneConnectoidType.ZONE_EGRESS, ZoneConnectoidType.ZONE_ACCESS_EGRESS);
+
+    // reduce to zones with any main mode connectoid listed
+    Set<TransferZone> mainModeTransferZones = new TreeSet<>();
+    for(var entry : connectoidsByTransferZoneMapping.entrySet()){
+      var transferZone = entry.getKey();
+      var connectoidsForTransferZone = entry.getValue();
+      boolean mainModeTransferZonesSupport = connectoidsForTransferZone.stream().flatMap(
+          tc -> tc.getAccessZoneEntriesStream(ZoneConnectoidType.PT_VEHICLE_STOP)).filter(
+            e -> e.getAccessZone().equals(transferZone)).anyMatch(
+              connectoidZoneEntryForTransferZone ->
+                connectoidZoneEntryForTransferZone.isAnyModeAllowed(ptStopAccessModes));
+      if(mainModeTransferZonesSupport){
+        mainModeTransferZones.add((TransferZone) transferZone);
+      }
+    }
+
+    // reduce to transfer zones with main mode but NO (single) alt mode connectoids
+    Set<TransferZone> transferZonesDisconnectedFromAltModes = new TreeSet<>();
+    for(var transferZone : mainModeTransferZones){
+      // check connectoid-zone-type entries of transfer zone without any alt mode support
+      boolean transferZoneWithoutSupport =
+          connectoidsByTransferZoneMapping.get(transferZone).stream().flatMap(
+            tc -> tc.getAccessZoneEntriesStream(accessEgressTypes)).filter(
+                e -> e.getAccessZone().equals(transferZone)).noneMatch(
+                    connectoidZoneEntryForTransferZone ->
+                        connectoidZoneEntryForTransferZone.isAnyModeAllowed(accessEgressModes));
+      if(transferZoneWithoutSupport){
+        transferZonesDisconnectedFromAltModes.add(transferZone);
+      }
+    }
     return Pair.of(mainModeTransferZones, transferZonesDisconnectedFromAltModes);
   }
 
   /**
-   * For given connectoids, check if any of its access node entry link segments support any of the
-   * provided modes, if so, expand the connectoid entry either by adding a new alternative entry segment
-   * that has a compatible mode, or create a new entry with a new mode and segment as long as it has the
-   * same directionality as the existing connectoid and we find a matching (alt) entry segment we can expand.
-   * We stop when no more can be found. We currently only expand once for a mode.
-   * todo: consider adding a flag to expand as many as possible
+   * for a given connectoid add a new or expand existing partial undirected entry (ACCESS/EGRESS) with the provided mode
+   *
+   * @param connectoid to use
+   * @param transferZone to use
+   * @param candidateMode the mode
+   * @param accessOrEgressType required for the entry
+   * @return true when success false otherwise
+   */
+  public static boolean expandConnectoidWithModeForGeneralAccessOrEgress(
+      TransferConnectoid connectoid,
+      TransferZone transferZone,
+      Mode candidateMode,
+      ZoneConnectoidType accessOrEgressType) {
+
+    boolean entryExists = connectoid.hasAccessZoneEntry(transferZone, accessOrEgressType);
+    if(!entryExists){
+      connectoid.createUndirectedAccessZoneEntry(transferZone, accessOrEgressType);
+    }
+    // guaranteed to be directed at this point
+    var zoneConnectoidEntry = connectoid.getAccessZoneEntry(transferZone, accessOrEgressType);
+    if(!zoneConnectoidEntry.isAllModesAllowed()) {
+      zoneConnectoidEntry.addAllowedModes(candidateMode);
+    }
+    return true;
+  }
+
+  /**
+   * For given connectoids, check if any of the connected segments to the connectoid vertex support the provided modes for
+   * access and egress. If so, expand the connectoid by adding a new undirected access entry for the compatible modes,
+   * or expand existing undirected entry with the eligible modes currently not listed
    *
    * @param transferZone transferZone
    * @param directedConnectoids to check if ok to add any of the provided modes to
    * @param bannedModes the candidate entry link segments are not allowed to support any of the banned modes
    * @param modesToAdd the modes to add
-   * @param type         the type of the zone connectoid combination reflecting how it is envisaged to be used
-   * @return modes added to one or more connectoids
+   * @return modes added to one or more connectoids for their access (first) or egress (situation)
    */
-  public static Set<Mode> expandConnectoidsWithModeCompatibleAltEntrySegmentsToAccessNode(
+  public static Pair<Set<Mode>,Set<Mode>> expandTransferConnectoidsWithEligibleUndirectedAccessEgressEntries(
       TransferZone transferZone,
-      Set<DirectedConnectoid> directedConnectoids,
-      Collection<Mode> bannedModes,
-      Collection<Mode> modesToAdd,
-      ZoneConnectoidType type) {
-    var addedModes = new TreeSet<Mode>();
-    var remainingModesToAdd = new TreeSet<>(modesToAdd);
-    for(var connectoid : directedConnectoids) {
-      if(remainingModesToAdd.isEmpty()){
+      Set<TransferConnectoid> directedConnectoids,
+      Set<Mode> bannedModes,
+      Set<Mode> modesToAdd) {
+
+    var remainingAccessModesToAdd = new TreeSet<>(modesToAdd);
+    var remainingEgressModesToAdd = new TreeSet<>(modesToAdd);
+    for (var connectoid : directedConnectoids) {
+      if (remainingAccessModesToAdd.isEmpty() && remainingEgressModesToAdd.isEmpty()) {
         break;
       }
+      var refNode = connectoid.getReferenceVertex();
 
-      var accessNode = connectoid.getAccessVertex();
-      // for this one we only allow entry link (segments), so if connectoid is not compatible
-      // we cannot expand it
-      if(connectoid.isAccessNodeUpstreamOfSegments()){
-        continue;
-      }
-
-      // find eligible entry segments that are mode compatible
-      Map<Mode, List<LinkSegment>> candidateSegmentsWithModeSupport = new TreeMap<>();
-      var altAccessSegments = accessNode.getEntryEdgeSegments();
-      for (var altEntryEdgeSegment : altAccessSegments) {
-        if (!(altEntryEdgeSegment instanceof LinkSegment) ||
-            ((LinkSegment) altEntryEdgeSegment).isAnyModeAllowed(bannedModes)) {
-          continue;
-        }
-        var altAccessLinkSegment = ((LinkSegment) altEntryEdgeSegment);
-        if (Collections.disjoint(altAccessLinkSegment.getAllowedModes(), remainingModesToAdd)) {
-          continue;
-        }
-
-        var modesForAltAccessSegment = new HashSet<>(remainingModesToAdd);
-        modesForAltAccessSegment.retainAll(altAccessLinkSegment.getAllowedModes());
-        if (modesForAltAccessSegment.isEmpty()) {
-          continue;
-        }
-
-        for(var mode : modesForAltAccessSegment){
-          candidateSegmentsWithModeSupport.putIfAbsent(mode, new LinkedList<>());
-          candidateSegmentsWithModeSupport.get(mode).add(altAccessLinkSegment);
-        }
-      }
-
-      // no candidates, try next connectoid
-      if(candidateSegmentsWithModeSupport.isEmpty()){
-        continue;
-      }
-
-      for(var entry : candidateSegmentsWithModeSupport.entrySet()){
-        var mode = entry.getKey();
-        var accessSegments = entry.getValue();
-
-        boolean createNewEntry = false;
-        if(!connectoid.hasAccessZoneEntry(transferZone, type)){
-          createNewEntry = true;
-        }else{
-          final var zoneConnectoidEntry = connectoid.getAccessZoneEntry(transferZone, type);
-          boolean existingModeCompatibleWithNew = zoneConnectoidEntry.getAccessLinkSegments().stream().allMatch(
-              ls -> ((MacroscopicLinkSegment)ls).isModeAllowed(mode));
-          boolean newSegmentsModeCompatibleWithExisting = zoneConnectoidEntry.isAllModesAllowed() ||
-              accessSegments.stream().allMatch(ls ->
-                  ls.isAllModesAllowedFrom(zoneConnectoidEntry.getExplicitlyAllowedModes()));
-          if(!existingModeCompatibleWithNew || !newSegmentsModeCompatibleWithExisting){
-            // for now we are strict, so if any of the segments does not support all of the modes, we do not expand
-            continue;
+      // find eligible entry segments that are mode compatible ( we will not track those explicitly but we do
+      // need to know it makes sense for mode access
+      Set<Mode> validCandidateAccessModes = new TreeSet<>();
+      Set<Mode> validCandidateEgressModes = new TreeSet<>();
+      refNode.streamEdgeSegments().filter(ls -> ls instanceof LinkSegment).map(ls -> (LinkSegment) ls).
+          // no banned modes
+          filter(ls -> !ls.isAnyModeAllowed(bannedModes)).forEach(ls ->
+          {
+            if (ls.isUpstreamVertex(connectoid.getReferenceVertex()) &&
+                ls.isAnyModeAllowed(remainingAccessModesToAdd)) {
+              validCandidateAccessModes.addAll(ls.getAllowedModesFrom(remainingAccessModesToAdd));
+            } else if(ls.isAnyModeAllowed(remainingEgressModesToAdd)) {
+              validCandidateEgressModes.addAll(ls.getAllowedModesFrom(remainingEgressModesToAdd));
+            }
           }
-        }
+      );
 
-        if(createNewEntry){
-          connectoid.createAccessZoneEntry(transferZone, type);
-        }
-        final var zoneConnectoidEntry = connectoid.getAccessZoneEntry(transferZone, type);
-        zoneConnectoidEntry.addAllowedModes(mode);
-        accessSegments.forEach(zoneConnectoidEntry::addAccessLinkSegment);
+      if(validCandidateAccessModes.isEmpty() && validCandidateEgressModes.isEmpty()){
+        return Pair.<Set<Mode>,Set<Mode>>of(Collections.emptySet(),Collections.emptySet());
+      }
 
-        addedModes.add(mode);
-        remainingModesToAdd.remove(mode);
+      // intersection of access/egress
+      var validCombinedAccessEgressModes = new TreeSet<>(validCandidateAccessModes);
+      validCombinedAccessEgressModes.retainAll(validCandidateEgressModes);
 
-      } // end candidates
-    } // end connectoids
-    return addedModes;
+      validCombinedAccessEgressModes.forEach(m -> {
+        expandConnectoidWithModeForGeneralAccessOrEgress(
+            connectoid, transferZone, m, ZoneConnectoidType.ZONE_ACCESS_EGRESS);
+      });
+
+      // remaining access/egress separate to add
+      validCandidateAccessModes.removeAll(validCombinedAccessEgressModes);
+      validCandidateEgressModes.removeAll(validCombinedAccessEgressModes);
+
+      validCandidateAccessModes.forEach(m -> {
+        expandConnectoidWithModeForGeneralAccessOrEgress(
+            connectoid, transferZone, m, ZoneConnectoidType.ZONE_ACCESS);
+      });
+      validCandidateEgressModes.forEach(m -> {
+        expandConnectoidWithModeForGeneralAccessOrEgress(
+            connectoid, transferZone, m, ZoneConnectoidType.ZONE_EGRESS);
+      });
+
+      // remaining after added modes removed
+      remainingAccessModesToAdd.removeAll(validCombinedAccessEgressModes);
+      remainingAccessModesToAdd.removeAll(validCandidateAccessModes);
+      remainingEgressModesToAdd.removeAll(validCombinedAccessEgressModes);
+      remainingEgressModesToAdd.removeAll(validCandidateEgressModes);
+    }
+    var addedAccessModes = new TreeSet<>(modesToAdd);
+    var addedEgressModes = new TreeSet<>(modesToAdd);
+    return Pair.of(addedAccessModes, addedEgressModes);
   }
 }

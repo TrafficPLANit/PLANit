@@ -1,9 +1,9 @@
 package org.goplanit.zoning;
 
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
-import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.*;
 
 import static org.goplanit.utils.zoning.ConnectoidAccessZoneEntry.DEFAULT_LENGTH_KM;
@@ -13,11 +13,11 @@ import static org.goplanit.utils.zoning.ConnectoidAccessZoneEntry.DEFAULT_LENGTH
  * 
  * @author markr
  */
-public class DirectedConnectoidFactoryImpl extends
-    ManagedIdEntityFactoryImpl<DirectedConnectoid> implements DirectedConnectoidFactory {
+public class TransferConnectoidFactoryImpl extends
+    ManagedIdEntityFactoryImpl<TransferConnectoid> implements TransferConnectoidFactory {
 
   /** container to use */
-  protected final DirectedConnectoids directedConnectoids;
+  protected final TransferConnectoids directedConnectoids;
 
   /**
    * Constructor
@@ -25,8 +25,8 @@ public class DirectedConnectoidFactoryImpl extends
    * @param groupId             to use
    * @param directedConnectoids to use
    */
-  protected DirectedConnectoidFactoryImpl(
-      final IdGroupingToken groupId, final DirectedConnectoids directedConnectoids) {
+  protected TransferConnectoidFactoryImpl(
+      final IdGroupingToken groupId, final TransferConnectoids directedConnectoids) {
     super(groupId);
     this.directedConnectoids = directedConnectoids;
   }
@@ -35,7 +35,7 @@ public class DirectedConnectoidFactoryImpl extends
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(
+  public TransferConnectoid registerNewWithDirectedEntry(
       Zone accessZone,
       boolean downstreamAccessNode,
       LinkSegment accessLinkSegment,
@@ -43,8 +43,8 @@ public class DirectedConnectoidFactoryImpl extends
       ZoneConnectoidType type) {
 
     var accessNode = downstreamAccessNode ? accessLinkSegment.getDownstreamNode() : accessLinkSegment.getUpstreamNode();
-    DirectedConnectoid newConnectoid =
-        new DirectedConnectoidImpl(
+    TransferConnectoid newConnectoid =
+        new TransferConnectoidImpl(
             getIdGroupingToken(), accessNode, accessZone, accessLinkSegment, length, type);
     directedConnectoids.register(newConnectoid);
     return newConnectoid;
@@ -54,18 +54,18 @@ public class DirectedConnectoidFactoryImpl extends
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(
+  public TransferConnectoid registerNewWithDirectedEntry(
       Zone accessZone, boolean downstreamAccessNode, LinkSegment accessLinkSegment, ZoneConnectoidType type) {
-    return registerNew(accessZone, downstreamAccessNode, accessLinkSegment, DEFAULT_LENGTH_KM.get(), type);
+    return registerNewWithDirectedEntry(accessZone, downstreamAccessNode, accessLinkSegment, DEFAULT_LENGTH_KM.get(), type);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(Node accessNode, boolean accessNodeDownstreamOfSegments) {
-    DirectedConnectoid newConnectoid =
-        new DirectedConnectoidImpl(getIdGroupingToken(), accessNode, accessNodeDownstreamOfSegments);
+  public TransferConnectoid registerNew(DirectedVertex accessNode) {
+    TransferConnectoid newConnectoid =
+        new TransferConnectoidImpl(getIdGroupingToken(), accessNode);
     directedConnectoids.register(newConnectoid);
     return newConnectoid;
   }

@@ -212,9 +212,9 @@ public class sLtmAssignmentMultiDestinationTestBase {
       zoning.getOdZones().getFactory().registerNew().setXmlId("A``");
 
       var connectoidFactory = zoning.getOdConnectoids().getFactory();
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A"),  nodes.getByXmlId("0"),   0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A`"), nodes.getByXmlId("5"),   0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A``"),nodes.getByXmlId("9"),   0);
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A"),  nodes.getByXmlId("0"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A`"), nodes.getByXmlId("5"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A``"),nodes.getByXmlId("9"));
                       
     }catch(Exception e) {
       e.printStackTrace();

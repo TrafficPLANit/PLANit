@@ -64,12 +64,12 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   /**
    * provide access to undirected connectoids (of od zones)
    */
-  protected final UndirectedConnectoids odConnectoids;
+  protected final OdConnectoids odConnectoids;
 
   /**
    * provide access to directed connectoids (of transfer zones)
    */
-  protected final DirectedConnectoids transferConnectoids;
+  protected final TransferConnectoids transferConnectoids;
 
   /**
    * provide access to zones
@@ -100,8 +100,8 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     super(groupId, Zoning.class);
     virtualNetwork = new VirtualNetworkImpl(virtualNetworkGroupId);
 
-    odConnectoids = new UndirectedConnectoidsImpl(virtualNetworkGroupId);
-    transferConnectoids = new DirectedConnectoidsImpl(virtualNetworkGroupId);
+    odConnectoids = new OdConnectoidsImpl(virtualNetworkGroupId);
+    transferConnectoids = new TransferConnectoidsImpl(virtualNetworkGroupId);
     odZones = new OdZonesImpl(virtualNetworkGroupId);
     transferZones = new TransferZonesImpl(virtualNetworkGroupId);
     transferZoneGroups = new TransferZoneGroupsImpl(virtualNetworkGroupId);
@@ -123,8 +123,8 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   public Zoning(
       final Zoning other,
       boolean deepCopy,
-      ManagedIdDeepCopyMapper<UndirectedConnectoid> undirConnectoidMapper,
-      ManagedIdDeepCopyMapper<DirectedConnectoid> dirConnectoidMapper,
+      ManagedIdDeepCopyMapper<OdConnectoid> undirConnectoidMapper,
+      ManagedIdDeepCopyMapper<TransferConnectoid> dirConnectoidMapper,
       ManagedIdDeepCopyMapper<OdZone> odZoneMapper,
       ManagedIdDeepCopyMapper<TransferZone> transferZoneMapper,
       ManagedIdDeepCopyMapper<TransferZoneGroup> transferZoneGroupMapper) {
@@ -274,7 +274,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * 
    * @return od connectoids container
    */
-  public UndirectedConnectoids getOdConnectoids() {
+  public OdConnectoids getOdConnectoids() {
     return this.odConnectoids;
   }
 
@@ -283,7 +283,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * 
    * @return transfer connectoids container
    */
-  public DirectedConnectoids getTransferConnectoids() {
+  public TransferConnectoids getTransferConnectoids() {
     return this.transferConnectoids;
   }
 

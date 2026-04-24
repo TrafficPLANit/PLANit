@@ -10,8 +10,6 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.*;
 
-import static org.goplanit.utils.zoning.ConnectoidAccessZoneEntry.DEFAULT_LENGTH_KM;
-
 /**
  * connectoid connecting one or more (transfer/OD) zone(s) to the physical road network, the type of
  * connectoid depends on the implementing class
@@ -19,8 +17,7 @@ import static org.goplanit.utils.zoning.ConnectoidAccessZoneEntry.DEFAULT_LENGTH
  * @author markr
  *
  */
-public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
-    extends ExternalIdAbleImpl implements Connectoid<T> {
+public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Connectoid {
 
   /** generated UID */
   @SuppressWarnings("unused")
@@ -39,11 +36,12 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
   /**
    * the access point to an infrastructure layer
    */
-  protected DirectedVertex accessVertex;
+  protected DirectedVertex refVertex;
 
 
   /** the zones and their properties accessible from this connectoid by type */
-  protected TreeMap<Long,Map<ZoneConnectoidType, T>> accessZoneEntriesByZoneAndType = new TreeMap<>();
+  protected TreeMap<Long,Map<ZoneConnectoidType, ConnectoidAccessZoneEntry>> accessZoneEntriesByZoneAndType =
+      new TreeMap<>();
 
   /**
    * Generate connectoid id
@@ -81,44 +79,7 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
    */
   public ConnectoidImpl(IdGroupingToken idToken, DirectedVertex accessVertex) {
     super(generateId(idToken));
-    setAccessVertex(accessVertex);
-  }
-
-  /**
-   * Constructor
-   *
-   * @param idToken    contiguous id generation within this group for instances of this class
-   * @param accessVertex for the connectoid
-   * @param accessZone zone for the zone connectoid combination
-   * @param length    length for the zone connectoid combination
-   * @param type      the type of the zone connectoid combination reflecting how it is envisaged to be used
-   */
-  protected ConnectoidImpl(
-      final IdGroupingToken idToken,
-      DirectedVertex accessVertex,
-      Zone accessZone,
-      double length,
-      ZoneConnectoidType type) {
-    this(idToken, accessVertex);
-
-    var entry = createAccessZoneEntry(accessZone, type);
-    entry.setLengthKm(length);
-  }
-
-  /**
-   * Constructor
-   *
-   * @param idToken    contiguous id generation within this group for instances of this class
-   * @param accessVertex to use
-   * @param accessZone zone for the zone connectoid combination
-   * @param type the type of the zone connectoid combination reflecting how it is envisaged to be used
-   */
-  protected ConnectoidImpl(
-      final IdGroupingToken idToken,
-      DirectedVertex accessVertex,
-      Zone accessZone,
-      ZoneConnectoidType type) {
-    this(idToken, accessVertex, accessZone, DEFAULT_LENGTH_KM.get(), type);
+    setReferenceVertex(accessVertex);
   }
 
   /**
@@ -128,10 +89,10 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
   @SuppressWarnings("unchecked")
-  protected ConnectoidImpl(ConnectoidImpl<T> other, boolean deepCopy) {
+  protected ConnectoidImpl(ConnectoidImpl other, boolean deepCopy) {
     super(other);
     this.name = other.name;
-    this.accessVertex = other.accessVertex;
+    this.refVertex = other.refVertex;
 
     this.accessZoneEntriesByZoneAndType.clear();
     other.accessZoneEntriesByZoneAndType.forEach( (k, v) ->
@@ -139,13 +100,33 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
           var newV = new TreeMap<>(v);
           accessZoneEntriesByZoneAndType.put( k, newV);
           v.forEach( (type,entry) -> newV.put(
-              type,  (T) (deepCopy ? entry.deepClone() : entry.shallowClone()) ));
+              type,  deepCopy ? entry.deepClone() : entry.shallowClone() ));
         });
   }
 
   // Public
 
-  // Getters-Setters
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidAccessZoneEntry createUndirectedAccessZoneEntry(Zone accessZone, ZoneConnectoidType type){
+    if (accessZone == null) {
+      LOGGER.warning(String.format(
+          "Unable to add access zone to undirected connectoid %s, it is null", getIdsAsString()));
+      return null;
+    }
+    if(hasAccessZoneEntry(accessZone, type)){
+      LOGGER.warning(String.format("Cannot create access zone entry for undirected connectoid (%s) as " +
+              "one already exists for zone (%s)",
+          getIdsAsString(), accessZone.getIdsAsString()));
+      return null;
+    }
+    var newEntry = new ConnectoidAccessZoneEntryImpl(accessZone, type);
+    getAccessZoneEntriesByType().putIfAbsent(accessZone.getId(),new TreeMap<>());
+    getAccessZoneEntriesByType().get(accessZone.getId()).put(type, newEntry);
+    return newEntry;
+  }
 
   /**
    * {@inheritDoc}
@@ -169,23 +150,23 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
    * @param accessVertex to use
    */
   @Override
-  public void setAccessVertex(final DirectedVertex accessVertex) {
-    this.accessVertex = accessVertex;
+  public void setReferenceVertex(final DirectedVertex accessVertex) {
+    this.refVertex = accessVertex;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public DirectedVertex getAccessVertex() {
-    return accessVertex;
+  public DirectedVertex getReferenceVertex() {
+    return refVertex;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public T removeAccessZoneEntry(Zone accessZone, ZoneConnectoidType type){
+  public ConnectoidAccessZoneEntry removeAccessZoneEntry(Zone accessZone, ZoneConnectoidType type){
     if(!hasAccessZoneEntry(accessZone)){
       return null;
     }
@@ -196,7 +177,7 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
    * {@inheritDoc}
    */
   @Override
-  public Map<Long, Map<ZoneConnectoidType, T>> getAccessZoneEntriesByType() {
+  public Map<Long, Map<ZoneConnectoidType, ConnectoidAccessZoneEntry>> getAccessZoneEntriesByType() {
     return accessZoneEntriesByZoneAndType;
   }
 
@@ -217,7 +198,7 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
    * {@inheritDoc}
    */
   @Override
-  public Iterator<T> iterator() {
+  public Iterator<ConnectoidAccessZoneEntry> iterator() {
     return getAccessZoneEntriesByType().values().stream().flatMap(
         e -> e.values().stream()).iterator();
   }
@@ -249,12 +230,12 @@ public abstract class ConnectoidImpl<T extends ConnectoidAccessZoneEntry>
    * {@inheritDoc}
    */
   @Override
-  public abstract ConnectoidImpl<T> shallowClone();
+  public abstract ConnectoidImpl shallowClone();
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract ConnectoidImpl<T> deepClone();
+  public abstract ConnectoidImpl deepClone();
 
 }

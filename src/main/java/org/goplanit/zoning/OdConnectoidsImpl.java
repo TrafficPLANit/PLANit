@@ -2,10 +2,9 @@ package org.goplanit.zoning;
 
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.zoning.TransferZone;
-import org.goplanit.utils.zoning.UndirectedConnectoid;
-import org.goplanit.utils.zoning.UndirectedConnectoidFactory;
-import org.goplanit.utils.zoning.UndirectedConnectoids;
+import org.goplanit.utils.zoning.OdConnectoid;
+import org.goplanit.utils.zoning.OdConnectoidFactory;
+import org.goplanit.utils.zoning.OdConnectoids;
 
 import java.util.function.BiConsumer;
 
@@ -15,19 +14,19 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnectoid> implements UndirectedConnectoids {
+public class OdConnectoidsImpl extends ConnectoidsImpl<OdConnectoid> implements OdConnectoids {
 
   /** factory to use */
-  private final UndirectedConnectoidFactory undirectedConnectoidFactory;
+  private final OdConnectoidFactory undirectedConnectoidFactory;
 
   /**
    * Constructor
    * 
    * @param groupId to use for creating ids for instances
    */
-  public UndirectedConnectoidsImpl(final IdGroupingToken groupId) {
+  public OdConnectoidsImpl(final IdGroupingToken groupId) {
     super(groupId);
-    this.undirectedConnectoidFactory = new UndirectedConnectoidFactoryImpl(groupId, this);
+    this.undirectedConnectoidFactory = new OdConnectoidFactoryImpl(groupId, this);
   }
 
   /**
@@ -36,8 +35,8 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
    * @param groupId                     to use for creating ids for instances
    * @param undirectedConnectoidFactory the factory to use
    */
-  public UndirectedConnectoidsImpl(
-      final IdGroupingToken groupId, UndirectedConnectoidFactory undirectedConnectoidFactory) {
+  public OdConnectoidsImpl(
+      final IdGroupingToken groupId, OdConnectoidFactory undirectedConnectoidFactory) {
     super(groupId);
     this.undirectedConnectoidFactory = undirectedConnectoidFactory;
   }
@@ -49,14 +48,14 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
    * @param deepCopy when true, create a eep copy, shallow copy otherwise
    * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public UndirectedConnectoidsImpl(
-      UndirectedConnectoidsImpl other,
+  public OdConnectoidsImpl(
+      OdConnectoidsImpl other,
       boolean deepCopy,
-      BiConsumer<UndirectedConnectoid, UndirectedConnectoid> mapper) {
+      BiConsumer<OdConnectoid, OdConnectoid> mapper) {
 
     super(other, deepCopy, mapper);
     this.undirectedConnectoidFactory =
-            new UndirectedConnectoidFactoryImpl(
+            new OdConnectoidFactoryImpl(
                 other.undirectedConnectoidFactory.getIdGroupingToken(), this);
   }
 
@@ -64,7 +63,7 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoidFactory getFactory() {
+  public OdConnectoidFactory getFactory() {
     return undirectedConnectoidFactory;
   }
 
@@ -74,7 +73,7 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
   @Override
   public void recreateIds(boolean resetManagedIdClass) {
     /* always reset the additional undirected connectoid id class */
-    IdGenerator.reset(getFactory().getIdGroupingToken(), UndirectedConnectoid.UNDIRECTED_CONNECTOID_ID_CLASS);
+    IdGenerator.reset(getFactory().getIdGroupingToken(), OdConnectoid.OD_CONNECTOID_ID_CLASS);
 
     super.recreateIds(resetManagedIdClass);
   }
@@ -83,23 +82,23 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoidsImpl shallowClone() {
-    return new UndirectedConnectoidsImpl(this, false, null);
+  public OdConnectoidsImpl shallowClone() {
+    return new OdConnectoidsImpl(this, false, null);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoidsImpl deepClone() {
-    return new UndirectedConnectoidsImpl(this, true, null);
+  public OdConnectoidsImpl deepClone() {
+    return new OdConnectoidsImpl(this, true, null);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoidsImpl deepCloneWithMapping(BiConsumer<UndirectedConnectoid, UndirectedConnectoid> mapper) {
-    return new UndirectedConnectoidsImpl(this, true, mapper);
+  public OdConnectoidsImpl deepCloneWithMapping(BiConsumer<OdConnectoid, OdConnectoid> mapper) {
+    return new OdConnectoidsImpl(this, true, mapper);
   }
 }

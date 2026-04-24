@@ -257,8 +257,8 @@ public class sLtmAssignmentBushSingleOdTest4 {
       zoning.getOdZones().getFactory().registerNew().setXmlId("A`");
 
       var connectoidsFactory = zoning.getOdConnectoids().getFactory();
-      connectoidsFactory.registerNew(zoning.getOdZones().getByXmlId("A"), nodes.getByXmlId("0"),   0);
-      connectoidsFactory.registerNew(zoning.getOdZones().getByXmlId("A`"),nodes.getByXmlId("4"),   0);
+      connectoidsFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A"), nodes.getByXmlId("0"));
+      connectoidsFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A`"),nodes.getByXmlId("4"));
                       
     }catch(Exception e) {
       e.printStackTrace();

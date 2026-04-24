@@ -11,7 +11,8 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
-import org.goplanit.utils.zoning.DirectedConnectoid;
+import org.goplanit.utils.zoning.TransferConnectoid;
+import org.goplanit.utils.zoning.DirectedConnectoidAccessZoneEntry;
 
 /**
  * Whenever links are broken and these links are referenced by connectoids, it is possible we must update the access
@@ -38,7 +39,7 @@ public class UpdateDirectedConnectoidsOnBreakLinkSegmentHandler implements Direc
 
   /** information on the connectoid's desired access node location (before the break link action) */
   //private final Map<Point, Set<DirectedConnectoid>> connectoidsAccessNodeLocationBeforeBreakLink;
-  private final Set<DirectedConnectoid> potentiallyAffectedConnectoids;
+  private final Set<TransferConnectoid> potentiallyAffectedConnectoids;
 
   /**
    * perform the actual update of the connectoids based on the broken edge segment
@@ -50,23 +51,26 @@ public class UpdateDirectedConnectoidsOnBreakLinkSegmentHandler implements Direc
   protected void updateConnectedAccessLinkSegment(
       DirectedVertex vertexWeBrokeAt, LinkSegment brokenEdgeSegment, LinkSegment originalEdgeSegment) {
 
-    /* situation 1: broken segment shares vertex with connectoid but it is not currently registered as an access
-    *  segment (newly created) */
-    var connectoidsMissingAttachedBrokenSegment = potentiallyAffectedConnectoids.stream().filter(c ->
-        !c.hasAccessLinkSegment(brokenEdgeSegment) &&
-            (c.isAccessNodeDownstreamOfSegments() &&
-                c.getAccessVertex().idEquals(brokenEdgeSegment.getDownstreamVertex())) ||
-            (c.isAccessNodeUpstreamOfSegments() &&
-                c.getAccessVertex().idEquals(brokenEdgeSegment.getUpstreamVertex()))).collect(Collectors.toList());
+    /* broken segment no longer on connectoid while original was/is. In that case we must act because
+    * either it was repurposed or we should connect it to the new and remove the original because it no longer attaches
+    * Note that: for each found we filter also based on the new broken segment attaching to the ref vertex of
+    * connectoid, only when it does we should replace it, otherwise the other broken segment is the correct one
+    */
+    var connectoidsWithDiscrepancy = potentiallyAffectedConnectoids.stream().filter(c ->
+        !c.hasAccessLinkSegment(brokenEdgeSegment) && c.hasAccessLinkSegment(originalEdgeSegment) &&
+        brokenEdgeSegment.hasAnyVertex(c.getReferenceVertex())).collect(
+            Collectors.toList());
 
-    // locate the original access segment and replace it with the missing one. Onlt replace existing entries because
+    // locate the original access segment and replace it with the missing one. Only replace existing entries because
     // otherwise we would be getting false positives where the original was not registered as an access segment perhaps
     // for certain zone/type combinations
-    for(var connectoid :  connectoidsMissingAttachedBrokenSegment){
+    for(var connectoid :  connectoidsWithDiscrepancy){
       for(var entry : connectoid){
-        if(entry.hasAccessLinkSegment(originalEdgeSegment)){
-          entry.removeAccessLinkSegment(originalEdgeSegment);
-          entry.addAccessLinkSegment(brokenEdgeSegment);
+        if(entry instanceof DirectedConnectoidAccessZoneEntry &&
+            ((DirectedConnectoidAccessZoneEntry) entry).hasAccessLinkSegment(originalEdgeSegment)){
+          var directedEntry = ((DirectedConnectoidAccessZoneEntry) entry);
+          directedEntry.removeAccessLinkSegment(originalEdgeSegment);
+          directedEntry.addAccessLinkSegment(brokenEdgeSegment);
         }
       }
     }
@@ -80,7 +84,7 @@ public class UpdateDirectedConnectoidsOnBreakLinkSegmentHandler implements Direc
    * @param potentiallyAffectedConnectoids to consider
    */
   public UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(
-      Set<DirectedConnectoid> potentiallyAffectedConnectoids) {
+      Set<TransferConnectoid> potentiallyAffectedConnectoids) {
     super();
     this.potentiallyAffectedConnectoids = potentiallyAffectedConnectoids;
   }

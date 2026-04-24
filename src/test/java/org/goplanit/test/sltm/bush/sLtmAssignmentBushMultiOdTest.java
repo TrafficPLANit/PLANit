@@ -335,10 +335,10 @@ public class sLtmAssignmentBushMultiOdTest {
       zoning.getOdZones().getFactory().registerNew().setXmlId("A```");
 
       var connectoidFactory = zoning.getOdConnectoids().getFactory();
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A"), nodes.getByXmlId("0"),   0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A`"), nodes.getByXmlId("5"), 0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A``"), nodes.getByXmlId("9"), 0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A```"), nodes.getByXmlId("13"),  0);
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A"), nodes.getByXmlId("0"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A`"), nodes.getByXmlId("5"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A``"), nodes.getByXmlId("9"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A```"), nodes.getByXmlId("13"));
                       
     }catch(Exception e) {
       e.printStackTrace();
@@ -379,7 +379,8 @@ public class sLtmAssignmentBushMultiOdTest {
       slTMConfigurator.activateOutput(OutputType.LINK);
       slTMConfigurator.registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
 
-      slTMConfigurator.addTrackOdsForLogging(IdMapperType.XML, Pair.of("A","A`"), Pair.of("A","A``"));
+      slTMConfigurator.addTrackOdsForLogging(
+          IdMapperType.XML, Pair.of("A","A`"), Pair.of("A","A``"));
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);

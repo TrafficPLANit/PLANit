@@ -12,7 +12,6 @@ import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.*;
 
@@ -129,15 +128,15 @@ public class ConjugateNetworkTest {
 
       // OD connectoid
       //  ORIGINS
-      zoning.getOdConnectoids().getFactory().registerNew(
-          zoning.getOdZones().getByXmlId("A"), nodeBefore0,   0);
-      zoning.getOdConnectoids().getFactory().registerNew(
-          zoning.getOdZones().getByXmlId("A`"), nodeBefore12,   0);
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(
+          zoning.getOdZones().getByXmlId("A"), nodeBefore0);
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(
+          zoning.getOdZones().getByXmlId("A`"), nodeBefore12);
       //  DESTINATIONS
-      zoning.getOdConnectoids().getFactory().registerNew(
-          zoning.getOdZones().getByXmlId("A``"), networkLayer.getNodes().get(7),  0);
-      zoning.getOdConnectoids().getFactory().registerNew(
-          zoning.getOdZones().getByXmlId("A```"), networkLayer.getNodes().get(11),  0);
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(
+          zoning.getOdZones().getByXmlId("A``"), networkLayer.getNodes().get(7));
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(
+          zoning.getOdZones().getByXmlId("A```"), networkLayer.getNodes().get(11));
 
       // combine in overall network
       transportModelNetwork = new TransportModelNetworkImpl(network, zoning);

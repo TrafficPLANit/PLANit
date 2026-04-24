@@ -253,7 +253,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
             ServiceNetworkLayer::getParentNetworkLayer).collect(Collectors.toList());
     var transferConnectoidsByPhysicalLayer =
         this.zoning.getTransferConnectoids().groupByPhysicalLayerAndCustomKey(
-                physicalLayers, DirectedConnectoid::getAccessVertex);
+                physicalLayers, TransferConnectoid::getReferenceVertex);
 
     LongAdder counter = new LongAdder();
     for(var serviceNetworkLayer : serviceNetworkLayers){

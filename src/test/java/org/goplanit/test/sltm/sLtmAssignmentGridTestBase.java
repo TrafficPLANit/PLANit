@@ -8,7 +8,6 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.zoning.ZoningUtils;
 
@@ -112,10 +111,10 @@ public class sLtmAssignmentGridTestBase {
       stubBefore0.second().forEachSegment(ls -> ls.setXmlId(""+ls.getId()));
       stubBefore12.second().forEachSegment(ls -> ls.setXmlId(""+ls.getId()));
 
-      zoning.getOdConnectoids().getFactory().registerNew(
-          zoning.getOdZones().getByXmlId("A``"), networkLayer.getNodes().get(7),   0);
-      zoning.getOdConnectoids().getFactory().registerNew(
-          zoning.getOdZones().getByXmlId("A```"), networkLayer.getNodes().get(11),   0);
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(
+          zoning.getOdZones().getByXmlId("A``"), networkLayer.getNodes().get(7));
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(
+          zoning.getOdZones().getByXmlId("A```"), networkLayer.getNodes().get(11));
                       
     }catch(Exception e) {
       e.printStackTrace();

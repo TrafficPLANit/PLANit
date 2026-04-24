@@ -14,8 +14,8 @@ import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
 import org.goplanit.utils.zoning.Connectoid;
-import org.goplanit.utils.zoning.DirectedConnectoid;
-import org.goplanit.utils.zoning.UndirectedConnectoid;
+import org.goplanit.utils.zoning.OdConnectoid;
+import org.goplanit.utils.zoning.TransferConnectoid;
 import org.goplanit.zoning.Zoning;
 
 /**
@@ -52,14 +52,14 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
     }
     connectoidsByAccessVertex = new HashMap<>();
     for (var connectoid : zoning.getOdConnectoids()) {
-      var accessVertex = connectoid.getAccessVertex();
+      var accessVertex = connectoid.getReferenceVertex();
       if (accessVertex != null) {
         connectoidsByAccessVertex.putIfAbsent(accessVertex, new ArrayList<>(1));
         connectoidsByAccessVertex.get(accessVertex).add(connectoid);
       }
     }
     for (var connectoid : zoning.getTransferConnectoids()) {
-      var accessVertex = connectoid.getAccessVertex();
+      var accessVertex = connectoid.getReferenceVertex();
       if (accessVertex != null) {
         connectoidsByAccessVertex.putIfAbsent(accessVertex, new ArrayList<>(1));
         connectoidsByAccessVertex.get(accessVertex).add(connectoid);
@@ -76,17 +76,17 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
     if (connectoidsByAccessVertex.containsKey(vertex)) {
       ArrayList<Connectoid> connectoids = connectoidsByAccessVertex.get(vertex);
       for (var connectoid : connectoids) {
-        if (connectoid instanceof UndirectedConnectoid) {
-          zoning.getOdConnectoids().remove((UndirectedConnectoid) connectoid);
+        if (connectoid instanceof OdConnectoid) {
+          zoning.getOdConnectoids().remove((OdConnectoid) connectoid);
           removedConnectoids = true;
-        } else if (connectoid instanceof DirectedConnectoid) {
-          zoning.getTransferConnectoids().remove((DirectedConnectoid) connectoid);
+        } else if (connectoid instanceof TransferConnectoid) {
+          zoning.getTransferConnectoids().remove((TransferConnectoid) connectoid);
           removedConnectoids = true;
         } else {
           LOGGER.severe(String.format("unknown connectoid type used on vertex %d", vertex.getId()));
           continue;
         }
-        connectoidsByAccessVertex.remove(connectoid.getAccessVertex());
+        connectoidsByAccessVertex.remove(connectoid.getReferenceVertex());
       }
     }
   }

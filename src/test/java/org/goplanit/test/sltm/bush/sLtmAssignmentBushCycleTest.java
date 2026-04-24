@@ -18,9 +18,7 @@ import org.goplanit.sdinteraction.smoothing.MSRASmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
@@ -226,9 +224,9 @@ public class sLtmAssignmentBushCycleTest {
       zoneFactory.registerNew().setXmlId("A``");
 
       var connectoidFactory = zoning.getOdConnectoids().getFactory();
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A"),   nodes.getByXmlId("8"),   0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A`"),  nodes.getByXmlId("6"),   0);
-      connectoidFactory.registerNew(zoning.getOdZones().getByXmlId("A``"), nodes.getByXmlId("7"),   0);
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A"),   nodes.getByXmlId("8"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A`"),  nodes.getByXmlId("6"));
+      connectoidFactory.registerNewWithUndirectedEntry(zoning.getOdZones().getByXmlId("A``"), nodes.getByXmlId("7"));
                       
     }catch(Exception e) {
       e.printStackTrace();

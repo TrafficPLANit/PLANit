@@ -23,7 +23,7 @@ import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
  * @author markr
  *
  */
-public abstract class ConnectoidsImpl<T extends Connectoid<?>> extends ManagedIdEntitiesImpl<T>
+public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEntitiesImpl<T>
     implements Connectoids<T> {
 
   /** logger to use */
@@ -33,7 +33,7 @@ public abstract class ConnectoidsImpl<T extends Connectoid<?>> extends ManagedId
    * update the references to all access zones for all connectoids
    */
   protected void updateConnectoidAccessZoneIdReferences() {
-    forEach(c -> c.recreateAccessZoneIdMapping());
+    forEach(Connectoid::recreateAccessZoneIdMapping);
   }
 
   /**
@@ -82,7 +82,7 @@ public abstract class ConnectoidsImpl<T extends Connectoid<?>> extends ManagedId
   @Override
   public Map<Zone, Set<T>> createIndexByAccessZone() {
     HashMap<Zone,Set<T>> indexByAccessZone = new HashMap<>();
-    for( Connectoid<?> connectoid : this){
+    for(var connectoid : this){
       for(var accessZoneEntry : connectoid){
         var accessZone = accessZoneEntry.getAccessZone();
         indexByAccessZone.putIfAbsent(accessZone,new HashSet<>());

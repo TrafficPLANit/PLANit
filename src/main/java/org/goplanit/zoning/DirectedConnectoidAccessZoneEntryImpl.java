@@ -2,7 +2,6 @@ package org.goplanit.zoning;
 
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.*;
 
 import java.util.*;
@@ -21,34 +20,13 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
       Logger.getLogger(DirectedConnectoidAccessZoneEntryImpl.class.getCanonicalName());
 
   /** required to determine consistency of orientation of edge segments w.r.t. access node */
-  private final DirectedConnectoid parentConnectoid;
+  private final TransferConnectoid parentConnectoid;
 
   /**
-   * the access point to an infrastructure layer
+   * Explicit allowed access points to an infrastructure layer if used, otherwise all are assumed
+   * allowed as long as they are mode compatible
    */
   private TreeMap<Long,EdgeSegment> accessEdgeSegments = new TreeMap<>();
-
-  /**
-   * Check if orientation of edge segment conforms to connectoid access vertex set and existing
-   * access segments
-   * @param accessEdgeSegment to check
-   * @return true when valid, false otherwise
-   */
-  private boolean isValidOrientation(EdgeSegment accessEdgeSegment) {
-    if(!hasAccessLinkSegments()){
-      return accessEdgeSegment.anyVertexMatches(v -> v.equals(parentConnectoid.getAccessVertex()));
-    }else {
-      var refSegment = getFirstAccessLinkSegment();
-      if(refSegment.getDownstreamVertex().equals(parentConnectoid.getAccessVertex())){
-        return true;
-      }else if(refSegment.getUpstreamVertex().equals(parentConnectoid.getAccessVertex())){
-        return false;
-      }else{
-        throw new PlanItRunTimeException("access link segment inconsistent with connectoid access vertex, " +
-            "should not happen");
-      }
-    }
-  }
 
   /**
    * constructor
@@ -58,7 +36,7 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
    * @param type the type
    */
   protected DirectedConnectoidAccessZoneEntryImpl(
-      DirectedConnectoid parentConnectoid, Zone accessZone, ZoneConnectoidType type) {
+      TransferConnectoid parentConnectoid, Zone accessZone, ZoneConnectoidType type) {
     super(accessZone, type);
     this.parentConnectoid = parentConnectoid;
   }
@@ -72,7 +50,29 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
     super(other);
     this.parentConnectoid = other.parentConnectoid;
 
-    this.accessEdgeSegments = new TreeMap<>(other.accessEdgeSegments);
+    if(other.accessEdgeSegments != null) {
+      this.accessEdgeSegments = new TreeMap<>(other.accessEdgeSegments);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isValidOrientation(EdgeSegment accessEdgeSegment) {
+    if(!hasAccessLinkSegments()){
+      return accessEdgeSegment.anyVertexMatches(v -> v.equals(parentConnectoid.getReferenceVertex()));
+    }else {
+      var refSegment = getFirstAccessLinkSegment();
+      if(refSegment.getDownstreamVertex().equals(parentConnectoid.getReferenceVertex())){
+        return true;
+      }else if(refSegment.getUpstreamVertex().equals(parentConnectoid.getReferenceVertex())){
+        return false;
+      }else{
+        throw new PlanItRunTimeException("Access link segment inconsistent with connectoid access vertex, " +
+            "should not happen");
+      }
+    }
   }
 
   /**

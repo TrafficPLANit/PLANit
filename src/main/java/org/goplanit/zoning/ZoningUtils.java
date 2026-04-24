@@ -7,6 +7,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.utils.zoning.ZoneConnectoidType;
 
 /**
  * Utilities for Zoning
@@ -62,8 +63,8 @@ public class ZoningUtils {
       linkSegmentToConnectoid.setLinkSegmentType(linkSegmentType);
     }
 
-    var odConnectoid = zoning.getOdConnectoids().getFactory().registerNew(
-        zone, upstreamNodeFromStub, connectoidLengthKm);
+    var odConnectoid = zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(
+        zone, upstreamNodeFromStub, ZoneConnectoidType.ZONE_ACCESS_EGRESS, connectoidLengthKm);
     return Pair.of(odConnectoid, stubLink);
   }
 }
