@@ -969,7 +969,8 @@ public class ZoningConverterUtils {
             tc -> tc.getAccessZoneEntriesStream(accessEgressTypes)).filter(
                 e -> e.getAccessZone().equals(transferZone)).noneMatch(
                     connectoidZoneEntryForTransferZone ->
-                        connectoidZoneEntryForTransferZone.isAnyModeAllowed(accessEgressModes));
+                        !connectoidZoneEntryForTransferZone.isAnyModeAllowed(ptStopAccessModes) &&
+                            connectoidZoneEntryForTransferZone.isAnyModeAllowed(accessEgressModes));
       if(transferZoneWithoutSupport){
         transferZonesDisconnectedFromAltModes.add(transferZone);
       }
