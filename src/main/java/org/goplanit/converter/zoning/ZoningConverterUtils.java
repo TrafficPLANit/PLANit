@@ -3,6 +3,7 @@ package org.goplanit.converter.zoning;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitEntityGeoUtils;
@@ -1082,5 +1083,50 @@ public class ZoningConverterUtils {
     var addedAccessModes = new TreeSet<>(modesToAdd);
     var addedEgressModes = new TreeSet<>(modesToAdd);
     return Pair.of(addedAccessModes, addedEgressModes);
+  }
+
+  /**
+   * Find closest mode compatible node (so any attached link with an entry segment supporting the mode constraints)
+   * of provided links that do not have any banned modes but will have at
+   * least one of the supported modes
+   *
+   * @param geometry reference centroid of geometry used
+   * @param mode to check
+   * @param eligibleLinkSegments link segments to consider
+   * @param maxSearchRadius only consider if within search radius
+   * @param suppressSpatialWarnings flag for logging
+   * @param geoUtils to use
+   * @return pair of closest node and distance (null if not available)
+   */
+  public static Pair<DirectedVertex, Double> findClosestModeCompatibleNode(
+      Geometry geometry,
+      Mode mode,
+      Stream<MacroscopicLinkSegment> eligibleLinkSegments,
+      boolean selectUpstreamNode,
+      PlanitJtsCrsUtils geoUtils,
+      double maxSearchRadius,
+      boolean suppressSpatialWarnings) {
+
+    var refCoord = geometry.getCentroid().getCoordinate();
+    var modeCompatibleNearbyNodes = eligibleLinkSegments.filter(
+        ls -> ls.isModeAllowed(mode)).map(
+        ls -> selectUpstreamNode ? ls.getUpstreamNode() : ls.getDownstreamNode()).collect(Collectors.toList());
+    return PlanitEntityGeoUtils.findPlanitEntityClosest(
+        refCoord,
+        modeCompatibleNearbyNodes,
+        maxSearchRadius,
+        suppressSpatialWarnings,
+        geoUtils);
+  }
+
+  /**
+   * Obtain explicit allowed modes across all connectoids all directed access segments that are explicitly
+   * registered
+   *
+   * @param connectoids to collect from
+   */
+  public static Set<Mode> extractExplicitAllowedModesFromDirectedAccessEntries(Set<TransferConnectoid> connectoids) {
+    return connectoids.stream().flatMap(TransferConnectoid::getExplicitAccessLinkSegmentsStream).flatMap(
+        ls -> ((MacroscopicLinkSegment)ls).getAllowedModes().stream()).collect(Collectors.toSet());
   }
 }
