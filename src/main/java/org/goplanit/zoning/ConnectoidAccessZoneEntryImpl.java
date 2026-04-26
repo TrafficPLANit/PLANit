@@ -31,6 +31,7 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
    * constructor
    *
    * @param accessZone to use
+   * @param type to use
    */
   protected ConnectoidAccessZoneEntryImpl(Zone accessZone, ZoneConnectoidType type) {
     this.accessZone = accessZone;

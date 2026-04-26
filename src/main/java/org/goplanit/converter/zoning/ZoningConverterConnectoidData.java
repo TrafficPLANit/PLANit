@@ -199,6 +199,7 @@ public class ZoningConverterConnectoidData {
    *
    * @param connectoidExternalId external id (allowed to be null)
    * @param transferZone to relate connectoids to
+   * @param networkLayer to use
    * @param accessNode of the connectoids
    * @param allowedModes used for each connectoid
    * @param type         the type of the zone connectoid combination reflecting how it is envisaged to be used

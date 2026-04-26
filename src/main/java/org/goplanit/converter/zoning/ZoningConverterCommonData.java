@@ -45,6 +45,9 @@ public class ZoningConverterCommonData {
 
   /**
    * Constructor with default connectoid data
+   *
+   * @param referenceZoning to use
+   * @param network to use
    */
   public ZoningConverterCommonData(MacroscopicNetwork network, Zoning referenceZoning){
     this(network, referenceZoning, new ZoningConverterConnectoidData(referenceZoning, network));
@@ -53,6 +56,8 @@ public class ZoningConverterCommonData {
   /**
    * Constructor with provided connectoid data to use
    *
+   * @param referenceZoning to use
+   * @param network to use
    * @param connectoidData to use
    */
   public ZoningConverterCommonData(

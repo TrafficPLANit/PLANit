@@ -1093,6 +1093,7 @@ public class ZoningConverterUtils {
    * @param geometry reference centroid of geometry used
    * @param mode to check
    * @param eligibleLinkSegments link segments to consider
+   * @param selectUpstreamNode flag
    * @param maxSearchRadius only consider if within search radius
    * @param suppressSpatialWarnings flag for logging
    * @param geoUtils to use
@@ -1124,6 +1125,7 @@ public class ZoningConverterUtils {
    * registered
    *
    * @param connectoids to collect from
+   * @return modes found
    */
   public static Set<Mode> extractExplicitAllowedModesFromDirectedAccessEntries(Set<TransferConnectoid> connectoids) {
     return connectoids.stream().flatMap(TransferConnectoid::getExplicitAccessLinkSegmentsStream).flatMap(

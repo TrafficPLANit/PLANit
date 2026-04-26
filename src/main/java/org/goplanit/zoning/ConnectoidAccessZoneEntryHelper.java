@@ -17,6 +17,10 @@ public class ConnectoidAccessZoneEntryHelper {
    *   <li>{@code ZoneConnectoidType.PT_VEHICLE_STOP}: {@code DirectedConnectoidAccessZoneEntry} for undirected access </li>
    *   <li>all others: ConnectoidAccessZoneEntry for undirected access </li>
    * </ul>
+   *
+   * @param connectoid to register for
+   * @param zone to register for
+   * @param type to register for
    * @return created entry already registere don connectoid
    */
   public static ConnectoidAccessZoneEntry createAndRegisterAccessZoneEntryInferredFromType(
