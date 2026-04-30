@@ -996,12 +996,13 @@ public class ZoningConverterUtils {
 
     boolean entryExists = connectoid.hasAccessZoneEntry(transferZone, accessOrEgressType);
     if(!entryExists){
-      connectoid.createUndirectedAccessZoneEntry(transferZone, accessOrEgressType);
-    }
-    // guaranteed to be directed at this point
-    var zoneConnectoidEntry = connectoid.getAccessZoneEntry(transferZone, accessOrEgressType);
-    if(!zoneConnectoidEntry.isAllModesAllowed()) {
-      zoneConnectoidEntry.addAllowedModes(candidateMode);
+      var entry = connectoid.createUndirectedAccessZoneEntry(transferZone, accessOrEgressType);
+      entry.addAllowedModes(candidateMode);
+    }else {
+      var zoneConnectoidEntry = connectoid.getAccessZoneEntry(transferZone, accessOrEgressType);
+      if (!zoneConnectoidEntry.isAllModesAllowed()) {
+        zoneConnectoidEntry.addAllowedModes(candidateMode);
+      }
     }
     return true;
   }
