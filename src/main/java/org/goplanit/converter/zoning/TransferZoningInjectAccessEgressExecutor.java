@@ -237,15 +237,11 @@ public class TransferZoningInjectAccessEgressExecutor {
    * @param searchRadius to apply
    */
   private void connectFerriesToLandNetwork(double searchRadius) {
-    LOGGER.info("Connecting ferry waiting areas to land network");
-
     var referenceNetwork = zoningConverterData.getReferenceNetwork();
     var referenceZoning = zoningConverterData.getReferenceZoning();
 
     var ferryMode = referenceNetwork.getModes().get(PredefinedModeType.FERRY);
     if(ferryMode == null){
-      LOGGER.warning("Ferry as a mode not available in PLANit network even though ferry parser is active, " +
-          "this is unexpected, aborting connecting ferry stops to land network");
       return;
     }
     // implicitly allowed modes in case no explicit modes are set on connectoid
@@ -264,6 +260,9 @@ public class TransferZoningInjectAccessEgressExecutor {
         nonFerryModes);
 
     var ferryTransferZones = result.first();
+    if(ferryTransferZones.isEmpty()){
+      LOGGER.info("Connecting ferry waiting areas to land network");
+    }
     var ferryTransferZonesDisconnectedFromLandNetwork = result.second();
     LOGGER.info(String.format("Identified %d (%.2f%%) disconnected ferry stops from land network",
         ferryTransferZonesDisconnectedFromLandNetwork.size(),
@@ -295,8 +294,6 @@ public class TransferZoningInjectAccessEgressExecutor {
     var railBasedModes = referenceNetwork.getModes().stream().filter(
         m -> m.getPhysicalFeatures().getTrackType().equals(TrackModeType.RAIL)).collect(Collectors.toSet());
     if(railBasedModes.isEmpty()){
-      LOGGER.warning("No rail based modes available in PLANit network even though rail parser is active, " +
-          "this is unexpected, aborting connecting rail based stops to land network");
       return;
     }
 
@@ -306,14 +303,17 @@ public class TransferZoningInjectAccessEgressExecutor {
     if(allSupportedActiveModes.isEmpty()){
       return;
     }
-    LOGGER.info("Connecting rail-based waiting areas to active transport network");
-
     var connectoidsByTransferZoneMapping = referenceZoning.getTransferConnectoids().createIndexByAccessZone();
 
     // disconnected rail stops without access egress modes
     var result = ZoningConverterUtils.findPtStopModeTransferZonesWithoutAccessEgressModeSupport(
         connectoidsByTransferZoneMapping, railBasedModes, allSupportedActiveModes);
     var railBasedTransferZones = result.first();
+    if(railBasedTransferZones.isEmpty()){
+      return;
+    }
+    LOGGER.info("Connecting rail-based waiting areas to active transport network");
+
     var railBasedTransferZonesDisconnectedFromActiveModesNetwork = result.second();
     LOGGER.info(String.format("Identified %d (%.2f%%) disconnected rail-based stops/stations from active road network",
         railBasedTransferZonesDisconnectedFromActiveModesNetwork.size(),
@@ -352,13 +352,17 @@ public class TransferZoningInjectAccessEgressExecutor {
       return;
     }
 
-    LOGGER.info("Connecting bus-based waiting areas to active transport network");
     var connectoidsByTransferZoneMapping = referenceZoning.getTransferConnectoids().createIndexByAccessZone();
 
     // relevant transfer zones
     var result = ZoningConverterUtils.findPtStopModeTransferZonesWithoutAccessEgressModeSupport(
         connectoidsByTransferZoneMapping, busBasedModes, allSupportedActiveModes);
     var busBasedTransferZones = result.first();
+    if(busBasedTransferZones.isEmpty()){
+      return;
+    }
+    LOGGER.info("Connecting bus-based waiting areas to active transport network");
+
     var busBasedTransferZonesDisconnectedFromActiveModesNetwork = result.second();
     LOGGER.info(String.format("Identified %d (%.2f%%) disconnected bus-based stops/stations from pedestrian network",
         busBasedTransferZonesDisconnectedFromActiveModesNetwork.size(),
@@ -391,31 +395,23 @@ public class TransferZoningInjectAccessEgressExecutor {
   /**
    * Execute
    *
-   * @param connectWaterBased connect ferries to access/egress modes listed on each ferry stop
-   * @param connectedRailBased connect rail stops to active access/egress modes (pedestrian/bicycle)
-   * @param connectRoadBased connect bus stops to access/egress modes (pedestrian)
+   * @param settings to apply
    */
-  public void execute(
-      boolean connectWaterBased,
-      boolean connectedRailBased,
-      boolean connectRoadBased,
-      double waterBasedSearchRadius,
-      double railBasedSearchRadius,
-      double roadBasedSearchRadius){
+  public void execute(AccessEgressInjectionSettings settings){
 
     // if configured connect all ferry stops to land network (for modes allowed on each ferry at waiting area)
-    if(connectWaterBased) {
-      connectFerriesToLandNetwork(waterBasedSearchRadius);
+    if(settings.isConnectFerryStopsToNearbyLandNetwork()) {
+      connectFerriesToLandNetwork(settings.getFerryStopToNearbyLandNetworkSearchRadiusMeters());
     }
 
     // if configured connect all rail stops to active mode (pedestrian, bicycle) network
-    if(connectedRailBased) {
-      connectRailBasedStopsToActiveModeNetwork(railBasedSearchRadius);
+    if(settings.isConnectRailBasedStopsToPassengerNetwork()) {
+      connectRailBasedStopsToActiveModeNetwork(settings.getRailBasedStopToPassengerNetworkSearchRadiusMeters());
     }
 
     // if configured connect all bus stops to pedestrian network
-    if(connectRoadBased) {
-      connectBusStopsToPedestrianNetwork(roadBasedSearchRadius);
+    if(settings.isConnectBusBasedStopsToPassengerNetwork()) {
+      connectBusStopsToPedestrianNetwork(settings.getBusBasedStopToPassengerNetworkSearchRadiusMeters());
     }
 
   }
