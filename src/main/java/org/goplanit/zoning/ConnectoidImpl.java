@@ -185,11 +185,9 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * {@inheritDoc}
    */
   @Override
-  public boolean isModeAllowed(Zone accessZone, ZoneConnectoidType type, Mode mode) {
+  public boolean isModeAllowed(Zone accessZone, ZoneConnectoidType type, Mode mode, boolean defaultIfZoneTypeAbsent) {
     if (!hasAccessZoneEntry(accessZone, type)) {
-      LOGGER.warning(String.format("unknown access zone (%s) with type %s for connectoid (%s) " +
-          "when checking if mode is allowed", accessZone.getIdsAsString(), type, getIdsAsString()));
-      return false;
+      return defaultIfZoneTypeAbsent;
     }
     return getAccessZoneEntry(accessZone, type).isModeAllowed(mode);
   }
