@@ -13,6 +13,8 @@ import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.network.layers.ServiceNetworkLayers;
 import org.goplanit.utils.zoning.*;
+import org.goplanit.utils.zoning.connectoid.Connectoid;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
 import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierEventType;

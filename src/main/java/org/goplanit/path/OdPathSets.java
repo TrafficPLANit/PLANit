@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.goplanit.component.PlanitComponent;
-import org.goplanit.od.path.OdPathMatrix;
+import org.goplanit.zoning.od.path.OdPathMatrix;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.zoning.Zoning;
 

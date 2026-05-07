@@ -19,12 +19,11 @@ import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
-import org.goplanit.od.demand.OdDemands;
-import org.goplanit.od.skim.OdSkimMatrix;
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.zoning.zonetozone.OdDemands;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
@@ -571,7 +570,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * @return skimMatrix the created matrix, null if it could not be created
    */
   public abstract OdSkimMatrix createOdSkimMatrix(
-          OdSkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData);
+      SkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData);
 
   /**
    * Convenience access to fundamental diagram component

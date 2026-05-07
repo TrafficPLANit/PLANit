@@ -10,7 +10,8 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
 import org.goplanit.network.virtual.VirtualNetworkImpl;
-import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.zoning.connectoid.*;
+import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -25,6 +26,8 @@ import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
+import org.goplanit.zoning.connectoid.OdConnectoidsImpl;
+import org.goplanit.zoning.connectoid.TransferConnectoidsImpl;
 import org.goplanit.zoning.modifier.ZoningModifierImpl;
 
 /**
@@ -218,7 +221,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
       for (TimePeriod timePeriod : demands.timePeriods) {
         final OdDemands odDemandsForModeTime = demands.get(mode, timePeriod);
         if (odDemandsForModeTime != null) {
-          if (nofZones != odDemandsForModeTime.getNumberOfOdZones()) {
+          if (nofZones != odDemandsForModeTime.getNumberOfZones()) {
             // inconsistent number of zones found
             return false;
           }

@@ -1,26 +1,26 @@
-package org.goplanit.od.skim;
+package org.goplanit.zoning.zonetozone;
 
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.ojalgo.array.Array2D;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.od.OdPrimitiveMatrix;
-import org.goplanit.utils.od.OdPrimitiveMatrixIterator;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZonePrimitiveMatrix;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZonePrimitiveMatrixIterator;
 import org.goplanit.utils.zoning.OdZones;
 
 /**
- * This class stores an OD Skim matrix.
+ * Thin wrapper storing a skim matrix specifically for od zones.
  * 
  * @author gman6028, markr
  *
  */
-public class OdSkimMatrix extends OdPrimitiveMatrix<Double> {
+public class OdSkimMatrix extends ZoneToZonePrimitiveMatrix<Double> {
 
   /**
    * Wrapper around primitive matrix iterator
    * 
    * @author markr
    */
-  public class OdSkimMatrixIterator extends OdPrimitiveMatrixIterator<Double> {
+  public static class OdSkimMatrixIterator extends ZoneToZonePrimitiveMatrixIterator<Double> {
 
     public OdSkimMatrixIterator(final OdSkimMatrix matrix) {
       super(matrix.matrixContainer, matrix.zones);
@@ -34,7 +34,7 @@ public class OdSkimMatrix extends OdPrimitiveMatrix<Double> {
   /**
    * The ODSkimOutputType for this ODSkimMatrix
    */
-  private final OdSkimSubOutputType odSkimOutputType;
+  private final SkimSubOutputType odSkimOutputType;
 
   /**
    * Constructor
@@ -42,8 +42,12 @@ public class OdSkimMatrix extends OdPrimitiveMatrix<Double> {
    * @param zones            holding the zones in the network
    * @param odSkimOutputType the skim output type for this OD skim matrix
    */
-  public OdSkimMatrix(OdZones zones, OdSkimSubOutputType odSkimOutputType) {
-    super(OdSkimMatrix.class, IdGroupingToken.collectGlobalToken(), Double.class, zones, Array2D.PRIMITIVE32.makeZero(zones.size(), zones.size()));
+  public OdSkimMatrix(OdZones zones, SkimSubOutputType odSkimOutputType) {
+    super(OdSkimMatrix.class,
+        IdGroupingToken.collectGlobalToken(),
+        Double.class,
+        zones,
+        Array2D.PRIMITIVE32.makeZero(zones.size(), zones.size()));
     this.odSkimOutputType = odSkimOutputType;
   }
 
@@ -62,7 +66,7 @@ public class OdSkimMatrix extends OdPrimitiveMatrix<Double> {
    * 
    * @return the OD skim matrix type for the current OD skim matrix
    */
-  public OdSkimSubOutputType getOdSkimOutputType() {
+  public SkimSubOutputType getOdSkimOutputType() {
     return odSkimOutputType;
   }
 

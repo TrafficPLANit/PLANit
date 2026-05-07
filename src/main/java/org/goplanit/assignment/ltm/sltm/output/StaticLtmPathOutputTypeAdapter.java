@@ -3,7 +3,7 @@ package org.goplanit.assignment.ltm.sltm.output;
 import org.goplanit.assignment.TrafficAssignment;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.ltm.sltm.StaticLtmPathStrategy;
-import org.goplanit.od.path.OdMultiPaths;
+import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.output.adapter.PathOutputTypeAdapterImpl;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.mode.Mode;

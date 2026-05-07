@@ -1,7 +1,7 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
 import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
-import org.goplanit.od.path.OdMultiPaths;
+import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.network.layer.physical.Movement;
 

@@ -12,7 +12,7 @@ import org.goplanit.algorithms.shortest.*;
 import org.goplanit.assignment.ltm.sltm.consumer.ConjugateBushSyncBushFlowConsumer;
 import org.goplanit.graph.directed.acyclic.ConjugateACyclicSubGraphImpl;
 import org.goplanit.network.transport.ConjugateTransportModelNetwork;
-import org.goplanit.od.demand.OdDemands;
+import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.graph.directed.acyclic.ConjugateACyclicSubGraph;

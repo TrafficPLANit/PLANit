@@ -1,17 +1,14 @@
-package org.goplanit.od.path;
+package org.goplanit.zoning.od.path;
 
-import org.goplanit.utils.containers.ContainerUtils;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.od.OdHashedImpl;
-import org.goplanit.utils.od.OdHashedIterator;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneHashedImpl;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneHashedIterator;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.zoning.OdZones;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * This class stores (multiple) paths per origin and destination by creating a unique hash for the combined ids of the od zones. This results in a memory efficient implementation
@@ -21,13 +18,13 @@ import java.util.stream.Collectors;
  * @author markr
  *
  */
-public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends List<T>> extends OdHashedImpl<U> implements OdMultiPaths<T, U> {
+public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends List<T>> extends ZoneToZoneHashedImpl<U> implements OdMultiPaths<T, U> {
 
   /**
    * Wrapper around hashed iterator for od paths
    *
    */
-  public static class OdPathsHashedIterator<V extends ManagedDirectedPath, W extends List<V>> extends OdHashedIterator<W> implements OdMultiPathIterator<V,W> {
+  public static class OdPathsHashedIterator<V extends ManagedDirectedPath, W extends List<V>> extends ZoneToZoneHashedIterator<W> implements OdMultiPathIterator<V,W> {
 
     public OdPathsHashedIterator(OdMultiPathsHashed<V,W> container) {
       super(container, container.zones);

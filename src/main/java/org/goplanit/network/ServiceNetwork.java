@@ -12,8 +12,9 @@ import org.goplanit.utils.network.layers.ServiceNetworkLayers;
 import java.util.logging.Logger;
 
 /**
- * A service network is a network built on top of a topological (physical) transport network providing services leveraging this underlying network. Each ServiceNetworkLayer in turn
- * relates one-on-one to a (physical) topological layer where it provides services on that layer.
+ * A service network is a network built on top of a topological (physical) transport network providing services
+ * leveraging this underlying network. Each ServiceNetworkLayer in turn relates one-on-one to a (physical) topological
+ * layer where it provides services on that layer.
  * 
  * @author markr
  *
@@ -77,9 +78,12 @@ public class ServiceNetwork extends TopologicalLayerNetwork<ServiceNetworkLayer,
    * */
   @Override
   public void logInfo(String prefix) {
-    LOGGER.info(String.format("[STATS] %s Service network %s (external id: %s) has %d layers", prefix, getXmlId(), getExternalId(), getTransportLayers().size()));
-    LOGGER.info(String.format("%s Coordinate reference system: %s", prefix, getCoordinateReferenceSystem().getName()));
-    getTransportLayers().forEach( layer -> layer.logInfo(prefix.concat(LoggingUtils.serviceNetworkLayerPrefix(layer.getId()))));
+    LOGGER.info(String.format("[STATS] %s Service network %s (external id: %s) has %d layers",
+        prefix, getXmlId(), getExternalId(), getTransportLayers().size()));
+    LOGGER.info(String.format("%s Coordinate reference system: %s",
+        prefix, getCoordinateReferenceSystem().getName()));
+    getTransportLayers().forEach( layer ->
+        layer.logInfo(prefix.concat(LoggingUtils.serviceNetworkLayerPrefix(layer.getId()))));
   }
 
   /**

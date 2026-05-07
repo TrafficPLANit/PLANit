@@ -1,6 +1,6 @@
-package org.goplanit.od.path;
+package org.goplanit.zoning.od.path;
 
-import org.goplanit.utils.od.OdData;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneData;
 import org.goplanit.utils.path.ManagedDirectedPath;
 
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
  * @author markr
  *
  */
-public interface OdMultiPaths<U extends ManagedDirectedPath,T extends List<U>> extends OdData<T> {
+public interface OdMultiPaths<U extends ManagedDirectedPath,T extends List<U>> extends ZoneToZoneData<T> {
 
   /**
    * Returns an iterator which can iterate through all the origin-destination cells

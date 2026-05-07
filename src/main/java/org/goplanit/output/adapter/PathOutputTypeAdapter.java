@@ -3,19 +3,18 @@ package org.goplanit.output.adapter;
 import java.util.List;
 import java.util.Optional;
 
-import org.goplanit.od.path.OdMultiPathIterator;
-import org.goplanit.od.path.OdMultiPaths;
+import org.goplanit.zoning.od.path.OdMultiPathIterator;
+import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.output.enums.PathOutputIdentificationType;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.od.OdDataIterator;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneDataIterator;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.PathUtils;
 import org.goplanit.utils.time.TimePeriod;
-import org.locationtech.jts.geom.LineString;
 
 /**
  * Output type adapter interface for paths
@@ -32,8 +31,8 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @return the external Id of the destination zone for the current cell in the OD path matrix
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<String> getDestinationZoneExternalId(OdDataIterator<?> odPathIterator) throws PlanItException {
-    return Optional.of(odPathIterator.getCurrentDestination().getExternalId());
+  public static Optional<String> getDestinationZoneExternalId(ZoneToZoneDataIterator<?> odPathIterator) throws PlanItException {
+    return Optional.of(odPathIterator.getCurrentToZone().getExternalId());
   }
 
   /**
@@ -43,8 +42,8 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @return the xml Id of the destination zone for the current cell in the OD path matrix
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<String> getDestinationZoneXmlId(OdDataIterator<?> odPathIterator) throws PlanItException {
-    return Optional.of(odPathIterator.getCurrentDestination().getXmlId());
+  public static Optional<String> getDestinationZoneXmlId(ZoneToZoneDataIterator<?> odPathIterator) throws PlanItException {
+    return Optional.of(odPathIterator.getCurrentToZone().getXmlId());
   }
 
   /**
@@ -54,8 +53,8 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @return the Id of the destination zone for the current cell in the OD path matrix
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<Long> getDestinationZoneId(OdDataIterator<?> odPathIterator) throws PlanItException {
-    return Optional.of(odPathIterator.getCurrentDestination().getId());
+  public static Optional<Long> getDestinationZoneId(ZoneToZoneDataIterator<?> odPathIterator) throws PlanItException {
+    return Optional.of(odPathIterator.getCurrentToZone().getId());
   }
 
   /**
@@ -65,8 +64,8 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @return the origin zone external Id for the current cell in the OD path matrix
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<String> getOriginZoneExternalId(OdDataIterator<?> odPathIterator) throws PlanItException {
-    return Optional.of(odPathIterator.getCurrentOrigin().getExternalId());
+  public static Optional<String> getOriginZoneExternalId(ZoneToZoneDataIterator<?> odPathIterator) throws PlanItException {
+    return Optional.of(odPathIterator.getCurrentFromZone().getExternalId());
   }
 
   /**
@@ -76,8 +75,8 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @return the xml Id of the origin zone for the current cell in the OD path matrix
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<String> getOriginZoneXmlId(OdDataIterator<?> odPathIterator) throws PlanItException {
-    return Optional.of(odPathIterator.getCurrentOrigin().getXmlId());
+  public static Optional<String> getOriginZoneXmlId(ZoneToZoneDataIterator<?> odPathIterator) throws PlanItException {
+    return Optional.of(odPathIterator.getCurrentFromZone().getXmlId());
   }
 
   /**
@@ -87,8 +86,8 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @return the origin zone Id for the current cell in the OD path matrix
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<Long> getOriginZoneId(OdDataIterator<?> odPathIterator) throws PlanItException {
-    return Optional.of(odPathIterator.getCurrentOrigin().getId());
+  public static Optional<Long> getOriginZoneId(ZoneToZoneDataIterator<?> odPathIterator) throws PlanItException {
+    return Optional.of(odPathIterator.getCurrentFromZone().getId());
   }
 
   /**

@@ -1,8 +1,8 @@
-package org.goplanit.od.path;
+package org.goplanit.zoning.od.path;
 
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.od.OdNonPrimitiveMatrix;
-import org.goplanit.utils.od.OdNonPrimitiveMatrixIterator;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneNonPrimitiveMatrix;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneNonPrimitiveMatrixIterator;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.zoning.OdZones;
 
@@ -12,14 +12,14 @@ import org.goplanit.utils.zoning.OdZones;
  * @author gman6028, markr
  *
  */
-public class OdPathMatrix extends OdNonPrimitiveMatrix<ManagedDirectedPath> implements OdPaths<ManagedDirectedPath> {
+public class OdPathMatrix extends ZoneToZoneNonPrimitiveMatrix<ManagedDirectedPath> implements OdPaths<ManagedDirectedPath> {
 
   /**
    * Wrapper around primitive matrix iterator
    * 
    * @author markr
    */
-  public class OdPathMatrixIterator extends OdNonPrimitiveMatrixIterator<ManagedDirectedPath> implements OdPathIterator<ManagedDirectedPath> {
+  public class OdPathMatrixIterator extends ZoneToZoneNonPrimitiveMatrixIterator<ManagedDirectedPath> implements OdPathIterator<ManagedDirectedPath> {
 
     public OdPathMatrixIterator(final OdPathMatrix matrix) {
       super(matrix.matrixContainer, matrix.zones);

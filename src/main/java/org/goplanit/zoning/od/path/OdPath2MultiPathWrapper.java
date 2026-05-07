@@ -1,7 +1,7 @@
-package org.goplanit.od.path;
+package org.goplanit.zoning.od.path;
 
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.od.OdDataImpl;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneDataImpl;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.zoning.Zone;
@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends List<T>> extends OdDataImpl<U> implements OdMultiPaths<T, U> {
+public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends List<T>> extends ZoneToZoneDataImpl<U> implements OdMultiPaths<T, U> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(OdPath2MultiPathWrapper.class.getCanonicalName());
@@ -103,29 +103,29 @@ public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends Li
    * {@inheritDoc}
    */
   @Override
-  public U getValue(Zone origin, Zone destination) {
-    return getValue(origin.getId(), destination.getId());
+  public U getValue(Zone from, Zone to) {
+    return getValue(from.getId(), to.getId());
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public U getValue(long originId, long destinationId) {
+  public U getValue(long from, long to) {
     U container = getContainer();
-    container.add(odSinglePaths.getValue(originId,destinationId));
+    container.add(odSinglePaths.getValue(from, to));
     return container;
   }
 
   /**
    * Not allowed, read-only
    *
-   * @param origin      specified origin
-   * @param destination specified destination
+   * @param from      specified origin
+   * @param to specified destination
    * @param value       value at the specified cell
    */
   @Override
-  public void setValue(Zone origin, Zone destination, U value) {
+  public void setValue(Zone from, Zone to, U value) {
     LOGGER.severe("singlePath2MultiPathWrappr is read-only, attempt to add to it is ignored");
   }
 
@@ -133,8 +133,8 @@ public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends Li
    * {@inheritDoc}
    */
   @Override
-  public int getNumberOfOdZones() {
-    return odSinglePaths.getNumberOfOdZones();
+  public int getNumberOfZones() {
+    return odSinglePaths.getNumberOfZones();
   }
 
   @Override

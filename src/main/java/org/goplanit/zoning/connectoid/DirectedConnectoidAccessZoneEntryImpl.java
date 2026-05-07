@@ -1,8 +1,11 @@
-package org.goplanit.zoning;
+package org.goplanit.zoning.connectoid;
 
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.zoning.*;
+import org.goplanit.utils.zoning.connectoid.DirectedConnectoidAccessZoneEntry;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
+import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -122,4 +125,19 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
     return shallowClone();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass()){
+      return false;
+    }
+
+    DirectedConnectoidAccessZoneEntryImpl that = (DirectedConnectoidAccessZoneEntryImpl) o;
+    return super.equals(o) && Objects.equals(parentConnectoid, that.parentConnectoid) &&
+        Objects.equals(accessEdgeSegments, that.accessEdgeSegments);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), parentConnectoid, accessEdgeSegments);
+  }
 }

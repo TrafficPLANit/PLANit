@@ -1,4 +1,4 @@
-package org.goplanit.zoning;
+package org.goplanit.zoning.connectoid;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -9,6 +9,9 @@ import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.*;
+import org.goplanit.utils.zoning.connectoid.Connectoid;
+import org.goplanit.utils.zoning.connectoid.ConnectoidAccessZoneEntry;
+import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 
 /**
  * connectoid connecting one or more (transfer/OD) zone(s) to the physical road network, the type of

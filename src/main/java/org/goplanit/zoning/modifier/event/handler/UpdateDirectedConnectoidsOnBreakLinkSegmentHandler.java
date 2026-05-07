@@ -11,8 +11,8 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
-import org.goplanit.utils.zoning.TransferConnectoid;
-import org.goplanit.utils.zoning.DirectedConnectoidAccessZoneEntry;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
+import org.goplanit.utils.zoning.connectoid.DirectedConnectoidAccessZoneEntry;
 
 /**
  * Whenever links are broken and these links are referenced by connectoids, it is possible we must update the access

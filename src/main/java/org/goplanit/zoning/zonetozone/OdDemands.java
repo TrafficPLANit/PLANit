@@ -1,21 +1,20 @@
-package org.goplanit.od.demand;
+package org.goplanit.zoning.zonetozone;
 
 import java.util.function.BiConsumer;
 
 import org.goplanit.utils.functionalinterface.TriConsumer;
-import org.goplanit.utils.id.IdMapperType;
-import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.od.OdData;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneData;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.OdZones;
 
 /**
- * OdData representing Origin-Destination demands without a specific container reference so a general typed definition of OdDemands can be used for access
+ * OdData representing Origin-Destination demands without a specific container reference so a general typed
+ * definition of OdDemands can be used for access
  * 
  * @author markr
  *
  */
-public interface OdDemands extends OdData<Double> {
+public interface OdDemands extends ZoneToZoneData<Double> {
 
   /**
    * Multiply all entries with given factor
@@ -30,7 +29,8 @@ public interface OdDemands extends OdData<Double> {
    * @param odZones  to loop over
    * @param consumer to apply
    */
-  public default void forEachNonZeroOdDemand(final OdZones odZones, final TriConsumer<OdZone, OdZone, Double> consumer) {
+  public default void forEachNonZeroOdDemand(
+      final OdZones odZones, final TriConsumer<OdZone, OdZone, Double> consumer) {
     odZones.forEachOriginDestination((o, d) -> {
       Double odDemand = getValue(o, d);
       if (odDemand != null && odDemand > 0) {

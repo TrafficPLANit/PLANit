@@ -14,6 +14,9 @@ import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
 import org.goplanit.utils.network.virtual.physical.ConnectoidLinkFactory;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegmentFactory;
 import org.goplanit.utils.zoning.*;
+import org.goplanit.utils.zoning.connectoid.Connectoid;
+import org.goplanit.utils.zoning.connectoid.OdConnectoid;
+import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
@@ -21,7 +24,6 @@ import org.locationtech.jts.geom.Polygon;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 /**

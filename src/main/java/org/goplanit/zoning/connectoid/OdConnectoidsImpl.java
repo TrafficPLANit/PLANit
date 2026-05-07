@@ -1,10 +1,10 @@
-package org.goplanit.zoning;
+package org.goplanit.zoning.connectoid;
 
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.zoning.OdConnectoid;
-import org.goplanit.utils.zoning.OdConnectoidFactory;
-import org.goplanit.utils.zoning.OdConnectoids;
+import org.goplanit.utils.zoning.connectoid.OdConnectoid;
+import org.goplanit.utils.zoning.connectoid.OdConnectoidFactory;
+import org.goplanit.utils.zoning.connectoid.OdConnectoids;
 
 import java.util.function.BiConsumer;
 

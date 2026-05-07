@@ -1,11 +1,10 @@
 package org.goplanit.converter.idmapping;
 
 import org.goplanit.utils.id.IdMapperType;
-import org.goplanit.utils.zoning.Connectoid;
+import org.goplanit.utils.zoning.connectoid.Connectoid;
 import org.goplanit.utils.zoning.TransferZoneGroup;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
-import org.locationtech.jts.geom.Geometry;
 
 import java.util.function.Function;
 

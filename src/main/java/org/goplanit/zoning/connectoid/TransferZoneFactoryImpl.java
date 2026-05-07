@@ -1,10 +1,12 @@
-package org.goplanit.zoning;
+package org.goplanit.zoning.connectoid;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.TransferZoneFactory;
 import org.goplanit.utils.zoning.TransferZoneType;
 import org.goplanit.utils.zoning.TransferZones;
+import org.goplanit.zoning.TransferZoneImpl;
+import org.goplanit.zoning.ZoneFactoryImpl;
 
 /**
  * Factory for creating transfer zones (on container)

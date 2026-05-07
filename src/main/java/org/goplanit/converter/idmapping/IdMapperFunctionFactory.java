@@ -21,7 +21,7 @@ import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.service.routed.*;
 import org.goplanit.utils.time.TimePeriod;
-import org.goplanit.utils.zoning.Connectoid;
+import org.goplanit.utils.zoning.connectoid.Connectoid;
 import org.goplanit.utils.zoning.TransferZoneGroup;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;

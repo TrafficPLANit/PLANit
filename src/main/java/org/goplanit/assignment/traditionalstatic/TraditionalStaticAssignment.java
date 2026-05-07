@@ -14,12 +14,12 @@ import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.interactor.LinkVolumeAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
-import org.goplanit.od.demand.OdDemands;
-import org.goplanit.od.path.OdPathMatrix;
-import org.goplanit.od.skim.OdSkimMatrix;
+import org.goplanit.zoning.zonetozone.OdDemands;
+import org.goplanit.zoning.od.path.OdPathMatrix;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix;
 import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.configuration.OdOutputTypeConfiguration;
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
@@ -38,7 +38,6 @@ import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.time.RunTimesTracker;
 import org.goplanit.utils.time.TimePeriod;
-import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.Zone;
 
 /**
@@ -207,7 +206,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     final var dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
     final var odPaths = simulationData.getOdPaths(mode);
-    final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
+    final Map<SkimSubOutputType, OdSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
 
     // loop over all available OD demands
     long previousOriginZoneId = -1;
@@ -216,8 +215,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     ShortestPathResult shortestPathResult = null;
     for (final var odDemandMatrixIter = odDemands.iterator(); odDemandMatrixIter.hasNext();) {
       final double odDemand = odDemandMatrixIter.next();
-      final Zone currentOriginZone = odDemandMatrixIter.getCurrentOrigin();
-      final Zone currentDestinationZone = odDemandMatrixIter.getCurrentDestination();
+      final Zone currentOriginZone = odDemandMatrixIter.getCurrentFromZone();
+      final Zone currentDestinationZone = odDemandMatrixIter.getCurrentToZone();
 
       if (currentOriginZone.getId() != currentDestinationZone.getId()) {
         if (getOutputManager().getOutputConfiguration().isPersistZeroFlow() || Precision.positive(odDemand)) {
@@ -357,7 +356,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param shortestPathResult     costs for the shortest path results for the specified mode and origin-any destination
    */
   private void updateOdOutputData(
-      final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap,
+      final Map<SkimSubOutputType, OdSkimMatrix> skimMatrixMap,
       final Zone originZone,
       final Zone destinationZone,
       final ShortestPathResult shortestPathResult) {
@@ -365,7 +364,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     if (getOutputManager().isOutputTypeActive(OutputType.OD)) {
       var activeSubOutputTypes = getOutputManager().getOutputTypeConfiguration(OutputType.OD).getActiveSubOutputTypes();
       for (final var odSkimOutputType : activeSubOutputTypes) {
-        if (odSkimOutputType.equals(OdSkimSubOutputType.COST)) {
+        if (odSkimOutputType.equals(SkimSubOutputType.COST)) {
 
           // Collect cost to get to vertex from shortest path ONE-TO-ALL information directly
           final double odGeneralisedCost =

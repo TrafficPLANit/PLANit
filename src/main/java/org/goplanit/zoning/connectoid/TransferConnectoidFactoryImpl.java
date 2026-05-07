@@ -1,12 +1,16 @@
-package org.goplanit.zoning;
+package org.goplanit.zoning.connectoid;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.zoning.*;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoidFactory;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoids;
+import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 
-import static org.goplanit.utils.zoning.ConnectoidAccessZoneEntry.DEFAULT_LENGTH_KM;
+import static org.goplanit.utils.zoning.connectoid.ConnectoidAccessZoneEntry.DEFAULT_LENGTH_KM;
 
 /**
  * Factory for creating directed connectoids (on container)

@@ -1,12 +1,11 @@
-package org.goplanit.od.path;
+package org.goplanit.zoning.od.path;
 
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.zoning.Zone;
 
-import java.util.Collection;
 import java.util.List;
 
-import static org.goplanit.od.path.OdPath2MultiPathWrapper.getContainer;
+import static org.goplanit.zoning.od.path.OdPath2MultiPathWrapper.getContainer;
 
 /**
  * Iterator that wraps an iterator for single paths per od as if it has multiple-paths per od.
@@ -45,16 +44,16 @@ public class OdPath2MultiPathWrapperIterator <T extends ManagedDirectedPath, U e
    * {@inheritDoc}
    */
   @Override
-  public Zone getCurrentOrigin() {
-    return pathIteratorToWrap.getCurrentOrigin();
+  public Zone getCurrentFromZone() {
+    return pathIteratorToWrap.getCurrentFromZone();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Zone getCurrentDestination() {
-    return pathIteratorToWrap.getCurrentDestination();
+  public Zone getCurrentToZone() {
+    return pathIteratorToWrap.getCurrentToZone();
   }
 
   /**

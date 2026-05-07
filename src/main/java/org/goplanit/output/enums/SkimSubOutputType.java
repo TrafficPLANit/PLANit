@@ -6,14 +6,16 @@ package org.goplanit.output.enums;
  * @author gman6028
  *
  */
-public enum OdSkimSubOutputType implements SubOutputTypeEnum {
+public enum SkimSubOutputType implements SubOutputTypeEnum {
 
   NONE("None"),
+  TRAVEL_TIME("TravelTime"),
+  DISTANCE("Distance"),
   COST("Cost");
 
   private final String value;
 
-  OdSkimSubOutputType(String v) {
+  SkimSubOutputType(String v) {
     value = v;
   }
 

@@ -10,14 +10,14 @@ import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.data.MultiKeyPlanItData;
 import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
-import org.goplanit.od.path.OdMultiPathIterator;
-import org.goplanit.od.skim.OdSkimMatrix;
-import org.goplanit.od.skim.OdSkimMatrix.OdSkimMatrixIterator;
+import org.goplanit.zoning.od.path.OdMultiPathIterator;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix.OdSkimMatrixIterator;
 import org.goplanit.output.adapter.*;
 import org.goplanit.output.configuration.OutputConfiguration;
 import org.goplanit.output.configuration.OutputTypeConfiguration;
 import org.goplanit.output.configuration.PathOutputTypeConfiguration;
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.enums.OutputTypeEnum;
 import org.goplanit.output.enums.PathOutputIdentificationType;
@@ -30,7 +30,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.od.OdDataIterator;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneDataIterator;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.unit.VehiclesUnit;
@@ -146,7 +146,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
       MultiKeyPlanItData multiKeyPlanItData,
       OutputProperty[] outputProperties,
       OutputProperty[] outputKeys,
-      OdDataIterator<?> odDataIterator, OdOutputTypeAdapter odOutputTypeAdapter,
+      ZoneToZoneDataIterator<?> odDataIterator, OdOutputTypeAdapter odOutputTypeAdapter,
       Mode mode,
       TimePeriod timePeriod) {
 
@@ -330,11 +330,11 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     // for od data we assume all data is classified into sub output types of type
     // OdSkimSubOutputType, hence this check to make sure we can cast safely
     PlanItRunTimeException.throwIf(
-        !(currentOutputType instanceof SubOutputTypeEnum && currentOutputType instanceof OdSkimSubOutputType),
+        !(currentOutputType instanceof SubOutputTypeEnum && currentOutputType instanceof SkimSubOutputType),
         "currentOutputTypeEnum is not compatible with outputType configuration");
 
     // current sub output type
-    OdSkimSubOutputType subOutputType = (OdSkimSubOutputType) currentOutputType;
+    SkimSubOutputType subOutputType = (SkimSubOutputType) currentOutputType;
     // top level output type
     OutputType outputType = outputTypeConfiguration.getOutputType();
     final OutputProperty OD_COST_PROPERTY = OutputProperty.of(OutputPropertyType.OD_COST);

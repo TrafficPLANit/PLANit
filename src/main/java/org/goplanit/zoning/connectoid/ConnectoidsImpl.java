@@ -1,4 +1,4 @@
-package org.goplanit.zoning;
+package org.goplanit.zoning.connectoid;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,12 +7,11 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
-import org.goplanit.service.routed.RoutedTripsImpl;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.zoning.Connectoid;
-import org.goplanit.utils.zoning.Connectoids;
+import org.goplanit.utils.zoning.connectoid.Connectoid;
+import org.goplanit.utils.zoning.connectoid.Connectoids;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
 import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;

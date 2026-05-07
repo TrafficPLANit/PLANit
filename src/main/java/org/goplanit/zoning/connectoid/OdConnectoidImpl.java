@@ -1,11 +1,11 @@
-package org.goplanit.zoning;
+package org.goplanit.zoning.connectoid;
 
 import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.zoning.OdConnectoid;
+import org.goplanit.utils.zoning.connectoid.OdConnectoid;
 
 /**
  * Undirected connectoid connecting one or more (transfer/OD) zone(s) to the physical road network, each connection

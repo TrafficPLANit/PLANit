@@ -1,20 +1,10 @@
 package org.goplanit.output.adapter;
 
 import org.goplanit.gap.GapFunction;
-import org.goplanit.od.path.OdMultiPathIterator;
-import org.goplanit.od.path.OdMultiPaths;
-import org.goplanit.output.enums.PathOutputIdentificationType;
 import org.goplanit.output.property.OutputProperty;
-import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.Vertex;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.od.OdDataIterator;
-import org.goplanit.utils.path.ManagedDirectedPath;
-import org.goplanit.utils.path.PathUtils;
 import org.goplanit.utils.time.TimePeriod;
 
-import java.util.List;
 import java.util.Optional;
 
 /**

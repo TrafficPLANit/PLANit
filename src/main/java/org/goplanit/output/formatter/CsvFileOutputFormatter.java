@@ -3,14 +3,14 @@ package org.goplanit.output.formatter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.goplanit.assignment.common.bush.RootedBush;
-import org.goplanit.od.path.OdMultiPaths;
-import org.goplanit.od.skim.OdSkimMatrix;
-import org.goplanit.od.skim.OdSkimMatrix.OdSkimMatrixIterator;
+import org.goplanit.zoning.od.path.OdMultiPaths;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix.OdSkimMatrixIterator;
 import org.goplanit.output.adapter.*;
 import org.goplanit.output.configuration.OutputConfiguration;
 import org.goplanit.output.configuration.OutputTypeConfiguration;
 import org.goplanit.output.configuration.PathOutputTypeConfiguration;
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.enums.OutputTypeEnum;
 import org.goplanit.output.property.OutputProperty;
@@ -27,7 +27,6 @@ import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.unit.VehiclesUnit;
 
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -134,15 +133,16 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       CSVPrinter csvPrinter) {
     try {
       // main type information
-      OdOutputTypeAdapter odOutputTypeAdapter = (OdOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputTypeConfiguration.getOutputType());
+      OdOutputTypeAdapter odOutputTypeAdapter = (OdOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(
+          outputTypeConfiguration.getOutputType());
       SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
 
       // verify if current suboutput type is compatible with the provided output
-      PlanItException.throwIf(!(currentOutputType instanceof OdSkimSubOutputType),
+      PlanItException.throwIf(!(currentOutputType instanceof SkimSubOutputType),
           "currentOutputType is not compatible with od results");
 
       // sub-type information
-      OdSkimSubOutputType currentSubOutputType = (OdSkimSubOutputType) currentOutputType;
+      SkimSubOutputType currentSubOutputType = (SkimSubOutputType) currentOutputType;
 
       // perform actual persistence
       final OutputProperty odCostProperty = OutputProperty.of(OutputPropertyType.OD_COST);
@@ -157,7 +157,8 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
         for (OdSkimMatrixIterator odMatrixIterator = odSkimMatrix.get().iterator(); odMatrixIterator.hasNext();) {
           odMatrixIterator.next();
-          Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getOdOutputPropertyValue(odCostProperty, odMatrixIterator, mode, timePeriod);
+          Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getOdOutputPropertyValue(
+              odCostProperty, odMatrixIterator, mode, timePeriod);
           if(!cost.isPresent()) {
             throw new PlanItRunTimeException("Cost could not be retrieved when persisting");
           }
@@ -222,7 +223,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
           }
 
           // skip intra-zonal paths results
-          if(odMultiPathIterator.getCurrentOrigin().equals(odMultiPathIterator.getCurrentDestination())){
+          if(odMultiPathIterator.getCurrentFromZone().equals(odMultiPathIterator.getCurrentToZone())){
             continue;
           }
 

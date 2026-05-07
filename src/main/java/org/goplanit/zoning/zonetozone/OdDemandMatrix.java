@@ -1,20 +1,15 @@
-package org.goplanit.od.demand;
+package org.goplanit.zoning.zonetozone;
 
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.IdMapperType;
-import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.od.OdPrimitiveMatrix;
-import org.goplanit.utils.od.OdPrimitiveMatrixIterator;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZonePrimitiveMatrix;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZonePrimitiveMatrixIterator;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.OdZones;
-import org.ojalgo.OjAlgoUtils;
 import org.ojalgo.array.Array2D;
 import org.ojalgo.function.UnaryFunction;
 import org.ojalgo.function.aggregator.Aggregator;
-import org.ojalgo.random.Random1D;
 
 import java.util.Arrays;
-import java.util.LongSummaryStatistics;
 import java.util.Random;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
@@ -25,7 +20,7 @@ import java.util.logging.Logger;
  * @author gman6028, markr
  *
  */
-public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDemands {
+public class OdDemandMatrix extends ZoneToZonePrimitiveMatrix<Double> implements OdDemands {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(OdDemandMatrix.class.getCanonicalName());
@@ -35,10 +30,10 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
    * 
    * @author markr
    */
-  public class OdDemandMatrixIterator extends OdPrimitiveMatrixIterator<Double> {
+  public class OdDemandMatrixIterator extends ZoneToZonePrimitiveMatrixIterator<Double> {
 
     public OdDemandMatrixIterator(final OdDemandMatrix OdDemandMatrix) {
-      super(OdDemandMatrix.matrixContainer, OdDemandMatrix.zones);
+      super(OdDemandMatrix.matrixContainer, (OdZones) OdDemandMatrix.getZones());
     }
   }
 
@@ -186,7 +181,7 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
    */
   @Override
   public void removeAllDestinationsExcept(final OdZone... destinations) {
-    getOdZones().forEach(destination -> {
+    getZones().forEach(destination -> {
       if(Arrays.stream(destinations).noneMatch(d -> d.equals(destination))) {
         matrixContainer.fillColumn(destination.getId(), 0.0);
       }
@@ -198,7 +193,7 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
    */
   @Override
   public void removeAllOriginsExcept(OdZone... origins) {
-    getOdZones().forEach(origin -> {
+    getZones().forEach(origin -> {
       if(Arrays.stream(origins).noneMatch(o -> o.equals(origin))) {
         matrixContainer.fillRow(origin.getId(), 0.0);
       }

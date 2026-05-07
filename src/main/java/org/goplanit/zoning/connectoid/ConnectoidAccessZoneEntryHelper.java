@@ -1,9 +1,9 @@
-package org.goplanit.zoning;
+package org.goplanit.zoning.connectoid;
 
-import org.goplanit.utils.zoning.ConnectoidAccessZoneEntry;
-import org.goplanit.utils.zoning.TransferConnectoid;
+import org.goplanit.utils.zoning.connectoid.ConnectoidAccessZoneEntry;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
 import org.goplanit.utils.zoning.Zone;
-import org.goplanit.utils.zoning.ZoneConnectoidType;
+import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 
 /**
  * Help creating instances based on type

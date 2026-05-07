@@ -5,13 +5,11 @@ import java.util.Collection;
 import java.util.Optional;
 
 import org.goplanit.assignment.TrafficAssignment;
-import org.goplanit.od.path.OdMultiPaths;
-import org.goplanit.od.path.OdPath2MultiPathWrapper;
-import org.goplanit.od.path.OdPathMatrix;
+import org.goplanit.zoning.od.path.OdMultiPaths;
+import org.goplanit.zoning.od.path.OdPath2MultiPathWrapper;
 import org.goplanit.output.adapter.PathOutputTypeAdapterImpl;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.reflection.ReflectionUtils;
 
 /**

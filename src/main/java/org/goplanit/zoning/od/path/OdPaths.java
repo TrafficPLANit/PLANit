@@ -1,7 +1,6 @@
-package org.goplanit.od.path;
+package org.goplanit.zoning.od.path;
 
-import org.goplanit.utils.od.OdData;
-import org.goplanit.utils.od.OdDataIterator;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneData;
 import org.goplanit.utils.path.ManagedDirectedPath;
 
 /**
@@ -11,7 +10,7 @@ import org.goplanit.utils.path.ManagedDirectedPath;
  * @author markr
  *
  */
-public interface OdPaths<T extends ManagedDirectedPath> extends OdData<T> {
+public interface OdPaths<T extends ManagedDirectedPath> extends ZoneToZoneData<T> {
 
   /**
    * The total number of paths currently registered.

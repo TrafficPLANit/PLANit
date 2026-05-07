@@ -13,9 +13,9 @@ import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
-import org.goplanit.od.demand.OdDemands;
-import org.goplanit.od.skim.OdSkimMatrix;
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.zoning.zonetozone.OdDemands;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -572,7 +572,7 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    */
   @Override
   public OdSkimMatrix createOdSkimMatrix(
-          OdSkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData) {
+          SkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData) {
     LOGGER.warning(String.format("OD Skim matrix support not yet available in %s for type %s and mode (%s)",
             this.getClass().getCanonicalName(), odSkimOutputType, mode.getIdsAsString()));
 

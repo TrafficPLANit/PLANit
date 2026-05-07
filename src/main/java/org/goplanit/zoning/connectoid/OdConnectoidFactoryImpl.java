@@ -1,9 +1,11 @@
-package org.goplanit.zoning;
+package org.goplanit.zoning.connectoid;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.zoning.*;
+import org.goplanit.utils.zoning.connectoid.OdConnectoid;
+import org.goplanit.utils.zoning.connectoid.OdConnectoidFactory;
+import org.goplanit.utils.zoning.connectoid.OdConnectoids;
 
 /**
  * Factory for creating new undirected connectoids on container

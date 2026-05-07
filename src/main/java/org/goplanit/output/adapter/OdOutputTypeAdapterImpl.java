@@ -4,14 +4,14 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.TrafficAssignment;
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.enums.SubOutputTypeEnum;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.od.OdDataIterator;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneDataIterator;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -47,7 +47,7 @@ public abstract class OdOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
    */
   @Override
   public Optional<?> getOdOutputPropertyValue(
-      OutputProperty outputProperty, OdDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod) {
+      OutputProperty outputProperty, ZoneToZoneDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod) {
     Optional<?> value = Optional.empty();
 
     try {
@@ -79,7 +79,8 @@ public abstract class OdOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
         value = OdOutputTypeAdapter.getOriginZoneId(odIterator);
         break;
       default:
-        throw new PlanItException("Tried to find link property of %s which is not applicable for OD matrix", outputProperty.getName());
+        throw new PlanItException("Tried to find link property of %s which is not applicable for OD matrix",
+            outputProperty.getName());
       }
 
       if (outputProperty.supportsUnitOverride() && outputProperty.isUnitOverride()) {
@@ -93,18 +94,19 @@ public abstract class OdOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
   }
 
   /**
-   * ODSkimOutputType.COST: Cost is collected through the shortest path in iteration i based on the link costs of iteration i-1, so the od cost of i-1 are only known once we are in
-   * iteration i, hence this information is trailing behind one iteration, and we can only store it in i. Hence, we must reduce the iteration index by 1 to obtain the true
-   * iteration index that goes with this information.
-   * 
+   * ODSkimOutputType.COST: Cost is collected through the shortest path in iteration i based on the link costs of
+   * iteration i-1, so the od cost of i-1 are only known once we are in iteration i, hence this information is
+   * trailing behind one iteration, and we can only store it in i. Hence, we must reduce the iteration index by 1 to
+   * obtain the true iteration index that goes with this information.
    * all other od information is based on the actual iteration index and will return i
    */
   @Override
   public Optional<Integer> getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) {
-    PlanItRunTimeException.throwIf(!(outputTypeEnum instanceof OdSkimSubOutputType), "Incorrect outputType enum found when collecting iteration index");
+    PlanItRunTimeException.throwIf(!(outputTypeEnum instanceof SkimSubOutputType),
+        "Incorrect outputType enum found when collecting iteration index");
 
     int iterationIndex = getAssignment().getIterationIndex();
-    switch ((OdSkimSubOutputType) outputTypeEnum) {
+    switch ((SkimSubOutputType) outputTypeEnum) {
     case COST:
       // cost is collected through the shortest path in iteration i based on the link costs of
       // iteration i-1, so the od cost

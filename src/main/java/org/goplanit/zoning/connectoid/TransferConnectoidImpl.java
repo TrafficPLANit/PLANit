@@ -1,18 +1,18 @@
-package org.goplanit.zoning;
+package org.goplanit.zoning.connectoid;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.zoning.TransferConnectoid;
-import org.goplanit.utils.zoning.DirectedConnectoidAccessZoneEntry;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
+import org.goplanit.utils.zoning.connectoid.DirectedConnectoidAccessZoneEntry;
 import org.goplanit.utils.zoning.Zone;
-import org.goplanit.utils.zoning.ZoneConnectoidType;
+import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import static org.goplanit.utils.zoning.ConnectoidAccessZoneEntry.DEFAULT_LENGTH_KM;
+import static org.goplanit.utils.zoning.connectoid.ConnectoidAccessZoneEntry.DEFAULT_LENGTH_KM;
 
 
 /**

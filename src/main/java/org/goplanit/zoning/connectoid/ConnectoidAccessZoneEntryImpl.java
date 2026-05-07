@@ -1,8 +1,8 @@
-package org.goplanit.zoning;
+package org.goplanit.zoning.connectoid;
 
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.zoning.ConnectoidAccessZoneEntry;
-import org.goplanit.utils.zoning.ZoneConnectoidType;
+import org.goplanit.utils.zoning.connectoid.ConnectoidAccessZoneEntry;
+import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 import org.goplanit.utils.zoning.Zone;
 
 import java.util.*;
@@ -122,4 +122,20 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
     return shallowClone();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass()){
+      return false;
+    }
+    ConnectoidAccessZoneEntryImpl that = (ConnectoidAccessZoneEntryImpl) o;
+    return Objects.equals(
+        getAccessZone(), that.getAccessZone()) &&
+        Objects.equals(getLengthKm(), that.getLengthKm()) && getType() == that.getType() &&
+        Objects.equals(explicitAllowedModes, that.explicitAllowedModes);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getAccessZone(), getLengthKm(), getType(), explicitAllowedModes);
+  }
 }

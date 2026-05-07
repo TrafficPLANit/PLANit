@@ -2,10 +2,9 @@ package org.goplanit.assignment.ltm.sltm.output;
 
 import org.goplanit.assignment.TrafficAssignment;
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
-import org.goplanit.assignment.traditionalstatic.TraditionalStaticAssignment;
-import org.goplanit.od.skim.OdSkimMatrix;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix;
 import org.goplanit.output.adapter.OdOutputTypeAdapterImpl;
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.mode.Mode;
 
@@ -45,7 +44,7 @@ public class StaticLtmOdOutputTypeAdapter extends OdOutputTypeAdapterImpl {
    * @param mode             the specified mode
    * @return the OD skim matrix
    */
-  public Optional<OdSkimMatrix> getOdSkimMatrix(OdSkimSubOutputType odSkimOutputType, Mode mode) {
+  public Optional<OdSkimMatrix> getOdSkimMatrix(SkimSubOutputType odSkimOutputType, Mode mode) {
     var skimMatrix = getAssignment().getAssignmentStrategy().createOdSkimMatrix(odSkimOutputType, mode, getAssignment().getIterationData());
     //todo: see if we need skim matrix data --> can probably be removed give we create this on the fly
     //var odSkimMatrix = getAssignment().getIterationData().getSkimMatrixData().getOdSkimMatrix(odSkimOutputType, mode);

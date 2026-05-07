@@ -1,7 +1,6 @@
 package org.goplanit.demands;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -10,7 +9,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.modifier.DemandsModifier;
-import org.goplanit.od.demand.OdDemands;
+import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;

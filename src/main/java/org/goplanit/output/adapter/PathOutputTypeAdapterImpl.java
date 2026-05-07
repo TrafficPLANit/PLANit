@@ -1,7 +1,7 @@
 package org.goplanit.output.adapter;
 
 import org.goplanit.assignment.TrafficAssignment;
-import org.goplanit.od.path.OdMultiPathIterator;
+import org.goplanit.zoning.od.path.OdMultiPathIterator;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.enums.PathOutputIdentificationType;
 import org.goplanit.output.property.OutputProperty;

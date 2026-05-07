@@ -16,13 +16,13 @@ import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
-import org.goplanit.od.demand.OdDemands;
-import org.goplanit.od.path.OdMultiPaths;
-import org.goplanit.od.path.OdMultiPathsHashed;
-import org.goplanit.od.path.OdPaths;
-import org.goplanit.od.path.OdPathsHashed;
-import org.goplanit.od.skim.OdSkimMatrix;
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.zoning.zonetozone.OdDemands;
+import org.goplanit.zoning.od.path.OdMultiPaths;
+import org.goplanit.zoning.od.path.OdMultiPathsHashed;
+import org.goplanit.zoning.od.path.OdPaths;
+import org.goplanit.zoning.od.path.OdPathsHashed;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.StochasticPathChoice;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
@@ -35,8 +35,8 @@ import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
-import org.goplanit.utils.od.OdData;
-import org.goplanit.utils.od.OdHashedImpl;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneData;
+import org.goplanit.utils.zoning.zonetozone.ZoneToZoneHashedImpl;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.PathUtils;
 import org.goplanit.utils.time.TimePeriod;
@@ -104,7 +104,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   private OdSkimMatrix createOdCostSkimMatrix(Mode mode, StaticLtmSimulationData iterationData) {
     var odPaths = getOdMultiPaths(mode);
     var odZones = getTransportNetwork().getZoning().getOdZones();
-    var skimMatrix = new OdSkimMatrix(odZones, OdSkimSubOutputType.COST);
+    var skimMatrix = new OdSkimMatrix(odZones, SkimSubOutputType.COST);
     var linkSegmentCosts = iterationData.getLinkSegmentTravelTimePcuH(mode);
 
     odZones.forEachOriginDestination( (o,d) -> {
@@ -157,7 +157,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
   /** when relative scaling factors are used, they are stored here, so they can be fed to the choice model at the
    * appropriate time */
-  protected final Map<Mode, OdData<Double>> odRelativeScalingFactorsByMode = new TreeMap<>();
+  protected final Map<Mode, ZoneToZoneData<Double>> odRelativeScalingFactorsByMode = new TreeMap<>();
 
   /**
    * Update gap. gap function where we update the GAP based on path cost discrepancy following Bliemer et. al. 2014
@@ -233,7 +233,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
               "Expected relative scaling factors for mode (%s) to not already been populated, overwriting " +
                   "pre-existing entry"));
     }
-    var relativeScalingFactors = new OdHashedImpl<>(getIdGroupingToken(), Double.class,
+    var relativeScalingFactors = new ZoneToZoneHashedImpl<>(getIdGroupingToken(), Double.class,
         getTransportNetwork().getZoning().getOdZones());
 
     final int maxRelScalingFactorUnderExpTransform = 20;
@@ -882,7 +882,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    */
   @Override
   public OdSkimMatrix createOdSkimMatrix(
-      OdSkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData) {
+      SkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData) {
     switch (odSkimOutputType){
       case COST:
         return createOdCostSkimMatrix(mode, iterationData);
