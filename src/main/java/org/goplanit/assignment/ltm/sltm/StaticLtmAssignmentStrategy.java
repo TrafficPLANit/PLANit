@@ -19,6 +19,7 @@ import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.zoning.zonetozone.OdSkimMatrix;
 import org.goplanit.output.enums.SkimSubOutputType;
@@ -65,6 +66,9 @@ public abstract class StaticLtmAssignmentStrategy {
    * Transport model network used
    */
   private final TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> transportModelNetwork;
+
+  /** cache vertices (node and centroid) by id, so they can be (re)used in shortest path search */
+  DirectedVertex[] verticesById;
 
   /**
    * Network loading to use
@@ -124,6 +128,15 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   protected TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> getTransportNetwork() {
     return transportModelNetwork;
+  }
+
+  /**
+   * The id indexed vertices of the transport model network (physical and virtual combined)
+   *
+   * @return vertices id indexed
+   */
+  protected DirectedVertex[] getIdIndexedVertices() {
+    return verticesById;
   }
 
   /**
@@ -471,6 +484,8 @@ public abstract class StaticLtmAssignmentStrategy {
       final TrafficAssignmentComponentAccessee taComponents) {
 
     this.transportModelNetwork = transportModelNetwork;
+    this.verticesById = getTransportNetwork().createIdIndexedVerticesAllLayers();
+
     this.assignmentId = assignmentId;
     this.idGroupingToken = idGroupingToken;
     this.settings = settings;

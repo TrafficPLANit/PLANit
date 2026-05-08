@@ -37,7 +37,8 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
 /**
- * Traffic assignment class which simultaneously is responsible for the loading hence it is also considered as a traffic assignment component of this type
+ * Traffic assignment class which simultaneously is responsible for the loading hence it is also considered as a
+ * traffic assignment component of this type
  *
  * @author markr
  *
@@ -67,7 +68,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   /**
    * The transport network to use which is an adaptor around the physical network and the zoning
    */
-  private TransportModelNetwork transportNetwork = null;
+  private TransportModelNetwork<?,?> transportNetwork = null;
 
   /**
    * The zoning to use
@@ -80,12 +81,13 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   private Demands demands = null;
 
   /** track how often this assignment was run (usually only once) */
-  private LongAdder executionCounter = new LongAdder();
+  private final LongAdder executionCounter = new LongAdder();
 
   /* TRAFFIC ASSIGNMENT COMPONENTS */
 
   /**
-   * track the registered traffic assignment components, including the standard components (except initial cost) expected to be available on each assignment
+   * track the registered traffic assignment components, including the standard components (except initial cost)
+   * expected to be available on each assignment
    */
   private final Map<Class<? extends PlanitComponent<?>>, PlanitComponent<?>> trafficAssignmentComponents;
 
@@ -94,20 +96,23 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   /**
    * Helper, log the settings of the provided component
    * 
-   * @param component
+   * @param component to log for
    */
   private void logComponentSettings(PlanitComponent<?> component) {
     var settingsMap = component.collectSettingsAsKeyValueMap();
     if (settingsMap != null) {
-      String componentPrefix = LoggingUtils.runIdPrefix(getId()) + LoggingUtils.surroundWithBrackets(component.getClass().getSimpleName());
+      String componentPrefix = LoggingUtils.runIdPrefix(getId()) +
+          LoggingUtils.surroundWithBrackets(component.getClass().getSimpleName());
       settingsMap.forEach((k, v) -> LOGGER.info(componentPrefix + k + ": " + v));
     }
   }
 
   /**
-   * The initial link segment cost to use where the mapping is based on the user provided time period. Note that the registered InitialLinkSegmentCostMode is part of another
-   * registered initialCost that is present on the project. However, a user might have decided that while they were parsed under one time period, to apply them on the assignment in
-   * another time period. Hence, we only track the initialcosts themselves and not their original parsed time periods nor their umbrella instance
+   * The initial link segment cost to use where the mapping is based on the user provided time period. Note that
+   * the registered InitialLinkSegmentCostMode is part of another registered initialCost that is present on the
+   * project. However, a user might have decided that while they were parsed under one time period, to apply them
+   * on the assignment in another time period. Hence, we only track the initialcosts themselves and not their
+   * original parsed time periods nor their umbrella instance
    */
   protected Map<TimePeriod, InitialModesLinkSegmentCost> initialLinkSegmentCostByTimePeriod;
 
@@ -146,15 +151,17 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   }
 
   /**
-   * Verify if the create traffic assignment (sbu)components are compatible with each other and the created transport network. Called before starting the simulation and after the
-   * transport network has been generated from physical and virtual network. So this is called after the build of the assignment instance
+   * Verify if the create traffic assignment (sbu)components are compatible with each other and the created
+   * transport network. Called before starting the simulation and after the transport network has been generated
+   * from physical and virtual network. So this is called after the build of the assignment instance
    */
   protected abstract void verifyComponentCompatibility();
 
   /**
-   * Verify if the traffic assignment inputs (components which are provided upon creation and not subcomponents that are created as part of the build process of the assignment are
-   * compatible). Called after creation of the assignment instance by the builder, but before the traffic assignment's (sub)components have been created. So this is invoked during
-   * the build of the assignment instance, not after.
+   * Verify if the traffic assignment inputs (components which are provided upon creation and not subcomponents
+   * that are created as part of the build process of the assignment are compatible). Called after creation
+   * of the assignment instance by the builder, but before the traffic assignment's (sub)components have been created.
+   * So this is invoked during the build of the assignment instance, not after.
    *
    * @throws PlanItException thrown if the components are not compatible
    */

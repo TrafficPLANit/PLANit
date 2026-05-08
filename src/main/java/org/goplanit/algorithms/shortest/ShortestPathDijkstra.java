@@ -6,6 +6,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+import org.goplanit.utils.containers.FourAryMinHeapOpenSet;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -62,7 +63,7 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised
           Set<DirectedVertex> bannedThroughVertices) {
 
     this.currentSource = startVertex;
-    this.shortestEdgeSegmentOfVertex = new EdgeSegment[numberOfVertices];
+    this.shortestEdgeSegmentOfVertex = new EdgeSegment[verticesById.length];
 
     /* shortest path costs to each vertex for start vertex */
     double[] vertexMeasuredCost = super.execute(
@@ -76,10 +77,10 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised
    * Constructor for an edge cost based Dijkstra algorithm for finding shortest paths.
    * 
    * @param edgeSegmentCosts edge segment costs both physical and virtual
-   * @param numberOfVertices Vertices, both nodes and centroids
+   * @param verticesById vertices by id, both nodes and centroids
    */
-  public ShortestPathDijkstra(final double[] edgeSegmentCosts, int numberOfVertices) {
-    super(edgeSegmentCosts, numberOfVertices);
+  public ShortestPathDijkstra(final double[] edgeSegmentCosts, DirectedVertex[] verticesById) {
+    super(edgeSegmentCosts, verticesById);
   }
 
   /**

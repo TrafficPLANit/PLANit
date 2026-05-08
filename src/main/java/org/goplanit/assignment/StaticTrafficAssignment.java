@@ -48,7 +48,8 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
     Calendar startTime = Calendar.getInstance();
     final Calendar initialStartTime = startTime;
     executeTimePeriod(timePeriod, getDemands().getRegisteredModesForTimePeriod(timePeriod));
-    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
+    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + String.format("run time: %d milliseconds",
+        startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
   }
 
   /**
@@ -81,7 +82,8 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
     final var timePeriods = getDemands().timePeriods.asSortedSetByStartTime();
     LOGGER.info(LoggingUtils.runIdPrefix(getId()) + "total time periods: " + timePeriods.size());
     for (var timePeriod : timePeriods) {
-      LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.timePeriodPrefix(timePeriod) + timePeriod.toString());
+      LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.timePeriodPrefix(timePeriod)
+          + timePeriod.toString());
       this.mostRecentTimePeriod = timePeriod;
       executeTimePeriod(timePeriod);
     }

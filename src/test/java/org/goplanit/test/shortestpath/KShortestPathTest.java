@@ -9,6 +9,7 @@ import org.goplanit.algorithms.shortest.ShortestPathKShortestYen;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetworkImpl;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -56,6 +57,8 @@ public class KShortestPathTest {
   private Zoning zoning;
 
   double[] linkSegmentCosts;
+
+  DirectedVertex[] idIndexedVertices;
 
   private Centroid centroidA;
   private Centroid centroidB;
@@ -191,6 +194,8 @@ public class KShortestPathTest {
               0.1, 0.1, 0.1, 0.1
           };
 
+      idIndexedVertices = transportNetwork.createIdIndexedVerticesAllLayers();
+
     }catch(Exception e) {
       e.printStackTrace();
       fail("initialise");
@@ -209,12 +214,12 @@ public class KShortestPathTest {
       var originVertex = zone2SourceVertexMapping.get(centroidA.getParentZone());
 
       /* prep */
-      var dijkstra = new ShortestPathDijkstra(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
+      var dijkstra = new ShortestPathDijkstra(linkSegmentCosts, idIndexedVertices);
 
       // cost used is based on distance in this example, so roughly 1:1, to be conservative we assume a multiplier of 2
       final double multiplier = 2;
       var aStar = new ShortestPathAStar(
-              linkSegmentCosts, transportNetwork.getIdIndexedVerticesAllLayers(), crs, multiplier);
+              linkSegmentCosts, transportNetwork.createIdIndexedVerticesAllLayers(), crs, multiplier);
 
       int k = 8; // try to find 8 shortest paths (only 7 exist)
       var kShortest = new ShortestPathKShortestYen(dijkstra, aStar, k);
@@ -281,7 +286,7 @@ public class KShortestPathTest {
       kShortestResult.chooseKShortestPathIndex(7);
       assertEquals(6,kShortestResult.getCurrentKShortestPathIndex()); // when not available truncated to largest (and warning is issued)
 
-      /*** CHANGE ORIGIN AND SEE IF THAT WORKS ***/
+      // CHANGE ORIGIN AND SEE IF THAT WORKS
 
       var originVertexD = network.getTransportLayers().getFirst().getNodes().getByXmlId("D");
       var kShortestResultFromD = kShortest.executeOneToOne(originVertexD, destinationVertex);

@@ -301,8 +301,9 @@ public class StaticLtmConjugateBushStrategy
    */
   @Override
   protected ShortestPathDijkstra createNetworkShortestPathAlgo(final double[] conjugateLinkSegmentCosts) {
-    final int numberOfVertices = this.conjugateTransportModelNetwork.getNumberOfVerticesAllLayers();
-    return new ShortestPathDijkstra(conjugateLinkSegmentCosts, numberOfVertices);
+    //final int numberOfVertices = this.conjugateTransportModelNetwork.getNumberOfVerticesAllLayers();
+    var idIndexedVertices = this.conjugateTransportModelNetwork.createIdIndexedVerticesAllLayers();
+    return new ShortestPathDijkstra(conjugateLinkSegmentCosts, idIndexedVertices);
   }
 
   /**

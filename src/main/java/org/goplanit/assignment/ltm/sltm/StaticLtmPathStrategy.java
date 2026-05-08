@@ -324,7 +324,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    */
   private OdPaths<StaticLtmDirectedPath> createOdPaths(Mode mode, final double[] currentSegmentCosts) {
     final ShortestPathOneToAll shortestPathAlgorithm =
-        new ShortestPathDijkstra(currentSegmentCosts, getTransportNetwork().getNumberOfVerticesAllLayers());
+        new ShortestPathDijkstra(currentSegmentCosts, getIdIndexedVertices());
 
     StaticLtmDirectedPathFactory pathFactory =
         new StaticLtmDirectedPathFactory(getIdGroupingToken(), getSegmentToMovementMapping() );

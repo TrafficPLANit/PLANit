@@ -75,7 +75,15 @@ public class TransportModelNetworkUtils {
     return virtualNetwork.getLayer().getVertices().size() + getNumberOfPhysicalNodesAllLayers(physicalNetwork);
   }
 
-  public static DirectedVertex[] getIdIndexedVerticesAllLayers(
+  /**
+   * Create id mapping in raw array where based on id of any vertex (node, centroid) in the physical and virtual
+   * network. If a mismatch is found (any gaps) a warning is issued
+   *
+   * @param physicalNetwork to use
+   * @param virtualNetwork to use
+   * @return raw array of vertices by id
+   */
+  public static DirectedVertex[] createIdIndexedVerticesAllLayers(
           UntypedPhysicalNetwork<?, ?> physicalNetwork, UntypedVirtualNetwork<?>  virtualNetwork) {
     int numberOfVertices = getNumberOfVerticesAllLayers(physicalNetwork, virtualNetwork);
     DirectedVertex[] indexedVertices = new DirectedVertex[numberOfVertices];

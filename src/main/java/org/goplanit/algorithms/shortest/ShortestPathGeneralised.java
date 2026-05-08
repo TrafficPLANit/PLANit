@@ -2,12 +2,12 @@ package org.goplanit.algorithms.shortest;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.goplanit.utils.containers.FourAryMinHeapOpenSet;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
@@ -43,10 +43,11 @@ public class ShortestPathGeneralised {
    */
   protected final double[] edgeSegmentCosts;
 
-  /**
-   * The number of vertices in the network
-   */
-  protected final int numberOfVertices;
+  /** vertices by their id */
+  protected final DirectedVertex[] verticesById;
+
+  /** keep in cache to avoid re-creation */
+  protected final FourAryMinHeapOpenSet fourAryMinHeapOpenSet;
 
   /** depending on configuration this function collects vertex at desired edge segment extremity */
   protected Function<EdgeSegment, DirectedVertex> getVertexAtExtreme;
@@ -64,18 +65,18 @@ public class ShortestPathGeneralised {
     return edgeSegmentCosts[(int) edgeSegment.getId()];
   }
 
-  /**
-   * Initialise the open vertices. Default behaviour is to place the (single) source vertex at zero cost
-   * 
-   * @param openVertices       to bootstrap with one or more initial vertices
-   * @param vertexMeasuredCost to initialise based on the bootstrapping of the open vertices, otherwise all entries
-   *                           have maximum double values
-   */
-  protected void initialiseOpenVertices(
-          PriorityQueue<Pair<DirectedVertex, Double>> openVertices, double[] vertexMeasuredCost) {
-    vertexMeasuredCost[(int) currentSource.getId()] = 0.0;
-    openVertices.add(Pair.of(currentSource, 0.0)); // cost to reach self is zero
-  }
+//  /**
+//   * Initialise the open vertices. Default behaviour is to place the (single) source vertex at zero cost
+//   *
+//   * @param openVertices       to bootstrap with one or more initial vertices
+//   * @param vertexMeasuredCost to initialise based on the bootstrapping of the open vertices, otherwise all entries
+//   *                           have maximum double values
+//   */
+//  protected void initialiseOpenVertices(
+//          PriorityQueue<Pair<DirectedVertex, Double>> openVertices, double[] vertexMeasuredCost) {
+//    vertexMeasuredCost[(int) currentSource.getId()] = 0.0;
+//    openVertices.add(Pair.of(currentSource, 0.0)); // cost to reach self is zero
+//  }
 
   /**
    * Generalised shortest-X search
@@ -93,21 +94,29 @@ public class ShortestPathGeneralised {
           BiPredicate<Double, Double> verifyVertex,
           Consumer<EdgeSegment> shortestAlternativeEdgeSegmentConsumer,
           Set<DirectedVertex> bannedThroughVertices) {
-    boolean[] vertexVisited = new boolean[numberOfVertices];
+    boolean[] vertexVisited = new boolean[verticesById.length];
 
     // track measured cost for each vertex
-    final double[] vertexMeasuredCost = new double[numberOfVertices];
+    final double[] vertexMeasuredCost = new double[verticesById.length];
     Arrays.fill(vertexMeasuredCost, Double.MAX_VALUE);
 
-    var openVertices = new PriorityQueue<>(numberOfVertices, pairSecondComparator);
-    initialiseOpenVertices(openVertices, vertexMeasuredCost);
+//    var openVertices = new PriorityQueue<>(numberOfVertices, pairSecondComparator);
+//    initialiseOpenVertices(openVertices, vertexMeasuredCost);
+
+    fourAryMinHeapOpenSet.reset();
+    fourAryMinHeapOpenSet.insertOrDecrease((int) currentSource.getId(), 0.0);
+    vertexMeasuredCost[(int) currentSource.getId()] = 0.0;
 
     // collect cheapest cost and expand the vertex if not already visited
-    while (!openVertices.isEmpty()) {
-      Pair<DirectedVertex, Double> cheapestNextVertex = openVertices.poll();
-      DirectedVertex currentVertex = cheapestNextVertex.first();
-      int currentVertexId = (int) currentVertex.getId();
-      double currentCost = cheapestNextVertex.second();
+    while (!fourAryMinHeapOpenSet.isEmpty()) {
+      //Pair<DirectedVertex, Double> cheapestNextVertex = openVertices.poll();
+      int currentVertexId = fourAryMinHeapOpenSet.poll();
+      DirectedVertex currentVertex = verticesById[currentVertexId];
+
+      //DirectedVertex currentVertex = cheapestNextVertex.first();
+      //int currentVertexId = (int) currentVertex.getId();
+      //double currentCost = cheapestNextVertex.second();
+      double currentCost = vertexMeasuredCost[currentVertexId];
       if (vertexVisited[currentVertexId]) {
         continue;
       }
@@ -133,7 +142,8 @@ public class ShortestPathGeneralised {
 
               shortestAlternativeEdgeSegmentConsumer.accept(adjacentEdgeSegment); // process "shortest" edge segment
               if(!bannedThroughVertices.contains(adjacentVertex)){
-                openVertices.add(Pair.of(adjacentVertex, computedCostToReachAdjacentVertex)); // place on queue
+                //openVertices.add(Pair.of(adjacentVertex, computedCostToReachAdjacentVertex)); // place on queue
+                fourAryMinHeapOpenSet.insertOrDecrease((int) adjacentVertex.getId(), computedCostToReachAdjacentVertex);
               }
             }
           }
@@ -153,8 +163,8 @@ public class ShortestPathGeneralised {
    *                                            shortest compared to existing cost
    * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by the
    *                                            predicate
-   * @param bannedThroughVertices               set of vertices that do not allow paths to go through them. They may only serve as
-   *                                            start and/or end points
+   * @param bannedThroughVertices               set of vertices that do not allow paths to go through them. They may
+   *                                            only serve as start and/or end points
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available
    * in the array
    */
@@ -178,8 +188,8 @@ public class ShortestPathGeneralised {
    *                                            shortest compared to existing cost
    * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by the
    *                                            predicate
-   * @param bannedThroughVertices               set of vertices that do not allow paths to go through them. They may only serve as
-   *                                            start and/or end points
+   * @param bannedThroughVertices               set of vertices that do not allow paths to go through them. They may
+   *                                            only serve as start and/or end points
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available
    * in the array
    */
@@ -201,8 +211,8 @@ public class ShortestPathGeneralised {
    *                                            shortest compared to existing cost
    * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by
    *                                            the predicate
-   * @param bannedThroughVertices               set of vertices that do not allow paths to go through them. They may only serve as
-   *                                            start and/or end points
+   * @param bannedThroughVertices               set of vertices that do not allow paths to go through them. They may
+   *                                            only serve as start and/or end points
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available
    * in the array
    */
@@ -218,11 +228,12 @@ public class ShortestPathGeneralised {
    * Constructor for an edge cost based Dijkstra algorithm for finding shortest paths.
    * 
    * @param edgeSegmentCosts Edge segment costs, both physical and connectoid
-   * @param numberOfVertices Vertices, both nodes and centroids
+   * @param verticesById vertices by their id
    */
-  public ShortestPathGeneralised(final double[] edgeSegmentCosts, int numberOfVertices) {
+  public ShortestPathGeneralised(final double[] edgeSegmentCosts, DirectedVertex[] verticesById) {
     this.edgeSegmentCosts = edgeSegmentCosts;
-    this.numberOfVertices = numberOfVertices;
+    this.verticesById = verticesById;
+    this.fourAryMinHeapOpenSet = new FourAryMinHeapOpenSet(verticesById.length);
   }
 
 }

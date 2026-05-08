@@ -24,7 +24,7 @@ public class TransferZoneFactoryImpl extends ZoneFactoryImpl<TransferZone> imple
    * @param groupId       to use
    * @param transferZones to use
    */
-  protected TransferZoneFactoryImpl(final IdGroupingToken groupId, final TransferZones transferZones) {
+  public TransferZoneFactoryImpl(final IdGroupingToken groupId, final TransferZones transferZones) {
     super(groupId);
     this.transferZones = transferZones;
   }

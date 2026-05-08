@@ -99,10 +99,10 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised
    * Constructor for an edge cost based algorithm for finding shortest bushes.
    * 
    * @param edgeSegmentCosts Edge segment costs, both physical and connectoid
-   * @param numberOfVertices Vertices, both nodes and centroids
+   * @param verticesById Vertices by id, both nodes and centroids
    */
-  public ShortestBushGeneralised(final double[] edgeSegmentCosts, int numberOfVertices) {
-    super(edgeSegmentCosts, numberOfVertices);
+  public ShortestBushGeneralised(final double[] edgeSegmentCosts, DirectedVertex[] verticesById) {
+    super(edgeSegmentCosts, verticesById);
   }
 
   /**
@@ -123,7 +123,7 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised
     this.currentSource = currentOrigin;
 
     /* see #processShorterOrEqualIncomginEdgeSegment on how it is populated */
-    this.nextEdgeSegments = new Object[numberOfVertices];
+    this.nextEdgeSegments = new Object[verticesById.length];
 
     /* Found shortest bush costs to each vertex for current origin. When deemed shortest, all incoming edge segments
      * are stored on the array as a list, unless only a single edge segment is shortest in which case the entry
@@ -152,7 +152,7 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised
     this.currentSource = currentDestination;
 
     /* see #processShorterOrEqualIncomginEdgeSegment on how it is populated */
-    this.nextEdgeSegments = new Object[numberOfVertices];
+    this.nextEdgeSegments = new Object[verticesById.length];
 
     /*
      * found shortest bush costs from each vertex to current destination. When deemed shortest, all outgoing edge

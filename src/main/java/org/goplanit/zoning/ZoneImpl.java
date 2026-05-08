@@ -51,15 +51,6 @@ public abstract class ZoneImpl extends ExternalIdAbleImpl implements Zone {
   }
 
   /**
-   * set the centroid for this zone. It is assumed the centroid is correctly configured to be compatible with this zoneImpl
-   * 
-   * @param centroid to set
-   */
-  protected void setCentroid(Centroid centroid) {
-    this.centroid = centroid;
-  }
-
-  /**
    * set the zone's unique internal id across all zones
    * 
    * @param id to set
@@ -106,6 +97,16 @@ public abstract class ZoneImpl extends ExternalIdAbleImpl implements Zone {
         this.inputProperties.putAll(other.inputProperties);
       }
     }
+  }
+
+  /**
+   * set the centroid for this zone. It is assumed the centroid is correctly configured to be compatible
+   * with this zoneImpl
+   *
+   * @param centroid to set
+   */
+  public void setCentroid(Centroid centroid) {
+    this.centroid = centroid;
   }
 
   /**

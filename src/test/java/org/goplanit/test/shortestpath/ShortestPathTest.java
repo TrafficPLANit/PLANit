@@ -11,6 +11,7 @@ import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetworkImpl;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -51,6 +52,7 @@ public class ShortestPathTest {
   private Zoning zoning;
 
   double[] linkSegmentCosts;
+  DirectedVertex[] idIndexedVertices;
 
   private Centroid centroidA;
   private Centroid centroidB;
@@ -179,6 +181,7 @@ public class ShortestPathTest {
       
       transportNetwork = new TransportModelNetworkImpl(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids(false);
+      idIndexedVertices = transportNetwork.createIdIndexedVerticesAllLayers();
 
       boolean considerOds = true;
       boolean considerTransfers = false;
@@ -227,8 +230,7 @@ public class ShortestPathTest {
   public void dijkstraOneToAllTest() {
     try {
 
-      ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(
-              linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
+      ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(linkSegmentCosts, idIndexedVertices);
 
       ShortestPathResult result = dijkstra.executeOneToAll(zone2SourceVertexMapping.get(centroidA.getParentZone()));
 
@@ -269,8 +271,7 @@ public class ShortestPathTest {
   public void dijkstraAllToOneTest() {
     try {
 
-      ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(
-              linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
+      ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(linkSegmentCosts, idIndexedVertices);
 
       ShortestPathResult result = dijkstra.executeAllToOne(networkLayer.getNodes().get(1));
 
@@ -335,8 +336,7 @@ public class ShortestPathTest {
       // which we would use as a multiplier
       double multiplier = 3;
 
-      ShortestPathAStar aStar = new ShortestPathAStar(
-              linkSegmentCosts, transportNetwork.getIdIndexedVerticesAllLayers(), crs, multiplier);
+      ShortestPathAStar aStar = new ShortestPathAStar(linkSegmentCosts, idIndexedVertices, crs, multiplier);
 
       final var originCentroidVertexA = zone2SourceVertexMapping.get(centroidA.getParentZone());
       final var destCentroidVertexB = zone2SinkVertexMapping.get(centroidB.getParentZone());
