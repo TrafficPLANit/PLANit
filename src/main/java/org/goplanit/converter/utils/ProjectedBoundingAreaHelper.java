@@ -92,6 +92,7 @@ public class ProjectedBoundingAreaHelper {
    * Factory method
    * @param boundingPolygon to consider
    * @param originalCrs to consider
+   * @param destinationCrs to consider
    * @param maximumDistanceFerryOutsideBoundingPolygonInMeters to consider
    * @return helper created
    */
