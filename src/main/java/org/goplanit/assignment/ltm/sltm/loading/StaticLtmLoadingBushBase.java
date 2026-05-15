@@ -15,6 +15,7 @@ import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
 
 /**
  * The bush based network loading scheme for sLTM - base class
@@ -254,13 +255,15 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    * 
    * @param idToken      to use
    * @param assignmentId to use
+   * @param compiledMovementIds implicit movementIds used for turn based data indexing
    * @param settings to use
    */
   public StaticLtmLoadingBushBase(
           IdGroupingToken idToken,
           long assignmentId,
+          CompiledMovementIds compiledMovementIds,
           final StaticLtmSettings settings) {
-    super(idToken, assignmentId, settings);
+    super(idToken, assignmentId, compiledMovementIds, settings);
   }
   
   /** The bushes to use when a loading update is requested

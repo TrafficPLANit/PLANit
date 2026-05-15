@@ -17,6 +17,7 @@ import org.goplanit.gap.NormBasedGapFunction;
 import org.goplanit.gap.StopCriterion;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -62,6 +63,9 @@ public abstract class StaticLtmNetworkLoading {
 
   /** transport network used */
   private TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportNetwork;
+
+  /** compiledMovementIds implicit movementIds used for turn based data indexing */
+  private CompiledMovementIds compiledMovementIds;
 
   /** the network layer used, currently only a single layer is supported */
   private MacroscopicNetworkLayer networkLayer;
@@ -265,6 +269,10 @@ public abstract class StaticLtmNetworkLoading {
     if (!isTrackAllNodeTurnFlowsDuringLoading()) {
       updatePotentiallyBlockingNodes(this.networkLayer, this.nlSendingFlowData.getCurrentSendingFlows());
     }
+  }
+
+  protected CompiledMovementIds getCompiledMovementIds(){
+    return compiledMovementIds;
   }
 
   /**
@@ -643,10 +651,12 @@ public abstract class StaticLtmNetworkLoading {
   protected StaticLtmNetworkLoading(
           final IdGroupingToken idToken,
           long runId,
+          CompiledMovementIds compiledMovementIds,
           StaticLtmSettings settings) {
     this.runId = runId;
     this.idToken = idToken;
     this.settings = settings;
+    this.compiledMovementIds = compiledMovementIds;
     
     /* state trackers */    
     this.convergenceAnalyser = new StaticLtmNetworkLoadingConvergenceAnalyser();

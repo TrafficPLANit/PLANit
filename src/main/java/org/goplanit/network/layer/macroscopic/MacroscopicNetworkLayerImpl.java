@@ -3,6 +3,7 @@ package org.goplanit.network.layer.macroscopic;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
+import org.goplanit.network.layer.physical.MovementsImpl;
 import org.goplanit.network.layer.physical.NodesImpl;
 import org.goplanit.network.layer.physical.UntypedPhysicalLayerImpl;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
@@ -11,6 +12,8 @@ import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.*;
+import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.network.layer.physical.Movements;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
 import org.goplanit.utils.network.layers.ConjugateMacroscopicNetworkLayerFactory;
@@ -39,7 +42,11 @@ public class MacroscopicNetworkLayerImpl
    * @param groupId contiguous id generation within this group for instances of this class
    */
   protected MacroscopicNetworkLayerImpl(final IdGroupingToken groupId) {
-    this(groupId, new NodesImpl(groupId), new MacroscopicLinksImpl(groupId), new MacroscopicLinkSegmentsImpl(groupId));
+    this(groupId,
+        new NodesImpl(groupId),
+        new MacroscopicLinksImpl(groupId),
+        new MacroscopicLinkSegmentsImpl(groupId),
+        new MovementsImpl(groupId));
   }
 
   /**
@@ -49,10 +56,15 @@ public class MacroscopicNetworkLayerImpl
    * @param nodes        to use
    * @param links        to use
    * @param linkSegments to use
+   * @param movements    to use
    */
   protected MacroscopicNetworkLayerImpl(
-          final IdGroupingToken groupId, Nodes nodes, MacroscopicLinks links, MacroscopicLinkSegments linkSegments) {
-    super(groupId, nodes, links, linkSegments);
+          final IdGroupingToken groupId,
+          Nodes nodes,
+          MacroscopicLinks links,
+          MacroscopicLinkSegments linkSegments,
+          Movements movements) {
+    super(groupId, nodes, links, linkSegments, movements);
     linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl(groupId);
   }
 
@@ -63,8 +75,10 @@ public class MacroscopicNetworkLayerImpl
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    * @param nodeMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    * @param linkMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
-   * @param linkSegmentMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
-   * @param linkSegmentTypeMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
+   * @param linkSegmentMapper to apply in case of deep copy to each original to copy combination
+   *                          (when provided, may be null)
+   * @param linkSegmentTypeMapper to apply in case of deep copy to each original to copy combination
+   *                              (when provided, may be null)
    */
   protected MacroscopicNetworkLayerImpl(
           MacroscopicNetworkLayerImpl other,
@@ -72,21 +86,27 @@ public class MacroscopicNetworkLayerImpl
           GraphEntityDeepCopyMapper<Node> nodeMapper,
           GraphEntityDeepCopyMapper<MacroscopicLink> linkMapper,
           GraphEntityDeepCopyMapper<MacroscopicLinkSegment> linkSegmentMapper,
-          ManagedIdDeepCopyMapper<MacroscopicLinkSegmentType> linkSegmentTypeMapper) {
-    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper);
+          ManagedIdDeepCopyMapper<MacroscopicLinkSegmentType> linkSegmentTypeMapper,
+          ManagedIdDeepCopyMapper<Movement> movementsMapper) {
+    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper, movementsMapper);
 
-    this.linkSegmentTypes = deepCopy ? other.linkSegmentTypes.deepCloneWithMapping(linkSegmentTypeMapper) : other.linkSegmentTypes.shallowClone();
+    this.linkSegmentTypes = deepCopy ? other.linkSegmentTypes.deepCloneWithMapping(linkSegmentTypeMapper) :
+        other.linkSegmentTypes.shallowClone();
     if(deepCopy) {
-      updateLinkSegmentLinkSegmentTypes(ls -> linkSegmentTypeMapper.getMapping(ls), true);
+      updateLinkSegmentLinkSegmentTypes(linkSegmentTypeMapper::getMapping, true);
     }
   }
 
   /**
    * Update the parent edge of all edge segments based on the mapping provided (if any)
-   * @param lsTypeToLsTypeMapping to use should contain original link segment type as currently used on link segment and then the value is the new link segment type to replace it
+   * @param lsTypeToLsTypeMapping to use should contain original link segment type as currently used on link segment
+   *                              and then the value is the new link segment type to replace it
    * @param removeMissingMappings when true if there is no mapping, the type is nullified, otherwise it is left in-tact
    */
-  public void updateLinkSegmentLinkSegmentTypes(Function<MacroscopicLinkSegmentType, MacroscopicLinkSegmentType> lsTypeToLsTypeMapping, boolean removeMissingMappings) {
+  public void updateLinkSegmentLinkSegmentTypes(
+      Function<MacroscopicLinkSegmentType, MacroscopicLinkSegmentType> lsTypeToLsTypeMapping,
+      boolean removeMissingMappings) {
+
     for(var linkSegment :  getLinkSegments()){
       if(linkSegment.getLinkSegmentType() == null){
         continue;
@@ -149,7 +169,7 @@ public class MacroscopicNetworkLayerImpl
   @Override
   public MacroscopicNetworkLayerImpl shallowClone() {
     return new MacroscopicNetworkLayerImpl(
-            this, false, null, null, null, null);
+            this, false, null, null, null, null, null);
   }
 
   /**
@@ -163,6 +183,7 @@ public class MacroscopicNetworkLayerImpl
             new GraphEntityDeepCopyMapper<>(),
             new GraphEntityDeepCopyMapper<>(),
             new GraphEntityDeepCopyMapper<>(),
+            new ManagedIdDeepCopyMapper<>(),
             new ManagedIdDeepCopyMapper<>());
   }
 

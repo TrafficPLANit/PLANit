@@ -22,6 +22,7 @@ import org.goplanit.network.transport.ConjugateTransportModelNetwork;
 import org.goplanit.network.transport.ConjugateTransportModelNetworkUtils;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
+import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
@@ -567,7 +568,7 @@ public class StaticLtmConjugateBushStrategy
     return new StaticLtmLoadingBushConjugate(
             getIdGroupingToken(),
             getAssignmentId(),
-            turn2ConjugateSegmentMapping,
+            getSegmentToMovementIdMapping(),
             this.conjugateTransportModelNetwork,
             getSettings());
   }
@@ -1148,6 +1149,7 @@ public class StaticLtmConjugateBushStrategy
    * @param idGroupingToken       to use for internal managed ids
    * @param assignmentId          of parent assignment
    * @param transportModelNetwork to use
+   * @param compiledMovementIds implicit movementIds used for turn based data indexing
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
    */
@@ -1155,11 +1157,12 @@ public class StaticLtmConjugateBushStrategy
           final IdGroupingToken idGroupingToken,
           long assignmentId,
           final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
+          final CompiledMovementIds compiledMovementIds,
           final StaticLtmSettings settings,
           final TrafficAssignmentComponentAccessee taComponents) {
     /* destination based bushes are inverted, so PASs are to be registered based on vertex farthest from root,
      * i.e, farthest from destination, so at the upstream point of the PAS at its diverge (hence true at end of super)*/
-    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents, true);
+    super(idGroupingToken, assignmentId, transportModelNetwork, compiledMovementIds, settings, taComponents, true);
 
     // construct conjugate version of original transport model network, to be used by all conjugate bushes
     this.conjugateTransportModelNetwork = transportModelNetwork.createConjugate(

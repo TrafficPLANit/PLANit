@@ -33,16 +33,16 @@ public class MovementFactoryImpl extends ManagedIdEntityFactoryImpl<Movement> im
    * {@inheritDoc}
    */
   @Override
-  public Movement create(final EdgeSegment from, final EdgeSegment to) {
-    return new MovementImpl(getIdGroupingToken(), from, to);
+  public Movement create(final EdgeSegment from, final EdgeSegment to, boolean banned) {
+    return new MovementImpl(getIdGroupingToken(), from, to, banned);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Movement registerNew(final EdgeSegment from, final EdgeSegment to) {
-    final Movement newMovement = create(from, to);
+  public Movement registerNew(final EdgeSegment from, final EdgeSegment to, boolean banned) {
+    final Movement newMovement = create(from, to, banned);
     movements.register(newMovement);
     return newMovement;
   }

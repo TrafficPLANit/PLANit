@@ -22,8 +22,9 @@ import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifi
 import org.locationtech.jts.geom.Envelope;
 
 /**
- * Model free network layer consisting of containers for vertices, edges, and edge segments each of which can be typed separately. This network does not contain any transport
- * specific information, hence the qualification "model free".
+ * Model free network layer consisting of containers for vertices, edges, and edge segments each of which can be
+ * typed separately. This network does not contain any transport specific information, hence the qualification
+ * "model free".
  *
  * @author markr
  */
@@ -80,9 +81,12 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    * 
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
-   * @param vertexMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
-   * @param edgeMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
-   * @param edgeSegmentMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
+   * @param vertexMapper to apply in case of deep copy to each original to copy combination
+   *                     (when provided, may be null)
+   * @param edgeMapper to apply in case of deep copy to each original to copy combination
+   *                   (when provided, may be null)
+   * @param edgeSegmentMapper to apply in case of deep copy to each original to copy combination
+   *                         (when provided, may be null)
    */
   public UntypedNetworkLayerImpl(
           UntypedNetworkLayerImpl<V, E, S> other,
@@ -94,7 +98,8 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
 
     /* network layer is in fact a graph, so requiring cloning even for shallow copy */
     this.directedGraph =
-            deepCopy ? other.directedGraph.smartDeepClone(vertexMapper, edgeMapper, edgeSegmentMapper) : other.directedGraph.shallowClone();
+            deepCopy ? other.directedGraph.smartDeepClone(
+                vertexMapper, edgeMapper, edgeSegmentMapper) : other.directedGraph.shallowClone();
 
     this.layerModifier = new UntypedNetworkLayerModifierImpl<>(directedGraph);
   }

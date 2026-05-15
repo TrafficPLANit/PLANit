@@ -129,29 +129,6 @@ public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetw
 
   /**
    * {@inheritDoc}
-   * TODO: this does not properly support layers yet, so it is assumed we want movements across all layers without
-   */
-  public void generatePermissibleMovements() {
-    getMovements().reset();
-    for(var layer : getInfrastructureNetwork().getTransportLayers()){
-      for(var node : layer.getNodes()){
-        for(var entrySegment : node.getEntryEdgeSegments()){
-          for(var exitSegment : node.getExitLinkSegments()){
-
-            // never allow u-turn movement
-            if(entrySegment.hasOppositeDirectionSegment() && entrySegment.getOppositeDirectionSegment() == exitSegment){
-              continue;
-            }
-
-            getMovements().getFactory().registerNew(entrySegment, exitSegment);
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * {@inheritDoc}
    */
   @Override
   public G getInfrastructureNetwork() {
@@ -172,14 +149,6 @@ public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetw
   @Override
   public Zoning getZoning() {
     return zoning;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Movements getMovements(){
-    return movements;
   }
 
 }

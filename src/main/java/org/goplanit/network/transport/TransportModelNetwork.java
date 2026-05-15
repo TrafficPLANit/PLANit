@@ -42,20 +42,20 @@ public interface TransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V
    */
   public void removeVirtualNetworkFromPhysicalNetwork(boolean resetManagedIds);
 
-  /**
-   * Optional tracking of all permissible movements in the transport network.
-   * When calling this method any existing movements will be removed from the container and the ids are reset.
-   * <p>
-   *   Call this method after integration has been complete to ensure movements are also created for all
-   *   connectoid segments attached to physical nodes
-   * </p>
-   * <p>
-   *   No movements are created on origins/destination centroids, since no complete movement can be
-   *   constructed for those
-   * </p>
-   * attaching layer information to the movements themselves
-   */
-  public abstract void generatePermissibleMovements();
+//  /**
+//   * Optional creation of all logically permissible movements in the transport network.
+//   * When calling this method any existing movements will be removed from the container and the ids are reset.
+//   * <p>
+//   *   Call this method after integration has been complete to ensure movements are also created for all
+//   *   connectoid segments attached to physical nodes
+//   * </p>
+//   * <p>
+//   *   No movements are created on origins/destination centroids, since no complete movement can be
+//   *   constructed for those and no-uturn movements are created as these are deemed not permissible by default
+//   * </p>
+//   * attaching layer information to the movements themselves
+//   */
+//  public abstract void generateAllMovementsAsPermissible();
 
   /**
    * Returns the total number of edge segments available in this traffic assignment by combining the physical and
@@ -141,33 +141,6 @@ public interface TransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V
    * @return zoning
    */
   public abstract Zoning getZoning();
-
-  /**
-   * Create a (new) mapping from entry/sexit segment combinations to their movement (if any)
-   *
-   * @return mapping that was created
-   */
-  public default MultiKeyMap<Object, Movement> createEntryExitSegmentToMovementMapping(){
-    MultiKeyMap<Object, Movement> entryExitSegment2MovementMap = new MultiKeyMap<>();
-    getMovements().forEach( m -> entryExitSegment2MovementMap.put(m.getSegmentFrom(), m.getSegmentTo(), m));
-    return entryExitSegment2MovementMap;
-  }
-
-  /**
-   * Verify if movements have been generated and are non-empty
-   *
-   * @return true when present, false otherwise
-   */
-  public default boolean hasPermissibleMovements(){
-    return !getMovements().isEmpty();
-  }
-
-  /**
-   * Access to movements container (which may be empty if no movements have been generated)
-   *
-   * @return movements container
-   */
-  public abstract Movements getMovements();
 
   /**
    * Retrieve conjugate version of this transport model network

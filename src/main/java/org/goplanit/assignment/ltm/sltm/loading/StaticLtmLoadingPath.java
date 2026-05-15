@@ -4,6 +4,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
 import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.*;
+import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
@@ -92,7 +93,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
         
     /* turns + optional links update */
     if(updateTurnAcceptedFlows) {
-      int numMovements = getTransportNetwork().getMovements().size();
+      int numMovements = getCompiledMovementIds().getNumberOfPermissibleMovements();
       NetworkTurnFlowUpdateData dataConfig = null;
 
       if (updateUnconstrainedFlows) {
@@ -117,7 +118,10 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
         }
       }else {
         dataConfig = new NetworkTurnFlowUpdateData(
-                isTrackAllNodeTurnFlowsDuringLoading(), nlSplittingRateData, networkLoadingFactorData, numMovements);
+            isTrackAllNodeTurnFlowsDuringLoading(),
+            nlSplittingRateData,
+            networkLoadingFactorData,
+            numMovements);
       }
       return new PathTurnFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode), segmentPair2MovementMap);
     }
@@ -208,18 +212,16 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * 
    * @param idToken      to use
    * @param assignmentId to use
-   * @param segmentPair2MovementMap mapping from entry/exit segment (dual key) to movement, use to covert turn flows
-   *  to splitting rate data format
+   * @param compiledMovementIds to use
    * @param settings to use
    */
   public StaticLtmLoadingPath(
           IdGroupingToken idToken,
           long assignmentId,
-          MultiKeyMap<Object, Movement> segmentPair2MovementMap,
+          CompiledMovementIds compiledMovementIds,
           final StaticLtmSettings settings) {
-    super(idToken, assignmentId, settings);
+    super(idToken, assignmentId, compiledMovementIds, settings);
     this.odMultiPathsByMode = new HashMap<>();
-    this.segmentPair2MovementMap = segmentPair2MovementMap;
   }
 
   /** Set the od multi paths to use in the loading (by mode). Expected to be set before this class is used

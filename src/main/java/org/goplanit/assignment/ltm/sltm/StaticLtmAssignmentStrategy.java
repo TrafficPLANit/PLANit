@@ -20,6 +20,7 @@ import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.zoning.zonetozone.OdSkimMatrix;
 import org.goplanit.output.enums.SkimSubOutputType;
@@ -67,6 +68,9 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   private final TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> transportModelNetwork;
 
+  /** implicit movement ids of permissible turn movements, used for turn based simulation data indexing */
+  private final CompiledMovementIds compiledMovementIds;
+
   /** cache vertices (node and centroid) by id, so they can be (re)used in shortest path search */
   DirectedVertex[] verticesById;
 
@@ -87,8 +91,6 @@ public abstract class StaticLtmAssignmentStrategy {
   /** have a mapping between zone and connectoid to the layer by means of its destination centroid vertex */
   private final Map<Zone, CentroidVertex> zone2DestinationVertexMapping;
 
-  /** have a mapping between two link segments (keys) - from and to - towards a movement used for network loading*/
-  private final MultiKeyMap<Object, Movement> nlSegmentPair2MovementMap;
 
   protected  void logCongestedSegmentInfo(double[] costs, Mode theMode) {
     List<String> idList = new ArrayList<>();
@@ -149,11 +151,11 @@ public abstract class StaticLtmAssignmentStrategy {
   }
 
   /**
-   * Access to segment to movement mapping
-   * @return segmentToMovement mapping
+   * Access to segment to movement idmapping
+   * @return segmentToMovement id mapping
    */
-  protected MultiKeyMap<Object, Movement> getSegmentToMovementMapping(){
-    return nlSegmentPair2MovementMap;
+  protected CompiledMovementIds getSegmentToMovementIdMapping(){
+    return compiledMovementIds;
   }
 
   /**
@@ -228,7 +230,8 @@ public abstract class StaticLtmAssignmentStrategy {
    * We can simplify the cost update by only considering a subset of links connected to potentially blocked
    * nodes. This is checked via this method.
    * <p>
-   *   eligible for subset of node updates only when we have no storage constraints activated (no physical queues/spillback) AND
+   *   eligible for subset of node updates only when we have no storage constraints activated (no physical
+   *   queues/spillback) AND
    *   we have linear free flow branches on all fundamental diagrams (cost is flow independent on non-blocked links
    * </p>
    * @return true when we can use subset, false otherwise
@@ -323,12 +326,16 @@ public abstract class StaticLtmAssignmentStrategy {
   protected abstract StaticLtmNetworkLoading createNetworkLoading();
 
   /**
-   * Perform an update of the network wide costs where a partial update is applied in case only potentially blocking nodes are updated during the loading
+   * Perform an update of the network wide costs where a partial update is applied in case only potentially
+   * blocking nodes are updated during the loading
    * 
    * @param theMode                                to perform the update for
-   * @param updateOnlyPotentiallyBlockingNodeCosts flag indicating if only the costs of the entry link segments of potentially blocking nodes are to be updated, or all link segment
+   * @param updateOnlyPotentiallyBlockingNodeCosts flag indicating if only the costs of the entry link segments
+   *                                               of potentially blocking nodes are to be updated, or all
+   *                                               link segment
    *                                               costs are to be updated
-   * @param costsToUpdate                          the network wide costs to update (fully or partially), this is an output
+   * @param costsToUpdate                          the network wide costs to update (fully or partially), this is
+   *                                               an output
    * @param doLoadingAllFlowUpdatePriorToCostUpdate only when we update all nodes this can be activated. When true we
    *                                                perform a one shot loading to ensure all flow information on all
    *                                                links is synced and ready for cost calc. When false we use current
@@ -440,9 +447,11 @@ public abstract class StaticLtmAssignmentStrategy {
         trackedFlowNode.getEntryEdgeSegments().forEach(es -> {
           boolean congested = acceptanceFactors[(int) es.getId()] < 1;
           if(physicalLayerSegments.containsKey(es.getId())){
-            linkBasedDCostDFlow[(int) es.getId()] = physicalCost.getDTravelTimeDFlow(!congested, theMode, (MacroscopicLinkSegment) es);
+            linkBasedDCostDFlow[(int) es.getId()] =
+                physicalCost.getDTravelTimeDFlow(!congested, theMode, (MacroscopicLinkSegment) es);
           }else if(virtualLayerSegments.containsKey(es.getId())){
-            linkBasedDCostDFlow[(int) es.getId()] = virtualCost.getDTravelTimeDFlow(!congested, theMode, (ConnectoidSegment) es);
+            linkBasedDCostDFlow[(int) es.getId()] =
+                virtualCost.getDTravelTimeDFlow(!congested, theMode, (ConnectoidSegment) es);
           }
         });
       }
@@ -453,13 +462,15 @@ public abstract class StaticLtmAssignmentStrategy {
       /* virtual cost */
       for (var linkSegment : virtualLayerSegments) {
         boolean congested = acceptanceFactors[(int) linkSegment.getId()] < 1;
-        linkBasedDCostDFlow[(int) linkSegment.getId()] = virtualCost.getDTravelTimeDFlow(!congested, theMode, linkSegment);
+        linkBasedDCostDFlow[(int) linkSegment.getId()] =
+            virtualCost.getDTravelTimeDFlow(!congested, theMode, linkSegment);
       }
 
       /* physical cost */
       for (var linkSegment : physicalLayerSegments) {
         boolean congested = acceptanceFactors[(int) linkSegment.getId()] < 1;
-        linkBasedDCostDFlow[(int) linkSegment.getId()] = physicalCost.getDTravelTimeDFlow(!congested, theMode, linkSegment);
+        linkBasedDCostDFlow[(int) linkSegment.getId()] =
+            physicalCost.getDTravelTimeDFlow(!congested, theMode, linkSegment);
       }
     }
 
@@ -472,6 +483,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param idGroupingToken       to use for id generation
    * @param assignmentId          id of the parent assignment
    * @param transportModelNetwork the transport model network
+   * @param compiledMovementIds implicit movementIds used for turn based data indexing
    * @param settings              the sLTM settings to use
    * @param taComponents          to use
    */
@@ -480,10 +492,12 @@ public abstract class StaticLtmAssignmentStrategy {
       final IdGroupingToken idGroupingToken,
       long assignmentId,
       final TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> transportModelNetwork,
+      final CompiledMovementIds compiledMovementIds,
       final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
 
     this.transportModelNetwork = transportModelNetwork;
+    this.compiledMovementIds = compiledMovementIds;
     this.verticesById = getTransportNetwork().createIdIndexedVerticesAllLayers();
 
     this.assignmentId = assignmentId;
@@ -497,15 +511,18 @@ public abstract class StaticLtmAssignmentStrategy {
     boolean considerTransferZones = false;
     boolean originCentroidVertices = true;
     this.zone2OriginVertexMapping = (Map<Zone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
-        transportModelNetwork.getVirtualNetwork().getLayer(),originCentroidVertices, considerOdZones, considerTransferZones);
+        transportModelNetwork.getVirtualNetwork().getLayer(),
+        originCentroidVertices,
+        considerOdZones,
+        considerTransferZones);
     originCentroidVertices = false;
-    this.zone2DestinationVertexMapping = (Map<Zone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
-            transportModelNetwork.getVirtualNetwork().getLayer(),originCentroidVertices, considerOdZones, considerTransferZones);
+    this.zone2DestinationVertexMapping =
+        (Map<Zone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+            transportModelNetwork.getVirtualNetwork().getLayer(),
+            originCentroidVertices,
+            considerOdZones,
+            considerTransferZones);
 
-    /* construct mapping from entry/exit segment to movement which is currently needed for quick conversion of turn
-     * flows to splitting rates during loading at the expense of more memory usage.
-     */
-    this.nlSegmentPair2MovementMap = transportModelNetwork.createEntryExitSegmentToMovementMapping();
   }
 
   /**
@@ -521,7 +538,8 @@ public abstract class StaticLtmAssignmentStrategy {
   }
 
   /**
-   * Verify if assignment has converged, which, means computing ths gap and determining if it has converged in this iteration in this default setup
+   * Verify if assignment has converged, which, means computing ths gap and determining if it has converged in
+   * this iteration in this default setup
    * 
    * @param gapFunction    to use
    * @param iterationIndex to use

@@ -24,6 +24,9 @@ public class MovementImpl extends ExternalIdAbleImpl implements Movement {
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MovementImpl.class.getCanonicalName());
 
+  /** flag regarding access */
+  private boolean banned;
+
   /**
    * Store the from edge segment
    */
@@ -43,11 +46,14 @@ public class MovementImpl extends ExternalIdAbleImpl implements Movement {
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param fromSegment  from segment to use
    * @param toSegment to segment to use
+   * @param banned flag
    */
-  protected MovementImpl(final IdGroupingToken groupId, final EdgeSegment fromSegment, final EdgeSegment toSegment) {
+  protected MovementImpl(
+      final IdGroupingToken groupId, final EdgeSegment fromSegment, final EdgeSegment toSegment, boolean banned) {
     super(IdGenerator.generateId(groupId, MOVEMENT_ID_CLASS));
     this.segmentFrom = fromSegment;
     this.segmentTo = toSegment;
+    this.banned = banned;
   }
 
   /**
@@ -60,9 +66,15 @@ public class MovementImpl extends ExternalIdAbleImpl implements Movement {
     super(movement);
     this.segmentFrom = movement.segmentFrom;
     this.segmentTo = movement.segmentTo;
+    this.banned = movement.banned;
   }
 
   // Public
+
+  @Override
+  public boolean isPermissible() {
+    return !banned;
+  }
 
   /**
    * {@inheritDoc}
@@ -78,6 +90,22 @@ public class MovementImpl extends ExternalIdAbleImpl implements Movement {
   @Override
   public EdgeSegment getSegmentTo() {
     return segmentTo;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setSegmentFrom(EdgeSegment segment) {
+    this.segmentFrom = segment;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setSegmentTo(EdgeSegment segment) {
+    this.segmentTo = segment;
   }
 
   /**

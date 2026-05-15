@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
+import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.utils.functionalinterface.TriConsumer;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -14,8 +15,9 @@ import org.goplanit.utils.zoning.OdZone;
 /**
  * Base Consumer to apply during path based flow update for each combination of origin, destination, and demand
  * <p>
- * Derived implementation can apply different changes to each of the (turn/link) flows on the known paths by providing different single flow update implementations that are applied
- * to each turn on each path with non-zero demand.
+ * Derived implementation can apply different changes to each of the (turn/link) flows on the known paths by
+ * providing different single flow update implementations that are applied to each turn on each path with
+ * non-zero demand.
  * 
  * @author markr
  *
@@ -29,13 +31,12 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
   /** data and configuration used for a flow update by derived classes */
   protected T dataConfig;
 
+  protected final CompiledMovementIds compiledMovementIds;
+
   /**
    * Od Paths to use
    */
   private final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths;
-
-  /** be able to convert entry/exit segment to their corresponding movement */
-  protected final MultiKeyMap<Object,Movement> segmentPair2MovementMap;
 
   /**
    * Apply the flow to the turn (and update link sending flow if required)
@@ -49,7 +50,8 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
           final Movement movement, final double turnSendingFlowPcuH, final double turnUnconstrainedFlowPcuH);
 
   /**
-   * Apply the flow to a final path segment (and update link sending flow if required) which has no outgoing edge segment on the turn
+   * Apply the flow to a final path segment (and update link sending flow if required) which has no outgoing
+   * edge segment on the turn
    * 
    * @param lastEdgeSegment      of path
    * @param acceptedPathFlowRate sending flow rate on last edge segment
@@ -63,15 +65,15 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
    * 
    * @param dataConfig to use
    * @param odMultiPaths    to use
-   * @param segmentPair2MovementMap to use
+   * @param compiledMovementIds to use
    */
   public PathFlowUpdateConsumer(
           final T dataConfig,
           final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths,
-          final MultiKeyMap<Object,Movement> segmentPair2MovementMap) {
+          final CompiledMovementIds compiledMovementIds) {
     this.dataConfig = dataConfig;
     this.odMultiPaths = odMultiPaths;
-    this.segmentPair2MovementMap = segmentPair2MovementMap;
+    this.compiledMovementIds = compiledMovementIds;
   }
 
   /**

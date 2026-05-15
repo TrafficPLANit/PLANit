@@ -12,6 +12,7 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CollectionUtils;
+import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
 import org.goplanit.utils.network.virtual.physical.ConnectoidNode;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 
@@ -27,38 +28,40 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
         implements BushFlowUpdateConsumer<ConjugateDestinationBush> {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(ConjugateBushNetworkFlowUpdateConsumerImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(
+      ConjugateBushNetworkFlowUpdateConsumerImpl.class.getCanonicalName());
 
   /** data and configuration used for a flow update by derived classes */
   protected T dataConfig;
 
-  /** mapping from origin turn (segment, segment key) to conjugate segment */
-  protected final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping;
+  /** mapping from origin turn (segment, segment key) to movement data index */
+  protected final CompiledMovementIds compiledMovementIds;
 
   /** when null all edge segments are processed (Default during regular loading) */
   protected final Set<EdgeSegment> edgeSegmentsToUpdate;
 
   /**
-   * Register the conjugate bush accepted turn flow to the turn if required. Default implementation does nothing but provide a hook for derived classes that do require to do
-   * something with turn accepted flows
+   * Register the conjugate bush accepted turn flow to the turn if required. Default implementation does nothing
+   * but provide a hook for derived classes that do require to do something with turn accepted flows
    * 
    * @param turnSegment          of turn
    * @param turnAcceptedFlowPcuH sending flow rate of turn
    */
   protected void applyAcceptedTurnFlowUpdate(final ConjugateEdgeSegment turnSegment, double turnAcceptedFlowPcuH) {
-    // default implementation does nothing but provide a hook for derived classes that do require to do something with turn accepted flows
+    // default implementation does nothing but provide a hook for derived classes that do require to do something
+    // with turn accepted flows
   }
 
   /**
    * Constructor
    *
    * @param dataConfig              to use
-   * @param turn2ConjSegmentMapping to use
+   * @param compiledMovementIds to use
    */
   public ConjugateBushNetworkFlowUpdateConsumerImpl(
-          final T dataConfig, final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping){
+          final T dataConfig, final CompiledMovementIds compiledMovementIds){
     this.dataConfig = dataConfig;
-    this.turn2ConjSegmentMapping = turn2ConjSegmentMapping;
+    this.compiledMovementIds = compiledMovementIds;
     this.edgeSegmentsToUpdate = null;   // so all are updated
   }
 
@@ -67,15 +70,15 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
    * only update the selected nodes and skip all others for the selected bushes.
    *
    * @param dataConfig              to use
-   * @param turn2ConjSegmentMapping to use
+   * @param compiledMovementIds to use
    * @param edgeSegmentsToUpdate selective edge segments to update (all turn flows of all bushes of these edge segments)
    */
   public ConjugateBushNetworkFlowUpdateConsumerImpl(
       final T dataConfig,
-      final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjSegmentMapping,
+      CompiledMovementIds compiledMovementIds,
       Set<EdgeSegment> edgeSegmentsToUpdate){
     this.dataConfig = dataConfig;
-    this.turn2ConjSegmentMapping = turn2ConjSegmentMapping;
+    this.compiledMovementIds = compiledMovementIds;
     this.edgeSegmentsToUpdate = edgeSegmentsToUpdate;
   }
 
@@ -235,9 +238,10 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
           ++splittingRateIndex;
         }
 
-        if (Precision.notEqual(bushConjSegmentAcceptedFlow, totalExitAcceptedFlow) && !(conjEntrySegment instanceof ConnectoidSegment)) {
-          LOGGER.severe(String.format("Accepted out flow %.10f on conjugate edge segment (%s) not equal to flow (%.10f) assigned " +
-                          "to turns on bush %s, this shouldn't happen",
+        if (Precision.notEqual(bushConjSegmentAcceptedFlow, totalExitAcceptedFlow) &&
+            !(conjEntrySegment instanceof ConnectoidSegment)) {
+          LOGGER.severe(String.format("Accepted out flow %.10f on conjugate edge segment (%s) not equal " +
+                  "to flow (%.10f) assigned to turns on bush %s, this shouldn't happen",
                   bushConjSegmentAcceptedFlow,
                   conjEntrySegment.getXmlId(),
                   totalExitAcceptedFlow,

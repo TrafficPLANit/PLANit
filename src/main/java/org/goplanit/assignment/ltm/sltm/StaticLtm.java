@@ -32,6 +32,9 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.MovementUtils;
+import org.goplanit.utils.network.layer.physical.Movements;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.time.RunTimesTracker;
@@ -69,21 +72,22 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
   /**
    * Factory method to create the desired assignment strategy to use
-   * 
+   *
+   * @param compiledMovementIds implicit movementIds used for turn based data indexing
    * @return created strategy, null if unsupported type is set
    */
-  private StaticLtmAssignmentStrategy createAssignmentStrategy() {
+  private StaticLtmAssignmentStrategy createAssignmentStrategy(CompiledMovementIds compiledMovementIds) {
 
     /* create the assignment solution to apply */
     StaticLtmAssignmentStrategy strategy;
     switch (settings.getSltmType()) {
       case CONJUGATE_DESTINATION_BUSH_BASED:
         strategy =  new StaticLtmConjugateBushStrategy(
-                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+                getIdGroupingToken(), getId(), getTransportNetwork(), compiledMovementIds, settings, this);
         break;
       case PATH_BASED:
         strategy = new StaticLtmPathStrategy(
-                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+                getIdGroupingToken(), getId(), getTransportNetwork(), compiledMovementIds, settings, this);
         break;
       default:
         LOGGER.warning(String.format("Unsupported static LTM type chosen %s, aborting",settings.getSltmType()));
@@ -274,21 +278,23 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   /**
    * Initialise the components before we start any assignment + create the assignment strategy (bush or path based)
    *
-   * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all internal managed ids of transport model network components (links, nodes, connectoids etc.), when false do not.
+   * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all internal managed ids of
+   *                                   transport model network components (links, nodes, connectoids etc.), when false do not.
    */
   @Override
   protected void initialiseBeforeExecution(boolean resetAndRecreateManagedIds) throws PlanItException {
     super.initialiseBeforeExecution(resetAndRecreateManagedIds);
 
     /* make sure movements have been generated, so we can track data on movement level where it is efficient to do so */
-    if(!getTransportNetwork().hasPermissibleMovements()){
-      getTransportNetwork().generatePermissibleMovements();
+    // todo: get (banned) movements from all layers
+    Movements layerMovements = null;
+    var compiledMovementIds = MovementUtils.createCompiledTurnDataIndices(
+        getTransportNetwork().getInfrastructureNetwork().getTransportLayers(), layerMovements);
       LOGGER.info(String.format(
-              "%sGenerated %d permissible movements",
-              LoggingUtils.runIdPrefix(getId()), getTransportNetwork().getMovements().size()));
-    }
+              "%sGenerated %d permissible movement ids",
+              LoggingUtils.runIdPrefix(getId()), compiledMovementIds.getNumberOfPermissibleMovements()));
 
-    this.assignmentStrategy = createAssignmentStrategy();
+    this.assignmentStrategy = createAssignmentStrategy(compiledMovementIds);
     assignmentStrategy.verifyComponentCompatibility();
     LOGGER.info(String.format("%sstrategy: %s", LoggingUtils.runIdPrefix(getId()), assignmentStrategy.getDescription()));
   }

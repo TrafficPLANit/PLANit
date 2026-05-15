@@ -16,6 +16,7 @@ import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.zoning.od.path.OdMultiPathsHashed;
@@ -352,7 +353,6 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
             LOGGER.warning(String.format("%sUnable to create path for OD [ o - (%s), d - (%s)] with " +
                 "non-zero demand (%.4f)", LoggingUtils.runIdPrefix(
                         getAssignmentId()), origin.getIdsAsString(), destination.getIdsAsString(), currOdDemand));
-            oneToAllResult.createPath(pathFactory, originVertex, destinationVertex);
             continue;
           }
           newOdShortestPaths.setValue(origin, destination, sltmPath);
@@ -632,7 +632,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   @Override
   protected StaticLtmLoadingPath createNetworkLoading() {
     return new StaticLtmLoadingPath(
-            getIdGroupingToken(), getAssignmentId(), getSegmentToMovementMapping(), getSettings());
+            getIdGroupingToken(), getAssignmentId(), getSegmentToMovementIdMapping(), getSettings());
   }
 
   /**
@@ -665,16 +665,18 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * @param idGroupingToken       to use
    * @param assignmentId          to use
    * @param transportModelNetwork to use
+   * @param compiledMovementIds   implicit movementIds used for turn based data indexing
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
    */
   public StaticLtmPathStrategy(
-          final IdGroupingToken idGroupingToken,
-          long assignmentId,
-          final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
-          final StaticLtmSettings settings,
+      final IdGroupingToken idGroupingToken,
+      long assignmentId,
+      final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
+      final CompiledMovementIds compiledMovementIds,
+      final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
-    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
+    super(idGroupingToken, assignmentId, transportModelNetwork, compiledMovementIds, settings, taComponents);
 
     // initialise path filtering setup
     initialiseSltmPathFilters();
