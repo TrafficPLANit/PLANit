@@ -16,7 +16,7 @@ import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
-import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.zoning.od.path.OdMultiPathsHashed;
@@ -673,7 +673,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       final IdGroupingToken idGroupingToken,
       long assignmentId,
       final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
-      final CompiledMovementIds compiledMovementIds,
+      final CompiledRelationMapping compiledMovementIds,
       final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, compiledMovementIds, settings, taComponents);

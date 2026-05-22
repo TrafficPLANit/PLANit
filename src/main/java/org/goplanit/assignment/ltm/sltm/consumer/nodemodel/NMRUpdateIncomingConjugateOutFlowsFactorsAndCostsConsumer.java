@@ -121,7 +121,7 @@ public class NMRUpdateIncomingConjugateOutFlowsFactorsAndCostsConsumer implement
             theMode,
             assignmentStrategy.getPhysicalCost(),
             assignmentStrategy.getVirtualCost(),
-            assignmentStrategy.getTurn2ConjugateSegmentMapping(),
+            assignmentStrategy.getTurn2ConjugateSegmentCompiledIndex(),
             conjNetworkCosts);
   }
 

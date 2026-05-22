@@ -4,7 +4,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.util.ConjugateBushUtils;
 import org.goplanit.assignment.common.bush.ConjugateDestinationBush;
 import org.goplanit.utils.arrays.ArrayUtils;
@@ -12,7 +11,7 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CollectionUtils;
-import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.utils.network.virtual.physical.ConnectoidNode;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 
@@ -35,7 +34,7 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
   protected T dataConfig;
 
   /** mapping from origin turn (segment, segment key) to movement data index */
-  protected final CompiledMovementIds compiledMovementIds;
+  protected final CompiledRelationMapping compiledMovementIds;
 
   /** when null all edge segments are processed (Default during regular loading) */
   protected final Set<EdgeSegment> edgeSegmentsToUpdate;
@@ -59,7 +58,7 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
    * @param compiledMovementIds to use
    */
   public ConjugateBushNetworkFlowUpdateConsumerImpl(
-          final T dataConfig, final CompiledMovementIds compiledMovementIds){
+          final T dataConfig, final CompiledRelationMapping compiledMovementIds){
     this.dataConfig = dataConfig;
     this.compiledMovementIds = compiledMovementIds;
     this.edgeSegmentsToUpdate = null;   // so all are updated
@@ -75,7 +74,7 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
    */
   public ConjugateBushNetworkFlowUpdateConsumerImpl(
       final T dataConfig,
-      CompiledMovementIds compiledMovementIds,
+      CompiledRelationMapping compiledMovementIds,
       Set<EdgeSegment> edgeSegmentsToUpdate){
     this.dataConfig = dataConfig;
     this.compiledMovementIds = compiledMovementIds;

@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.common.StaticLtmSimulationData;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSplittingRateData;
@@ -20,7 +19,7 @@ import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.zoning.zonetozone.OdSkimMatrix;
 import org.goplanit.output.enums.SkimSubOutputType;
@@ -33,7 +32,6 @@ import org.goplanit.utils.misc.Quadruple;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
@@ -69,7 +67,7 @@ public abstract class StaticLtmAssignmentStrategy {
   private final TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> transportModelNetwork;
 
   /** implicit movement ids of permissible turn movements, used for turn based simulation data indexing */
-  private final CompiledMovementIds compiledMovementIds;
+  private final CompiledRelationMapping compiledMovementIds;
 
   /** cache vertices (node and centroid) by id, so they can be (re)used in shortest path search */
   DirectedVertex[] verticesById;
@@ -154,7 +152,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * Access to segment to movement idmapping
    * @return segmentToMovement id mapping
    */
-  protected CompiledMovementIds getSegmentToMovementIdMapping(){
+  protected CompiledRelationMapping getSegmentToMovementIdMapping(){
     return compiledMovementIds;
   }
 
@@ -492,7 +490,7 @@ public abstract class StaticLtmAssignmentStrategy {
       final IdGroupingToken idGroupingToken,
       long assignmentId,
       final TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> transportModelNetwork,
-      final CompiledMovementIds compiledMovementIds,
+      final CompiledRelationMapping compiledMovementIds,
       final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
 

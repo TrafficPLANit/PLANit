@@ -1,6 +1,5 @@
 package org.goplanit.assignment.ltm.sltm.consumer.nodemodel;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
@@ -11,6 +10,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.pcu.PcuCapacitated;
 
@@ -27,7 +27,7 @@ public class DiscontinuityTurnCostReplacementConsumer implements TriConsumer<Edg
 
   private final AbstractVirtualCost virtualCost;
 
-  protected final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjugateSegmentMapping;
+  protected final CompiledRelationMapping<ConjugateEdgeSegment> turn2ConjugateSegmentMapping;
 
   private final double[] conjSegmentCostsToUpdate;
 
@@ -39,7 +39,7 @@ public class DiscontinuityTurnCostReplacementConsumer implements TriConsumer<Edg
       Mode theMode,
       final AbstractPhysicalCost physicalCost,
       final AbstractVirtualCost virtualCost,
-      final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjugateSegmentMapping,
+      final CompiledRelationMapping<ConjugateEdgeSegment> turn2ConjugateSegmentMapping,
       double[] conjSegmentCostsToUpdate){
     this.networkLoading = networkLoading;
     this.theMode = theMode;
@@ -83,7 +83,7 @@ public class DiscontinuityTurnCostReplacementConsumer implements TriConsumer<Edg
     assert(originalNlOutflow >= outflowConsistentWithNonZeroTurnFlow);
 
     //3. overwrite existing costs for turns where discontinuity was found
-    var conjugateSegment = turn2ConjugateSegmentMapping.get(entry, exit);
+    var conjugateSegment = turn2ConjugateSegmentMapping.get(entry.getId(), exit.getId());
     assert (conjSegmentCostsToUpdate[(int)conjugateSegment.getId()] <= disContinuitySegmentCost);
 
     // in case cost has not changed (can happen in change in drop in alpha is offset in increased inflow due to

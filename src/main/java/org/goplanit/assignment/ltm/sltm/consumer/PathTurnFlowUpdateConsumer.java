@@ -3,10 +3,9 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
 import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessorMovements;
-import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.network.layer.physical.Movement;
@@ -106,7 +105,7 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
   public PathTurnFlowUpdateConsumer(
           final NetworkTurnFlowUpdateData dataConfig,
           final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odPaths,
-          final CompiledMovementIds compiledMovementIds) {
+          final CompiledRelationMapping compiledMovementIds) {
     super(dataConfig, odPaths, compiledMovementIds);
   }
 

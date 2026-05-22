@@ -1,6 +1,5 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelUtils;
 import org.goplanit.algorithms.shortest.*;
@@ -22,7 +21,7 @@ import org.goplanit.network.transport.ConjugateTransportModelNetwork;
 import org.goplanit.network.transport.ConjugateTransportModelNetworkUtils;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
-import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
@@ -129,7 +128,7 @@ public class StaticLtmConjugateBushStrategy
     // Prep Lambda Function that will ultimately perform the cost update after the node model calculation
     DiscontinuityTurnCostReplacementConsumer discontinuityTurnCostReplacementConsumer =
         new DiscontinuityTurnCostReplacementConsumer(
-            getLoading(), theMode, physicalCost, virtualCost, turn2ConjugateSegmentMapping, conjSegmentCosts);
+            getLoading(), theMode, physicalCost, virtualCost, turn2ConjugateSegmentCompiledIndex, conjSegmentCosts);
 
     //2. for each congested node rerun node in turn based form
     Predicate<DirectedVertex> hasCongestedEntrySegment = n -> IterableUtils.asStream(
@@ -275,7 +274,7 @@ public class StaticLtmConjugateBushStrategy
   protected final Map<CentroidVertex, ConjugateConnectoidNode> centroid2ConjugateNodeMapping;
 
   /** inverse mapping from turn edge segments (double key) to conjugate edge segment */
-  protected final  MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjugateSegmentMapping;
+  protected final CompiledRelationMapping<ConjugateEdgeSegment> turn2ConjugateSegmentCompiledIndex;
 
   /**
    * Create a shortest bush search algorithm for the conjugate bushes based on conjugate edge segments and costs
@@ -488,7 +487,7 @@ public class StaticLtmConjugateBushStrategy
               rootConjugateConnectoidNode,
               /* all "real" turns as conjugate segment is a turn */
               conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers(),
-              turn2ConjugateSegmentMapping);
+              turn2ConjugateSegmentCompiledIndex);
           conjugateBushes.add(bush);
           break;
         }
@@ -1157,7 +1156,7 @@ public class StaticLtmConjugateBushStrategy
           final IdGroupingToken idGroupingToken,
           long assignmentId,
           final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
-          final CompiledMovementIds compiledMovementIds,
+          final CompiledRelationMapping compiledMovementIds,
           final StaticLtmSettings settings,
           final TrafficAssignmentComponentAccessee taComponents) {
     /* destination based bushes are inverted, so PASs are to be registered based on vertex farthest from root,
@@ -1172,8 +1171,8 @@ public class StaticLtmConjugateBushStrategy
     centroid2ConjugateNodeMapping =
             VirtualNetworkUtils.createCentroidVertexToConjugateNodeMapping(
                     conjugateTransportModelNetwork.getVirtualNetwork().getLayer());
-    turn2ConjugateSegmentMapping =
-            ConjugateTransportModelNetworkUtils.createOriginalSegmentsToConjugateSegmentsMapping(
+    turn2ConjugateSegmentCompiledIndex =
+            ConjugateTransportModelNetworkUtils.createOriginalSegmentsToConjugateSegmentIdMapping(
                     conjugateTransportModelNetwork);
 
     // todo: remove at some point as for large networks this will mean a lot of logging!
@@ -1191,8 +1190,8 @@ public class StaticLtmConjugateBushStrategy
     return (StaticLtmLoadingBushConjugate) super.getLoading();
   }
 
-  public MultiKeyMap<Object, ConjugateEdgeSegment> getTurn2ConjugateSegmentMapping() {
-    return turn2ConjugateSegmentMapping;
+  public CompiledRelationMapping<ConjugateEdgeSegment> getTurn2ConjugateSegmentCompiledIndex() {
+    return turn2ConjugateSegmentCompiledIndex;
   }
 
   /**

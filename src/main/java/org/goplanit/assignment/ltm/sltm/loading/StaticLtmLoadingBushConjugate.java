@@ -10,7 +10,7 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -89,7 +89,7 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
   public StaticLtmLoadingBushConjugate(
       IdGroupingToken idToken,
       long assignmentId,
-      CompiledMovementIds compiledMovementIds,
+      CompiledRelationMapping compiledMovementIds,
       ConjugateTransportModelNetwork conjugateTransportModelNetwork,
       final StaticLtmSettings settings) {
     super(idToken, assignmentId, compiledMovementIds, settings);

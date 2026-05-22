@@ -1,6 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 
 import java.util.logging.Logger;
 
@@ -21,7 +21,7 @@ public class ConjugateBushSyncNetworkFlowConsumer
    * @param compiledMovementIds to use
    */
   public ConjugateBushSyncNetworkFlowConsumer(final NetworkTurnFlowUpdateData dataConfig,
-                                              final CompiledMovementIds compiledMovementIds) {
+                                              final CompiledRelationMapping compiledMovementIds) {
     super(dataConfig,compiledMovementIds);
   }
 

@@ -75,8 +75,12 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    * @param conjugateLinkSegments to use
    * @param originalLayer         this conjugate is based on
    */
-  protected ConjugateMacroscopicNetworkLayerImpl(final IdGroupingToken groupId, ConjugateNodes conjugateNodes, ConjugateLinks conjugateLinks,
-      ConjugateLinkSegments conjugateLinkSegments, final MacroscopicNetworkLayer originalLayer) {
+  protected ConjugateMacroscopicNetworkLayerImpl(
+      final IdGroupingToken groupId,
+      ConjugateNodes conjugateNodes,
+      ConjugateLinks conjugateLinks,
+      ConjugateLinkSegments conjugateLinkSegments,
+      final MacroscopicNetworkLayer originalLayer) {
     super(groupId, conjugateNodes, conjugateLinks, conjugateLinkSegments);
     this.originalLayer = originalLayer;
   }
@@ -154,8 +158,8 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
 
           // NOTE: in current setup each conjugate link only ever has one conjugate segment since we created a conjugate
           // node per original link segment, e.g., we disentangled directions fully.
-          // todo: it would be more correct if we would have conjugate directed and undirected nodes in the future instead
-          //  of abusing the conjugate nodes as if they are directed.
+          // todo: it would be more correct if we would have conjugate directed and undirected nodes in the
+          //  future instead  of abusing the conjugate nodes as if they are directed.
 
           /* conjugate link */
           boolean registerNewEntityOnItsNodes = true;
@@ -219,6 +223,15 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
   @Override
   public ConjugateNodes getNodes() {
     return (ConjugateNodes) getDirectedGraph().getVertices();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Movements getMovements() {
+    LOGGER.warning("Movements on conjugate layers are not yet supported");
+    return null;
   }
 
   /**

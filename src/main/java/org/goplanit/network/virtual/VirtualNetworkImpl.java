@@ -134,7 +134,7 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
   public ConjugateVirtualNetworkImpl createConjugate(
           IdGroupingToken idToken, boolean resetIdToken) {
     // it is expected we start by creating the virtual network, so we can safely create a layer token which then can
-    // be reused by the physical network layer once we create that conjugate. Not ideal but for now it sufficies to ensure
+    // be reused by the physical network layer once we create that conjugate. Not ideal but for now it suffices to ensure
     // contiguous ids across both networks
     var conjugateVirtualNetwork =
             new ConjugateVirtualNetworkImpl(

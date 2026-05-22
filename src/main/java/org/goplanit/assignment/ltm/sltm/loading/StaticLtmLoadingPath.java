@@ -4,7 +4,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
 import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.*;
-import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
@@ -93,7 +93,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
         
     /* turns + optional links update */
     if(updateTurnAcceptedFlows) {
-      int numMovements = getCompiledMovementIds().getNumberOfPermissibleMovements();
+      long numMovements = getCompiledMovementIds().getNumberOfPermissibleMovements();
       NetworkTurnFlowUpdateData dataConfig = null;
 
       if (updateUnconstrainedFlows) {
@@ -123,7 +123,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
             networkLoadingFactorData,
             numMovements);
       }
-      return new PathTurnFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode), segmentPair2MovementMap);
+      return new PathTurnFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode), getCompiledMovementIds());
     }
 
     LOGGER.warning("Invalid network flow update requested for path based loading");
@@ -218,7 +218,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
   public StaticLtmLoadingPath(
           IdGroupingToken idToken,
           long assignmentId,
-          CompiledMovementIds compiledMovementIds,
+          CompiledRelationMapping compiledMovementIds,
           final StaticLtmSettings settings) {
     super(idToken, assignmentId, compiledMovementIds, settings);
     this.odMultiPathsByMode = new HashMap<>();

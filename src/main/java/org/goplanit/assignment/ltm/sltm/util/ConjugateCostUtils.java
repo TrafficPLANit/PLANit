@@ -51,7 +51,7 @@ public class ConjugateCostUtils {
           exitSegment.getOppositeDirectionSegment() == nonConjugateEntrySegment){
         continue;
       }
-      var conjSegment = assignmentStrategy.getTurn2ConjugateSegmentMapping().get(nonConjugateEntrySegment, exitSegment);
+      var conjSegment = assignmentStrategy.getTurn2ConjugateSegmentCompiledIndex().get(nonConjugateEntrySegment, exitSegment);
       if (conjSegment == null) {
         throw new PlanItRunTimeException("unable to find conjugate segment for turn [from: (%s), to: (%s)]",
             nonConjugateEntrySegment.getIdsAsString(), exitSegment.getIdsAsString());

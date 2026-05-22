@@ -1,7 +1,7 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 
 /**
  * Access turn flows via underlying movement information
@@ -11,12 +11,12 @@ import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
 public class TurnFlowAccessorMovements implements TurnFlowAccessor {
 
   /** be able to convert entry/exit segment to their corresponding movement */
-  private final CompiledMovementIds compiledMovementIds;
+  private final CompiledRelationMapping compiledMovementIds;
 
   private final double[] turnFlowsIndexedByMovementIds;
 
   private TurnFlowAccessorMovements(
-      final CompiledMovementIds compiledMovementIds,
+      final CompiledRelationMapping compiledMovementIds,
           double[] turnFlowsIndexedByMovementIds){
     this.compiledMovementIds = compiledMovementIds;
     this.turnFlowsIndexedByMovementIds = turnFlowsIndexedByMovementIds;
@@ -30,7 +30,7 @@ public class TurnFlowAccessorMovements implements TurnFlowAccessor {
    * @return instance
    */
   public static TurnFlowAccessorMovements of(
-      final CompiledMovementIds compiledMovementIds,
+      final CompiledRelationMapping compiledMovementIds,
       double[] turnFlowsIndexedByMovementIds){
     return new TurnFlowAccessorMovements(compiledMovementIds, turnFlowsIndexedByMovementIds);
   }
@@ -40,7 +40,7 @@ public class TurnFlowAccessorMovements implements TurnFlowAccessor {
    */
   @Override
   public double getTurnFlow(EdgeSegment from, EdgeSegment to) {
-    var movementId = compiledMovementIds.getMovementId(from.getDownstreamVertex().getId(), from.getId(), to.getId());
-    return (movementId != -1) ? this.turnFlowsIndexedByMovementIds[movementId]: 0.0;
+    var movementId = compiledMovementIds.getMovementId(from.getId(), to.getId());
+    return (movementId != -1) ? this.turnFlowsIndexedByMovementIds[(int) movementId]: 0.0;
   }
 }

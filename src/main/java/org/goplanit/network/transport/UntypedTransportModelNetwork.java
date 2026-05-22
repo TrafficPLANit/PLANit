@@ -105,7 +105,9 @@ public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetw
       getInfrastructureNetwork().logInfo(prefix);
     }
     if(movements!=null && !movements.isEmpty()){
-      LOGGER.info(String.format("%s#Movements: %d", prefix, getMovements().size()));
+      long physicalRestrictedMovements =
+          getInfrastructureNetwork().getTransportLayers().stream().mapToLong(l -> l.getMovements().size()).sum();
+      LOGGER.info(String.format("%s# Restricted movements: %d", prefix, physicalRestrictedMovements));
     }
   }
 

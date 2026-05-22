@@ -3,9 +3,8 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
-import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.utils.functionalinterface.TriConsumer;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -31,7 +30,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
   /** data and configuration used for a flow update by derived classes */
   protected T dataConfig;
 
-  protected final CompiledMovementIds compiledMovementIds;
+  protected final CompiledRelationMapping compiledMovementIds;
 
   /**
    * Od Paths to use
@@ -70,7 +69,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
   public PathFlowUpdateConsumer(
           final T dataConfig,
           final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths,
-          final CompiledMovementIds compiledMovementIds) {
+          final CompiledRelationMapping compiledMovementIds) {
     this.dataConfig = dataConfig;
     this.odMultiPaths = odMultiPaths;
     this.compiledMovementIds = compiledMovementIds;

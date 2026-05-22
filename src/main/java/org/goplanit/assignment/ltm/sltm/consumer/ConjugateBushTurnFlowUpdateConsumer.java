@@ -3,11 +3,10 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessorConjugateSegments;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 
 /**
  * Consumer to apply during bush based network loading turn flow update for each non-zero demand bush
@@ -46,7 +45,7 @@ public class ConjugateBushTurnFlowUpdateConsumer
    */
   public ConjugateBushTurnFlowUpdateConsumer(
       final NetworkTurnFlowUpdateData dataConfig,
-      final CompiledMovementIds compiledMovementIds,
+      final CompiledRelationMapping compiledMovementIds,
       Set<EdgeSegment> edgeSegmentsToUpdate) {
     super(dataConfig, compiledMovementIds, edgeSegmentsToUpdate);
   }
@@ -58,7 +57,7 @@ public class ConjugateBushTurnFlowUpdateConsumer
    * @param compiledMovementIds to use
    */
   public ConjugateBushTurnFlowUpdateConsumer(final NetworkTurnFlowUpdateData dataConfig,
-                                             CompiledMovementIds compiledMovementIds) {
+                                             CompiledRelationMapping compiledMovementIds) {
     super(dataConfig, compiledMovementIds);
   }
 

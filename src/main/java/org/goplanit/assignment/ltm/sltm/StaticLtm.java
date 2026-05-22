@@ -32,7 +32,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.physical.CompiledMovementIds;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.utils.network.layer.physical.MovementUtils;
 import org.goplanit.utils.network.layer.physical.Movements;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
@@ -76,7 +76,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * @param compiledMovementIds implicit movementIds used for turn based data indexing
    * @return created strategy, null if unsupported type is set
    */
-  private StaticLtmAssignmentStrategy createAssignmentStrategy(CompiledMovementIds compiledMovementIds) {
+  private StaticLtmAssignmentStrategy createAssignmentStrategy(CompiledRelationMapping compiledMovementIds) {
 
     /* create the assignment solution to apply */
     StaticLtmAssignmentStrategy strategy;
@@ -288,7 +288,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* make sure movements have been generated, so we can track data on movement level where it is efficient to do so */
     // todo: get (banned) movements from all layers
     Movements layerMovements = null;
-    var compiledMovementIds = MovementUtils.createCompiledTurnDataIndices(
+    var compiledMovementIds = MovementUtils.createCompiledMovementIndices(
         getTransportNetwork().getInfrastructureNetwork().getTransportLayers(), layerMovements);
       LOGGER.info(String.format(
               "%sGenerated %d permissible movement ids",

@@ -7,11 +7,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.*;
 import org.goplanit.assignment.ltm.sltm.consumer.ConjugateBushSyncBushFlowConsumer;
 import org.goplanit.graph.directed.acyclic.ConjugateACyclicSubGraphImpl;
 import org.goplanit.network.transport.ConjugateTransportModelNetwork;
+import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.*;
@@ -167,7 +167,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   public final ConjugateBushTurnData bushData;
 
   /** inverse mapping from turn edge segments (double key) to conjugate edge segment */
-  protected final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjugateSegmentMapping;
+  protected final CompiledRelationMapping<ConjugateEdgeSegment> turn2ConjugateSegmentMapping;
 
   /**
    * {@inheritDoc}
@@ -252,11 +252,11 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * @param turn2ConjugateSegmentMapping to use
    */
   public ConjugateDestinationBush(
-          final IdGroupingToken idToken,
-          final CentroidVertex destinationCentroidVertex,
-          ConjugateConnectoidNode rootVertex,
-          int maxSubGraphConjugateSegments,
-          final MultiKeyMap<Object, ConjugateEdgeSegment> turn2ConjugateSegmentMapping) {
+      final IdGroupingToken idToken,
+      final CentroidVertex destinationCentroidVertex,
+      ConjugateConnectoidNode rootVertex,
+      int maxSubGraphConjugateSegments,
+      final CompiledRelationMapping<ConjugateEdgeSegment> turn2ConjugateSegmentMapping) {
     super(new ConjugateACyclicSubGraphImpl(idToken, rootVertex, true /* inverted */, maxSubGraphConjugateSegments));
     this.bushData = new ConjugateBushTurnData(this);
     if(!destinationCentroidVertex.isSinkVertex() || destinationCentroidVertex.isSourceVertex()){
@@ -283,7 +283,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
     // container wrapper with primitives, so always clone
     this.bushData = bush.bushData.shallowClone();
-    this.turn2ConjugateSegmentMapping = bush.turn2ConjugateSegmentMapping.clone();
+    this.turn2ConjugateSegmentMapping = bush.turn2ConjugateSegmentMapping.copy();
 
     this.demandScaledNetworkMinPathCostBush = 0;
     this.demandScaledRealisedCostBush = 0;
@@ -345,7 +345,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    */
   @Override
   public double addTurnSendingFlow(EdgeSegment from, EdgeSegment to, double addFlowPcuH) {
-    var conjugateSegment = turn2ConjugateSegmentMapping.get(from,to);
+    var conjugateSegment = turn2ConjugateSegmentMapping.get(from.getId(),to.getId());
     return addTurnSendingFlow(conjugateSegment, addFlowPcuH);
   }
 

@@ -24,7 +24,7 @@ public class StaticLtmDirectedPathFactory extends ManagedIdEntityFactoryImpl<Sta
   private MultiKeyMap<Object, Movement> segmentPair2MovementMap;
 
   /**
-   * Get movements from provide edge segments
+   * Get movements from provided edge segments
    *
    * @param edgeSegments to use
    * @return movement array

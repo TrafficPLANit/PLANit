@@ -112,9 +112,9 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
           NetworkLoadingSendingFlowData networkLoadingSendingFlowData,
           final NetworkLoadingSplittingRateData splittingRateData,
           NetworkLoadingFactorData networkLoadingFactorData,
-          final int numMovements) {
+          final long numMovements) {
     super(networkLoadingSendingFlowData, networkLoadingFactorData);
-    this.acceptedTurnFlows = new double[numMovements];
+    this.acceptedTurnFlows = new double[(int) numMovements];
     this.nlSplittingRateData = splittingRateData;
 
     /* see class description on why we use these flags */
@@ -133,9 +133,9 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
           final boolean trackAllNodeTurnFlows,
           final NetworkLoadingSplittingRateData splittingRateData,
           NetworkLoadingFactorData networkLoadingFactorData,
-          final int numMovements) {
+          final long numMovements) {
     super(networkLoadingFactorData);
-    this.acceptedTurnFlows = new double[numMovements];
+    this.acceptedTurnFlows = new double[(int) numMovements];
     this.nlSplittingRateData = splittingRateData;
 
     /* see class description on why we use these flags */
