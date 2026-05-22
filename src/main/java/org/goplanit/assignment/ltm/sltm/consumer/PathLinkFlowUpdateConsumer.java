@@ -23,39 +23,43 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
 
   /**
    * For each entry segment update the in(sending)flow (and outflow if so specified)
-   * 
-   * @param movement         to use
+   *
+   * @param fromSegment         of the movement
+   * @param toSegment         of the movement
    * @param turnSendingFlowPcuH to use
    * @param turnUnconstrainedFlowPcuH unconstrained flow rate of turn
    */
   @Override
   protected double applySingleFlowUpdate(
-          final Movement movement, double turnSendingFlowPcuH, final double turnUnconstrainedFlowPcuH) {
+      final EdgeSegment fromSegment,
+      final EdgeSegment toSegment,
+      double turnSendingFlowPcuH,
+      final double turnUnconstrainedFlowPcuH) {
     /* u_a: update inflow for link segment */
-    int prevSegmentId = (int) movement.getSegmentFrom().getId();
-    this.dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
+    int fromSegmentId = (int) fromSegment.getId();
+    this.dataConfig.sendingFlows[fromSegmentId] += turnSendingFlowPcuH;
 
     if(this.dataConfig.isInflowsUpdate()){
-      this.dataConfig.inFlows[prevSegmentId] += turnSendingFlowPcuH;
+      this.dataConfig.inFlows[fromSegmentId] += turnSendingFlowPcuH;
     }
 
     if(dataConfig.isUnconstrainedFlowsUpdate()){
-      dataConfig.unconstrainedFlows[prevSegmentId] += turnUnconstrainedFlowPcuH;
+      dataConfig.unconstrainedFlows[fromSegmentId] += turnUnconstrainedFlowPcuH;
     }
 
     /* v_ap = u_bp = alpha_a*...*f_p  */
-    double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
+    double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[fromSegmentId];
 
     /* v_a = SUM(v_ap) (only when enabled) */
     if (dataConfig.isOutflowsUpdate()) {
-      this.dataConfig.outFlows[prevSegmentId] += acceptedTurnFlowPcuH;
+      this.dataConfig.outFlows[fromSegmentId] += acceptedTurnFlowPcuH;
     }
     return acceptedTurnFlowPcuH;
   }
 
   /**
    * Apply final path flow on last segment that otherwise would not have been updated in the turn
-   * based {@link #applySingleFlowUpdate(Movement, double, double)}
+   * based {@link #applySingleFlowUpdate(EdgeSegment, EdgeSegment, double, double)}
    * 
    * @param lastEdgeSegment      to use
    * @param acceptedPathFlowRate to use

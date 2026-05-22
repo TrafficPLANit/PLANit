@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
 import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessorMovements;
+import org.goplanit.utils.network.layer.physical.CompiledRelationIndex;
 import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -41,36 +42,42 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
   /**
    * Apply the flow to the turn (and update link sending flow if required)
    * 
-   * @param movement         the movement
+   * @param fromSegment         of the movement
+   * @param toSegment         of the movement
    * @param turnSendingFlowPcuH sending flow rate of turn
    * @param turnUnconstrainedFlowPcuH unconstrained flow rate of turn
    * @return accepted flow rate of turn after applying link acceptance factor
    */
   @Override
   protected double applySingleFlowUpdate(
-          final Movement movement, final double turnSendingFlowPcuH, final double turnUnconstrainedFlowPcuH) {
+          final EdgeSegment fromSegment,
+          final EdgeSegment toSegment,
+          final double turnSendingFlowPcuH,
+          final double turnUnconstrainedFlowPcuH) {
 
-    if (dataConfig.trackAllNodeTurnFlows || dataConfig.nlSplittingRateData.isTracked(movement.getCentreVertex())) {
+    if (dataConfig.trackAllNodeTurnFlows ||
+        dataConfig.nlSplittingRateData.isTracked(fromSegment.getDownstreamVertex())) {
 
-      int prevSegmentId = (int) movement.getSegmentFrom().getId();
+      int fromSegmentId = (int) fromSegment.getId();
 
       /* s_a = u_a where we only need to update the sending flows of tracked turns */
       if (dataConfig.isSendingFlowsUpdate()) {
-        dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
+        dataConfig.sendingFlows[fromSegmentId] += turnSendingFlowPcuH;
       }
 
       if(dataConfig.isUnconstrainedFlowsUpdate()){
-        dataConfig.unconstrainedFlows[prevSegmentId] += turnUnconstrainedFlowPcuH;
+        dataConfig.unconstrainedFlows[fromSegmentId] += turnUnconstrainedFlowPcuH;
       }
 
       /* v_ap = u_bp = alpha_a*...*f_p where we implicitly consider all
        * preceding alphas (flow acceptance factors) up to now */
-      double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
-      dataConfig.addToAcceptedTurnFlows((int)movement.getId(), acceptedTurnFlowPcuH);
+      double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[fromSegmentId];
+      long movementId = compiledMovementIds.get(fromSegmentId, toSegment.getId());
+      dataConfig.addToAcceptedTurnFlows((int)movementId, acceptedTurnFlowPcuH);
 
       /* v_a = SUM(v_ap) (only when enabled) */
       if (dataConfig.isOutflowsUpdate()) {
-        dataConfig.outFlows[prevSegmentId] += acceptedTurnFlowPcuH;
+        dataConfig.outFlows[fromSegmentId] += acceptedTurnFlowPcuH;
       }
 
       return acceptedTurnFlowPcuH;
@@ -105,7 +112,7 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
   public PathTurnFlowUpdateConsumer(
           final NetworkTurnFlowUpdateData dataConfig,
           final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odPaths,
-          final CompiledRelationMapping compiledMovementIds) {
+          final CompiledRelationIndex compiledMovementIds) {
     super(dataConfig, odPaths, compiledMovementIds);
   }
 

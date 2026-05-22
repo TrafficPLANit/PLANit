@@ -20,45 +20,45 @@ public class StaticLtmDirectedPathFactory extends ManagedIdEntityFactoryImpl<Sta
 
   private static final Logger LOGGER = Logger.getLogger(StaticLtmDirectedPathFactory.class.getCanonicalName());
 
-  /** two key mapping from segment,segment to a movement */
-  private MultiKeyMap<Object, Movement> segmentPair2MovementMap;
+//  /** two key mapping from segment,segment to a movement */
+//  private MultiKeyMap<Object, Movement> segmentPair2MovementMap;
 
-  /**
-   * Get movements from provided edge segments
-   *
-   * @param edgeSegments to use
-   * @return movement array
-   */
-  private Movement[] getMovements(Deque<? extends EdgeSegment> edgeSegments) {
-    Movement[] movements = new Movement[edgeSegments.size()-1];
-
-    int index = 0;
-    var edgeSegmentIter = edgeSegments.iterator();
-    EdgeSegment prevSegment = edgeSegmentIter.next();
-    while(edgeSegmentIter.hasNext()){
-      var edgeSegment = edgeSegmentIter.next();
-      var movement = segmentPair2MovementMap.get(prevSegment, edgeSegment);
-      if(movement == null){
-        LOGGER.severe(String.format("Unable to find movement for segment pair (%s)-(%s)",
-            prevSegment.getIdsAsString(), edgeSegment.getIdsAsString()));
-      }
-      movements[index++] = movement;
-      prevSegment = edgeSegment;
-    }
-    return movements;
-  }
+//
+//  /**
+//   * Get movements from provided edge segments
+//   *
+//   * @param edgeSegments to use
+//   * @return movement array
+//   */
+//  private Movement[] getMovements(Deque<? extends EdgeSegment> edgeSegments) {
+//    Movement[] movements = new Movement[edgeSegments.size()-1];
+//
+//    int index = 0;
+//    var edgeSegmentIter = edgeSegments.iterator();
+//    EdgeSegment prevSegment = edgeSegmentIter.next();
+//    while(edgeSegmentIter.hasNext()){
+//      var edgeSegment = edgeSegmentIter.next();
+//      var movement = segmentPair2MovementMap.get(prevSegment, edgeSegment);
+//      if(movement == null){
+//        LOGGER.severe(String.format("Unable to find movement for segment pair (%s)-(%s)",
+//            prevSegment.getIdsAsString(), edgeSegment.getIdsAsString()));
+//      }
+//      movements[index++] = movement;
+//      prevSegment = edgeSegment;
+//    }
+//    return movements;
+//  }
 
   /**
    * Constructor. Leveraging mapping between segment pairs and movements to be able to construct
    * static LTM paths internal structure which is movement based rather than segment based
    *
    * @param groupIdToken  to use for creating element ids
-   * @param segmentPair2MovementMap mapping
    */
   public StaticLtmDirectedPathFactory(
-      final IdGroupingToken groupIdToken, MultiKeyMap<Object, Movement> segmentPair2MovementMap){
+      final IdGroupingToken groupIdToken /* MultiKeyMap<Object, Movement> segmentPair2MovementMap */){
     super(groupIdToken);
-    this.segmentPair2MovementMap = segmentPair2MovementMap;
+    //this.segmentPair2MovementMap = segmentPair2MovementMap;
   }
 
   /**
@@ -78,7 +78,8 @@ public class StaticLtmDirectedPathFactory extends ManagedIdEntityFactoryImpl<Sta
       LOGGER.warning("Cannot create static LTM path that has less than 2 edge segments");
       return null;
     }
-    return new StaticLtmDirectedPathImpl(getIdGroupingToken(), getMovements(edgeSegments));
+    //return new StaticLtmDirectedPathImpl(getIdGroupingToken(), getMovements(edgeSegments));
+    return new StaticLtmDirectedPathImpl(getIdGroupingToken(), edgeSegments);
   }
 
 

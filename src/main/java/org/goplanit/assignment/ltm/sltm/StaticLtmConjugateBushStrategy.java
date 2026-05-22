@@ -73,6 +73,9 @@ public class StaticLtmConjugateBushStrategy
    */
   private Map<ConjugateDestinationBush, ConjugateBushTurnData> originalBushTurnFlowTracker;
 
+  /** inverse mapping from turn edge segments (double key) to conjugate edge segment */
+  private CompiledRelationMapping<ConjugateEdgeSegment> turn2ConjugateSegmentCompiledIndex;
+
   /**
    * Update PAS status based on flow acceptance factors (without considering impact of any potential flow shifts)
    *
@@ -273,8 +276,13 @@ public class StaticLtmConjugateBushStrategy
   /** inverse mapping from centroid vertices to their conjugate node */
   protected final Map<CentroidVertex, ConjugateConnectoidNode> centroid2ConjugateNodeMapping;
 
-  /** inverse mapping from turn edge segments (double key) to conjugate edge segment */
-  protected final CompiledRelationMapping<ConjugateEdgeSegment> turn2ConjugateSegmentCompiledIndex;
+  /**
+   * Access to mapping
+   * @return segmentToMovement id mapping
+   */
+  protected CompiledRelationMapping<ConjugateEdgeSegment> getCompiledTurnToConjugateSegmentMapping(){
+    return turn2ConjugateSegmentCompiledIndex;
+  }
 
   /**
    * Create a shortest bush search algorithm for the conjugate bushes based on conjugate edge segments and costs
@@ -567,8 +575,7 @@ public class StaticLtmConjugateBushStrategy
     return new StaticLtmLoadingBushConjugate(
             getIdGroupingToken(),
             getAssignmentId(),
-            getSegmentToMovementIdMapping(),
-            this.conjugateTransportModelNetwork,
+            getCompiledTurnToConjugateSegmentMapping(),
             getSettings());
   }
 
@@ -1148,7 +1155,6 @@ public class StaticLtmConjugateBushStrategy
    * @param idGroupingToken       to use for internal managed ids
    * @param assignmentId          of parent assignment
    * @param transportModelNetwork to use
-   * @param compiledMovementIds implicit movementIds used for turn based data indexing
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
    */
@@ -1156,24 +1162,24 @@ public class StaticLtmConjugateBushStrategy
           final IdGroupingToken idGroupingToken,
           long assignmentId,
           final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
-          final CompiledRelationMapping compiledMovementIds,
           final StaticLtmSettings settings,
           final TrafficAssignmentComponentAccessee taComponents) {
     /* destination based bushes are inverted, so PASs are to be registered based on vertex farthest from root,
      * i.e, farthest from destination, so at the upstream point of the PAS at its diverge (hence true at end of super)*/
-    super(idGroupingToken, assignmentId, transportModelNetwork, compiledMovementIds, settings, taComponents, true);
+    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents, true);
 
     // construct conjugate version of original transport model network, to be used by all conjugate bushes
     this.conjugateTransportModelNetwork = transportModelNetwork.createConjugate(
             TransportModelNetworkUtils.generateDerivedConjugateIdGroupingToken(transportModelNetwork));
     conjugateTransportModelNetwork.logInfo("");
 
-    centroid2ConjugateNodeMapping =
+    this.centroid2ConjugateNodeMapping =
             VirtualNetworkUtils.createCentroidVertexToConjugateNodeMapping(
                     conjugateTransportModelNetwork.getVirtualNetwork().getLayer());
-    turn2ConjugateSegmentCompiledIndex =
-            ConjugateTransportModelNetworkUtils.createOriginalSegmentsToConjugateSegmentIdMapping(
-                    conjugateTransportModelNetwork);
+
+    this.turn2ConjugateSegmentCompiledIndex =
+        ConjugateTransportModelNetworkUtils.createOriginalSegmentsToConjugateSegmentIdMapping(
+            conjugateTransportModelNetwork);
 
     // todo: remove at some point as for large networks this will mean a lot of logging!
     boolean logMapping = false;

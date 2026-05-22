@@ -76,18 +76,20 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * @param compiledMovementIds implicit movementIds used for turn based data indexing
    * @return created strategy, null if unsupported type is set
    */
-  private StaticLtmAssignmentStrategy createAssignmentStrategy(CompiledRelationMapping compiledMovementIds) {
+  private StaticLtmAssignmentStrategy createAssignmentStrategy() {
 
     /* create the assignment solution to apply */
     StaticLtmAssignmentStrategy strategy;
     switch (settings.getSltmType()) {
       case CONJUGATE_DESTINATION_BUSH_BASED:
+
         strategy =  new StaticLtmConjugateBushStrategy(
-                getIdGroupingToken(), getId(), getTransportNetwork(), compiledMovementIds, settings, this);
+                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
         break;
       case PATH_BASED:
+
         strategy = new StaticLtmPathStrategy(
-                getIdGroupingToken(), getId(), getTransportNetwork(), compiledMovementIds, settings, this);
+                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
         break;
       default:
         LOGGER.warning(String.format("Unsupported static LTM type chosen %s, aborting",settings.getSltmType()));
@@ -285,16 +287,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   protected void initialiseBeforeExecution(boolean resetAndRecreateManagedIds) throws PlanItException {
     super.initialiseBeforeExecution(resetAndRecreateManagedIds);
 
-    /* make sure movements have been generated, so we can track data on movement level where it is efficient to do so */
-    // todo: get (banned) movements from all layers
-    Movements layerMovements = null;
-    var compiledMovementIds = MovementUtils.createCompiledMovementIndices(
-        getTransportNetwork().getInfrastructureNetwork().getTransportLayers(), layerMovements);
-      LOGGER.info(String.format(
-              "%sGenerated %d permissible movement ids",
-              LoggingUtils.runIdPrefix(getId()), compiledMovementIds.getNumberOfPermissibleMovements()));
-
-    this.assignmentStrategy = createAssignmentStrategy(compiledMovementIds);
+    this.assignmentStrategy = createAssignmentStrategy();
     assignmentStrategy.verifyComponentCompatibility();
     LOGGER.info(String.format("%sstrategy: %s", LoggingUtils.runIdPrefix(getId()), assignmentStrategy.getDescription()));
   }

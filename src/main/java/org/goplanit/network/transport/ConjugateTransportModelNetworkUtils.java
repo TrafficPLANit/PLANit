@@ -31,7 +31,7 @@ public class ConjugateTransportModelNetworkUtils {
     var allConjugateSegmentsStream = Streams.concat(
         conjugateTransportModelNetwork.getVirtualNetwork().getLayer().getConnectoidSegments().stream(),
         conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().stream().flatMap(
-            l -> l.getLinkSegments().stream()));
+            l -> l.getLinkSegments().stream().map( ls -> (ConjugateEdgeSegment) ls)));
 
     // Determine max original segment ID
     int[] maxOriginalSegmentId = new int[1];
@@ -47,7 +47,7 @@ public class ConjugateTransportModelNetworkUtils {
     allConjugateSegmentsStream = Streams.concat(
         conjugateTransportModelNetwork.getVirtualNetwork().getLayer().getConnectoidSegments().stream(),
         conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().stream().flatMap(
-            l -> l.getLinkSegments().stream()));
+            l -> l.getLinkSegments().stream().map( ls -> (ConjugateEdgeSegment) ls)));
 
     // Count number of outgoing segments per original in-segment
     // since each conjugate segment is a turn, each instance means, one outgoing segment for the incoming segment
@@ -80,7 +80,7 @@ public class ConjugateTransportModelNetworkUtils {
     allConjugateSegmentsStream = Streams.concat(
         conjugateTransportModelNetwork.getVirtualNetwork().getLayer().getConnectoidSegments().stream(),
         conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().stream().flatMap(
-            l -> l.getLinkSegments().stream()));
+            l -> l.getLinkSegments().stream().map( ls -> (ConjugateEdgeSegment) ls)));
     // NOW DO THE MAPPING
     allConjugateSegmentsStream.forEach( cs -> {
       int inId = (int) cs.getOriginalAdjacentEdgeSegments().first().getId();

@@ -27,8 +27,7 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingBushConjugate.class.getCanonicalName());
 
-  /** conjugate network to access bush based data structures */
-  private final ConjugateTransportModelNetwork conjugateTransportModelNetwork;
+  private final CompiledRelationMapping<ConjugateEdgeSegment> compiledTurnToConjugateSegmentMapping;
 
   /**
    * {@inheritDoc}
@@ -37,7 +36,8 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
   public ConjugateBushNetworkFlowUpdateConsumerImpl<NetworkFlowUpdateData> createBushLinkSendingFlowUpdateConsumer(
           boolean updateLinkOutflows, boolean updateUnconstrainedLinkFlows){
     return new ConjugateBushNetworkFlowUpdateConsumerImpl<>(
-            createNetworkLinkFlowData(updateLinkOutflows, updateUnconstrainedLinkFlows), getCompiledMovementIds());
+        createNetworkLinkFlowData(updateLinkOutflows, updateUnconstrainedLinkFlows),
+        compiledTurnToConjugateSegmentMapping);
   }
 
   /**
@@ -49,10 +49,9 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
     /* original turn (so conjugate link segment) based + optional original link sending flow based (so conjugate node) */
 
     // we use conjugate segments because they also contain the dummy (connectoid) turns that have no entry segment
-    int numConjugateSegments = conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers();
     return new ConjugateBushTurnFlowUpdateConsumer(
-        createNetworkTurnFlowData(updateLinkSendingFlows, numConjugateSegments),
-        getCompiledMovementIds());
+        createNetworkTurnFlowData(updateLinkSendingFlows, (int) compiledTurnToConjugateSegmentMapping.size()),
+        compiledTurnToConjugateSegmentMapping);
   }
 
   public ConjugateBushSyncNetworkFlowConsumer createSyncAllNetworkFlowUpdateConsumer(){
@@ -60,8 +59,6 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
     nlInFlowOutflowData.resetInflows();
     nlInFlowOutflowData.resetOutflows();
     unconstrainedFlowData.reset();
-
-    int numConjugateSegments = conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers();
 
     // all in one update (except for alphas), splitting rates are not updated, just populated in full
     return new ConjugateBushSyncNetworkFlowConsumer(
@@ -73,8 +70,8 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
             nlInFlowOutflowData.getInflows(),
             nlInFlowOutflowData.getOutflows(),
             unconstrainedFlowData,
-            numConjugateSegments),
-            getCompiledMovementIds());
+            (int) compiledTurnToConjugateSegmentMapping.size()),
+            compiledTurnToConjugateSegmentMapping);
   }
 
   /**
@@ -82,25 +79,16 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
    * 
    * @param idToken      to use
    * @param assignmentId to use
-   * @param compiledMovementIds to use
-   * @param conjugateTransportModelNetwork to use
+   * @param compiledTurnToConjugateSegmentMapping to use
    * @param settings     to use
    */
   public StaticLtmLoadingBushConjugate(
       IdGroupingToken idToken,
       long assignmentId,
-      CompiledRelationMapping compiledMovementIds,
-      ConjugateTransportModelNetwork conjugateTransportModelNetwork,
+      CompiledRelationMapping<ConjugateEdgeSegment> compiledTurnToConjugateSegmentMapping,
       final StaticLtmSettings settings) {
-    super(idToken, assignmentId, compiledMovementIds, settings);
-    this.conjugateTransportModelNetwork = conjugateTransportModelNetwork;
-  }
-
-  /** access to the conjugate transport model network
-   * @return conjugate version of transport model network
-   */
-  public ConjugateTransportModelNetwork getConjugateTransportModelNetwork() {
-    return conjugateTransportModelNetwork;
+    super(idToken, assignmentId, settings);
+    this.compiledTurnToConjugateSegmentMapping = compiledTurnToConjugateSegmentMapping;
   }
 
   // special version of network splitting rate loading update where we limit ourselves to propagating PAS flows instead
@@ -112,10 +100,9 @@ public class StaticLtmLoadingBushConjugate extends StaticLtmLoadingBushBase<Conj
       TreeSet<EdgeSegment> pasTouchedSegments) {
 
     boolean updateLinkSendingFlows = false;
-    int numConjugateSegments = conjugateTransportModelNetwork.getNumberOfEdgeSegmentsAllLayers();
     var selectiveBushPasNodeTurnFlowUpdateConsumer = new ConjugateBushTurnFlowUpdateConsumer(
-        createNetworkTurnFlowData(updateLinkSendingFlows, numConjugateSegments),
-        getCompiledMovementIds(),
+        createNetworkTurnFlowData(updateLinkSendingFlows, (int) compiledTurnToConjugateSegmentMapping.size()),
+        compiledTurnToConjugateSegmentMapping,
         pasTouchedSegments);
 
     /* execute loading - for selective bushes with selective nodes - */

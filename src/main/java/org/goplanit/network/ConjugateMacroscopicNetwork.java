@@ -45,7 +45,6 @@ public class ConjugateMacroscopicNetwork extends
       return;
     }
 
-
     ConjugateVirtualNetworkLayer conjugateVirtualLayer =
         conjugateVirtualNetwork!=null ? conjugateVirtualNetwork.getLayer() : null;
     // create conjugate version and register on conjugate container

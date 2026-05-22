@@ -262,7 +262,6 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
    * @param idGroupingToken       to use for internal managed ids
    * @param assignmentId          of parent assignment
    * @param transportModelNetwork to use
-   * @param compiledMovementIds implicit movementIds used for turn based data indexing
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
    * @param registerPassByDiverge when true index registration by diverge, merge otherwise
@@ -271,11 +270,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B ex
       final IdGroupingToken idGroupingToken,
       long assignmentId,
       final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
-      final CompiledRelationMapping compiledMovementIds,
       final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents,
       boolean registerPassByDiverge) {
-    super(idGroupingToken, assignmentId, transportModelNetwork, compiledMovementIds, settings, taComponents);
+    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
     this.pasManager = new PasManager<>(registerPassByDiverge);
     this.pasManager.setDetailedLogging(settings.isDetailedLogging());
   }

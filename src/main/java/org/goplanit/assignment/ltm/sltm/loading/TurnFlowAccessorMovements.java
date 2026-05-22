@@ -1,6 +1,7 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.network.layer.physical.CompiledRelationIndex;
 import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 
 /**
@@ -11,13 +12,13 @@ import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 public class TurnFlowAccessorMovements implements TurnFlowAccessor {
 
   /** be able to convert entry/exit segment to their corresponding movement */
-  private final CompiledRelationMapping compiledMovementIds;
+  private final CompiledRelationIndex compiledMovementIds;
 
   private final double[] turnFlowsIndexedByMovementIds;
 
   private TurnFlowAccessorMovements(
-      final CompiledRelationMapping compiledMovementIds,
-          double[] turnFlowsIndexedByMovementIds){
+      final CompiledRelationIndex compiledMovementIds,
+      double[] turnFlowsIndexedByMovementIds){
     this.compiledMovementIds = compiledMovementIds;
     this.turnFlowsIndexedByMovementIds = turnFlowsIndexedByMovementIds;
   }
@@ -30,7 +31,7 @@ public class TurnFlowAccessorMovements implements TurnFlowAccessor {
    * @return instance
    */
   public static TurnFlowAccessorMovements of(
-      final CompiledRelationMapping compiledMovementIds,
+      final CompiledRelationIndex compiledMovementIds,
       double[] turnFlowsIndexedByMovementIds){
     return new TurnFlowAccessorMovements(compiledMovementIds, turnFlowsIndexedByMovementIds);
   }
@@ -40,7 +41,8 @@ public class TurnFlowAccessorMovements implements TurnFlowAccessor {
    */
   @Override
   public double getTurnFlow(EdgeSegment from, EdgeSegment to) {
-    var movementId = compiledMovementIds.getMovementId(from.getId(), to.getId());
-    return (movementId != -1) ? this.turnFlowsIndexedByMovementIds[(int) movementId]: 0.0;
+    var compiledMovementId = compiledMovementIds.get(from.getId(), to.getId());
+    return (compiledMovementId != CompiledRelationIndex.BANNED) ?
+        this.turnFlowsIndexedByMovementIds[(int) compiledMovementId]: 0.0;
   }
 }

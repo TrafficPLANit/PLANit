@@ -12,6 +12,7 @@ import java.util.logging.Logger;
  *
  * @author markr
  */
+@Deprecated(forRemoval = true) // when movements are removed from paths no longer needed
 public class StaticLtmDirectedPathIterator implements Iterator<EdgeSegment> {
 
   private static final Logger LOGGER = Logger.getLogger(StaticLtmDirectedPathIterator.class.getCanonicalName());

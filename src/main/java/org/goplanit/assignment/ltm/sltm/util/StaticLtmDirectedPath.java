@@ -30,10 +30,10 @@ public interface StaticLtmDirectedPath extends ManagedDirectedPath {
     return getLinkSegmentsOnlyHashCode() == toCompare.getLinkSegmentsOnlyHashCode();
   }
 
-  /**
-   * Access to raw movement array
-   *
-   * @return movements
-   */
-  public abstract Movement[] getMovements();
+//  /**
+//   * Access to raw movement array
+//   *
+//   * @return movements
+//   */
+//  public abstract Movement[] getMovements();
 }

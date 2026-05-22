@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.util;
 
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegmentUtils;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
@@ -12,8 +13,10 @@ import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.PathUtils;
 import org.locationtech.jts.geom.Geometry;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
@@ -36,8 +39,9 @@ public class StaticLtmDirectedPathImpl extends ExternalIdAbleImpl implements Sta
    */
   private double currentPathChoiceProbability;
 
-  /** the movement based path definition  */
-  private Movement[] thePath;
+  /** the path definition  */
+//  private Movement[] thePath;
+  private Deque<? extends EdgeSegment> thePath;
 
   /**
    * Generate an id for this instance
@@ -61,19 +65,18 @@ public class StaticLtmDirectedPathImpl extends ExternalIdAbleImpl implements Sta
    * Constructor
    *
    * @param groupingToken grouping token
-   * @param movements to base path on
+   * @param thePath to base path on
    */
-  protected StaticLtmDirectedPathImpl(IdGroupingToken groupingToken, Movement[] movements){
+  //protected StaticLtmDirectedPathImpl(IdGroupingToken groupingToken, Movement[] movements){
+  protected StaticLtmDirectedPathImpl(IdGroupingToken groupingToken, Deque<? extends EdgeSegment> thePath){
     super(generateId(groupingToken));
 
-    this.thePath = movements;
+    this.thePath = thePath;
 
     this.currentPathChoiceProbability = 0;
 
-    if(movements != null) {
-      this.linkSegmentsOnlyHashCode = java.util.Arrays.hashCode(
-          IterableUtils.asStream(
-              IterableUtils.toIterable(new StaticLtmDirectedPathIterator(thePath))).mapToLong(IdAble::getId).toArray());
+    if(thePath != null) {
+      this.linkSegmentsOnlyHashCode = java.util.Arrays.hashCode(thePath.stream().mapToLong(IdAble::getId).toArray());
     }else{
       this.linkSegmentsOnlyHashCode = 0;
     }
@@ -85,11 +88,16 @@ public class StaticLtmDirectedPathImpl extends ExternalIdAbleImpl implements Sta
    * @param other to copy
    * @param deepCopy deep copy or not
    */
+  @SuppressWarnings("unchecked")
   protected StaticLtmDirectedPathImpl(StaticLtmDirectedPathImpl other, boolean deepCopy) {
     super(other);
     this.currentPathChoiceProbability = other.currentPathChoiceProbability;
     this.linkSegmentsOnlyHashCode = other.linkSegmentsOnlyHashCode;
-    this.thePath = Arrays.copyOf(other.thePath, other.thePath.length);
+    try {
+      this.thePath = other.thePath.getClass().getConstructor(Collection.class).newInstance(other.thePath);
+    } catch (Exception e) {
+      throw new RuntimeException("Cannot copy Deque of the path", e);
+    }
   }
 
   @Override
@@ -113,10 +121,10 @@ public class StaticLtmDirectedPathImpl extends ExternalIdAbleImpl implements Sta
     return this.linkSegmentsOnlyHashCode;
   }
 
-  @Override
-  public Movement[] getMovements() {
-    return thePath;
-  }
+//  @Override
+//  public Movement[] getMovements() {
+//    return thePath;
+//  }
 
   /**
    * {@inheritDoc}
@@ -145,13 +153,15 @@ public class StaticLtmDirectedPathImpl extends ExternalIdAbleImpl implements Sta
   }
 
   @Override
-  public StaticLtmDirectedPathIterator iterator() {
-    return new StaticLtmDirectedPathIterator(thePath);
+  @SuppressWarnings("unchecked")
+  @Nonnull
+  public Iterator<EdgeSegment> iterator() {
+    return (Iterator<EdgeSegment>) thePath.iterator();
   }
 
   @Override
   public long size() {
-    return thePath.length+1;
+    return thePath.size();
   }
 
   @Override
@@ -166,12 +176,12 @@ public class StaticLtmDirectedPathImpl extends ExternalIdAbleImpl implements Sta
 
   @Override
   public EdgeSegment getFirstSegment() {
-    return thePath[0].getSegmentFrom();
+    return thePath.getFirst();
   }
 
   @Override
   public EdgeSegment getLastSegment() {
-    return thePath[thePath.length-1].getSegmentTo();
+    return thePath.getLast();
   }
 
   @Override
@@ -185,7 +195,7 @@ public class StaticLtmDirectedPathImpl extends ExternalIdAbleImpl implements Sta
     // id
     sb.append("Path [").append(getIdsAsString()).append("] - segments: ");
     // edge segments
-    this.forEach(es -> sb.append("("+ es.getIdsAsString() + ") "));
+    this.forEach(es -> sb.append("(").append(es.getIdsAsString()).append(") "));
     return sb.toString();
   }
 }

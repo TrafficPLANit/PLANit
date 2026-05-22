@@ -17,7 +17,7 @@ public class ConjugateCostUtils {
   /**
    * Update network link segment and conjugate segment cost based on current prevailing network incoming link flows
    *
-   * @param nonConjugateEntrySegment to update costs for
+   * @param turnEntrySegment to update costs for
    * @param assignmentStrategy to use
    * @param theMode to use
    * @param originalNetworkCosts to update
@@ -25,36 +25,39 @@ public class ConjugateCostUtils {
    *
    */
     public static void  updateLinkAndConjugateSegmentCost(
-        EdgeSegment nonConjugateEntrySegment,
+        EdgeSegment turnEntrySegment,
         StaticLtmConjugateBushStrategy assignmentStrategy,
         Mode theMode,
         double[] originalNetworkCosts,
         double[] conjNetworkCosts) {
 
-    DirectedVertex node = nonConjugateEntrySegment.getDownstreamVertex();
+    DirectedVertex node = turnEntrySegment.getDownstreamVertex();
 
     // UPDATE LINK COSTS
     double currentCost;
-    if(nonConjugateEntrySegment instanceof MacroscopicLinkSegment) {
+    if(turnEntrySegment instanceof MacroscopicLinkSegment) {
       // will use current network flows (including any shift applied via syncUncongestedPasFlowShiftToNetworkFlow
       currentCost = assignmentStrategy.getPhysicalCost().getGeneralisedCost(
-          theMode, (MacroscopicLinkSegment) nonConjugateEntrySegment);
+          theMode, (MacroscopicLinkSegment) turnEntrySegment);
     }else{
       currentCost = assignmentStrategy.getVirtualCost().getGeneralisedCost(
-          theMode, (ConnectoidSegment) nonConjugateEntrySegment);
+          theMode, (ConnectoidSegment) turnEntrySegment);
     }
-    originalNetworkCosts[(int)nonConjugateEntrySegment.getId()]  = currentCost;
+    originalNetworkCosts[(int)turnEntrySegment.getId()]  = currentCost;
 
     // UPDATE CONJ COSTS for each turn
-    for(var exitSegment : node.getExitEdgeSegments()) {
-      if(exitSegment.hasOppositeDirectionSegment() &&
-          exitSegment.getOppositeDirectionSegment() == nonConjugateEntrySegment){
+    for(var turnExitSegment : node.getExitEdgeSegments()) {
+      if(turnExitSegment.hasOppositeDirectionSegment() &&
+          turnExitSegment.getOppositeDirectionSegment() == turnEntrySegment){
         continue;
       }
-      var conjSegment = assignmentStrategy.getTurn2ConjugateSegmentCompiledIndex().get(nonConjugateEntrySegment, exitSegment);
+      //todo: can be done by index instead to be even faster as compiled index has functionality for it
+      var conjSegment = assignmentStrategy.getTurn2ConjugateSegmentCompiledIndex().get(
+          turnEntrySegment.getId(), turnExitSegment.getId());
+
       if (conjSegment == null) {
         throw new PlanItRunTimeException("unable to find conjugate segment for turn [from: (%s), to: (%s)]",
-            nonConjugateEntrySegment.getIdsAsString(), exitSegment.getIdsAsString());
+            turnEntrySegment.getIdsAsString(), turnExitSegment.getIdsAsString());
       }
       conjNetworkCosts[(int) conjSegment.getId()] = currentCost;
     }

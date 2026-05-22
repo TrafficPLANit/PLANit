@@ -16,7 +16,10 @@ import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.utils.network.layer.physical.CompiledRelationIndex;
 import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
+import org.goplanit.utils.network.layer.physical.MovementUtils;
+import org.goplanit.utils.network.layer.physical.Movements;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.zoning.od.path.OdMultiPathsHashed;
@@ -78,6 +81,9 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
   /** track number of added and removed paths per iteration through this pair */
   private final Pair<LongAdder, LongAdder> addedRemovedPathCounters = Pair.of(new LongAdder(), new LongAdder());
+
+  /** track mapping from permissable movements to unique id for data tracking */
+  private final CompiledRelationIndex compiledMovementIds;
 
   /**
    * Convenience method for logging tracked Od paths, only log when od is tracked
@@ -327,8 +333,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     final ShortestPathOneToAll shortestPathAlgorithm =
         new ShortestPathDijkstra(currentSegmentCosts, getIdIndexedVertices());
 
-    StaticLtmDirectedPathFactory pathFactory =
-        new StaticLtmDirectedPathFactory(getIdGroupingToken(), getSegmentToMovementMapping() );
+    StaticLtmDirectedPathFactory pathFactory = new StaticLtmDirectedPathFactory(getIdGroupingToken());
 
     var newOdShortestPaths = new OdPathsHashed<>(
             getIdGroupingToken(), StaticLtmDirectedPath.class, getTransportNetwork().getZoning().getOdZones());
@@ -632,7 +637,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   @Override
   protected StaticLtmLoadingPath createNetworkLoading() {
     return new StaticLtmLoadingPath(
-            getIdGroupingToken(), getAssignmentId(), getSegmentToMovementIdMapping(), getSettings());
+            getIdGroupingToken(), getAssignmentId(), this.compiledMovementIds, getSettings());
   }
 
   /**
@@ -665,7 +670,6 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * @param idGroupingToken       to use
    * @param assignmentId          to use
    * @param transportModelNetwork to use
-   * @param compiledMovementIds   implicit movementIds used for turn based data indexing
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
    */
@@ -673,13 +677,17 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
       final IdGroupingToken idGroupingToken,
       long assignmentId,
       final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
-      final CompiledRelationMapping compiledMovementIds,
       final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
-    super(idGroupingToken, assignmentId, transportModelNetwork, compiledMovementIds, settings, taComponents);
+    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
 
     // initialise path filtering setup
     initialiseSltmPathFilters();
+
+    // todo: obtain the layer movements (banned movements) so they get excluded --> or adjust the util
+    Movements layerMovements = null;
+    this.compiledMovementIds = MovementUtils.createCompiledMovementIndices(
+        transportModelNetwork.getInfrastructureNetwork().getTransportLayers(), layerMovements);
   }
 
   /**

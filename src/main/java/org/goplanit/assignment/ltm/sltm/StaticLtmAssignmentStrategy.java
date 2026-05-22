@@ -66,9 +66,6 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   private final TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> transportModelNetwork;
 
-  /** implicit movement ids of permissible turn movements, used for turn based simulation data indexing */
-  private final CompiledRelationMapping compiledMovementIds;
-
   /** cache vertices (node and centroid) by id, so they can be (re)used in shortest path search */
   DirectedVertex[] verticesById;
 
@@ -146,14 +143,6 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   protected MacroscopicNetwork getInfrastructureNetwork() {
     return getTransportNetwork().getInfrastructureNetwork();
-  }
-
-  /**
-   * Access to segment to movement idmapping
-   * @return segmentToMovement id mapping
-   */
-  protected CompiledRelationMapping getSegmentToMovementIdMapping(){
-    return compiledMovementIds;
   }
 
   /**
@@ -481,7 +470,6 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param idGroupingToken       to use for id generation
    * @param assignmentId          id of the parent assignment
    * @param transportModelNetwork the transport model network
-   * @param compiledMovementIds implicit movementIds used for turn based data indexing
    * @param settings              the sLTM settings to use
    * @param taComponents          to use
    */
@@ -490,12 +478,10 @@ public abstract class StaticLtmAssignmentStrategy {
       final IdGroupingToken idGroupingToken,
       long assignmentId,
       final TransportModelNetwork<MacroscopicNetwork,VirtualNetwork> transportModelNetwork,
-      final CompiledRelationMapping compiledMovementIds,
       final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
 
     this.transportModelNetwork = transportModelNetwork;
-    this.compiledMovementIds = compiledMovementIds;
     this.verticesById = getTransportNetwork().createIdIndexedVerticesAllLayers();
 
     this.assignmentId = assignmentId;

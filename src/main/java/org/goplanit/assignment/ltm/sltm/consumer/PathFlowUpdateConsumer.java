@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
+import org.goplanit.utils.network.layer.physical.CompiledRelationIndex;
 import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.utils.functionalinterface.TriConsumer;
@@ -30,7 +31,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
   /** data and configuration used for a flow update by derived classes */
   protected T dataConfig;
 
-  protected final CompiledRelationMapping compiledMovementIds;
+  protected final CompiledRelationIndex compiledMovementIds;
 
   /**
    * Od Paths to use
@@ -40,13 +41,17 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
   /**
    * Apply the flow to the turn (and update link sending flow if required)
    * 
-   * @param movement         the movement
+   * @param fromSegment       from segment of the turn
+   * @param toSegment         to segment of the turn
    * @param turnSendingFlowPcuH sending flow rate of turn
    * @param turnUnconstrainedFlowPcuH unconstrained flow rate of turn
    * @return accepted flow rate of turn after applying link acceptance factor
    */
   protected abstract double applySingleFlowUpdate(
-          final Movement movement, final double turnSendingFlowPcuH, final double turnUnconstrainedFlowPcuH);
+          final EdgeSegment fromSegment,
+          final EdgeSegment toSegment,
+          final double turnSendingFlowPcuH,
+          final double turnUnconstrainedFlowPcuH);
 
   /**
    * Apply the flow to a final path segment (and update link sending flow if required) which has no outgoing
@@ -69,7 +74,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
   public PathFlowUpdateConsumer(
           final T dataConfig,
           final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths,
-          final CompiledRelationMapping compiledMovementIds) {
+          final CompiledRelationIndex compiledMovementIds) {
     this.dataConfig = dataConfig;
     this.odMultiPaths = odMultiPaths;
     this.compiledMovementIds = compiledMovementIds;
@@ -93,13 +98,13 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
 
       /* movement iterator */
       double acceptedPathFlowRate = pathDemand;
-      var movementArray = odPath.getMovements();
-      for(var movement : movementArray){
-        acceptedPathFlowRate = applySingleFlowUpdate(movement, acceptedPathFlowRate, pathDemand);
+      EdgeSegment prevSegment = null;
+      for(var currSegment : odPath){
+        acceptedPathFlowRate = applySingleFlowUpdate(prevSegment, currSegment, acceptedPathFlowRate, pathDemand);
+        prevSegment = currSegment;
       }
 
-      applyPathFinalSegmentFlowUpdate(
-              movementArray[movementArray.length-1].getSegmentTo(), acceptedPathFlowRate, pathDemand);
+      applyPathFinalSegmentFlowUpdate(prevSegment, acceptedPathFlowRate, pathDemand);
 
     }
   }

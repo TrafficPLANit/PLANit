@@ -255,15 +255,13 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extend
    * 
    * @param idToken      to use
    * @param assignmentId to use
-   * @param compiledMovementIds implicit movementIds used for turn based data indexing
    * @param settings to use
    */
   public StaticLtmLoadingBushBase(
           IdGroupingToken idToken,
           long assignmentId,
-          CompiledRelationMapping compiledMovementIds,
           final StaticLtmSettings settings) {
-    super(idToken, assignmentId, compiledMovementIds, settings);
+    super(idToken, assignmentId, settings);
   }
   
   /** The bushes to use when a loading update is requested

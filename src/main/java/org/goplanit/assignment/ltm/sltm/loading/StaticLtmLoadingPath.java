@@ -4,6 +4,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
 import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.*;
+import org.goplanit.utils.network.layer.physical.CompiledRelationIndex;
 import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -30,8 +31,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
   /** Od Paths registered by mode */
   private final Map<Mode, OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>>> odMultiPathsByMode;
 
-  /** mapping from entry/exit segments to movement used to quickly convert movement/turn flows to splitting rates */
-  protected MultiKeyMap<Object,Movement> segmentPair2MovementMap;
+  private final CompiledRelationIndex compiledMovementIds;
 
   //@formatter:off
 
@@ -93,7 +93,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
         
     /* turns + optional links update */
     if(updateTurnAcceptedFlows) {
-      long numMovements = getCompiledMovementIds().getNumberOfPermissibleMovements();
+      long numPermissableMovements = compiledMovementIds.size();
       NetworkTurnFlowUpdateData dataConfig = null;
 
       if (updateUnconstrainedFlows) {
@@ -114,16 +114,16 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
                   nlSendingFlowData,
                   nlSplittingRateData,
                   networkLoadingFactorData,
-                  numMovements);
+                  numPermissableMovements);
         }
       }else {
         dataConfig = new NetworkTurnFlowUpdateData(
             isTrackAllNodeTurnFlowsDuringLoading(),
             nlSplittingRateData,
             networkLoadingFactorData,
-            numMovements);
+            numPermissableMovements);
       }
-      return new PathTurnFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode), getCompiledMovementIds());
+      return new PathTurnFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode), compiledMovementIds);
     }
 
     LOGGER.warning("Invalid network flow update requested for path based loading");
@@ -218,10 +218,11 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
   public StaticLtmLoadingPath(
           IdGroupingToken idToken,
           long assignmentId,
-          CompiledRelationMapping compiledMovementIds,
+          CompiledRelationIndex compiledMovementIds,
           final StaticLtmSettings settings) {
-    super(idToken, assignmentId, compiledMovementIds, settings);
+    super(idToken, assignmentId, settings);
     this.odMultiPathsByMode = new HashMap<>();
+    this.compiledMovementIds = compiledMovementIds;
   }
 
   /** Set the od multi paths to use in the loading (by mode). Expected to be set before this class is used
