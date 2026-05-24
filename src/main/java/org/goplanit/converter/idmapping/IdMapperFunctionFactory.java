@@ -13,6 +13,7 @@ import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
@@ -30,7 +31,8 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
- * Factory that creates functions for id mapping from PLANit ids to ids to be used for persistence. Based on the passed in IdMapper type functions will generate different ids when
+ * Factory that creates functions for id mapping from PLANit ids to ids to be used for persistence.
+ * Based on the passed in IdMapper type functions will generate different ids when
  * applied to nodes, link segments, etc.
  * 
  * @author markr
@@ -62,32 +64,49 @@ public class IdMapperFunctionFactory {
   }
 
   /**
+   * create a function that takes a movement and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates mapped movement id's for persistence
+   */
+  public static Function<Movement, String> createMovementIdMappingFunction(final IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(Movement.class, idMapper);
+  }
+
+  /**
    * create a function that takes a link segment type and generates the appropriate id based on the user configuration
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates mapped link segment type id's for persistence
    */
-  public static Function<MacroscopicLinkSegmentType, String> createLinkSegmentTypeIdMappingFunction(IdMapperType idMapper) {
+  public static Function<MacroscopicLinkSegmentType, String> createLinkSegmentTypeIdMappingFunction(
+      IdMapperType idMapper) {
     return IdMappingUtils.createIdMappingFunction(MacroscopicLinkSegmentType.class, idMapper);
   }
 
   /**
-   * create a function that takes a link segment and (optional) id mapper and generates the appropriate link segment id based on the user configuration
+   * create a function that takes a link segment and (optional) id mapper and generates the appropriate link segment
+   * id based on the user configuration
    * 
    * @param idMapper that generates mapped link segment id's for persistence
    * @return created function
    */
-  public static Function<MacroscopicLinkSegment, String> createLinkSegmentIdMappingFunction(final IdMapperType idMapper) {
+  public static Function<MacroscopicLinkSegment, String> createLinkSegmentIdMappingFunction(
+      final IdMapperType idMapper) {
     switch (idMapper) {
     case EXTERNAL_ID:
       return (macroscopicLinkSegment) -> {
         /* when present on link segment use that external id, otherwise try link */
         if (macroscopicLinkSegment.getExternalId() != null) {
           return String.format("%s", macroscopicLinkSegment.getExternalId());
-        } else if (macroscopicLinkSegment.getParent() != null && macroscopicLinkSegment.getParent().getExternalId() != null) {
-          return String.format("%s_%s", macroscopicLinkSegment.getParent().getExternalId(), macroscopicLinkSegment.isDirectionAb() ? "ab" : "ba");
+        } else if (macroscopicLinkSegment.getParent() != null &&
+            macroscopicLinkSegment.getParent().getExternalId() != null) {
+          return String.format("%s_%s",
+              macroscopicLinkSegment.getParent().getExternalId(), macroscopicLinkSegment.isDirectionAb()
+                  ? "ab" : "ba");
         } else {
-          LOGGER.severe(String.format("unable to map id for link, PLANit link segment external id not available or parent link missing (id:%d)", macroscopicLinkSegment.getId()));
+          LOGGER.severe(String.format("unable to map id for link, PLANit link segment external id not available or " +
+              "parent link missing (id:%d)", macroscopicLinkSegment.getId()));
           return "-1";
         }
       };
@@ -177,7 +196,8 @@ public class IdMapperFunctionFactory {
   }
 
   /**
-   * create a function that takes a service leg segment and generates the appropriate id based on the user configuration
+   * create a function that takes a service leg segment and generates the appropriate id based on the user
+   * configuration
    *
    * @param idMapper the type of mapping function to create
    * @return function that generates service leg segment ids for service leg segment output
@@ -243,7 +263,8 @@ public class IdMapperFunctionFactory {
    * @param idMapper the type of mapping function to create
    * @return function that generates Network ids
    */
-  public static Function<UntypedPhysicalNetwork, String> createPhysicalNetworkIdMappingFunction(IdMapperType idMapper) {
+  public static Function<UntypedPhysicalNetwork, String> createPhysicalNetworkIdMappingFunction(
+      IdMapperType idMapper) {
     return IdMappingUtils.createIdMappingFunction(UntypedPhysicalNetwork.class , idMapper);
   }
 
@@ -258,7 +279,8 @@ public class IdMapperFunctionFactory {
   }
 
   /**
-   * create a function that takes a RoutedServicesLayer and generates the appropriate id based on the user configuration
+   * create a function that takes a RoutedServicesLayer and generates the appropriate id based on the user
+   * configuration
    *
    * @param idMapper the type of mapping function to create
    * @return function that generates RoutedServicesLayer ids
@@ -268,12 +290,14 @@ public class IdMapperFunctionFactory {
   }
 
   /**
-   * create a function that takes a ServiceNetworkLayer and generates the appropriate id based on the user configuration
+   * create a function that takes a ServiceNetworkLayer and generates the appropriate id based on the user
+   * configuration
    *
    * @param idMapper the type of mapping function to create
    * @return function that generates ServiceNetworkLayer ids
    */
-  public static Function<ServiceNetworkLayer, String> createServiceNetworkLayerIdMappingFunction(IdMapperType idMapper) {
+  public static Function<ServiceNetworkLayer, String> createServiceNetworkLayerIdMappingFunction(
+      IdMapperType idMapper) {
     return IdMappingUtils.createIdMappingFunction(ServiceNetworkLayer.class , idMapper);
   }
 
@@ -293,7 +317,8 @@ public class IdMapperFunctionFactory {
    * @param idMapper the type of mapping function to create
    * @return function that generates ConnectoidEdge ids
    */
-  public static Function<? extends ExternalIdAble, String> createConnectoidEdgeIdMappingFunction(IdMapperType idMapper) {
+  public static Function<? extends ExternalIdAble, String> createConnectoidEdgeIdMappingFunction(
+      IdMapperType idMapper) {
     return IdMappingUtils.createIdMappingFunction(ConnectoidDirectedEdge.class , idMapper);
   }
 
@@ -303,7 +328,8 @@ public class IdMapperFunctionFactory {
    * @param idMapper the type of mapping function to create
    * @return function that generates ConnectoidEdge ids
    */
-  public static Function<? extends ExternalIdAble, String> createConnectoidLinkIdMappingFunction(IdMapperType idMapper) {
+  public static Function<? extends ExternalIdAble, String> createConnectoidLinkIdMappingFunction(
+      IdMapperType idMapper) {
     return IdMappingUtils.createIdMappingFunction(ConnectoidLink.class , idMapper);
   }
 
@@ -313,7 +339,8 @@ public class IdMapperFunctionFactory {
    * @param idMapper the type of mapping function to create
    * @return function that generates ConnectoidSegment ids
    */
-  public static Function<? extends ExternalIdAble, String> createConnectoidSegmentIdMappingFunction(IdMapperType idMapper) {
+  public static Function<? extends ExternalIdAble, String> createConnectoidSegmentIdMappingFunction(
+      IdMapperType idMapper) {
     return IdMappingUtils.createIdMappingFunction(ConnectoidSegment.class , idMapper);
   }
 }

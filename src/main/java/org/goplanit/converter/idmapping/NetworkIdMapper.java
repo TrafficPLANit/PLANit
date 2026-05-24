@@ -7,10 +7,7 @@ import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
-import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
-import org.goplanit.utils.network.layer.physical.Link;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
-import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
+import org.goplanit.utils.network.layer.physical.*;
 import org.goplanit.utils.time.TimePeriod;
 
 import java.util.function.Function;
@@ -27,7 +24,6 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
   public NetworkIdMapper(IdMapperType type){
     super(type);
     add(Link.class, IdMapperFunctionFactory.createLinkIdMappingFunction(type));
-    add(Link.class, IdMapperFunctionFactory.createLinkIdMappingFunction(type));
     add(MacroscopicLinkSegmentType.class, IdMapperFunctionFactory.createLinkSegmentTypeIdMappingFunction(type));
     add(TimePeriod.class,  IdMapperFunctionFactory.createTimePeriodIdMappingFunction(type));
     add(TravellerType.class, IdMapperFunctionFactory.createTravellerTypeIdMappingFunction(type));
@@ -38,6 +34,8 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
 
     add(MacroscopicLinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
     add(ConjugateLinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
+
+    add(Movement.class, IdMapperFunctionFactory.createMovementIdMappingFunction(type));
   }
 
   /**
@@ -75,6 +73,13 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
    */
   public Function<MacroscopicLinkSegmentType, String> getLinkSegmentTypeIdMapper(){
     return get(MacroscopicLinkSegmentType.class);
+  }
+
+  /** get id mapper for movements (banned turns)
+   * @return id mapper
+   */
+  public Function<Movement, String> getMovementIdMapper(){
+    return get(Movement.class);
   }
 
   /** get id mapper for traveller types
