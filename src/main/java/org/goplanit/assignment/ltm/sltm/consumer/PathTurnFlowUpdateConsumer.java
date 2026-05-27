@@ -54,6 +54,9 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
           final EdgeSegment toSegment,
           final double turnSendingFlowPcuH,
           final double turnUnconstrainedFlowPcuH) {
+    if(fromSegment == null){
+      return turnSendingFlowPcuH;
+    }
 
     if (dataConfig.trackAllNodeTurnFlows ||
         dataConfig.nlSplittingRateData.isTracked(fromSegment.getDownstreamVertex())) {

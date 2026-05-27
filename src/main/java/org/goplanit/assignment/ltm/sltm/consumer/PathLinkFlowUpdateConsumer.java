@@ -35,6 +35,10 @@ public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFl
       final EdgeSegment toSegment,
       double turnSendingFlowPcuH,
       final double turnUnconstrainedFlowPcuH) {
+    if(fromSegment == null){
+      return turnUnconstrainedFlowPcuH;
+    }
+
     /* u_a: update inflow for link segment */
     int fromSegmentId = (int) fromSegment.getId();
     this.dataConfig.sendingFlows[fromSegmentId] += turnSendingFlowPcuH;

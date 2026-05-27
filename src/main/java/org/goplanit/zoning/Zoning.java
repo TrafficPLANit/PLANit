@@ -10,6 +10,8 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
 import org.goplanit.network.virtual.VirtualNetworkImpl;
+import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.network.layer.physical.MovementUtils;
 import org.goplanit.utils.zoning.connectoid.*;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.utils.geo.PlanitJtsUtils;
@@ -157,8 +159,9 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
       var connectoidEdgeMapper = new GraphEntityDeepCopyMapper<ConnectoidDirectedEdge>();
       var connectoidEdgeSegmentMapper = new GraphEntityDeepCopyMapper<ConnectoidSegment>();
       var centroidVertexMapper = new GraphEntityDeepCopyMapper<CentroidVertex>();
+      var movementMapper = new ManagedIdDeepCopyMapper<Movement>();
       this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(
-          connectoidEdgeMapper, connectoidEdgeSegmentMapper, centroidVertexMapper);
+          connectoidEdgeMapper, connectoidEdgeSegmentMapper, centroidVertexMapper, movementMapper);
 
       // make sure centroid vertex's parent centroid is updated properly (this goes across zones that own  zone
       // and centroids and virtual network, so done here)
@@ -195,6 +198,9 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
       LOGGER.info(String.format("%s #transfer zones: %d (centroids %d)",
               prefix, transferZones.size(), transferZones.getNumberOfCentroids()));
       LOGGER.info(String.format("%s #transfer zone groups: %d", prefix, transferZoneGroups.size()));
+    }
+    if(!virtualNetwork.isEmpty()){
+      virtualNetwork.logInfo(prefix);
     }
   }
 

@@ -1,7 +1,7 @@
 package org.goplanit.network.transport;
 
 import org.goplanit.network.UntypedPhysicalNetwork;
-import org.goplanit.network.layer.physical.MovementsImpl;
+import org.goplanit.network.layer.MovementsImpl;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.network.layer.physical.Movements;
 import org.goplanit.utils.network.virtual.*;

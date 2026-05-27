@@ -15,10 +15,13 @@ import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.UntypedDirectedGraphLayer;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
+import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.network.layer.physical.Movements;
 import org.locationtech.jts.geom.Envelope;
 
 /**
@@ -68,11 +71,17 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    * @param vertices     managed vertices container to use
    * @param edges        managed edges container to use
    * @param edgeSegments managed edge Segments container to use
+   * @param movements    managed movements container to use
    */
   public <Vx extends ManagedGraphEntities<V>, Ex extends ManagedGraphEntities<E>, Sx extends ManagedGraphEntities<S>> 
-      UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final Vx vertices, final Ex edges, final Sx edgeSegments) {
+      UntypedNetworkLayerImpl(
+          final IdGroupingToken tokenId,
+          final Vx vertices,
+          final Ex edges,
+          final Sx edgeSegments,
+          final Movements movements) {
     super(tokenId);
-    this.directedGraph = new UntypedDirectedGraphImpl<>(tokenId, vertices, edges, edgeSegments);
+    this.directedGraph = new UntypedDirectedGraphImpl<>(tokenId, vertices, edges, edgeSegments, movements);
     this.layerModifier = new UntypedNetworkLayerModifierImpl<>(this.directedGraph);
   }
 
@@ -87,19 +96,23 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    *                   (when provided, may be null)
    * @param edgeSegmentMapper to apply in case of deep copy to each original to copy combination
    *                         (when provided, may be null)
+   * @param movementMapper to apply in case of deep copy to each original to copy combination
+   *                       (when provided, may be null)
+   *
    */
   public UntypedNetworkLayerImpl(
           UntypedNetworkLayerImpl<V, E, S> other,
           boolean deepCopy,
           GraphEntityDeepCopyMapper<V> vertexMapper,
           GraphEntityDeepCopyMapper<E> edgeMapper,
-          GraphEntityDeepCopyMapper<S> edgeSegmentMapper) {
+          GraphEntityDeepCopyMapper<S> edgeSegmentMapper,
+          ManagedIdDeepCopyMapper<Movement> movementMapper) {
     super(other, deepCopy);
 
     /* network layer is in fact a graph, so requiring cloning even for shallow copy */
     this.directedGraph =
             deepCopy ? other.directedGraph.smartDeepClone(
-                vertexMapper, edgeMapper, edgeSegmentMapper) : other.directedGraph.shallowClone();
+                vertexMapper, edgeMapper, edgeSegmentMapper, movementMapper) : other.directedGraph.shallowClone();
 
     this.layerModifier = new UntypedNetworkLayerModifierImpl<>(directedGraph);
   }
@@ -195,6 +208,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
     ((ManagedIdEntities<V>) this.directedGraph.getVertices()).reset(resetManagedIdToken);
     ((ManagedIdEntities<E>) this.directedGraph.getEdges()).reset(resetManagedIdToken);
     ((ManagedIdEntities<S>) this.directedGraph.getEdgeSegments()).reset(resetManagedIdToken);
+    this.directedGraph.getMovements().reset(resetManagedIdToken);
   }
 
   /**
@@ -207,6 +221,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
     ((ManagedIdEntities<V>) this.directedGraph.getVertices()).recreateIds(true);
     ((ManagedIdEntities<E>) this.directedGraph.getEdges()).recreateIds(true);
     ((ManagedIdEntities<S>) this.directedGraph.getEdgeSegments()).recreateIds(true);
+    this.directedGraph.getMovements().recreateIds(true);
     return newId;
   }
 }

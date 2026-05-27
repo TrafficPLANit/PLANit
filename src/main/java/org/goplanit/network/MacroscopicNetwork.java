@@ -13,7 +13,8 @@ import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
 import java.util.logging.Logger;
 
 /**
- * Macroscopic Network which stores one or more macroscopic network infrastructure layers that together form the complete (intermodal) network.
+ * Macroscopic Network which stores one or more macroscopic network infrastructure layers that together form the
+ * complete (intermodal) network.
  *
  * @author markr
  *
@@ -56,19 +57,24 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    * @param layerMapper to use for tracking mapping between original and copied layers
    */
   protected MacroscopicNetwork(
-      final MacroscopicNetwork other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<MacroscopicNetworkLayer> layerMapper) {
+      final MacroscopicNetwork other,
+      boolean deepCopy,
+      ManagedIdDeepCopyMapper<Mode> modeMapper,
+      ManagedIdDeepCopyMapper<MacroscopicNetworkLayer> layerMapper) {
     super(other, deepCopy, modeMapper, layerMapper);
   }
 
   /**
-   * Tries to initialise and create/register layers via a predefined configuration rather than letting the user do this manually via the infrastructure layers container. Only
+   * Tries to initialise and create/register layers via a predefined configuration rather than letting the user
+   * do this manually via the infrastructure layers container. Only
    * possible when the network is still empty and no layers are yet active
    * 
    * @param layerConfiguration to use for configuration
    */
   public void createAndRegisterLayers(MacroscopicNetworkLayerConfigurator layerConfiguration) {
     if (!getTransportLayers().isEmpty()) {
-      LOGGER.warning("unable to initialise layers based on provided configuration, since network already has layers defined");
+      LOGGER.warning("unable to initialise layers based on provided configuration, " +
+          "since network already has layers defined");
       return;
     }
 
@@ -81,7 +87,8 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
     }
 
     /* register modes */
-    layerConfiguration.modeToLayerXmlId.forEach((mode, layerXmlId) -> getTransportLayers().get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
+    layerConfiguration.modeToLayerXmlId.forEach((mode, layerXmlId) ->
+        getTransportLayers().get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
   }
 
   /**

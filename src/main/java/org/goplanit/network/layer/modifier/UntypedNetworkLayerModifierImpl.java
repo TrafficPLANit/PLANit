@@ -7,15 +7,18 @@ import java.util.logging.Logger;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.graph.directed.modifier.DirectedGraphModifierImpl;
+import org.goplanit.graph.directed.modifier.event.RecreatedDirectedGraphEntitiesManagedIdsEvent;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
+import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.goplanit.utils.network.layer.physical.Movements;
 
 /**
  * Modifier class for model free network layer, generics used to allow derived classes to provide typed versions
@@ -51,15 +54,15 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
    *
    * @param graph parent graph to base modifier on
    */
-  public UntypedNetworkLayerModifierImpl(UntypedDirectedGraphImpl<V, E, S> graph) {
+  public UntypedNetworkLayerModifierImpl(final UntypedDirectedGraphImpl<V, E, S> graph) {
     this.graphModifier = new DirectedGraphModifierImpl(graph);
   }
 
   // Getters - Setters
 
   /**
-   * Break the passed in links by inserting the passed in node in between. After completion the original links remain as (NodeA,NodeToBreakAt), and new links as inserted for
-   * (NodeToBreakAt,NodeB).
+   * Break the passed in links by inserting the passed in node in between. After completion the original
+   * links remain as (NodeA,NodeToBreakAt), and new links as inserted for (NodeToBreakAt,NodeB).
    * Underlying link segments (if any) are also updated accordingly in the same manner
    * 
    * @param linksToBreak  the links to break

@@ -52,11 +52,6 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
     }
   }
 
-  // Protected
-
-  /** movements of the layer */
-  Movements movements;
-
   // PUBLIC
 
   /**
@@ -74,8 +69,7 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
   public <Nx extends ManagedGraphEntities<N>, Lx extends ManagedGraphEntities<L>, Sx extends ManagedGraphEntities<LS>>
   UntypedPhysicalLayerImpl(
       final IdGroupingToken tokenId, final Nx nodes, final Lx links, final Sx linkSegments, final Movements movements) {
-    super(tokenId, nodes, links, linkSegments);
-    this.movements = movements;
+    super(tokenId, nodes, links, linkSegments, movements);
   }
 
   /**
@@ -98,9 +92,8 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
           GraphEntityDeepCopyMapper<L> linkMapper,
           GraphEntityDeepCopyMapper<LS> linkSegmentMapper,
           ManagedIdDeepCopyMapper<Movement> movementMapper) {
-    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper);
+    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper, movementMapper);
 
-    this.movements = deepCopy ? other.movements.deepCloneWithMapping(movementMapper) : other.movements.shallowClone();
     if(deepCopy) {
       updateMovementLinkSegments(original -> linkSegmentMapper.getMapping((LS) original), true);
     }
@@ -109,14 +102,6 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
 
   // Getters - Setters
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Movements getMovements() {
-    return movements;
-  }
 
   /**
    * {@inheritDoc}

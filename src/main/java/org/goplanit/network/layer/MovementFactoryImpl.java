@@ -1,12 +1,9 @@
-package org.goplanit.network.layer.physical;
+package org.goplanit.network.layer;
 
-import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.network.layer.physical.*;
-import org.locationtech.jts.geom.Point;
 
 /**
  * Factory for creating movements on movement container

@@ -1,4 +1,4 @@
-package org.goplanit.network.layer.physical;
+package org.goplanit.network.layer;
 
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -48,7 +48,7 @@ public class MovementsImpl extends ManagedIdEntitiesImpl<Movement> implements Mo
    *
    * @param other to copy
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
-   * @param mapper apply to each mapping from original to copy
+   * @param mapper apply to each mapping from original to copy (may be null)
    */
   public MovementsImpl(MovementsImpl other, boolean deepCopy, BiConsumer<Movement,Movement> mapper) {
     super(other, deepCopy, mapper);

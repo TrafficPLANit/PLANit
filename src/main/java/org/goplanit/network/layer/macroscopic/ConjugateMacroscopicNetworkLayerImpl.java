@@ -21,6 +21,10 @@ import org.goplanit.utils.network.virtual.ConjugateVirtualNetworkLayer;
 
 /**
  * Conjugate of macroscopic physical Network (layer), i.e. the edge-to-vertex dual of its original form
+ * <p>
+ *   does not yet support conjugate (banned) movements, it is assumed any original (banned) movements resulted in
+ *   left out conjugate link(segments) and as such conjugate movements serve no purpose.
+ * </p>
  *
  * @author markr
  *
@@ -81,7 +85,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
       ConjugateLinks conjugateLinks,
       ConjugateLinkSegments conjugateLinkSegments,
       final MacroscopicNetworkLayer originalLayer) {
-    super(groupId, conjugateNodes, conjugateLinks, conjugateLinkSegments);
+    super(groupId, conjugateNodes, conjugateLinks, conjugateLinkSegments, null);
     this.originalLayer = originalLayer;
   }
 
@@ -100,7 +104,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
       GraphEntityDeepCopyMapper<ConjugateNode> nodeMapper,
       GraphEntityDeepCopyMapper<ConjugateLink> linkMapper,
       GraphEntityDeepCopyMapper<ConjugateLinkSegment> linkSegmentMapper) {
-    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper);
+    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper, null);
     this.originalLayer = other.originalLayer;
   }
 
@@ -239,7 +243,8 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    */
   @Override
   public ConjugateMacroscopicNetworkLayerImpl shallowClone() {
-    return new ConjugateMacroscopicNetworkLayerImpl(this, false, null, null, null);
+    return new ConjugateMacroscopicNetworkLayerImpl(
+        this, false, null, null, null);
   }
 
   /**

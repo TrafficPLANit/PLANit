@@ -41,7 +41,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
   /**
    * Apply the flow to the turn (and update link sending flow if required)
    * 
-   * @param fromSegment       from segment of the turn
+   * @param fromSegment       from segment of the turn (may be null if first)
    * @param toSegment         to segment of the turn
    * @param turnSendingFlowPcuH sending flow rate of turn
    * @param turnUnconstrainedFlowPcuH unconstrained flow rate of turn

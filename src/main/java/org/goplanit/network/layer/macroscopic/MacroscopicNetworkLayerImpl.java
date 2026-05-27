@@ -3,7 +3,7 @@ package org.goplanit.network.layer.macroscopic;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import org.goplanit.network.layer.physical.MovementsImpl;
+import org.goplanit.network.layer.MovementsImpl;
 import org.goplanit.network.layer.physical.NodesImpl;
 import org.goplanit.network.layer.physical.UntypedPhysicalLayerImpl;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
@@ -167,9 +167,23 @@ public class MacroscopicNetworkLayerImpl
    * {@inheritDoc}
    */
   @Override
+  public Movements getMovements() {
+    return this.directedGraph.getMovements();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public MacroscopicNetworkLayerImpl shallowClone() {
     return new MacroscopicNetworkLayerImpl(
-            this, false, null, null, null, null, null);
+        this,
+        false,
+        null,
+        null,
+        null,
+        null,
+        null);
   }
 
   /**

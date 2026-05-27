@@ -217,6 +217,11 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
       fireEvent(new RecreatedDirectedGraphEntitiesManagedIdsEvent(
           this, (ManagedIdEntities<?>) getUntypedDirectedGraph().getEdgeSegments()));
     }
+    if (getUntypedDirectedGraph().getMovements() != null) {
+      getUntypedDirectedGraph().getMovements().recreateIds();
+      fireEvent(new RecreatedDirectedGraphEntitiesManagedIdsEvent(
+          this, getUntypedDirectedGraph().getMovements()));
+    }
   }
 
   /**

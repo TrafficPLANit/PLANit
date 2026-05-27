@@ -7,7 +7,9 @@ import org.goplanit.network.Network;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
@@ -78,9 +80,10 @@ public class ConjugateVirtualNetworkImpl extends Network implements ConjugateVir
     super(other, deepCopy);
     this.conjugateVirtualLayer = deepCopy ?
             getLayer().deepCloneWithMapping(
-                    (GraphEntityDeepCopyMapper<ConjugateConnectoidLink>) connectoidEdgeMapper,
-                    (GraphEntityDeepCopyMapper<ConjugateConnectoidSegment>) connectoidSegmentMapper,
-                    (GraphEntityDeepCopyMapper<ConjugateConnectoidNode>) conjugateNodeMapper) :
+                (GraphEntityDeepCopyMapper<ConjugateConnectoidLink>) connectoidEdgeMapper,
+                (GraphEntityDeepCopyMapper<ConjugateConnectoidSegment>) connectoidSegmentMapper,
+                (GraphEntityDeepCopyMapper<ConjugateConnectoidNode>) conjugateNodeMapper,
+                null) :
             getLayer().shallowClone();
 
     this.originalVirtualNetwork = other.originalVirtualNetwork;
@@ -152,7 +155,8 @@ public class ConjugateVirtualNetworkImpl extends Network implements ConjugateVir
    */
   @Override
   public ConjugateVirtualNetworkImpl shallowClone() {
-    return new ConjugateVirtualNetworkImpl(this, false, null, null, null );
+    return new ConjugateVirtualNetworkImpl(
+        this, false, null, null, null );
   }
 
   /**
@@ -161,9 +165,10 @@ public class ConjugateVirtualNetworkImpl extends Network implements ConjugateVir
   @Override
   public ConjugateVirtualNetworkImpl deepClone() {
     return deepCloneWithMapping(
-            new GraphEntityDeepCopyMapper<>(),
-            new GraphEntityDeepCopyMapper<>(),
-            new GraphEntityDeepCopyMapper<>());
+        new GraphEntityDeepCopyMapper<>(),
+        new GraphEntityDeepCopyMapper<>(),
+        new GraphEntityDeepCopyMapper<>(),
+        null);
   }
 
   /**
@@ -174,7 +179,9 @@ public class ConjugateVirtualNetworkImpl extends Network implements ConjugateVir
   public ConjugateVirtualNetworkImpl deepCloneWithMapping(
       GraphEntityDeepCopyMapper<? extends ConnectoidDirectedEdge> connectoidEdgeMapper,
       GraphEntityDeepCopyMapper<? extends ConnectoidSegment> connectoidSegmentMapper,
-      GraphEntityDeepCopyMapper<? extends DirectedVertex> conjugateNodeMapper) {
+      GraphEntityDeepCopyMapper<? extends DirectedVertex> conjugateNodeMapper,
+      ManagedIdDeepCopyMapper<Movement> conjugateMovementMapper) {
+    // conjugateMovementMapper ignored since conjugate network should have no movements (or at least not supported now)
     return new ConjugateVirtualNetworkImpl(
         this,
         true,

@@ -8,8 +8,10 @@ import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.layer.NetworkLayer;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
@@ -55,6 +57,7 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    * @param connectoidLinkMapper to use for tracking mapping between original and copied entity (may be null)
    * @param connectoidSegmentMapper to use for tracking mapping between original and copied entity (may be null)
    * @param centroidVertexMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param movementMapper to use for tracking mapping between original and copied entity (may be null)
    */
   @SuppressWarnings("unchecked")
   protected VirtualNetworkImpl(
@@ -62,14 +65,16 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
       boolean deepCopy,
       GraphEntityDeepCopyMapper<? extends ConnectoidDirectedEdge> connectoidLinkMapper,
       GraphEntityDeepCopyMapper<? extends ConnectoidSegment> connectoidSegmentMapper,
-      GraphEntityDeepCopyMapper<? extends CentroidVertex> centroidVertexMapper) {
+      GraphEntityDeepCopyMapper<? extends CentroidVertex> centroidVertexMapper,
+      ManagedIdDeepCopyMapper<Movement> movementMapper) {
     super(other, deepCopy);
 
     this.virtualLayer = deepCopy ?
             getLayer().deepCloneWithMapping(
-                    (GraphEntityDeepCopyMapper<ConnectoidLink>) connectoidLinkMapper,
-                    (GraphEntityDeepCopyMapper<ConnectoidSegment>) connectoidSegmentMapper,
-                    (GraphEntityDeepCopyMapper<CentroidVertex>) centroidVertexMapper) :
+                (GraphEntityDeepCopyMapper<ConnectoidLink>) connectoidLinkMapper,
+                (GraphEntityDeepCopyMapper<ConnectoidSegment>) connectoidSegmentMapper,
+                (GraphEntityDeepCopyMapper<CentroidVertex>) centroidVertexMapper,
+                movementMapper) :
             getLayer().shallowClone();
   }
 
@@ -151,7 +156,7 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
   @Override
   public VirtualNetworkImpl shallowClone() {
     return new VirtualNetworkImpl(
-            this, false, null, null, null);
+            this, false, null, null, null, null);
   }
 
   /**
@@ -160,7 +165,10 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
   @Override
   public VirtualNetworkImpl deepClone() {
     return deepCloneWithMapping(
-            new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
+        new GraphEntityDeepCopyMapper<>(),
+        new GraphEntityDeepCopyMapper<>(),
+        new GraphEntityDeepCopyMapper<>(),
+        new ManagedIdDeepCopyMapper<>());
   }
 
   /**
@@ -168,15 +176,18 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    */
   @SuppressWarnings("Unchecked")
   @Override
-  public VirtualNetworkImpl deepCloneWithMapping(GraphEntityDeepCopyMapper<? extends ConnectoidDirectedEdge> connectoidEdgeMapper,
-                                                 GraphEntityDeepCopyMapper<? extends ConnectoidSegment> connectoidSegmentMapper,
-                                                 GraphEntityDeepCopyMapper<? extends DirectedVertex> centroidVertexMapper) {
+  public VirtualNetworkImpl deepCloneWithMapping(
+      GraphEntityDeepCopyMapper<? extends ConnectoidDirectedEdge> connectoidEdgeMapper,
+      GraphEntityDeepCopyMapper<? extends ConnectoidSegment> connectoidSegmentMapper,
+      GraphEntityDeepCopyMapper<? extends DirectedVertex> centroidVertexMapper,
+      ManagedIdDeepCopyMapper<Movement> movementMapper) {
     return new VirtualNetworkImpl(
-            this,
+        this,
         true,
         connectoidEdgeMapper,
         connectoidSegmentMapper,
-        (GraphEntityDeepCopyMapper<CentroidVertex>) centroidVertexMapper);
+        (GraphEntityDeepCopyMapper<CentroidVertex>) centroidVertexMapper,
+        movementMapper);
   }
 
 }

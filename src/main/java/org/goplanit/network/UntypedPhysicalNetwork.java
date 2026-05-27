@@ -64,12 +64,17 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
    * @param layerMapper to use for tracking mapping between original and copied layers
    *
    */
-  protected UntypedPhysicalNetwork(final UntypedPhysicalNetwork<L, LS> other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<L> layerMapper) {
+  protected UntypedPhysicalNetwork(
+      final UntypedPhysicalNetwork<L, LS> other,
+      boolean deepCopy,
+      ManagedIdDeepCopyMapper<Mode> modeMapper,
+      ManagedIdDeepCopyMapper<L> layerMapper) {
     super(other, deepCopy, modeMapper, layerMapper);
   }
 
   /**
-   * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the internal ids if needed
+   * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the
+   * internal ids if needed
    *
    */
   public void removeDanglingSubnetworks(){

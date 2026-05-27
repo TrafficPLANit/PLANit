@@ -1,11 +1,10 @@
-package org.goplanit.network.layer.physical;
+package org.goplanit.network.layer;
 
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Movement;
 
 import java.util.logging.Logger;
