@@ -13,9 +13,11 @@ import org.goplanit.zoning.Zoning;
  * to also support the parsing of additional service networks and routed services.
  * 
  * @author markr
- *
+ * @param <T> type of service network
+ * @param <U> type of routes services
  */
-public interface IntermodalReader<T extends ServiceNetwork,U extends RoutedServices> extends PairConverterReader<MacroscopicNetwork, Zoning> {
+public interface IntermodalReader<T extends ServiceNetwork,U extends RoutedServices>
+    extends PairConverterReader<MacroscopicNetwork, Zoning> {
 
   /**
    * {@inheritDoc}
@@ -26,7 +28,8 @@ public interface IntermodalReader<T extends ServiceNetwork,U extends RoutedServi
   }
 
   /**
-   * Verify if services can be read as part of the intermodal reader exercise, only when true {@link #readWithServices()} can be called
+   * Verify if services can be read as part of the intermodal reader exercise, only when true
+   * {@link #readWithServices()} can be called
    * @return true when services can be parsed, false otherwise and only the regular {@link #read()} is available
    */
   public abstract boolean supportServiceConversion();

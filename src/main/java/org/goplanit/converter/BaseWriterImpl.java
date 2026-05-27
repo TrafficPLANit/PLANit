@@ -8,7 +8,7 @@ import org.goplanit.utils.id.IdMapperType;
  * abstract base class implementation to write a PLANit network to disk with id mapping sorted for convenience
  * 
  * @author markr
- *
+ * @param <T> type of top level entity writer
  */
 public abstract class BaseWriterImpl<T> implements ConverterWriter<T> {
 
@@ -18,7 +18,7 @@ public abstract class BaseWriterImpl<T> implements ConverterWriter<T> {
   protected IdMapperType idMapper;
 
   /** id mappers for components entities */
-  private PlanitComponentIdMappers componentIdMappers = new PlanitComponentIdMappers();
+  private final PlanitComponentIdMappers componentIdMappers = new PlanitComponentIdMappers();
 
   /**
    * Access to the id mappers for each component via dedicated class

@@ -17,9 +17,11 @@ import java.util.logging.Logger;
  * A converter that supports intermodal networks, i.e., a combination of both a network and a zoning with transfer zones
  * 
  * @author markr
- *
+ * @param <T> type of service network
+ * @param <U> type of routes services
  */
-public class IntermodalConverter<T extends ServiceNetwork, U extends RoutedServices> extends PairConverter<MacroscopicNetwork, Zoning> {
+public class IntermodalConverter<T extends ServiceNetwork, U extends RoutedServices>
+    extends PairConverter<MacroscopicNetwork, Zoning> {
 
   /** LOGGER to use */
   private static final Logger LOGGER = Logger.getLogger(IntermodalConverter.class.getCanonicalName());
@@ -30,7 +32,8 @@ public class IntermodalConverter<T extends ServiceNetwork, U extends RoutedServi
    * @param reader for intermodal networks
    * @param writer for intermodal networks
    */
-  protected IntermodalConverter(PairConverterReader<MacroscopicNetwork, Zoning> reader, PairConverterWriter<MacroscopicNetwork, Zoning> writer) {
+  protected IntermodalConverter(
+      PairConverterReader<MacroscopicNetwork, Zoning> reader, PairConverterWriter<MacroscopicNetwork, Zoning> writer) {
     super(reader, writer);
   }
 

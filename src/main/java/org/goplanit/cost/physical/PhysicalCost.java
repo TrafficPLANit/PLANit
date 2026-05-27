@@ -12,11 +12,12 @@ import java.util.logging.Logger;
 /**
  * Interface to classify costs of physical links
  * 
- * Physical links can be either InitialPhysicalCosts (which are read in at the start and are constant) or PhysicalCosts (which are derived from other inputs and are recalculated
+ * Physical links can be either InitialPhysicalCosts (which are read in at the start and are constant) or
+ * PhysicalCosts (which are derived from other inputs and are recalculated
  * after each iteration).
  * 
  * @author markr
- *
+ * @param <LS> type of segment
  */
 public interface PhysicalCost<LS extends LinkSegment> extends Cost<LS> {
 
@@ -29,14 +30,18 @@ public interface PhysicalCost<LS extends LinkSegment> extends Cost<LS> {
   public static final String FREEFLOW = FreeFlowLinkTravelTimeCost.class.getCanonicalName();
 
   /**
-   * short hand for configuring physical cost compatible with steady state assignment methods, e.g., static methods with both inflow and outflow rates that can differ such as sLTM.
-   * Based on the work of Raadsen and Bliemer (2019): Steady-state link travel time methods: Formulation, derivation, classification, and unification
+   * shorthand for configuring physical cost compatible with steady state assignment methods, e.g., static
+   * methods with both inflow and outflow rates that can differ such as sLTM.
+   * Based on the work of Raadsen and Bliemer (2019): Steady-state link travel time methods: Formulation,
+   * derivation, classification, and unification
    */
   public static final String STEADY_STATE = SteadyStateTravelTimeCost.class.getCanonicalName();
 
   /**
-   * Invoker expects (mode specific ) costs in passed in array to be filled, where each entry signifies a link segment by its id. This allows for more efficient implementations
-   * than having to revert to one by one updates. It does however require network information hence its placement here where via the initialiseBeforeSimulation, the network is
+   * Invoker expects (mode specific ) costs in passed in array to be filled, where each entry signifies a link
+   * segment by its id. This allows for more efficient implementations
+   * than having to revert to one by one updates. It does however require network information hence its placement
+   * here where via the initialiseBeforeSimulation, the network is
    * provided
    *
    * @param layer these cost pertain to
@@ -52,8 +57,10 @@ public interface PhysicalCost<LS extends LinkSegment> extends Cost<LS> {
   }
 
   /**
-   * Invoker expects (mode specific ) costs in passed in array to be filled, where each entry signifies a link segment by its id. This allows for more efficient implementations
-   * than having to revert to one by one updates. It does however require network information hence its placement here where via the initialiseBeforeSimulation, the network is
+   * Invoker expects (mode specific ) costs in passed in array to be filled, where each entry signifies a link
+   * segment by its id. This allows for more efficient implementations
+   * than having to revert to one by one updates. It does however require network information hence its placement
+   * here where via the initialiseBeforeSimulation, the network is
    * provided
    *
    * @param linkSegments these cost pertain to
@@ -67,7 +74,8 @@ public interface PhysicalCost<LS extends LinkSegment> extends Cost<LS> {
     for (var linkSegment : linkSegments) {
       var generalisedCost = getGeneralisedCost(mode, linkSegment);
       if (generalisedCost < 0.0) {
-        LOGGER.warning(String.format("Link segment cost is negative %.2f for link segment %s ", generalisedCost, linkSegment.getIdsAsString()));
+        LOGGER.warning(String.format("Link segment cost is negative %.2f for link segment %s ",
+            generalisedCost, linkSegment.getIdsAsString()));
       }
       costToFill[(int) linkSegment.getId()] = generalisedCost;
     }

@@ -6,10 +6,11 @@ import org.goplanit.utils.wrapper.MapWrapper;
 import java.util.function.Function;
 
 /**
- * Abstract base class implementation for converter readers which has a mechanism to (optionally) keep track of entities by their source id as PLANit only indexes by internal id
+ * Abstract base class implementation for converter readers which has a mechanism to (optionally) keep track of
+ * entities by their source id as PLANit only indexes by internal id
  * 
  * @author markr
- *
+ * @param <T> type of top level entity reader
  */
 public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
 

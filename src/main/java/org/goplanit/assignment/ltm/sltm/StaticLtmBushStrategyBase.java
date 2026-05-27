@@ -33,7 +33,9 @@ import java.util.logging.Logger;
  * Base implementation to support a bush based solution for sLTM
  * 
  * @author markr
- *
+ * @param <ES> type of segment
+ * @param <V> type of vertex
+ * @param <B> type of bush
  */
 public abstract class
 StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B extends RootedBush<V, ES>>
