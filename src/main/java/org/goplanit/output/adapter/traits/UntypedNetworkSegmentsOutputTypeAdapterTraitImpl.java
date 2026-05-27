@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  * approach.
  *
  * @author markr
- *
+ * @param <ES> type of segment
  */
 public abstract class UntypedNetworkSegmentsOutputTypeAdapterTraitImpl<ES extends EdgeSegment>
     implements NetworkSegmentsOutputTypeAdapterTrait<ES> {

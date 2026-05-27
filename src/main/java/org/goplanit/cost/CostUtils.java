@@ -2,10 +2,8 @@ package org.goplanit.cost;
 
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.physical.PhysicalCost;
-import org.goplanit.cost.physical.initial.InitialModesLinkSegmentCost;
 import org.goplanit.cost.virtual.VirtualCost;
 import org.goplanit.network.UntypedPhysicalNetwork;
-import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.GraphEntities;

@@ -20,7 +20,8 @@ import java.util.logging.Logger;
  * Container class for tracking all unique PASs indexed by their relevant reference vertex
  * 
  * @author markr
- *
+ * @param <V> type of vertex
+ * @param <ES> type of segment
  */
 public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
 

@@ -21,7 +21,8 @@ import java.util.logging.Logger;
  * Container class for tracking PASs that share all but initial and final turn
  * 
  * @author markr
- *
+ * @param <V> type of vertex
+ * @param <ES> type of segment
  */
 public class PasGroup<V extends DirectedVertex, ES extends EdgeSegment> {
 

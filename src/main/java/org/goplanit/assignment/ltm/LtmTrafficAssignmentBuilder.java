@@ -18,7 +18,7 @@ import org.goplanit.zoning.Zoning;
  * It is used to build the traffic assignment instance with the proper configuration settings
  *
  * @author markr
- *
+ * @param <T> type of assignment
  */
 public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> extends TrafficAssignmentBuilder<T> {
 

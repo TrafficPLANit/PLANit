@@ -22,7 +22,7 @@ import java.util.logging.Logger;
  *
  */
 public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V extends UntypedVirtualNetwork<?>>
-    implements TransportModelNetwork<G,V>{
+    implements TransportModelNetwork<G,V> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(UntypedTransportModelNetwork.class.getCanonicalName());

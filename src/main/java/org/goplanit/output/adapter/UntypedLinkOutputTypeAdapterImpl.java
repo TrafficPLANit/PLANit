@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  * Top-level abstract class which defines the common methods required by Link output type adapters
  * 
  * @author gman6028, markr
- *
+ * @param <LS> type of segment
  */
 public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment>
     extends UntypedEdgeOutputTypeAdapterImpl<LS> implements UntypedLinkOutputTypeAdapter<LS> {

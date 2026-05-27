@@ -1,16 +1,23 @@
 package org.goplanit.network.transport;
 
+import com.google.common.collect.Streams;
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.MacroscopicNetworkUtils;
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.layer.physical.CompiledRelationIndex;
+import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.UntypedVirtualNetwork;
 import org.goplanit.zoning.Zoning;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 
@@ -117,6 +124,108 @@ public class TransportModelNetworkUtils {
       totalPhysicalNodes += (int)layer.getNumberOfNodes();
     }
     return totalPhysicalNodes;
+  }
+
+  /**
+   * Create a mapping from the original network permissible turns (segment,segment combination) excluding turn bans
+   * to a unique index in compiled way so we can attach data to each permissible turn indexed by the combination of
+   * the two segments. When banned or a u-turn the returned index is -1.
+   *
+   * @param transportModelNetwork to use
+   * @return compiled index mapping
+   */
+  public static CompiledRelationIndex createCompiledMovementIdMapping(
+      TransportModelNetwork<?,?> transportModelNetwork){
+
+    // ------------------------------------------------------------
+    // Step 1: banned movements (original style, no streams)
+    // ------------------------------------------------------------
+    Map<EdgeSegment, List<EdgeSegment>> bannedByEntryExit = new HashMap<>();
+    Streams.concat(
+            transportModelNetwork.getVirtualNetwork().getLayer().getMovements().stream(),
+            transportModelNetwork.getInfrastructureNetwork().getTransportLayers().stream().flatMap(
+                l -> l.getMovements().stream())
+        ).filter(Movement::isBanned)
+        .forEach(m -> bannedByEntryExit
+            .computeIfAbsent(m.getSegmentFrom(), k -> new java.util.ArrayList<>())
+            .add(m.getSegmentTo())
+        );
+    List<EdgeSegment> allSegments = Streams.concat(
+        transportModelNetwork.getVirtualNetwork().getLayer().getConnectoidSegments().stream(),
+        transportModelNetwork.getInfrastructureNetwork().getTransportLayers().stream()
+            .flatMap(l -> l.getLinkSegments().stream())
+    ).collect(java.util.stream.Collectors.toList());
+
+
+    // Determine max original segment ID
+    int maxSegmentId = -1;
+    for (EdgeSegment ls : allSegments) {
+      maxSegmentId = Math.max(maxSegmentId, (int)ls.getId());
+    }
+
+    // Count number of outgoing segments per original in-segment
+    // since each conjugate segment is a turn, each instance means, one outgoing segment for the incoming segment
+    int[] numExitsPerIncomingSegment = new int[maxSegmentId + 1];
+    for (EdgeSegment ls : allSegments) {
+      List<EdgeSegment> bannedOut = bannedByEntryExit.get(ls);
+      for (var exit : ls.getDownstreamVertex().getExitEdgeSegments()) {
+        if (ls.equals(exit)) {
+          continue;
+        }
+
+        if (bannedOut != null && bannedOut.contains(exit)) {
+          continue;
+        }
+
+        numExitsPerIncomingSegment[(int) ls.getId()]++;
+      }
+    }
+
+    // -----------------------------
+    // Allocate arrays
+    // -----------------------------
+    long[][] outgoingByIn = new long[maxSegmentId + 1][];
+    long[][] movementByIn = new long[maxSegmentId + 1][];
+    for (int i = 0; i <= maxSegmentId; i++) {
+      if (numExitsPerIncomingSegment[i] > 0) {
+        outgoingByIn[i] = new long[numExitsPerIncomingSegment[i]];
+        movementByIn[i] = new long[numExitsPerIncomingSegment[i]];
+      }
+    }
+
+    // -----------------------------
+    // Fill arrays
+    // -----------------------------
+
+    int[] cursor = new int[maxSegmentId + 1];
+    int nextMovementId = 0;
+
+    for (EdgeSegment ls : allSegments) {
+      var inId = (int) ls.getId();
+      List<EdgeSegment> bannedOut = bannedByEntryExit.get(ls);
+      for (var exit : ls.getDownstreamVertex().getExitEdgeSegments()) {
+        if (ls.equals(exit)) {
+          continue;
+        }
+
+        if (bannedOut != null && bannedOut.contains(exit)) {
+          continue;
+        }
+
+        int pos = cursor[inId]++;
+        outgoingByIn[inId][pos] = exit.getId();
+        movementByIn[inId][pos] = nextMovementId++;
+      }
+    }
+
+    // -----------------------------
+    // Create CompiledRelationIndex
+    // -----------------------------
+    return new CompiledRelationIndex(
+        outgoingByIn,
+        movementByIn,
+        nextMovementId
+    );
   }
 
   /**

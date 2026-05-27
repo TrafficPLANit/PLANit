@@ -21,7 +21,7 @@ import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
  * Derived implementation can apply different changes to each of the (turn/link) flows on the bushes by
  * 
  * @author markr
- *
+ * @param <T> type of data
  */
 public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData>
         implements BushFlowUpdateConsumer<ConjugateDestinationBush> {

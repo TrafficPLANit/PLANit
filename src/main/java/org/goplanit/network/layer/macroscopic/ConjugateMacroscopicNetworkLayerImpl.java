@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.goplanit.network.layer.MovementsImpl;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.layer.physical.ConjugateLinkSegmentsImpl;
 import org.goplanit.network.layer.physical.ConjugateLinksImpl;
@@ -66,8 +67,12 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
   protected ConjugateMacroscopicNetworkLayerImpl(
           final IdGroupingToken groupId, final MacroscopicNetworkLayer originalLayer) {
     // todo: replace links with Macroscopic conjugate links
-    this(groupId, new ConjugateNodesImpl(groupId), new ConjugateLinksImpl(groupId),
-            new ConjugateLinkSegmentsImpl(groupId), originalLayer);
+    this(groupId,
+        new ConjugateNodesImpl(groupId),
+        new ConjugateLinksImpl(groupId),
+        new ConjugateLinkSegmentsImpl(groupId),
+        new MovementsImpl(groupId),
+        originalLayer);
   }
 
   /**
@@ -77,6 +82,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    * @param conjugateNodes        to use
    * @param conjugateLinks        to use
    * @param conjugateLinkSegments to use
+   * @param movements             to use
    * @param originalLayer         this conjugate is based on
    */
   protected ConjugateMacroscopicNetworkLayerImpl(
@@ -84,8 +90,9 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
       ConjugateNodes conjugateNodes,
       ConjugateLinks conjugateLinks,
       ConjugateLinkSegments conjugateLinkSegments,
+      Movements movements,
       final MacroscopicNetworkLayer originalLayer) {
-    super(groupId, conjugateNodes, conjugateLinks, conjugateLinkSegments, null);
+    super(groupId, conjugateNodes, conjugateLinks, conjugateLinkSegments, movements);
     this.originalLayer = originalLayer;
   }
 
@@ -234,8 +241,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    */
   @Override
   public Movements getMovements() {
-    LOGGER.warning("Movements on conjugate layers are not yet supported");
-    return null;
+    return getDirectedGraph().getMovements();
   }
 
   /**

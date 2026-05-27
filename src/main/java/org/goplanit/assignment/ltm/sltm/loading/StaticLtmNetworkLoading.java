@@ -17,8 +17,6 @@ import org.goplanit.gap.NormBasedGapFunction;
 import org.goplanit.gap.StopCriterion;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
-import org.goplanit.utils.network.layer.physical.CompiledRelationIndex;
-import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;

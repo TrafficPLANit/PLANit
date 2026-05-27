@@ -24,7 +24,7 @@ import org.goplanit.utils.exceptions.PlanItException;
  * </ul>
  * 
  * @author markr
- *
+ * @param <T> type of assignment
  */
 public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentConfigurator<T> {
 

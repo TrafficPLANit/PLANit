@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  * Top-level abstract class which defines the common methods required by edge output type adapters
  * 
  * @author gman6028, markr
- *
+ * @param <ES> type of segment
  */
 public abstract class UntypedEdgeOutputTypeAdapterImpl<ES extends EdgeSegment>
     extends OutputTypeAdapterImpl implements UntypedEdgeOutputTypeAdapter<ES> {

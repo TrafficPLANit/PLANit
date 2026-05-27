@@ -20,7 +20,7 @@ import org.goplanit.utils.zoning.OdZone;
  * non-zero demand.
  * 
  * @author markr
- *
+ * @param <T> type of data
  */
 public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
         implements TriConsumer<OdZone, OdZone, Double> {

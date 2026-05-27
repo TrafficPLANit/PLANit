@@ -23,7 +23,8 @@ import org.goplanit.utils.misc.CollectionUtils;
  * links overlapping.
  * 
  * @author markr
- *
+ * @param <V> type of vertex
+ * @param <ES>  type of segment
  */
 public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Comparable<Pas<V, ES>> {
 

@@ -27,7 +27,8 @@ import java.util.logging.Logger;
  * vertex represent all turns of a node's incoming link
  * 
  * @author markr
- *
+ * @param <ES> type of edge segment
+ * @param <V> type of directed vertex
  */
 public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegment> implements Bush {
 

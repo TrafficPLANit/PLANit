@@ -1,11 +1,8 @@
 package org.goplanit.network.transport;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.Movement;
-import org.goplanit.utils.network.layer.physical.Movements;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.zoning.Zoning;
 
@@ -41,21 +38,6 @@ public interface TransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V
    * @param resetManagedIds when true rest managed ids for those entities that are reset/cleared, when false do not
    */
   public void removeVirtualNetworkFromPhysicalNetwork(boolean resetManagedIds);
-
-//  /**
-//   * Optional creation of all logically permissible movements in the transport network.
-//   * When calling this method any existing movements will be removed from the container and the ids are reset.
-//   * <p>
-//   *   Call this method after integration has been complete to ensure movements are also created for all
-//   *   connectoid segments attached to physical nodes
-//   * </p>
-//   * <p>
-//   *   No movements are created on origins/destination centroids, since no complete movement can be
-//   *   constructed for those and no-uturn movements are created as these are deemed not permissible by default
-//   * </p>
-//   * attaching layer information to the movements themselves
-//   */
-//  public abstract void generateAllMovementsAsPermissible();
 
   /**
    * Returns the total number of edge segments available in this traffic assignment by combining the physical and

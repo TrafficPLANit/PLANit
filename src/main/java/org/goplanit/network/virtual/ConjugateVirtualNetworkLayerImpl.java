@@ -1,5 +1,6 @@
 package org.goplanit.network.virtual;
 
+import org.goplanit.network.layer.MovementsImpl;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.virtual.physical.conjugate.ConjugateConnectoidLinksImpl;
 import org.goplanit.network.virtual.physical.conjugate.ConjugateConnectoidNodesImpl;
@@ -51,7 +52,7 @@ public class ConjugateVirtualNetworkLayerImpl
         new ConjugateConnectoidNodesImpl(tokenId),
         new ConjugateConnectoidLinksImpl(tokenId),
         new ConjugateConnectoidSegmentsImpl(tokenId),
-        null);
+        new MovementsImpl(tokenId));
     this.referenceLayer = referenceLayer;
   }
 

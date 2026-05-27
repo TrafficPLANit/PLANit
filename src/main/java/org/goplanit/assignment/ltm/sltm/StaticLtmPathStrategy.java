@@ -16,10 +16,8 @@ import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.utils.network.layer.physical.CompiledRelationIndex;
-import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
-import org.goplanit.utils.network.layer.physical.MovementUtils;
-import org.goplanit.utils.network.layer.physical.Movements;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.zoning.od.path.OdMultiPathsHashed;
@@ -684,10 +682,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     // initialise path filtering setup
     initialiseSltmPathFilters();
 
-    // todo: obtain the layer movements (banned movements) so they get excluded --> or adjust the util
-    Movements layerMovements = null;
-    this.compiledMovementIds = MovementUtils.createCompiledMovementIndices(
-        transportModelNetwork.getInfrastructureNetwork().getTransportLayers(), layerMovements);
+    this.compiledMovementIds = TransportModelNetworkUtils.createCompiledMovementIdMapping(transportModelNetwork);
   }
 
   /**
@@ -833,10 +828,8 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
-      LOGGER.severe("Unable to complete sLTM iteration, enable detailed logging to print stack trace");
-      if (getSettings().isDetailedLogging()) {
-        e.printStackTrace();
-      }
+      //LOGGER.severe("Unable to complete sLTM iteration, enable detailed logging to print stack trace");
+      e.printStackTrace();
       success = false;
     }finally {
       choiceModel.setScalingFactor(originalChoiceModelScalingFactor);

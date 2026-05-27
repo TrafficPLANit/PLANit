@@ -33,7 +33,8 @@ public class TurnFlowAccessorConjugateSegments implements TurnFlowAccessor {
   public static TurnFlowAccessorConjugateSegments of(
           final CompiledRelationMapping<ConjugateEdgeSegment> compiledConjugateSegmentMapping,
           double[] turnFlowsIndexedByConjugateSegmentIds){
-    return new TurnFlowAccessorConjugateSegments(compiledConjugateSegmentMapping, turnFlowsIndexedByConjugateSegmentIds);
+    return new TurnFlowAccessorConjugateSegments(
+        compiledConjugateSegmentMapping, turnFlowsIndexedByConjugateSegmentIds);
   }
 
   /**

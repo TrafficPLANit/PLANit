@@ -26,7 +26,7 @@ import org.goplanit.zoning.Zoning;
  * assignment methods might require special builders derived from this builder
  *
  * @author markr
- *
+ * @param <T> type of assignment
  */
 public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> extends PlanitComponentBuilder<T> {
 

@@ -30,7 +30,8 @@ import static org.goplanit.utils.math.Precision.*;
  * Common functionality to conduct a PAS flow shift.
  * 
  * @author markr
- *
+ * @param <V> type of vertex
+ * @param <ES> type of segment
  */
 public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends EdgeSegment> {
 

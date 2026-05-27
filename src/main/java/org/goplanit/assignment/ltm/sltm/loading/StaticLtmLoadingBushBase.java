@@ -21,7 +21,7 @@ import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
  * The bush based network loading scheme for sLTM - base class
  * 
  * @author markr
- *
+ * @param <B> type of bush
  */
 public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extends
         StaticLtmNetworkLoading {

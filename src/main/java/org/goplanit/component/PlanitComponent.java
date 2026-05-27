@@ -16,15 +16,20 @@ import org.goplanit.utils.id.IdGroupingToken;
 /**
  * PLANit components are the main building blocks to create PLANit applications with.
  * <p>
- * Each component is also a listener for PlanitComponentEvents, upon creation by the component factory each component is automatically registered for these events (at high
- * priority). This allows each component to initialise itself in a flexible way before any user or builder would make changes to its default configuration via the same or other
- * events. It is not mandatory to implement any actions upon receiving such events. Therefore this base class implements an empty notify method which may be overridden by derived
+ * Each component is also a listener for PlanitComponentEvents, upon creation by the component factory each component
+ * is automatically registered for these events (at high
+ * priority). This allows each component to initialise itself in a flexible way before any user or builder would make
+ * changes to its default configuration via the same or other
+ * events. It is not mandatory to implement any actions upon receiving such events. Therefore this base class
+ * implements an empty notify method which may be overridden by derived
  * implementations if desired.
  *
  * @author markr
+ * @param <T> type of component
  *
  */
-public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializable> implements ExternalIdAble, PlanitComponentListener {
+public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializable>
+    implements ExternalIdAble, PlanitComponentListener {
 
   /** store id information */
   private final ExternalIdAbleImpl idImpl;

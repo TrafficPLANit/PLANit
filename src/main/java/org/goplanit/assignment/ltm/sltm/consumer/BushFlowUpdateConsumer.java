@@ -9,7 +9,7 @@ import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessor;
  * Placeholder for bush based network loading flow update for each origin bush
  * 
  * @author markr
- *
+ * @param <B> type of bush
  */
 public interface BushFlowUpdateConsumer<B extends Bush> extends Consumer<B> {
 
