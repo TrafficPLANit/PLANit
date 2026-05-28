@@ -2,16 +2,13 @@ package org.goplanit.network.virtual;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.network.Network;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.misc.LoggingUtils;
-import org.goplanit.utils.network.layer.NetworkLayer;
-import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
@@ -66,7 +63,7 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
       GraphEntityDeepCopyMapper<? extends ConnectoidDirectedEdge> connectoidLinkMapper,
       GraphEntityDeepCopyMapper<? extends ConnectoidSegment> connectoidSegmentMapper,
       GraphEntityDeepCopyMapper<? extends CentroidVertex> centroidVertexMapper,
-      ManagedIdDeepCopyMapper<Movement> movementMapper) {
+      ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
     super(other, deepCopy);
 
     this.virtualLayer = deepCopy ?
@@ -180,7 +177,7 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
       GraphEntityDeepCopyMapper<? extends ConnectoidDirectedEdge> connectoidEdgeMapper,
       GraphEntityDeepCopyMapper<? extends ConnectoidSegment> connectoidSegmentMapper,
       GraphEntityDeepCopyMapper<? extends DirectedVertex> centroidVertexMapper,
-      ManagedIdDeepCopyMapper<Movement> movementMapper) {
+      ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
     return new VirtualNetworkImpl(
         this,
         true,

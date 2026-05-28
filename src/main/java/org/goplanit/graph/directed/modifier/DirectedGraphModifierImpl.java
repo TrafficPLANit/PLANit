@@ -57,7 +57,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
   protected void fireEvent(EventListener eventListener, Event event) {
     if (event.getType() instanceof DirectedGraphModifierEventType) {
       ((DirectedGraphModifierListener) eventListener).onDirectedGraphModificationEvent(
-          DirectedGraphModificationEvent.class.cast(event));
+          (DirectedGraphModificationEvent) event);
     } else {
       graphModifier.fireEvent(eventListener, event);
     }

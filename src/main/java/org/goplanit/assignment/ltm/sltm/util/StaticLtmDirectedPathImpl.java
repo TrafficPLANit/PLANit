@@ -1,20 +1,16 @@
 package org.goplanit.assignment.ltm.sltm.util;
 
-import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegmentUtils;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.IterableUtils;
-import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.PathUtils;
 import org.locationtech.jts.geom.Geometry;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;

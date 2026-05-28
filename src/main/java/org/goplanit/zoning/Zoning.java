@@ -10,8 +10,7 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
 import org.goplanit.network.virtual.VirtualNetworkImpl;
-import org.goplanit.utils.network.layer.physical.Movement;
-import org.goplanit.utils.network.layer.physical.MovementUtils;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
 import org.goplanit.utils.zoning.connectoid.*;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.utils.geo.PlanitJtsUtils;
@@ -159,7 +158,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
       var connectoidEdgeMapper = new GraphEntityDeepCopyMapper<ConnectoidDirectedEdge>();
       var connectoidEdgeSegmentMapper = new GraphEntityDeepCopyMapper<ConnectoidSegment>();
       var centroidVertexMapper = new GraphEntityDeepCopyMapper<CentroidVertex>();
-      var movementMapper = new ManagedIdDeepCopyMapper<Movement>();
+      var movementMapper = new ManagedIdDeepCopyMapper<BannedMovement>();
       this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(
           connectoidEdgeMapper, connectoidEdgeSegmentMapper, centroidVertexMapper, movementMapper);
 

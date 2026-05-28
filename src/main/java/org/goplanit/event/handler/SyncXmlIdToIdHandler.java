@@ -44,10 +44,9 @@ public abstract class SyncXmlIdToIdHandler implements
   }
 
   protected void onEvent(Event event){
-    if (!Arrays.stream(eventTypes).anyMatch(et -> et.equals(event.getType()))) {
+    if (Arrays.stream(eventTypes).noneMatch(et -> et.equals(event.getType()))) {
       LOGGER.warning(String.format("%s does not support event type %s",
           SyncXmlIdToIdHandler.class.getName(), event.getType()));
-      return;
     }
   }
 

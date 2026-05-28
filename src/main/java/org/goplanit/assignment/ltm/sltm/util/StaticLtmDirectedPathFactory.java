@@ -1,10 +1,8 @@
 package org.goplanit.assignment.ltm.sltm.util;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
-import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
 
 import java.util.Deque;

@@ -3,9 +3,9 @@ package org.goplanit.network.layer;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
 import org.goplanit.utils.network.layer.physical.MovementFactory;
-import org.goplanit.utils.network.layer.physical.Movements;
+import org.goplanit.utils.network.layer.physical.BannedMovements;
 import org.goplanit.utils.network.layer.physical.Node;
 
 import java.util.function.BiConsumer;
@@ -17,7 +17,7 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class MovementsImpl extends ManagedIdEntitiesImpl<Movement> implements Movements {
+public class BannedMovementsImpl extends ManagedIdEntitiesImpl<BannedMovement> implements BannedMovements {
 
   /** factory to use */
   private final MovementFactory movementFactory;
@@ -27,8 +27,8 @@ public class MovementsImpl extends ManagedIdEntitiesImpl<Movement> implements Mo
    *
    * @param groupId to use for creating ids for instances
    */
-  public MovementsImpl(final IdGroupingToken groupId) {
-    super(Movement::getId, Movement.MOVEMENT_ID_CLASS);
+  public BannedMovementsImpl(final IdGroupingToken groupId) {
+    super(BannedMovement::getId, BannedMovement.BANNED_MOVEMENT_ID_CLASS);
     this.movementFactory = new MovementFactoryImpl(groupId, this);
   }
 
@@ -38,8 +38,8 @@ public class MovementsImpl extends ManagedIdEntitiesImpl<Movement> implements Mo
    * @param groupId     to use for creating ids for instances
    * @param factory the factory to use
    */
-  public MovementsImpl(final IdGroupingToken groupId, MovementFactory factory) {
-    super(Movement::getId, Movement.MOVEMENT_ID_CLASS);
+  public BannedMovementsImpl(final IdGroupingToken groupId, MovementFactory factory) {
+    super(BannedMovement::getId, BannedMovement.BANNED_MOVEMENT_ID_CLASS);
     this.movementFactory = factory;
   }
 
@@ -50,7 +50,7 @@ public class MovementsImpl extends ManagedIdEntitiesImpl<Movement> implements Mo
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    * @param mapper apply to each mapping from original to copy (may be null)
    */
-  public MovementsImpl(MovementsImpl other, boolean deepCopy, BiConsumer<Movement,Movement> mapper) {
+  public BannedMovementsImpl(BannedMovementsImpl other, boolean deepCopy, BiConsumer<BannedMovement, BannedMovement> mapper) {
     super(other, deepCopy, mapper);
     this.movementFactory = new MovementFactoryImpl(other.movementFactory.getIdGroupingToken(), this);
   }
@@ -78,24 +78,24 @@ public class MovementsImpl extends ManagedIdEntitiesImpl<Movement> implements Mo
    * {@inheritDoc}
    */
   @Override
-  public MovementsImpl shallowClone() {
-    return new MovementsImpl(this, false, null);
+  public BannedMovementsImpl shallowClone() {
+    return new BannedMovementsImpl(this, false, null);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public MovementsImpl deepClone() {
-    return new MovementsImpl(this, true, null);
+  public BannedMovementsImpl deepClone() {
+    return new BannedMovementsImpl(this, true, null);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public MovementsImpl deepCloneWithMapping(BiConsumer<Movement, Movement> mapper) {
-    return new MovementsImpl(this, true, mapper);
+  public BannedMovementsImpl deepCloneWithMapping(BiConsumer<BannedMovement, BannedMovement> mapper) {
+    return new BannedMovementsImpl(this, true, mapper);
   }
 
   /**
@@ -103,7 +103,7 @@ public class MovementsImpl extends ManagedIdEntitiesImpl<Movement> implements Mo
    */
   @Override
   public void reset() {
-    IdGenerator.reset(getFactory().getIdGroupingToken(), Movement.MOVEMENT_ID_CLASS);
+    IdGenerator.reset(getFactory().getIdGroupingToken(), BannedMovement.BANNED_MOVEMENT_ID_CLASS);
     super.reset();
   }
 }

@@ -12,8 +12,8 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
 import org.goplanit.utils.network.layer.physical.Link;
-import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
@@ -69,8 +69,8 @@ public class IdMapperFunctionFactory {
    * @param idMapper the type of mapping function to create
    * @return function that generates mapped movement id's for persistence
    */
-  public static Function<Movement, String> createMovementIdMappingFunction(final IdMapperType idMapper) {
-    return IdMappingUtils.createIdMappingFunction(Movement.class, idMapper);
+  public static Function<BannedMovement, String> createMovementIdMappingFunction(final IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(BannedMovement.class, idMapper);
   }
 
   /**

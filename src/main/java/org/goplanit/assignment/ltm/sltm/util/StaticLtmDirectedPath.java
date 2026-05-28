@@ -1,6 +1,5 @@
 package org.goplanit.assignment.ltm.sltm.util;
 
-import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.path.ManagedDirectedPath;
 
 /**

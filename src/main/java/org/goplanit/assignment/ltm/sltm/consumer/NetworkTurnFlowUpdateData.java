@@ -6,7 +6,6 @@ import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingFactorData;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSendingFlowData;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSplittingRateData;
 import org.goplanit.assignment.ltm.sltm.loading.UnconstrainedFlowData;
-import org.goplanit.utils.network.layer.physical.Movement;
 
 /**
  * Base class to aid updating of the network turn flows during loading. Derived classes can apply a path or bush

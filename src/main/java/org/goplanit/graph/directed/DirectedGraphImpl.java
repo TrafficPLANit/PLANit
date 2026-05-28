@@ -10,8 +10,8 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
-import org.goplanit.utils.network.layer.physical.Movement;
-import org.goplanit.utils.network.layer.physical.Movements;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
+import org.goplanit.utils.network.layer.physical.BannedMovements;
 
 /**
  * 
@@ -42,8 +42,8 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
       GraphEntities<V> vertices,
       GraphEntities<E> edges,
       GraphEntities<ES> edgeSegments,
-      final Movements movements) {
-    super(groupToken, vertices, edges, edgeSegments, movements);
+      final BannedMovements bannedMovements) {
+    super(groupToken, vertices, edges, edgeSegments, bannedMovements);
   }
 
   /**
@@ -72,7 +72,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
       GraphEntityDeepCopyMapper<V> vertexMapper,
       GraphEntityDeepCopyMapper<E> edgeMapper,
       GraphEntityDeepCopyMapper<ES> edgeSegmentMapper,
-      ManagedIdDeepCopyMapper<Movement> movementMapper) {
+      ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
     super(directedGraphImpl, deepCopy, vertexMapper, edgeMapper, edgeSegmentMapper,movementMapper);
   }
 

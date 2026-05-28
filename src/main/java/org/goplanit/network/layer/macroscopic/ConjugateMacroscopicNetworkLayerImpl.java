@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.goplanit.network.layer.MovementsImpl;
+import org.goplanit.network.layer.BannedMovementsImpl;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.layer.physical.ConjugateLinkSegmentsImpl;
 import org.goplanit.network.layer.physical.ConjugateLinksImpl;
@@ -71,7 +71,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
         new ConjugateNodesImpl(groupId),
         new ConjugateLinksImpl(groupId),
         new ConjugateLinkSegmentsImpl(groupId),
-        new MovementsImpl(groupId),
+        new BannedMovementsImpl(groupId),
         originalLayer);
   }
 
@@ -82,7 +82,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    * @param conjugateNodes        to use
    * @param conjugateLinks        to use
    * @param conjugateLinkSegments to use
-   * @param movements             to use
+   * @param bannedMovements             to use
    * @param originalLayer         this conjugate is based on
    */
   protected ConjugateMacroscopicNetworkLayerImpl(
@@ -90,9 +90,9 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
       ConjugateNodes conjugateNodes,
       ConjugateLinks conjugateLinks,
       ConjugateLinkSegments conjugateLinkSegments,
-      Movements movements,
+      BannedMovements bannedMovements,
       final MacroscopicNetworkLayer originalLayer) {
-    super(groupId, conjugateNodes, conjugateLinks, conjugateLinkSegments, movements);
+    super(groupId, conjugateNodes, conjugateLinks, conjugateLinkSegments, bannedMovements);
     this.originalLayer = originalLayer;
   }
 
@@ -240,7 +240,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    * {@inheritDoc}
    */
   @Override
-  public Movements getMovements() {
+  public BannedMovements getBannedMovements() {
     return getDirectedGraph().getMovements();
   }
 

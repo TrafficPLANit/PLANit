@@ -1,9 +1,9 @@
 package org.goplanit.network.transport;
 
 import org.goplanit.network.UntypedPhysicalNetwork;
-import org.goplanit.network.layer.MovementsImpl;
+import org.goplanit.network.layer.BannedMovementsImpl;
 import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.network.layer.physical.Movements;
+import org.goplanit.utils.network.layer.physical.BannedMovements;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 import org.goplanit.zoning.Zoning;
@@ -46,7 +46,7 @@ public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetw
   /**
    * Optional container to fill with all permissible movements in the transport network
    */
-  protected Movements movements;
+  protected BannedMovements bannedMovements;
 
   /**
    * Add Edge to both vertices
@@ -76,7 +76,7 @@ public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetw
     this.infrastructureNetwork = null;
     this.zoning = null;
     this.virtualNetwork = null;
-    this.movements = null;
+    this.bannedMovements = null;
   }
 
   /**
@@ -90,7 +90,7 @@ public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetw
     this.infrastructureNetwork = infrastructureNetwork;
     this.zoning = zoning;
     this.virtualNetwork = virtualNetwork;
-    this.movements = new MovementsImpl(infrastructureNetwork.getIdGroupingToken());
+    this.bannedMovements = new BannedMovementsImpl(infrastructureNetwork.getIdGroupingToken());
   }
 
   /**
@@ -104,9 +104,9 @@ public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetw
     if(getInfrastructureNetwork()!=null){
       getInfrastructureNetwork().logInfo(prefix);
     }
-    if(movements!=null && !movements.isEmpty()){
+    if(bannedMovements !=null && !bannedMovements.isEmpty()){
       long physicalRestrictedMovements =
-          getInfrastructureNetwork().getTransportLayers().stream().mapToLong(l -> l.getMovements().size()).sum();
+          getInfrastructureNetwork().getTransportLayers().stream().mapToLong(l -> l.getBannedMovements().size()).sum();
       LOGGER.info(String.format("%s# Restricted movements: %d", prefix, physicalRestrictedMovements));
     }
   }

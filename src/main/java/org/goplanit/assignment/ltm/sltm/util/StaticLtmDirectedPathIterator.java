@@ -1,7 +1,7 @@
 package org.goplanit.assignment.ltm.sltm.util;
 
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
 
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -20,7 +20,7 @@ public class StaticLtmDirectedPathIterator implements Iterator<EdgeSegment> {
   /**
    * the movement based path definition
    */
-  private Movement[] thePath;
+  private BannedMovement[] thePath;
 
   private int index = 0;
 
@@ -33,7 +33,7 @@ public class StaticLtmDirectedPathIterator implements Iterator<EdgeSegment> {
    *
    * @param thePath path to iterate over
    */
-  public StaticLtmDirectedPathIterator(Movement[] thePath) {
+  public StaticLtmDirectedPathIterator(BannedMovement[] thePath) {
     this.thePath = thePath;
     this.index = 0;
     this.maxIndex = thePath.length-1;

@@ -5,7 +5,6 @@ import java.util.logging.Logger;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.layer.modifier.UntypedNetworkLayerModifierImpl;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
@@ -20,8 +19,8 @@ import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.UntypedDirectedGraphLayer;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
-import org.goplanit.utils.network.layer.physical.Movement;
-import org.goplanit.utils.network.layer.physical.Movements;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
+import org.goplanit.utils.network.layer.physical.BannedMovements;
 import org.locationtech.jts.geom.Envelope;
 
 /**
@@ -71,7 +70,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    * @param vertices     managed vertices container to use
    * @param edges        managed edges container to use
    * @param edgeSegments managed edge Segments container to use
-   * @param movements    managed movements container to use
+   * @param bannedMovements    managed movements container to use
    */
   public <Vx extends ManagedGraphEntities<V>, Ex extends ManagedGraphEntities<E>, Sx extends ManagedGraphEntities<S>> 
       UntypedNetworkLayerImpl(
@@ -79,9 +78,9 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
           final Vx vertices,
           final Ex edges,
           final Sx edgeSegments,
-          final Movements movements) {
+          final BannedMovements bannedMovements) {
     super(tokenId);
-    this.directedGraph = new UntypedDirectedGraphImpl<>(tokenId, vertices, edges, edgeSegments, movements);
+    this.directedGraph = new UntypedDirectedGraphImpl<>(tokenId, vertices, edges, edgeSegments, bannedMovements);
     this.layerModifier = new UntypedNetworkLayerModifierImpl<>(this.directedGraph);
   }
 
@@ -106,7 +105,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
           GraphEntityDeepCopyMapper<V> vertexMapper,
           GraphEntityDeepCopyMapper<E> edgeMapper,
           GraphEntityDeepCopyMapper<S> edgeSegmentMapper,
-          ManagedIdDeepCopyMapper<Movement> movementMapper) {
+          ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
     super(other, deepCopy);
 
     /* network layer is in fact a graph, so requiring cloning even for shallow copy */

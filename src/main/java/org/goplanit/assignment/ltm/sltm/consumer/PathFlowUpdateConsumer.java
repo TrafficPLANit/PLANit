@@ -5,11 +5,9 @@ import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
 import org.goplanit.utils.network.layer.physical.CompiledRelationIndex;
-import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.utils.functionalinterface.TriConsumer;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.zoning.OdZone;
 
 /**

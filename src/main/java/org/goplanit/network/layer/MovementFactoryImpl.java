@@ -10,38 +10,38 @@ import org.goplanit.utils.network.layer.physical.*;
  * 
  * @author markr
  */
-public class MovementFactoryImpl extends ManagedIdEntityFactoryImpl<Movement> implements MovementFactory {
+public class MovementFactoryImpl extends ManagedIdEntityFactoryImpl<BannedMovement> implements MovementFactory {
 
   /** container */
-  private final Movements movements;
+  private final BannedMovements bannedMovements;
 
   /**
    * Constructor
    *
    * @param groupId  to use
-   * @param movements to use
+   * @param bannedMovements to use
    */
-  protected MovementFactoryImpl(final IdGroupingToken groupId, final Movements movements) {
+  protected MovementFactoryImpl(final IdGroupingToken groupId, final BannedMovements bannedMovements) {
     super(groupId);
-    this.movements = movements;
+    this.bannedMovements = bannedMovements;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Movement create(final EdgeSegment from, final EdgeSegment to, boolean banned) {
-    return new MovementImpl(getIdGroupingToken(), from, to, banned);
+  public BannedMovement create(final EdgeSegment from, final EdgeSegment to) {
+    return new BannedMovementImpl(getIdGroupingToken(), from, to);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Movement registerNew(final EdgeSegment from, final EdgeSegment to, boolean banned) {
-    final Movement newMovement = create(from, to, banned);
-    movements.register(newMovement);
-    return newMovement;
+  public BannedMovement registerNew(final EdgeSegment from, final EdgeSegment to) {
+    final BannedMovement newBannedMovement = create(from, to);
+    bannedMovements.register(newBannedMovement);
+    return newBannedMovement;
   }
 
 }

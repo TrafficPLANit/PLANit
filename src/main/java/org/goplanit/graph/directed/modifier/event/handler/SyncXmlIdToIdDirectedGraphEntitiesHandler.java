@@ -7,6 +7,8 @@ import org.goplanit.utils.graph.GraphEntity;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
+import org.goplanit.utils.id.ExternalIdAble;
+import org.goplanit.utils.id.ManagedId;
 
 import java.util.logging.Logger;
 
@@ -42,7 +44,7 @@ public class SyncXmlIdToIdDirectedGraphEntitiesHandler extends SyncXmlIdToIdGrap
     }
 
     RecreatedGraphEntitiesManagedIdsEvent theEvent = (RecreatedGraphEntitiesManagedIdsEvent) event;
-    theEvent.getManagedIdEntities().forEach( e -> super.syncXmlIdToInternalId((GraphEntity) e));
+    theEvent.getManagedIdEntities().forEach( e -> super.syncXmlIdToInternalId((ExternalIdAble) e));
   }
 
   /**
@@ -51,11 +53,13 @@ public class SyncXmlIdToIdDirectedGraphEntitiesHandler extends SyncXmlIdToIdGrap
   @Override
   public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
     if (!event.getType().equals(RecreatedDirectedGraphEntitiesManagedIdsEvent.EVENT_TYPE)) {
-      LOGGER.warning(String.format("%s only supports RecreatedDirectedGraphEntitiesManagedIdsEvent events", SyncXmlIdToIdDirectedGraphEntitiesHandler.class.getName()));
+      LOGGER.warning(String.format("%s only supports RecreatedDirectedGraphEntitiesManagedIdsEvent events",
+          SyncXmlIdToIdDirectedGraphEntitiesHandler.class.getName()));
       return;
     }
 
-    RecreatedDirectedGraphEntitiesManagedIdsEvent theEvent = RecreatedDirectedGraphEntitiesManagedIdsEvent.class.cast(event);
-    theEvent.getManagedIdEntities().forEach( e -> super.syncXmlIdToInternalId((GraphEntity) e));
+    RecreatedDirectedGraphEntitiesManagedIdsEvent theEvent =
+        (RecreatedDirectedGraphEntitiesManagedIdsEvent) event;
+    theEvent.getManagedIdEntities().forEach( e -> super.syncXmlIdToInternalId((ExternalIdAble) e));
   }
 }

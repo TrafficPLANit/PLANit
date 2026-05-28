@@ -10,7 +10,6 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.CompiledRelationIndex;
-import org.goplanit.utils.network.layer.physical.Movement;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.UntypedVirtualNetwork;
 import org.goplanit.zoning.Zoning;
@@ -144,9 +143,8 @@ public class TransportModelNetworkUtils {
     Streams.concat(
             transportModelNetwork.getVirtualNetwork().getLayer().getMovements().stream(),
             transportModelNetwork.getInfrastructureNetwork().getTransportLayers().stream().flatMap(
-                l -> l.getMovements().stream())
-        ).filter(Movement::isBanned)
-        .forEach(m -> bannedByEntryExit
+                l -> l.getBannedMovements().stream())
+        ).forEach(m -> bannedByEntryExit
             .computeIfAbsent(m.getSegmentFrom(), k -> new java.util.ArrayList<>())
             .add(m.getSegmentTo())
         );

@@ -1,6 +1,5 @@
 package org.goplanit.graph.directed;
 
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.UntypedGraphImpl;
@@ -10,9 +9,9 @@ import org.goplanit.utils.graph.UntypedDirectedGraph;
 import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
-import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.network.layer.physical.BannedMovements;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
 import org.goplanit.utils.network.layer.physical.MovementUtils;
-import org.goplanit.utils.network.layer.physical.Movements;
 
 /**
  * 
@@ -36,7 +35,7 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
   protected final GraphEntities<ES> edgeSegments;
 
   /** movements of the graph (can be empty indicating all movements are allowed) */
-  protected final Movements movements;
+  protected final BannedMovements bannedMovements;
 
   /**
    * DirectedGraph Constructor
@@ -45,17 +44,17 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
    * @param vertices     to use
    * @param edges        to use
    * @param edgeSegments to use
-   * @param movements to use
+   * @param bannedMovements to use
    */
   public UntypedDirectedGraphImpl(
           final IdGroupingToken groupToken,
           GraphEntities<V> vertices,
           GraphEntities<E> edges,
           GraphEntities<ES> edgeSegments,
-          final Movements movements) {
+          final BannedMovements bannedMovements) {
     super(groupToken, vertices, edges);
     this.edgeSegments = edgeSegments;
-    this.movements = movements;
+    this.bannedMovements = bannedMovements;
   }
 
   /**
@@ -87,19 +86,19 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
       GraphEntityDeepCopyMapper<V> vertexMapper,
       GraphEntityDeepCopyMapper<E> edgeMapper,
       GraphEntityDeepCopyMapper<ES> edgeSegmentMapper,
-      ManagedIdDeepCopyMapper<Movement> movementMapper) {
+      ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
     super(directedGraphImpl, deepCopy, vertexMapper, edgeMapper);
 
     // container class, so clone upon shallow copy
     if(deepCopy) {
       this.edgeSegments = directedGraphImpl.getEdgeSegments().deepCloneWithMapping(edgeSegmentMapper);
-      this.movements = directedGraphImpl.movements.deepCloneWithMapping(movementMapper);
+      this.bannedMovements = directedGraphImpl.bannedMovements.deepCloneWithMapping(movementMapper);
       EdgeSegmentUtils.updateEdgeSegmentParentEdges(edgeSegments, edgeMapper::getMapping, true);
       DirectedEdgeUtils.updateDirectedEdgeEdgeSegments(edges, edgeSegmentMapper::getMapping, true);
-      MovementUtils.updateMovementSegmentMapping(movements, edgeSegmentMapper::getMapping, true);
+      MovementUtils.updateMovementSegmentMapping(bannedMovements, edgeSegmentMapper::getMapping, true);
     }else{
       this.edgeSegments = directedGraphImpl.getEdgeSegments().shallowClone();
-      this.movements = directedGraphImpl.getMovements().shallowClone();
+      this.bannedMovements = directedGraphImpl.getMovements().shallowClone();
     }
   }
 
@@ -117,8 +116,8 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
    * {@inheritDoc}
    */
   @Override
-  public Movements getMovements() {
-    return movements;
+  public BannedMovements getMovements() {
+    return bannedMovements;
   }
 
   /**
@@ -153,7 +152,7 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
       GraphEntityDeepCopyMapper<V> vertexMapper,
       GraphEntityDeepCopyMapper<E> edgeMapper,
       GraphEntityDeepCopyMapper<ES> edgeSegmentMapper,
-      ManagedIdDeepCopyMapper<Movement> movementMapper
+      ManagedIdDeepCopyMapper<BannedMovement> movementMapper
       ) {
     return new UntypedDirectedGraphImpl<>(
             this, true, vertexMapper, edgeMapper, edgeSegmentMapper, movementMapper);

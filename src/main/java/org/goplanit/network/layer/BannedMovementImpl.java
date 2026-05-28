@@ -5,7 +5,7 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
 
 import java.util.logging.Logger;
 
@@ -15,16 +15,13 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class MovementImpl extends ExternalIdAbleImpl implements Movement {
+public class BannedMovementImpl extends ExternalIdAbleImpl implements BannedMovement {
 
   /** serial UID */
   private static final long serialVersionUID = 1L;
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(MovementImpl.class.getCanonicalName());
-
-  /** flag regarding access */
-  private boolean banned;
+  private static final Logger LOGGER = Logger.getLogger(BannedMovementImpl.class.getCanonicalName());
 
   /**
    * Store the from edge segment
@@ -45,14 +42,12 @@ public class MovementImpl extends ExternalIdAbleImpl implements Movement {
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param fromSegment  from segment to use
    * @param toSegment to segment to use
-   * @param banned flag
    */
-  protected MovementImpl(
-      final IdGroupingToken groupId, final EdgeSegment fromSegment, final EdgeSegment toSegment, boolean banned) {
-    super(IdGenerator.generateId(groupId, MOVEMENT_ID_CLASS));
+  protected BannedMovementImpl(
+      final IdGroupingToken groupId, final EdgeSegment fromSegment, final EdgeSegment toSegment) {
+    super(IdGenerator.generateId(groupId, BANNED_MOVEMENT_ID_CLASS));
     this.segmentFrom = fromSegment;
     this.segmentTo = toSegment;
-    this.banned = banned;
   }
 
   /**
@@ -61,19 +56,13 @@ public class MovementImpl extends ExternalIdAbleImpl implements Movement {
    * @param movement to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected MovementImpl(MovementImpl movement, boolean deepCopy) {
+  protected BannedMovementImpl(BannedMovementImpl movement, boolean deepCopy) {
     super(movement);
     this.segmentFrom = movement.segmentFrom;
     this.segmentTo = movement.segmentTo;
-    this.banned = movement.banned;
   }
 
   // Public
-
-  @Override
-  public boolean isPermissible() {
-    return !banned;
-  }
 
   /**
    * {@inheritDoc}
@@ -111,16 +100,16 @@ public class MovementImpl extends ExternalIdAbleImpl implements Movement {
    * {@inheritDoc}
    */
   @Override
-  public MovementImpl shallowClone() {
-    return new MovementImpl(this, false);
+  public BannedMovementImpl shallowClone() {
+    return new BannedMovementImpl(this, false);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public MovementImpl deepClone() {
-    return new MovementImpl(this, true);
+  public BannedMovementImpl deepClone() {
+    return new BannedMovementImpl(this, true);
   }
 
   /**
@@ -137,6 +126,6 @@ public class MovementImpl extends ExternalIdAbleImpl implements Movement {
    */
   @Override
   public Class<? extends IdAble> getIdClass() {
-    return MOVEMENT_ID_CLASS;
+    return BANNED_MOVEMENT_ID_CLASS;
   }
 }

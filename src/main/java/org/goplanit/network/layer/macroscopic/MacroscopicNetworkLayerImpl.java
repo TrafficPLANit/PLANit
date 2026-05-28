@@ -3,7 +3,7 @@ package org.goplanit.network.layer.macroscopic;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import org.goplanit.network.layer.MovementsImpl;
+import org.goplanit.network.layer.BannedMovementsImpl;
 import org.goplanit.network.layer.physical.NodesImpl;
 import org.goplanit.network.layer.physical.UntypedPhysicalLayerImpl;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
@@ -12,8 +12,8 @@ import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.*;
-import org.goplanit.utils.network.layer.physical.Movement;
-import org.goplanit.utils.network.layer.physical.Movements;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
+import org.goplanit.utils.network.layer.physical.BannedMovements;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
 import org.goplanit.utils.network.layers.ConjugateMacroscopicNetworkLayerFactory;
@@ -46,7 +46,7 @@ public class MacroscopicNetworkLayerImpl
         new NodesImpl(groupId),
         new MacroscopicLinksImpl(groupId),
         new MacroscopicLinkSegmentsImpl(groupId),
-        new MovementsImpl(groupId));
+        new BannedMovementsImpl(groupId));
   }
 
   /**
@@ -56,15 +56,15 @@ public class MacroscopicNetworkLayerImpl
    * @param nodes        to use
    * @param links        to use
    * @param linkSegments to use
-   * @param movements    to use
+   * @param bannedMovements    to use
    */
   protected MacroscopicNetworkLayerImpl(
           final IdGroupingToken groupId,
           Nodes nodes,
           MacroscopicLinks links,
           MacroscopicLinkSegments linkSegments,
-          Movements movements) {
-    super(groupId, nodes, links, linkSegments, movements);
+          BannedMovements bannedMovements) {
+    super(groupId, nodes, links, linkSegments, bannedMovements);
     linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl(groupId);
   }
 
@@ -87,7 +87,7 @@ public class MacroscopicNetworkLayerImpl
           GraphEntityDeepCopyMapper<MacroscopicLink> linkMapper,
           GraphEntityDeepCopyMapper<MacroscopicLinkSegment> linkSegmentMapper,
           ManagedIdDeepCopyMapper<MacroscopicLinkSegmentType> linkSegmentTypeMapper,
-          ManagedIdDeepCopyMapper<Movement> movementsMapper) {
+          ManagedIdDeepCopyMapper<BannedMovement> movementsMapper) {
     super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper, movementsMapper);
 
     this.linkSegmentTypes = deepCopy ? other.linkSegmentTypes.deepCloneWithMapping(linkSegmentTypeMapper) :
@@ -167,7 +167,7 @@ public class MacroscopicNetworkLayerImpl
    * {@inheritDoc}
    */
   @Override
-  public Movements getMovements() {
+  public BannedMovements getBannedMovements() {
     return this.directedGraph.getMovements();
   }
 

@@ -1,6 +1,6 @@
 package org.goplanit.network.virtual;
 
-import org.goplanit.network.layer.MovementsImpl;
+import org.goplanit.network.layer.BannedMovementsImpl;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.virtual.graph.CentroidVerticesImpl;
 import org.goplanit.network.virtual.physical.ConnectoidLinksImpl;
@@ -11,8 +11,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
-import org.goplanit.utils.network.layer.physical.Movement;
-import org.goplanit.utils.network.layer.physical.Movements;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
+import org.goplanit.utils.network.layer.physical.BannedMovements;
 import org.goplanit.utils.network.virtual.VirtualNetworkLayer;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.graph.CentroidVertices;
@@ -49,7 +49,7 @@ public class VirtualNetworkLayerImpl
         new CentroidVerticesImpl(tokenId),
         new ConnectoidLinksImpl(tokenId),
         new ConnectoidSegmentsImpl(tokenId),
-        new MovementsImpl(tokenId));
+        new BannedMovementsImpl(tokenId));
   }
 
   /**
@@ -69,7 +69,7 @@ public class VirtualNetworkLayerImpl
       GraphEntityDeepCopyMapper<ConnectoidLink> connectoidEdgeMapper,
       GraphEntityDeepCopyMapper<ConnectoidSegment> connectoidSegmentMapper,
       GraphEntityDeepCopyMapper<CentroidVertex> centroidVertexMapper,
-      ManagedIdDeepCopyMapper<Movement> movementMapper) {
+      ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
     super(other, deepCopy, centroidVertexMapper, connectoidEdgeMapper, connectoidSegmentMapper, movementMapper);
   }
 
@@ -89,7 +89,7 @@ public class VirtualNetworkLayerImpl
   }
 
   @Override
-  public Movements getMovements() {
+  public BannedMovements getMovements() {
     return getDirectedGraph().getMovements();
   }
 
@@ -167,7 +167,7 @@ public class VirtualNetworkLayerImpl
   public VirtualNetworkLayerImpl deepCloneWithMapping(GraphEntityDeepCopyMapper<ConnectoidLink> connectoidLinkMapper,
                                                       GraphEntityDeepCopyMapper<ConnectoidSegment> connectoidSegmentMapper,
                                                       GraphEntityDeepCopyMapper<CentroidVertex> centroidVertexMapper,
-                                                      ManagedIdDeepCopyMapper<Movement> movementMapper) {
+                                                      ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
     return new VirtualNetworkLayerImpl(
         this,
         true,

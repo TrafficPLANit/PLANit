@@ -9,7 +9,6 @@ import org.goplanit.utils.graph.ManagedGraphEntities;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.*;
 
 /**
@@ -36,7 +35,7 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
   private void updateMovementLinkSegments(
       Function<EdgeSegment, EdgeSegment> linkSegmentToLinkSegmentMapping, boolean removeMissingMappings) {
 
-    for(var movement :  getMovements()){
+    for(var movement :  getBannedMovements()){
       if(movement.getSegmentFrom() != null){
         var clonedSegment = linkSegmentToLinkSegmentMapping.apply(movement.getSegmentFrom());
         if(clonedSegment != null || removeMissingMappings){
@@ -64,12 +63,12 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
    * @param nodes        managed nodes container to use
    * @param links        managed links container to use
    * @param linkSegments managed linkSegments container to use
-   * @param movements    managed movements container to use
+   * @param bannedMovements    managed movements container to use
    */
   public <Nx extends ManagedGraphEntities<N>, Lx extends ManagedGraphEntities<L>, Sx extends ManagedGraphEntities<LS>>
   UntypedPhysicalLayerImpl(
-      final IdGroupingToken tokenId, final Nx nodes, final Lx links, final Sx linkSegments, final Movements movements) {
-    super(tokenId, nodes, links, linkSegments, movements);
+      final IdGroupingToken tokenId, final Nx nodes, final Lx links, final Sx linkSegments, final BannedMovements bannedMovements) {
+    super(tokenId, nodes, links, linkSegments, bannedMovements);
   }
 
   /**
@@ -91,7 +90,7 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
           GraphEntityDeepCopyMapper<N> nodeMapper,
           GraphEntityDeepCopyMapper<L> linkMapper,
           GraphEntityDeepCopyMapper<LS> linkSegmentMapper,
-          ManagedIdDeepCopyMapper<Movement> movementMapper) {
+          ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
     super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper, movementMapper);
 
     if(deepCopy) {
@@ -115,7 +114,7 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
     LOGGER.info(String.format("%s#links: %d", prefix, getLinks().size()));
     LOGGER.info(String.format("%s#link segments: %d", prefix, getLinkSegments().size()));
     LOGGER.info(String.format("%s#nodes: %d", prefix, getNodes().size()));
-    LOGGER.info(String.format("%s#movements: %d", prefix, getMovements().size()));
+    LOGGER.info(String.format("%s#movements: %d", prefix, getBannedMovements().size()));
   }
 
   /**

@@ -35,7 +35,7 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
     add(MacroscopicLinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
     add(ConjugateLinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
 
-    add(Movement.class, IdMapperFunctionFactory.createMovementIdMappingFunction(type));
+    add(BannedMovement.class, IdMapperFunctionFactory.createMovementIdMappingFunction(type));
   }
 
   /**
@@ -78,8 +78,8 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
   /** get id mapper for movements (banned turns)
    * @return id mapper
    */
-  public Function<Movement, String> getMovementIdMapper(){
-    return get(Movement.class);
+  public Function<BannedMovement, String> getMovementIdMapper(){
+    return get(BannedMovement.class);
   }
 
   /** get id mapper for traveller types

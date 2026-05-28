@@ -9,7 +9,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.misc.LoggingUtils;
-import org.goplanit.utils.network.layer.physical.Movement;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
@@ -180,7 +180,7 @@ public class ConjugateVirtualNetworkImpl extends Network implements ConjugateVir
       GraphEntityDeepCopyMapper<? extends ConnectoidDirectedEdge> connectoidEdgeMapper,
       GraphEntityDeepCopyMapper<? extends ConnectoidSegment> connectoidSegmentMapper,
       GraphEntityDeepCopyMapper<? extends DirectedVertex> conjugateNodeMapper,
-      ManagedIdDeepCopyMapper<Movement> conjugateMovementMapper) {
+      ManagedIdDeepCopyMapper<BannedMovement> conjugateMovementMapper) {
     // conjugateMovementMapper ignored since conjugate network should have no movements (or at least not supported now)
     return new ConjugateVirtualNetworkImpl(
         this,
