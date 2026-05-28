@@ -12,10 +12,11 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
  * @author markr
  *
  */
-public class RemoveSubGraphVertexEvent extends EventImpl implements GraphModificationEvent {
+public class RemoveVertexEvent extends EventImpl implements GraphModificationEvent {
 
   /** event type fired off when sub graph vertex has been removed */
-  public static final GraphModifierEventType EVENT_TYPE = new GraphModifierEventType("GRAPHMODIFIER.SUBGRAPH.VERTEX.REMOVE");
+  public static final GraphModifierEventType EVENT_TYPE =
+      new GraphModifierEventType("GRAPHMODIFIER.VERTEX.REMOVE");
 
   /**
    * Constructor
@@ -23,7 +24,7 @@ public class RemoveSubGraphVertexEvent extends EventImpl implements GraphModific
    * @param source        graph modifier firing the event
    * @param removedVertex vertex that is removed
    */
-  public RemoveSubGraphVertexEvent(GraphModifier<?, ?> source, Vertex removedVertex) {
+  public RemoveVertexEvent(GraphModifier<?, ?> source, Vertex removedVertex) {
     super(EVENT_TYPE, source, removedVertex);
   }
 

@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.modifier.event.RemoveSubGraphEvent;
-import org.goplanit.graph.modifier.event.RemoveSubGraphVertexEvent;
+import org.goplanit.graph.modifier.event.RemoveGraphEntityEvent;
+import org.goplanit.graph.modifier.event.RemoveVertexEvent;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -122,7 +122,7 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
    */
   @Override
   public EventType[] getKnownSupportedEventTypes() {
-    return new EventType[] { RemoveSubGraphVertexEvent.EVENT_TYPE, RemoveSubGraphEvent.EVENT_TYPE };
+    return new EventType[] { RemoveVertexEvent.EVENT_TYPE, RemoveGraphEntityEvent.EVENT_TYPE };
   }
 
   /**
@@ -130,9 +130,9 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
    */
   @Override
   public void onGraphModificationEvent(GraphModificationEvent event) {
-    if (event.getType().equals(RemoveSubGraphVertexEvent.EVENT_TYPE)) {
-      removeConnectoidsWithAccessVertex(RemoveSubGraphVertexEvent.class.cast(event).getRemovedVertex());
-    } else if (event.getType().equals(RemoveSubGraphEvent.EVENT_TYPE)) {
+    if (event.getType().equals(RemoveVertexEvent.EVENT_TYPE)) {
+      removeConnectoidsWithAccessVertex(RemoveVertexEvent.class.cast(event).getRemovedVertex());
+    } else if (event.getType().equals(RemoveGraphEntityEvent.EVENT_TYPE)) {
       afterSubGraphRemovalComplete();
     } else {
       LOGGER.warning(String.format("%s invoked for unsupported event", UpdateConnectoidsOnVertexRemovalHandler.class.getName()));

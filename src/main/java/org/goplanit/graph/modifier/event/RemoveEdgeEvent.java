@@ -12,11 +12,11 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
  * @author markr
  *
  */
-public class RemoveSubGraphEdgeEvent extends EventImpl implements GraphModificationEvent {
+public class RemoveEdgeEvent extends EventImpl implements GraphModificationEvent {
 
   /** event type fired off when sub graph edge has been removed */
   public static final GraphModifierEventType EVENT_TYPE =
-          new GraphModifierEventType("GRAPHMODIFIER.SUBGRAPH.EDGE.REMOVE");
+          new GraphModifierEventType("GRAPHMODIFIER.EDGE.REMOVE");
 
   /**
    * Constructor
@@ -24,7 +24,7 @@ public class RemoveSubGraphEdgeEvent extends EventImpl implements GraphModificat
    * @param source      graph modifier firing the event
    * @param removedEdge edge that is removed
    */
-  public RemoveSubGraphEdgeEvent(GraphModifier<?, ?> source, Edge removedEdge) {
+  public RemoveEdgeEvent(GraphModifier<?, ?> source, Edge removedEdge) {
     super(EVENT_TYPE, source, removedEdge);
   }
 

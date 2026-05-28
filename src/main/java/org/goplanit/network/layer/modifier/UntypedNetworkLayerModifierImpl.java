@@ -14,6 +14,7 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
+import org.goplanit.utils.network.layer.physical.BannedMovement;
 
 /**
  * Modifier class for model free network layer, generics used to allow derived classes to provide typed versions
@@ -53,21 +54,24 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
     this.graphModifier = new DirectedGraphModifierImpl(graph);
   }
 
-  // Getters - Setters
-
   /**
-   * Break the passed in links by inserting the passed in node in between. After completion the original
-   * links remain as (NodeA,NodeToBreakAt), and new links as inserted for (NodeToBreakAt,NodeB).
-   * Underlying link segments (if any) are also updated accordingly in the same manner
-   * 
-   * @param linksToBreak  the links to break
-   * @param nodeToBreakAt the node to break at
-   * @param crs           to use to recompute link lengths of broken links
-   * @return the broken links for each original link's internal id
+   * {@inheritDoc}
    */
   @Override
   public Map<Long, Pair<E, E>> breakAt(List<E> linksToBreak, V nodeToBreakAt, CoordinateReferenceSystem crs) {
     return graphModifier.breakEdgesAt(linksToBreak, nodeToBreakAt, crs);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<Long, Pair<E, E>> breakAt(
+      List<E> linksToBreak,
+      V nodeToBreakAt,
+      Map<? extends V, List<BannedMovement>> movementsByCentreVertex,
+      CoordinateReferenceSystem crs) {
+    return graphModifier.breakEdgesAt(linksToBreak, nodeToBreakAt, movementsByCentreVertex, crs);
   }
 
   /**

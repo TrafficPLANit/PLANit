@@ -147,8 +147,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
 
     /* remove vertex from graph and fire event */
     theGraph.getVertices().remove(vertex.getId());
-    if (hasListener(RemoveSubGraphVertexEvent.EVENT_TYPE)) {
-      fireEvent(new RemoveSubGraphVertexEvent(this, vertex));
+    if (hasListener(RemoveVertexEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveVertexEvent(this, vertex));
     }
   }
 
@@ -170,8 +170,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
 
     /* remove edge from graph and fire event */
     theGraph.getEdges().remove(edge.getId());
-    if (hasListener(RemoveSubGraphEdgeEvent.EVENT_TYPE)) {
-      fireEvent(new RemoveSubGraphEdgeEvent(this, edge));
+    if (hasListener(RemoveEdgeEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveEdgeEvent(this, edge));
     }
   }
 
@@ -245,8 +245,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
       }
 
       /* fire remove subgraph event */
-      if (hasListener(RemoveSubGraphEvent.EVENT_TYPE)) {
-        fireEvent(new RemoveSubGraphEvent(this));
+      if (hasListener(RemoveGraphEntityEvent.EVENT_TYPE)) {
+        fireEvent(new RemoveGraphEntityEvent(this));
       }
 
     }
