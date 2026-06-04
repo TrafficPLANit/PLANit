@@ -10,6 +10,7 @@ import org.goplanit.utils.geo.PlanitCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdMapperType;
+import org.goplanit.utils.locale.CountryNames;
 import org.locationtech.jts.geom.Coordinate;
 
 import java.util.logging.Logger;
@@ -82,14 +83,16 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
   private CoordinateReferenceSystem identifyDestinationCoordinateReferenceSystem(
           CoordinateReferenceSystem overwriteCrs, String countryName, CoordinateReferenceSystem fallBackCrs){
 
-    /* CRS and transformer (if needed) */
+    /* CRS and transformer (if needed) based on dedicated non-generic country*/
     CoordinateReferenceSystem destinationCrs = overwriteCrs;
-    if (destinationCrs == null && countryName != null) {
+    if (destinationCrs == null && countryName != null && !countryName.equals(CountryNames.GLOBAL)) {
       destinationCrs = PlanitCrsUtils.createCoordinateReferenceSystem(ProjectedEpsgCodesByCountry.getEpsg(countryName));
     }
+    // if not found, we prefer the fallback CRS if available
     if (destinationCrs == null) {
       destinationCrs = fallBackCrs;
     }
+
     PlanItRunTimeException.throwIfNull(destinationCrs, "Destination Coordinate Reference System is null, " +
         "this is not allowed");
     return destinationCrs;
@@ -130,8 +133,8 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
     return srsName;
   }
 
-  /** prepare the Crs transformer (if any) based on the user configuration settings. To be invoked internally by deriving writer
-   * just before actual writing starts
+  /** prepare the Crs transformer (if any) based on the user configuration settings. To be invoked internally
+   * by deriving writer just before actual writing starts
    *
    * @param sourceCrs the crs used for the source material of this writer
    * @param userDefinedDestinationCrs the user configured destination Crs (if any)
@@ -149,7 +152,8 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
     /* CRS and transformer (if needed) */
     CoordinateReferenceSystem identifiedDestinationCrs =
             identifyDestinationCoordinateReferenceSystem(userDefinedDestinationCrs, destinationCountry, sourceCrs);
-    PlanItRunTimeException.throwIfNull(identifiedDestinationCrs, "Destination Coordinate Reference System is null, this is not allowed");
+    PlanItRunTimeException.throwIfNull(identifiedDestinationCrs,
+        "Destination Coordinate Reference System is null, this is not allowed");
 
     if(identifiedDestinationCrs != null){
       LOGGER.info(String.format("CRS set to: %s", identifiedDestinationCrs.getName()));
