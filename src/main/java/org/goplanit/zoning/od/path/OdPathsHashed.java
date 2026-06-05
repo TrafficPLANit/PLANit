@@ -12,15 +12,17 @@ import org.goplanit.utils.zoning.OdZones;
  * two keys (o and d).
  *
  * @author markr
- *
+ * @param <T> type of path
  */
 public class OdPathsHashed<T extends ManagedDirectedPath> extends ZoneToZoneHashedImpl<T> implements OdPaths<T> {
 
   /**
    * Wrapper around hashed iterator for od paths
    *
+   * @param <U> type of path
    */
-  public class OdPathsHashedIterator<U extends ManagedDirectedPath> extends ZoneToZoneHashedIterator<U> implements OdPathIterator<U> {
+  public class OdPathsHashedIterator<U extends ManagedDirectedPath> extends ZoneToZoneHashedIterator<U>
+      implements OdPathIterator<U> {
 
     public OdPathsHashedIterator(OdPathsHashed<U> container) {
       super(container, container.zones);

@@ -12,12 +12,16 @@ import org.goplanit.utils.id.IdGroupingToken;
 
 /**
  * 
- * A conjugate directed graph implementation consisting of conjugate directed vertices, conjugate directed edges and conjugate edge segments
+ * A conjugate directed graph implementation consisting of conjugate directed vertices, conjugate directed edges and
+ * conjugate edge segments
  * 
  * @author markr
- *
+ * @param <ES> type of edge segment
+ * @param <V> type of vertex
+ * @param <E> type of edge
  */
-public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E extends ConjugateDirectedEdge, ES extends ConjugateEdgeSegment>
+public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex,
+    E extends ConjugateDirectedEdge, ES extends ConjugateEdgeSegment>
     extends UntypedDirectedGraphImpl<V, E, ES> implements DirectedGraph<V, E, ES> {
 
   /** the logger */

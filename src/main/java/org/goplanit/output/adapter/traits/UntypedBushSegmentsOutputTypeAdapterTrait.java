@@ -11,7 +11,7 @@ import java.util.Set;
  * persisting of its link information.
  * 
  * @author markr
- *
+ * @param <ES> type of segment
  */
 public interface UntypedBushSegmentsOutputTypeAdapterTrait<ES extends EdgeSegment>
         extends NetworkSegmentsOutputTypeAdapterTrait<ES> {

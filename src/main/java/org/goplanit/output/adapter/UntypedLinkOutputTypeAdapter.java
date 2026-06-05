@@ -16,7 +16,7 @@ import java.util.Optional;
  * containerized or stored in a larger setting.
  *
  * @author gman6028, markr
- *
+ * @param <T> type of segment
  */
 public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends UntypedEdgeOutputTypeAdapter<T> {
 

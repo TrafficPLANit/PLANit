@@ -19,10 +19,11 @@ import java.util.logging.Logger;
  * </p>
  * 
  * @author markr
- *
+ * @param <V> type of virtual network
+ * @param <G> type of physical network
  */
-public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V extends UntypedVirtualNetwork<?>>
-    implements TransportModelNetwork<G,V> {
+public abstract class UntypedTransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>,
+    V extends UntypedVirtualNetwork<?>> implements TransportModelNetwork<G,V> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(UntypedTransportModelNetwork.class.getCanonicalName());

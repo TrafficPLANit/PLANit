@@ -87,14 +87,15 @@ public abstract class CumulativeEvent extends EventImpl {
 
   // getters - setters
 
-  /**
+  /** get content
    * @return the unique id
    */
   public long getId() {
     return getEventContentByIndex(0);
   }
 
-  /**
+  /** get point
+   *
    * @return the cumulative point
    */
   public final CumulativePoint getCumulativePoint() {

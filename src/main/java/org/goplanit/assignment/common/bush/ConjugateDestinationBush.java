@@ -699,30 +699,58 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   }
 
   // todo: replace with proper gap function for now just inject raw data
+  /** setter
+   *
+   * @param demandScaledNetworkMinPathCostBush  value
+   */
   public void setNetworkBasedMinCostForGap(double demandScaledNetworkMinPathCostBush) {
     this.demandScaledNetworkMinPathCostBush = demandScaledNetworkMinPathCostBush;
   }
 
+  /** getter
+   *
+   * @return result
+   */
   public double getNetworkBasedMinCostForGap() {
     return this.demandScaledNetworkMinPathCostBush;
   }
 
+  /** setter
+   *
+   * @param demandScaledWithinBushMinPathCost  value
+   */
   public void setWithinBushMinCostForGap(double demandScaledWithinBushMinPathCost) {
     this.demandScaledWithinBushMinPathCost = demandScaledWithinBushMinPathCost;
   }
 
+  /** getter
+   *
+   * @return result
+   */
   public double getWithinBushMinCostForGap() {
     return this.demandScaledWithinBushMinPathCost;
   }
 
+  /** setter
+   *
+   * @param demandScaledRealisedCostBush  value
+   */
   public void setRealisedCostForGap(double demandScaledRealisedCostBush) {
     this.demandScaledRealisedCostBush = demandScaledRealisedCostBush;
   }
 
+  /** getter
+   *
+   * @return result
+   */
   public double getRealisedCostForGap() {
     return this.demandScaledRealisedCostBush;
   }
 
+  /** getter
+   *
+   * @return result
+   */
   public boolean isConvergedBeyond(double thresholdGap){
     double bushGap = (demandScaledRealisedCostBush - demandScaledNetworkMinPathCostBush)/ demandScaledNetworkMinPathCostBush;
     // only apply margin if not interfering with precision of check

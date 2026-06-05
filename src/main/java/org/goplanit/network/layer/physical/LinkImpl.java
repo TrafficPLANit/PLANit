@@ -11,13 +11,15 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.physical.Link;
 
 /**
- * Link class connecting two nodes via some geometry. Each link has one or two underlying link segments in a particular direction which may carry additional information for each
- * particular direction of the link.
+ * Link class connecting two nodes via some geometry. Each link has one or two underlying link segments in a
+ * particular direction which may carry additional information for each particular direction of the link.
  *
  * @author markr
- *
+ * @param <LS> type of segment
+ * @param <N> type of node
  */
-public class LinkImpl<N extends DirectedVertex, LS extends EdgeSegment> extends DirectedEdgeImpl<N, LS> implements Link {
+public class LinkImpl<N extends DirectedVertex, LS extends EdgeSegment>
+    extends DirectedEdgeImpl<N, LS> implements Link {
 
   // Protected
 
@@ -157,12 +159,15 @@ public class LinkImpl<N extends DirectedVertex, LS extends EdgeSegment> extends 
     if (super.validate()) {
 
       if (getGeometry() != null) {
-        if (!getNodeA().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(0), Precision.EPSILON_6)) {
+        if (!getNodeA().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(0),
+            Precision.EPSILON_6)) {
           return false;
         }
 
-        if (!getNodeB().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(getGeometry().getNumPoints() - 1),Precision.EPSILON_6)) {
-          LOGGER.warning(String.format("link (id:%d externalId:%s) geometry inconsistent with extreme node B", getId(), getExternalId()));
+        if (!getNodeB().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(
+            getGeometry().getNumPoints() - 1),Precision.EPSILON_6)) {
+          LOGGER.warning(String.format("link (id:%d externalId:%s) geometry inconsistent with extreme node B",
+              getId(), getExternalId()));
           return false;
         }
       }

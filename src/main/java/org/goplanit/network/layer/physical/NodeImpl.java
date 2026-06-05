@@ -15,6 +15,7 @@ import org.goplanit.utils.network.layer.physical.Node;
  *
  * @author markr
  *
+ * @param <LS> type of edge segment
  */
 public class NodeImpl<LS extends EdgeSegment> extends DirectedVertexImpl<LS> implements Node {
 

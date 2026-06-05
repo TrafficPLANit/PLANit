@@ -17,7 +17,7 @@ import java.util.Optional;
  * todo: split in edge segment and link segment version now that we need the distinction
  * 
  * @author gman6028, markr
- *
+ * @param <T> type of edge segment
  */
 public interface UntypedEdgeOutputTypeAdapter<T extends EdgeSegment> extends OutputTypeAdapter {
 
@@ -204,8 +204,10 @@ public interface UntypedEdgeOutputTypeAdapter<T extends EdgeSegment> extends Out
         getEdgeGeometry(edgeSegment.getParent(), constructGeometryFromNodesIfUnavailable, edgeSegment.isDirectionAb());
 
     /* force geometry to be in travel direction of segment if configured as such */
-    boolean mayNeedReversal = edgeSegment.getParent().hasGeometry(); // only when geometry is not constructed from nodes we may need to reverse
-    boolean collectedEdgeGeometryValid = collectedEdgeGeometry.isPresent() && (collectedEdgeGeometry.get() instanceof Geometry);
+    // only when geometry is not constructed from nodes we may need to reverse
+    boolean mayNeedReversal = edgeSegment.getParent().hasGeometry();
+    boolean collectedEdgeGeometryValid = collectedEdgeGeometry.isPresent() &&
+        (collectedEdgeGeometry.get() instanceof Geometry);
     if(mayNeedReversal && forceSegmentDirection && collectedEdgeGeometryValid){
       boolean reverseGeometry = edgeSegment.getParent().isGeometryInAbDirection() != edgeSegment.isDirectionAb();
       if(reverseGeometry){

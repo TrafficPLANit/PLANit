@@ -11,20 +11,26 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * This class stores (multiple) paths per origin and destination by creating a unique hash for the combined ids of the od zones. This results in a memory efficient implementation
- * on the Od aspect of the data, requiring only a single hash based container, instead of having containers for each origin (and or destination).
+ * This class stores (multiple) paths per origin and destination by creating a unique hash for the combined ids of
+ * the od zones. This results in a memory efficient implementation on the Od aspect of the data, requiring only a
+ * single hash based container, instead of having containers for each origin (and or destination).
  * It also means only conducting a single lookup despite the fact we have two keys (o and d).
  *
  * @author markr
- *
+ * @param <T> type of path
+ * @param <U> type of list of paths
  */
-public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends List<T>> extends ZoneToZoneHashedImpl<U> implements OdMultiPaths<T, U> {
+public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends List<T>>
+    extends ZoneToZoneHashedImpl<U> implements OdMultiPaths<T, U> {
 
   /**
    * Wrapper around hashed iterator for od paths
    *
+   * @param <V> type of path
+   * @param <W> type of list of path
    */
-  public static class OdPathsHashedIterator<V extends ManagedDirectedPath, W extends List<V>> extends ZoneToZoneHashedIterator<W> implements OdMultiPathIterator<V,W> {
+  public static class OdPathsHashedIterator<V extends ManagedDirectedPath, W extends List<V>>
+      extends ZoneToZoneHashedIterator<W> implements OdMultiPathIterator<V,W> {
 
     public OdPathsHashedIterator(OdMultiPathsHashed<V,W> container) {
       super(container, container.zones);
@@ -62,7 +68,8 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends List<T>
                             original -> {
                               // create empty collection of same type as original
                               final U newCollecctionInstance =
-                                      (U) ReflectionUtils.createInstance(original.getClass().getCanonicalName(), original.size());
+                                      (U) ReflectionUtils.createInstance(
+                                          original.getClass().getCanonicalName(), original.size());
                               // add all entries to the new container
                               original.forEach(e -> newCollecctionInstance.add((T) cloneFunc.apply(e)));
                               // place container on this class

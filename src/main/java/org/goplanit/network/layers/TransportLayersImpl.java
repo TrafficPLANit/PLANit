@@ -15,6 +15,7 @@ import org.goplanit.utils.network.layers.NetworkLayers;
  * 
  * @author markr
  *
+ * @param <T> type of layer
  */
 public abstract class TransportLayersImpl<T extends NetworkLayer>
         extends ManagedIdEntitiesImpl<T> implements NetworkLayers<T> {

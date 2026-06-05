@@ -8,6 +8,9 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 
+/**
+ * Cost utilities for conjugate setups
+ */
 public class ConjugateCostUtils {
 
 

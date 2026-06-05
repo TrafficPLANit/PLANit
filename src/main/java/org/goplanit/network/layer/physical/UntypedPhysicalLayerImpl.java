@@ -16,6 +16,10 @@ import org.goplanit.utils.network.layer.physical.*;
  * This network does not contain any transport specific information, hence the qualification "model free".
  *
  * @author markr
+ *
+ * @param <L> type of links
+ * @param <N> type of nodes
+ * @param <LS> type of segments
  */
 public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, LS extends LinkSegment>
     extends UntypedNetworkLayerImpl<N, L, LS>
@@ -67,7 +71,11 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
    */
   public <Nx extends ManagedGraphEntities<N>, Lx extends ManagedGraphEntities<L>, Sx extends ManagedGraphEntities<LS>>
   UntypedPhysicalLayerImpl(
-      final IdGroupingToken tokenId, final Nx nodes, final Lx links, final Sx linkSegments, final BannedMovements bannedMovements) {
+      final IdGroupingToken tokenId,
+      final Nx nodes,
+      final Lx links,
+      final Sx linkSegments,
+      final BannedMovements bannedMovements) {
     super(tokenId, nodes, links, linkSegments, bannedMovements);
   }
 

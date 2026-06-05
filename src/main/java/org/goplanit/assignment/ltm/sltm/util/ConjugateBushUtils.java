@@ -99,6 +99,14 @@ public class ConjugateBushUtils {
     return bushSendingFlows;
   }
 
+  /**
+   * Check eligibility
+   *
+   * @param linkSegment to use
+   * @param conjLinkSegmentCosts to use
+   * @param conjBushMinMaxPaths to use
+   * @return result
+   */
   public static Triple<Boolean, Double, Boolean> isEligibleForAdding(
       ConjugateEdgeSegment linkSegment,
       double[] conjLinkSegmentCosts,

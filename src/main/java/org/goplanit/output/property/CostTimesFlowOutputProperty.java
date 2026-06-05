@@ -11,6 +11,7 @@ import org.goplanit.utils.unit.Unit;
  */
 public final class CostTimesFlowOutputProperty extends OutputProperty {
 
+  /** property name */
   public static final String NAME = "Cost_X_Flow";
 
   /**

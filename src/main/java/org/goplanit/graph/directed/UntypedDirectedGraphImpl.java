@@ -18,7 +18,9 @@ import org.goplanit.utils.network.layer.physical.MovementUtils;
  * A directed graph implementation consisting of directed vertices and directed edges
  * 
  * @author markr
- *
+ * @param <E> type of edge
+ * @param <V> type of vertex
+ * @param <ES> type of edge segment
  */
 public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment>
     extends UntypedGraphImpl<V, E> implements UntypedDirectedGraph<V, E, ES> {
@@ -93,9 +95,12 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
     if(deepCopy) {
       this.edgeSegments = directedGraphImpl.getEdgeSegments().deepCloneWithMapping(edgeSegmentMapper);
       this.bannedMovements = directedGraphImpl.bannedMovements.deepCloneWithMapping(movementMapper);
-      EdgeSegmentUtils.updateEdgeSegmentParentEdges(edgeSegments, edgeMapper::getMapping, true);
-      DirectedEdgeUtils.updateDirectedEdgeEdgeSegments(edges, edgeSegmentMapper::getMapping, true);
-      MovementUtils.updateMovementSegmentMapping(bannedMovements, edgeSegmentMapper::getMapping, true);
+      EdgeSegmentUtils.updateEdgeSegmentParentEdges(
+          edgeSegments, edgeMapper::getMapping, true);
+      DirectedEdgeUtils.updateDirectedEdgeEdgeSegments(
+          edges, edgeSegmentMapper::getMapping, true);
+      MovementUtils.updateMovementSegmentMapping(
+          bannedMovements, edgeSegmentMapper::getMapping, true);
     }else{
       this.edgeSegments = directedGraphImpl.getEdgeSegments().shallowClone();
       this.bannedMovements = directedGraphImpl.getMovements().shallowClone();
@@ -139,7 +144,8 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
   }
 
   /**
-   * A smart deep clone updates known interdependencies between vertices, edges, and edge segments utilising the graph entity deep copy mappers
+   * A smart deep clone updates known interdependencies between vertices, edges, and edge segments utilising
+   * the graph entity deep copy mappers
    *
    * @param vertexMapper tracking original to copy mappings
    * @param edgeMapper tracking original to copy mappings

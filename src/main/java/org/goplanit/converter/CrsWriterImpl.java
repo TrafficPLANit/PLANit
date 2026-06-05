@@ -15,6 +15,10 @@ import org.locationtech.jts.geom.Coordinate;
 
 import java.util.logging.Logger;
 
+/**
+ * Base class for writers that depend on coordinate reference system
+ * @param <T> type of writer
+ */
 public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
 
   /** the logger to use */
@@ -26,7 +30,8 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
   /** The destination Crs we're using */
   CoordinateReferenceSystem destinationCrs;
 
-  /** when the destination CRS differs from the network CRS all geometries require transforming, for which this transformer will be initialised */
+  /** when the destination CRS differs from the network CRS all geometries require transforming, for which
+   * this transformer will be initialised */
   private MathTransform destinationCrsTransformer = null;
 
 
@@ -72,7 +77,8 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
   }
 
   /**
-   * identify what the destination Crs is supposed to be. If directly set by user we use the overwriteCrs, if null then we try to extract an appropriate Crs by the country name.
+   * identify what the destination Crs is supposed to be. If directly set by user we use the overwriteCrs,
+   * if null then we try to extract an appropriate Crs by the country name.
    * If no such mapping exists, we return the fallback option that must be provided.
    *
    * @param overwriteCrs this Crs takes precedence and is returned if present
@@ -162,7 +168,8 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
     /* configure crs transformer if required, to be able to convert geometries to preferred CRS while writing */
     if(!identifiedDestinationCrs.equals(sourceCrs)) {
       destinationCrsTransformer = PlanitJtsUtils.findMathTransform(sourceCrs, identifiedDestinationCrs);
-      LOGGER.info(String.format("Geometries will be converted from source CRS (%s) to destination CRS (%s) during writing", sourceCrs.getName(), identifiedDestinationCrs.getName()));
+      LOGGER.info(String.format("Geometries will be converted from source CRS (%s) to destination CRS (%s)" +
+          " during writing", sourceCrs.getName(), identifiedDestinationCrs.getName()));
     }else{
       LOGGER.info("Source CRS same as destination CRS, no transformation applied during writing");
     }

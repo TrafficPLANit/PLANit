@@ -18,10 +18,12 @@ import org.goplanit.utils.network.layer.physical.BannedMovements;
  * A directed graph implementation consisting of directed vertices, directed edges and edge segments
  * 
  * @author markr
- *
+ * @param <E> type of edge
+ * @param <ES> type of edge segment
+ * @param <V> type of vertex
  */
-public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> extends UntypedDirectedGraphImpl<V, E, ES>
-    implements DirectedGraph<V, E, ES> {
+public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
+    ES extends EdgeSegment> extends UntypedDirectedGraphImpl<V, E, ES> implements DirectedGraph<V, E, ES> {
 
   /** the logger */
   @SuppressWarnings("unused")

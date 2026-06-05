@@ -9,11 +9,12 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
- * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry additional information for each
- * particular direction of the edge.
+ * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a
+ * particular direction which may carry additional information for each particular direction of the edge.
  *
  * @author markr
- *
+ * @param <V> type of vertex
+ * @param <ES> type of edge segment
  */
 public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment>
         extends EdgeImpl<V> implements DirectedEdge {
@@ -68,7 +69,8 @@ public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment>
   }
 
   /**
-   * Copy Constructor. Edge segments are shallow copied and point to the passed in edge as their parent So additional effort is needed to make the new edge usable
+   * Copy Constructor. Edge segments are shallow copied and point to the passed in edge as their parent So
+   * additional effort is needed to make the new edge usable
    * 
    * @param directedEdgeImpl to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise

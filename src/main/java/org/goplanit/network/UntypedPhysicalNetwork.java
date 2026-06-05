@@ -11,10 +11,11 @@ import org.goplanit.utils.network.layers.UntypedPhysicalNetworkLayers;
  * A network that comprises physical topological transport network elements, i.e., roads, rail, etc.
  * 
  * @author markr
- *
+ * @param <LS> type of layer container
+ * @param <L> type of layer
  */
-public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?, ?>, LS extends UntypedPhysicalNetworkLayers<L>>
-        extends TopologicalLayerNetwork<L, LS> {
+public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?, ?>,
+    LS extends UntypedPhysicalNetworkLayers<L>> extends TopologicalLayerNetwork<L, LS> {
 
   /**
    * generated UID

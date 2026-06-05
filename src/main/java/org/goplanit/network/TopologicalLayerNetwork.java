@@ -13,11 +13,12 @@ import org.goplanit.utils.network.layer.TopologicalLayer;
 import org.goplanit.utils.network.layers.TopologicalLayers;
 
 /**
- * A network with topological transport layers, meaning that apart from representing a physical reality the result is topologically meaningful, has nodes, links, and some
- * geographic notion via a coordinate reference system
+ * A network with topological transport layers, meaning that apart from representing a physical reality the result
+ * is topologically meaningful, has nodes, links, and some geographic notion via a coordinate reference system
  * 
  * @author markr
- *
+ * @param <T> type of layer
+ * @param <U> type of layer containr
  */
 public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U extends TopologicalLayers<T>>
         extends LayeredNetwork<T, U> {
@@ -63,7 +64,9 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
    * @param coordinateReferenceSystem preferred coordinate reference system to use
    */
   public TopologicalLayerNetwork(
-          IdGroupingToken tokenId, IdGroupingToken networkGroupingToken, CoordinateReferenceSystem coordinateReferenceSystem) {
+          IdGroupingToken tokenId,
+          IdGroupingToken networkGroupingToken,
+          CoordinateReferenceSystem coordinateReferenceSystem) {
     super(tokenId, networkGroupingToken);
 
     /* default crs */
@@ -125,8 +128,8 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
   }
 
   /**
-   * Based on the underlying layer geographies construct a rectangular bounding box reflecting the extremities of the network.
-   * Note this is created from scratch with every call, so for large networks this is a costly operation
+   * Based on the underlying layer geographies construct a rectangular bounding box reflecting the extremities of
+   * the network. Note this is created from scratch with every call, so for large networks this is a costly operation
    *
    * @return bounding box envelope
    */

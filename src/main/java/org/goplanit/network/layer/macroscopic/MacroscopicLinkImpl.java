@@ -9,13 +9,15 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import java.util.logging.Logger;
 
 /**
- * Link class connecting two nodes via some geometry. Each link has one or two underlying link segments in a particular direction which may carry additional information for each
- * particular direction of the link.
+ * Link class connecting two nodes via some geometry. Each link has one or two underlying link segments in a
+ * particular direction which may carry additional information for each particular direction of the link.
  *
  * @author markr
- *
+ * @param <LS> type of segment
+ * @param <N> type of node
  */
-public class MacroscopicLinkImpl<N extends DirectedVertex, LS extends MacroscopicLinkSegment> extends LinkImpl<N, LS> implements MacroscopicLink {
+public class MacroscopicLinkImpl<N extends DirectedVertex, LS extends MacroscopicLinkSegment>
+    extends LinkImpl<N, LS> implements MacroscopicLink {
 
   // Protected
 

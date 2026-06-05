@@ -13,20 +13,36 @@ import java.util.Comparator;
  */
 public enum DataType {
 
+  /** double */
   DOUBLE("DOUBLE"),
+  /** float */
   FLOAT("FLOAT"),
+  /** integer */
   INTEGER("INTEGER"),
+  /** long */
   LONG("LONG"),
+  /** boolean */
   BOOLEAN("BOOLEAN"),
+  /** string */
   STRING("STRING"),
+  /** srs */
   SRSNAME("SRSNAME");
-  
+
+  /** the value */
   private final String value;
 
+  /**
+   * Constructor
+   * @param v value
+   */
   DataType(String v) {
     value = v;
   }
 
+  /**
+   * Get the value
+   * @return value
+   */
   public String value() {
     return value;
   }
@@ -83,13 +99,14 @@ public enum DataType {
       case FLOAT:
       case DOUBLE:
         if (!dataType.isPrecisionBased()) {
-          throw new PlanItRunTimeException("Unable to create precision based comaprator for data type %s which is not precision based",
-              dataType);
+          throw new PlanItRunTimeException("Unable to create precision based comaprator for data type %s " +
+              "which is not precision based",dataType);
         }
         // ensure that we do not need to know the type, we allow for hard cast upon comaprison being conducted
         return Precision.createComparatorWithCast(epsilon);
       default:
-        throw new PlanItRunTimeException("Unsupported data type %s, for creating precision comparator for", dataType);
+        throw new PlanItRunTimeException("Unsupported data type %s, for creating precision comparator for",
+            dataType);
     }
   }
 }

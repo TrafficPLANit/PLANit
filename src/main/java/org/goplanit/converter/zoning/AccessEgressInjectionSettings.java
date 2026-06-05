@@ -1,5 +1,10 @@
 package org.goplanit.converter.zoning;
 
+/**
+ * Setting for access egress injection
+ *
+ * @author markr
+ */
 public class AccessEgressInjectionSettings {
 
   /**
@@ -68,6 +73,10 @@ public class AccessEgressInjectionSettings {
    */
   public static double DEFAULT_SEARCH_RADIUS_BUS_STOP_TO_ROAD_NETWORK_M = 25;
 
+  /**
+   * Default constructor
+   */
+  public AccessEgressInjectionSettings(){}
 
   /**
    * flag for connecting ferry stops to nearby land network if not already connected

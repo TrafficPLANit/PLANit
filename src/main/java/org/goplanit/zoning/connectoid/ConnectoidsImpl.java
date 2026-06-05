@@ -20,7 +20,7 @@ import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
  * Base implementation of Connectoids container and factory class
  * 
  * @author markr
- *
+ * @param <T> type of connectoid
  */
 public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEntitiesImpl<T>
     implements Connectoids<T> {

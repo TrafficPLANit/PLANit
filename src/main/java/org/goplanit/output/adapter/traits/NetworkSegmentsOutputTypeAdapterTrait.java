@@ -13,7 +13,7 @@ import java.util.Optional;
  * </p>
  * 
  * @author markr
- *
+ * @param <ES> type of segment
  */
 public interface NetworkSegmentsOutputTypeAdapterTrait<ES extends EdgeSegment>  {
 

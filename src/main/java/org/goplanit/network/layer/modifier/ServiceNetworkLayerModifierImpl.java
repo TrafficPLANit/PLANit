@@ -28,6 +28,9 @@ import java.util.stream.Collectors;
  * </ul>
  *
  * @author markr
+ * @param <S> type of service segments
+ * @param <E> type of service leg
+ * @param <V> type of service node
  */
 public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends ServiceLeg, S extends ServiceLegSegment>
         extends UntypedNetworkLayerModifierImpl<V, E, S> implements ServiceNetworkLayerModifier<V,E,S> {
@@ -49,13 +52,15 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
    * @param serviceNetworkLayer to use
    * @param graph parent graph to base modifier on
    */
-  public ServiceNetworkLayerModifierImpl(ServiceNetworkLayerImpl serviceNetworkLayer, UntypedDirectedGraphImpl<V, E, S> graph) {
+  public ServiceNetworkLayerModifierImpl(
+      ServiceNetworkLayerImpl serviceNetworkLayer, UntypedDirectedGraphImpl<V, E, S> graph) {
     super(graph);
     this.serviceNetworkLayer = serviceNetworkLayer;
   }
 
   /**
-   * todo: implement by breaking service leg + update underlying physical link segments by assigning them to either part of broken service leg
+   * todo: implement by breaking service leg + update underlying physical link segments by assigning them to
+   * either part of broken service leg
    */
   @Override
   public Map<Long, Pair<E, E>> breakAt(
@@ -64,7 +69,8 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
   }
 
   /**
-   * todo: implement by breaking service leg + update underlying physical link segments by assigning them to either part of broken service leg
+   * todo: implement by breaking service leg + update underlying physical link segments by assigning them to
+   * either part of broken service leg
    */
   @Override
   public Map<Long, Pair<E, E>> breakAt(
@@ -76,8 +82,10 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
   }
 
   /**
-   * todo: implement by removing dangling service network subnetworks. But unclear what this means. What if service network is dangling but the underlying physical network is not
-   * for now not yet supported. If we implement it in the strict sense, we can simply borrow the functionality from super class and remove override
+   * todo: implement by removing dangling service network subnetworks. But unclear what this means. What if
+   * service network is dangling but the underlying physical network is not
+   * for now not yet supported. If we implement it in the strict sense, we can simply borrow the functionality
+   * from super class and remove override
    */
   @Override
   public void removeDanglingSubnetworks(
@@ -124,6 +132,7 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
     /* recreate managed ids, so they are contiguous again */
     graphModifier.recreateManagedEntitiesIds();
 
-    //todo redo id's due to gaps in numbering + remove routedServices afterwards (not here, needs its own modifier or events to be triggered...!)
+    //todo redo id's due to gaps in numbering + remove routedServices afterwards (not here, needs its own modifier
+    // or events to be triggered...!)
   }
 }

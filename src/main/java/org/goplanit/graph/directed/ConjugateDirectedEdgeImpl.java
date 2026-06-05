@@ -14,7 +14,8 @@ import org.locationtech.jts.geom.LineString;
  * additional information for each particular direction of the edge.
  *
  * @author markr
- *
+ * @param <V> type of vertex
+ * @param <ES> type of segment
  */
 public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES extends ConjugateEdgeSegment>
     extends DirectedEdgeImpl<V, ES> implements ConjugateDirectedEdge {

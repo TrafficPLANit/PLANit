@@ -12,7 +12,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * All path choice instances are built using this or a derived version of this builder
  *
  * @author markr
- *
+ * @param <T> type of path choice
  */
 public abstract class PathChoiceBuilder<T extends PathChoice> extends PlanitComponentBuilder<T> {
 

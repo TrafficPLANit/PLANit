@@ -8,6 +8,9 @@ package org.goplanit.converter.demands;
  */
 public class DemandsConverterFactory {
 
+  /** dummy constructor */
+  private DemandsConverterFactory(){}
+
   /**
    * Create the demands converter
    * 

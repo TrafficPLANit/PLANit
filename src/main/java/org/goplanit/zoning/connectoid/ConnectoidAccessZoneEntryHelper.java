@@ -10,11 +10,16 @@ import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
  */
 public class ConnectoidAccessZoneEntryHelper {
 
+  /** dummy constructor */
+  private ConnectoidAccessZoneEntryHelper(){}
+
   /**
    * Helper that based on the provided type creates and registeres the most likely type of access zone entry:
    * <ul>
-   *   <li>{@code ZoneConnectoidType.TRAVELLERS_ACCESS}: {@code ConnectoidAccessZoneEntry} for undirected access </li>
-   *   <li>{@code ZoneConnectoidType.PT_VEHICLE_STOP}: {@code DirectedConnectoidAccessZoneEntry} for undirected access </li>
+   *   <li>{@code ZoneConnectoidType.TRAVELLERS_ACCESS}:
+   *   {@code ConnectoidAccessZoneEntry} for undirected access </li>
+   *   <li>{@code ZoneConnectoidType.PT_VEHICLE_STOP}:
+   *   {@code DirectedConnectoidAccessZoneEntry} for undirected access </li>
    *   <li>all others: ConnectoidAccessZoneEntry for undirected access </li>
    * </ul>
    *

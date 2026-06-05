@@ -12,8 +12,10 @@ import java.util.function.BiConsumer;
  * 
  * @author markr
  *
+ * @param <L> type of layer container
  */
-public abstract class UntypedPhysicalNetworkLayersImpl<L extends UntypedPhysicalLayer<?, ?, ?>> extends TopologicalLayersImpl<L> implements UntypedPhysicalNetworkLayers<L> {
+public abstract class UntypedPhysicalNetworkLayersImpl<L extends UntypedPhysicalLayer<?, ?, ?>>
+    extends TopologicalLayersImpl<L> implements UntypedPhysicalNetworkLayers<L> {
 
   /**
    * Constructor

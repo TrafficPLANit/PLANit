@@ -28,6 +28,7 @@ public class ConjugateVirtualNetworkImpl extends Network implements ConjugateVir
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateVirtualNetworkImpl.class.getCanonicalName());
 
+  /** virtual layer of conjugate virtual network */
   protected ConjugateVirtualNetworkLayerImpl conjugateVirtualLayer;
 
   /** original virtual network this conjugate is based on */

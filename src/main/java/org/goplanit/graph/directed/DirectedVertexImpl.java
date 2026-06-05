@@ -16,7 +16,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * vertex representation connected to one or more entry and exit edges
  *
  * @author markr
- *
+ * @param <E> type of edge
  */
 public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> implements DirectedVertex {
 
@@ -24,7 +24,7 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
    * Dedicated iterable to provide access to edge segments that are either incoming or outgoing for this vertex
    * 
    * @author markr
-   *
+   * @param <ESI> type of edge segment
    */
   public final class EdgeSegmentIterable<ESI extends EdgeSegment> implements Iterable<ESI> {
 
@@ -69,7 +69,7 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
    * Iterator for a run over the incoming or outgoing edge segments of this vertex (non-modifiable)
    * 
    * @author markr
-   *
+   * @param <ES> type of edge segment
    */
   public class EdgeSegmentIterator<ES extends EdgeSegment> implements Iterator<ES> {
 
@@ -109,7 +109,8 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
     }
 
     /**
-     * Check if next is available by querying edges for available segment based on their vertex location matching this vertex
+     * Check if next is available by querying edges for available segment based on their vertex location
+     * matching this vertex
      * 
      * @return true when present, false otherwise
      */
@@ -127,7 +128,8 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
         } else if (edge.getVertexB() == DirectedVertexImpl.this) {
           nextEdgeSegment = (ES) (incoming ? edge.getEdgeSegmentAb() : edge.getEdgeSegmentBa());
         } else {
-          LOGGER.severe(String.format("Vertex (%s) not present on edge (%s) it holds, this shouldn't happen", DirectedVertexImpl.this.getXmlId(), edge.getXmlId()));
+          LOGGER.severe(String.format("Vertex (%s) not present on edge (%s) it holds, this shouldn't happen",
+              DirectedVertexImpl.this.getXmlId(), edge.getXmlId()));
         }
 
         if (nextEdgeSegment != null) {

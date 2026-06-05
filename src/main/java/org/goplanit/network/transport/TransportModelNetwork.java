@@ -14,7 +14,8 @@ import org.goplanit.zoning.Zoning;
  * </p>
  * 
  * @author markr
- *
+ * @param <V> type of virtual network
+ * @param <G> type of physical network
  */
 public interface TransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V extends UntypedVirtualNetwork<?>> {
 

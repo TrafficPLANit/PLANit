@@ -29,6 +29,9 @@ import org.locationtech.jts.geom.Envelope;
  * "model free".
  *
  * @author markr
+ * @param <V> type of vertex
+ * @param <E> type of edge
+ * @param <S> type of segment
  */
 public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extends DirectedEdge, S extends EdgeSegment>
     extends TopologicalLayerImpl

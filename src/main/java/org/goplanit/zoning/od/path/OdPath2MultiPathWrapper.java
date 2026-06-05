@@ -11,19 +11,22 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * This class allows an OdPath instance to be wrapped such that it can be processed as if it is an OD multi-path instance. Not to be used to add
- * paths, only to read existing paths.
+ * This class allows an OdPath instance to be wrapped such that it can be processed as if it is an OD multi-path
+ * instance. Not to be used to add paths, only to read existing paths.
  * <p>
- *   This should not be used unless there is significant benefit of using the OdPath approach during computatinal costly exercises, e.g.,
- *   assignment, and the conversion to multi-path only occurs very infrequently, since the conversion requires on-the-fly creation
- *   of container instances which is computationally costly. It may be worth the trade-off as it may save memory during simulation since
+ *   This should not be used unless there is significant benefit of using the OdPath approach during
+ *   computational costly exercises, e.g.,   assignment, and the conversion to multi-path only occurs very
+ *   infrequently, since the conversion requires on-the-fly creation   of container instances which is
+ *   computationally costly. It may be worth the trade-off as it may save memory during simulation since
  *   single paths per od require no container within the odPath instances.
  * </p>
  *
  * @author markr
- *
+ * @param <T> type of path
+ * @param <U> type of list of paths
  */
-public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends List<T>> extends ZoneToZoneDataImpl<U> implements OdMultiPaths<T, U> {
+public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends List<T>>
+    extends ZoneToZoneDataImpl<U> implements OdMultiPaths<T, U> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(OdPath2MultiPathWrapper.class.getCanonicalName());
@@ -51,7 +54,8 @@ public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends Li
    *
    * @return container to use for wrapping path
    */
-  static <W extends ManagedDirectedPath, V extends List<W>> V getContainer(boolean allowReuseContainer, final V dummyContainer, final Class<V> containerClazz){
+  static <W extends ManagedDirectedPath, V extends List<W>> V getContainer(
+      boolean allowReuseContainer, final V dummyContainer, final Class<V> containerClazz){
     if(allowReuseContainer){
       dummyContainer.clear();
       return dummyContainer;
@@ -78,7 +82,12 @@ public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends Li
    */
   public OdPath2MultiPathWrapper(
           final IdGroupingToken groupId, OdPaths<T> odSinglePaths, Class<U> containerClazz) {
-    super(OdPath2MultiPathWrapper.class, groupId, containerClazz, null /* zones are already in the od single paths we wrap */);
+    super(
+        OdPath2MultiPathWrapper.class,
+        groupId,
+        containerClazz,
+        null /* zones are already in the od single paths we wrap */);
+
     this.odSinglePaths = odSinglePaths;
     this.containerClazz = containerClazz;
     this.dummyContainer =createContainer(containerClazz);

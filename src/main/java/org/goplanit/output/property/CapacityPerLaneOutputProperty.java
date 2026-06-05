@@ -12,6 +12,11 @@ import org.goplanit.utils.unit.Unit;
 public final class CapacityPerLaneOutputProperty extends OutputProperty {
 
   /**
+   * Default constructor
+   */
+  public CapacityPerLaneOutputProperty(){};
+
+  /**
    * {@inheritDoc}
    */
   @Override

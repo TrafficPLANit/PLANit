@@ -19,10 +19,14 @@ import org.goplanit.utils.network.layer.physical.BannedMovement;
 /**
  * Modifier class for model free network layer, generics used to allow derived classes to provide typed versions
  * for containers and content of containers. It wraps a directed graph modifier while allowing the methods to be
- * typed in a more user friendly way and hide or add additional functionality compared to the raw modifications
+ * typed in a more user-friendly way and hide or add additional functionality compared to the raw modifications
  * exposed by the underlying graph modifier.
  *
  * @author markr
+ *
+ * @param <V> type of vertex
+ * @param <E> type of edge
+ * @param <S> type of segment
  */
 public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends DirectedEdge, S extends EdgeSegment>
         implements UntypedDirectedGraphLayerModifier<V, E, S> {

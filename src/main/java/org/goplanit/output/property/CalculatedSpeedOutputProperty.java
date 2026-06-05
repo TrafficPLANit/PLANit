@@ -15,6 +15,11 @@ public final class CalculatedSpeedOutputProperty extends OutputProperty {
   public static final String NAME = "Calculated Speed";
 
   /**
+   * Default constructor
+   */
+  public CalculatedSpeedOutputProperty(){};
+
+  /**
    * {@inheritDoc}
    */
   @Override

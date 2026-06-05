@@ -10,10 +10,12 @@ import org.goplanit.utils.network.layers.TopologicalLayers;
 import java.util.function.BiConsumer;
 
 /**
- * implementation of the transport layers interface, without the createNew() method, but now with base layer class of TopologicalLayer
+ * implementation of the transport layers interface, without the createNew() method, but now with base layer class
+ * of TopologicalLayer
  * 
  * @author markr
  *
+ * @param <T> type of layer
  */
 public abstract class TopologicalLayersImpl<T extends TopologicalLayer>
         extends TransportLayersImpl<T> implements TopologicalLayers<T> {

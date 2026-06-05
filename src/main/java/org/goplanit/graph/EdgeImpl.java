@@ -18,6 +18,7 @@ import org.locationtech.jts.geom.LineString;
  *
  * @author markr
  *
+ * @param <V> type of vertex
  */
 public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge {
 
