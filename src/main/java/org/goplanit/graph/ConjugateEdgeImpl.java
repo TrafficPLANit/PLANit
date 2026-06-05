@@ -17,6 +17,7 @@ import org.locationtech.jts.geom.LineString;
  *
  * @author markr
  *
+ * @param <V> type of vertex
  */
 public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> implements ConjugateEdge {
 

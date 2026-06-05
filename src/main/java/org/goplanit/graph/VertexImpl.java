@@ -12,7 +12,7 @@ import org.locationtech.jts.geom.Point;
  * Vertex representation connected to one or more entry and exit edges
  *
  * @author markr
- *
+ * @param <E> type of edge
  */
 public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Vertex {
 

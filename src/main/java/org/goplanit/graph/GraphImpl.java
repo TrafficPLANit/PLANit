@@ -11,6 +11,8 @@ import org.goplanit.utils.id.IdGroupingToken;
  * 
  * @author markr
  *
+ * @param <E> type of edge
+ * @param <V> type of vertex
  */
 public class GraphImpl<V extends Vertex, E extends Edge> extends UntypedGraphImpl<V, E> implements Graph<V, E> {
 

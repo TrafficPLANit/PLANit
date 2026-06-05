@@ -7,9 +7,6 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 
-import java.lang.reflect.Array;
-import java.util.stream.Stream;
-
 /**
  * Utilities for conjugate transport model networks
  *
@@ -35,7 +32,7 @@ public class ConjugateTransportModelNetworkUtils {
     // we throw
     if(conjugateTransportModelNetwork.getVirtualNetwork().getLayer().hasMovements() ||
         conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().stream().anyMatch(
-            UntypedPhysicalLayer::hasMovements)){
+            UntypedPhysicalLayer::hasBannedMovements)){
       throw new PlanItRunTimeException("We do not yet support banned movements in conjugate network i.c.w. creating" +
           "a mapping from pairs of segments to a conjugate segment");
     }

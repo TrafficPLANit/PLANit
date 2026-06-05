@@ -10,7 +10,8 @@ import org.goplanit.utils.id.IdGroupingToken;
  * A conjugate graph implementation consisting of conjugate vertices and conjugate edges
  * 
  * @author markr
- *
+ * @param <V> type of conjugate vertex
+ * @param <E> type of conjugate edge
  */
 public class ConjugateGraphImpl<V extends ConjugateVertex, E extends ConjugateEdge> extends
         UntypedGraphImpl<V, E> implements Graph<V, E> {

@@ -33,13 +33,15 @@ import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoid
  * 
  * An acyclic sub graph contains a subset of the full graph without cycles. The active subset of the graph is tracked by
  * explicitly registering edge segments. Edge segments are by definition directed.
- * 
+ * <p>
  * Whenever edge segments are added it is verified that no cycles are created. Also, each edge segment that is added
  * must connect to the existing subgraph's contents.
- * 
- * 
+ * </p>
+ *
  * @author markr
  *
+ * @param <E> type of edge
+ * @param <V> type of vertex
  */
 public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends EdgeSegment>
     implements UntypedACyclicSubGraph<V, E> {

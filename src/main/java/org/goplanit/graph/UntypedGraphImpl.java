@@ -13,6 +13,8 @@ import java.util.logging.Logger;
  * 
  * @author markr
  *
+ * @param <V> type of vertex
+ * @param <E> type of edge
  */
 public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleImpl implements UntypedGraph<V, E> {
 
