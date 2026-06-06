@@ -10,6 +10,7 @@ import org.goplanit.network.layer.physical.ConjugateLinkSegmentsImpl;
 import org.goplanit.network.layer.physical.ConjugateLinksImpl;
 import org.goplanit.network.layer.physical.ConjugateNodesImpl;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
+import org.goplanit.utils.graph.directed.BannedMovements;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.EdgeSegment;

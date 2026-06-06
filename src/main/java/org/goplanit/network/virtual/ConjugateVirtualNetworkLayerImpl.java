@@ -13,8 +13,8 @@ import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
-import org.goplanit.utils.network.layer.physical.BannedMovement;
-import org.goplanit.utils.network.layer.physical.BannedMovements;
+import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedMovements;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.physical.conjugate.*;
 

@@ -1,12 +1,12 @@
 package org.goplanit.network.layer;
 
+import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedMovementFactory;
+import org.goplanit.utils.graph.directed.BannedMovements;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.layer.physical.BannedMovement;
-import org.goplanit.utils.network.layer.physical.MovementFactory;
-import org.goplanit.utils.network.layer.physical.BannedMovements;
-import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.utils.network.layer.physical.*;
 
 import java.util.function.BiConsumer;
 
@@ -20,7 +20,7 @@ import java.util.function.BiConsumer;
 public class BannedMovementsImpl extends ManagedIdEntitiesImpl<BannedMovement> implements BannedMovements {
 
   /** factory to use */
-  private final MovementFactory movementFactory;
+  private final BannedMovementFactory bannedMovementFactory;
 
   /**
    * Constructor
@@ -29,7 +29,7 @@ public class BannedMovementsImpl extends ManagedIdEntitiesImpl<BannedMovement> i
    */
   public BannedMovementsImpl(final IdGroupingToken groupId) {
     super(BannedMovement::getId, BannedMovement.BANNED_MOVEMENT_ID_CLASS);
-    this.movementFactory = new MovementFactoryImpl(groupId, this);
+    this.bannedMovementFactory = new BannedMovementFactoryImpl(groupId, this);
   }
 
   /**
@@ -38,9 +38,9 @@ public class BannedMovementsImpl extends ManagedIdEntitiesImpl<BannedMovement> i
    * @param groupId     to use for creating ids for instances
    * @param factory the factory to use
    */
-  public BannedMovementsImpl(final IdGroupingToken groupId, MovementFactory factory) {
+  public BannedMovementsImpl(final IdGroupingToken groupId, BannedMovementFactory factory) {
     super(BannedMovement::getId, BannedMovement.BANNED_MOVEMENT_ID_CLASS);
-    this.movementFactory = factory;
+    this.bannedMovementFactory = factory;
   }
 
   /**
@@ -52,15 +52,15 @@ public class BannedMovementsImpl extends ManagedIdEntitiesImpl<BannedMovement> i
    */
   public BannedMovementsImpl(BannedMovementsImpl other, boolean deepCopy, BiConsumer<BannedMovement, BannedMovement> mapper) {
     super(other, deepCopy, mapper);
-    this.movementFactory = new MovementFactoryImpl(other.movementFactory.getIdGroupingToken(), this);
+    this.bannedMovementFactory = new BannedMovementFactoryImpl(other.bannedMovementFactory.getIdGroupingToken(), this);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public MovementFactory getFactory() {
-    return movementFactory;
+  public BannedMovementFactory getFactory() {
+    return bannedMovementFactory;
   }
 
   /**

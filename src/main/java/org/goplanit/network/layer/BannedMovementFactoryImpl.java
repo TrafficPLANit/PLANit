@@ -1,16 +1,18 @@
 package org.goplanit.network.layer;
 
+import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedMovementFactory;
+import org.goplanit.utils.graph.directed.BannedMovements;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
-import org.goplanit.utils.network.layer.physical.*;
 
 /**
  * Factory for creating movements on movement container
  * 
  * @author markr
  */
-public class MovementFactoryImpl extends ManagedIdEntityFactoryImpl<BannedMovement> implements MovementFactory {
+public class BannedMovementFactoryImpl extends ManagedIdEntityFactoryImpl<BannedMovement> implements BannedMovementFactory {
 
   /** container */
   private final BannedMovements bannedMovements;
@@ -21,7 +23,7 @@ public class MovementFactoryImpl extends ManagedIdEntityFactoryImpl<BannedMoveme
    * @param groupId  to use
    * @param bannedMovements to use
    */
-  protected MovementFactoryImpl(final IdGroupingToken groupId, final BannedMovements bannedMovements) {
+  protected BannedMovementFactoryImpl(final IdGroupingToken groupId, final BannedMovements bannedMovements) {
     super(groupId);
     this.bannedMovements = bannedMovements;
   }

@@ -3,7 +3,7 @@ package org.goplanit.network.transport;
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.network.layer.BannedMovementsImpl;
 import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.network.layer.physical.BannedMovements;
+import org.goplanit.utils.graph.directed.BannedMovements;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 import org.goplanit.zoning.Zoning;

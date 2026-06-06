@@ -14,7 +14,7 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
-import org.goplanit.utils.network.layer.physical.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedMovement;
 
 /**
  * Modifier class for model free network layer, generics used to allow derived classes to provide typed versions

@@ -9,7 +9,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.misc.LoggingUtils;
-import org.goplanit.utils.network.layer.physical.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;

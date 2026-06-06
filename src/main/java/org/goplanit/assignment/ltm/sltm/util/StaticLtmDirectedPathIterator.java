@@ -1,7 +1,7 @@
 package org.goplanit.assignment.ltm.sltm.util;
 
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.network.layer.physical.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedMovement;
 
 import java.util.Iterator;
 import java.util.logging.Logger;

@@ -48,7 +48,8 @@ public class ConnectoidEdgesImpl extends ManagedGraphEntitiesImpl<ConnectoidDire
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper apply to each mapping from original to copy
    */
-  public ConnectoidEdgesImpl(ConnectoidEdgesImpl other, boolean deepCopy, BiConsumer<ConnectoidDirectedEdge, ConnectoidDirectedEdge> mapper) {
+  public ConnectoidEdgesImpl(
+      ConnectoidEdgesImpl other, boolean deepCopy, BiConsumer<ConnectoidDirectedEdge, ConnectoidDirectedEdge> mapper) {
     super(other, deepCopy, mapper);
     this.connectoidEdgeFactory =
             new ConnectoidEdgeFactoryImpl(other.connectoidEdgeFactory.getIdGroupingToken(), this);

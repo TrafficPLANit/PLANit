@@ -10,7 +10,7 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
 import org.goplanit.network.virtual.VirtualNetworkImpl;
-import org.goplanit.utils.network.layer.physical.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.zoning.connectoid.*;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.utils.geo.PlanitJtsUtils;

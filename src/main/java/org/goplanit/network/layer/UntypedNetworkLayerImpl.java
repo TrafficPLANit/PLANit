@@ -19,8 +19,8 @@ import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.UntypedDirectedGraphLayer;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
-import org.goplanit.utils.network.layer.physical.BannedMovement;
-import org.goplanit.utils.network.layer.physical.BannedMovements;
+import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedMovements;
 import org.locationtech.jts.geom.Envelope;
 
 /**

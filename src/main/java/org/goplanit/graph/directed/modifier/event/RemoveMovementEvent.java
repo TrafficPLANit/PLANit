@@ -1,12 +1,11 @@
 package org.goplanit.graph.directed.modifier.event;
 
 import org.goplanit.utils.event.EventImpl;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.modifier.DirectedGraphModifier;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
-import org.goplanit.utils.network.layer.physical.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedMovement;
 
 /**
  * Event for when a movement has been removed from a (sub) graph

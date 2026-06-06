@@ -29,7 +29,7 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.network.layer.physical.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedMovement;
 
 /**
  * Implementation of a directed graph modifier that supports making changes to any untyped directed graph.
