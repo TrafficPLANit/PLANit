@@ -749,6 +749,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
 
   /** getter
    *
+   * @param thresholdGap to use
    * @return result
    */
   public boolean isConvergedBeyond(double thresholdGap){

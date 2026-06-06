@@ -79,6 +79,8 @@ public class MacroscopicNetworkLayerImpl
    *                          (when provided, may be null)
    * @param linkSegmentTypeMapper to apply in case of deep copy to each original to copy combination
    *                              (when provided, may be null)
+   * @param movementsMapper to apply in case of deep copy to each original to copy combination
+   *                        (when provided, may be null)
    */
   protected MacroscopicNetworkLayerImpl(
           MacroscopicNetworkLayerImpl other,

@@ -200,7 +200,7 @@ public class BannedMovementImpl extends ExternalIdAbleImpl implements BannedMove
 
   /**
    * Obtain geometry through segments.
-   * @return
+   * @return the geometry
    */
   @Override
   public Geometry getGeometry() {

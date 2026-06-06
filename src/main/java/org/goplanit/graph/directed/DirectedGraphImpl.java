@@ -38,6 +38,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
    * @param vertices     to use
    * @param edges        to use
    * @param edgeSegments to use
+   * @param bannedMovements to use
    */
   public DirectedGraphImpl(
       final IdGroupingToken groupToken,
