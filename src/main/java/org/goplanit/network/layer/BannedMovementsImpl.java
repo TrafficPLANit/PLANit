@@ -1,5 +1,6 @@
 package org.goplanit.network.layer;
 
+import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.graph.directed.BannedMovementFactory;
 import org.goplanit.utils.graph.directed.BannedMovements;
@@ -17,7 +18,7 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class BannedMovementsImpl extends ManagedIdEntitiesImpl<BannedMovement> implements BannedMovements {
+public class BannedMovementsImpl extends ManagedGraphEntitiesImpl<BannedMovement> implements BannedMovements {
 
   /** factory to use */
   private final BannedMovementFactory bannedMovementFactory;
@@ -50,9 +51,11 @@ public class BannedMovementsImpl extends ManagedIdEntitiesImpl<BannedMovement> i
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    * @param mapper apply to each mapping from original to copy (may be null)
    */
-  public BannedMovementsImpl(BannedMovementsImpl other, boolean deepCopy, BiConsumer<BannedMovement, BannedMovement> mapper) {
+  public BannedMovementsImpl(
+      BannedMovementsImpl other, boolean deepCopy, BiConsumer<BannedMovement, BannedMovement> mapper) {
     super(other, deepCopy, mapper);
-    this.bannedMovementFactory = new BannedMovementFactoryImpl(other.bannedMovementFactory.getIdGroupingToken(), this);
+    this.bannedMovementFactory =
+        new BannedMovementFactoryImpl(other.bannedMovementFactory.getIdGroupingToken(), this);
   }
 
   /**
