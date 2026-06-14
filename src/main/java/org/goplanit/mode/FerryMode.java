@@ -31,7 +31,8 @@ public class FerryMode extends PredefinedModeImpl {
       new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.WATER);
 
   /* default usability features of ferry (PUBLIC) */
-  public static final UsabilityModeFeatures FERRY_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
+  public static final UsabilityModeFeatures FERRY_USABLITY_FEATURES =
+      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
 
   /**
    * Constructor for ferry mode
@@ -39,7 +40,12 @@ public class FerryMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected FerryMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.FERRY, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, FERRY_PHYSICAL_FEATURES, FERRY_USABLITY_FEATURES);
+    super(groupId,
+        PredefinedModeType.FERRY,
+        DEFAULT_MAX_SPEED_KMH,
+        DEFAULT_PCU,
+        FERRY_PHYSICAL_FEATURES,
+        FERRY_USABLITY_FEATURES);
   }
 
   /**

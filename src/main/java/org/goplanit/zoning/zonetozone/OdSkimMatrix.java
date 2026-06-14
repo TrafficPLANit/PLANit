@@ -1,5 +1,6 @@
 package org.goplanit.zoning.zonetozone;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.goplanit.output.enums.SkimSubOutputType;
 import org.ojalgo.array.Array2D;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -22,6 +23,7 @@ public class OdSkimMatrix extends ZoneToZonePrimitiveMatrix<Double> {
    */
   public static class OdSkimMatrixIterator extends ZoneToZonePrimitiveMatrixIterator<Double> {
 
+    /** Constructor */
     public OdSkimMatrixIterator(final OdSkimMatrix matrix) {
       super(matrix.matrixContainer, matrix.zones);
     }
@@ -82,7 +84,7 @@ public class OdSkimMatrix extends ZoneToZonePrimitiveMatrix<Double> {
    * {@inheritDoc}
    */
   @Override
-  public OdSkimMatrixIterator iterator() {
+  public @NonNull OdSkimMatrixIterator iterator() {
     return new OdSkimMatrixIterator(this);
   }
 

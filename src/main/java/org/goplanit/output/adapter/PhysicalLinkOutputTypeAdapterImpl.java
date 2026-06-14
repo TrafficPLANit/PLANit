@@ -11,7 +11,8 @@ import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
- * Abstract class which defines the common methods required by Link output type adapters that specifically pertain to networks that have adopted physical layers for their network
+ * Abstract class which defines the common methods required by Link output type adapters that specifically pertain to
+ * networks that have adopted physical layers for their network
  * representation
  * 
  * @author gman6028

@@ -29,7 +29,8 @@ public class PathChoiceBuilderFactory {
     if (pathChoiceType.equals(PathChoice.STOCHASTIC)) {
       return new StochasticPathChoiceBuilder(projectToken, inputBuilder);
     } else {
-      throw new PlanItException(String.format("Unable to construct builder for given path choice type %s", pathChoiceType));
+      throw new PlanItException(String.format("Unable to construct builder for given path choice type %s",
+          pathChoiceType));
     }
   }
 
@@ -48,9 +49,11 @@ public class PathChoiceBuilderFactory {
           InputBuilderListener inputBuilder) throws PlanItException {
     var pathChoiceType = pathChoiceConfigurator.getClassTypeToConfigure().getCanonicalName();
     if (pathChoiceType.equals(PathChoice.STOCHASTIC)) {
-      return new StochasticPathChoiceBuilder((StochasticPathChoiceConfigurator) pathChoiceConfigurator, projectToken, inputBuilder);
+      return new StochasticPathChoiceBuilder(
+          (StochasticPathChoiceConfigurator) pathChoiceConfigurator, projectToken, inputBuilder);
     } else {
-      throw new PlanItException(String.format("Unable to construct builder for given path choice configurator type %s", pathChoiceType));
+      throw new PlanItException(String.format("Unable to construct builder for given path choice configurator " +
+          "type %s", pathChoiceType));
     }
   }
 }

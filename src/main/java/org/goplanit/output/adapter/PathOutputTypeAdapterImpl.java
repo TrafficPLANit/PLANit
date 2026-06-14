@@ -89,7 +89,8 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
       case PATH_GEOMETRY:
         return PathOutputTypeAdapter.getPathGeometry(path);
       default:
-        return Optional.of(String.format("Tried to find property of %s which is not applicable for OD path", outputProperty.getName()));
+        return Optional.of(String.format("Tried to find property of %s which is not applicable for OD path",
+            outputProperty.getName()));
     }
   }
 
@@ -107,7 +108,8 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * Returns the specified output property values for the current cell in the ODMulti-PathIterator
    * <p>
    * Since we allow for multiple paths per OD, we may end up with multiple values, one per path. Hence, we process
-   * each path separately resulting in a column vector inf the form of a list which x times the same value in case the output property is constant
+   * each path separately resulting in a column vector inf the form of a list which x times the same value in case
+   * the output property is constant
    * across the paths, or x different results in case it varies per path.
    * </p>
    *
@@ -140,12 +142,14 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
         return Optional.of(new ArrayList<>(Collections.nCopies(Math.max(1,paths.size()), value.get())));
       }
 
-      // path dependent result, construct on a per-path basis, if no paths we assume empty result is desired, so use dummy path
+      // path dependent result, construct on a per-path basis, if no paths we assume empty result is desired,
+      // so use dummy path
       var valueList = new ArrayList<>(Math.min(1,paths.size()));
       if(paths.isEmpty()){
         valueList.add(getPathDependentPropertyValue(outputProperty, pathOutputType, dummyPath).orElse(null));
       }else{
-        paths.forEach(p -> valueList.add(getPathDependentPropertyValue(outputProperty, pathOutputType, p).orElse(null)));
+        paths.forEach(p -> valueList.add(
+            getPathDependentPropertyValue(outputProperty, pathOutputType, p).orElse(null)));
       }
       return Optional.of(valueList);
 
@@ -160,7 +164,8 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * Returns the specified output property values for the current cell in the ODMulti-PathIterator
    * <p>
    * Since we allow for multiple paths per OD, we may end up with multiple values, one per path. Hence, we process
-   * each path separately resulting in a column vector inf the form of a list which x times the same value in case the output property is constant
+   * each path separately resulting in a column vector inf the form of a list which x times the same value in
+   * case the output property is constant
    * across the paths, or x different results in case it varies per path.
    * </p>
    *

@@ -33,10 +33,12 @@ public class TramMode extends PredefinedModeImpl {
   public static final double DEFAULT_PCU = 3;
 
   /* default physical features of tram (VEHICLE, MOTORISED, RAIL) */
-  public static final PhysicalModeFeatures TRAM_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.RAIL);
+  public static final PhysicalModeFeatures TRAM_PHYSICAL_FEATURES =
+      new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.RAIL);
 
   /* default usability features of tram (PUBLIC) */
-  public static final UsabilityModeFeatures TRAM_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
+  public static final UsabilityModeFeatures TRAM_USABLITY_FEATURES =
+      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
 
   /**
    * Constructor for train mode
@@ -44,7 +46,8 @@ public class TramMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected TramMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.TRAM, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, TRAM_PHYSICAL_FEATURES, TRAM_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.TRAM, DEFAULT_MAX_SPEED_KMH,
+        DEFAULT_PCU, TRAM_PHYSICAL_FEATURES, TRAM_USABLITY_FEATURES);
   }
 
   /**

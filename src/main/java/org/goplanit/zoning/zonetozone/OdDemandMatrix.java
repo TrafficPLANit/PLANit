@@ -1,5 +1,6 @@
 package org.goplanit.zoning.zonetozone;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZonePrimitiveMatrix;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZonePrimitiveMatrixIterator;
@@ -64,7 +65,7 @@ public class OdDemandMatrix extends ZoneToZonePrimitiveMatrix<Double> implements
    * {@inheritDoc}
    */
   @Override
-  public OdDemandMatrixIterator iterator() {
+  public @NonNull OdDemandMatrixIterator iterator() {
     return new OdDemandMatrixIterator(this);
   }
 
@@ -110,7 +111,7 @@ public class OdDemandMatrix extends ZoneToZonePrimitiveMatrix<Double> implements
    * {@inheritDoc}
    */
   @Override
-  public void applyStochasticRounding(double upperBound, int seed, boolean logstats) {
+  public void applyStochasticRounding(double upperBound, int seed, boolean logStats) {
     final var rand = new Random(seed);
 
     LongAdder roundedKeptCount = new LongAdder();
@@ -153,7 +154,7 @@ public class OdDemandMatrix extends ZoneToZonePrimitiveMatrix<Double> implements
 
     matrixContainer.modifyAll(stochasticallyRoundUnary);
 
-    if(logstats) {
+    if(logStats) {
       LOGGER.info(String.format(
               "Stochastic rounding applied - total entries: %d, original non-zero: %d (%.2f%%), " +
                       "new-non-zero: %d (%.2f%%) [not-rounded-kept: %d, rounded-kept: %d,  rounded-zero: %d]",

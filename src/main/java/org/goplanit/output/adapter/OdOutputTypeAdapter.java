@@ -25,7 +25,8 @@ public interface OdOutputTypeAdapter extends OutputTypeAdapter {
    * @return the external Id of the destination zone for the current cell in the OD skim matrix
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<String> getDestinationZoneExternalId(final ZoneToZoneDataIterator<?> odIterator) throws PlanItException {
+  public static Optional<String> getDestinationZoneExternalId(final ZoneToZoneDataIterator<?> odIterator)
+      throws PlanItException {
     return Optional.of(odIterator.getCurrentToZone().getExternalId());
   }
 
@@ -36,7 +37,8 @@ public interface OdOutputTypeAdapter extends OutputTypeAdapter {
    * @return the XML Id of the destination zone for the current OD destination
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<String> getDestinationZoneXmlId(final ZoneToZoneDataIterator<?> odIterator) throws PlanItException {
+  public static Optional<String> getDestinationZoneXmlId(final ZoneToZoneDataIterator<?> odIterator)
+      throws PlanItException {
     return Optional.of(odIterator.getCurrentToZone().getXmlId());
   }
 
@@ -47,7 +49,8 @@ public interface OdOutputTypeAdapter extends OutputTypeAdapter {
    * @return the Id of the destination zone for the current cell OD destination
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<Long> getDestinationZoneId(final ZoneToZoneDataIterator<?> odIterator) throws PlanItException {
+  public static Optional<Long> getDestinationZoneId(final ZoneToZoneDataIterator<?> odIterator)
+      throws PlanItException {
     return Optional.of(odIterator.getCurrentToZone().getId());
   }
 
@@ -58,7 +61,8 @@ public interface OdOutputTypeAdapter extends OutputTypeAdapter {
    * @return the origin zone external Id for the current cell in the OD skim matrix
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<String> getOriginZoneExternalId(final ZoneToZoneDataIterator<?> odIterator) throws PlanItException {
+  public static Optional<String> getOriginZoneExternalId(final ZoneToZoneDataIterator<?> odIterator)
+      throws PlanItException {
     return Optional.of(odIterator.getCurrentFromZone().getExternalId());
   }
 
@@ -69,7 +73,8 @@ public interface OdOutputTypeAdapter extends OutputTypeAdapter {
    * @return the origin zone XML Id for the current cell in the OD skim matrix
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<String> getOriginZoneXmlId(final ZoneToZoneDataIterator<?> odIterator) throws PlanItException {
+  public static Optional<String> getOriginZoneXmlId(final ZoneToZoneDataIterator<?> odIterator)
+      throws PlanItException {
     return Optional.of(odIterator.getCurrentFromZone().getXmlId());
   }
 
@@ -80,7 +85,8 @@ public interface OdOutputTypeAdapter extends OutputTypeAdapter {
    * @return the origin zone Id for the current cell in the OD skim matrix
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<Long> getOriginZoneId(final ZoneToZoneDataIterator<?> odIterator) throws PlanItException {
+  public static Optional<Long> getOriginZoneId(final ZoneToZoneDataIterator<?> odIterator)
+      throws PlanItException {
     return Optional.of(odIterator.getCurrentFromZone().getId());
   }
 
@@ -92,7 +98,8 @@ public interface OdOutputTypeAdapter extends OutputTypeAdapter {
    * @return the OD travel cost for the current cell in the OD skim matrix
    * @throws PlanItException thrown if there is an error
    */
-  public static <T> Optional<T> getOdValue(final ZoneToZoneDataIterator<T> odIterator) throws PlanItException {
+  public static <T> Optional<T> getOdValue(final ZoneToZoneDataIterator<T> odIterator)
+      throws PlanItException {
     return Optional.of(odIterator.getCurrentValue());
   }
 

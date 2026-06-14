@@ -33,11 +33,13 @@ public class MotorBikeMode extends PredefinedModeImpl {
   public static final double DEFAULT_PCU = 0.5;
 
   /* default physical features of motor bike (VEHICLE, MOTORISED, ROAD) */
-  public static final PhysicalModeFeatures MOTOR_BIKE_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED,
+  public static final PhysicalModeFeatures MOTOR_BIKE_PHYSICAL_FEATURES =
+      new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED,
       TrackModeType.ROAD);
 
   /* default usability features of motor bike (PRIVATE) */
-  public static final UsabilityModeFeatures MOTOR_BIKE_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);
+  public static final UsabilityModeFeatures MOTOR_BIKE_USABLITY_FEATURES =
+      new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);
 
   /**
    * Constructor for motor bike mode
@@ -45,7 +47,8 @@ public class MotorBikeMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected MotorBikeMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.MOTOR_BIKE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, MOTOR_BIKE_PHYSICAL_FEATURES, MOTOR_BIKE_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.MOTOR_BIKE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, MOTOR_BIKE_PHYSICAL_FEATURES,
+        MOTOR_BIKE_USABLITY_FEATURES);
   }
 
   /**

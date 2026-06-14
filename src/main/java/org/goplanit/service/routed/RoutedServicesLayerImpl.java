@@ -17,6 +17,8 @@ import org.goplanit.utils.service.routed.RoutedService;
 import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesLayerModifier;
 
+import javax.annotation.Nonnull;
+
 /**
  * Implementation of the RoutedServicesLayer interface
  * 
@@ -92,7 +94,8 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param routedServiceMapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedServicesLayerImpl(RoutedServicesLayerImpl other, boolean deepCopy, ManagedIdDeepCopyMapper<RoutedService> routedServiceMapper) {
+  public RoutedServicesLayerImpl(
+      RoutedServicesLayerImpl other, boolean deepCopy, ManagedIdDeepCopyMapper<RoutedService> routedServiceMapper) {
     super(other);
     this.tokenId = other.tokenId;
     this.parentLayer = other.parentLayer;
@@ -102,7 +105,8 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
     this.routedServicesByMode = new HashMap<>();
     other.routedServicesByMode.values().forEach(
             modeServices -> routedServicesByMode.put(
-                    modeServices.getMode(), deepCopy ? modeServices.deepCloneWithMapping(routedServiceMapper) : modeServices.shallowClone()));
+                modeServices.getMode(),
+                deepCopy ? modeServices.deepCloneWithMapping(routedServiceMapper) : modeServices.shallowClone()));
   }
 
   /**
@@ -138,7 +142,8 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
   @Override
   public RoutedModeServices getServicesByMode(Mode mode) {
     if(!parentLayer.supports(mode)){
-      LOGGER.warning(String.format("Unable to collect services for mode %s since it is not supported on the parent layer", mode.toString()));
+      LOGGER.warning(String.format("Unable to collect services for mode %s since it is not supported " +
+          "on the parent layer", mode.toString()));
     }
     if (!routedServicesByMode.containsKey(mode)) {
       routedServicesByMode.put(mode, createRoutedModeServices(this.tokenId, mode));
@@ -158,6 +163,7 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    * {@inheritDoc}
    */
   @Override
+  @Nonnull
   public Iterator<RoutedModeServices> iterator() {
     return routedServicesByMode.values().iterator();
   }
@@ -180,7 +186,8 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
         numFrequencyBasedTrips += entry.getTripInfo().getFrequencyBasedTrips().size();
       }
       LOGGER.info(String.format("%s[mode: %s] #routedServices: %d  #trip-schedules: %d  #trips-frequency: %d",
-          prefix, modeServices.getMode().getXmlId(), modeServices.size(), numScheduleBasedTrips, numFrequencyBasedTrips));
+          prefix, modeServices.getMode().getXmlId(), modeServices.size(),
+          numScheduleBasedTrips, numFrequencyBasedTrips));
     }
   }
 

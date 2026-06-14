@@ -17,7 +17,8 @@ public class FundamentalDiagramUtils {
    * @param jamDensityPcuKmLane to use
    * @return capacityPcuH (single lane)
    */
-  public static double computeCapacityPcuHLaneFrom(double criticalVehicleSpeedKmH, double backwardWaveSpeedKmh, double jamDensityPcuKmLane){
+  public static double computeCapacityPcuHLaneFrom(
+      double criticalVehicleSpeedKmH, double backwardWaveSpeedKmh, double jamDensityPcuKmLane){
     double kCrit =
             -((jamDensityPcuKmLane*backwardWaveSpeedKmh)
                     /
@@ -36,7 +37,8 @@ public class FundamentalDiagramUtils {
    * @param jamDensity to use
    * @return proposed backward wave speed
    */
-  public static double computeBackwardWaveSpeedKmHFor(double capacityPcuHour, double criticalDensity, double jamDensity) {
+  public static double computeBackwardWaveSpeedKmHFor(
+      double capacityPcuHour, double criticalDensity, double jamDensity) {
     return capacityPcuHour/(criticalDensity - jamDensity);
   }
 }

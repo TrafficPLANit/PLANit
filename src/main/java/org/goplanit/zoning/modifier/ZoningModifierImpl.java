@@ -274,9 +274,9 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
 
       /* remove identified entries from zoning */
       if(transferConnectoidsByPhysicalAccessNodeToRemove!=null &&
-              transferConnectoidsByPhysicalAccessNodeToRemove.isEmpty()) {
+              !transferConnectoidsByPhysicalAccessNodeToRemove.isEmpty()) {
         transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().flatMap(Collection::stream).forEach(
-            transferConnectoidToRemove -> zoning.getTransferConnectoids().remove(transferConnectoidToRemove));
+            tCToRemove -> zoning.getTransferConnectoids().remove(tCToRemove));
         counter.add(transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().mapToInt(List::size).sum());
       }
     }

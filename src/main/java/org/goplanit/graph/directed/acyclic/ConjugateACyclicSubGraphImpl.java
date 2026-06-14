@@ -9,7 +9,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 
 /**
  * 
- * An acyclic sub graph contains a subset of the full graph without cycles. The active subset of the graph is tracked by explicitly registering edge segments. Edge segments are by
+ * An acyclic sub graph contains a subset of the full graph without cycles. The active subset of the graph is tracked
+ * by explicitly registering edge segments. Edge segments are by
  * definition directed.
  *
  * 

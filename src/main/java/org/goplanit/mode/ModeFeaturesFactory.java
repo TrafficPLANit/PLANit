@@ -23,7 +23,8 @@ public class ModeFeaturesFactory {
    * @param trackType        to use
    * @return physical mode features that are created
    */
-  public static PhysicalModeFeatures createPhysicalFeatures(VehicularModeType vehicleType, MotorisationModeType motorisationType, TrackModeType trackType) {
+  public static PhysicalModeFeatures createPhysicalFeatures(
+      VehicularModeType vehicleType, MotorisationModeType motorisationType, TrackModeType trackType) {
     return new PhysicalModeFeaturesImpl(vehicleType, motorisationType, trackType);
   }
 

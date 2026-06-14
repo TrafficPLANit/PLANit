@@ -82,6 +82,7 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
    */
   @Override
   public NewellFundamentalDiagramComponent shallowClone() {
+
     return new NewellFundamentalDiagramComponent(this, false);
   }
 
@@ -90,6 +91,7 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
    */
   @Override
   public NewellFundamentalDiagramComponent deepClone() {
+
     return new NewellFundamentalDiagramComponent(this, true);
   }
 

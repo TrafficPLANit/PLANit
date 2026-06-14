@@ -47,7 +47,7 @@ public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEnt
    */
   protected RoutedTripsImpl(RoutedTripsImpl<T> routedTripsBase, boolean deepCopy, BiConsumer<T, T> mapper) {
     super(routedTripsBase, deepCopy, mapper);
-    this.factory = null; // reset so it is clear it needs to be set by concrete implementing class afterwards
+    this.factory = null; // reset so it is clear it needs to be set by concrete implementing class afterward
   }
 
   /**

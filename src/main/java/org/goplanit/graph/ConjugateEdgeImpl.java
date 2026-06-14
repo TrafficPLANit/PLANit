@@ -111,12 +111,14 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
    */
   @Override
   public void setLengthKm(double lengthInKm) {
-    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, set those instead");
+    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, " +
+        "set those instead");
   }
 
   /**
    * Geometry on conjugate edge is created on-the-fly by joining the two nodes on its extremes (direct line). This to
-   * be able to overlay the conjugate network on top of the original network and show how it differs. The actual geometry
+   * be able to overlay the conjugate network on top of the original network and show how it differs.
+   * The actual geometry
    * can be retrieved from the underlying original edges.
    *
    * @return on-the-fly vertex connecting linestring

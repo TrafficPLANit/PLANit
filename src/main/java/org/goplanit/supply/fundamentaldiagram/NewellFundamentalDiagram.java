@@ -49,7 +49,8 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
    * @param freeFlowBranch to use
    * @param congestedBranch to use
    */
-  public NewellFundamentalDiagram(final LinearFundamentalDiagramBranch freeFlowBranch, final LinearFundamentalDiagramBranch congestedBranch) {
+  public NewellFundamentalDiagram(
+      final LinearFundamentalDiagramBranch freeFlowBranch, final LinearFundamentalDiagramBranch congestedBranch) {
     super(freeFlowBranch, congestedBranch);
   }
 
@@ -105,9 +106,9 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
   }
 
   /**
-   * For the Newell FD this means that all remains the same except for the congested wave speed to ensure the FD remains viable since
-   * the capacity is derived and not explicitly set. By chaning the backward wave speed to the adjusted value we ensure we obtain the
-   * desired capacity
+   * For the Newell FD this means that all remains the same except for the congested wave speed to ensure the
+   * FD remains viable since the capacity is derived and not explicitly set. By changing the backward
+   * wave speed to the adjusted value we ensure we obtain the desired capacity
    */   
   @Override
   public void setCapacityPcuHour(double capacityPcuHour) {

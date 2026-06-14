@@ -8,6 +8,8 @@ import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.service.routed.RoutedTripFrequency;
 
+import javax.annotation.Nonnull;
+
 /**
  * Implementation of a RoutedTripFrequency interface.
  * 
@@ -120,7 +122,8 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
   @Override
   public void removeLegSegment(int index) {
     if(index <0 || index >= getNumberOfLegSegments()){
-      LOGGER.warning(String.format("Invalid index %d provided for removing leg segment from rotued trip frequency, ignored", index));
+      LOGGER.warning(String.format("Invalid index %d provided for removing leg segment " +
+          "from routed trip frequency, ignored", index));
       return;
     }
     this.orderedLegSegments.remove(index);
@@ -138,6 +141,7 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
    * {@inheritDoc}
    */
   @Override
+  @Nonnull
   public Iterator<ServiceLegSegment> iterator() {
     return this.orderedLegSegments.iterator();
   }

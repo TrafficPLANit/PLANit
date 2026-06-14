@@ -1,5 +1,6 @@
 package org.goplanit.zoning.od.path;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZoneHashedImpl;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZoneHashedIterator;
@@ -45,6 +46,7 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends List<T>
    * @param multiPathContainerClass class of container
    * @param zones   the zones being used
    */
+  @SuppressWarnings("unchecked")
   public OdMultiPathsHashed(
           final IdGroupingToken groupId, Class<? extends List> multiPathContainerClass, final OdZones zones) {
     super(OdMultiPathsHashed.class, groupId, (Class<U>) multiPathContainerClass, zones);
@@ -84,7 +86,7 @@ public class OdMultiPathsHashed<T extends ManagedDirectedPath, U extends List<T>
    * {@inheritDoc}
    */
   @Override
-  public OdPathsHashedIterator<T, U> iterator() {
+  public @NonNull OdPathsHashedIterator<T, U> iterator() {
     return new OdPathsHashedIterator<>(this);
   }
 

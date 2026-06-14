@@ -12,6 +12,7 @@ import java.util.List;
  * @param <T> type of path
  * @param <U> type of list of paths
  */
-public interface OdMultiPathIterator<T extends ManagedDirectedPath, U extends List<T>> extends ZoneToZoneDataIterator<U> {
+public interface OdMultiPathIterator<T extends ManagedDirectedPath, U extends List<T>>
+    extends ZoneToZoneDataIterator<U> {
 
 }

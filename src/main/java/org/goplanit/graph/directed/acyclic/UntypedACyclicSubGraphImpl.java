@@ -29,6 +29,8 @@ import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 
+import javax.annotation.Nonnull;
+
 /**
  * 
  * An acyclic sub graph contains a subset of the full graph without cycles. The active subset of the graph is tracked by
@@ -57,7 +59,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
   /**
    * track data for the vertices used in this acyclic graph, mainly used to enable topological sorting
    * 
-   * TODO: candidate to be generated based on registered link segments and provide as parameter to methods requiring it. This would allow one the option to not store this but
+   * TODO: candidate to be generated based on registered link segments and provide as parameter to methods requiring it.
+   *  This would allow one the option to not store this but
    * generate on-the-fly trading-off memory vs computational speed. Now we always have this in memory which is costly
    */
   private Map<V, AcyclicVertexData> vertexData;
@@ -153,7 +156,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
            *  starting point again (current downstream vertex) -> cycle, not a DAG
            */
           isAcyclic = false;
-          LOGGER.warning(String.format("Cycle detected in supposed acyclic graph at vertex %s, terminating", nextVertex.getXmlId()));
+          LOGGER.warning(String.format("Cycle detected in supposed acyclic graph at vertex %s, terminating",
+              nextVertex.getXmlId()));
           LOGGER.warning(String.format("vertex adjacent to following entry segments %s",
                   IterableUtils.asStream(nextVertex.getEntryEdgeSegments()).filter(this::containsEdgeSegment).map(
                           es -> "["+es.getIdsAsString()+"]").collect(Collectors.joining(","))));
@@ -177,7 +181,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
   }
 
   /**
-   * While traversing the graph recursively, postVisit is invoked AFTER exploring a vertex (successfully). In this implementation, the preVisit simply increments the counter and
+   * While traversing the graph recursively, postVisit is invoked AFTER exploring a vertex (successfully).
+   * In this implementation, the preVisit simply increments the counter and
    * updates the postVisit variable on the vertex data. See also Gupta et al. 2008
    * 
    * @param vertexData data of the vertex
@@ -190,7 +195,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
 
   /**
    * While traversing the graph recursively, preVisit is invoked BEFORE exploring a vertex further. In this implementation,
-   * the preVisit simply increments the counter and updates the preVisit variable on the vertex data. See also Gupta et al. 2008
+   * the preVisit simply increments the counter and updates the preVisit variable on the vertex data.
+   * See also Gupta et al. 2008
    * 
    * @param vertexData data of the vertex
    * @param counter    track the progress of traversing the graph, increment by one
@@ -215,10 +221,12 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    * 
    * @param groupId                    generate id based on the group it resides in
    * @param rootVertex                 of the dag
-   * @param invertedDirection          when true dag ends at root and all other vertices precede it, when false the root is the starting point and all other vertices succeed it
+   * @param invertedDirection          when true dag ends at root and all other vertices precede it, when false
+   *                                  the root is the starting point and all other vertices succeed it
    * @param numberOfParentEdgeSegments number of directed edge segments of the parent this subgraph is a subset from
    */
-  public UntypedACyclicSubGraphImpl(final IdGroupingToken groupId, V rootVertex, boolean invertedDirection, int numberOfParentEdgeSegments) {
+  public UntypedACyclicSubGraphImpl(
+      final IdGroupingToken groupId, V rootVertex, boolean invertedDirection, int numberOfParentEdgeSegments) {
     this.id = IdGenerator.generateId(groupId, ACyclicSubGraph.class);
     this.vertexData = new HashMap<>();
     this.registeredLinkSegments = new BitSet(numberOfParentEdgeSegments);
@@ -233,11 +241,14 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    * Constructor
    * 
    * @param groupId                    generate id based on the group it resides in
-   * @param rootVertices               the root vertices of the conjugate dag which can be the end or starting point depending whether or not direction is inverted.
-   * @param invertedDirection          when true dag ends at root and all other vertices precede it, when false the root is the starting point and all other vertices succeed it
+   * @param rootVertices               the root vertices of the conjugate dag which can be the end or starting
+   *                                  point depending whether or not direction is inverted.
+   * @param invertedDirection          when true dag ends at root and all other vertices precede it, when false
+   *                                   the root is the starting point and all other vertices succeed it
    * @param numberOfParentEdgeSegments number of directed edge segments of the parent this subgraph is a subset from
    */
-  public UntypedACyclicSubGraphImpl(final IdGroupingToken groupId, Set<V> rootVertices, boolean invertedDirection, int numberOfParentEdgeSegments) {
+  public UntypedACyclicSubGraphImpl(
+      final IdGroupingToken groupId, Set<V> rootVertices, boolean invertedDirection, int numberOfParentEdgeSegments) {
     this.id = IdGenerator.generateId(groupId, ACyclicSubGraph.class);
     this.vertexData = new HashMap<>();
     this.registeredLinkSegments = new BitSet(numberOfParentEdgeSegments);
@@ -262,7 +273,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
     this.registeredLinkSegments = BitSet.valueOf(other.registeredLinkSegments.toByteArray());
 
     this.vertexData = new HashMap<>();
-    other.vertexData.forEach((v, d) -> this.vertexData.put(v, deepCopy ? new AcyclicVertexData(d) : d));
+    other.vertexData.forEach((v, d) ->
+        this.vertexData.put(v, deepCopy ? new AcyclicVertexData(d) : d));
 
     this.topologicalOrder = other.topologicalOrder != null ? new ArrayDeque<>(other.topologicalOrder) : null;
   }
@@ -299,13 +311,17 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
     for (Entry<V, AcyclicVertexData> vertexEntry : this.vertexData.entrySet()) {
       if (!visited.get((int) vertexEntry.getKey().getId())) {
         LOGGER.warning(String.format(
-                "Topological sort applied, but found vertex (%s) not connected to a root of the acyclic graph (%d), unable to determine sorting order", vertexEntry.getKey().getIdsAsString(), getId()));
+                "Topological sort applied, but found vertex (%s) not connected to a root of the acyclic graph (%d), " +
+                    "unable to determine sorting order", vertexEntry.getKey().getIdsAsString(), getId()));
         LOGGER.info(String.format(
             "Vertex (%s) connected to following edges: %s",
-            vertexEntry.getKey().getIdsAsString(), vertexEntry.getKey().getEdges().stream().map(e ->"(" + e.getIdsAsString()+")").collect(Collectors.joining(","))));
+            vertexEntry.getKey().getIdsAsString(), vertexEntry.getKey().getEdges().stream().map(
+                e ->"(" + e.getIdsAsString()+")").collect(Collectors.joining(","))));
         LOGGER.info(String.format(
             "Vertex (%s) connected to following edge segments on DAG: %s",
-            vertexEntry.getKey().getIdsAsString(), vertexEntry.getKey().streamEdgeSegments().filter(this::containsEdgeSegment).map(e ->"(" + e.getIdsAsString()+")").collect(Collectors.joining(","))));
+            vertexEntry.getKey().getIdsAsString(), vertexEntry.getKey().streamEdgeSegments().filter(
+                this::containsEdgeSegment).map(e ->"(" + e.getIdsAsString()+")").collect(
+                    Collectors.joining(","))));
         return null;
       }
     }
@@ -372,6 +388,7 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    * {@inheritDoc}
    */
   @Override
+  @Nonnull
   public Iterator<V> iterator() {
     return Collections.unmodifiableSet(this.vertexData.keySet()).iterator();
   }

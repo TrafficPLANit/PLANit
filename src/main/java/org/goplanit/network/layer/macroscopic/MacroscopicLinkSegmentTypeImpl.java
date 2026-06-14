@@ -206,7 +206,8 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   @Override
   public boolean isModeTypeAllowed(PredefinedModeType modeType) {
     return modeAccessProperties.entrySet().stream().anyMatch(
-            entry -> entry.getKey().isPredefinedModeType() && entry.getKey().getPredefinedModeType().equals(modeType));
+            entry -> entry.getKey().isPredefinedModeType() &&
+                entry.getKey().getPredefinedModeType().equals(modeType));
   }
 
   /**
@@ -297,7 +298,8 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     boolean success = accessProperties.removeAccessMode(toBeRemovedMode);
     this.modeAccessProperties.remove(toBeRemovedMode);
     if(!accessProperties.hasAccessModes() && !hasAllowedModes()){
-      LOGGER.warning(String.format("Link segment type (%s) has no more supported modes, consider removing", this.getXmlId()));
+      LOGGER.warning(String.format("Link segment type (%s) has no more supported modes, consider removing",
+          this.getXmlId()));
     }
     return success;
   }
@@ -327,11 +329,13 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   @Override
   public void registerModeOnAccessGroup(Mode accessMode, AccessGroupProperties accessGroupProperties) {
     if(findEqualAccessPropertiesForAnyMode(accessGroupProperties) == null){
-      LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group because access group does not exist on this link segment type (%s)", getXmlId()));
+      LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group" +
+          " because access group does not exist on this link segment type (%s)", getXmlId()));
       return;
     }
     if(modeAccessProperties.containsKey(accessMode)){
-      LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group because mode is already registered on an access group for this link segment type (%s)", getXmlId()));
+      LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group " +
+          "because mode is already registered on an access group for this link segment type (%s)", getXmlId()));
       return;
     }
     this.modeAccessProperties.put(accessMode, accessGroupProperties);
@@ -347,7 +351,8 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
         Objects.equals(getExplicitCapacityPerLaneOrDefault(), other.getExplicitCapacityPerLaneOrDefault()) &&
         Objects.equals(getExplicitMaximumDensityPerLaneOrDefault(), other.getExplicitMaximumDensityPerLaneOrDefault()) &&
         Objects.equals(getAllowedModes(), other.getAllowedModes()) &&
-        getAllowedModes().stream().allMatch( m -> Objects.equals(getAccessProperties(m), other.getAccessProperties(m)));
+        getAllowedModes().stream().allMatch(
+            m -> Objects.equals(getAccessProperties(m), other.getAccessProperties(m)));
   }
 
   /**

@@ -16,7 +16,8 @@ import java.util.Optional;
  * @author markr
  *
  */
-public abstract class SimulationOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements SimulationOutputTypeAdapter {
+public abstract class SimulationOutputTypeAdapterImpl extends OutputTypeAdapterImpl
+    implements SimulationOutputTypeAdapter {
 
   protected Optional<?> getUnavailableOutputType() {
     // stub implementation so unsupporting deriving assignments won't crash when activated
@@ -104,7 +105,8 @@ public abstract class SimulationOutputTypeAdapterImpl extends OutputTypeAdapterI
       case PATHS_REMOVED:
         return getRemovedPathCount(mode);
       default:
-        return Optional.of(String.format("Tried to find property of %s which is not applicable for Simulation output", outputProperty.getName()));
+        return Optional.of(String.format("Tried to find property of %s which is not applicable for Simulation output",
+            outputProperty.getName()));
     }
   }
 

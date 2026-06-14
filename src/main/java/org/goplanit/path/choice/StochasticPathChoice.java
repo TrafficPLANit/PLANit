@@ -97,7 +97,10 @@ public class StochasticPathChoice extends PathChoice {
    * @return perceived path costs for each path
    */
   public double[] computePerceivedPathCosts(
-          final double[] absolutePathCosts, final double[] pathProbabilities, final Double odDemand, boolean applyExpTransform) {
+          final double[] absolutePathCosts,
+          final double[] pathProbabilities,
+          final Double odDemand,
+          boolean applyExpTransform) {
 
     final var numPaths = absolutePathCosts.length;
     var perceivedPathCosts = new double[numPaths];

@@ -1,5 +1,6 @@
 package org.goplanit.zoning.od.path;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZoneData;
 import org.goplanit.utils.path.ManagedDirectedPath;
 
@@ -21,7 +22,7 @@ public interface OdMultiPaths<U extends ManagedDirectedPath,T extends List<U>> e
    *
    * @return iterator through all the origin-destination cells
    */
-  public abstract OdMultiPathIterator<U, T> iterator();
+  public abstract @NonNull OdMultiPathIterator<U, T> iterator();
 
   /**
    * The total number of paths currently registered.

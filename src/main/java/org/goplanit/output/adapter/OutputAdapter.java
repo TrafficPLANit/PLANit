@@ -7,7 +7,8 @@ import org.goplanit.assignment.TrafficAssignment;
 import org.goplanit.output.enums.OutputType;
 
 /**
- * Output Adapter which stores output type adapters for each Output Manager and defines top-level method which apply to all output types
+ * Output Adapter which stores output type adapters for each Output Manager and defines top-level method
+ * which apply to all output types
  * 
  * @author gman6028
  *
@@ -17,12 +18,12 @@ public class OutputAdapter {
   /**
    * The traffic assignment this output adapter is drawing from
    */
-  private TrafficAssignment trafficAssignment;
+  private final TrafficAssignment trafficAssignment;
 
   /**
    * Map of OutputTypeAdapter objects
    */
-  private Map<OutputType, OutputTypeAdapter> outputTypeAdapters;
+  private final Map<OutputType, OutputTypeAdapter> outputTypeAdapters;
 
   /**
    * Return the name of a Java object class as a short string

@@ -1,5 +1,6 @@
 package org.goplanit.zoning.od.path;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZoneNonPrimitiveMatrix;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZoneNonPrimitiveMatrixIterator;
@@ -19,7 +20,8 @@ public class OdPathMatrix extends ZoneToZoneNonPrimitiveMatrix<ManagedDirectedPa
    * 
    * @author markr
    */
-  public class OdPathMatrixIterator extends ZoneToZoneNonPrimitiveMatrixIterator<ManagedDirectedPath> implements OdPathIterator<ManagedDirectedPath> {
+  public static class OdPathMatrixIterator extends ZoneToZoneNonPrimitiveMatrixIterator<ManagedDirectedPath>
+      implements OdPathIterator<ManagedDirectedPath> {
 
     public OdPathMatrixIterator(final OdPathMatrix matrix) {
       super(matrix.matrixContainer, matrix.zones);
@@ -33,7 +35,11 @@ public class OdPathMatrix extends ZoneToZoneNonPrimitiveMatrix<ManagedDirectedPa
    * @param zones   the zones being used
    */
   public OdPathMatrix(final IdGroupingToken groupId, final OdZones zones) {
-    super(OdPathMatrix.class, groupId, ManagedDirectedPath.class, zones, new ManagedDirectedPath[zones.size()][zones.size()]);
+    super(OdPathMatrix.class,
+        groupId,
+        ManagedDirectedPath.class,
+        zones,
+        new ManagedDirectedPath[zones.size()][zones.size()]);
   }
 
   /**
@@ -66,7 +72,7 @@ public class OdPathMatrix extends ZoneToZoneNonPrimitiveMatrix<ManagedDirectedPa
    * {@inheritDoc}
    */
   @Override
-  public OdPathMatrixIterator iterator() {
+  public @NonNull OdPathMatrixIterator iterator() {
     return new OdPathMatrixIterator(this);
   }
 

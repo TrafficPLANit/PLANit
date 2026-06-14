@@ -13,7 +13,8 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import java.util.logging.Logger;
 
 /**
- * Sync the Demands entities' XML id in the container to the internal id. Listens to #RecreatedDemandsEntitiesManagedIdsEvent
+ * Sync the Demands entities' XML id in the container to the internal id. Listens
+ * to #RecreatedDemandsEntitiesManagedIdsEvent
  */
 public class SyncXmlIdToIdDemandsEntitiesHandler extends SyncXmlIdToIdHandler implements DemandsModifierListener {
 
@@ -43,11 +44,13 @@ public class SyncXmlIdToIdDemandsEntitiesHandler extends SyncXmlIdToIdHandler im
   @Override
   public void onDemandsModificationEvent(DemandsModificationEvent event) {
     if (!event.getType().equals(RecreatedDemandsEntitiesManagedIdsEvent.EVENT_TYPE)) {
-      LOGGER.warning(String.format("%s only supports RecreatedDemandsEntitiesManagedIdsEvent events", SyncXmlIdToIdDemandsEntitiesHandler.class.getName()));
+      LOGGER.warning(String.format("%s only supports RecreatedDemandsEntitiesManagedIdsEvent events",
+          SyncXmlIdToIdDemandsEntitiesHandler.class.getName()));
       return;
     }
 
-    RecreatedGraphEntitiesManagedIdsEvent theEvent = RecreatedGraphEntitiesManagedIdsEvent.class.cast(event);
-    theEvent.getManagedIdEntities().forEach( e -> super.syncXmlIdToInternalId((GraphEntity) e));
+    RecreatedGraphEntitiesManagedIdsEvent theEvent = (RecreatedGraphEntitiesManagedIdsEvent) event;
+    theEvent.getManagedIdEntities().forEach(
+        e -> super.syncXmlIdToInternalId((GraphEntity) e));
   }
 }

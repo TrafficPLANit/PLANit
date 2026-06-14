@@ -12,7 +12,8 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
  * 
  * @author markr
  */
-public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactoryImpl<MacroscopicLinkSegmentType> implements MacroscopicLinkSegmentTypeFactory {
+public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactoryImpl<MacroscopicLinkSegmentType>
+    implements MacroscopicLinkSegmentTypeFactory {
 
   /** container to register new entities on */
   MacroscopicLinkSegmentTypes linkSegmentTypes;
@@ -23,7 +24,8 @@ public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactor
    * @param groupId          to use
    * @param linkSegmentTypes container to use for registering new entities
    */
-  protected MacroscopicLinkSegmentTypeFactoryImpl(final IdGroupingToken groupId, MacroscopicLinkSegmentTypes linkSegmentTypes) {
+  protected MacroscopicLinkSegmentTypeFactoryImpl(
+      final IdGroupingToken groupId, MacroscopicLinkSegmentTypes linkSegmentTypes) {
     super(groupId);
     this.linkSegmentTypes = linkSegmentTypes;
   }
@@ -32,7 +34,8 @@ public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactor
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentType registerNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm) {
+  public MacroscopicLinkSegmentType registerNew(
+      String name, double capacityPcuPerHour, double maximumDensityPcuPerKm) {
     MacroscopicLinkSegmentType linkSegmentType =
             new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacityPcuPerHour, maximumDensityPcuPerKm);
     linkSegmentTypes.register(linkSegmentType);
@@ -43,7 +46,8 @@ public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactor
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentType registerNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm, Mode allowedMode) {
+  public MacroscopicLinkSegmentType registerNew(
+      String name, double capacityPcuPerHour, double maximumDensityPcuPerKm, Mode allowedMode) {
     MacroscopicLinkSegmentType linkSegmentType = registerNew(name, capacityPcuPerHour, maximumDensityPcuPerKm);
     linkSegmentType.setAccessGroupProperties(AccessGroupPropertiesFactory.create(allowedMode));
     return linkSegmentType;
@@ -64,7 +68,8 @@ public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactor
    */
   @Override
   public MacroscopicLinkSegmentType registerNewWithCapacity(String name, double capacityPcuPerHour) {
-    MacroscopicLinkSegmentType linkSegmentType = new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacityPcuPerHour, null);
+    MacroscopicLinkSegmentType linkSegmentType =
+        new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacityPcuPerHour, null);
     linkSegmentTypes.register(linkSegmentType);
     return linkSegmentType;
   }
@@ -74,7 +79,8 @@ public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactor
    */
   @Override
   public MacroscopicLinkSegmentType registerNewWithMaxDensity(String name, double maximumDensityPcuPerKm) {
-    MacroscopicLinkSegmentType linkSegmentType = new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, null, maximumDensityPcuPerKm);
+    MacroscopicLinkSegmentType linkSegmentType =
+        new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, null, maximumDensityPcuPerKm);
     linkSegmentTypes.register(linkSegmentType);
     return linkSegmentType;
   }

@@ -193,7 +193,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     try {
       this.currentTimePeriodHours = Unit.SECOND.convertTo(Unit.HOUR, timePeriod.getDurationSeconds());
     } catch (Exception e) {
-      LOGGER.severe(String.format("Unable to convert seconds to hours for time period %s in steady-state travel time cost", timePeriod.getXmlId()));
+      LOGGER.severe(String.format("Unable to convert seconds to hours for time period %s in steady-state" +
+          " travel time cost", timePeriod.getXmlId()));
     }
   }
 
@@ -222,13 +223,17 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * @param costToFill    the cost to populate (in hours)
    */
   @Override
-  public void populateWithCost(UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> layer, Mode mode, double[] costToFill) {
+  public void populateWithCost(
+      UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> layer, Mode mode, double[] costToFill) {
     double[] inflows = accessee.getLinkSegmentInflowsPcuHour();
     double[] outflows = accessee.getLinkSegmentOutflowsPcuHour();
     for (var linkSegment : layer.getLinkSegments()) {
       int linkSegmentId = (int) linkSegment.getLinkSegmentId();
       costToFill[linkSegmentId] = computeTravelTime(
-              linkSegment, linkSegmentFundamentalDiagrams[linkSegmentId], inflows[linkSegmentId], outflows[linkSegmentId]);
+              linkSegment,
+          linkSegmentFundamentalDiagrams[linkSegmentId],
+          inflows[linkSegmentId],
+          outflows[linkSegmentId]);
     }
   }
 

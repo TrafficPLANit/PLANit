@@ -16,7 +16,8 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * Class which holds arrays of output property values, identified by arrays of output keys
  * 
- * This class is a wrapper for the MultiKeyMap object which is a Map with multiple keys. This class has input and output methods which are specific to PlanIt output properties.
+ * This class is a wrapper for the MultiKeyMap object which is a Map with multiple keys.
+ * This class has input and output methods which are specific to PlanIt output properties.
  * 
  * @author gman6028
  *
@@ -37,14 +38,16 @@ public class MultiKeyPlanItData {
    * @param outputProperty   the output property
    * @return the position of the output property in the output property array
    */
-  private int getPositionOfOutputProperty(final OutputProperty[] outputProperties, final OutputPropertyType outputProperty){
+  private int getPositionOfOutputProperty(
+      final OutputProperty[] outputProperties, final OutputPropertyType outputProperty){
     for (int i = 0; i < outputProperties.length; i++) {
       if (outputProperties[i].getOutputPropertyType().equals(outputProperty)) {
         return i;
       }
     }
     throw new PlanItRunTimeException(
-        "Tried to locate a property of type " + OutputProperty.of(outputProperty).getName() + " which has not been registered in MultiKeyPlanItData");
+        "Tried to locate a property of type " + OutputProperty.of(outputProperty).getName() +
+            " which has not been registered in MultiKeyPlanItData");
   }
 
   /**
@@ -104,7 +107,8 @@ public class MultiKeyPlanItData {
    */
   private void init(final OutputProperty[] outputKeyProperties, final OutputProperty[] outputValueProperties){
     PlanItRunTimeException.throwIf(
-        outputKeyProperties.length > 5, "Attempted to register too many output property keys.  The maximum number allowed is 5");
+        outputKeyProperties.length > 5, "Attempted to register too many output property keys. " +
+            " The maximum number allowed is 5");
 
     multiKeyMap = new MultiKeyMap<>();
     singleKeyMap = new HashedMap<>();
@@ -130,7 +134,8 @@ public class MultiKeyPlanItData {
    * @param outputValueProperties OutputProperty types of values
    * @throws PlanItException thrown if there is an error
    */
-  public MultiKeyPlanItData(final OutputProperty outputKeyProperty1, final OutputProperty... outputValueProperties) throws PlanItException {
+  public MultiKeyPlanItData(final OutputProperty outputKeyProperty1, final OutputProperty... outputValueProperties)
+      throws PlanItException {
     final OutputProperty[] outputKeyProperties = new OutputProperty[1];
     outputKeyProperties[0] = outputKeyProperty1;
     init(outputKeyProperties, outputValueProperties);
@@ -144,7 +149,10 @@ public class MultiKeyPlanItData {
    * @param outputValueProperties OutputProperty types of values
    * @throws PlanItException thrown if there is an error
    */
-  public MultiKeyPlanItData(final OutputProperty outputKeyProperty1, final OutputProperty outputKeyProperty2, final OutputProperty... outputValueProperties)
+  public MultiKeyPlanItData(
+      final OutputProperty outputKeyProperty1,
+      final OutputProperty outputKeyProperty2,
+      final OutputProperty... outputValueProperties)
       throws PlanItException {
     final OutputProperty[] outputKeyProperties = new OutputProperty[2];
     outputKeyProperties[0] = outputKeyProperty1;
@@ -161,7 +169,10 @@ public class MultiKeyPlanItData {
    * @param outputValueProperties OutputProperty types of values
    * @throws PlanItException thrown if there is an error
    */
-  public MultiKeyPlanItData(final OutputProperty outputKeyProperty1, final OutputProperty outputKeyProperty2, final OutputProperty outputKeyProperty3,
+  public MultiKeyPlanItData(
+      final OutputProperty outputKeyProperty1,
+      final OutputProperty outputKeyProperty2,
+      final OutputProperty outputKeyProperty3,
       final OutputProperty... outputValueProperties) throws PlanItException {
     final OutputProperty[] outputKeyProperties = new OutputProperty[3];
     outputKeyProperties[0] = outputKeyProperty1;

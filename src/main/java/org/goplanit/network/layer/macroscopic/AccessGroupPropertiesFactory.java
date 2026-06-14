@@ -91,7 +91,8 @@ public class AccessGroupPropertiesFactory {
   }
 
   /**
-   * Add mode properties for the passed in modes to the passed in link segment type where we cap the max and critical speed based on the minimum of the mode's maximum speed and the
+   * Add mode properties for the passed in modes to the passed in link segment type where we cap the max and critical
+   * speed based on the minimum of the mode's maximum speed and the
    * maximum speed
    * 
    * @param linkSegmentType to populate for
@@ -99,7 +100,9 @@ public class AccessGroupPropertiesFactory {
    * @param maxSpeedKmH     maxSpeed to set
    */
   public static void createOnLinkSegmentType(
-          final MacroscopicLinkSegmentType linkSegmentType, final double maxSpeedKmH, final Collection<Mode> modesToAdd) {
+          final MacroscopicLinkSegmentType linkSegmentType,
+          final double maxSpeedKmH,
+          final Collection<Mode> modesToAdd) {
     linkSegmentType.setAccessGroupProperties(create(maxSpeedKmH, modesToAdd));
   }
 
@@ -109,7 +112,8 @@ public class AccessGroupPropertiesFactory {
    * 
    * @param linkSegmentType to populate for
    * @param modeToAdd       to add
-   * @param maxSpeedKmH     maxSpeed to set, if exceeding mode maximum speed, only access for the mode is registered as the provided speed is not a restriction compared to the
+   * @param maxSpeedKmH     maxSpeed to set, if exceeding mode maximum speed, only access for the mode is
+   *                        registered as the provided speed is not a restriction compared to the
    *                        physical restriction
    */
   public static void createOnLinkSegmentType(

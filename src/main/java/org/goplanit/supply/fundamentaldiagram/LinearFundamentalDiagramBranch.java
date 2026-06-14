@@ -128,7 +128,8 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
   public int relaxedHashCode(int scale) {
     NumberFormat nf = NumberFormat.getInstance();
     nf.setMaximumFractionDigits(scale);
-    return HashUtils.createCombinedHashCode(nf.format(this.characteristicWaveSpeedKmHour), nf.format(this.densityAtZeroFlowPcuKm));
+    return HashUtils.createCombinedHashCode(
+        nf.format(this.characteristicWaveSpeedKmHour), nf.format(this.densityAtZeroFlowPcuKm));
   }
 
   /**

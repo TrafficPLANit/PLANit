@@ -22,7 +22,8 @@ import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Well known BPR link performance function to compute travel time cost on link segment based on flow and configuration parameters. An instance of this class is compatible with a
+ * Well known BPR link performance function to compute travel time cost on link segment based on flow and
+ * configuration parameters. An instance of this class is compatible with a
  * single macroscopic physical network (layer)
  *
  * @author markr
@@ -38,7 +39,7 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   /**
    * Inner class to store Map of alpha and beta parameters used in BPR function for each mode
    */
-  public class BprParameters {
+  public static class BprParameters {
 
     /**
      * Alpha and Beta parameters in BPR function
@@ -70,7 +71,8 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
      */
     private void registerParameters(final Mode mode, final double alpha, final double beta) {
       if (beta < 1) {
-        LOGGER.warning(String.format("BPR Beta parameter smaller than 1 (%.2f), unlikely choice", mode.getXmlId(), beta));
+        LOGGER.warning(String.format("BPR Beta parameter (mode %s) smaller than 1 (%.2f), unlikely choice",
+            mode.getIdsAsString(), beta));
       }
       parametersMap.put(mode, Pair.of(alpha, beta));
     }
@@ -83,7 +85,8 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
      */
     private void registerParameters(final Mode mode, final Pair<Double, Double> pair) {
       if (pair.second() < 1) {
-        LOGGER.warning(String.format("BPR Beta parameter smaller than one (%.2f), unlikely choice", mode.getXmlId(), pair.second()));
+        LOGGER.warning(String.format("BPR Beta parameter (mode %s) smaller than one (%.2f), unlikely choice",
+            mode.getIdsAsString(), pair.second()));
       }
       parametersMap.put(mode, pair);
     }
@@ -212,11 +215,13 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     // container wrapper around owned primitives, always copy contents
     this.parametersPerLinkSegmentAndMode = new HashMap<>();
 
-    other.parametersPerLinkSegmentAndMode.forEach( (k,v) -> parametersPerLinkSegmentAndMode.put(k, v.copy()));
+    other.parametersPerLinkSegmentAndMode.forEach( (k,v) ->
+        parametersPerLinkSegmentAndMode.put(k, v.copy()));
     this.defaultParametersPerMode = other.defaultParametersPerMode.copy();
 
     this.defaultParametersPerLinkSegmentTypeAndMode = new HashMap<>();
-    other.defaultParametersPerLinkSegmentTypeAndMode.forEach( (k,v) -> defaultParametersPerLinkSegmentTypeAndMode.put(k, v.copy()));
+    other.defaultParametersPerLinkSegmentTypeAndMode.forEach( (k,v) ->
+        defaultParametersPerLinkSegmentTypeAndMode.put(k, v.copy()));
 
     this.defaultParameters = other.defaultParameters.copy();
 
@@ -226,9 +231,12 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     }
 
     // copy primitve values in container always
-    this.freeFlowTravelTimePerLinkSegment = new double[other.freeFlowTravelTimePerLinkSegment.length][other.freeFlowTravelTimePerLinkSegment[0].length];
+    this.freeFlowTravelTimePerLinkSegment =
+        new double[other.freeFlowTravelTimePerLinkSegment.length][other.freeFlowTravelTimePerLinkSegment[0].length];
     for(int index = 0 ; index < bprParametersPerLinkSegment.length ; ++index) {
-      freeFlowTravelTimePerLinkSegment[index] = Arrays.copyOf(other.freeFlowTravelTimePerLinkSegment[index], other.freeFlowTravelTimePerLinkSegment[index].length);
+      freeFlowTravelTimePerLinkSegment[index] =
+          Arrays.copyOf(other.freeFlowTravelTimePerLinkSegment[index],
+              other.freeFlowTravelTimePerLinkSegment[index].length);
     }
   }
 
@@ -240,7 +248,8 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @param alpha       alpha value
    * @param beta        beta value
    */
-  public void setParameters(final MacroscopicLinkSegment linkSegment, final Mode mode, final double alpha, final double beta) {
+  public void setParameters(
+      final MacroscopicLinkSegment linkSegment, final Mode mode, final double alpha, final double beta) {
     if (parametersPerLinkSegmentAndMode.get(linkSegment) == null) {
       parametersPerLinkSegmentAndMode.put(linkSegment, new BprParameters());
     }
@@ -266,7 +275,11 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @param alpha                      alpha value
    * @param beta                       beta value
    */
-  public void setDefaultParameters(final MacroscopicLinkSegmentType macroscopicLinkSegmentType, final Mode mode, final double alpha, final double beta) {
+  public void setDefaultParameters(
+      final MacroscopicLinkSegmentType macroscopicLinkSegmentType,
+      final Mode mode,
+      final double alpha,
+      final double beta) {
     if (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) == null) {
       defaultParametersPerLinkSegmentTypeAndMode.put(macroscopicLinkSegmentType, new BprParameters());
     }
@@ -291,18 +304,23 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    */
   @Override
   public void initialiseBeforeSimulation(final LayeredNetwork<?, ?> network) throws PlanItException {
-    PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "BPR cost is only compatible with macroscopic networks");
+    PlanItException.throwIf(!(network instanceof MacroscopicNetwork),
+        "BPR cost is only compatible with macroscopic networks");
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
-    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");
+    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
+        "BPR cost is currently only compatible with networks using a single infrastructure layer");
     MacroscopicNetworkLayer networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
     if (network.getModes().size() != networkLayer.getSupportedModes().size()) {
-      LOGGER.warning("network wide modes do not match modes supported by only layer, this makes the assignment less efficient, consider removing unused modes");
+      LOGGER.warning("network wide modes do not match modes supported by only layer," +
+          " this makes the assignment less efficient, consider removing unused modes");
     }
 
     /* pre-compute the free flow travel times */
-    freeFlowTravelTimePerLinkSegment = new double[network.getModes().size()][(int) networkLayer.getLinkSegments().size()];
+    freeFlowTravelTimePerLinkSegment =
+        new double[network.getModes().size()][(int) networkLayer.getLinkSegments().size()];
     for (var mode : network.getModes()) {
-      CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(mode, networkLayer.getLinkSegments(), freeFlowTravelTimePerLinkSegment[(int) mode.getId()]);
+      CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
+          mode, networkLayer.getLinkSegments(), freeFlowTravelTimePerLinkSegment[(int) mode.getId()]);
     }
 
     /* explicitly set BPR parameters for each mode/segment combination */
@@ -317,8 +335,10 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
             && (parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode) != null)) {
           alphaBetaPair = parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode);
         } else if ((defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) != null)
-            && (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).getAlphaBetaParameters(mode) != null)) {
-          alphaBetaPair = defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).getAlphaBetaParameters(mode);
+            && (defaultParametersPerLinkSegmentTypeAndMode.get(
+                macroscopicLinkSegmentType).getAlphaBetaParameters(mode) != null)) {
+          alphaBetaPair = defaultParametersPerLinkSegmentTypeAndMode.get(
+              macroscopicLinkSegmentType).getAlphaBetaParameters(mode);
         } else if (defaultParametersPerMode.getAlphaBetaParameters(mode) != null) {
           alphaBetaPair = defaultParametersPerMode.getAlphaBetaParameters(mode);
         } else {
@@ -363,7 +383,8 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * {@inheritDoc}
    */
   @Override
-  public double getDTravelTimeDFlow(boolean uncongested /* not used */ , final Mode mode, final MacroscopicLinkSegment linkSegment) {
+  public double getDTravelTimeDFlow(
+      boolean uncongested /* not used */ , final Mode mode, final MacroscopicLinkSegment linkSegment) {
     if (!linkSegment.isModeAllowed(mode)) {
       return Double.MAX_VALUE;
     }
@@ -389,12 +410,15 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @param costToFill the cost to populate (in hours)
    */
   @Override
-  public void populateWithCost(UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> layer, Mode mode, double[] costToFill) {
+  public void populateWithCost(
+      UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> layer, Mode mode, double[] costToFill) {
     double[] linkSegmentFlows = linkVolumeAccessee.getLinkSegmentVolumes();
 
     for (var linkSegment : layer.getLinkSegments()) {
-      // changed from id to link segment id 7/9/2021 since we array is created based on linksegments only, not all edge segments (so excluding connectoid segments). Therefore
-      // we should not be using the id that is unique across both, just the one for physical link segments. By accident this did work so far due to connectoid segments being
+      // changed from id to link segment id 7/9/2021 since we array is created based on linksegments only,
+      // not all edge segments (so excluding connectoid segments). Therefore
+      // we should not be using the id that is unique across both, just the one for physical link segments.
+      // By accident this did work so far due to connectoid segments being
       // created after the link segments. Verify if tests still succeed. IF so, remove this comment
       final int id = (int) linkSegment.getLinkSegmentId();
       costToFill[id] = computeCostInHours(linkSegment, mode, linkSegmentFlows[id]);
@@ -453,14 +477,16 @@ public class BprLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
       var modesPerType = typeEntry.getValue();
       for (var modeEntry : modesPerType.getModes()) {
         var modeAlphaBeta = modesPerType.getAlphaBetaParameters(modeEntry);
-        keyValueMap.put("type-" + typeEntry.getKey().getXmlId() + "-" + modeEntry.getName() + "-alpha/beta:", "" + modeAlphaBeta.first() + ", " + modeAlphaBeta.second());
+        keyValueMap.put("type-" + typeEntry.getKey().getXmlId() + "-" + modeEntry.getName() +
+            "-alpha/beta:", "" + modeAlphaBeta.first() + ", " + modeAlphaBeta.second());
       }
     }
     for (var segmentEntry : parametersPerLinkSegmentAndMode.entrySet()) {
       var modesPerSegment = segmentEntry.getValue();
       for (var modeEntry : modesPerSegment.getModes()) {
         var modeAlphaBeta = modesPerSegment.getAlphaBetaParameters(modeEntry);
-        keyValueMap.put("segment-" + segmentEntry.getKey().getXmlId() + "-" + modeEntry.getName() + "-alpha/beta:", "" + modeAlphaBeta.first() + ", " + modeAlphaBeta.second());
+        keyValueMap.put("segment-" + segmentEntry.getKey().getXmlId() + "-" + modeEntry.getName() +
+            "-alpha/beta:", "" + modeAlphaBeta.first() + ", " + modeAlphaBeta.second());
       }
     }
     return keyValueMap;

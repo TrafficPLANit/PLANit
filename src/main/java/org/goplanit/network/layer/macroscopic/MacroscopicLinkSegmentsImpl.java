@@ -21,7 +21,8 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class MacroscopicLinkSegmentsImpl extends ManagedGraphEntitiesImpl<MacroscopicLinkSegment> implements MacroscopicLinkSegments {
+public class MacroscopicLinkSegmentsImpl extends ManagedGraphEntitiesImpl<MacroscopicLinkSegment>
+    implements MacroscopicLinkSegments {
 
   /** factory to use */
   private final MacroscopicLinkSegmentFactory linkSegmentFactory;
@@ -54,10 +55,14 @@ public class MacroscopicLinkSegmentsImpl extends ManagedGraphEntitiesImpl<Macros
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public MacroscopicLinkSegmentsImpl(MacroscopicLinkSegmentsImpl other, boolean deepCopy, BiConsumer<MacroscopicLinkSegment,MacroscopicLinkSegment> mapper) {
+  public MacroscopicLinkSegmentsImpl(
+      MacroscopicLinkSegmentsImpl other,
+      boolean deepCopy,
+      BiConsumer<MacroscopicLinkSegment,MacroscopicLinkSegment> mapper) {
     super(other, deepCopy, mapper);
     this.linkSegmentFactory =
-            new MacroscopicLinkSegmentFactoryImpl(other.linkSegmentFactory.getIdGroupingToken(), this);
+            new MacroscopicLinkSegmentFactoryImpl(
+                other.linkSegmentFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -101,7 +106,8 @@ public class MacroscopicLinkSegmentsImpl extends ManagedGraphEntitiesImpl<Macros
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentsImpl deepCloneWithMapping(BiConsumer<MacroscopicLinkSegment,MacroscopicLinkSegment> mapper) {
+  public MacroscopicLinkSegmentsImpl deepCloneWithMapping(
+      BiConsumer<MacroscopicLinkSegment,MacroscopicLinkSegment> mapper) {
     return new MacroscopicLinkSegmentsImpl(this, true, mapper);
   }
 

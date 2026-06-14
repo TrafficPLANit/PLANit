@@ -62,7 +62,8 @@ public interface FundamentalDiagram {
   /**
    * A fundamental diagram is based on a limited number of double variables to define it. In case we want to use the
    * same FD for extremely similar variables we can use this relaxed hash code that ensures that for the given
-   * precision level identical hashes are created even if the underlying floating point variables differ beyond this precision.
+   * precision level identical hashes are created even if the underlying floating point variables differ beyond this
+   * precision.
    * 
    * @param scale indicating how many decimals to consider, e.g., 2 considers 2 decimals for precision
    * @return created relaxed hash code

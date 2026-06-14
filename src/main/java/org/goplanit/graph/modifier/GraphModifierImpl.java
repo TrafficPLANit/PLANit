@@ -29,10 +29,14 @@ import org.locationtech.jts.geom.LineString;
 /**
  * Apply modifications to the graph in an integrated fashion.
  * <p>
- * While graphs are assumed to have a managed id for all their entities it is not a given that the edges, vertices, etc. are the primary containers where these are uniquely
- * tracked. For example a subgraph might only contain a subset of vertices. Therefore, whenever modifications are made to a graph, the incoker of these changes should be aware
- * whether or not the graph entities containers are the primary containers or not. If so, and the ids used are expected to remain contiguous (directly) after completion of the
- * modification, additional effort is required by invoking {@link #recreateManagedEntitiesIds()} to ensure that all entity containers on the graph are triggered to perform an
+ * While graphs are assumed to have a managed id for all their entities it is not a given that the edges, vertices,
+ * etc. are the primary containers where these are uniquely
+ * tracked. For example a subgraph might only contain a subset of vertices. Therefore, whenever modifications are
+ * made to a graph, the incoker of these changes should be aware
+ * whether or not the graph entities containers are the primary containers or not. If so, and the ids used are
+ * expected to remain contiguous (directly) after completion of the
+ * modification, additional effort is required by invoking {@link #recreateManagedEntitiesIds()} to ensure that
+ * all entity containers on the graph are triggered to perform an
  * update of their internally managed ids.
  * 
  * @author markr
@@ -55,24 +59,29 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   protected static void updateBrokenEdgeGeometry(Edge brokenEdge, Vertex vertexBrokenAt) {
     LineString updatedGeometry = null;
     if (brokenEdge.getVertexA().equals(vertexBrokenAt)) {
-      updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesBefore(vertexBrokenAt.getPosition(), brokenEdge.getGeometry());
+      updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesBefore(
+          vertexBrokenAt.getPosition(), brokenEdge.getGeometry());
     } else if (brokenEdge.getVertexB().equals(vertexBrokenAt)) {
-      updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesAfter(vertexBrokenAt.getPosition(), brokenEdge.getGeometry());
+      updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesAfter(
+          vertexBrokenAt.getPosition(), brokenEdge.getGeometry());
     } else {
-      LOGGER.warning(String.format("unable to locate vertex to break at (%s) for broken edge %s (id:%d)", vertexBrokenAt.getPosition().toString(), brokenEdge.getExternalId(),
+      LOGGER.warning(String.format("unable to locate vertex to break at (%s) for broken edge %s (id:%d)",
+          vertexBrokenAt.getPosition().toString(), brokenEdge.getExternalId(),
           brokenEdge.getId()));
     }
     brokenEdge.setGeometry(updatedGeometry);
   }
 
   /**
-   * helper function for subnetwork identification (deliberately NOT recursive to avoid stack overflow on large networks)
+   * helper function for subnetwork identification (deliberately NOT recursive to avoid stack overflow on
+   * large networks)
    * 
    * @param referenceVertex to process
    * @return all vertices in the subnetwork connected to passed in reference vertex
    */
   protected Set<Vertex> processSubNetworkVertex(Vertex referenceVertex) {
-    PlanItRunTimeException.throwIfNull(referenceVertex, "provided reference vertex is null when identifying its subnetwork, thisis not allowed");
+    PlanItRunTimeException.throwIfNull(referenceVertex, "provided reference vertex is null " +
+        "when identifying its subnetwork, thisis not allowed");
     Set<Vertex> subNetworkVertices = new HashSet<>();
     subNetworkVertices.add(referenceVertex);
 
@@ -87,10 +96,12 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
       /* add newly found vertices to explore, and add then to final subnetwork list as well */
       Collection<? extends Edge> edgesOfCurrVertex = currVertex.getEdges();
       for (Edge currEdge : edgesOfCurrVertex) {
-        if (currEdge.getVertexA() != null && currEdge.getVertexA().getId() != currVertex.getId() && !subNetworkVertices.contains(currEdge.getVertexA())) {
+        if (currEdge.getVertexA() != null && currEdge.getVertexA().getId() != currVertex.getId() &&
+            !subNetworkVertices.contains(currEdge.getVertexA())) {
           subNetworkVertices.add(currEdge.getVertexA());
           verticesToExplore.add(currEdge.getVertexA());
-        } else if (currEdge.getVertexB() != null && currEdge.getVertexB().getId() != currVertex.getId() && !subNetworkVertices.contains(currEdge.getVertexB())) {
+        } else if (currEdge.getVertexB() != null && currEdge.getVertexB().getId() != currVertex.getId() &&
+            !subNetworkVertices.contains(currEdge.getVertexB())) {
           subNetworkVertices.add(currEdge.getVertexB());
           verticesToExplore.add(currEdge.getVertexB());
         }
@@ -128,7 +139,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    */
   @Override
   public void fireEvent(EventListener eventListener, Event event) {
-    GraphModifierListener.class.cast(eventListener).onGraphModificationEvent(GraphModificationEvent.class.cast(event));
+    ((GraphModifierListener) eventListener).onGraphModificationEvent((GraphModificationEvent) event);
   }
 
   /**
@@ -200,7 +211,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
     if (!identifiedSubNetworkSizes.isEmpty()) {
       /* remove all non-dominating subnetworks */
       int maxSubNetworkSize = Collections.max(identifiedSubNetworkSizes.values());
-      LOGGER.fine(String.format("remaining vertices %d, edges %d", theGraph.getVertices().size(), theGraph.getEdges().size()));
+      LOGGER.fine(String.format("remaining vertices %d, edges %d",
+          theGraph.getVertices().size(), theGraph.getEdges().size()));
       for (Entry<Vertex, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
         int subNetworkSize = entry.getValue();
         if (subNetworkSize < maxSubNetworkSize || !alwaysKeepLargest) {
@@ -211,7 +223,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
             removedDanglingNetworksBySize.putIfAbsent(subNetworkSize, new LongAdder());
             removedDanglingNetworksBySize.get(subNetworkSize).increment();
             LOGGER.fine(String.format("removing %d vertices from graph", subNetworkSize));
-            LOGGER.fine(String.format("remaining vertices %d, edges %d", theGraph.getVertices().size(), theGraph.getEdges().size()));
+            LOGGER.fine(String.format("remaining vertices %d, edges %d",
+                theGraph.getVertices().size(), theGraph.getEdges().size()));
           }
         }
       }

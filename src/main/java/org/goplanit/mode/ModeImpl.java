@@ -17,13 +17,15 @@ public class ModeImpl extends ExternalIdAbleImpl implements Mode {
   public final static Long DEFAULT_EXTERNAL_ID = Long.valueOf(1);
 
   /**
-   * Each mode has a maximum speed indicating the maximum speed this mode can take on in the context of the network. Typically this would be chosen as the maximum speed limit
+   * Each mode has a maximum speed indicating the maximum speed this mode can take on in the context of the network.
+   * Typically this would be chosen as the maximum speed limit
    * encountered for this mode across all road segments in the network.
    */
   private final double maxSpeed;
 
   /**
-   * Each mode has a passenger car unit number indicating how many standard passenger cars a single unit of this mode represents
+   * Each mode has a passenger car unit number indicating how many standard passenger cars a single unit of
+   * this mode represents
    */
   private final double pcu;
 
@@ -33,10 +35,10 @@ public class ModeImpl extends ExternalIdAbleImpl implements Mode {
   private final String name;
 
   /** the physical features of this mode */
-  private PhysicalModeFeaturesImpl physicalFeatures;
+  private final PhysicalModeFeaturesImpl physicalFeatures;
 
   /** the usability features of this mode */
-  private UsabilityModeFeaturesImpl usedToFeatures;
+  private final UsabilityModeFeaturesImpl usedToFeatures;
 
   /**
    * Generate id for this instance
@@ -70,7 +72,12 @@ public class ModeImpl extends ExternalIdAbleImpl implements Mode {
    * @param physicalFeatures  physical features of the mode
    * @param usabilityFeatures usability features of the mode
    */
-  protected ModeImpl(final IdGroupingToken tokenId, final String name, final double maxSpeed, final double pcu, final PhysicalModeFeaturesImpl physicalFeatures,
+  protected ModeImpl(
+      final IdGroupingToken tokenId,
+      final String name,
+      final double maxSpeed,
+      final double pcu,
+      final PhysicalModeFeaturesImpl physicalFeatures,
       final UsabilityModeFeaturesImpl usabilityFeatures) {
     super(generateId(tokenId));
     this.name = name;

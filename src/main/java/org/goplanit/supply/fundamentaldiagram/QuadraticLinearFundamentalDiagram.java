@@ -13,10 +13,11 @@ import org.goplanit.utils.macroscopic.MacroscopicConstants;
  *      alpha = (critical_speed/capacity_per_lane) * (wave_speed_max - critical_speed)
  * </p>
  * <p>
- *   Linear congested branch: capacity * ( (jam_density / (jam_density - critical_Density)) - ( DENSITY /(jam_density- citical_density)) )
+ *   Linear congested branch: capacity * ( (jam_density / (jam_density - critical_Density)) -
+ *                            ( DENSITY /(jam_density- citical_density)) )
  * </p>
  * <p>
- *   Note that these can be inverted to take a flow and provide a density instead or obtain a speed for example..
+ *   Note that these can be inverted to take a flow and provide a density instead or obtain a speed for example.
  * </p>
  * 
  * @author markr
@@ -61,7 +62,8 @@ public class QuadraticLinearFundamentalDiagram extends FundamentalDiagramImpl {
   public QuadraticLinearFundamentalDiagram(
           double freeSpeedKmHour, double speedAtCapacity, double capacityPerLaneHour, double jamDensityPcuKm) {
     super(new QuadraticFreeFlowFundamentalDiagramBranch(freeSpeedKmHour, speedAtCapacity, capacityPerLaneHour),
-            new LinearFundamentalDiagramBranch(MacroscopicConstants.DEFAULT_BACKWARD_WAVE_SPEED_KM_HOUR, jamDensityPcuKm));
+            new LinearFundamentalDiagramBranch(
+                MacroscopicConstants.DEFAULT_BACKWARD_WAVE_SPEED_KM_HOUR, jamDensityPcuKm));
     // update linear branch because default backward wave speed depends on capacity point of uncongested branch
     getCongestedBranch().setCharacteristicWaveSpeedKmHour(computeBackwardWaveSpeedForCapacity(capacityPerLaneHour));
   }
@@ -72,7 +74,8 @@ public class QuadraticLinearFundamentalDiagram extends FundamentalDiagramImpl {
    * @param freeFlowBranch to use
    * @param congestedBranch to use
    */
-  public QuadraticLinearFundamentalDiagram(final LinearFundamentalDiagramBranch freeFlowBranch, final LinearFundamentalDiagramBranch congestedBranch) {
+  public QuadraticLinearFundamentalDiagram(
+      final LinearFundamentalDiagramBranch freeFlowBranch, final LinearFundamentalDiagramBranch congestedBranch) {
     super(freeFlowBranch, congestedBranch);
   }
 

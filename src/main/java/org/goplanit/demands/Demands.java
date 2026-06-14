@@ -237,10 +237,9 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     LOGGER.info(String.format("%s#user classes: %d", prefix, userClasses.size()));
     LOGGER.info(String.format("%s#traveller types: %d", prefix, travelerTypes.size()));
 
-    odDemandsByTimePeriodAndMode.entrySet().forEach(
-            tpEntry -> LOGGER.info(String.format(
-                    "%s#Oddemands by mode for time period %s: %d", prefix,
-                    timePeriods.get(tpEntry.getKey()).getDescription(), tpEntry.getValue().entrySet().size())));
+    odDemandsByTimePeriodAndMode.forEach((key, value) -> LOGGER.info(String.format(
+        "%s#Oddemands by mode for time period %s: %d", prefix,
+        timePeriods.get(key).getDescription(), value.size())));
   }
 
   /**

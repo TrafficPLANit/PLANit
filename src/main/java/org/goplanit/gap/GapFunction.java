@@ -64,8 +64,7 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
    */
   @Override
   public Map<String, String> collectSettingsAsKeyValueMap() {
-    Map<String,String> stopCriterionSettings = getStopCriterion().collectSettingsAsKeyValueMap();    
-    return stopCriterionSettings;
+    return getStopCriterion().collectSettingsAsKeyValueMap();
   }
 
   /**

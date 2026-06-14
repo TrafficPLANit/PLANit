@@ -46,7 +46,8 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
    * @param numberOfValues to apply
    * @return (1- step) * prevValue[i] + step * proposedValue[i] for all i up to numberOfValues
    */
-  protected static double[] smooth(final double step, final double[] previousValues, final double[] proposedValues, final int numberOfValues) {
+  protected static double[] smooth(
+      final double step, final double[] previousValues, final double[] proposedValues, final int numberOfValues) {
     final double[] smoothedValues = new double[numberOfValues];
     for (int i = 0; i < numberOfValues; ++i) {
       smoothedValues[i] = smooth(step, previousValues[i],proposedValues[i]);

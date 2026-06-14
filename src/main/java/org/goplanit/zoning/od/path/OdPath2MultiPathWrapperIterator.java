@@ -13,9 +13,10 @@ import static org.goplanit.zoning.od.path.OdPath2MultiPathWrapper.getContainer;
  * @param <T> type of path
  * @param <U> type of container used wrap single-path per od in
  */
-public class OdPath2MultiPathWrapperIterator <T extends ManagedDirectedPath, U extends List<T>> implements OdMultiPathIterator<T, U>{
+public class OdPath2MultiPathWrapperIterator <T extends ManagedDirectedPath, U extends List<T>>
+    implements OdMultiPathIterator<T, U>{
 
-  private OdPathIterator<T> pathIteratorToWrap;
+  private final OdPathIterator<T> pathIteratorToWrap;
 
   private final Class<U> containerClazz;
 
@@ -33,7 +34,8 @@ public class OdPath2MultiPathWrapperIterator <T extends ManagedDirectedPath, U e
    * @param allowReuseOfContainer flag indicating if we can reuse the container to wrap path per od in
    * @param pathIteratorToWrap iterator of wrapped single path per od container
    */
-  public OdPath2MultiPathWrapperIterator(Class<U> containerClazz, boolean allowReuseOfContainer, OdPathIterator<T> pathIteratorToWrap) {
+  public OdPath2MultiPathWrapperIterator(
+      Class<U> containerClazz, boolean allowReuseOfContainer, OdPathIterator<T> pathIteratorToWrap) {
     this.pathIteratorToWrap = pathIteratorToWrap;
     this.containerClazz = containerClazz;
     this.dummyContainer = OdPath2MultiPathWrapper.createContainer(containerClazz);

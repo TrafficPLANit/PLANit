@@ -18,7 +18,8 @@ import java.util.logging.Logger;
  * 
  * @author markr
  */
-public class MacroscopicLinkFactoryImpl extends GraphEntityFactoryImpl<MacroscopicLink> implements MacroscopicLinkFactory {
+public class MacroscopicLinkFactoryImpl extends GraphEntityFactoryImpl<MacroscopicLink>
+    implements MacroscopicLinkFactory {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkFactoryImpl.class.getCanonicalName());
@@ -64,7 +65,8 @@ public class MacroscopicLinkFactoryImpl extends GraphEntityFactoryImpl<Macroscop
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkImpl<Node, MacroscopicLinkSegment> registerNew(final Node nodeA, final Node nodeB, double lengthKm, boolean registerOnNodes) {
+  public MacroscopicLinkImpl<Node, MacroscopicLinkSegment> registerNew(
+      final Node nodeA, final Node nodeB, double lengthKm, boolean registerOnNodes) {
     if (nodeA == null || nodeB == null) {
       LOGGER.warning("Unable to create new macroscopic link, one or more of its nodes are not defined");
       return null;

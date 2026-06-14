@@ -28,7 +28,8 @@ import java.util.logging.Logger;
  */
 public class QuadraticFreeFlowFundamentalDiagramBranch implements FundamentalDiagramBranch {
 
-  private static final Logger LOGGER = Logger.getLogger(QuadraticFreeFlowFundamentalDiagramBranch.class.getCanonicalName());
+  private static final Logger LOGGER =
+      Logger.getLogger(QuadraticFreeFlowFundamentalDiagramBranch.class.getCanonicalName());
 
   /** the alpha parameter derived from physical parameters */
   private double alpha;
@@ -50,7 +51,8 @@ public class QuadraticFreeFlowFundamentalDiagramBranch implements FundamentalDia
   private void updateAlpha() {
     if(Precision.greaterEqual(criticalSpeedKmHour, maxWaveSpeedKmHour)){
       LOGGER.severe(String.format(
-              "Quadratic free flow branch of FD cannot have free speed (%.2f) equal or smaller than critical speed (%.2f)", maxWaveSpeedKmHour, criticalSpeedKmHour));
+              "Quadratic free flow branch of FD cannot have free speed (%.2f) equal or smaller" +
+                  " than critical speed (%.2f)", maxWaveSpeedKmHour, criticalSpeedKmHour));
     }
     alpha = (criticalSpeedKmHour /capacityPerLanePerHour) * (maxWaveSpeedKmHour - criticalSpeedKmHour);
   }
@@ -130,7 +132,8 @@ public class QuadraticFreeFlowFundamentalDiagramBranch implements FundamentalDia
               "or larger than free speed, abort");
     }else if(Precision.smallerEqual(criticalSpeedKmHour*2, maxWaveSpeedKmHour , Precision.EPSILON_3)){
       throw new PlanItRunTimeException("Cannot create a quadratic free flow branch when critical speed is more (equal) " +
-              "than half the free speed as it causes zero/negative derivatives and bends backwards within free flow branch, abort");
+           "than half the free speed as it causes zero/negative derivatives and bends backwards within " +
+          "free flow branch, abort");
     }
 
     updateAlpha();
@@ -238,7 +241,8 @@ public class QuadraticFreeFlowFundamentalDiagramBranch implements FundamentalDia
    *   speed = (wave_speed_max - (DENSITY * alpha)).
    * </p>
    * <p>
-   *   the dSpeed/dDensity is simply -alpha, with alpha = (critical_speed/capacity_per_lane) * (wave_speed_max - critical_speed)
+   *   the dSpeed/dDensity is simply -alpha, with alpha =
+   *   (critical_speed/capacity_per_lane) * (wave_speed_max - critical_speed)
    *   so the derivative is fixed but non-zero
    * </p>
    *

@@ -1,5 +1,6 @@
 package org.goplanit.zoning.od.path;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZoneHashedImpl;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZoneHashedIterator;
@@ -7,8 +8,10 @@ import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.zoning.OdZones;
 
 /**
- * This class stores paths by their origin and destination by creating a unique hash for the combined ids of the od zones. This results in a memory efficient implementation
- * requiring only a single hash based container, instead of having as many containers as their are origins. It also means only conducting a single lookup despite the fact we have
+ * This class stores paths by their origin and destination by creating a unique hash for the combined ids of the od
+ * zones. This results in a memory efficient implementation
+ * requiring only a single hash based container, instead of having as many containers as there are origins.
+ * It also means only conducting a single lookup despite the fact we have
  * two keys (o and d).
  *
  * @author markr
@@ -21,7 +24,7 @@ public class OdPathsHashed<T extends ManagedDirectedPath> extends ZoneToZoneHash
    *
    * @param <U> type of path
    */
-  public class OdPathsHashedIterator<U extends ManagedDirectedPath> extends ZoneToZoneHashedIterator<U>
+  public static class OdPathsHashedIterator<U extends ManagedDirectedPath> extends ZoneToZoneHashedIterator<U>
       implements OdPathIterator<U> {
 
     public OdPathsHashedIterator(OdPathsHashed<U> container) {
@@ -66,14 +69,14 @@ public class OdPathsHashed<T extends ManagedDirectedPath> extends ZoneToZoneHash
    */
   @Override
   public long determineTotalPaths() {
-    return odHashed.values().size();
+    return odHashed.size();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public OdPathsHashedIterator<T> iterator() {
+  public @NonNull OdPathsHashedIterator<T> iterator() {
     return new OdPathsHashedIterator<>(this);
   }
 

@@ -1,5 +1,6 @@
 package org.goplanit.zoning.od.path;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZoneDataImpl;
 import org.goplanit.utils.path.ManagedDirectedPath;
@@ -147,7 +148,7 @@ public class OdPath2MultiPathWrapper<T extends ManagedDirectedPath, U extends Li
   }
 
   @Override
-  public OdMultiPathIterator<T, U> iterator() {
+  public @NonNull OdMultiPathIterator<T, U> iterator() {
     return new OdPath2MultiPathWrapperIterator<T,U>(containerClazz, isAllowReuseContainer(), odSinglePaths.iterator());
   }
 

@@ -66,6 +66,8 @@ public class GenericBatchExecutorService<I, O, A> {
    *
    * @param threadsToUse number of threads
    * @param batchSize the batch size to chunk the problem into
+   * @throws InterruptedException throw if error
+   * @throws ExecutionException thrown if error
    */
   public void execute(int threadsToUse, int batchSize) throws InterruptedException, ExecutionException {
     final ExecutorService exec = Executors.newFixedThreadPool(threadsToUse);

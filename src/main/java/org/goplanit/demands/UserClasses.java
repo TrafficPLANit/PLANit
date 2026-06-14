@@ -50,7 +50,8 @@ public class UserClasses extends ManagedIdEntitiesImpl<UserClass> {
   /**
    * Retrieve a UserClass by its XML Id
    * <p>
-   * This method is not efficient, since it loops through all the registered user classes in order to find the required entry.
+   * This method is not efficient, since it loops through all the registered user classes in order to find
+   * the required entry.
    *
    * @param xmlId the XML Id of the specified user class
    * @return the retrieved user class, or null if no user class was found

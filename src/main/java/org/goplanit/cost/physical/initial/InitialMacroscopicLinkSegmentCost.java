@@ -18,7 +18,8 @@ import org.goplanit.utils.time.TimePeriod;
  * @author gman6028, markr
  *
  */
-public class InitialMacroscopicLinkSegmentCost extends InitialPhysicalCost implements PhysicalCost<MacroscopicLinkSegment> {
+public class InitialMacroscopicLinkSegmentCost extends InitialPhysicalCost
+    implements PhysicalCost<MacroscopicLinkSegment> {
 
   private static final Logger LOGGER = Logger.getLogger(InitialMacroscopicLinkSegmentCost.class.getCanonicalName());
 
@@ -36,14 +37,16 @@ public class InitialMacroscopicLinkSegmentCost extends InitialPhysicalCost imple
   protected Map<TimePeriod, InitialModesLinkSegmentCost> timePeriodCosts;
 
   /**
-   * Returns the initial cost. When absent but mode is not allowed on link segment, positive infinity is used, otherwise we revert to free flow travel time and a warning is logged.
+   * Returns the initial cost. When absent but mode is not allowed on link segment, positive infinity is
+   * used, otherwise we revert to free flow travel time and a warning is logged.
    *
    * @param initialCostsByMode to use
    * @param mode               the current mode
    * @param linkSegment        the current link segment
    * @return the cost for this link segment and mode
    */
-  protected double getSegmentCost(InitialModesLinkSegmentCost initialCostsByMode, Mode mode, MacroscopicLinkSegment linkSegment) {
+  protected double getSegmentCost(
+      InitialModesLinkSegmentCost initialCostsByMode, Mode mode, MacroscopicLinkSegment linkSegment) {
     boolean present = (initialCostsByMode != null);
 
     double initialCost = Double.POSITIVE_INFINITY;
@@ -57,7 +60,8 @@ public class InitialMacroscopicLinkSegmentCost extends InitialPhysicalCost imple
         initialCost = Double.POSITIVE_INFINITY;
       } else {
         initialCost = ((MacroscopicLinkSegment) linkSegment).computeFreeFlowTravelTimeHour(mode);
-        LOGGER.warning(String.format("initial cost missing for link segment %s (id:%d), reverting to free flow travel time %.2f(h)", linkSegment.getXmlId(), linkSegment.getId(),
+        LOGGER.warning(String.format("initial cost missing for link segment %s (id:%d), reverting to " +
+                "free flow travel time %.2f(h)", linkSegment.getXmlId(), linkSegment.getId(),
             initialCost));
       }
     }
@@ -87,7 +91,8 @@ public class InitialMacroscopicLinkSegmentCost extends InitialPhysicalCost imple
     // all container wrappers around primitves in the end so always clone
     this.timePeriodAgnosticCosts = other.timePeriodAgnosticCosts.shallowClone();
     this.timePeriodCosts = new HashMap<>();
-    other.timePeriodCosts.forEach((k, v) -> timePeriodCosts.put(k, v.shallowClone()));
+    other.timePeriodCosts.forEach((k, v) ->
+        timePeriodCosts.put(k, v.shallowClone()));
   }
 
   /**
@@ -111,11 +116,13 @@ public class InitialMacroscopicLinkSegmentCost extends InitialPhysicalCost imple
    */
   @Override
   public boolean isSegmentCostsSetForMode(final TimePeriod timePeriod, final Mode mode) {
-    return isSegmentCostsSetForTimePeriod(timePeriod) ? this.timePeriodCosts.containsKey(timePeriod) : timePeriodCosts.get(timePeriod).isSegmentCostsSetForMode(mode);
+    return isSegmentCostsSetForTimePeriod(timePeriod) ?
+        this.timePeriodCosts.containsKey(timePeriod) : timePeriodCosts.get(timePeriod).isSegmentCostsSetForMode(mode);
   }
 
   /**
-   * Returns the initial cost for each link segment and mode for time period agnostic registrations. When absent but mode is not allowed on link segment, positive infinity is used,
+   * Returns the initial cost for each link segment and mode for time period agnostic registrations. When absent
+   * but mode is not allowed on link segment, positive infinity is used,
    * otherwise we revert to free flow travel time and a warning is logged.
    *
    * @param mode        the current mode
@@ -128,7 +135,8 @@ public class InitialMacroscopicLinkSegmentCost extends InitialPhysicalCost imple
   }
 
   /**
-   * Returns the initial cost for each link segment and mode for time period specific registrations. When absent but mode is not allowed on link segment, positive infinity is used,
+   * Returns the initial cost for each link segment and mode for time period specific registrations.
+   * When absent but mode is not allowed on link segment, positive infinity is used,
    * otherwise we revert to free flow travel time and a warning is logged.
    *
    * @param timePeriod  the time period
@@ -153,7 +161,8 @@ public class InitialMacroscopicLinkSegmentCost extends InitialPhysicalCost imple
    * {@inheritDoc}
    */
   @Override
-  public void setSegmentCost(final TimePeriod timePeriod, final Mode mode, final MacroscopicLinkSegment linkSegment, final double cost) {
+  public void setSegmentCost(
+      final TimePeriod timePeriod, final Mode mode, final MacroscopicLinkSegment linkSegment, final double cost) {
     InitialModesLinkSegmentCost initialCosts = timePeriodCosts.get(timePeriod);
     if (initialCosts == null) {
       initialCosts = new InitialModesLinkSegmentCost();

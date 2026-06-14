@@ -24,7 +24,7 @@ public interface OdDemands extends ZoneToZoneData<Double> {
   public abstract void multiply(final double factor);
 
   /**
-   * Apply the provided consumer to each origin-destination combination found that has non zero demands
+   * Apply the provided consumer to each origin-destination combination found that has non-zero demands
    * 
    * @param odZones  to loop over
    * @param consumer to apply
@@ -46,7 +46,8 @@ public interface OdDemands extends ZoneToZoneData<Double> {
    * @param odZones  to loop destinations over
    * @param consumer to apply
    */
-  public default void forEachNonZeroDestinationDemand(final OdZones odZones, final OdZone origin, final BiConsumer<OdZone, Double> consumer) {
+  public default void forEachNonZeroDestinationDemand(
+      final OdZones odZones, final OdZone origin, final BiConsumer<OdZone, Double> consumer) {
     odZones.forEach((d) -> {
       Double odDemand = getValue(origin, d);
       if (odDemand != null && odDemand > 0) {
@@ -72,8 +73,8 @@ public interface OdDemands extends ZoneToZoneData<Double> {
   /**
    * Option to apply stochastic rounding to all entries.
    * <p> All values between zero and upperBound are eligible for rounding. We draw a uniform random number
-   * between 0 and upperbound, if the drawn value is lower than the value at hand it is rounded to the upper bound, otherwise
-   * it is truncated to zero.
+   * between 0 and upperbound, if the drawn value is lower than the value at hand it is rounded to the upper
+   * bound, otherwise it is truncated to zero.
    * </p>
    * <p>
    *   this approach ensures the  average across all rounded values remains largely unchanged while reducing the number
@@ -82,9 +83,9 @@ public interface OdDemands extends ZoneToZoneData<Double> {
    *
    * @param upperBound all values below or equal to the upperbound are considered for rounding
    * @param seed to use
-   * @param logstats when true log stats on rounding applied, otherwise not
+   * @param logStats when true log stats on rounding applied, otherwise not
    */
-  public abstract void applyStochasticRounding(double upperBound, int seed, boolean logstats);
+  public abstract void applyStochasticRounding(double upperBound, int seed, boolean logStats);
 
   /**
    * Sum all demands

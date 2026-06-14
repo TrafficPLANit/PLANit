@@ -16,7 +16,8 @@ import org.goplanit.utils.network.layers.MacroscopicNetworkLayers;
  * 
  * @author markr
  */
-public class MacroscopicNetworkLayerFactoryImpl extends ManagedIdEntityFactoryImpl<MacroscopicNetworkLayer> implements MacroscopicNetworkLayerFactory {
+public class MacroscopicNetworkLayerFactoryImpl extends ManagedIdEntityFactoryImpl<MacroscopicNetworkLayer>
+    implements MacroscopicNetworkLayerFactory {
 
   /** container to register instances on */
   private final MacroscopicNetworkLayers container;

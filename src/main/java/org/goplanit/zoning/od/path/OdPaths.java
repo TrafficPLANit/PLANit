@@ -1,5 +1,6 @@
 package org.goplanit.zoning.od.path;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZoneData;
 import org.goplanit.utils.path.ManagedDirectedPath;
 
@@ -26,7 +27,7 @@ public interface OdPaths<T extends ManagedDirectedPath> extends ZoneToZoneData<T
    *
    * @return iterator through all the origin-destination cells
    */
-  public OdPathIterator<T> iterator();
+  public @NonNull OdPathIterator<T> iterator();
 
   /**
    * Shallow copy

@@ -39,7 +39,8 @@ public class InitialModesLinkSegmentCost implements PhysicalCost<MacroscopicLink
    */
   protected InitialModesLinkSegmentCost(InitialModesLinkSegmentCost initialLinkSegmentCostMode) {
     this();
-    initialLinkSegmentCostMode.costPerModeAndLinkSegment.forEach((mode, map) -> costPerModeAndLinkSegment.put(mode, new HashMap<>(map)));
+    initialLinkSegmentCostMode.costPerModeAndLinkSegment.forEach((mode, map) ->
+        costPerModeAndLinkSegment.put(mode, new HashMap<>(map)));
   }
 
   /**

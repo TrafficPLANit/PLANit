@@ -18,6 +18,9 @@ public class PlanItTestHelper {
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(PlanItTestHelper.class.getCanonicalName());
 
+  /** dummy constructor */
+  private PlanItTestHelper(){}
+
   /**
    * Compares the contents of two text files
    *

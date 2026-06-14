@@ -38,7 +38,8 @@ import static org.goplanit.network.Network.MACROSCOPIC_NETWORK;
 /**
  * The top-level class which hosts a single project.
  *
- * A project can consist of multiple networks, demands and traffic assignments all based on a single configuration (user classes, modes etc.)
+ * A project can consist of multiple networks, demands and traffic assignments all based on a single configuration
+ * (user classes, modes etc.)
  *
  * @author markr
  *
@@ -54,13 +55,14 @@ public class CustomPlanItProject {
   protected final long id;
 
   /**
-   * id generation using this token will be contiguous and unique for all instances created with this token. This token is related to the current instance of this class, i.e., the
-   * project
+   * id generation using this token will be contiguous and unique for all instances created with this token.
+   * This token is related to the current instance of this class, i.e., the project
    */
   protected IdGroupingToken projectToken;
 
   /**
-   * The input container holding all traffic assignment input components and related functionality with respect to project management
+   * The input container holding all traffic assignment input components and related functionality with
+   * respect to project management
    */
   protected final PlanItProjectInput inputs;
 
@@ -139,7 +141,8 @@ public class CustomPlanItProject {
     this.projectToken = IdGenerator.createIdGroupingToken(this, this.id);
 
     this.inputBuilderListener = inputBuilderListener;
-    LOGGER.info(LoggingUtils.projectPrefix(this.id) + LoggingUtils.logActiveStateByClassName(inputBuilderListener, true));
+    LOGGER.info(LoggingUtils.projectPrefix(this.id) +
+        LoggingUtils.logActiveStateByClassName(inputBuilderListener, true));
 
     // connect inputs
     this.inputs = new PlanItProjectInput(this.id, projectToken, inputBuilderListener);
@@ -153,7 +156,8 @@ public class CustomPlanItProject {
   }
 
   /**
-   * Register a class that we allow to be instantiated as a concrete implementation of a traffic assignment component that can be used in PLANit
+   * Register a class that we allow to be instantiated as a concrete implementation of a traffic assignment
+   * component that can be used in PLANit
    * 
    * @param theClazz the class that we want to mark as eligible from an outside source
    * @throws PlanItException thrown if class cannot be registered
@@ -169,7 +173,8 @@ public class CustomPlanItProject {
    * @return the generated infrastructure network
    * @throws PlanItException thrown if there is an error
    */
-  public LayeredNetwork<?, ?> createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
+  public LayeredNetwork<?, ?> createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType)
+      throws PlanItException {
     return inputs.createAndRegisterInfrastructureNetwork(infrastructureNetworkType);
   }
 
@@ -202,7 +207,8 @@ public class CustomPlanItProject {
    * @return the generated demands object
    * @throws PlanItException thrown if there is an error
    */
-  public Demands createAndRegisterDemands(final Zoning zoning, final LayeredNetwork<?, ?> network) throws PlanItException {
+  public Demands createAndRegisterDemands(final Zoning zoning, final LayeredNetwork<?, ?> network)
+      throws PlanItException {
     return inputs.createAndRegisterDemands(zoning, network);
   }
 
@@ -237,7 +243,8 @@ public class CustomPlanItProject {
    * @return od path sets that have been parsed
    * @throws PlanItException thrown if there is an error
    */
-  public OdPathSets createAndRegisterOdPathSets(final NetworkLayer networkLayer, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
+  public OdPathSets createAndRegisterOdPathSets(
+      final NetworkLayer networkLayer, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
     return inputs.createAndRegisterOdPathSets(networkLayer, zoning, odPathSetInputPath);
   }
 
@@ -266,21 +273,24 @@ public class CustomPlanItProject {
     assignmentBuilders.addTrafficAssignmentBuilder(taBuilder);
 
     /*
-     * unconventional but useful in our context: the configuration of the builder is exposed via its configurator. This ensures that the end user remains unaware of the builder
-     * pattern, but instead simply configures a proxy. The builder in turn is built from within the project leveraging the configuration that the user interacted with
+     * unconventional but useful in our context: the configuration of the builder is exposed via its configurator.
+     * This ensures that the end user remains unaware of the builder pattern, but instead simply configures a proxy.
+     * The builder in turn is built from within the project leveraging the configuration that the user interacted with
      */
     return taBuilder.getConfigurator();
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file which we assume are available in the native xml/csv output format as provided in this project
+   * Create and register initial link segment costs from a (single) file which we assume are available in the
+   * native xml/csv output format as provided in this project
    *
    * @param network  network the InitialLinkSegmentCost object will be registered for
    * @param fileName file containing the initial link segment cost values
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final LayeredNetwork<?, ?> network, final String fileName) throws PlanItException {
+  public InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(
+      final LayeredNetwork<?, ?> network, final String fileName) throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName);
   }
 
@@ -293,7 +303,8 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCostPeriod object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final LayeredNetwork<?, ?> network, final String fileName, final TimePeriod timePeriod)
+  public InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(
+      final LayeredNetwork<?, ?> network, final String fileName, final TimePeriod timePeriod)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
   }
@@ -307,7 +318,8 @@ public class CustomPlanItProject {
    */
   public OutputFormatter createAndRegisterOutputFormatter(final String outputFormatterType) throws PlanItException {
     final OutputFormatter outputFormatter = OutputFormatterFactory.createOutputFormatter(outputFormatterType);
-    PlanItException.throwIf(outputFormatter == null, "Output writer of type " + outputFormatterType + " could not be created");
+    PlanItException.throwIf(outputFormatter == null, "Output writer of type " +
+        outputFormatterType + " could not be created");
 
     outputFormatters.put(outputFormatter.getId(), outputFormatter);
     return outputFormatter;
@@ -342,7 +354,8 @@ public class CustomPlanItProject {
     Set<TrafficAssignment> failedAssignments = new HashSet<>();
 
     if (assignmentBuilders.isEmpty()) {
-      LOGGER.warning(LoggingUtils.projectPrefix(this.id) + "No assignment registered on project, execution ended prematurely");
+      LOGGER.warning(LoggingUtils.projectPrefix(this.id) + "No assignment registered on project, " +
+          "execution ended prematurely");
       return;
     }
 
@@ -350,8 +363,10 @@ public class CustomPlanItProject {
       TrafficAssignment ta = null;
       try {
         ta = tab.build();
-        LOGGER.info(LoggingUtils.projectPrefix(this.id) + LoggingUtils.logActiveStateByClassName(ta, true));
-        LOGGER.info(LoggingUtils.projectPrefix(this.id) + LoggingUtils.runIdPrefix(ta.getId()) + "assignment created");
+        LOGGER.info(LoggingUtils.projectPrefix(this.id) +
+            LoggingUtils.logActiveStateByClassName(ta, true));
+        LOGGER.info(LoggingUtils.projectPrefix(this.id) +
+            LoggingUtils.runIdPrefix(ta.getId()) + "assignment created");
         ta.execute();
       } catch (final PlanItException pe) {
         LOGGER.severe(pe.getMessage());
@@ -362,9 +377,9 @@ public class CustomPlanItProject {
     }
 
     if (!failedAssignments.isEmpty()) {
-      String failedAssignmentMessage = "the following assignments failed: ";
-      failedAssignments.forEach(ta -> failedAssignmentMessage.concat(String.valueOf(ta.getId())));
-      throw new PlanItRunTimeException(failedAssignmentMessage);
+      StringBuilder sb =  new StringBuilder("the following assignments failed: ");
+      failedAssignments.forEach(ta -> sb.append(ta.getId()).append(" "));
+      throw new PlanItRunTimeException(sb.toString());
     }
   }
 

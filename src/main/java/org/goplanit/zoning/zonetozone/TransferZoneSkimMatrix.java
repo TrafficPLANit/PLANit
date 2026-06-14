@@ -1,5 +1,6 @@
 package org.goplanit.zoning.zonetozone;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.TransferZones;
@@ -78,7 +79,7 @@ public class TransferZoneSkimMatrix extends ZoneToZonePrimitiveMatrix<Double> {
    * {@inheritDoc}
    */
   @Override
-  public TransferZoneSkimMatrixIterator iterator() {
+  public @NonNull TransferZoneSkimMatrixIterator iterator() {
     return new TransferZoneSkimMatrixIterator(this);
   }
 

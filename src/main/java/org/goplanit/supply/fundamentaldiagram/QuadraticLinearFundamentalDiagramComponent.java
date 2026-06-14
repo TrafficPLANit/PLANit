@@ -44,7 +44,8 @@ public class QuadraticLinearFundamentalDiagramComponent extends FundamentalDiagr
           MacroscopicLinkSegmentType lsType, Mode mode) {
 
     if(!lsType.isModeAllowed(mode)){
-      LOGGER.warning("Unable to create fundamental diagram for mode (%s) on link type since the mode is not allowed");
+      LOGGER.warning("Unable to create fundamental diagram for mode (%s) on link type since the" +
+          " mode is not allowed");
       return null;
     }
     // free speed:      use explicitly set or mode speed limit

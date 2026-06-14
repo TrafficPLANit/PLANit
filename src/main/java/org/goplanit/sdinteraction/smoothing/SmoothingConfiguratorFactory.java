@@ -26,7 +26,8 @@ public class SmoothingConfiguratorFactory {
     } else if (smoothingType.equals(Smoothing.MSRA)) {
       return new MSRASmoothingConfigurator();
     }else {
-      throw new PlanItRunTimeException(String.format("Unable to construct configurator for given smoothingType %s", smoothingType));
+      throw new PlanItRunTimeException(String.format("Unable to construct configurator for given smoothingType %s",
+          smoothingType));
     }
   }
 }

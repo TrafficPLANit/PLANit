@@ -7,7 +7,8 @@ import java.util.logging.Logger;
 
 /**
  * Gap function generalised from the SUE gap function in Bliemer et al. (2014) who sum each origin-destination path based
- * (perceived) cost multiplied by its assigned path flow and divide it by the least cost path multiplied by the total o-d flow.
+ * (perceived) cost multiplied by its assigned path flow and divide it by the least cost path multiplied by the
+ * total o-d flow.
  * 
  * @author markr
  *
@@ -77,7 +78,8 @@ public class PathBasedGapFunction extends GapFunction {
   }
 
   /**
-   * Increase measured cost gap which is diff between min and measured path cost for group, this difference is muliplied by
+   * Increase measured cost gap which is diff between min and measured path cost for group, this difference is
+   * muliplied by
    * the assigned path demand. This adds to the numerator of the gap
    * 
    * @param measuredPathCost cost of a single path
@@ -139,7 +141,8 @@ public class PathBasedGapFunction extends GapFunction {
     }
 
     if(scaledMinimumPathCosts == 0.0){
-      LOGGER.severe(String.format("Minimum network cost (%.2f) cannot be zero in order to compute gap, this is not the case", scaledMinimumPathCosts));
+      LOGGER.severe(String.format("Minimum network cost (%.2f) cannot be zero in order to compute gap, " +
+          "this is not the case", scaledMinimumPathCosts));
       if(internalStateChange) {
         gap = computedGap;
       }

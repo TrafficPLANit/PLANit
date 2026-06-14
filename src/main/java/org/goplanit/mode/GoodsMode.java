@@ -33,7 +33,8 @@ public class GoodsMode extends PredefinedModeImpl {
   public static final double DEFAULT_PCU = 1.8;
 
   /* default physical features of gv (VEHICLE, MOTORISED, ROAD) */
-  public static final PhysicalModeFeatures GV_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.ROAD);
+  public static final PhysicalModeFeatures GV_PHYSICAL_FEATURES =
+      new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.ROAD);
 
   /* default usability features of gv (GOODS) */
   public static final UsabilityModeFeatures GV_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.GOODS);
@@ -44,7 +45,12 @@ public class GoodsMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected GoodsMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.GOODS_VEHICLE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, GV_PHYSICAL_FEATURES, GV_USABLITY_FEATURES);
+    super(groupId,
+        PredefinedModeType.GOODS_VEHICLE,
+        DEFAULT_MAX_SPEED_KMH,
+        DEFAULT_PCU,
+        GV_PHYSICAL_FEATURES,
+        GV_USABLITY_FEATURES);
   }
 
   /**

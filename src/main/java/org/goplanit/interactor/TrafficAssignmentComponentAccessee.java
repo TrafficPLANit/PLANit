@@ -9,9 +9,12 @@ package org.goplanit.interactor;
 public interface TrafficAssignmentComponentAccessee extends InteractorAccessee {
 
   /**
-   * Collect the desired traffic assignment component by its class assuming it is available on the assignment. These are traffic assignment components that are created and
-   * registered upon the assignment, so not component inputs that are readily available upon creation, but components specific to the assignment itself. Derived assignments might
-   * also register additional components as well beyond the standard components registered here on the base class (gapfunction, smoothing, physical, virtual cost).
+   * Collect the desired traffic assignment component by its class assuming it is available on the assignment.
+   * These are traffic assignment components that are created and
+   * registered upon the assignment, so not component inputs that are readily available upon creation,
+   * but components specific to the assignment itself. Derived assignments might
+   * also register additional components as well beyond the standard components registered here on the
+   * base class (gapfunction, smoothing, physical, virtual cost).
    * 
    * @param <T>                  component type
    * @param planitComponentClass to collect of type T
@@ -20,9 +23,12 @@ public interface TrafficAssignmentComponentAccessee extends InteractorAccessee {
   public abstract <T> T getTrafficAssignmentComponent(final Class<T> planitComponentClass);
 
   /**
-   * Verify if the desired traffic assignment component (by its class) is available on the assignment. These are traffic assignment components that are created and
-   * registered upon the assignment, so not component inputs that are readily available upon creation, but components specific to the assignment itself. Derived assignments might
-   * also register additional components as well beyond the standard components registered here on the base class (gapfunction, smoothing, physical, virtual cost).
+   * Verify if the desired traffic assignment component (by its class) is available on the assignment.
+   * These are traffic assignment components that are created and
+   * registered upon the assignment, so not component inputs that are readily available upon creation,
+   * but components specific to the assignment itself. Derived assignments might
+   * also register additional components as well beyond the standard components registered here on the
+   * base class (gapfunction, smoothing, physical, virtual cost).
    *
    * @param <T>                  component type
    * @param planitComponentClass to collect of type T

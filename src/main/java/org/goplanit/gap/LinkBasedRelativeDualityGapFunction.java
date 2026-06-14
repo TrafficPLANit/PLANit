@@ -6,7 +6,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 
 /**
- * Gap function based on the work of Bovy and Jansen (1983) who take the different between the current system travel time and the system travel time if all flow were to be assigned
+ * Gap function based on the work of Bovy and Jansen (1983) who take the different between the current system travel
+ * time and the system travel time if all flow were to be assigned
  * to the shortest paths, divided by the system travel time
  * 
  * @author markr
@@ -125,7 +126,8 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
     }
 
     if (Precision.smaller(measuredNetworkCost, minimumNetworkCost)) {
-      LOGGER.severe(String.format("Minimum network cost (%.2f) exceeds measured network cost (%.2f), this should not happen", minimumNetworkCost, measuredNetworkCost));
+      LOGGER.severe(String.format("Minimum network cost (%.2f) exceeds measured network cost (%.2f)," +
+          " this should not happen", minimumNetworkCost, measuredNetworkCost));
     }
 
     /* special case, both might be zero for example - unlikely but technically this is considered converged */
@@ -138,7 +140,8 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
     }
 
     if (!Precision.positive(measuredNetworkCost)) {
-      LOGGER.severe(String.format("Measured network cost (%.2f) needs to be positive to compute gap, this is not the case", measuredNetworkCost));
+      LOGGER.severe(String.format("Measured network cost (%.2f) needs to be positive to compute gap, " +
+          "this is not the case", measuredNetworkCost));
       return -1;
     }
 

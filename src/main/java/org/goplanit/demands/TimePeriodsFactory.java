@@ -10,7 +10,8 @@ import org.goplanit.utils.time.TimePeriod;
 /**
  * Factory class for time periods instances to be registered on its parent container passed in to constructor
  */
-public class TimePeriodsFactory extends ManagedIdEntityFactoryImpl<TimePeriod> implements ManagedIdEntityFactory<TimePeriod> {
+public class TimePeriodsFactory extends ManagedIdEntityFactoryImpl<TimePeriod>
+    implements ManagedIdEntityFactory<TimePeriod> {
 
   /** container to use */
   protected final TimePeriods timePeriods;

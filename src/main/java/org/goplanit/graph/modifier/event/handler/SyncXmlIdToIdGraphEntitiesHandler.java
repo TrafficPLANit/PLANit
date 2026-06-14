@@ -48,6 +48,7 @@ public class SyncXmlIdToIdGraphEntitiesHandler extends SyncXmlIdToIdHandler impl
     }
 
     RecreatedGraphEntitiesManagedIdsEvent theEvent = (RecreatedGraphEntitiesManagedIdsEvent) event;
-    theEvent.getManagedIdEntities().forEach( e -> super.syncXmlIdToInternalId((ExternalIdAble) e));
+    theEvent.getManagedIdEntities().forEach(
+        e -> super.syncXmlIdToInternalId((ExternalIdAble) e));
   }
 }

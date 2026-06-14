@@ -44,7 +44,8 @@ public class SyncXmlIdToIdDirectedGraphEntitiesHandler extends SyncXmlIdToIdGrap
     }
 
     RecreatedGraphEntitiesManagedIdsEvent theEvent = (RecreatedGraphEntitiesManagedIdsEvent) event;
-    theEvent.getManagedIdEntities().forEach( e -> super.syncXmlIdToInternalId((ExternalIdAble) e));
+    theEvent.getManagedIdEntities().forEach(
+        e -> super.syncXmlIdToInternalId((ExternalIdAble) e));
   }
 
   /**
@@ -60,6 +61,7 @@ public class SyncXmlIdToIdDirectedGraphEntitiesHandler extends SyncXmlIdToIdGrap
 
     RecreatedDirectedGraphEntitiesManagedIdsEvent theEvent =
         (RecreatedDirectedGraphEntitiesManagedIdsEvent) event;
-    theEvent.getManagedIdEntities().forEach( e -> super.syncXmlIdToInternalId((ExternalIdAble) e));
+    theEvent.getManagedIdEntities().forEach(
+        e -> super.syncXmlIdToInternalId((ExternalIdAble) e));
   }
 }

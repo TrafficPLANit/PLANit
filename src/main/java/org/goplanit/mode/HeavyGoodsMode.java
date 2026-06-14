@@ -33,7 +33,8 @@ public class HeavyGoodsMode extends PredefinedModeImpl {
   public static final double DEFAULT_PCU = 2.5;
 
   /* default physical features of hgv (VEHICLE, MOTORISED, ROAD) */
-  public static final PhysicalModeFeatures HGV_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.ROAD);
+  public static final PhysicalModeFeatures HGV_PHYSICAL_FEATURES =
+      new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.ROAD);
 
   /* default usability features of hgv (GOODS) */
   public static final UsabilityModeFeatures HGV_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.GOODS);
@@ -44,7 +45,12 @@ public class HeavyGoodsMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected HeavyGoodsMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.HEAVY_GOODS_VEHICLE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, HGV_PHYSICAL_FEATURES, HGV_USABLITY_FEATURES);
+    super(groupId,
+        PredefinedModeType.HEAVY_GOODS_VEHICLE,
+        DEFAULT_MAX_SPEED_KMH,
+        DEFAULT_PCU,
+        HGV_PHYSICAL_FEATURES,
+        HGV_USABLITY_FEATURES);
   }
 
   /**

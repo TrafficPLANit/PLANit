@@ -40,7 +40,8 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    * @param parentLink  the parent link of this link segment
    * @param directionAB direction of travel
    */
-  protected MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final MacroscopicLink parentLink, final boolean directionAB) {
+  protected MacroscopicLinkSegmentImpl(
+      final IdGroupingToken groupId, final MacroscopicLink parentLink, final boolean directionAB) {
     super(groupId, parentLink, directionAB);
   }
 

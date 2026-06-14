@@ -94,7 +94,8 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
    * @param inputBuilderListener the input builder listener
    * @throws PlanItException thrown if error
    */
-  public StochasticPathChoiceBuilder(final IdGroupingToken projectToken, InputBuilderListener inputBuilderListener) throws PlanItException {
+  public StochasticPathChoiceBuilder(final IdGroupingToken projectToken, InputBuilderListener inputBuilderListener)
+      throws PlanItException {
     super(StochasticPathChoice.class, projectToken, inputBuilderListener);
   }
 

@@ -16,7 +16,8 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
  * @author markr
  *
  */
-public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<MacroscopicLinkSegmentType> implements MacroscopicLinkSegmentTypes {
+public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<MacroscopicLinkSegmentType>
+    implements MacroscopicLinkSegmentTypes {
 
   /** the logger to use */
   @SuppressWarnings("unused")
@@ -41,7 +42,8 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
    * @param groupId                to use for creating ids for instances
    * @param linkSegmentTypeFactory the factory to use
    */
-  public MacroscopicLinkSegmentTypesImpl(final IdGroupingToken groupId, MacroscopicLinkSegmentTypeFactory linkSegmentTypeFactory) {
+  public MacroscopicLinkSegmentTypesImpl(
+      final IdGroupingToken groupId, MacroscopicLinkSegmentTypeFactory linkSegmentTypeFactory) {
     super(MacroscopicLinkSegmentType::getId, MacroscopicLinkSegmentType.MACROSCOPIC_LINK_SEGMENT_TYPE_ID_CLASS);
     this.linkSegmentTypeFactory = linkSegmentTypeFactory;
   }
@@ -54,16 +56,20 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
    * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
   public MacroscopicLinkSegmentTypesImpl(
-          final MacroscopicLinkSegmentTypesImpl other, boolean deepCopy, BiConsumer<MacroscopicLinkSegmentType,MacroscopicLinkSegmentType> mapper) {
+          final MacroscopicLinkSegmentTypesImpl other,
+          boolean deepCopy,
+          BiConsumer<MacroscopicLinkSegmentType,MacroscopicLinkSegmentType> mapper) {
     super(other, deepCopy, mapper);
     this.linkSegmentTypeFactory =
-            new MacroscopicLinkSegmentTypeFactoryImpl(other.linkSegmentTypeFactory.getIdGroupingToken(),this);
+            new MacroscopicLinkSegmentTypeFactoryImpl(
+                other.linkSegmentTypeFactory.getIdGroupingToken(),this);
   }
 
   /**
    * Retrieve a MacroscopicLinkSegmentType by its XML Id
    * 
-   * This method is not efficient, since it loops through all the registered types in order to find the required entry. Use get whenever possible instead
+   * This method is not efficient, since it loops through all the registered types in order to find the required entry.
+   * Use get whenever possible instead
    * 
    * @param xmlId the XML Id of the specified MacroscopicLinkSegmentType instance
    * @return the retrieved type, or null if nothing was found
@@ -103,7 +109,8 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentTypesImpl deepCloneWithMapping(BiConsumer<MacroscopicLinkSegmentType,MacroscopicLinkSegmentType> mapper) {
+  public MacroscopicLinkSegmentTypesImpl deepCloneWithMapping(
+      BiConsumer<MacroscopicLinkSegmentType,MacroscopicLinkSegmentType> mapper) {
     return new MacroscopicLinkSegmentTypesImpl(this, true, mapper);
   }
 
