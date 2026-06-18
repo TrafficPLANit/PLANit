@@ -6,8 +6,6 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-import org.goplanit.utils.containers.FourAryMinHeapOpenSet;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 
@@ -40,9 +38,8 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised
    * predicate for Dijkstra where shortest means less cost than existing cost, so only cheaper paths overwrite
    * an existing shortest path to a node.
    */
-  protected static final BiPredicate<Double, Double> isShorterPredicate = (currCost, computedCost) -> {
-    return currCost > computedCost;
-  };
+  protected static final BiPredicate<Double, Double> IS_SHORTER_PREDICATE =
+      (currCost, computedCost) -> currCost > computedCost;
 
   /**
    * Execute Dijkstra shortest path search based on search type, start vertex and consumer that deals with
@@ -67,7 +64,7 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised
 
     /* shortest path costs to each vertex for start vertex */
     double[] vertexMeasuredCost = super.execute(
-            searchType, isShorterPredicate, shortestNextEdgeSegmentConsumer, bannedThroughVertices);
+            searchType, IS_SHORTER_PREDICATE, shortestNextEdgeSegmentConsumer, bannedThroughVertices);
     /* pass on to result object for user-friendly dissemination */
     return new ShortestPathResultGeneralised(
         currentSource, vertexMeasuredCost, shortestEdgeSegmentOfVertex, searchType, edgeSegmentCosts.length);
