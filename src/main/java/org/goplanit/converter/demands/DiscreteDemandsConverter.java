@@ -1,24 +1,22 @@
 package org.goplanit.converter.demands;
 
+import org.goplanit.converter.Converter;
+import org.goplanit.demands.Demands;
+import org.goplanit.demands.discrete.DiscreteDemands;
+
 import java.util.logging.Logger;
 
-import org.goplanit.converter.Converter;
-import org.goplanit.converter.ConverterReader;
-import org.goplanit.converter.ConverterWriter;
-import org.goplanit.demands.Demands;
-import org.goplanit.utils.exceptions.PlanItException;
-
 /**
- * Demands converter class able to convert demands from one type to another
+ * Discrete demands converter class able to convert discrete demands from one type to another
  * 
  * @author markr
  *
  */
-public class DemandsConverter extends Converter<Demands> {
+public class DiscreteDemandsConverter extends Converter<DiscreteDemands> {
 
   /** the logger */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(DemandsConverter.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(DiscreteDemandsConverter.class.getCanonicalName());
 
   /**
    * {@inheritDoc}
@@ -26,10 +24,10 @@ public class DemandsConverter extends Converter<Demands> {
    * make sure the demands have access to the reference zoning by taking it from the reader and placing it on the writer
    * (if not already available)
    *
-   * @param demands demands to write
+   * @param discreteDemands demands to write
    */
   @Override
-  protected void write(Demands demands) {
+  protected void write(DiscreteDemands discreteDemands) {
     var reader = getReader();
     var writer = getWriter();
 
@@ -39,16 +37,16 @@ public class DemandsConverter extends Converter<Demands> {
       writer.setReferenceZoning(reader.getReferenceZoning());
     }
 
-    super.write(demands);
+    super.write(discreteDemands);
   }
 
   /**
    * constructor
-   * 
+   *
    * @param reader to use for parsing
    * @param writer to use for persisting
    */
-  protected DemandsConverter(DemandsReader reader, DemandsWriter writer) {
+  protected DiscreteDemandsConverter(DiscreteDemandsReader reader, DiscreteDemandsWriter writer) {
     super(reader, writer);
   }
 
@@ -57,8 +55,8 @@ public class DemandsConverter extends Converter<Demands> {
    * 
    * @return the reader
    */
-  public DemandsReader getReader() {
-    return (DemandsReader) super.getReader();
+  public DiscreteDemandsReader getReader() {
+    return (DiscreteDemandsReader) super.getReader();
   }
 
   /**
@@ -66,8 +64,8 @@ public class DemandsConverter extends Converter<Demands> {
    * 
    * @return the writer
    */
-  public DemandsWriter getWriter() {
-    return (DemandsWriter) super.getWriter();
+  public DiscreteDemandsWriter getWriter() {
+    return (DiscreteDemandsWriter) super.getWriter();
   }
 
 }
