@@ -57,7 +57,7 @@ public class UserClasses extends ManagedIdEntitiesImpl<UserClass> {
    * @return the retrieved user class, or null if no user class was found
    */
   public UserClass getUserClassByXmlId(String xmlId) {
-    return firstMatch(userClass -> xmlId.equals(((UserClass) userClass).getXmlId()));
+    return firstMatch(userClass -> xmlId.equals(userClass.getXmlId()));
   }
 
   /**

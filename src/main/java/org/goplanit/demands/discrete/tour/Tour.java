@@ -1,0 +1,197 @@
+package org.goplanit.demands.discrete.tour;
+
+import org.goplanit.demands.discrete.person.Person;
+import org.goplanit.utils.id.ExternalIdAbleImpl;
+import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedId;
+import org.goplanit.utils.zoning.OdZone;
+
+import java.util.List;
+import java.util.logging.Logger;
+
+/**
+ * Represents a tour.
+ * 
+ * @author markr
+ *
+ */
+public class Tour extends ExternalIdAbleImpl implements ManagedId, TourScheduleElement {
+
+  /** the logger */
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = Logger.getLogger(Tour.class.getCanonicalName());
+
+  /** Person the tour belongs to */
+  private Person person;
+
+  /** origin zone of the tour */
+  private OdZone origin;
+
+  /** destination zone of the tour */
+  private OdZone destination;
+
+  /** if this is a sub tour performed at destination of its parent, we set the parent here */
+  private Tour parentTour;
+
+  /** tour schedule contains order tour schedule elements which can either be trips, and/or sub tours. When it is a
+   * sub tour, the trips or sub tours within the sub tour are ordered as well and assumed to be carried out before the
+   * next element on the schedule at the level where the sub tour was scheduled
+   */
+  private TourSchedule tourSchedule;
+
+  /**
+   * Generate id for instances of this class based on the token and class identifier
+   *
+   * @param tokenId to use
+   * @return generated id
+   */
+  protected static long generateId(IdGroupingToken tokenId) {
+    return IdGenerator.generateId(tokenId, Tour.TOUR_ID_CLASS);
+  }
+
+  /** id class for generating ids */
+  public static final Class<Tour> TOUR_ID_CLASS = Tour.class;
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Class<? extends Tour> getIdClass() {
+    return TOUR_ID_CLASS;
+  }
+
+  /**
+   * Constructor
+   *
+   * @param groupId          contiguous id generation within this group for instances of this class
+   */
+  public Tour(IdGroupingToken groupId) {
+    super(IdGenerator.generateId(groupId, TOUR_ID_CLASS));
+  }
+
+  /**
+   * Copy constructor
+   *
+   * @param tour to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  public Tour(Tour tour, boolean deepCopy /* no impact yet */) {
+    super(tour);
+    this.person = tour.person;
+    this.origin = tour.origin;
+    this.destination = tour.destination;
+    this.parentTour = tour.parentTour;
+    // we do not own entries in the schedule, so we do not actively copy them
+    this.tourSchedule = deepCopy ? tour.tourSchedule.deepClone() : tour.tourSchedule.shallowClone();
+  }
+
+  /**
+   * Access to person
+   * @return person
+   */
+  public Person getPerson() {
+    return person;
+  }
+
+  /**
+   * person
+   * @param person to set
+   */
+  public void setPerson(Person person) {
+    this.person = person;
+  }
+
+  /**
+   * Access to origin
+   * @return origin
+   */
+  public OdZone getOrigin() {
+    return origin;
+  }
+
+  /**
+   * origin
+   * @param origin to set
+   */
+  public void setOrigin(OdZone origin) {
+    this.origin = origin;
+  }
+
+  /**
+   * Access to destination
+   * @return destination
+   */
+  public OdZone getDestination() {
+    return destination;
+  }
+
+  /**
+   * destination
+   * @param destination to set
+   */
+  public void setDestination(OdZone destination) {
+    this.destination = destination;
+  }
+
+  /**
+   * Access to parent tour (if any)
+   * @return parent
+   */
+  public Tour getParentTour(){
+    return this.parentTour;
+  }
+
+  /**
+   * parent tour
+   * @param parent to set
+   */
+  public void setParentTour(Tour parent){
+    this.parentTour = parent;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TourSchedule getSchedule() {
+    return tourSchedule;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    long newId = generateId(tokenId);
+    setId(newId);
+    return newId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Tour shallowClone() {
+    return new Tour(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Tour deepClone() {
+    return new Tour(this, true);
+  }
+
+  /**
+   * Output this object as a String
+   * 
+   * @return String containing the value of this
+   */
+  @Override
+  public String toString() {
+    return getIdsAsString();
+  }
+
+}

@@ -1,4 +1,4 @@
-package org.goplanit.demands.discrete.household;
+package org.goplanit.demands.discrete.person;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
@@ -6,23 +6,23 @@ import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import java.util.function.BiConsumer;
 
 /**
- * Class to register and store households for the current discrete demand object
+ * Class to register and store persons for the current discrete demand object
  *
  * @author garym, markr
  */
-public final class Households extends ManagedIdEntitiesImpl<Household> {
+public final class Persons extends ManagedIdEntitiesImpl<Person> {
 
   /** factory to create instances on this container */
-  private final HouseholdsFactory factory;
+  private final PersonsFactory factory;
 
   /**
    * Constructor
    *
    * @param tokenId  to use for id generation
    */
-  public Households(final IdGroupingToken tokenId) {
-    super(Household::getId, Household.HOUSEHOLD_ID_CLASS);
-    this.factory = new HouseholdsFactory(tokenId, this);
+  public Persons(final IdGroupingToken tokenId) {
+    super(Person::getId, Person.PERSON_ID_CLASS);
+    this.factory = new PersonsFactory(tokenId, this);
   }
 
   /**
@@ -32,9 +32,9 @@ public final class Households extends ManagedIdEntitiesImpl<Household> {
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public Households(Households other, boolean deepCopy, BiConsumer<Household, Household> mapper) {
+  public Persons(Persons other, boolean deepCopy, BiConsumer<Person, Person> mapper) {
     super(other, deepCopy, mapper);
-    this.factory = new HouseholdsFactory(other.getFactory().getIdGroupingToken(), this);
+    this.factory = new PersonsFactory(other.getFactory().getIdGroupingToken(), this);
   }
 
 
@@ -47,15 +47,15 @@ public final class Households extends ManagedIdEntitiesImpl<Household> {
    * @param xmlId the XML Id of the entity
    * @return the retrieved entity, or null if nothing was found
    */
-  public Household getByXmlId(final String xmlId) {
-    return firstMatch(hh -> xmlId.equals(hh.getXmlId()));
+  public Person getByXmlId(final String xmlId) {
+    return firstMatch(person -> xmlId.equals(person.getXmlId()));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public HouseholdsFactory getFactory() {
+  public PersonsFactory getFactory() {
     return this.factory;
   }
 
@@ -63,22 +63,22 @@ public final class Households extends ManagedIdEntitiesImpl<Household> {
    * {@inheritDoc}
    */
   @Override
-  public Households shallowClone() {
-    return new Households(this, false, null);
+  public Persons shallowClone() {
+    return new Persons(this, false, null);
   }
 
   /**
    * {@inheritDoc}
    */
-  public Households deepClone() {
-    return new Households(this, true, null);
+  public Persons deepClone() {
+    return new Persons(this, true, null);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Households deepCloneWithMapping(BiConsumer<Household, Household> mapper) {
-    return new Households(this, true, mapper);
+  public Persons deepCloneWithMapping(BiConsumer<Person, Person> mapper) {
+    return new Persons(this, true, mapper);
   }
 }

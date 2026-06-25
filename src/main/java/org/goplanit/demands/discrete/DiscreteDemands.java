@@ -4,12 +4,20 @@ import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.TimePeriods;
 import org.goplanit.demands.discrete.household.Household;
 import org.goplanit.demands.discrete.household.Households;
+import org.goplanit.demands.discrete.person.Person;
+import org.goplanit.demands.discrete.person.Persons;
+import org.goplanit.demands.discrete.tour.Tour;
+import org.goplanit.demands.discrete.tour.Tours;
+import org.goplanit.demands.discrete.trip.Trip;
+import org.goplanit.demands.discrete.trip.Trips;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.time.TimePeriod;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
@@ -30,6 +38,102 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(DiscreteDemands.class.getCanonicalName());
 
+  /**
+   * Update the household type of all persons based on the mapping provided (if any)
+   * @param hhToHhMapping should contain original household as currently used on person and then
+   *                      the value is the new household to replace it
+   * @param removeMissingMappings when true if there is no mapping, the household is nullified, otherwise they are
+   *                              left in-tact
+   */
+  private void updatePersonHouseholds( Function<Household,Household> hhToHhMapping, boolean removeMissingMappings) {
+    for(var person : this.persons){
+      var household = person.getHousehold();
+      var newHousehold = hhToHhMapping.apply(household);
+      if (newHousehold != null || removeMissingMappings) {
+        person.setHousehold(newHousehold);
+      }
+    }
+  }
+
+  /**
+   * Update the person of all tours based on the mapping provided (if any)
+   * @param pToPMapping old to new person mapping
+   * @param removeMissingMappings when true if there is no mapping, the household is nullified, otherwise they are
+   *                              left in-tact
+   */
+  private void updateTourPersons(Function<Person,Person> pToPMapping, boolean removeMissingMappings) {
+    for(var tour : this.tours){
+      var person = tour.getPerson();
+      var newPerson = pToPMapping.apply(person);
+      if (newPerson != null || removeMissingMappings) {
+        tour.setPerson(newPerson);
+      }
+    }
+  }
+
+  /**
+   * Update the parent tour of all tours based on the mapping provided (if any)
+   * @param tourToTourMapping old to new tour mapping
+   * @param removeMissingMappings when true if there is no mapping, the household is nullified, otherwise they are
+   *                              left in-tact
+   */
+  private void updateTourParents(Function<Tour,Tour> tourToTourMapping, boolean removeMissingMappings) {
+    for(var tour : this.tours){
+      var parent = tour.getParentTour();
+      var newParent = tourToTourMapping.apply(parent);
+      if (newParent != null || removeMissingMappings) {
+        tour.setParentTour(newParent);
+      }
+    }
+  }
+
+  /**
+   * Update the tour schedule of all tours based on the mapping provided (if any)
+   * @param tourToTourMapping old to new tour mapping
+   * @param tripToTripMapping old to new trip mapping
+   * @param removeMissingMappings when true if there is no mapping, the household is nullified, otherwise they are
+   *                              left in-tact
+   */
+  private void updateTourSchedules(
+      Function<Tour,Tour> tourToTourMapping,
+      Function<Trip,Trip> tripToTripMapping,
+      boolean removeMissingMappings) {
+    for(var tour : this.tours){
+      // this is the flat list of all tours, so we do not need to traverse the hierarchy of schedules, instead we can
+      // map each schedule individually and only at that level
+      if(tour.hasSchedule()){
+        var schedule = tour.getSchedule();
+        for(int index = 0; index < schedule.size(); ++index){
+          var entry = schedule.get(index);
+          if(entry instanceof Trip){
+            schedule.set(index, tripToTripMapping.apply((Trip)entry));
+          }else if(entry instanceof Tour){
+            schedule.set(index, tourToTourMapping.apply((Tour)entry));
+          }else{
+            throw new PlanItRunTimeException("Unsupported tour schedule element found");
+          }
+        };
+      }
+    }
+  }
+
+
+  /**
+   * Update the tour of all trips based on the mapping provided (if any)
+   * @param tourToTourMapping old to new person mapping
+   * @param removeMissingMappings when true if there is no mapping, the household is nullified, otherwise they are
+   *                              left in-tact
+   */
+  private void updateTripTours(Function<Tour,Tour> tourToTourMapping, boolean removeMissingMappings) {
+    for(var trip : this.trips){
+      var tour = trip.getTour();
+      var newTour = tourToTourMapping.apply(tour);
+      if (newTour != null || removeMissingMappings) {
+        trip.setTour(newTour);
+      }
+    }
+  }
+
   // Protected
 
   /** time periods */
@@ -37,6 +141,15 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
 
   /**  the households */
   protected final Households households;
+
+  /**  the persons */
+  protected final Persons persons;
+
+  /**  the tours */
+  protected final Tours tours;
+
+  /**  the trips */
+  protected final Trips trips;
 
   /**
    * Constructor
@@ -47,6 +160,9 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
     super(groupId, DiscreteDemands.class);
     this.timePeriods = new TimePeriods(groupId);
     this.households = new Households(groupId);
+    this.persons = new Persons(groupId);
+    this.tours = new Tours(groupId);
+    this.trips = new Trips(groupId);
   }
 
   /**
@@ -61,19 +177,34 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
     if(deepCopy) {
       var timePeriodMapper = new ManagedIdDeepCopyMapper<TimePeriod>();
       var householdMapper = new ManagedIdDeepCopyMapper<Household>();
+      var personMapper = new ManagedIdDeepCopyMapper<Person>();
+      var tourMapper = new ManagedIdDeepCopyMapper<Tour>();
+      var tripMapper = new ManagedIdDeepCopyMapper<Trip>();
 
       this.timePeriods = other.timePeriods.deepCloneWithMapping(timePeriodMapper);
       this.households = other.households.deepCloneWithMapping(householdMapper);
+      this.persons = other.persons.deepCloneWithMapping(personMapper);
+      this.tours = other.tours.deepCloneWithMapping(tourMapper);
+      this.trips = other.trips.deepCloneWithMapping(tripMapper);
 
       /* DISCRETE DEMANDS */
-      // todo
+      // note zones of households/tours are not remapped because zoning is not part of discrete demands
+      // if zoning is also deep cloned --> manual update is required for those references
+      updatePersonHouseholds(householdMapper::getMapping, true);
+      updateTourPersons(personMapper::getMapping, true);
+      updateTourParents(tourMapper::getMapping, true);
+      updateTourSchedules(tourMapper::getMapping, tripMapper::getMapping, true);
+      updateTripTours(tourMapper::getMapping, true);
 
     }else{
       this.timePeriods    = other.timePeriods.shallowClone();
       this.households    = other.households.shallowClone();
+      this.persons    = other.persons.shallowClone();
+      this.tours    = other.tours.shallowClone();
+      this.trips    = other.trips.shallowClone();
 
       /* DISCRETE DEMANDS */
-      // todo
+      // todo - none needed yet
     }
 
   }
@@ -93,6 +224,30 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
    */
   public Households getHouseholds(){
     return households;
+  }
+
+  /**
+   * Access to the persons
+   * @return container
+   */
+  public Persons getPersons(){
+    return persons;
+  }
+
+  /**
+   * Access to the tours
+   * @return container
+   */
+  public Tours getTours(){
+    return tours;
+  }
+
+  /**
+   * Access to the trips
+   * @return container
+   */
+  public Trips getTrips(){
+    return trips;
   }
 
   /**
@@ -118,15 +273,21 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
    */
   public void logInfo(String prefix) {
     LOGGER.info(String.format("%s#time periods: %d", prefix, timePeriods.size()));
-    //todo
+    LOGGER.info(String.format("%s#households: %d", prefix, households.size()));
+    LOGGER.info(String.format("%s#persons: %d", prefix, persons.size()));
+    LOGGER.info(String.format("%s#tours: %d", prefix, tours.size()));
+    LOGGER.info(String.format("%s#trips: %d", prefix, trips.size()));
   }
 
   /**
-   * reset all demands, traveler types, time periods and user classes
+   * reset all demands contents
    */
   public void reset() {
     timePeriods.clear();
-    //todo
+    households.clear();
+    persons.clear();
+    tours.clear();
+    trips.clear();
   }
 
   /*

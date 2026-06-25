@@ -93,6 +93,16 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
   }
 
   /**
+   * Provides a reference to internal overall tracker. Only to be used if tracking has to happen outside of derived
+   * reader and access is otherwise cumbersome. Use with caution.
+   *
+   * @return internal tracker instance
+   */
+  protected CustomIndexTracker getSourceIdTrackerRaw(){
+    return sourceIdTracker;
+  }
+
+  /**
    * Constructor
    */
   protected BaseReaderImpl() {

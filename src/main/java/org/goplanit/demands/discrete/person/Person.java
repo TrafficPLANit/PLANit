@@ -1,5 +1,6 @@
-package org.goplanit.demands.discrete.household;
+package org.goplanit.demands.discrete.person;
 
+import org.goplanit.demands.discrete.household.Household;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -10,19 +11,19 @@ import org.goplanit.utils.zoning.OdZone;
 import java.util.logging.Logger;
 
 /**
- * Represents a household.
+ * Represents a person.
  * 
  * @author markr
  *
  */
-public class Household extends ExternalIdAbleImpl implements ManagedId {
+public class Person extends ExternalIdAbleImpl implements ManagedId {
 
   /** the logger */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(Household.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(Person.class.getCanonicalName());
 
-  /** zone the household resides in */
-  private OdZone zone;
+  /** household the person resides in */
+  private Household household;
 
   /**
    * Generate id for instances of this class based on the token and class identifier
@@ -31,18 +32,18 @@ public class Household extends ExternalIdAbleImpl implements ManagedId {
    * @return generated id
    */
   protected static long generateId(IdGroupingToken tokenId) {
-    return IdGenerator.generateId(tokenId, Household.HOUSEHOLD_ID_CLASS);
+    return IdGenerator.generateId(tokenId, Person.PERSON_ID_CLASS);
   }
 
   /** id class for generating ids */
-  public static final Class<Household> HOUSEHOLD_ID_CLASS = Household.class;
+  public static final Class<Person> PERSON_ID_CLASS = Person.class;
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Class<? extends Household> getIdClass() {
-    return HOUSEHOLD_ID_CLASS;
+  public Class<? extends Person> getIdClass() {
+    return PERSON_ID_CLASS;
   }
 
   /**
@@ -50,35 +51,35 @@ public class Household extends ExternalIdAbleImpl implements ManagedId {
    *
    * @param groupId          contiguous id generation within this group for instances of this class
    */
-  public Household(IdGroupingToken groupId) {
-    super(IdGenerator.generateId(groupId, HOUSEHOLD_ID_CLASS));
+  public Person(IdGroupingToken groupId) {
+    super(IdGenerator.generateId(groupId, PERSON_ID_CLASS));
   }
 
   /**
    * Copy constructor
    *
-   * @param household to copy
+   * @param person to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public Household(Household household, boolean deepCopy /* no impact yet */) {
-    super(household);
-    this.zone = household.zone;
+  public Person(Person person, boolean deepCopy /* no impact yet */) {
+    super(person);
+    this.household = person.household;
   }
 
   /**
-   * Access to zone household resides in
-   * @return zone
+   * Access to household person resides in
+   * @return household
    */
-  public OdZone getZone() {
-    return zone;
+  public Household getHousehold() {
+    return household;
   }
 
   /**
-   * zone household resides in
-   * @param zone to set
+   * household person resides in
+   * @param household to set
    */
-  public void setZone(OdZone zone) {
-    this.zone = zone;
+  public void setHousehold(Household household) {
+    this.household = household;
   }
 
   /**
@@ -95,16 +96,16 @@ public class Household extends ExternalIdAbleImpl implements ManagedId {
    * {@inheritDoc}
    */
   @Override
-  public Household shallowClone() {
-    return new Household(this, false);
+  public Person shallowClone() {
+    return new Person(this, false);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Household deepClone() {
-    return new Household(this, true);
+  public Person deepClone() {
+    return new Person(this, true);
   }
 
   /**
