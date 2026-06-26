@@ -48,9 +48,11 @@ public class CentroidVerticesImpl extends ManagedGraphEntitiesImpl<CentroidVerte
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    * @param mapper apply to each mapping from original to copy
    */
-  public CentroidVerticesImpl(CentroidVerticesImpl other, boolean deepCopy, BiConsumer<CentroidVertex,CentroidVertex> mapper) {
+  public CentroidVerticesImpl(
+      CentroidVerticesImpl other, boolean deepCopy, BiConsumer<CentroidVertex,CentroidVertex> mapper) {
     super(other, deepCopy, mapper);
-    this.centroidVertexFactory = new CentroidVertexFactoryImpl(other.centroidVertexFactory.getIdGroupingToken(), this);
+    this.centroidVertexFactory =
+        new CentroidVertexFactoryImpl(other.centroidVertexFactory.getIdGroupingToken(), this);
   }
 
   /**

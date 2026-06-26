@@ -22,6 +22,10 @@ public interface DiscreteDemandsWriter extends ConverterWriter<DiscreteDemands> 
    */
   public abstract void setReferenceZoning(Zoning referenceZoning);
 
+  /** access to zoning
+   *
+   * @return zoning
+   */
   public abstract Zoning getReferenceZoning();
 
   /**

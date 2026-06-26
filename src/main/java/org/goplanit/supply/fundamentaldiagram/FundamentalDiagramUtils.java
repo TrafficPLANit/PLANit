@@ -1,11 +1,12 @@
 package org.goplanit.supply.fundamentaldiagram;
 
-import org.goplanit.utils.macroscopic.MacroscopicConstants;
-
 /**
  * Utilities for fundamental diagrams
  */
 public class FundamentalDiagramUtils {
+
+  /** dummy constructor */
+  private FundamentalDiagramUtils(){}
 
   /**
    * Infer capacity point by finding intersection point between critical vehicle speed (at capacity) coming from origin

@@ -26,17 +26,17 @@ import org.goplanit.utils.mode.VehicularModeType;
  */
 public class HeavyGoodsMode extends PredefinedModeImpl {
 
-  /* default max speed value for hgv mode */
+  /** default max speed value for hgv mode */
   public static final double DEFAULT_MAX_SPEED_KMH = 90;
 
-  /* default pcu value for hgv mode */
+  /** default pcu value for hgv mode */
   public static final double DEFAULT_PCU = 2.5;
 
-  /* default physical features of hgv (VEHICLE, MOTORISED, ROAD) */
+  /** default physical features of hgv (VEHICLE, MOTORISED, ROAD) */
   public static final PhysicalModeFeatures HGV_PHYSICAL_FEATURES =
       new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.ROAD);
 
-  /* default usability features of hgv (GOODS) */
+  /** default usability features of hgv (GOODS) */
   public static final UsabilityModeFeatures HGV_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.GOODS);
 
   /**

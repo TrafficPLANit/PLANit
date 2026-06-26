@@ -27,6 +27,7 @@ public class DiscontinuityTurnCostReplacementConsumer implements TriConsumer<Edg
 
   private final AbstractVirtualCost virtualCost;
 
+  /** compiled mapping for fast lookups */
   protected final CompiledRelationMapping<ConjugateEdgeSegment> turn2ConjugateSegmentMapping;
 
   private final double[] conjSegmentCostsToUpdate;
@@ -34,6 +35,15 @@ public class DiscontinuityTurnCostReplacementConsumer implements TriConsumer<Edg
   private int numDiscontinuities;
 
 
+  /**
+   * Constructor
+   * @param networkLoading to use
+   * @param theMode use
+   * @param physicalCost use
+   * @param virtualCost use
+   * @param turn2ConjugateSegmentMapping use
+   * @param conjSegmentCostsToUpdate use
+   */
   public DiscontinuityTurnCostReplacementConsumer(
       StaticLtmLoadingBushConjugate networkLoading,
       Mode theMode,
@@ -95,6 +105,10 @@ public class DiscontinuityTurnCostReplacementConsumer implements TriConsumer<Edg
     }
   }
 
+  /**
+   * access to number of updated ones
+   * @return counter
+   */
   public int getNumDiscontinuitiesUpdated() {
     return numDiscontinuities;
   }

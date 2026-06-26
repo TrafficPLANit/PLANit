@@ -40,6 +40,9 @@ import java.util.logging.Logger;
  */
 public class IdMapperFunctionFactory {
 
+  /** dummy constructor */
+  private IdMapperFunctionFactory(){}
+
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(IdMapperFunctionFactory.class.getCanonicalName());
 

@@ -3,8 +3,15 @@ package org.goplanit.output.property;
 import org.goplanit.output.enums.DataType;
 import org.goplanit.utils.unit.Unit;
 
+/**
+ * output property for node geometry
+ */
 public final class DownstreamNodeGeometryOutputProperty extends OutputProperty {
 
+  /** dummy constructor */
+  public DownstreamNodeGeometryOutputProperty(){}
+
+  /** name */
   public static final String NAME = "Downstream Node Geometry";
 
   @Override

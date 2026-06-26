@@ -9,7 +9,7 @@ package org.goplanit.converter.demands;
 public class DiscreteDemandsConverterFactory {
 
   /** dummy constructor */
-  private DiscreteDemandsConverterFactory(){}
+  public DiscreteDemandsConverterFactory(){}
 
   /**
    * Create the demands converter

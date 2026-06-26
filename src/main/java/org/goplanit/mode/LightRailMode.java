@@ -26,18 +26,18 @@ import org.goplanit.utils.mode.VehicularModeType;
  */
 public class LightRailMode extends PredefinedModeImpl {
 
-  /* default max speed value for light rail mode */
+  /** default max speed value for light rail mode */
   public static final double DEFAULT_MAX_SPEED_KMH = 70;
 
-  /* default pcu value for lightrail mode */
+  /** default pcu value for lightrail mode */
   public static final double DEFAULT_PCU = 6;
 
-  /* default physical features of lightrail (VEHICLE, MOTORISED, RAIL) */
+  /** default physical features of lightrail (VEHICLE, MOTORISED, RAIL) */
   public static final PhysicalModeFeatures LIGHTRAIL_PHYSICAL_FEATURES =
       new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED,
       TrackModeType.RAIL);
 
-  /* default usability features of lightrail (PUBLIC) */
+  /** default usability features of lightrail (PUBLIC) */
   public static final UsabilityModeFeatures LIGHTRAIL_USABLITY_FEATURES =
       new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
 

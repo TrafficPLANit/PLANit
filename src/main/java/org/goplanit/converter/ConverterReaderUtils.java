@@ -17,7 +17,7 @@ public class ConverterReaderUtils {
   private static final Logger LOGGER = Logger.getLogger(ConverterReaderUtils.class.getCanonicalName());
 
   /** dummy constructor */
-  private ConverterReaderUtils(){}
+  public ConverterReaderUtils(){}
 
   /**
    * Create CRS based on string and fallback option. If neither works, assume CARTESIAN

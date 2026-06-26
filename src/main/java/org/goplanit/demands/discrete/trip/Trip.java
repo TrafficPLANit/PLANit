@@ -1,13 +1,14 @@
 package org.goplanit.demands.discrete.trip;
 
+import org.goplanit.demands.discrete.tour.ScheduleElement;
 import org.goplanit.demands.discrete.tour.Tour;
-import org.goplanit.demands.discrete.tour.TourSchedule;
-import org.goplanit.demands.discrete.tour.TourScheduleElement;
+import org.goplanit.demands.discrete.tour.Schedule;
 import org.goplanit.demands.discrete.util.DirectionBound;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedId;
+import org.goplanit.utils.mode.Mode;
 
 import java.time.LocalTime;
 import java.util.logging.Logger;
@@ -18,17 +19,23 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class Trip extends ExternalIdAbleImpl implements ManagedId, TourScheduleElement {
+public class Trip extends ExternalIdAbleImpl implements ManagedId, ScheduleElement {
 
   /** the logger */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(Trip.class.getCanonicalName());
 
-  /** Tour the trip belongs to (can be a sub-tour, can be null if stand alone) */
+  /** Tour the trip belongs to (can be a sub-tour), for now must be present as origin/destination is stored on tour */
   private Tour tour;
 
-  /** departure time of the trip */
-  private LocalTime departureTime;
+  /** purpose of the tour. "smaller" than purpose of a tour as it encompasses single leg */
+  private String purpose;
+
+  /** mode of the trip */
+  private Mode mode;
+
+  /** start time of the trip */
+  private LocalTime startTime;
 
   /** trip direction, default is always outbound, but if part of a tour, it may be inbound */
   private DirectionBound direction = DirectionBound.OUTBOUND;
@@ -73,6 +80,40 @@ public class Trip extends ExternalIdAbleImpl implements ManagedId, TourScheduleE
     super(trip);
     this.tour = trip.tour;
     this.direction = trip.direction;
+    this.purpose = trip.purpose;
+    this.mode = trip.mode;
+  }
+
+  /**
+   * Purpose
+   * @return purpose
+   */
+  public String getPurpose() {
+    return purpose;
+  }
+
+  /**
+   * Purpose
+   * @param purpose to set
+   */
+  public void setPurpose(String purpose) {
+    this.purpose = purpose;
+  }
+
+  /**
+   * mode
+   * @return mode
+   */
+  public Mode getMode() {
+    return mode;
+  }
+
+  /**
+   * mode
+   * @param mode to set
+   */
+  public void setMode(Mode mode) {
+    this.mode = mode;
   }
 
   /**
@@ -111,23 +152,24 @@ public class Trip extends ExternalIdAbleImpl implements ManagedId, TourScheduleE
    * access to departure time
    * @return dep time
    */
-  public LocalTime getDepartureTime() {
-    return departureTime;
+  @Override
+  public LocalTime getStartTime() {
+    return startTime;
   }
 
   /**
    * set departure time
-   * @param departureTime to use
+   * @param startTime to use
    */
-  public void setDepartureTime(LocalTime departureTime) {
-    this.departureTime = departureTime;
+  public void setStartTime(LocalTime startTime) {
+    this.startTime = startTime;
   }
 
   /**
    * A trip has no internal schedule as it is always a "leaf" element of a schedule
    */
   @Override
-  public TourSchedule getSchedule() {
+  public Schedule getSchedule() {
     return null;
   }
 

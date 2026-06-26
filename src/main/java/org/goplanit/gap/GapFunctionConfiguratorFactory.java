@@ -11,6 +11,9 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
  */
 public class GapFunctionConfiguratorFactory {
 
+  /** dummy constructor */
+  public GapFunctionConfiguratorFactory(){}
+
   /**
    * Create a configurator for given gap function type
    * 

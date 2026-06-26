@@ -1,12 +1,11 @@
 package org.goplanit.demands.discrete.person;
 
 import org.goplanit.demands.discrete.household.Household;
+import org.goplanit.demands.discrete.tour.Schedule;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedId;
-import org.goplanit.utils.time.TimePeriod;
-import org.goplanit.utils.zoning.OdZone;
 
 import java.util.logging.Logger;
 
@@ -24,6 +23,10 @@ public class Person extends ExternalIdAbleImpl implements ManagedId {
 
   /** household the person resides in */
   private Household household;
+
+  /** the top-level schedule for this person, containing tours (and/or nested sub-tours), or trips, or both in
+   * sequential chronological order */
+  private Schedule schedule;
 
   /**
    * Generate id for instances of this class based on the token and class identifier
@@ -53,6 +56,7 @@ public class Person extends ExternalIdAbleImpl implements ManagedId {
    */
   public Person(IdGroupingToken groupId) {
     super(IdGenerator.generateId(groupId, PERSON_ID_CLASS));
+    this.schedule = new Schedule();
   }
 
   /**
@@ -64,6 +68,7 @@ public class Person extends ExternalIdAbleImpl implements ManagedId {
   public Person(Person person, boolean deepCopy /* no impact yet */) {
     super(person);
     this.household = person.household;
+    this.schedule = deepCopy ? person.schedule.deepClone() : person.schedule.shallowClone();
   }
 
   /**
@@ -80,6 +85,22 @@ public class Person extends ExternalIdAbleImpl implements ManagedId {
    */
   public void setHousehold(Household household) {
     this.household = household;
+  }
+
+  /**
+   * Schedule
+   * @return the schedule
+   */
+  public Schedule getSchedule() {
+    return schedule;
+  }
+
+  /**
+   * Schedule to use
+   * @param schedule to set
+   */
+  public void setSchedule(Schedule schedule) {
+    this.schedule = schedule;
   }
 
   /**

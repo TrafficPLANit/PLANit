@@ -4,13 +4,17 @@ import org.goplanit.output.enums.DataType;
 import org.goplanit.utils.unit.Unit;
 
 /**
- * Property to provide the Flow rate in PCU/hour. This property is only to be used when both the inflow rate and outflow rate are guaranteed to be the same. If not, then it depends
+ * Property to provide the Flow rate in PCU/hour. This property is only to be used when both the inflow rate and
+ * outflow rate are guaranteed to be the same. If not, then it depends
  * on the assignment method what this property represents (inflow rate or outflow rate)
  * 
  * @author markr
  *
  */
 public final class FlowOutputProperty extends OutputProperty {
+
+  /** dummy constructor */
+  public FlowOutputProperty(){}
 
   /**
    * Name of the property

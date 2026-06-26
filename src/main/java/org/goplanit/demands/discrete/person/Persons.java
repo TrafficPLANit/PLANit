@@ -1,9 +1,11 @@
 package org.goplanit.demands.discrete.person;
 
+import org.goplanit.demands.discrete.tour.ScheduleElement;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * Class to register and store persons for the current discrete demand object
@@ -32,7 +34,10 @@ public final class Persons extends ManagedIdEntitiesImpl<Person> {
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public Persons(Persons other, boolean deepCopy, BiConsumer<Person, Person> mapper) {
+  public Persons(
+      Persons other,
+      boolean deepCopy,
+      BiConsumer<Person, Person> mapper) {
     super(other, deepCopy, mapper);
     this.factory = new PersonsFactory(other.getFactory().getIdGroupingToken(), this);
   }
@@ -78,7 +83,8 @@ public final class Persons extends ManagedIdEntitiesImpl<Person> {
    * {@inheritDoc}
    */
   @Override
-  public Persons deepCloneWithMapping(BiConsumer<Person, Person> mapper) {
+  public Persons deepCloneWithMapping(
+      BiConsumer<Person, Person> mapper) {
     return new Persons(this, true, mapper);
   }
 }

@@ -10,6 +10,9 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
  */
 public class FundamentalDiagramConfiguratorFactory {
 
+  /** constructor */
+  public FundamentalDiagramConfiguratorFactory(){};
+
   /**
    * Create a configurator for given fundamental diagram type
    * 

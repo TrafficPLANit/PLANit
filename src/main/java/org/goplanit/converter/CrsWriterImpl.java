@@ -108,6 +108,10 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
     this.destinationCrs = destinationCrs;
   }
 
+  /**
+   * access to destination CRS
+   * @return destination crs
+   */
   protected CoordinateReferenceSystem getDestinationCoordinateReferenceSystem(){
     return this.destinationCrs;
   }

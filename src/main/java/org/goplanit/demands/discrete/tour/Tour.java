@@ -7,7 +7,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.zoning.OdZone;
 
-import java.util.List;
+import java.time.LocalTime;
 import java.util.logging.Logger;
 
 /**
@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class Tour extends ExternalIdAbleImpl implements ManagedId, TourScheduleElement {
+public class Tour extends ExternalIdAbleImpl implements ManagedId, ScheduleElement {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -34,11 +34,20 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, TourScheduleE
   /** if this is a sub tour performed at destination of its parent, we set the parent here */
   private Tour parentTour;
 
+  /** purpose of the tour. "bigger" than purpose of a trip as it encompasses the entire tour */
+  private String purpose;
+
   /** tour schedule contains order tour schedule elements which can either be trips, and/or sub tours. When it is a
    * sub tour, the trips or sub tours within the sub tour are ordered as well and assumed to be carried out before the
    * next element on the schedule at the level where the sub tour was scheduled
    */
-  private TourSchedule tourSchedule;
+  private Schedule schedule;
+
+  /** start time of tour, i.e., moment of departure of outbound leg */
+  private LocalTime startTime;
+
+  /** end time of tour, i.e., moment of arrival back at start of inbound leg */
+  private LocalTime endTime;
 
   /**
    * Generate id for instances of this class based on the token and class identifier
@@ -81,9 +90,11 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, TourScheduleE
     this.person = tour.person;
     this.origin = tour.origin;
     this.destination = tour.destination;
+    this.purpose = tour.purpose;
     this.parentTour = tour.parentTour;
-    // we do not own entries in the schedule, so we do not actively copy them
-    this.tourSchedule = deepCopy ? tour.tourSchedule.deepClone() : tour.tourSchedule.shallowClone();
+    this.startTime = tour.startTime;
+    this.endTime = tour.endTime;
+    this.schedule = deepCopy ? tour.schedule.deepClone() : tour.schedule.shallowClone();
   }
 
   /**
@@ -135,6 +146,22 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, TourScheduleE
   }
 
   /**
+   * Purpose
+   * @return purpose
+   */
+  public String getPurpose() {
+    return purpose;
+  }
+
+  /**
+   * Purpose
+   * @param purpose to set
+   */
+  public void setPurpose(String purpose) {
+    this.purpose = purpose;
+  }
+
+  /**
    * Access to parent tour (if any)
    * @return parent
    */
@@ -151,11 +178,52 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, TourScheduleE
   }
 
   /**
+   * Set departure time
+   * @param startTime to set
+   */
+  public void setStartTime(LocalTime startTime) {
+    this.startTime = startTime;
+  }
+
+  /**
+   * Set arrival time
+   * @param endTime to set
+   */
+  public void setEndTime(LocalTime endTime) {
+    this.endTime = endTime;
+  }
+
+  /**
+   * departure time
+   * @return departureTime
+   */
+  @Override
+  public LocalTime getStartTime() {
+    return this.startTime;
+  }
+
+  /**
+   * arrivalTime time
+   * @return arrivalTime
+   */
+  public LocalTime getEndTime() {
+    return this.endTime;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
-  public TourSchedule getSchedule() {
-    return tourSchedule;
+  public Schedule getSchedule() {
+    return schedule;
+  }
+
+  /**
+   * set the schedule
+   * @param schedule to use
+   */
+  public void setSchedule(Schedule schedule) {
+    this.schedule = schedule;
   }
 
   /**

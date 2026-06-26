@@ -3,8 +3,15 @@ package org.goplanit.output.property;
 import org.goplanit.output.enums.DataType;
 import org.goplanit.utils.unit.Unit;
 
+/**
+ * output property for node XML id
+ */
 public final class DownstreamNodeXmlIdOutputProperty extends OutputProperty {
 
+  /** dummy constructor */
+  public DownstreamNodeXmlIdOutputProperty(){}
+
+  /** name */
   public static final String NAME = "Downstream Node Xml Id";
 
   @Override

@@ -32,10 +32,18 @@ public class GenericBatchExecutorService<I, O, A> {
   public static final class BatchSummary {
     private final int processedCount;
 
+    /**
+     * Constructor
+     * @param processedCount the count
+     */
     public BatchSummary(int processedCount) {
       this.processedCount = processedCount;
     }
 
+    /**
+     * Get count
+     * @return count
+     */
     public int getProcessedCount() {
       return processedCount;
     }
