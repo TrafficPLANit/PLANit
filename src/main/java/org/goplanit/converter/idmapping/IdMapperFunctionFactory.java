@@ -1,5 +1,9 @@
 package org.goplanit.converter.idmapping;
 
+import org.goplanit.demands.discrete.household.Household;
+import org.goplanit.demands.discrete.person.Person;
+import org.goplanit.demands.discrete.tour.Tour;
+import org.goplanit.demands.discrete.trip.Trip;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.userclass.TravellerType;
@@ -345,5 +349,45 @@ public class IdMapperFunctionFactory {
   public static Function<? extends ExternalIdAble, String> createConnectoidSegmentIdMappingFunction(
       IdMapperType idMapper) {
     return IdMappingUtils.createIdMappingFunction(ConnectoidSegment.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a person and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates person ids
+   */
+  public static Function<? extends ExternalIdAble, String> createPersonClassIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(Person.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a household and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates household ids
+   */
+  public static Function<? extends ExternalIdAble, String> createHouseholdClassIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(Household.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a tour and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates tour ids
+   */
+  public static Function<? extends ExternalIdAble, String> createTourClassIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(Tour.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a trip and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates trip ids
+   */
+  public static Function<? extends ExternalIdAble, String> createTripClassIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(Trip.class , idMapper);
   }
 }

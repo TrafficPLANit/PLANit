@@ -20,8 +20,11 @@ public class PlanitComponentIdMappers {
   /** id mappers for routed services entities */
   private RoutedServicesIdMapper routedServicesIdMapper;
 
-  /** id mappers for routed services entities */
-  private DemandsIdMapper demandsIdMapperIdMapper;
+  /** id mappers for demands entities */
+  private DemandsIdMapper demandsIdMapper;
+
+  /** id mappers for discrete demands entities */
+  private DiscreteDemandsIdMapper discreteDemandsIdMapper;
 
   /**
    * Constructor
@@ -40,7 +43,9 @@ public class PlanitComponentIdMappers {
     }else if(componentIdMapper instanceof  ZoningIdMapper){
       zoningIdMappers = (ZoningIdMapper)componentIdMapper;
     }else if(componentIdMapper instanceof  DemandsIdMapper){
-      demandsIdMapperIdMapper = (DemandsIdMapper)componentIdMapper;
+      demandsIdMapper = (DemandsIdMapper)componentIdMapper;
+    }else if(componentIdMapper instanceof  DiscreteDemandsIdMapper){
+      discreteDemandsIdMapper = (DiscreteDemandsIdMapper)componentIdMapper;
     }else if(componentIdMapper instanceof  ServiceNetworkIdMapper){
       serviceNetworkIdMapper = (ServiceNetworkIdMapper)componentIdMapper;
     }else if(componentIdMapper instanceof  RoutedServicesIdMapper){
@@ -70,8 +75,8 @@ public class PlanitComponentIdMappers {
     if(routedServicesIdMapper == null) {
       routedServicesIdMapper = new RoutedServicesIdMapper(idMapperType);
     }
-    if(demandsIdMapperIdMapper == null) {
-      demandsIdMapperIdMapper = new DemandsIdMapper(idMapperType);
+    if(demandsIdMapper == null) {
+      demandsIdMapper = new DemandsIdMapper(idMapperType);
     }
     if(virtualNetworkIdMapper == null) {
       virtualNetworkIdMapper = new VirtualNetworkIdMapper(idMapperType);
@@ -94,8 +99,12 @@ public class PlanitComponentIdMappers {
     return routedServicesIdMapper;
   }
 
-  public DemandsIdMapper getDemandsIdMapperIdMapper() {
-    return demandsIdMapperIdMapper;
+  public DemandsIdMapper getDemandsIdMapper() {
+    return demandsIdMapper;
+  }
+
+  public DiscreteDemandsIdMapper getDiscreteDemandsIdMapper() {
+    return discreteDemandsIdMapper;
   }
 
   public VirtualNetworkIdMapper getVirtualNetworkIdMapper() {
