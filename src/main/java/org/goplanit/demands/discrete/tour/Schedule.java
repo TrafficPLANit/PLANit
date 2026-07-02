@@ -104,6 +104,21 @@ public class Schedule extends AbstractCollection<ScheduleElement> {
   }
 
   /**
+   * get last element, when flattened, we go through nested structure as if it is a flat list and then get
+   * the last
+   *
+   * @param asFlattened when true flatten and obtain last element, otherwise just get last element of this list
+   * @return last element found
+   */
+  public ScheduleElement getLast(boolean asFlattened) {
+    var lastElement = scheduleElements.get(scheduleElements.size() - 1);
+    if(asFlattened && lastElement.hasSchedule()){
+      return  lastElement.getSchedule().getLast(asFlattened);
+    }
+    return lastElement;
+  }
+
+  /**
    * Shallow clone
    * @return cloned schedule
    */
@@ -126,4 +141,6 @@ public class Schedule extends AbstractCollection<ScheduleElement> {
   public Schedule deepCloneWithMapping(Function<ScheduleElement, ScheduleElement> elementToElementMapping) {
     return new Schedule(this, elementToElementMapping);
   }
+
+
 }

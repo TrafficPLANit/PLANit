@@ -146,6 +146,17 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
   }
 
   /**
+   * origin and destination
+   *
+   * @param origin to set
+   * @param destination to set
+   */
+  public void setOriginDestination(OdZone origin, OdZone destination) {
+    setOrigin(origin);
+    setDestination(destination);
+  }
+
+  /**
    * Purpose
    * @return purpose
    */
@@ -170,6 +181,14 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
   }
 
   /**
+   * check presence
+   * @return true when present
+   */
+  public boolean hasParentTour(){
+    return getParentTour()!=null;
+  }
+
+  /**
    * parent tour
    * @param parent to set
    */
@@ -178,7 +197,7 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
   }
 
   /**
-   * Set departure time
+   * Set start time of the tour, i.e., departure time from the origin
    * @param startTime to set
    */
   public void setStartTime(LocalTime startTime) {
@@ -186,11 +205,21 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
   }
 
   /**
-   * Set arrival time
+   * Set end time of tour, i.e., arrival time back at the origin
    * @param endTime to set
    */
   public void setEndTime(LocalTime endTime) {
     this.endTime = endTime;
+  }
+
+  /**
+   * Set start end time
+   * @param startTime to set
+   * @param endTime to set
+   */
+  public void setStartEndTime(LocalTime startTime, LocalTime endTime) {
+    setStartTime(startTime);
+    setEndTime(endTime);
   }
 
   /**

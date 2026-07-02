@@ -19,28 +19,6 @@ public class DiscreteDemandsConverter extends Converter<DiscreteDemands> {
   private static final Logger LOGGER = Logger.getLogger(DiscreteDemandsConverter.class.getCanonicalName());
 
   /**
-   * {@inheritDoc}
-   *
-   * make sure the demands have access to the reference zoning by taking it from the reader and placing it on the writer
-   * (if not already available)
-   *
-   * @param discreteDemands demands to write
-   */
-  @Override
-  protected void write(DiscreteDemands discreteDemands) {
-    var reader = getReader();
-    var writer = getWriter();
-
-    if(writer.getReferenceZoning() == null) {
-      /* in case the zoning is not present, because it is not available before the reading of demands has been completed
-       * the converter will populate it on the writer, so the user does not need to (and is not able to) */
-      writer.setReferenceZoning(reader.getReferenceZoning());
-    }
-
-    super.write(discreteDemands);
-  }
-
-  /**
    * constructor
    *
    * @param reader to use for parsing

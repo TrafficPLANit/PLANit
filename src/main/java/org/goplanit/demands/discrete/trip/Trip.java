@@ -10,6 +10,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.mode.Mode;
 
+import java.time.Duration;
 import java.time.LocalTime;
 import java.util.logging.Logger;
 
@@ -209,4 +210,28 @@ public class Trip extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
     return getIdsAsString();
   }
 
+  /**
+   * When this is invoked, we sync the start time to the start time of the trip's tour.
+   * This generally only makes sense when this is the outbound trip of a tour, because otherwise we'd
+   * expect it to be a departure at the destination of the tour that arrives round the end time of the tour.
+   * In that case use the syncStartTimeToTourWithNegativeOffset
+   */
+  public void syncStartTimeToTourStartTime() {
+    if(getTour() == null){
+      LOGGER.warning(String.format("No tour set on trip (%s), unable to sync start time", getIdsAsString()));
+    }
+    setStartTime(getTour().getStartTime());
+  }
+
+  /**
+   * same as {@link #syncStartTimeToTourStartTime()} but we subtract time from the tour end time to depart earlier
+   *
+   * @param subtractFromTourEndTime to subtract
+   */
+  public void syncStartTimeToTourWithNegativeOffset(Duration subtractFromTourEndTime) {
+    if(getTour() == null){
+      LOGGER.warning(String.format("No tour set on trip (%s), unable to sync start time", getIdsAsString()));
+    }
+    setStartTime(getTour().getEndTime().minus(subtractFromTourEndTime));
+  }
 }

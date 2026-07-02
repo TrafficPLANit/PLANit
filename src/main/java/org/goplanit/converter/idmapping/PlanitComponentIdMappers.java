@@ -78,6 +78,9 @@ public class PlanitComponentIdMappers {
     if(demandsIdMapper == null) {
       demandsIdMapper = new DemandsIdMapper(idMapperType);
     }
+    if(discreteDemandsIdMapper == null) {
+      discreteDemandsIdMapper = new DiscreteDemandsIdMapper(idMapperType);
+    }
     if(virtualNetworkIdMapper == null) {
       virtualNetworkIdMapper = new VirtualNetworkIdMapper(idMapperType);
     }

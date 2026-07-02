@@ -1,5 +1,8 @@
 package org.goplanit.demands.discrete.trip;
 
+import org.goplanit.demands.discrete.tour.Schedule;
+import org.goplanit.demands.discrete.tour.Tour;
+import org.goplanit.demands.discrete.util.DirectionBound;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactory;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
@@ -40,6 +43,28 @@ public class TripsFactory extends ManagedIdEntityFactoryImpl<Trip>
    */
   public Trip registerNew() {
     var newInstance = new Trip(getIdGroupingToken());
+    trips.register(newInstance);
+    return newInstance;
+  }
+
+  /**
+   * register a new entry on the container and return it
+   *
+   * @param parentTour tour the trip belongs to
+   * @param direction direction of trip within tour
+   * @param addToTourSchedule when true we add the trip to the tour's schedule
+   * @return created instance
+   */
+  public Trip registerNew(Tour parentTour, DirectionBound direction, boolean addToTourSchedule) {
+    var newInstance = new Trip(getIdGroupingToken());
+    newInstance.setDirection(direction);
+    newInstance.setTour(parentTour);
+    if(addToTourSchedule){
+      if(!parentTour.hasSchedule()){
+        parentTour.setSchedule(new Schedule());
+      }
+      parentTour.getSchedule().add(newInstance);
+    }
     trips.register(newInstance);
     return newInstance;
   }

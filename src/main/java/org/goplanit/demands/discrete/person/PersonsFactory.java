@@ -1,5 +1,6 @@
 package org.goplanit.demands.discrete.person;
 
+import org.goplanit.demands.discrete.household.Household;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactory;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
@@ -41,6 +42,18 @@ public class PersonsFactory extends ManagedIdEntityFactoryImpl<Person>
   public Person registerNew() {
     var newInstance = new Person(getIdGroupingToken());
     persons.register(newInstance);
+    return newInstance;
+  }
+
+  /**
+   * register a new entry on the container and return it
+   *
+   * @param household to link person to
+   * @return created instance
+   */
+  public Person registerNew(Household household) {
+    var newInstance = registerNew();
+    newInstance.setHousehold(household);
     return newInstance;
   }
 
