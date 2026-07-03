@@ -112,7 +112,7 @@ public class ToursFactory extends ManagedIdEntityFactoryImpl<Tour>
 
     if(registerOnSchedule){
       if(!parentTour.hasSchedule()){
-        parentTour.setSchedule(new Schedule());
+        parentTour.setSchedule(new ActivitySchedule());
       }
       parentTour.getSchedule().add(newInstance);
     }

@@ -6,6 +6,7 @@ import org.goplanit.network.layers.ConjugateMacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layers.ConjugateMacroscopicNetworkLayerFactory;
 import org.goplanit.utils.network.layers.MacroscopicNetworkLayerFactory;
@@ -50,6 +51,16 @@ public class MacroscopicNetworkLayerFactoryImpl extends ManagedIdEntityFactoryIm
   public MacroscopicNetworkLayer registerNew(Mode... supportedModes) {
     MacroscopicNetworkLayer newLayer = registerNew();
     newLayer.registerSupportedModes(Arrays.asList(supportedModes));
+    return newLayer;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicNetworkLayer registerNew(Modes modes) {
+    MacroscopicNetworkLayer newLayer = registerNew();
+    newLayer.registerSupportedModes(modes.toCollection());
     return newLayer;
   }
 

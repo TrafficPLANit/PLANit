@@ -24,9 +24,16 @@ public interface ScheduleElement {
   LocalTime getStartTime();
 
   /**
+   * Each schedule element has a purpose
+   *
+   * @return purpose
+   */
+  String getPurpose();
+
+  /**
    * Access to schedule if it has one
    * @return schedule, null if not present
    */
-  public abstract Schedule getSchedule();
+  public abstract ActivitySchedule getSchedule();
 
 }

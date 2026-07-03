@@ -41,7 +41,7 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
    * sub tour, the trips or sub tours within the sub tour are ordered as well and assumed to be carried out before the
    * next element on the schedule at the level where the sub tour was scheduled
    */
-  private Schedule schedule;
+  private ActivitySchedule schedule;
 
   /** start time of tour, i.e., moment of departure of outbound leg */
   private LocalTime startTime;
@@ -160,6 +160,7 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
    * Purpose
    * @return purpose
    */
+  @Override
   public String getPurpose() {
     return purpose;
   }
@@ -243,7 +244,7 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
    * {@inheritDoc}
    */
   @Override
-  public Schedule getSchedule() {
+  public ActivitySchedule getSchedule() {
     return schedule;
   }
 
@@ -251,7 +252,7 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
    * set the schedule
    * @param schedule to use
    */
-  public void setSchedule(Schedule schedule) {
+  public void setSchedule(ActivitySchedule schedule) {
     this.schedule = schedule;
   }
 

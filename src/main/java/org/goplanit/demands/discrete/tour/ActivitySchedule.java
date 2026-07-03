@@ -1,6 +1,6 @@
 package org.goplanit.demands.discrete.tour;
 
-import org.goplanit.demands.discrete.trip.Trip;
+import org.goplanit.utils.misc.IterableUtils;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -11,14 +11,23 @@ import java.util.function.Function;
  * type, but what type is not specified strictly to allow for a simple interface. In practice though it is always
  * a trip or a tour instance of which only tours may have another internal schedule of their own.
  */
-public class Schedule extends AbstractCollection<ScheduleElement> {
+public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
 
   private final List<ScheduleElement> scheduleElements;
 
   /**
    * Default constructor
    */
-  public Schedule(){
+  public ActivitySchedule(){
+    this("");
+  }
+
+  /**
+   * Default constructor
+   *
+   * @param initialPurpose bootstrap purpose
+   */
+  public ActivitySchedule(String initialPurpose){
     this.scheduleElements = new ArrayList<>(2);
   }
 
@@ -27,7 +36,7 @@ public class Schedule extends AbstractCollection<ScheduleElement> {
    *
    * @param other other
    */
-  protected Schedule(Schedule other, boolean deepCopy){
+  protected ActivitySchedule(ActivitySchedule other, boolean deepCopy){
     // we do not own the elements as they are managed entities, so just always do a shallow copy
     this.scheduleElements = new ArrayList<>(other.scheduleElements);
   }
@@ -38,7 +47,7 @@ public class Schedule extends AbstractCollection<ScheduleElement> {
    * @param other other
    * @param elementToElementMapping mapping
    */
-  protected Schedule(Schedule other, Function<ScheduleElement, ScheduleElement> elementToElementMapping){
+  protected ActivitySchedule(ActivitySchedule other, Function<ScheduleElement, ScheduleElement> elementToElementMapping){
     // we do not own the elements as they are managed entities, so just always do a shallow copy but with mapping
     this.scheduleElements = new ArrayList<>();
     for(var otherElement : other){
@@ -58,13 +67,20 @@ public class Schedule extends AbstractCollection<ScheduleElement> {
 
   /**
   * access to specific element
+  * @return entry
   */
   public ScheduleElement get(int index) {
+    if(isEmpty()){
+      return null;
+    }
     return scheduleElements.get(index);
   }
 
   /**
    * set specific element
+   *
+   * @param index index
+   * @param element  to set
    */
   public ScheduleElement set(int index, ScheduleElement element) {
     return scheduleElements.set(index, element);
@@ -119,28 +135,62 @@ public class Schedule extends AbstractCollection<ScheduleElement> {
   }
 
   /**
+   * get first element in schedule
+   * @return schedule element
+   */
+  public ScheduleElement getFirst() {
+    return get(0);
+  }
+
+  /**
    * Shallow clone
    * @return cloned schedule
    */
-  public Schedule shallowClone(){
-    return new Schedule(this, false);
+  public ActivitySchedule shallowClone(){
+    return new ActivitySchedule(this, false);
   }
 
   /**
    * Deep clone
    * @return cloned schedule
    */
-  public Schedule deepClone() {
-    return new Schedule(this, true);
+  public ActivitySchedule deepClone() {
+    return new ActivitySchedule(this, true);
   }
 
   /**
    * Deep clone with mapping
    * @return cloned schedule
    */
-  public Schedule deepCloneWithMapping(Function<ScheduleElement, ScheduleElement> elementToElementMapping) {
-    return new Schedule(this, elementToElementMapping);
+  public ActivitySchedule deepCloneWithMapping(Function<ScheduleElement, ScheduleElement> elementToElementMapping) {
+    return new ActivitySchedule(this, elementToElementMapping);
   }
 
+  /**
+   * get last of type
+   * @param scheduleElementClass to check
+   * @return found, otherwise null
+   * @param <T> type of element
+   */
+  public <T extends ScheduleElement> T getLastOfType(Class<T> scheduleElementClass) {
+    T last = null;
+    for (ScheduleElement e : this) {
+      if (scheduleElementClass.isInstance(e)) {
+        last = scheduleElementClass.cast(e);
+      }
+    }
+    return last;
+  }
+
+
+  /**
+   * Verify if last of type
+   * @param scheduleElement to check
+   * @return result
+   * @param <T> type of element
+   */
+  public <T extends ScheduleElement> boolean isLastOfType(T scheduleElement) {
+    return scheduleElement.equals(getLastOfType(scheduleElement.getClass()));
+  }
 
 }

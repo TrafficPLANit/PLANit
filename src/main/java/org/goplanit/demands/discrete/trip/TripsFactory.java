@@ -1,6 +1,6 @@
 package org.goplanit.demands.discrete.trip;
 
-import org.goplanit.demands.discrete.tour.Schedule;
+import org.goplanit.demands.discrete.tour.ActivitySchedule;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.util.DirectionBound;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -61,7 +61,7 @@ public class TripsFactory extends ManagedIdEntityFactoryImpl<Trip>
     newInstance.setTour(parentTour);
     if(addToTourSchedule){
       if(!parentTour.hasSchedule()){
-        parentTour.setSchedule(new Schedule());
+        parentTour.setSchedule(new ActivitySchedule());
       }
       parentTour.getSchedule().add(newInstance);
     }

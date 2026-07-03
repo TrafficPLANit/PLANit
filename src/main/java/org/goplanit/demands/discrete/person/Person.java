@@ -1,7 +1,7 @@
 package org.goplanit.demands.discrete.person;
 
 import org.goplanit.demands.discrete.household.Household;
-import org.goplanit.demands.discrete.tour.Schedule;
+import org.goplanit.demands.discrete.tour.ActivitySchedule;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -26,7 +26,11 @@ public class Person extends ExternalIdAbleImpl implements ManagedId {
 
   /** the top-level schedule for this person, containing tours (and/or nested sub-tours), or trips, or both in
    * sequential chronological order */
-  private Schedule schedule;
+  private ActivitySchedule activitySchedule;
+
+  /** the purpose that carried over from the pre-modelled period that the person is "conducting" before any new
+   * activities are undertaken */
+  private String initialPurpose;
 
   /**
    * Generate id for instances of this class based on the token and class identifier
@@ -56,7 +60,7 @@ public class Person extends ExternalIdAbleImpl implements ManagedId {
    */
   public Person(IdGroupingToken groupId) {
     super(IdGenerator.generateId(groupId, PERSON_ID_CLASS));
-    this.schedule = new Schedule();
+    this.activitySchedule = new ActivitySchedule();
   }
 
   /**
@@ -68,7 +72,7 @@ public class Person extends ExternalIdAbleImpl implements ManagedId {
   public Person(Person person, boolean deepCopy /* no impact yet */) {
     super(person);
     this.household = person.household;
-    this.schedule = deepCopy ? person.schedule.deepClone() : person.schedule.shallowClone();
+    this.activitySchedule = deepCopy ? person.activitySchedule.deepClone() : person.activitySchedule.shallowClone();
   }
 
   /**
@@ -91,16 +95,34 @@ public class Person extends ExternalIdAbleImpl implements ManagedId {
    * Schedule
    * @return the schedule
    */
-  public Schedule getSchedule() {
-    return schedule;
+  public ActivitySchedule getSchedule() {
+    return activitySchedule;
   }
 
   /**
    * Schedule to use
-   * @param schedule to set
+   * @param activitySchedule to set
    */
-  public void setSchedule(Schedule schedule) {
-    this.schedule = schedule;
+  public void setSchedule(ActivitySchedule activitySchedule) {
+    this.activitySchedule = activitySchedule;
+  }
+
+  /**
+   * Get the value of initialPurpose.
+   *
+   * @return value of initialPurpose
+   */
+  public String getInitialPurpose() {
+    return initialPurpose;
+  }
+
+  /**
+   * Set the value of initialPurpose.
+   *
+   * @param initialPurpose value of initialPurpose
+   */
+  public void setInitialPurpose(String initialPurpose) {
+    this.initialPurpose = initialPurpose;
   }
 
   /**

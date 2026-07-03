@@ -1,8 +1,8 @@
 package org.goplanit.demands.discrete.trip;
 
+import org.goplanit.demands.discrete.tour.ActivitySchedule;
 import org.goplanit.demands.discrete.tour.ScheduleElement;
 import org.goplanit.demands.discrete.tour.Tour;
-import org.goplanit.demands.discrete.tour.Schedule;
 import org.goplanit.demands.discrete.util.DirectionBound;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
@@ -89,6 +89,7 @@ public class Trip extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
    * Purpose
    * @return purpose
    */
+  @Override
   public String getPurpose() {
     return purpose;
   }
@@ -170,7 +171,7 @@ public class Trip extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
    * A trip has no internal schedule as it is always a "leaf" element of a schedule
    */
   @Override
-  public Schedule getSchedule() {
+  public ActivitySchedule getSchedule() {
     return null;
   }
 
@@ -224,14 +225,15 @@ public class Trip extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
   }
 
   /**
-   * same as {@link #syncStartTimeToTourStartTime()} but we subtract time from the tour end time to depart earlier
+   * same as {@link #syncStartTimeToTourStartTime()} but we subtract time from the tour END time to depart earlier
    *
    * @param subtractFromTourEndTime to subtract
    */
-  public void syncStartTimeToTourWithNegativeOffset(Duration subtractFromTourEndTime) {
+  public void syncStartTimeToTourEndWithNegativeOffset(Duration subtractFromTourEndTime) {
     if(getTour() == null){
       LOGGER.warning(String.format("No tour set on trip (%s), unable to sync start time", getIdsAsString()));
     }
     setStartTime(getTour().getEndTime().minus(subtractFromTourEndTime));
   }
+
 }
