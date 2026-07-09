@@ -1,8 +1,8 @@
-package org.goplanit.demands.modifier.event;
+package org.goplanit.demands.event;
 
 import org.goplanit.utils.event.Event;
 
-/** Interface for the group of events that are used around graph modification
+/** Interface for the group of events that are used around demand modification
  *
  * @author markr
  *

@@ -1,14 +1,9 @@
-package org.goplanit.demands.modifier;
+package org.goplanit.demands;
 
-import org.goplanit.demands.Demands;
-import org.goplanit.demands.modifier.event.DemandsModificationEvent;
-import org.goplanit.demands.modifier.event.DemandsModifierEventProducer;
-import org.goplanit.demands.modifier.event.DemandsModifierListener;
-import org.goplanit.demands.modifier.event.RecreatedDemandsEntitiesManagedIdsEvent;
+import org.goplanit.demands.event.*;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ManagedId;
@@ -47,7 +42,7 @@ public class DemandsModifier extends EventProducerImpl implements DemandsModifie
    */
   @Override
   protected void fireEvent(EventListener eventListener, Event event) {
-    DemandsModifierListener.class.cast(eventListener).onDemandsModificationEvent(DemandsModificationEvent.class.cast(event));
+    ((DemandsModifierListener) eventListener).onDemandsModificationEvent((DemandsModificationEvent) event);
   }
 
   /**
@@ -79,7 +74,7 @@ public class DemandsModifier extends EventProducerImpl implements DemandsModifie
    * {@inheritDoc}
    */
   @Override
-  public void addListener(GraphModifierListener listener) {
+  public void addListener(DemandsModifierListener listener) {
     super.addListener(listener);
   }
 
@@ -87,7 +82,7 @@ public class DemandsModifier extends EventProducerImpl implements DemandsModifie
    * {@inheritDoc}
    */
   @Override
-  public void addListener(GraphModifierListener listener, GraphModifierEventType eventType) {
+  public void addListener(DemandsModifierListener listener, DemandsModifierEventType eventType) {
     super.addListener(listener, eventType);
   }
 
@@ -95,7 +90,7 @@ public class DemandsModifier extends EventProducerImpl implements DemandsModifie
    * {@inheritDoc}
    */
   @Override
-  public void removeListener(GraphModifierListener listener, GraphModifierEventType eventType) {
+  public void removeListener(DemandsModifierListener listener, DemandsModifierEventType eventType) {
     super.removeListener(listener, eventType);
   }
 
@@ -103,7 +98,7 @@ public class DemandsModifier extends EventProducerImpl implements DemandsModifie
    * {@inheritDoc}
    */
   @Override
-  public void removeListener(GraphModifierListener listener) {
+  public void removeListener(DemandsModifierListener listener) {
     super.removeListener(listener);
   }
 }

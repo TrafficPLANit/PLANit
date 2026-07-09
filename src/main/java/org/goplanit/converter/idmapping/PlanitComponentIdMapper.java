@@ -3,6 +3,7 @@ package org.goplanit.converter.idmapping;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.time.TimePeriod;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +37,7 @@ public class PlanitComponentIdMapper {
     this.type = type;
 
     add(Mode.class, IdMapperFunctionFactory.createModeIdMappingFunction(type));
+    add(TimePeriod.class,  IdMapperFunctionFactory.createTimePeriodIdMappingFunction(type));
   }
 
   /** get id mapper for modes
@@ -43,6 +45,13 @@ public class PlanitComponentIdMapper {
    */
   public Function<Mode, String> getModeIdMapper(){
     return get(Mode.class);
+  }
+
+  /** get id mapper for time periods
+   * @return id mapper
+   */
+  public Function<TimePeriod, String> getTimePeriodIdMapper(){
+    return get(TimePeriod.class);
   }
 
   /**

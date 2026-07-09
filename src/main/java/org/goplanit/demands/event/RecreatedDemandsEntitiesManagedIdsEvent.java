@@ -1,15 +1,14 @@
-package org.goplanit.demands.modifier.event;
+package org.goplanit.demands.event;
 
-import org.goplanit.demands.modifier.DemandsModifier;
+import org.goplanit.demands.DemandsModifier;
+import org.goplanit.demands.discrete.DiscreteDemandsModifier;
 import org.goplanit.utils.event.EventImpl;
-import org.goplanit.utils.graph.modifier.GraphModifier;
-import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
 import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.id.ManagedIdEntities;
 
 /**
- * Event fired upon recreation of managed ids for graph entities
+ * Event fired upon recreation of managed ids for demand entities
  */
 public class RecreatedDemandsEntitiesManagedIdsEvent extends EventImpl implements GraphModificationEvent {
 

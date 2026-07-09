@@ -1,14 +1,9 @@
-package org.goplanit.demands.modifier.event.handler;
+package org.goplanit.demands.event;
 
-import org.goplanit.demands.modifier.event.DemandsModificationEvent;
-import org.goplanit.demands.modifier.event.DemandsModifierListener;
-import org.goplanit.demands.modifier.event.RecreatedDemandsEntitiesManagedIdsEvent;
 import org.goplanit.event.handler.SyncXmlIdToIdHandler;
 import org.goplanit.graph.modifier.event.RecreatedGraphEntitiesManagedIdsEvent;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.GraphEntity;
-import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
-import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 
 import java.util.logging.Logger;
 

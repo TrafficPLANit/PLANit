@@ -1,4 +1,4 @@
-package org.goplanit.demands.modifier.event;
+package org.goplanit.demands.event;
 
 import org.goplanit.utils.event.EventType;
 

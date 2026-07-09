@@ -8,7 +8,6 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
-import org.goplanit.demands.modifier.DemandsModifier;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;

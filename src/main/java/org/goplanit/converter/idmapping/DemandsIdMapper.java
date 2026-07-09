@@ -19,7 +19,6 @@ public class DemandsIdMapper extends PlanitComponentIdMapper{
   public DemandsIdMapper(IdMapperType type){
     super(type);
     add(UserClass.class, IdMapperFunctionFactory.createUserClassIdMappingFunction(type));
-    add(TimePeriod.class,  IdMapperFunctionFactory.createTimePeriodIdMappingFunction(type));
     add(TravellerType.class, IdMapperFunctionFactory.createTravellerTypeIdMappingFunction(type));
   }
 
@@ -37,10 +36,4 @@ public class DemandsIdMapper extends PlanitComponentIdMapper{
     return get(UserClass.class);
   }
 
-  /** get id mapper for time periods
-   * @return id mapper
-   */
-  public Function<TimePeriod, String> getTimePeriodIdMapper(){
-    return get(TimePeriod.class);
-  }
 }

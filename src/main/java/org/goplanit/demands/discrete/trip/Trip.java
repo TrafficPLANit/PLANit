@@ -4,6 +4,7 @@ import org.goplanit.demands.discrete.tour.ActivitySchedule;
 import org.goplanit.demands.discrete.tour.ScheduleElement;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.util.DirectionBound;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -234,6 +235,26 @@ public class Trip extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
       LOGGER.warning(String.format("No tour set on trip (%s), unable to sync start time", getIdsAsString()));
     }
     setStartTime(getTour().getEndTime().minus(subtractFromTourEndTime));
+  }
+
+  /**
+   * Derive purpose from the direction of trip and the purpose of the tour, e.g.
+   * when outbound: "to:*name_of_tour_purpose*", when inbound "from:*name_of_tour_purpose*"
+   * @return string set as purpose
+   */
+  public String derivePurposeFromDirectionAndTour(){
+    switch (direction){
+      case INBOUND:
+        setPurpose("from:"+tour.getPurpose());
+        break;
+      case OUTBOUND:
+        setPurpose("to:"+tour.getPurpose());
+        break;
+      default:
+        throw new PlanItRunTimeException("Unknown direction type %s, unable to derive trip (%s) purpose",
+            direction, getIdsAsString());
+    }
+    return getPurpose();
   }
 
 }

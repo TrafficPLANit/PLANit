@@ -1,12 +1,9 @@
-package org.goplanit.demands.modifier.event;
+package org.goplanit.demands.event;
 
 import org.goplanit.utils.event.EventProducer;
-import org.goplanit.utils.graph.modifier.GraphModifier;
-import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
-import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 
-/** Interface dedicated to the {@link GraphModifier} event related exposed methods. Specifies method signatures
- *  for registering
+/** Interface dedicated to the {@link DemandsModifierListener} event related exposed methods.
+ * Specifies method signatures  for registering
  * the appropriate listeners and event types that are supported on a demands modifier.
  *
  * @author markr
@@ -22,11 +19,11 @@ public interface DemandsModifierEventProducer extends EventProducer{
   public abstract void recreateManagedEntitiesIds();
 
   /**
-   * Register listener for all its supported types fired by the graph modifier
+   * Register listener for all its supported types fired by the modifier
    *
    *  @param listener to register
    */
-  public abstract void addListener(GraphModifierListener listener);
+  public abstract void addListener(DemandsModifierListener listener);
 
   /**
    * Register listeners for events fired by the graph modifier
@@ -34,7 +31,7 @@ public interface DemandsModifierEventProducer extends EventProducer{
    *  @param listener to register
    *  @param eventType to register listener for
    */
-  public abstract void addListener(GraphModifierListener listener, GraphModifierEventType eventType);
+  public abstract void addListener(DemandsModifierListener listener, DemandsModifierEventType eventType);
 
   /**
    * Remove listener for given event type
@@ -42,14 +39,14 @@ public interface DemandsModifierEventProducer extends EventProducer{
    *  @param listener to remove
    *  @param eventType to unregister listener for
    */
-  public abstract void removeListener(GraphModifierListener listener, GraphModifierEventType eventType);
+  public abstract void removeListener(DemandsModifierListener listener, DemandsModifierEventType eventType);
 
   /**
    * Remove listener for all event types it is registered for
    *
    *  @param listener to remove
    */
-  public abstract void removeListener(GraphModifierListener listener);
+  public abstract void removeListener(DemandsModifierListener listener);
 
   /**
    * Remove all registered listeners

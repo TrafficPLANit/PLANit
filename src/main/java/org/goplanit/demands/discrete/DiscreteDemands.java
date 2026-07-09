@@ -191,6 +191,9 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
   /**  the trips */
   protected final Trips trips;
 
+  /** modifier */
+  protected DiscreteDemandsModifier discreteDemandsModifier;
+
   /**
    * Constructor
    *
@@ -339,4 +342,12 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
     return null;
   }
 
+  /**
+   * access to modifier features
+   *
+   * @return discreteDemandsModifier
+   */
+  public DiscreteDemandsModifier getDiscreteDemandsModifier(){
+    return discreteDemandsModifier;
+  }
 }

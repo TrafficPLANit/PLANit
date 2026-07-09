@@ -1,11 +1,10 @@
 package org.goplanit.event.handler;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Logger;
 
-import org.goplanit.demands.modifier.event.DemandsModificationEvent;
-import org.goplanit.demands.modifier.event.DemandsModifierListener;
+import org.goplanit.demands.event.DemandsModificationEvent;
+import org.goplanit.demands.event.DemandsModifierListener;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
