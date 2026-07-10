@@ -26,10 +26,10 @@ import org.goplanit.utils.mode.VehicularModeType;
  */
 public class LargeHeavyGoodsMode extends PredefinedModeImpl {
 
-  /* default max speed value for lhgv mode */
+  /** default max speed value for lhgv mode */
   public static final double DEFAULT_MAX_SPEED_KMH = 90;
 
-  /* default pcu value for lhgv mode */
+  /** default pcu value for lhgv mode */
   public static final double DEFAULT_PCU = 3;
 
   /* default physical features of lhgv (VEHICLE, MOTORISED, ROAD) */

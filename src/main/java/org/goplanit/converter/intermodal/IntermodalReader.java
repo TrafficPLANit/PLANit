@@ -34,6 +34,12 @@ public interface IntermodalReader<T extends ServiceNetwork,U extends RoutedServi
    */
   public abstract boolean supportServiceConversion();
 
+  /**
+   * Read with services
+   *
+   * @return quadruple with network, zoning, service network and route services
+   * @throws PlanItException throws if erro
+   */
   public abstract Quadruple<MacroscopicNetwork, Zoning, T, U> readWithServices() throws PlanItException;
 
 }

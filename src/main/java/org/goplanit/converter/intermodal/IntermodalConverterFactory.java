@@ -8,6 +8,9 @@ package org.goplanit.converter.intermodal;
  */
 public class IntermodalConverterFactory {
 
+  /** dummy */
+  private IntermodalConverterFactory(){}
+
   /**
    * Create the intermodal converter
    * 
@@ -15,7 +18,7 @@ public class IntermodalConverterFactory {
    * @param writer the writer to use
    * @return the converter that is created
    */
-  public static IntermodalConverter create(IntermodalReader reader, IntermodalWriter writer) {
-    return new IntermodalConverter(reader, writer);
+  public static IntermodalConverter<?,?> create(IntermodalReader<?,?> reader, IntermodalWriter<?,?> writer) {
+    return new IntermodalConverter<>(reader, writer);
   }
 }

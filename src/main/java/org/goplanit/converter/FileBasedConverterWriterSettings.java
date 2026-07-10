@@ -106,10 +106,10 @@ public class FileBasedConverterWriterSettings implements ConverterWriterSettings
    */
   public void logSettings() {
 
-    if(getDestinationCoordinateReferenceSystem() != null) {
-      LOGGER.info(String.format("Destination Coordinate Reference System set to: %s", getDestinationCoordinateReferenceSystem().getName()));
-    }
-    
+    LOGGER.info(String.format("Country set to                                     : %s", getCountry()));
+    LOGGER.info(String.format("Destination Coordinate Reference System set to     : %s",
+        getDestinationCoordinateReferenceSystem() != null ?
+            getDestinationCoordinateReferenceSystem().getName() : "not set"));
   }  
 
   /** Collect the destination Crs

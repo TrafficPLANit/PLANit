@@ -13,10 +13,12 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class SingleFileBasedConverterWriterSettings extends FileBasedConverterWriterSettings implements ConverterWriterSettings {
+public class SingleFileBasedConverterWriterSettings extends FileBasedConverterWriterSettings
+    implements ConverterWriterSettings {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(SingleFileBasedConverterWriterSettings.class.getCanonicalName());
+  private static final Logger LOGGER =
+      Logger.getLogger(SingleFileBasedConverterWriterSettings.class.getCanonicalName());
 
   /** destination file name to persist to */
   private String fileName = null;
@@ -68,7 +70,8 @@ public class SingleFileBasedConverterWriterSettings extends FileBasedConverterWr
    *  @param fileName to use
    *  @param countryName to use
    */
-  protected SingleFileBasedConverterWriterSettings(final String outputPathDirectory, final String fileName, final String countryName) {
+  protected SingleFileBasedConverterWriterSettings(
+      final String outputPathDirectory, final String fileName, final String countryName) {
     super(outputPathDirectory, countryName);
     this.setFileName(fileName);
   }

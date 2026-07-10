@@ -173,8 +173,10 @@ public class InitialMacroscopicLinkSegmentCost extends InitialPhysicalCost
 
   /**
    * same as {@link #setSegmentCost(Mode, MacroscopicLinkSegment, double)} only based on link segment's id
-   * 
-   * {@inheritDoc}
+   *
+   * @param mode mode
+   * @param linkSegmentId id
+   * @param cost cost
    */
   public void setSegmentCost(final Mode mode, final long linkSegmentId, final double cost) {
     timePeriodAgnosticCosts.setSegmentCost(mode, linkSegmentId, cost);

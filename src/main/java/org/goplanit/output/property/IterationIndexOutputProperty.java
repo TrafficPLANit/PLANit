@@ -9,6 +9,10 @@ import org.goplanit.utils.unit.Unit;
 
 public final class IterationIndexOutputProperty extends OutputProperty {
 
+  /** dummy */
+  private IterationIndexOutputProperty(){}
+
+  /** name */
   public static final String NAME = "Iteration Index";
 
   @Override

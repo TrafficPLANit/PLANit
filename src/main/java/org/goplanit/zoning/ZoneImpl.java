@@ -100,11 +100,12 @@ public abstract class ZoneImpl extends ExternalIdAbleImpl implements Zone {
   }
 
   /**
-   * set the centroid for this zone. It is assumed the centroid is correctly configured to be compatible
-   * with this zoneImpl
+   * set the centroid for this zone manually. It is not recommended to use this as centroids have managed ids and by
+   * default a centroid will already be instantiated when creating a zone through its factor.
    *
    * @param centroid to set
    */
+  @Override
   public void setCentroid(Centroid centroid) {
     this.centroid = centroid;
   }
