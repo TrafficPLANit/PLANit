@@ -13,21 +13,14 @@ import java.util.function.Function;
  */
 public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
 
+
   private final List<ScheduleElement> scheduleElements;
 
   /**
    * Default constructor
+   *
    */
   public ActivitySchedule(){
-    this("");
-  }
-
-  /**
-   * Default constructor
-   *
-   * @param initialPurpose bootstrap purpose
-   */
-  public ActivitySchedule(String initialPurpose){
     this.scheduleElements = new ArrayList<>(2);
   }
 

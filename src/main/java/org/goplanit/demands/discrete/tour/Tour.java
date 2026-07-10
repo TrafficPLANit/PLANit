@@ -77,6 +77,7 @@ public class Tour extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
    */
   public Tour(IdGroupingToken groupId) {
     super(IdGenerator.generateId(groupId, TOUR_ID_CLASS));
+    setSchedule(new ActivitySchedule()); // each tour has a schedule
   }
 
   /**
