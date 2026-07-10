@@ -7,6 +7,9 @@ public final class LengthOutputProperty extends OutputProperty {
 
   public static final String NAME = "Length";
 
+  /** default */
+  public LengthOutputProperty(){}
+
   /**
    * {@inheritDoc}
    */

@@ -12,7 +12,7 @@ import org.goplanit.utils.unit.Unit;
 public final class InflowOutputProperty extends OutputProperty {
 
   /** dummy */
-  private InflowOutputProperty(){}
+  public InflowOutputProperty(){}
 
   /**
    * Name of the property

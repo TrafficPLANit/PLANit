@@ -7,6 +7,9 @@ public final class LinkIdOutputProperty extends OutputProperty {
 
   public static final String NAME = "Link Id";
 
+  /** default */
+  public LinkIdOutputProperty(){}
+
   @Override
   public String getName() {
     return NAME;
