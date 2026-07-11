@@ -252,6 +252,8 @@ public class ExternalToPlanitModeMapping {
   /**
    * Log the current active mapping from external modes to PLANit modes
    * in a formatted, padded way for readability.
+   *
+   * @param prefix to use
    */
   public void logActiveMapping(String prefix) {
 

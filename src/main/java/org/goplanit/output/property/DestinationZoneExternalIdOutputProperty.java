@@ -11,7 +11,7 @@ public final class DestinationZoneExternalIdOutputProperty extends OutputPropert
   /** dummy constructor */
   public DestinationZoneExternalIdOutputProperty(){}
 
-  /** name */
+  /** Destination Zone External Id. */
   public static final String NAME = "Destination Zone External Id";
 
   /**

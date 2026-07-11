@@ -36,7 +36,7 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
   private Unit overrideUnits = null;
 
 
-  /** Formats an object for legigible printing,
+  /** Formats an object for legible printing,
    * if a double or float, outputs value based on {@link #DEFAULT_FORMAT_NUM_DECIMALS}, if null empty string is created,
    * if a geometry then the geometry is converted to a string
    *
@@ -47,7 +47,7 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
     return formatValue(value.orElse(null));
   }
 
-   /** Formats a value for this property type for legigible printing if so deemed helpful.
+   /** Formats a value for this property type for legible printing if so deemed helpful.
     * <p>
     * if a double or float, outputs value based on {@link #DEFAULT_FORMAT_NUM_DECIMALS}, if null empty string is created,
     * if a geometry then the geometry is converted to a string

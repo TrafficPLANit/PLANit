@@ -10,7 +10,15 @@ import org.goplanit.utils.unit.Unit;
  *
  */
 public class LinkXmlIdOutputProperty extends OutputProperty {
+  /**
+   * Public no-arg constructor required for reflective instantiation.
+   */
+  public LinkXmlIdOutputProperty(){}
 
+
+
+
+  /** Link Xml Id. */
   public final static String NAME = "Link Xml Id";
 
   /**

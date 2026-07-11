@@ -14,7 +14,7 @@ public final class DensityOutputProperty extends OutputProperty {
   /** dummy constructor */
   public DensityOutputProperty(){}
 
-  /** density */
+  /** Density. */
   public static final String NAME = "Density";
 
   /**

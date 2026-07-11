@@ -28,6 +28,7 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
    * Copy constructor
    *
    * @param other other
+   * @param deepCopy deep copy or not flag
    */
   protected ActivitySchedule(ActivitySchedule other, boolean deepCopy){
     // we do not own the elements as they are managed entities, so just always do a shallow copy
@@ -40,7 +41,8 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
    * @param other other
    * @param elementToElementMapping mapping
    */
-  protected ActivitySchedule(ActivitySchedule other, Function<ScheduleElement, ScheduleElement> elementToElementMapping){
+  protected ActivitySchedule(
+      ActivitySchedule other, Function<ScheduleElement, ScheduleElement> elementToElementMapping){
     // we do not own the elements as they are managed entities, so just always do a shallow copy but with mapping
     this.scheduleElements = new ArrayList<>();
     for(var otherElement : other){
@@ -53,6 +55,9 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
   }
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean add(ScheduleElement element) {
     return scheduleElements.add(element);
@@ -60,6 +65,7 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
 
   /**
   * access to specific element
+   * @param index to get
   * @return entry
   */
   public ScheduleElement get(int index) {
@@ -74,6 +80,7 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
    *
    * @param index index
    * @param element  to set
+   * @return the element previously at the specified position
    */
   public ScheduleElement set(int index, ScheduleElement element) {
     return scheduleElements.set(index, element);
@@ -101,12 +108,18 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   @Nonnull
   public Iterator<ScheduleElement> iterator() {
     return scheduleElements.iterator();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int size() {
     return scheduleElements.size();
@@ -153,6 +166,7 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
 
   /**
    * Deep clone with mapping
+   * @param elementToElementMapping mapping to apply
    * @return cloned schedule
    */
   public ActivitySchedule deepCloneWithMapping(Function<ScheduleElement, ScheduleElement> elementToElementMapping) {

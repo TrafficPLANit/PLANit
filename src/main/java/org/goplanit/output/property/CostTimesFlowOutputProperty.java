@@ -14,7 +14,7 @@ public final class CostTimesFlowOutputProperty extends OutputProperty {
   /** Dummy constructor */
   public CostTimesFlowOutputProperty(){}
 
-  /** property name */
+  /** Cost_X_Flow. */
   public static final String NAME = "Cost_X_Flow";
 
   /**

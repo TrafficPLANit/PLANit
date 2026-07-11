@@ -8,28 +8,49 @@ import org.goplanit.utils.unit.Unit;
  */
 public final class PathCountOutputProperty extends OutputProperty {
 
-  public static final String NAME = "Path count";
 
+  /** Path count. */
+  public static final String NAME = "Path count";
+  /**
+   * Public no-arg constructor required for reflective instantiation.
+   */
+  public PathCountOutputProperty(){}
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String getName() {
     return NAME;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Unit getDefaultUnit() {
     return Unit.NONE;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public DataType getDataType() {
     return DataType.INTEGER;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public OutputPropertyType getOutputPropertyType() {
     return OutputPropertyType.PATH_COUNT;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public OutputPropertyPriority getColumnPriority() {
     return OutputPropertyPriority.RESULT_PRIORITY;

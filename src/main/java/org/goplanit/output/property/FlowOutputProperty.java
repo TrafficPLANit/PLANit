@@ -13,11 +13,11 @@ import org.goplanit.utils.unit.Unit;
  */
 public final class FlowOutputProperty extends OutputProperty {
 
-  /** dummy constructor */
+  /** Public no-arg constructor required for reflective instantiation. */
   public FlowOutputProperty(){}
 
   /**
-   * Name of the property
+   * Flow
    */
   public static final String NAME = "Flow";
 

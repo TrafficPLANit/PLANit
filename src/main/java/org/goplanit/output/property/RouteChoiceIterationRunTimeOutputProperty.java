@@ -15,6 +15,10 @@ public final class RouteChoiceIterationRunTimeOutputProperty extends OutputPrope
    * Name of the property
    */
   public static final String NAME = "Route choice iteration run time";
+  /**
+   * Public no-arg constructor required for reflective instantiation.
+   */
+  public RouteChoiceIterationRunTimeOutputProperty(){}
 
   /**
    * {@inheritDoc}

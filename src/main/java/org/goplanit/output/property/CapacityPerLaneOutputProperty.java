@@ -24,7 +24,7 @@ public final class CapacityPerLaneOutputProperty extends OutputProperty {
     return true;
   }
 
-  /** capacity per lane */
+  /** Capacity per Lane. */
   public static final String NAME = "Capacity per Lane";
 
   /**

@@ -11,7 +11,7 @@ public final class DestinationZoneIdOutputProperty extends OutputProperty {
   /** dummy constructor */
   public DestinationZoneIdOutputProperty(){}
 
-  /** name */
+  /** Destination Zone Id. */
   public static final String NAME = "Destination Zone Id";
 
   /**

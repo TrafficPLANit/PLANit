@@ -23,7 +23,10 @@ public class OdSkimMatrix extends ZoneToZonePrimitiveMatrix<Double> {
    */
   public static class OdSkimMatrixIterator extends ZoneToZonePrimitiveMatrixIterator<Double> {
 
-    /** Constructor */
+    /** Constructor
+     *
+     * @param matrix for the iterator
+     * */
     public OdSkimMatrixIterator(final OdSkimMatrix matrix) {
       super(matrix.matrixContainer, matrix.zones);
     }
