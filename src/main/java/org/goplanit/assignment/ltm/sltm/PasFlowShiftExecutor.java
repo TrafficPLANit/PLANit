@@ -35,9 +35,15 @@ import static org.goplanit.utils.math.Precision.*;
  */
 public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends EdgeSegment> {
 
+  /**
+   * Smoothing approaches that can be applied while equilibrating PAS flow shifts.
+   */
   public enum FlowShiftSmoothingApproach{
+    /** Do not apply smoothing and retain the full computed shift. */
     OFF,    // do not apply any smoothing (effectively a factor of 100%)
+    /** Reset smoothing to the original starting point. */
     RESET,  // apply smoothing by resetting to original starting point (effectively a factor of 0%)
+    /** Apply the regular computed smoothing factor. */
     NORMAL, // regular smoothing based on computed smoothing factor
   }
 

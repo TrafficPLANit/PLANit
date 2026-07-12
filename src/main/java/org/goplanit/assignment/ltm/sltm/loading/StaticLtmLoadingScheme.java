@@ -9,12 +9,19 @@ package org.goplanit.assignment.ltm.sltm.loading;
 public enum StaticLtmLoadingScheme {
 
   //@formatter:off
+  /** No loading scheme selected. */
   NONE("NONE"), 
+  /** Basic point-queue loading scheme following Bliemer et al. (2014). */
   POINT_QUEUE_BASIC("POINT QUEUE - BLIEMER_ET_AL_2014"),
+  /** Advanced point-queue loading scheme following Raadsen and Bliemer (2021). */
   POINT_QUEUE_ADVANCED("POINT QUEUE ADV. - RAADSEN_AND_BLIEMER_2021"),
+  /** Basic physical-queue loading scheme. */
   PHYSICAL_QUEUE_BASIC("PHYSICAL QUEUE - PRAADSEN_AND_BLIEMER_2021"),
+  /** Physical-queue loading scheme extension A. */
   PHYSICAL_QUEUE_EXT_A("PHYSICAL QUEUE EXT. A - RAADSEN_AND_BLIEMER_2021"),
+  /** Physical-queue loading scheme extension B. */
   PHYSICAL_QUEUE_EXT_B("PHYSICAL QUEUE EXT. B - RAADSEN_AND_BLIEMER_2021"),
+  /** Physical-queue loading scheme extension C. */
   PHYSICAL_QUEUE_EXT_C("PHYSICAL QUEUE EXT. C - RAADSEN_AND_BLIEMER_2021");
 
   /** value of the type */

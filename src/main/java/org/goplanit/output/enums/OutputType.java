@@ -13,19 +13,36 @@ package org.goplanit.output.enums;
  * @author markr
  */
 public enum OutputType implements OutputTypeEnum {
+  /** General output not tied to a specific network or demand entity. */
   GENERAL("General"),
+  /** Link-based output on the network level. */
   LINK("Link"),
+  /** Simulation-level output such as run summaries and profiling. */
   SIMULATION("Simulation"),
+  /** Origin-destination based output. */
   OD("Origin-Destination"),
+  /** Path-based output for individual paths. */
   PATH("Path"),
+  /** Bush-based output for assignment methods that support bushes. */
   BUSH("Bush");
 
+  /** String label for this output type. */
   private final String value;
 
+  /**
+   * Constructor.
+   *
+   * @param v string label for the output type
+   */
   OutputType(String v) {
     value = v;
   }
 
+  /**
+   * Access the string label for this output type.
+   *
+   * @return output type label
+   */
   public String value() {
     return value;
   }
