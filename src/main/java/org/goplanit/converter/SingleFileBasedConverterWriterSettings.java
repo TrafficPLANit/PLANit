@@ -1,9 +1,8 @@
 package org.goplanit.converter;
 
 import org.goplanit.converter.ConverterWriterSettings;
-import org.goplanit.utils.locale.CountryNames;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.StringUtils;
-import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
 import java.util.logging.Logger;
 
@@ -96,6 +95,7 @@ public class SingleFileBasedConverterWriterSettings extends FileBasedConverterWr
    * Convenience method to log all the current settings
    */
   public void logSettings() {
+    LOGGER.info(LoggingUtils.settingsValue("File name", getFileName(), 0));
     super.logSettings();
   }
 

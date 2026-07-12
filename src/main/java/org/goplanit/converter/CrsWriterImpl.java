@@ -11,6 +11,7 @@ import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.locale.CountryNames;
+import org.goplanit.utils.misc.Pair;
 import org.locationtech.jts.geom.Coordinate;
 
 import java.util.logging.Logger;
@@ -86,22 +87,27 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
    * @param fallBackCrs  returned when none of the two other options yielded a result
    * @return crs for destination
    */
-  private CoordinateReferenceSystem identifyDestinationCoordinateReferenceSystem(
+  private Pair<CoordinateReferenceSystem, String> identifyDestinationCoordinateReferenceSystem(
           CoordinateReferenceSystem overwriteCrs, String countryName, CoordinateReferenceSystem fallBackCrs){
 
     /* CRS and transformer (if needed) based on dedicated non-generic country*/
     CoordinateReferenceSystem destinationCrs = overwriteCrs;
+    String crsSource = "configured in settings";
     if (destinationCrs == null && countryName != null && !countryName.equals(CountryNames.GLOBAL)) {
       destinationCrs = PlanitCrsUtils.createCoordinateReferenceSystem(ProjectedEpsgCodesByCountry.getEpsg(countryName));
+      if(destinationCrs != null) {
+        crsSource = String.format("derived from country %s", countryName);
+      }
     }
     // if not found, we prefer the fallback CRS if available
     if (destinationCrs == null) {
       destinationCrs = fallBackCrs;
+      crsSource = "derived from source CRS";
     }
 
     PlanItRunTimeException.throwIfNull(destinationCrs, "Destination Coordinate Reference System is null, " +
         "this is not allowed");
-    return destinationCrs;
+    return Pair.of(destinationCrs, crsSource);
   }
 
   private void setDestinationCoordinateReferenceSystem(CoordinateReferenceSystem destinationCrs) {
@@ -150,39 +156,52 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
    * @param userDefinedDestinationCrs the user configured destination Crs (if any)
    * @param destinationCountry the destination country for which we can construct a Crs in case no
    *                           specific destination Crs is provided
+   * @param logResolvedDestinationCrs when true, log how the effective destination CRS was resolved
    */
   protected void prepareCoordinateReferenceSystem(
           CoordinateReferenceSystem sourceCrs,
           CoordinateReferenceSystem userDefinedDestinationCrs,
-          String destinationCountry){
+          String destinationCountry,
+          boolean logResolvedDestinationCrs){
 
     PlanItRunTimeException.throwIfNull(sourceCrs, "Source Crs null, this is not allowed");
     this.geoUtils = new PlanitJtsCrsUtils(sourceCrs);
 
     /* CRS and transformer (if needed) */
-    CoordinateReferenceSystem identifiedDestinationCrs =
+    var identifiedDestinationCrsResult =
             identifyDestinationCoordinateReferenceSystem(userDefinedDestinationCrs, destinationCountry, sourceCrs);
+    CoordinateReferenceSystem identifiedDestinationCrs = identifiedDestinationCrsResult.first();
+    String identifiedDestinationCrsSource = identifiedDestinationCrsResult.second();
     PlanItRunTimeException.throwIfNull(identifiedDestinationCrs,
         "Destination Coordinate Reference System is null, this is not allowed");
 
-    if(identifiedDestinationCrs != null){
-      LOGGER.info(String.format("CRS set to: %s", identifiedDestinationCrs.getName()));
+    if(logResolvedDestinationCrs) {
+      if("configured in settings".equals(identifiedDestinationCrsSource)) {
+        LOGGER.info(String.format("CRS set to: %s", identifiedDestinationCrs.getName()));
+      } else {
+        LOGGER.info(String.format("CRS set to: %s (%s)",
+            identifiedDestinationCrs.getName(), identifiedDestinationCrsSource));
+      }
     }
 
     /* configure crs transformer if required, to be able to convert geometries to preferred CRS while writing */
     if(!identifiedDestinationCrs.equals(sourceCrs)) {
       destinationCrsTransformer = PlanitJtsUtils.findMathTransform(sourceCrs, identifiedDestinationCrs);
-      LOGGER.info(String.format("Geometries will be converted from source CRS (%s) to destination CRS (%s)" +
-          " during writing", sourceCrs.getName(), identifiedDestinationCrs.getName()));
+      if(logResolvedDestinationCrs) {
+        LOGGER.info(String.format("Geometries will be converted from source CRS (%s) to destination CRS (%s)" +
+            " during writing", sourceCrs.getName(), identifiedDestinationCrs.getName()));
+      }
     }else{
-      LOGGER.info("Source CRS same as destination CRS, no transformation applied during writing");
+      if(logResolvedDestinationCrs) {
+        LOGGER.info("Source CRS same as destination CRS, no transformation applied during writing");
+      }
     }
 
     setDestinationCoordinateReferenceSystem(identifiedDestinationCrs);
   }
 
   /** get the destination crs transformer. Note it might be null and should only be collected after
-   * {@link #prepareCoordinateReferenceSystem(CoordinateReferenceSystem, CoordinateReferenceSystem, String)} has been
+   * {@link #prepareCoordinateReferenceSystem(CoordinateReferenceSystem, CoordinateReferenceSystem, String, boolean)} has been
    * invoked which determines if and which transformer should be applied
    *
    * @return destination crs transformer

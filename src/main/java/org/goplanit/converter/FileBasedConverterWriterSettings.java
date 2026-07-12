@@ -2,6 +2,7 @@ package org.goplanit.converter;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.locale.CountryNames;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.StringUtils;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
@@ -105,11 +106,12 @@ public class FileBasedConverterWriterSettings implements ConverterWriterSettings
    * Convenience method to log all the current settings
    */
   public void logSettings() {
-
-    LOGGER.info(String.format("Country set to                                     : %s", getCountry()));
-    LOGGER.info(String.format("Destination Coordinate Reference System set to     : %s",
-        getDestinationCoordinateReferenceSystem() != null ?
-            getDestinationCoordinateReferenceSystem().getName() : "not set"));
+    LOGGER.info(LoggingUtils.settingsValue("Output directory", getOutputDirectory(), 0));
+    LOGGER.info(LoggingUtils.settingsValue("Country", getCountry(), 0));
+    LOGGER.info(LoggingUtils.settingsValue(
+        "Destination CRS",
+        getDestinationCoordinateReferenceSystem() != null ? getDestinationCoordinateReferenceSystem().getName() : null,
+        0));
   }  
 
   /** Collect the destination Crs
