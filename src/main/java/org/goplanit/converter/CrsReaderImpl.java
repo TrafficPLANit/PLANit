@@ -3,7 +3,6 @@ package org.goplanit.converter;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.api.referencing.operation.MathTransform;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
-import org.goplanit.utils.id.IdMapperType;
 import org.locationtech.jts.geom.Coordinate;
 
 import java.util.logging.Logger;
@@ -12,13 +11,20 @@ import java.util.logging.Logger;
  * Base class for writers that depend on coordinate reference system
  * @param <T> type of writer
  */
-public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
+public abstract class CrsReaderImpl<T> extends BaseReaderImpl<T>{
 
   /** the logger to use */
-  private static final Logger LOGGER = Logger.getLogger(CrsWriterImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(CrsReaderImpl.class.getCanonicalName());
 
   /** helper on Crs conversion */
   CrsConversionHelper crsConversionHelper;
+
+  /** Constructor
+   */
+  protected CrsReaderImpl() {
+    super();
+  }
+
 
   /** transform the coordinate based on the destination transformer
    * @param coordinate to transform
@@ -35,6 +41,14 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
    */
   protected Coordinate[] getTransformedCoordinates(final Coordinate[] coordinates) {
     return crsConversionHelper.getTransformedCoordinates(coordinates);
+  }
+
+  /**
+   * access to destination CRS
+   * @return destination crs
+   */
+  protected CoordinateReferenceSystem getDestinationCoordinateReferenceSystem(){
+    return crsConversionHelper.getToCrs();
   }
 
   /** prepare the Crs transformer (if any) based on the user configuration settings. To be invoked internally
@@ -57,7 +71,8 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
   }
 
   /** get the destination crs transformer. Note it might be null and should only be collected after
-   * {@link #prepareCoordinateReferenceSystem(CoordinateReferenceSystem, CoordinateReferenceSystem, String, boolean)} has been
+   * {@link #prepareCoordinateReferenceSystem(CoordinateReferenceSystem, CoordinateReferenceSystem, String, boolean)}
+   * has been
    * invoked which determines if and which transformer should be applied
    *
    * @return destination crs transformer
@@ -69,24 +84,8 @@ public abstract class CrsWriterImpl<T> extends BaseWriterImpl<T>{
   /** geo util class based on source Crs (if any)
    * @return geoUtils
    */
-  protected PlanitJtsCrsUtils getGeoUtils() {
+  protected PlanitJtsCrsUtils getSourceGeoUtils() {
     return crsConversionHelper.getFromCrsGeoUtils();
-  }
-
-  /**
-   * Access to destination Crs
-   * @return crs
-   */
-  protected CoordinateReferenceSystem getDestinationCoordinateReferenceSystem() {
-    return crsConversionHelper.getToCrs();
-  }
-
-  /** Constructor
-   *
-   * @param idMapperType to use
-   */
-  protected CrsWriterImpl(IdMapperType idMapperType) {
-    super(idMapperType);
   }
 
 }
