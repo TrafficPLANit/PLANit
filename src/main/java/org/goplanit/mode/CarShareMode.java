@@ -15,7 +15,7 @@ import org.goplanit.utils.mode.UseOfModeType;
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
  * <li>track: ROAD</li>
- * <li>use: RIDE_SHARE</li>
+ * <li>use: PRIVATE</li>
  * </ul>
  * 
  * @author markr
@@ -32,9 +32,9 @@ public class CarShareMode extends PredefinedModeImpl {
   /** default physical features of car share (VEHICLE, MOTORISED, ROAD) */
   public static final PhysicalModeFeatures CAR_SHARE_PHYSICAL_FEATURES = CarMode.CAR_PHYSICAL_FEATURES;
 
-  /** default usability features of car share (RIDE_SHARE) */
+  /** default usability features of car share (PRIVATE) since you are not driven it is a short term rental*/
   public static final UsabilityModeFeatures CAR_SHARE_USABLITY_FEATURES =
-          new UsabilityModeFeaturesImpl(UseOfModeType.RIDE_SHARE);
+          new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);
 
   /**
    * Constructor for car share mode

@@ -18,7 +18,7 @@ import org.goplanit.utils.mode.VehicularModeType;
  * <li>vehicular type: NO_VEHICLE</li>
  * <li>motorisation: NON_MOTORISED</li>
  * <li>track: ROAD</li>
- * <li>use: PRIVATE</li>
+ * <li>use: ACTIVE</li>
  * </ul>
  * 
  * @author markr
@@ -37,9 +37,9 @@ public class PedestrianMode extends PredefinedModeImpl {
       new PhysicalModeFeaturesImpl(VehicularModeType.NO_VEHICLE, MotorisationModeType.NON_MOTORISED,
       TrackModeType.ROAD);
 
-  /* default usability features of pedestrian (PRIVATE) */
+  /* default usability features of pedestrian (ACTIVE) */
   public static final UsabilityModeFeatures PEDESTRIAN_USABLITY_FEATURES =
-      new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);
+      new UsabilityModeFeaturesImpl(UseOfModeType.ACTIVE);
 
   /**
    * Constructor for pedestrian mode

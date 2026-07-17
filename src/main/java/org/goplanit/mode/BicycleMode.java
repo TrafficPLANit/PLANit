@@ -18,7 +18,7 @@ import org.goplanit.utils.mode.VehicularModeType;
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: NON_MOTORISED</li>
  * <li>track: ROAD</li>
- * <li>use: PRIVATE</li>
+ * <li>use: ACTIVE</li>
  * </ul>
  * 
  * @author markr
@@ -37,9 +37,9 @@ public class BicycleMode extends PredefinedModeImpl {
           new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.NON_MOTORISED,
       TrackModeType.ROAD);
 
-  /** default usability features of bicycle (PRIVATE) */
+  /** default usability features of bicycle (ACTIVE) */
   public static final UsabilityModeFeatures BICYCLE_USABLITY_FEATURES =
-          new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);
+          new UsabilityModeFeaturesImpl(UseOfModeType.ACTIVE);
 
   /**
    * Constructor for bicycle mode

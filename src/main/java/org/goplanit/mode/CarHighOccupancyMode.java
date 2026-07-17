@@ -32,9 +32,9 @@ public class CarHighOccupancyMode extends PredefinedModeImpl {
   /** default physical features of car hov (VEHICLE, MOTORISED, ROAD) */
   public static final PhysicalModeFeatures CAR_HOV_PHYSICAL_FEATURES = CarMode.CAR_PHYSICAL_FEATURES;
 
-  /** default usability features of car hov (RIDE_SHARE) */
+  /** default usability features of car hov (PRIVATE) */
   public static final UsabilityModeFeatures CAR_HOV_USABLITY_FEATURES =
-          new UsabilityModeFeaturesImpl(UseOfModeType.HIGH_OCCUPANCY);
+          new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);
 
   /**
    * Constructor for car hov mode
