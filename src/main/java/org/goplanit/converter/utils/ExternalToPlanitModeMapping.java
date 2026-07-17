@@ -63,7 +63,7 @@ public class ExternalToPlanitModeMapping {
    * @param externalMode external mode identifier (must match exactly during activation)
    * @param planitMode   PLANit mode to map to
    */
-  public void addDefaultMapping(String externalMode, PredefinedModeType planitMode) {
+  public void setDefaultMapping(String externalMode, PredefinedModeType planitMode) {
     defaultMappings.put(externalMode, planitMode);
   }
 
@@ -273,7 +273,7 @@ public class ExternalToPlanitModeMapping {
         .orElse(0);
 
     // header
-    LOGGER.info(String.format("%sActivitySim to PLANit mode mapping: ", prefix));
+    LOGGER.info(String.format("%External to PLANit mode mapping: ", prefix));
 
     // rows
     for (var entry : activeMappings.entrySet()) {

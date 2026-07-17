@@ -60,6 +60,10 @@ public class ModeFactoryImpl extends ManagedIdEntityFactoryImpl<Mode> implements
       return new CarShareMode(groupId);
     case CAR_HIGH_OCCUPANCY:
       return new CarHighOccupancyMode(groupId);
+    case TAXI:
+      return new TaxiMode(groupId);
+    case RIDE_SHARE:
+      return new RideShareMode(groupId);
     case GOODS_VEHICLE:
       return new GoodsMode(groupId);
     case HEAVY_GOODS_VEHICLE:
