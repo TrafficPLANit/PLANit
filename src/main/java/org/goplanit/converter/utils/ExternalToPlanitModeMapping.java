@@ -1,6 +1,7 @@
 package org.goplanit.converter.utils;
 
 import org.goplanit.utils.mode.PredefinedModeType;
+import org.goplanit.utils.misc.LoggingUtils;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -250,35 +251,53 @@ public class ExternalToPlanitModeMapping {
   }
 
   /**
-   * Log the current active mapping from external modes to PLANit modes
-   * in a formatted, padded way for readability.
+   * Log the current active mapping from external modes to PLANit modes as a settings section.
    *
-   * @param prefix to use
+   * @param title section title to use
+   * @param level indentation level to apply
    */
-  public void logActiveMapping(String prefix) {
+  public void logActiveMapping(String title, int level) {
+    if(title != null && !title.isBlank()) {
+      LOGGER.info(LoggingUtils.settingsSection(title, level));
+      ++level;
+    }
 
     if (!active) {
-      LOGGER.info((prefix != null ? prefix + ": " : "") + "mapping is inactive");
+      LOGGER.info(LoggingUtils.settingsEntry("Mapping inactive", level));
       return;
     }
 
     if (activeMappings.isEmpty()) {
-      LOGGER.info((prefix != null ? prefix + ": " : "") + "no active mode mappings defined");
+      LOGGER.info(LoggingUtils.settingsEntry("No active mode mappings defined", level));
       return;
     }
 
-    int maxKeyLength = activeMappings.keySet().stream()
-        .mapToInt(String::length)
-        .max()
-        .orElse(0);
-
-    // header
-    LOGGER.info(String.format("%External to PLANit mode mapping: ", prefix));
-
-    // rows
     for (var entry : activeMappings.entrySet()) {
-      LOGGER.info(String.format("%s%-" + maxKeyLength + "s -> %s",
-          prefix, entry.getKey(),entry.getValue()));
+      LOGGER.info(LoggingUtils.settingsMapping(entry.getKey(), entry.getValue(), level));
+    }
+  }
+
+  /**
+   * Log the current active mapping from external modes to PLANit modes.
+   *
+   * @param prefix to use
+   */
+  public void logActiveMapping(String prefix) {
+    String safePrefix = prefix != null ? prefix : "";
+
+    if (!active) {
+      LOGGER.info(safePrefix + LoggingUtils.settingsEntry("Mapping inactive", 0));
+      return;
+    }
+
+    if (activeMappings.isEmpty()) {
+      LOGGER.info(safePrefix + LoggingUtils.settingsEntry("No active mode mappings defined", 0));
+      return;
+    }
+
+    LOGGER.info(safePrefix + LoggingUtils.settingsSection("External to PLANit mode mapping", 0));
+    for (var entry : activeMappings.entrySet()) {
+      LOGGER.info(safePrefix + LoggingUtils.settingsMapping(entry.getKey(), entry.getValue(), 1));
     }
   }
 

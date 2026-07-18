@@ -103,15 +103,16 @@ public class FileBasedConverterWriterSettings implements ConverterWriterSettings
   }
 
   /**
-   * Convenience method to log all the current settings
+   * {@inheritDoc}
    */
-  public void logSettings() {
-    LOGGER.info(LoggingUtils.settingsValue("Output directory", getOutputDirectory(), 0));
-    LOGGER.info(LoggingUtils.settingsValue("Country", getCountry(), 0));
+  @Override
+  public void logSettings(int level) {
+    LOGGER.info(LoggingUtils.settingsValue("Output directory", getOutputDirectory(), level));
+    LOGGER.info(LoggingUtils.settingsValue("Country", getCountry(), level));
     LOGGER.info(LoggingUtils.settingsValue(
         "Destination CRS",
         getDestinationCoordinateReferenceSystem() != null ? getDestinationCoordinateReferenceSystem().getName() : null,
-        0));
+        level));
   }  
 
   /** Collect the destination Crs

@@ -91,12 +91,14 @@ public class SingleFileBasedConverterWriterSettings extends FileBasedConverterWr
     this.fileName = fileName;
   }
 
+
   /**
-   * Convenience method to log all the current settings
+   * {@inheritDoc}
    */
-  public void logSettings() {
-    LOGGER.info(LoggingUtils.settingsValue("File name", getFileName(), 0));
-    super.logSettings();
+  @Override
+  public void logSettings(int level) {
+    LOGGER.info(LoggingUtils.settingsValue("File name", getFileName(), level));
+    super.logSettings(level);
   }
 
   /**
