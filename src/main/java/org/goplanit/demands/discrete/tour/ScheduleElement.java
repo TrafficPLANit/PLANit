@@ -1,6 +1,7 @@
 package org.goplanit.demands.discrete.tour;
 
 import java.time.LocalTime;
+import java.util.function.Predicate;
 
 /**
  * An element of a schedule can contain other tours or individual trips
@@ -35,5 +36,16 @@ public interface ScheduleElement {
    * @return schedule, null if not present
    */
   public abstract ActivitySchedule getSchedule();
+
+  /**
+   * Check if this element, any of the schedule elements or the schedules of the schedule elements conform to
+   * the predicate
+   *
+   * @param predicate to apply
+   * @return result of any predicate matching
+   */
+  public default boolean testNested(Predicate<ScheduleElement> predicate){
+    return predicate.test(this) || hasSchedule() && getSchedule().testNested(predicate);
+  }
 
 }

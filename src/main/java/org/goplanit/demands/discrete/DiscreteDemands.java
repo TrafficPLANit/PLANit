@@ -206,6 +206,8 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
     this.persons = new Persons(groupId);
     this.tours = new Tours(groupId);
     this.trips = new Trips(groupId);
+
+    this.discreteDemandsModifier = new DiscreteDemandsModifier(this);
   }
 
   /**
@@ -216,6 +218,7 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
    */
   public DiscreteDemands(DiscreteDemands other, boolean deepCopy) {
     super(other, deepCopy);
+    this.discreteDemandsModifier = new DiscreteDemandsModifier(this);
 
     if(deepCopy) {
       var timePeriodMapper = new ManagedIdDeepCopyMapper<TimePeriod>();

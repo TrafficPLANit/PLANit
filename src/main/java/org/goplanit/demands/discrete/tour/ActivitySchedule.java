@@ -1,10 +1,9 @@
 package org.goplanit.demands.discrete.tour;
 
-import org.goplanit.utils.misc.IterableUtils;
-
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * A schedule can be nested since each element may have a schedule by itself. Each element can be of a different
@@ -200,4 +199,13 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
     return scheduleElement.equals(getLastOfType(scheduleElement.getClass()));
   }
 
+  /**
+   * Check if any of the schedule elements or the schedules of the schedule elements conform to the predicate
+   *
+   * @param predicate to apply
+   * @return result of any predicate matching
+   */
+  public boolean testNested(Predicate<ScheduleElement> predicate) {
+    return stream().anyMatch( se -> se.testNested(predicate));
+  }
 }

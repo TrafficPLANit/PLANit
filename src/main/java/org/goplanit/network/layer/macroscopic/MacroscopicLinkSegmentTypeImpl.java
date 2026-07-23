@@ -328,6 +328,15 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    */
   @Override
   public void registerModeOnAccessGroup(Mode accessMode, AccessGroupProperties accessGroupProperties) {
+    if(accessMode == null){
+      LOGGER.warning("IGNORE: Unable to register new access mode as it is null");
+      return;
+    }
+    if(accessGroupProperties == null){
+      LOGGER.warning(String.format("IGNORE: Unable to register new access mode (%s) as its access group " +
+          "properties are null", accessMode.getIdsAsString()));
+      return;
+    }
     if(findEqualAccessPropertiesForAnyMode(accessGroupProperties) == null){
       LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group" +
           " because access group does not exist on this link segment type (%s)", getXmlId()));
