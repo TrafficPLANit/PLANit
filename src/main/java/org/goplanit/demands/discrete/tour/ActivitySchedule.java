@@ -125,6 +125,28 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
   }
 
   /**
+   * Get the total unrolled count of elements when we consider nested elements
+   *
+   * @param countLeafsOnly when true only count elements that are not containing nested elements
+   * @return total count
+   */
+  public int sizeUnrolled(boolean countLeafsOnly) {
+    int unrolledCount = 0;
+    for (ScheduleElement element : this.scheduleElements) {
+      if (element.hasSchedule() && element.getSchedule() != null) {
+        unrolledCount += element.getSchedule().sizeUnrolled(countLeafsOnly); // Recursively count children
+        if(!countLeafsOnly){
+          unrolledCount++; // Count the current element which is not a leaf (Tour)
+        }
+      }else{
+        unrolledCount++; // count leaf
+      }
+    }
+    return unrolledCount;
+  }
+
+
+  /**
    * get last element, when flattened, we go through nested structure as if it is a flat list and then get
    * the last
    *

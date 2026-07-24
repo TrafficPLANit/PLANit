@@ -1,6 +1,7 @@
 package org.goplanit.demands.discrete.person;
 
 import org.goplanit.demands.discrete.trip.Trip;
+import org.goplanit.demands.discrete.trip.TripImpl;
 import org.goplanit.utils.mode.Mode;
 
 import java.util.Set;
@@ -24,7 +25,7 @@ public class PersonUtils {
 
     return persons.stream()
         .filter(p -> p.getSchedule()!=null)
-        .filter(p -> p.getSchedule().testNested(se -> se instanceof Trip && modes.contains(((Trip)se).getMode())))
+        .filter(p -> p.getSchedule().testNested(se -> se instanceof TripImpl && modes.contains(((Trip)se).getMode())))
         .collect(Collectors.toSet());
   }
 }

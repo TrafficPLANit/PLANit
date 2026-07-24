@@ -2,6 +2,7 @@ package org.goplanit.demands.discrete.trip;
 
 import org.goplanit.demands.discrete.tour.ActivitySchedule;
 import org.goplanit.demands.discrete.tour.Tour;
+import org.goplanit.demands.discrete.tour.TourImpl;
 import org.goplanit.demands.discrete.util.DirectionBound;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactory;
@@ -22,7 +23,7 @@ public class TripsFactory extends ManagedIdEntityFactoryImpl<Trip>
    * @return created time period
    */
   protected Trip createNew() {
-    return new Trip(getIdGroupingToken());
+    return new TripImpl(getIdGroupingToken());
   }
 
   /**
@@ -42,7 +43,7 @@ public class TripsFactory extends ManagedIdEntityFactoryImpl<Trip>
    * @return created instance
    */
   public Trip registerNew() {
-    var newInstance = new Trip(getIdGroupingToken());
+    var newInstance = new TripImpl(getIdGroupingToken());
     trips.register(newInstance);
     return newInstance;
   }
@@ -56,7 +57,7 @@ public class TripsFactory extends ManagedIdEntityFactoryImpl<Trip>
    * @return created instance
    */
   public Trip registerNew(Tour parentTour, DirectionBound direction, boolean addToTourSchedule) {
-    var newInstance = new Trip(getIdGroupingToken());
+    var newInstance = new TripImpl(getIdGroupingToken());
     newInstance.setDirection(direction);
     newInstance.setTour(parentTour);
     if(addToTourSchedule){

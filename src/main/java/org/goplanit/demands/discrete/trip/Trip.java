@@ -3,214 +3,89 @@ package org.goplanit.demands.discrete.trip;
 import org.goplanit.demands.discrete.tour.ActivitySchedule;
 import org.goplanit.demands.discrete.tour.ScheduleElement;
 import org.goplanit.demands.discrete.tour.Tour;
+import org.goplanit.demands.discrete.tour.TourImpl;
 import org.goplanit.demands.discrete.util.DirectionBound;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.id.ExternalIdAbleImpl;
-import org.goplanit.utils.id.IdGenerator;
-import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.zoning.OdZone;
 
 import java.time.Duration;
 import java.time.LocalTime;
-import java.util.logging.Logger;
 
-/**
- * Represents a trip.
- * 
- * @author markr
- *
- */
-public class Trip extends ExternalIdAbleImpl implements ManagedId, ScheduleElement {
-
-  /** the logger */
-  @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(Trip.class.getCanonicalName());
-
-  /** Tour the trip belongs to (can be a sub-tour), for now must be present as origin/destination is stored on tour */
-  private Tour tour;
-
-  /** purpose of the tour. "smaller" than purpose of a tour as it encompasses single leg */
-  private String purpose;
-
-  /** mode of the trip */
-  private Mode mode;
-
-  /** start time of the trip */
-  private LocalTime startTime;
-
-  /** trip direction, default is always outbound, but if part of a tour, it may be inbound */
-  private DirectionBound direction = DirectionBound.OUTBOUND;
-
-  /**
-   * Generate id for instances of this class based on the token and class identifier
-   *
-   * @param tokenId to use
-   * @return generated id
-   */
-  protected static long generateId(IdGroupingToken tokenId) {
-    return IdGenerator.generateId(tokenId, Trip.TRIP_ID_CLASS);
-  }
+public interface Trip extends ExternalIdAble, ManagedId, ScheduleElement {
 
   /** id class for generating ids */
   public static final Class<Trip> TRIP_ID_CLASS = Trip.class;
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Class<? extends Trip> getIdClass() {
-    return TRIP_ID_CLASS;
-  }
-
-  /**
-   * Constructor
-   *
-   * @param groupId          contiguous id generation within this group for instances of this class
-   */
-  public Trip(IdGroupingToken groupId) {
-    super(IdGenerator.generateId(groupId, TRIP_ID_CLASS));
-  }
-
-  /**
-   * Copy constructor
-   *
-   * @param trip to copy
-   * @param deepCopy when true, create a deep copy, shallow copy otherwise
-   */
-  public Trip(Trip trip, boolean deepCopy /* no impact yet */) {
-    super(trip);
-    this.tour = trip.tour;
-    this.direction = trip.direction;
-    this.purpose = trip.purpose;
-    this.mode = trip.mode;
-  }
-
-  /**
    * Purpose
+   *
    * @return purpose
    */
-  @Override
-  public String getPurpose() {
-    return purpose;
-  }
+  String getPurpose();
 
   /**
    * Purpose
+   *
    * @param purpose to set
    */
-  public void setPurpose(String purpose) {
-    this.purpose = purpose;
-  }
+  void setPurpose(String purpose);
 
   /**
    * mode
+   *
    * @return mode
    */
-  public Mode getMode() {
-    return mode;
-  }
+  Mode getMode();
 
   /**
    * mode
+   *
    * @param mode to set
    */
-  public void setMode(Mode mode) {
-    this.mode = mode;
-  }
+  void setMode(Mode mode);
 
   /**
    * Access to tour
+   *
    * @return tour
    */
-  public Tour getTour() {
-    return tour;
-  }
+  Tour getTour();
 
   /**
    * set tour
-   * @param  tour to use
+   *
+   * @param tour to use
    */
-  public void setTour(Tour tour) {
-    this.tour = tour;
-  }
+  void setTour(Tour tour);
 
   /**
    * Directionality
+   *
    * @return directionality
    */
-  public DirectionBound getDirection() {
-    return direction;
-  }
+  DirectionBound getDirection();
 
   /**
    * Set directionality
+   *
    * @param direction to use
    */
-  public void setDirection(DirectionBound direction) {
-    this.direction = direction;
-  }
-
-  /**
-   * access to departure time
-   * @return dep time
-   */
-  @Override
-  public LocalTime getStartTime() {
-    return startTime;
-  }
+  void setDirection(DirectionBound direction);
 
   /**
    * set departure time
+   *
    * @param startTime to use
    */
-  public void setStartTime(LocalTime startTime) {
-    this.startTime = startTime;
-  }
+  void setStartTime(LocalTime startTime);
 
   /**
    * A trip has no internal schedule as it is always a "leaf" element of a schedule
    */
-  @Override
-  public ActivitySchedule getSchedule() {
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long recreateManagedIds(IdGroupingToken tokenId) {
-    long newId = generateId(tokenId);
-    setId(newId);
-    return newId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Trip shallowClone() {
-    return new Trip(this, false);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Trip deepClone() {
-    return new Trip(this, true);
-  }
-
-  /**
-   * Output this object as a String
-   * 
-   * @return String containing the value of this
-   */
-  @Override
-  public String toString() {
-    return getIdsAsString();
-  }
+  ActivitySchedule getSchedule();
 
   /**
    * When this is invoked, we sync the start time to the start time of the trip's tour.
@@ -218,9 +93,9 @@ public class Trip extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
    * expect it to be a departure at the destination of the tour that arrives round the end time of the tour.
    * In that case use the syncStartTimeToTourWithNegativeOffset
    */
-  public void syncStartTimeToTourStartTime() {
-    if(getTour() == null){
-      LOGGER.warning(String.format("No tour set on trip (%s), unable to sync start time", getIdsAsString()));
+  default void syncStartTimeToTourStartTime() {
+    if (getTour() == null) {
+      return;
     }
     setStartTime(getTour().getStartTime());
   }
@@ -230,9 +105,9 @@ public class Trip extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
    *
    * @param subtractFromTourEndTime to subtract
    */
-  public void syncStartTimeToTourEndWithNegativeOffset(Duration subtractFromTourEndTime) {
-    if(getTour() == null){
-      LOGGER.warning(String.format("No tour set on trip (%s), unable to sync start time", getIdsAsString()));
+  default void syncStartTimeToTourEndWithNegativeOffset(Duration subtractFromTourEndTime) {
+    if (getTour() == null) {
+      return;
     }
     setStartTime(getTour().getEndTime().minus(subtractFromTourEndTime));
   }
@@ -240,21 +115,69 @@ public class Trip extends ExternalIdAbleImpl implements ManagedId, ScheduleEleme
   /**
    * Derive purpose from the direction of trip and the purpose of the tour, e.g.
    * when outbound: "to:*name_of_tour_purpose*", when inbound "from:*name_of_tour_purpose*"
+   *
    * @return string set as purpose
    */
-  public String derivePurposeFromDirectionAndTour(){
-    switch (direction){
+  default String derivePurposeFromDirectionAndTour() {
+    switch (getDirection()) {
       case INBOUND:
-        setPurpose("from:"+tour.getPurpose());
+        setPurpose("from:" + getTour().getPurpose());
         break;
       case OUTBOUND:
-        setPurpose("to:"+tour.getPurpose());
+        setPurpose("to:" + getTour().getPurpose());
         break;
       default:
         throw new PlanItRunTimeException("Unknown direction type %s, unable to derive trip (%s) purpose",
-            direction, getIdsAsString());
+            getDirection(), getIdsAsString());
     }
     return getPurpose();
   }
 
+  /**
+   * Verify if origin is set explicitly on trip
+   *
+   * @return flag
+   */
+  default boolean isOriginSet() {
+    return getOrigin(false) != null;
+  }
+
+  /**
+   * Get the value of origin.
+   *
+   * @param useTourIfNotSet if true derive from tour based on direction logic, only valid in single trip tour leg
+   * @return value of origin
+   */
+  OdZone getOrigin(boolean useTourIfNotSet);
+
+  /**
+   * Set the value of origin.
+   *
+   * @param origin value of origin
+   */
+  void setOrigin(OdZone origin);
+
+  /**
+   * Verify if destination is set explicitly on trip
+   *
+   * @return flag
+   */
+  default boolean isDestinationSet() {
+    return getDestination(false) != null;
+  }
+
+  /**
+   * Get the value of destination.
+   *
+   * @param useTourIfNotSet if true derive from tour based on direction logic, only valid in single trip tour leg
+   * @return value of destination
+   */
+  OdZone getDestination(boolean useTourIfNotSet);
+
+  /**
+   * Set the value of destination.
+   *
+   * @param destination value of destination
+   */
+  void setDestination(OdZone destination);
 }

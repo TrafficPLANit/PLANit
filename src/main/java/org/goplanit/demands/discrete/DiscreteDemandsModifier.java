@@ -1,7 +1,9 @@
 package org.goplanit.demands.discrete;
 
 import org.goplanit.demands.discrete.tour.Tour;
+import org.goplanit.demands.discrete.tour.TourImpl;
 import org.goplanit.demands.discrete.trip.Trip;
+import org.goplanit.demands.discrete.trip.TripImpl;
 import org.goplanit.demands.event.discrete.*;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
@@ -140,9 +142,9 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
     // remove dependents
     if(tour.hasSchedule()) {
       for (var scheduleElement : tour.getSchedule()) {
-        if (scheduleElement instanceof Tour) {
-          removeTour((Tour) scheduleElement, false);
-        } else if (scheduleElement instanceof Trip) {
+        if (scheduleElement instanceof TourImpl) {
+          removeTour((TourImpl) scheduleElement, false);
+        } else if (scheduleElement instanceof TripImpl) {
           removeTrip((Trip) scheduleElement);
         }
       }

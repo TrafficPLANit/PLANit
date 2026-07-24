@@ -26,7 +26,7 @@ public class ToursFactory extends ManagedIdEntityFactoryImpl<Tour>
    * @return created time period
    */
   protected Tour createNew() {
-    return new Tour(getIdGroupingToken());
+    return new TourImpl(getIdGroupingToken());
   }
 
   /**
@@ -46,7 +46,7 @@ public class ToursFactory extends ManagedIdEntityFactoryImpl<Tour>
    * @return created instance
    */
   public Tour registerNew() {
-    var newInstance = new Tour(getIdGroupingToken());
+    var newInstance = new TourImpl(getIdGroupingToken());
     tours.register(newInstance);
     return newInstance;
   }
@@ -59,7 +59,7 @@ public class ToursFactory extends ManagedIdEntityFactoryImpl<Tour>
    * @return created instance
    */
   public Tour registerNew(Person person, boolean registerOnSchedule) {
-    var newInstance = new Tour(getIdGroupingToken());
+    var newInstance = new TourImpl(getIdGroupingToken());
     newInstance.setPerson(person);
     if(registerOnSchedule){
       person.getSchedule().add(newInstance);
@@ -100,7 +100,7 @@ public class ToursFactory extends ManagedIdEntityFactoryImpl<Tour>
    * @return created instance
    */
   public Tour registerNew(Tour parentTour, boolean registerOnSchedule) {
-    var newInstance = new Tour(getIdGroupingToken());
+    var newInstance = new TourImpl(getIdGroupingToken());
     newInstance.setParentTour(parentTour);
     var currParent = parentTour;
     while(currParent.hasParentTour()){

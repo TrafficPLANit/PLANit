@@ -2,8 +2,8 @@ package org.goplanit.converter.idmapping;
 
 import org.goplanit.demands.discrete.household.Household;
 import org.goplanit.demands.discrete.person.Person;
-import org.goplanit.demands.discrete.tour.Tour;
-import org.goplanit.demands.discrete.trip.Trip;
+import org.goplanit.demands.discrete.tour.TourImpl;
+import org.goplanit.demands.discrete.trip.TripImpl;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.userclass.TravellerType;
@@ -378,7 +378,7 @@ public class IdMapperFunctionFactory {
    * @return function that generates tour ids
    */
   public static Function<? extends ExternalIdAble, String> createTourClassIdMappingFunction(IdMapperType idMapper) {
-    return IdMappingUtils.createIdMappingFunction(Tour.class , idMapper);
+    return IdMappingUtils.createIdMappingFunction(TourImpl.class , idMapper);
   }
 
   /**
@@ -388,6 +388,6 @@ public class IdMapperFunctionFactory {
    * @return function that generates trip ids
    */
   public static Function<? extends ExternalIdAble, String> createTripClassIdMappingFunction(IdMapperType idMapper) {
-    return IdMappingUtils.createIdMappingFunction(Trip.class , idMapper);
+    return IdMappingUtils.createIdMappingFunction(TripImpl.class , idMapper);
   }
 }

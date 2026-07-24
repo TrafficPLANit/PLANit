@@ -8,8 +8,10 @@ import org.goplanit.demands.discrete.person.Person;
 import org.goplanit.demands.discrete.person.Persons;
 import org.goplanit.demands.discrete.tour.ScheduleElement;
 import org.goplanit.demands.discrete.tour.Tour;
+import org.goplanit.demands.discrete.tour.TourImpl;
 import org.goplanit.demands.discrete.tour.Tours;
 import org.goplanit.demands.discrete.trip.Trip;
+import org.goplanit.demands.discrete.trip.TripImpl;
 import org.goplanit.demands.discrete.trip.Trips;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -53,9 +55,9 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
 
     Function<ScheduleElement, ScheduleElement> scheduleToScheduleElementMapping = (s -> {
       ScheduleElement mapped = null;
-      if(s instanceof Tour){
+      if(s instanceof TourImpl){
         mapped = tourToTourMapping.apply((Tour) s);
-      }else if(s instanceof Trip){
+      }else if(s instanceof TripImpl){
         mapped = tripToTripMapping.apply((Trip) s);
       }
       if(removeMissingMappings){
