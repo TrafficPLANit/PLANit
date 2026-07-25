@@ -112,6 +112,7 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
    * todo: does not use any events yet, it should
    *
    * @param trip to remove
+   * @return trip that was removed
    */
   public Trip removeTrip(Trip trip) {
     return discreteDemands.getTrips().remove(trip);
