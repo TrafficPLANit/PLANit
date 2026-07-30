@@ -108,6 +108,30 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
   }
 
   /**
+   * Sort all elements using a custom comparator. When an element has
+   * a nested schedule, the nested schedule gets sorted recursively using the same comparator.
+   *
+   * @param comparator comparator to order schedule elements across all levels
+   */
+  public void sortNested(Comparator<ScheduleElement> comparator) {
+    if (this.scheduleElements == null || this.scheduleElements.isEmpty()) {
+      return;
+    }
+
+    // Sort current level
+    if (comparator != null) {
+      this.scheduleElements.sort(comparator);
+    }
+
+    // Recurse into nested schedules
+    for (var element : this.scheduleElements) {
+      if (element.hasSchedule() && element.getSchedule() != null) {
+        element.getSchedule().sortNested(comparator);
+      }
+    }
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override

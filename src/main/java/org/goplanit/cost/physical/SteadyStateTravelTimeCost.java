@@ -295,9 +295,6 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double hyperDerivative = 0.0;
 
     double capacity = ((PcuCapacitated)linkSegment).getCapacityOrDefaultPcuH();
-    if(accessee.getLinkSegmentInflowPcuHour(linkSegment) / capacity > 2){
-      int bla = 4;
-    }
 
     /* hypo critical delay derivative */
     if (!fd.getFreeFlowBranch().isLinear()) {

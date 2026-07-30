@@ -23,8 +23,8 @@ public class DiscreteDemandsIdMapper extends PlanitComponentIdMapper{
     super(type);
     add(Person.class, IdMapperFunctionFactory.createPersonClassIdMappingFunction(type));
     add(Household.class, IdMapperFunctionFactory.createHouseholdClassIdMappingFunction(type));
-    add(TourImpl.class, IdMapperFunctionFactory.createTourClassIdMappingFunction(type));
-    add(TripImpl.class, IdMapperFunctionFactory.createTripClassIdMappingFunction(type));
+    add(Tour.class, IdMapperFunctionFactory.createTourClassIdMappingFunction(type));
+    add(Trip.class, IdMapperFunctionFactory.createTripClassIdMappingFunction(type));
   }
 
   /** get id mapper for persons

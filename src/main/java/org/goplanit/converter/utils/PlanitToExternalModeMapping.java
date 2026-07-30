@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 
 /**
  * Maps PLANit {@link PredefinedModeType} enums to external string-based identifiers.
- * Optimized internally via an {@link EnumMap} structure.
+ * Optimized internally via an active set, falling back to default mappings or explicit user overrides.
  *
  * @author markr
  */
@@ -16,11 +16,14 @@ public class PlanitToExternalModeMapping {
 
   private static final Logger LOGGER = Logger.getLogger(PlanitToExternalModeMapping.class.getCanonicalName());
 
-  /** Mappings currently used during file writing/exporting. */
-  private final Map<PredefinedModeType, String> activeMappings = new EnumMap<>(PredefinedModeType.class);
+  /** Set of currently active PLANit modes. */
+  private final Set<PredefinedModeType> activeModes = EnumSet.noneOf(PredefinedModeType.class);
 
-  /** Registered defaults used for fallback initialization or resets. */
+  /** Registered defaults used for standard fallback values. */
   private final Map<PredefinedModeType, String> defaultMappings = new EnumMap<>(PredefinedModeType.class);
+
+  /** Explicit user overrides that take precedence over defaults when active. */
+  private final Map<PredefinedModeType, String> overriddenMappings = new EnumMap<>(PredefinedModeType.class);
 
   /**
    * Default constructor.
@@ -39,112 +42,157 @@ public class PlanitToExternalModeMapping {
   }
 
   /**
-   * Activates a PLANit mode using its registered default configuration.
+   * Activates a PLANit mode into the active set.
    *
    * @param planitMode PLANit mode type to activate
    */
   public void activate(PredefinedModeType planitMode) {
-    String defaultMode = defaultMappings.get(planitMode);
-    if (defaultMode != null) {
-      activeMappings.put(planitMode, defaultMode);
+    if (defaultMappings.containsKey(planitMode) || overriddenMappings.containsKey(planitMode)) {
+      activeModes.add(planitMode);
     }
   }
 
   /**
-   * Deactivates an active mapping for a specific PLANit mode.
+   * Deactivates a PLANit mode from the active set.
+   * Preserves any existing override and default configurations.
    *
    * @param planitMode PLANit mode type to remove
    */
   public void deactivate(PredefinedModeType planitMode) {
-    activeMappings.remove(planitMode);
+    activeModes.remove(planitMode);
   }
 
   /**
-   * Clears active rules and overwrites them with all registered defaults.
+   * Clears the active set and populates it with all modes that have a default or override mapping.
    */
   public void activateAllDefaults() {
-    activeMappings.clear();
-    activeMappings.putAll(defaultMappings);
+    activeModes.clear();
+    activeModes.addAll(defaultMappings.keySet());
+    activeModes.addAll(overriddenMappings.keySet());
   }
 
   /**
-   * Deactivates all currently active mappings.
+   * Clears all currently active mappings, but retains override and default records.
    */
   public void deactivateAll() {
-    activeMappings.clear();
+    activeModes.clear();
   }
 
   /**
-   * Overwrites or explicitly sets an active mapping for a given PLANit mode.
+   * Overwrites or explicitly sets an override mapping for a given PLANit mode,
+   * and ensures it is added to the active set.
    *
    * @param planitMode   Source PLANit mode
    * @param externalMode Target external mode string
    */
   public void overrideMapping(PredefinedModeType planitMode, String externalMode) {
-    activeMappings.put(planitMode, externalMode);
+    overriddenMappings.put(planitMode, externalMode);
+    activeModes.add(planitMode);
   }
 
   /**
-   * Checks if a PLANit mode is actively mapped.
+   * Clears a specific user override, reverting the mode back to its default mapping if available.
    *
    * @param planitMode PLANit mode type
-   * @return true if an active mapping exists
+   */
+  public void clearOverride(PredefinedModeType planitMode) {
+    overriddenMappings.remove(planitMode);
+    if (!defaultMappings.containsKey(planitMode)) {
+      activeModes.remove(planitMode);
+    }
+  }
+
+  /**
+   * Checks if a PLANit mode mapping has an active user override.
+   *
+   * @param planitMode PLANit mode type
+   * @return true if an override is registered
+   */
+  public boolean isOverridden(PredefinedModeType planitMode) {
+    return overriddenMappings.containsKey(planitMode);
+  }
+
+  /**
+   * Gets a type-safe set copy of all currently overridden PLANit mode keys.
+   *
+   * @return EnumSet containing overridden PLANit modes
+   */
+  public Set<PredefinedModeType> getOverriddenPlanitModes() {
+    return overriddenMappings.isEmpty() ? EnumSet.noneOf(PredefinedModeType.class) :
+        EnumSet.copyOf(overriddenMappings.keySet());
+  }
+
+  /**
+   * Checks if a PLANit mode is actively enabled.
+   *
+   * @param planitMode PLANit mode type
+   * @return true if active
    */
   public boolean isMapped(PredefinedModeType planitMode) {
-    return activeMappings.containsKey(planitMode);
+    return activeModes.contains(planitMode);
   }
 
   /**
    * Resolves the external string identifier for a given PLANit mode.
+   * Prioritizes user overrides, then falls back to defaults if active.
    *
    * @param planitMode PLANit mode type
-   * @return Mapped external string, or null if unmapped
+   * @return Mapped external string, or null if unmapped or inactive
    */
   public String getMappedMode(PredefinedModeType planitMode) {
-    return activeMappings.get(planitMode);
+    if (!activeModes.contains(planitMode)) {
+      return null;
+    }
+    if (overriddenMappings.containsKey(planitMode)) {
+      return overriddenMappings.get(planitMode);
+    }
+    return defaultMappings.get(planitMode);
   }
 
   /**
-   * Gets a type-safe set copy of all currently active PLANit mode keys.
+   * Gets a type-safe set copy of all currently active PLANit modes.
    *
    * @return EnumSet containing active PLANit modes
    */
   public Set<PredefinedModeType> getActivePlanitModes() {
-    return activeMappings.isEmpty() ? EnumSet.noneOf(PredefinedModeType.class) : EnumSet.copyOf(activeMappings.keySet());
+    return activeModes.isEmpty() ? EnumSet.noneOf(PredefinedModeType.class) : EnumSet.copyOf(activeModes);
   }
 
   /**
-   * Stream of distinct external mode strings currently used in active mappings.
+   * Stream of distinct external mode strings currently used by active mappings.
    *
    * @return Stream of distinct external modes
    */
   public Stream<String> getActiveExternalModesStream() {
-    return activeMappings.values().stream().distinct();
+    return activeModes.stream()
+        .map(this::getMappedMode)
+        .filter(Objects::nonNull)
+        .distinct();
   }
 
   /**
-   * Verifies if any functional mapping rules are configured.
+   * Verifies if any functional mapping rules are active.
    *
-   * @return true if mappings exist
+   * @return true if active modes exist
    */
   public boolean isAnyModeMapped() {
-    return !activeMappings.isEmpty();
+    return !activeModes.isEmpty();
   }
 
   /**
-   * Logs all active configuration rules using left-aligned text padding for readability.
+   * Logs all active configuration rules, highlighting which ones are active overrides.
    *
    * @param prefix Optional log formatting line prefix
    */
   public void logActiveMapping(String prefix) {
     String safePrefix = prefix != null ? prefix : "";
 
-    if (activeMappings.isEmpty()) {
+    if (activeModes.isEmpty()) {
       LOGGER.info(safePrefix + "No active mode mappings defined");
       return;
     }
 
-    int maxKeyLength = activeMappings.keySet().stream()
+    int maxKeyLength = activeModes.stream()
         .map(PredefinedModeType::name)
         .mapToInt(String::length)
         .max()
@@ -152,9 +200,11 @@ public class PlanitToExternalModeMapping {
 
     LOGGER.info(String.format("%sPLANit to External mode mapping: ", safePrefix));
 
-    for (var entry : activeMappings.entrySet()) {
-      LOGGER.info(String.format("%s%-" + maxKeyLength + "s -> %s",
-          safePrefix, entry.getKey().name(), entry.getValue()));
+    for (var planitMode : activeModes) {
+      String resolvedMode = getMappedMode(planitMode);
+      String overrideMarker = overriddenMappings.containsKey(planitMode) ? " (overridden)" : "";
+      LOGGER.info(String.format("%s%-" + maxKeyLength + "s -> %s%s",
+          safePrefix, planitMode.name(), resolvedMode, overrideMarker));
     }
   }
 }
