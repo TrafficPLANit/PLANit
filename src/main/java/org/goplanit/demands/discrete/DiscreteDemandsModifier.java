@@ -1,5 +1,9 @@
 package org.goplanit.demands.discrete;
 
+import org.goplanit.demands.discrete.person.Person;
+import org.goplanit.demands.discrete.person.PersonUtils;
+import org.goplanit.demands.discrete.tour.ActivitySchedule;
+import org.goplanit.demands.discrete.tour.ScheduleElement;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.tour.TourImpl;
 import org.goplanit.demands.discrete.trip.Trip;
@@ -11,6 +15,7 @@ import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.id.ManagedIdEntities;
 
+import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
 /**
@@ -35,6 +40,28 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
   private <T extends ManagedIdEntities<? extends ManagedId>> void recreateManagedEntitiesIdsFor(T entities) {
     entities.recreateIds(true);
     fireEvent(new RecreatedDiscreteDemandsEntitiesManagedIdsEvent(this, entities));
+  }
+
+  private static void shiftScheduleRecursive(ActivitySchedule schedule, int offsetSeconds) {
+    for (ScheduleElement element : schedule) {
+      // Shift start time (supported by both Tour and Trip)
+      if (element.getStartTime() != null) {
+        element.setStartTime(element.getStartTime().plusSeconds(offsetSeconds));
+      }
+
+      // If it's a Tour, it also has an end time that needs shifting
+      if (element instanceof Tour) {
+        Tour tour = (Tour) element;
+        if (tour.getEndTime() != null) {
+          tour.setEndTime(tour.getEndTime().plusSeconds(offsetSeconds));
+        }
+      }
+
+      // Recursively shift nested schedules if they exist (e.g., sub-tours inside a tour)
+      if (element.hasSchedule() && element.getSchedule() != null) {
+        shiftScheduleRecursive(element.getSchedule(), offsetSeconds);
+      }
+    }
   }
 
   /**
@@ -153,5 +180,87 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
     // remove from container
     discreteDemands.getTours().remove(tour);
 
+  }
+
+  /**
+   * Applies uniform temporal jitter globally to a PLANit discrete demands container
+   * with boundary snapping and deterministic reproducibility via SplittableRandom.
+   *
+   * todo: does not use any events yet, it should
+   * @param maxDeviationSeconds the maximum deviation allowed (+/- maxDeviationSeconds)
+   * @param minAllowedTimeSeconds the lower boundary (e.g., start of simulation period)
+   * @param maxAllowedTimeSeconds the upper boundary (e.g., end of simulation period)
+   */
+  public void adjustPersonsScheduleUniformJitter(
+      int maxDeviationSeconds, int minAllowedTimeSeconds, int maxAllowedTimeSeconds) {
+
+    if (maxDeviationSeconds <= 0 || discreteDemands.getPersons().isEmpty()) {
+      return;
+    }
+
+    discreteDemands.getPersons().forEach(person ->
+        adjustPersonScheduleUniformJitter(person, maxDeviationSeconds, minAllowedTimeSeconds, maxAllowedTimeSeconds)
+    );
+  }
+
+  /**
+   * Person-level method that applies uniform temporal jitter deterministically
+   * to a single person's schedule, clamping within allowed period boundaries.
+   *
+   * @param person the person whose schedule to jitter
+   * @param maxDeviationSeconds the maximum deviation allowed (+/- maxDeviationSeconds)
+   * @param minAllowedTimeSeconds the lower boundary in seconds
+   * @param maxAllowedTimeSeconds the upper boundary in seconds
+   */
+  public void adjustPersonScheduleUniformJitter(
+      Person person,
+      int maxDeviationSeconds,
+      int minAllowedTimeSeconds,
+      int maxAllowedTimeSeconds) {
+
+    if (maxDeviationSeconds <= 0 || person == null || person.getSchedule() == null || person.getSchedule().isEmpty()) {
+      return;
+    }
+
+    var schedule = person.getSchedule();
+    SplittableRandom rng = new SplittableRandom(PersonUtils.generatePersonSeed(person));
+
+    // Draw uniform offset across the full window [0, totalWindow] and center it around 0
+    double totalWindowSeconds = maxDeviationSeconds * 2.0;
+    int offsetSeconds = (int) Math.round((rng.nextDouble() * totalWindowSeconds) - maxDeviationSeconds);
+    if (offsetSeconds == 0) {
+      return;
+    }
+
+    //CLAMPING
+    {
+      //  Determine schedule boundaries using the first element's start time for clamping
+      // lower bound clamping
+      var first = schedule.getFirst();
+      if (first != null && first.getStartTime() != null) {
+        int earliestSeconds = first.getStartTime().toSecondOfDay();
+        if (earliestSeconds + offsetSeconds < minAllowedTimeSeconds) {
+          offsetSeconds = minAllowedTimeSeconds - earliestSeconds;
+        }
+      }
+
+      // Upper bound clamping
+      var last = schedule.getLast(false /* not flattened, because we're after end time of last tour */);
+      if (last == null ||  !(last instanceof Tour) || ((Tour) last).getEndTime() == null) {
+        LOGGER.severe(String.format("Schedule of person (%s) has invalid top level last tour, unable to apply jitter",
+            person.getIdsAsString()));
+        return;
+      }
+      var latestTime = ((Tour) last).getEndTime();
+      int latestSeconds = latestTime.toSecondOfDay();
+      if (latestSeconds + offsetSeconds > maxAllowedTimeSeconds) {
+        offsetSeconds = maxAllowedTimeSeconds - latestSeconds;
+      }
+    }
+
+    // Apply the valid offset recursively across the schedule elements and sort
+    if (offsetSeconds != 0) {
+      shiftScheduleRecursive(schedule, offsetSeconds);
+    }
   }
 }

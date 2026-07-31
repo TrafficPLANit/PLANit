@@ -25,6 +25,12 @@ public interface ScheduleElement {
   LocalTime getStartTime();
 
   /**
+   * Set the start time of the element
+   * @param startTime to use
+   */
+  public abstract void setStartTime(LocalTime startTime);
+
+  /**
    * Each schedule element has a purpose
    *
    * @return purpose

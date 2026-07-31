@@ -28,4 +28,12 @@ public class PersonUtils {
         .filter(p -> p.getSchedule().testNested(se -> se instanceof TripImpl && modes.contains(((Trip)se).getMode())))
         .collect(Collectors.toSet());
   }
+
+  /**
+   * Generates a deterministic seed based on person ID and structural characteristics
+   * to ensure reproducibility across runs.
+   */
+  public static long generatePersonSeed(Person person) {
+    return person.generateIdBasedRandomSeed();
+  }
 }
