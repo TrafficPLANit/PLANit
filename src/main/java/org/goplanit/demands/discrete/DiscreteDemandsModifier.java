@@ -188,18 +188,20 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
    *
    * todo: does not use any events yet, it should
    * @param maxDeviationSeconds the maximum deviation allowed (+/- maxDeviationSeconds)
+   * @param symmetric if true, shifts by [-max, +max]; if false, shifts strictly forward by [0, max]
    * @param minAllowedTimeSeconds the lower boundary (e.g., start of simulation period)
    * @param maxAllowedTimeSeconds the upper boundary (e.g., end of simulation period)
    */
   public void adjustPersonsScheduleUniformJitter(
-      int maxDeviationSeconds, int minAllowedTimeSeconds, int maxAllowedTimeSeconds) {
+      int maxDeviationSeconds, boolean symmetric, int minAllowedTimeSeconds, int maxAllowedTimeSeconds) {
 
     if (maxDeviationSeconds <= 0 || discreteDemands.getPersons().isEmpty()) {
       return;
     }
 
     discreteDemands.getPersons().forEach(person ->
-        adjustPersonScheduleUniformJitter(person, maxDeviationSeconds, minAllowedTimeSeconds, maxAllowedTimeSeconds)
+        adjustPersonScheduleUniformJitter(
+            person, maxDeviationSeconds, symmetric, minAllowedTimeSeconds, maxAllowedTimeSeconds)
     );
   }
 
@@ -209,12 +211,14 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
    *
    * @param person the person whose schedule to jitter
    * @param maxDeviationSeconds the maximum deviation allowed (+/- maxDeviationSeconds)
+   * @param symmetric if true, shifts by [-max, +max]; if false, shifts strictly forward by [0, max]
    * @param minAllowedTimeSeconds the lower boundary in seconds
    * @param maxAllowedTimeSeconds the upper boundary in seconds
    */
   public void adjustPersonScheduleUniformJitter(
       Person person,
       int maxDeviationSeconds,
+      boolean symmetric,
       int minAllowedTimeSeconds,
       int maxAllowedTimeSeconds) {
 
@@ -226,8 +230,15 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
     SplittableRandom rng = new SplittableRandom(PersonUtils.generatePersonSeed(person));
 
     // Draw uniform offset across the full window [0, totalWindow] and center it around 0
-    double totalWindowSeconds = maxDeviationSeconds * 2.0;
-    int offsetSeconds = (int) Math.round((rng.nextDouble() * totalWindowSeconds) - maxDeviationSeconds);
+    int offsetSeconds;
+    if (symmetric) {
+      // Symmetric range: [-maxDeviationSeconds, +maxDeviationSeconds]
+      double totalWindowSeconds = maxDeviationSeconds * 2.0;
+      offsetSeconds = (int) Math.round((rng.nextDouble() * totalWindowSeconds) - maxDeviationSeconds);
+    } else {
+      // Unidirectional positive-only spread: [0, maxDeviationSeconds]
+      offsetSeconds = (int) Math.round(rng.nextDouble() * maxDeviationSeconds);
+    }
     if (offsetSeconds == 0) {
       return;
     }

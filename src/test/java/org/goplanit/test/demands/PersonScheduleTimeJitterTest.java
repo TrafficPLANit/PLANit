@@ -52,7 +52,7 @@ class PersonScheduleTimeJitterTest {
     LocalTime originalInboundStart = inboundTrip.getStartTime();
 
     discreteDemands.getDiscreteDemandsModifier().adjustPersonScheduleUniformJitter(
-        person, 600, MIN_TIME, MAX_TIME);
+        person, 600, false, MIN_TIME, MAX_TIME);
 
     if (!mainTour.getStartTime().equals(originalTourStart)) {
       long tourDelta = Duration.between(originalTourStart, mainTour.getStartTime()).getSeconds();
@@ -104,7 +104,7 @@ class PersonScheduleTimeJitterTest {
 
     discreteDemands.getPersons().forEach(p ->
         discreteDemands.getDiscreteDemandsModifier().adjustPersonScheduleUniformJitter(
-            p, maxDeviationSeconds, minAllowed, maxAllowed)
+            p, maxDeviationSeconds, true, minAllowed, maxAllowed)
     );
 
     // Assert that every single element across all persons respects the simulation period boundaries
@@ -142,12 +142,12 @@ class PersonScheduleTimeJitterTest {
 
     LocalTime beforeShift = tour.getStartTime();
     discreteDemands.getDiscreteDemandsModifier().adjustPersonScheduleUniformJitter(
-        person0, 1200, MIN_TIME, MAX_TIME);
+        person0, 1200,false, MIN_TIME, MAX_TIME);
     LocalTime firstShifted = tour.getStartTime();
 
     tour.setStartTime(beforeShift);
     discreteDemands.getDiscreteDemandsModifier().adjustPersonScheduleUniformJitter(
-        person0, 1200, MIN_TIME, MAX_TIME);
+        person0, 1200, false, MIN_TIME, MAX_TIME);
 
     assertEquals(firstShifted, tour.getStartTime());
   }
