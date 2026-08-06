@@ -1,6 +1,7 @@
 package org.goplanit.network;
 
 import org.apache.commons.collections4.map.HashedMap;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.network.layers.MacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
@@ -46,6 +47,16 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    */
   public MacroscopicNetwork(final IdGroupingToken tokenId) {
     super(tokenId);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param tokenId contiguous id generation within this group for instances of this class
+   * @param crs explicit CRS to use (may be null if intention is to be clear it is undefined initially)
+   */
+  public MacroscopicNetwork(final IdGroupingToken tokenId, CoordinateReferenceSystem crs) {
+    super(tokenId, crs);
   }
 
   /**

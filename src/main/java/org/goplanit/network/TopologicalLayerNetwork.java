@@ -18,7 +18,7 @@ import org.goplanit.utils.network.layers.TopologicalLayers;
  * 
  * @author markr
  * @param <T> type of layer
- * @param <U> type of layer containr
+ * @param <U> type of layer container
  */
 public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U extends TopologicalLayers<T>>
         extends LayeredNetwork<T, U> {
