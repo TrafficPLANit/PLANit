@@ -26,6 +26,8 @@ import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.service.routed.*;
 import org.goplanit.utils.time.TimePeriod;
+import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.connectoid.Connectoid;
 import org.goplanit.utils.zoning.TransferZoneGroup;
 import org.goplanit.utils.zoning.Zone;
@@ -146,10 +148,20 @@ public class IdMapperFunctionFactory {
    * create a function that takes a zone and generates the appropriate id based on the user configuration
    * 
    * @param idMapper the type of mapping function to create
-   * @return function that generates zone id's for zone output
+   * @return function that generates OD zone id's for zone output
    */
-  public static Function<Zone, String> createZoneIdMappingFunction(IdMapperType idMapper) {
-    return IdMappingUtils.createIdMappingFunction(Zone.class, idMapper);
+  public static Function<OdZone, String> createOdZoneIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(OdZone.getOdZoneIdClass(), idMapper);
+  }
+
+  /**
+   * create a function that takes a zone and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates OD zone id's for zone output
+   */
+  public static Function<TransferZone, String> createTransferZoneIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(TransferZone.getTransferZoneIdClass(), idMapper);
   }
 
   /**

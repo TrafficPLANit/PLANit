@@ -1,6 +1,8 @@
 package org.goplanit.converter.idmapping;
 
 import org.goplanit.utils.id.IdMapperType;
+import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.connectoid.Connectoid;
 import org.goplanit.utils.zoning.TransferZoneGroup;
 import org.goplanit.utils.zoning.Zone;
@@ -17,17 +19,25 @@ public class ZoningIdMapper extends PlanitComponentIdMapper{
    */
   public ZoningIdMapper(IdMapperType mappingType){
     super(mappingType);
-    add(Zone.class, IdMapperFunctionFactory.createZoneIdMappingFunction(mappingType));
+    add(OdZone.getOdZoneIdClass(), IdMapperFunctionFactory.createOdZoneIdMappingFunction(mappingType));
+    add(TransferZone.getTransferZoneIdClass(), IdMapperFunctionFactory.createTransferZoneIdMappingFunction(mappingType));
     add(Connectoid.class,  IdMapperFunctionFactory.createConnectoidIdMappingFunction(mappingType));
     add(TransferZoneGroup.class, IdMapperFunctionFactory.createTransferZoneGroupIdMappingFunction(mappingType));
     add(Zoning.class, IdMapperFunctionFactory.createZoningIdMappingFunction(mappingType));
   }
 
-  /** get id mapper for Zone
+  /** get id mapper for OD Zone
    * @return id mapper
    */
-  public Function<? super Zone, String> getZoneIdMapper(){
-    return get(Zone.class);
+  public Function<OdZone, String> getOdZoneIdMapper(){
+    return get(OdZone.getOdZoneIdClass());
+  }
+
+  /** get id mapper for Transfer Zone
+   * @return id mapper
+   */
+  public Function<TransferZone, String> getTransferZoneIdMapper(){
+    return get(TransferZone.getTransferZoneIdClass());
   }
 
   /** get id mapper for Connectoid
