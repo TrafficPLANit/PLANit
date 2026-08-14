@@ -42,6 +42,11 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
     fireEvent(new RecreatedDiscreteDemandsEntitiesManagedIdsEvent(this, entities));
   }
 
+  /**
+   * For a given schedule shift the entire schedule with a given number of seconds
+   * @param schedule to shift
+   * @param offsetSeconds offset to apply
+   */
   private static void shiftScheduleRecursive(ActivitySchedule schedule, int offsetSeconds) {
     for (ScheduleElement element : schedule) {
       // Shift start time (supported by both Tour and Trip)

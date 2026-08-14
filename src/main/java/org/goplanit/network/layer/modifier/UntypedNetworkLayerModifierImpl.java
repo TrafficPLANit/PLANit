@@ -2,6 +2,7 @@ package org.goplanit.network.layer.modifier;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
@@ -15,6 +16,7 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
 import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.network.layer.physical.Link;
 
 /**
  * Modifier class for model free network layer, generics used to allow derived classes to provide typed versions
@@ -103,6 +105,35 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
           final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, boolean recreateManagedIds) {
     /* perform removal */
     graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest);
+    if(recreateManagedIds) {
+      recreateManagedIdEntities();
+    }
+  }
+
+  /**
+   * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the
+   * internal ids if needed based on configuration. Note that now we consider the modes as well, so a network
+   * may not be dangling from a graph perspective, but if we were to consider only the portion accessible to a
+   * particular mode, it would be dangling. Here we identify it per mode to have a more stringent approach
+   * <p>
+   *   Should fire #RecreatedGraphEntitiesManagedIdsEvent after it has been executed
+   * </p>
+   *
+   * @param belowSize         remove subnetworks below the given size
+   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
+   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
+   * @param recreateManagedIds when true recreate managed id entities so they are contiguous again
+   */
+  @Override
+  public void removeDanglingSubnetworks(
+      final Integer belowSize,
+      Integer aboveSize,
+      boolean alwaysKeepLargest,
+      boolean recreateManagedIds,
+      Predicate<S> testEdgeSegment) {
+
+    /* perform removal */
+    graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest, testEdgeSegment);
     if(recreateManagedIds) {
       recreateManagedIdEntities();
     }

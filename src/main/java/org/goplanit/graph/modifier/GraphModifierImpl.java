@@ -3,9 +3,15 @@ package org.goplanit.graph.modifier;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.goplanit.graph.EdgesImpl;
+import org.goplanit.graph.GraphImpl;
+import org.goplanit.graph.UntypedSubGraphImpl;
+import org.goplanit.graph.VerticesImpl;
 import org.goplanit.graph.modifier.event.RecreatedGraphEntitiesManagedIdsEvent;
 import org.goplanit.graph.modifier.event.*;
 import org.goplanit.utils.event.Event;
@@ -14,14 +20,13 @@ import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.graph.GraphEntities;
-import org.goplanit.utils.graph.UntypedGraph;
-import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.graph.*;
 import org.goplanit.utils.graph.modifier.GraphModifier;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
+import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.misc.Pair;
 import org.locationtech.jts.geom.LineString;
@@ -32,8 +37,8 @@ import org.locationtech.jts.geom.LineString;
  * While graphs are assumed to have a managed id for all their entities it is not a given that the edges, vertices,
  * etc. are the primary containers where these are uniquely
  * tracked. For example a subgraph might only contain a subset of vertices. Therefore, whenever modifications are
- * made to a graph, the incoker of these changes should be aware
- * whether or not the graph entities containers are the primary containers or not. If so, and the ids used are
+ * made to a graph, the invoker of these changes should be aware
+ * whether the graph entities containers are the primary containers or not. If so, and the ids used are
  * expected to remain contiguous (directly) after completion of the
  * modification, additional effort is required by invoking {@link #recreateManagedEntitiesIds()} to ensure that
  * all entity containers on the graph are triggered to perform an
@@ -73,17 +78,31 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   }
 
   /**
-   * helper function for subnetwork identification (deliberately NOT recursive to avoid stack overflow on
+   * Helper function for subnetwork identification (deliberately NOT recursive to avoid stack overflow on
    * large networks)
    * 
    * @param referenceVertex to process
+   * @param testEdge when any edge tests positive, the vertex is considered part of the subnetwork
    * @return all vertices in the subnetwork connected to passed in reference vertex
    */
-  protected Set<Vertex> processSubNetworkVertex(Vertex referenceVertex) {
+  protected UntypedSubGraph<Vertex,Edge> identifySubGraphForVertex(
+      Vertex referenceVertex, Predicate<? super Edge> testEdge) {
     PlanItRunTimeException.throwIfNull(referenceVertex, "provided reference vertex is null " +
-        "when identifying its subnetwork, thisis not allowed");
-    Set<Vertex> subNetworkVertices = new HashSet<>();
-    subNetworkVertices.add(referenceVertex);
+        "when identifying its subnetwork, this is not allowed");
+
+    // rely on max id instead of container size, since vertices can be shared between graphs and not owned by the
+    // parent graph
+    var numVertices = IdGenerator.getLatestIdForToken(
+        getGraph().getVertices().getFactory().getIdGroupingToken(), Vertex.VERTEX_ID_CLASS);
+    var numEdges = IdGenerator.getLatestIdForToken(
+        getGraph().getEdges().getFactory().getIdGroupingToken(), Edge.EDGE_ID_CLASS);
+
+    var idToken = IdGroupingToken.create("subnetwork_dummy");
+    var subGraph = new UntypedSubGraphImpl<Vertex, Edge>(idToken, (int) numVertices, (int) numEdges);
+
+//    Set<Vertex> subNetworkVertices = new HashSet<>();
+//    subNetworkVertices.add(referenceVertex);
+    subGraph.addVertex(referenceVertex);
 
     Set<Vertex> verticesToExplore = new HashSet<>();
     verticesToExplore.add(referenceVertex);
@@ -96,20 +115,27 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
       /* add newly found vertices to explore, and add then to final subnetwork list as well */
       Collection<? extends Edge> edgesOfCurrVertex = currVertex.getEdges();
       for (Edge currEdge : edgesOfCurrVertex) {
+
+        // if any edge is acceptable, then proceed
+        if(!testEdge.test(currEdge)){
+          continue;
+        }
+        subGraph.addEdge(currEdge);
+
         if (currEdge.getVertexA() != null && currEdge.getVertexA().getId() != currVertex.getId() &&
-            !subNetworkVertices.contains(currEdge.getVertexA())) {
-          subNetworkVertices.add(currEdge.getVertexA());
+            !subGraph.containsVertex(currEdge.getVertexA())) {
+          subGraph.addVertex(currEdge.getVertexA());
           verticesToExplore.add(currEdge.getVertexA());
         } else if (currEdge.getVertexB() != null && currEdge.getVertexB().getId() != currVertex.getId() &&
-            !subNetworkVertices.contains(currEdge.getVertexB())) {
-          subNetworkVertices.add(currEdge.getVertexB());
+            !subGraph.containsVertex(currEdge.getVertexB())) {
+          subGraph.addVertex(currEdge.getVertexB());
           verticesToExplore.add(currEdge.getVertexB());
         }
       }
       /* update iterator */
       vertexIter = verticesToExplore.iterator();
     }
-    return subNetworkVertices;
+    return subGraph;
   }
 
   /**
@@ -188,74 +214,105 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
 
   /**
    * {@inheritDoc}
-   * 
+   *
    */
   @Override
   public void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
+    Predicate<Edge> alwaysTrue = e -> true;
+    removeDanglingSubGraphs(
+        belowSize,
+        aboveSize,
+        alwaysKeepLargest,
+        (v -> this.identifySubGraphForVertex(v, alwaysTrue)));
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public void removeDanglingSubGraphs(
+      Integer belowSize,
+      Integer aboveSize,
+      boolean alwaysKeepLargest,
+      Function<Vertex, UntypedSubGraph<Vertex,Edge>> identifySubGraphForVertex) {
 
     Map<Integer, LongAdder> removedDanglingNetworksBySize = new HashMap<>();
     Set<Vertex> remainingVertices = new HashSet<>(theGraph.getVertices().size());
     theGraph.getVertices().forEach(remainingVertices::add);
-    Map<Vertex, Integer> identifiedSubNetworkSizes = new HashMap<Vertex, Integer>();
+    var identifiedSubGraphs = new HashMap<Vertex, Pair<Integer, UntypedSubGraph<Vertex,Edge>>>();
 
+    int maxSubNetworkSize = 0 ;
     while (remainingVertices.iterator().hasNext()) {
       /* recursively traverse the subnetwork */
       Vertex referenceVertex = remainingVertices.iterator().next();
-      Set<Vertex> subNetworkVerticesToPopulate = processSubNetworkVertex(referenceVertex);
+      //Set<Vertex> subNetworkVerticesToPopulate = identifySubNetworkForVertex(referenceVertex, testEdge);
+      var connectedSubGraph = identifySubGraphForVertex.apply(referenceVertex);
 
       /* register size and remove subnetwork from remaining nodes */
-      identifiedSubNetworkSizes.put(referenceVertex, subNetworkVerticesToPopulate.size());
-      remainingVertices.removeAll(subNetworkVerticesToPopulate);
+      var subGraphVertices = connectedSubGraph.getVertices(theGraph.getVertices());
+      maxSubNetworkSize = Math.max(maxSubNetworkSize, subGraphVertices.size());
+      identifiedSubGraphs.put(referenceVertex, Pair.of(subGraphVertices.size(),connectedSubGraph));
+      subGraphVertices.forEach(remainingVertices::remove);
     }
 
-    if (!identifiedSubNetworkSizes.isEmpty()) {
+    if (!identifiedSubGraphs.isEmpty()) {
       /* remove all non-dominating subnetworks */
-      int maxSubNetworkSize = Collections.max(identifiedSubNetworkSizes.values());
-      LOGGER.fine(String.format("remaining vertices %d, edges %d",
+      LOGGER.fine(String.format("Remaining vertices %d, edges %d",
           theGraph.getVertices().size(), theGraph.getEdges().size()));
-      for (Entry<Vertex, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
-        int subNetworkSize = entry.getValue();
+      for (var entry : identifiedSubGraphs.entrySet()) {
+        int subNetworkSize = entry.getValue().first();
         if (subNetworkSize < maxSubNetworkSize || !alwaysKeepLargest) {
 
           /* not the biggest subnetwork, remove from network if below threshold */
           if (subNetworkSize < belowSize || subNetworkSize > aboveSize) {
 
+            // now remove the subgraph identified earlier
+            removeSubGraph(entry.getValue().second());
+
             removedDanglingNetworksBySize.putIfAbsent(subNetworkSize, new LongAdder());
             removedDanglingNetworksBySize.get(subNetworkSize).increment();
-            LOGGER.fine(String.format("removing %d vertices from graph", subNetworkSize));
-            LOGGER.fine(String.format("remaining vertices %d, edges %d",
+            LOGGER.fine(String.format("Removing %d vertices from graph", subNetworkSize));
+            LOGGER.fine(String.format("Remaining vertices %d, edges %d",
                 theGraph.getVertices().size(), theGraph.getEdges().size()));
           }
         }
       }
       final LongAdder totalCount = new LongAdder();
       removedDanglingNetworksBySize.forEach((size, count) -> {
-        LOGGER.fine(String.format("sub graph size %d - %d removed", size, count.longValue()));
+        LOGGER.fine(String.format("Sub graph size %d - %d removed", size, count.longValue()));
         totalCount.add(count.longValue());
       });
-      LOGGER.fine(String.format("removed %d dangling sub graphs", totalCount.longValue()));
+      LOGGER.fine(String.format("Removed %d dangling sub graphs", totalCount.longValue()));
     } else {
-      LOGGER.warning("no networks identified, unable to remove dangling subnetworks");
+      LOGGER.warning("No networks identified, unable to remove dangling subnetworks");
     }
   }
+
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void removeSubGraph(Set<? extends Vertex> subGraphToRemove) {
+  public void removeSubGraph(UntypedSubGraph<Vertex,Edge> subGraphToRemove) {
 
     /* remove the subnetwork from the actual network */
-    for (Vertex vertex : subGraphToRemove) {
-
-      /* remove vertex and fire vertex removal event */
-      removeVertex(vertex);
+    for (var vertex : getGraph().getVertices()) {
+      if(!subGraphToRemove.containsVertex(vertex)){
+        continue;
+      }
 
       /* remove vertex' edges from graph  and fire edge removal event(s) */
       Set<? extends Edge> vertexEdges = new HashSet<>(vertex.getEdges());
+      boolean vertexRemovable = true;
       for (Edge edge : vertexEdges) {
+        if(!subGraphToRemove.containsEdge(edge)){
+          continue;
+        }
         removeEdge(edge);
       }
+
+      removeVertex(vertex);
 
       /* fire remove subgraph event */
       if (hasListener(RemoveGraphEntityEvent.EVENT_TYPE)) {
@@ -268,8 +325,9 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   /**
    * {@inheritDoc}
    */
+  @Override
   public void removeSubGraphOf(Vertex referenceVertex) {
-    Set<Vertex> subNetworkNodesToRemove = processSubNetworkVertex(referenceVertex);
+    var subNetworkNodesToRemove = identifySubGraphForVertex(referenceVertex, x-> true);
     removeSubGraph(subNetworkNodesToRemove);
   }
 

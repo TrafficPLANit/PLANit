@@ -83,7 +83,12 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
   }
 
   /**
-   * {@inheritDoc}
+   * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the
+   * internal ids if needed based on configuration
+   * @param belowSize         remove subnetworks below the given size
+   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
+   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
+   * @param recreateManagedIds when true recreate managed id entities so they are contiguous again
    */
   public void removeDanglingSubnetworks(
           Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, boolean recreateManagedIds) {
@@ -94,11 +99,30 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
   }
 
   /**
+   * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the
+   * internal ids if needed based on configuration. Note that now we consider the modes as well, so a network
+   * may not be dangling from a graph perspective, but if we were to consider only the portion accessible to a
+   * particular mode, it would be dangling. Here we identify it per mode to have a more stringent approach
+   *
+   * @param belowSize         remove subnetworks below the given size
+   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
+   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
+   * @param recreateManagedIds when true recreate managed id entities so they are contiguous again
+   */
+  public void removeDanglingSubnetworksByMode(
+      Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, boolean recreateManagedIds) {
+    for (L infrastructureLayer : getTransportLayers()) {
+      infrastructureLayer.getLayerModifier().removeDanglingSubnetworksByMode(
+          belowSize, aboveSize, alwaysKeepLargest, recreateManagedIds);
+    }
+  }
+
+  /**
    * Recreate the managed ids of all layers and modes
    */
   @Override
   public void recreateManagedIds(){
-    getModes().recreateIds(); //todo: not proper just recreates its own ids any dependent other inideces will suffer
+    getModes().recreateIds(); //todo: not proper just recreates its own ids any dependent other indices will suffer
     getTransportLayers().recreateIds(); // proper delegates internally to layer modifier via events
   }
 

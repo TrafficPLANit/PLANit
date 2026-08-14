@@ -188,6 +188,20 @@ public class TripImpl extends ExternalIdAbleImpl implements Trip {
   }
 
   /**
+   * Outbound mode is the same as the trip's mode
+   * @return trip mode
+   */
+  @Override
+  public Mode getOutboundMode() {
+    return getMode();
+  }
+
+  @Override
+  public Mode getInboundMode() {
+    return getMode();
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override

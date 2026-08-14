@@ -1,5 +1,7 @@
 package org.goplanit.demands.discrete.tour;
 
+import org.goplanit.utils.mode.Mode;
+
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Function;
@@ -52,7 +54,6 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
     }
 
   }
-
 
   /**
    * {@inheritDoc}
@@ -253,5 +254,35 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
    */
   public boolean testNested(Predicate<ScheduleElement> predicate) {
     return stream().anyMatch( se -> se.testNested(predicate));
+  }
+
+  /**
+   * Find the outbound mode by traversing schedule
+   *
+   * @return returns the first outbound mode of any element on its (nested) schedule
+   */
+  public Mode getOutboundMode(){
+    if(getFirst() == null){
+      return null;
+    }
+    if(getFirst().hasSchedule()){
+      return getFirst().getSchedule().getOutboundMode();
+    }
+    return getFirst().getOutboundMode();
+  }
+
+  /**
+   * Find the inbound mode by traversing schedule
+   *
+   * @return returns the last inbound mode of any element on its (nested) schedule
+   */
+  public Mode getInboundMode(){
+    if(getLast(false) == null){
+      return null;
+    }
+    if(getLast(false).hasSchedule()){
+      return getLast(false).getSchedule().getInboundMode();
+    }
+    return getLast(false).getInboundMode();
   }
 }

@@ -1,5 +1,7 @@
 package org.goplanit.demands.discrete.tour;
 
+import org.goplanit.utils.mode.Mode;
+
 import java.time.LocalTime;
 import java.util.function.Predicate;
 
@@ -53,5 +55,19 @@ public interface ScheduleElement {
   public default boolean testNested(Predicate<ScheduleElement> predicate){
     return predicate.test(this) || hasSchedule() && getSchedule().testNested(predicate);
   }
+
+  /**
+   * Find the outbound mode
+   *
+   * @return returns the (representative) outbound mode
+   */
+  public abstract Mode getOutboundMode();
+
+  /**
+   * Find the inbound mode
+   *
+   * @return returns the inbound mode
+   */
+  public abstract Mode getInboundMode();
 
 }

@@ -5,6 +5,7 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedId;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.OdZone;
 
 import java.time.LocalTime;
@@ -242,12 +243,40 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
   }
 
   /**
-   * set the schedule
-   * @param schedule to use
+   * {@inheritDoc}
    */
   @Override
   public void setSchedule(ActivitySchedule schedule) {
     this.schedule = schedule;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Mode getOutboundMode() {
+    if(!hasSchedule()){
+      return null; // tour is expected to have a schedule
+    }
+    var firstEntry = getSchedule().getFirst();
+    if(firstEntry.hasSchedule()){
+      return firstEntry.getSchedule().getOutboundMode();
+    }
+    return firstEntry.getOutboundMode();
+  }
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Mode getInboundMode() {
+    if(!hasSchedule()){
+      return null;
+    }
+    var firstEntry = getSchedule().getFirst();
+    if(firstEntry.hasSchedule()){
+      return firstEntry.getSchedule().getInboundMode();
+    }
+    return firstEntry.getInboundMode();
   }
 
   /**

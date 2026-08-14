@@ -2,6 +2,8 @@ package org.goplanit.graph.directed.modifier;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -16,8 +18,10 @@ import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.graph.UntypedDirectedGraph;
+import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -246,26 +250,33 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * {@inheritDoc}
    */
   @Override
-  public void removeSubGraph(Set<? extends DirectedVertex> subGraphToRemove) {
+  public void removeSubGraph(
+      Set<? super DirectedVertex> subGraphToRemove, Predicate<? super DirectedEdge> testEdge) {
 
     /* remove the edge segment portion of the directed subgraph from the actual directed graph and fire event(s)*/
-    for (DirectedVertex directedVertex : subGraphToRemove) {
-      for (DirectedEdge directedEdge : directedVertex.getEdges()) {
-        for (EdgeSegment edgeSegment : directedEdge.getEdgeSegments()) {
-          removeEdgeSegment(edgeSegment);
+    for (var directedVertex : subGraphToRemove) {
+      for (DirectedEdge directedEdge : ((DirectedVertex)directedVertex).getEdges()) {
+        if(testEdge.test(directedEdge)){
+          for (EdgeSegment edgeSegment : directedEdge.getEdgeSegments()) {
+            removeEdgeSegment(edgeSegment);
+          }
         }
       }
     }
 
-    // remove the movements touching the sub graph to remove
+    // remove the movements touching the sub graph to remove (+ test positive for removal on the edges as well)
     if(getUntypedDirectedGraph().hasMovements()){
       var movementsByCentreVertex =
           getUntypedDirectedGraph().getMovements().createGroupByIndex(BannedMovement::getCentreVertex);
-      movementsByCentreVertex.values().forEach( ms -> ms.forEach(this::removeMovement));
+      movementsByCentreVertex.values().stream()
+          .flatMap(Collection::stream)
+          .filter(bm -> !bm.hasSegmentFrom() && testEdge.test(bm.getSegmentFrom().getParent()))
+          .filter(bm -> !bm.hasSegmentTo() && testEdge.test(bm.getSegmentTo().getParent()))
+          .forEach(this::removeMovement);
     }
 
     /* do the same for vertices and edges */
-    graphModifier.removeSubGraph(subGraphToRemove);
+    graphModifier.removeSubGraph((Set<? super Vertex>) subGraphToRemove, (Predicate<? super Edge>)testEdge);
   }
 
   /**
@@ -399,20 +410,11 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
     return affectedEdges;
   }
 
-
   /**
    * {@inheritDoc}
    */
   @Override
-  public void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
-    graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void removeSubGraphOf(DirectedVertex referenceVertex) throws PlanItException {
+  public void removeSubGraphOf(Vertex referenceVertex) throws PlanItException {
     graphModifier.removeSubGraphOf(referenceVertex);
   }
 

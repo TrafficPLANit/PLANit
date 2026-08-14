@@ -3,6 +3,7 @@ package org.goplanit.demands.discrete.tour;
 import org.goplanit.demands.discrete.person.Person;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.ManagedId;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.OdZone;
 
 import java.time.LocalTime;
@@ -133,4 +134,5 @@ public interface Tour extends ExternalIdAble, ManagedId, ScheduleElement {
    * @param schedule to use
    */
   void setSchedule(ActivitySchedule schedule);
+
 }
