@@ -16,10 +16,7 @@ import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.physical.SteadyStateTravelTimeCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
-import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.misc.Triple;
@@ -917,7 +914,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * @param settings to use
    */
   protected PasFlowShiftConjugateDestinationBasedExecutor(
-      final Pas<ConjugateDirectedVertex, ConjugateEdgeSegment> pas, final StaticLtmSettings settings) {
+      final Pas<ConjugateDirectedVertex, ConjugateEdgeSegment> pas,
+      final StaticLtmSettings settings) {
     super(pas, settings);
     this.s1S2SendingFlows = Pair.of(0.0,0.0);
   }
@@ -2479,7 +2477,7 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
       double[] originalNetworkCosts,
       double[] conjSegmentCosts,
       double[] originalNlConsistentFlowAcceptanceFactors,
-      Set<? extends RootedBush<?,?>> bushes,
+      Set<? extends RootedBush<?,?,?>> bushes,
       boolean logAll,
       FlowShiftSmoothingApproach smoothingApproach,
       double additionalSmoothingFactor) {

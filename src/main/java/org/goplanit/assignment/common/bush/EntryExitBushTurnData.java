@@ -25,7 +25,7 @@ public class EntryExitBushTurnData {
   /** track known bush turn sending flows s_ab by the combined key of incoming and outgoing link segments */
   private final MultiKeyMap<Object, Double> turnSendingFlows;
 
-  private final RootedBush<?,? extends EdgeSegment> parent;
+  private final RootedBush<?,?,?> parent;
 
   /**
    * Register labelled sending flow on the container while also ensuring link level composition labels are kept
@@ -43,7 +43,7 @@ public class EntryExitBushTurnData {
    * Constructor
    * 
    */
-  EntryExitBushTurnData(RootedBush<?,? extends EdgeSegment> bush) {
+  EntryExitBushTurnData(RootedBush<?,?,?> bush) {
     this.parent = bush;
     this.turnSendingFlows = new MultiKeyMap<>();
   }

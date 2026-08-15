@@ -2,6 +2,7 @@ package org.goplanit.graph.directed.acyclic;
 
 import java.util.logging.Logger;
 
+import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ConjugateACyclicSubGraph;
@@ -19,7 +20,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  *
  */
 public class ConjugateACyclicSubGraphImpl
-        extends UntypedACyclicSubGraphImpl<ConjugateDirectedVertex, ConjugateEdgeSegment>
+        extends UntypedACyclicSubGraphImpl<ConjugateDirectedVertex, ConjugateDirectedEdge, ConjugateEdgeSegment>
         implements ConjugateACyclicSubGraph {
 
   /** logger to use */

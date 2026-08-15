@@ -2,7 +2,6 @@ package org.goplanit.graph.directed.modifier;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -18,13 +17,8 @@ import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
-import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.graph.GraphEntities;
-import org.goplanit.utils.graph.UntypedDirectedGraph;
-import org.goplanit.utils.graph.Vertex;
-import org.goplanit.utils.graph.directed.DirectedEdge;
-import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.*;
+import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.graph.modifier.DirectedGraphModifier;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierEventType;
@@ -33,7 +27,6 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.graph.directed.BannedMovement;
 
 /**
  * Implementation of a directed graph modifier that supports making changes to any untyped directed graph.
@@ -246,16 +239,21 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void removeSubGraph(
-      Set<? super DirectedVertex> subGraphToRemove, Predicate<? super DirectedEdge> testEdge) {
-
+  //todo: needs work
+  public void removeDirectedSubGraph(
+      UntypedDirectedSubGraph<DirectedVertex, DirectedEdge, EdgeSegment> subGraphToRemove,
+      Predicate<? super DirectedEdge> testEdge) {
     /* remove the edge segment portion of the directed subgraph from the actual directed graph and fire event(s)*/
-    for (var directedVertex : subGraphToRemove) {
-      for (DirectedEdge directedEdge : ((DirectedVertex)directedVertex).getEdges()) {
+    for (var directedVertex : getUntypedDirectedGraph().getVertices()) {
+      if(!subGraphToRemove.containsVertex(directedVertex)){
+        continue;
+      }
+
+      for (DirectedEdge directedEdge : directedVertex.getEdges()) {
+        if(!subGraphToRemove.containsEdge(directedEdge)){
+          continue;
+        }
+
         if(testEdge.test(directedEdge)){
           for (EdgeSegment edgeSegment : directedEdge.getEdgeSegments()) {
             removeEdgeSegment(edgeSegment);
@@ -270,13 +268,29 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
           getUntypedDirectedGraph().getMovements().createGroupByIndex(BannedMovement::getCentreVertex);
       movementsByCentreVertex.values().stream()
           .flatMap(Collection::stream)
+          .filter(bm -> subGraphToRemove.containsVertex(bm.getCentreVertex()))
           .filter(bm -> !bm.hasSegmentFrom() && testEdge.test(bm.getSegmentFrom().getParent()))
           .filter(bm -> !bm.hasSegmentTo() && testEdge.test(bm.getSegmentTo().getParent()))
           .forEach(this::removeMovement);
     }
 
     /* do the same for vertices and edges */
-    graphModifier.removeSubGraph((Set<? super Vertex>) subGraphToRemove, (Predicate<? super Edge>)testEdge);
+    graphModifier.removeSubGraph(subGraphToRemove, testEdge);
+  }
+
+  //todo: needs work
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeSubGraph(UntypedSubGraph<DirectedVertex, DirectedEdge> subGraphToRemove) {
+    if( subGraphToRemove instanceof UntypedDirectedSubGraph){
+      removeDirectedSubGraph(
+          (UntypedDirectedSubGraph<DirectedVertex, DirectedEdge, EdgeSegment>)subGraphToRemove, x-> true);
+    }else{
+      var castGraph = (UntypedGraph<? extends Vertex,? extends DirectedVertex>)subGraphToRemove;
+      graphModifier.removeSubGraph((UntypedSubGraph<Vertex, Edge>) castGraph);
+    }
   }
 
   /**

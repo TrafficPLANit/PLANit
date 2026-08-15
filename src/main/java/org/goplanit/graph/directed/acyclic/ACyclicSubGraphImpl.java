@@ -5,6 +5,8 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
@@ -15,14 +17,19 @@ import org.goplanit.utils.misc.Pair;
  * 
  * An acyclic sub graph contains a subset of the full graph without cycles. The active subset of the graph is tracked
  * by explicitly registering edge segments. Edge segments are by definition directed.
- * 
+ * <p>
  * Whenever edge segments are added it is verified that no cycles are created. Also, each edge segment that is
  * added must connect to the existing subgraph's contents
+ * </p>
+ * <p>
+ *   todo: Made to conform to newer UnTypedDirectedSubgraph interface but since only part of functionality is used
+ *    for sLTM, I've put placeholders in for required methods that throw if used. Needs some tlc.
+ * </p>
  *
  * @author markr
  *
  */
-public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVertex, EdgeSegment>
+public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVertex, DirectedEdge, EdgeSegment>
     implements ACyclicSubGraph {
 
   /** logger to use */

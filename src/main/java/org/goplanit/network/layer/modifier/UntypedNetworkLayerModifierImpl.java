@@ -129,8 +129,7 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
       final Integer belowSize,
       Integer aboveSize,
       boolean alwaysKeepLargest,
-      boolean recreateManagedIds,
-      Predicate<S> testEdgeSegment) {
+      boolean recreateManagedIds) {
 
     /* perform removal */
     graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest, testEdgeSegment);

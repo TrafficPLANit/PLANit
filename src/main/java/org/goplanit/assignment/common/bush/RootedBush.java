@@ -30,14 +30,15 @@ import java.util.logging.Logger;
  * @param <ES> type of edge segment
  * @param <V> type of directed vertex
  */
-public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegment> implements Bush {
+public abstract class RootedBush<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment>
+    implements Bush {
 
   /** Logger to use */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(RootedBush.class.getCanonicalName());
 
   /** the directed acyclic subgraph representation of the bush, pertaining solely to the topology */
-  private final UntypedACyclicSubGraph<V, ES> dag;
+  private final UntypedACyclicSubGraph<V, E, ES> dag;
 
   /** the origin demands (PCU/h) of the bush this may or may not be at the root (depending on whether we root in
    * origin or destination) and may or may not be located at a centroid vertex */
@@ -55,7 +56,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    *
    * @return dag of the bush
    */
-  public UntypedACyclicSubGraph<V, ES> getDag() {
+  public UntypedACyclicSubGraph<V, E, ES> getDag() {
     return this.dag;
   }
 
@@ -214,7 +215,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    *
    * @param dag        to use for the subgraph representation
    */
-  public RootedBush(UntypedACyclicSubGraph<V, ES> dag) {
+  public RootedBush(UntypedACyclicSubGraph<V, E, ES> dag) {
     this.dag = dag;
     this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, dag.getId());
     this.originDemandsPcuH = new HashMap<>();
@@ -226,7 +227,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * @param other to copy
    * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public RootedBush(RootedBush<V, ES> other, boolean deepCopy) {
+  public RootedBush(RootedBush<V, E, ES> other, boolean deepCopy) {
     this.originDemandsPcuH = new HashMap<>(other.originDemandsPcuH);
     this.requireTopologicalSortUpdate = other.requireTopologicalSortUpdate;
     this.bushGroupingToken = other.bushGroupingToken;
@@ -336,13 +337,13 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * {@inheritDoc}
    */
   @Override
-  public abstract RootedBush<V, ES> shallowClone();
+  public abstract RootedBush<V, E, ES> shallowClone();
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract RootedBush<V, ES> deepClone();
+  public abstract RootedBush<V, E, ES> deepClone();
 
   /**
    * {@inheritDoc}

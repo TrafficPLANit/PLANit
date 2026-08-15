@@ -1,6 +1,7 @@
 package org.goplanit.algorithms.shortest;
 
 import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
@@ -27,7 +28,7 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
   private final Collection<? extends DirectedVertex> topologicalOrder;
 
   /** the acyclic graph to operate on */
-  private final UntypedACyclicSubGraph<DirectedVertex,EdgeSegment> acyclicSubGraph;
+  private final UntypedACyclicSubGraph<DirectedVertex,DirectedEdge, EdgeSegment> acyclicSubGraph;
 
   /** costs of all edge segments known, index reflects id of the graph entity */
   private final double[] edgeSegmentCosts;
@@ -58,12 +59,12 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
    */
   @SuppressWarnings("unchecked")
   public ShortestPathAcyclicMinMaxGeneralised(
-          final UntypedACyclicSubGraph<?,?> acyclicSubGraph,
+          final UntypedACyclicSubGraph<?,?,?> acyclicSubGraph,
           boolean updateTopologicalOrder,
           final double[] edgeSegmentCosts,
           final int parentNetworkVertices) {
 
-    this.acyclicSubGraph = (UntypedACyclicSubGraph<DirectedVertex, EdgeSegment>) acyclicSubGraph;
+    this.acyclicSubGraph = (UntypedACyclicSubGraph<DirectedVertex, DirectedEdge, EdgeSegment>) acyclicSubGraph;
     this.topologicalOrder = this.acyclicSubGraph.topologicalSort(updateTopologicalOrder);
     this.edgeSegmentCosts = edgeSegmentCosts;
     this.numParentNetworkVertices = parentNetworkVertices;

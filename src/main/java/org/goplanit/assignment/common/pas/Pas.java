@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import org.goplanit.assignment.common.bush.RootedBush;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
@@ -26,7 +27,8 @@ import org.goplanit.utils.misc.CollectionUtils;
  * @param <V> type of vertex
  * @param <ES>  type of segment
  */
-public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Comparable<Pas<V, ES>> {
+public class Pas<V extends DirectedVertex, ES extends EdgeSegment>
+    implements Comparable<Pas<V, ES>> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(Pas.class.getCanonicalName());
@@ -53,7 +55,7 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
   public double goldenRatioShiftBound = Double.MAX_VALUE;
 
   /** registered origin bushes */
-  private final Set<RootedBush<V,ES>> registeredBushes;
+  private final Set<RootedBush<V,?,ES>> registeredBushes;
 
   public long pasId;
 
@@ -106,8 +108,8 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
    * 
    * @return newly created PAS, or null when alternative segment(s) is/are null
    */
-  protected static <Vs extends DirectedVertex, ESs extends EdgeSegment> Pas<Vs,ESs> create(
-          final ESs[] s1, final ESs[] s2) {
+  protected static <Vs extends DirectedVertex, ESs extends EdgeSegment>
+  Pas<Vs,ESs> create(final ESs[] s1, final ESs[] s2) {
     if (s1 == null || s2 == null) {
       LOGGER.warning("Unable to create new PAS, one or both alternative segments are null");
       return null;
@@ -163,7 +165,7 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
    * @param bush bush to register
    * @return true when newly added, false, when already present
    */
-  public boolean registerBush(final RootedBush<V,ES> bush) {
+  public boolean registerBush(final RootedBush<V,?,ES> bush) {
     return registeredBushes.add(bush);
   }
 
@@ -173,7 +175,7 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
    * @param bush to check
    * @return true when registered, false otherwise
    */
-  public boolean hasRegisteredBush(final RootedBush<V,ES> bush) {
+  public boolean hasRegisteredBush(final RootedBush<V,?,ES> bush) {
     return registeredBushes.contains(bush);
   }
 
@@ -182,7 +184,7 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
    * 
    * @return registered bushes
    */
-  public Set<? extends RootedBush<V,ES>> getRegisteredBushes() {
+  public Set<? extends RootedBush<V,?,ES>> getRegisteredBushes() {
     return registeredBushes;
   }
 
@@ -207,7 +209,7 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
    * 
    * @param bushes to remove
    */
-  public void removeBushes(Collection<RootedBush<V,ES>> bushes) {
+  public void removeBushes(Collection<RootedBush<V,?,ES>> bushes) {
     bushes.forEach(this::removeBush);
   }
 
@@ -216,7 +218,7 @@ public class Pas<V extends DirectedVertex, ES extends EdgeSegment> implements Co
    * 
    * @param bush to remove
    */
-  public void removeBush(RootedBush<V,ES> bush) {
+  public void removeBush(RootedBush<V,?,ES> bush) {
     registeredBushes.remove(bush);
   }
 

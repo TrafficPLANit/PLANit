@@ -6,7 +6,9 @@ import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
@@ -148,8 +150,8 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
    * {@inheritDoc}
    */
   @Override
-  public <V extends DirectedVertex, E extends EdgeSegment> void populateDirectedAcyclicSubGraphSpanningTree(
-      UntypedACyclicSubGraph<V,E> dagToPopulate) {
+  public <V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> void
+  populateDirectedAcyclicSubGraphSpanningTree(UntypedACyclicSubGraph<V, E, ES> dagToPopulate) {
 
     if(dagToPopulate == null){
       throw new PlanItRunTimeException("provided dag is null, unable to populate spanning tree");
@@ -159,7 +161,7 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
     // original network
     for(EdgeSegment nextEdgeSegment : nextEdgeSegmentByVertex){
       if(nextEdgeSegment != null) {
-        dagToPopulate.addEdgeSegment((E) nextEdgeSegment);
+        dagToPopulate.addEdgeSegment((ES) nextEdgeSegment);
       }
     }
   }

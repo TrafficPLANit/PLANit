@@ -12,6 +12,7 @@ import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
@@ -30,7 +31,7 @@ import org.goplanit.utils.network.virtual.graph.CentroidVertex;
  * @author markr
  *
  */
-public class DestinationBush extends RootedBush<DirectedVertex, EdgeSegment> {
+public class DestinationBush extends RootedBush<DirectedVertex, DirectedEdge, EdgeSegment> {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(DestinationBush.class.getCanonicalName());

@@ -35,7 +35,8 @@ import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoid
  * @author markr
  *
  */
-public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex, ConjugateEdgeSegment> {
+public class ConjugateDestinationBush extends
+    RootedBush<ConjugateDirectedVertex, ConjugateDirectedEdge, ConjugateEdgeSegment> {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateDestinationBush.class.getCanonicalName());

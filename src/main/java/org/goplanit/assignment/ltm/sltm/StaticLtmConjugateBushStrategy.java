@@ -21,12 +21,9 @@ import org.goplanit.network.transport.ConjugateTransportModelNetwork;
 import org.goplanit.network.transport.ConjugateTransportModelNetworkUtils;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.transport.TransportModelNetworkUtils;
+import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
 import org.goplanit.zoning.zonetozone.OdDemands;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
-import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.IterableUtils;
@@ -56,8 +53,8 @@ import static org.goplanit.assignment.ltm.sltm.util.ConjugateBushUtils.isEligibl
  * @author markr
  *
  */
-public class StaticLtmConjugateBushStrategy
-        extends StaticLtmBushStrategyBase<ConjugateDirectedVertex, ConjugateEdgeSegment,ConjugateDestinationBush> {
+public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<
+    ConjugateDirectedVertex, ConjugateDirectedEdge, ConjugateEdgeSegment,ConjugateDestinationBush> {
 
   /** logger to use */
   @SuppressWarnings("unused")
@@ -83,7 +80,7 @@ public class StaticLtmConjugateBushStrategy
    * @param nonConjAcceptanceFactors to use
    */
   private void updatePasStatusBeforeFlowShift(
-          Pas<ConjugateDirectedVertex, ConjugateEdgeSegment> conjugatePas,
+          Pas<ConjugateDirectedVertex, ConjugateDirectedEdge, ConjugateEdgeSegment> conjugatePas,
           double[] nonConjAcceptanceFactors) {
     // test if conj segment is congested by considering original entry segment acceptance factor
     Predicate<ConjugateEdgeSegment> congestedPred = es -> es.hasOriginalEntryEdgeSegment() &&
@@ -347,7 +344,8 @@ public class StaticLtmConjugateBushStrategy
    * Third, when the max path coincides with the min path, we have found our new PAS
    *
    * @param bush                          to identify new PAS for
-   * @param reducedCostVertex             to use for creating the PAS as a cheaper path to the root exists at this vertex
+   * @param reducedCostVertex             to use for creating the PAS as a cheaper path to the root exists at
+   *                                      this vertex
    * @param startSegmentForS1Alternative  to use as the start segment of the S1 alternative
    * @param reducedCost                   to check if new PAS is considered effective
    * @param bushMinMaxPathResult          used for PAS construction
@@ -355,7 +353,8 @@ public class StaticLtmConjugateBushStrategy
    * @return new created PAS if successfully created, null otherwise, the boolean indicates if it indeed is a brand
    * new PAS or we reuse an existing one
    */
-  protected Pair<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>, Boolean> extendConjugateBushWithPas(
+  protected Pair<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>, Boolean>
+  extendConjugateBushWithPas(
       final ConjugateDestinationBush bush,
       final ConjugateDirectedVertex reducedCostVertex,
       ConjugateEdgeSegment startSegmentForS1Alternative,
@@ -561,7 +560,8 @@ public class StaticLtmConjugateBushStrategy
    */
   @Override
   protected PasFlowShiftExecutor<ConjugateDirectedVertex, ConjugateEdgeSegment> createPasFlowShiftExecutor(
-          final Pas<ConjugateDirectedVertex, ConjugateEdgeSegment> pas, final StaticLtmSettings settings) {
+          final Pas<ConjugateDirectedVertex, ConjugateDirectedEdge, ConjugateEdgeSegment> pas,
+          final StaticLtmSettings settings) {
     return new PasFlowShiftConjugateDestinationBasedExecutor(pas, settings);
   }
 
@@ -583,9 +583,9 @@ public class StaticLtmConjugateBushStrategy
   /**
    * {@inheritDoc}
    */
-  protected Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>> performFlowShifts(
+  protected Collection<Pas<ConjugateDirectedVertex,ConjugateDirectedEdge,ConjugateEdgeSegment>> performFlowShifts(
           final Mode theMode,
-          final Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>,
+          final Map<Pas<ConjugateDirectedVertex,ConjugateDirectedEdge,ConjugateEdgeSegment>,
               PasFlowShiftExecutor<ConjugateDirectedVertex,ConjugateEdgeSegment>> pasExecutors,
           double[] originalNetworkCosts,
           final StaticLtmSimulationData simulationData) {

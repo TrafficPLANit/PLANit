@@ -1,7 +1,9 @@
 package org.goplanit.algorithms.shortest;
 
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
@@ -138,13 +140,13 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
   }
 
   @Override
-  public UntypedACyclicSubGraph<?,?> createAndPopulateDirectedAcyclicSubGraphSpanningTree(IdGroupingToken idToken) {
+  public UntypedACyclicSubGraph<?,?,?> createAndPopulateDirectedAcyclicSubGraphSpanningTree(IdGroupingToken idToken) {
     throw new PlanItRunTimeException("createDirectedAcyclicSubGraph not yet supported for min/max result");
   }
 
   @Override
-  public <V extends DirectedVertex, E extends EdgeSegment> void  populateDirectedAcyclicSubGraphSpanningTree(
-      UntypedACyclicSubGraph<V,E> dagToPopulate) {
+  public <V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> void
+  populateDirectedAcyclicSubGraphSpanningTree(UntypedACyclicSubGraph<V, E, ES> dagToPopulate) {
     throw new PlanItRunTimeException("createDirectedAcyclicSubGraph not yet supported for min/max result");
   }
 

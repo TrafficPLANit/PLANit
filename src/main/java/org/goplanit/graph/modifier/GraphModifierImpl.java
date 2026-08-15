@@ -1,23 +1,17 @@
 package org.goplanit.graph.modifier;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
-import org.goplanit.graph.EdgesImpl;
-import org.goplanit.graph.GraphImpl;
-import org.goplanit.graph.UntypedSubGraphImpl;
-import org.goplanit.graph.VerticesImpl;
 import org.goplanit.graph.modifier.event.RecreatedGraphEntitiesManagedIdsEvent;
 import org.goplanit.graph.modifier.event.*;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.*;
@@ -25,8 +19,6 @@ import org.goplanit.utils.graph.modifier.GraphModifier;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
-import org.goplanit.utils.id.IdGenerator;
-import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.misc.Pair;
 import org.locationtech.jts.geom.LineString;
@@ -53,7 +45,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   private static final Logger LOGGER = Logger.getLogger(GraphModifierImpl.class.getCanonicalName());
 
   /** the graph to modify */
-  protected final UntypedGraph<?, ?> theGraph;
+  protected final UntypedGraph<? extends Vertex, ? extends Edge> theGraph;
 
   /**
    * update the geometry of the broken edge, knowing at what vertex it was broken from a previously longer edge
@@ -77,66 +69,6 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
     brokenEdge.setGeometry(updatedGeometry);
   }
 
-  /**
-   * Helper function for subnetwork identification (deliberately NOT recursive to avoid stack overflow on
-   * large networks)
-   * 
-   * @param referenceVertex to process
-   * @param testEdge when any edge tests positive, the vertex is considered part of the subnetwork
-   * @return all vertices in the subnetwork connected to passed in reference vertex
-   */
-  protected UntypedSubGraph<Vertex,Edge> identifySubGraphForVertex(
-      Vertex referenceVertex, Predicate<? super Edge> testEdge) {
-    PlanItRunTimeException.throwIfNull(referenceVertex, "provided reference vertex is null " +
-        "when identifying its subnetwork, this is not allowed");
-
-    // rely on max id instead of container size, since vertices can be shared between graphs and not owned by the
-    // parent graph
-    var numVertices = IdGenerator.getLatestIdForToken(
-        getGraph().getVertices().getFactory().getIdGroupingToken(), Vertex.VERTEX_ID_CLASS);
-    var numEdges = IdGenerator.getLatestIdForToken(
-        getGraph().getEdges().getFactory().getIdGroupingToken(), Edge.EDGE_ID_CLASS);
-
-    var idToken = IdGroupingToken.create("subnetwork_dummy");
-    var subGraph = new UntypedSubGraphImpl<Vertex, Edge>(idToken, (int) numVertices, (int) numEdges);
-
-//    Set<Vertex> subNetworkVertices = new HashSet<>();
-//    subNetworkVertices.add(referenceVertex);
-    subGraph.addVertex(referenceVertex);
-
-    Set<Vertex> verticesToExplore = new HashSet<>();
-    verticesToExplore.add(referenceVertex);
-    Iterator<Vertex> vertexIter = verticesToExplore.iterator();
-    while (vertexIter.hasNext()) {
-      /* collect and remove since it is processed */
-      Vertex currVertex = vertexIter.next();
-      vertexIter.remove();
-
-      /* add newly found vertices to explore, and add then to final subnetwork list as well */
-      Collection<? extends Edge> edgesOfCurrVertex = currVertex.getEdges();
-      for (Edge currEdge : edgesOfCurrVertex) {
-
-        // if any edge is acceptable, then proceed
-        if(!testEdge.test(currEdge)){
-          continue;
-        }
-        subGraph.addEdge(currEdge);
-
-        if (currEdge.getVertexA() != null && currEdge.getVertexA().getId() != currVertex.getId() &&
-            !subGraph.containsVertex(currEdge.getVertexA())) {
-          subGraph.addVertex(currEdge.getVertexA());
-          verticesToExplore.add(currEdge.getVertexA());
-        } else if (currEdge.getVertexB() != null && currEdge.getVertexB().getId() != currVertex.getId() &&
-            !subGraph.containsVertex(currEdge.getVertexB())) {
-          subGraph.addVertex(currEdge.getVertexB());
-          verticesToExplore.add(currEdge.getVertexB());
-        }
-      }
-      /* update iterator */
-      vertexIter = verticesToExplore.iterator();
-    }
-    return subGraph;
-  }
 
   /**
    * Constructor
@@ -153,7 +85,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    *
    * @return the underlying graph
    */
-  public UntypedGraph<?,?> getGraph(){
+  public UntypedGraph<? extends Vertex,? extends Edge> getGraph(){
     return theGraph;
   }
 
@@ -223,7 +155,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
         belowSize,
         aboveSize,
         alwaysKeepLargest,
-        (v -> this.identifySubGraphForVertex(v, alwaysTrue)));
+        (v -> UndirectedGraphUtils.identifySubGraphForVertex(
+            (UntypedGraph<Vertex, Edge>)getGraph(), v, alwaysTrue)));
   }
 
   /**
@@ -327,8 +260,9 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    */
   @Override
   public void removeSubGraphOf(Vertex referenceVertex) {
-    var subNetworkNodesToRemove = identifySubGraphForVertex(referenceVertex, x-> true);
-    removeSubGraph(subNetworkNodesToRemove);
+    var subNetworkNodesToRemove = UndirectedGraphUtils.identifySubGraphForVertex(
+        getGraph(), referenceVertex, x-> true);
+    removeSubGraph((UntypedSubGraph<Vertex, Edge>) subNetworkNodesToRemove);
   }
 
   /**

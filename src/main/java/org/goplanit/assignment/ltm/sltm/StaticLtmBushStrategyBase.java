@@ -13,6 +13,7 @@ import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.zoning.zonetozone.OdSkimMatrix;
 import org.goplanit.output.enums.SkimSubOutputType;
@@ -38,7 +39,7 @@ import java.util.logging.Logger;
  * @param <B> type of bush
  */
 public abstract class
-StaticLtmBushStrategyBase<V extends DirectedVertex, ES extends EdgeSegment, B extends RootedBush<V, ES>>
+StaticLtmBushStrategyBase<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment, B extends RootedBush<V, E, ES>>
         extends StaticLtmAssignmentStrategy {
 
   /** logger to use */

@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.ConjugateEdge;
+import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
@@ -45,8 +47,8 @@ import javax.annotation.Nonnull;
  * @param <E> type of edge
  * @param <V> type of vertex
  */
-public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends EdgeSegment>
-    implements UntypedACyclicSubGraph<V, E> {
+public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment>
+    implements UntypedACyclicSubGraph<V, E, ES> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(UntypedACyclicSubGraphImpl.class.getCanonicalName());
@@ -264,7 +266,7 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public UntypedACyclicSubGraphImpl(UntypedACyclicSubGraphImpl<V, E> other, boolean deepCopy) {
+  public UntypedACyclicSubGraphImpl(UntypedACyclicSubGraphImpl<V, E, ES> other, boolean deepCopy) {
     this.id = other.getId();
 
     this.rootVertices = new HashSet<>(other.rootVertices);
@@ -342,7 +344,7 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void addEdgeSegment(E edgeSegment) {
+  public void addEdgeSegment(ES edgeSegment) {
     if (edgeSegment == null) {
       LOGGER.warning("Unable to add edge segment to acyclic subgraph, null provided");
       return;
@@ -380,7 +382,15 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    * {@inheritDoc}
    */
   @Override
-  public long getNumberOfVertices() {
+  public int getNumberOfEdgeSegments() {
+    return registeredLinkSegments.cardinality();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int getNumberOfVertices() {
     return vertexData.size();
   }
 
@@ -398,8 +408,7 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void removeEdgeSegment(E edgeSegment) {
-
+  public void removeEdgeSegment(ES edgeSegment) {
 
     registeredLinkSegments.set((int) edgeSegment.getId(), false);
     if (!isConnectedToAnySubgraphEdgeSegment((V) edgeSegment.getDownstreamVertex())) {
@@ -410,11 +419,60 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
     }
   }
 
+  @Override
+  public void addEdge(E edge) {
+    throw new PlanItRunTimeException("Current implementation only works by adding segments, edges and vertices" +
+        " added implicitly");
+  }
+
+  @Override
+  public void removeEdge(E edge) {
+    throw new PlanItRunTimeException("Current implementation only works by removing segments, edges and vertices" +
+        " added removed implicitly");
+  }
+
+  @Override
+  public boolean containsEdge(E edge) {
+    return edge.getEdgeSegments().stream().anyMatch(this::containsEdgeSegment);
+  }
+
+  @Override
+  public boolean containsEdge(long edgeId) {
+    throw new PlanItRunTimeException("Current implementation only works by providing instance of edge, not id");
+  }
+
+  @Override
+  public void addVertex(V vertex) {
+    throw new PlanItRunTimeException("Current implementation only works by adding segments, edges and vertices" +
+        " added implicitly");
+  }
+
+  @Override
+  public void removeVertex(V vertex) {
+    throw new PlanItRunTimeException("Current implementation only works by removing segments, edges and vertices" +
+        " added removed implicitly");
+  }
+
+  @Override
+  public boolean containsVertex(V vertex) {
+    return vertexData.containsKey(vertex);
+  }
+
+  @Override
+  public boolean containsVertex(long vertexId) {
+    throw new PlanItRunTimeException("Current implementation only works by providing instance of vertex, not id");
+  }
+
+  @Override
+  public int getNumberOfEdges() {
+    throw new PlanItRunTimeException("Current implementation does not track edges");
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
-  public UntypedACyclicSubGraphImpl<V, E> shallowClone() {
+  public UntypedACyclicSubGraphImpl<V, E, ES> shallowClone() {
     return new UntypedACyclicSubGraphImpl<>(this, false);
   }
 
@@ -422,8 +480,9 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    * {@inheritDoc}
    */
   @Override
-  public UntypedACyclicSubGraphImpl<V, E> deepClone() {
-    LOGGER.severe("Not a smart deep clone on untyped acyclic sub graph, so interdependencies will get screwed up, recommend not to use until properly implemented");
+  public UntypedACyclicSubGraphImpl<V, E, ES> deepClone() {
+    LOGGER.severe("Not a smart deep clone on untyped acyclic sub graph, so interdependencies will get " +
+        "screwed up, recommend not to use until properly implemented");
     return new UntypedACyclicSubGraphImpl<>(this, true);
   }
 

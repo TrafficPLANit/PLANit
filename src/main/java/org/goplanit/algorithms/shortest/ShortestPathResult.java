@@ -5,10 +5,7 @@ import java.util.function.Consumer;
 
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
-import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -73,7 +70,7 @@ public interface ShortestPathResult extends ShortestResult{
    * @param idToken to use
    * @return created graph
    */
-  public abstract UntypedACyclicSubGraph<?,?> createAndPopulateDirectedAcyclicSubGraphSpanningTree(
+  public abstract UntypedACyclicSubGraph<?,?,?> createAndPopulateDirectedAcyclicSubGraphSpanningTree(
       final IdGroupingToken idToken);
 
   /**
@@ -81,11 +78,12 @@ public interface ShortestPathResult extends ShortestResult{
    * provided which will be used to populate (assumed empty)
    *
    * @param <V> vertex type
-   * @param <E> edge segment type
+   * @param <E> edge type
+   * @param <ES> edge segment type
    * @param dagToPopulate the dag to populate
    */
-  public abstract <V extends DirectedVertex, E extends EdgeSegment> void populateDirectedAcyclicSubGraphSpanningTree(
-      UntypedACyclicSubGraph<V,E> dagToPopulate);
+  public abstract <V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> void
+  populateDirectedAcyclicSubGraphSpanningTree(UntypedACyclicSubGraph<V, E, ES> dagToPopulate);
 
   /**
    * apply consumer to each edge segment on path. Depending on the type of shortest path (direction), the next segment
