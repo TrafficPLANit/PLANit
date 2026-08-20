@@ -54,7 +54,7 @@ import static org.goplanit.assignment.ltm.sltm.util.ConjugateBushUtils.isEligibl
  *
  */
 public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<
-    ConjugateDirectedVertex, ConjugateDirectedEdge, ConjugateEdgeSegment,ConjugateDestinationBush> {
+    ConjugateDirectedVertex, ConjugateDirectedEdge, ConjugateEdgeSegment, ConjugateDestinationBush> {
 
   /** logger to use */
   @SuppressWarnings("unused")
@@ -80,7 +80,7 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<
    * @param nonConjAcceptanceFactors to use
    */
   private void updatePasStatusBeforeFlowShift(
-          Pas<ConjugateDirectedVertex, ConjugateDirectedEdge, ConjugateEdgeSegment> conjugatePas,
+          Pas<ConjugateDirectedVertex, ConjugateEdgeSegment> conjugatePas,
           double[] nonConjAcceptanceFactors) {
     // test if conj segment is congested by considering original entry segment acceptance factor
     Predicate<ConjugateEdgeSegment> congestedPred = es -> es.hasOriginalEntryEdgeSegment() &&
@@ -545,8 +545,8 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<
             originConjugateReferenceVertex,
             es -> bush.addTurnSendingFlow((ConjugateEdgeSegment) es, currOdDemand));
         if(numLinksInPath == 0){
-          LOGGER.warning(String.format("Origin (%s) has demand to Destination (%s), but no viable path could be created" +
-                  ", reset demand to zero"
+          LOGGER.warning(String.format("Origin (%s) has demand to Destination (%s), but no viable path" +
+                  " could be created, reset demand to zero"
               , origin.getIdsAsString(), destination.getIdsAsString()));
           bush.removeOriginDemandPcuH(originConjugateReferenceVertex);
         }
@@ -560,7 +560,7 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<
    */
   @Override
   protected PasFlowShiftExecutor<ConjugateDirectedVertex, ConjugateEdgeSegment> createPasFlowShiftExecutor(
-          final Pas<ConjugateDirectedVertex, ConjugateDirectedEdge, ConjugateEdgeSegment> pas,
+          final Pas<ConjugateDirectedVertex, ConjugateEdgeSegment> pas,
           final StaticLtmSettings settings) {
     return new PasFlowShiftConjugateDestinationBasedExecutor(pas, settings);
   }
@@ -583,9 +583,9 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<
   /**
    * {@inheritDoc}
    */
-  protected Collection<Pas<ConjugateDirectedVertex,ConjugateDirectedEdge,ConjugateEdgeSegment>> performFlowShifts(
+  protected Collection<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>> performFlowShifts(
           final Mode theMode,
-          final Map<Pas<ConjugateDirectedVertex,ConjugateDirectedEdge,ConjugateEdgeSegment>,
+          final Map<Pas<ConjugateDirectedVertex,ConjugateEdgeSegment>,
               PasFlowShiftExecutor<ConjugateDirectedVertex,ConjugateEdgeSegment>> pasExecutors,
           double[] originalNetworkCosts,
           final StaticLtmSimulationData simulationData) {

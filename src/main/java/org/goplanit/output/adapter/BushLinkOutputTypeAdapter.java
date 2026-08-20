@@ -3,6 +3,7 @@ package org.goplanit.output.adapter;
 import org.goplanit.assignment.common.bush.RootedBush;
 import org.goplanit.output.adapter.traits.UntypedBushSegmentsOutputTypeAdapterTrait;
 import org.goplanit.output.property.OutputProperty;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
@@ -41,5 +42,6 @@ public interface BushLinkOutputTypeAdapter
    * @return true when flow is present, false otherwise
    */
   public abstract boolean hasNonZeroFlow(
-      RootedBush<? extends DirectedVertex, ? extends EdgeSegment> bush, EdgeSegment edgeSegment);
+      RootedBush<? extends DirectedVertex,? extends DirectedEdge, ? extends EdgeSegment> bush,
+      EdgeSegment edgeSegment);
 }

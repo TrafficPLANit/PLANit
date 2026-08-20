@@ -9,6 +9,7 @@ import org.goplanit.assignment.ltm.sltm.StaticLtmConjugateBushStrategy;
 import org.goplanit.output.adapter.traits.BushNetworkSegmentsOutputTypeAdapterTraitImpl;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
@@ -46,8 +47,8 @@ public class StaticLtmBushLinkOutputTypeAdapterTraitImpl extends BushNetworkSegm
    * @return assignment strategy
    */
   @SuppressWarnings("unchecked")
-  public StaticLtmBushStrategyBase<?,?,?> getBushBasedAssignmentStrategy(){
-    return (StaticLtmBushStrategyBase<? extends DirectedVertex,?,? extends LinkSegment>)
+  public StaticLtmBushStrategyBase<?,?,?,?> getBushBasedAssignmentStrategy(){
+    return (StaticLtmBushStrategyBase<? extends DirectedVertex, ? extends DirectedEdge,? extends LinkSegment, ?>)
             ((StaticLtm)trafficAssignment).getAssignmentStrategy();
   }
 
@@ -100,14 +101,15 @@ public class StaticLtmBushLinkOutputTypeAdapterTraitImpl extends BushNetworkSegm
    */
   @Override
   @SuppressWarnings("unchecked")
-  public Set<RootedBush<? extends DirectedVertex, ? extends EdgeSegment>> getBushes() {
-    return (Set<RootedBush<? extends DirectedVertex, ? extends EdgeSegment>>)
+  public Set<RootedBush<? extends DirectedVertex, ? extends DirectedEdge, ? extends EdgeSegment>> getBushes() {
+    return (Set<RootedBush<? extends DirectedVertex, ? extends DirectedEdge, ? extends EdgeSegment>>)
             getBushBasedAssignmentStrategy().getBushes();
   }
 
   @Override
   public boolean hasNonZeroFlow(
-      RootedBush<? extends DirectedVertex, ? extends EdgeSegment> bush, EdgeSegment edgeSegment) {
+      RootedBush<? extends DirectedVertex, ? extends DirectedEdge, ? extends EdgeSegment> bush,
+      EdgeSegment edgeSegment) {
     var sltmType = ((StaticLtm)trafficAssignment).getType();
     if(sltmType.equals(StaticLtmType.CONJUGATE_DESTINATION_BUSH_BASED)) {
       // conjugate bushes use conjugate edge segments

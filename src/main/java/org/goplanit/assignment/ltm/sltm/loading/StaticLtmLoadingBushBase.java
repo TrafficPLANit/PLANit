@@ -23,7 +23,7 @@ import org.goplanit.utils.network.layer.physical.CompiledRelationMapping;
  * @author markr
  * @param <B> type of bush
  */
-public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?>> extends
+public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?,?>> extends
         StaticLtmNetworkLoading {
 
   /** logger to use */

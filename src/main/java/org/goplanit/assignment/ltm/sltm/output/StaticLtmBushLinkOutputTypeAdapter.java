@@ -6,6 +6,7 @@ import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.output.adapter.BushLinkOutputTypeAdapterImpl;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.graph.GraphEntities;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
@@ -74,9 +75,13 @@ public class StaticLtmBushLinkOutputTypeAdapter extends BushLinkOutputTypeAdapte
     return getTrait().getLinkSegmentsForLayer(layerId);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean hasNonZeroFlow(
-      RootedBush<? extends DirectedVertex, ? extends EdgeSegment> bush, EdgeSegment edgeSegment) {
+      RootedBush<? extends DirectedVertex,? extends DirectedEdge, ? extends EdgeSegment> bush,
+      EdgeSegment edgeSegment) {
     return getTrait().hasNonZeroFlow(bush, edgeSegment);
   }
 }

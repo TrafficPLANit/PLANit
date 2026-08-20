@@ -5,6 +5,7 @@ import org.goplanit.assignment.common.bush.RootedBush;
 import org.goplanit.output.adapter.traits.UntypedBushSegmentsOutputTypeAdapterTrait;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.property.OutputProperty;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
@@ -89,7 +90,8 @@ public abstract class BushLinkOutputTypeAdapterImpl
    * {@inheritDoc}
    */
   @Override
-  public Set<RootedBush<? extends DirectedVertex, ? extends EdgeSegment>> getBushes() {
-    return (Set<RootedBush<? extends DirectedVertex, ? extends EdgeSegment>>) bushSegmentsTrait.getBushes();
+  public Set<RootedBush<? extends DirectedVertex, ? extends DirectedEdge, ? extends EdgeSegment>> getBushes() {
+    return (Set<RootedBush<? extends DirectedVertex, ? extends DirectedEdge, ? extends EdgeSegment>>)
+        bushSegmentsTrait.getBushes();
   }
 }

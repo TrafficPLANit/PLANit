@@ -2,6 +2,7 @@ package org.goplanit.graph.modifier;
 
 import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -39,13 +40,14 @@ import org.locationtech.jts.geom.LineString;
  * @author markr
  *
  */
-public class GraphModifierImpl extends EventProducerImpl implements GraphModifier<Vertex, Edge> {
+public class GraphModifierImpl<V extends Vertex, E extends Edge>
+    extends EventProducerImpl implements GraphModifier<V, E> {
 
   /** the logger to use */
   private static final Logger LOGGER = Logger.getLogger(GraphModifierImpl.class.getCanonicalName());
 
   /** the graph to modify */
-  protected final UntypedGraph<? extends Vertex, ? extends Edge> theGraph;
+  protected final UntypedGraph<? extends V, ? extends E> theGraph;
 
   /**
    * update the geometry of the broken edge, knowing at what vertex it was broken from a previously longer edge
@@ -75,7 +77,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    * 
    * @param theGraph to use
    */
-  public GraphModifierImpl(final UntypedGraph<?, ?> theGraph) {
+  public GraphModifierImpl(final UntypedGraph<? extends V, ? extends E> theGraph) {
     super();
     this.theGraph = theGraph;
   }
@@ -85,8 +87,23 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    *
    * @return the underlying graph
    */
-  public UntypedGraph<? extends Vertex,? extends Edge> getGraph(){
+  public UntypedGraph<? extends V,? extends E> getGraph(){
     return theGraph;
+  }
+
+  /**
+   * Access to the graph at this modifier's own binding rather than as a wildcard.
+   * <p>
+   * The graph is stored as a wildcard so that any graph whose entities derive from V and E can be wrapped without
+   * the caller having to name the exact types. Everything registered on it is a V and an E by construction of the
+   * constructor, so narrowing here is safe; it is confined to this one accessor so no caller has to repeat it.
+   * </p>
+   *
+   * @return the underlying graph typed to this modifier
+   */
+  @SuppressWarnings("unchecked")
+  protected UntypedGraph<V,E> getTypedGraph(){
+    return (UntypedGraph<V,E>) theGraph;
   }
 
   /**
@@ -105,7 +122,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    *
    */
   @Override
-  public void removeVertex(Vertex vertex) {
+  public void removeVertex(V vertex) {
     /* remove vertex from vertex' edges */
     for (Edge edge : vertex.getEdges()) {
       edge.removeVertex(vertex);
@@ -126,7 +143,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    *
    */
   @Override
-  public void removeEdge(Edge edge) {
+  public void removeEdge(E edge) {
     /* remove edge from vertex A */
     if(edge.getVertexA()!= null){
       edge.getVertexA().removeEdge(edge);
@@ -144,19 +161,24 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
     }
   }
 
-  /**
+  /**i don
    * {@inheritDoc}
    *
    */
   @Override
   public void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
-    Predicate<Edge> alwaysTrue = e -> true;
+
+    // this is the lenient setup which just checks based on connectivity nothing else from the given vertex
+    Predicate<E> alwaysTrue = e -> true;
     removeDanglingSubGraphs(
         belowSize,
         aboveSize,
         alwaysKeepLargest,
         (v -> UndirectedGraphUtils.identifySubGraphForVertex(
-            (UntypedGraph<Vertex, Edge>)getGraph(), v, alwaysTrue)));
+            getTypedGraph(),
+            v,
+            alwaysTrue, // all connected edges are always included
+            false)));   // no strict mode, as it does not do anything when all edges are always considered
   }
 
   /**
@@ -168,31 +190,81 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
       Integer belowSize,
       Integer aboveSize,
       boolean alwaysKeepLargest,
-      Function<Vertex, UntypedSubGraph<Vertex,Edge>> identifySubGraphForVertex) {
+      Function<V, ? extends UntypedSubGraph<V,E>> identifySubGraphForVertex) {
+    removeDanglingSubGraphs(
+        belowSize, aboveSize, alwaysKeepLargest, identifySubGraphForVertex, this::removeSubGraph);
+  }
+
+  /**
+   * Identical to {@link #removeDanglingSubGraphs(Integer, Integer, boolean, Function)} except that the caller
+   * supplies how an identified subgraph is to be removed.
+   * <p>
+   * This exists because this modifier is also used by composition, e.g. the directed modifier delegates its
+   * undirected work here. In that setup an unqualified call to removeSubGraph resolves against this instance, not
+   * against the composing modifier, so any removal behaviour the composer adds - edge segments, movements - would
+   * be skipped. Passing the action in restores that dispatch.
+   * </p>
+   *
+   * @param belowSize         remove subgraphs below the given size
+   * @param aboveSize         remove subgraphs above the given size (typically set to maximum value)
+   * @param alwaysKeepLargest indicate if the largest of the subgraphs is always to be kept even if it does
+   *                          not match the criteria
+   * @param identifySubGraphForVertex function that given a starting vertex identifies the connected subgraph
+   * @param removeSubGraphAction how to remove an identified subgraph that meets the removal criteria
+   */
+  public void removeDanglingSubGraphs(
+      Integer belowSize,
+      Integer aboveSize,
+      boolean alwaysKeepLargest,
+      Function<V, ? extends UntypedSubGraph<V,E>> identifySubGraphForVertex,
+      Consumer<UntypedSubGraph<V,E>> removeSubGraphAction) {
 
     Map<Integer, LongAdder> removedDanglingNetworksBySize = new HashMap<>();
-    Set<Vertex> remainingVertices = new HashSet<>(theGraph.getVertices().size());
+    var remainingVertices = new HashSet<V>(theGraph.getVertices().size());
     theGraph.getVertices().forEach(remainingVertices::add);
-    var identifiedSubGraphs = new HashMap<Vertex, Pair<Integer, UntypedSubGraph<Vertex,Edge>>>();
+    var identifiedSubGraphs = new HashMap<V, Pair<Integer, UntypedSubGraph<V,E>>>();
 
     int maxSubNetworkSize = 0 ;
     while (remainingVertices.iterator().hasNext()) {
       /* recursively traverse the subnetwork */
-      Vertex referenceVertex = remainingVertices.iterator().next();
+      V referenceVertex = remainingVertices.iterator().next();
       //Set<Vertex> subNetworkVerticesToPopulate = identifySubNetworkForVertex(referenceVertex, testEdge);
       var connectedSubGraph = identifySubGraphForVertex.apply(referenceVertex);
 
+      /* the reference vertex counts as processed even when the identification rules excluded it from its own
+       * subgraph. This happens under strict rules, where a vertex with a non-conforming edge is deliberately left
+       * out. Without evicting it explicitly it would be selected as reference vertex again on every subsequent
+       * iteration and the loop would never terminate */
+      remainingVertices.remove(referenceVertex);
+
+      /* tested before materialising the vertices below, because that materialisation scans the entire parent
+       * container. When the identification is driven by a criterion most vertices of the graph yield nothing -
+       * think pruning rail on a predominantly road network - and paying a full scan for each would make this
+       * quadratic in the size of the graph */
+      if (connectedSubGraph.getNumberOfVertices() <= 0) {
+        continue;
+      }
+
       /* register size and remove subnetwork from remaining nodes */
       var subGraphVertices = connectedSubGraph.getVertices(theGraph.getVertices());
+      subGraphVertices.forEach(remainingVertices::remove);
+
+      /* also evict the vertices that were explored but not registered on the subgraph. Under strict rules a vertex
+       * bordering non-conforming parts is deliberately left out, yet it has been traversed and must not seed a
+       * search of its own: that would rediscover this same subnetwork, or merge it with a neighbouring one, which
+       * corrupts the sizes and with them the protection of the largest subnetwork. Edge membership does not depend
+       * on vertex membership, so the subgraph's edges still reach every explored vertex */
+      for(var subGraphEdge : connectedSubGraph.getEdges(theGraph.getEdges())){
+        remainingVertices.remove(subGraphEdge.getVertexA());
+        remainingVertices.remove(subGraphEdge.getVertexB());
+      }
+
       maxSubNetworkSize = Math.max(maxSubNetworkSize, subGraphVertices.size());
       identifiedSubGraphs.put(referenceVertex, Pair.of(subGraphVertices.size(),connectedSubGraph));
-      subGraphVertices.forEach(remainingVertices::remove);
     }
 
     if (!identifiedSubGraphs.isEmpty()) {
       /* remove all non-dominating subnetworks */
-      LOGGER.fine(String.format("Remaining vertices %d, edges %d",
-          theGraph.getVertices().size(), theGraph.getEdges().size()));
       for (var entry : identifiedSubGraphs.entrySet()) {
         int subNetworkSize = entry.getValue().first();
         if (subNetworkSize < maxSubNetworkSize || !alwaysKeepLargest) {
@@ -201,22 +273,17 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
           if (subNetworkSize < belowSize || subNetworkSize > aboveSize) {
 
             // now remove the subgraph identified earlier
-            removeSubGraph(entry.getValue().second());
+            removeSubGraphAction.accept(entry.getValue().second());
 
             removedDanglingNetworksBySize.putIfAbsent(subNetworkSize, new LongAdder());
             removedDanglingNetworksBySize.get(subNetworkSize).increment();
-            LOGGER.fine(String.format("Removing %d vertices from graph", subNetworkSize));
-            LOGGER.fine(String.format("Remaining vertices %d, edges %d",
-                theGraph.getVertices().size(), theGraph.getEdges().size()));
           }
         }
       }
       final LongAdder totalCount = new LongAdder();
       removedDanglingNetworksBySize.forEach((size, count) -> {
-        LOGGER.fine(String.format("Sub graph size %d - %d removed", size, count.longValue()));
         totalCount.add(count.longValue());
       });
-      LOGGER.fine(String.format("Removed %d dangling sub graphs", totalCount.longValue()));
     } else {
       LOGGER.warning("No networks identified, unable to remove dangling subnetworks");
     }
@@ -226,23 +293,25 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
-  public void removeSubGraph(UntypedSubGraph<Vertex,Edge> subGraphToRemove) {
+  public void removeSubGraph(UntypedSubGraph<V,E> subGraphToRemove) {
+
+    /* collect the vertices to remove up front rather than iterating the graph's own vertex container. Removal
+     * mutates that container (see removeVertex), and its iterator is a live view on the backing map, so removing
+     * while traversing it risks a ConcurrentModificationException */
+    var verticesToRemove = subGraphToRemove.getVertices(getTypedGraph().getVertices());
 
     /* remove the subnetwork from the actual network */
-    for (var vertex : getGraph().getVertices()) {
-      if(!subGraphToRemove.containsVertex(vertex)){
-        continue;
-      }
+    for (var vertex : verticesToRemove) {
 
-      /* remove vertex' edges from graph  and fire edge removal event(s) */
+      /* remove every edge attached to this vertex and fire edge removal event(s). Deliberately not filtered on
+       * subgraph membership: an edge cannot outlive its vertices, so any edge touching a vertex being removed has
+       * to go too. Filtering on membership would leave an edge that failed the identification criterion registered
+       * on the graph with one or both of its vertices nulled out by removeVertex below */
       Set<? extends Edge> vertexEdges = new HashSet<>(vertex.getEdges());
-      boolean vertexRemovable = true;
       for (Edge edge : vertexEdges) {
-        if(!subGraphToRemove.containsEdge(edge)){
-          continue;
-        }
-        removeEdge(edge);
+        removeEdge((E) edge);
       }
 
       removeVertex(vertex);
@@ -259,10 +328,11 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    * {@inheritDoc}
    */
   @Override
-  public void removeSubGraphOf(Vertex referenceVertex) {
+  public void removeSubGraphOf(V referenceVertex) {
+    // no rules, just check on connectivity
     var subNetworkNodesToRemove = UndirectedGraphUtils.identifySubGraphForVertex(
-        getGraph(), referenceVertex, x-> true);
-    removeSubGraph((UntypedSubGraph<Vertex, Edge>) subNetworkNodesToRemove);
+        getTypedGraph(), referenceVertex, x-> true, false);
+    removeSubGraph(subNetworkNodesToRemove);
   }
 
   /**
@@ -270,8 +340,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    * 
    */
   @Override
-  public <Ex extends Edge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(
-      final List<Ex> edgesToBreak, final Vertex vertexToBreakAt, final CoordinateReferenceSystem crs) {
+  public <Ex extends E> Map<Long, Pair<Ex, Ex>> breakEdgesAt(
+      final List<Ex> edgesToBreak, final V vertexToBreakAt, final CoordinateReferenceSystem crs) {
     PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
 
     Map<Long, Pair<Ex, Ex>> affectedEdges = new TreeMap<>();
@@ -297,8 +367,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    */
   @SuppressWarnings("unchecked")
   @Override
-  public <Ex extends Edge> Ex breakEdgeAt(
-          final Vertex vertexToBreakAt, final Ex edgeToBreak, final PlanitJtsCrsUtils geoUtils) {
+  public <Ex extends E> Ex breakEdgeAt(
+          final V vertexToBreakAt, final Ex edgeToBreak, final PlanitJtsCrsUtils geoUtils) {
     Ex aToBreak = edgeToBreak;
 
     /* create unique copy of edge with unique id and register it, do a deep copy to ensure any input properties

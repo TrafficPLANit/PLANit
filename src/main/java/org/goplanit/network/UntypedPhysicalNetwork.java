@@ -1,11 +1,14 @@
 package org.goplanit.network;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.layers.UntypedPhysicalNetworkLayers;
+
+import java.util.function.Predicate;
 
 /**
  * A network that comprises physical topological transport network elements, i.e., roads, rail, etc.
@@ -99,21 +102,30 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
   }
 
   /**
-   * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the
-   * internal ids if needed based on configuration. Note that now we consider the modes as well, so a network
-   * may not be dangling from a graph perspective, but if we were to consider only the portion accessible to a
-   * particular mode, it would be dangling. Here we identify it per mode to have a more stringent approach
+   * remove any dangling subnetworks from the network's layers as per
+   * {@link #removeDanglingSubnetworks(Integer, Integer, boolean, boolean)}, except that connectivity is judged
+   * only across the edge segments accepted by the given criterion rather than across each layer as a whole.
+   * <p>
+   * A single layer can carry multiple networks that are independent of each other. Judging them as one graph makes
+   * any of them appear dangling purely because it cannot be reached from the others, so supplying a criterion
+   * allows each to be pruned on its own terms by invoking this once per criterion.
+   * </p>
    *
    * @param belowSize         remove subnetworks below the given size
    * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
    * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
    * @param recreateManagedIds when true recreate managed id entities so they are contiguous again
+   * @param testEdgeSegment when an edge segment tests positive it is considered part of the network being pruned
    */
-  public void removeDanglingSubnetworksByMode(
-      Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, boolean recreateManagedIds) {
+  public void removeDanglingSubnetworks(
+          Integer belowSize,
+          Integer aboveSize,
+          boolean alwaysKeepLargest,
+          boolean recreateManagedIds,
+          Predicate<? super EdgeSegment> testEdgeSegment) {
     for (L infrastructureLayer : getTransportLayers()) {
-      infrastructureLayer.getLayerModifier().removeDanglingSubnetworksByMode(
-          belowSize, aboveSize, alwaysKeepLargest, recreateManagedIds);
+      infrastructureLayer.getLayerModifier().removeDanglingSubnetworks(
+              belowSize, aboveSize, alwaysKeepLargest, recreateManagedIds, testEdgeSegment);
     }
   }
 

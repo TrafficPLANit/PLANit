@@ -2,6 +2,7 @@ package org.goplanit.graph.directed.modifier;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -33,11 +34,12 @@ import org.goplanit.utils.misc.Pair;
  * The benefit of using the untyped directed graph is that it does not rely
  * on knowing the specific typed containers used for vertices, edges, edge segments which in turn signals
  * that no information on the underlying factories is required.
- * 
+ *
  * @author markr
  *
  */
-public class DirectedGraphModifierImpl extends EventProducerImpl implements DirectedGraphModifier {
+public class DirectedGraphModifierImpl extends EventProducerImpl
+    implements DirectedGraphModifier<DirectedVertex, DirectedEdge, EdgeSegment> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -47,7 +49,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * Reuse for non-directed modifications aspects while being able to override signatures and generic types for
    * directed graph aspects
    */
-  private final GraphModifierImpl graphModifier;
+  private final GraphModifierImpl<DirectedVertex, DirectedEdge> graphModifier;
 
   /**
    * Depending on whether these are directed or undirected evens call the appropriate notification method
@@ -60,15 +62,6 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
     } else {
       graphModifier.fireEvent(eventListener, event);
     }
-  }
-
-  /**
-   * Access to directed graph we are modifying
-   * 
-   * @return directed graph
-   */
-  public UntypedDirectedGraph<?, ?, ?> getUntypedDirectedGraph() {
-    return (UntypedDirectedGraph<?, ?, ?>) graphModifier.getGraph();
   }
 
   /**
@@ -95,8 +88,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
           /* edge segment shallow copy present from breaking link in super implementation, replace by register a
           unique copy of edge segment on this edge */
           newEdgeSegmentAb =
-              getUntypedDirectedGraph().getEdgeSegments().getFactory().createUniqueDeepCopyOf(oldEdgeSegmentAb);
-          ((GraphEntities<EdgeSegment>) getUntypedDirectedGraph().getEdgeSegments()).register(newEdgeSegmentAb);
+              getGraph().getEdgeSegments().getFactory().createUniqueDeepCopyOf(oldEdgeSegmentAb);
+          getGraph().getEdgeSegments().register(newEdgeSegmentAb);
           newEdgeSegmentAb.setParent(brokenEdge);
         } else {
           /* reuse the old first */
@@ -123,9 +116,9 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
         if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentBa)) {
           /* edge segment shallow copy present from breaking link in super implementation,
           replace by register a unique copy of edge segment on this edge */
-          newEdgeSegmentBa = getUntypedDirectedGraph().getEdgeSegments().getFactory().
+          newEdgeSegmentBa = getGraph().getEdgeSegments().getFactory().
               createUniqueDeepCopyOf(oldEdgeSegmentBa);
-          ((GraphEntities<EdgeSegment>) getUntypedDirectedGraph().getEdgeSegments()).register(newEdgeSegmentBa);
+          getGraph().getEdgeSegments().register(newEdgeSegmentBa);
           newEdgeSegmentBa.setParent(brokenEdge);
         } else {
           identifiedEdgeSegmentOnEdge.add(newEdgeSegmentBa);
@@ -182,7 +175,16 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * @param theDirectedGraph to use
    */
   public DirectedGraphModifierImpl(final UntypedDirectedGraph<?, ?, ?> theDirectedGraph) {
-    this.graphModifier = new GraphModifierImpl(theDirectedGraph);
+    this.graphModifier = new GraphModifierImpl<>(theDirectedGraph);
+  }
+
+  /**
+   * Access to graph
+   *
+   * @return the underlying graph
+   */
+  public UntypedDirectedGraph<DirectedVertex,DirectedEdge,EdgeSegment> getGraph(){
+    return (UntypedDirectedGraph<DirectedVertex, DirectedEdge, EdgeSegment>) graphModifier.getGraph();
   }
 
   /**
@@ -207,10 +209,60 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
 
   /**
    * {@inheritDoc}
+   *
+   */
+  @Override
+  public void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
+
+    // this is the lenient setup currently for the predicate, needs a way to toggle between lenient and strict
+    // such that we cna use it for identification (Step 1), and then for removal (step 2)
+    // we could move this to a per element check --> so check vertices, check links etc. and then remove
+    // stuff
+
+    Predicate<Edge> alwaysTrue = e -> true;
+    removeDanglingSubGraphs(
+        belowSize,
+        aboveSize,
+        alwaysKeepLargest,
+        (v -> DirectedGraphUtils.identifySubGraphForVertex(
+            this.getGraph(), v, alwaysTrue)));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeDanglingSubGraphs(
+      Integer belowSize,
+      Integer aboveSize,
+      boolean alwaysKeepLargest,
+      Function<DirectedVertex, ? extends UntypedSubGraph<DirectedVertex, DirectedEdge>> identifySubGraphForVertex) {
+    /* supply our own removal, otherwise the delegate calls its own undirected removeSubGraph and the directed
+     * portion of each subgraph - edge segments and banned movements - is left behind on the graph */
+    graphModifier.removeDanglingSubGraphs(
+        belowSize, aboveSize, alwaysKeepLargest, identifySubGraphForVertex, this::removeSubGraph);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeDanglingDirectedSubGraphs(
+      Integer belowSize,
+      Integer aboveSize,
+      boolean alwaysKeepLargest,
+      Function<DirectedVertex, ? extends UntypedDirectedSubGraph<DirectedVertex, DirectedEdge, EdgeSegment>>
+          identifySubGraphForVertex) {
+    // can delegate since function itself fully determines the directed aspect of what is being dealt with
+    removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest, identifySubGraphForVertex);
+  }
+
+  /**
+   * {@inheritDoc}
    */
   @Override
   public void removeEdgeSegment(EdgeSegment edgeSegment) {
-    getUntypedDirectedGraph().getEdgeSegments().remove(edgeSegment.getId());
+    getGraph().getEdgeSegments().remove(edgeSegment.getId());
     if(edgeSegment.getParent() != null){
       edgeSegment.getParent().removeEdgeSegment(edgeSegment);
     }
@@ -226,7 +278,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    */
   @Override
   public void removeMovement(BannedMovement movement) {
-    getUntypedDirectedGraph().getMovements().remove(movement.getId());
+    getGraph().getMovements().remove(movement.getId());
     if(movement.hasSegmentFrom()){
       movement.setSegmentFrom(null);
     }
@@ -239,57 +291,70 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
     }
   }
 
-  //todo: needs work
+
+  @Override
   public void removeDirectedSubGraph(
-      UntypedDirectedSubGraph<DirectedVertex, DirectedEdge, EdgeSegment> subGraphToRemove,
-      Predicate<? super DirectedEdge> testEdge) {
-    /* remove the edge segment portion of the directed subgraph from the actual directed graph and fire event(s)*/
-    for (var directedVertex : getUntypedDirectedGraph().getVertices()) {
-      if(!subGraphToRemove.containsVertex(directedVertex)){
-        continue;
+      UntypedDirectedSubGraph<DirectedVertex, DirectedEdge, EdgeSegment> subGraphToRemove) {
+
+    /* establish what actually disappears before mutating anything. The graph's containers are live views, so
+     * removing while traversing them risks a ConcurrentModificationException */
+    var verticesToRemove = subGraphToRemove.getVertices(getGraph().getVertices());
+
+    /* an edge cannot outlive its vertices and a segment cannot outlive its parent edge, so every segment hanging
+     * off an edge of a removed vertex has to go. Deriving these from the vertices rather than from subgraph
+     * membership alone is what prevents stranded segments: the identification rules may exclude a segment while
+     * still including its parent edge, and that edge is removed along with its vertex */
+    var edgeSegmentsToRemove = new HashSet<EdgeSegment>();
+    for (var vertex : verticesToRemove) {
+      for (var directedEdge : vertex.getEdges()) {
+        if (directedEdge.hasEdgeSegmentAb()) {
+          edgeSegmentsToRemove.add(directedEdge.getEdgeSegmentAb());
+        }
+        if (directedEdge.hasEdgeSegmentBa()) {
+          edgeSegmentsToRemove.add(directedEdge.getEdgeSegmentBa());
+        }
       }
+    }
 
-      for (DirectedEdge directedEdge : directedVertex.getEdges()) {
-        if(!subGraphToRemove.containsEdge(directedEdge)){
-          continue;
-        }
-
-        if(testEdge.test(directedEdge)){
-          for (EdgeSegment edgeSegment : directedEdge.getEdgeSegments()) {
-            removeEdgeSegment(edgeSegment);
-          }
-        }
+    /* supplement with anything the subgraph listed explicitly, which covers segments whose vertices are retained */
+    for (var segment : getGraph().getEdgeSegments()) {
+      if(subGraphToRemove.containsEdgeSegment(segment)) {
+        edgeSegmentsToRemove.add(segment);
       }
     }
 
     // remove the movements touching the sub graph to remove (+ test positive for removal on the edges as well)
-    if(getUntypedDirectedGraph().hasMovements()){
+    if(getGraph().hasMovements()){
       var movementsByCentreVertex =
-          getUntypedDirectedGraph().getMovements().createGroupByIndex(BannedMovement::getCentreVertex);
+          getGraph().getMovements().createGroupByIndex(BannedMovement::getCentreVertex);
       movementsByCentreVertex.values().stream()
           .flatMap(Collection::stream)
-          .filter(bm -> subGraphToRemove.containsVertex(bm.getCentreVertex()))
-          .filter(bm -> !bm.hasSegmentFrom() && testEdge.test(bm.getSegmentFrom().getParent()))
-          .filter(bm -> !bm.hasSegmentTo() && testEdge.test(bm.getSegmentTo().getParent()))
+          .filter(bm ->
+              edgeSegmentsToRemove.contains(bm.getSegmentFrom()) ||
+                  edgeSegmentsToRemove.contains(bm.getSegmentTo()))
           .forEach(this::removeMovement);
     }
 
+    /* remove the edge segment portion of the directed subgraph from the actual directed graph and fire event(s)*/
+    for (var segment : edgeSegmentsToRemove) {
+      removeEdgeSegment(segment);
+    }
+
     /* do the same for vertices and edges */
-    graphModifier.removeSubGraph(subGraphToRemove, testEdge);
+    graphModifier.removeSubGraph(subGraphToRemove);
   }
 
-  //todo: needs work
   /**
-   * {@inheritDoc}
+   * when a non-directed subgraph is provided perform undirected subgraph removal otherwise delegate to
+   * the directed subgraph removal provided here
    */
   @Override
   public void removeSubGraph(UntypedSubGraph<DirectedVertex, DirectedEdge> subGraphToRemove) {
     if( subGraphToRemove instanceof UntypedDirectedSubGraph){
       removeDirectedSubGraph(
-          (UntypedDirectedSubGraph<DirectedVertex, DirectedEdge, EdgeSegment>)subGraphToRemove, x-> true);
+          (UntypedDirectedSubGraph<DirectedVertex, DirectedEdge, EdgeSegment>)subGraphToRemove);
     }else{
-      var castGraph = (UntypedGraph<? extends Vertex,? extends DirectedVertex>)subGraphToRemove;
-      graphModifier.removeSubGraph((UntypedSubGraph<Vertex, Edge>) castGraph);
+      graphModifier.removeSubGraph(subGraphToRemove);
     }
   }
 
@@ -299,15 +364,15 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
   @Override
   public void recreateManagedEntitiesIds() {
     graphModifier.recreateManagedEntitiesIds();
-    if (getUntypedDirectedGraph().getEdgeSegments() instanceof ManagedIdEntities<?>) {
-      ((ManagedIdEntities<?>) getUntypedDirectedGraph().getEdgeSegments()).recreateIds();
+    if (getGraph().getEdgeSegments() instanceof ManagedIdEntities<?>) {
+      ((ManagedIdEntities<?>) getGraph().getEdgeSegments()).recreateIds();
       fireEvent(new RecreatedDirectedGraphEntitiesManagedIdsEvent(
-          this, (ManagedIdEntities<?>) getUntypedDirectedGraph().getEdgeSegments()));
+          this, (ManagedIdEntities<?>) getGraph().getEdgeSegments()));
     }
-    if (getUntypedDirectedGraph().getMovements() != null) {
-      getUntypedDirectedGraph().getMovements().recreateIds();
+    if (getGraph().getMovements() != null) {
+      getGraph().getMovements().recreateIds();
       fireEvent(new RecreatedDirectedGraphEntitiesManagedIdsEvent(
-          this, getUntypedDirectedGraph().getMovements()));
+          this, getGraph().getMovements()));
     }
   }
 
@@ -334,8 +399,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
     updateBrokenEdgeItsEdgeSegments(aToBreak, breakToB);
 
     /* only movements on breakToB need updating */
-    if(getUntypedDirectedGraph().hasMovements()){
-      var touchedMovements = getUntypedDirectedGraph().getMovements().stream().filter(
+    if(getGraph().hasMovements()){
+      var touchedMovements = getGraph().getMovements().stream().filter(
           m -> m.getCentreVertex().equals(breakToB.getVertexB())).collect(Collectors.toList());
       updateMovementsItsBrokenSegments(aToBreak, breakToB, touchedMovements);
     }
@@ -384,8 +449,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
       updateBrokenEdgeItsEdgeSegments(aToBreak, breakToB);
 
       /* only movements on breakToB need updating */
-      if(getUntypedDirectedGraph().hasMovements()){
-        var touchedMovements = getUntypedDirectedGraph().getMovements().stream().filter(
+      if(getGraph().hasMovements()){
+        var touchedMovements = getGraph().getMovements().stream().filter(
             m -> m.getCentreVertex().equals(breakToB.getVertexB())).collect(Collectors.toList());
         updateMovementsItsBrokenSegments(aToBreak, breakToB, touchedMovements);
       }
@@ -428,7 +493,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * {@inheritDoc}
    */
   @Override
-  public void removeSubGraphOf(Vertex referenceVertex) throws PlanItException {
+  public void removeSubGraphOf(DirectedVertex referenceVertex) throws PlanItException {
     graphModifier.removeSubGraphOf(referenceVertex);
   }
 

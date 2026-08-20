@@ -3,6 +3,7 @@ package org.goplanit.output.formatter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.goplanit.assignment.common.bush.RootedBush;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.zoning.zonetozone.OdSkimMatrix;
 import org.goplanit.zoning.zonetozone.OdSkimMatrix.OdSkimMatrixIterator;
@@ -341,7 +342,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       OutputAdapter outputAdapter,
       Set<Mode> modes,
       TimePeriod timePeriod,
-      RootedBush<? extends DirectedVertex, ? extends EdgeSegment> bush,
+      RootedBush<? extends DirectedVertex, ? extends DirectedEdge, ? extends EdgeSegment> bush,
       CSVPrinter csvPrinter) {
     try {
 

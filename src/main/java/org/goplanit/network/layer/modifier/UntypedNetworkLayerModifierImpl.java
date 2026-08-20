@@ -10,6 +10,8 @@ import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.graph.directed.modifier.DirectedGraphModifierImpl;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.UntypedDirectedGraph;
+import org.goplanit.utils.graph.directed.DirectedGraphUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
@@ -46,7 +48,7 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
    *
    * @return underlying directed graph */
   protected UntypedDirectedGraphImpl<V,E,S> getUntypedDirectedGraph(){
-    return (UntypedDirectedGraphImpl<V, E, S>) graphModifier.getUntypedDirectedGraph();
+    return (UntypedDirectedGraphImpl<V, E, S>) graphModifier.getGraph();
   }
 
   // PUBLIC
@@ -111,28 +113,34 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   }
 
   /**
-   * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the
-   * internal ids if needed based on configuration. Note that now we consider the modes as well, so a network
-   * may not be dangling from a graph perspective, but if we were to consider only the portion accessible to a
-   * particular mode, it would be dangling. Here we identify it per mode to have a more stringent approach
-   * <p>
-   *   Should fire #RecreatedGraphEntitiesManagedIdsEvent after it has been executed
-   * </p>
-   *
-   * @param belowSize         remove subnetworks below the given size
-   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
-   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
-   * @param recreateManagedIds when true recreate managed id entities so they are contiguous again
+   * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
   public void removeDanglingSubnetworks(
       final Integer belowSize,
       Integer aboveSize,
       boolean alwaysKeepLargest,
-      boolean recreateManagedIds) {
+      boolean recreateManagedIds,
+      Predicate<? super S> testEdgeSegment) {
 
-    /* perform removal */
-    graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest, testEdgeSegment);
+    /* the composed directed graph modifier is bound to the base entity types whereas this layer modifier is
+     * generic. Everything registered on the layer's graph is a DirectedVertex, DirectedEdge and EdgeSegment, so
+     * viewing them at those types is safe by construction. Confined to these two locals so it is not repeated */
+    var baseGraph =
+        (UntypedDirectedGraph<DirectedVertex, DirectedEdge, EdgeSegment>) getUntypedDirectedGraph();
+    var baseTestEdgeSegment = (Predicate<? super EdgeSegment>) testEdgeSegment;
+
+    /* identification is restricted to the accepted edge segments and applies strict rules, i.e. an edge only
+     * counts when all of its segments are accepted and a vertex only when all of its edges are. Entities on the
+     * boundary between accepted and rejected parts are therefore left out of the subnetwork and survive removal */
+    graphModifier.removeDanglingDirectedSubGraphs(
+        belowSize,
+        aboveSize,
+        alwaysKeepLargest,
+        v -> DirectedGraphUtils.identifySubGraphForVertex(
+            baseGraph, v, edge -> true, baseTestEdgeSegment, true));
+
     if(recreateManagedIds) {
       recreateManagedIdEntities();
     }
