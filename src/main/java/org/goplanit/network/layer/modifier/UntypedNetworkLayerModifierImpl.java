@@ -125,8 +125,11 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
       boolean alwaysKeepLargest,
       boolean recreateManagedIds,
       Predicate<? super S> testEdgeSegment) {
+    /* strong by default: infrastructure that cannot be both entered and left is of no use to a route, so treating
+     * it as part of the network it hangs off keeps something that can never be travelled. Explicitly requesting
+     * the weak notion remains available for callers that want attachment alone to decide */
     removeDanglingSubnetworks(
-        belowSize, aboveSize, alwaysKeepLargest, recreateManagedIds, testEdgeSegment, Connectivity.WEAK);
+        belowSize, aboveSize, alwaysKeepLargest, recreateManagedIds, testEdgeSegment, Connectivity.STRONG);
   }
 
   /**

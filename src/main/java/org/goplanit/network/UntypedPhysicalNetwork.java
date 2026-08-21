@@ -125,7 +125,7 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
           boolean recreateManagedIds,
           Predicate<? super EdgeSegment> testEdgeSegment) {
     removeDanglingSubnetworks(
-            belowSize, aboveSize, alwaysKeepLargest, recreateManagedIds, testEdgeSegment, Connectivity.WEAK);
+            belowSize, aboveSize, alwaysKeepLargest, recreateManagedIds, testEdgeSegment, Connectivity.STRONG);
   }
 
   /**
