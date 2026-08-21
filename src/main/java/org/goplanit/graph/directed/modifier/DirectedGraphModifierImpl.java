@@ -316,23 +316,23 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
       }
     }
 
-    /* supplement with anything the subgraph listed explicitly, which covers segments whose vertices are retained */
-    for (var segment : getGraph().getEdgeSegments()) {
-      if(subGraphToRemove.containsEdgeSegment(segment)) {
-        edgeSegmentsToRemove.add(segment);
-      }
-    }
+    /* supplement with anything the subgraph listed explicitly, which covers segments whose vertices are retained.
+     * Resolved from the subgraph's own registration rather than by scanning every segment on the graph, since this
+     * runs once per removed subgraph and a full scan would make removal quadratic in the size of the network */
+    edgeSegmentsToRemove.addAll(subGraphToRemove.getEdgeSegments(getGraph().getEdgeSegments()));
 
-    // remove the movements touching the sub graph to remove (+ test positive for removal on the edges as well)
+    /* remove the movements touching the subgraph to remove. Selected by a single filtered pass rather than by
+     * building an index grouped by centre vertex: that index covers every movement on the graph, is discarded
+     * again immediately, and this method runs once per removed subgraph. The grouping bought nothing here since
+     * the filter below is on the segments, not on the centre vertex. Materialised before removing because removal
+     * mutates the container being read */
     if(getGraph().hasMovements()){
-      var movementsByCentreVertex =
-          getGraph().getMovements().createGroupByIndex(BannedMovement::getCentreVertex);
-      movementsByCentreVertex.values().stream()
-          .flatMap(Collection::stream)
+      var movementsToRemove = getGraph().getMovements().stream()
           .filter(bm ->
               edgeSegmentsToRemove.contains(bm.getSegmentFrom()) ||
                   edgeSegmentsToRemove.contains(bm.getSegmentTo()))
-          .forEach(this::removeMovement);
+          .collect(java.util.stream.Collectors.toList());
+      movementsToRemove.forEach(this::removeMovement);
     }
 
     /* remove the edge segment portion of the directed subgraph from the actual directed graph and fire event(s)*/
