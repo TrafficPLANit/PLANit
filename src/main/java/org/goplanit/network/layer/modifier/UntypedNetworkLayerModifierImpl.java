@@ -196,6 +196,14 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
    * {@inheritDoc}
    */
   @Override
+  public void removeVertex(V vertex){
+    graphModifier.removeVertex(vertex);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void addListener(GraphModifierListener listener, GraphModifierEventType eventType) {
     graphModifier.addListener(listener, eventType);
   }
