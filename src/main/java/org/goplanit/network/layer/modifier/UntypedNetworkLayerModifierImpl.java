@@ -2,14 +2,17 @@ package org.goplanit.network.layer.modifier;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.graph.directed.modifier.DirectedGraphModifierImpl;
+import org.goplanit.utils.graph.directed.Connectivity;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.UntypedDirectedSubGraph;
 import org.goplanit.utils.graph.UntypedDirectedGraph;
 import org.goplanit.utils.graph.directed.DirectedGraphUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -115,7 +118,6 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   /**
    * {@inheritDoc}
    */
-  @SuppressWarnings("unchecked")
   @Override
   public void removeDanglingSubnetworks(
       final Integer belowSize,
@@ -123,6 +125,22 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
       boolean alwaysKeepLargest,
       boolean recreateManagedIds,
       Predicate<? super S> testEdgeSegment) {
+    removeDanglingSubnetworks(
+        belowSize, aboveSize, alwaysKeepLargest, recreateManagedIds, testEdgeSegment, Connectivity.WEAK);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public void removeDanglingSubnetworks(
+      final Integer belowSize,
+      Integer aboveSize,
+      boolean alwaysKeepLargest,
+      boolean recreateManagedIds,
+      Predicate<? super S> testEdgeSegment,
+      Connectivity connectivity) {
 
     /* the composed directed graph modifier is bound to the base entity types whereas this layer modifier is
      * generic. Everything registered on the layer's graph is a DirectedVertex, DirectedEdge and EdgeSegment, so
@@ -134,12 +152,21 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
     /* identification is restricted to the accepted edge segments and applies strict rules, i.e. an edge only
      * counts when all of its segments are accepted and a vertex only when all of its edges are. Entities on the
      * boundary between accepted and rejected parts are therefore left out of the subnetwork and survive removal */
+    Function<DirectedVertex, ? extends UntypedDirectedSubGraph<DirectedVertex, DirectedEdge, EdgeSegment>>
+        identifySubGraphForVertex;
+    if (connectivity.isStrong()) {
+      /* partitioned once for the entire layer and then looked up, since the modifier below asks per vertex and
+       * partitioning per vertex would be quadratic in the size of the layer */
+      var subGraphByVertex = DirectedGraphUtils.identifyStronglyConnectedSubGraphs(
+          baseGraph, edge -> true, baseTestEdgeSegment, true);
+      identifySubGraphForVertex = subGraphByVertex::get;
+    } else {
+      identifySubGraphForVertex = v -> DirectedGraphUtils.identifySubGraphForVertex(
+          baseGraph, v, edge -> true, baseTestEdgeSegment, true);
+    }
+
     graphModifier.removeDanglingDirectedSubGraphs(
-        belowSize,
-        aboveSize,
-        alwaysKeepLargest,
-        v -> DirectedGraphUtils.identifySubGraphForVertex(
-            baseGraph, v, edge -> true, baseTestEdgeSegment, true));
+        belowSize, aboveSize, alwaysKeepLargest, identifySubGraphForVertex);
 
     if(recreateManagedIds) {
       recreateManagedIdEntities();
