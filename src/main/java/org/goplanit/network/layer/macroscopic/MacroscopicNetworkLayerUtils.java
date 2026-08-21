@@ -13,7 +13,10 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -26,6 +29,27 @@ import java.util.stream.Collectors;
  * @author markr
  */
 public class MacroscopicNetworkLayerUtils {
+
+  /** upper bound, inclusive, of each subnetwork size bin used when reporting what was discarded */
+  private static final int[] SUBNETWORK_SIZE_BIN_UPPER_BOUNDS = {1, 5, 20, 50, 200, Integer.MAX_VALUE};
+
+  /** labels matching {@code SUBNETWORK_SIZE_BIN_UPPER_BOUNDS} */
+  private static final String[] SUBNETWORK_SIZE_BIN_LABELS = {"1", "2-5", "6-20", "21-50", "51-200", ">200"};
+
+  /**
+   * The size bin a subnetwork of the given size falls in
+   *
+   * @param size of the subnetwork in vertices
+   * @return bin index
+   */
+  private static int binIndexFor(int size) {
+    for (int index = 0; index < SUBNETWORK_SIZE_BIN_UPPER_BOUNDS.length; ++index) {
+      if (size <= SUBNETWORK_SIZE_BIN_UPPER_BOUNDS[index]) {
+        return index;
+      }
+    }
+    return SUBNETWORK_SIZE_BIN_UPPER_BOUNDS.length - 1;
+  }
 
   /**
    * Withdraw a mode's access from the subnetworks of that mode which do not meet the given criteria, leaving its
@@ -76,8 +100,32 @@ public class MacroscopicNetworkLayerUtils {
       final Connectivity connectivity,
       final Predicate<MacroscopicLinkSegment> retainAccessRegardless) {
 
-    var retainedVertices = collectRetainedVertices(
-        layer, mode, belowSize, aboveSize, alwaysKeepLargest, connectivity);
+    var components = collectSubNetworks(layer, mode, connectivity);
+    final int largestSize = components.isEmpty() ? 0 : components.get(0).size();
+
+    var retainedVertices = new HashSet<Vertex>();
+    int retainedSubNetworks = 0;
+    final int[] discardedByBin = new int[SUBNETWORK_SIZE_BIN_LABELS.length];
+    final int[] withdrawnByBin = new int[SUBNETWORK_SIZE_BIN_LABELS.length];
+    /* so a withdrawn segment can be attributed to the size of the subnetwork it belonged to, which is what makes
+     * the distribution readable rather than just the totals */
+    final Map<Vertex, Integer> discardedSubNetworkSizeByVertex = new HashMap<>();
+
+    for (var component : components) {
+      final int size = component.size();
+      /* deliberately the same rule dangling subnetwork removal applies, so that the thresholds mean the same
+       * thing whichever of the two a caller reaches for */
+      boolean withdraw = (size < largestSize || !alwaysKeepLargest) && (size < belowSize || size > aboveSize);
+      if (!withdraw) {
+        retainedVertices.addAll(component);
+        ++retainedSubNetworks;
+        continue;
+      }
+      ++discardedByBin[binIndexFor(size)];
+      for (var vertex : component) {
+        discardedSubNetworkSizeByVertex.put(vertex, size);
+      }
+    }
 
     var modifiedTypes = new ModifiedLinkSegmentTypes();
     int withdrawn = 0;
@@ -97,8 +145,18 @@ public class MacroscopicNetworkLayerUtils {
       }
       withdrawModeAccess(layer, modifiedTypes, linkSegment, mode);
       ++withdrawn;
+
+      /* attribute to whichever end sat in a discarded subnetwork, the upstream one when both did */
+      var size = discardedSubNetworkSizeByVertex.get(linkSegment.getUpstreamVertex());
+      if (size == null) {
+        size = discardedSubNetworkSizeByVertex.get(linkSegment.getDownstreamVertex());
+      }
+      if (size != null) {
+        ++withdrawnByBin[binIndexFor(size)];
+      }
     }
-    return new Result(mode, withdrawn, protectedSegments);
+    return new Result(mode, withdrawn, protectedSegments, components.size(), retainedSubNetworks,
+        largestSize, discardedByBin, withdrawnByBin);
   }
 
   /**
@@ -157,46 +215,20 @@ public class MacroscopicNetworkLayerUtils {
   }
 
   /**
-   * Collect the vertices whose subnetwork for this mode meets the criteria.
+   * Partition the layer into this mode's subnetworks under the given notion of connectivity, largest first.
    *
    * @param layer to inspect
-   * @param mode to collect for
-   * @param belowSize threshold
-   * @param aboveSize threshold
-   * @param alwaysKeepLargest whether the largest is exempt from the thresholds
+   * @param mode to partition for
    * @param connectivity what constitutes a subnetwork
-   * @return vertices whose subnetwork is retained
+   * @return subnetworks, largest first
    */
-  private static Set<Vertex> collectRetainedVertices(
-      final MacroscopicNetworkLayer layer,
-      final Mode mode,
-      final int belowSize,
-      final int aboveSize,
-      final boolean alwaysKeepLargest,
-      final Connectivity connectivity) {
-
-    List<List<Node>> components;
+  private static List<List<Node>> collectSubNetworks(
+      final MacroscopicNetworkLayer layer, final Mode mode, final Connectivity connectivity) {
     if (connectivity.isStrong()) {
-      components = StronglyConnectedComponents.execute(
+      return StronglyConnectedComponents.execute(
           layer.getNodes(), MacroscopicLinkSegmentUtils.permitsMode(mode)).getComponents();
-    } else {
-      components = ConnectedComponents.execute(layer.getNodes(), edgeCarriesMode(mode));
     }
-
-    /* both partitions come back largest first */
-    final int largestSize = components.isEmpty() ? 0 : components.get(0).size();
-
-    var retained = new HashSet<Vertex>();
-    for (var component : components) {
-      final int size = component.size();
-      /* deliberately the same rule dangling subnetwork removal applies, so that the thresholds mean the same
-       * thing whichever of the two a caller reaches for */
-      boolean withdraw = (size < largestSize || !alwaysKeepLargest) && (size < belowSize || size > aboveSize);
-      if (!withdraw) {
-        retained.addAll(component);
-      }
-    }
-    return retained;
+    return ConnectedComponents.execute(layer.getNodes(), edgeCarriesMode(mode));
   }
 
   /**
@@ -276,10 +308,90 @@ public class MacroscopicNetworkLayerUtils {
 
     private final int protectedSegments;
 
-    Result(Mode mode, int withdrawn, int protectedSegments) {
+    private final int subNetworksFound;
+
+    private final int subNetworksRetained;
+
+    private final int largestSubNetworkSize;
+
+    private final int[] discardedByBin;
+
+    private final int[] withdrawnByBin;
+
+    Result(Mode mode, int withdrawn, int protectedSegments, int subNetworksFound, int subNetworksRetained,
+        int largestSubNetworkSize, int[] discardedByBin, int[] withdrawnByBin) {
+      this.discardedByBin = discardedByBin;
+      this.withdrawnByBin = withdrawnByBin;
       this.mode = mode;
       this.withdrawn = withdrawn;
       this.protectedSegments = protectedSegments;
+      this.subNetworksFound = subNetworksFound;
+      this.subNetworksRetained = subNetworksRetained;
+      this.largestSubNetworkSize = largestSubNetworkSize;
+    }
+
+    /**
+     * Number of subnetworks this mode was found to have
+     *
+     * @return count
+     */
+    public int getSubNetworksFound() {
+      return subNetworksFound;
+    }
+
+    /**
+     * Number of subnetworks that kept the mode's access
+     *
+     * @return count
+     */
+    public int getSubNetworksRetained() {
+      return subNetworksRetained;
+    }
+
+    /**
+     * Number of vertices in the mode's largest subnetwork
+     *
+     * @return count
+     */
+    public int getLargestSubNetworkSize() {
+      return largestSubNetworkSize;
+    }
+
+    /**
+     * The distribution of what was discarded, by subnetwork size, as label to (subnetworks, link segments).
+     * <p>
+     * Reported because the totals alone mislead when choosing a size threshold: a mode can have thousands of
+     * subnetworks discarded while barely any link segment loses access, most of them being a single vertex with
+     * no traversable segment between anything. Where the link segments sit is what a threshold actually decides.
+     * </p>
+     * <p>
+     * Only bins with something in them appear.
+     * </p>
+     *
+     * @return distribution, in increasing size order
+     */
+    public Map<String, int[]> getDiscardedBySizeBin() {
+      var distribution = new LinkedHashMap<String, int[]>();
+      for (int index = 0; index < SUBNETWORK_SIZE_BIN_LABELS.length; ++index) {
+        if (discardedByBin[index] > 0 || withdrawnByBin[index] > 0) {
+          distribution.put(
+              SUBNETWORK_SIZE_BIN_LABELS[index], new int[] {discardedByBin[index], withdrawnByBin[index]});
+        }
+      }
+      return distribution;
+    }
+
+    /**
+     * The size distribution rendered for logging, empty when nothing was discarded
+     *
+     * @return one entry per non-empty bin
+     */
+    public String getSizeBinSummary() {
+      return getDiscardedBySizeBin().entrySet().stream()
+          .map(entry -> String.format(
+              "size %s: %d subnetworks, %d link segments",
+              entry.getKey(), entry.getValue()[0], entry.getValue()[1]))
+          .collect(Collectors.joining("; "));
     }
 
     /**
@@ -323,8 +435,11 @@ public class MacroscopicNetworkLayerUtils {
      */
     @Override
     public String toString() {
-      return String.format("%s access withdrawn on %d link segments%s",
-          mode.getName(), withdrawn,
+      return String.format(
+          "%s: %d subnetworks found, %d kept (largest %d vertices), %d discarded, access withdrawn on %d link " +
+              "segments%s",
+          mode.getName(), subNetworksFound, subNetworksRetained, largestSubNetworkSize,
+          subNetworksFound - subNetworksRetained, withdrawn,
           protectedSegments > 0 ? String.format(", %d protected", protectedSegments) : "");
     }
   }
