@@ -14,6 +14,7 @@ import org.goplanit.utils.mode.UsabilityModeFeatures;
  */
 public class ModeImpl extends ExternalIdAbleImpl implements Mode {
 
+  //** DEFAULT_EXTERNAL_ID */
   public final static Long DEFAULT_EXTERNAL_ID = Long.valueOf(1);
 
   /**

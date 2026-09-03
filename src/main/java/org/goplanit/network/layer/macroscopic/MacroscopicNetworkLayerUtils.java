@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
  */
 public class MacroscopicNetworkLayerUtils {
 
+  /** Constructor to disallow instance creation */
+  private MacroscopicNetworkLayerUtils(){}
+
   /**
    * Subnetwork sizes reported against, in vertices. Deliberately not configurable for now: the bins exist to make a
    * size threshold choosable from a single run, and this spread is fine grained where the choice actually is, namely

@@ -31,6 +31,10 @@ public abstract class LtmAssignment extends TrafficAssignment {
   /** track most recent time period that is being simulated */
   protected TimePeriod mostRecentTimePeriod = null;
 
+  /**
+   * set time period
+   * @param timePeriod to set
+   */
   protected void setTimePeriod(TimePeriod timePeriod){
     this.mostRecentTimePeriod = timePeriod;
   }

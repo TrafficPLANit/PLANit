@@ -11,6 +11,9 @@ import java.util.stream.IntStream;
  */
 public class MemoryFormatterUtils {
 
+  /** Constructor to disallow instance creation */
+  private MemoryFormatterUtils(){}
+
   /**
    * To be used in combination with Memory formatter iterator to construct a pretty string for a given result entry
    *
@@ -20,19 +23,22 @@ public class MemoryFormatterUtils {
    * @param valueValues value values for entry
    * @return pretty string
    */
-  public static String toPrettyString(OutputProperty[] keyProperties, OutputProperty[] valueProperties, Object[] keyValues, Object[] valueValues) {
+  public static String toPrettyString(
+      OutputProperty[] keyProperties, OutputProperty[] valueProperties, Object[] keyValues, Object[] valueValues) {
     var sb = new StringBuilder();
     //keys
     sb.append(IntStream.range(0,keyProperties.length).mapToObj(
         i -> String.format("%s: %5s",
-            keyProperties[i].getOutputPropertyType().toString(), String.valueOf(keyValues[i]))).collect(Collectors.joining(", ")));
+            keyProperties[i].getOutputPropertyType().toString(),
+            keyValues[i])).collect(Collectors.joining(", ")));
 
     sb.append(", ");
 
     // values
     sb.append(IntStream.range(0,valueProperties.length).mapToObj(
         i -> String.format("%s: %5s",
-            valueProperties[i].getOutputPropertyType().toString(), String.valueOf(valueValues[i]))).collect(Collectors.joining(", ")));
+            valueProperties[i].getOutputPropertyType().toString(),
+            valueValues[i])).collect(Collectors.joining(", ")));
     return sb.toString();
   }
 }

@@ -5,6 +5,9 @@ package org.goplanit.network;
  */
 public class MacroscopicNetworkModifierUtils {
 
+  /** Constructor to disallow instance creation */
+  private MacroscopicNetworkModifierUtils(){}
+
   /**
    * Convenience method to sync XMLids to Ids by making use of layer modifiers and Event listeners.
    * Note this also recreates all managed id entities ids as well

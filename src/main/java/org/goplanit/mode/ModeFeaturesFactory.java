@@ -15,6 +15,9 @@ import org.goplanit.utils.mode.VehicularModeType;
  */
 public class ModeFeaturesFactory {
 
+  /** Constructor to disallow instance creation */
+  private ModeFeaturesFactory(){}
+
   /**
    * create physical mode features
    * 

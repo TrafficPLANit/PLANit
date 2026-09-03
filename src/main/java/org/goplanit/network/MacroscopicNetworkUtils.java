@@ -23,6 +23,9 @@ public class MacroscopicNetworkUtils {
 
   private static final Logger LOGGER = Logger.getLogger(MacroscopicNetworkUtils.class.getCanonicalName());
 
+  /** Constructor to disallow instance creation */
+  private MacroscopicNetworkUtils(){}
+
   /**
    * Create a macroscopic network instance using the id token provided and in addition generate a simple grid-based
    * network layer for the predefined car mode, where each link is bi-directional and has a single link segment type
