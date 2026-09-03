@@ -5,6 +5,9 @@ import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.algorithms.ConnectedComponents;
 import org.goplanit.utils.graph.directed.Connectivity;
 import org.goplanit.utils.graph.directed.algorithms.StronglyConnectedComponents;
+import org.goplanit.utils.misc.binning.BinBuilder;
+import org.goplanit.utils.misc.binning.BinnedCount;
+import org.goplanit.utils.misc.binning.BinningConfiguration;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
@@ -12,10 +15,10 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Set;
@@ -30,26 +33,13 @@ import java.util.stream.Collectors;
  */
 public class MacroscopicNetworkLayerUtils {
 
-  /** upper bound, inclusive, of each subnetwork size bin used when reporting what was discarded */
-  private static final int[] SUBNETWORK_SIZE_BIN_UPPER_BOUNDS = {1, 5, 20, 50, 200, Integer.MAX_VALUE};
-
-  /** labels matching {@code SUBNETWORK_SIZE_BIN_UPPER_BOUNDS} */
-  private static final String[] SUBNETWORK_SIZE_BIN_LABELS = {"1", "2-5", "6-20", "21-50", "51-200", ">200"};
-
   /**
-   * The size bin a subnetwork of the given size falls in
-   *
-   * @param size of the subnetwork in vertices
-   * @return bin index
+   * Subnetwork sizes reported against, in vertices. Deliberately not configurable for now: the bins exist to make a
+   * size threshold choosable from a single run, and this spread is fine grained where the choice actually is, namely
+   * among the small subnetworks.
    */
-  private static int binIndexFor(int size) {
-    for (int index = 0; index < SUBNETWORK_SIZE_BIN_UPPER_BOUNDS.length; ++index) {
-      if (size <= SUBNETWORK_SIZE_BIN_UPPER_BOUNDS[index]) {
-        return index;
-      }
-    }
-    return SUBNETWORK_SIZE_BIN_UPPER_BOUNDS.length - 1;
-  }
+  private static final BinningConfiguration<Integer> SUBNETWORK_SIZE_BINS =
+      BinBuilder.ofInclusiveIntegerLowerBounds(1, 2, 5, 20, 50, 200);
 
   /**
    * Withdraw a mode's access from the subnetworks of that mode which do not meet the given criteria, leaving its
@@ -105,8 +95,8 @@ public class MacroscopicNetworkLayerUtils {
 
     var retainedVertices = new HashSet<Vertex>();
     int retainedSubNetworks = 0;
-    final int[] discardedByBin = new int[SUBNETWORK_SIZE_BIN_LABELS.length];
-    final int[] withdrawnByBin = new int[SUBNETWORK_SIZE_BIN_LABELS.length];
+    var discardedSubNetworks = BinnedCount.of(SUBNETWORK_SIZE_BINS);
+    var withdrawnLinkSegments = BinnedCount.of(SUBNETWORK_SIZE_BINS);
     /* so a withdrawn segment can be attributed to the size of the subnetwork it belonged to, which is what makes
      * the distribution readable rather than just the totals */
     final Map<Vertex, Integer> discardedSubNetworkSizeByVertex = new HashMap<>();
@@ -121,7 +111,7 @@ public class MacroscopicNetworkLayerUtils {
         ++retainedSubNetworks;
         continue;
       }
-      ++discardedByBin[binIndexFor(size)];
+      discardedSubNetworks.increment(size);
       for (var vertex : component) {
         discardedSubNetworkSizeByVertex.put(vertex, size);
       }
@@ -152,11 +142,11 @@ public class MacroscopicNetworkLayerUtils {
         size = discardedSubNetworkSizeByVertex.get(linkSegment.getDownstreamVertex());
       }
       if (size != null) {
-        ++withdrawnByBin[binIndexFor(size)];
+        withdrawnLinkSegments.increment(size);
       }
     }
     return new Result(mode, withdrawn, protectedSegments, components.size(), retainedSubNetworks,
-        largestSize, discardedByBin, withdrawnByBin);
+        largestSize, discardedSubNetworks, withdrawnLinkSegments);
   }
 
   /**
@@ -302,26 +292,47 @@ public class MacroscopicNetworkLayerUtils {
    */
   public static class Result {
 
+    /** the mode whose access was judged */
     private final Mode mode;
 
+    /** number of link segments the mode lost access to */
     private final int withdrawn;
 
+    /** number of link segments that kept the mode's access only because they were protected */
     private final int protectedSegments;
 
+    /** number of subnetworks the mode was found to have */
     private final int subNetworksFound;
 
+    /** number of those subnetworks that kept the mode's access */
     private final int subNetworksRetained;
 
+    /** number of vertices in the mode's largest subnetwork */
     private final int largestSubNetworkSize;
 
-    private final int[] discardedByBin;
+    /** number of discarded subnetworks per size bin */
+    private final BinnedCount<Integer> discardedSubNetworks;
 
-    private final int[] withdrawnByBin;
+    /** number of link segments the mode lost access to, per size bin of the subnetwork they belonged to */
+    private final BinnedCount<Integer> withdrawnLinkSegments;
 
+    /**
+     * Constructor
+     *
+     * @param mode whose access was judged
+     * @param withdrawn number of link segments the mode lost access to
+     * @param protectedSegments number of link segments that kept access only because they were protected
+     * @param subNetworksFound number of subnetworks the mode was found to have
+     * @param subNetworksRetained number of those subnetworks that kept the mode's access
+     * @param largestSubNetworkSize number of vertices in the mode's largest subnetwork
+     * @param discardedSubNetworks number of discarded subnetworks per size bin
+     * @param withdrawnLinkSegments number of link segments access was withdrawn on per size bin
+     */
     Result(Mode mode, int withdrawn, int protectedSegments, int subNetworksFound, int subNetworksRetained,
-        int largestSubNetworkSize, int[] discardedByBin, int[] withdrawnByBin) {
-      this.discardedByBin = discardedByBin;
-      this.withdrawnByBin = withdrawnByBin;
+        int largestSubNetworkSize, BinnedCount<Integer> discardedSubNetworks,
+        BinnedCount<Integer> withdrawnLinkSegments) {
+      this.discardedSubNetworks = discardedSubNetworks;
+      this.withdrawnLinkSegments = withdrawnLinkSegments;
       this.mode = mode;
       this.withdrawn = withdrawn;
       this.protectedSegments = protectedSegments;
@@ -358,40 +369,54 @@ public class MacroscopicNetworkLayerUtils {
     }
 
     /**
-     * The distribution of what was discarded, by subnetwork size, as label to (subnetworks, link segments).
+     * How many subnetworks were discarded, by the size of the subnetwork.
      * <p>
      * Reported because the totals alone mislead when choosing a size threshold: a mode can have thousands of
      * subnetworks discarded while barely any link segment loses access, most of them being a single vertex with
-     * no traversable segment between anything. Where the link segments sit is what a threshold actually decides.
-     * </p>
-     * <p>
-     * Only bins with something in them appear.
+     * no traversable segment between anything. Where the link segments sit, see
+     * {@link #getWithdrawnLinkSegmentCounts()}, is what a threshold actually decides.
      * </p>
      *
-     * @return distribution, in increasing size order
+     * @return counts per size bin
      */
-    public Map<String, int[]> getDiscardedBySizeBin() {
-      var distribution = new LinkedHashMap<String, int[]>();
-      for (int index = 0; index < SUBNETWORK_SIZE_BIN_LABELS.length; ++index) {
-        if (discardedByBin[index] > 0 || withdrawnByBin[index] > 0) {
-          distribution.put(
-              SUBNETWORK_SIZE_BIN_LABELS[index], new int[] {discardedByBin[index], withdrawnByBin[index]});
-        }
-      }
-      return distribution;
+    public BinnedCount<Integer> getDiscardedSubNetworkCounts() {
+      return discardedSubNetworks;
     }
 
     /**
-     * The size distribution rendered for logging, empty when nothing was discarded
+     * How many link segments lost the mode's access, by the size of the subnetwork they belonged to
      *
-     * @return one entry per non-empty bin
+     * @return counts per size bin
      */
-    public String getSizeBinSummary() {
-      return getDiscardedBySizeBin().entrySet().stream()
-          .map(entry -> String.format(
-              "size %s: %d subnetworks, %d link segments",
-              entry.getKey(), entry.getValue()[0], entry.getValue()[1]))
-          .collect(Collectors.joining("; "));
+    public BinnedCount<Integer> getWithdrawnLinkSegmentCounts() {
+      return withdrawnLinkSegments;
+    }
+
+    /**
+     * The size distribution rendered a line per bin, for a caller to log indented beneath its own header. Bins
+     * without anything in them are left out, and the labels are padded so the numbers line up.
+     *
+     * @return one line per non-empty size bin, empty when nothing was discarded
+     */
+    public List<String> getSizeBinSummaryLines() {
+      int labelWidth = 0;
+      for (int index = 0; index < SUBNETWORK_SIZE_BINS.size(); ++index) {
+        if (discardedSubNetworks.getCount(index) > 0 || withdrawnLinkSegments.getCount(index) > 0) {
+          labelWidth = Math.max(labelWidth, SUBNETWORK_SIZE_BINS.getBin(index).getLabel().length());
+        }
+      }
+
+      var lines = new ArrayList<String>();
+      for (int index = 0; index < SUBNETWORK_SIZE_BINS.size(); ++index) {
+        final long discarded = discardedSubNetworks.getCount(index);
+        final long withdrawnSegments = withdrawnLinkSegments.getCount(index);
+        if (discarded == 0 && withdrawnSegments == 0) {
+          continue;
+        }
+        lines.add(String.format("size %-" + labelWidth + "s : %d subnetworks discarded, %d link segments withdrawn",
+            SUBNETWORK_SIZE_BINS.getBin(index).getLabel(), discarded, withdrawnSegments));
+      }
+      return lines;
     }
 
     /**
@@ -451,13 +476,23 @@ public class MacroscopicNetworkLayerUtils {
    */
   public static class CleanupResult {
 
+    /** number of link segments removed because no mode could use them */
     private int removedLinkSegments = 0;
 
+    /** number of links removed because they were left without any segment */
     private int removedLinks = 0;
 
+    /** number of nodes removed because they were left without any edge */
     private int removedNodes = 0;
 
+    /** number of link segment types removed because they granted no mode access */
     private int removedLinkSegmentTypes = 0;
+
+    /**
+     * Constructor, counts start at zero and are accumulated as the removal progresses
+     */
+    CleanupResult() {
+    }
 
     /**
      * Number of link segments removed because no mode could use them
