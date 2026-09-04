@@ -6,6 +6,8 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.NetworkLayer;
+import org.goplanit.utils.geo.PlanitJtsCrsUtils;
+import org.goplanit.utils.zoning.connectoid.ConnectoidAccessZoneEntry;
 import org.goplanit.utils.zoning.connectoid.DirectedConnectoidAccessZoneEntry;
 import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
@@ -43,6 +45,9 @@ public class ZoningConverterConnectoidData {
    * track this because PLANit only tracks the other way around */
   private final Map<TransferZone, List<TransferConnectoid> > connectoidsByTransferZone = new HashMap<>();
 
+  /** to determine the distance between a transfer zone and the access node its connectoid entry attaches to */
+  private final PlanitJtsCrsUtils geoUtils;
+
   /**
    * Constructor
    *
@@ -67,6 +72,37 @@ public class ZoningConverterConnectoidData {
     this.transferConnectoidsByLocation = directedConnectoidsByLocation;
     this.referenceNetwork = referenceNetwork;
     this.referenceZoning = referenceZoning;
+    this.geoUtils = new PlanitJtsCrsUtils(referenceNetwork.getCoordinateReferenceSystem());
+  }
+
+  /**
+   * Set the length of an access zone entry to the distance between the transfer zone and the access node it attaches
+   * to, but only when it is still at its default.
+   * <p>
+   * Whoever creates the entry is what chose the access node, so it is what knows how far away the zone is. Without
+   * this the length stays zero and anything downstream, a MATSim writer for example, has to invent one.
+   * </p>
+   *
+   * @param entry to update, may be null in which case nothing happens
+   * @param transferZone the entry relates to
+   * @param accessNode the entry attaches to
+   */
+  private void updateEntryLengthFromGeometry(
+      ConnectoidAccessZoneEntry entry, TransferZone transferZone, DirectedVertex accessNode) {
+    if(entry == null || accessNode == null || accessNode.getPosition() == null) {
+      return;
+    }
+    var currentLengthKm = entry.getLengthKm();
+    if(currentLengthKm.isPresent() && currentLengthKm.get() > 0.0) {
+      /* already established by whoever created it, leave it be */
+      return;
+    }
+    var transferZoneGeometry = transferZone.getGeometry(true);
+    if(transferZoneGeometry == null) {
+      return;
+    }
+    entry.setLengthKm(geoUtils.getClosestDistanceInMeters(
+        accessNode.getPosition().getCoordinate(), transferZoneGeometry) / 1000.0);
   }
 
   // CONNECTOIDS <-> LOCATION METHODS
@@ -215,6 +251,9 @@ public class ZoningConverterConnectoidData {
     var createdConnectoid = ZoningConverterUtils.createAndRegisterTransferConnectoidWithUndirectedAccessEntry(
         connectoidExternalId, referenceZoning, transferZone, accessNode, allowedModes, type);
 
+    updateEntryLengthFromGeometry(
+        createdConnectoid.getAccessZoneEntry(transferZone, type), transferZone, accessNode);
+
     /* update PLANit data tracking information */
     registerNewConnectoidOnPlanitTrackingData(createdConnectoid, transferZone, networkLayer);
 
@@ -249,6 +288,8 @@ public class ZoningConverterConnectoidData {
     }
     // add if missing, if not directed already allowed
     entry.addAllowedModes(allowedModes);
+
+    updateEntryLengthFromGeometry(entry, accessZone, connectoidToUpdate.getReferenceVertex());
   }
 
   /**
@@ -290,6 +331,33 @@ public class ZoningConverterConnectoidData {
     var result = this.createAndRegisterTransferConnectoidWithUndirectedZoneEntry(
         connectoidExternalId, transferZone, networkLayer, accessVertex, undirectedModeAccess, type);
     return result !=null;
+  }
+
+  /**
+   * Index the transfer connectoids already present on the reference zoning, both by location and by transfer zone.
+   * <p>
+   * Readers have no need for this, they index each connectoid as they create it. It exists for working on a zoning
+   * parsed earlier, where all connectoids are present but nothing is indexed yet. Without it an existing connectoid
+   * is invisible, so a second one is created at a node that already has one rather than the existing one being
+   * expanded with the additional modes.
+   * </p>
+   * <p>
+   * Safe to call repeatedly, both underlying registrations ignore a connectoid they already hold.
+   * </p>
+   */
+  public void indexExistingTransferConnectoids(){
+    for(var connectoid : referenceZoning.getTransferConnectoids()){
+      var firstEntry = connectoid.getFirstAccessZoneEntry();
+      if(firstEntry == null || firstEntry.getExplicitlyAllowedModes().isEmpty()){
+        continue;
+      }
+      /* layer via the first allowed mode, consistent with how the connectoid was created in the first place */
+      var networkLayer = referenceNetwork.getLayerByMode(
+          firstEntry.getExplicitlyAllowedModes().iterator().next());
+      addTransferConnectoidByLocation(networkLayer, connectoid.getReferenceVertex().getPosition(), connectoid);
+      connectoid.getAccessZoneStream().filter(zone -> zone instanceof TransferZone).forEach(
+          zone -> addConnectoidByTransferZone((TransferZone) zone, connectoid));
+    }
   }
 
   /**

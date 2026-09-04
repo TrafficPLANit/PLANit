@@ -27,9 +27,10 @@ public class ZoningConverterCommonData {
   private static final Logger LOGGER = Logger.getLogger(ZoningConverterCommonData.class.getCanonicalName());
 
   /** to be able to map (future) transfer zones to connectoids in the network, we must be able to spatially
-   * find close by created links, this is what we do here. */
+   * find close by created links, this is what we do here. Physical links only, the virtual network's connectoid
+   * links are never indexed since nothing attaches to them. */
   // todo integrate with GTFS version in GtfsZoningHandlerData
-  private Map<MacroscopicNetworkLayer, Quadtree> spatiallyIndexedPlanitLinksByLayer = new TreeMap<>();
+  private Map<MacroscopicNetworkLayer, Quadtree> spatiallyIndexedPhysicalLinksByLayer = new TreeMap<>();
 
   /** to be able to efficiently break links when connecting transfer zones to the network, we must be able to quickly
    * access movements affected by this and update their to/from segments if changed. This index does that */
@@ -99,8 +100,16 @@ public class ZoningConverterCommonData {
    */
   public void recreateSpatiallyIndexedLinks() {
     for(MacroscopicNetworkLayer layer : referenceNetwork.getTransportLayers()) {
-      spatiallyIndexedPlanitLinksByLayer.put(layer, GeoContainerUtils.toGeoIndexed(layer.getLinks()));
+      spatiallyIndexedPhysicalLinksByLayer.put(layer, GeoContainerUtils.toGeoIndexed(layer.getLinks()));
     }
+  }
+
+  /** Verify whether the physical links have been spatially indexed already
+   *
+   * @return true when an index is present, false when it still needs creating
+   */
+  public boolean hasSpatiallyIndexedLinks() {
+    return !spatiallyIndexedPhysicalLinksByLayer.isEmpty();
   }
 
   /** access to geo utils
@@ -115,7 +124,7 @@ public class ZoningConverterCommonData {
    * Reset the PLANit data tracking containers
    */
   public void reset() {
-    spatiallyIndexedPlanitLinksByLayer = new TreeMap<>();
+    spatiallyIndexedPhysicalLinksByLayer = new TreeMap<>();
     connectoidData.reset();
   }
 
@@ -140,7 +149,7 @@ public class ZoningConverterCommonData {
     if(link != null) {
       var envelope = link.createEnvelope();
       // we do not know in which layer the link resides, so we try each layer
-      spatiallyIndexedPlanitLinksByLayer.forEach(
+      spatiallyIndexedPhysicalLinksByLayer.forEach(
           (k,v) -> v.remove(envelope, link));
     }
   }
@@ -153,9 +162,9 @@ public class ZoningConverterCommonData {
    */
   public void addLinksToSpatialLinkIndex(MacroscopicNetworkLayer networkLayer, Collection<MacroscopicLink> links) {
     if(links != null) {
-      spatiallyIndexedPlanitLinksByLayer.computeIfAbsent(networkLayer, nl -> new Quadtree());
+      spatiallyIndexedPhysicalLinksByLayer.computeIfAbsent(networkLayer, nl -> new Quadtree());
       links.forEach(
-          link -> spatiallyIndexedPlanitLinksByLayer.get(networkLayer).insert(link.createEnvelope(), link));
+          link -> spatiallyIndexedPhysicalLinksByLayer.get(networkLayer).insert(link.createEnvelope(), link));
     }
   }
 
@@ -167,9 +176,9 @@ public class ZoningConverterCommonData {
    */
   public void addLinksToSpatialLinkIndex(MacroscopicNetworkLayer networkLayer, MacroscopicLink... links) {
     if(links != null) {
-      spatiallyIndexedPlanitLinksByLayer.computeIfAbsent(networkLayer, nl -> new Quadtree());
+      spatiallyIndexedPhysicalLinksByLayer.computeIfAbsent(networkLayer, nl -> new Quadtree());
       for(var link : links) {
-        spatiallyIndexedPlanitLinksByLayer.get(networkLayer).insert(link.createEnvelope(), link);
+        spatiallyIndexedPhysicalLinksByLayer.get(networkLayer).insert(link.createEnvelope(), link);
       };
     }
   }
@@ -181,7 +190,7 @@ public class ZoningConverterCommonData {
    */
   public Map<MacroscopicNetworkLayer, Collection<MacroscopicLink>> findLinksSpatially(Envelope searchBoundingBox) {
     var result = new TreeMap<MacroscopicNetworkLayer, Collection<MacroscopicLink>>();
-    for(var entry : spatiallyIndexedPlanitLinksByLayer.entrySet()) {
+    for(var entry : spatiallyIndexedPhysicalLinksByLayer.entrySet()) {
       var foundLinks = findLinksSpatially(entry.getKey(), searchBoundingBox);
       if(CollectionUtils.nullOrEmpty(foundLinks)) {
         continue;
@@ -198,7 +207,7 @@ public class ZoningConverterCommonData {
    */
   public Collection<MacroscopicLink> findLinksSpatiallyAcrossLayers(Envelope searchBoundingBox) {
     var result = new TreeSet<MacroscopicLink>();
-    for(var entry : spatiallyIndexedPlanitLinksByLayer.entrySet()) {
+    for(var entry : spatiallyIndexedPhysicalLinksByLayer.entrySet()) {
       var foundLinks = findLinksSpatially(entry.getKey(), searchBoundingBox);
       if(CollectionUtils.nullOrEmpty(foundLinks)) {
         continue;
@@ -216,11 +225,11 @@ public class ZoningConverterCommonData {
    */
   public Collection<MacroscopicLink> findLinksSpatially(
       MacroscopicNetworkLayer networkLayer, Envelope searchBoundingBox) {
-    var spatiallyIndexedPlanitLinks = spatiallyIndexedPlanitLinksByLayer.get(networkLayer);
-    if(spatiallyIndexedPlanitLinks == null){
+    var spatiallyIndexedPhysicalLinks = spatiallyIndexedPhysicalLinksByLayer.get(networkLayer);
+    if(spatiallyIndexedPhysicalLinks == null){
       return Collections.emptySet();
     }
-    return GeoContainerUtils.queryEdgeQuadtree(spatiallyIndexedPlanitLinks, searchBoundingBox);
+    return GeoContainerUtils.queryEdgeQuadtree(spatiallyIndexedPhysicalLinks, searchBoundingBox);
   }
 
   /**
@@ -260,12 +269,12 @@ public class ZoningConverterCommonData {
    * @param linkToAdd    to add
    */
   public void addLinkToSpatiallyIndexed(MacroscopicNetworkLayer networkLayer, MacroscopicLink linkToAdd){
-    var spatiallyIndexedPlanitLinks = spatiallyIndexedPlanitLinksByLayer.get(networkLayer);
-    if(spatiallyIndexedPlanitLinks == null){
-      spatiallyIndexedPlanitLinks = GeoContainerUtils.toGeoIndexed(linkToAdd);
-      spatiallyIndexedPlanitLinksByLayer.put(networkLayer, spatiallyIndexedPlanitLinks);
+    var spatiallyIndexedPhysicalLinks = spatiallyIndexedPhysicalLinksByLayer.get(networkLayer);
+    if(spatiallyIndexedPhysicalLinks == null){
+      spatiallyIndexedPhysicalLinks = GeoContainerUtils.toGeoIndexed(linkToAdd);
+      spatiallyIndexedPhysicalLinksByLayer.put(networkLayer, spatiallyIndexedPhysicalLinks);
     }
-    GeoContainerUtils.addToGeoIndexed(spatiallyIndexedPlanitLinks, linkToAdd);
+    GeoContainerUtils.addToGeoIndexed(spatiallyIndexedPhysicalLinks, linkToAdd);
   }
 
   /** access to common connectoid data tracking

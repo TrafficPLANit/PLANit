@@ -1,5 +1,11 @@
 package org.goplanit.zoning;
 
+import org.goplanit.converter.utils.ProjectedBoundingAreaHelper;
+import org.goplanit.converter.zoning.AccessEgressInjectionSettings;
+import org.goplanit.converter.zoning.TransferZoningInjectAccessEgressExecutor;
+import org.goplanit.converter.zoning.ZoningConverterCommonData;
+import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
@@ -16,6 +22,33 @@ import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
  */
 public class ZoningUtils {
 
+  /**
+   * Inject access/egress connections between the transfer zones of a zoning and the physical network, for example so
+   * pedestrians can reach a rail platform or ferry terminal from the road network.
+   * <p>
+   * Readers do this during parsing when configured for it, see the reader's public transport settings. This is the
+   * equivalent for a network and zoning already in memory, for example read back from disk, where the connections
+   * were never made or the reader had them switched off.
+   * </p>
+   * <p>
+   * No bounding area is assumed, so no spatial warning is suppressed. A bounding area only exists while parsing an
+   * extract, where it tells us whether an unconnectable stop is a genuine problem or merely one that continues
+   * beyond the boundary.
+   * </p>
+   *
+   * @param network to connect to
+   * @param zoning holding the transfer zones to connect
+   * @param settings determining which stop types are connected and within what search radius
+   */
+  public static void injectTransferZoneAccessEgress(
+      MacroscopicNetwork network, Zoning zoning, AccessEgressInjectionSettings settings) {
+    PlanItRunTimeException.throwIfNull(network, "Network to inject transfer zone access/egress for is null");
+    PlanItRunTimeException.throwIfNull(zoning, "Zoning to inject transfer zone access/egress for is null");
+    PlanItRunTimeException.throwIfNull(settings, "Settings to inject transfer zone access/egress with are null");
+
+    new TransferZoningInjectAccessEgressExecutor(
+        ProjectedBoundingAreaHelper.empty(), new ZoningConverterCommonData(network, zoning)).execute(settings);
+  }
 
   /**
    * To make sure a connectoid is not directly attached to a physical node, create a stub

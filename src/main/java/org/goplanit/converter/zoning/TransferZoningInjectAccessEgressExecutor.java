@@ -286,8 +286,10 @@ public class TransferZoningInjectAccessEgressExecutor {
    * network but may not be tagged as such in OSM.
    *
    * @param searchRadius  to apply
+   * @param settings to apply
    */
-  private void connectRailBasedStopsToActiveModeNetwork(double searchRadius) {
+  private void connectRailBasedStopsToActiveModeNetwork(
+      double searchRadius, AccessEgressInjectionSettings settings) {
     var referenceNetwork = zoningConverterData.getReferenceNetwork();
     var referenceZoning = zoningConverterData.getReferenceZoning();
 
@@ -298,8 +300,8 @@ public class TransferZoningInjectAccessEgressExecutor {
     }
 
     // access/egress modes we'll support
-    var allSupportedActiveModes = referenceNetwork.getModes().stream().filter(
-        m -> m.getPredefinedModeType().isActiveModeType()).collect(Collectors.toSet());
+    var allSupportedActiveModes = collectAccessEgressModes(referenceNetwork.getModes().stream().filter(
+        m -> m.getPredefinedModeType().isActiveModeType()).collect(Collectors.toSet()), settings);
     if(allSupportedActiveModes.isEmpty()){
       return;
     }
@@ -335,8 +337,10 @@ public class TransferZoningInjectAccessEgressExecutor {
    * Connect all bus stops to nearby network supporting pedestrian access/egress if not already present
    *
    * @param searchRadius max search radius acceptable between stop and road network
+   * @param settings to apply
    */
-  private void connectBusStopsToPedestrianNetwork(double searchRadius) {
+  private void connectBusStopsToPedestrianNetwork(
+      double searchRadius, AccessEgressInjectionSettings settings) {
     var referenceNetwork = zoningConverterData.getReferenceNetwork();
     var referenceZoning = zoningConverterData.getReferenceZoning();
     if(!referenceNetwork.getModes().containsPredefinedMode(PredefinedModeType.BUS)){
@@ -346,8 +350,8 @@ public class TransferZoningInjectAccessEgressExecutor {
     var busBasedModes = referenceNetwork.getModes().stream().filter(
         m -> m.getPredefinedModeType().equals(PredefinedModeType.BUS)).collect(Collectors.toSet());
     // access/egress modes we'll support (for bus we assume bicycles are not used (yet))
-    var allSupportedActiveModes = referenceNetwork.getModes().stream().filter(
-        m -> m.getPredefinedModeType().equals(PredefinedModeType.PEDESTRIAN)).collect(Collectors.toSet());
+    var allSupportedActiveModes = collectAccessEgressModes(referenceNetwork.getModes().stream().filter(
+        m -> m.getPredefinedModeType().equals(PredefinedModeType.PEDESTRIAN)).collect(Collectors.toSet()), settings);
     if(allSupportedActiveModes.isEmpty()){
       return;
     }
@@ -382,6 +386,37 @@ public class TransferZoningInjectAccessEgressExecutor {
 
 
   /**
+   * The modes to create access/egress entries with: the preferred ones when available, otherwise the road based
+   * modes if the settings allow falling back on those.
+   * <p>
+   * A scenario modelling only motorised modes has no active modes, in which case stops would not be connected to the
+   * road network at all and nothing would say so. Finding where a stop meets that network does not require an active
+   * mode to exist, the modes only decide which links are eligible to attach to.
+   * </p>
+   * <p>
+   * The fallback modes do end up recorded on the created entry, so a consumer should read those as identifying the
+   * attachment point rather than as stating who may travel there.
+   * </p>
+   *
+   * @param preferredModes to use when available
+   * @param settings to apply
+   * @return modes to create the entries with, empty when none are available
+   */
+  private Set<Mode> collectAccessEgressModes(Set<Mode> preferredModes, AccessEgressInjectionSettings settings) {
+    if(!preferredModes.isEmpty() || !settings.isFallbackOnRoadModesWithoutActiveModes()){
+      return preferredModes;
+    }
+
+    var roadModes = zoningConverterData.getReferenceNetwork().getModes().stream().filter(
+        m -> m.getPhysicalFeatures().getTrackType().equals(TrackModeType.ROAD)).collect(Collectors.toSet());
+    if(!roadModes.isEmpty()){
+      LOGGER.info(String.format("No active modes present to connect pt stops with, falling back on road modes [%s]",
+          roadModes.stream().map(Mode::getName).collect(Collectors.joining(","))));
+    }
+    return roadModes;
+  }
+
+  /**
    * Constructor
    *
    * @param boundingAreaHelper to use
@@ -402,6 +437,14 @@ public class TransferZoningInjectAccessEgressExecutor {
    */
   public void execute(AccessEgressInjectionSettings settings){
 
+    /* both indexes are populated by readers as they parse, but are empty when working from a zoning parsed earlier.
+     * Establishing them here keeps that distinction out of the caller: indexing an already indexed connectoid is
+     * ignored, and the spatial index is only built when absent since recreating it is not free */
+    zoningConverterData.getConnectoidData().indexExistingTransferConnectoids();
+    if(!zoningConverterData.hasSpatiallyIndexedLinks()){
+      zoningConverterData.recreateSpatiallyIndexedLinks();
+    }
+
     // if configured connect all ferry stops to land network (for modes allowed on each ferry at waiting area)
     if(settings.isConnectFerryStopsToNearbyLandNetwork()) {
       connectFerriesToLandNetwork(settings.getFerryStopToNearbyLandNetworkSearchRadiusMeters());
@@ -409,12 +452,14 @@ public class TransferZoningInjectAccessEgressExecutor {
 
     // if configured connect all rail stops to active mode (pedestrian, bicycle) network
     if(settings.isConnectRailBasedStopsToPassengerNetwork()) {
-      connectRailBasedStopsToActiveModeNetwork(settings.getRailBasedStopToPassengerNetworkSearchRadiusMeters());
+      connectRailBasedStopsToActiveModeNetwork(
+          settings.getRailBasedStopToPassengerNetworkSearchRadiusMeters(), settings);
     }
 
     // if configured connect all bus stops to pedestrian network
     if(settings.isConnectBusBasedStopsToPassengerNetwork()) {
-      connectBusStopsToPedestrianNetwork(settings.getBusBasedStopToPassengerNetworkSearchRadiusMeters());
+      connectBusStopsToPedestrianNetwork(
+          settings.getBusBasedStopToPassengerNetworkSearchRadiusMeters(), settings);
     }
 
   }
