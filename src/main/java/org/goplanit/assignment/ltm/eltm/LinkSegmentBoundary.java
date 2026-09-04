@@ -20,7 +20,9 @@ public class LinkSegmentBoundary implements Serializable {
    * @author markr
    */
   public enum Location {
+    /** Boundary located at the upstream end of the link segment. */
     UPSTREAM,
+    /** Boundary located at the downstream end of the link segment. */
     DOWNSTREAM
   }
 

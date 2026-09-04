@@ -16,18 +16,22 @@ import org.goplanit.zoning.Zoning;
  * @author markr
  *
  */
-public class ModifiedTripScheduleDepartureIdsEvent extends ModifiedRoutedServicesLayerEventImpl implements RoutedServicesModificationEvent {
+public class ModifiedTripScheduleDepartureIdsEvent extends ModifiedRoutedServicesLayerEventImpl
+    implements RoutedServicesModificationEvent {
 
   /** event type fired off when zone ids have been modified */
-  public static final RoutedServicesModifierEventType EVENT_TYPE = new RoutedServicesModifierEventType("ROUTEDSERVICESEVENT.MODIFIED_DEPARTURE_IDS");
+  public static final RoutedServicesModifierEventType EVENT_TYPE =
+      new RoutedServicesModifierEventType("ROUTEDSERVICESEVENT.MODIFIED_DEPARTURE_IDS");
 
   /**
-   * Wrapper for a modified routed scheduled trip departures' ids event indicating that one or more managed internal ids of the routed services layer have been changed
+   * Wrapper for a modified routed scheduled trip departures' ids event indicating that one or more managed
+   * internal ids of the routed services layer have been changed
    *
    * @param source zoning modifier firing the event
    * @param routedServicesLayer to use
    */
-  public ModifiedTripScheduleDepartureIdsEvent(RoutedServicesLayerModifier source, RoutedServicesLayer routedServicesLayer) {
+  public ModifiedTripScheduleDepartureIdsEvent(
+      RoutedServicesLayerModifier source, RoutedServicesLayer routedServicesLayer) {
     super(EVENT_TYPE, source, routedServicesLayer);
   }
 

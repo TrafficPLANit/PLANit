@@ -12,12 +12,16 @@ import org.goplanit.utils.id.IdGroupingToken;
 
 /**
  * 
- * A conjugate directed graph implementation consisting of conjugate directed vertices, conjugate directed edges and conjugate edge segments
+ * A conjugate directed graph implementation consisting of conjugate directed vertices, conjugate directed edges and
+ * conjugate edge segments
  * 
  * @author markr
- *
+ * @param <ES> type of edge segment
+ * @param <V> type of vertex
+ * @param <E> type of edge
  */
-public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E extends ConjugateDirectedEdge, ES extends ConjugateEdgeSegment>
+public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex,
+    E extends ConjugateDirectedEdge, ES extends ConjugateEdgeSegment>
     extends UntypedDirectedGraphImpl<V, E, ES> implements DirectedGraph<V, E, ES> {
 
   /** the logger */
@@ -34,9 +38,12 @@ public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E ext
    * @param conjugateEdges        to use
    * @param conjugateEdgeSegments to use
    */
-  public ConjugateDirectedGraphImpl(final IdGroupingToken groupToken, GraphEntities<V> conjugateVertices, GraphEntities<E> conjugateEdges,
+  public ConjugateDirectedGraphImpl(
+      final IdGroupingToken groupToken,
+      GraphEntities<V> conjugateVertices,
+      GraphEntities<E> conjugateEdges,
       GraphEntities<ES> conjugateEdgeSegments) {
-    super(groupToken, conjugateVertices, conjugateEdges, conjugateEdgeSegments);
+    super(groupToken, conjugateVertices, conjugateEdges, conjugateEdgeSegments, null);
   }
 
   /**
@@ -46,11 +53,16 @@ public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E ext
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param conjVertexMapper tracking how original vertices are mapped to new vertices in case of deep copy
    * @param conjEdgeMapper tracking how original edges are mapped to new edges in case of deep copy
-   * @param conjEdgeSegmentMapper tracking how original edge segments are mapped to new edge segments in case of deep copy
+   * @param conjEdgeSegmentMapper tracking how original edge segments are mapped to new edge segments in case
+   *                              of deep copy
    */
   public ConjugateDirectedGraphImpl(
-      final ConjugateDirectedGraphImpl<V, E, ES> other, boolean deepCopy, GraphEntityDeepCopyMapper<V> conjVertexMapper, GraphEntityDeepCopyMapper<E> conjEdgeMapper, GraphEntityDeepCopyMapper<ES> conjEdgeSegmentMapper) {
-    super(other, deepCopy, conjVertexMapper, conjEdgeMapper, conjEdgeSegmentMapper);
+      final ConjugateDirectedGraphImpl<V, E, ES> other,
+          boolean deepCopy,
+          GraphEntityDeepCopyMapper<V> conjVertexMapper,
+          GraphEntityDeepCopyMapper<E> conjEdgeMapper,
+          GraphEntityDeepCopyMapper<ES> conjEdgeSegmentMapper) {
+    super(other, deepCopy, conjVertexMapper, conjEdgeMapper, conjEdgeSegmentMapper, null);
   }
 
   /**
@@ -58,7 +70,8 @@ public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E ext
    */
   @Override
   public ConjugateDirectedGraphImpl<V, E, ES> shallowClone() {
-    return new ConjugateDirectedGraphImpl<>(this, false, null, null, null);
+    return new ConjugateDirectedGraphImpl<>(
+            this, false, null, null, null);
   }
 
   /**
@@ -69,7 +82,11 @@ public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E ext
   @Override
   public ConjugateDirectedGraphImpl<V, E, ES> deepClone() {
     return new ConjugateDirectedGraphImpl<>(
-        this, true, new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
+        this,
+        true,
+        new GraphEntityDeepCopyMapper<>(),
+        new GraphEntityDeepCopyMapper<>(),
+        new GraphEntityDeepCopyMapper<>());
   }
 
 }

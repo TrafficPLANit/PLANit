@@ -6,11 +6,10 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.mode.Mode;
-import org.hsqldb.rights.User;
 
 /**
- * A user class defines a combination of one or more characteristics of users in an aggregate representation of traffic which partially dictate how they behave in traffic
- * assignment.
+ * A user class defines a combination of one or more characteristics of users in an aggregate representation of
+ * traffic which partially dictate how they behave in traffic assignment.
  *
  * @author markr
  *
@@ -63,7 +62,8 @@ public class UserClass extends ExternalIdAbleImpl implements ManagedId {
    * @param mode         the mode of travel
    * @param travelerType the travelerType
    */
-  public UserClass(final IdGroupingToken groupId, final String name, final Mode mode, final TravellerType travelerType) {
+  public UserClass(
+      final IdGroupingToken groupId, final String name, final Mode mode, final TravellerType travelerType) {
     super(IdGenerator.generateId(groupId, UserClass.class));
     this.name = name;
     this.travellerType = travelerType;
@@ -166,7 +166,8 @@ public class UserClass extends ExternalIdAbleImpl implements ManagedId {
    */
   @Override
   public String toString() {
-    return String.format("[id: %d, XMLid: %s, name: %s, mode %s, travellertype %s]", getId(), getXmlId(), getName(), getMode().toString(), travellerType.toString());
+    return String.format("[id: %d, XMLid: %s, name: %s, mode %s, traveller type %s]",
+        getId(), getXmlId(), getName(), getMode().toString(), travellerType.toString());
   }
 
 }

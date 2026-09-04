@@ -4,26 +4,37 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.LtmAssignment;
-import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmStrategyConjugateBush;
-import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmSimulationData;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmType;
+import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
+import org.goplanit.assignment.ltm.sltm.output.*;
+import org.goplanit.cost.CostUtils;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.od.demand.OdDemands;
+import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
-import org.goplanit.sdinteraction.smoothing.MSASmoothing;
+import org.goplanit.sdinteraction.smoothing.IterationBasedSmoothing;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.functionalinterface.TriPredicate;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.reflection.ReflectionUtils;
+import org.goplanit.utils.time.RunTimesTracker;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -58,69 +69,109 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
   /**
    * Factory method to create the desired assignment strategy to use
-   * 
+   *
+   * @param compiledMovementIds implicit movementIds used for turn based data indexing
    * @return created strategy, null if unsupported type is set
    */
   private StaticLtmAssignmentStrategy createAssignmentStrategy() {
+
     /* create the assignment solution to apply */
+    StaticLtmAssignmentStrategy strategy;
     switch (settings.getSltmType()) {
-      case ORIGIN_BUSH_BASED:
-        return new StaticLtmOriginBushDestLabelledStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
-      case DESTINATION_BUSH_BASED:
-        return new StaticLtmDestinationBushStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
       case CONJUGATE_DESTINATION_BUSH_BASED:
-        return new StaticLtmStrategyConjugateBush(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+
+        strategy =  new StaticLtmConjugateBushStrategy(
+                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+        break;
       case PATH_BASED:
-        return new StaticLtmPathStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);        
+
+        strategy = new StaticLtmPathStrategy(
+                getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+        break;
       default:
         LOGGER.warning(String.format("Unsupported static LTM type chosen %s, aborting",settings.getSltmType()));
-        return null;
+        strategy = null;
     }
+
+    return strategy;
   }
 
-  /**
-   * Record some basic iteration information such as duration and gap
-   *
-   * @param startTime  the original start time of the iteration
-   * @param gapFunction the duality gap at the end of the iteration
-   * @return the time (in ms) at the end of the iteration for profiling purposes only
-   */
-  private Calendar logBasicIterationInformation(final Calendar startTime, final LinkBasedRelativeDualityGapFunction gapFunction) {
-    final Calendar currentTime = Calendar.getInstance();
-    LOGGER.info(String.format("%sGap: %.10f (%d ms)", createLoggingPrefix(getIterationIndex()), gapFunction.getGap(), currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
-    return currentTime;
-  }
 
   /**
    * Initialize time period assigment and construct the network loading instance to use
    *
    * @param timePeriod the time period
-   * @param mode       covered by this time period
-   * @param odDemands  to use during this loading
+   * @param modes    used in this time period
    * @return simulationData initialised for time period
-   * @throws PlanItException thrown if there is an error
    */
-  private StaticLtmSimulationData initialiseTimePeriod(TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) throws PlanItException {
+  private StaticLtmSimulationData initialiseTimePeriodSpecificData(TimePeriod timePeriod, final Set<Mode> modes) {
 
     /* register new time period on costs */
     getPhysicalCost().updateTimePeriod(timePeriod);
     getVirtualCost().updateTimePeriod(timePeriod);
 
-    // TODO no support for exogenous initial cost yet
+    var simulationData = new StaticLtmSimulationData(timePeriod, modes, getTotalNumberOfNetworkSegments());
+    assignmentStrategy.updateTimePeriod(timePeriod, modes, getDemands());
 
-    assignmentStrategy.updateTimePeriod(timePeriod, mode, odDemands);
 
-    /* compute costs on all link segments to start with */
-    boolean updateOnlyPotentiallyBlockingNodeCosts = false;
-    double[] initialLinkSegmentCosts = new double[getTotalNumberOfNetworkSegments()];
-    assignmentStrategy.executeNetworkCostsUpdate(mode, updateOnlyPotentiallyBlockingNodeCosts, initialLinkSegmentCosts);
-    var simulationData = new StaticLtmSimulationData(timePeriod, List.of(mode), getTotalNumberOfNetworkSegments());
-    simulationData.setLinkSegmentTravelTimePcuH(mode, initialLinkSegmentCosts);
+    /* for now only a single mode is supported (although written for more), todo: https://github.com/TrafficPLANit/PLANit/issues/112 */
+    for(var mode : modes){
 
-    /* create initial solution as starting point for equilibration */
-    assignmentStrategy.createInitialSolution(initialLinkSegmentCosts);
+      /* empty entries for all link segments by mode */
+      final double[] initialLinkSegmentCosts =
+          CostUtils.createEmptyLinkSegmentCostArray(getInfrastructureNetwork(), getZoning());
+
+      /* virtual component */
+      CostUtils.populateModalVirtualLinkSegmentCosts(
+          mode, getVirtualCost(), getZoning().getVirtualNetwork(), initialLinkSegmentCosts);
+
+      /* physical component (including initial costs if present)*/
+      if(populateWithPhysicalInitialCostIfAvailable(
+          mode, timePeriod, getUsedNetworkLayer().getLinkSegments(), initialLinkSegmentCosts)) {
+        LOGGER.info(String.format("%sPrepared sLTM initial costs for traffic assignment time period (%s)",
+            LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
+        simulationData.setInitialCostsAppliedInFirstIteration(mode, true);
+      }else{
+        LOGGER.info(String.format("%sNo initial costs for traffic assignment time period (%s), " +
+            "utilising free flow costs",LoggingUtils.runIdPrefix(getId()), timePeriod.getIdsAsString()));
+        CostUtils.populateModalPhysicalLinkSegmentCosts(
+            mode, getPhysicalCost(), getInfrastructureNetwork(), initialLinkSegmentCosts);
+      }
+      simulationData.setLinkSegmentTravelTimePcuH(mode, initialLinkSegmentCosts);
+
+      // use to create initial starting solution
+      assignmentStrategy.createInitialSolution(
+          mode, getZoning().getOdZones(), initialLinkSegmentCosts, simulationData.getIterationIndex());
+      LOGGER.info("Created initial solution, proceeding with iterative procedure");
+    }
 
     return simulationData;
+  }
+
+  /**
+   * Before invoking to performing the iteration on the underlying static LTM assignment strategy, this method is called
+   * to allow all relevant traffic assignment components to prepare for the upcoming iterations.
+   */
+  private void prepareComponentsBeforePerformIteration() {
+
+    // Smoothing: depending on supported smoothing types, prepare their state
+    var smoothing = getSmoothing();
+    if (smoothing instanceof IterationBasedSmoothing) {
+      ((IterationBasedSmoothing) smoothing).updateIteration(simulationData.getIterationIndex());
+      if(smoothing instanceof MSRASmoothing) {
+        ((MSRASmoothing)smoothing).updateIsBadIteration(getGapFunction().getPreviousGap(), getGapFunction().getGap());
+        if(settings.isDetailedLogging() && ((MSRASmoothing)smoothing).isBadIteration()){
+          ((MSRASmoothing)smoothing).logStepSize();
+        }
+      }
+      smoothing.updateStepSize();
+    }
+
+    // Gap function: reset internal state for tracking anything else but gaps (those are only reet when calling reset())
+    getGapFunction().resetIteration();
+
+    // Loading: reset to initial state
+    assignmentStrategy.getLoading().resetIteration();
   }
 
   /**
@@ -128,70 +179,78 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * 
    * @param timePeriod to execute traffic assignment for
    * @param modes      used for time period
-   * @throws PlanItException thrown if error
    */
-  private void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
+  private void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes){
 
-    if (modes.size() != 1) {
+    /* prep */
+    setTimePeriod(timePeriod);
+    this.simulationData = initialiseTimePeriodSpecificData(timePeriod, modes);
+    var runTimeTracker = simulationData.getRunTimesTracker().get(RunTimesTracker.GENERAL);
+    if (simulationData.getSupportedModes().size() != 1) {
       LOGGER.warning(
-          String.format("%ssLTM only supports a single mode for now, found %s, aborting assignment for time period %s", LoggingUtils.runIdPrefix(getId()), timePeriod.getXmlId()));
+          String.format("%ssLTM only supports a single mode for now, found %d, aborting assignment for time period %s",
+                  LoggingUtils.runIdPrefix(getId()), simulationData.getSupportedModes().size(), timePeriod.getXmlId()));
       return;
     }
 
-    /* prep */
-    Mode theMode = modes.iterator().next();
-    this.simulationData = initialiseTimePeriod(timePeriod, theMode, getDemands().get(theMode, timePeriod));
-
-    boolean converged = false;
+    boolean convergedOrStop = false;
     Calendar iterationStartTime = Calendar.getInstance();
-
     /* ASSIGNMENT LOOP */
     do {
-      getGapFunction().reset();
-      assignmentStrategy.getLoading().resetIteration();
-
+      runTimeTracker.resetIterationTime();
       simulationData.incrementIterationIndex();
-      getSmoothing().updateStep(simulationData.getIterationIndex());
 
-      /* LOADING UPDATE + PATH/BUSH UPDATE */
-      double[] prevCosts = getIterationData().getLinkSegmentTravelTimePcuH(theMode);
-      double[] costsToUpdate = Arrays.copyOf(prevCosts, prevCosts.length);
-      boolean success = assignmentStrategy.performIteration(theMode, costsToUpdate, simulationData.getIterationIndex());
-      if (!success) {
-        LOGGER.severe("Unable to continue PLANit sLTM run, aborting");
-        break;
+      // prep/reset TA components (smoothing, gap, loading) so they are ready for upcoming iteration
+      prepareComponentsBeforePerformIteration();
+
+      /* LOADING UPDATE + PATH/BUSH ROUTE CHOICE UPDATE */
+      for(var mode : simulationData.getSupportedModes()) {
+        double[] prevCosts = simulationData.getLinkSegmentTravelTimePcuH(mode);
+        double[] costsToUpdate = Arrays.copyOf(prevCosts, prevCosts.length);
+        boolean success = assignmentStrategy.performIteration(mode, prevCosts, costsToUpdate, simulationData);
+        if (!success) {
+          LOGGER.severe("Unable to continue PLANit sLTM run, aborting");
+          throw new PlanItRunTimeException("Aborting PLANit assignment");
+        }
+        // COST UPDATE
+        simulationData.setLinkSegmentTravelTimePcuH(mode, costsToUpdate);
       }
-      // COST UPDATE
-      getIterationData().setLinkSegmentTravelTimePcuH(theMode, costsToUpdate);
 
       // CONVERGENCE CHECK
-      converged = assignmentStrategy.hasConverged(getGapFunction(), simulationData.getIterationIndex());
+      convergedOrStop = assignmentStrategy.hasConverged(getGapFunction(), simulationData.getIterationIndex());
+
+      var iterationEndTime = Calendar.getInstance();
+      var iterationRunTime = iterationEndTime.getTimeInMillis() - iterationStartTime.getTimeInMillis();
+      runTimeTracker.addTimeInMillis(iterationRunTime);
+      iterationStartTime = iterationEndTime;
 
       // PERSIST
-      persistIterationResults(timePeriod, theMode, converged);
+      persistIterationResults(convergedOrStop);
 
-      iterationStartTime = logBasicIterationInformation(iterationStartTime, (LinkBasedRelativeDualityGapFunction) getGapFunction());
-    } while (!converged);
+      LOGGER.info(String.format("%sGap: %.15f (%d ms)",
+              createLoggingPrefix(getIterationIndex()), getGapFunction().getGap(), iterationRunTime));
 
+    } while (!convergedOrStop);
   }
 
   /**
-   * Persist the results for this iteration. In case the results require additional actions because the loading has been optimised this is adjusted here before persisting
+   * Persist the results for this iteration. In case the results require additional actions because the loading has been
+   * optimised this is adjusted here before persisting
    * 
-   * @param timePeriod to use
-   * @param theMode    to use
    * @param converged  true when converged, false otherwise
-   * @throws PlanItException thrown when error
    */
-  private void persistIterationResults(TimePeriod timePeriod, Mode theMode, boolean converged) throws PlanItException {
-    var modes = Set.of(theMode);
-    if (getOutputManager().isAnyOutputPersisted(timePeriod, modes, converged)) {
-      assignmentStrategy.getLoading().stepSixFinaliseForPersistence();
-      getOutputManager().persistOutputData(timePeriod, modes, converged);
+  private void persistIterationResults(boolean converged){
+    var timePeriod = simulationData.getTimePeriod();
+    var modes = simulationData.getSupportedModes();
+    if (getOutputManager().isPersistAnyOutput(timePeriod, modes, converged)) {
 
-      LOGGER.info(String.format("** INFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentInflowsPcuH())));
-      LOGGER.info(String.format("** OUTFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentOutflowsPcuH())));
-      LOGGER.info(String.format("** ALPHA: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentFlowAcceptanceFactors())));
+      if(getAssignmentStrategy().isUpdateOnlyPotentiallyBlockingNodeCosts()) {
+        // for full node tracking the stepSixFinaliseForAnalysis is already done before cost update (maybe we shouldn't
+        // though) for now though doing it here again AFTER bush flow shifts causes problems for some reason, so
+        // implemented this ugly hack around it for now let's leave it TODO: streamline this as it is ugly
+        assignmentStrategy.getLoading().stepSixFinaliseForAnalysis(modes.iterator().next());
+      }
+      getOutputManager().persistOutputData(timePeriod, modes, converged);
     }
   }
 
@@ -199,26 +258,34 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * {@inheritDoc}
    */
   @Override
-  protected void verifyComponentCompatibility() throws PlanItException {
+  protected void verifyComponentCompatibility(){
     super.verifyComponentCompatibility();
+  }
 
-    /* gap function check */
-    PlanItException.throwIf(!(getGapFunction() instanceof LinkBasedRelativeDualityGapFunction),
-        "%sStatic LTM only supports a link based relative gap function (for equilibration) at the moment, but found %s", LoggingUtils.runIdPrefix(getId()),
-        getGapFunction().getClass().getCanonicalName());
-
-    /* smoothing check */
-    PlanItException.throwIf(!(getSmoothing() instanceof MSASmoothing), "%sStatic LTM only supports MSA smoothing at the moment, but found %s", LoggingUtils.runIdPrefix(getId()),
-        getSmoothing().getClass().getCanonicalName());
+  /**
+   * When we have a conjugate bush based approach the transport model network remains in regular form, so
+   * we never require a conjugate transport model network as our base network. We'll create the conjugate version
+   * within the strategy when needed locally instead.
+   *
+   * @return false always
+   */
+  @Override
+  protected boolean isRequireConjugateNetwork() {
+    return false;
   }
 
   /**
    * Initialise the components before we start any assignment + create the assignment strategy (bush or path based)
+   *
+   * @param resetAndRecreateManagedIds when true, reset and then recreate (and rest) all internal managed ids of
+   *                                   transport model network components (links, nodes, connectoids etc.), when false do not.
    */
   @Override
-  protected void initialiseBeforeExecution() throws PlanItException {
-    super.initialiseBeforeExecution();
+  protected void initialiseBeforeExecution(boolean resetAndRecreateManagedIds) throws PlanItException {
+    super.initialiseBeforeExecution(resetAndRecreateManagedIds);
+
     this.assignmentStrategy = createAssignmentStrategy();
+    assignmentStrategy.verifyComponentCompatibility();
     LOGGER.info(String.format("%sstrategy: %s", LoggingUtils.runIdPrefix(getId()), assignmentStrategy.getDescription()));
   }
 
@@ -233,7 +300,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     for (final TimePeriod timePeriod : timePeriods) {
       Calendar startTime = Calendar.getInstance();
       final Calendar initialStartTime = startTime;
-      LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.timePeriodPrefix(timePeriod) + timePeriod.toString());
+      LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.timePeriodPrefix(timePeriod) + timePeriod);
       executeTimePeriod(timePeriod, getDemands().getRegisteredModesForTimePeriod(timePeriod));
       LOGGER.info(LoggingUtils.runIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
     }
@@ -244,17 +311,8 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    *
    * @return simulation data
    */
-  protected StaticLtmSimulationData getIterationData() {
+  public StaticLtmSimulationData getIterationData() {
     return simulationData;
-  }
-
-  /**
-   * Return the assignment solution strategy used
-   * 
-   * @return used assignment strategy
-   */
-  protected StaticLtmAssignmentStrategy getStrategy() {
-    return assignmentStrategy;
   }
 
   /**
@@ -279,6 +337,26 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   }
 
   /**
+   * Get the TransportNetwork used in the current assignment
+   *
+   * @return TransportNetwork used in current assignment
+   */
+  @Override
+  public TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> getTransportNetwork() {
+    return (TransportModelNetwork<MacroscopicNetwork, VirtualNetwork>) super.getTransportNetwork();
+  }
+
+  /**
+   * Access to the assigment strategy. Only to be used by output adapter to access
+   * or create results for persistence
+   *
+   * @return assignment strategy
+   */
+  public StaticLtmAssignmentStrategy getAssignmentStrategy(){
+    return assignmentStrategy;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -297,10 +375,24 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       outputTypeAdapter = new StaticLtmLinkOutputTypeAdapter(outputType, this);
       break;
     case OD:
-      // NOT YET SUPPORTED
+      outputTypeAdapter = new StaticLtmOdOutputTypeAdapter(outputType, this);
       break;
     case PATH:
-      // NOT YET SUPPORTED
+      if(settings.getSltmType().equals(StaticLtmType.PATH_BASED)){
+        outputTypeAdapter = new StaticLtmPathOutputTypeAdapter(outputType, this);
+      }else{
+        LOGGER.warning("Path output type not available when static LTM assignment is not path based");
+      }
+      break;
+    case SIMULATION:
+      outputTypeAdapter = new StaticLtmSimulationOutputTypeAdapter(outputType, this);
+      break;
+    case BUSH:
+      if(!settings.getSltmType().equals(StaticLtmType.PATH_BASED)){
+        outputTypeAdapter = new StaticLtmBushLinkOutputTypeAdapter(outputType,this);
+      }else{
+        LOGGER.warning("Bush output type not available when static LTM assignment is path based");
+      }
       break;
     default:
       LOGGER.warning(String.format("%s%s is not supported yet", LoggingUtils.runIdPrefix(getId()), outputType.value()));
@@ -332,79 +424,164 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     throw new PlanItRunTimeException("Deep clone not yet implemented");
   }
 
-  // GETTERS/SETTERS
+  // CONFIGURATOR GETTERS/SETTERS
 
-  /**
-   * Verify to enable link storage constraints or not
-   * 
-   * @return true when enabled, false otherwise
-   */
+  // pass on to settings
   public boolean isDisableLinkStorageConstraints() {
     return settings.isDisableStorageConstraints();
   }
 
-  /**
-   * Set the flag indicating link storage constraints are active or not
-   * 
-   * @param flag when true activate, when false disable
-   */
+  // pass on to settings
   public void setDisableLinkStorageConstraints(boolean flag) {
     settings.setDisableStorageConstraints(flag);
   }
 
-  /**
-   * Set the flag indicating link storage constraints are active or not
-   * 
-   * @param flag when true activate, when false disable
-   */
+  // pass on to settings
   public void setActivateDetailedLogging(boolean flag) {
     settings.setDetailedLogging(flag);
   }
 
-  /**
-   * Verify if bush based assignment is applied or not
-   * 
-   * @return true when activated, false otherwise
-   */
-  public boolean isActivateBushBased() {
-    return settings.isBushBased();
+  // pass on to settings
+  public void setBushBasedOuterIterationStopCheck(BiPredicate<Integer,Double> outerIterationPredicate){
+    this.settings.setBushBasedOuterIterationStopCheck(outerIterationPredicate);
   }
 
-  /**
-   * Set the flag indicating what type of bush based assignment is to be applied
-   * 
-   * @param type to use
-   */
+  // pass on to settings
+  public BiPredicate<Integer,Double> getBushBasedOuterIterationStopCheck(){
+    return this.settings.getBushBasedOuterIterationStopCheck();
+  }
+
+  // pass on to settings
+  public void setBushBasedOuterIterationSmoothingFunction(Function<Integer,Double> outerIterationSmoothingFunction){
+    this.settings.setBushBasedOuterIterationSmoothingFunction(outerIterationSmoothingFunction);
+  }
+
+  // pass on to settings
+  public Function<Integer,Double> getBushBasedOuterIterationSmoothingFunction(){
+    return this.settings.getBushBasedOuterIterationSmoothingFunction();
+  }
+
+  // pass on to settings
+  public void setBushBasedInnerIterationStopCheck(TriPredicate<Integer,Double, Double> innerIterationPredicate){
+    this.settings.setBushBasedInnerIterationStopCheck(innerIterationPredicate);
+  }
+
+  // pass on to settings
+  public TriPredicate<Integer,Double, Double> getBushBasedInnerIterationStopCheck(){
+    return this.settings.getBushBasedInnerIterationStopCheck();
+  }
+
+  // pass on to settings
+  public void setBushBasedPasImportanceSmoothingFunction(
+      BiFunction<Integer,Double, Double> pasImportanceSmoothingFunction){
+    this.settings.setBushBasedPasImportanceSmoothingFunction(pasImportanceSmoothingFunction);
+  }
+
+  // pass on to settings
+  public BiFunction<Integer,Double, Double> getBushBasedPasImportanceSmoothingFunction(){
+    return this.settings.getBushBasedPasImportanceSmoothingFunction();
+  }
+
+  // pass on to settings
+  public void setBushBasedPasOrderDirectionAscending(Boolean ascendingOrder){
+    this.settings.setBushBasedPasOrderDirectionAscending(ascendingOrder);
+  }
+
+  // pass on to settings
+  public Boolean isBushBasedPasOrderDirectionAscending(){
+    return this.settings.isBushBasedPasOrderDirectionAscending();
+  }
+
+  // pass on to settings
   public void setType(StaticLtmType type) {
     settings.setSltmType(type);
   }
 
-  /**
-   * Collect the flag indicating link storage constraints are active or not
-   * 
-   * @return flag when true activated, when false disabled
-   */
+  public StaticLtmType getType() {
+    return settings.getSltmType();
+  }
+
+  // pass on to settings
   public boolean isActivateDetailedLogging() {
     return settings.isDetailedLogging();
   }
 
-  /**
-   * Collect the flag indicating to enforce max entropy flow solution is active or not
-   * 
-   * @return flag when true activated, when false disabled
-   */
-  public boolean isEnforceMaxEntropyFlowSolution() {
-    return settings.isEnforceMaxEntropyFlowSolution();
+  // pass on to settings
+  public void addTrackOdForLoggingById(Integer originId, Integer destinationId){
+    settings.addTrackOdForLoggingById(originId, destinationId);
   }
 
-  /**
-   * Set the flag indicating to enforce max entropy flow solution is active or not
-   * 
-   * @param enforceMaxEntropyFlowSolution set flag to enforce max entropy solution
-   */
-  public void setEnforceMaxEntropyFlowSolution(boolean enforceMaxEntropyFlowSolution) {
-    settings.setEnforceMaxEntropyFlowSolution(enforceMaxEntropyFlowSolution);
+  // pass on to settings
+  public void addTrackOdForLoggingByXmlId(String originId, String destinationId){
+    settings.addTrackOdForLoggingByXmlId(originId, destinationId);
   }
+
+  // pass on to settings
+  public void addTrackOdForLoggingByExternalId(String originId, String destinationId){
+    settings.addTrackOdForLoggingByExternalId(originId, destinationId);
+  }
+
+  // pass on to settings
+  public void setNetworkLoadingFlowAcceptanceGapEpsilon(Double networkLoadingFlowAcceptanceGapEpsilon) {
+    this.settings.setNetworkLoadingFlowAcceptanceGapEpsilon(networkLoadingFlowAcceptanceGapEpsilon);
+  }
+
+  // pass on to settings
+  public void setNetworkLoadingSendingFlowGapEpsilon(Double networkLoadingSendingFlowGapEpsilon) {
+    this.settings.setNetworkLoadingSendingFlowGapEpsilon(networkLoadingSendingFlowGapEpsilon);
+  }
+
+  // pass on to settings
+  public void setNetworkLoadingReceivingFlowGapEpsilon(Double networkLoadingReceivingFlowGapEpsilon) {
+    this.settings.setNetworkLoadingReceivingFlowGapEpsilon(networkLoadingReceivingFlowGapEpsilon);
+  }
+
+  // pass on to settings
+  public void setNetworkLoadingMinIterations(Integer networkLoadingMinIterations) {
+    this.settings.setNetworkLoadingMinIterations(networkLoadingMinIterations);
+  }
+
+  // pass on to setting
+  public StaticLtmLoadingScheme getNetworkLoadingInitialScheme() {
+    return this.settings.getNetworkLoadingInitialScheme();
+  }
+
+  // pass on to setting
+  public void setNetworkLoadingInitialScheme(StaticLtmLoadingScheme initialSltmLoadingScheme) {
+    this.settings.setNetworkLoadingInitialScheme(initialSltmLoadingScheme);
+  }
+
+  // pass on to settings
+  public Integer getDisablePathGenerationAfterIteration() {
+    return this.settings.getDisablePathGenerationAfterIteration();
+  }
+
+  // pass on to settings
+  public void setDisablePathGenerationAfterIteration(Integer disablePathGenerationAfterIteration) {
+    this.settings.setDisablePathGenerationAfterIteration(disablePathGenerationAfterIteration);
+  }
+
+  // pass on to settings
+  public void setActivateRelativeScalingFactor(Boolean flag){
+    this.settings.setActivateRelativeScalingFactor(flag);
+  }
+
+  // pass on to settings
+  public Boolean isActivateRelativeScalingFactor(){
+    return this.settings.isActivateRelativeScalingFactor();
+  }
+
+  // pass on to settings
+  public void setDisableRelativeScalingFactorUpdateAfterIteration(Integer disableRelativeScalingFactorUpdateAfterIteration){
+    this.settings.setDisableRelativeScalingFactorUpdateAfterIteration(disableRelativeScalingFactorUpdateAfterIteration);
+  }
+
+  // pass on to settings
+  public Integer getDisableRelativeScalingFactorUpdateAfterIteration(){
+    return this.settings.getDisableRelativeScalingFactorUpdateAfterIteration();
+  }
+
+  // OVERRIDES
 
   /**
    * {@inheritDoc}
@@ -420,6 +597,16 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   @Override
   public double[] getLinkSegmentOutflowsPcuHour() {
     return this.assignmentStrategy.getLoading().getCurrentOutflowsPcuH();
+  }
+
+  /**
+   * Provide access to the last known unconstrained flows in PCU/H for the given macroscopic link segment
+   *
+   * @param linkSegment to collect unconstrained flows for
+   * @return unconstrained flows in pcu/h
+   */
+  public double getLinkSegmentUnconstrainedFlowPcuHour(MacroscopicLinkSegment linkSegment) {
+    return this.assignmentStrategy.getLoading().getUnconstrainedFlowsPcuHour()[(int)linkSegment.getId()];
   }
 
   /**

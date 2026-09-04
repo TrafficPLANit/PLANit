@@ -62,7 +62,8 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    */
   @Override
   public boolean containsPredefinedMode(PredefinedModeType modeType) {
-    return getMap().values().stream().anyMatch(mode -> (mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()));
+    return getMap().values().stream().anyMatch(mode -> (mode instanceof PredefinedMode) &&
+        mode.getName().equals(modeType.value()));
   }
 
   /**
@@ -70,7 +71,8 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    */
   @Override
   public PredefinedMode get(PredefinedModeType modeType) {
-    return (PredefinedMode) getMap().values().stream().dropWhile(mode -> !((mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()))).findFirst().orElse(null);
+    return (PredefinedMode) getMap().values().stream().dropWhile(mode -> !((mode instanceof PredefinedMode) &&
+        mode.getName().equals(modeType.value()))).findFirst().orElse(null);
   }
 
   /**

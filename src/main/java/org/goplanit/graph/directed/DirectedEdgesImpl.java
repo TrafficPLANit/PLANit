@@ -46,7 +46,8 @@ public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implement
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param biConsumer when deepCopy applied to each original and copy, may be null
    */
-  public DirectedEdgesImpl(DirectedEdgesImpl directedEdgesImpl, boolean deepCopy, BiConsumer<DirectedEdge, DirectedEdge> biConsumer) {
+  public DirectedEdgesImpl(
+      DirectedEdgesImpl directedEdgesImpl, boolean deepCopy, BiConsumer<DirectedEdge, DirectedEdge> biConsumer) {
     super(directedEdgesImpl, deepCopy, biConsumer);
     this.directedEdgeFactory =
             new DirectedEdgeFactoryImpl(directedEdgesImpl.directedEdgeFactory.getIdGroupingToken(), this);

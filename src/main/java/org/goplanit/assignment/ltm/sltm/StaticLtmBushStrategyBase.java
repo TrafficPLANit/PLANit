@@ -1,148 +1,239 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Logger;
-
-import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
+import org.goplanit.algorithms.shortest.ShortestPathGeneralised;
+import org.goplanit.assignment.common.bush.RootedBush;
+import org.goplanit.assignment.common.pas.*;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmSettings;
+import org.goplanit.assignment.ltm.sltm.common.StaticLtmSimulationData;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
-import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
-import org.goplanit.cost.physical.AbstractPhysicalCost;
-import org.goplanit.cost.virtual.AbstractVirtualCost;
+import org.goplanit.cost.virtual.SteadyStateConnectoidTravelTimeCost;
 import org.goplanit.gap.GapFunction;
-import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
+import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
-import org.goplanit.od.demand.OdDemands;
-import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.zoning.zonetozone.OdDemands;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix;
+import org.goplanit.output.enums.SkimSubOutputType;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
+import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
+
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Base implementation to support a bush based solution for sLTM
  * 
  * @author markr
- *
+ * @param <ES> type of segment
+ * @param <V> type of vertex
+ * @param <B> type of bush
  */
-public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> extends StaticLtmAssignmentStrategy {
+public abstract class
+StaticLtmBushStrategyBase<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment, B extends RootedBush<V, E, ES>>
+        extends StaticLtmAssignmentStrategy {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategyBase.class.getCanonicalName());
 
+  public double minNetworkGapAsThreshold = 1;
+
   /**
-   * Shift flows based on the registered PASs and their origins.
-   * 
-   * @param theMode to use
-   * @return all PASs where non-zero flow was shifted on
+   * tracked bushes (with non-zero demand)
    */
-  private Collection<Pas> shiftFlows(final Mode theMode) {
-    equalFlowDistributedPass.clear();
-    var flowShiftedPass = new ArrayList<Pas>((int) pasManager.getNumberOfPass());
-    var passWithoutOrigins = new ArrayList<Pas>();
+  private TreeSet<B> bushes;
 
-    var networkLoading = getLoading();
-    var gapFunction = (LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class);
-    var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
-    var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
+  /**
+   * FLOW SHIFTING - STEP 1: PAS original sending flows per alternative:
+   * 1) create executor and
+   * 2) prep flow shifting to allow for ordering based on PAS flows and then construct proposed flow shifts based
+   * on these network loading consistent PAS sending flows
+   * @return PAS flow shifters with network loading s1 s2 sending flows initialised
+   */
+  private Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>>
+  createPasFlowShiftersWithLoadingS1S2SendingFlows() {
+    final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors = new HashMap<>();
+    this.pasManager.forEachActivePas(pas -> {
 
-    /**
-     * Sort all PAss by their reduced cost ensuring we shift flows from the most attractive shift towards the least where we exclude all link segments of a processed PAS such that
-     * no other PASs are allowed to shift flows if they overlap to avoid using inconsistent costs after a flow shift to or from a link segment
-     */
-    BitSet linkSegmentsUsed = new BitSet(networkLoading.getCurrentInflowsPcuH().length);
-    Collection<Pas> sortedPass = pasManager.getPassSortedByReducedCost();
-
-    double factor = 1;
-    for (Pas pas : sortedPass) {
-
+      // create flow shifter
       var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
-      pasFlowShifter.initialise(); // to be able to collect pas sending flows for gap
 
-      if (!(pasFlowShifter.getS2SendingFlow() > 0)) {
-        /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial overlapping S2 segments) */
+      // determine PAS alternative s1 and s2 sending flows
+      pasFlowShifter.stepOneDetermineNetworkLoadingConsistentS1S2SendingFlows(
+              getLoading().getCurrentFlowAcceptanceFactors());
+
+      // register for further processing
+      pasExecutors.put(pas, pasFlowShifter);
+    });
+    return pasExecutors;
+  }
+
+  /**
+   * FLOW SHIFTING - STEP2: Based on current NL flows, if we have any PASs without any S2 flow, deregister bushes,
+   * remove pas from manager, and remove from flow shift executors as they are no longer relevant
+   *
+   * @param pasExecutors to update and check for
+   * @return number of removed PASs due to no remaining flow on s2 alternative
+   */
+  private int deactivatePassWithoutRemainingFlow(
+          Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors) {
+    var passWithoutBush = new ArrayList<Pas<V,ES>>();
+    this.pasManager.forEachActivePas(pas -> {
+
+      var pasFlowShifter = pasExecutors.get(pas);
+
+      /* PAS is redundant, no more flow remaining --> mark for removal */
+      if (!(pasFlowShifter.getS2SendingFlow() > 0) || !pas.hasRegisteredBushes()) {
         pas.removeAllRegisteredBushes();
-        passWithoutOrigins.add(pas);
-        continue;
+        passWithoutBush.add(pas);
       }
 
-      updateGap(gapFunction, pas, pasFlowShifter.getS1SendingFlow(), pasFlowShifter.getS2SendingFlow());
-      if (pas.containsAny(linkSegmentsUsed)) {
-        continue;
-      }
+    });
 
-      /* untouched PAS (no flows shifted yet) in this iteration */
-      boolean pasFlowShifted = pasFlowShifter.run(theMode, physicalCost, virtualCost, networkLoading, factor);
-      if (pasFlowShifted) {
-        flowShiftedPass.add(pas);
+    // remove from pas manager and pas flow shift executors
+    if (!passWithoutBush.isEmpty()) {
+      passWithoutBush.forEach((pas) -> {
+        this.pasManager.deactivatePas(pas, getSettings().isDetailedLogging());
+        pasExecutors.remove(pas);
+      });
 
-        /*
-         * When flow is shifted we disallow overlapping other PASs to shift flow in this iteration as cost is likely to change. However, when flow is shifted to maximise entropy,
-         * it means cost is already equal, and is expected to not be affected by shift. Hence, in that case we do not disallow other PASs to shift flow and do not mark the PASs
-         * link segments as "used".
-         */
-        if (pasFlowShifter.isTowardsEqualAlternativeFlowDistribution()) {
-          equalFlowDistributedPass.add(pas);
-          continue;
-        }
-
-        /* s1 */
-        pas.forEachEdgeSegment(true /* low cost */, (es) -> linkSegmentsUsed.set((int) es.getId()));
-        /* s2 */
-        pas.forEachEdgeSegment(false /* high cost */, (es) -> linkSegmentsUsed.set((int) es.getId()));
-
-        pasFlowShifter.getUsedCongestedEntrySegments().forEach(es -> linkSegmentsUsed.set((int) es.getId()));
-
-        /* when s2 no longer used on any bush - mark PAS for overall removal */
-        if (!pas.hasRegisteredBushes()) {
-          passWithoutOrigins.add(pas);
-        }
-      }
     }
 
-    if (!passWithoutOrigins.isEmpty()) {
-      passWithoutOrigins.forEach((pas) -> pasManager.removePas(pas, getSettings().isDetailedLogging()));
+    int numRemovedPASs = passWithoutBush.size();
+    if(getSettings().isDetailedLogging()){
+      LOGGER.info(String.format(
+              "Deactivated %d PASs that were found to have no remaining flow on their high cost segment - Before flow shifting", numRemovedPASs));
     }
-    return flowShiftedPass;
+    return numRemovedPASs;
   }
 
-  /** tracked bushes (with non-zero demand) */
-  protected B[] bushes;
+  public Map<Pas<V,ES>, Double> computePasGaps(Collection<Pas<V,ES>> pass,
+                                               double[] nlConsistentFlowAcceptanceFactors){
+    Map<Pas<V,ES>, Double> pasGaps = new HashMap<>();
+    for(var pas : pass){
+      double s1Flow = PasFlowShiftConjugateDestinationBasedExecutor.determinePasSubPathSendingFlow(
+          pas, true, getLoading().getCurrentFlowAcceptanceFactors(),nlConsistentFlowAcceptanceFactors);
+      double s2Flow = PasFlowShiftConjugateDestinationBasedExecutor.determinePasSubPathSendingFlow(
+          pas, false, getLoading().getCurrentFlowAcceptanceFactors(),nlConsistentFlowAcceptanceFactors);
+      var gap = pas.computeGap(s1Flow, s2Flow);
+      pasGaps.put(pas, gap);
+    }
+    return pasGaps;
+  }
 
-  /** track all unique PASs */
-  protected final PasManager pasManager;
-
-  /** track all PASs where we are attempting to distribute flow equally to obtain unique solution under unequal flow but equal cost/cost-derivative */
-  protected Set<Pas> equalFlowDistributedPass;
-
-  /**
-   * Update gap. Unconventional gap function where we update the GAP based on PAS cost discrepancy. This is due to the impossibility of efficiently determining the network and
-   * minimum path costs in a capacity constrained bush based setting. Instead we:
-   * <p>
-   * minimumCost PAS : s1 cost * SUM(s1 sending flow, s2 sending flow) measuredCost PAS: s1 sending flow * s1 cost + s2 sending flow * s2 cost
-   * <p>
-   * Sum the above over all PASs. Note that PASs can (partially) overlap, so the measured cost does likely not add up to the network cost
-   * 
-   * @param gapFunction   to use
-   * @param pas           to compute for
-   * @param s1SendingFlow of the PAS s1 segment
-   * @param s2SendingFlow of the PAS s2 segment
-   */
-  protected void updateGap(final LinkBasedRelativeDualityGapFunction gapFunction, final Pas pas, double s1SendingFlow, double s2SendingFlow) {
-    gapFunction.increaseConvexityBound(pas.getAlternativeLowCost() * (s1SendingFlow + s2SendingFlow));
-    gapFunction.increaseMeasuredCost(s1SendingFlow * pas.getAlternativeLowCost());
-    gapFunction.increaseMeasuredCost(s2SendingFlow * pas.getAlternativeHighCost());
+  public Comparator<Pas<V,ES>> getPasGapComparator(Map<Pas<V,ES>, Double> pasGaps){
+    Comparator<Pas<V,ES>> PAS_GAP_COMPARATOR = (p1, p2) -> {
+      double p1Gap = pasGaps.get(p1);
+      double p2Gap = pasGaps.get(p2);
+      return Double.compare(p2Gap, p1Gap);
+    };
+    return PAS_GAP_COMPARATOR;
   }
 
   /**
-   * Based on the network loading results, update the bush' turn sending flows
+   * FLOW SHIFTING - STEP4: Create Sorted list of PASs in desired order to perform flow shifts (high to low) based
+   * on relevant criterion.
+   * todo: provide option for sorting order...
+   * @param pasGaps current gaps of PASs
+   * @return sorted PASs in descending order of importance
    */
-  protected void syncBushFlowsToNetworkFlows() {
+  protected List<Pas<V,ES>> orderPass(Map<Pas<V,ES>, Double> pasGaps) {
+
+    pasGaps.entrySet().stream().sorted(Map.Entry.comparingByValue()).skip(
+        pasGaps.entrySet().size()-Math.min(pasGaps.size(), 10)).forEach(
+        e -> LOGGER.info(String.format("%.10f - %s", e.getValue(), e.getKey())));
+
+    var chosenComparator = getPasGapComparator(pasGaps);
+    /* Sort all remaining PAss based on comparator */
+    return this.pasManager.getActivePassSortedByReducedCost(chosenComparator);
+  }
+
+  /**
+   * Log how many flow shifts were performed and deregister bushes and PAs that have no more flow on their S2
+   * alternatives
+   */
+  private void logFlowShiftPerformedAndDeregisterEmptyPass() {
+
+    var passWithoutBush = new ArrayList<Pas<V,ES>>(100);
+    this.pasManager.forEachActivePas(p -> {
+      if(!p.hasRegisteredBushes()){
+        passWithoutBush.add(p);
+      }
+    });
+    passWithoutBush.forEach((pas) -> this.pasManager.deactivatePas(pas, getSettings().isDetailedLogging()));
+    int numRemovedPASs = passWithoutBush.size();
+    if(getSettings().isDetailedLogging()){
+      LOGGER.info(String.format(
+              "Deactivated %d PASs that were found to have no remaining flow on their high cost segment " +
+                  "- After flow shifting", numRemovedPASs));
+    }
+  }
+
+  /**
+   * Create PAS executors for each active PAS, deactivate PASs without flow remaining
+   *
+   * @return pas executors for each pas
+   */
+  private Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> prepareForFlowShifts(){
+    
+    // Create dedicated executors for flow shifting per PAS
+    final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors = createPasFlowShiftersWithLoadingS1S2SendingFlows();
+
+    // Based on current network loading flows, if we have any PASs without any S2 flow, deregister bushes, remove pas
+    // from manager, and remove from flow shift executors as they are no longer relevant
+    // todo: when recreating PASs from scratch this step is redundant as only PASs with positive S2 flows are created
+    deactivatePassWithoutRemainingFlow(pasExecutors);
+
+    return pasExecutors;
+  }
+
+  /**
+   * Shift flows based on the registered PASs and their bushes.
+   *
+   * @param theMode              to use
+   * @param pasExecutors         to use
+   * @param originalNetworkCosts to use and update
+   * @param simulationData       to use
+   * @return collection with all PASs where non-zero flow was shifted on
+   */
+  protected abstract Collection<Pas<V,ES>> performFlowShifts(
+      final Mode theMode,
+      final Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors,
+      double[] originalNetworkCosts,
+      final StaticLtmSimulationData simulationData);
+
+  /**
+   * track all unique PASs
+   */
+  protected final PasManager<V,ES> pasManager;
+
+  /**
+   * access to bushes
+   *
+   * @return bushes
+   */
+  public Set<B> getBushes(){
+    return bushes;
+  }
+
+  protected boolean isDestinationTrackedForLogging(B bush) {
+    return getSettings().hasTrackOdsForLogging() &&
+        getSettings().isTrackDestinationForLogging((OdZone) bush.getRootZoneVertex().getParent().getParentZone());
+  }
+
+  /**
+   * Based on the network loading results, update the bush's turn sending flows
+   */
+  public void syncBushFlowsToNetworkFlows() {
     for (var bush : bushes) {
       if (bush == null) {
         continue;
@@ -154,138 +245,183 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
 
   /**
    * Update the PASs for bushes given the network costs and current bushes DAGs
-   * 
+   *
+   * @param mode             to use
    * @param linkSegmentCosts to use
-   * @return newly created PASs
-   * @throws PlanItException thrown if error
+   * @param simulationData   to use
+   * @param logAll           flag
+   * @return newly created PASs and existing PAss with newly assigned bushes
    */
-  protected abstract Collection<Pas> updateBushPass(final double[] linkSegmentCosts) throws PlanItException;
-
-  /**
-   * Verify if solution is flow proportional
-   * 
-   * @param gapEpsilon to use
-   * @return true when flow proportional, false otherwise
-   */
-  protected boolean isSolutionFlowEntropyMaximised(double gapEpsilon) {
-    StringBuilder remainingPassToMaximiseEntropy = new StringBuilder("PASs not at max entropy: \n");
-    boolean entryFound = false;
-    for (var pas : this.equalFlowDistributedPass) {
-      entryFound = true;
-      remainingPassToMaximiseEntropy.append("PAS - ");
-      remainingPassToMaximiseEntropy.append(pas.toString());
-      remainingPassToMaximiseEntropy.append("\n");
-    }
-    if (entryFound && getSettings().isDetailedLogging()) {
-      LOGGER.info(remainingPassToMaximiseEntropy.toString());
-      return false;
-    }
-
-    return true;
-  }
+  protected abstract Map<Long,Pas<V,ES>> updateBushPassAndGap(
+      Mode mode,
+      final double[] linkSegmentCosts,
+      StaticLtmSimulationData simulationData,
+      boolean logAll);
 
   /**
    * Constructor
-   * 
+   *
    * @param idGroupingToken       to use for internal managed ids
    * @param assignmentId          of parent assignment
    * @param transportModelNetwork to use
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
+   * @param registerPassByDiverge when true index registration by diverge, merge otherwise
    */
-  protected StaticLtmBushStrategyBase(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
-      final TrafficAssignmentComponentAccessee taComponents) {
+  protected StaticLtmBushStrategyBase(
+      final IdGroupingToken idGroupingToken,
+      long assignmentId,
+      final TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> transportModelNetwork,
+      final StaticLtmSettings settings,
+      final TrafficAssignmentComponentAccessee taComponents,
+      boolean registerPassByDiverge) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
-
-    /*
-     * destination based bushes are inverted, so PASs are to be registered based on vertex farthest from root, i.e, farthest from destination, so at the upstream point of the PAS
-     * at its diverge
-     */
-    boolean registerPassByDiverge = settings.getSltmType() == StaticLtmType.DESTINATION_BUSH_BASED;
-    this.pasManager = new PasManager(registerPassByDiverge);
-
+    this.pasManager = new PasManager<>(registerPassByDiverge);
     this.pasManager.setDetailedLogging(settings.isDetailedLogging());
-    this.equalFlowDistributedPass = new HashSet<>();
   }
 
   /**
    * Let derived implementations create the empty bushes as desired before populating them
-   * 
+   *
+   * @param mode to use
    * @return created empty bushes suitable for this strategy
    */
-  protected abstract B[] createEmptyBushes();
+  protected abstract TreeSet<B> createEmptyBushes(Mode mode);
 
   /**
-   * Initialise the sLTM bush by including the relevant DAGs based on available demand and bush layout. When equal costs are found between alternative paths OD demand is to be
-   * split proportionally
+   * Initialise the sLTM bush by including the relevant DAGs based on available demand and bush layout.
    * <p>
    * Add the edge segments to the bush and update the turn sending flow accordingly.
-   * 
+   * </p>
+   *
    * @param bush                  to use
    * @param zoning                to use
    * @param odDemands             to use
-   * @param shortestBushAlgorithm to use
+   * @param shortestTreeAlgorithm to use
+   * @return true when successful, false when bush could not be initialised
    */
-  protected abstract void initialiseBush(B bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm);
+  protected abstract boolean initialiseBush(
+      B bush, Zoning zoning, OdDemands odDemands, ShortestPathGeneralised shortestTreeAlgorithm);
 
   /**
    * {@inheritDoc}
-   * 
+   *
    * @param pas      to create flow shift executor for
    * @param settings to use
    * @return created executor
    */
-  protected abstract PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings);
+  protected abstract PasFlowShiftExecutor<V,ES> createPasFlowShiftExecutor(
+          final Pas<V,ES> pas, final StaticLtmSettings settings);
 
   /**
-   * Initialise bushes. Find shortest bush for each origin and add the links, flow, and destination labelling to the bush
-   * 
+   * Initialise bushes. Find shortest bush for each origin and add the links, flow, and destination labelling to
+   * the bush
+   *
+   * @param mode             to use
    * @param linkSegmentCosts costs to use
-   * @throws PlanItException thrown when error
    */
-  protected void initialiseBushes(final double[] linkSegmentCosts) throws PlanItException {
-    final var shortestBushAlgorithm = createNetworkShortestBushAlgo(linkSegmentCosts);
+  protected void initialiseBushes(Mode mode, final double[] linkSegmentCosts){
+    final var shortestTreeAlgorithm = createInitialNetworkShortestSearchTreeAlgo(mode, linkSegmentCosts);
 
+    Set<B> invalidBushesToRemove = new TreeSet<>();
     Zoning zoning = getTransportNetwork().getZoning();
-    OdDemands odDemands = getOdDemands();
-    for (int index = 0; index < bushes.length; ++index) {
-      B bush = bushes[index];
+    OdDemands odDemands = getOdDemands(mode);
+    for (B bush : bushes) {
       if (bush == null) {
         continue;
       }
-      initialiseBush(bush, zoning, odDemands, shortestBushAlgorithm);
+      boolean validBush = initialiseBush(bush, zoning, odDemands, shortestTreeAlgorithm);
+      if(!validBush){
+        LOGGER.warning(String.format("Bush for root zone (%s) could not be initialised, likely due to lack of " +
+            "connectivity as a destination, discard", bush.getRootZone().getIdsAsString()));
+        invalidBushesToRemove.add(bush);
+        continue;
+      }
 
-      if (bush != null && getSettings().isDetailedLogging()) {
+      if (isDestinationTrackedForLogging(bush) || getSettings().isDetailedLogging()) {
         LOGGER.info(bush.toString());
       }
+    }
+    invalidBushesToRemove.forEach(b -> bushes.remove(b));
+  }
+
+  /**
+   * Create a network wide shortest search tree algorithm based on provided costs
+   *
+   * @param theMode          to use
+   * @param linkSegmentCosts to use
+   * @return one-to-all shortest tree search algorithm
+   */
+  protected abstract ShortestPathGeneralised createInitialNetworkShortestSearchTreeAlgo(
+          Mode theMode, final double[] linkSegmentCosts);
+
+  /**
+   * Create a network wide Dijkstra shortest path algorithm based on provided costs
+   *
+   * @param linkSegmentCosts to use
+   * @return Dijkstra shortest path algorithm
+   */
+  protected abstract ShortestPathDijkstra createNetworkShortestPathAlgo(final double[] linkSegmentCosts);
+
+  /**
+   * Update all existing PASs costs based on provided original network link segment costs
+   *
+   * @param theMode                         the mode to use
+   * @param originalNetworkLinkSegmentCosts to use
+   */
+  protected abstract void updatePasCosts(Mode theMode, double[] originalNetworkLinkSegmentCosts);
+
+  /**
+   * Update all existing PASs status based on current state of network without considering
+   * any information on proposed flow shifts, determine congested or uncongested (without flow shift).
+   * All PASs get assigned
+   * todo: optimisation could be to not do this for inactive PASs, but then we have to do this on the fly
+   *  when a PAS changes from inactive to active.
+   *
+   * @param theMode                                 the mode to use
+   * @param networkLinkSegmentFlowAcceptanceFactors to determine if a link segment is congested or not
+   */
+  protected abstract void updatePasStatusBeforeFlowShifts(
+          Mode theMode, double[] networkLinkSegmentFlowAcceptanceFactors);
+
+  /**
+   * Update costs on original network links as well as for all PASs.
+   *
+   * @param theMode                                 to use
+   * @param costsToUpdate                           to costs to be updated on this raw array
+   * @param doLoadingAllFlowUpdatePriorToCostUpdate flag
+   */
+  protected void executeCostUpdateAfterLoading(
+      Mode theMode, double[] costsToUpdate, boolean doLoadingAllFlowUpdatePriorToCostUpdate) {
+    // revert to always updating ALL link costs. This is simple and we know that we are using the right costs for the
+    // gap calculation.
+    boolean updateOnlyPotentiallyBlockingNodeCosts = false;
+//        boolean updateOnlyPotentiallyBlockingNodeCosts = isUpdateOnlyPotentiallyBlockingNodeCosts();
+//        if(updateOnlyPotentiallyBlockingNodeCosts && simulationData.isFirstIteration() && simulationData.isInitialCostsAppliedInFirstIteration(theMode)){
+//          /* initial costs will be inconsistent with loading performed in first iteration, recalculate all link segment costs for free flow conditions first
+//           * and then for those that need tracking override with flow based costs */
+//          CostUtils.populateModalFreeFlowPhysicalLinkSegmentCosts(
+//                  theMode, getInfrastructureNetwork().getLayerByMode(theMode).getLinkSegments(), costsToUpdate);
+//        }
+    this.executeNetworkCostsUpdate(
+        theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate, doLoadingAllFlowUpdatePriorToCostUpdate);
+
+    // todo below is not strictly needed anymore since pas costs are always updated on the fly and
+    //  congested and uncongested pass are currently not separated out
+    /* PAS COST UPDATE */
+    updatePasCosts(theMode, costsToUpdate);
+    /* PAS STATUS UPDATE (used to optimize flow shifts calcs, no longer used but leave status calc for now) */
+    updatePasStatusBeforeFlowShifts(theMode, this.getLoading().getCurrentFlowAcceptanceFactors());
+
+    // DEBUGGING
+    if(getSettings().isDetailedLogging()) {
+      logCongestedSegmentInfo(costsToUpdate, theMode);
     }
   }
 
   /**
-   * Create a network wide shortest bush algorithm based on provided costs
-   * 
-   * @param linkSegmentCosts to use
-   * @return one-to-all shortest bush algorithm
-   */
-  protected ShortestBushGeneralised createNetworkShortestBushAlgo(final double[] linkSegmentCosts) {
-    final int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
-    return new ShortestBushGeneralised(linkSegmentCosts, numberOfVertices);
-  }
-
-  /**
-   * Create a network wide Dijkstra shortest path algorithm based on provided costs
-   * 
-   * @param linkSegmentCosts to use
-   * @return Dijkstra shortest path algorithm
-   */
-  protected ShortestPathDijkstra createNetworkShortestPathAlgo(final double[] linkSegmentCosts) {
-    final int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
-    return new ShortestPathDijkstra(linkSegmentCosts, numberOfVertices);
-  }
-
-  /**
    * Create bush based network loading implementation
-   * 
+   *
    * @return created loading implementation supporting bush-based approach
    */
   @Override
@@ -301,25 +437,25 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   }
 
   /**
+   * {@inheritDoc}
    * Create initial bushes, where for each origin the bush is initialised with the shortest path only
-   * 
-   * @param initialLinkSegmentCosts costs to use
    */
   @Override
-  public void createInitialSolution(double[] initialLinkSegmentCosts) {
+  public void createInitialSolution(Mode mode, OdZones odZones, double[] initialLinkSegmentCosts, int iterationIndex) {
     try {
 
       /* delegate to concrete implementation */
-      if (this.bushes == null || this.bushes.length == 0) {
-        this.bushes = createEmptyBushes();
+      if (this.bushes == null || this.bushes.isEmpty()) {
+        this.bushes = createEmptyBushes(mode);
       }
-      initialiseBushes(initialLinkSegmentCosts);
+      initialiseBushes(mode, initialLinkSegmentCosts);
 
       /* update loading with information */
       getLoading().setBushes(bushes);
       getLoading().setPasManager(this.pasManager);
 
-    } catch (PlanItException e) {
+    } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
       LOGGER.severe(String.format("Unable to create initial bushes for sLTM %d", getAssignmentId()));
     }
   }
@@ -327,74 +463,76 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
   //@formatter:off
   /**
    * Perform an iteration by:
-   *  
-   * 1. Identify new PASs and shift flow from affected bushes
-   * 2. Conduct another loading update based on adjusted PASs and bushes
-   * 3. Update Bushes by shifting flow between existing PASs 
-   * 4. Conducting a loading to obtain network costs 
+   *  <ol>
+   * <li>Conducting a loading to obtain network costs</li>
+   * <li>sync bush flows to network flows based on acceptance factors found in loading</li>
+   * <li>Identify new PASs and shift flow from affected bushes</li>
+   * </ol>
    * 
    * @param theMode to use
+   * @param prevCosts the previously used costs from the previous iteration
    * @param costsToUpdate to place updated costs in (output)
-   * @param iterationIndex we're at
+   * @param simulationData tracking relevant simulation information for the strategy
    * @return true when iteration could be successfully completed, false otherwise
    */
   @Override
-  public boolean performIteration(final Mode theMode, double[] costsToUpdate, int iterationIndex) {
+  public boolean performIteration(
+          final Mode theMode,
+          final double[] prevCosts,
+          double[] costsToUpdate,
+          final StaticLtmSimulationData simulationData) {
     try {
-      
+
       /* 1 - NETWORK LOADING - UPDATE ALPHAS - USE BUSH SPLITTING RATES (i-1) -  MODE AGNOSTIC FOR NOW */
       {
-        executeNetworkLoading();
+        executeNetworkLoading(theMode);
       }
-             
+
       /* 2 - NETWORK COST UPDATE + UPDATE NETWORK REALISED COST GAP */
       {
-        boolean updateOnlyPotentiallyBlockingNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-        this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
-        
-        /* PAS COST UPDATE*/
-        pasManager.updateCosts(costsToUpdate);      
-                          
-        LOGGER.info(String.format("** ALPHA: %s", Arrays.toString(getLoading().getCurrentFlowAcceptanceFactors())));
-        LOGGER.info(String.format("** COSTS: %s", Arrays.toString(costsToUpdate)));
-        LOGGER.info(String.format("** INFLOW: %s", Arrays.toString(getLoading().getCurrentInflowsPcuH())));
-        LOGGER.info(String.format("** OUTFLOW: %s", Arrays.toString(getLoading().getCurrentOutflowsPcuH())));
+        executeCostUpdateAfterLoading(theMode, costsToUpdate, true);
       }
-      
+
       /* 3 - BUSH LOADING - SYNC BUSH TURN FLOWS - USE NETWORK LOADING ALPHAS - MODE AGNOSTIC FOR NOW */
       {
         syncBushFlowsToNetworkFlows();
       }
-      
-      /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */     
+
+      /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */
       {
-        /* (NEW) PAS MATCHING FOR BUSHES */
-        Collection<Pas> newPass = updateBushPass(costsToUpdate);            
-              
-        /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
-        Collection<Pas> updatedPass = shiftFlows(theMode);      
-        
+        // debugging
+        boolean logAll = false;
+
+        /* (NEW) PAS MATCHING FOR BUSHES  + GAP calc */
+        var passToConsider = updateBushPassAndGap(theMode, costsToUpdate, simulationData, logAll);
         if(getSettings().isDetailedLogging()) {
-          var newUsedPass = new ArrayList<Pas>(newPass);
-          newUsedPass.retainAll(updatedPass);
-          newUsedPass.forEach( p -> LOGGER.info(String.format("Created new PAS and applied flow shift on it: %s", p.toString()))); 
+          LOGGER.info(String.format("Newly added PASs: %d (active: %d))",
+                  passToConsider.size(), pasManager.getNumberOfActivePass()));
         }
-        /* Remove unused new PASs, in case no flow shift is applied due to overlap with PAS with higher reduced cost 
-         * In this case, the new PAS is not used and is to be removed identical to how existing PASs are removed during flow shifts when they no longer carry flow*/
-        newPass.removeAll(updatedPass);
-        newPass.forEach( pas -> pasManager.removePas(pas, false));
+
+        /* DO FLOW SHIFTS  */
+        {
+          // code for flow shifting in dedicated executor instances. Create them here, one for each PAS.
+          Map<Pas<V,ES>, PasFlowShiftExecutor<V,ES>> pasExecutors = prepareForFlowShifts( );
+          // execute actual flow shifting per PAS
+          performFlowShifts(theMode, pasExecutors, costsToUpdate, simulationData);
+          // Dispose of PASs that no longer have S2 flows
+          logFlowShiftPerformedAndDeregisterEmptyPass();
+        }
+
       }
-      
+
     }catch(Exception e) {
       LOGGER.severe(e.getMessage());
-      LOGGER.severe("Unable to complete sLTM iteration");
-      if(getSettings().isDetailedLogging()) {
+      LOGGER.severe("Unable to complete sLTM iteration, print stack trace when enabling detailed logging");
+      if(getSettings().isDetailedLogging()){
         e.printStackTrace();
       }
       return false;
     }
     return true;
   }
+
 
   /**
    * Unlike the default convergence check, we also see if the solution is proportional if relevant; in a bush setting with a triangular fundamental diagram we do not obtain a
@@ -408,15 +546,41 @@ public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> exte
    */
   @Override
   public boolean hasConverged(GapFunction gapFunction, int iterationIndex) {
-    // TODO Auto-generated method stub
-    boolean converged = super.hasConverged(gapFunction, iterationIndex);
-    if (converged && getSettings().isEnforceMaxEntropyFlowSolution()) {
-      converged = isSolutionFlowEntropyMaximised(gapFunction.getStopCriterion().getEpsilon());
-      if(!converged) {
-        LOGGER.info("cost convergence: yes - yet one or more PASs flow distribution is not entropy maximised - overall convergence: no");
-      }
-    }
-    return converged;
-  } 
+    return super.hasConverged(gapFunction, iterationIndex);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * Bush-based based assignment check
+   */
+  @Override
+  public void verifyComponentCompatibility() {
+    super.verifyComponentCompatibility();
+
+
+    var gapFunction = getTrafficAssignmentComponent(GapFunction.class);
+    /* gap function check */
+    PlanItRunTimeException.throwIf(!(gapFunction instanceof PathBasedGapFunction),
+            "%s bush based Static LTM currently requires PAS compatible PathBasedRelative gap function, but found %s", gapFunction.getClass().getCanonicalName());
+
+    var virtualCost = getVirtualCost();
+    /* virtual cost check */
+    PlanItRunTimeException.throwIf(!(virtualCost instanceof SteadyStateConnectoidTravelTimeCost),
+        "%s bush based Static LTM currently requires SteadyStateVirtualCost so queues on connectors can provide a meaningful derivative for equilibration", virtualCost.getClass().getCanonicalName());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdSkimMatrix createOdSkimMatrix(
+          SkimSubOutputType odSkimOutputType, Mode mode, StaticLtmSimulationData iterationData) {
+    LOGGER.warning(String.format("OD Skim matrix support not yet available in %s for type %s and mode (%s)",
+            this.getClass().getCanonicalName(), odSkimOutputType, mode.getIdsAsString()));
+
+    // for time being use empty skim matrix
+    return new OdSkimMatrix(getTransportNetwork().getZoning().getOdZones(), odSkimOutputType);
+  }
 
 }

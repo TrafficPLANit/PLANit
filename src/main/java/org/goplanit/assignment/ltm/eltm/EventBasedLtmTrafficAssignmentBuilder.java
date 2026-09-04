@@ -22,7 +22,7 @@ public class EventBasedLtmTrafficAssignmentBuilder extends TrafficAssignmentBuil
    * @return eLTM configurator
    */
   @Override
-  protected EventBasedLtmConfigurator createConfigurator() throws PlanItException {
+  protected EventBasedLtmConfigurator createConfigurator() {
     return new EventBasedLtmConfigurator();
   }
 

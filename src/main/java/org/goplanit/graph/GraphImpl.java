@@ -11,6 +11,8 @@ import org.goplanit.utils.id.IdGroupingToken;
  * 
  * @author markr
  *
+ * @param <E> type of edge
+ * @param <V> type of vertex
  */
 public class GraphImpl<V extends Vertex, E extends Edge> extends UntypedGraphImpl<V, E> implements Graph<V, E> {
 
@@ -41,7 +43,11 @@ public class GraphImpl<V extends Vertex, E extends Edge> extends UntypedGraphImp
    * @param edgeMapper mapper to tracking mapping
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public GraphImpl(final GraphImpl<V, E> graphImpl, boolean deepCopy, GraphEntityDeepCopyMapper<V> vertexMapper, GraphEntityDeepCopyMapper<E> edgeMapper) {
+  public GraphImpl(
+          final GraphImpl<V, E> graphImpl,
+          boolean deepCopy,
+          GraphEntityDeepCopyMapper<V> vertexMapper,
+          GraphEntityDeepCopyMapper<E> edgeMapper) {
     super(graphImpl, deepCopy, vertexMapper, edgeMapper);
   }
 

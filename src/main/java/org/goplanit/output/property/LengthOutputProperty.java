@@ -3,9 +3,17 @@ package org.goplanit.output.property;
 import org.goplanit.output.enums.DataType;
 import org.goplanit.utils.unit.Unit;
 
+/**
+ * Output property for Length.
+ */
 public final class LengthOutputProperty extends OutputProperty {
 
+
+  /** Length. */
   public static final String NAME = "Length";
+
+  /** Public no-arg constructor required for reflective instantiation. */
+  public LengthOutputProperty(){}
 
   /**
    * {@inheritDoc}

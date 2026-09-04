@@ -2,6 +2,7 @@ package org.goplanit.graph;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.Edge;
@@ -12,11 +13,12 @@ import org.goplanit.utils.misc.CloneUtils;
 import org.locationtech.jts.geom.LineString;
 
 /**
- * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry additional information for each
- * particular direction of the edge.
+ * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in
+ * a particular direction which may carry additional information for each particular direction of the edge.
  *
  * @author markr
  *
+ * @param <V> type of vertex
  */
 public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge {
 
@@ -29,12 +31,12 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
   /**
    * Vertex A
    */
-  private V vertexA = null;
+  private V vertexA;
 
   /**
    * Vertex B
    */
-  private V vertexB = null;
+  private V vertexB;
 
   /**
    * The line geometry of this link if set
@@ -57,21 +59,12 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
   protected Double lengthInKm;
 
   /**
-   * set vertex B
-   * 
-   * @param vertexB to set
+   * Constructor for empty edge, use with care
+   *
+   * @param groupId, contiguous id generation within this group for instances of this class
    */
-  protected void setVertexB(V vertexB) {
-    this.vertexB = vertexB;
-  }
-
-  /**
-   * set vertex A
-   * 
-   * @param vertexA to set
-   */
-  protected void setVertexA(V vertexA) {
-    this.vertexA = vertexA;
+  protected EdgeImpl(final IdGroupingToken groupId) {
+    this(groupId, null, null);
   }
 
   /**
@@ -178,13 +171,29 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
     return true;
   }
 
+  @Override
+  public boolean hasInputProperty() {
+    return inputProperties != null && !inputProperties.isEmpty();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<String> getInputPropertyKeys(){
+    if (inputProperties == null) {
+      return null;
+    }
+    return inputProperties.keySet();
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
   public void addInputProperty(final String key, final Object value) {
     if (inputProperties == null) {
-      inputProperties = new HashMap<String, Object>();
+      inputProperties = new HashMap<>();
     }
     inputProperties.put(key, value);
   }
@@ -235,6 +244,28 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
   }
 
   /**
+   * set vertex B. Use with care.
+   *
+   * @param vertexB to set
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public void setVertexB(Vertex vertexB) {
+    this.vertexB = (V) vertexB;
+  }
+
+  /**
+   * set vertex A. Use with care
+   *
+   * @param vertexA to set
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public void setVertexA(Vertex vertexA) {
+    this.vertexA = (V)vertexA;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -263,11 +294,11 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
     if (vertexToReplaceWith != null) {
       if (getVertexA() != null && vertexToReplace.getId() == getVertexA().getId()) {
         removeVertex(vertexToReplace);
-        setVertexA((V) vertexToReplaceWith);
+        setVertexA(vertexToReplaceWith);
         vertexReplaced = true;
       } else if (getVertexB() != null && vertexToReplace.getId() == getVertexB().getId()) {
         removeVertex(vertexToReplace);
-        setVertexB((V) vertexToReplaceWith);
+        setVertexB(vertexToReplaceWith);
         vertexReplaced = true;
       }
     }
@@ -306,6 +337,11 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
 
     if (getVertexB() == null) {
       LOGGER.warning(String.format("Vertex B missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
+      return false;
+    }
+
+    if (getVertexA().getEdges(getVertexB()) == null || !(getVertexA().getEdges(getVertexB()).contains(this))) {
+      LOGGER.warning(String.format("Edge (id:%d externalId:%s) not registered on vertex A", getId(), getExternalId()));
       return false;
     }
 

@@ -3,15 +3,15 @@ package org.goplanit.assignment.traditionalstatic;
 import java.util.Optional;
 
 import org.goplanit.assignment.TrafficAssignment;
-import org.goplanit.od.skim.OdSkimMatrix;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix;
 import org.goplanit.output.adapter.OdOutputTypeAdapterImpl;
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.mode.Mode;
 
 /**
- * Adapter providing access to the data of the TraditionalStaticAssignment class relevant for origin-destination outputs without exposing the internals of the traffic assignment
- * class itself
+ * Adapter providing access to the data of the TraditionalStaticAssignment class relevant for origin-destination
+ * outputs without exposing the internals of the traffic assignment class itself
  * 
  * @author gman6028
  *
@@ -43,7 +43,7 @@ public class TraditionalStaticAssignmentOdOutputTypeAdapter extends OdOutputType
    * @param mode             the specified mode
    * @return the OD skim matrix
    */
-  public Optional<OdSkimMatrix> getOdSkimMatrix(OdSkimSubOutputType odSkimOutputType, Mode mode) {
+  public Optional<OdSkimMatrix> getOdSkimMatrix(SkimSubOutputType odSkimOutputType, Mode mode) {
     return Optional.of(getAssignment().getIterationData().getOdSkimMatrix(odSkimOutputType, mode));
   }
 

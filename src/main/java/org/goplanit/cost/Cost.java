@@ -7,7 +7,7 @@ import org.goplanit.utils.mode.Mode;
  * Cost of an EdgeSegment
  * 
  * @author markr
- *
+ * @param <T> type of edge segment
  */
 public interface Cost<T extends EdgeSegment> {
 
@@ -30,9 +30,11 @@ public interface Cost<T extends EdgeSegment> {
   public abstract double getTravelTimeCost(final Mode mode, final T edgeSegment);
 
   /**
-   * Get the first derivative of the used travel time computation method towards the edge segment (in) flow rate in PCU per hour, i.e. dTraveltime//dFlow.
+   * Get the first derivative of the used travel time computation method towards the edge segment (in) flow rate
+   * in PCU per hour, i.e. dTraveltime//dFlow.
    * 
-   * @param uncongested flag idicating if the provided flow is uncongested or congested flow, relevant when flow can represent multiple traffic states
+   * @param uncongested flag indicating if the provided flow is uncongested or congested flow, relevant when
+   *                    flow can represent multiple traffic states
    * @param mode        to use
    * @param edgeSegment to use
    * @return the first derivative of travel time for a unit flow rate change in PCU per Hour

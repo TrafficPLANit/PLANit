@@ -33,7 +33,7 @@ public class StopCriterionConfigurator extends Configurator<StopCriterion> {
    * @param stopCriterion the instance to configure
    */
   @Override
-  public void configure(StopCriterion stopCriterion) throws PlanItException {
+  public void configure(StopCriterion stopCriterion) {
     super.configure((StopCriterion) stopCriterion);
   }
 

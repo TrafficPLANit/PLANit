@@ -14,6 +14,7 @@ import org.goplanit.output.enums.OutputTypeEnum;
 import org.goplanit.output.enums.SubOutputTypeEnum;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
@@ -83,15 +84,19 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * Initialize the output key properties for the specified output type configuration
    * 
    * @param outputTypeConfiguration the specified output type configuration
-   * @throws PlanItException thrown if the output keys are invalid or the output type has not been configured yet
+   * @return success when false, the output type should be disabled as it cannot be persisted correctly
    */
-  private void initializeKeyProperties(OutputTypeConfiguration outputTypeConfiguration) throws PlanItException {
+  private boolean initializeKeyProperties(OutputTypeConfiguration outputTypeConfiguration) {
     OutputProperty[] outputKeyPropertyArray = outputTypeConfiguration.getOutputKeyProperties();
     OutputType outputType = outputTypeConfiguration.getOutputType();
     OutputProperty[] outputKeyPropertiesArray = outputTypeConfiguration.validateAndFilterKeyProperties(outputKeyPropertyArray);
 
-    PlanItException.throwIf(outputKeyPropertiesArray == null, "Key properties invalid for OutputType " + outputType.value() + " not correctly defined");
+    if(outputKeyPropertiesArray == null) {
+      LOGGER.warning("No output key properties defined or invalid, for OutputType " + outputType.value());
+      return false;
+    }
     outputKeyProperties.put(outputType, outputKeyPropertiesArray);
+    return true;
   }
 
   /**
@@ -105,7 +110,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   }
 
   /**
-   * Write link results for the current time period to the CSV file
+   * Write link results for the current time period
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
@@ -114,13 +119,18 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
    * @param iterationIndex          current iteration index
-   * @throws PlanItException thrown if there is an error
    */
-  protected abstract void writeLinkResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
+  protected abstract void writeLinkResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex);
 
   /**
-   * Write General results for the current time period to the CSV file
+   * Write General results for the current time period
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
@@ -129,13 +139,18 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
    * @param iterationIndex          current iteration index
-   * @throws PlanItException thrown if there is an error
    */
-  protected abstract void writeGeneralResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
+  protected abstract void writeGeneralResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex);
 
   /**
-   * Write Origin-Destination results for the time period to the CSV file
+   * Write Origin-Destination results for the time period
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
@@ -144,13 +159,18 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
    * @param iterationIndex          current iteration index
-   * @throws PlanItException thrown if there is an error
    */
-  protected abstract void writeOdResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
+  protected abstract void writeOdResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex);
 
   /**
-   * Write Simulation results for the current time period to the CSV file
+   * Write Simulation results for the current time period
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
@@ -159,13 +179,18 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
    * @param iterationIndex          current iteration index
-   * @throws PlanItException thrown if there is an error
    */
-  protected abstract void writeSimulationResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
+  protected abstract void writeSimulationResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex);
 
   /**
-   * Write OD Path results for the time period to the CSV file
+   * Write OD Path results for the time period
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
@@ -174,10 +199,35 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
    * @param iterationIndex          current iteration index
-   * @throws PlanItException thrown if there is an error
    */
-  protected abstract void writePathResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
+  protected abstract void writePathResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex);
+
+  /**
+   * Write bush results for the current time period
+   *
+   * @param outputConfiguration     output configuration
+   * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
+   * @param currentOutputType       active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
+   * @param outputAdapter           OutputAdapter for current persistence
+   * @param modes                   Set of modes of travel
+   * @param timePeriod              current time period
+   * @param iterationIndex          current iteration index
+   */
+  protected abstract void writeBushResultsForCurrentTimePeriod(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          int iterationIndex);
 
   /**
    * Constructor
@@ -186,11 +236,11 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    */
   public BaseOutputFormatter(IdGroupingToken groupId) {
     this.id = IdGenerator.generateId(groupId, BaseOutputFormatter.class);
-    this.outputKeyProperties = new HashMap<OutputType, OutputProperty[]>();
-    this.outputValueProperties = new HashMap<OutputType, OutputProperty[]>();
+    this.outputKeyProperties = new HashMap<>();
+    this.outputValueProperties = new HashMap<>();
     this.outputTimeUnit = DEFAULT_TIME_UNIT;
-    this.outputTypeValuesLocked = new HashMap<OutputType, Boolean>();
-    this.outputTypeKeysLocked = new HashMap<OutputType, Boolean>();
+    this.outputTypeValuesLocked = new HashMap<>();
+    this.outputTypeKeysLocked = new HashMap<>();
     for (OutputType outputType : OutputType.values()) {
       this.outputTypeValuesLocked.put(outputType, false);
       this.outputTypeKeysLocked.put(outputType, false);
@@ -202,81 +252,107 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * 
    * @param timePeriod              time period for current results
    * @param modes                   Set of modes covered by current results
-   * @param outputConfiguration     output configuration
-   * @param outputTypeConfiguration output configuration being used
+   * @param outputConfig     output configuration
+   * @param outputTypeConfig output configuration being used
    * @param outputAdapter           output adapter being used
-   * @throws PlanItException thrown if there is an error
    */
   @Override
-  public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter)
-      throws PlanItException {
+  public void persist(
+      TimePeriod timePeriod,
+      Set<Mode> modes,
+      OutputConfiguration outputConfig,
+      OutputTypeConfiguration outputTypeConfig,
+      OutputAdapter outputAdapter) {
 
-    OutputType outputType = outputTypeConfiguration.getOutputType();
-    OutputProperty[] outputValuePropertyArray = outputTypeConfiguration.getOutputValueProperties();
+    OutputType outputType = outputTypeConfig.getOutputType();
+    OutputProperty[] outputValuePropertyArray = outputTypeConfig.getOutputValueProperties();
     if (!outputTypeValuesLocked.get(outputType)) {
       outputValueProperties.put(outputType, outputValuePropertyArray);
     } else {
       OutputProperty[] existingOutputValuePropertyArray = outputValueProperties.get(outputType);
 
-      PlanItException.throwIf(outputValuePropertyArray.length != existingOutputValuePropertyArray.length,
+      PlanItRunTimeException.throwIf(outputValuePropertyArray.length != existingOutputValuePropertyArray.length,
           "An attempt was made to change the output value properties after they had been locked");
 
       for (int i = 0; i < outputValuePropertyArray.length; i++) {
-        PlanItException.throwIf(!existingOutputValuePropertyArray[i].equals(outputValuePropertyArray[i]),
+        PlanItRunTimeException.throwIf(!existingOutputValuePropertyArray[i].equals(outputValuePropertyArray[i]),
             "An attempt was made to change the output value properties after they had been locked");
       }
     }
 
     if (!outputTypeKeysLocked.get(outputType)) {
-      initializeKeyProperties(outputTypeConfiguration);
+      boolean success = initializeKeyProperties(outputTypeConfig);
+      if(!success){
+        LOGGER.warning("Ignoring OutputType: [" + outputType.value() + "] for persistence");
+        return;
+      }
     }
+
+    if(!outputAdapter.hasOutputTypeAdapter(outputType)){
+      LOGGER.warning(String.format("Output type %s not supported for this configuration of %s, ignored", outputType, outputAdapter.getAssignmentClassName()));
+      return;
+    }
+    var adapter = outputAdapter.getOutputTypeAdapter(outputType);
 
     // Each output type configuration can contain multiple suboutputypes (or not). We collect the
     // iteration reference (which might be different from the simulation iteration, and the
-    // (sub)outputtype combination before proceeding with the actual persisting
-    Map<OutputTypeEnum, Integer> outputTypeIterationInformation = new HashMap<OutputTypeEnum, Integer>();
-    if (outputTypeConfiguration.hasActiveSubOutputTypes()) {
-      // subdivided in suboutputtypes, each having their own file and possible a different reference
+    // (sub)output type combination before proceeding with the actual persisting
+    var outputTypeIterationInformation = new HashMap<OutputTypeEnum, Integer>();
+    if (outputTypeConfig.hasActiveSubOutputTypes()) {
+      // subdivided in suboutput types, each having their own file and possible a different reference
       // iteration index
-      Set<SubOutputTypeEnum> subOutputTypes = outputTypeConfiguration.getActiveSubOutputTypes();
+      Set<SubOutputTypeEnum> subOutputTypes = outputTypeConfig.getActiveSubOutputTypes();
       for (SubOutputTypeEnum subOutputTypeEnum : subOutputTypes) {
-        Optional<Integer> iterationIndex = outputAdapter.getOutputTypeAdapter(outputType).getIterationIndexForSubOutputType(subOutputTypeEnum);
+        Optional<Integer> iterationIndex = adapter.getIterationIndexForSubOutputType(subOutputTypeEnum);
         if (iterationIndex.isEmpty()) {
-          throw new PlanItException("iteration index could not be retrieved when persisting");
+          LOGGER.severe(String.format("Iteration index could not be retrieved when persisting for %s (sub)output type %s, ignoring", outputType, subOutputTypeEnum));
+          continue;
         }
         outputTypeIterationInformation.put(subOutputTypeEnum, iterationIndex.get());
       }
     } else {
-      // regular approach, single outputtype with single iteration reference
-      Optional<Integer> iterationIndex = outputAdapter.getOutputTypeAdapter(outputType).getIterationIndexForSubOutputType(null);
+      // regular approach, single output type with single iteration reference
+      Optional<Integer> iterationIndex = adapter.getIterationIndexForSubOutputType(null);
       if (iterationIndex.isEmpty()) {
-        throw new PlanItException("iteration index could not be retrieved when persisting");
+        throw new PlanItRunTimeException("Iteration index could not be retrieved when persisting");
       }
       outputTypeIterationInformation.put(outputType, iterationIndex.get());
     }
 
     // Each unique combination of (sub)output type (configuration), its iteration index, and related
     // data is now relayed to the appropriate methods
-    for (Map.Entry<OutputTypeEnum, Integer> entry : outputTypeIterationInformation.entrySet()) {
+    for (var entry : outputTypeIterationInformation.entrySet()) {
       OutputTypeEnum currentOutputTypeEnum = entry.getKey();
       int iterationIndex = entry.getValue();
       switch (outputType) {
-      case GENERAL:
-        writeGeneralResultsForCurrentTimePeriod(outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
-        break;
-      case LINK:
-        writeLinkResultsForCurrentTimePeriod(outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
-        break;
-      case OD:
-        writeOdResultsForCurrentTimePeriod(outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
-        break;
-      case SIMULATION:
-        writeSimulationResultsForCurrentTimePeriod(outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
-        break;
-      case PATH:
-        writePathResultsForCurrentTimePeriod(outputConfiguration, outputTypeConfiguration, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
-        break;
-      }
+        case GENERAL:
+          writeGeneralResultsForCurrentTimePeriod(
+              outputConfig, outputTypeConfig, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+          break;
+        case LINK:
+          writeLinkResultsForCurrentTimePeriod(
+              outputConfig, outputTypeConfig, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+          break;
+        case OD:
+          writeOdResultsForCurrentTimePeriod(
+              outputConfig, outputTypeConfig, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+          break;
+        case SIMULATION:
+          writeSimulationResultsForCurrentTimePeriod(
+              outputConfig, outputTypeConfig, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+          break;
+        case PATH:
+          writePathResultsForCurrentTimePeriod(
+              outputConfig, outputTypeConfig, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+          break;
+        case BUSH:
+          writeBushResultsForCurrentTimePeriod(
+                  outputConfig, outputTypeConfig, currentOutputTypeEnum, outputAdapter, modes, timePeriod, iterationIndex);
+          break;
+        default:
+          LOGGER.warning(String.format("Unsupported output type %s found when persisting output formatter results, " +
+                  "should not happen", outputType));
+    }
       lockOutputProperties(outputType);
     }
   }

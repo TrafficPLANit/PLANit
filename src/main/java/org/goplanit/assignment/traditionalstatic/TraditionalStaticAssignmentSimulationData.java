@@ -6,16 +6,17 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.goplanit.assignment.ModalSkimMatrixData;
 import org.goplanit.assignment.SimulationData;
-import org.goplanit.od.path.OdPathMatrix;
-import org.goplanit.od.skim.OdSkimMatrix;
+import org.goplanit.zoning.od.path.OdPathMatrix;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix;
 import org.goplanit.output.configuration.OdOutputTypeConfiguration;
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.utils.arrays.ArrayUtils;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.time.RunTimesTracker;
 import org.goplanit.utils.zoning.OdZones;
 
 /**
@@ -42,14 +43,21 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   private Map<Mode, double[]> modalNetworkSegmentCostsMap;
 
   /**
-   * Stores a skim matrix for each mode and skim output type(updated cell by cell for each iteration)
-   */
-  private Map<Mode, Map<OdSkimSubOutputType, OdSkimMatrix>> modalSkimMatrixMap;
-
-  /**
    * Stores the current OD Path for each mode
    */
   private Map<Mode, OdPathMatrix> modalOdPathMatrixMap;
+
+  /*
+   * Stores a skim matrix for each mode and skim output type(updated cell by cell for each iteration)
+   */
+  private ModalSkimMatrixData modalSkimMatrixData;
+
+  /**
+   * Initialise what types of run times we will be tracking for traditional static assignment
+   */
+  private void initialiseRunTimeTracker() {
+    getRunTimesTracker().registerNew(RunTimesTracker.GENERAL);
+  }
 
   /**
    * Constructor
@@ -60,8 +68,10 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     this.groupId = groupId;
     this.modeSpecificData = new TreeMap<>();
     this.modalNetworkSegmentCostsMap = new HashMap<>();
-    this.modalSkimMatrixMap = new HashMap<>();
+    this.modalSkimMatrixData = new ModalSkimMatrixData();
     this.modalOdPathMatrixMap = new HashMap<>();
+
+    initialiseRunTimeTracker();
   }
 
   /**
@@ -80,7 +90,8 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @return the total flow through this link segment
    */
   public double collectTotalNetworkSegmentFlow(LinkSegment linkSegment) {
-    return modeSpecificData.values().stream().collect((Collectors.summingDouble(modeData -> modeData.getCurrentSegmentFlows()[(int) linkSegment.getId()])));
+    return modeSpecificData.values().stream().collect(
+        (Collectors.summingDouble(modeData -> modeData.getCurrentSegmentFlows()[(int) linkSegment.getId()])));
   }
 
   /**
@@ -128,13 +139,9 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param zones                                    Zones object containing all the origin and destination zones
    * @param originDestinationOutputTypeConfiguration configuration to use
    */
-  public void resetSkimMatrix(Mode mode, OdZones zones, OdOutputTypeConfiguration originDestinationOutputTypeConfiguration) {
-    modalSkimMatrixMap.put(mode, new HashMap<>());
-
-    for (var odSkimOutputType : originDestinationOutputTypeConfiguration.getActiveSubOutputTypes()) {
-      OdSkimMatrix odSkimMatrix = new OdSkimMatrix(zones, (OdSkimSubOutputType) odSkimOutputType);
-      modalSkimMatrixMap.get(mode).put((OdSkimSubOutputType) odSkimOutputType, odSkimMatrix);
-    }
+  public void resetSkimMatrix(
+      Mode mode, OdZones zones, OdOutputTypeConfiguration originDestinationOutputTypeConfiguration) {
+    modalSkimMatrixData.resetAndCreateEmptySkimMatrices(mode, zones, originDestinationOutputTypeConfiguration);
   }
 
   /**
@@ -154,14 +161,8 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param mode             the specified mode
    * @return the skim matrix for the specified mode
    */
-  public OdSkimMatrix getOdSkimMatrix(OdSkimSubOutputType odSkimOutputType, Mode mode) {
-    if (modalSkimMatrixMap.containsKey(mode)) {
-      Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap = modalSkimMatrixMap.get(mode);
-      if (skimMatrixMap.containsKey(odSkimOutputType)) {
-        return skimMatrixMap.get(odSkimOutputType);
-      }
-    }
-    return null;
+  public OdSkimMatrix getOdSkimMatrix(SkimSubOutputType odSkimOutputType, Mode mode) {
+    return modalSkimMatrixData.getOdSkimMatrix(odSkimOutputType, mode);
   }
 
   /**
@@ -170,7 +171,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param mode the specified mode
    * @return the OD path for this mode
    */
-  public OdPathMatrix getOdPathMatrix(Mode mode) {
+  public OdPathMatrix getOdPaths(Mode mode) {
     return modalOdPathMatrixMap.get(mode);
   }
 
@@ -180,8 +181,8 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param mode the specified mode
    * @return Map of OD Skim matrices for all active OD Skim Output Types
    */
-  public Map<OdSkimSubOutputType, OdSkimMatrix> getSkimMatrixMap(Mode mode) {
-    return modalSkimMatrixMap.get(mode);
+  public Map<SkimSubOutputType, OdSkimMatrix> getSkimMatrixMap(Mode mode) {
+    return modalSkimMatrixData.getSkimMatricesByMode(mode);
   }
 
 }

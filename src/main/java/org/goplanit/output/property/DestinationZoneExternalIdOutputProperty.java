@@ -3,8 +3,15 @@ package org.goplanit.output.property;
 import org.goplanit.output.enums.DataType;
 import org.goplanit.utils.unit.Unit;
 
+/**
+ * output property for destination zone external id
+ */
 public final class DestinationZoneExternalIdOutputProperty extends OutputProperty {
 
+  /** dummy constructor */
+  public DestinationZoneExternalIdOutputProperty(){}
+
+  /** Destination Zone External Id. */
   public static final String NAME = "Destination Zone External Id";
 
   /**

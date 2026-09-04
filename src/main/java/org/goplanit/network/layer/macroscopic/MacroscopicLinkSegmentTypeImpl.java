@@ -1,11 +1,6 @@
 package org.goplanit.network.layer.macroscopic;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.ExternalIdAbleImpl;
@@ -17,8 +12,8 @@ import org.goplanit.utils.network.layer.macroscopic.AccessGroupProperties;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 
 /**
- * Each macroscopic link segment is of a particular type reflecting segment specific properties. On top of the segment specific properties each segment can have user class specific
- * properties as well.
+ * Each macroscopic link segment is of a particular type reflecting segment specific properties. On top of the segment
+ * specific properties each segment can have user class specific properties as well.
  * 
  * @author markr
  *
@@ -48,7 +43,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   /**
    * Track access properties for each of the modes it supports for quick lookups
    */
-  protected Map<Mode, AccessGroupProperties> modeAccessProperties;
+  protected TreeMap<Mode, AccessGroupProperties> modeAccessProperties;
 
   /**
    * set the id on this link segment type
@@ -88,7 +83,8 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * @param name            name of this link segment type
    * @param capacityPerLane capacity per lane of this link segment type
    */
-  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final Double capacityPerLane) {
+  protected MacroscopicLinkSegmentTypeImpl(
+          final IdGroupingToken groupId, final String name, final Double capacityPerLane) {
     this(groupId, name, capacityPerLane, null);
   }
 
@@ -100,7 +96,12 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * @param capacityPerLane       capacity per lane of this link segment type
    * @param maximumDensityPerLane maximum density per lane of this link segment type
    */
-  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final Double capacityPerLane, final Double maximumDensityPerLane) {
+  protected MacroscopicLinkSegmentTypeImpl(
+          final IdGroupingToken groupId,
+          final String name,
+          final Double capacityPerLane,
+          final Double maximumDensityPerLane) {
+
     super(generateId(groupId));
     setName(name);
     this.capacityPerLanePcuHourLane = capacityPerLane;
@@ -187,6 +188,14 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
+  public TreeMap<Mode, AccessGroupProperties> getAccessProperties() {
+    return modeAccessProperties;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public boolean isModeAllowed(Mode mode) {
     return modeAccessProperties.containsKey(mode);
   }
@@ -197,7 +206,8 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   @Override
   public boolean isModeTypeAllowed(PredefinedModeType modeType) {
     return modeAccessProperties.entrySet().stream().anyMatch(
-            entry -> entry.getKey().isPredefinedModeType() && entry.getKey().getPredefinedModeType().equals(modeType));
+            entry -> entry.getKey().isPredefinedModeType() &&
+                entry.getKey().getPredefinedModeType().equals(modeType));
   }
 
   /**
@@ -243,7 +253,9 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     for (AccessGroupProperties entry : accessProperties) {
       for (Mode mode : entry.getAccessModes()) {
         if (processedModes.contains(mode)) {
-          LOGGER.warning(String.format("Multiple provided access proprties on link segment type define the same mode (%s), ignoring all but first encountered", mode.getXmlId()));
+          LOGGER.warning(String.format(
+                  "Multiple provided access properties on link segment type define the same mode (%s), ignoring " +
+                          "all but first encountered", mode.getXmlId()));
         }
         this.modeAccessProperties.put(mode, entry);
       }
@@ -265,9 +277,11 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
-  public void addAccessGroupProperties(AccessGroupProperties accessProperties) {
-    if (findEqualAccessPropertiesForAnyMode(accessProperties) != null) {
-      LOGGER.warning(String.format("IGNORE: Unable to register new access properties on link segment type %s, identical group already exist", getXmlId()));
+  public void addAccessGroupProperties(AccessGroupProperties accessProperties, boolean logWarning) {
+    if (findEqualAccessPropertiesForAnyMode(accessProperties) != null && logWarning) {
+      LOGGER.warning(String.format("IGNORE: Unable to register new access properties on link segment type %s, " +
+              "identical group already exist", getXmlId()));
+      return;
     }
     setAccessGroupProperties(accessProperties);
   }
@@ -284,7 +298,8 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     boolean success = accessProperties.removeAccessMode(toBeRemovedMode);
     this.modeAccessProperties.remove(toBeRemovedMode);
     if(!accessProperties.hasAccessModes() && !hasAllowedModes()){
-      LOGGER.warning(String.format("Link segment type (%s) has no more supported modes, consider removing", this.getXmlId()));
+      LOGGER.warning(String.format("Link segment type (%s) has no more supported modes, consider removing",
+          this.getXmlId()));
     }
     return success;
   }
@@ -313,16 +328,40 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    */
   @Override
   public void registerModeOnAccessGroup(Mode accessMode, AccessGroupProperties accessGroupProperties) {
+    if(accessMode == null){
+      LOGGER.warning("IGNORE: Unable to register new access mode as it is null");
+      return;
+    }
+    if(accessGroupProperties == null){
+      LOGGER.warning(String.format("IGNORE: Unable to register new access mode (%s) as its access group " +
+          "properties are null", accessMode.getIdsAsString()));
+      return;
+    }
     if(findEqualAccessPropertiesForAnyMode(accessGroupProperties) == null){
-      LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group because access group does not exist on this link segment type (%s)", getXmlId()));
+      LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group" +
+          " because access group does not exist on this link segment type (%s)", getXmlId()));
       return;
     }
     if(modeAccessProperties.containsKey(accessMode)){
-      LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group because mode is already registered on an access group for this link segment type (%s)", getXmlId()));
+      LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group " +
+          "because mode is already registered on an access group for this link segment type (%s)", getXmlId()));
       return;
     }
     this.modeAccessProperties.put(accessMode, accessGroupProperties);
     accessGroupProperties.addAccessMode(accessMode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isFunctionalEqual(MacroscopicLinkSegmentType other){
+    return
+        Objects.equals(getExplicitCapacityPerLaneOrDefault(), other.getExplicitCapacityPerLaneOrDefault()) &&
+        Objects.equals(getExplicitMaximumDensityPerLaneOrDefault(), other.getExplicitMaximumDensityPerLaneOrDefault()) &&
+        Objects.equals(getAllowedModes(), other.getAllowedModes()) &&
+        getAllowedModes().stream().allMatch(
+            m -> Objects.equals(getAccessProperties(m), other.getAccessProperties(m)));
   }
 
   /**

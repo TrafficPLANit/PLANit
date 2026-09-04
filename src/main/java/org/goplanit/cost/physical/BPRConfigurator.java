@@ -31,7 +31,8 @@ public class BPRConfigurator extends PhysicalCostConfigurator<BprLinkTravelTimeC
    * @param alpha       alpha value
    * @param beta        beta value
    */
-  public void setParameters(final MacroscopicLinkSegment linkSegment, final Mode mode, final double alpha, final double beta) {
+  public void setParameters(
+      final MacroscopicLinkSegment linkSegment, final Mode mode, final double alpha, final double beta) {
     registerDelayedMethodCall(SET_PARAMETERS, linkSegment, mode, alpha, beta);
   }
 
@@ -42,7 +43,8 @@ public class BPRConfigurator extends PhysicalCostConfigurator<BprLinkTravelTimeC
    * @param alpha alpha value
    * @param beta  beta value
    */
-  public void setDefaultParameters(final Mode mode, final double alpha, final double beta) {
+  public void setDefaultParameters(
+      final Mode mode, final double alpha, final double beta) {
     registerDelayedMethodCall(SET_DEFAULT_PARAMETERS, mode, alpha, beta);
   }
 
@@ -54,7 +56,11 @@ public class BPRConfigurator extends PhysicalCostConfigurator<BprLinkTravelTimeC
    * @param alpha                      alpha value
    * @param beta                       beta value
    */
-  public void setDefaultParameters(final MacroscopicLinkSegmentType macroscopicLinkSegmentType, final Mode mode, final double alpha, final double beta) {
+  public void setDefaultParameters(
+      final MacroscopicLinkSegmentType macroscopicLinkSegmentType,
+      final Mode mode,
+      final double alpha,
+      final double beta) {
     registerDelayedMethodCall(SET_DEFAULT_PARAMETERS, macroscopicLinkSegmentType, mode, alpha, beta);
   }
 

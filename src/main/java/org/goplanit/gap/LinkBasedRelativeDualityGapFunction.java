@@ -6,7 +6,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 
 /**
- * Gap function based on the work of Bovy and Jansen (1983) who take the different between the current system travel time and the system travel time if all flow were to be assigned
+ * Gap function based on the work of Bovy and Jansen (1983) who take the different between the current system travel
+ * time and the system travel time if all flow were to be assigned
  * to the shortest paths, divided by the system travel time
  * 
  * @author markr
@@ -40,6 +41,7 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
     super(other, deepCopy);
     this.measuredNetworkCost = other.measuredNetworkCost;
     this.gap = other.gap;
+    this.previousGap = other.previousGap;
     this.minimumNetworkCost = other.minimumNetworkCost;
   }
 
@@ -57,6 +59,11 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    * Gap
    */
   protected double gap = INITIAL_GAP;
+
+  /**
+   * Previous gap
+   */
+  protected double previousGap = INITIAL_GAP;
 
   /** initial gap to use */
   public static double INITIAL_GAP = Double.POSITIVE_INFINITY;
@@ -93,35 +100,57 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    */
   @Override
   public void reset() {
-    this.measuredNetworkCost = 0;
-    this.minimumNetworkCost = 0;
+    resetIteration();
     this.gap = INITIAL_GAP;
+    this.previousGap = INITIAL_GAP;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public double computeGap() {
+  public void resetIteration() {
+    this.measuredNetworkCost = 0;
+    this.minimumNetworkCost = 0;
+    // do not reset gap and previous gap because this is state that needs preserving if it is to work
+    // in an iterative fashion where we reset every iteration but need to keep track of the previous iteration gap
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double computeGap(boolean internalStateChange) {
+    if(internalStateChange) {
+      previousGap = gap;
+    }
+
     if (Precision.smaller(measuredNetworkCost, minimumNetworkCost)) {
-      LOGGER.severe(String.format("Minimum network cost (%.2f) exceeds measured network cost (%.2f), this should not happen", minimumNetworkCost, measuredNetworkCost));
+      LOGGER.severe(String.format("Minimum network cost (%.2f) exceeds measured network cost (%.2f)," +
+          " this should not happen", minimumNetworkCost, measuredNetworkCost));
     }
 
     /* special case, both might be zero for example - unlikely but technically this is considered converged */
     double absoluteGap = measuredNetworkCost - minimumNetworkCost;
     if (absoluteGap == 0) {
-      gap = absoluteGap;
-      return gap;
+      if(internalStateChange) {
+        gap = absoluteGap;
+      }
+      return absoluteGap;
     }
 
     if (!Precision.positive(measuredNetworkCost)) {
-      LOGGER.severe(String.format("Measured network cost (%.2f) needs to be positive to compute gap, this is not the case", measuredNetworkCost));
+      LOGGER.severe(String.format("Measured network cost (%.2f) needs to be positive to compute gap, " +
+          "this is not the case", measuredNetworkCost));
       return -1;
     }
 
     /* regular non-zero measured cost */
-    gap = absoluteGap / measuredNetworkCost;
-    return gap;
+    double computedGap = absoluteGap / measuredNetworkCost;
+    if(internalStateChange) {
+      gap = computedGap;
+    }
+    return computedGap;
   }
 
   /**
@@ -130,6 +159,14 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
   @Override
   public double getGap() {
     return gap;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getPreviousGap() {
+    return previousGap;
   }
 
   /**

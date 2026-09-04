@@ -3,6 +3,7 @@ package org.goplanit.output.adapter;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.TrafficAssignment;
+import org.goplanit.output.adapter.traits.NetworkSegmentsOutputTypeAdapterTrait;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.network.layer.physical.PhysicalLayer;
 import org.goplanit.utils.graph.GraphEntities;
@@ -10,13 +11,15 @@ import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
- * Abstract class which defines the common methods required by Link output type adapters that specifically pertain to networks that have adopted physical layers for their network
+ * Abstract class which defines the common methods required by Link output type adapters that specifically pertain to
+ * networks that have adopted physical layers for their network
  * representation
  * 
  * @author gman6028
  *
  */
-public abstract class PhysicalLinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements UntypedLinkOutputTypeAdapter<LinkSegment> {
+public abstract class PhysicalLinkOutputTypeAdapterImpl
+    extends OutputTypeAdapterImpl implements NetworkSegmentsOutputTypeAdapterTrait<LinkSegment> {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(PhysicalLinkOutputTypeAdapterImpl.class.getCanonicalName());
@@ -34,15 +37,18 @@ public abstract class PhysicalLinkOutputTypeAdapterImpl extends OutputTypeAdapte
   /**
    * Provide access to the link segments container
    * 
-   * @param infrastructureLayerId to use
+   * @param layerId to use
    */
   @Override
-  public GraphEntities<LinkSegment> getPhysicalLinkSegments(long infrastructureLayerId) {
-    NetworkLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
+  public GraphEntities<LinkSegment> getLinkSegmentsForLayer(long layerId) {
+    NetworkLayer networkLayer =
+        getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(layerId);
     if (networkLayer instanceof PhysicalLayer) {
       return ((PhysicalLayer) networkLayer).getLinkSegments();
     }
-    LOGGER.warning(String.format("Cannot collect physical link segments from infrastructure layer %s, as it is not a physical network layer", networkLayer.getXmlId()));
+    LOGGER.warning(String.format(
+        "Cannot collect physical link segments from infrastructure layer %s, as it is not a physical network layer",
+        networkLayer.getXmlId()));
     return null;
   }
 

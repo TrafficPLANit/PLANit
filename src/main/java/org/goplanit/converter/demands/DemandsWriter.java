@@ -13,7 +13,7 @@ import org.goplanit.zoning.Zoning;
 public interface DemandsWriter extends ConverterWriter<Demands> {
 
   /** each demands writer is expected to ensure that its demand relate to a zoning
-   * this reference zoning can be set. To avoid the user having to do this manualy when
+   * this reference zoning can be set. To avoid the user having to do this manually when
    * using a converter, the converter will do this for the user. This in turn requires a mechanism on
    * each demands writer to provide the reference zoning to the demands writer. This is what this method does.
    * 
@@ -21,6 +21,10 @@ public interface DemandsWriter extends ConverterWriter<Demands> {
    */
   public abstract void setReferenceZoning(Zoning referenceZoning);
 
+  /**
+   * Access to zoning
+   * @return zoning
+   */
   public abstract Zoning getReferenceZoning();
 
   /**

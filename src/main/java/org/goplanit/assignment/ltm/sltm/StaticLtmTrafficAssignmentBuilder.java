@@ -1,6 +1,7 @@
 package org.goplanit.assignment.ltm.sltm;
 
 import org.goplanit.assignment.ltm.LtmTrafficAssignmentBuilder;
+import org.goplanit.assignment.ltm.sltm.input.StaticLtmConfigurator;
 import org.goplanit.demands.Demands;
 import org.goplanit.input.InputBuilderListener;
 import org.goplanit.network.LayeredNetwork;
@@ -9,8 +10,8 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
- * The sLTM traffic assignment builder. This is a capacity constrained traffic assignment builder specifically for sLTM. It user exposed options are made available through the
- * {@code StaticLtmConfigurator}.
+ * The sLTM traffic assignment builder. This is a capacity constrained traffic assignment builder specifically for sLTM.
+ * It uses exposed options are made available through the {@code StaticLtmConfigurator}.
  *
  * @author markr
  *
@@ -23,7 +24,7 @@ public class StaticLtmTrafficAssignmentBuilder extends LtmTrafficAssignmentBuild
    * @return sLTM configurator
    */
   @Override
-  protected StaticLtmConfigurator createConfigurator() throws PlanItException {
+  protected StaticLtmConfigurator createConfigurator(){
     return new StaticLtmConfigurator();
   }
 
@@ -35,11 +36,22 @@ public class StaticLtmTrafficAssignmentBuilder extends LtmTrafficAssignmentBuild
    * @param demands              the demands
    * @param zoning               the zoning
    * @param network              the network
-   * @throws PlanItException when triangular fundamental diagram cannot be instantiated
    */
-  public StaticLtmTrafficAssignmentBuilder(IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands, final Zoning zoning,
-      final LayeredNetwork<?, ?> network) throws PlanItException {
+  public StaticLtmTrafficAssignmentBuilder(
+          IdGroupingToken groupId,
+          final InputBuilderListener inputBuilderListener,
+          final Demands demands,
+          final Zoning zoning,
+          final LayeredNetwork<?, ?> network){
     super(StaticLtm.class, groupId, inputBuilderListener, demands, zoning, network);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public StaticLtmConfigurator getConfigurator() {
+    return (StaticLtmConfigurator) super.getConfigurator();
   }
 
 }

@@ -11,7 +11,13 @@ import org.goplanit.utils.unit.Unit;
  */
 public final class LinkSegmentCostOutputProperty extends OutputProperty {
 
+
+  /** Cost. */
   public static final String NAME = "Cost";
+  /**
+   * Public no-arg constructor required for reflective instantiation.
+   */
+  public LinkSegmentCostOutputProperty(){}
 
   /**
    * {@inheritDoc}
