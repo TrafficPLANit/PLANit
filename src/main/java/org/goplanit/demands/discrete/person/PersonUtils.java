@@ -32,6 +32,9 @@ public class PersonUtils {
   /**
    * Generates a deterministic seed based on person ID and structural characteristics
    * to ensure reproducibility across runs.
+   *
+   * @param person the person
+   * @return seed
    */
   public static long generatePersonSeed(Person person) {
     return person.generateIdBasedRandomSeed();
