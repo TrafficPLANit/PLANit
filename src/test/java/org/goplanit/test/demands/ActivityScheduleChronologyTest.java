@@ -167,22 +167,25 @@ class ActivityScheduleChronologyTest {
   }
 
   /**
-   * The container level check reports each offending person and leaves the schedules untouched, and tolerates a
+   * The container level check finds each offending person and leaves the schedules untouched, and tolerates a
    * null anchor throughout
    */
   @Test
-  void testContainerLevelValidationCountsOffendersAndAcceptsNullAnchor() {
+  void testContainerLevelValidationFindsOffendersAndAcceptsNullAnchor() {
     registerTour(LocalTime.of(8, 0), LocalTime.of(18, 0), LocalTime.of(8, 0), LocalTime.of(17, 0));
     Tour brokenTour =
         registerTour(LocalTime.of(8, 0), LocalTime.of(18, 0), LocalTime.of(8, 0), LocalTime.of(19, 0));
 
     var persons = discreteDemands.getPersons();
 
-    assertEquals(1, PersonUtils.validateSchedulesChronological(persons, DAY_ANCHOR), "offender count incorrect");
-    assertEquals(1, PersonUtils.validateSchedulesChronological(persons, null),
+    var offenders = PersonUtils.findPersonsWithNonChronologicalSchedule(persons, DAY_ANCHOR);
+    assertEquals(1, offenders.size(), "offender count incorrect");
+    assertEquals(brokenTour.getPerson(), offenders.get(0), "wrong person reported as offender");
+
+    assertEquals(1, PersonUtils.findPersonsWithNonChronologicalSchedule(persons, null).size(),
         "offender count incorrect for a null anchor");
 
-    assertEquals(LocalTime.of(18, 0), brokenTour.getEndTime(), "validation altered the schedule");
+    assertEquals(LocalTime.of(18, 0), brokenTour.getEndTime(), "finding altered the schedule");
   }
 
   /**
@@ -192,8 +195,8 @@ class ActivityScheduleChronologyTest {
   void testPersonWithoutScheduleIsNotReported() {
     discreteDemands.getPersons().getFactory().registerNew();
 
-    assertEquals(0,
-        PersonUtils.validateSchedulesChronological(discreteDemands.getPersons(), DAY_ANCHOR),
+    assertTrue(
+        PersonUtils.findPersonsWithNonChronologicalSchedule(discreteDemands.getPersons(), DAY_ANCHOR).isEmpty(),
         "person without a schedule reported as inconsistent");
   }
 }

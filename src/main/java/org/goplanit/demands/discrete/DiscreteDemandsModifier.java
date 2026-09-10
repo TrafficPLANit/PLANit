@@ -13,6 +13,7 @@ import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.id.ManagedIdEntities;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -156,6 +157,28 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
     // remove from container
     discreteDemands.getTours().remove(tour);
 
+  }
+
+  /**
+   * Person to remove, including every tour and trip it owns
+   * todo: does not use any events yet, it should
+   *
+   * @param person to remove
+   * @return person that was removed
+   */
+  public Person removePerson(Person person) {
+    var schedule = person.getSchedule();
+    if (schedule != null) {
+      // work on a copy, removing a tour also detaches it from the person's schedule
+      for (var scheduleElement : new ArrayList<>(schedule)) {
+        if (scheduleElement instanceof Tour) {
+          removeTour((Tour) scheduleElement, false);
+        } else if (scheduleElement instanceof Trip) {
+          removeTrip((Trip) scheduleElement);
+        }
+      }
+    }
+    return discreteDemands.getPersons().remove(person);
   }
 
   /**
