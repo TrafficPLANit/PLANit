@@ -1,8 +1,10 @@
 package org.goplanit.demands.discrete.tour;
 
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.time.LocalTimeUtils;
 
 import javax.annotation.Nonnull;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -130,6 +132,78 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
         element.getSchedule().sortNested(comparator);
       }
     }
+  }
+
+  /**
+   * Verify the schedule is in chronological order, i.e. no element starts before its predecessor and no tour ends
+   * before the elements it contains, across all nested levels.
+   *
+   * @param dayAnchorTime time of day the schedule's day is cut at, so that a schedule running past midnight is
+   *                      recognised as such rather than as being out of order. When null no crossing is assumed
+   *                      and times are compared as they are
+   * @return true when in chronological order, false otherwise
+   */
+  public boolean isChronological(LocalTime dayAnchorTime) {
+    return lastElapsedSecondsIfChronological(dayAnchorTime, 0) >= 0;
+  }
+
+  /**
+   * Walk this level's times as start, nested schedule, tour end, carrying the elapsed seconds of the most recent
+   * time across levels
+   *
+   * @param dayAnchorTime time of day the schedule's day is cut at, may be null
+   * @param previousElapsedSeconds elapsed seconds of the most recent time seen so far
+   * @return elapsed seconds of the last time seen, or -1 when the order is breached
+   */
+  private long lastElapsedSecondsIfChronological(LocalTime dayAnchorTime, long previousElapsedSeconds) {
+    for (ScheduleElement element : scheduleElements) {
+
+      previousElapsedSeconds = elapsedSecondsInOrder(element.getStartTime(), dayAnchorTime, previousElapsedSeconds);
+      if (previousElapsedSeconds < 0) {
+        return -1;
+      }
+
+      if (element.hasSchedule() && element.getSchedule() != null) {
+        previousElapsedSeconds =
+            element.getSchedule().lastElapsedSecondsIfChronological(dayAnchorTime, previousElapsedSeconds);
+        if (previousElapsedSeconds < 0) {
+          return -1;
+        }
+      }
+
+      if (element instanceof Tour) {
+        previousElapsedSeconds =
+            elapsedSecondsInOrder(((Tour) element).getEndTime(), dayAnchorTime, previousElapsedSeconds);
+        if (previousElapsedSeconds < 0) {
+          return -1;
+        }
+      }
+    }
+    return previousElapsedSeconds;
+  }
+
+  /**
+   * Elapsed seconds of the given time measured from the day anchor, or -1 when it precedes the time before it. A
+   * null time carries no information and leaves the running value untouched. Once the day is under way a time
+   * landing on the anchor closes that day rather than opening it
+   *
+   * @param time to convert, may be null
+   * @param dayAnchorTime time of day the schedule's day is cut at, may be null
+   * @param previousElapsedSeconds elapsed seconds of the most recent time seen so far
+   * @return elapsed seconds, or -1 when the order is breached
+   */
+  private static long elapsedSecondsInOrder(
+      LocalTime time, LocalTime dayAnchorTime, long previousElapsedSeconds) {
+
+    if (time == null) {
+      return previousElapsedSeconds;
+    }
+
+    long elapsedSeconds = dayAnchorTime == null
+        ? time.toSecondOfDay()
+        : LocalTimeUtils.secondsFromWrapAroundDayAnchor(dayAnchorTime, time, previousElapsedSeconds > 0);
+
+    return elapsedSeconds < previousElapsedSeconds ? -1 : elapsedSeconds;
   }
 
   /**
