@@ -135,6 +135,52 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
   }
 
   /**
+   * Shift every time in this schedule, including those of any nested schedules, by the given number of seconds
+   *
+   * @param offsetSeconds offset to apply, may be negative
+   */
+  public void shift(int offsetSeconds) {
+    for (ScheduleElement element : scheduleElements) {
+
+      // start time is carried by both a tour and a trip
+      if (element.getStartTime() != null) {
+        element.setStartTime(element.getStartTime().plusSeconds(offsetSeconds));
+      }
+
+      if (element instanceof Tour && ((Tour) element).getEndTime() != null) {
+        var tour = (Tour) element;
+        tour.setEndTime(tour.getEndTime().plusSeconds(offsetSeconds));
+      }
+
+      if (element.hasSchedule() && element.getSchedule() != null) {
+        element.getSchedule().shift(offsetSeconds);
+      }
+    }
+  }
+
+  /**
+   * Set each tour's start time to the start time of the first element it contains, deepest tours first so that a
+   * nested tour's own start is settled before its parent reads it. A tour starts precisely when its first trip
+   * departs, the two being one and the same event, so the tour follows the trip rather than carrying a time of its
+   * own.
+   */
+  public void syncTourStartTimesToFirstElement() {
+    for (ScheduleElement element : scheduleElements) {
+      if (!(element instanceof Tour) || !element.hasSchedule() || element.getSchedule() == null
+          || element.getSchedule().isEmpty()) {
+        continue;
+      }
+
+      element.getSchedule().syncTourStartTimesToFirstElement();
+
+      var firstNestedStartTime = element.getSchedule().getFirst().getStartTime();
+      if (firstNestedStartTime != null) {
+        element.setStartTime(firstNestedStartTime);
+      }
+    }
+  }
+
+  /**
    * Verify the schedule is in chronological order, i.e. no element starts before its predecessor and no tour ends
    * before the elements it contains, across all nested levels.
    *
@@ -158,7 +204,8 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
   private long lastElapsedSecondsIfChronological(LocalTime dayAnchorTime, long previousElapsedSeconds) {
     for (ScheduleElement element : scheduleElements) {
 
-      previousElapsedSeconds = elapsedSecondsInOrder(element.getStartTime(), dayAnchorTime, previousElapsedSeconds);
+      previousElapsedSeconds = LocalTimeUtils.secondsFromWrapAroundDayAnchorIfNotBefore(
+          dayAnchorTime, element.getStartTime(), previousElapsedSeconds);
       if (previousElapsedSeconds < 0) {
         return -1;
       }
@@ -172,38 +219,14 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
       }
 
       if (element instanceof Tour) {
-        previousElapsedSeconds =
-            elapsedSecondsInOrder(((Tour) element).getEndTime(), dayAnchorTime, previousElapsedSeconds);
+        previousElapsedSeconds = LocalTimeUtils.secondsFromWrapAroundDayAnchorIfNotBefore(
+            dayAnchorTime, ((Tour) element).getEndTime(), previousElapsedSeconds);
         if (previousElapsedSeconds < 0) {
           return -1;
         }
       }
     }
     return previousElapsedSeconds;
-  }
-
-  /**
-   * Elapsed seconds of the given time measured from the day anchor, or -1 when it precedes the time before it. A
-   * null time carries no information and leaves the running value untouched. Once the day is under way a time
-   * landing on the anchor closes that day rather than opening it
-   *
-   * @param time to convert, may be null
-   * @param dayAnchorTime time of day the schedule's day is cut at, may be null
-   * @param previousElapsedSeconds elapsed seconds of the most recent time seen so far
-   * @return elapsed seconds, or -1 when the order is breached
-   */
-  private static long elapsedSecondsInOrder(
-      LocalTime time, LocalTime dayAnchorTime, long previousElapsedSeconds) {
-
-    if (time == null) {
-      return previousElapsedSeconds;
-    }
-
-    long elapsedSeconds = dayAnchorTime == null
-        ? time.toSecondOfDay()
-        : LocalTimeUtils.secondsFromWrapAroundDayAnchor(dayAnchorTime, time, previousElapsedSeconds > 0);
-
-    return elapsedSeconds < previousElapsedSeconds ? -1 : elapsedSeconds;
   }
 
   /**

@@ -1,6 +1,7 @@
 package org.goplanit.test.demands;
 
 import org.goplanit.demands.discrete.DiscreteDemands;
+import org.goplanit.demands.discrete.person.PersonUtils;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.trip.Trip;
 import org.goplanit.demands.discrete.util.DirectionBound;
@@ -175,10 +176,10 @@ class ActivityScheduleChronologyTest {
     Tour brokenTour =
         registerTour(LocalTime.of(8, 0), LocalTime.of(18, 0), LocalTime.of(8, 0), LocalTime.of(19, 0));
 
-    var modifier = discreteDemands.getDiscreteDemandsModifier();
+    var persons = discreteDemands.getPersons();
 
-    assertEquals(1, modifier.validatePersonSchedulesChronological(DAY_ANCHOR), "offender count incorrect");
-    assertEquals(1, modifier.validatePersonSchedulesChronological(null),
+    assertEquals(1, PersonUtils.validateSchedulesChronological(persons, DAY_ANCHOR), "offender count incorrect");
+    assertEquals(1, PersonUtils.validateSchedulesChronological(persons, null),
         "offender count incorrect for a null anchor");
 
     assertEquals(LocalTime.of(18, 0), brokenTour.getEndTime(), "validation altered the schedule");
@@ -192,7 +193,7 @@ class ActivityScheduleChronologyTest {
     discreteDemands.getPersons().getFactory().registerNew();
 
     assertEquals(0,
-        discreteDemands.getDiscreteDemandsModifier().validatePersonSchedulesChronological(DAY_ANCHOR),
+        PersonUtils.validateSchedulesChronological(discreteDemands.getPersons(), DAY_ANCHOR),
         "person without a schedule reported as inconsistent");
   }
 }
