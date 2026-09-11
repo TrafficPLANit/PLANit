@@ -157,6 +157,33 @@ class JointTourScheduleTest {
   }
 
   /**
+   * A tour that still has participants must still have a primary among them, so when the primary is the one leaving
+   * the next participant takes over. Without this the tour survives with nobody its shared information is attributed
+   * to, which the XML writer rightly refuses to persist
+   */
+  @Test
+  void testRemovingThePrimaryPromotesTheNextParticipant() {
+    var primary = registerPerson();
+    var accompanying = registerPerson();
+
+    Tour jointTour = registerTourFor(primary, NOON, NOON, NOON, NOON);
+    addAccompanyingParticipant(jointTour, accompanying);
+
+    discreteDemands.getDiscreteDemandsModifier().clearPersonSchedule(primary);
+
+    assertTrue(jointTour.hasPrimaryParticipant(), "joint tour left without a primary participant");
+    assertEquals(accompanying, jointTour.getPrimaryParticipant(),
+        "remaining participant did not take over as primary");
+    assertFalse(jointTour.hasMultipleParticipants(), "departed participant still counted");
+
+    /* the promoted participation must have taken the old one's place on the schedule, not been appended */
+    var promoted = jointTour.getPrimaryParticipation();
+    assertEquals(promoted, accompanying.getSchedule().getFirst(),
+        "promoted participation is not the one on the participant's schedule");
+    assertTrue(promoted.isPrimary(), "participation on the schedule still carries the accompanying role");
+  }
+
+  /**
    * KNOWN FAILURE, see PLANit issue "sub bin jitter cannot order a person taking part in several shared tours".
    * <p>
    * A person sits between two shared tours that meet at a bin boundary, one ending where the next begins, with a

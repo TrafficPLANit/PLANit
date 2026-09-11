@@ -139,7 +139,42 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
    */
   @Override
   public boolean removeParticipant(ParticipantTour participantTour) {
-    return participantTours.remove(participantTour);
+    boolean removed = participantTours.remove(participantTour);
+    if(!removed){
+      return false;
+    }
+
+    /* a tour that still has participants must still have a primary among them, it is the one its shared information
+     * is attributed to. Where the primary is the one leaving, the next participant takes over rather than the tour
+     * being left without one */
+    if(participantTour.isPrimary() && !participantTours.isEmpty()){
+      var successor = participantTours.get(0);
+      participantTours.set(0, new ParticipantTourImpl(this, successor.getPerson(), TourParticipantRole.PRIMARY));
+      replaceOnScheduleOf(successor, participantTours.get(0));
+    }
+    return true;
+  }
+
+  /**
+   * Swap a participation for its replacement on the schedule that holds it, being the person's schedule for a top
+   * level tour and the parent tour's schedule for a sub-tour. A participation is immutable, so a change of role
+   * yields a new instance that must take the old one's place
+   *
+   * @param existing participation to replace
+   * @param replacement participation to put in its place
+   */
+  private void replaceOnScheduleOf(ParticipantTour existing, ParticipantTour replacement) {
+    var schedule = hasParentTour() ? getParentTour().getSchedule() : existing.getPerson().getSchedule();
+    if(schedule == null){
+      return;
+    }
+    /* replace in place, the position within the schedule is its place in the day and must not change */
+    for(int index = 0; index < schedule.size(); ++index){
+      if(existing.equals(schedule.get(index))){
+        schedule.set(index, replacement);
+        return;
+      }
+    }
   }
 
   /**
