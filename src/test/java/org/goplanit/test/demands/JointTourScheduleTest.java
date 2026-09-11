@@ -125,6 +125,82 @@ class JointTourScheduleTest {
   }
 
   /**
+   * The mirror of the previous case. A participant's own tour that precedes the joint tour in the same bin may not
+   * be drawn past it. The joint tour was drawn in its own pass and cannot be moved, so it is the own tour that has
+   * to give way, which only a backward clamp can achieve: moving the joint tour up instead would take it away from
+   * the other participants who share it
+   */
+  @Test
+  void testOwnTourPrecedingASharedTourIsNotDrawnPastIt() {
+    var primary = registerPerson();
+    var accompanying = registerPerson();
+
+    /* the accompanying participant's own tour runs wholly within the bin and comes first on their schedule */
+    Tour ownTour = registerTourFor(accompanying, NOON, NOON, NOON, NOON);
+
+    Tour jointTour = registerTourFor(primary, NOON, NOON, NOON, NOON);
+    addAccompanyingParticipant(jointTour, accompanying);
+
+    applySubBinJitterToAll();
+
+    assertFalse(ownTour.getStartTime().isAfter(jointTour.getStartTime()),
+        String.format("own tour starts (%s) after the joint tour that follows it (%s)",
+            ownTour.getStartTime(), jointTour.getStartTime()));
+    assertFalse(ownTour.getEndTime().isAfter(jointTour.getStartTime()),
+        String.format("own tour ends (%s) after the joint tour that follows it starts (%s)",
+            ownTour.getEndTime(), jointTour.getStartTime()));
+    for (var element : ownTour.getSchedule()) {
+      assertFalse(element.getStartTime().isAfter(jointTour.getStartTime()),
+          String.format("trip of the own tour (%s) departs after the joint tour that follows it starts (%s)",
+              element.getStartTime(), jointTour.getStartTime()));
+    }
+  }
+
+  /**
+   * KNOWN FAILURE, see PLANit issue "sub bin jitter cannot order a person taking part in several shared tours".
+   * <p>
+   * A person sits between two shared tours that meet at a bin boundary, one ending where the next begins, with a
+   * tour of their own in between. Each shared tour is drawn once for all of its participants, which is what keeps
+   * them consistent for everyone taking part, but it also means neither knows about the other: both draw forward
+   * into the same bin and come out overlapping. Their times cannot be moved without breaking the other participants'
+   * schedules, so the own tour in between has no time left that satisfies both, and the schedule stays out of order.
+   * </p>
+   * <p>
+   * Until this is solved the ActivitySim reader drops the schedules of the persons this happens to, which it reports,
+   * so the conversion never emits a schedule that runs backwards. This test asserts the outcome we want rather than
+   * the one we accept, and therefore fails
+   * </p>
+   */
+  @Test
+  void testPersonInTwoSharedToursMeetingAtABinBoundaryIsOrdered() {
+    var accompanying = registerPerson();
+
+    /* the first shared tour closes in the noon bin holding three of its points, so its end is drawn in the last of
+     * three sub-bins and therefore lands in the final third of the bin */
+    var firstPrimary = registerPerson();
+    Tour firstSharedTour = registerTourFor(firstPrimary, LocalTime.of(11, 30), NOON, NOON, NOON);
+    addAccompanyingParticipant(firstSharedTour, accompanying);
+
+    /* their own tour, wholly within that same bin */
+    Tour ownTour = registerTourFor(accompanying, NOON, NOON, NOON, NOON);
+
+    /* the second shared tour opens in that bin with two of its points, so its first trip is drawn in the first of
+     * two sub-bins and lands in the first half, i.e. before the first shared tour has ended */
+    var secondPrimary = registerPerson();
+    Tour secondSharedTour = registerTourFor(secondPrimary, NOON, LocalTime.of(13, 0), NOON, NOON);
+    addAccompanyingParticipant(secondSharedTour, accompanying);
+
+    applySubBinJitterToAll();
+
+    assertFalse(firstSharedTour.getEndTime().isAfter(ownTour.getStartTime()),
+        String.format("first shared tour ends (%s) after the own tour that follows it starts (%s)",
+            firstSharedTour.getEndTime(), ownTour.getStartTime()));
+    assertFalse(ownTour.getEndTime().isAfter(secondSharedTour.getStartTime()),
+        String.format("own tour ends (%s) after the second shared tour that follows it starts (%s)",
+            ownTour.getEndTime(), secondSharedTour.getStartTime()));
+  }
+
+  /**
    * Drawing is seeded per participant, so the same input yields the same output for joint tours as it does for
    * any other
    */

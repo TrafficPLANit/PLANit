@@ -226,9 +226,10 @@ public class ScheduleJitter {
 
   /**
    * Ensure the points do not run backwards in time. Draws within a single run cannot invert, but a point belonging
-   * to a shared tour was drawn elsewhere and no longer carries its bin's time, so a point drawn after it can land
-   * before it. Any such point is moved up to its predecessor. Where the bin leaves no room the two end up equal,
-   * which is in order rather than inverted
+   * to a shared tour was drawn elsewhere and no longer carries its bin's time, so the points around it can land on
+   * the wrong side of it. Since such a point is fixed, it is the free points that give way, in both directions: a
+   * free point following it is moved up to it, a free point preceding it is moved back to it. Where the bin leaves
+   * no room the two end up equal, which is in order rather than inverted
    *
    * @param jitterPoints points in schedule order
    * @param windowStartSeconds start of the allowed window in seconds
@@ -236,6 +237,20 @@ public class ScheduleJitter {
    */
   private static void enforceNonDecreasingOrder(
       List<JitterPoint> jitterPoints, int windowStartSeconds, LocalTime windowStartTime) {
+
+    /* a fixed point cannot be moved, so a free point placed before it must instead not exceed it. Walk back from
+     * the end carrying the earliest fixed time seen as an upper bound, before the forward pass below fills any
+     * remaining gaps */
+    long upperBoundElapsedSeconds = Long.MAX_VALUE;
+    for (int index = jitterPoints.size() - 1; index >= 0; --index) {
+      var point = jitterPoints.get(index);
+      long elapsedSeconds = LocalTimeUtils.secondsFromWrapAroundDayAnchor(windowStartTime, point.getTime());
+      if (point.fixed) {
+        upperBoundElapsedSeconds = Math.min(upperBoundElapsedSeconds, elapsedSeconds);
+      } else if (elapsedSeconds > upperBoundElapsedSeconds) {
+        point.setTime(LocalTimeUtils.ofSecondOfDayWrapped(windowStartSeconds + upperBoundElapsedSeconds));
+      }
+    }
 
     long previousElapsedSeconds = -1;
     for (var point : jitterPoints) {
@@ -265,20 +280,29 @@ public class ScheduleJitter {
    * @param maxAllowedTimeSeconds the upper boundary in seconds
    * @param minDurationTours tours to give a minimum duration, may be null
    * @param minDurationSeconds minimum duration to give the tours provided
+   * @return persons whose schedule could not be brought into chronological order, empty when all of them could. It
+   *         is left to the caller to decide what such a schedule is worth, nothing is discarded here
    */
-  public static void applySubBinJitter(
+  public static List<Person> applySubBinJitter(
       Iterable<Tour> tours, Iterable<Person> persons, int spreadWidthSeconds, int minAllowedTimeSeconds,
       int maxAllowedTimeSeconds, Set<Tour> minDurationTours, int minDurationSeconds) {
 
     if (spreadWidthSeconds <= 0) {
-      return;
+      return List.of();
     }
 
     tours.forEach(tour -> applySharedTourSubBinJitter(
         tour, spreadWidthSeconds, minAllowedTimeSeconds, maxAllowedTimeSeconds));
-    persons.forEach(person -> applySubBinJitter(
-        person, spreadWidthSeconds, minAllowedTimeSeconds, maxAllowedTimeSeconds, minDurationTours,
-        minDurationSeconds));
+
+    var nonChronologicalPersons = new ArrayList<Person>();
+    persons.forEach(person -> {
+      if (!applySubBinJitter(
+          person, spreadWidthSeconds, minAllowedTimeSeconds, maxAllowedTimeSeconds, minDurationTours,
+          minDurationSeconds)) {
+        nonChronologicalPersons.add(person);
+      }
+    });
+    return nonChronologicalPersons;
   }
 
   /**
@@ -353,21 +377,22 @@ public class ScheduleJitter {
    * @param maxAllowedTimeSeconds the upper boundary in seconds
    * @param minDurationTours tours to give a minimum duration, may be null
    * @param minDurationSeconds minimum duration to give the tours provided
+   * @return true when the resulting schedule is in chronological order, false when it could not be made so
    */
-  public static void applySubBinJitter(
+  public static boolean applySubBinJitter(
       Person person, int spreadWidthSeconds, int minAllowedTimeSeconds, int maxAllowedTimeSeconds,
       Set<Tour> minDurationTours, int minDurationSeconds) {
 
     if (spreadWidthSeconds <= 0 || person == null || person.getSchedule() == null
         || person.getSchedule().isEmpty()) {
-      return;
+      return true;
     }
 
     var schedule = person.getSchedule();
     var jitterPoints = new ArrayList<JitterPoint>(schedule.sizeUnrolled(false) + 1);
     collectJitterPoints(schedule, jitterPoints, false);
     if (jitterPoints.isEmpty()) {
-      return;
+      return true;
     }
 
     final var windowStartTime = LocalTimeUtils.ofSecondOfDayWrapped(minAllowedTimeSeconds);
@@ -385,6 +410,30 @@ public class ScheduleJitter {
           jitterPoints, minDurationTours, minDurationSeconds, minAllowedTimeSeconds, windowStartTime,
           windowDurationSeconds);
     }
+
+    return isNonDecreasing(jitterPoints, windowStartTime);
+  }
+
+  /**
+   * Verify the drawn points do not run backwards in time. The clamps resolve every conflict a person's own draws can
+   * create, so a schedule failing here is one the draws could not satisfy: it holds points that cannot be moved and
+   * that contradict each other, which happens when a person takes part in more than one shared tour and those tours
+   * were each drawn, correctly, without knowledge of the other
+   *
+   * @param jitterPoints points in schedule order
+   * @param windowStartTime start of the allowed window as a time of day
+   * @return true when the points are in order, false when they are not
+   */
+  private static boolean isNonDecreasing(List<JitterPoint> jitterPoints, LocalTime windowStartTime) {
+    long previousElapsedSeconds = -1;
+    for (var point : jitterPoints) {
+      long elapsedSeconds = LocalTimeUtils.secondsFromWrapAroundDayAnchor(windowStartTime, point.getTime());
+      if (elapsedSeconds < previousElapsedSeconds) {
+        return false;
+      }
+      previousElapsedSeconds = elapsedSeconds;
+    }
+    return true;
   }
 
   /**

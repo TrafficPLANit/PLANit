@@ -15,6 +15,7 @@ import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.id.ManagedIdEntities;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -181,28 +182,42 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
    * @return person that was removed
    */
   public Person removePerson(Person person) {
+    clearPersonSchedule(person);
+    return discreteDemands.getPersons().remove(person);
+  }
+
+  /**
+   * Strip a person of everything they do without removing the person themselves, leaving them present but not
+   * travelling. A tour shared with others survives their departure from it, only their participation ends; a tour
+   * nobody is left in goes with them
+   * todo: does not use any events yet, it should
+   *
+   * @param person whose schedule to clear
+   */
+  public void clearPersonSchedule(Person person) {
     var schedule = person.getSchedule();
-    if (schedule != null) {
-      // work on a copy, removing a participation also detaches it from the person's schedule
-      for (var scheduleElement : new ArrayList<>(schedule)) {
-        if (scheduleElement instanceof ParticipantTour) {
-          var participation = (ParticipantTour) scheduleElement;
-          var tour = participation.getTour();
-          /* only this person leaves; the tour survives while others still take part in it */
-          schedule.remove(participation);
-          tour.removeParticipant(participation);
-          if (tour.getParticipantTours().isEmpty()) {
-            removeTour(tour, false);
-          }
-        } else if (scheduleElement instanceof Trip) {
-          removeTrip((Trip) scheduleElement);
-        } else {
-          throw new PlanItRunTimeException("Unsupported schedule element type (%s) encountered when removing person",
-              scheduleElement.getClass().getCanonicalName());
+    if (schedule == null) {
+      return;
+    }
+
+    // work on a copy, removing a participation also detaches it from the person's schedule
+    for (var scheduleElement : new ArrayList<>(schedule)) {
+      if (scheduleElement instanceof ParticipantTour) {
+        var participation = (ParticipantTour) scheduleElement;
+        var tour = participation.getTour();
+        /* only this person leaves; the tour survives while others still take part in it */
+        schedule.remove(participation);
+        tour.removeParticipant(participation);
+        if (tour.getParticipantTours().isEmpty()) {
+          removeTour(tour, false);
         }
+      } else if (scheduleElement instanceof Trip) {
+        removeTrip((Trip) scheduleElement);
+      } else {
+        throw new PlanItRunTimeException("Unsupported schedule element type (%s) encountered when clearing schedule",
+            scheduleElement.getClass().getCanonicalName());
       }
     }
-    return discreteDemands.getPersons().remove(person);
   }
 
   /**
@@ -256,10 +271,11 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
    * @param spreadWidthSeconds width to spread over, being the bin length scaled by any configured ratio
    * @param minAllowedTimeSeconds the lower boundary (e.g., start of simulation period)
    * @param maxAllowedTimeSeconds the upper boundary (e.g., end of simulation period)
+   * @return persons whose schedule could not be brought into chronological order, empty when all of them could
    */
-  public void adjustPersonsScheduleSubBinJitter(
+  public List<Person> adjustPersonsScheduleSubBinJitter(
       int spreadWidthSeconds, int minAllowedTimeSeconds, int maxAllowedTimeSeconds) {
-    adjustPersonsScheduleSubBinJitter(
+    return adjustPersonsScheduleSubBinJitter(
         spreadWidthSeconds, minAllowedTimeSeconds, maxAllowedTimeSeconds, null, 0);
   }
 
@@ -274,16 +290,18 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
    * @param minDurationTours tours to give a minimum duration, typically those that start and end in the same time
    *                         bin, may be null
    * @param minDurationSeconds minimum duration to give the tours provided
+   * @return persons whose schedule could not be brought into chronological order, empty when all of them could. What
+   *         to do with such a person is left to the caller, nothing is discarded here
    */
-  public void adjustPersonsScheduleSubBinJitter(
+  public List<Person> adjustPersonsScheduleSubBinJitter(
       int spreadWidthSeconds, int minAllowedTimeSeconds, int maxAllowedTimeSeconds, Set<Tour> minDurationTours,
       int minDurationSeconds) {
 
     if (spreadWidthSeconds <= 0 || discreteDemands.getPersons().isEmpty()) {
-      return;
+      return List.of();
     }
 
-    ScheduleJitter.applySubBinJitter(
+    return ScheduleJitter.applySubBinJitter(
         discreteDemands.getTours(), discreteDemands.getPersons(), spreadWidthSeconds, minAllowedTimeSeconds,
         maxAllowedTimeSeconds, minDurationTours, minDurationSeconds);
   }
