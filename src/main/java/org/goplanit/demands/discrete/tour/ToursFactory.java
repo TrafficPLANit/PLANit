@@ -128,9 +128,9 @@ public class ToursFactory extends ManagedIdEntityFactoryImpl<Tour>
 
     /* adopt the participant of the tour this one sits within. Fall back on any participant when no primary is
      * registered (yet), so no ordering of participant registration is assumed */
-    var parentParticipation = newInstance.getParentTour().getParticipantTours().stream().filter(
-        ParticipantTour::isPrimary).findFirst().orElseGet(
-            () -> newInstance.getParentTour().getParticipantTours().stream().findFirst().orElse(null));
+    var parentParticipation = newInstance.getParentTour().getPrimaryParticipation() != null
+        ? newInstance.getParentTour().getPrimaryParticipation()
+        : newInstance.getParentTour().getParticipantTours().stream().findFirst().orElse(null);
     PlanItRunTimeException.throwIfNull(parentParticipation,
         "Unable to create sub tour for parent tour (%s) that has no participants",
         newInstance.getParentTour().getIdsAsString());

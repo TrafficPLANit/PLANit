@@ -52,13 +52,23 @@ public interface Tour extends ExternalIdAble, ManagedId {
   boolean removeParticipant(ParticipantTour participantTour);
 
   /**
+   * The participation with role {@link TourParticipantRole#PRIMARY}, i.e. the one placed on the schedule of the
+   * person the tour belongs to
+   *
+   * @return primary participation, null when there is none yet
+   */
+  default ParticipantTour getPrimaryParticipation() {
+    return getParticipantTours().stream().filter(ParticipantTour::isPrimary).findFirst().orElse(null);
+  }
+
+  /**
    * The person this tour belongs to, i.e. the participant with role {@link TourParticipantRole#PRIMARY}
    *
    * @return primary participant, null when there are no participants yet
    */
   default Person getPrimaryParticipant() {
-    return getParticipantTours().stream().filter(ParticipantTour::isPrimary).map(ParticipantTour::getPerson)
-        .findFirst().orElse(null);
+    var primaryParticipation = getPrimaryParticipation();
+    return primaryParticipation != null ? primaryParticipation.getPerson() : null;
   }
 
   /**
