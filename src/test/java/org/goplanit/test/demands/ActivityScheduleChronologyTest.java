@@ -58,7 +58,7 @@ class ActivityScheduleChronologyTest {
   @Test
   void testOrderedScheduleIsChronologicalWithAndWithoutAnchor() {
     Tour tour = registerTour(LocalTime.of(8, 0), LocalTime.of(18, 0), LocalTime.of(8, 0), LocalTime.of(17, 0));
-    var schedule = tour.getPerson().getSchedule();
+    var schedule = tour.getPrimaryParticipant().getSchedule();
 
     assertTrue(schedule.isChronological(DAY_ANCHOR), "ordered schedule rejected with an anchor");
     assertTrue(schedule.isChronological(null), "ordered schedule rejected without an anchor");
@@ -71,7 +71,7 @@ class ActivityScheduleChronologyTest {
   @Test
   void testMidnightCrossingNeedsTheAnchor() {
     Tour tour = registerTour(LocalTime.of(23, 0), LocalTime.of(1, 30), LocalTime.of(23, 0), LocalTime.of(1, 0));
-    var schedule = tour.getPerson().getSchedule();
+    var schedule = tour.getPrimaryParticipant().getSchedule();
 
     assertTrue(schedule.isChronological(DAY_ANCHOR), "midnight crossing rejected despite an anchor");
     assertFalse(schedule.isChronological(null), "midnight crossing accepted without an anchor");
@@ -84,7 +84,7 @@ class ActivityScheduleChronologyTest {
   @Test
   void testScheduleEndingOnTheAnchorIsChronological() {
     Tour tour = registerTour(LocalTime.of(4, 0), LocalTime.of(3, 0), LocalTime.of(4, 0), LocalTime.of(2, 0));
-    var schedule = tour.getPerson().getSchedule();
+    var schedule = tour.getPrimaryParticipant().getSchedule();
 
     assertTrue(schedule.isChronological(DAY_ANCHOR), "schedule ending on the anchor rejected");
     assertFalse(schedule.isChronological(null), "schedule ending on the anchor accepted without an anchor");
@@ -97,7 +97,7 @@ class ActivityScheduleChronologyTest {
   void testTourEndingBeforeItsOwnInboundTripIsRejected() {
     Tour tour = registerTour(LocalTime.of(8, 0), LocalTime.of(18, 0), LocalTime.of(8, 0), LocalTime.of(19, 0));
 
-    assertFalse(tour.getPerson().getSchedule().isChronological(DAY_ANCHOR),
+    assertFalse(tour.getPrimaryParticipant().getSchedule().isChronological(DAY_ANCHOR),
         "tour ending before its own inbound trip accepted");
   }
 
@@ -108,7 +108,7 @@ class ActivityScheduleChronologyTest {
   void testTourStartingAfterItsOwnOutboundTripIsRejected() {
     Tour tour = registerTour(LocalTime.of(9, 0), LocalTime.of(18, 0), LocalTime.of(8, 0), LocalTime.of(17, 0));
 
-    assertFalse(tour.getPerson().getSchedule().isChronological(DAY_ANCHOR),
+    assertFalse(tour.getPrimaryParticipant().getSchedule().isChronological(DAY_ANCHOR),
         "tour starting after its own outbound trip accepted");
   }
 
@@ -163,7 +163,7 @@ class ActivityScheduleChronologyTest {
     var noon = LocalTime.of(12, 0);
     Tour tour = registerTour(noon, noon, noon, noon);
 
-    assertTrue(tour.getPerson().getSchedule().isChronological(DAY_ANCHOR), "identical times rejected");
+    assertTrue(tour.getPrimaryParticipant().getSchedule().isChronological(DAY_ANCHOR), "identical times rejected");
   }
 
   /**
@@ -180,7 +180,7 @@ class ActivityScheduleChronologyTest {
 
     var offenders = PersonUtils.findPersonsWithNonChronologicalSchedule(persons, DAY_ANCHOR);
     assertEquals(1, offenders.size(), "offender count incorrect");
-    assertEquals(brokenTour.getPerson(), offenders.get(0), "wrong person reported as offender");
+    assertEquals(brokenTour.getPrimaryParticipant(), offenders.get(0), "wrong person reported as offender");
 
     assertEquals(1, PersonUtils.findPersonsWithNonChronologicalSchedule(persons, null).size(),
         "offender count incorrect for a null anchor");

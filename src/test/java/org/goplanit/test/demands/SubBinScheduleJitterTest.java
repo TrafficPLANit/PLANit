@@ -82,7 +82,7 @@ class SubBinScheduleJitterTest {
   void testSameBinTourGainsPositiveDurationAndDistinctTimes() {
     var noon = LocalTime.of(12, 0);
     Tour tour = registerTour(noon, noon, noon, noon);
-    var person = tour.getPerson();
+    var person = tour.getPrimaryParticipant();
     var outbound = (Trip) tour.getSchedule().get(0);
     var inbound = (Trip) tour.getSchedule().get(1);
 
@@ -106,7 +106,7 @@ class SubBinScheduleJitterTest {
     Tour tour = registerTour(noon, noon, noon, noon);
     var outbound = (Trip) tour.getSchedule().get(0);
 
-    applySubBinJitter(tour.getPerson());
+    applySubBinJitter(tour.getPrimaryParticipant());
 
     assertEquals(outbound.getStartTime(), tour.getStartTime(), "tour start not aliased to outbound trip");
   }
@@ -123,7 +123,7 @@ class SubBinScheduleJitterTest {
     Tour tour = registerTour(tourStart, tourEnd, tourStart, inboundTime);
     var inbound = (Trip) tour.getSchedule().get(1);
 
-    applySubBinJitter(tour.getPerson());
+    applySubBinJitter(tour.getPrimaryParticipant());
 
     assertWithin(tour.getEndTime(), tourEnd, tourEnd.plusMinutes(30), "tour end");
     assertWithin(inbound.getStartTime(), inboundTime, inboundTime.plusMinutes(30), "inbound trip");
@@ -187,7 +187,7 @@ class SubBinScheduleJitterTest {
     int moved = 0;
     for (int index = 0; index < 50; ++index) {
       Tour tour = registerTour(morning, LocalTime.of(10, 0), morning, null);
-      applySubBinJitter(tour.getPerson());
+      applySubBinJitter(tour.getPrimaryParticipant());
       if (!tour.getStartTime().equals(morning)) {
         ++moved;
       }
@@ -206,7 +206,7 @@ class SubBinScheduleJitterTest {
     var outbound = (Trip) tour.getSchedule().get(0);
     var inbound = (Trip) tour.getSchedule().get(1);
 
-    applySubBinJitter(tour.getPerson());
+    applySubBinJitter(tour.getPrimaryParticipant());
 
     assertWithin(outbound.getStartTime(), firstBin, secondBin, "outbound trip");
     assertWithin(inbound.getStartTime(), secondBin, LocalTime.of(9, 0), "inbound trip");
@@ -226,7 +226,7 @@ class SubBinScheduleJitterTest {
 
     for (int index = 0; index < personCount; ++index) {
       Tour tour = registerTour(noon, LocalTime.of(14, 0), noon, null);
-      applySubBinJitter(tour.getPerson());
+      applySubBinJitter(tour.getPrimaryParticipant());
 
       long secondsIntoBin = Duration.between(noon, tour.getStartTime()).getSeconds();
       int bucket = (int) (secondsIntoBin * bucketCount / BIN_SECONDS);
@@ -247,7 +247,7 @@ class SubBinScheduleJitterTest {
   void testDeterministicReproducibility() {
     var noon = LocalTime.of(12, 0);
     Tour tour = registerTour(noon, noon, noon, noon);
-    var person = tour.getPerson();
+    var person = tour.getPrimaryParticipant();
     var outbound = (Trip) tour.getSchedule().get(0);
     var inbound = (Trip) tour.getSchedule().get(1);
 
@@ -276,7 +276,7 @@ class SubBinScheduleJitterTest {
     var windowEnd = LocalTime.of(3, 0);
     Tour tour = registerTour(LocalTime.of(2, 50), lateNight, lateNight, null);
 
-    applySubBinJitter(tour.getPerson());
+    applySubBinJitter(tour.getPrimaryParticipant());
 
     assertWithin(tour.getStartTime(), lateNight, windowEnd, "tour start near window end");
     assertWithin(tour.getEndTime(), lateNight, windowEnd, "tour end near window end");
@@ -295,7 +295,7 @@ class SubBinScheduleJitterTest {
     // a third of a bin, so it always bites but stays well inside the bin
     final int minDurationSeconds = BIN_SECONDS / 3;
     discreteDemands.getDiscreteDemandsModifier().adjustPersonScheduleSubBinJitter(
-        tour.getPerson(), BIN_SECONDS, WINDOW_START, WINDOW_END, Set.of(tour), minDurationSeconds);
+        tour.getPrimaryParticipant(), BIN_SECONDS, WINDOW_START, WINDOW_END, Set.of(tour), minDurationSeconds);
 
     assertTrue(Duration.between(tour.getStartTime(), tour.getEndTime()).getSeconds() >= minDurationSeconds,
         "minimum tour duration not applied");
@@ -312,7 +312,7 @@ class SubBinScheduleJitterTest {
 
     // far longer than a bin, so truncation is the only possible outcome
     discreteDemands.getDiscreteDemandsModifier().adjustPersonScheduleSubBinJitter(
-        tour.getPerson(), BIN_SECONDS, WINDOW_START, WINDOW_END, Set.of(tour), 4 * BIN_SECONDS);
+        tour.getPrimaryParticipant(), BIN_SECONDS, WINDOW_START, WINDOW_END, Set.of(tour), 4 * BIN_SECONDS);
 
     assertEquals(noon.plusSeconds(BIN_SECONDS), tour.getEndTime(), "tour end moved outside of its own bin");
   }
@@ -347,7 +347,7 @@ class SubBinScheduleJitterTest {
     Tour tour = registerTour(noon, noon, noon, noon);
 
     discreteDemands.getDiscreteDemandsModifier().adjustPersonScheduleSubBinJitter(
-        tour.getPerson(), BIN_SECONDS, WINDOW_START, WINDOW_END, Set.of(), 2400);
+        tour.getPrimaryParticipant(), BIN_SECONDS, WINDOW_START, WINDOW_END, Set.of(), 2400);
 
     assertWithin(tour.getEndTime(), noon.plusMinutes(20), noon.plusMinutes(30), "tour end");
   }

@@ -4,6 +4,7 @@ import org.goplanit.demands.discrete.person.Person;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactory;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.zoning.OdZone;
 
 import java.time.LocalTime;
@@ -52,17 +53,31 @@ public class ToursFactory extends ManagedIdEntityFactoryImpl<Tour>
   }
 
   /**
-   * register a new entry on the container and return it
+   * register a new entry on the container and return it, with the given person as its primary participant
    *
    * @param person person making the tour
-   * @param registerOnSchedule when true we register this tour on the person's schedule
+   * @param registerOnSchedule when true we register the participation on the person's schedule
    * @return created instance
    */
   public Tour registerNew(Person person, boolean registerOnSchedule) {
+    return registerNew(person, TourParticipantRole.PRIMARY, registerOnSchedule);
+  }
+
+  /**
+   * register a new entry on the container and return it, with the given person participating in the given role. No
+   * ordering is implied: a tour may be created with a non-primary participant first and gain its primary
+   * participant later
+   *
+   * @param person person participating in the tour
+   * @param role the person takes on the tour
+   * @param registerOnSchedule when true we register the participation on the person's schedule
+   * @return created instance
+   */
+  public Tour registerNew(Person person, TourParticipantRole role, boolean registerOnSchedule) {
     var newInstance = new TourImpl(getIdGroupingToken());
-    newInstance.setPerson(person);
+    var participation = newInstance.addParticipant(person, role);
     if(registerOnSchedule){
-      person.getSchedule().add(newInstance);
+      person.getSchedule().add(participation);
     }
     tours.register(newInstance);
     return newInstance;
@@ -93,10 +108,11 @@ public class ToursFactory extends ManagedIdEntityFactoryImpl<Tour>
   }
 
   /**
-   * register a new entry on the container and return it
+   * register a new entry on the container and return it as a sub tour of the given parent. A sub tour is performed
+   * by the person whose tour it sits within, so it adopts that person as its own primary participant
    *
-   * @param parentTour parent tour of this tour, will automatically deduce person from parent (if present)
-   * @param registerOnSchedule when true we register this tour on the parent tour's schedule
+   * @param parentTour parent tour of this tour, whose participant is adopted
+   * @param registerOnSchedule when true we register the participation on the parent tour's schedule
    * @return created instance
    */
   public Tour registerNew(Tour parentTour, boolean registerOnSchedule) {
@@ -104,17 +120,27 @@ public class ToursFactory extends ManagedIdEntityFactoryImpl<Tour>
     newInstance.setParentTour(parentTour);
     var currParent = parentTour;
     while(currParent.hasParentTour()){
-      if(currParent.getPerson()!=null){
+      if(currParent.getPrimaryParticipant()!=null){
         newInstance.setParentTour(currParent);
       }
       currParent = currParent.getParentTour();
     }
 
+    /* adopt the participant of the tour this one sits within. Fall back on any participant when no primary is
+     * registered (yet), so no ordering of participant registration is assumed */
+    var parentParticipation = newInstance.getParentTour().getParticipantTours().stream().filter(
+        ParticipantTour::isPrimary).findFirst().orElseGet(
+            () -> newInstance.getParentTour().getParticipantTours().stream().findFirst().orElse(null));
+    PlanItRunTimeException.throwIfNull(parentParticipation,
+        "Unable to create sub tour for parent tour (%s) that has no participants",
+        newInstance.getParentTour().getIdsAsString());
+    var participation = newInstance.addParticipant(parentParticipation.getPerson(), TourParticipantRole.PRIMARY);
+
     if(registerOnSchedule){
       if(!parentTour.hasSchedule()){
         parentTour.setSchedule(new ActivitySchedule());
       }
-      parentTour.getSchedule().add(newInstance);
+      parentTour.getSchedule().add(participation);
     }
 
     tours.register(newInstance);

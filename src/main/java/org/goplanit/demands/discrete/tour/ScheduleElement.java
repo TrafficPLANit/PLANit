@@ -9,6 +9,11 @@ import java.util.function.Predicate;
  * An element of a schedule can contain other tours or individual trips
  * such that whenever it is a tour, that tour has a schedule with other sub tours and or trips, only after which
  * the next scheduled element at the same level is performed
+ * <p>
+ * Timing is exposed read-only here. To move an element in time, act on the {@link org.goplanit.demands.discrete.trip.Trip}
+ * or {@link Tour} itself, since a tour may be shared by several participants and changing its timing affects all of
+ * them. Making that explicit at the call site is deliberate
+ * </p>
  */
 public interface ScheduleElement {
 
@@ -25,12 +30,6 @@ public interface ScheduleElement {
    * @return the start time
    */
   LocalTime getStartTime();
-
-  /**
-   * Set the start time of the element
-   * @param startTime to use
-   */
-  public abstract void setStartTime(LocalTime startTime);
 
   /**
    * Each schedule element has a purpose

@@ -6,6 +6,7 @@ import org.goplanit.demands.discrete.household.Household;
 import org.goplanit.demands.discrete.household.Households;
 import org.goplanit.demands.discrete.person.Person;
 import org.goplanit.demands.discrete.person.Persons;
+import org.goplanit.demands.discrete.tour.ParticipantTour;
 import org.goplanit.demands.discrete.tour.ScheduleElement;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.tour.TourImpl;
@@ -19,6 +20,7 @@ import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.time.TimePeriod;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -41,30 +43,44 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(DiscreteDemands.class.getCanonicalName());
 
-  /** create a schedule element mapping from tour and trip mappings
+  /** create a schedule element mapping from tour, trip and person mappings. A schedule element that represents a
+   * tour is a participation of one person in that tour, so mapping it requires both the mapped tour and the mapped
+   * person to locate the corresponding participation on the copy
    *
    * @param tourToTourMapping to use
    * @param tripToTripMapping to use
+   * @param personToPersonMapping to use
    * @param removeMissingMappings setting
    * @return function mapping
    */
   private static Function<ScheduleElement, ScheduleElement> constructScheduleElementMapping(
       Function<Tour,Tour> tourToTourMapping,
       Function<Trip,Trip> tripToTripMapping,
+      Function<Person,Person> personToPersonMapping,
       boolean removeMissingMappings){
 
     Function<ScheduleElement, ScheduleElement> scheduleToScheduleElementMapping = (s -> {
       ScheduleElement mapped = null;
-      if(s instanceof TourImpl){
-        mapped = tourToTourMapping.apply((Tour) s);
-      }else if(s instanceof TripImpl){
+      if(s instanceof ParticipantTour){
+        var participation = (ParticipantTour) s;
+        var mappedTour = tourToTourMapping.apply(participation.getTour());
+        var mappedPerson = personToPersonMapping.apply(participation.getPerson());
+        if(mappedTour != null && mappedPerson != null){
+          /* the copied tour carries its own participations, find the one belonging to the mapped person */
+          mapped = mappedTour.getParticipantTours().stream().filter(
+              pt -> pt.getPerson().equals(mappedPerson)).findFirst().orElse(null);
+        }
+      }else if(s instanceof Trip){
         mapped = tripToTripMapping.apply((Trip) s);
-      }
-      if(removeMissingMappings){
-        return mapped;
       }else{
-        throw new PlanItRunTimeException("Unsupported element found %s", mapped);
+        throw new PlanItRunTimeException("Unsupported schedule element type (%s) encountered when mapping schedule",
+            s.getClass().getCanonicalName());
       }
+
+      if(mapped == null && !removeMissingMappings){
+        throw new PlanItRunTimeException("Unable to map schedule element %s", s);
+      }
+      return mapped;
     });
     return scheduleToScheduleElementMapping;
   }
@@ -94,10 +110,17 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
    */
   private void updateTourPersons(Function<Person,Person> pToPMapping, boolean removeMissingMappings) {
     for(var tour : this.tours){
-      var person = tour.getPerson();
-      var newPerson = pToPMapping.apply(person);
-      if (newPerson != null || removeMissingMappings) {
-        tour.setPerson(newPerson);
+      /* participations are immutable, so a remapped person means replacing the participation. Iterating in the
+       * original order and re-adding preserves that order, the primary participant re-entering at the front */
+      for(var participation : new ArrayList<>(tour.getParticipantTours())){
+        var newPerson = pToPMapping.apply(participation.getPerson());
+        if (newPerson == null && !removeMissingMappings) {
+          continue; // leave in-tact
+        }
+        tour.removeParticipant(participation);
+        if(newPerson != null){
+          tour.addParticipant(newPerson, participation.getRole());
+        }
       }
     }
   }
@@ -112,11 +135,12 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
   private void updatePersonSchedules(
       Function<Tour,Tour> tourToTourMapping,
       Function<Trip,Trip> tripToTripMapping,
+      Function<Person,Person> personToPersonMapping,
       boolean removeMissingMappings) {
     for(var person : this.persons){
       var schedule = person.getSchedule();
-      person.setSchedule(schedule.deepCloneWithMapping(
-          constructScheduleElementMapping(tourToTourMapping, tripToTripMapping, removeMissingMappings)));
+      person.setSchedule(schedule.deepCloneWithMapping(constructScheduleElementMapping(
+          tourToTourMapping, tripToTripMapping, personToPersonMapping, removeMissingMappings)));
     }
   }
 
@@ -146,6 +170,7 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
   private void updateTourSchedules(
       Function<Tour,Tour> tourToTourMapping,
       Function<Trip,Trip> tripToTripMapping,
+      Function<Person,Person> personToPersonMapping,
       boolean removeMissingMappings) {
 
     for(var tour : this.tours){
@@ -153,8 +178,8 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
       // map and clone each tours' schedule individually
       if(tour.hasSchedule()){
         var schedule = tour.getSchedule();
-        tour.setSchedule(schedule.deepCloneWithMapping(
-            constructScheduleElementMapping(tourToTourMapping, tripToTripMapping, removeMissingMappings)));
+        tour.setSchedule(schedule.deepCloneWithMapping(constructScheduleElementMapping(
+            tourToTourMapping, tripToTripMapping, personToPersonMapping, removeMissingMappings)));
       }
     }
   }
@@ -241,9 +266,9 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
       //todo: move to container clones above where possible as it is cleaner!!
       updatePersonHouseholds(householdMapper::getMapping, true);
       updateTourPersons(personMapper::getMapping, true);
-      updatePersonSchedules(tourMapper::getMapping, tripMapper::getMapping, true);
+      updatePersonSchedules(tourMapper::getMapping, tripMapper::getMapping, personMapper::getMapping, true);
       updateTourParents(tourMapper::getMapping, true);
-      updateTourSchedules(tourMapper::getMapping, tripMapper::getMapping, true);
+      updateTourSchedules(tourMapper::getMapping, tripMapper::getMapping, personMapper::getMapping, true);
       updateTripTours(tourMapper::getMapping, true);
 
     }else{

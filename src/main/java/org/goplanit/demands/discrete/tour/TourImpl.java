@@ -9,6 +9,8 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.OdZone;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -23,8 +25,8 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(TourImpl.class.getCanonicalName());
 
-  /** Person the tour belongs to */
-  private Person person;
+  /** the persons participating in this tour and their role, primary participant first */
+  private final List<ParticipantTour> participantTours;
 
   /** origin zone of the tour */
   private OdZone origin;
@@ -75,18 +77,23 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
    */
   public TourImpl(IdGroupingToken groupId) {
     super(IdGenerator.generateId(groupId, TOUR_ID_CLASS));
+    this.participantTours = new ArrayList<>(1); // a single participant is the norm
     setSchedule(new ActivitySchedule()); // each tour has a schedule
   }
 
   /**
-   * Copy constructor
+   * Copy constructor. The deep copy flag governs the schedule, i.e. whether the trips and sub tours are shared with
+   * the original or cloned along. Participations are always recreated regardless: a participation binds a person to
+   * one specific tour and holds a reference back to it, so sharing them would leave this copy with participations
+   * that claim to belong to the original tour
    *
    * @param tour to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public TourImpl(TourImpl tour, boolean deepCopy /* no impact yet */) {
+  public TourImpl(TourImpl tour, boolean deepCopy) {
     super(tour);
-    this.person = tour.person;
+    this.participantTours = new ArrayList<>(tour.participantTours.size());
+    tour.participantTours.forEach(pt -> addParticipant(pt.getPerson(), pt.getRole()));
     this.origin = tour.origin;
     this.destination = tour.destination;
     this.purpose = tour.purpose;
@@ -97,21 +104,34 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
   }
 
   /**
-   * Access to person
-   * @return person
+   * {@inheritDoc}
    */
   @Override
-  public Person getPerson() {
-    return person;
+  public List<ParticipantTour> getParticipantTours() {
+    return participantTours;
   }
 
   /**
-   * person
-   * @param person to set
+   * {@inheritDoc}
    */
   @Override
-  public void setPerson(Person person) {
-    this.person = person;
+  public ParticipantTour addParticipant(Person person, TourParticipantRole role) {
+    var participantTour = new ParticipantTourImpl(this, person, role);
+    if(role != null && role.isPrimary()){
+      /* keep the primary participant first, which getPrimaryParticipant and the writers rely on */
+      participantTours.add(0, participantTour);
+    }else{
+      participantTours.add(participantTour);
+    }
+    return participantTour;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeParticipant(ParticipantTour participantTour) {
+    return participantTours.remove(participantTour);
   }
 
   /**

@@ -1,5 +1,7 @@
 package org.goplanit.demands.discrete.tour;
 
+import org.goplanit.demands.discrete.trip.Trip;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.time.LocalTimeUtils;
 
@@ -140,20 +142,50 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
    * @param offsetSeconds offset to apply, may be negative
    */
   public void shift(int offsetSeconds) {
+    shift(offsetSeconds, new HashSet<>());
+  }
+
+  /**
+   * Shift every time in this schedule by the given number of seconds, skipping tours that were already shifted. A
+   * tour may be shared by several participants and therefore be reachable from more than one schedule, while its
+   * times must only move once
+   *
+   * @param offsetSeconds offset to apply, may be negative
+   * @param shiftedTours tours shifted so far
+   */
+  private void shift(int offsetSeconds, Set<Tour> shiftedTours) {
     for (ScheduleElement element : scheduleElements) {
 
-      // start time is carried by both a tour and a trip
-      if (element.getStartTime() != null) {
-        element.setStartTime(element.getStartTime().plusSeconds(offsetSeconds));
+      if (element instanceof Trip) {
+        var trip = (Trip) element;
+        if (trip.getStartTime() != null) {
+          trip.setStartTime(trip.getStartTime().plusSeconds(offsetSeconds));
+        }
+        continue;
+      }
+      if (!(element instanceof ParticipantTour)) {
+        throw new PlanItRunTimeException("Unsupported schedule element type (%s) encountered when shifting schedule",
+            element.getClass().getCanonicalName());
       }
 
-      if (element instanceof Tour && ((Tour) element).getEndTime() != null) {
-        var tour = (Tour) element;
+      var participation = (ParticipantTour) element;
+      if (!participation.isPrimary()) {
+        continue; // a shared tour moves with its primary participant, not again with each accompanying one
+      }
+
+      var tour = participation.getTour();
+      if (!shiftedTours.add(tour)) {
+        continue; // already shifted via another participant of the same tour
+      }
+
+      if (tour.getStartTime() != null) {
+        tour.setStartTime(tour.getStartTime().plusSeconds(offsetSeconds));
+      }
+      if (tour.getEndTime() != null) {
         tour.setEndTime(tour.getEndTime().plusSeconds(offsetSeconds));
       }
-
-      if (element.hasSchedule() && element.getSchedule() != null) {
-        element.getSchedule().shift(offsetSeconds);
+      if (tour.hasSchedule()) {
+        tour.getSchedule().shift(offsetSeconds, shiftedTours);
       }
     }
   }
@@ -165,17 +197,36 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
    * own.
    */
   public void syncTourStartTimesToFirstElement() {
+    syncTourStartTimesToFirstElement(new HashSet<>());
+  }
+
+  /**
+   * Sync tour start times as per {@link #syncTourStartTimesToFirstElement()}, skipping tours already synced because
+   * they are shared by more than one participant
+   *
+   * @param syncedTours tours synced so far
+   */
+  private void syncTourStartTimesToFirstElement(Set<Tour> syncedTours) {
     for (ScheduleElement element : scheduleElements) {
-      if (!(element instanceof Tour) || !element.hasSchedule() || element.getSchedule() == null
-          || element.getSchedule().isEmpty()) {
+      if (element instanceof Trip) {
+        continue; // a trip carries no tour start to sync
+      }
+      if (!(element instanceof ParticipantTour)) {
+        throw new PlanItRunTimeException(
+            "Unsupported schedule element type (%s) encountered when syncing tour start times",
+            element.getClass().getCanonicalName());
+      }
+
+      var tour = ((ParticipantTour) element).getTour();
+      if (!tour.hasSchedule() || tour.getSchedule().isEmpty() || !syncedTours.add(tour)) {
         continue;
       }
 
-      element.getSchedule().syncTourStartTimesToFirstElement();
+      tour.getSchedule().syncTourStartTimesToFirstElement(syncedTours);
 
-      var firstNestedStartTime = element.getSchedule().getFirst().getStartTime();
+      var firstNestedStartTime = tour.getSchedule().getFirst().getStartTime();
       if (firstNestedStartTime != null) {
-        element.setStartTime(firstNestedStartTime);
+        tour.setStartTime(firstNestedStartTime);
       }
     }
   }
@@ -204,6 +255,13 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
   private long lastElapsedSecondsIfChronological(LocalTime dayAnchorTime, long previousElapsedSeconds) {
     for (ScheduleElement element : scheduleElements) {
 
+      /* verify before use, so an unsupported element is rejected rather than silently deciding the outcome */
+      if (!(element instanceof ParticipantTour) && !(element instanceof Trip)) {
+        throw new PlanItRunTimeException(
+            "Unsupported schedule element type (%s) encountered when verifying chronological order",
+            element.getClass().getCanonicalName());
+      }
+
       previousElapsedSeconds = LocalTimeUtils.secondsFromWrapAroundDayAnchorIfNotBefore(
           dayAnchorTime, element.getStartTime(), previousElapsedSeconds);
       if (previousElapsedSeconds < 0) {
@@ -218,9 +276,9 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
         }
       }
 
-      if (element instanceof Tour) {
+      if (element instanceof ParticipantTour) {
         previousElapsedSeconds = LocalTimeUtils.secondsFromWrapAroundDayAnchorIfNotBefore(
-            dayAnchorTime, ((Tour) element).getEndTime(), previousElapsedSeconds);
+            dayAnchorTime, ((ParticipantTour) element).getEndTime(), previousElapsedSeconds);
         if (previousElapsedSeconds < 0) {
           return -1;
         }

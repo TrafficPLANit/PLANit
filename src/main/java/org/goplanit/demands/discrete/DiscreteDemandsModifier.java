@@ -1,6 +1,7 @@
 package org.goplanit.demands.discrete;
 
 import org.goplanit.demands.discrete.person.Person;
+import org.goplanit.demands.discrete.tour.ParticipantTour;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.tour.TourImpl;
 import org.goplanit.demands.discrete.trip.Trip;
@@ -132,25 +133,38 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
    *                     person without any tours.
    */
   public void removeTour(Tour tour, boolean removeParent) {
-    var person = tour.getPerson();
 
     if(tour.hasParentTour() && removeParent){
       removeTour(tour.getParentTour(), removeParent);
       return;
     }
 
-    // if on top level, remove it from the person's schedule
-    if(person.getSchedule() != null) {
-      person.getSchedule().remove(tour);
+    /* a participation lives on exactly one schedule: the person's when the tour is top level, the parent tour's
+     * when it is a sub tour */
+    for(var participation : new ArrayList<>(tour.getParticipantTours())){
+      if(tour.hasParentTour()){
+        if(tour.getParentTour().hasSchedule()){
+          tour.getParentTour().getSchedule().remove(participation);
+        }
+      }else{
+        var person = participation.getPerson();
+        if(person != null && person.getSchedule() != null){
+          person.getSchedule().remove(participation);
+        }
+      }
+      tour.removeParticipant(participation);
     }
 
-    // remove dependents
+    /* remove dependents, on a copy since removing a sub tour detaches it from the schedule iterated here */
     if(tour.hasSchedule()) {
-      for (var scheduleElement : tour.getSchedule()) {
-        if (scheduleElement instanceof TourImpl) {
-          removeTour((TourImpl) scheduleElement, false);
-        } else if (scheduleElement instanceof TripImpl) {
+      for (var scheduleElement : new ArrayList<>(tour.getSchedule())) {
+        if (scheduleElement instanceof ParticipantTour) {
+          removeTour(((ParticipantTour) scheduleElement).getTour(), false);
+        } else if (scheduleElement instanceof Trip) {
           removeTrip((Trip) scheduleElement);
+        } else {
+          throw new PlanItRunTimeException("Unsupported schedule element type (%s) encountered when removing tour",
+              scheduleElement.getClass().getCanonicalName());
         }
       }
     }
@@ -169,12 +183,22 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
   public Person removePerson(Person person) {
     var schedule = person.getSchedule();
     if (schedule != null) {
-      // work on a copy, removing a tour also detaches it from the person's schedule
+      // work on a copy, removing a participation also detaches it from the person's schedule
       for (var scheduleElement : new ArrayList<>(schedule)) {
-        if (scheduleElement instanceof Tour) {
-          removeTour((Tour) scheduleElement, false);
+        if (scheduleElement instanceof ParticipantTour) {
+          var participation = (ParticipantTour) scheduleElement;
+          var tour = participation.getTour();
+          /* only this person leaves; the tour survives while others still take part in it */
+          schedule.remove(participation);
+          tour.removeParticipant(participation);
+          if (tour.getParticipantTours().isEmpty()) {
+            removeTour(tour, false);
+          }
         } else if (scheduleElement instanceof Trip) {
           removeTrip((Trip) scheduleElement);
+        } else {
+          throw new PlanItRunTimeException("Unsupported schedule element type (%s) encountered when removing person",
+              scheduleElement.getClass().getCanonicalName());
         }
       }
     }
@@ -259,9 +283,9 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
       return;
     }
 
-    discreteDemands.getPersons().forEach(person -> ScheduleJitter.applySubBinJitter(
-        person, spreadWidthSeconds, minAllowedTimeSeconds, maxAllowedTimeSeconds, minDurationTours,
-        minDurationSeconds));
+    ScheduleJitter.applySubBinJitter(
+        discreteDemands.getTours(), discreteDemands.getPersons(), spreadWidthSeconds, minAllowedTimeSeconds,
+        maxAllowedTimeSeconds, minDurationTours, minDurationSeconds);
   }
 
   /**

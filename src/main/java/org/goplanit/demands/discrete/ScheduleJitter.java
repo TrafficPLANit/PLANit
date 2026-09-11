@@ -3,8 +3,11 @@ package org.goplanit.demands.discrete;
 import org.goplanit.demands.discrete.person.Person;
 import org.goplanit.demands.discrete.person.PersonUtils;
 import org.goplanit.demands.discrete.tour.ActivitySchedule;
+import org.goplanit.demands.discrete.tour.ParticipantTour;
 import org.goplanit.demands.discrete.tour.ScheduleElement;
 import org.goplanit.demands.discrete.tour.Tour;
+import org.goplanit.demands.discrete.trip.Trip;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.time.LocalTimeUtils;
 
 import java.time.LocalTime;
@@ -38,23 +41,36 @@ public class ScheduleJitter {
     /** when true the point is the element's tour end time, otherwise its start time */
     private final boolean tourEndTime;
 
+    /** when true this time belongs to a tour shared by several participants and is drawn once, elsewhere. It still
+     * takes part in the ordering of the schedule it appears in, but is never moved by that schedule's draw */
+    private final boolean fixed;
+
     /** end of the bin this point was drawn in, as seconds from the window anchor */
     private long binEndElapsedSeconds;
 
-    private JitterPoint(ScheduleElement element, boolean tourEndTime) {
+    private JitterPoint(ScheduleElement element, boolean tourEndTime, boolean fixed) {
       this.element = element;
       this.tourEndTime = tourEndTime;
+      this.fixed = fixed;
     }
 
     private LocalTime getTime() {
-      return tourEndTime ? ((Tour) element).getEndTime() : element.getStartTime();
+      return tourEndTime ? ((ParticipantTour) element).getEndTime() : element.getStartTime();
     }
 
     private void setTime(LocalTime time) {
-      if (tourEndTime) {
-        ((Tour) element).setEndTime(time);
+      if (element instanceof ParticipantTour) {
+        var tour = ((ParticipantTour) element).getTour();
+        if (tourEndTime) {
+          tour.setEndTime(time);
+        } else {
+          tour.setStartTime(time);
+        }
+      } else if (element instanceof Trip) {
+        ((Trip) element).setStartTime(time);
       } else {
-        element.setStartTime(time);
+        throw new PlanItRunTimeException("Unsupported schedule element type (%s) encountered when applying jitter",
+            element.getClass().getCanonicalName());
       }
     }
   }
@@ -69,23 +85,42 @@ public class ScheduleJitter {
    * collected after recursing, so that it can never claim a sub-bin ahead of the elements it contains.
    * </p>
    *
+   * <p>
+   * Everything within a tour shared by several participants - its trips as much as its end - is drawn once for the
+   * tour itself rather than per participant, see
+   * {@link #applySharedTourSubBinJitter(Tour, int, int, int)}. Such points are still collected here, because they
+   * take part in the order of the schedule they appear in and bound the points around them, but they are marked as
+   * fixed so no participant's draw moves them
+   * </p>
+   *
    * @param schedule to collect the points of
    * @param pointsToPopulate to add the encountered points to, in order
+   * @param withinSharedTour when true the points collected sit within a tour shared by several participants
    */
-  private static void collectJitterPoints(ActivitySchedule schedule, List<JitterPoint> pointsToPopulate) {
+  private static void collectJitterPoints(
+      ActivitySchedule schedule, List<JitterPoint> pointsToPopulate, boolean withinSharedTour) {
     for (ScheduleElement element : schedule) {
-      boolean hasNestedSchedule = element.hasSchedule() && element.getSchedule() != null;
+      if (!(element instanceof ParticipantTour) && !(element instanceof Trip)) {
+        throw new PlanItRunTimeException(
+            "Unsupported schedule element type (%s) encountered when collecting jitter points",
+            element.getClass().getCanonicalName());
+      }
+
+      boolean hasNestedSchedule = element.hasSchedule();
+
+      boolean sharedTour = withinSharedTour ||
+          (element instanceof ParticipantTour && ((ParticipantTour) element).getTour().hasMultipleParticipants());
 
       if (!hasNestedSchedule && element.getStartTime() != null) {
-        pointsToPopulate.add(new JitterPoint(element, false));
+        pointsToPopulate.add(new JitterPoint(element, false, sharedTour));
       }
 
       if (hasNestedSchedule) {
-        collectJitterPoints(element.getSchedule(), pointsToPopulate);
+        collectJitterPoints(element.getSchedule(), pointsToPopulate, sharedTour);
       }
 
-      if (element instanceof Tour && ((Tour) element).getEndTime() != null) {
-        pointsToPopulate.add(new JitterPoint(element, true));
+      if (element instanceof ParticipantTour && ((ParticipantTour) element).getEndTime() != null) {
+        pointsToPopulate.add(new JitterPoint(element, true, sharedTour));
       }
     }
   }
@@ -108,12 +143,17 @@ public class ScheduleJitter {
 
     for (int index = 0; index < jitterPoints.size(); ++index) {
       var point = jitterPoints.get(index);
-      if (!point.tourEndTime || !minDurationTours.contains(point.element)) {
+      if (!point.tourEndTime) {
+        continue;
+      }
+      /* the point belongs to a participation, the minimum duration is a property of the tour behind it */
+      var tour = ((ParticipantTour) point.element).getTour();
+      if (!minDurationTours.contains(tour)) {
         continue;
       }
 
       long startElapsedSeconds =
-          LocalTimeUtils.secondsFromWrapAroundDayAnchor(windowStartTime, point.element.getStartTime());
+          LocalTimeUtils.secondsFromWrapAroundDayAnchor(windowStartTime, tour.getStartTime());
       long endElapsedSeconds = LocalTimeUtils.secondsFromWrapAroundDayAnchor(windowStartTime, point.getTime());
 
       long latestAllowedSeconds = index + 1 < jitterPoints.size()
@@ -129,41 +169,20 @@ public class ScheduleJitter {
   }
 
   /**
-   * Spread a person's schedule within the time bins it occupies. Elements sharing a bin carry an identical time,
-   * so each maximal run of equal times is split into as many sub-bins as it holds points and each point is drawn
-   * within its own sub-bin, in schedule order. This keeps the aggregate spread across the bin uniform, exactly as
-   * a rigid per person offset does, while removing the collisions a rigid offset preserves.
-   * <p>
-   * Ordering cannot be inverted by the draws: consecutive sub-bins are disjoint and assigned in schedule order,
-   * and distinct bins are disjoint and ordered among themselves.
-   * </p>
+   * Draw the provided points within their bins. Points carrying an identical time form a run that shares one bin and
+   * is split into as many sub-bins as it holds points, each point being drawn within its own sub-bin in order.
+   * Points marked as fixed keep their time, they were drawn as part of the tour they belong to, but they still
+   * occupy their place in the order
    *
-   * @param person the person whose schedule to jitter
-   * @param spreadWidthSeconds width to spread a run over, being the bin length scaled by any configured ratio
-   * @param minAllowedTimeSeconds the lower boundary in seconds
-   * @param maxAllowedTimeSeconds the upper boundary in seconds
-   * @param minDurationTours tours to give a minimum duration, may be null
-   * @param minDurationSeconds minimum duration to give the tours provided
+   * @param jitterPoints points to draw, in schedule order
+   * @param spreadWidthSeconds width to spread a run over
+   * @param windowStartTime start of the allowed window as a time of day
+   * @param windowDurationSeconds length of the allowed window
+   * @param rng to draw with
    */
-  public static void applySubBinJitter(
-      Person person, int spreadWidthSeconds, int minAllowedTimeSeconds, int maxAllowedTimeSeconds,
-      Set<Tour> minDurationTours, int minDurationSeconds) {
-
-    if (spreadWidthSeconds <= 0 || person == null || person.getSchedule() == null
-        || person.getSchedule().isEmpty()) {
-      return;
-    }
-
-    var schedule = person.getSchedule();
-    var jitterPoints = new ArrayList<JitterPoint>(schedule.sizeUnrolled(false) + 1);
-    collectJitterPoints(schedule, jitterPoints);
-    if (jitterPoints.isEmpty()) {
-      return;
-    }
-
-    final var windowStartTime = LocalTimeUtils.ofSecondOfDayWrapped(minAllowedTimeSeconds);
-    final long windowDurationSeconds = maxAllowedTimeSeconds - minAllowedTimeSeconds;
-    var rng = new SplittableRandom(PersonUtils.generatePersonSeed(person));
+  private static void drawSubBins(
+      List<JitterPoint> jitterPoints, int spreadWidthSeconds, LocalTime windowStartTime,
+      long windowDurationSeconds, SplittableRandom rng) {
 
     int runStartIndex = 0;
     while (runStartIndex < jitterPoints.size()) {
@@ -192,13 +211,171 @@ public class ScheduleJitter {
       if (availableSeconds > 0) {
         final double subBinSeconds = availableSeconds / runSize;
         for (int index = 0; index < runSize; ++index) {
+          // draw regardless, so the sequence of draws does not depend on which points happen to be fixed
           long offsetSeconds = Math.round((index + rng.nextDouble()) * subBinSeconds);
-          jitterPoints.get(runStartIndex + index).setTime(runTime.plusSeconds(offsetSeconds));
+          var point = jitterPoints.get(runStartIndex + index);
+          if (!point.fixed) {
+            point.setTime(runTime.plusSeconds(offsetSeconds));
+          }
         }
       }
 
       runStartIndex = runEndIndex + 1;
     }
+  }
+
+  /**
+   * Ensure the points do not run backwards in time. Draws within a single run cannot invert, but a point belonging
+   * to a shared tour was drawn elsewhere and no longer carries its bin's time, so a point drawn after it can land
+   * before it. Any such point is moved up to its predecessor. Where the bin leaves no room the two end up equal,
+   * which is in order rather than inverted
+   *
+   * @param jitterPoints points in schedule order
+   * @param windowStartSeconds start of the allowed window in seconds
+   * @param windowStartTime start of the allowed window as a time of day
+   */
+  private static void enforceNonDecreasingOrder(
+      List<JitterPoint> jitterPoints, int windowStartSeconds, LocalTime windowStartTime) {
+
+    long previousElapsedSeconds = -1;
+    for (var point : jitterPoints) {
+      long elapsedSeconds = LocalTimeUtils.secondsFromWrapAroundDayAnchor(windowStartTime, point.getTime());
+      if (elapsedSeconds < previousElapsedSeconds) {
+        if (point.fixed) {
+          /* authoritative, it was drawn as part of its own tour, leave it and continue from here */
+          previousElapsedSeconds = elapsedSeconds;
+          continue;
+        }
+        point.setTime(LocalTimeUtils.ofSecondOfDayWrapped(windowStartSeconds + previousElapsedSeconds));
+        elapsedSeconds = previousElapsedSeconds;
+      }
+      previousElapsedSeconds = elapsedSeconds;
+    }
+  }
+
+  /**
+   * Spread the schedules of the provided persons within the time bins they occupy. Tours shared by several
+   * participants are common to all of them and are therefore drawn once, before any person is drawn, so that every
+   * participant sees the same final times and those times bound the draws around them
+   *
+   * @param tours all tours, so the shared ones among them can be drawn up front
+   * @param persons whose schedules to jitter
+   * @param spreadWidthSeconds width to spread a run over, being the bin length scaled by any configured ratio
+   * @param minAllowedTimeSeconds the lower boundary in seconds
+   * @param maxAllowedTimeSeconds the upper boundary in seconds
+   * @param minDurationTours tours to give a minimum duration, may be null
+   * @param minDurationSeconds minimum duration to give the tours provided
+   */
+  public static void applySubBinJitter(
+      Iterable<Tour> tours, Iterable<Person> persons, int spreadWidthSeconds, int minAllowedTimeSeconds,
+      int maxAllowedTimeSeconds, Set<Tour> minDurationTours, int minDurationSeconds) {
+
+    if (spreadWidthSeconds <= 0) {
+      return;
+    }
+
+    tours.forEach(tour -> applySharedTourSubBinJitter(
+        tour, spreadWidthSeconds, minAllowedTimeSeconds, maxAllowedTimeSeconds));
+    persons.forEach(person -> applySubBinJitter(
+        person, spreadWidthSeconds, minAllowedTimeSeconds, maxAllowedTimeSeconds, minDurationTours,
+        minDurationSeconds));
+  }
+
+  /**
+   * Draw the times within a tour that is shared by more than one participant. Everything inside such a tour, its
+   * trips as much as its end, is common to all participants and is therefore drawn once here rather than once per
+   * participant, seeded by the primary participant so the result stays reproducible
+   *
+   * @param tour to draw, ignored when it has a single participant
+   * @param spreadWidthSeconds width to spread a run over
+   * @param minAllowedTimeSeconds the lower boundary in seconds
+   * @param maxAllowedTimeSeconds the upper boundary in seconds
+   */
+  private static void applySharedTourSubBinJitter(
+      Tour tour, int spreadWidthSeconds, int minAllowedTimeSeconds, int maxAllowedTimeSeconds) {
+
+    if (spreadWidthSeconds <= 0 || tour == null || !tour.hasMultipleParticipants() || !tour.hasSchedule()) {
+      return;
+    }
+    var primaryParticipant = tour.getPrimaryParticipant();
+    if (primaryParticipant == null) {
+      LOGGER.severe(String.format(
+          "Tour (%s) shared by multiple participants has no primary participant, unable to apply jitter",
+          tour.getIdsAsString()));
+      return;
+    }
+
+    /* the tour's own points, which are not fixed here, this being the place they are drawn */
+    var jitterPoints = new ArrayList<JitterPoint>(tour.getSchedule().sizeUnrolled(false) + 1);
+    collectJitterPoints(tour.getSchedule(), jitterPoints, false);
+    var primaryParticipation = tour.getParticipantTours().stream().filter(
+        pt -> pt.isPrimary()).findFirst().orElse(null);
+    if (primaryParticipation != null && primaryParticipation.getEndTime() != null) {
+      jitterPoints.add(new JitterPoint(primaryParticipation, true, false));
+    }
+    if (jitterPoints.isEmpty()) {
+      return;
+    }
+
+    final var windowStartTime = LocalTimeUtils.ofSecondOfDayWrapped(minAllowedTimeSeconds);
+    final long windowDurationSeconds = maxAllowedTimeSeconds - minAllowedTimeSeconds;
+    var rng = new SplittableRandom(PersonUtils.generatePersonSeed(primaryParticipant));
+
+    drawSubBins(jitterPoints, spreadWidthSeconds, windowStartTime, windowDurationSeconds, rng);
+    enforceNonDecreasingOrder(jitterPoints, minAllowedTimeSeconds, windowStartTime);
+
+    // the tour's start follows the first trip that has now been placed
+    tour.getSchedule().syncTourStartTimesToFirstElement();
+    var firstElementStartTime = tour.getSchedule().getFirst() != null
+        ? tour.getSchedule().getFirst().getStartTime() : null;
+    if (firstElementStartTime != null) {
+      tour.setStartTime(firstElementStartTime);
+    }
+  }
+
+  /**
+   * Spread a person's schedule within the time bins it occupies. Elements sharing a bin carry an identical time,
+   * so each maximal run of equal times is split into as many sub-bins as it holds points and each point is drawn
+   * within its own sub-bin, in schedule order. This keeps the aggregate spread across the bin uniform, exactly as
+   * a rigid per person offset does, while removing the collisions a rigid offset preserves.
+   * <p>
+   * Ordering cannot be inverted by the draws: consecutive sub-bins are disjoint and assigned in schedule order,
+   * and distinct bins are disjoint and ordered among themselves.
+   * </p>
+   * <p>
+   * Times belonging to a tour shared by several participants are expected to have been drawn already, see
+   * {@link #applySubBinJitter(Iterable, Iterable, int, int, int, Set, int)}, and are left untouched here
+   * </p>
+   *
+   * @param person the person whose schedule to jitter
+   * @param spreadWidthSeconds width to spread a run over, being the bin length scaled by any configured ratio
+   * @param minAllowedTimeSeconds the lower boundary in seconds
+   * @param maxAllowedTimeSeconds the upper boundary in seconds
+   * @param minDurationTours tours to give a minimum duration, may be null
+   * @param minDurationSeconds minimum duration to give the tours provided
+   */
+  public static void applySubBinJitter(
+      Person person, int spreadWidthSeconds, int minAllowedTimeSeconds, int maxAllowedTimeSeconds,
+      Set<Tour> minDurationTours, int minDurationSeconds) {
+
+    if (spreadWidthSeconds <= 0 || person == null || person.getSchedule() == null
+        || person.getSchedule().isEmpty()) {
+      return;
+    }
+
+    var schedule = person.getSchedule();
+    var jitterPoints = new ArrayList<JitterPoint>(schedule.sizeUnrolled(false) + 1);
+    collectJitterPoints(schedule, jitterPoints, false);
+    if (jitterPoints.isEmpty()) {
+      return;
+    }
+
+    final var windowStartTime = LocalTimeUtils.ofSecondOfDayWrapped(minAllowedTimeSeconds);
+    final long windowDurationSeconds = maxAllowedTimeSeconds - minAllowedTimeSeconds;
+    var rng = new SplittableRandom(PersonUtils.generatePersonSeed(person));
+
+    drawSubBins(jitterPoints, spreadWidthSeconds, windowStartTime, windowDurationSeconds, rng);
+    enforceNonDecreasingOrder(jitterPoints, minAllowedTimeSeconds, windowStartTime);
 
     // tour starts are not drawn, they follow the first trip that has now been placed
     schedule.syncTourStartTimesToFirstElement();
@@ -244,7 +421,7 @@ public class ScheduleJitter {
       return;
     }
     var last = schedule.getLast(false /* not flattened, because we're after end time of last tour */);
-    if (!(last instanceof Tour) || ((Tour) last).getEndTime() == null) {
+    if (!(last instanceof ParticipantTour) || ((ParticipantTour) last).getEndTime() == null) {
       LOGGER.severe(String.format("Schedule of person (%s) has invalid top level last tour, unable to apply jitter",
           person.getIdsAsString()));
       return;
@@ -258,7 +435,7 @@ public class ScheduleJitter {
     // wrapped, since a wrap would exceed a day and then not fit the window at all, and an end time before the
     // start must have wrapped exactly once
     final var firstStartTime = first.getStartTime();
-    final var lastEndTime = ((Tour) last).getEndTime();
+    final var lastEndTime = ((ParticipantTour) last).getEndTime();
     final long availableElapsedSeconds = windowDurationSeconds - earliestSeconds;
     long scheduleSpanSeconds;
     if (!lastEndTime.equals(firstStartTime)) {

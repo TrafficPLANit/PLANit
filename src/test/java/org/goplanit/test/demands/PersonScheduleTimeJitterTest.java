@@ -2,6 +2,7 @@ package org.goplanit.test.demands;
 import org.goplanit.demands.discrete.DiscreteDemands;
 import org.goplanit.demands.discrete.ScheduleJitterType;
 import org.goplanit.demands.discrete.person.Person;
+import org.goplanit.demands.discrete.tour.ParticipantTour;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.trip.Trip;
 import org.goplanit.demands.discrete.util.DirectionBound;
@@ -117,8 +118,8 @@ class PersonScheduleTimeJitterTest {
               "Start time breached upper bound: " + element.getStartTime());
         }
 
-        if (element instanceof Tour) {
-          Tour tour = (Tour) element;
+        if (element instanceof ParticipantTour) {
+          Tour tour = ((ParticipantTour) element).getTour();
           if (tour.getEndTime() != null) {
             int endSec = tour.getEndTime().toSecondOfDay();
             assertTrue(endSec >= minAllowed,
@@ -148,7 +149,7 @@ class PersonScheduleTimeJitterTest {
 
   private void applyRigidJitterOnWrapWindow(Tour tour) {
     discreteDemands.getDiscreteDemandsModifier().adjustPersonScheduleRigidJitter(
-        tour.getPerson(), HALF_HOUR, false, WRAP_WINDOW_START, WRAP_WINDOW_END);
+        tour.getPrimaryParticipant(), HALF_HOUR, false, WRAP_WINDOW_START, WRAP_WINDOW_END);
   }
 
   /**
