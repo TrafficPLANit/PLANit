@@ -7,6 +7,7 @@ import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.tour.TourParticipantRole;
 import org.goplanit.demands.discrete.trip.Trip;
 import org.goplanit.demands.discrete.util.DirectionBound;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.junit.jupiter.api.BeforeEach;
@@ -163,6 +164,23 @@ class JointTourScheduleTest {
     primary.getSchedule().shift(600);
     assertEquals(NOON.plusSeconds(600), jointTour.getStartTime(),
         "shared tour did not move with its primary participant");
+  }
+
+  /**
+   * A tour belongs to exactly one person, so a second primary participant is invalid rather than merely unusual
+   */
+  @Test
+  void testTourRejectsASecondPrimaryParticipant() {
+    var primary = registerPerson();
+    Tour tour = registerTourFor(primary, NOON, LocalTime.of(13, 0), NOON, LocalTime.of(12, 30));
+
+    var second = registerPerson();
+    assertThrows(PlanItRunTimeException.class,
+        () -> tour.addParticipant(second, TourParticipantRole.PRIMARY),
+        "a second primary participant was accepted");
+
+    assertEquals(primary, tour.getPrimaryParticipant(), "primary participant changed by the rejected attempt");
+    assertTrue(tour.hasPrimaryParticipant(), "tour lost its primary participant");
   }
 
   /**

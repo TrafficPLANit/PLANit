@@ -62,6 +62,17 @@ public interface Tour extends ExternalIdAble, ManagedId {
   }
 
   /**
+   * Verify if a primary participant is present, i.e. the tour belongs to someone. A tour may briefly exist without
+   * one while its participants are still being registered, so that no ordering of registration is assumed, but it
+   * is not valid to persist it in that state
+   *
+   * @return true when present, false otherwise
+   */
+  default boolean hasPrimaryParticipant() {
+    return getPrimaryParticipant() != null;
+  }
+
+  /**
    * All persons participating in this tour
    *
    * @return participating persons

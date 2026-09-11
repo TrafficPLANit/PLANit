@@ -4,6 +4,7 @@ import org.goplanit.demands.discrete.person.Person;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.OdZone;
@@ -116,6 +117,13 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
    */
   @Override
   public ParticipantTour addParticipant(Person person, TourParticipantRole role) {
+    if(role != null && role.isPrimary() && hasPrimaryParticipant()){
+      throw new PlanItRunTimeException(
+          "Tour (%s) already has a primary participant (%s), unable to add person (%s) as primary as well",
+          getIdsAsString(), getPrimaryParticipant().getIdsAsString(),
+          person != null ? person.getIdsAsString() : "-");
+    }
+
     var participantTour = new ParticipantTourImpl(this, person, role);
     if(role != null && role.isPrimary()){
       /* keep the primary participant first, which getPrimaryParticipant and the writers rely on */
