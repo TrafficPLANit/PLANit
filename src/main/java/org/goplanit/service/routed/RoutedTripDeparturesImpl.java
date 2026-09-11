@@ -15,7 +15,8 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDeparture> implements RoutedTripDepartures {
+public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDeparture>
+    implements RoutedTripDepartures {
 
   /** The factory to use */
   RoutedTripDepartureFactoryImpl factory;
@@ -37,7 +38,8 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedTripDeparturesImpl(RoutedTripDeparturesImpl other, boolean deepCopy, BiConsumer<RoutedTripDeparture, RoutedTripDeparture> mapper) {
+  public RoutedTripDeparturesImpl(
+      RoutedTripDeparturesImpl other, boolean deepCopy, BiConsumer<RoutedTripDeparture, RoutedTripDeparture> mapper) {
     super(other, deepCopy, mapper);
     this.factory =
             new RoutedTripDepartureFactoryImpl(other.factory.getIdGroupingToken(), this);

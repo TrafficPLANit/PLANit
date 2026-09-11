@@ -3,6 +3,8 @@ package org.goplanit.algorithms.nodemodel;
 import java.util.ArrayList;
 
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
@@ -10,10 +12,9 @@ import org.ojalgo.array.Array1D;
 import org.ojalgo.function.PrimitiveFunction;
 
 /**
- * Inner class that holds the mapping of the inputs to/from the underlying physical network (if any). Currently we support the PLANit network format for this mapping, or one
- * provides the fixed input separate from a particular network format
- * 
- * By default we:
+ * Inner class that holds the mapping of the inputs to/from the underlying physical network (if any).
+ * Currently, we support the PLANit network format for this mapping, or one
+ * provides the fixed input separate from a particular network format By default, we:
  * <ul>
  * <li>map incoming link segments in order of appearance to index a=0,...,|A^in|-1</li>
  * <li>map outgoing link segments in order of appearance to index b=0,...,|B^out|-1</li>
@@ -21,23 +22,30 @@ import org.ojalgo.function.PrimitiveFunction;
  * <li>extract receiving flow capacities such that R_b=C_b</li>
  * </ul>
  * 
- * Note that in case the receiving flows are not fixed at the outgoing link's capacity this can be omitted and provided as a separate input via the TampereNodeModelInput
+ * Note that in case the receiving flows are not fixed at the outgoing link's capacity this can be omitted and
+ * provided as a separate input via the TampereNodeModelInput
  * 
  */
 public class TampereNodeModelFixedInput {
 
   /**
-   * Map link segments to local data mapping structure in order of appearance, i.e., first incoming link segment is placed in index 0, second in index 1 etc.
+   * Map link segments to local data mapping structure in order of appearance, i.e., first incoming link segment
+   * is placed in index 0, second in index 1 etc.
    * 
    * @param linkSegments, to map to
    * @param edgeSegments  to map from
-   * @throws PlanItException
    */
-  private void mapLinkSegments(ArrayList<MacroscopicLinkSegment> linkSegments, Iterable<? extends EdgeSegment> edgeSegments) throws PlanItException {
-    PlanItException.throwIf(edgeSegments == null, "edge segments to map are null");
+  private void mapLinkSegments(
+          ArrayList<MacroscopicLinkSegment> linkSegments, Iterable<? extends EdgeSegment> edgeSegments) {
+    if(edgeSegments == null){
+      throw new PlanItRunTimeException("edge segments to map are null");
+    }
 
     for (var incomingLinkSegment : edgeSegments) {
-      PlanItException.throwIf(!(incomingLinkSegment instanceof MacroscopicLinkSegment), "Edges of node are not of type MacroScopicLinkSegment when mapping in Tampere node model");
+      if(!(incomingLinkSegment instanceof MacroscopicLinkSegment)) {
+        throw new PlanItRunTimeException("Edges of node are not of type MacroscopicLinkSegment when mapping in " +
+                "Tampere node model");
+      }
 
       linkSegments.add((MacroscopicLinkSegment) incomingLinkSegment);
     }
@@ -48,10 +56,12 @@ public class TampereNodeModelFixedInput {
    * 
    * @param arrayToInitialise the array to initialise
    * @param linkSegments      to extract capacities from
-   * @throws PlanItException thrown if link segments are null
    */
-  private void initialiseWithCapacity(Array1D<Double> arrayToInitialise, ArrayList<MacroscopicLinkSegment> linkSegments) throws PlanItException {
-    PlanItException.throwIf(linkSegments == null, "link segments to extract capacity from are null");
+  private void initialiseWithCapacity(
+          Array1D<Double> arrayToInitialise, ArrayList<MacroscopicLinkSegment> linkSegments){
+    if(linkSegments == null) {
+      throw new PlanItRunTimeException("link segments to extract capacity from are null");
+    }
 
     arrayToInitialise = Array1D.PRIMITIVE64.makeZero(linkSegments.size());
     for (var linkSegment : linkSegments) {
@@ -60,45 +70,43 @@ public class TampereNodeModelFixedInput {
   }
 
   /**
-   * Map incoming link segments to node model compatible index in order of appearance, i.e., first incoming link segment is placed in index 0, second in index 1 etc.
+   * Map incoming link segments to node model compatible index in order of appearance, i.e., first incoming link
+   * segment is placed in index 0, second in index 1 etc.
    * 
    * @param incomingEdgeSegments to map
-   * @throws PlanItException
    */
-  private void mapIncomingLinkSegments(Iterable<? extends EdgeSegment> incomingEdgeSegments, int numSegments) throws PlanItException {
+  private void mapIncomingLinkSegments(Iterable<? extends EdgeSegment> incomingEdgeSegments, int numSegments) {
     this.incomingLinkSegments = new ArrayList<MacroscopicLinkSegment>(numSegments);
     mapLinkSegments(incomingLinkSegments, incomingEdgeSegments);
   }
 
   /**
-   * Map outgoingEdgeSegments link segments to node model compatible index in order of appearance, i.e., first incoming link segment is placed in index 0, second in index 1 etc.
+   * Map outgoingEdgeSegments link segments to node model compatible index in order of appearance, i.e., first
+   * incoming link segment is placed in index 0, second in index 1 etc.
    * 
    * @param outgoingEdgeSegments to map
-   * @throws PlanItException
    */
-  private void mapOutgoingLinkSegments(Iterable<? extends EdgeSegment> outgoingEdgeSegments, int numSegments) throws PlanItException {
-    this.outgoingLinkSegments = new ArrayList<MacroscopicLinkSegment>(numSegments);
+  private void mapOutgoingLinkSegments(Iterable<? extends EdgeSegment> outgoingEdgeSegments, int numSegments) {
+    this.outgoingLinkSegments = new ArrayList<>(numSegments);
     mapLinkSegments(outgoingLinkSegments, outgoingEdgeSegments);
   }
 
   /**
    * Extract the available incoming link capacities. It is assumed the incoming link segments are available
-   * 
-   * @throws PlanItException thrown if error
    */
-  private void initialiseIncomingLinkSegmentCapacities() throws PlanItException {
+  private void initialiseIncomingLinkSegmentCapacities() {
     initialiseWithCapacity(incomingLinkSegmentCapacities, incomingLinkSegments);
   }
 
   /**
-   * Extract the available outgoing link receiving flows by setting them to capacity. It is assumed the incoming link segments are available. Note that assignment methods that
-   * support storage constraints, i.e., spillback do not always have receiving flows equal to capacity. In that case receiving flows are not fixed and should not be initialised
-   * here but instead by provided on-the-fly for each tampere node model update
+   * Extract the available outgoing link receiving flows by setting them to capacity. It is assumed the incoming
+   * link segments are available. Note that assignment methods that support storage constraints, i.e., spillback
+   * do not always have receiving flows equal to capacity. In that case receiving flows are not fixed and should
+   * not be initialised here but instead by provided on-the-fly for each tampere node model update.
    * 
-   * @param initialiseReceivingFlowsAtCapacity
-   * @throws PlanItException thrown if error
+   * @param initialiseReceivingFlowsAtCapacity to use
    */
-  private void initialiseOutoingLinkSegmentReceivingFlows(boolean initialiseReceivingFlowsAtCapacity) throws PlanItException {
+  private void initialiseOutoingLinkSegmentReceivingFlows(boolean initialiseReceivingFlowsAtCapacity) {
     if (initialiseReceivingFlowsAtCapacity) {
       initialiseWithCapacity(outgoingLinkSegmentReceivingFlows, outgoingLinkSegments);
     } else {
@@ -123,15 +131,16 @@ public class TampereNodeModelFixedInput {
   public static double DEFAULT_MAX_IN_CAPACITY = 10_000.0;
 
   /**
-   * Constructor. The TampereNodeModelFixedInput class is meant to be created once for each node where the node model is applied more than once. All fixed inputs conditioned on the
-   * network infrastructure are stored here and therefore can be reused with every update of the node model throughout a simulation.
+   * Constructor. The TampereNodeModelFixedInput class is meant to be created once for each node where the node
+   * model is applied more than once. All fixed inputs conditioned on the network infrastructure are stored here
+   * and therefore can be reused with every update of the node model throughout a simulation.
    * 
    * 
    * @param node                               to use for extracting static inputs
-   * @param initialiseReceivingFlowsAtCapacity indicate to initialise receiving flows at capacity (true), or not initialise them at all
-   * @throws PlanItException thrown when error occurs
+   * @param initialiseReceivingFlowsAtCapacity indicate to initialise receiving flows at capacity (true),
+   *                                           or not initialise them at all
    */
-  public TampereNodeModelFixedInput(Node node, boolean initialiseReceivingFlowsAtCapacity) throws PlanItException {
+  protected TampereNodeModelFixedInput(Node node, boolean initialiseReceivingFlowsAtCapacity){
     // Set A^in
     mapIncomingLinkSegments(node.getEntryEdgeSegments(), node.getNumberOfEntryEdgeSegments());
     // Set A^out
@@ -148,9 +157,11 @@ public class TampereNodeModelFixedInput {
    * @param incomingLinkSegmentCapacities     to use
    * @param outgoingLinkSegmentReceivingFlows to use
    */
-  public TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities, Array1D<Double> outgoingLinkSegmentReceivingFlows) {
+  protected TampereNodeModelFixedInput(
+          Array1D<Double> incomingLinkSegmentCapacities, Array1D<Double> outgoingLinkSegmentReceivingFlows) {
     this.incomingLinkSegmentCapacities = incomingLinkSegmentCapacities.copy();
-    this.outgoingLinkSegmentReceivingFlows = outgoingLinkSegmentReceivingFlows.copy();
+    this.outgoingLinkSegmentReceivingFlows =
+        outgoingLinkSegmentReceivingFlows!= null ?outgoingLinkSegmentReceivingFlows.copy() : null;
   }
 
   /**
@@ -158,13 +169,13 @@ public class TampereNodeModelFixedInput {
    * 
    * @param incomingLinkSegmentCapacities to use
    */
-  public TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities) {
-    this.incomingLinkSegmentCapacities = incomingLinkSegmentCapacities.copy();
-    this.outgoingLinkSegmentReceivingFlows = null;
+  protected TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities) {
+    this(incomingLinkSegmentCapacities, null);
   }
 
   /**
-   * Based on the set maximum in link capacity, check and update current in link capacities if they exceed this maximum
+   * Based on the set maximum in link capacity, check and update current in link capacities if they
+   * exceed this maximum.
    */
   public void capInLinkCapacitiesToMaximum() {
     PrimitiveFunction.Unary capToMaxCapacity = v -> Math.max(getMaxInLinkSegmentCapacity(), v);
@@ -205,6 +216,30 @@ public class TampereNodeModelFixedInput {
    */
   public void setMaxInLinkSegmentCapacity(double maxInLinkSegmentCapacity) {
     this.maxInLinkSegmentCapacity = maxInLinkSegmentCapacity;
+  }
+
+  /**
+   * Factory method
+   *
+   * @param node                               to use for extracting static inputs
+   * @param initialiseReceivingFlowsAtCapacity indicate to initialise receiving flows at capacity (true),
+   *                                           or not initialise them at all
+   * @return create fixed inputs
+   */
+  public static TampereNodeModelFixedInput of(Node node, boolean initialiseReceivingFlowsAtCapacity){
+    return new TampereNodeModelFixedInput(node, initialiseReceivingFlowsAtCapacity);
+  }
+
+  /**
+   * Factory method
+   *
+   * @param incomingLinkSegmentCapacities     to use
+   * @param outgoingLinkSegmentReceivingFlows to use
+   * @return create fixed inputs
+   */
+  public static TampereNodeModelFixedInput of(
+      Array1D<Double> incomingLinkSegmentCapacities, Array1D<Double> outgoingLinkSegmentReceivingFlows){
+    return new TampereNodeModelFixedInput(incomingLinkSegmentCapacities, outgoingLinkSegmentReceivingFlows);
   }
 
 }

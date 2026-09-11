@@ -2,11 +2,13 @@ package org.goplanit.network.layer.macroscopic;
 
 import java.util.Arrays;
 
-import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.layers.ConjugateMacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.network.layers.ConjugateMacroscopicNetworkLayerFactory;
 import org.goplanit.utils.network.layers.MacroscopicNetworkLayerFactory;
 import org.goplanit.utils.network.layers.MacroscopicNetworkLayers;
 
@@ -15,7 +17,8 @@ import org.goplanit.utils.network.layers.MacroscopicNetworkLayers;
  * 
  * @author markr
  */
-public class MacroscopicNetworkLayerFactoryImpl extends ManagedIdEntityFactoryImpl<MacroscopicNetworkLayer> implements MacroscopicNetworkLayerFactory {
+public class MacroscopicNetworkLayerFactoryImpl extends ManagedIdEntityFactoryImpl<MacroscopicNetworkLayer>
+    implements MacroscopicNetworkLayerFactory {
 
   /** container to register instances on */
   private final MacroscopicNetworkLayers container;
@@ -48,6 +51,16 @@ public class MacroscopicNetworkLayerFactoryImpl extends ManagedIdEntityFactoryIm
   public MacroscopicNetworkLayer registerNew(Mode... supportedModes) {
     MacroscopicNetworkLayer newLayer = registerNew();
     newLayer.registerSupportedModes(Arrays.asList(supportedModes));
+    return newLayer;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicNetworkLayer registerNew(Modes modes) {
+    MacroscopicNetworkLayer newLayer = registerNew();
+    newLayer.registerSupportedModes(modes.toCollection());
     return newLayer;
   }
 

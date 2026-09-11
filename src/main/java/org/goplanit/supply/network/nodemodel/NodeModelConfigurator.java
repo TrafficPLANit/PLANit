@@ -28,7 +28,7 @@ public class NodeModelConfigurator<T extends NodeModelComponent> extends Configu
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void configure(NodeModelComponent nodeModel) throws PlanItException {
+  public void configure(NodeModelComponent nodeModel) {
     super.configure((T) nodeModel);
   }
 

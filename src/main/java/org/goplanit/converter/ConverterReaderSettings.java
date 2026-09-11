@@ -16,6 +16,15 @@ public interface ConverterReaderSettings {
 
   /**
    * Log relevant settings
+   *
+   * @param level indentation level to apply
    */
-  public abstract void logSettings();
+  public abstract void logSettings(int level);
+
+  /**
+   * Log relevant settings at the top level.
+   */
+  public default void logSettings() {
+    logSettings(0);
+  }
 }

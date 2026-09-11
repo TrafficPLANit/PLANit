@@ -2,8 +2,6 @@ package org.goplanit.network.layer.physical;
 
 import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.layer.physical.ConjugateLink;
 import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.physical.ConjugateNodeFactory;
 import org.goplanit.utils.network.layer.physical.ConjugateNodes;
@@ -39,7 +37,7 @@ public class ConjugateNodesImpl extends ManagedGraphEntitiesImpl<ConjugateNode> 
    * @param nodeFactory the factory to use
    */
   public ConjugateNodesImpl(final IdGroupingToken groupId, ConjugateNodeFactory nodeFactory) {
-    super(n -> n.getOriginalEdge().getId());
+    super(n -> n.getOriginalEdgeSegment().getId());
     this.factory = nodeFactory;
   }
 

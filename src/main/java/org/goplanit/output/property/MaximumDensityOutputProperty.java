@@ -11,7 +11,13 @@ import org.goplanit.utils.unit.Unit;
  */
 public final class MaximumDensityOutputProperty extends OutputProperty {
 
+
+  /** Maximum Density. */
   public static final String NAME = "Maximum Density";
+  /**
+   * Public no-arg constructor required for reflective instantiation.
+   */
+  public MaximumDensityOutputProperty(){}
 
   /**
    * {@inheritDoc}

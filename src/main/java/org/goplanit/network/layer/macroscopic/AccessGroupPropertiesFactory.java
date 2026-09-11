@@ -17,6 +17,12 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 public class AccessGroupPropertiesFactory {
 
   /**
+   * Dummy constructor 
+   */
+  private AccessGroupPropertiesFactory(){
+  }
+
+  /**
    * Factory method
    * 
    * @param maxSpeedKmH      maximum speed for this mode in this context
@@ -24,7 +30,8 @@ public class AccessGroupPropertiesFactory {
    * @param accessModes      these properties relate to
    * @return created properties
    */
-  public static AccessGroupProperties create(final double maxSpeedKmH, final double criticalSpeedKmH, final Mode... accessModes) {
+  public static AccessGroupProperties create(
+      final double maxSpeedKmH, final double criticalSpeedKmH, final Mode... accessModes) {
     return new AccessGroupPropertiesImpl(maxSpeedKmH, criticalSpeedKmH, accessModes);
   }
 
@@ -36,7 +43,8 @@ public class AccessGroupPropertiesFactory {
    * @param accessModes      these properties relate to
    * @return created properties
    */
-  public static AccessGroupProperties create(final double maxSpeedKmH, final double criticalSpeedKmH, final Collection<Mode> accessModes) {
+  public static AccessGroupProperties create(
+      final double maxSpeedKmH, final double criticalSpeedKmH, final Collection<Mode> accessModes) {
     return new AccessGroupPropertiesImpl(maxSpeedKmH, criticalSpeedKmH, accessModes);
   }
 
@@ -83,32 +91,39 @@ public class AccessGroupPropertiesFactory {
   }
 
   /**
-   * Add mode properties for the passed in modes to the passed in link segment type where we cap the max and critical speed based on the minimum of the mode's maximum speed and the
+   * Add mode properties for the passed in modes to the passed in link segment type where we cap the max and critical
+   * speed based on the minimum of the mode's maximum speed and the
    * maximum speed
    * 
    * @param linkSegmentType to populate for
    * @param modesToAdd      to add
    * @param maxSpeedKmH     maxSpeed to set
    */
-  public static void createOnLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType, final double maxSpeedKmH, final Collection<Mode> modesToAdd) {
+  public static void createOnLinkSegmentType(
+          final MacroscopicLinkSegmentType linkSegmentType,
+          final double maxSpeedKmH,
+          final Collection<Mode> modesToAdd) {
     linkSegmentType.setAccessGroupProperties(create(maxSpeedKmH, modesToAdd));
   }
 
   /**
-   * Add access properties for the passed in modes to the passed in link segment type where we cap the max and critical speed based on the minimum of the mode's maximum speed and
-   * the maximum speed
+   * Add access properties for the passed in modes to the passed in link segment type where we cap the max and critical
+   * speed based on the minimum of the mode's maximum speed and the maximum speed
    * 
    * @param linkSegmentType to populate for
    * @param modeToAdd       to add
-   * @param maxSpeedKmH     maxSpeed to set, if exceeding mode maximum speed, only access for the mode is registered as the provided speed is not a restriction compared to the
+   * @param maxSpeedKmH     maxSpeed to set, if exceeding mode maximum speed, only access for the mode is
+   *                        registered as the provided speed is not a restriction compared to the
    *                        physical restriction
    */
-  public static void createOnLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType, final Mode modeToAdd, final double maxSpeedKmH) {
-    if (Precision.greater(maxSpeedKmH, modeToAdd.getMaximumSpeedKmH())) {
-      create(modeToAdd); //todo: this does not seem to do anything...
-    } else {
-      linkSegmentType.setAccessGroupProperties(create(maxSpeedKmH, modeToAdd));
-    }
+  public static void createOnLinkSegmentType(
+          final MacroscopicLinkSegmentType linkSegmentType, final Mode modeToAdd, final double maxSpeedKmH) {
+    /* a speed above what the mode can physically achieve is no restriction at all, so the mode's own maximum is
+     * what applies. Registering that rather than the requested speed keeps the properties truthful without
+     * silently discarding the access being asked for */
+    double applicableSpeedKmH = Precision.greater(maxSpeedKmH, modeToAdd.getMaximumSpeedKmH())
+        ? modeToAdd.getMaximumSpeedKmH() : maxSpeedKmH;
+    linkSegmentType.setAccessGroupProperties(create(applicableSpeedKmH, modeToAdd));
   }
 
 }

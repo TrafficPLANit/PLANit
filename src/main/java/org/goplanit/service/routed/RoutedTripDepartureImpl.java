@@ -103,7 +103,8 @@ public class RoutedTripDepartureImpl extends ExternalIdAbleImpl implements Route
   @Override
   public void departLater(LocalTime departureTimeIncrease) {
     if(!ExtendedLocalTime.isNanosValid(departureTime.toNanoOfExtendedDay() + departureTimeIncrease.toNanoOfDay())){
-      LOGGER.warning(String.format("Unable to depart later by % when existing departure is at %s", departureTimeIncrease, this));
+      LOGGER.warning(String.format("Unable to depart later by %s when existing departure is at %s",
+          departureTimeIncrease, this));
     }
     departureTime = departureTime.plus(ExtendedLocalTime.of(departureTimeIncrease));
   }
@@ -114,7 +115,8 @@ public class RoutedTripDepartureImpl extends ExternalIdAbleImpl implements Route
   @Override
   public void departEarlier(LocalTime departureTimeDecrease) {
     if(!ExtendedLocalTime.isNanosValid(departureTime.toNanoOfExtendedDay() - departureTimeDecrease.toNanoOfDay())){
-      LOGGER.warning(String.format("Unable to depart earlier by % when existing departure is at %s", departureTimeDecrease, this));
+      LOGGER.warning(String.format("Unable to depart earlier by %s when existing departure is at %s",
+          departureTimeDecrease, this));
     }
     departureTime = departureTime.minus(ExtendedLocalTime.of(departureTimeDecrease));
   }

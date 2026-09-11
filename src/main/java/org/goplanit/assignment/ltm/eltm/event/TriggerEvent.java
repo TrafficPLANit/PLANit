@@ -7,8 +7,8 @@ import org.goplanit.utils.cumulatives.CumulativePoint;
 import org.goplanit.utils.event.EventType;
 
 /**
- * A trigger event emanates from a link boundary (its source) with a particular cumulative value and time and potentially other information which should be constructed by
- * subclassing this class
+ * A trigger event emanates from a link boundary (its source) with a particular cumulative value and time and
+ * potentially other information which should be constructed by subclassing this class
  * 
  * @author markr
  *
@@ -23,7 +23,11 @@ public abstract class TriggerEvent extends CumulativeEvent {
    * @param cumulativePoint     the cumulative reference point
    * @param singleParameter     additional parameter
    */
-  protected TriggerEvent(EventType type, LinkSegmentBoundary linkBoundarySource, CumulativePoint cumulativePoint, Serializable singleParameter) {
+  protected TriggerEvent(
+      EventType type,
+      LinkSegmentBoundary linkBoundarySource,
+      CumulativePoint cumulativePoint,
+      Serializable singleParameter) {
     super(type, linkBoundarySource, cumulativePoint, singleParameter);
   }
 

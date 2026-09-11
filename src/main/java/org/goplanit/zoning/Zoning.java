@@ -4,22 +4,32 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
 import org.goplanit.network.virtual.VirtualNetworkImpl;
-import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.zoning.connectoid.*;
+import org.goplanit.zoning.zonetozone.OdDemands;
+import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.network.virtual.*;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.CentroidVertexUtils;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
+import org.goplanit.zoning.connectoid.OdConnectoidsImpl;
+import org.goplanit.zoning.connectoid.TransferConnectoidsImpl;
 import org.goplanit.zoning.modifier.ZoningModifierImpl;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Zoning class which holds a particular zoning
@@ -42,7 +52,8 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
 
   /**
    * Virtual network holds all the virtual connections to the physical network (layers)
-   * todo: we should have potentially multiple virtual networks per zoning, one for each physical network the zoning is used on!
+   * todo: we should have potentially multiple virtual networks per zoning, one for each physical network the zoning
+   * is used on!
    */
   protected final VirtualNetwork virtualNetwork;
 
@@ -57,12 +68,12 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   /**
    * provide access to undirected connectoids (of od zones)
    */
-  protected final UndirectedConnectoids odConnectoids;
+  protected final OdConnectoids odConnectoids;
 
   /**
    * provide access to directed connectoids (of transfer zones)
    */
-  protected final DirectedConnectoids transferConnectoids;
+  protected final TransferConnectoids transferConnectoids;
 
   /**
    * provide access to zones
@@ -93,8 +104,8 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     super(groupId, Zoning.class);
     virtualNetwork = new VirtualNetworkImpl(virtualNetworkGroupId);
 
-    odConnectoids = new UndirectedConnectoidsImpl(virtualNetworkGroupId);
-    transferConnectoids = new DirectedConnectoidsImpl(virtualNetworkGroupId);
+    odConnectoids = new OdConnectoidsImpl(virtualNetworkGroupId);
+    transferConnectoids = new TransferConnectoidsImpl(virtualNetworkGroupId);
     odZones = new OdZonesImpl(virtualNetworkGroupId);
     transferZones = new TransferZonesImpl(virtualNetworkGroupId);
     transferZoneGroups = new TransferZoneGroupsImpl(virtualNetworkGroupId);
@@ -116,8 +127,8 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   public Zoning(
       final Zoning other,
       boolean deepCopy,
-      ManagedIdDeepCopyMapper<UndirectedConnectoid> undirConnectoidMapper,
-      ManagedIdDeepCopyMapper<DirectedConnectoid> dirConnectoidMapper,
+      ManagedIdDeepCopyMapper<OdConnectoid> undirConnectoidMapper,
+      ManagedIdDeepCopyMapper<TransferConnectoid> dirConnectoidMapper,
       ManagedIdDeepCopyMapper<OdZone> odZoneMapper,
       ManagedIdDeepCopyMapper<TransferZone> transferZoneMapper,
       ManagedIdDeepCopyMapper<TransferZoneGroup> transferZoneGroupMapper) {
@@ -134,20 +145,29 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
       this.transferZones =        other.transferZones.deepCloneWithMapping(transferZoneMapper);
       this.transferZoneGroups =   other.transferZoneGroups.deepCloneWithMapping(transferZoneGroupMapper);
 
-      if(odZoneMapper != null) ConnectoidUtils.updateAccessZoneMapping(odConnectoids, (OdZone z) -> odZoneMapper.getMapping(z), true);
+      if(odZoneMapper != null){
+        ConnectoidUtils.updateAccessZoneMapping(odConnectoids, odZoneMapper::getMapping, true);
+      }
       if(transferZoneMapper != null){
-        ConnectoidUtils.updateAccessZoneMapping(transferConnectoids, (TransferZone z) -> transferZoneMapper.getMapping(z), true);
-        TransferZoneGroupUtils.updateTransferZoneMapping(transferZoneGroups, (TransferZone z) -> transferZoneMapper.getMapping(z), true);
+        ConnectoidUtils.updateAccessZoneMapping(
+                transferConnectoids, transferZoneMapper::getMapping, true);
+        TransferZoneGroupUtils.updateTransferZoneMapping(
+                transferZoneGroups, transferZoneMapper::getMapping, true);
       }
 
-      var connectoidEdgeMapper = new GraphEntityDeepCopyMapper<ConnectoidEdge>();
+      var connectoidEdgeMapper = new GraphEntityDeepCopyMapper<ConnectoidDirectedEdge>();
       var connectoidEdgeSegmentMapper = new GraphEntityDeepCopyMapper<ConnectoidSegment>();
       var centroidVertexMapper = new GraphEntityDeepCopyMapper<CentroidVertex>();
-      this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(connectoidEdgeMapper, connectoidEdgeSegmentMapper, centroidVertexMapper);
+      var movementMapper = new ManagedIdDeepCopyMapper<BannedMovement>();
+      this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(
+          connectoidEdgeMapper, connectoidEdgeSegmentMapper, centroidVertexMapper, movementMapper);
 
-      // make sure centroid vertex's parent centroid is updated properly (this goes across zones that own  zone and centroids and virtual network, so done here)
-      var centroidMapper = centroidVertexMapper.stream().collect(Collectors.toMap(entry -> entry.getKey().getParent(), entry -> entry.getValue().getParent()));
-      CentroidVertexUtils.updateCentroidVertexCentroidMapping(virtualNetwork.getCentroidVertices(), (Centroid originalCentroid) -> centroidMapper.get(originalCentroid), true);
+      // make sure centroid vertex's parent centroid is updated properly (this goes across zones that own  zone
+      // and centroids and virtual network, so done here)
+      var centroidMapper = centroidVertexMapper.stream().collect(
+          Collectors.toMap(entry -> entry.getKey().getParent(), entry -> entry.getValue().getParent()));
+      CentroidVertexUtils.updateCentroidVertexCentroidMapping(
+          virtualNetwork.getLayer().getVertices(), centroidMapper::get, true);
 
     }else{
       this.odConnectoids =        other.odConnectoids.shallowClone();
@@ -169,12 +189,17 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    */
   public void logInfo(String prefix) {
     LOGGER.info(String.format("%s XML id %s (external id: %s) ", prefix, getXmlId(), getExternalId()));
-    LOGGER.info(String.format("%s #od zones: %d (#centroids: %d)", prefix, odZones.size(), odZones.getNumberOfCentroids()));
+    LOGGER.info(String.format("%s #od zones: %d (#centroids: %d)",
+            prefix, odZones.size(), odZones.getNumberOfCentroids()));
     LOGGER.info(String.format("%s #od connectoids: %d", prefix, odConnectoids.size()));
     if (!transferZones.isEmpty()) {
       LOGGER.info(String.format("%s #transfer connectoids: %d", prefix, transferConnectoids.size()));
-      LOGGER.info(String.format("%s #transfer zones: %d", prefix, transferZones.size(), transferZones.getNumberOfCentroids()));
+      LOGGER.info(String.format("%s #transfer zones: %d (centroids %d)",
+              prefix, transferZones.size(), transferZones.getNumberOfCentroids()));
       LOGGER.info(String.format("%s #transfer zone groups: %d", prefix, transferZoneGroups.size()));
+    }
+    if(!virtualNetwork.isEmpty()){
+      virtualNetwork.logInfo(prefix);
     }
   }
 
@@ -188,8 +213,8 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   }
 
   /**
-   * Verify if passed in demands are compatible with the zoning structure. Compatibility is ensured when the number of zones matches the number of origins/destinations in the
-   * demands.
+   * Verify if passed in demands are compatible with the zoning structure. Compatibility is ensured when the number
+   * of zones matches the number of origins/destinations in the demands.
    * 
    * @param demands to verify against
    * @param modes   to check
@@ -201,7 +226,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
       for (TimePeriod timePeriod : demands.timePeriods) {
         final OdDemands odDemandsForModeTime = demands.get(mode, timePeriod);
         if (odDemandsForModeTime != null) {
-          if (nofZones != odDemandsForModeTime.getNumberOfOdZones()) {
+          if (nofZones != odDemandsForModeTime.getNumberOfZones()) {
             // inconsistent number of zones found
             return false;
           }
@@ -257,7 +282,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * 
    * @return od connectoids container
    */
-  public UndirectedConnectoids getOdConnectoids() {
+  public OdConnectoids getOdConnectoids() {
     return this.odConnectoids;
   }
 
@@ -266,7 +291,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    * 
    * @return transfer connectoids container
    */
-  public DirectedConnectoids getTransferConnectoids() {
+  public TransferConnectoids getTransferConnectoids() {
     return this.transferConnectoids;
   }
 
@@ -302,7 +327,8 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    */
   @Override
   public Zoning shallowClone() {
-    return new Zoning(this, false, null, null, null, null, null);
+    return new Zoning(
+            this, false, null, null, null, null, null);
   }
 
   /**
@@ -328,11 +354,19 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   public void reset() {
     this.virtualNetwork.reset();
     this.odConnectoids.reset();
-    this.odZones.reset();
     this.transferConnectoids.reset();
-    this.odConnectoids.reset();
-    this.transferZoneGroups.reset();
+    this.odZones.reset();
     this.transferZones.reset();
+    this.transferZoneGroups.reset();
+  }
+
+  /**
+   * Recreate the managed ids of virtual network layer(s) and zoning containers
+   */
+  @Override
+  public void recreateManagedIds(){
+    // too complicated to do directly has to go through modifier and event based pipeline
+    getZoningModifier().recreateManagedIdEntities();
   }
 
   /**
@@ -395,5 +429,39 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    */
   public void setCoordinateReferenceSystem(final CoordinateReferenceSystem crs){
     this.crs = crs;
+  }
+
+  /**
+   * change the coordinate system, which will result in an update of all geometries in zoning from the
+   * original CRS to the new CRS. If the zoning is empty and no CRS is set then this is identical to calling
+   * setCoordinateReferenceSystem, otherwise it will change the CRS while the set method will throw a runtime exception
+   *
+   * @param newCoordinateReferenceSystem to transform the zoning to
+   */
+  public void transform(CoordinateReferenceSystem newCoordinateReferenceSystem) {
+
+    // od zone connectoids and transfer connectoids have no geometry of their own, so no need to transform
+
+    // virtual network does have geometries, so transform:
+    getVirtualNetwork().transform(getCoordinateReferenceSystem(), newCoordinateReferenceSystem);
+
+    //OdZones and Transfer zones may have geometry so need transforming, they are not yet captured by a layer
+    // todo make them layered
+    // so we do them individually, not pretty but works fine
+    var transform = PlanitJtsUtils.findMathTransform(crs, newCoordinateReferenceSystem);
+    Stream.concat(getOdZones().stream(), getTransferZones().stream()).forEach(zone -> {
+              if(!zone.hasGeometry()){
+                return;
+              }else {
+                PlanitJtsUtils.transformGeometry(zone.getGeometry(), transform);
+              }
+              if (zone.hasCentroid() && zone.getCentroid().hasPosition()) {
+                PlanitJtsUtils.transformGeometry(zone.getCentroid().getPosition(), transform);
+              }
+            }
+    );
+    // replace CRS for zoning as it is now based on another CRS than before
+    crs = newCoordinateReferenceSystem;
+
   }
 }

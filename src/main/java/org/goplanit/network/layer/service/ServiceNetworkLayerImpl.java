@@ -21,16 +21,22 @@ import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.network.layer.service.ServiceNodes;
 
 /**
- * A service network layer is built on top of a physical network (layer). Its nodes (service nodes) and links (legs) contain references to the underlying physical network resulting
- * in an efficient use of memory while allowing one to treat the service layer as a normal network at the same time. Service Nodes are one-to-one matches to the underlying network
- * nodes and represent locations where services can be accessed/egressed. Edges are represented by ServiceLegs, while edge segments are represented by ServiceLegSegments. A leg
- * comprises one or more physical links in the underlying network and as long as the underlying links differ, multiple legs can exist between the same service nodes.
- * ServiceLegSegments have a direction which determines the order in which they traverse the underlying physical links of the ServiceLeg.
+ * A service network layer is built on top of a physical network (layer). Its nodes (service nodes) and links (legs)
+ * contain references to the underlying physical network resulting
+ * in an efficient use of memory while allowing one to treat the service layer as a normal network at the same time.
+ * Service Nodes are one-to-one matches to the underlying network
+ * nodes and represent locations where services can be accessed/egressed. Edges are represented by ServiceLegs, while
+ * edge segments are represented by ServiceLegSegments. A leg
+ * comprises one or more physical links in the underlying network and as long as the underlying links differ, multiple
+ * legs can exist between the same service nodes.
+ * ServiceLegSegments have a direction which determines the order in which they traverse the underlying physical links
+ * of the ServiceLeg.
  *
  * @author markr
  *
  */
-public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode, ServiceLeg, ServiceLegSegment> implements ServiceNetworkLayer {
+public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode, ServiceLeg, ServiceLegSegment>
+    implements ServiceNetworkLayer {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(ServiceNetworkLayerImpl.class.getCanonicalName());
@@ -60,25 +66,33 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    * Constructor. Instance only usable after user explicitly sets the parent network layer
    * 
    * @param tokenId     to use for id generation of instances of this class
-   * @param parentLayer this service layer is built on top of this network (when null user is expected to set it manually afterwards)
+   * @param parentLayer this service layer is built on top of this network (when null user is expected to set it
+   *                    manually afterwards)
    */
   protected ServiceNetworkLayerImpl(final IdGroupingToken tokenId, final MacroscopicNetworkLayer parentLayer) {
-    this(tokenId, parentLayer, new ServiceNodesImpl(tokenId), new ServiceLegsImpl(tokenId), new ServiceLegSegmentsImpl(tokenId));
+    this(tokenId, parentLayer, new ServiceNodesImpl(tokenId),
+        new ServiceLegsImpl(tokenId), new ServiceLegSegmentsImpl(tokenId));
   }
 
   /**
    * Constructor
    * 
    * @param tokenId            to use for id generation of instances of this class
-   * @param parentNetworkLayer this service layer is built on top of this network (whn null user is expected to set it manually afterwards)
+   * @param parentNetworkLayer this service layer is built on top of this network (whn null user is expected to set it
+   *                           manually afterwards)
    * @param nodes              to use
    * @param legs               to use
    * @param legSegments        to use
    */
-  protected ServiceNetworkLayerImpl(final IdGroupingToken tokenId, final MacroscopicNetworkLayer parentNetworkLayer, final ServiceNodes nodes, final ServiceLegs legs,
-                                    final ServiceLegSegments legSegments) {
-    super(tokenId, nodes, legs, legSegments);
-    this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this, this.directedGraph); // overwrite default from super <-- not pretty but otherwise no access to graph yet
+  protected ServiceNetworkLayerImpl(
+      final IdGroupingToken tokenId,
+      final MacroscopicNetworkLayer parentNetworkLayer,
+      final ServiceNodes nodes,
+      final ServiceLegs legs,
+      final ServiceLegSegments legSegments) {
+    super(tokenId, nodes, legs, legSegments, null);
+    // overwrite default from super <-- not pretty but otherwise no access to graph yet
+    this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this, this.directedGraph);
     this.parentNetworkLayer = parentNetworkLayer;
   }
 
@@ -99,7 +113,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
       GraphEntityDeepCopyMapper<ServiceNode> nodeMapper,
       GraphEntityDeepCopyMapper<ServiceLeg> legMapper,
       GraphEntityDeepCopyMapper<ServiceLegSegment> legSegmentMapper) {
-    super(other, deepCopy, nodeMapper, legMapper, legSegmentMapper);
+    super(other, deepCopy, nodeMapper, legMapper, legSegmentMapper, null);
     this.parentNetworkLayer = other.parentNetworkLayer;
     this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this, this.directedGraph);
   }
@@ -150,27 +164,31 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   }
 
   /**
-   * A service network does not allow for registering supported modes as the supported modes are defined by its parent network already. log warning and do nothing
+   * A service network does not allow for registering supported modes as the supported modes are defined by its
+   * parent network already. log warning and do nothing
    * 
    * @param supportedMode to register
    * @return false
    */
   @Override
   public boolean registerSupportedMode(Mode supportedMode) {
-    LOGGER.warning(String.format("Unable to register additional supported modes on service network layer %s, do so on parent network layer %s instead", getXmlId(),
+    LOGGER.warning(String.format("Unable to register additional supported modes on service network layer %s, do so " +
+            "on parent network layer %s instead", getXmlId(),
         getParentNetworkLayer().getXmlId()));
     return false;
   }
 
   /**
-   * A service network does not allow for registering supported modes as the supported modes are defined by its parent network already. log warning and do nothing
+   * A service network does not allow for registering supported modes as the supported modes are defined by its parent
+   * network already. log warning and do nothing
    * 
    * @param supportedModes to register
    * @return always return false
    */
   @Override
   public boolean registerSupportedModes(Collection<Mode> supportedModes) {
-    LOGGER.warning(String.format("Unable to register additional supported modes on service network layer %s, do so on parent network layer %s instead", getXmlId(),
+    LOGGER.warning(String.format("Unable to register additional supported modes on service network layer %s, " +
+            "do so on parent network layer %s instead", getXmlId(),
         getParentNetworkLayer().getXmlId()));
     return false;
   }
@@ -208,7 +226,8 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    */
   @Override
   public ServiceNetworkLayerImpl shallowClone() {
-    return new ServiceNetworkLayerImpl(this, false, null, null, null);
+    return new ServiceNetworkLayerImpl(
+        this, false, null, null, null);
   }
 
   /**
@@ -217,7 +236,11 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   @Override
   public ServiceNetworkLayerImpl deepClone() {
     return new ServiceNetworkLayerImpl(
-        this, true, new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
+        this,
+        true,
+        new GraphEntityDeepCopyMapper<>(),
+        new GraphEntityDeepCopyMapper<>(),
+        new GraphEntityDeepCopyMapper<>());
   }
 
 }

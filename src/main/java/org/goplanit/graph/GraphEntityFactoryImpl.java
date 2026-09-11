@@ -7,13 +7,15 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 
 /**
- * Base implementation for creating and registering graph entities on underlying container and conducting changes to ids based on the factory settings for egenrating ids.
+ * Base implementation for creating and registering graph entities on underlying container and conducting changes
+ * to ids based on the factory settings for egenrating ids.
  * 
  * @author markr
  *
  * @param <E> type of graph entity
  */
-public abstract class GraphEntityFactoryImpl<E extends GraphEntity> extends ManagedIdEntityFactoryImpl<E> implements GraphEntityFactory<E> {
+public abstract class GraphEntityFactoryImpl<E extends GraphEntity>
+    extends ManagedIdEntityFactoryImpl<E> implements GraphEntityFactory<E> {
 
   /** container on which newly created entities are to be registered */
   private GraphEntities<E> graphEntities;
@@ -37,7 +39,8 @@ public abstract class GraphEntityFactoryImpl<E extends GraphEntity> extends Mana
   }
 
   /**
-   * Constructor without a container. Only use when the graph entities are know to be set manually afterward by derived class
+   * Constructor without a container. Only use when the graph entities are know to be set manually afterward
+   * by derived class
    *
    * @param groupIdToken  to use for creating element ids
    */

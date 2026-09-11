@@ -30,11 +30,13 @@ public class SyncXmlIdToIdZoningEntitiesHandler extends SyncXmlIdToIdHandler imp
   @Override
   public void onZoningModifierEvent(ZoningModificationEvent event) {
     if (!event.getType().equals(RecreatedZoningEntitiesManagedIdsEvent.EVENT_TYPE)) {
-      LOGGER.warning(String.format("%s only supports RecreatedZoningEntitiesManagedIdsEvent events", SyncXmlIdToIdZoningEntitiesHandler.class.getName()));
+      LOGGER.warning(String.format("%s only supports RecreatedZoningEntitiesManagedIdsEvent events",
+          SyncXmlIdToIdZoningEntitiesHandler.class.getName()));
       return;
     }
 
-    RecreatedZoningEntitiesManagedIdsEvent theEvent = RecreatedZoningEntitiesManagedIdsEvent.class.cast(event);
-    theEvent.getManagedIdEntities().forEach( e -> super.syncXmlIdToInternalId((ExternalIdAble) e));
+    RecreatedZoningEntitiesManagedIdsEvent theEvent = (RecreatedZoningEntitiesManagedIdsEvent) event;
+    theEvent.getManagedIdEntities().forEach(
+        e -> super.syncXmlIdToInternalId((ExternalIdAble) e));
   }
 }

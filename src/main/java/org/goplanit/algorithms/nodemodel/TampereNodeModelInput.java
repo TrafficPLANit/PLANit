@@ -1,5 +1,6 @@
 package org.goplanit.algorithms.nodemodel;
 
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.ojalgo.array.Array1D;
 import org.ojalgo.array.Array2D;
 import org.ojalgo.function.aggregator.Aggregator;
@@ -7,8 +8,9 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.math.Precision;
 
 /**
- * Inner class that allows the user to set all inputs for the TampereNodeModel, it takes fixed inputs and supplements it with the information of the variable inputs, meaning inputs
- * that can vary during the simulation such as turn sending flows (t_ab), and potentially receiving flows (r_b)
+ * Inner class that allows the user to set all inputs for the TampereNodeModel, it takes fixed inputs and supplements
+ * it with the information of the variable inputs, meaning inputs that can vary during the simulation such as turn
+ * sending flows (t_ab), and potentially receiving flows (r_b).
  * 
  */
 public class TampereNodeModelInput {
@@ -18,29 +20,31 @@ public class TampereNodeModelInput {
    * 
    * @param fixedInput       the fixed input
    * @param turnSendingFlows the turn sending flows
-   * @throws PlanItException thrown if error
    */
-  private void verifyInputs(TampereNodeModelFixedInput fixedInput, Array2D<Double> turnSendingFlows) throws PlanItException {
-    PlanItException.throwIf(fixedInput == null, "network mapping is null");
-    PlanItException.throwIf(turnSendingFlows == null, "turn sending flows are null");
-    PlanItException.throwIf(
-        turnSendingFlows.countRows() != fixedInput.getNumberOfIncomingLinkSegments() || turnSendingFlows.countColumns() != fixedInput.getNumberOfOutgoingLinkSegments(),
-        "Number of rows and/or columns in turn sending flows do not match the number of incoming and/or outgoing links in the node model mapping");
+  private void verifyInputs(
+          TampereNodeModelFixedInput fixedInput, Array2D<Double> turnSendingFlows) {
+    PlanItRunTimeException.throwIf(fixedInput == null, "network mapping is null");
+    PlanItRunTimeException.throwIf(turnSendingFlows == null, "turn sending flows are null");
+    PlanItRunTimeException.throwIf(
+        turnSendingFlows.countRows() != fixedInput.getNumberOfIncomingLinkSegments()
+                || turnSendingFlows.countColumns() != fixedInput.getNumberOfOutgoingLinkSegments(),
+        "Number of rows and/or columns in turn sending flows do not match the number of incoming " +
+                "and/or outgoing links in the node model mapping");
   }
 
   /**
    * Compute the capacity scaling factors for each in link segment
    */
-  private void computeInLinkSegmentCapacityScalingFactors() {
+  private void updateInLinkSegmentCapacityScalingFactors() {
     // copy existing turn sending flows as starting point for scaled flows
     capacityScalingFactors = Array1D.PRIMITIVE64.makeZero(fixedInput.getNumberOfIncomingLinkSegments());
 
     for (int inIndex = 0; inIndex < fixedInput.getNumberOfIncomingLinkSegments(); ++inIndex) {
       double inLinkSegmentCapacity = fixedInput.incomingLinkSegmentCapacities.get(inIndex);
       // Sum_b(s_ab)
-      double inLinkSendingFlow = turnSendingFlows.aggregateRow(inIndex, Aggregator.SUM).doubleValue();
+      double inLinkSendingFlow = turnSendingFlows.aggregateRow(inIndex, Aggregator.SUM);
       // lambda_a = C_a/Sum_b(s_ab)
-      double lambdaIncomingLinkScalingFactor = 0.0;
+      double lambdaIncomingLinkScalingFactor = Double.MAX_VALUE;
       if (Precision.positive(inLinkSendingFlow)) {
         lambdaIncomingLinkScalingFactor = inLinkSegmentCapacity / inLinkSendingFlow;
       }
@@ -65,27 +69,27 @@ public class TampereNodeModelInput {
    * 
    * @param fixedInput       the fixed inputs to use
    * @param turnSendingFlows the turn sending flows
-   * @throws PlanItException thrown if error
    */
-  public TampereNodeModelInput(TampereNodeModelFixedInput fixedInput, Array2D<Double> turnSendingFlows) throws PlanItException {
+  public TampereNodeModelInput(TampereNodeModelFixedInput fixedInput, Array2D<Double> turnSendingFlows){
     verifyInputs(fixedInput, turnSendingFlows);
     this.fixedInput = fixedInput;
-    this.turnSendingFlows = turnSendingFlows;
     this.outgoingLinkSegmentReceivingFlows = fixedInput.outgoingLinkSegmentReceivingFlows;
-
-    // determine all lambda_a*t_ab , with lambda_a=C_a/Sum_b(t_ab)
-    computeInLinkSegmentCapacityScalingFactors();
+    replaceTurnSendingFlows(turnSendingFlows);
   }
 
   /**
-   * Constructor for a particular node model run. Here the receiving flows are provided explicitly, overriding the fixed receiving flows (if any) from the networkMapping
+   * Constructor for a particular node model run. Here the receiving flows are provided explicitly,
+   * overriding the fixed receiving flows (if any) from the networkMapping.
    * 
    * @param fixedInput                        the fixed inputs to use
    * @param turnSendingFlows                  the turn sending flows
    * @param outgoingLinkSegmentReceivingFlows the receiving flows
    * @throws PlanItException thrown if error
    */
-  public TampereNodeModelInput(TampereNodeModelFixedInput fixedInput, Array2D<Double> turnSendingFlows, Array1D<Double> outgoingLinkSegmentReceivingFlows) throws PlanItException {
+  public TampereNodeModelInput(
+          TampereNodeModelFixedInput fixedInput,
+          Array2D<Double> turnSendingFlows,
+          Array1D<Double> outgoingLinkSegmentReceivingFlows) throws PlanItException {
     this(fixedInput, turnSendingFlows);
     this.outgoingLinkSegmentReceivingFlows = outgoingLinkSegmentReceivingFlows;
   }
@@ -118,6 +122,17 @@ public class TampereNodeModelInput {
   }
 
   /**
+   * Replace the turn sending flows
+   *
+   * @param turnSendingFlows replacement turn sending flows
+   */
+  public void replaceTurnSendingFlows(Array2D<Double> turnSendingFlows) {
+    this.turnSendingFlows = turnSendingFlows;
+    // determine all lambda_a*t_ab , with lambda_a=C_a/Sum_b(t_ab)
+    updateInLinkSegmentCapacityScalingFactors();
+  }
+
+  /**
    * The receiving flows used
    * 
    * @return receiving flows used
@@ -125,4 +140,5 @@ public class TampereNodeModelInput {
   public Array1D<Double> getUsedReceivingFlows() {
     return outgoingLinkSegmentReceivingFlows;
   }
+
 }

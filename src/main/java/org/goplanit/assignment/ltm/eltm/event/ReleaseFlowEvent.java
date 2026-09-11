@@ -4,7 +4,8 @@ import org.goplanit.utils.cumulatives.CumulativePoint;
 import org.goplanit.utils.event.EventType;
 
 /**
- * A release flow event represents a flow rate that is being released on a link boundary on the opposite border from where it was triggered through a trigger event.
+ * A release flow event represents a flow rate that is being released on a link boundary on the opposite border from
+ * where it was triggered through a trigger event.
  * 
  * @author markr
  */
@@ -20,7 +21,8 @@ public class ReleaseFlowEvent extends ReleaseEvent {
    * @param cumulativePoint    the cumulative reference point
    * @param flowRatePcuPerHour the flow rate
    */
-  protected ReleaseFlowEvent(TriggerFlowEvent sourceTriggerEvent, CumulativePoint cumulativePoint, double flowRatePcuPerHour) {
+  protected ReleaseFlowEvent(
+      TriggerFlowEvent sourceTriggerEvent, CumulativePoint cumulativePoint, double flowRatePcuPerHour) {
     super(LTM_RELEASE_FLOW_EVENT, sourceTriggerEvent, cumulativePoint, flowRatePcuPerHour);
   }
 
@@ -32,7 +34,8 @@ public class ReleaseFlowEvent extends ReleaseEvent {
    * @param flowRatePcuPerHour the flow rate
    * @return created release flow event
    */
-  public static ReleaseFlowEvent createReleaseFlowEvent(TriggerFlowEvent sourceTriggerEvent, CumulativePoint cumulativePoint, double flowRatePcuPerHour) {
+  public static ReleaseFlowEvent createReleaseFlowEvent(
+      TriggerFlowEvent sourceTriggerEvent, CumulativePoint cumulativePoint, double flowRatePcuPerHour) {
     return new ReleaseFlowEvent(sourceTriggerEvent, cumulativePoint, flowRatePcuPerHour);
   }
 

@@ -5,8 +5,8 @@ import org.goplanit.utils.cumulatives.CumulativePoint;
 import org.goplanit.utils.event.EventType;
 
 /**
- * A trigger flow event represents a flow rate that is being triggered exogenously, typically by a node on either side of the link segment. Hence, that the source of this event is
- * a link segment boundary
+ * A trigger flow event represents a flow rate that is being triggered exogenous, typically by a node on either
+ * side of the link segment. Hence, that the source of this event is a link segment boundary
  * 
  * @author markr
  *
@@ -25,7 +25,8 @@ public class TriggerFlowEvent extends TriggerEvent {
    * @param cumulativePoint     the cumulative reference point
    * @param flowRatePcuPerHour  the flow rate
    */
-  protected TriggerFlowEvent(LinkSegmentBoundary linkSegmentBoundary, CumulativePoint cumulativePoint, double flowRatePcuPerHour) {
+  protected TriggerFlowEvent(
+      LinkSegmentBoundary linkSegmentBoundary, CumulativePoint cumulativePoint, double flowRatePcuPerHour) {
     super(LTM_TRIGGER_FLOW_EVENT, linkSegmentBoundary, cumulativePoint, flowRatePcuPerHour);
   }
 
@@ -37,7 +38,8 @@ public class TriggerFlowEvent extends TriggerEvent {
    * @param flowRatePcuPerHour flow rate for the event
    * @return created trigger flow event
    */
-  public static TriggerFlowEvent createTriggerFlowEvent(LinkSegmentBoundary linkBoundarySource, CumulativePoint cumulativePoint, double flowRatePcuPerHour) {
+  public static TriggerFlowEvent createTriggerFlowEvent(
+      LinkSegmentBoundary linkBoundarySource, CumulativePoint cumulativePoint, double flowRatePcuPerHour) {
     return new TriggerFlowEvent(linkBoundarySource, cumulativePoint, flowRatePcuPerHour);
   }
 

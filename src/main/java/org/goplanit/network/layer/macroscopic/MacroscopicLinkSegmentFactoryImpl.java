@@ -11,7 +11,8 @@ import org.goplanit.utils.network.layer.physical.Link;
  * 
  * @author markr
  */
-public class MacroscopicLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<MacroscopicLinkSegment> implements MacroscopicLinkSegmentFactory {
+public class MacroscopicLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<MacroscopicLinkSegment>
+    implements MacroscopicLinkSegmentFactory {
 
   /**
    * Constructor
@@ -19,7 +20,8 @@ public class MacroscopicLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<Ma
    * @param groupId                 to use
    * @param macroscopicLinkSegments to use
    */
-  protected MacroscopicLinkSegmentFactoryImpl(final IdGroupingToken groupId, MacroscopicLinkSegments macroscopicLinkSegments) {
+  protected MacroscopicLinkSegmentFactoryImpl(
+      final IdGroupingToken groupId, MacroscopicLinkSegments macroscopicLinkSegments) {
     super(groupId, macroscopicLinkSegments);
   }
 
@@ -28,15 +30,15 @@ public class MacroscopicLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<Ma
    */
   @Override
   public MacroscopicLinkSegment create(final MacroscopicLink parentLink, final boolean directionAb) {
-    final MacroscopicLinkSegment macroscopicLinkSegment = new MacroscopicLinkSegmentImpl(getIdGroupingToken(), parentLink, directionAb);
-    return macroscopicLinkSegment;
+    return new MacroscopicLinkSegmentImpl(getIdGroupingToken(), parentLink, directionAb);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegment registerNew(final MacroscopicLink parentLink, final boolean directionAb, boolean registerOnLink) {
+  public MacroscopicLinkSegment registerNew(
+      final MacroscopicLink parentLink, final boolean directionAb, boolean registerOnLink) {
     final MacroscopicLinkSegment macroscopicLinkSegment = create(parentLink, directionAb);
     getGraphEntities().register(macroscopicLinkSegment);
 
@@ -50,7 +52,8 @@ public class MacroscopicLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<Ma
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegment registerNew(MacroscopicLink parentLink, MacroscopicLinkSegmentType type, boolean directionAb, boolean registerOnLink) {
+  public MacroscopicLinkSegment registerNew(
+      MacroscopicLink parentLink, MacroscopicLinkSegmentType type, boolean directionAb, boolean registerOnLink) {
     MacroscopicLinkSegment linkSegment = registerNew(parentLink, directionAb, registerOnLink);
     linkSegment.setLinkSegmentType(type);
     return linkSegment;
@@ -60,8 +63,10 @@ public class MacroscopicLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<Ma
    * {@inheritDoc}
    */
   @Override
-  public Pair<MacroscopicLinkSegment, MacroscopicLinkSegment> registerNew(MacroscopicLink parentLink, boolean registerOnLink) {
-    return Pair.of(registerNew(parentLink, true, registerOnLink), registerNew(parentLink, false, registerOnLink));
+  public Pair<MacroscopicLinkSegment, MacroscopicLinkSegment> registerNew(
+      MacroscopicLink parentLink, boolean registerOnLink) {
+    return Pair.of(registerNew(parentLink, true, registerOnLink),
+        registerNew(parentLink, false, registerOnLink));
   }
 
 }

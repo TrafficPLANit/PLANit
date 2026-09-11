@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import org.goplanit.mode.ModesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.mode.PredefinedModeType;
@@ -55,7 +56,17 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
    * @param tokenId to use for id generation
    */
   public LayeredNetwork(IdGroupingToken tokenId) {
-    super(tokenId);
+    this(tokenId, null);
+  }
+
+  /**
+   * Default constructor
+   *
+   * @param tokenId to use for id generation
+   * @param networkGroupingToken to use
+   */
+  public LayeredNetwork(IdGroupingToken tokenId, IdGroupingToken networkGroupingToken) {
+    super(tokenId, networkGroupingToken);
 
     /* for mode management */
     this.modes = new ModesImpl(tokenId);
@@ -72,7 +83,11 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
    * @param modeMapper to use for tracking mapping between original and copied modes
    * @param layerMapper to use for tracking mapping between original and copied layers
    */
-  protected LayeredNetwork(final LayeredNetwork<U, T> other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<U> layerMapper) {
+  @SuppressWarnings("unchecked")
+  protected LayeredNetwork(
+          final LayeredNetwork<U, T> other,
+          boolean deepCopy,
+          ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<U> layerMapper) {
     super(other, deepCopy);
 
     // both are container wrappers, so requiring cloning also for shallow copy
@@ -83,7 +98,24 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
       this.modes = other.modes.shallowClone();
       this.transportLayers = (T) other.getTransportLayers().shallowClone();
     }
-    this.transportLayers = (T) (deepCopy ? other.getTransportLayers().deepClone() : other.getTransportLayers().shallowClone());
+    this.transportLayers =
+            (T) (deepCopy ? other.getTransportLayers().deepClone() : other.getTransportLayers().shallowClone());
+  }
+
+  /**
+   *
+   * {@inheritDoc}
+   */
+  @Override
+  public void logInfo(String prefix){
+    LOGGER.info(String.format(
+            "%sLayered network (%s) has %d layers",
+            prefix, getIdsAsString(), getTransportLayers().size()));
+
+    /* for each layer log information regarding contents */
+    for(NetworkLayer networkLayer : getTransportLayers()) {
+      networkLayer.logInfo(prefix + LoggingUtils.networkLayerPrefix(networkLayer.getId()));
+    }
   }
 
   /**
@@ -151,12 +183,21 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
    * {@inheritDoc}
    */
   @Override
-  public abstract LayeredNetwork shallowClone();
+  public abstract LayeredNetwork<U,T> shallowClone();
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract LayeredNetwork deepClone();
+  public abstract LayeredNetwork<U,T> deepClone();
+
+//  /**
+//   * Recreate the managed ids of all layers and modes
+//   */
+//  @Override
+//  public void recreateManagedIds(){
+//    modes.recreateIds();
+//    transportLayers.recreateIds();
+//  }
 
 }

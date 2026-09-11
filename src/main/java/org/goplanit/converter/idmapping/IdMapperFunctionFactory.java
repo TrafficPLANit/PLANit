@@ -1,34 +1,44 @@
 package org.goplanit.converter.idmapping;
 
-import java.util.function.Function;
-import java.util.logging.Logger;
-
-import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.demands.discrete.household.Household;
+import org.goplanit.demands.discrete.person.Person;
+import org.goplanit.demands.discrete.tour.TourImpl;
+import org.goplanit.demands.discrete.trip.TripImpl;
 import org.goplanit.network.ServiceNetwork;
+import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
-import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.ExternalIdAble;
+import org.goplanit.utils.id.IdMapperType;
+import org.goplanit.utils.id.IdMappingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
-import org.goplanit.utils.network.virtual.ConnectoidEdge;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.service.routed.*;
 import org.goplanit.utils.time.TimePeriod;
-import org.goplanit.utils.zoning.Connectoid;
+import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.utils.zoning.TransferZone;
+import org.goplanit.utils.zoning.connectoid.Connectoid;
 import org.goplanit.utils.zoning.TransferZoneGroup;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
 
+import java.util.function.Function;
+import java.util.logging.Logger;
+
 /**
- * Factory that creates functions for id mapping from PLANit ids to ids to be used for persistence. Based on the passed in IdMapper type functions will generate different ids when
+ * Factory that creates functions for id mapping from PLANit ids to ids to be used for persistence.
+ * Based on the passed in IdMapper type functions will generate different ids when
  * applied to nodes, link segments, etc.
  * 
  * @author markr
@@ -36,30 +46,11 @@ import org.goplanit.zoning.Zoning;
  */
 public class IdMapperFunctionFactory {
 
+  /** dummy constructor */
+  private IdMapperFunctionFactory(){}
+
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(IdMapperFunctionFactory.class.getCanonicalName());
-
-  /**
-   * create a function that takes a a class that extends {@link ExternalIdAble} and generate the appropriate id based on the user configuration
-   * 
-   * @param <T>      ExternalIdable
-   * @param clazz    to use
-   * @param idMapper the type of mapping function to create
-   * @return function that generates node id's for MATSIM node output
-   *
-   */
-  protected static <T extends ExternalIdAble> Function<T, String> createIdMappingFunction(Class<T> clazz, final IdMapperType idMapper) {
-    switch (idMapper) {
-    case ID:
-      return (instance) -> instance!=null ? Long.toString(instance.getId()) : null;
-    case EXTERNAL_ID:
-      return (instance) -> instance!=null ? instance.getExternalId() : null;
-    case XML:
-      return (instance) -> instance!=null ? instance.getXmlId() : null;
-    default:
-      throw new PlanItRunTimeException(String.format("unknown id mapping type found for %s %s", clazz.getName(), idMapper));
-    }
-  }
 
   /**
    * create a function that takes a node and generates the appropriate id based on the user configuration
@@ -68,7 +59,7 @@ public class IdMapperFunctionFactory {
    * @return function that generates node id's for MATSIM node output
    */
   public static Function<Vertex, String> createVertexIdMappingFunction(final IdMapperType idMapper) {
-    return createIdMappingFunction(Vertex.class, idMapper);
+    return IdMappingUtils.createIdMappingFunction(Vertex.class, idMapper);
   }
 
   /**
@@ -78,7 +69,17 @@ public class IdMapperFunctionFactory {
    * @return function that generates mapped link id's for persistence
    */
   public static Function<Link, String> createLinkIdMappingFunction(final IdMapperType idMapper) {
-    return createIdMappingFunction(Link.class, idMapper);
+    return IdMappingUtils.createIdMappingFunction(Link.class, idMapper);
+  }
+
+  /**
+   * create a function that takes a movement and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates mapped movement id's for persistence
+   */
+  public static Function<BannedMovement, String> createMovementIdMappingFunction(final IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(BannedMovement.class, idMapper);
   }
 
   /**
@@ -87,32 +88,39 @@ public class IdMapperFunctionFactory {
    * @param idMapper the type of mapping function to create
    * @return function that generates mapped link segment type id's for persistence
    */
-  public static Function<MacroscopicLinkSegmentType, String> createLinkSegmentTypeIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(MacroscopicLinkSegmentType.class, idMapper);
+  public static Function<MacroscopicLinkSegmentType, String> createLinkSegmentTypeIdMappingFunction(
+      IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(MacroscopicLinkSegmentType.class, idMapper);
   }
 
   /**
-   * create a function that takes a link segment and (optional) id mapper and generates the appropriate link segment id based on the user configuration
+   * create a function that takes a link segment and (optional) id mapper and generates the appropriate link segment
+   * id based on the user configuration
    * 
    * @param idMapper that generates mapped link segment id's for persistence
    * @return created function
    */
-  public static Function<MacroscopicLinkSegment, String> createLinkSegmentIdMappingFunction(final IdMapperType idMapper) {
+  public static Function<MacroscopicLinkSegment, String> createLinkSegmentIdMappingFunction(
+      final IdMapperType idMapper) {
     switch (idMapper) {
     case EXTERNAL_ID:
       return (macroscopicLinkSegment) -> {
         /* when present on link segment use that external id, otherwise try link */
         if (macroscopicLinkSegment.getExternalId() != null) {
           return String.format("%s", macroscopicLinkSegment.getExternalId());
-        } else if (macroscopicLinkSegment.getParentLink() != null && macroscopicLinkSegment.getParentLink().getExternalId() != null) {
-          return String.format("%s_%s", macroscopicLinkSegment.getParentLink().getExternalId(), macroscopicLinkSegment.isDirectionAb() ? "ab" : "ba");
+        } else if (macroscopicLinkSegment.getParent() != null &&
+            macroscopicLinkSegment.getParent().getExternalId() != null) {
+          return String.format("%s_%s",
+              macroscopicLinkSegment.getParent().getExternalId(), macroscopicLinkSegment.isDirectionAb()
+                  ? "ab" : "ba");
         } else {
-          LOGGER.severe(String.format("unable to map id for link, PLANit link segment external id not available or parent link missing (id:%d)", macroscopicLinkSegment.getId()));
+          LOGGER.severe(String.format("unable to map id for link, PLANit link segment external id not available or " +
+              "parent link missing (id:%d)", macroscopicLinkSegment.getId()));
           return "-1";
         }
       };
     default:
-      return createIdMappingFunction(MacroscopicLinkSegment.class, idMapper);
+      return IdMappingUtils.createIdMappingFunction(MacroscopicLinkSegment.class, idMapper);
     }
   }
 
@@ -123,7 +131,7 @@ public class IdMapperFunctionFactory {
    * @return function that generates mapped mode id's for persistence
    */
   public static Function<Mode, String> createModeIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(Mode.class, idMapper);
+    return IdMappingUtils.createIdMappingFunction(Mode.class, idMapper);
   }
 
   /**
@@ -133,17 +141,27 @@ public class IdMapperFunctionFactory {
    * @return function that generates directed connectoi id's for node output
    */
   public static Function<Connectoid, String> createConnectoidIdMappingFunction(final IdMapperType idMapper) {
-    return createIdMappingFunction(Connectoid.class, idMapper);
+    return IdMappingUtils.createIdMappingFunction(Connectoid.class, idMapper);
   }
 
   /**
    * create a function that takes a zone and generates the appropriate id based on the user configuration
    * 
    * @param idMapper the type of mapping function to create
-   * @return function that generates zone id's for zone output
+   * @return function that generates OD zone id's for zone output
    */
-  public static Function<Zone, String> createZoneIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(Zone.class, idMapper);
+  public static Function<OdZone, String> createOdZoneIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(OdZone.getOdZoneIdClass(), idMapper);
+  }
+
+  /**
+   * create a function that takes a zone and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates OD zone id's for zone output
+   */
+  public static Function<TransferZone, String> createTransferZoneIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(TransferZone.getTransferZoneIdClass(), idMapper);
   }
 
   /**
@@ -153,7 +171,7 @@ public class IdMapperFunctionFactory {
    * @return function that generates transfer zone group id's for transfer zone group output
    */
   public static Function<TransferZoneGroup, String> createTransferZoneGroupIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(TransferZoneGroup.class, idMapper);
+    return IdMappingUtils.createIdMappingFunction(TransferZoneGroup.class, idMapper);
   }
 
   /**
@@ -163,7 +181,7 @@ public class IdMapperFunctionFactory {
    * @return function that generates traveller type ids for traveller type output
    */
   public static Function<TravellerType, String> createTravellerTypeIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(TravellerType.class, idMapper);
+    return IdMappingUtils.createIdMappingFunction(TravellerType.class, idMapper);
   }
 
   /**
@@ -173,7 +191,7 @@ public class IdMapperFunctionFactory {
    * @return function that generates time period ids for time period output
    */
   public static Function<TimePeriod, String> createTimePeriodIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(TimePeriod.class, idMapper);
+    return IdMappingUtils.createIdMappingFunction(TimePeriod.class, idMapper);
   }
 
   /**
@@ -183,7 +201,7 @@ public class IdMapperFunctionFactory {
    * @return function that generates user class ids for user class output
    */
   public static Function<UserClass, String> createUserClassIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(UserClass.class, idMapper);
+    return IdMappingUtils.createIdMappingFunction(UserClass.class, idMapper);
   }
 
   /**
@@ -193,17 +211,18 @@ public class IdMapperFunctionFactory {
    * @return function that generates service leg ids for service leg output
    */
   public static Function<ServiceLeg, String> createServiceLegIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(ServiceLeg.class, idMapper);
+    return IdMappingUtils.createIdMappingFunction(ServiceLeg.class, idMapper);
   }
 
   /**
-   * create a function that takes a service leg segment and generates the appropriate id based on the user configuration
+   * create a function that takes a service leg segment and generates the appropriate id based on the user
+   * configuration
    *
    * @param idMapper the type of mapping function to create
    * @return function that generates service leg segment ids for service leg segment output
    */
   public static Function<ServiceLegSegment, String> createServiceLegSegmentIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(ServiceLegSegment.class, idMapper);
+    return IdMappingUtils.createIdMappingFunction(ServiceLegSegment.class, idMapper);
   }
 
   /**
@@ -213,7 +232,7 @@ public class IdMapperFunctionFactory {
    * @return function that generates routed trip ids
    */
   public static Function<RoutedTrip, String> createRoutedTripIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(RoutedTrip.class, idMapper);
+    return IdMappingUtils.createIdMappingFunction(RoutedTrip.class, idMapper);
   }
 
   /**
@@ -223,7 +242,7 @@ public class IdMapperFunctionFactory {
    * @return function that generates RoutedTripDeparture ids
    */
   public static Function<RoutedTripDeparture, String> createRoutedTripDepartureIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(RoutedTripDeparture.class, idMapper);
+    return IdMappingUtils.createIdMappingFunction(RoutedTripDeparture.class, idMapper);
   }
 
   /**
@@ -233,7 +252,7 @@ public class IdMapperFunctionFactory {
    * @return function that generates RoutedService ids
    */
   public static Function<RoutedService, String> createRoutedServiceIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(RoutedService.class , idMapper);
+    return IdMappingUtils.createIdMappingFunction(RoutedService.class , idMapper);
   }
 
   /**
@@ -243,7 +262,7 @@ public class IdMapperFunctionFactory {
    * @return function that generates RoutedTripSchedule ids
    */
   public static Function<RoutedTripSchedule, String> createRoutedTripScheduleIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(RoutedTripSchedule.class , idMapper);
+    return IdMappingUtils.createIdMappingFunction(RoutedTripSchedule.class , idMapper);
   }
 
   /**
@@ -252,18 +271,20 @@ public class IdMapperFunctionFactory {
    * @param idMapper the type of mapping function to create
    * @return function that generates NetworkLayer ids
    */
-  public static Function<MacroscopicNetworkLayer, String> createMacroscopicNetworkLayerIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(MacroscopicNetworkLayer.class , idMapper);
+  public static Function<UntypedPhysicalLayer, String> createPhysicalNetworkLayerIdMappingFunction(
+          IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(UntypedPhysicalLayer.class , idMapper);
   }
 
   /**
-   * create a function that takes a MacroscopicNetwork and generates the appropriate id based on the user configuration
+   * create a function that takes a physical network and generates the appropriate id based on the user configuration
    *
    * @param idMapper the type of mapping function to create
-   * @return function that generates MacroscopicNetwork ids
+   * @return function that generates Network ids
    */
-  public static Function<MacroscopicNetwork, String> createMacroscopicNetworkIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(MacroscopicNetwork.class , idMapper);
+  public static Function<UntypedPhysicalNetwork, String> createPhysicalNetworkIdMappingFunction(
+      IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(UntypedPhysicalNetwork.class , idMapper);
   }
 
   /**
@@ -273,27 +294,30 @@ public class IdMapperFunctionFactory {
    * @return function that generates ServiceNetwork ids
    */
   public static Function<ServiceNetwork, String> createServiceNetworkIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(ServiceNetwork.class , idMapper);
+    return IdMappingUtils.createIdMappingFunction(ServiceNetwork.class , idMapper);
   }
 
   /**
-   * create a function that takes a RoutedServicesLayer and generates the appropriate id based on the user configuration
+   * create a function that takes a RoutedServicesLayer and generates the appropriate id based on the user
+   * configuration
    *
    * @param idMapper the type of mapping function to create
    * @return function that generates RoutedServicesLayer ids
    */
   public static Function<RoutedServicesLayer, String> createRoutedServiceLayerIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(RoutedServicesLayer.class , idMapper);
+    return IdMappingUtils.createIdMappingFunction(RoutedServicesLayer.class , idMapper);
   }
 
   /**
-   * create a function that takes a ServiceNetworkLayer and generates the appropriate id based on the user configuration
+   * create a function that takes a ServiceNetworkLayer and generates the appropriate id based on the user
+   * configuration
    *
    * @param idMapper the type of mapping function to create
    * @return function that generates ServiceNetworkLayer ids
    */
-  public static Function<ServiceNetworkLayer, String> createServiceNetworkLayerIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(ServiceNetworkLayer.class , idMapper);
+  public static Function<ServiceNetworkLayer, String> createServiceNetworkLayerIdMappingFunction(
+      IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(ServiceNetworkLayer.class , idMapper);
   }
 
   /**
@@ -303,7 +327,7 @@ public class IdMapperFunctionFactory {
    * @return function that generates Zoning ids
    */
   public static Function<Zoning, String> createZoningIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(Zoning.class , idMapper);
+    return IdMappingUtils.createIdMappingFunction(Zoning.class , idMapper);
   }
 
   /**
@@ -312,8 +336,20 @@ public class IdMapperFunctionFactory {
    * @param idMapper the type of mapping function to create
    * @return function that generates ConnectoidEdge ids
    */
-  public static Function<? extends ExternalIdAble, String> createConnectoidEdgeIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(ConnectoidEdge.class , idMapper);
+  public static Function<? extends ExternalIdAble, String> createConnectoidEdgeIdMappingFunction(
+      IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(ConnectoidDirectedEdge.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a ConnectoidEdge and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates ConnectoidEdge ids
+   */
+  public static Function<? extends ExternalIdAble, String> createConnectoidLinkIdMappingFunction(
+      IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(ConnectoidLink.class , idMapper);
   }
 
   /**
@@ -322,7 +358,48 @@ public class IdMapperFunctionFactory {
    * @param idMapper the type of mapping function to create
    * @return function that generates ConnectoidSegment ids
    */
-  public static Function<? extends ExternalIdAble, String> createConnectoidSegmentIdMappingFunction(IdMapperType idMapper) {
-    return createIdMappingFunction(ConnectoidSegment.class , idMapper);
+  public static Function<? extends ExternalIdAble, String> createConnectoidSegmentIdMappingFunction(
+      IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(ConnectoidSegment.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a person and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates person ids
+   */
+  public static Function<? extends ExternalIdAble, String> createPersonClassIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(Person.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a household and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates household ids
+   */
+  public static Function<? extends ExternalIdAble, String> createHouseholdClassIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(Household.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a tour and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates tour ids
+   */
+  public static Function<? extends ExternalIdAble, String> createTourClassIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(TourImpl.class , idMapper);
+  }
+
+  /**
+   * create a function that takes a trip and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates trip ids
+   */
+  public static Function<? extends ExternalIdAble, String> createTripClassIdMappingFunction(IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(TripImpl.class , idMapper);
   }
 }

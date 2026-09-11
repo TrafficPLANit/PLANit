@@ -15,6 +15,7 @@ import org.goplanit.utils.network.layer.physical.Node;
  *
  * @author markr
  *
+ * @param <LS> type of edge segment
  */
 public class NodeImpl<LS extends EdgeSegment> extends DirectedVertexImpl<LS> implements Node {
 
@@ -42,6 +43,18 @@ public class NodeImpl<LS extends EdgeSegment> extends DirectedVertexImpl<LS> imp
    */
   protected void setNodeId(long nodeId) {
     this.nodeId = nodeId;
+  }
+
+  /**
+   * recreate the internal node id and set it
+   *
+   * @param tokenId to use
+   * @return the created node id
+   */
+  protected long recreateNodeId(IdGroupingToken tokenId) {
+    long newNodeId = generateNodeId(tokenId);
+    setNodeId(newNodeId);
+    return newNodeId;
   }
 
   // Public
@@ -100,6 +113,18 @@ public class NodeImpl<LS extends EdgeSegment> extends DirectedVertexImpl<LS> imp
   @Override
   public String getName() {
     return name;
+  }
+
+  /**
+   * Recreate id and node id
+   *
+   * @param tokenId to use
+   * @return created id (updated node id is not returned)
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    recreateNodeId(tokenId);
+    return super.recreateManagedIds(tokenId);
   }
 
   /**

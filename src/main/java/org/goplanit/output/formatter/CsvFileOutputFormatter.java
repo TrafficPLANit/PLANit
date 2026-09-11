@@ -1,48 +1,43 @@
 package org.goplanit.output.formatter;
 
-import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.goplanit.od.path.OdPathMatrix;
-import org.goplanit.od.path.OdPathMatrix.OdPathMatrixIterator;
-import org.goplanit.od.skim.OdSkimMatrix;
-import org.goplanit.od.skim.OdSkimMatrix.OdSkimMatrixIterator;
-import org.goplanit.output.adapter.MacroscopicLinkOutputTypeAdapter;
-import org.goplanit.output.adapter.OdOutputTypeAdapter;
-import org.goplanit.output.adapter.OutputAdapter;
-import org.goplanit.output.adapter.PathOutputTypeAdapter;
+import org.goplanit.assignment.common.bush.RootedBush;
+import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.zoning.od.path.OdMultiPaths;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix;
+import org.goplanit.zoning.zonetozone.OdSkimMatrix.OdSkimMatrixIterator;
+import org.goplanit.output.adapter.*;
 import org.goplanit.output.configuration.OutputConfiguration;
 import org.goplanit.output.configuration.OutputTypeConfiguration;
 import org.goplanit.output.configuration.PathOutputTypeConfiguration;
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.enums.OutputTypeEnum;
-import org.goplanit.output.enums.SubOutputTypeEnum;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.output.property.OutputPropertyType;
+import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.output.OutputUtils;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.unit.VehiclesUnit;
+
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Class containing common methods required by classes which write results to CSV output files
  * 
- * @author gman6028
+ * @author gman6028, markr
  *
  */
 public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
@@ -56,13 +51,64 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   protected final Map<OutputTypeEnum, List<String>> csvFileNameMap;
 
   /**
+   * Based on the output type configuration generate the CSV header
+   * @param outputTypeConfiguration to use
+   * @return CSV header as list of strings
+   */
+  protected static List<String> generateCsvHeader(final OutputTypeConfiguration outputTypeConfiguration){
+    return outputTypeConfiguration.getOutputProperties().stream().map(
+        OutputProperty::getName).collect(Collectors.toList());
+  }
+
+  /**
    * Constructor
    * 
    * @param groupId, contiguous id generation within this group for instances of this class
    */
   protected CsvFileOutputFormatter(IdGroupingToken groupId) {
     super(groupId);
-    this.csvFileNameMap = new HashMap<OutputTypeEnum, List<String>>();
+    this.csvFileNameMap = new HashMap<>();
+  }
+
+  /**
+   * Write output values to the Link CSV file for the current iteration
+   *
+   * @param outputConfiguration     output configuration
+   * @param outputTypeConfiguration the current output type configuration
+   * @param currentOutputType       the output type
+   * @param outputAdapter           output adapter for the current output type
+   * @param modes                   Set of modes for the current assignment
+   * @param timePeriod              the current time period
+   * @return results in memory model form
+   */
+  protected Map<Mode, List<Object>> constructSimulationResultsForCurrentTimePeriod(
+      OutputConfiguration outputConfiguration,
+      OutputTypeConfiguration outputTypeConfiguration,
+      OutputTypeEnum currentOutputType,
+      OutputAdapter outputAdapter,
+      Set<Mode> modes,
+      TimePeriod timePeriod) {
+
+    PlanItRunTimeException.throwIf(!(currentOutputType instanceof OutputType), "currentOutputType not compatible with simulation output");
+    var rowValuesByMode = new TreeMap<Mode, List<Object>>();
+
+    OutputType outputType = (OutputType) currentOutputType;
+
+    var simulationOutputTypeAdapter = (SimulationOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+    SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
+
+    for (Mode mode : modes) {
+      // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+      // the current mode's conversion factor
+      VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
+
+      List<Object> rowValues = outputProperties.stream()
+          .map(outputProperty ->
+                  outputProperty.formatValue(simulationOutputTypeAdapter.getSimulationOutputPropertyValue(
+              outputProperty, mode, timePeriod))).collect(Collectors.toList());
+      rowValuesByMode.put(mode, rowValues);
+    }
+    return rowValuesByMode;
   }
 
   /**
@@ -78,19 +124,26 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
   @SuppressWarnings("unchecked")
-  protected PlanItException writeOdResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
+  protected PlanItException writeOdResultsForCurrentTimePeriodToCsvPrinter(
+      OutputConfiguration outputConfiguration,
+      OutputTypeConfiguration outputTypeConfiguration,
+      OutputTypeEnum currentOutputType,
+      OutputAdapter outputAdapter,
+      Set<Mode> modes,
+      TimePeriod timePeriod,
+      CSVPrinter csvPrinter) {
     try {
       // main type information
-      OdOutputTypeAdapter odOutputTypeAdapter = (OdOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputTypeConfiguration.getOutputType());
+      OdOutputTypeAdapter odOutputTypeAdapter = (OdOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(
+          outputTypeConfiguration.getOutputType());
       SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
 
       // verify if current suboutput type is compatible with the provided output
-      PlanItException.throwIf(!(currentOutputType instanceof SubOutputTypeEnum && ((SubOutputTypeEnum) currentOutputType) instanceof OdSkimSubOutputType),
+      PlanItException.throwIf(!(currentOutputType instanceof SkimSubOutputType),
           "currentOutputType is not compatible with od results");
 
       // sub-type information
-      OdSkimSubOutputType currentSubOutputType = (OdSkimSubOutputType) currentOutputType;
+      SkimSubOutputType currentSubOutputType = (SkimSubOutputType) currentOutputType;
 
       // perform actual persistence
       final OutputProperty odCostProperty = OutputProperty.of(OutputPropertyType.OD_COST);
@@ -105,14 +158,17 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
         for (OdSkimMatrixIterator odMatrixIterator = odSkimMatrix.get().iterator(); odMatrixIterator.hasNext();) {
           odMatrixIterator.next();
-          Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getOdOutputPropertyValue(odCostProperty, odMatrixIterator, mode, timePeriod);
-          cost.orElseThrow(() -> new PlanItException("cost could not be retrieved when persisting"));
+          Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getOdOutputPropertyValue(
+              odCostProperty, odMatrixIterator, mode, timePeriod);
+          if(!cost.isPresent()) {
+            throw new PlanItRunTimeException("Cost could not be retrieved when persisting");
+          }
 
           if (outputConfiguration.isPersistZeroFlow() || cost.get() > Precision.EPSILON_6) {
-            List<Object> rowValues = outputProperties.stream()
-                .map(outputProperty -> odOutputTypeAdapter.getOdOutputPropertyValue(outputProperty, odMatrixIterator, mode, timePeriod).get())
-                .map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
-            csvPrinter.printRecord(rowValues);
+            csvPrinter.printRecord(
+                    outputProperties.stream().map(outputProperty ->
+                            outputProperty.formatValue(odOutputTypeAdapter.getOdOutputPropertyValue(
+                            outputProperty, odMatrixIterator, mode, timePeriod))));
           }
         }
       }
@@ -137,8 +193,14 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param csvPrinter              CSVPrinter object to record results for this iteration
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
-  protected PlanItException writePathResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
+  protected PlanItException writePathResultsForCurrentTimePeriodToCsvPrinter(
+      OutputConfiguration outputConfiguration,
+      OutputTypeConfiguration outputTypeConfiguration,
+      OutputTypeEnum currentOutputType,
+      OutputAdapter outputAdapter,
+      Set<Mode> modes,
+      TimePeriod timePeriod,
+      CSVPrinter csvPrinter) {
     try {
       PlanItException.throwIf(!(currentOutputType instanceof OutputType), "currentOutputType not compatible with path output");
 
@@ -151,18 +213,39 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
         // the current mode's conversion factor
         VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
 
-        Optional<OdPathMatrix> odPathMatrix = pathOutputTypeAdapter.getOdPathMatrix(mode);
-        odPathMatrix.orElseThrow(() -> new PlanItException("od path matrix could not be retrieved when persisting"));
+        Optional<OdMultiPaths<?,?>> odPaths = pathOutputTypeAdapter.getOdMultiPaths(mode);
+        odPaths.orElseThrow(() -> new PlanItException("od paths could not be retrieved when persisting"));
 
-        for (OdPathMatrixIterator odPathIterator = odPathMatrix.get().iterator(); odPathIterator.hasNext();) {
-          odPathIterator.next();
-          if (outputConfiguration.isPersistZeroFlow() || (odPathIterator.getCurrentValue() != null)) {
-            List<Object> rowValues = outputProperties.stream()
-                .map(outputProperty -> pathOutputTypeAdapter
-                    .getPathOutputPropertyValue(outputProperty, odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType()).get())
-                .map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
-            csvPrinter.printRecord(rowValues);
+        for (var odMultiPathIterator = odPaths.get().iterator(); odMultiPathIterator.hasNext();) {
+          var odMultiPaths = odMultiPathIterator.next();
+
+          if (!outputConfiguration.isPersistZeroFlow() && (odMultiPaths == null || odMultiPaths.isEmpty())) {
+            continue;
           }
+
+          // skip intra-zonal paths results
+          if(odMultiPathIterator.getCurrentFromZone().equals(odMultiPathIterator.getCurrentToZone())){
+            continue;
+          }
+
+          /* obtain the col vectors for each property, where the number of eventual rows is the # entries in each col vector
+           * which is the same for each property, namely how many paths there are for the given OD  */
+          List<List<Object>> colVectorValues = new ArrayList<>(outputProperties.size());
+          for(var outputProperty: outputProperties){
+            List<Object> colVector = (List<Object>) pathOutputTypeAdapter.getPathOutputPropertyValue(
+                    outputProperty, odMultiPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType()).orElse(null);
+            if(colVector != null) {
+              colVector.replaceAll(outputProperty::formatValue);
+            }
+            colVectorValues.add(colVector);
+          }
+          var rowsValues = ListUtils.transpose(colVectorValues);
+
+          // now persist per row
+          for(var rowValue : rowsValues){
+            csvPrinter.printRecord(rowValue);
+          }
+
         }
       }
     } catch (PlanItException e) {
@@ -186,14 +269,22 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param csvPrinter              CSVPrinter object to record results for this iteration
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
-  protected PlanItException writeLinkResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
+  protected PlanItException writeLinkResultsForCurrentTimePeriodToCsvPrinter(
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputTypeEnum currentOutputType,
+          OutputAdapter outputAdapter,
+          Set<Mode> modes,
+          TimePeriod timePeriod,
+          CSVPrinter csvPrinter) {
     try {
-      PlanItException.throwIf(!(currentOutputType instanceof OutputType), "currentOutputType not compatible with link output");
+      PlanItException.throwIf(!(currentOutputType instanceof OutputType),
+              "currentOutputType not compatible with link output");
 
       OutputType outputType = (OutputType) currentOutputType;
 
-      MacroscopicLinkOutputTypeAdapter linkOutputTypeAdapter = (MacroscopicLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+      MacroscopicLinkOutputTypeAdapter linkOutputTypeAdapter =
+              (MacroscopicLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
 
       SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
       for (Mode mode : modes) {
@@ -203,17 +294,17 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
         Optional<Long> networkLayerId = linkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
         if (networkLayerId.isPresent()) {
-          for (MacroscopicLinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments(networkLayerId.get())) {
+          for (var linkSegment : linkOutputTypeAdapter.getLinkSegmentsForLayer(networkLayerId.get())) {
 
             if (linkSegment.isModeAllowed(mode)) {
               Optional<Boolean> flowPositive = linkOutputTypeAdapter.isFlowPositive(linkSegment, mode);
               flowPositive.orElseThrow(() -> new PlanItException("unable to determine if flow is positive on link segment"));
 
               if (outputConfiguration.isPersistZeroFlow() || flowPositive.get()) {
-                List<Object> rowValues = outputProperties.stream()
-                    .map(outputProperty -> linkOutputTypeAdapter.getLinkSegmentOutputPropertyValue(outputProperty, linkSegment, mode, timePeriod).get())
-                    .map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
-                csvPrinter.printRecord(rowValues);
+                csvPrinter.printRecord(outputProperties.stream().map(outputProperty ->
+                        outputProperty.formatValue(
+                                linkOutputTypeAdapter.getLinkSegmentOutputPropertyValue(
+                                        outputProperty, linkSegment, mode, timePeriod))));
               }
             }
           }
@@ -224,8 +315,78 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
     } catch (PlanItException e) {
       return e;
     } catch (Exception e) {
+      e.printStackTrace();
       LOGGER.severe(e.getMessage());
-      return new PlanItException("Error when writing link results for current time period in CSVOutputFileformatter", e);
+      return new PlanItException("Error when writing link results for current time period in CSVOutputFileFormatter", e);
+    }
+    return null;
+  }
+
+  /**
+   * Write output values to the bush CSV files for the current iteration
+   *
+   * @param outputConfiguration     output configuration
+   * @param outputTypeConfiguration the current output type configuration
+   * @param currentOutputType       the output type
+   * @param outputAdapter           output adapter for the current output type
+   * @param modes                   Set of modes for the current assignment
+   * @param timePeriod              the current time period
+   * @param bush                    to use
+   * @param csvPrinter              CSVPrinter object to record results for this iteration
+   * @return PlanItException thrown if the CSV file cannot be created or written to
+   */
+  protected PlanItException writeBushResultsForCurrentTimePeriodToCsvPrinter(
+      OutputConfiguration outputConfiguration,
+      OutputTypeConfiguration outputTypeConfiguration,
+      OutputTypeEnum currentOutputType,
+      OutputAdapter outputAdapter,
+      Set<Mode> modes,
+      TimePeriod timePeriod,
+      RootedBush<? extends DirectedVertex, ? extends DirectedEdge, ? extends EdgeSegment> bush,
+      CSVPrinter csvPrinter) {
+    try {
+
+      OutputType outputType = (OutputType) currentOutputType;
+      BushLinkOutputTypeAdapter bushLinkOutputTypeAdapter =
+          (BushLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+
+      boolean persistZeroFlowBushLinkSegments = outputConfiguration.isPersistZeroFlow();
+      SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
+      for (Mode mode : modes) {
+        // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+        // the current mode's conversion factor
+        VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
+
+        Optional<Long> networkLayerId = bushLinkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
+        if (networkLayerId.isEmpty()) {
+          LOGGER.severe(String.format(
+              "Network layer could not be identified for mode %s by bush csv output formatter", mode.getXmlId()));
+          continue;
+        }
+
+        for (EdgeSegment edgeSegment : bushLinkOutputTypeAdapter.getLinkSegmentsForLayer(networkLayerId.get())) {
+          if(!bush.contains(edgeSegment.getId())){
+            // implicitly assumes 1) a bush does not contain the edge segment unless it supports the mode at hand
+            // and 2) it has positive flow, otherwise the bush would discard the edge segment
+            continue;
+          }
+
+          if(!persistZeroFlowBushLinkSegments && !bushLinkOutputTypeAdapter.hasNonZeroFlow(bush, edgeSegment)){
+            continue;
+          }
+
+          // after establishing whether segment is in bush, remainder is bush independent and is a matter of persisting
+          // segment specific information only
+          csvPrinter.printRecord(outputProperties.stream().map(outputProperty ->
+                outputProperty.formatValue(
+                    bushLinkOutputTypeAdapter.getEdgeSegmentOutputPropertyValue(
+                        outputProperty, edgeSegment, mode, timePeriod))));
+        }
+      }
+    } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
+      return new PlanItException(
+          "Error when writing bush (%s) results for current time period in CSVOutputFileFormatter", bush.toString(), e);
     }
     return null;
   }
@@ -233,29 +394,31 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   /**
    * Open the CSV output file and write the headers to it
    * 
-   * @param outputTypeConfiguration the current output type configuration
    * @param csvFileName             the name of the CSV output file
    * @return the CSVPrinter object (output values will be written to this in subsequent rows)
    * @throws Exception thrown if there is an error opening the file
    */
-  protected CSVPrinter openCsvFileAndWriteHeaders(OutputTypeConfiguration outputTypeConfiguration, String csvFileName) throws Exception {
-    CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(csvFileName), CSVFormat.DEFAULT.withIgnoreSurroundingSpaces());
-    List<String> headerValues = outputTypeConfiguration.getOutputProperties().stream().map(OutputProperty::getName).collect(Collectors.toList());
-    csvPrinter.printRecord(headerValues);
-    return csvPrinter;
+  protected CSVPrinter createCsvPrinter(String csvFileName) throws Exception {
+    return new CSVPrinter(
+        // use this instead of FileWriter to enforce consistent use of UTF8
+        new OutputStreamWriter(
+            new FileOutputStream(csvFileName),
+            StandardCharsets.UTF_8
+        ),
+        CSVFormat.Builder.create(CSVFormat.DEFAULT).setIgnoreSurroundingSpaces(true).build());
   }
 
   /**
    * Add a new name of the CSV output file for a specified output type
    * 
-   * @param currentoutputType the specified output type
+   * @param currentOutputType the specified output type
    * @param csvFileName       the name of the output file to be added
    */
-  public void addCsvFileNamePerOutputType(OutputTypeEnum currentoutputType, String csvFileName) {
-    if (!csvFileNameMap.containsKey(currentoutputType)) {
-      csvFileNameMap.put(currentoutputType, new ArrayList<String>());
+  public void addCsvFileNamePerOutputType(OutputTypeEnum currentOutputType, String csvFileName) {
+    if (!csvFileNameMap.containsKey(currentOutputType)) {
+      csvFileNameMap.put(currentOutputType, new ArrayList<>());
     }
-    csvFileNameMap.get(currentoutputType).add(csvFileName);
+    csvFileNameMap.get(currentOutputType).add(csvFileName);
   }
 
 }

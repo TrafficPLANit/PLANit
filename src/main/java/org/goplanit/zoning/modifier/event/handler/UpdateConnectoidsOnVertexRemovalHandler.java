@@ -5,22 +5,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.modifier.event.RemoveSubGraphEvent;
-import org.goplanit.graph.modifier.event.RemoveSubGraphVertexEvent;
+import org.goplanit.graph.modifier.event.RemoveGraphEntityEvent;
+import org.goplanit.graph.modifier.event.RemoveVertexEvent;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
-import org.goplanit.utils.zoning.Connectoid;
-import org.goplanit.utils.zoning.DirectedConnectoid;
-import org.goplanit.utils.zoning.UndirectedConnectoid;
+import org.goplanit.utils.zoning.connectoid.Connectoid;
+import org.goplanit.utils.zoning.connectoid.OdConnectoid;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
 import org.goplanit.zoning.Zoning;
 
 /**
- * A listener designed to deal with the situation that sub graphs are removed from the network which leaves connectoids in the zoning that reference these sub graph elements
- * invalid. This listener should be used to register on the DirectedGraphModifier before any call to GraphModifier.removeSubGraph in which case callbacks are triggered which allow
+ * A listener designed to deal with the situation that sub graphs are removed from the network which leaves connectoids
+ * in the zoning that reference these sub graph elements
+ * invalid. This listener should be used to register on the DirectedGraphModifier before any call to GraphModifier.
+ * RemoveSubGraph in which case callbacks are triggered which allow
  * this instance to update the connectoids, i.e., remove any affected connectoids that are no longer valid.
  * 
  * @author markr
@@ -28,7 +30,8 @@ import org.goplanit.zoning.Zoning;
 public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphModifierListener {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(UpdateConnectoidsOnVertexRemovalHandler.class.getCanonicalName());
+  private static final Logger LOGGER =
+      Logger.getLogger(UpdateConnectoidsOnVertexRemovalHandler.class.getCanonicalName());
 
   /**
    * zoning to update zoning components when needed
@@ -48,18 +51,18 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
    */
   protected void initialiseIndices() {
     if (zoning == null) {
-      LOGGER.severe(String.format("Zoning is null when initialising in %s, %s invalid", this.getClass().getName()));
+      LOGGER.severe(String.format("Zoning is null when initialising in %s, invalid", this.getClass().getName()));
     }
     connectoidsByAccessVertex = new HashMap<>();
     for (var connectoid : zoning.getOdConnectoids()) {
-      var accessVertex = connectoid.getAccessVertex();
+      var accessVertex = connectoid.getReferenceVertex();
       if (accessVertex != null) {
         connectoidsByAccessVertex.putIfAbsent(accessVertex, new ArrayList<>(1));
         connectoidsByAccessVertex.get(accessVertex).add(connectoid);
       }
     }
     for (var connectoid : zoning.getTransferConnectoids()) {
-      var accessVertex = connectoid.getAccessVertex();
+      var accessVertex = connectoid.getReferenceVertex();
       if (accessVertex != null) {
         connectoidsByAccessVertex.putIfAbsent(accessVertex, new ArrayList<>(1));
         connectoidsByAccessVertex.get(accessVertex).add(connectoid);
@@ -76,17 +79,17 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
     if (connectoidsByAccessVertex.containsKey(vertex)) {
       ArrayList<Connectoid> connectoids = connectoidsByAccessVertex.get(vertex);
       for (var connectoid : connectoids) {
-        if (connectoid instanceof UndirectedConnectoid) {
-          zoning.getOdConnectoids().remove((UndirectedConnectoid) connectoid);
+        if (connectoid instanceof OdConnectoid) {
+          zoning.getOdConnectoids().remove((OdConnectoid) connectoid);
           removedConnectoids = true;
-        } else if (connectoid instanceof DirectedConnectoid) {
-          zoning.getTransferConnectoids().remove((DirectedConnectoid) connectoid);
+        } else if (connectoid instanceof TransferConnectoid) {
+          zoning.getTransferConnectoids().remove((TransferConnectoid) connectoid);
           removedConnectoids = true;
         } else {
           LOGGER.severe(String.format("unknown connectoid type used on vertex %d", vertex.getId()));
           continue;
         }
-        connectoidsByAccessVertex.remove(connectoid.getAccessVertex());
+        connectoidsByAccessVertex.remove(connectoid.getReferenceVertex());
       }
     }
   }
@@ -95,7 +98,8 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
    * finalise subgraph removal for the connectoids by recreating the connectoid ids
    */
   protected void afterSubGraphRemovalComplete() {
-    /* We guarantee contiguous ids within the platform for all entities, but due to removal of connectoids this is currently unlikely, so recreate ids if needed */
+    /* We guarantee contiguous ids within the platform for all entities, but due to removal of connectoids this
+    is currently unlikely, so recreate ids if needed */
     if (removedConnectoids) {
       zoning.getZoningModifier().recreateConnectoidIds();
     }
@@ -122,7 +126,7 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
    */
   @Override
   public EventType[] getKnownSupportedEventTypes() {
-    return new EventType[] { RemoveSubGraphVertexEvent.EVENT_TYPE, RemoveSubGraphEvent.EVENT_TYPE };
+    return new EventType[] { RemoveVertexEvent.EVENT_TYPE, RemoveGraphEntityEvent.EVENT_TYPE };
   }
 
   /**
@@ -130,12 +134,13 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
    */
   @Override
   public void onGraphModificationEvent(GraphModificationEvent event) {
-    if (event.getType().equals(RemoveSubGraphVertexEvent.EVENT_TYPE)) {
-      removeConnectoidsWithAccessVertex(RemoveSubGraphVertexEvent.class.cast(event).getRemovedVertex());
-    } else if (event.getType().equals(RemoveSubGraphEvent.EVENT_TYPE)) {
+    if (event.getType().equals(RemoveVertexEvent.EVENT_TYPE)) {
+      removeConnectoidsWithAccessVertex(((RemoveVertexEvent) event).getRemovedVertex());
+    } else if (event.getType().equals(RemoveGraphEntityEvent.EVENT_TYPE)) {
       afterSubGraphRemovalComplete();
     } else {
-      LOGGER.warning(String.format("%s invoked for unsupported event", UpdateConnectoidsOnVertexRemovalHandler.class.getName()));
+      LOGGER.warning(String.format("%s invoked for unsupported event",
+          UpdateConnectoidsOnVertexRemovalHandler.class.getName()));
     }
   }
 
@@ -144,7 +149,8 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
    */
   @Override
   public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
-    LOGGER.warning(String.format("%s only supports graph modification events", UpdateConnectoidsOnVertexRemovalHandler.class.getName()));
+    LOGGER.warning(String.format("%s only supports graph modification events",
+        UpdateConnectoidsOnVertexRemovalHandler.class.getName()));
   }
 
 }

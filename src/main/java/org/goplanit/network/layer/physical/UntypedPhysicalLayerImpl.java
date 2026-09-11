@@ -1,28 +1,30 @@
 package org.goplanit.network.layer.physical;
 
+import java.util.function.Function;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.ManagedGraphEntities;
+import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedMovements;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.physical.Link;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
-import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
-import org.locationtech.jts.geom.Envelope;
+import org.goplanit.utils.network.layer.physical.*;
 
 /**
- * Model free Network consisting of managed nodes, links, and link segments, each of which can be iterated over. This network does not contain any transport specific information,
- * hence the qualification "model free".
+ * Model free Network consisting of managed nodes, links, and link segments, each of which can be iterated over.
+ * This network does not contain any transport specific information, hence the qualification "model free".
  *
  * @author markr
+ *
+ * @param <L> type of links
+ * @param <N> type of nodes
+ * @param <LS> type of segments
  */
-public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, LS extends LinkSegment> extends UntypedNetworkLayerImpl<N, L, LS>
+public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, LS extends LinkSegment>
+    extends UntypedNetworkLayerImpl<N, L, LS>
     implements UntypedPhysicalLayer<N, L, LS> {
 
   // INNER CLASSES
@@ -30,7 +32,30 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(UntypedPhysicalLayerImpl.class.getCanonicalName());
 
-  // Protected
+  /**
+   * Update the link segments of all movements based on the mapping provided (if any)
+   * @param linkSegmentToLinkSegmentMapping to use should contain original edgeSegment as currently used on movements
+   *                              and then the value is the new edge segment to replace it
+   * @param removeMissingMappings when true if there is no mapping, the type is nullified, otherwise it is left in-tact
+   */
+  private void updateMovementLinkSegments(
+      Function<EdgeSegment, EdgeSegment> linkSegmentToLinkSegmentMapping, boolean removeMissingMappings) {
+
+    for(var movement :  getBannedMovements()){
+      if(movement.getSegmentFrom() != null){
+        var clonedSegment = linkSegmentToLinkSegmentMapping.apply(movement.getSegmentFrom());
+        if(clonedSegment != null || removeMissingMappings){
+          movement.setSegmentFrom(clonedSegment);
+        }
+      }
+      if(movement.getSegmentTo() != null){
+        var clonedSegment = linkSegmentToLinkSegmentMapping.apply(movement.getSegmentTo());
+        if(clonedSegment != null || removeMissingMappings){
+          movement.setSegmentTo(clonedSegment);
+        }
+      }
+    }
+  }
 
   // PUBLIC
 
@@ -44,13 +69,17 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
    * @param nodes        managed nodes container to use
    * @param links        managed links container to use
    * @param linkSegments managed linkSegments container to use
+   * @param bannedMovements    managed movements container to use
    */
-  public <Nx extends ManagedGraphEntities<N>, Lx extends ManagedGraphEntities<L>, Sx extends ManagedGraphEntities<LS>> UntypedPhysicalLayerImpl(final IdGroupingToken tokenId,
-      final Nx nodes, final Lx links, final Sx linkSegments) {
-    super(tokenId, nodes, links, linkSegments);
+  public <Nx extends ManagedGraphEntities<N>, Lx extends ManagedGraphEntities<L>, Sx extends ManagedGraphEntities<LS>>
+  UntypedPhysicalLayerImpl(
+      final IdGroupingToken tokenId,
+      final Nx nodes,
+      final Lx links,
+      final Sx linkSegments,
+      final BannedMovements bannedMovements) {
+    super(tokenId, nodes, links, linkSegments, bannedMovements);
   }
-
-  // Getters - Setters
 
   /**
    * Copy constructor
@@ -59,7 +88,10 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    * @param nodeMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    * @param linkMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
-   * @param linkSegmentMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
+   * @param linkSegmentMapper to apply in case of deep copy to each original to copy combination
+   *                          (when provided, may be null)
+   * @param movementMapper to apply in case of deep copy to each original to copy combination
+   *                       (when provided, may be null)
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public UntypedPhysicalLayerImpl(
@@ -67,9 +99,18 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
           boolean deepCopy,
           GraphEntityDeepCopyMapper<N> nodeMapper,
           GraphEntityDeepCopyMapper<L> linkMapper,
-          GraphEntityDeepCopyMapper<LS> linkSegmentMapper) {
-    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper);
+          GraphEntityDeepCopyMapper<LS> linkSegmentMapper,
+          ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
+    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper, movementMapper);
+
+    if(deepCopy) {
+      updateMovementLinkSegments(original -> linkSegmentMapper.getMapping((LS) original), true);
+    }
   }
+
+
+  // Getters - Setters
+
 
   /**
    * {@inheritDoc}
@@ -83,6 +124,7 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
     LOGGER.info(String.format("%s#links: %d", prefix, getLinks().size()));
     LOGGER.info(String.format("%s#link segments: %d", prefix, getLinkSegments().size()));
     LOGGER.info(String.format("%s#nodes: %d", prefix, getNodes().size()));
+    LOGGER.info(String.format("%s#movements: %d", prefix, getBannedMovements().size()));
   }
 
   /**

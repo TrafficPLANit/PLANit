@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import org.goplanit.graph.directed.DirectedVertexImpl;
 import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.misc.IteratorUtils;
@@ -37,8 +38,9 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    * @return the stream
    */
   protected Stream<Node> getEntrySegmentsDownstreamPhysicalNodeStream(){
-    return IteratorUtils.asStream(getEntryEdgeSegments().iterator()).filter( e -> e.hasPhysicalParentSegments()).map(
-        e -> ListUtils.getLastValue(e.getPhysicalParentSegments()).getDownstreamNode());
+    return IteratorUtils.asStream(getEntryEdgeSegments().iterator()).filter(
+            ServiceLegSegment::hasPhysicalParentSegments).map(
+                    e -> ListUtils.getLastValue(e.getPhysicalParentSegments()).getDownstreamNode());
   }
 
   /**
@@ -47,8 +49,9 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    * @return the stream
    */
   protected Stream<Node> getExitSegmentsUpstreamPhysicalNodeStream(){
-    return IteratorUtils.asStream(getExitEdgeSegments().iterator()).filter( e -> e.hasPhysicalParentSegments()).map(
-        e -> ListUtils.getFirstValue(e.getPhysicalParentSegments()).getUpstreamNode());
+    return IteratorUtils.asStream(getExitEdgeSegments().iterator()).filter(
+            ServiceLegSegment::hasPhysicalParentSegments).map(
+                    e -> ListUtils.getFirstValue(e.getPhysicalParentSegments()).getUpstreamNode());
   }
 
   /**
@@ -81,7 +84,8 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
   public final Point getPosition() {
     var physicalParentNodes = getPhysicalParentNodes();
     if(physicalParentNodes.isEmpty()){
-      LOGGER.warning(String.format("No physical parent nodes available on service node (%s), position unknown", getIdsAsString()));
+      LOGGER.warning(String.format("No physical parent nodes available on service node (%s), position unknown",
+              getIdsAsString()));
       return null;
     }
 
@@ -94,14 +98,17 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
     }
 
     /* multiple locations, construct average position */
-    var averageX = physicalParentNodes.stream().filter(n -> n.hasPosition()).collect(Collectors.averagingDouble( n -> n.getPosition().getCoordinate().x));
-    var averageY = physicalParentNodes.stream().filter(n -> n.hasPosition()).collect(Collectors.averagingDouble( n -> n.getPosition().getCoordinate().y));
+    var averageX = physicalParentNodes.stream().filter(Vertex::hasPosition).collect(
+            Collectors.averagingDouble(n -> n.getPosition().getCoordinate().x));
+    var averageY = physicalParentNodes.stream().filter(Vertex::hasPosition).collect(
+            Collectors.averagingDouble(n -> n.getPosition().getCoordinate().y));
     return PlanitJtsUtils.createPoint(averageX, averageY);
   }
 
   @Override
   public void setPosition(Point position) {
-    LOGGER.warning("Unable to modify position, physical network node indirectly determines position of service node");
+    LOGGER.warning("Unable to modify position, physical network node indirectly determines position of " +
+            "service node");
   }
 
   /**
@@ -112,7 +119,8 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    */
   @Override
   public final Set<Node> getPhysicalParentNodes() {
-    return Stream.concat(getExitSegmentsUpstreamPhysicalNodeStream(), getEntrySegmentsDownstreamPhysicalNodeStream()).collect(Collectors.toSet());
+    return Stream.concat(getExitSegmentsUpstreamPhysicalNodeStream(),
+            getEntrySegmentsDownstreamPhysicalNodeStream()).collect(Collectors.toSet());
   }
 
   /*
@@ -120,7 +128,8 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    */
   @Override
   public boolean hasPhysicalParentNodes() {
-    return  getExitSegmentsUpstreamPhysicalNodeStream().findFirst().isPresent() || getEntrySegmentsDownstreamPhysicalNodeStream().findFirst().isPresent();
+    return  getExitSegmentsUpstreamPhysicalNodeStream().findFirst().isPresent() ||
+            getEntrySegmentsDownstreamPhysicalNodeStream().findFirst().isPresent();
   }
 
   /**

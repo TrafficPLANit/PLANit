@@ -2,6 +2,7 @@ package org.goplanit.supply.network.nodemodel;
 
 import org.goplanit.algorithms.nodemodel.NodeModel;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 
 /**
  * factory for the node model types supported directory by PLANit
@@ -16,14 +17,14 @@ public class NodeModelConfiguratorFactory {
    * 
    * @param nodeModelType type of node model the configurator is created for
    * @return the created configurator
-   * @throws PlanItException thrown if error
    */
-  public static NodeModelConfigurator<? extends NodeModelComponent> createConfigurator(final String nodeModelType) throws PlanItException {
+  public static NodeModelConfigurator<? extends NodeModelComponent> createConfigurator(final String nodeModelType){
 
     if (nodeModelType.equals(NodeModel.TAMPERE)) {
       return new TampereNodeModelConfigurator();
     } else {
-      throw new PlanItException(String.format("unable to construct configurator for given nodeModelType %s", nodeModelType));
+      throw new PlanItRunTimeException(String.format(
+          "unable to construct configurator for given nodeModelType %s", nodeModelType));
     }
   }
 }

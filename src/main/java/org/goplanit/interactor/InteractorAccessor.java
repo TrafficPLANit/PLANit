@@ -6,7 +6,7 @@ import java.util.logging.Logger;
  * Interactor accessor. The accessor accesses its accessee.
  * 
  * @author markr
- *
+ * @param <T> type of accessor
  */
 public interface InteractorAccessor<T extends InteractorAccessee> {
 
@@ -36,8 +36,8 @@ public interface InteractorAccessor<T extends InteractorAccessee> {
     try {
       setAccessee((T) getCompatibleAccessee().cast(accessee));
     } catch (ClassCastException e) {
-      LOGGER.warning(String.format("IGNORED: Provided Interactor accessee %s is not compatible with this accessor %s", accessee.getClass().getCanonicalName(),
-          this.getClass().getCanonicalName()));
+      LOGGER.warning(String.format("IGNORED: Provided Interactor accessee %s is not compatible with this accessor %s",
+          accessee.getClass().getCanonicalName(), this.getClass().getCanonicalName()));
     }
   }
 
