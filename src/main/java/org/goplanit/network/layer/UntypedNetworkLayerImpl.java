@@ -21,6 +21,7 @@ import org.goplanit.utils.network.layer.UntypedDirectedGraphLayer;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
 import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.graph.directed.BannedMovements;
+import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.locationtech.jts.geom.Envelope;
 
 /**
@@ -85,6 +86,9 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
     super(tokenId);
     this.directedGraph = new UntypedDirectedGraphImpl<>(tokenId, vertices, edges, edgeSegments, bannedMovements);
     this.layerModifier = new UntypedNetworkLayerModifierImpl<>(this.directedGraph);
+    if (bannedMovements instanceof DirectedGraphModifierListener) {
+      this.layerModifier.addListener((DirectedGraphModifierListener) bannedMovements);
+    }
   }
 
   /**
@@ -117,6 +121,9 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
                 vertexMapper, edgeMapper, edgeSegmentMapper, movementMapper) : other.directedGraph.shallowClone();
 
     this.layerModifier = new UntypedNetworkLayerModifierImpl<>(directedGraph);
+    if (directedGraph.getMovements() instanceof DirectedGraphModifierListener) {
+      this.layerModifier.addListener((DirectedGraphModifierListener) directedGraph.getMovements());
+    }
   }
 
   // Getters - Setters

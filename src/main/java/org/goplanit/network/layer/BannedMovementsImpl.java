@@ -1,9 +1,14 @@
 package org.goplanit.network.layer;
 
+import org.goplanit.network.layer.modifier.event.handler.RemoveBannedMovementsOnEdgeSegmentRemovalHandler;
+import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.graph.directed.BannedMovementFactory;
 import org.goplanit.utils.graph.directed.BannedMovements;
+import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
+import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
+import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
@@ -18,7 +23,11 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class BannedMovementsImpl extends ManagedGraphEntitiesImpl<BannedMovement> implements BannedMovements {
+public class BannedMovementsImpl extends ManagedGraphEntitiesImpl<BannedMovement>
+    implements BannedMovements, DirectedGraphModifierListener {
+
+  /** handler for synchronising banned movements upon edge segment removal */
+  private final RemoveBannedMovementsOnEdgeSegmentRemovalHandler edgeSegmentRemovalHandler;
 
   /** factory to use */
   private final BannedMovementFactory bannedMovementFactory;
@@ -30,6 +39,7 @@ public class BannedMovementsImpl extends ManagedGraphEntitiesImpl<BannedMovement
    */
   public BannedMovementsImpl(final IdGroupingToken groupId) {
     super(BannedMovement::getId, BannedMovement.BANNED_MOVEMENT_ID_CLASS);
+    this.edgeSegmentRemovalHandler = new RemoveBannedMovementsOnEdgeSegmentRemovalHandler(this);
     this.bannedMovementFactory = new BannedMovementFactoryImpl(groupId, this);
   }
 
@@ -41,6 +51,7 @@ public class BannedMovementsImpl extends ManagedGraphEntitiesImpl<BannedMovement
    */
   public BannedMovementsImpl(final IdGroupingToken groupId, BannedMovementFactory factory) {
     super(BannedMovement::getId, BannedMovement.BANNED_MOVEMENT_ID_CLASS);
+    this.edgeSegmentRemovalHandler = new RemoveBannedMovementsOnEdgeSegmentRemovalHandler(this);
     this.bannedMovementFactory = factory;
   }
 
@@ -54,8 +65,42 @@ public class BannedMovementsImpl extends ManagedGraphEntitiesImpl<BannedMovement
   public BannedMovementsImpl(
       BannedMovementsImpl other, boolean deepCopy, BiConsumer<BannedMovement, BannedMovement> mapper) {
     super(other, deepCopy, mapper);
+    this.edgeSegmentRemovalHandler = new RemoveBannedMovementsOnEdgeSegmentRemovalHandler(this);
+    this.edgeSegmentRemovalHandler.initialise(this);
     this.bannedMovementFactory =
         new BannedMovementFactoryImpl(other.bannedMovementFactory.getIdGroupingToken(), this);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public BannedMovement register(final BannedMovement bannedMovement) {
+    var replacedBannedMovement = super.register(bannedMovement);
+    /* deep-copy construction invokes this override before the handler is initialised */
+    if (edgeSegmentRemovalHandler != null) {
+      if (replacedBannedMovement != null) {
+        edgeSegmentRemovalHandler.onBannedMovementRemoved(replacedBannedMovement);
+      }
+      edgeSegmentRemovalHandler.onBannedMovementRegistered(bannedMovement);
+    }
+    return replacedBannedMovement;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public EventType[] getKnownSupportedEventTypes() {
+    return edgeSegmentRemovalHandler.getKnownSupportedEventTypes();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void onDirectedGraphModificationEvent(final DirectedGraphModificationEvent event) {
+    edgeSegmentRemovalHandler.onDirectedGraphModificationEvent(event);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void onGraphModificationEvent(final GraphModificationEvent event) {
+    edgeSegmentRemovalHandler.onGraphModificationEvent(event);
   }
 
   /**
@@ -108,5 +153,6 @@ public class BannedMovementsImpl extends ManagedGraphEntitiesImpl<BannedMovement
   public void reset() {
     IdGenerator.reset(getFactory().getIdGroupingToken(), BannedMovement.BANNED_MOVEMENT_ID_CLASS);
     super.reset();
+    edgeSegmentRemovalHandler.reset();
   }
 }

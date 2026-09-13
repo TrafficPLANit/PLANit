@@ -8,6 +8,7 @@ This project contains core code which is used by all the other PLANit modules/re
 
 **Enhancements**
 
+[GENERAL] Add support for conjugate network representations
 #102 Add support for fixed step size smoothing implementation
 #105 Add K-shortest path algorithm
 #107 Add support for custom implementation for method of self regulating averages a(MSRA) as a smoothing approach
@@ -19,21 +20,26 @@ This project contains core code which is used by all the other PLANit modules/re
 #125 Add support for quadratic linear fundamental diagram
 #130 Node model - Tampere - Add option to compute flow acceptance factors by turn including when turn has zero flow
 #135 Add option to persist various link ids in addition to link segment ids for link out formatter
-#99 (review) sLTM/prototype - Supporting stochastic path choice without fixed path set in sLTM
-#100 (review) sLTM/prototype - Add support for Weibitt for path choice
-#101 (review) sLTM/prototype - Add option to let user configure scale parameter of logit models via settings
-#104 (review) sLTM/prototype - Add support for route filtering as component of SUE path choice
-#106 (review) sLTM/prototype - Add support for bounded (MNL) choice model
-#109 (review) sLTM/prototype - Support path and OD output (adapters) for sLTM
-#114 (review) sLTM/prototype - Support inflow and outflow as general link properties for output
-#115 (review) sLTM/prototype - Support initial costs on sLTM
-#116 (review) sLTM/prototype - Add support for non-linear free flow branch FDs for path based sLTM
-#117 (review) sLTM/prototype - Let user configure Path Generator on sLTM settings for path based runs
-#118 (review) sLTM/prototype - Make network loading gap epsilon configurable for sLTM
-#121 (review) sLTM/prototype - Make it configurable to what sLTM network loading solution scheme we use at the start
-#126 (review) sLTM/prototype - Add support for concave free flow branch FDs
-#131 (review) sLTM/prototype - Support Bush (link) level outputs
-#132 (review) sLTM/prototype - Support computation of dcost/dflow in sLTM to take turn level acceptance factors into account
+#85 [EXPERIMENTAL] sLTM - Destination-based conjugate-bush assignment prototype
+#103 [EXPERIMENTAL] sLTM - Add a path-based gap function
+#120 [EXPERIMENTAL] sLTM - Movement-based path implementation
+#127 [EXPERIMENTAL] sLTM - Further bush-based quadratic-linear fundamental-diagram support
+#133 [EXPERIMENTAL] sLTM - Persist PAS state for conjugate and non-conjugate bush implementations
+#99 [EXPERIMENTAL] sLTM - Supporting stochastic path choice without fixed path set in sLTM
+#100 [EXPERIMENTAL] sLTM - Add support for Weibitt for path choice
+#101 [EXPERIMENTAL] sLTM - Add option to let user configure scale parameter of logit models via settings
+#104 [EXPERIMENTAL] sLTM - Add support for route filtering as component of SUE path choice
+#106 [EXPERIMENTAL] sLTM - Add support for bounded (MNL) choice model
+#109 [EXPERIMENTAL] sLTM - Support path and OD output (adapters) for sLTM
+#114 [EXPERIMENTAL] sLTM - Support inflow and outflow as general link properties for output
+#115 [EXPERIMENTAL] sLTM - Support initial costs on sLTM
+#116 [EXPERIMENTAL] sLTM - Add support for non-linear free flow branch FDs for path based sLTM
+#117 [EXPERIMENTAL] sLTM - Let user configure Path Generator on sLTM settings for path based runs
+#118 [EXPERIMENTAL] sLTM - Make network loading gap epsilon configurable for sLTM
+#121 [EXPERIMENTAL] sLTM - Make it configurable to what sLTM network loading solution scheme we use at the start
+#126 [EXPERIMENTAL] sLTM - Add support for concave free flow branch FDs
+#131 [EXPERIMENTAL] sLTM - Support Bush (link) level outputs
+#132 [EXPERIMENTAL] sLTM - Support computation of dcost/dflow in sLTM to take turn level acceptance factors into account
 
 **Bug fixes**
 
