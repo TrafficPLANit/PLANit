@@ -45,6 +45,7 @@ This project contains core code which is used by all the other PLANit modules/re
 
 #113 Internal ids are not recreated nor reset consistently when same traffic assignment instance is rerun, this is fixed
 #136 QL fundamental diagram dSpeedDFlow not calculated correctly, this has been fixed
+#143 Removing an edge segment through the network layer modifier now automatically removes banned movements that reference it
 
 ## 0.4.0
 
