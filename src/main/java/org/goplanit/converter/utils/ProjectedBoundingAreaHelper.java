@@ -180,6 +180,25 @@ public class ProjectedBoundingAreaHelper {
   }
 
   /**
+   * Verify if geometry is wholly within boundary provided, i.e. no part of it extends beyond. Use
+   * {@link #isPartlyOrWhollyWithinBoundaryArea(Geometry, boolean)} when any intersection suffices.
+   *
+   * @param geometryInOriginalCrs to check
+   * @param isWithinWhenNoBoundary when true, true is returned if provided boundary has no polygon defined,
+   *                               false otherwise
+   * @return true when wholly within boundary, false otherwise
+   */
+  public boolean isWhollyWithinBoundaryArea(
+      Geometry geometryInOriginalCrs,
+      boolean isWithinWhenNoBoundary){
+    if(preppedBoundingPolygonOriginalCrs == null){
+      return isWithinWhenNoBoundary;
+    }
+
+    return preppedBoundingPolygonOriginalCrs.contains(geometryInOriginalCrs);
+  }
+
+  /**
    * Verify if geometry is (partly) within boundary provided.
    *
    * @param pointInOriginalCrs to check
@@ -198,8 +217,9 @@ public class ProjectedBoundingAreaHelper {
 
     boolean success = isPartlyOrWhollyWithinBoundaryArea(pointInOriginalCrs, isWithinWhenNoBoundary);
     if(!success && maxProjectedDistanceToBoundary > 0){
-      success = maxProjectedDistanceToBoundary <
-          this.calculateProjectedDistanceToBoundingPolygon(pointInOriginalCrs, true);
+      /* outside the boundary, so only eligible when it lies no further beyond it than the allowance permits */
+      success = this.calculateProjectedDistanceToBoundingPolygon(pointInOriginalCrs, true) <=
+          maxProjectedDistanceToBoundary;
     }
     return success;
   }
@@ -224,8 +244,10 @@ public class ProjectedBoundingAreaHelper {
     if(!success && maxProjectedDistanceToBoundary > 0){
       for(int index=0; index < lineStringInOriginalCrs.getNumPoints();++index){
         var currPoint = lineStringInOriginalCrs.getPointN(index);
-        success = maxProjectedDistanceToBoundary <
-            this.calculateProjectedDistanceToBoundingPolygon(currPoint, true);
+        /* outside the boundary, so only eligible when some point lies no further beyond it than the allowance
+         * permits */
+        success = this.calculateProjectedDistanceToBoundingPolygon(currPoint, true) <=
+            maxProjectedDistanceToBoundary;
         if(success){
           break;
         }
