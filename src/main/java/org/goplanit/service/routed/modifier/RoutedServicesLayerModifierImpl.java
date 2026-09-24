@@ -14,6 +14,7 @@ import org.goplanit.utils.misc.CharacterUtils;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.modifier.LoggableModifier;
 import org.goplanit.utils.service.routed.*;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesLayerModifier;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModificationEvent;
@@ -33,6 +34,9 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(RoutedServicesLayerModifierImpl.class.getCanonicalName());
+
+  /** whether what is changed is stated as it happens */
+  private boolean logModifications = LoggableModifier.DEFAULT_LOG_MODIFICATIONS;
   protected final RoutedServicesLayerImpl routedServicesLayer;
 
   /**
@@ -354,13 +358,13 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
             singleRtf -> routedService.getTripInfo().getFrequencyBasedTrips().register(singleRtf));
       }
     }
-    LOGGER.info(String.format("%s[%s] # kept frequency based trips as is : %d",
+    logModification(String.format("%s[%s] # kept frequency based trips as is : %d",
         LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()),
         servicesByMode.getMode(), numKeptFrequencyTrips));
-    LOGGER.info(String.format("%s[%s] # removed/replaced frequency based trips : %d",
+    logModification(String.format("%s[%s] # removed/replaced frequency based trips : %d",
         LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()),
         servicesByMode.getMode(), numRemovedFrequencyTrips));
-    LOGGER.info(String.format("%s[%s] # newly created partials of frequency based trips : %d",
+    logModification(String.format("%s[%s] # newly created partials of frequency based trips : %d",
         LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()),
         servicesByMode.getMode(), numCreatedTruncatedFrequencyTrips));
   }
@@ -400,13 +404,13 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
             singleRts -> routedService.getTripInfo().getScheduleBasedTrips().register(singleRts));
       }
     }
-    LOGGER.info(String.format("%s[%s] # kept scheduled trips as is : %d",
+    logModification(String.format("%s[%s] # kept scheduled trips as is : %d",
         LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()),
         servicesByMode.getMode(), numKeptScheduledTrips));
-    LOGGER.info(String.format("%s[%s] # removed/replaced scheduled trips : %d",
+    logModification(String.format("%s[%s] # removed/replaced scheduled trips : %d",
         LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()),
         servicesByMode.getMode(), numRemovedScheduledTrips));
-    LOGGER.info(String.format("%s[%s] # newly created partials of scheduled trips : %d",
+    logModification(String.format("%s[%s] # newly created partials of scheduled trips : %d",
         LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()),
         servicesByMode.getMode(), numCreatedTruncatedScheduledTrips));
   }
@@ -427,7 +431,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
       return;
     }
 
-    LOGGER.info(String.format("%sTruncating routed services to remaining service network for mode %s",
+    logModification(String.format("%sTruncating routed services to remaining service network for mode %s",
             LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode()));
 
     /* SCHEDULE BASED */
@@ -473,7 +477,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
    *  from the layer. Same goes for routed services that have no more trips
    */
   public void truncateToServiceNetwork(){
-    LOGGER.info(String.format("%sTruncating routed services to remaining service network",
+    logModification(String.format("%sTruncating routed services to remaining service network",
         LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId())));
 
     /* identify missing service network entities per routed service mode and truncate to become consistent again */
@@ -535,7 +539,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
       removedTripSchedules.add(schedulesToRemoveAfterConsolidation.size());
     }
 
-    LOGGER.info(String.format("%sConsolidated PLANit trip schedules (mode: %s), " +
+    logModification(String.format("%sConsolidated PLANit trip schedules (mode: %s), " +
             "remaining consolidated: %d, removed: %d",
         LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), mode.getName(),
         consolidatedTripSchedules.intValue(), removedTripSchedules.intValue()));
@@ -551,7 +555,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
     while(iter.hasNext()){
       var routedServiceForMode = iter.next();
       if(routedServiceForMode.isEmpty()){
-        LOGGER.info(String.format("%sRemove routed services container for mode: %s, no services identified",
+        logModification(String.format("%sRemove routed services container for mode: %s, no services identified",
             LoggingUtils.routedServiceLayerPrefix(
                 routedServicesLayer.getId()), routedServiceForMode.getMode().getName()));
         iter.remove();
@@ -580,7 +584,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
       int before = servicesByMode.size();
       servicesByMode.removeIf( r -> !r.getTripInfo().hasAnyTrips());
       if(before != servicesByMode.size() && !removedAnything){
-        LOGGER.info(String.format("%sRemoved %d routed services without trips (remaining: %d) for mode %s",
+        logModification(String.format("%sRemoved %d routed services without trips (remaining: %d) for mode %s",
             LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()),
             before - servicesByMode.size(), servicesByMode.size(), servicesByMode.getMode()));
         removedAnything = true;
@@ -618,7 +622,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
             pair -> pair.first().getTripInfo().getScheduleBasedTrips().remove(pair.second()));
 
         /* logging */
-        LOGGER.info(String.format("%sRemoved %d trip schedules with only a single stop for mode %s",
+        logModification(String.format("%sRemoved %d trip schedules with only a single stop for mode %s",
             LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()),
             tripsWithEmptyLegTimings.size(), servicesByMode.getMode()));
         removedAnything = true;
@@ -680,7 +684,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
 
       /* logging */
       if(removedDuplicates.longValue() > 0) {
-        LOGGER.info(String.format("%sRemoved %d duplicate departures across all routed trip schedules for mode %s",
+        logModification(String.format("%sRemoved %d duplicate departures across all routed trip schedules for mode %s",
             LoggingUtils.routedServiceLayerPrefix(
                 routedServicesLayer.getId()), removedDuplicates.longValue(), servicesByMode.getMode()));
       }
@@ -701,7 +705,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
    */
   @Override
   public void recreateManagedEntitiesIds() {
-    LOGGER.info(String.format("%sRecreating all ids managed by routed service layer",
+    logModification(String.format("%sRecreating all ids managed by routed service layer",
         LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId())));
 
     // do for routed modes container
@@ -815,4 +819,30 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
     super.removeListener(listener);
   }
 
+  /**
+   * Log what the modifier changed, unless the caller keeps its own account of it
+   *
+   * @param message to log
+   */
+  private void logModification(String message) {
+    if(logModifications) {
+      LOGGER.info(message);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isLogModifications() {
+    return logModifications;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setLogModifications(boolean logModifications) {
+    this.logModifications = logModifications;
+  }
 }

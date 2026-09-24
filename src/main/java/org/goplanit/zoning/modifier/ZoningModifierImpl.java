@@ -9,6 +9,7 @@ import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.modifier.LoggableModifier;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.network.layers.ServiceNetworkLayers;
@@ -32,6 +33,20 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
 
   /** the logger to use */
   private static final Logger LOGGER = Logger.getLogger(ZoningModifierImpl.class.getCanonicalName());
+
+  /** whether the modifications applied are reported */
+  private boolean logModifications = LoggableModifier.DEFAULT_LOG_MODIFICATIONS;
+
+  /**
+   * Log the given modification, unless the modifications applied are not to be reported
+   *
+   * @param message to log
+   */
+  private void logModification(String message) {
+    if(logModifications) {
+      LOGGER.info(message);
+    }
+  }
 
   /**
    * register listeners for the internally fired events on the internally known containers of the zoning
@@ -171,7 +186,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
         recreateZoneIds();
       }
 
-      LOGGER.info(String.format("%sRemoved %d dangling transfer zones",
+      logModification(String.format("%sRemoved %d dangling transfer zones",
               LoggingUtils.zoningPrefix(zoning.getId()), danglingZones.size()));
     }
   }
@@ -196,7 +211,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
         }
       }
 
-      LOGGER.info(String.format("%sRemoved %d dangling OD zones",
+      logModification(String.format("%sRemoved %d dangling OD zones",
           LoggingUtils.zoningPrefix(zoning.getId()), danglingZones.size()));
     }
   }
@@ -238,7 +253,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
       recreateTransferZoneGroupIds();
     }
 
-    LOGGER.info(String.format("%sRemoved %d dangling transfer zone groups",
+    logModification(String.format("%sRemoved %d dangling transfer zone groups",
             LoggingUtils.zoningPrefix(zoning.getId()), counter.longValue()));
   }
 
@@ -284,7 +299,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
     if(recreateManagedConnectoidIds) {
       recreateConnectoidIds();
     }
-    LOGGER.info(String.format("%sRemoved %d unused transfer connectoids",
+    logModification(String.format("%sRemoved %d unused transfer connectoids",
         LoggingUtils.zoningPrefix(zoning.getId()), counter.longValue()));
   }
 
@@ -329,6 +344,22 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   public void removeListener(ZoningModifierListener listener) {
     super.removeListener(listener);
 
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isLogModifications() {
+    return logModifications;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setLogModifications(boolean logModifications) {
+    this.logModifications = logModifications;
   }
 
 }

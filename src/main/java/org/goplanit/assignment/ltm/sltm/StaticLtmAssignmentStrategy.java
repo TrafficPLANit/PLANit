@@ -301,6 +301,7 @@ public abstract class StaticLtmAssignmentStrategy {
 
       /* STEP 5 - Network loading convergence */
     } while (!getLoading().stepFiveCheckNetworkLoadingConvergence(networkLoadingIterationIndex++));
+
   }
 
 
