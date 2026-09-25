@@ -91,8 +91,6 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
       final ServiceLegs legs,
       final ServiceLegSegments legSegments) {
     super(tokenId, nodes, legs, legSegments, null);
-    // overwrite default from super <-- not pretty but otherwise no access to graph yet
-    this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this, this.directedGraph);
     this.parentNetworkLayer = parentNetworkLayer;
   }
 
@@ -115,7 +113,6 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
       GraphEntityDeepCopyMapper<ServiceLegSegment> legSegmentMapper) {
     super(other, deepCopy, nodeMapper, legMapper, legSegmentMapper, null);
     this.parentNetworkLayer = other.parentNetworkLayer;
-    this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this, this.directedGraph);
   }
 
   /**
@@ -211,6 +208,14 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   @Override
   public boolean supports(Mode mode) {
     return getParentNetworkLayer().supports(mode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected ServiceNetworkLayerModifierImpl<ServiceNode, ServiceLeg, ServiceLegSegment> createLayerModifier() {
+    return new ServiceNetworkLayerModifierImpl<>(this, this.directedGraph);
   }
 
   /**

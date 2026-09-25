@@ -46,10 +46,19 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    */
   protected final UntypedDirectedGraphImpl<V, E, S> directedGraph;
 
-  /** the modifier to use to apply larger modifications */
-  protected UntypedDirectedGraphLayerModifier<V, E, S> layerModifier;
+  /** the modifier to use to apply larger modifications, created on first use */
+  private UntypedDirectedGraphLayerModifier<V, E, S> layerModifier;
 
   // Protected
+
+  /**
+   * Create the modifier of this layer, called once, when the modifier is first asked for
+   *
+   * @return modifier of this layer
+   */
+  protected UntypedDirectedGraphLayerModifier<V, E, S> createLayerModifier() {
+    return new UntypedNetworkLayerModifierImpl<>(this.directedGraph);
+  }
 
   /**
    * collect the graph
@@ -84,7 +93,6 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
           final BannedMovements bannedMovements) {
     super(tokenId);
     this.directedGraph = new UntypedDirectedGraphImpl<>(tokenId, vertices, edges, edgeSegments, bannedMovements);
-    this.layerModifier = new UntypedNetworkLayerModifierImpl<>(this.directedGraph);
   }
 
   /**
@@ -115,8 +123,6 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
     this.directedGraph =
             deepCopy ? other.directedGraph.smartDeepClone(
                 vertexMapper, edgeMapper, edgeSegmentMapper, movementMapper) : other.directedGraph.shallowClone();
-
-    this.layerModifier = new UntypedNetworkLayerModifierImpl<>(directedGraph);
   }
 
   // Getters - Setters
@@ -185,6 +191,9 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    */
   @Override
   public UntypedDirectedGraphLayerModifier<V, E, S> getLayerModifier() {
+    if (layerModifier == null) {
+      layerModifier = createLayerModifier();
+    }
     return layerModifier;
   }
 

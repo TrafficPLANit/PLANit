@@ -6,7 +6,6 @@ import org.goplanit.network.layer.service.ServiceNetworkLayerImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.modifier.LoggableModifier;
 import org.goplanit.utils.network.layer.modifier.ServiceNetworkLayerModifier;
 import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
@@ -37,9 +36,6 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
   /** the logger */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ServiceNetworkLayerModifierImpl.class.getCanonicalName());
-
-  /** whether what is changed is stated as it happens */
-  private boolean logModifications = LoggableModifier.DEFAULT_LOG_MODIFICATIONS;
 
   /** the related service network layer */
   private ServiceNetworkLayerImpl serviceNetworkLayer;
@@ -142,24 +138,8 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
    * @param message to log
    */
   private void logModification(String message) {
-    if(logModifications) {
+    if(isLogModifications()) {
       LOGGER.info(message);
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isLogModifications() {
-    return logModifications;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setLogModifications(boolean logModifications) {
-    this.logModifications = logModifications;
   }
 }

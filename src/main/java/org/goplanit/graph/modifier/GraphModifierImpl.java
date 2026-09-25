@@ -315,12 +315,11 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge>
       }
 
       removeVertex(vertex);
+    }
 
-      /* fire remove subgraph event */
-      if (hasListener(RemoveGraphEntityEvent.EVENT_TYPE)) {
-        fireEvent(new RemoveGraphEntityEvent(this));
-      }
-
+    /* fire remove subgraph event */
+    if (hasListener(RemoveGraphEntityEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveGraphEntityEvent(this));
     }
   }
 
@@ -371,32 +370,31 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge>
           final V vertexToBreakAt, final Ex edgeToBreak, final PlanitJtsCrsUtils geoUtils) {
     Ex aToBreak = edgeToBreak;
 
+    if (edgeToBreak.getVertexA() == null || edgeToBreak.getVertexB() == null) {
+      LOGGER.severe(String.format("unable to break edge since edge to break %s (id:%d) is missing one or " +
+          "more vertices", edgeToBreak.getExternalId(), edgeToBreak.getId()));
+      return null;
+    }
+
     /* create unique copy of edge with unique id and register it, do a deep copy to ensure any input properties
      are duplicated (but shallow copy of non-owned entries) */
     Ex breakToB = (Ex) theGraph.getEdges().getFactory().createUniqueDeepCopyOf(edgeToBreak);
     ((GraphEntities<Ex>) theGraph.getEdges()).register(breakToB);
 
-    if (edgeToBreak.getVertexA() == null || edgeToBreak.getVertexB() == null) {
-      LOGGER.severe(String.format("unable to break edge since edge to break %s (id:%d) is missing one or " +
-          "more vertices", edgeToBreak.getExternalId(), edgeToBreak.getId()));
-      return null;
-    } else {
+    Vertex oldVertexB = edgeToBreak.getVertexB();
+    Vertex oldVertexA = edgeToBreak.getVertexA();
 
-      Vertex oldVertexB = edgeToBreak.getVertexB();
-      Vertex oldVertexA = edgeToBreak.getVertexA();
+    /* replace vertices on edges */
+    aToBreak.replace(oldVertexB, vertexToBreakAt);
+    breakToB.replace(oldVertexA, vertexToBreakAt);
 
-      /* replace vertices on edges */
-      aToBreak.replace(oldVertexB, vertexToBreakAt);
-      breakToB.replace(oldVertexA, vertexToBreakAt);
+    /* replace edges on original vertices */
+    oldVertexB.replace(edgeToBreak, breakToB, true);
+    oldVertexA.replace(edgeToBreak, aToBreak, true);
 
-      /* replace edges on original vertices */
-      oldVertexB.replace(edgeToBreak, breakToB, true);
-      oldVertexA.replace(edgeToBreak, aToBreak, true);
-
-      /* add edges to new vertex */
-      vertexToBreakAt.addEdge(aToBreak);
-      vertexToBreakAt.addEdge(breakToB);
-    }
+    /* add edges to new vertex */
+    vertexToBreakAt.addEdge(aToBreak);
+    vertexToBreakAt.addEdge(breakToB);
 
     /* broken links geometry must be updated since it links is truncated compared to its original */
     for (Edge brokenEdge : List.of(aToBreak, breakToB)) {
@@ -432,7 +430,7 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge>
    */
   @Override
   public void reset() {
-    super.removeAllListeners();
+    super.removeAllNonInternalListeners();
   }
 
   /**
@@ -449,6 +447,16 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge>
   @Override
   public void addListener(GraphModifierListener listener, GraphModifierEventType eventType) {
     super.addListener(listener, eventType);
+  }
+
+  /**
+   * Add a listener internal to the owner of this modifier, for the event types it is known to support. It receives
+   * each of these events before the other listeners do, and is not removed with them
+   *
+   * @param listener to add
+   */
+  public void addInternalListener(GraphModifierListener listener) {
+    super.addInternalListener(listener);
   }
 
   /**

@@ -78,7 +78,7 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
    * Reset modifier
    */
   public void reset() {
-    super.removeAllListeners();
+    super.removeAllNonInternalListeners();
   }
 
   /**

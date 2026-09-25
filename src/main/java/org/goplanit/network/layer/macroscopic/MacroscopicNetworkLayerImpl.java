@@ -4,6 +4,9 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.network.layer.BannedMovementsImpl;
+import org.goplanit.network.layer.macroscopic.intersection.IntersectionsImpl;
+import org.goplanit.network.layer.modifier.MacroscopicNetworkLayerModifierImpl;
+import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
 import org.goplanit.network.layer.physical.NodesImpl;
 import org.goplanit.network.layer.physical.UntypedPhysicalLayerImpl;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
@@ -12,6 +15,8 @@ import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.*;
+import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
+import org.goplanit.utils.network.layer.macroscopic.intersection.Intersections;
 import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.graph.directed.BannedMovements;
 import org.goplanit.utils.network.layer.physical.Node;
@@ -35,6 +40,9 @@ public class MacroscopicNetworkLayerImpl
 
   /** The container for the link segment types available across all link segments */
   public final MacroscopicLinkSegmentTypes linkSegmentTypes;
+
+  /** The intersections of this layer */
+  protected final Intersections intersections;
 
   /**
    * Constructor
@@ -66,6 +74,7 @@ public class MacroscopicNetworkLayerImpl
           BannedMovements bannedMovements) {
     super(groupId, nodes, links, linkSegments, bannedMovements);
     linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl(groupId);
+    intersections = new IntersectionsImpl(groupId);
   }
 
   /**
@@ -81,6 +90,8 @@ public class MacroscopicNetworkLayerImpl
    *                              (when provided, may be null)
    * @param movementsMapper to apply in case of deep copy to each original to copy combination
    *                        (when provided, may be null)
+   * @param intersectionMapper to apply in case of deep copy to each original to copy combination
+   *                           (when provided, may be null)
    */
   protected MacroscopicNetworkLayerImpl(
           MacroscopicNetworkLayerImpl other,
@@ -89,13 +100,23 @@ public class MacroscopicNetworkLayerImpl
           GraphEntityDeepCopyMapper<MacroscopicLink> linkMapper,
           GraphEntityDeepCopyMapper<MacroscopicLinkSegment> linkSegmentMapper,
           ManagedIdDeepCopyMapper<MacroscopicLinkSegmentType> linkSegmentTypeMapper,
-          ManagedIdDeepCopyMapper<BannedMovement> movementsMapper) {
+          ManagedIdDeepCopyMapper<BannedMovement> movementsMapper,
+          ManagedIdDeepCopyMapper<Intersection> intersectionMapper) {
     super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper, movementsMapper);
 
     this.linkSegmentTypes = deepCopy ? other.linkSegmentTypes.deepCloneWithMapping(linkSegmentTypeMapper) :
         other.linkSegmentTypes.shallowClone();
     if(deepCopy) {
       updateLinkSegmentLinkSegmentTypes(linkSegmentTypeMapper::getMapping, true);
+    }
+    if (deepCopy) {
+      /* after the graph is copied, so the node and link segment mappers hold every original to copy */
+      var copiedIntersections = (IntersectionsImpl) other.intersections.deepCloneWithMapping(intersectionMapper);
+      copiedIntersections.updateMemberNodeMapping(nodeMapper::getMapping, true);
+      copiedIntersections.updateSegmentMapping(linkSegmentMapper::getMapping, true);
+      this.intersections = copiedIntersections;
+    } else {
+      this.intersections = other.intersections.shallowClone();
     }
   }
 
@@ -129,6 +150,7 @@ public class MacroscopicNetworkLayerImpl
     super.logInfo(prefix);
 
     LOGGER.info(String.format("%s#link segment types: %d", prefix, linkSegmentTypes.size()));
+    LOGGER.info(String.format("%s#intersections: %d", prefix, intersections.size()));
   }
 
   /**
@@ -139,6 +161,30 @@ public class MacroscopicNetworkLayerImpl
   @Override
   public MacroscopicLinkSegmentTypes getLinkSegmentTypes() {
     return this.linkSegmentTypes;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Intersections getIntersections() {
+    return this.intersections;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected MacroscopicNetworkLayerModifierImpl createLayerModifier() {
+    return new MacroscopicNetworkLayerModifierImpl(this, directedGraph);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicNetworkLayerModifier getLayerModifier() {
+    return (MacroscopicNetworkLayerModifier) super.getLayerModifier();
   }
 
   /**
@@ -185,6 +231,7 @@ public class MacroscopicNetworkLayerImpl
         null,
         null,
         null,
+        null,
         null);
   }
 
@@ -199,6 +246,7 @@ public class MacroscopicNetworkLayerImpl
             new GraphEntityDeepCopyMapper<>(),
             new GraphEntityDeepCopyMapper<>(),
             new GraphEntityDeepCopyMapper<>(),
+            new ManagedIdDeepCopyMapper<>(),
             new ManagedIdDeepCopyMapper<>(),
             new ManagedIdDeepCopyMapper<>());
   }
@@ -219,6 +267,7 @@ public class MacroscopicNetworkLayerImpl
   public void resetChildManagedIdEntities() {
     super.resetChildManagedIdEntities();
     this.linkSegmentTypes.reset();
+    this.intersections.reset();
   }
 
   /**
@@ -228,6 +277,7 @@ public class MacroscopicNetworkLayerImpl
   public long recreateManagedIds(IdGroupingToken tokenId) {
     var newId = super.recreateManagedIds(tokenId);
     getLinkSegmentTypes().recreateIds(true);
+    getIntersections().recreateIds(true);
     return newId;
   }
 

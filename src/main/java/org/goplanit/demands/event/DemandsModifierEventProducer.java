@@ -49,8 +49,8 @@ public interface DemandsModifierEventProducer extends EventProducer{
   public abstract void removeListener(DemandsModifierListener listener);
 
   /**
-   * Remove all registered listeners
+   * Remove all registered listeners, apart from those internal to the owner of the producer
    */
-  public abstract void removeAllListeners();
+  public abstract void removeAllNonInternalListeners();
 
 }

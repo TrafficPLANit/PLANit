@@ -67,7 +67,7 @@ public class DemandsModifier extends EventProducerImpl implements DemandsModifie
    * Reset modifier
    */
   public void reset() {
-    super.removeAllListeners();
+    super.removeAllNonInternalListeners();
   }
 
   /**

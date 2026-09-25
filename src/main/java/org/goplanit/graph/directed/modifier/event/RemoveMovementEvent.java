@@ -15,7 +15,7 @@ import org.goplanit.utils.graph.directed.BannedMovement;
  */
 public class RemoveMovementEvent extends EventImpl implements DirectedGraphModificationEvent {
 
-  /** event type fired off when sub graph edge segment has been removed */
+  /** event type fired off when a movement has been removed */
   public static final GraphModifierEventType EVENT_TYPE =
       new DirectedGraphModifierEventType("DIRECTEDGRAPHMODIFIER.MOVEMENT.REMOVE");
 
@@ -34,7 +34,7 @@ public class RemoveMovementEvent extends EventImpl implements DirectedGraphModif
    * 
    * @return removed movement
    */
-  public BannedMovement getRemovedEdgeSegment() {
+  public BannedMovement getRemovedMovement() {
     return (BannedMovement) getContent()[0];
   }
 

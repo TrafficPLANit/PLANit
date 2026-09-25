@@ -8,6 +8,7 @@ import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.physical.*;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -37,6 +38,7 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
     add(ConjugateLinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
 
     add(BannedMovement.class, IdMapperFunctionFactory.createMovementIdMappingFunction(type));
+    add(Intersection.class, IdMapperFunctionFactory.createIntersectionIdMappingFunction(type));
   }
 
   /**
@@ -81,6 +83,13 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
    */
   public Function<BannedMovement, String> getMovementIdMapper(){
     return get(BannedMovement.class);
+  }
+
+  /** get id mapper for intersections
+   * @return id mapper
+   */
+  public Function<Intersection, String> getIntersectionIdMapper(){
+    return get(Intersection.class);
   }
 
   /** get id mapper for traveller types

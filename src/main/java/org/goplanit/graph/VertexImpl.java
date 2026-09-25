@@ -74,7 +74,7 @@ public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Verte
     super(other, deepCopy);
     edges.addAll(other.edges); // edges not owned, so not deep copied
 
-    setPosition(deepCopy ? (Point) other.getPosition().copy() : other.getPosition());
+    setPosition((other.hasPosition() && deepCopy) ? (Point) other.getPosition().copy() : other.getPosition());
     if (other.inputProperties != null && !other.inputProperties.isEmpty()) {
       if(deepCopy) {
         CloneUtils.deepCloneFromTo(other.inputProperties, this.inputProperties);

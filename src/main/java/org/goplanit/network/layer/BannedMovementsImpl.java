@@ -1,20 +1,31 @@
 package org.goplanit.network.layer;
 
+import org.goplanit.utils.containers.EntityIndex;
+import org.goplanit.utils.containers.IdentityEntityIndex;
 import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
 import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.graph.directed.BannedMovementFactory;
 import org.goplanit.utils.graph.directed.BannedMovements;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.layer.physical.*;
+import org.goplanit.utils.network.layer.physical.MovementUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * 
- * Movements primary managed container implementation
- * 
+ * Movements primary managed container implementation, with a lookup of the banned movements starting or ending at a
+ * link segment. Registering a banned movement indexes the segments it refers to at that moment; later raw edits of its
+ * segments are not seen by the lookup, see {@link #update(BannedMovement, Consumer)}
+ *
  * @author markr
  *
  */
@@ -22,6 +33,10 @@ public class BannedMovementsImpl extends ManagedGraphEntitiesImpl<BannedMovement
 
   /** factory to use */
   private final BannedMovementFactory bannedMovementFactory;
+
+  /** link segment to the banned movements starting or ending at it, by identity */
+  private final EntityIndex<EdgeSegment, BannedMovement> bySegment = new IdentityEntityIndex<>(
+      bannedMovement -> Arrays.asList(bannedMovement.getSegmentFrom(), bannedMovement.getSegmentTo()));
 
   /**
    * Constructor
@@ -56,6 +71,7 @@ public class BannedMovementsImpl extends ManagedGraphEntitiesImpl<BannedMovement
     super(other, deepCopy, mapper);
     this.bannedMovementFactory =
         new BannedMovementFactoryImpl(other.bannedMovementFactory.getIdGroupingToken(), this);
+    bySegment.reindex(this);
   }
 
   /**
@@ -70,11 +86,79 @@ public class BannedMovementsImpl extends ManagedGraphEntitiesImpl<BannedMovement
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(boolean resetManagedIdClass) {
-    /* always reset the additional node id class */
-    IdGenerator.reset(getFactory().getIdGroupingToken(), Node.NODE_ID_CLASS);
+  public BannedMovement register(final BannedMovement bannedMovement) {
+    var previous = super.register(bannedMovement);
+    bySegment.replace(previous, bannedMovement);
+    return previous;
+  }
 
-    super.recreateIds(resetManagedIdClass);
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public BannedMovement remove(final BannedMovement bannedMovement) {
+    var removed = super.remove(bannedMovement);
+    bySegment.unindex(removed);
+    return removed;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public BannedMovement remove(final long key) {
+    var removed = super.remove(key);
+    bySegment.unindex(removed);
+    return removed;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeIf(Predicate<BannedMovement> condition) {
+    var toRemove = new ArrayList<BannedMovement>();
+    forEach(bannedMovement -> {
+      if (condition.test(bannedMovement)) {
+        toRemove.add(bannedMovement);
+      }
+    });
+    toRemove.forEach(this::remove);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void clear() {
+    super.clear();
+    bySegment.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<BannedMovement> getBySegment(EdgeSegment segment) {
+    return bySegment.get(segment);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void update(BannedMovement bannedMovement, Consumer<BannedMovement> change) {
+    bySegment.update(bannedMovement, change);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <T extends EdgeSegment> void updateSegmentMapping(
+      Function<T, T> segmentToSegmentMapping, boolean removeMissingMappings) {
+    MovementUtils.updateMovementSegmentMapping(this, segmentToSegmentMapping, removeMissingMappings);
+    bySegment.reindex(this);
   }
 
   /**

@@ -17,6 +17,7 @@ import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
@@ -80,6 +81,16 @@ public class IdMapperFunctionFactory {
    */
   public static Function<BannedMovement, String> createMovementIdMappingFunction(final IdMapperType idMapper) {
     return IdMappingUtils.createIdMappingFunction(BannedMovement.class, idMapper);
+  }
+
+  /**
+   * create a function that takes an intersection and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates mapped intersection id's for persistence
+   */
+  public static Function<Intersection, String> createIntersectionIdMappingFunction(final IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(Intersection.class, idMapper);
   }
 
   /**

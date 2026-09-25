@@ -28,6 +28,7 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.network.layer.physical.MovementUtils;
 
 /**
  * Implementation of a directed graph modifier that supports making changes to any untyped directed graph.
@@ -150,17 +151,23 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
       Ex aToBreak, Ex breakToB, List<BannedMovement> touchedMovements) {
 
     for(var bannedMovement : touchedMovements){
+      /* a ban removed after the index was built is skipped */
+      if(getGraph().getMovements().get(bannedMovement.getId()) != bannedMovement){
+        continue;
+      }
 
       // for from segment, this is the only situation where it is altered (as AToBreak is reused just shortened)
       if(bannedMovement.getSegmentFrom().getUpstreamVertex().equals(aToBreak.getVertexA()) &&
           breakToB.getVertexB().equals(bannedMovement.getSegmentTo().getUpstreamVertex())){
-        bannedMovement.setSegmentFrom(breakToB.getSegmentUpstreamOf(breakToB.getVertexB()));
+        getGraph().getMovements().update(
+            bannedMovement, ban -> ban.setSegmentFrom(breakToB.getSegmentUpstreamOf(breakToB.getVertexB())));
       }
 
       // for to segment this is the only situations where it is altered
       if(bannedMovement.getSegmentTo().getDownstreamVertex().equals(aToBreak.getVertexA()) &&
           breakToB.getVertexB().equals(bannedMovement.getSegmentFrom().getDownstreamVertex())){
-        bannedMovement.setSegmentTo(breakToB.getSegmentDownstreamFrom(breakToB.getVertexB()));
+        getGraph().getMovements().update(
+            bannedMovement, ban -> ban.setSegmentTo(breakToB.getSegmentDownstreamFrom(breakToB.getVertexB())));
       }
 
     }
@@ -203,7 +210,18 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
    */
   @Override
   public void removeEdge(DirectedEdge edge) {
-    edge.removeEdgeSegments();
+    removeEdge(edge, true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeEdge(DirectedEdge edge, boolean removeEdgeSegments) {
+    if(removeEdgeSegments && edge.hasEdgeSegment()){
+      /* a copy, so each removal can detach its segment from the edge while traversing */
+      edge.getEdgeSegments().forEach(this::removeEdgeSegment);
+    }
     this.graphModifier.removeEdge(edge);
   }
 
@@ -262,6 +280,10 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
    */
   @Override
   public void removeEdgeSegment(EdgeSegment edgeSegment) {
+    /* only a registered segment is removed, so removing it again changes nothing and fires nothing */
+    if(getGraph().getEdgeSegments().get(edgeSegment.getId()) != edgeSegment){
+      return;
+    }
     getGraph().getEdgeSegments().remove(edgeSegment.getId());
     if(edgeSegment.getParent() != null){
       edgeSegment.getParent().removeEdgeSegment(edgeSegment);
@@ -270,6 +292,11 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
 
     if (hasListener(RemoveEdgeSegmentEvent.EVENT_TYPE)) {
       fireEvent(new RemoveEdgeSegmentEvent(this, edgeSegment));
+    }
+
+    /* banned movements cannot outlive a segment they start or end at */
+    if (getGraph().getMovements() != null) {
+      getGraph().getMovements().getBySegment(edgeSegment).forEach(this::removeMovement);
     }
   }
 
@@ -286,7 +313,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
       movement.setSegmentTo(null);
     }
 
-    if (hasListener(RemoveEdgeSegmentEvent.EVENT_TYPE)) {
+    if (hasListener(RemoveMovementEvent.EVENT_TYPE)) {
       fireEvent(new RemoveMovementEvent(this, movement));
     }
   }
@@ -321,21 +348,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
      * runs once per removed subgraph and a full scan would make removal quadratic in the size of the network */
     edgeSegmentsToRemove.addAll(subGraphToRemove.getEdgeSegments(getGraph().getEdgeSegments()));
 
-    /* remove the movements touching the subgraph to remove. Selected by a single filtered pass rather than by
-     * building an index grouped by centre vertex: that index covers every movement on the graph, is discarded
-     * again immediately, and this method runs once per removed subgraph. The grouping bought nothing here since
-     * the filter below is on the segments, not on the centre vertex. Materialised before removing because removal
-     * mutates the container being read */
-    if(getGraph().hasMovements()){
-      var movementsToRemove = getGraph().getMovements().stream()
-          .filter(bm ->
-              edgeSegmentsToRemove.contains(bm.getSegmentFrom()) ||
-                  edgeSegmentsToRemove.contains(bm.getSegmentTo()))
-          .collect(java.util.stream.Collectors.toList());
-      movementsToRemove.forEach(this::removeMovement);
-    }
-
-    /* remove the edge segment portion of the directed subgraph from the actual directed graph and fire event(s)*/
+    /* remove the edge segment portion of the directed subgraph from the actual directed graph and fire event(s),
+     * each removal taking the banned movements on its segment with it */
     for (var segment : edgeSegmentsToRemove) {
       removeEdgeSegment(segment);
     }
@@ -394,14 +408,16 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
 
     Ex aToBreak = edgeToBreak;
     Ex breakToB = graphModifier.breakEdgeAt(vertexToBreakAt, edgeToBreak, geoUtils);
+    if (breakToB == null) {
+      return null;
+    }
 
     /* update the underlying directed edge segments */
     updateBrokenEdgeItsEdgeSegments(aToBreak, breakToB);
 
     /* only movements on breakToB need updating */
     if(getGraph().hasMovements()){
-      var touchedMovements = getGraph().getMovements().stream().filter(
-          m -> m.getCentreVertex().equals(breakToB.getVertexB())).collect(Collectors.toList());
+      var touchedMovements = MovementUtils.findBannedMovementsOnEdge(getGraph().getMovements(), aToBreak);
       updateMovementsItsBrokenSegments(aToBreak, breakToB, touchedMovements);
     }
 
@@ -420,6 +436,9 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
 
     Ex aToBreak = edgeToBreak;
     Ex breakToB = graphModifier.breakEdgeAt(vertexToBreakAt, edgeToBreak, geoUtils);
+    if (breakToB == null) {
+      return null;
+    }
 
     /* update the underlying directed edge segments */
     updateBrokenEdgeItsEdgeSegments(aToBreak, breakToB);
@@ -450,8 +469,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
 
       /* only movements on breakToB need updating */
       if(getGraph().hasMovements()){
-        var touchedMovements = getGraph().getMovements().stream().filter(
-            m -> m.getCentreVertex().equals(breakToB.getVertexB())).collect(Collectors.toList());
+        var touchedMovements = MovementUtils.findBannedMovementsOnEdge(getGraph().getMovements(), aToBreak);
         updateMovementsItsBrokenSegments(aToBreak, breakToB, touchedMovements);
       }
     });
@@ -494,7 +512,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
    */
   @Override
   public void removeSubGraphOf(DirectedVertex referenceVertex) throws PlanItException {
-    graphModifier.removeSubGraphOf(referenceVertex);
+    removeDirectedSubGraph(DirectedGraphUtils.identifySubGraphForVertex(getGraph(), referenceVertex, e -> true));
   }
 
   /**
@@ -503,7 +521,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
   @Override
   public void reset() {
     graphModifier.reset();
-    removeAllListeners();
+    removeAllNonInternalListeners();
   }
 
   /**
@@ -528,9 +546,22 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
   public void addListener(GraphModifierListener listener, GraphModifierEventType eventType) {
     if (listener instanceof DirectedGraphModifierListener) {
       super.addListener(listener, eventType);
-    } else {
-      graphModifier.addListener(listener, eventType);
     }
+    graphModifier.addListener(listener, eventType);
+  }
+
+  /**
+   * Add a listener internal to the owner of this modifier, for the event types it is known to support, on this
+   * modifier and the underlying graph modifier. It receives each of these events before the other listeners do, and
+   * is not removed with them
+   *
+   * @param listener to add
+   */
+  public void addInternalListener(GraphModifierListener listener) {
+    if (listener instanceof DirectedGraphModifierListener) {
+      super.addInternalListener(listener);
+    }
+    graphModifier.addInternalListener(listener);
   }
 
   /**
@@ -540,9 +571,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
   public void removeListener(GraphModifierListener listener, GraphModifierEventType eventType) {
     if (listener instanceof DirectedGraphModifierListener) {
       super.removeListener(listener, eventType);
-    } else {
-      graphModifier.removeListener(listener, eventType);
     }
+    graphModifier.removeListener(listener, eventType);
   }
 
   /**
@@ -552,9 +582,18 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
   public void removeListener(GraphModifierListener listener) {
     if (listener instanceof DirectedGraphModifierListener) {
       super.removeListener(listener);
-    } else {
-      graphModifier.removeListener(listener);
     }
+    graphModifier.removeListener(listener);
+  }
+
+  /**
+   * Remove all listeners, apart from those internal to the owner of this modifier, from this modifier and the
+   * underlying graph modifier
+   */
+  @Override
+  public synchronized void removeAllNonInternalListeners() {
+    super.removeAllNonInternalListeners();
+    graphModifier.removeAllNonInternalListeners();
   }
 
 }

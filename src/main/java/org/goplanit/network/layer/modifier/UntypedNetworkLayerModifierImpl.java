@@ -19,6 +19,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.misc.Pair;
+import org.goplanit.utils.modifier.LoggableModifier;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
 import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.network.layer.physical.Link;
@@ -36,7 +37,7 @@ import org.goplanit.utils.network.layer.physical.Link;
  * @param <S> type of segment
  */
 public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends DirectedEdge, S extends EdgeSegment>
-        implements UntypedDirectedGraphLayerModifier<V, E, S> {
+        implements UntypedDirectedGraphLayerModifier<V, E, S>, LoggableModifier {
 
   // INNER CLASSES
 
@@ -46,6 +47,9 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
 
   /** the graph modifier to use to apply larger modifications */
   protected DirectedGraphModifierImpl graphModifier;
+
+  /** whether what is changed is stated as it happens */
+  private boolean logModifications = LoggableModifier.DEFAULT_LOG_MODIFICATIONS;
 
   /** Access to the underlying graph registered on the modifier
    *
@@ -188,6 +192,14 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
    * {@inheritDoc}
    */
   @Override
+  public void removeEdge(E edge, boolean removeEdgeSegments){
+    graphModifier.removeEdge(edge, removeEdgeSegments);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void removeEdgeSegment(S edgeSegment){
     graphModifier.removeEdgeSegment(edgeSegment);
   }
@@ -236,8 +248,24 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
    * {@inheritDoc}
    */
   @Override
-  public void removeAllListeners() {
-    graphModifier.removeAllListeners();
+  public void removeAllNonInternalListeners() {
+    graphModifier.removeAllNonInternalListeners();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isLogModifications() {
+    return logModifications;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setLogModifications(boolean logModifications) {
+    this.logModifications = logModifications;
   }
 
 }

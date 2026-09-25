@@ -1,6 +1,5 @@
 package org.goplanit.network.layer.physical;
 
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
@@ -8,7 +7,6 @@ import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.ManagedGraphEntities;
 import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.graph.directed.BannedMovements;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.network.layer.physical.*;
@@ -31,31 +29,6 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(UntypedPhysicalLayerImpl.class.getCanonicalName());
-
-  /**
-   * Update the link segments of all movements based on the mapping provided (if any)
-   * @param linkSegmentToLinkSegmentMapping to use should contain original edgeSegment as currently used on movements
-   *                              and then the value is the new edge segment to replace it
-   * @param removeMissingMappings when true if there is no mapping, the type is nullified, otherwise it is left in-tact
-   */
-  private void updateMovementLinkSegments(
-      Function<EdgeSegment, EdgeSegment> linkSegmentToLinkSegmentMapping, boolean removeMissingMappings) {
-
-    for(var movement :  getBannedMovements()){
-      if(movement.getSegmentFrom() != null){
-        var clonedSegment = linkSegmentToLinkSegmentMapping.apply(movement.getSegmentFrom());
-        if(clonedSegment != null || removeMissingMappings){
-          movement.setSegmentFrom(clonedSegment);
-        }
-      }
-      if(movement.getSegmentTo() != null){
-        var clonedSegment = linkSegmentToLinkSegmentMapping.apply(movement.getSegmentTo());
-        if(clonedSegment != null || removeMissingMappings){
-          movement.setSegmentTo(clonedSegment);
-        }
-      }
-    }
-  }
 
   // PUBLIC
 
@@ -102,10 +75,6 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
           GraphEntityDeepCopyMapper<LS> linkSegmentMapper,
           ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
     super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper, movementMapper);
-
-    if(deepCopy) {
-      updateMovementLinkSegments(original -> linkSegmentMapper.getMapping((LS) original), true);
-    }
   }
 
 

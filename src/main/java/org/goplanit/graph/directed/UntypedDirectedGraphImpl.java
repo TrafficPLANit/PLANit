@@ -11,7 +11,6 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.graph.directed.BannedMovements;
 import org.goplanit.utils.graph.directed.BannedMovement;
-import org.goplanit.utils.network.layer.physical.MovementUtils;
 
 /**
  * 
@@ -99,8 +98,7 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
           edgeSegments, edgeMapper::getMapping, true);
       DirectedEdgeUtils.updateDirectedEdgeEdgeSegments(
           edges, edgeSegmentMapper::getMapping, true);
-      MovementUtils.updateMovementSegmentMapping(
-          bannedMovements, edgeSegmentMapper::getMapping, true);
+      bannedMovements.updateSegmentMapping(edgeSegmentMapper::getMapping, true);
     }else{
       this.edgeSegments = directedGraphImpl.getEdgeSegments().shallowClone();
       this.bannedMovements = directedGraphImpl.getMovements().shallowClone();
