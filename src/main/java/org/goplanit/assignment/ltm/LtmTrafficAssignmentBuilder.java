@@ -14,11 +14,11 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.zoning.Zoning;
 
 /**
- * An LTM traffic assignment builder is assumed to only support Link Transmission Model (LTM) traffic assignment instances. It is used to build the traffic assignment instance with
- * the proper configuration settings
+ * An LTM traffic assignment builder is assumed to only support Link Transmission Model (LTM) traffic assignment instances.
+ * It is used to build the traffic assignment instance with the proper configuration settings
  *
  * @author markr
- *
+ * @param <T> type of assignment
  */
 public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> extends TrafficAssignmentBuilder<T> {
 
@@ -29,11 +29,17 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
    * @return fundamental diagram instance
    * @throws PlanItException thrown if error
    */
-  protected FundamentalDiagramComponent createFundamentalDiagramComponentInstance(final MacroscopicNetworkLayer macroscopicNetworkLayer) throws PlanItException {
-    var fundamentalDiagramComponentFactory = new PlanitComponentFactory<FundamentalDiagramComponent>(FundamentalDiagramComponent.class);
-    fundamentalDiagramComponentFactory.addListener(getInputBuilderListener());
-    return fundamentalDiagramComponentFactory.create(getConfigurator().getFundamentalDiagram().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() },
-        new Object[] { macroscopicNetworkLayer });
+  protected FundamentalDiagramComponent createFundamentalDiagramComponentInstance(
+          final MacroscopicNetworkLayer macroscopicNetworkLayer) throws PlanItException {
+    var fdComponentFactory =
+            new PlanitComponentFactory<FundamentalDiagramComponent>(FundamentalDiagramComponent.class);
+    fdComponentFactory.addListener(getInputBuilderListener());
+    FundamentalDiagramComponent fdComponent = fdComponentFactory.createWithoutDispatch(
+            getConfigurator().getFundamentalDiagram().getClassTypeToConfigure().getCanonicalName(),
+            new Object[] { getGroupIdToken() });
+    getConfigurator().getFundamentalDiagram().configure(fdComponent);
+    fdComponentFactory.dispatchComponent(fdComponent, macroscopicNetworkLayer);
+    return fdComponent;
   }
 
   /**
@@ -43,34 +49,39 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
    * @return path choice instance
    * @throws PlanItException thrown if error
    */
-  protected PathChoice createPathChoiceInstance(LtmConfigurator<? extends LtmAssignment> configurator) throws PlanItException {
+  protected PathChoice createPathChoiceInstance(
+          LtmConfigurator<? extends LtmAssignment> configurator) throws PlanItException {
     var pathChoiceFactory = new PlanitComponentFactory<PathChoice>(PathChoice.class);
     pathChoiceFactory.addListener(getInputBuilderListener());
-    return pathChoiceFactory.create(configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
+    return pathChoiceFactory.createAndDispatch(
+        configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 
   /**
-   * In addition to the super class sub components, we also construct the subcomponents specific to dynamic traffic assignment
+   * In addition to the super class subcomponents, we also construct the subcomponents specific to dynamic traffic assignment
    * 
    * @param ltmAssignmentInstance the instance to build on
    */
   protected void buildSubComponents(T ltmAssignmentInstance) throws PlanItException {
-    /* delegate to super class for base sub components */
+    /* delegate to super class for base subcomponents */
     super.buildSubComponents(ltmAssignmentInstance);
 
     /* Fundamental diagram sub component */
     if (getConfigurator().getFundamentalDiagram() != null) {
-      var fundamentalDiagramComponent = createFundamentalDiagramComponentInstance(ltmAssignmentInstance.getUsedNetworkLayer());
-      getConfigurator().getFundamentalDiagram().configure(fundamentalDiagramComponent);
+      var fundamentalDiagramComponent =
+          createFundamentalDiagramComponentInstance(ltmAssignmentInstance.getUsedNetworkLayer());
       ltmAssignmentInstance.setFundamentalDiagram(fundamentalDiagramComponent);
     }
 
     /*
-     * path choice sub component... ...because it has sub components of its own, we must construct a builder for it instead of instantiating it directly here
+     * path choice subcomponent... ...because it has subcomponents of its own, we must construct a builder for it
+     * instead of instantiating it directly here
      */
     if (getConfigurator().getPathChoice() != null) {
-      var pathChoiceBuilder = PathChoiceBuilderFactory.createBuilder(getConfigurator().getPathChoice().getClassTypeToConfigure().getCanonicalName(), getGroupIdToken(),
-          getInputBuilderListener());
+      var pathChoiceBuilder = PathChoiceBuilderFactory.createBuilder(
+              getConfigurator().getPathChoice(), // pass on the configurator so its config gets used in the builder
+              getGroupIdToken(),
+              getInputBuilderListener());
       ltmAssignmentInstance.setPathChoice(pathChoiceBuilder.build());
     }
   }
@@ -84,10 +95,14 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
    * @param demands                the demands
    * @param zoning                 the zoning
    * @param network                the network
-   * @throws PlanItException thrown if there is an exception
    */
-  public LtmTrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands,
-      final Zoning zoning, final LayeredNetwork<?, ?> network) throws PlanItException {
+  public LtmTrafficAssignmentBuilder(
+      final Class<T> trafficAssignmentClass,
+      IdGroupingToken groupId,
+      final InputBuilderListener inputBuilderListener,
+      final Demands demands,
+      final Zoning zoning,
+      final LayeredNetwork<?, ?> network) {
     super(trafficAssignmentClass, groupId, inputBuilderListener, demands, zoning, network);
   }
 

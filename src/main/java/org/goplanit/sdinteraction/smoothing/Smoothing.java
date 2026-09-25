@@ -16,8 +16,44 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
   /** generated UID */
   private static final long serialVersionUID = -3124652824035047922L;
 
-  /** short hand for configuring smoothing with MSA instance */
+  /** shorthand for configuring smoothing with MSA instance */
   public static final String MSA = MSASmoothing.class.getCanonicalName();
+
+  /** shorthand for configuring smoothing with a self-regulating average instance */
+  public static final String MSRA = MSRASmoothing.class.getCanonicalName();
+
+  /** shorthand for configuring smoothing with a fixed step instance */
+  public static final String FIXED_STEP = FixedStepSmoothing.class.getCanonicalName();
+
+  /**
+   * General helper method for those derived implementations that may want to use it
+   *
+   * @param step between 0 and 1
+   * @param previousValue to use
+   * @param proposedValue to use
+   * @return (1- step) * prevValue + step * proposedValue
+   */
+  protected static double smooth(final double step, final double previousValue, final double proposedValue){
+    return (1 - step) * previousValue + step * proposedValue;
+  }
+
+  /**
+   * General helper method for those derived implementations that may want to use it
+   *
+   * @param step between 0 and 1
+   * @param previousValues to use
+   * @param proposedValues to use
+   * @param numberOfValues to apply
+   * @return (1- step) * prevValue[i] + step * proposedValue[i] for all i up to numberOfValues
+   */
+  protected static double[] smooth(
+      final double step, final double[] previousValues, final double[] proposedValues, final int numberOfValues) {
+    final double[] smoothedValues = new double[numberOfValues];
+    for (int i = 0; i < numberOfValues; ++i) {
+      smoothedValues[i] = smooth(step, previousValues[i],proposedValues[i]);
+    }
+    return smoothedValues;
+  }
 
   /**
    * Base constructor
@@ -38,12 +74,22 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
     super(other, deepCopy);
   }
 
+
   /**
-   * Determine the stepsize for the passed in iteraction
-   *
-   * @param iterationIndex index of current iteration
+   * Perform updating of step size based on smoothing implementation at hand (Assuming all required information has been
+   * set beforehand)
    */
-  public abstract void updateStep(int iterationIndex);
+  public abstract void updateStepSize();
+
+  /**
+   * Apply smoothing based on the proposed value, current step size, and assumed previous value of zero
+   *
+   * @param proposedValue proposed value
+   * @return smoothedValue smoothed value
+   */
+  public double executeRefZero(double proposedValue){
+    return execute(0, proposedValue);
+  }
 
   /**
    * Apply smoothing based on the current step size

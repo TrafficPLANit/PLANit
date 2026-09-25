@@ -33,10 +33,12 @@ public class TrainMode extends PredefinedModeImpl {
   public static final double DEFAULT_PCU = 10;
 
   /* default physical features of train (VEHICLE, MOTORISED, RAIL) */
-  public static final PhysicalModeFeatures TRAIN_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.RAIL);
+  public static final PhysicalModeFeatures TRAIN_PHYSICAL_FEATURES =
+      new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.RAIL);
 
   /* default usability features of train (PUBLIC) */
-  public static final UsabilityModeFeatures TRAIN_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
+  public static final UsabilityModeFeatures TRAIN_USABLITY_FEATURES =
+      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
 
   /**
    * Constructor for train mode
@@ -44,7 +46,8 @@ public class TrainMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected TrainMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.TRAIN, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, TRAIN_PHYSICAL_FEATURES, TRAIN_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.TRAIN, DEFAULT_MAX_SPEED_KMH,
+        DEFAULT_PCU, TRAIN_PHYSICAL_FEATURES, TRAIN_USABLITY_FEATURES);
   }
 
   /**

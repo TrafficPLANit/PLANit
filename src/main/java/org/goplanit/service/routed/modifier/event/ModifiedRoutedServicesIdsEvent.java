@@ -12,10 +12,12 @@ import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierEventTyp
  * @author markr
  *
  */
-public class ModifiedRoutedServicesIdsEvent extends ModifiedRoutedServicesLayerEventImpl implements RoutedServicesModificationEvent {
+public class ModifiedRoutedServicesIdsEvent extends ModifiedRoutedServicesLayerEventImpl
+    implements RoutedServicesModificationEvent {
 
   /** event type fired off when zone ids have been modified */
-  public static final RoutedServicesModifierEventType EVENT_TYPE = new RoutedServicesModifierEventType("ROUTEDSERVICESEVENT.MODIFIED_ROUTED_SERVICES_IDS");
+  public static final RoutedServicesModifierEventType EVENT_TYPE =
+      new RoutedServicesModifierEventType("ROUTEDSERVICESEVENT.MODIFIED_ROUTED_SERVICES_IDS");
 
   /**
    * Wrapper for a modified routed trips ids event indicating that one or more managed internal ids of the routed services layer have been changed

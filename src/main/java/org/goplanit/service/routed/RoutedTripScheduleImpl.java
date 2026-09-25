@@ -11,6 +11,8 @@ import org.goplanit.utils.service.routed.RelativeLegTiming;
 import org.goplanit.utils.service.routed.RoutedTripDepartures;
 import org.goplanit.utils.service.routed.RoutedTripSchedule;
 
+import javax.annotation.Nonnull;
+
 /**
  * Implementation of a RoutedTripSchedule interface.
  * 
@@ -21,7 +23,8 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
   /** departures of this schedule */
   private final RoutedTripDepartures departures;
 
-  /** track the relative timings of the legs, which, in combination with the departures, can be used to construct a full schedule */
+  /** track the relative timings of the legs, which, in combination with the departures, can be used to construct
+   * a full schedule */
   private final List<RelativeLegTiming> relativeLegTimings;
 
   /** default dwell time, only used to reduce size of persisted XMLs, so only present on implementation */
@@ -119,7 +122,8 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
    * {@inheritDoc}
    */
   @Override
-  public RelativeLegTiming addRelativeLegSegmentTiming(ServiceLegSegment parentLegSegment, LocalTime duration, LocalTime dwellTime) {
+  public RelativeLegTiming addRelativeLegSegmentTiming(
+      ServiceLegSegment parentLegSegment, LocalTime duration, LocalTime dwellTime) {
     var newEntry = new RelativeLegTimingImpl(parentLegSegment, duration, dwellTime);
     relativeLegTimings.add(newEntry);
     return newEntry;
@@ -171,7 +175,7 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
     }
 
     /* found value */
-    var mostFrequent = frequency.entrySet().stream().max(Comparator.comparing(Map.Entry::getValue)).get().getKey();
+    var mostFrequent = frequency.entrySet().stream().max(Map.Entry.comparingByValue()).get().getKey();
 
     /* update default */
     setDefaultDwellTime(mostFrequent);
@@ -200,6 +204,7 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
    * @return iterator of relative leg timings
    */
   @Override
+  @Nonnull
   public Iterator<RelativeLegTiming> iterator() {
     return this.relativeLegTimings.iterator();
   }
@@ -217,7 +222,8 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
       return usedServiceNodes;
     }
 
-    usedServiceNodes.add(getRelativeLegTiming(getRelativeLegTimingsSize()-1).getParentLegSegment().getDownstreamServiceNode());
+    usedServiceNodes.add(getRelativeLegTiming(
+        getRelativeLegTimingsSize()-1).getParentLegSegment().getDownstreamServiceNode());
     return usedServiceNodes;
   }
 }

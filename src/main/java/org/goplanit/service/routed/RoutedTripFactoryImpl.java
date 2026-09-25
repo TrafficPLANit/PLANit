@@ -13,7 +13,8 @@ import org.goplanit.utils.service.routed.RoutedTrips;
  * 
  * @author markr
  */
-public abstract class RoutedTripFactoryImpl<T extends RoutedTrip> extends ManagedIdEntityFactoryImpl<T> implements RoutedTripFactory<T> {
+public abstract class RoutedTripFactoryImpl<T extends RoutedTrip> extends ManagedIdEntityFactoryImpl<T>
+    implements RoutedTripFactory<T> {
 
   /** container to use */
   protected final RoutedTrips<T> routedTrips;

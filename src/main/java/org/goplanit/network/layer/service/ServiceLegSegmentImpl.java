@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * @author markr
  *
  */
-public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implements ServiceLegSegment {
+public class ServiceLegSegmentImpl extends EdgeSegmentImpl implements ServiceLegSegment {
 
   /**
    * generated UID
@@ -55,7 +55,11 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
    * @param directionAB direction of travel
    * @param networkLayerLinkSegments to use
    */
-  protected ServiceLegSegmentImpl(final IdGroupingToken tokenId, final ServiceLeg parentLeg, final boolean directionAB, final List<LinkSegment> networkLayerLinkSegments) {
+  protected ServiceLegSegmentImpl(
+      final IdGroupingToken tokenId,
+      final ServiceLeg parentLeg,
+      final boolean directionAB,
+      final List<LinkSegment> networkLayerLinkSegments) {
     super(tokenId, parentLeg, directionAB);
     this.networkLayerLinkSegments = networkLayerLinkSegments;
   }
@@ -76,7 +80,7 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
    */
   @Override
   public ServiceLeg getParent() {
-    return super.getParent();
+    return (ServiceLeg) super.getParent();
   }
 
   /**
@@ -91,7 +95,7 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
     List<LineString> geometriesInDirectionOfTravel = new ArrayList<>();
     int numCoordinates = 0;
     for(var physicalSegment : getPhysicalParentSegments()){
-      var segmentGeometry = physicalSegment.getParentLink().getGeometry();
+      var segmentGeometry = physicalSegment.getParent().getGeometry();
       if(!physicalSegment.isDirectionAb()){
         segmentGeometry = segmentGeometry.reverse();
       }

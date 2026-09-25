@@ -1,12 +1,14 @@
 package org.goplanit.demands;
 
-import org.goplanit.demands.modifier.event.handler.SyncXmlIdToIdDemandsEntitiesHandler;
-import org.goplanit.graph.directed.modifier.event.handler.SyncXmlIdToIdDirectedGraphEntitiesHandler;
+import org.goplanit.demands.event.SyncXmlIdToIdDemandsEntitiesHandler;
 
 /**
- * Utilities to make it easier to use zoning modifier features combined with listeners to create complex funcionality
+ * Utilities to make it easier to use zoning modifier features combined with listeners to create complex functionality
  */
 public class DemandsModifierUtils {
+
+  /** Dummy constructor */
+  private DemandsModifierUtils(){}
 
   /**
    * Convenience method to sync XMLids to Ids by making use of demands modifier and Event listeners.

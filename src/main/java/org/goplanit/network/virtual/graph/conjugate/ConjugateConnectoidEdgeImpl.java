@@ -1,0 +1,74 @@
+package org.goplanit.network.virtual.graph.conjugate;
+
+import java.util.logging.Logger;
+
+import org.goplanit.graph.directed.ConjugateDirectedEdgeImpl;
+import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.graph.conjugate.ConjugateConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
+import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegment;
+
+/**
+ * Conjugate (non-directional) connectoid edge class connecting two conjugate nodes. This conjugate only partly exists in the original network to be able to comprise the initial
+ * turn entering the network (at origin) or the last turn leaving the network (at destination).
+ * <p>
+ * Since a conjugate edge is in fact a turn it may be that the node is a connectoid edge and its conjugate is not a conjugate node but a conjugate connectoid node. Therefore we use
+ * conjugate directed vertices rather than require a conjugate node as the base class
+ *
+ * @author markr
+ *
+ */
+public class ConjugateConnectoidEdgeImpl
+    extends ConjugateDirectedEdgeImpl<ConjugateConnectoidNode, ConjugateConnectoidSegment>
+    implements ConjugateConnectoidDirectedEdge {
+
+  // Protected
+
+  /** the logger */
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = Logger.getLogger(ConjugateConnectoidEdgeImpl.class.getCanonicalName());
+
+
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected ConjugateConnectoidEdgeImpl(ConjugateConnectoidEdgeImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param groupId,               contiguous id generation within this group for instances of this class
+   * @param nodeA                  the first vertex of the edge
+   * @param nodeB                  the second vertex of the edge
+   * @param original of the conjugate
+   */
+  protected ConjugateConnectoidEdgeImpl(
+      final IdGroupingToken groupId, final ConjugateConnectoidNode nodeA, final ConjugateConnectoidNode nodeB,
+      final ConnectoidSegment original) {
+    super(groupId, nodeA, nodeB, original, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateConnectoidEdgeImpl shallowClone() {
+    return new ConjugateConnectoidEdgeImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateConnectoidEdgeImpl deepClone() {
+    return new ConjugateConnectoidEdgeImpl(this, true);
+  }
+
+}

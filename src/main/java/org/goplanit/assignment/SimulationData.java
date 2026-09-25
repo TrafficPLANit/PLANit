@@ -1,5 +1,7 @@
 package org.goplanit.assignment;
 
+import org.goplanit.utils.time.RunTimesTracker;
+
 /**
  * General simulation data that only are available during simulation
  * 
@@ -12,20 +14,31 @@ public class SimulationData {
   private int iterationIndex;
 
   /**
+   * Provide support to track run times
+   */
+  private RunTimesTracker runTimesTracker = RunTimesTracker.create();
+
+  /**
    * Constructor
    */
   public SimulationData() {
-    reset();
+    this.reset();
   }
 
   /**
    * Copy constructor
    * 
    * @param simulationData to copy
+   * @param deepCopy flag
    */
-  protected SimulationData(final SimulationData simulationData) {
+  protected SimulationData(final SimulationData simulationData, boolean deepCopy) {
     super();
     this.iterationIndex = simulationData.iterationIndex;
+    if(!deepCopy) {
+      this.runTimesTracker = simulationData.runTimesTracker.shallowClone();
+    }else{
+      this.runTimesTracker = simulationData.runTimesTracker.deepClone();
+    }
   }
 
   /**
@@ -56,10 +69,30 @@ public class SimulationData {
   }
 
   /**
-   * {@inheritDoc}
+   * Access to run times tracker
+   *
+   * @return tracker
+   */
+  public RunTimesTracker getRunTimesTracker(){
+    return runTimesTracker;
+  }
+
+  /**
+   * perform shallow clone
+   *
+   * @return copy
    */
   public SimulationData shallowClone() {
-    return new SimulationData(this);
+    return new SimulationData(this, false);
+  }
+
+  /**
+   * perform deep clone
+   *
+   * @return copy
+   */
+  public SimulationData deepClone() {
+    return new SimulationData(this, true);
   }
 
   /**
@@ -67,6 +100,16 @@ public class SimulationData {
    */
   public void reset() {
     this.iterationIndex = 0;
+    runTimesTracker.reset();
   }
 
+  /**
+   * Verify if we're in the first iteration (not considering initial solution), so we're checking against the iteration
+   * index being 1.
+   *
+   * @return true when iteration==1, false otherwise
+   */
+  public boolean isFirstIteration() {
+    return iterationIndex == 1;
+  }
 }

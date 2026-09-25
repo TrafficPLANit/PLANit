@@ -50,11 +50,11 @@ public class MultiKeyPlanItDataIteratorImpl implements MultiKeyPlanItDataIterato
       final MultiKeyMap<Object, Object[]> multiKeyMap) {
     this.isSingleKey = isSingleKey;
     if (isSingleKey) {
-      singleKeyMapIterator = (MapIterator<Object, Object[]>) singleKeyMap.mapIterator();
+      singleKeyMapIterator = singleKeyMap.mapIterator();
       multiKeyMapIterator = null;
     } else {
       singleKeyMapIterator = null;
-      multiKeyMapIterator = (MapIterator<MultiKey<? extends Object>, Object[]>) multiKeyMap.mapIterator();
+      multiKeyMapIterator = multiKeyMap.mapIterator();
     }
   }
 

@@ -14,6 +14,9 @@ import org.goplanit.utils.misc.Pair;
  */
 public abstract class ShortestResultGeneralised implements ShortestResult{
 
+  /** start vertex used for the underlying search that was carried out */
+  protected final DirectedVertex rootSearchVertex;
+
   /**
    * the costs found by a shortest path run
    */
@@ -26,13 +29,15 @@ public abstract class ShortestResultGeneralised implements ShortestResult{
   protected Function<EdgeSegment, DirectedVertex> getVertexAtExtreme;
   
   /**
-   * Determine the start and end vertex to use for constructing the path depending on the search type used in the preceding shortest path search
+   * Determine the start and end vertex to use for constructing the path depending on the search type used in the
+   * preceding shortest path search
    * 
    * @param origin      of to be constructed path
    * @param destination of to be constructed path
    * @return order in which origin and destination are to be encountered when traversing search results
    */
-  protected Pair<DirectedVertex, DirectedVertex> getStartEndVertexForResultTraversal(DirectedVertex origin, DirectedVertex destination) {
+  protected Pair<DirectedVertex, DirectedVertex> getStartEndVertexForResultTraversal(
+      DirectedVertex origin, DirectedVertex destination) {
     if (isInverted()) {
       return Pair.of(origin, destination);
     } else {
@@ -43,17 +48,19 @@ public abstract class ShortestResultGeneralised implements ShortestResult{
   
   /**
    * Constructor only to be used by shortest X algorithms
-   * 
+   *
+   * @param rootSearchVertex             that was used for the search
    * @param vertexMeasuredCost      measured costs to get to the vertex (by id)
    * @param searchType              used (one-to-all, all-to-one, etc)
    */
-  protected ShortestResultGeneralised(double[] vertexMeasuredCost, ShortestSearchType searchType) {
+  protected ShortestResultGeneralised(
+      DirectedVertex rootSearchVertex, double[] vertexMeasuredCost, ShortestSearchType searchType) {
+    this.rootSearchVertex =  rootSearchVertex;
     this.vertexMeasuredCost = vertexMeasuredCost;
     this.searchType = searchType;
 
     /* search direction for creating paths in opposite direction as compared to shortest path search itself */
     this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(searchType, true /* invert */ );
-    
   }
   
   /**
@@ -70,5 +77,13 @@ public abstract class ShortestResultGeneralised implements ShortestResult{
   @Override
   public ShortestSearchType getSearchType() {
     return searchType;
-  }  
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedVertex getRootSearchVertex() {
+    return null;
+  }
 }

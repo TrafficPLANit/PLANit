@@ -4,11 +4,13 @@ import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.loading.InflowOutflowData;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingFactorData;
-import org.goplanit.assignment.ltm.sltm.loading.SendingFlowData;
+import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSendingFlowData;
+import org.goplanit.assignment.ltm.sltm.loading.UnconstrainedFlowData;
 
 /**
- * Base class to aid updating of the network link flows during loading. Derived classes can apply a path or bush based approach to this update for example. This class stores the
- * current network state information required to perform the update regardless of the chosen assignment strategy (bush, path).
+ * Base class to aid updating of the network link flows during loading. Derived classes can apply a path or bush based
+ * approach to this update for example. This class stores the current network state information required to perform
+ * the update regardless of the chosen assignment strategy (bush, path).
  * <p>
  * Sending flows are allowed to be null as in certain derived classes they might not be required
  * 
@@ -32,33 +34,114 @@ public class NetworkFlowUpdateData {
   protected final double[] sendingFlows;
 
   /**
+   * The unconstrained flows (without considering any capacity restrictions)
+   * to update if flagged as such
+   */
+  protected final double[] unconstrainedFlows;
+
+  /**
    * The outflows to update if flagged as such
    */
   protected final double[] outFlows;
 
   /**
-   * Constructor to update sending flows during flow update
+   * The inflows to update if flagged as such
+   */
+  protected final double[] inFlows;
+
+  /**
+   * Constructor to update ALL flows, inflows, , sending flows, outflows and unconstrained flows
+   * during flow update
+   *
+   * @param networkLoadingSendingFlowData          to use
+   * @param flowAcceptanceFactors to use
+   * @param inflows to use
+   * @param outflows to use
+   * @param unconstrainedFlowData to use
+   */
+  public NetworkFlowUpdateData(
+      final NetworkLoadingSendingFlowData networkLoadingSendingFlowData,
+      final double[] flowAcceptanceFactors,
+      final double[] inflows,
+      final double[] outflows,
+      final UnconstrainedFlowData unconstrainedFlowData) {
+    this.flowAcceptanceFactors = flowAcceptanceFactors;
+    this.sendingFlows = networkLoadingSendingFlowData.getCurrentSendingFlows();
+    this.outFlows = outflows;
+    this.inFlows = inflows;
+    this.unconstrainedFlows = unconstrainedFlowData.getUnconstrainedFlows();
+  }
+
+  /**
+   * Constructor to update sending flows, outflows and unconstrained flows during flow update
+   *
+   * @param networkLoadingSendingFlowData          to use
+   * @param inflowOutflowData        to use
+   * @param networkLoadingFactorData to use
+   * @param unconstrainedFlowData to use
+   */
+  public NetworkFlowUpdateData(
+          final NetworkLoadingSendingFlowData networkLoadingSendingFlowData,
+          final InflowOutflowData inflowOutflowData,
+          NetworkLoadingFactorData networkLoadingFactorData,
+          final UnconstrainedFlowData unconstrainedFlowData) {
+    this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
+    this.sendingFlows = networkLoadingSendingFlowData.getCurrentSendingFlows();
+    this.outFlows = inflowOutflowData.getOutflows();
+    this.inFlows = null;
+    this.unconstrainedFlows = unconstrainedFlowData.getUnconstrainedFlows();
+  }
+
+  /**
+   * Constructor to update sending flows and outflows during flow update
    * 
-   * @param sendingFlowData          to use
+   * @param networkLoadingSendingFlowData          to use
    * @param inflowOutflowdata        to use
    * @param networkLoadingFactorData to use
    */
-  public NetworkFlowUpdateData(final SendingFlowData sendingFlowData, final InflowOutflowData inflowOutflowdata, NetworkLoadingFactorData networkLoadingFactorData) {
+  public NetworkFlowUpdateData(
+          final NetworkLoadingSendingFlowData networkLoadingSendingFlowData,
+          final InflowOutflowData inflowOutflowdata,
+          NetworkLoadingFactorData networkLoadingFactorData) {
     this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
-    this.sendingFlows = sendingFlowData.getCurrentSendingFlows();
+    this.sendingFlows = networkLoadingSendingFlowData.getCurrentSendingFlows();
     this.outFlows = inflowOutflowdata.getOutflows();
+    this.inFlows = null;
+    this.unconstrainedFlows = null;
+  }
+
+  /**
+   * Constructor to update sending flows and unconstrained flows during flow update
+   * 
+   * @param networkLoadingSendingFlowData          to use
+   * @param networkLoadingFactorData to use
+   * @param unconstrainedFlowData    to use
+   */
+  public NetworkFlowUpdateData(
+          final NetworkLoadingSendingFlowData networkLoadingSendingFlowData,
+          NetworkLoadingFactorData networkLoadingFactorData,
+          final UnconstrainedFlowData unconstrainedFlowData) {
+    this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
+    this.sendingFlows = networkLoadingSendingFlowData.getCurrentSendingFlows();
+    this.outFlows = null;
+    this.inFlows = null;
+    this.unconstrainedFlows = unconstrainedFlowData.getUnconstrainedFlows();
   }
 
   /**
    * Constructor to update sending flows during flow update
-   * 
-   * @param sendingFlowData          to use
+   *
+   * @param networkLoadingSendingFlowData          to use
    * @param networkLoadingFactorData to use
    */
-  public NetworkFlowUpdateData(final SendingFlowData sendingFlowData, NetworkLoadingFactorData networkLoadingFactorData) {
+  public NetworkFlowUpdateData(
+          final NetworkLoadingSendingFlowData networkLoadingSendingFlowData,
+          NetworkLoadingFactorData networkLoadingFactorData) {
     this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
-    this.sendingFlows = sendingFlowData.getCurrentSendingFlows();
+    this.sendingFlows = networkLoadingSendingFlowData.getCurrentSendingFlows();
     this.outFlows = null;
+    this.inFlows = null;
+    this.unconstrainedFlows = null;
   }
 
   /**
@@ -70,13 +153,43 @@ public class NetworkFlowUpdateData {
     this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
     this.sendingFlows = null;
     this.outFlows = null;
+    this.inFlows = null;
+    this.unconstrainedFlows = null;
   }
 
-  public boolean isSendingflowsUpdate() {
+  public boolean isSendingFlowsUpdate() {
     return sendingFlows != null;
   }
 
   public boolean isOutflowsUpdate() {
     return outFlows != null;
+  }
+
+  public boolean isInflowsUpdate() {
+    return inFlows != null;
+  }
+
+  public boolean isUnconstrainedFlowsUpdate() {
+    return unconstrainedFlows != null;
+  }
+
+  public double[] getFlowAcceptanceFactors() {
+    return flowAcceptanceFactors;
+  }
+
+  public double[] getSendingFlows() {
+    return sendingFlows;
+  }
+
+  public double[] getUnconstrainedFlows() {
+    return unconstrainedFlows;
+  }
+
+  public double[] getOutFlows() {
+    return outFlows;
+  }
+
+  public double[] getInFlows() {
+    return inFlows;
   }
 }

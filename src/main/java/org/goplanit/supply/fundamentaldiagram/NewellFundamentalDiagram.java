@@ -10,21 +10,6 @@ import org.goplanit.utils.macroscopic.MacroscopicConstants;
 public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
 
   //@formatter:off
-  /**
-   * Compute the backward wave speed that goes with a given capacity keeping all other variables the same
-   * 
-   * @param capacityPcuHour to compute backward wave speed for ceteris paribus
-   * @return proposed backward wave speed
-   */
-  protected double computeBackwardWaveSpeedForCapacity(double capacityPcuHour) {
-    /*
-     * capacity = (k_crit-k_jam)*backwardwavespeed 
-     * backwardwavespeed = (k_crit-k_jam)/capacity
-     */
-    double newCriticalDensity = getFreeFlowBranch().getDensityPcuKm(capacityPcuHour);
-    double jamDensity = getCongestedBranch().getDensityPcuKm(0);
-    return capacityPcuHour/(newCriticalDensity - jamDensity);
-  }
 
   /**
    * Constructor using all defaults except for the free speed to apply
@@ -64,7 +49,8 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
    * @param freeFlowBranch to use
    * @param congestedBranch to use
    */
-  public NewellFundamentalDiagram(final LinearFundamentalDiagramBranch freeFlowBranch, final LinearFundamentalDiagramBranch congestedBranch) {
+  public NewellFundamentalDiagram(
+      final LinearFundamentalDiagramBranch freeFlowBranch, final LinearFundamentalDiagramBranch congestedBranch) {
     super(freeFlowBranch, congestedBranch);
   }
 
@@ -99,20 +85,8 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
    */
   @Override
   public double getCapacityFlowPcuHour() {
-    /* capacity = (k_crit-0)*maxspeed
-     * capacity = (k_crit-k_jam)*backwardwavespeed
-     * so:
-     * (k_crit-0)*maxspeed = (k_crit-k_jam)*backwardwavespeed
-     * k_crit(maxspeed -backwardwavespeed) = -k_jam *backwardwavespeed
-     * k_crit = -(k_jam *backwardwavespeed)/(maxspeed -backwardwavespeed)
-     * capacity = k_crit * maxspeed  
-     */
-    double maxSpeed = getMaximumSpeedKmHour();
-    double backwardWaveSpeed = getCongestedBranch().getCharateristicWaveSpeedKmHour();
-    double kCrit = -((getMaximumDensityPcuKm()*backwardWaveSpeed)
-                    / 
-                    (maxSpeed - backwardWaveSpeed));
-    return kCrit * maxSpeed;
+    return FundamentalDiagramUtils.computeCapacityPcuHLaneFrom(
+            getMaximumSpeedKmHour(), getCongestedBranch().getCharacteristicWaveSpeedKmHour(), getMaximumDensityPcuKm());
   }
 
   /**
@@ -132,9 +106,9 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
   }
 
   /**
-   * For the Newell FD this means that all remains the same except for the congested wave speed to ensure the FD remains viable since
-   * the capacity is derived and not explicitly set. By chaning the backward wave speed to the adjusted value we ensure we obtain the
-   * desired capacity
+   * For the Newell FD this means that all remains the same except for the congested wave speed to ensure the
+   * FD remains viable since the capacity is derived and not explicitly set. By changing the backward
+   * wave speed to the adjusted value we ensure we obtain the desired capacity
    */   
   @Override
   public void setCapacityPcuHour(double capacityPcuHour) {

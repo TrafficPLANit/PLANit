@@ -1,6 +1,7 @@
 package org.goplanit.cost.virtual;
 
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 
 /**
  * factory for the virtual cost types supported directory by PLANit
@@ -15,16 +16,19 @@ public class VirtualCostConfiguratorFactory {
    * 
    * @param virtualCostType   type of assignment the builder is created for
    * @return the created configurator
-   * @throws PlanItException thrown if error
    */
-  public static VirtualCostConfigurator<? extends AbstractVirtualCost> createConfigurator(final String virtualCostType) throws PlanItException {
+  public static VirtualCostConfigurator<? extends AbstractVirtualCost> createConfigurator(
+          final String virtualCostType){
 
     if (virtualCostType.equals(VirtualCost.FIXED)) {
       return new FixedVirtualCostConfigurator();
     }else if(virtualCostType.equals(VirtualCost.SPEED)) {
       return new SpeedVirtualCostConfigurator();
+    }else if(virtualCostType.equals(VirtualCost.STEADY_STATE)) {
+      return new SteadyStateVirtualCostConfigurator();
     }else {
-      throw new PlanItException(String.format("unable to construct configurator for given virtualCostType %s", virtualCostType));
+      throw new PlanItRunTimeException(
+              String.format("unable to construct configurator for given virtualCostType %s", virtualCostType));
     }
   }
 }

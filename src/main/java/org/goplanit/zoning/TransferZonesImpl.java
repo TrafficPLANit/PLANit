@@ -3,6 +3,7 @@ package org.goplanit.zoning;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.*;
+import org.goplanit.zoning.connectoid.TransferZoneFactoryImpl;
 
 import java.util.function.BiConsumer;
 

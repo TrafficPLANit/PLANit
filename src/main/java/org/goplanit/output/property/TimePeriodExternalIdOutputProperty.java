@@ -7,9 +7,18 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.unit.Unit;
 
+/**
+ * Output property for Time Period External Id.
+ */
 public final class TimePeriodExternalIdOutputProperty extends OutputProperty {
 
+
+  /** Time Period External Id. */
   public static final String NAME = "Time Period External Id";
+  /**
+   * Public no-arg constructor required for reflective instantiation.
+   */
+  public TimePeriodExternalIdOutputProperty(){}
 
   /**
    * {@inheritDoc}
@@ -27,6 +36,9 @@ public final class TimePeriodExternalIdOutputProperty extends OutputProperty {
     return Unit.NONE;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public DataType getDataType() {
     return DataType.STRING;

@@ -18,7 +18,7 @@ import org.goplanit.utils.mode.VehicularModeType;
  * <li>vehicular type: NO_VEHICLE</li>
  * <li>motorisation: NON_MOTORISED</li>
  * <li>track: ROAD</li>
- * <li>use: PRIVATE</li>
+ * <li>use: ACTIVE</li>
  * </ul>
  * 
  * @author markr
@@ -33,11 +33,13 @@ public class PedestrianMode extends PredefinedModeImpl {
   public static final double DEFAULT_PCU = 0.1;
 
   /* default physical features of pedestrian (NO_VEHICLE, NON_MOTORISED, ROAD) */
-  public static final PhysicalModeFeatures PEDESTRIAN_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.NO_VEHICLE, MotorisationModeType.NON_MOTORISED,
+  public static final PhysicalModeFeatures PEDESTRIAN_PHYSICAL_FEATURES =
+      new PhysicalModeFeaturesImpl(VehicularModeType.NO_VEHICLE, MotorisationModeType.NON_MOTORISED,
       TrackModeType.ROAD);
 
-  /* default usability features of pedestrian (PRIVATE) */
-  public static final UsabilityModeFeatures PEDESTRIAN_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);
+  /* default usability features of pedestrian (ACTIVE) */
+  public static final UsabilityModeFeatures PEDESTRIAN_USABLITY_FEATURES =
+      new UsabilityModeFeaturesImpl(UseOfModeType.ACTIVE);
 
   /**
    * Constructor for pedestrian mode
@@ -45,7 +47,8 @@ public class PedestrianMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected PedestrianMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.PEDESTRIAN, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, PEDESTRIAN_PHYSICAL_FEATURES, PEDESTRIAN_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.PEDESTRIAN, DEFAULT_MAX_SPEED_KMH,
+        DEFAULT_PCU, PEDESTRIAN_PHYSICAL_FEATURES, PEDESTRIAN_USABLITY_FEATURES);
   }
 
   /**
