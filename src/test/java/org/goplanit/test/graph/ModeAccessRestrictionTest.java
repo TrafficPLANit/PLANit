@@ -1,23 +1,24 @@
 package org.goplanit.test.graph;
 
+import org.goplanit.test.LayerTestBase;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerUtils;
+import org.goplanit.network.layer.macroscopic.ModeAccessRestrictionResult;
 import org.goplanit.utils.graph.directed.Connectivity;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.goplanit.utils.network.layer.modifier.ModeAccessCleanupModifierResult;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,11 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * @author markr
  */
-public class ModeAccessRestrictionTest {
+public class ModeAccessRestrictionTest extends LayerTestBase {
 
   private MacroscopicNetwork network;
-  private MacroscopicNetworkLayer layer;
-  private List<Node> nodes;
 
   private Mode car;
   private Mode bus;
@@ -49,7 +48,6 @@ public class ModeAccessRestrictionTest {
 
   @BeforeEach
   public void setUp() {
-    IdGenerator.reset();
     network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
     car = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
     bus = network.getModes().getFactory().registerNew(PredefinedModeType.BUS);
@@ -79,45 +77,20 @@ public class ModeAccessRestrictionTest {
     busAndWalk = layer.getLinkSegmentTypes().getFactory().registerNew("busAndWalk", 1800, 180);
     AccessGroupPropertiesFactory.createOnLinkSegmentType(busAndWalk, 50, List.of(bus));
     AccessGroupPropertiesFactory.createOnLinkSegmentType(busAndWalk, 5, List.of(pedestrian));
-
-    nodes = new ArrayList<>();
-  }
-
-  @AfterEach
-  public void tearDown() {
-    IdGenerator.reset();
-  }
-
-  private void createNodes(int count) {
-    for (int i = 0; i < count; ++i) {
-      nodes.add(layer.getNodes().getFactory().registerNew());
-    }
-  }
-
-  /** create a link with a segment in each direction, each with its own type */
-  private MacroscopicLink link(int a, int b, MacroscopicLinkSegmentType typeAb, MacroscopicLinkSegmentType typeBa) {
-    var theLink = layer.getLinks().getFactory().registerNew(nodes.get(a), nodes.get(b), 1, true);
-    if (typeAb != null) {
-      layer.getLinkSegments().getFactory().registerNew(theLink, true, true).setLinkSegmentType(typeAb);
-    }
-    if (typeBa != null) {
-      layer.getLinkSegments().getFactory().registerNew(theLink, false, true).setLinkSegmentType(typeBa);
-    }
-    return theLink;
   }
 
   /** the safest configuration, a single subnetwork the mode can route across in full */
-  private MacroscopicNetworkLayerUtils.Result restrict(Mode mode) {
+  private ModeAccessRestrictionResult restrict(Mode mode) {
     return MacroscopicNetworkLayerUtils.restrictModeAccessToConnectedSubNetworks(
         layer, mode, Integer.MAX_VALUE, Integer.MAX_VALUE, true, Connectivity.STRONG, null);
   }
 
   /** run every mode then clean up, i.e. what a caller does */
-  private MacroscopicNetworkLayerUtils.CleanupResult restrictAllAndCleanUp() {
+  private ModeAccessCleanupModifierResult restrictAllAndCleanUp() {
     for (var mode : List.of(car, bus, pedestrian)) {
       restrict(mode);
     }
-    return MacroscopicNetworkLayerUtils.removeInfrastructureWithoutModeAccess(layer);
+    return layer.getLayerModifier().removeInfrastructureWithoutModeAccess();
   }
 
   /**
@@ -188,6 +161,27 @@ public class ModeAccessRestrictionTest {
     assertEquals(2, layer.getLinkSegments().size());
     assertEquals(2, layer.getNodes().size());
     assertNull(layer.getLinks().get(stub.getId()));
+  }
+
+  /**
+   * An intersection whose only approach nothing can use any more controls no traffic once that approach goes, so the
+   * final pass removes it too, while its node stays for the road still using it.
+   */
+  @Test
+  public void intersectionLeftWithoutApproachesIsRemovedByTheFinalPass() {
+    createNodes(3);
+    link(0, 1, roadWithFootway, roadWithFootway);
+    link(2, 1, carOnly, null);   // car only, one way, so cars can leave node 2 but never reach it
+    var junction = layer.getIntersections().getFactory().create(
+        nodes.get(1), IntersectionControlType.SIGNALISED, IntersectionType.JUNCTION);
+    junction.addApproachSegment(segment(2, 1));
+    layer.getIntersections().getFactory().register(junction);
+
+    var cleanup = restrictAllAndCleanUp();
+
+    assertEquals(1, cleanup.getRemovedIntersections(), "its only approach went, it controls no traffic");
+    assertTrue(layer.getIntersections().isEmpty());
+    assertNotNull(layer.getNodes().get(nodes.get(1).getId()), "its node stays for the road still using it");
   }
 
   /**

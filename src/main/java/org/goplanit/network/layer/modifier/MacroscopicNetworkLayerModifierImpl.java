@@ -1,6 +1,7 @@
 package org.goplanit.network.layer.modifier;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierEventType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierListener;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
+import org.goplanit.utils.network.layer.modifier.ModeAccessCleanupModifierResult;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
@@ -166,12 +168,72 @@ public class MacroscopicNetworkLayerModifierImpl
    * {@inheritDoc}
    */
   @Override
-  public int removeIntersectionsWithoutMemberNodes() {
-    var withoutMemberNodes = intersections.stream()
-        .filter(intersection -> intersection.getMemberNodes().isEmpty()).collect(Collectors.toList());
-    var removed = removeIntersections(withoutMemberNodes);
+  public int removeIncompleteIntersections(boolean withoutMemberNodes, boolean withoutApproaches) {
+    var incomplete = intersections.stream().filter(intersection ->
+        (withoutMemberNodes && intersection.getMemberNodes().isEmpty()) ||
+            (withoutApproaches && intersection.getApproachSegments().isEmpty())).collect(Collectors.toList());
+    var removed = removeIntersections(incomplete);
     intersections.reindex();
     return removed;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ModeAccessCleanupModifierResult removeInfrastructureWithoutModeAccess() {
+    int removedLinkSegments = 0;
+    int removedLinks = 0;
+    int removedNodes = 0;
+
+    /* the intersections removed along the way are stated by the result, not logged as they go */
+    long intersectionsBefore = intersections.size();
+    boolean logModifications = isLogModifications();
+    setLogModifications(false);
+    try {
+      /* collected before removing throughout, since removal mutates the containers being iterated */
+      List<MacroscopicLinkSegment> unusableSegments = layer.getLinkSegments().stream()
+          .filter(linkSegment -> !linkSegment.hasLinkSegmentType() ||
+              !linkSegment.getLinkSegmentType().hasAllowedModes())
+          .collect(Collectors.toList());
+      for (var linkSegment : unusableSegments) {
+        removeEdgeSegment(linkSegment);
+        ++removedLinkSegments;
+      }
+
+      List<MacroscopicLink> emptyLinks = layer.getLinks().stream()
+          .filter(link -> !link.hasEdgeSegmentAb() && !link.hasEdgeSegmentBa())
+          .collect(Collectors.toList());
+      for (var link : emptyLinks) {
+        removeEdge(link);
+        ++removedLinks;
+      }
+
+      List<Node> danglingNodes = layer.getNodes().stream()
+          .filter(node -> node.getEdges() == null || node.getEdges().isEmpty())
+          .collect(Collectors.toList());
+      for (var node : danglingNodes) {
+        removeVertex(node);
+        ++removedNodes;
+      }
+
+      /* an intersection whose approaches all went controls no traffic; one that lost its nodes went with them */
+      removeIncompleteIntersections(false, true);
+    } finally {
+      setLogModifications(logModifications);
+    }
+    int removedIntersections = (int) (intersectionsBefore - intersections.size());
+
+    /* a type granting nothing has no purpose once the segments carrying it are gone */
+    var unusedTypes = layer.getLinkSegmentTypes().stream()
+        .filter(type -> !type.hasAllowedModes())
+        .collect(Collectors.toList());
+    for (var type : unusedTypes) {
+      layer.getLinkSegmentTypes().remove(type);
+    }
+
+    return new ModeAccessCleanupModifierResult(
+        removedLinkSegments, removedLinks, removedNodes, unusedTypes.size(), removedIntersections);
   }
 
   /**

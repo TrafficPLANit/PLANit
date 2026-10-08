@@ -21,7 +21,6 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.modifier.LoggableModifier;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
-import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.network.layer.physical.Link;
 
 /**
@@ -75,18 +74,6 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   @Override
   public Map<Long, Pair<E, E>> breakAt(List<E> linksToBreak, V nodeToBreakAt, CoordinateReferenceSystem crs) {
     return graphModifier.breakEdgesAt(linksToBreak, nodeToBreakAt, crs);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Map<Long, Pair<E, E>> breakAt(
-      List<E> linksToBreak,
-      V nodeToBreakAt,
-      Map<? extends V, List<BannedMovement>> movementsByCentreVertex,
-      CoordinateReferenceSystem crs) {
-    return graphModifier.breakEdgesAt(linksToBreak, nodeToBreakAt, movementsByCentreVertex, crs);
   }
 
   /**

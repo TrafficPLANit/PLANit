@@ -1,10 +1,12 @@
 package org.goplanit.test.network;
 
+import org.goplanit.test.LayerTestBase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.graph.directed.modifier.DirectedGraphModifierImpl;
@@ -19,25 +21,18 @@ import org.goplanit.network.layer.modifier.MacroscopicNetworkLayerModifierImpl;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
-import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModificationEvent;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierListener;
-import org.goplanit.utils.network.layer.physical.Node;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.locationtech.jts.geom.Coordinate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -47,11 +42,9 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author markr
  */
-public class LayerModifierConsistencyTest {
+public class LayerModifierConsistencyTest extends LayerTestBase {
 
   private MacroscopicNetwork network;
-  private MacroscopicNetworkLayer layer;
-  private List<Node> nodes;
   private IntersectionsImpl intersections;
 
   /** an outside listener, registered for chosen event types */
@@ -81,66 +74,14 @@ public class LayerModifierConsistencyTest {
 
   @BeforeEach
   public void setUp() {
-    IdGenerator.reset();
     network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
     layer = network.getTransportLayers().getFactory().registerNew();
-    nodes = new ArrayList<>();
     intersections = (IntersectionsImpl) layer.getIntersections();
-  }
-
-  @AfterEach
-  public void tearDown() {
-    IdGenerator.reset();
-  }
-
-  private void createNodes(int count) {
-    for (int i = 0; i < count; ++i) {
-      nodes.add(layer.getNodes().getFactory().registerNew());
-    }
-  }
-
-  /** connect a to b with a segment in the a-&gt;b direction only */
-  private MacroscopicLink oneWay(int a, int b) {
-    var link = layer.getLinks().getFactory().registerNew(nodes.get(a), nodes.get(b), 1, true);
-    layer.getLinkSegments().getFactory().registerNew(link, true, true);
-    return link;
-  }
-
-  /** connect a and b with a segment in each direction */
-  private MacroscopicLink twoWay(int a, int b) {
-    var link = oneWay(a, b);
-    layer.getLinkSegments().getFactory().registerNew(link, false, true);
-    return link;
-  }
-
-  /** node i positioned at (i, 0), so links between them can be given straight geometries */
-  private void createNodesOnLine(int count) {
-    createNodes(count);
-    for (int i = 0; i < count; ++i) {
-      nodes.get(i).setPosition(PlanitJtsUtils.createPoint(i, 0));
-    }
-  }
-
-  /** a one-way link a-&gt;b whose geometry passes through every node on the line between them */
-  private MacroscopicLink breakableOneWay(int a, int b) {
-    var link = oneWay(a, b);
-    var coordinates = new Coordinate[b - a + 1];
-    for (int i = a; i <= b; ++i) {
-      coordinates[i - a] = new Coordinate(i, 0);
-    }
-    link.setGeometry(PlanitJtsUtils.createLineString(coordinates));
-    return link;
   }
 
   /** break the link at the node through the layer modifier */
   private void breakAt(MacroscopicLink link, int node) {
     layer.getLayerModifier().breakAt(List.of(link), nodes.get(node), PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS);
-  }
-
-  /** the registered link segment running from node a to node b */
-  private MacroscopicLinkSegment segment(int a, int b) {
-    return layer.getLinkSegments().stream().filter(
-        ls -> ls.getUpstreamVertex() == nodes.get(a) && ls.getDownstreamVertex() == nodes.get(b)).findFirst().orElseThrow();
   }
 
   /** a signalised junction at the node, not registered */
@@ -270,6 +211,25 @@ public class LayerModifierConsistencyTest {
     assertTrue(junction.getApproachSegments().isEmpty());
     assertSame(junction, intersections.get(junction.getId()));
     assertNull(intersections.getBySegment(approach));
+  }
+
+  /** Removing the intersections without approaches removes only those, and outside intersection listeners hear of
+   * each */
+  @Test
+  public void intersectionsWithoutApproachesRemoved() {
+    var kept = junctionWithTwoApproaches();
+    createNodes(1);
+    twoWay(3, 1);
+    var withoutApproaches = intersections.getFactory().register(junctionAt(3));
+    var listener = new OutsideIntersectionListener(RemoveIntersectionEvent.EVENT_TYPE);
+    layer.getLayerModifier().addListener(listener);
+
+    assertEquals(1, layer.getLayerModifier().removeIncompleteIntersections(false, true));
+
+    assertNull(intersections.get(withoutApproaches.getId()));
+    assertSame(kept, intersections.get(kept.getId()));
+    assertEquals(List.of(withoutApproaches), listener.received.stream()
+        .map(event -> ((RemoveIntersectionEvent) event).getRemovedIntersection()).collect(Collectors.toList()));
   }
 
   /** Removing one approach segment removes that approach and leaves the rest of the junction as it was */
@@ -508,12 +468,32 @@ public class LayerModifierConsistencyTest {
     layer.getLayerModifier().addListener(listener);
     junction.removeMemberNode(nodes.get(0), true);                   // raw edit of a registered intersection
 
-    assertEquals(1, layer.getLayerModifier().removeIntersectionsWithoutMemberNodes());
+    assertEquals(1, layer.getLayerModifier().removeIncompleteIntersections(true, false));
 
     assertNull(intersections.get(junction.getId()));
     assertNull(intersections.getByMemberNode(nodes.get(0)));
     assertEquals(1, listener.received.size());
-    assertEquals(0, layer.getLayerModifier().removeIntersectionsWithoutMemberNodes());
+    assertEquals(0, layer.getLayerModifier().removeIncompleteIntersections(true, false));
+  }
+
+  /** Each flag removes only the intersections incomplete in its own way, and together they remove both */
+  @Test
+  public void incompleteIntersectionsRemovedPerSelectedWay() {
+    var emptied = junctionWithTwoApproaches();
+    emptied.removeMemberNode(nodes.get(0), false);                   // raw edit, still holds its approaches
+    createNodes(1);                                                  // node 3
+    twoWay(3, 1);
+    var withoutApproaches = intersections.getFactory().register(junctionAt(3));
+
+    assertEquals(0, layer.getLayerModifier().removeIncompleteIntersections(false, false));
+    assertEquals(1, layer.getLayerModifier().removeIncompleteIntersections(false, true));
+    assertNull(intersections.get(withoutApproaches.getId()));
+    assertSame(emptied, intersections.get(emptied.getId()));
+
+    var stillWithoutApproaches = intersections.getFactory().register(junctionAt(3));
+    assertEquals(2, layer.getLayerModifier().removeIncompleteIntersections(true, true));
+    assertNull(intersections.get(emptied.getId()));
+    assertNull(intersections.get(stillWithoutApproaches.getId()));
   }
 
   /** Recreating ids makes intersection ids contiguous, fires its event, and leaves what each refers to in place */

@@ -173,7 +173,12 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
     if(!hasAccessZoneEntry(accessZone)){
       return null;
     }
-    return getAccessZoneEntriesByType(accessZone).remove(type);
+    var entriesOfZone = getAccessZoneEntriesByType(accessZone);
+    var removed = entriesOfZone.remove(type);
+    if(entriesOfZone.isEmpty()){
+      getAccessZoneEntriesByType().remove(accessZone.getId());
+    }
+    return removed;
   }
 
   /**

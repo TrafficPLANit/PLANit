@@ -10,6 +10,7 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 /**
@@ -118,6 +119,12 @@ public class ConjugateLinkSegmentImpl extends LinkSegmentImpl implements Conjuga
   public Set<Mode> getAllowedModesFrom(Collection<Mode> modes) {
     LOGGER.warning("Allowed modes of conjugate link segment are not available, use non-conjugate counterpart");
     return null;
+  }
+
+  @Override
+  public boolean isAnyModeAllowed(Predicate<? super Mode> modeCondition) {
+    LOGGER.warning("Allowed modes of conjugate link segment are not available, use non-conjugate counterpart");
+    return false;
   }
 
   @Override

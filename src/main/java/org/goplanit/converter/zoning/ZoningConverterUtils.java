@@ -1018,7 +1018,7 @@ public class ZoningConverterUtils {
    * @param directedConnectoids to check if ok to add any of the provided modes to
    * @param bannedModes the candidate entry link segments are not allowed to support any of the banned modes
    * @param modesToAdd the modes to add
-   * @return modes added to one or more connectoids for their access (first) or egress (situation)
+   * @return modes added to one or more connectoids for their access (first) or egress (second)
    */
   public static Pair<Set<Mode>,Set<Mode>> expandTransferConnectoidsWithEligibleUndirectedAccessEgressEntries(
       TransferZone transferZone,
@@ -1034,25 +1034,25 @@ public class ZoningConverterUtils {
       }
       var refNode = connectoid.getReferenceVertex();
 
-      // find eligible entry segments that are mode compatible ( we will not track those explicitly but we do
-      // need to know it makes sense for mode access
+      /* access is travel towards the zone, arriving at the node on a segment entering it; egress is travel away from
+       * the zone, leaving the node on a segment exiting it. Eligible segments are not tracked explicitly, they only
+       * tell whether a mode can use the connectoid */
       Set<Mode> validCandidateAccessModes = new TreeSet<>();
       Set<Mode> validCandidateEgressModes = new TreeSet<>();
       refNode.streamEdgeSegments().filter(ls -> ls instanceof LinkSegment).map(ls -> (LinkSegment) ls).
           // no banned modes
           filter(ls -> !ls.isAnyModeAllowed(bannedModes)).forEach(ls ->
           {
-            if (ls.isUpstreamVertex(connectoid.getReferenceVertex()) &&
-                ls.isAnyModeAllowed(remainingAccessModesToAdd)) {
+            if (ls.isDownstreamVertex(refNode)) {
               validCandidateAccessModes.addAll(ls.getAllowedModesFrom(remainingAccessModesToAdd));
-            } else if(ls.isAnyModeAllowed(remainingEgressModesToAdd)) {
+            } else {
               validCandidateEgressModes.addAll(ls.getAllowedModesFrom(remainingEgressModesToAdd));
             }
           }
       );
 
       if(validCandidateAccessModes.isEmpty() && validCandidateEgressModes.isEmpty()){
-        return Pair.<Set<Mode>,Set<Mode>>of(Collections.emptySet(),Collections.emptySet());
+        continue;
       }
 
       // intersection of access/egress
@@ -1084,7 +1084,9 @@ public class ZoningConverterUtils {
       remainingEgressModesToAdd.removeAll(validCandidateEgressModes);
     }
     var addedAccessModes = new TreeSet<>(modesToAdd);
+    addedAccessModes.removeAll(remainingAccessModesToAdd);
     var addedEgressModes = new TreeSet<>(modesToAdd);
+    addedEgressModes.removeAll(remainingEgressModesToAdd);
     return Pair.of(addedAccessModes, addedEgressModes);
   }
 

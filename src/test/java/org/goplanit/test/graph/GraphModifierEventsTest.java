@@ -1,7 +1,7 @@
 package org.goplanit.test.graph;
 
+import org.goplanit.test.LayerTestBase;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,20 +17,14 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
-import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
-import org.goplanit.utils.network.layer.physical.Node;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.locationtech.jts.geom.Coordinate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -44,10 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * @author markr
  */
-public class GraphModifierEventsTest {
-
-  private MacroscopicNetworkLayer layer;
-  private List<Node> nodes;
+public class GraphModifierEventsTest extends LayerTestBase {
 
   /** records the events it receives */
   private static class RecordingListener implements DirectedGraphModifierListener {
@@ -62,55 +53,8 @@ public class GraphModifierEventsTest {
 
   @BeforeEach
   public void setUp() {
-    IdGenerator.reset();
     var network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
     layer = network.getTransportLayers().getFactory().registerNew();
-    nodes = new ArrayList<>();
-  }
-
-  @AfterEach
-  public void tearDown() {
-    IdGenerator.reset();
-  }
-
-  private void createNodes(int count) {
-    for (int i = 0; i < count; ++i) {
-      nodes.add(layer.getNodes().getFactory().registerNew());
-    }
-  }
-
-  /** connect a to b with a segment in the a-&gt;b direction only */
-  private MacroscopicLink oneWay(int a, int b) {
-    var link = layer.getLinks().getFactory().registerNew(nodes.get(a), nodes.get(b), 1, true);
-    layer.getLinkSegments().getFactory().registerNew(link, true, true);
-    return link;
-  }
-
-  /** connect a to b with a segment in each direction */
-  private MacroscopicLink twoWay(int a, int b) {
-    var link = layer.getLinks().getFactory().registerNew(nodes.get(a), nodes.get(b), 1, true);
-    layer.getLinkSegments().getFactory().registerNew(link, true, true);
-    layer.getLinkSegments().getFactory().registerNew(link, false, true);
-    return link;
-  }
-
-  /** node i positioned at (i, 0), so links between them can be given straight geometries */
-  private void createNodesOnLine(int count) {
-    createNodes(count);
-    for (int i = 0; i < count; ++i) {
-      nodes.get(i).setPosition(PlanitJtsUtils.createPoint(i, 0));
-    }
-  }
-
-  /** a one-way link a->b whose geometry passes through every node on the line between them */
-  private MacroscopicLink breakableOneWay(int a, int b) {
-    var link = oneWay(a, b);
-    var coordinates = new Coordinate[b - a + 1];
-    for (int i = a; i <= b; ++i) {
-      coordinates[i - a] = new Coordinate(i, 0);
-    }
-    link.setGeometry(PlanitJtsUtils.createLineString(coordinates));
-    return link;
   }
 
   /** a two-way link from node 0 whose end node B is taken away by a raw edit */
@@ -274,52 +218,6 @@ public class GraphModifierEventsTest {
         List.of(link), nodes.get(2), PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS);
 
     assertUnchangedAfterFailedBreakLink(result, link, listener);
-  }
-
-  /** As {@link #failedBreakLinkChangesNothing()}, for breaking a link given an index of banned movements */
-  @Test
-  public void failedBreakLinkWithIndexedBansChangesNothing() {
-    createNodes(3);
-    var link = linkWithoutNodeB();
-    var listener = registerBreakLinkListener();
-
-    var result = layer.getLayerModifier().breakAt(
-        List.of(link), nodes.get(2), new HashMap<Node, List<BannedMovement>>(),
-        PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS);
-
-    assertUnchangedAfterFailedBreakLink(result, link, listener);
-  }
-
-  /**
-   * Breaking a link at a node, given an index of bans that still holds a removed ban, completes and leaves that ban
-   * untouched
-   */
-  @Test
-  public void breakLinkWithStaleBanIndexSkipsRemovedBan() {
-    createNodes(4);
-    nodes.get(0).setPosition(PlanitJtsUtils.createPoint(0, 0));
-    nodes.get(1).setPosition(PlanitJtsUtils.createPoint(2, 0));
-    nodes.get(2).setPosition(PlanitJtsUtils.createPoint(1, 0));   // node to break at
-    nodes.get(3).setPosition(PlanitJtsUtils.createPoint(2, 1));
-    var toBreak = oneWay(0, 1);
-    toBreak.setGeometry(PlanitJtsUtils.createLineString(
-        new Coordinate(0, 0), new Coordinate(1, 0), new Coordinate(2, 0)));
-    var exit = oneWay(1, 3);
-    var ban = layer.getBannedMovements().getFactory().registerNew(toBreak.getLinkSegmentAb(), exit.getLinkSegmentAb());
-    Map<Node, List<BannedMovement>> bansByCentreNode = new HashMap<>(Map.of(nodes.get(1), List.of(ban)));
-
-    /* removed the way the graph modifier removes a ban, after the index was built */
-    layer.getBannedMovements().remove(ban);
-    ban.setSegmentFrom(null);
-    ban.setSegmentTo(null);
-
-    var result = layer.getLayerModifier().breakAt(
-        List.of(toBreak), nodes.get(2), bansByCentreNode, PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS);
-
-    assertEquals(1, result.size());
-    assertEquals(3, layer.getLinks().size());
-    assertEquals(0, layer.getBannedMovements().size());
-    assertTrue(!ban.hasSegmentFrom() && !ban.hasSegmentTo());
   }
 
   /**

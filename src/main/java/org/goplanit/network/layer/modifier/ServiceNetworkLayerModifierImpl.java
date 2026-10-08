@@ -7,7 +7,6 @@ import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.modifier.ServiceNetworkLayerModifier;
-import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
@@ -61,19 +60,6 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
   @Override
   public Map<Long, Pair<E, E>> breakAt(
           List<E> serviceLegsToBreak, V serviceNodeToBreakAt, CoordinateReferenceSystem crs) {
-    throw new PlanItRunTimeException("Not yet implemented");
-  }
-
-  /**
-   * todo: implement by breaking service leg + update underlying physical link segments by assigning them to
-   * either part of broken service leg
-   */
-  @Override
-  public Map<Long, Pair<E, E>> breakAt(
-      List<E> linksToBreak,
-      V nodeToBreakAt,
-      Map<? extends V, List<BannedMovement>> movementsByCentreVertex,
-      CoordinateReferenceSystem crs) {
     throw new PlanItRunTimeException("Not yet implemented");
   }
 

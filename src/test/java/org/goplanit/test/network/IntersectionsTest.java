@@ -1,24 +1,21 @@
 package org.goplanit.test.network;
 
+import org.goplanit.test.LayerTestBase;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 
 import org.goplanit.converter.idmapping.NetworkIdMapper;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.macroscopic.intersection.IntersectionsImpl;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.IdMapperType;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
-import org.goplanit.utils.network.layer.physical.Node;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,55 +28,27 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author markr
  */
-public class IntersectionsTest {
+public class IntersectionsTest extends LayerTestBase {
 
-  private MacroscopicNetworkLayer layer;
   private MacroscopicLinkSegmentType road;
-  private List<Node> nodes;
   private IntersectionsImpl intersections;
 
   @BeforeEach
   public void setUp() {
-    IdGenerator.reset();
     var network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
     layer = network.getTransportLayers().getFactory().registerNew();
     road = layer.getLinkSegmentTypes().getFactory().registerNew("road", 1800, 180);
-    nodes = new ArrayList<>();
     intersections = (IntersectionsImpl) layer.getIntersections();
-  }
-
-  @AfterEach
-  public void tearDown() {
-    IdGenerator.reset();
-  }
-
-  private void createNodes(int count) {
-    for (int i = 0; i < count; ++i) {
-      nodes.add(layer.getNodes().getFactory().registerNew());
-    }
-  }
-
-  /** connect a and b with a segment in each direction */
-  private void twoWay(int a, int b) {
-    var link = layer.getLinks().getFactory().registerNew(nodes.get(a), nodes.get(b), 1, true);
-    layer.getLinkSegments().getFactory().registerNew(link, true, true).setLinkSegmentType(road);
-    layer.getLinkSegments().getFactory().registerNew(link, false, true).setLinkSegmentType(road);
-  }
-
-  /** the registered link segment running from node a to node b */
-  private MacroscopicLinkSegment segment(int a, int b) {
-    return layer.getLinkSegments().stream().filter(
-        ls -> ls.getUpstreamVertex() == nodes.get(a) && ls.getDownstreamVertex() == nodes.get(b)).findFirst().orElseThrow();
   }
 
   /** centre node 0 with arms to nodes 1 to 4, node 5 next to the centre and node 6 beyond it, all links two-way */
   private void createJunctionArea() {
     createNodes(7);
     for (int arm = 1; arm <= 4; ++arm) {
-      twoWay(0, arm);
+      twoWay(0, arm, road);
     }
-    twoWay(0, 5);
-    twoWay(5, 6);
+    twoWay(0, 5, road);
+    twoWay(5, 6, road);
   }
 
   /** a signalised junction at node 0, not registered */
@@ -249,6 +218,25 @@ public class IntersectionsTest {
     assertNull(junction.getApproachSegment(segment(0, 5).getId()));
   }
 
+  /** Removing a member node, approach or internal segment the intersection does not hold changes nothing, removing
+   * one it holds removes only that one */
+  @Test
+  public void onlyHeldReferencesAreRemoved() {
+    createJunctionArea();
+    var junction = twoNodeJunction();
+
+    assertFalse(junction.removeMemberNode(nodes.get(1), true));
+    assertFalse(junction.removeApproachSegment(segment(2, 0)));
+    assertFalse(junction.removeInternalSegment(segment(0, 1)));
+    assertEquals(List.of(nodes.get(0), nodes.get(5)), junction.getMemberNodes());
+    assertEquals(List.of(segment(1, 0), segment(6, 5)), junction.getApproachSegments());
+    assertEquals(List.of(segment(0, 5), segment(5, 0)), junction.getInternalSegments());
+
+    assertTrue(junction.removeInternalSegment(segment(5, 0)));
+    assertEquals(List.of(segment(0, 5)), junction.getInternalSegments());
+    assertEquals(2, junction.getApproachSegments().size());
+  }
+
   // LOOKUP BY MEMBER NODE
 
   @Test
@@ -349,6 +337,53 @@ public class IntersectionsTest {
   }
 
   // COPYING
+
+  /** A copy of an intersection, deep or shallow, holds its own lists of the same nodes and segments, so changing the
+   * copy leaves the original as it was */
+  @Test
+  public void copyOfIntersectionHasItsOwnReferences() {
+    createJunctionArea();
+    var original = twoNodeJunction();
+
+    for (var copy : List.of(original.deepClone(), original.shallowClone())) {
+      assertNotSame(original, copy);
+      assertEquals(original.getId(), copy.getId());
+      assertSame(nodes.get(5), copy.getMemberNode(nodes.get(5).getId()));
+      assertSame(segment(6, 5), copy.getApproachSegment(segment(6, 5).getId()));
+      assertEquals(original.getInternalSegments(), copy.getInternalSegments());
+
+      copy.removeMemberNode(nodes.get(5), true);
+      copy.addType(IntersectionType.CROSSING);
+      copy.setControlType(IntersectionControlType.UNSIGNALISED);
+    }
+
+    assertEquals(List.of(nodes.get(0), nodes.get(5)), original.getMemberNodes());
+    assertEquals(2, original.getApproachSegments().size());
+    assertEquals(2, original.getInternalSegments().size());
+    assertEquals(EnumSet.of(IntersectionType.JUNCTION), original.getTypes());
+    assertEquals(IntersectionControlType.SIGNALISED, original.getControlType());
+  }
+
+  /** A deep copy of the container hands each original intersection with its copy to the caller, the copy registered
+   * under the same id in the copied container */
+  @Test
+  public void deepCopyOfIntersectionsHandsEachPairToTheMapper() {
+    createJunctionArea();
+    var junction = intersections.getFactory().register(twoNodeJunction());
+    var crossing = intersections.getFactory().registerNew(
+        nodes.get(2), IntersectionControlType.SIGNALISED, IntersectionType.CROSSING);
+    var copies = new HashMap<Intersection, Intersection>();
+
+    var copied = intersections.deepCloneWithMapping(copies::put);
+
+    assertEquals(2, copies.size());
+    for (var original : List.of(junction, crossing)) {
+      var copy = copies.get(original);
+      assertNotSame(original, copy);
+      assertSame(copy, copied.get(original.getId()));
+    }
+    assertSame(junction, intersections.get(junction.getId()));
+  }
 
   @Test
   public void deepCopyOfLayerRefersOnlyToCopiedEntities() {

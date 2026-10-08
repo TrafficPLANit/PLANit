@@ -1,7 +1,6 @@
 package org.goplanit.graph.directed.modifier;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -151,11 +150,6 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
       Ex aToBreak, Ex breakToB, List<BannedMovement> touchedMovements) {
 
     for(var bannedMovement : touchedMovements){
-      /* a ban removed after the index was built is skipped */
-      if(getGraph().getMovements().get(bannedMovement.getId()) != bannedMovement){
-        continue;
-      }
-
       // for from segment, this is the only situation where it is altered (as AToBreak is reused just shortened)
       if(bannedMovement.getSegmentFrom().getUpstreamVertex().equals(aToBreak.getVertexA()) &&
           breakToB.getVertexB().equals(bannedMovement.getSegmentTo().getUpstreamVertex())){
@@ -394,9 +388,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
    * Identical to the {@code GraphImpl} implementation except that we now also account for the edge segments
    * present on the edge. Copies of the original edge segments are placed on
    * (vertexToBreakAt,vertexB), while the original ones are retained at (vertexA,vertexToBreakAt).
-   * <p> if the layer has more than a few banned movements, consider using the breakEdgeAt that takes indexed movements
-   * to avoid performance penalties</p>
-   * 
+   *
    * @param edgeToBreak     edge to break
    * @param vertexToBreakAt the vertex to break at
    * @param geoUtils        required to update edge lengths
@@ -428,64 +420,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
    * {@inheritDoc}
    */
   @Override
-  public <Ex extends DirectedEdge> Ex breakEdgeAt(
-      DirectedVertex vertexToBreakAt,
-      Ex edgeToBreak,
-      Map<? extends DirectedVertex, List<BannedMovement>> movementsByCentreVertex,
-      PlanitJtsCrsUtils geoUtils) {
-
-    Ex aToBreak = edgeToBreak;
-    Ex breakToB = graphModifier.breakEdgeAt(vertexToBreakAt, edgeToBreak, geoUtils);
-    if (breakToB == null) {
-      return null;
-    }
-
-    /* update the underlying directed edge segments */
-    updateBrokenEdgeItsEdgeSegments(aToBreak, breakToB);
-
-    // use provided mapping to reduce overhead compared to #breakEdgeAt(DirectedVertex, Ex, PlanitJtsCrsUtils)
-    var touchedMovements = movementsByCentreVertex.get(breakToB.getVertexB());
-    if(touchedMovements!= null) {
-      updateMovementsItsBrokenSegments(aToBreak, breakToB, touchedMovements);
-    }
-    return breakToB;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public <Ex extends DirectedEdge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(
       List<Ex> edgesToBreak, DirectedVertex vertexToBreakAt, CoordinateReferenceSystem crs) {
-
-    /* delegate regular breaking of edges */
-    Map<Long, Pair<Ex, Ex>> brokenEdges = graphModifier.breakEdgesAt(edgesToBreak, vertexToBreakAt, crs);
-
-    /* update the underlying directed edge segments */
-    brokenEdges.entrySet().stream().sorted(Entry.comparingByKey()).forEach(entry -> {
-      var aToBreak = entry.getValue().first();
-      var breakToB = entry.getValue().second();
-      updateBrokenEdgeItsEdgeSegments(aToBreak, breakToB);
-
-      /* only movements on breakToB need updating */
-      if(getGraph().hasMovements()){
-        var touchedMovements = MovementUtils.findBannedMovementsOnEdge(getGraph().getMovements(), aToBreak);
-        updateMovementsItsBrokenSegments(aToBreak, breakToB, touchedMovements);
-      }
-    });
-
-    return brokenEdges;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <Ex extends DirectedEdge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(
-      List<Ex> edgesToBreak,
-      DirectedVertex vertexToBreakAt,
-      Map<? extends DirectedVertex, List<BannedMovement>> movementsByCentreVertex,
-      CoordinateReferenceSystem crs) {
 
     PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
 
@@ -496,8 +432,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
             "to be the case", edgeToBreak.getXmlId()));
       }
 
-      /* break an edge and use pre-indexed movements for fast updating*/
-      Ex breakToB = breakEdgeAt(vertexToBreakAt, edgeToBreak, movementsByCentreVertex, geoUtils);
+      /* break an edge, its edge segments and the movements using them */
+      Ex breakToB = breakEdgeAt(vertexToBreakAt, edgeToBreak, geoUtils);
       if (breakToB == null) {
         continue;
       }

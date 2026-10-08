@@ -1,19 +1,14 @@
 package org.goplanit.test.graph;
 
+import org.goplanit.test.LayerTestBase;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.graph.directed.Connectivity;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,46 +24,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  *
  * @author markr
  */
-public class DanglingSubNetworkRemovalTest {
-
-  private MacroscopicNetworkLayer layer;
-  private List<Node> nodes;
+public class DanglingSubNetworkRemovalTest extends LayerTestBase {
 
   /** all link segments belong to the network being pruned */
   private static final Predicate<MacroscopicLinkSegment> ANY = ls -> true;
 
   @BeforeEach
   public void setUp() {
-    IdGenerator.reset();
     var network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
     layer = network.getTransportLayers().getFactory().registerNew();
-    nodes = new ArrayList<>();
-  }
-
-  @AfterEach
-  public void tearDown() {
-    IdGenerator.reset();
-  }
-
-  private void createNodes(int count) {
-    for (int i = 0; i < count; ++i) {
-      nodes.add(layer.getNodes().getFactory().registerNew());
-    }
-  }
-
-  /** connect a to b with a segment in the a-&gt;b direction only */
-  private MacroscopicLink oneWay(int a, int b) {
-    var link = layer.getLinks().getFactory().registerNew(nodes.get(a), nodes.get(b), 1, true);
-    layer.getLinkSegments().getFactory().registerNew(link, true, true);
-    return link;
-  }
-
-  /** connect a and b with segments in both directions */
-  private MacroscopicLink twoWay(int a, int b) {
-    var link = layer.getLinks().getFactory().registerNew(nodes.get(a), nodes.get(b), 1, true);
-    layer.getLinkSegments().getFactory().registerNew(link, true, true);
-    layer.getLinkSegments().getFactory().registerNew(link, false, true);
-    return link;
   }
 
   /**

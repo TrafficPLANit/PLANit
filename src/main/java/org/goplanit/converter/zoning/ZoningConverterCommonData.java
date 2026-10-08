@@ -7,8 +7,6 @@ import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
-import org.goplanit.utils.graph.directed.BannedMovement;
-import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
@@ -31,10 +29,6 @@ public class ZoningConverterCommonData {
    * links are never indexed since nothing attaches to them. */
   // todo integrate with GTFS version in GtfsZoningHandlerData
   private Map<MacroscopicNetworkLayer, Quadtree> spatiallyIndexedPhysicalLinksByLayer = new TreeMap<>();
-
-  /** to be able to efficiently break links when connecting transfer zones to the network, we must be able to quickly
-   * access movements affected by this and update their to/from segments if changed. This index does that */
-  private final Map<Node, List<BannedMovement>> movementsByCentreVertex = new HashMap<>();
 
   /** connectoid sub-set of data tracking functionality */
   private final ZoningConverterConnectoidData connectoidData;
@@ -72,15 +66,6 @@ public class ZoningConverterCommonData {
     this.referenceZoning = referenceZoning;
 
     this.geoUtils = new PlanitJtsCrsUtils(referenceNetwork.getCoordinateReferenceSystem());
-
-    // get banned movements mapping across all layers, at this point no more will be added and any break links won't
-    // affect the centre vertex of a movement, so it is a safe index to use
-    this.movementsByCentreVertex.clear();
-    network.getTransportLayers().stream().map(
-            l -> l.getBannedMovements().createGroupByIndex(BannedMovement::getCentreVertex))
-        .flatMap(groupedMap -> groupedMap.entrySet().stream())
-        .forEach( entry -> movementsByCentreVertex.computeIfAbsent(
-            (Node) entry.getKey(), key -> new ArrayList<>()).addAll(entry.getValue()));
   }
 
   public Zoning getReferenceZoning(){
@@ -89,10 +74,6 @@ public class ZoningConverterCommonData {
 
   public MacroscopicNetwork getReferenceNetwork(){
     return referenceNetwork;
-  }
-
-  public Map<Node, List<BannedMovement>> getBannedMovementsIndexedByCentreVertex(){
-    return movementsByCentreVertex;
   }
 
   /** initialise based on links in reference network

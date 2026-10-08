@@ -16,6 +16,7 @@ import org.goplanit.utils.network.layers.ServiceNetworkLayers;
 import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.connectoid.Connectoid;
 import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
+import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
 import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierEventType;
@@ -287,12 +288,20 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
       physicalNodesWithServices.stream().flatMap(Collection::stream).forEach(
               transferConnectoidsByPhysicalAccessNodeToRemove::remove); // prune
 
-      /* remove identified entries from zoning */
+      /* at a node no service calls at the stops served there are unused, so their entries go; entries of other zones,
+       * giving travellers access to or egress from them, stay; a connectoid is only removed once no entry remains */
       if(transferConnectoidsByPhysicalAccessNodeToRemove!=null &&
               !transferConnectoidsByPhysicalAccessNodeToRemove.isEmpty()) {
         transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().flatMap(Collection::stream).forEach(
-            tCToRemove -> zoning.getTransferConnectoids().remove(tCToRemove));
-        counter.add(transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().mapToInt(List::size).sum());
+            unused -> {
+              unused.getAccessZoneStream(ZoneConnectoidType.PT_VEHICLE_STOP).collect(Collectors.toList()).forEach(
+                  unusedStop -> List.copyOf(unused.getAccessZoneEntriesByType(unusedStop).keySet()).forEach(
+                      type -> unused.removeAccessZoneEntry(unusedStop, type)));
+              if(unused.getNumberOfAccessZoneEntries() == 0) {
+                zoning.getTransferConnectoids().remove(unused);
+                counter.increment();
+              }
+            });
       }
     }
 

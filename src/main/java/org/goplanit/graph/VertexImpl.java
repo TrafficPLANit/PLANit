@@ -135,6 +135,9 @@ public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Verte
    * {@inheritDoc}
    */
   public Object getInputProperty(final String key) {
+    if (inputProperties == null) {
+      return null;
+    }
     return inputProperties.get(key);
   }
 
