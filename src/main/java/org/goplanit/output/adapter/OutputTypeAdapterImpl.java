@@ -46,16 +46,19 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
   }
 
   /**
-   * Convert the output property value that is assumed to be in the properties default units in the desired units indicated on the property
+   * Convert the output property value that is assumed to be in the properties default units in the
+   * desired units indicated on the property
    * 
    * @param outputProperty   to base conversion on
    * @param unconvertedValue original value in default units
    * @return converted value as optional
    * @throws PlanItException thrown if error
    */
-  protected static Optional<?> createConvertedUnitsValue(OutputProperty outputProperty, Optional<?> unconvertedValue) throws PlanItException {
+  protected static Optional<?> createConvertedUnitsValue(
+      OutputProperty outputProperty, Optional<?> unconvertedValue) throws PlanItException {
     if (unconvertedValue.isPresent()) {
-      return Optional.of(outputProperty.getDefaultUnit().convertTo(outputProperty.getOverrideUnit(), (double) unconvertedValue.get()));
+      return Optional.of(
+          outputProperty.getDefaultUnit().convertTo(outputProperty.getOverrideUnit(), (double) unconvertedValue.get()));
     }
     return unconvertedValue;
   }
@@ -66,9 +69,11 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
    * @param outputProperty the specified output property
    * @param mode           the current mode
    * @param timePeriod     the current time period
-   * @return the value of the specified property, or null if the specified property is not common to all output adapters (or an Exception message if an error has occurred)
+   * @return the value of the specified property, or null if the specified property is not common to all output
+   * adapters (or an Exception message if an error has occurred)
    */
-  protected Optional<?> getOutputTypeIndependentPropertyValue(OutputProperty outputProperty, Mode mode, TimePeriod timePeriod) {
+  protected Optional<?> getOutputTypeIndependentPropertyValue(
+          OutputProperty outputProperty, Mode mode, TimePeriod timePeriod) {
     try {
       switch (outputProperty.getOutputPropertyType()) {
       case MODE_EXTERNAL_ID:
@@ -90,7 +95,7 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
       default:
         return Optional.empty();
       }
-    } catch (PlanItException e) {
+    } catch (Exception e) {
       return Optional.of(e.getMessage());
     }
 
@@ -117,11 +122,12 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
   }
 
   /**
-   * Default implementation assumes that regular iteration index is used, which in most cases it true, only when for example costs are trailing one iteration behind in case they
+   * Default implementation assumes that regular iteration index is used, which in most cases it true, only when
+   * for example costs are trailing one iteration behind in case they
    * are only revealed in the next iteration this method should be overridden
    */
   @Override
-  public Optional<Integer> getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) throws PlanItException {
+  public Optional<Integer> getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) {
     return Optional.of(trafficAssignment.getIterationIndex());
   }
 

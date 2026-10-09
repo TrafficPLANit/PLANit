@@ -28,7 +28,7 @@ public class SmoothingConfigurator<T extends Smoothing> extends Configurator<T> 
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void configure(Smoothing smoothing) throws PlanItException {
+  public void configure(Smoothing smoothing) {
     super.configure((T) smoothing);
   }
 

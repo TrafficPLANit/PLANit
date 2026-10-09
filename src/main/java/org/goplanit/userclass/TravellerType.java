@@ -8,8 +8,9 @@ import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Traveller type is a placeholder for all different types of traveler characteristics that affect the user class in the path choice component of traffic assignment. Together with
- * the mode this largely defines each user class TODO: Not used yet in UserClass class
+ * Traveller type is a placeholder for all different types of traveler characteristics that affect the user class
+ * in the path choice component of traffic assignment. Together with the mode this largely defines each user class
+ * TODO: Not used yet in UserClass class
  * 
  * @author markr
  *

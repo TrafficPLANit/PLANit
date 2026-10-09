@@ -29,10 +29,9 @@ public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder
    * the user will configure this builder via this configurator
    * 
    * @return TraditionalStaticAssignmentConfigurator instance
-   * @throws PlanItException thrown if error
    */
   @Override
-  protected TrafficAssignmentConfigurator<TraditionalStaticAssignment> createConfigurator() throws PlanItException {
+  protected TrafficAssignmentConfigurator<TraditionalStaticAssignment> createConfigurator(){
     return new TraditionalStaticAssignmentConfigurator(TraditionalStaticAssignment.class);
   }
 
@@ -44,10 +43,13 @@ public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder
    * @param demands      the demands
    * @param zoning       the zoning
    * @param network      the network
-   * @throws PlanItException thrown if there is an error
    */
-  public TraditionalStaticAssignmentBuilder(final IdGroupingToken projectToken, final InputBuilderListener inputBuilder, final Demands demands, final Zoning zoning,
-      final LayeredNetwork<?, ?> network) throws PlanItException {
+  public TraditionalStaticAssignmentBuilder(
+      final IdGroupingToken projectToken,
+      final InputBuilderListener inputBuilder,
+      final Demands demands,
+      final Zoning zoning,
+      final LayeredNetwork<?, ?> network){
     super(TraditionalStaticAssignment.class, projectToken, inputBuilder, demands, zoning, network);
   }
 }

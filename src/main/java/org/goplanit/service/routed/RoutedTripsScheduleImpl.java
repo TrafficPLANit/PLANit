@@ -32,7 +32,8 @@ public class RoutedTripsScheduleImpl extends RoutedTripsImpl<RoutedTripSchedule>
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedTripsScheduleImpl(RoutedTripsScheduleImpl other, boolean deepCopy, BiConsumer<RoutedTripSchedule, RoutedTripSchedule> mapper) {
+  public RoutedTripsScheduleImpl(
+      RoutedTripsScheduleImpl other, boolean deepCopy, BiConsumer<RoutedTripSchedule, RoutedTripSchedule> mapper) {
     super(other, deepCopy, mapper);
     setFactory(new RoutedTripScheduleFactoryImpl(other.getFactory().getIdGroupingToken(), this));
   }

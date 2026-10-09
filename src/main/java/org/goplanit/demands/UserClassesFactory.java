@@ -10,7 +10,8 @@ import org.goplanit.utils.mode.Mode;
 /**
  * Factory class for user classes instances to be registered on its parent container passed in to constructor
  */
-public class UserClassesFactory extends ManagedIdEntityFactoryImpl<UserClass> implements ManagedIdEntityFactory<UserClass> {
+public class UserClassesFactory extends ManagedIdEntityFactoryImpl<UserClass>
+    implements ManagedIdEntityFactory<UserClass> {
 
   /** container to use */
   protected final UserClasses userClasses;

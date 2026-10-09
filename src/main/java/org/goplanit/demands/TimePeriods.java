@@ -55,7 +55,8 @@ public final class TimePeriods extends ManagedIdEntitiesImpl<TimePeriod> impleme
   /**
    * Retrieve a TimePeriod by its xml Id
    * <p>
-   * This method is not efficient, since it loops through all the registered time periods in order to find the required time period.
+   * This method is not efficient, since it loops through all the registered time periods in order to find the
+   * required time period.
    *
    * @param xmlId the XML Id of the specified time period
    * @return the retrieved time period, or null if no time period was found

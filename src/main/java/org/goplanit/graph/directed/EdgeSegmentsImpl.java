@@ -60,7 +60,8 @@ public class EdgeSegmentsImpl extends GraphEntitiesImpl<EdgeSegment> implements 
   /**
    * {@inheritDoc}
    */
-  public void register(final DirectedEdge parentEdge, final EdgeSegment edgeSegment, final boolean directionAB) throws PlanItException {
+  public void register(
+      final DirectedEdge parentEdge, final EdgeSegment edgeSegment, final boolean directionAB) throws PlanItException {
     parentEdge.registerEdgeSegment(edgeSegment, directionAB);
     register(edgeSegment);
   }

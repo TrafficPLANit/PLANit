@@ -1,17 +1,23 @@
 package org.goplanit.output.property;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.goplanit.output.enums.DataType;
-import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.unit.Unit;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * Template for output property classes which can be included in the output files.
- * 
+ * <p>
  * All concrete output property classes must be final and extend this class.
+ * </p>
  * 
- * @author gman6028
+ * @author gman6028, markr
  *
  */
 public abstract class OutputProperty implements Comparable<OutputProperty> {
@@ -19,8 +25,51 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(OutputProperty.class.getCanonicalName());
 
+  private static final DecimalFormat DEFAULT_FORMAT_NUM_DECIMALS = new DecimalFormat("#.#");
+
+  static {
+    DEFAULT_FORMAT_NUM_DECIMALS.setMaximumFractionDigits(7);
+    DEFAULT_FORMAT_NUM_DECIMALS.setMinimumFractionDigits(1);
+  }
+
   /** the override units */
   private Unit overrideUnits = null;
+
+
+  /** Formats an object for legible printing,
+   * if a double or float, outputs value based on {@link #DEFAULT_FORMAT_NUM_DECIMALS}, if null empty string is created,
+   * if a geometry then the geometry is converted to a string
+   *
+   * @param value the value to be output
+   * @return the formatted output
+   */
+  public Object formatValue(Optional<?> value) {
+    return formatValue(value.orElse(null));
+  }
+
+   /** Formats a value for this property type for legible printing if so deemed helpful.
+    * <p>
+    * if a double or float, outputs value based on {@link #DEFAULT_FORMAT_NUM_DECIMALS}, if null empty string is created,
+    * if a geometry then the geometry is converted to a string
+    </p>
+    *
+    * @param value the value to be output
+    * @return the formatted output
+    */
+  public Object formatValue(Object value) {
+    if (value == null) {
+      return "";
+    } else if (value instanceof Double) {
+      return DEFAULT_FORMAT_NUM_DECIMALS.format((double) value);
+    } else if (value instanceof Float) {
+      return DEFAULT_FORMAT_NUM_DECIMALS.format((float) value);
+    } else if (value instanceof Geometry) {
+      /* geometry needs conversion to string for it to be writeable */
+      return value.toString();
+    }else {
+      return value;
+    }
+  }
 
   /**
    * Returns the name of the output property
@@ -147,16 +196,15 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
    * 
    * @param propertyClassName the class name of the specified output property
    * @return the BaseOutputProperty object corresponding to the specified enumeration value
-   * @throws PlanItException thrown if there is an error creating the object
    */
-  public static OutputProperty of(String propertyClassName) throws PlanItException {
+  public static OutputProperty of(String propertyClassName){
     try {
       Class<?> entityClass = Class.forName(propertyClassName);
       OutputProperty outputProperty = (OutputProperty) entityClass.getDeclaredConstructor().newInstance();
       return outputProperty;
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
-      throw new PlanItException(String.format("Error when converting base output property %s", propertyClassName), e);
+      throw new PlanItRunTimeException(String.format("Error when converting base output property %s", propertyClassName), e);
     }
   }
 
@@ -165,10 +213,43 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
    * 
    * @param outputProperty the enumeration value of the specified output property
    * @return the BaseOutputProperty object corresponding to the specified enumeration value
-   * @throws PlanItException thrown if there is an error creating the object
    */
-  public static OutputProperty of(OutputPropertyType outputProperty) throws PlanItException {
+  public static OutputProperty of(OutputPropertyType outputProperty) {
     return of(outputProperty.value());
+  }
+
+  /**
+   * Utility method to verify if any of the provided output properties are of the provided type
+   *
+   * @param outputProperties to check
+   * @param type(s) to check
+   * @return true if at least one property matches with one of the types to check against, false, otherwise
+   */
+  public static boolean containsPropertyOfType(OutputProperty[] outputProperties, OutputPropertyType... type){
+    return Arrays.stream(outputProperties).anyMatch(op ->
+        Arrays.stream(type).anyMatch(t -> t.equals(op.getOutputPropertyType())));
+  }
+
+  /**
+   * Utility method to verify if any of the provided output properties contain any ID type for the time period (ID, XML_ID, EXTERNAL_ID)
+   *
+   * @param outputProperties to check
+   * @return true if at least one property matches with a time period id type
+   */
+  public static boolean containsAnyTimePeriodIdType(OutputProperty[] outputProperties){
+    return containsPropertyOfType(
+        outputProperties, OutputPropertyType.TIME_PERIOD_XML_ID, OutputPropertyType.TIME_PERIOD_ID, OutputPropertyType.TIME_PERIOD_EXTERNAL_ID);
+  }
+
+  /**
+   * Utility method to verify if any of the provided output properties contain any ID type for the mode (ID, XML_ID, EXTERNAL_ID)
+   *
+   * @param outputProperties to check
+   * @return true if at least one property matches with a mode id type
+   */
+  public static boolean containsAnyModeIdType(OutputProperty[] outputProperties){
+    return containsPropertyOfType(
+        outputProperties, OutputPropertyType.MODE_XML_ID, OutputPropertyType.MODE_ID, OutputPropertyType.MODE_EXTERNAL_ID);
   }
 
 }

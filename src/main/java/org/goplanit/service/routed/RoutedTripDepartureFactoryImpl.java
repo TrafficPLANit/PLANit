@@ -12,7 +12,8 @@ import org.goplanit.utils.time.ExtendedLocalTime;
  * 
  * @author markr
  */
-public class RoutedTripDepartureFactoryImpl extends ManagedIdEntityFactoryImpl<RoutedTripDeparture> implements RoutedTripDepartureFactory {
+public class RoutedTripDepartureFactoryImpl extends ManagedIdEntityFactoryImpl<RoutedTripDeparture>
+    implements RoutedTripDepartureFactory {
 
   /** container to use */
   protected final RoutedTripDepartures routedTripDepartures;
@@ -33,7 +34,8 @@ public class RoutedTripDepartureFactoryImpl extends ManagedIdEntityFactoryImpl<R
    * @param tokenId              to use
    * @param routedTripDepartures to use
    */
-  protected RoutedTripDepartureFactoryImpl(final IdGroupingToken tokenId, final RoutedTripDepartures routedTripDepartures) {
+  protected RoutedTripDepartureFactoryImpl(
+      final IdGroupingToken tokenId, final RoutedTripDepartures routedTripDepartures) {
     super(tokenId);
     this.routedTripDepartures = routedTripDepartures;
   }

@@ -6,13 +6,13 @@ import org.goplanit.utils.wrapper.MapWrapper;
 import java.util.function.Function;
 
 /**
- * Abstract base class implementation for converter readers which has a mechanism to (optionally) keep track of entities by their source id as PLANit only indexes by internal id
+ * Abstract base class implementation for converter readers which has a mechanism to (optionally) keep track of
+ * entities by their source id as PLANit only indexes by internal id
  * 
  * @author markr
- *
+ * @param <T> type of top level entity reader
  */
 public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
-
 
   /** track PLANit entities by something else than their internal id via this map */
   protected final CustomIndexTracker sourceIdTracker;
@@ -40,8 +40,8 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
   }
 
   /**
-   * register a new source id tracker (empty) where a function is used to extract the source id from the entity and the class is used unique identifier for the underlying tracking
-   * container
+   * register a new source id tracker (empty) where a function is used to extract the source id from the entity and
+   * the class is used unique identifier for the underlying tracking container
    *
    * @param <K>        key type used
    * @param <V>        value type used
@@ -53,8 +53,8 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
   }
 
   /**
-   * register a new source id tracker (empty) where a function is used to extract the source id from the entity and the class is used unique identifier for the underlying tracking
-   * container
+   * register a new source id tracker (empty) where a function is used to extract the source id from the entity
+   * and the class is used unique identifier for the underlying tracking container
    *
    * @param <K>              key type used
    * @param <V>              value type used
@@ -62,7 +62,8 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
    * @param valueToKey       function mapping value to key
    * @param addToSourceIdMap add all entities in iterable to the newly created source id map upon creation
    */
-  protected <K, V> void initialiseSourceIdMap(Class<V> clazz, final Function<V, K> valueToKey, Iterable<V> addToSourceIdMap) {
+  protected <K, V> void initialiseSourceIdMap(
+      Class<V> clazz, final Function<V, K> valueToKey, Iterable<? extends V> addToSourceIdMap) {
     sourceIdTracker.initialiseEntityContainer(clazz, valueToKey, addToSourceIdMap);
   }
 
@@ -89,6 +90,16 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
    */
   protected <V, K> V getBySourceId(Class<V> clazz, K key) {
     return sourceIdTracker.get(clazz, key);
+  }
+
+  /**
+   * Provides a reference to internal overall tracker. Only to be used if tracking has to happen outside of derived
+   * reader and access is otherwise cumbersome. Use with caution.
+   *
+   * @return internal tracker instance
+   */
+  protected CustomIndexTracker getSourceIdTrackerRaw(){
+    return sourceIdTracker;
   }
 
   /**

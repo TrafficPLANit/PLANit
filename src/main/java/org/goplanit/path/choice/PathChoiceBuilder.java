@@ -12,7 +12,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * All path choice instances are built using this or a derived version of this builder
  *
  * @author markr
- *
+ * @param <T> type of path choice
  */
 public abstract class PathChoiceBuilder<T extends PathChoice> extends PlanitComponentBuilder<T> {
 
@@ -27,10 +27,11 @@ public abstract class PathChoiceBuilder<T extends PathChoice> extends PlanitComp
    */
   @SuppressWarnings("unchecked")
   protected T createPathChoiceInstance() throws PlanItException {
-    String pathChoiceClassName = getClassToBuild().getClass().getCanonicalName();
-    PlanitComponentFactory<PathChoice> pathChoiceFactory = new PlanitComponentFactory<PathChoice>(pathChoiceClassName);
-    final T pathChoice = (T) pathChoiceFactory.create(pathChoiceClassName, new Object[] { getGroupIdToken() });
-    PlanItException.throwIf(!(pathChoice instanceof PathChoice), "not a valid path choice type");
+    String pathChoiceClassName = getClassToBuild().getCanonicalName();
+    PlanitComponentFactory<PathChoice> pathChoiceFactory = new PlanitComponentFactory<>(PathChoice.class);
+    final T pathChoice = (T) pathChoiceFactory.createAndDispatch(
+        pathChoiceClassName, new Object[] { getGroupIdToken() });
+    PlanItException.throwIf(pathChoice == null, "not a valid path choice type");
     return pathChoice;
   }
 
@@ -52,7 +53,10 @@ public abstract class PathChoiceBuilder<T extends PathChoice> extends PlanitComp
    * @param inputBuilderListener the input builder listener
    * @throws PlanItException thrown if error
    */
-  protected PathChoiceBuilder(final Class<T> pathChoiceClass, final IdGroupingToken projectToken, InputBuilderListener inputBuilderListener) throws PlanItException {
+  protected PathChoiceBuilder(
+      final Class<T> pathChoiceClass,
+      final IdGroupingToken projectToken,
+      InputBuilderListener inputBuilderListener) throws PlanItException {
     super(pathChoiceClass, projectToken, inputBuilderListener);
   }
 

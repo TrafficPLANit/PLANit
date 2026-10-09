@@ -39,7 +39,7 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
    * @return odZoneId
    */
   protected static long generateTransferZoneId(final IdGroupingToken tokenId) {
-    return IdGenerator.generateId(tokenId, TransferZone.TRANSFER_ZONE_ID_CLASS);
+    return IdGenerator.generateId(tokenId, TransferZone.getTransferZoneIdClass());
   }
 
   /**
@@ -74,7 +74,7 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
     this.type = other.type;
 
     if (other.hasTransferZoneGroup()) {
-      this.transferZoneGroups = new HashSet<>(other.getTransferZoneGroups());
+      this.transferZoneGroups = new HashSet<>(Objects.requireNonNull(other.getTransferZoneGroups()));
     }
     if(other.hasPlatformNames()){
       this.platformNames = new ArrayList<>(other.getTransferZonePlatformNames());

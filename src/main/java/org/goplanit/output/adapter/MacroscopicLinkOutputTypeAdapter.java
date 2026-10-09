@@ -2,20 +2,21 @@ package org.goplanit.output.adapter;
 
 import java.util.Optional;
 
+import org.goplanit.output.adapter.traits.NetworkSegmentsOutputTypeAdapterTrait;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Interface defining the methods required for a macroscopic link (segment) output adapter
+ * Interface defining the methods required for a macroscopic link (segment) output adapter used in a network context.
  * 
  * @author gman6028, markr
  *
  */
-public interface MacroscopicLinkOutputTypeAdapter extends UntypedLinkOutputTypeAdapter<MacroscopicLinkSegment> {
+public interface MacroscopicLinkOutputTypeAdapter extends NetworkSegmentsOutputTypeAdapterTrait<MacroscopicLinkSegment>,
+ UntypedLinkOutputTypeAdapter<MacroscopicLinkSegment>{
 
   /**
    * Returns the value of the capacity per lane
@@ -73,17 +74,6 @@ public interface MacroscopicLinkOutputTypeAdapter extends UntypedLinkOutputTypeA
   }
 
   /**
-   * Returns the external Id of the downstream node
-   * 
-   * @param linkSegment LinkSegment object containing the required data
-   * @return he external Id of the downstream node
-   * @throws PlanItException thrown if there is an error
-   */
-  public default Optional<String> getDownstreamNodeExternalId(MacroscopicLinkSegment linkSegment) throws PlanItException {
-    return Optional.of(((Vertex) linkSegment.getDownstreamVertex()).getExternalId());
-  }
-
-  /**
    * Returns the maximum speed through the current link segment
    * 
    * @param linkSegment MacroscopicLinkSegment object containing the required data
@@ -94,14 +84,6 @@ public interface MacroscopicLinkOutputTypeAdapter extends UntypedLinkOutputTypeA
   public default Optional<Double> getMaximumSpeed(MacroscopicLinkSegment linkSegment, Mode mode) throws PlanItException {
     return Optional.of(linkSegment.getModelledSpeedLimitKmH(mode));
   }
-
-  /**
-   * collect the infrastructure layer id this mode resides on
-   * 
-   * @param mode to collect layer id for
-   * @return infrastructure layer id, null if not found
-   */
-  public abstract Optional<Long> getInfrastructureLayerIdForMode(Mode mode);
 
   /**
    * Returns true if there is a flow through the current specified link segment for the specified mode
@@ -121,5 +103,9 @@ public interface MacroscopicLinkOutputTypeAdapter extends UntypedLinkOutputTypeA
    * @param timePeriod     the current time period
    * @return the value of the specified output property (or an Exception if an error occurs)
    */
-  public abstract Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode, TimePeriod timePeriod);
+  public abstract Optional<?> getLinkSegmentOutputPropertyValue(
+      OutputProperty outputProperty,
+      MacroscopicLinkSegment linkSegment,
+      Mode mode,
+      TimePeriod timePeriod);
 }

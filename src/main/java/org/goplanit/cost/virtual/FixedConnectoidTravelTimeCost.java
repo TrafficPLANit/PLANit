@@ -3,10 +3,9 @@ package org.goplanit.cost.virtual;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -50,7 +49,8 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public FixedConnectoidTravelTimeCost(FixedConnectoidTravelTimeCost other, boolean deepCopy /* no impact at present */) {
+  public FixedConnectoidTravelTimeCost(
+          FixedConnectoidTravelTimeCost other, boolean deepCopy /* no impact at present */) {
     super(other, deepCopy);
     this.fixedConnectoidCost = other.fixedConnectoidCost;
   }
@@ -65,10 +65,27 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
   }
 
   /**
+   * Access to chosen fixed cost
+   * @return current fixed cost
+   */
+  public double getFixedConnectoidCost() {
+    return this.fixedConnectoidCost;
+  }
+
+  /**
+   * Verify if fixed cost is exactly zero
+   *
+   * @return true when zero, false otherwise
+   */
+  public boolean isFixedConnectoidCostZero() {
+    return this.fixedConnectoidCost == DEFAULT_FIXED_COST;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
-  public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException {
+  public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) {
     // do nothing
   }
 
@@ -92,10 +109,19 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * {@inheritDoc}
    */
   @Override
-  public void populateWithCost(final VirtualNetwork virtualNetwork, final Mode mode, double[] costToFill) {
-    for (var virtualSegment : virtualNetwork.getConnectoidSegments()) {
+  public void populateWithCost(
+      final VirtualNetwork virtualNetwork, final Mode mode, double[] costToFill) {
+    for (var virtualSegment : virtualNetwork.getLayer().getConnectoidSegments()) {
       costToFill[(int) virtualSegment.getId()] = fixedConnectoidCost;
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getName() {
+    return VirtualCost.FIXED;
   }
 
   /**
@@ -115,7 +141,7 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
   }
 
   /**
-   * Chosen cost is considered configuration not internal state, so upon resetting the chosen cost remains in tact
+   * Chosen cost is considered configuration not internal state, so upon resetting the chosen cost remains intact
    */
   @Override
   public void reset() {
@@ -134,7 +160,8 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * fixed cost so derivative is always zero
    */
   @Override
-  public double getDTravelTimeDFlow(boolean uncongested, Mode mode, ConnectoidSegment connectoidSegment) {
+  public double getDTravelTimeDFlow(
+          boolean uncongested, Mode mode, ConnectoidSegment connectoidSegment) {
     return 0.0;
   }
 

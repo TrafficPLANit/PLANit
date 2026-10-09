@@ -11,7 +11,13 @@ import org.goplanit.utils.unit.Unit;
  */
 public final class VcRatioOutputProperty extends OutputProperty {
 
+
+  /** VC Ratio. */
   public static final String NAME = "VC Ratio";
+  /**
+   * Public no-arg constructor required for reflective instantiation.
+   */
+  public VcRatioOutputProperty(){}
 
   /**
    * {@inheritDoc}

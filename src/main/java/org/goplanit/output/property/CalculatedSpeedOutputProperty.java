@@ -11,7 +11,13 @@ import org.goplanit.utils.unit.Unit;
  */
 public final class CalculatedSpeedOutputProperty extends OutputProperty {
 
+  /** Calculated Speed. */
   public static final String NAME = "Calculated Speed";
+
+  /**
+   * Default constructor
+   */
+  public CalculatedSpeedOutputProperty(){};
 
   /**
    * {@inheritDoc}

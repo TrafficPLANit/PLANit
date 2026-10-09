@@ -17,8 +17,9 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Algorithm B implementation based on the work of Dial (2006). Due to a lack of explicit explanation for the implementation of the underlying algorithm, the implementation follows
- * the main principles explained in this work but the algorithm design is likely different than the one implemented for the results discussed in the original paper.
+ * Algorithm B implementation based on the work of Dial (2006). Due to a lack of explicit explanation for the
+ * implementation of the underlying algorithm, the implementation follows the main principles explained in this work
+ * but the algorithm design is likely different than the one implemented for the results discussed in the original paper.
  * <p>
  * <b>INCOMPLETE IMPLEMENTATION</b>
  * 
@@ -42,7 +43,7 @@ public class AlgorithmB extends StaticTrafficAssignment {
    * {@inheritDoc}
    */
   @Override
-  protected void verifyComponentCompatibility() throws PlanItException {
+  protected void verifyComponentCompatibility() {
     // TODO Auto-generated method stub
   }
 
@@ -52,6 +53,11 @@ public class AlgorithmB extends StaticTrafficAssignment {
   @Override
   protected void verifyNetworkDemandZoningCompatibility() {
     // TODO Auto-generated method stub
+  }
+
+  @Override
+  protected boolean isRequireConjugateNetwork() {
+    return false;
   }
 
   /**

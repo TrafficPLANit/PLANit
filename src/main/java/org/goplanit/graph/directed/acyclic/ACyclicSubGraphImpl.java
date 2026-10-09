@@ -1,24 +1,36 @@
 package org.goplanit.graph.directed.acyclic;
 
+import java.util.Map;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
 
 /**
  * 
- * An acyclic sub graph contains a subset of the full graph without cycles. The active subset of the graph is tracked by explicitly registering edge segments. Edge segments are by
- * definition directed.
- * 
- * Whenever edge segments are added it is verified that no cycles are created. Also each edge segment that is added must connect to the existing subgraph's contents
- * 
- * 
+ * An acyclic sub graph contains a subset of the full graph without cycles. The active subset of the graph is tracked
+ * by explicitly registering edge segments. Edge segments are by definition directed.
+ * <p>
+ * Whenever edge segments are added it is verified that no cycles are created. Also, each edge segment that is
+ * added must connect to the existing subgraph's contents
+ * </p>
+ * <p>
+ *   todo: Made to conform to newer UnTypedDirectedSubgraph interface but since only part of functionality is used
+ *    for sLTM, I've put placeholders in for required methods that throw if used. Needs some tlc.
+ * </p>
+ *
  * @author markr
  *
  */
-public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVertex, EdgeSegment> implements ACyclicSubGraph {
+public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVertex, DirectedEdge, EdgeSegment>
+    implements ACyclicSubGraph {
 
   /** logger to use */
   @SuppressWarnings("unused")
@@ -29,10 +41,15 @@ public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVert
    * 
    * @param groupId                    generate id based on the group it resides in
    * @param rootVertex                 of the dag
-   * @param invertedDirection          when true dag ends at root and all other vertices precede it, when false the root is the starting point and all other vertices succeed it
+   * @param invertedDirection          when true dag ends at root and all other vertices precede it, when false the
+   *                                   root is the starting point and all other vertices succeed it
    * @param numberOfParentEdgeSegments number of directed edge segments of the parent this subgraph is a subset from
    */
-  public ACyclicSubGraphImpl(final IdGroupingToken groupId, DirectedVertex rootVertex, boolean invertedDirection, int numberOfParentEdgeSegments) {
+  public ACyclicSubGraphImpl(
+      final IdGroupingToken groupId,
+      DirectedVertex rootVertex,
+      boolean invertedDirection,
+      int numberOfParentEdgeSegments) {
     super(groupId, rootVertex, invertedDirection, numberOfParentEdgeSegments);
   }
 
@@ -59,7 +76,8 @@ public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVert
    */
   @Override
   public ACyclicSubGraphImpl deepClone() {
-    LOGGER.severe("Not a smart deep clone on acyclic sub graph, so interdependencies will get screwed up, recommend not to use until properly implemented");
+    LOGGER.severe("Not a smart deep clone on acyclic sub graph, so interdependencies will get screwed up," +
+        " recommend not to use until properly implemented");
     return new ACyclicSubGraphImpl(this, true);
   }
 

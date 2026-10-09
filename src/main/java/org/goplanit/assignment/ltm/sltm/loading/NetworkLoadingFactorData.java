@@ -1,6 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
-import org.goplanit.assignment.ltm.sltm.LinkSegmentData;
+import org.goplanit.assignment.ltm.sltm.common.LinkSegmentData;
 
 /**
  * Track the sLTM variables representing the various factors used:

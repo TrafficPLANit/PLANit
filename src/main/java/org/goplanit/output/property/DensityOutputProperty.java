@@ -11,6 +11,10 @@ import org.goplanit.utils.unit.Unit;
  */
 public final class DensityOutputProperty extends OutputProperty {
 
+  /** dummy constructor */
+  public DensityOutputProperty(){}
+
+  /** Density. */
   public static final String NAME = "Density";
 
   /**

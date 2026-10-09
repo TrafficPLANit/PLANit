@@ -16,7 +16,8 @@ import org.goplanit.utils.time.TimePeriod;
  * @author gman6028, markr
  *
  */
-public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysicalCost> implements PhysicalCost<MacroscopicLinkSegment>, Serializable {
+public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysicalCost>
+    implements PhysicalCost<MacroscopicLinkSegment>, Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = -7894043964147010621L;
@@ -82,7 +83,8 @@ public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysica
    * @param linkSegment the current link segment
    * @param cost        the initial cost for this mode and link segment
    */
-  public abstract void setSegmentCost(final TimePeriod timePeriod, final Mode mode, final MacroscopicLinkSegment linkSegment, double cost);
+  public abstract void setSegmentCost(
+      final TimePeriod timePeriod, final Mode mode, final MacroscopicLinkSegment linkSegment, double cost);
 
   /**
    * get the initial cost for a specified mode and link segment
@@ -101,7 +103,8 @@ public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysica
    * @param linkSegment the current link segment
    * @return cost the initial cost for this mode and link segment
    */
-  public abstract double getSegmentCost(final TimePeriod timePeriod, final Mode mode, final MacroscopicLinkSegment linkSegment);
+  public abstract double getSegmentCost(
+      final TimePeriod timePeriod, final Mode mode, final MacroscopicLinkSegment linkSegment);
 
   /**
    * {@inheritDoc}

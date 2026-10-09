@@ -7,12 +7,12 @@ import java.util.Collection;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.DirectedVertexImpl;
+import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.ConjugateLink;
-import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
-import org.goplanit.utils.network.layer.physical.ConjugateNode;
-import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.*;
+import org.locationtech.jts.geom.Point;
 
 /**
  * Conjugate node representation connected to one or more conjugate (entry and exit) conjugate links.
@@ -20,36 +20,26 @@ import org.goplanit.utils.network.layer.physical.Link;
  * @author markr
  *
  */
-public class ConjugateNodeImpl extends DirectedVertexImpl<ConjugateLinkSegment> implements ConjugateNode {
+public class ConjugateNodeImpl extends NodeImpl<ConjugateLinkSegment> implements ConjugateNode {
 
-  /** UID */
-  private static final long serialVersionUID = 4196503072938986885L;
 
   /** the logger */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ConjugateNodeImpl.class.getCanonicalName());
 
   /** original this conjugate represents */
-  protected final Link original;
-
-  /**
-   * Special case where the id is based on the original link and does not rely on generating based on token when recreating managed ids this should override the default behaviour
-   * of generating an id based on token
-   */
-  @Override
-  protected long generateAndSetId(IdGroupingToken tokenId) {
-    return original.getId();
-  }
+  protected final LinkSegment original;
 
   // Public
 
   /**
-   * Conjugate Node constructor. Relies on original link to sync id with
-   * 
+   * Conjugate Node constructor.
+   *
+   * @param idToken to use
    * @param original original this conjugate represents
    */
-  protected ConjugateNodeImpl(final Link original) {
-    super(original.getId());
+  protected ConjugateNodeImpl(IdGroupingToken idToken, final LinkSegment original) {
+    super(idToken);
     this.original = original;
   }
 
@@ -64,7 +54,27 @@ public class ConjugateNodeImpl extends DirectedVertexImpl<ConjugateLinkSegment> 
     this.original = other.original;
   }
 
-  // Protected
+
+  /**
+   * conjugate derived position
+   *
+   * @return derive conjugate position
+   */
+  @Override
+  public Point getPosition() {
+    // explicitly use ConjugateVertex interface implementation otherwise it defaults to the extended directed vertex
+    // which is not helpful here
+    return ConjugateNode.super.getPosition();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setPosition(final Point position) {
+    LOGGER.warning("Geometry of conjugate node is derived from  underlying original geometries, " +
+            "unable to explicitly step position directly, ignored");
+  }
 
   /**
    * {@inheritDoc}
@@ -95,7 +105,7 @@ public class ConjugateNodeImpl extends DirectedVertexImpl<ConjugateLinkSegment> 
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdge getOriginalEdge() {
+  public LinkSegment getOriginalEdgeSegment() {
     return original;
   }
 

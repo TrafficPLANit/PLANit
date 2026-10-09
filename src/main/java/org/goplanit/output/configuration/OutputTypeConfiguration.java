@@ -1,5 +1,6 @@
 package org.goplanit.output.configuration;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -12,6 +13,7 @@ import org.goplanit.output.property.OutputProperty;
 import org.goplanit.output.property.OutputPropertyPriority;
 import org.goplanit.output.property.OutputPropertyType;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.unit.Unit;
 
 /**
@@ -22,8 +24,10 @@ import org.goplanit.utils.unit.Unit;
  */
 public abstract class OutputTypeConfiguration {
 
-  /** the logger */
-  protected static final Logger LOGGER = Logger.getLogger(OutputTypeConfiguration.class.getCanonicalName());
+  /**
+   * Default for persisting final iteration
+   */
+  public static final boolean PERSIST_ONLY_FINAL_ITERATION = true;
 
   /**
    * Filters output properties in the OutputAdapter and outputs them as an array
@@ -32,18 +36,26 @@ public abstract class OutputTypeConfiguration {
    * @return array containing the relevant OutputProperty objects
    */
   private OutputProperty[] getOutputPropertyArray(Function<OutputProperty, Boolean> test) {
-    OutputProperty[] outputPropertyArray = outputProperties.stream().filter(baseOutputProperty -> test.apply(baseOutputProperty)).toArray(OutputProperty[]::new);
-    return outputPropertyArray;
+    return outputProperties.stream().filter(test::apply).toArray(OutputProperty[]::new);
   }
 
+  /** the logger */
+  protected static final Logger LOGGER = Logger.getLogger(OutputTypeConfiguration.class.getCanonicalName());
+
   /**
-   * The output type being used with the current instance - this must be set in each concrete class which extends OutputTypeConfiguration
+   * persisting final iteration only or not
+   */
+  protected boolean persistOnlyFinalIteration = PERSIST_ONLY_FINAL_ITERATION;
+
+  /**
+   * The output type being used with the current instance - this must be set in each concrete class which
+   * extends OutputTypeConfiguration
    */
   protected OutputType outputType;
 
   /**
-   * Stores all active sub output types (if any). some output types are broken down further in sub output types which can be accounted for via this set. Can remain empty if not
-   * used.
+   * Stores all active sub output types (if any). some output types are broken down further in sub output types
+   * which can be accounted for via this set. Can remain empty if not used.
    */
   protected Set<SubOutputTypeEnum> activeSubOutputTypes;
 
@@ -87,15 +99,14 @@ public abstract class OutputTypeConfiguration {
   public abstract OutputProperty[] validateAndFilterKeyProperties(OutputProperty[] outputKeyProperties);
 
   /**
-   * OutputTypeconfiguration constructor
+   * OutputTypeConfiguration constructor
    * 
    * @param outputType the output type being created
-   * @throws PlanItException thrown if there is an exception
    */
-  public OutputTypeConfiguration(OutputType outputType) throws PlanItException {
+  public OutputTypeConfiguration(OutputType outputType) {
     this.outputType = outputType;
-    outputProperties = new TreeSet<OutputProperty>();
-    activeSubOutputTypes = new TreeSet<SubOutputTypeEnum>();
+    outputProperties = new TreeSet<>();
+    activeSubOutputTypes = new TreeSet<>();
   }
 
   /**
@@ -120,12 +131,22 @@ public abstract class OutputTypeConfiguration {
    * Add an output property to be included in the output files
    * 
    * @param outputProperty enumeration value specifying which output property to be included in the output files
-   * @throws PlanItException thrown if there is an error
    */
-  public void addProperty(OutputPropertyType outputProperty) throws PlanItException {
+  public void addProperty(OutputPropertyType outputProperty) {
     OutputProperty baseOutputProperty = OutputProperty.of(outputProperty);
     if (isOutputPropertyValid(baseOutputProperty)) {
       outputProperties.add(baseOutputProperty);
+    }
+  }
+
+  /**
+   * Add output properties to be included in the output files
+   *
+   * @param outputProperties enumeration value specifying which output property to be included in the output files
+   */
+  public void addProperties(OutputPropertyType... outputProperties) {
+    for(var property : outputProperties){
+      addProperty(property);
     }
   }
 
@@ -134,9 +155,8 @@ public abstract class OutputTypeConfiguration {
    * 
    * @param propertyClassName class name of the property to be removed
    * @return true if the property is successfully removed, false if it was not in the List of output properties
-   * @throws PlanItException thrown if there is an error removing the property
    */
-  public boolean removeProperty(String propertyClassName) throws PlanItException {
+  public boolean removeProperty(String propertyClassName) {
     return outputProperties.remove(OutputProperty.of(propertyClassName));
   }
 
@@ -145,10 +165,14 @@ public abstract class OutputTypeConfiguration {
    * 
    * @param outputProperty enumeration value specifying which output property is to be removed
    * @return true if the property is successfully removed, false if it was not in the List of output properties
-   * @throws PlanItException thrown if there is an error removing the property
    */
-  public boolean removeProperty(OutputPropertyType outputProperty) throws PlanItException {
+  public boolean removeProperty(OutputPropertyType outputProperty){
     OutputProperty baseOutputProperty = OutputProperty.of(outputProperty);
+    if(baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY)){
+      LOGGER.warning(String.format(
+          "Removing column %s that is typically used as an index from output configuration, may result in " +
+                  "non-unique output", outputProperty));
+    }
     if (outputProperties.contains(baseOutputProperty)) {
       return outputProperties.remove(baseOutputProperty);
     }
@@ -169,7 +193,8 @@ public abstract class OutputTypeConfiguration {
    * @return the output property itself, null if not registered
    */
   public OutputProperty getOutputProperty(OutputPropertyType outputPropertyType) {
-    return outputProperties.stream().dropWhile(prop -> !prop.getOutputPropertyType().equals(outputPropertyType)).findFirst().orElseGet(null);
+    return outputProperties.stream().dropWhile(
+            prop -> !prop.getOutputPropertyType().equals(outputPropertyType)).findFirst().orElseGet(null);
   }
 
   /**
@@ -180,9 +205,8 @@ public abstract class OutputTypeConfiguration {
    * @return array of output key properties used in the LinkOutputAdapter
    */
   public OutputProperty[] getOutputKeyProperties() {
-    return getOutputPropertyArray(baseOutputProperty -> {
-      return baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY);
-    });
+    return getOutputPropertyArray(
+        baseOutputProperty -> baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY));
   }
 
   /**
@@ -193,9 +217,8 @@ public abstract class OutputTypeConfiguration {
    * @return array of output value properties used in the LinkOutputAdapter
    */
   public OutputProperty[] getOutputValueProperties() {
-    return getOutputPropertyArray(baseOutputProperty -> {
-      return !baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY);
-    });
+    return getOutputPropertyArray(
+        baseOutputProperty -> !baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY));
   }
 
   /**
@@ -226,11 +249,39 @@ public abstract class OutputTypeConfiguration {
     OutputProperty outputProperty = getOutputProperty(outputPropertyType);
     if (outputProperty != null) {
       if (!outputProperty.supportsUnitOverride()) {
-        LOGGER.warning(String.format("IGNORE: Output property %s does not (yet) support overriding its units", outputProperty.getName()));
+        LOGGER.warning(String.format(
+                "IGNORE: Output property %s does not (yet) support overriding its units", outputProperty.getName()));
         return;
       }
       outputProperty.setUnitOverride(overrideUnits);
     }
   }
 
+  /**
+   * Set whether only the final iteration will be recorded or all iterations
+   *
+   * @param persistOnlyFinalIteration true if only the final iteration will be recorded
+   */
+  public void setPersistOnlyFinalIteration(boolean persistOnlyFinalIteration) {
+    this.persistOnlyFinalIteration = persistOnlyFinalIteration;
+  }
+
+  /**
+   * Returns whether only the final iteration will be recorded
+   *
+   * @return true if only the final iteration will be recorded, false otherwise
+   */
+  public boolean isPersistOnlyFinalIteration() {
+    return persistOnlyFinalIteration;
+  }
+
+
+  /**
+   * Verify if any output properties are current active for persistence
+   *
+   * @return true if any are present, false otherwise
+   */
+  public boolean hasActiveOutputProperties() {
+    return !CollectionUtils.nullOrEmpty(this.outputProperties);
+  }
 }

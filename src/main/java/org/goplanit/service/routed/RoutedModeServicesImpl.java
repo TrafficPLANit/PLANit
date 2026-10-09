@@ -43,7 +43,11 @@ public class RoutedModeServicesImpl extends ManagedIdEntitiesImpl<RoutedService>
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedModeServicesImpl(RoutedModeServicesImpl routedModeServicesImpl, boolean deepCopy, BiConsumer<RoutedService, RoutedService> mapper) {
+  public RoutedModeServicesImpl(
+      RoutedModeServicesImpl routedModeServicesImpl,
+      boolean deepCopy,
+      BiConsumer<RoutedService, RoutedService> mapper) {
+
     super(routedModeServicesImpl, deepCopy, mapper);
     this.supportedMode = routedModeServicesImpl.supportedMode;
     this.factory =

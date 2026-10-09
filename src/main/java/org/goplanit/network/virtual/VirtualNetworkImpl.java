@@ -1,18 +1,21 @@
 package org.goplanit.network.virtual;
 
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.network.Network;
-import org.goplanit.utils.graph.EdgeUtils;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
-import org.goplanit.utils.graph.Vertex;
-import org.goplanit.utils.graph.VertexUtils;
 import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.directed.EdgeSegmentUtils;
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
+import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.network.virtual.*;
-import org.goplanit.utils.zoning.Centroid;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
+import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
+import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
+import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Model free virtual network which is part of the zoning and holds all the virtual infrastructure connecting the zones to the physical road network.
@@ -31,22 +34,7 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
 
   // Protected
 
-  // PUBLIC
-
-  /**
-   * Container for connectoid edges
-   */
-  protected final ConnectoidEdgesImpl connectoidEdges;
-
-  /**
-   * Container for connectoid edge segments
-   */
-  protected final ConnectoidSegmentsImpl connectoidSegments;
-
-  /**
-   * Container for centroid vertices
-   */
-  protected final CentroidVerticesImpl centroidVertices;
+  protected VirtualNetworkLayerImpl virtualLayer;
 
   /**
    * Constructor
@@ -55,9 +43,7 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    */
   public VirtualNetworkImpl(final IdGroupingToken tokenId) {
     super(tokenId);
-    this.connectoidSegments = new ConnectoidSegmentsImpl(getIdGroupingToken());
-    this.connectoidEdges = new ConnectoidEdgesImpl(getIdGroupingToken());
-    this.centroidVertices = new CentroidVerticesImpl(getIdGroupingToken());
+    virtualLayer = new VirtualNetworkLayerImpl(tokenId);
   }
 
   /**
@@ -65,68 +51,47 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    *
    * @param other to clone
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
-   * @param connectoidEdgeMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param connectoidLinkMapper to use for tracking mapping between original and copied entity (may be null)
    * @param connectoidSegmentMapper to use for tracking mapping between original and copied entity (may be null)
    * @param centroidVertexMapper to use for tracking mapping between original and copied entity (may be null)
+   * @param movementMapper to use for tracking mapping between original and copied entity (may be null)
    */
+  @SuppressWarnings("unchecked")
   protected VirtualNetworkImpl(
       final VirtualNetworkImpl other,
       boolean deepCopy,
-      GraphEntityDeepCopyMapper<ConnectoidEdge> connectoidEdgeMapper,
-      GraphEntityDeepCopyMapper<ConnectoidSegment> connectoidSegmentMapper,
-      GraphEntityDeepCopyMapper<CentroidVertex> centroidVertexMapper
-      ) {
+      GraphEntityDeepCopyMapper<? extends ConnectoidDirectedEdge> connectoidLinkMapper,
+      GraphEntityDeepCopyMapper<? extends ConnectoidSegment> connectoidSegmentMapper,
+      GraphEntityDeepCopyMapper<? extends CentroidVertex> centroidVertexMapper,
+      ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
     super(other, deepCopy);
 
-    // container wrappers so requires clone also for shallow copy
-    if(deepCopy){
-      this.connectoidSegments = other.connectoidSegments.deepCloneWithMapping(connectoidSegmentMapper);
-      this.connectoidEdges    = other.connectoidEdges.deepCloneWithMapping(connectoidEdgeMapper);
-      this.centroidVertices   = other.centroidVertices.deepCloneWithMapping(centroidVertexMapper);
+    this.virtualLayer = deepCopy ?
+            getLayer().deepCloneWithMapping(
+                (GraphEntityDeepCopyMapper<ConnectoidLink>) connectoidLinkMapper,
+                (GraphEntityDeepCopyMapper<ConnectoidSegment>) connectoidSegmentMapper,
+                (GraphEntityDeepCopyMapper<CentroidVertex>) centroidVertexMapper,
+                movementMapper) :
+            getLayer().shallowClone();
+  }
 
-      // update edges connected to all centroid vertices as these have been copied and existing references are outdated
-      VertexUtils.updateVertexEdges(centroidVertices, (ConnectoidEdge edge) -> connectoidEdgeMapper.getMapping(edge), true);
-      // connectoid edges partly reside in physical network, so we keep those mappings as is, but we do update the centroid vertex mappings
-      EdgeUtils.updateEdgeVertices(
-          connectoidEdges,
-          (DirectedVertex vertex) -> {
-              if( !(vertex instanceof  CentroidVertex)){
-                return null;
-              }
-              return centroidVertexMapper.getMapping((CentroidVertex) vertex);
-          },
-          false);
-      // update connectoid segment parent connectoid edges
-      EdgeSegmentUtils.updateEdgeSegmentParentEdges(connectoidSegments, (ConnectoidEdge originalEdge) -> connectoidEdgeMapper.getMapping(originalEdge), true);
-    }else{
-      this.connectoidSegments = other.connectoidSegments.shallowClone();
-      this.connectoidEdges    = other.connectoidEdges.shallowClone();
-      this.centroidVertices   = other.centroidVertices.shallowClone();
-    }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void logInfo(String prefix){
+    LOGGER.info(String.format(
+        "%sVirtual network (%s) has %d layer", prefix, getIdsAsString(), 1));
+    getLayer().logInfo(prefix + LoggingUtils.virtualNetworkLayerPrefix(getLayer().getId()));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ConnectoidSegments getConnectoidSegments() {
-    return connectoidSegments;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ConnectoidEdges getConnectoidEdges() {
-    return connectoidEdges;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public CentroidVertices getCentroidVertices() {
-    return centroidVertices;
+  public VirtualNetworkLayerImpl getLayer() {
+    return virtualLayer;
   }
 
   /**
@@ -134,9 +99,7 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    */
   @Override
   public void clear() {
-    connectoidEdges.clear();
-    connectoidSegments.clear();
-    centroidVertices.clear();
+    getLayer().clear();
   }
 
   /**
@@ -144,19 +107,7 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    */
   @Override
   public void reset() {
-    connectoidEdges.reset();
-    connectoidSegments.reset();
-    centroidVertices.reset();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void logInfo(String prefix) {
-    LOGGER.info(String.format("%s#connectoid edges: %d", prefix, getConnectoidEdges().size()));
-    LOGGER.info(String.format("%s#connectoid segments: %d", prefix, getConnectoidSegments().size()));
-    LOGGER.info(String.format("%s#centroid vertices: %d", prefix, getCentroidVertices().size()));
+    getLayer().reset();
   }
 
   /**
@@ -164,16 +115,35 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    */
   @Override
   public boolean isEmpty() {
-    return VirtualNetwork.super.isEmpty();
+    return getLayer().isEmpty();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ConjugateVirtualNetworkImpl createConjugate(IdGroupingToken idToken) {
-    var conjugateVirtualNetwork = new ConjugateVirtualNetworkImpl(idToken, this);
-    conjugateVirtualNetwork.update();
+  public void transform(
+          CoordinateReferenceSystem fromCoordinateReferenceSystem,
+          CoordinateReferenceSystem toCoordinateReferenceSystem){
+    //delegate to single available layer
+   getLayer().transform(fromCoordinateReferenceSystem,toCoordinateReferenceSystem);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateVirtualNetworkImpl createConjugate(
+          IdGroupingToken idToken, boolean resetIdToken) {
+    // it is expected we start by creating the virtual network, so we can safely create a layer token which then can
+    // be reused by the physical network layer once we create that conjugate. Not ideal but for now it suffices to ensure
+    // contiguous ids across both networks
+    var conjugateVirtualNetwork =
+            new ConjugateVirtualNetworkImpl(
+                    idToken,
+                    IdGenerator.createIdGroupingToken(this, getId()), // <---
+                    this);
+    conjugateVirtualNetwork.recreateFromReferenceVirtualNetwork(resetIdToken);
     return conjugateVirtualNetwork;
   }
 
@@ -182,7 +152,8 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    */
   @Override
   public VirtualNetworkImpl shallowClone() {
-    return new VirtualNetworkImpl(this, false, null, null, null);
+    return new VirtualNetworkImpl(
+            this, false, null, null, null, null);
   }
 
   /**
@@ -190,17 +161,30 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    */
   @Override
   public VirtualNetworkImpl deepClone() {
-    return deepCloneWithMapping(new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>(), new GraphEntityDeepCopyMapper<>());
+    return deepCloneWithMapping(
+        new GraphEntityDeepCopyMapper<>(),
+        new GraphEntityDeepCopyMapper<>(),
+        new GraphEntityDeepCopyMapper<>(),
+        new ManagedIdDeepCopyMapper<>());
   }
 
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("Unchecked")
   @Override
-  public VirtualNetworkImpl deepCloneWithMapping(GraphEntityDeepCopyMapper<ConnectoidEdge> connectoidEdgeMapper,
-                                                 GraphEntityDeepCopyMapper<ConnectoidSegment> connectoidSegmentMapper,
-                                                 GraphEntityDeepCopyMapper<CentroidVertex> centroidVertexMapper) {
-    return new VirtualNetworkImpl(this, true, connectoidEdgeMapper, connectoidSegmentMapper, centroidVertexMapper);
+  public VirtualNetworkImpl deepCloneWithMapping(
+      GraphEntityDeepCopyMapper<? extends ConnectoidDirectedEdge> connectoidEdgeMapper,
+      GraphEntityDeepCopyMapper<? extends ConnectoidSegment> connectoidSegmentMapper,
+      GraphEntityDeepCopyMapper<? extends DirectedVertex> centroidVertexMapper,
+      ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
+    return new VirtualNetworkImpl(
+        this,
+        true,
+        connectoidEdgeMapper,
+        connectoidSegmentMapper,
+        (GraphEntityDeepCopyMapper<CentroidVertex>) centroidVertexMapper,
+        movementMapper);
   }
 
 }
