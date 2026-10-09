@@ -149,13 +149,15 @@ public class ModeAccessRestrictionTest extends LayerTestBase {
     createNodes(3);
     link(0, 1, roadWithFootway, roadWithFootway);
     var stub = link(1, 2, carOnly, null);   // car only, one way, so cars enter node 2 and cannot return
+    var stubSegment = stub.getLinkSegmentAb();
 
     var cleanup = restrictAllAndCleanUp();
 
-    assertEquals(1, cleanup.getRemovedLinkSegments(), "nothing could use the segment any more");
-    assertEquals(1, cleanup.getRemovedLinks(), "the link was left with no segments");
-    assertEquals(1, cleanup.getRemovedNodes(), "and node 2 was left with no edges");
-    assertEquals(1, cleanup.getRemovedLinkSegmentTypes(), "the emptied type has no purpose");
+    assertEquals(List.of(stubSegment), cleanup.getRemovedLinkSegments(), "nothing could use the segment any more");
+    assertEquals(List.of(stub), cleanup.getRemovedLinks(), "the link was left with no segments");
+    assertEquals(List.of(nodes.get(2)), cleanup.getRemovedNodes(), "and node 2 was left with no edges");
+    assertEquals(List.of(stubSegment.getLinkSegmentType()), cleanup.getRemovedLinkSegmentTypes(),
+        "the emptied type has no purpose");
 
     assertEquals(1, layer.getLinks().size());
     assertEquals(2, layer.getLinkSegments().size());
@@ -179,9 +181,31 @@ public class ModeAccessRestrictionTest extends LayerTestBase {
 
     var cleanup = restrictAllAndCleanUp();
 
-    assertEquals(1, cleanup.getRemovedIntersections(), "its only approach went, it controls no traffic");
+    assertEquals(List.of(junction), cleanup.getRemovedIntersections(),
+        "its only approach went, it controls no traffic");
     assertTrue(layer.getIntersections().isEmpty());
     assertNotNull(layer.getNodes().get(nodes.get(1).getId()), "its node stays for the road still using it");
+  }
+
+  /**
+   * An intersection on a node the final pass removes, left without edges, goes with it, and is stated by the result
+   * like one left without approaches.
+   */
+  @Test
+  public void intersectionOnRemovedNodeIsRemovedByTheFinalPass() {
+    createNodes(3);
+    link(0, 1, roadWithFootway, roadWithFootway);
+    link(1, 2, carOnly, null);   // car only, one way, so cars enter node 2 and cannot return
+    var deadEnd = layer.getIntersections().getFactory().create(
+        nodes.get(2), IntersectionControlType.SIGNALISED, IntersectionType.JUNCTION);
+    deadEnd.addApproachSegment(segment(1, 2));
+    layer.getIntersections().getFactory().register(deadEnd);
+
+    var cleanup = restrictAllAndCleanUp();
+
+    assertEquals(List.of(nodes.get(2)), cleanup.getRemovedNodes());
+    assertEquals(List.of(deadEnd), cleanup.getRemovedIntersections(), "it went with its node");
+    assertTrue(layer.getIntersections().isEmpty());
   }
 
   /**

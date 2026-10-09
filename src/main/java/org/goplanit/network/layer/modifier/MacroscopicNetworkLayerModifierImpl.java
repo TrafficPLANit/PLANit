@@ -1,7 +1,11 @@
 package org.goplanit.network.layer.modifier;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -182,47 +186,42 @@ public class MacroscopicNetworkLayerModifierImpl
    */
   @Override
   public ModeAccessCleanupModifierResult removeInfrastructureWithoutModeAccess() {
-    int removedLinkSegments = 0;
-    int removedLinks = 0;
-    int removedNodes = 0;
-
-    /* the intersections removed along the way are stated by the result, not logged as they go */
-    long intersectionsBefore = intersections.size();
+    /* what is removed along the way is stated by the result, not logged as it goes; intersections go both here and
+     * with their nodes, so those removed are the ones present before and missing after */
+    List<Intersection> intersectionsBefore = new ArrayList<>(intersections.size());
+    intersections.forEach(intersectionsBefore::add);
+    List<MacroscopicLinkSegment> unusableSegments;
+    List<MacroscopicLink> emptyLinks;
+    List<Node> danglingNodes;
     boolean logModifications = isLogModifications();
     setLogModifications(false);
     try {
       /* collected before removing throughout, since removal mutates the containers being iterated */
-      List<MacroscopicLinkSegment> unusableSegments = layer.getLinkSegments().stream()
+      unusableSegments = layer.getLinkSegments().stream()
           .filter(linkSegment -> !linkSegment.hasLinkSegmentType() ||
               !linkSegment.getLinkSegmentType().hasAllowedModes())
           .collect(Collectors.toList());
-      for (var linkSegment : unusableSegments) {
-        removeEdgeSegment(linkSegment);
-        ++removedLinkSegments;
-      }
+      unusableSegments.forEach(this::removeEdgeSegment);
 
-      List<MacroscopicLink> emptyLinks = layer.getLinks().stream()
+      emptyLinks = layer.getLinks().stream()
           .filter(link -> !link.hasEdgeSegmentAb() && !link.hasEdgeSegmentBa())
           .collect(Collectors.toList());
-      for (var link : emptyLinks) {
-        removeEdge(link);
-        ++removedLinks;
-      }
+      emptyLinks.forEach(this::removeEdge);
 
-      List<Node> danglingNodes = layer.getNodes().stream()
+      danglingNodes = layer.getNodes().stream()
           .filter(node -> node.getEdges() == null || node.getEdges().isEmpty())
           .collect(Collectors.toList());
-      for (var node : danglingNodes) {
-        removeVertex(node);
-        ++removedNodes;
-      }
+      danglingNodes.forEach(this::removeVertex);
 
       /* an intersection whose approaches all went controls no traffic; one that lost its nodes went with them */
       removeIncompleteIntersections(false, true);
     } finally {
       setLogModifications(logModifications);
     }
-    int removedIntersections = (int) (intersectionsBefore - intersections.size());
+    Set<Intersection> remaining = Collections.newSetFromMap(new IdentityHashMap<>());
+    intersections.forEach(remaining::add);
+    List<Intersection> removedIntersections = intersectionsBefore.stream()
+        .filter(intersection -> !remaining.contains(intersection)).collect(Collectors.toList());
 
     /* a type granting nothing has no purpose once the segments carrying it are gone */
     var unusedTypes = layer.getLinkSegmentTypes().stream()
@@ -233,7 +232,7 @@ public class MacroscopicNetworkLayerModifierImpl
     }
 
     return new ModeAccessCleanupModifierResult(
-        removedLinkSegments, removedLinks, removedNodes, unusedTypes.size(), removedIntersections);
+        unusableSegments, emptyLinks, danglingNodes, unusedTypes, removedIntersections);
   }
 
   /**
