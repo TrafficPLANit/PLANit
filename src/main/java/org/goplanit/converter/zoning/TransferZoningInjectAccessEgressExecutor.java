@@ -247,7 +247,7 @@ public class TransferZoningInjectAccessEgressExecutor {
     // implicitly allowed modes in case no explicit modes are set on connectoid
     var allAvailableModes = referenceNetwork.getModes();
     var nonFerryModes = allAvailableModes.stream().filter(
-        m -> !m.getPredefinedModeType().equals(PredefinedModeType.FERRY)).collect(Collectors.toSet());
+        m -> !m.isPredefinedModeType(PredefinedModeType.FERRY)).collect(Collectors.toSet());
 
     // create index from transfer zone to transfer connectoid for efficient checking
     var connectoidsByTransferZoneMapping = referenceZoning.getTransferConnectoids().createIndexByAccessZone();
@@ -348,10 +348,10 @@ public class TransferZoningInjectAccessEgressExecutor {
     }
 
     var busBasedModes = referenceNetwork.getModes().stream().filter(
-        m -> m.getPredefinedModeType().equals(PredefinedModeType.BUS)).collect(Collectors.toSet());
+        m -> m.isPredefinedModeType(PredefinedModeType.BUS)).collect(Collectors.toSet());
     // access/egress modes we'll support (for bus we assume bicycles are not used (yet))
     var allSupportedActiveModes = collectAccessEgressModes(referenceNetwork.getModes().stream().filter(
-        m -> m.getPredefinedModeType().equals(PredefinedModeType.PEDESTRIAN)).collect(Collectors.toSet()), settings);
+        m -> m.isPredefinedModeType(PredefinedModeType.PEDESTRIAN)).collect(Collectors.toSet()), settings);
     if(allSupportedActiveModes.isEmpty()){
       return;
     }

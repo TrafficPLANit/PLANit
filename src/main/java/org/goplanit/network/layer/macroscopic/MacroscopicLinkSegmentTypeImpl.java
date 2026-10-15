@@ -205,9 +205,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    */
   @Override
   public boolean isModeTypeAllowed(PredefinedModeType modeType) {
-    return modeAccessProperties.entrySet().stream().anyMatch(
-            entry -> entry.getKey().isPredefinedModeType() &&
-                entry.getKey().getPredefinedModeType().equals(modeType));
+    return modeAccessProperties.keySet().stream().anyMatch(mode -> mode.isPredefinedModeType(modeType));
   }
 
   /**
