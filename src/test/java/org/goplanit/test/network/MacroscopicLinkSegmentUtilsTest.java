@@ -94,4 +94,32 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
         Set.copyOf(MacroscopicLinkSegmentUtils.findContinuations(arriving, segment -> true)));
     assertTrue(MacroscopicLinkSegmentUtils.findContinuations(segment(1, 3), segment -> true).isEmpty());
   }
+
+  /**
+   * The predecessors of a segment enter the node it leaves and meet the condition. Coming from the link it leaves along
+   * is never one. A segment leaving a node nothing enters has none
+   */
+  @Test
+  public void findPredecessorsLeavesOutTheLinkLeftAlongAndSegmentsFailingTheCondition() {
+    /*
+     * 0 --carOnly--> 1 <--carOnly--> 2
+     *                ^
+     *             walkOnly
+     *                |
+     *                3
+     *
+     * leaving along 1->2, the segment 2->1 comes from the link left along
+     */
+    createNodes(4);
+    link(0, 1, carOnly, null);
+    link(1, 2, carOnly, carOnly);
+    link(3, 1, walkOnly, null);
+
+    var leaving = segment(1, 2);
+    assertEquals(List.of(segment(0, 1)),
+        MacroscopicLinkSegmentUtils.findPredecessors(leaving, MacroscopicLinkSegmentUtils.permitsMotorisedRoadMode()));
+    assertEquals(Set.of(segment(0, 1), segment(3, 1)),
+        Set.copyOf(MacroscopicLinkSegmentUtils.findPredecessors(leaving, segment -> true)));
+    assertTrue(MacroscopicLinkSegmentUtils.findPredecessors(segment(0, 1), segment -> true).isEmpty());
+  }
 }
