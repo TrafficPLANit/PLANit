@@ -10,7 +10,6 @@ import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.graph.directed.BannedMovement;
 import org.goplanit.utils.graph.directed.BannedMovements;
 import org.goplanit.utils.network.virtual.VirtualNetworkLayer;
@@ -126,11 +125,6 @@ public class VirtualNetworkLayerImpl
 
   @Override
   public Collection<Mode> getSupportedModes() {
-    throw new PlanItRunTimeException("Not yet supported to be derived from physical network for now");
-  }
-
-  @Override
-  public boolean supportsPredefinedMode(PredefinedModeType predefinedModeType) {
     throw new PlanItRunTimeException("Not yet supported to be derived from physical network for now");
   }
 

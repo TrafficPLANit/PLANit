@@ -12,7 +12,6 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.NetworkLayer;
 
 /**
@@ -98,14 +97,6 @@ public abstract class NetworkLayerImpl extends ExternalIdAbleImpl implements Net
   @Override
   public Collection<Mode> getSupportedModes() {
     return supportedModes.values();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean supportsPredefinedMode(PredefinedModeType predefinedModeType) {
-    return supportedModes.values().stream().anyMatch(m -> m.isPredefinedModeType(predefinedModeType));
   }
 
   /**
