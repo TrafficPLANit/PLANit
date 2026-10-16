@@ -31,7 +31,8 @@ public class RelativeLegTimingImpl implements RelativeLegTiming {
    * @param duration         to use
    * @param dwellTime        to use
    */
-  protected RelativeLegTimingImpl(final ServiceLegSegment parentLegSegment, final LocalTime duration, final LocalTime dwellTime) {
+  protected RelativeLegTimingImpl(
+      final ServiceLegSegment parentLegSegment, final LocalTime duration, final LocalTime dwellTime) {
     super();
     this.duration = duration;
     this.dwellTime = dwellTime;
@@ -91,7 +92,8 @@ public class RelativeLegTimingImpl implements RelativeLegTiming {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     RelativeLegTimingImpl that = (RelativeLegTimingImpl) o;
-    return Objects.equals(parentLegSegment, that.parentLegSegment) && Objects.equals(duration, that.duration) && Objects.equals(dwellTime, that.dwellTime);
+    return Objects.equals(parentLegSegment, that.parentLegSegment) &&
+        Objects.equals(duration, that.duration) && Objects.equals(dwellTime, that.dwellTime);
   }
 
   /**

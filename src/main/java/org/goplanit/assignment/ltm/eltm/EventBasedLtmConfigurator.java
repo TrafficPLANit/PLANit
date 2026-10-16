@@ -21,9 +21,8 @@ public class EventBasedLtmConfigurator extends LtmConfigurator<EventBasedLtm> {
   /**
    * Constructor
    * 
-   * @throws PlanItException thrown when error
    */
-  public EventBasedLtmConfigurator() throws PlanItException {
+  public EventBasedLtmConfigurator(){
     super(EventBasedLtm.class);
     createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
     createAndRegisterNodeModel(NodeModel.TAMPERE);

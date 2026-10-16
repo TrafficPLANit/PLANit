@@ -17,6 +17,7 @@ import org.goplanit.output.enums.OutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.networkloading.NetworkLoading;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.zoning.Zoning;
 
@@ -25,7 +26,7 @@ import org.goplanit.zoning.Zoning;
  * assignment methods might require special builders derived from this builder
  *
  * @author markr
- *
+ * @param <T> type of assignment
  */
 public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> extends PlanitComponentBuilder<T> {
 
@@ -38,21 +39,24 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @param demands Demands object to be registered
    * @param zoning  Zoning object to be registered
    * @param network network object to be registered
-   * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
    */
-  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final LayeredNetwork<?, ?> network) throws PlanItException {
+  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final LayeredNetwork<?, ?> network) {
     if (zoning == null || demands == null || network == null) {
-      PlanItException.throwIf(zoning == null, "zoning in registerDemandZoningAndNetwork is null");
-      PlanItException.throwIf(demands == null, "demands in registerDemandZoningAndNetwork is null");
-      PlanItException.throwIf(network == null, "network in registerDemandZoningAndNetwork is null");
+      PlanItRunTimeException.throwIf(zoning == null,
+          "Zoning in registerDemandZoningAndNetwork is null");
+      PlanItRunTimeException.throwIf(demands == null,
+          "Demands in registerDemandZoningAndNetwork is null");
+      PlanItRunTimeException.throwNew("network in registerDemandZoningAndNetwork is null");
     }
-    PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, network.getModes()),
-        "Zoning structure is incompatible with one or more of the demands, likely the number of zones does not match the number of origins and/or destinations");
+    PlanItRunTimeException.throwIf(!zoning.isCompatibleWithDemands(demands, network.getModes()),
+        "Zoning structure is incompatible with one or more of the demands, likely the number of zones does " +
+            "not match the number of origins and/or destinations");
 
     for (var mode : network.getModes()) {
       for (var timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
         if (demands.get(mode, timePeriod) == null) {
-          LOGGER.warning("No demand matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
+          LOGGER.warning("No demand matrix defined for Mode " + mode.getExternalId() + " and Time Period " +
+              timePeriod.getExternalId());
         }
       }
     }
@@ -83,23 +87,24 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * {@inheritDoc}
    */
   @Override
-  protected abstract TrafficAssignmentConfigurator<T> createConfigurator() throws PlanItException;
+  protected abstract TrafficAssignmentConfigurator<T> createConfigurator();
 
   /**
    * Factory method to create the instance of the desired type
    * 
    * @return instance of traffic assignment
-   * @throws PlanItException thrown when error
    */
   @SuppressWarnings("unchecked")
-  protected T createTrafficAssignmentInstance() throws PlanItException {
+  protected T createTrafficAssignmentInstance() {
     String trafficAssignmentClassName = getClassToBuild().getCanonicalName();
 
     var assignmentFactory = new PlanitComponentFactory<TrafficAssignment>(NetworkLoading.class.getCanonicalName());
     assignmentFactory.addListener(getInputBuilderListener());
 
-    var networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentClassName, new Object[] { groupId });
-    PlanItException.throwIf(!(networkLoadingAndAssignment instanceof TrafficAssignment), "not a valid traffic assignment type");
+    var networkLoadingAndAssignment =
+            assignmentFactory.createAndDispatch(trafficAssignmentClassName, new Object[] { groupId });
+    PlanItRunTimeException.throwIf(!(networkLoadingAndAssignment instanceof TrafficAssignment),
+        "not a valid traffic assignment type");
     return (T) networkLoadingAndAssignment;
   }
 
@@ -107,9 +112,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * create a smoothing instance based on configuration
    * 
    * @return smoothing instance
-   * @throws PlanItException thrown if error
    */
-  protected Smoothing createSmoothingInstance() throws PlanItException {
+  protected Smoothing createSmoothingInstance() {
     return PlanitComponentFactory.createWithListeners(
         Smoothing.class,
         getConfigurator().getSmoothing().getClassTypeToConfigure(),
@@ -121,9 +125,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * create a physical cost instance based on configuration
    *
    * @return physical cost instance
-   * @throws PlanItException thrown if error
    */
-  protected AbstractPhysicalCost createPhysicalCostInstance() throws PlanItException {
+  protected AbstractPhysicalCost createPhysicalCostInstance() {
     return PlanitComponentFactory.createWithListeners(
         AbstractPhysicalCost.class,
         getConfigurator().getPhysicalCost().getClassTypeToConfigure(),
@@ -136,9 +139,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * create a virtual cost instance based on configuration
    * 
    * @return virtual cost instance
-   * @throws PlanItException thrown if error
    */
-  protected AbstractVirtualCost createVirtualCostInstance() throws PlanItException {
+  protected AbstractVirtualCost createVirtualCostInstance() {
     return PlanitComponentFactory.createWithListeners(
         AbstractVirtualCost.class,
         getConfigurator().getVirtualCost().getClassTypeToConfigure(),
@@ -151,9 +153,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * 
    * @param stopCriterion to use
    * @return gap function instance
-   * @throws PlanItException thrown if error
    */
-  protected GapFunction createGapFunctionInstance(StopCriterion stopCriterion) throws PlanItException {
+  protected GapFunction createGapFunctionInstance(StopCriterion stopCriterion) {
     return PlanitComponentFactory.createWithListeners(
         GapFunction.class,
         getConfigurator().getGapFunction().getClassTypeToConfigure(),
@@ -162,7 +163,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
   }
 
   /**
-   * call to build and configure all sub components of this builder
+   * call to build and configure all subcomponents of this builder
    * 
    * @param trafficAssignmentInstance instance to build subcomponents for
    * @throws PlanItException thrown if error
@@ -234,10 +235,14 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @param demands                the demands
    * @param zoning                 the zoning
    * @param network                the network
-   * @throws PlanItException thrown when error
    */
-  protected TrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, final IdGroupingToken projectToken, InputBuilderListener inputBuilderListener, final Demands demands,
-      final Zoning zoning, final LayeredNetwork<?, ?> network) throws PlanItException {
+  protected TrafficAssignmentBuilder(
+      final Class<T> trafficAssignmentClass,
+      final IdGroupingToken projectToken,
+      InputBuilderListener inputBuilderListener,
+      final Demands demands,
+      final Zoning zoning,
+      final LayeredNetwork<?, ?> network) {
     super(trafficAssignmentClass, projectToken, inputBuilderListener);
 
     /* register inputs (on configurator) */
@@ -278,7 +283,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     // Allow derived classes to verify if the chosen inputs are compatible before proceeding, not mandatory
     trafficAssignment.verifyNetworkDemandZoningCompatibility();
 
-    // build the sub components of the assignment as well
+    // build the subcomponents of the assignment as well
     buildSubComponents(trafficAssignment);
 
     /* information is now present to generate appropriate output type adapters (requires output manager which now has been set */

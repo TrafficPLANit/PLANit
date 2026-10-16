@@ -18,7 +18,7 @@ import org.goplanit.utils.mode.VehicularModeType;
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: NON_MOTORISED</li>
  * <li>track: ROAD</li>
- * <li>use: PRIVATE</li>
+ * <li>use: ACTIVE</li>
  * </ul>
  * 
  * @author markr
@@ -26,18 +26,20 @@ import org.goplanit.utils.mode.VehicularModeType;
  */
 public class BicycleMode extends PredefinedModeImpl {
 
-  /* default max speed value for bicycle mode */
+  /** default max speed value for bicycle mode */
   public static final double DEFAULT_MAX_SPEED_KMH = 15;
 
-  /* default pcu value for bicycle mode */
+  /** default pcu value for bicycle mode */
   public static final double DEFAULT_PCU = 0.2;
 
-  /* default physical features of bicycle (VEHICLE, NON_MOTORISED, ROAD) */
-  public static final PhysicalModeFeatures BICYCLE_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.NON_MOTORISED,
+  /** default physical features of bicycle (VEHICLE, NON_MOTORISED, ROAD) */
+  public static final PhysicalModeFeatures BICYCLE_PHYSICAL_FEATURES =
+          new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.NON_MOTORISED,
       TrackModeType.ROAD);
 
-  /* default usability features of bicycle (PRIVATE) */
-  public static final UsabilityModeFeatures BICYCLE_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);
+  /** default usability features of bicycle (ACTIVE) */
+  public static final UsabilityModeFeatures BICYCLE_USABLITY_FEATURES =
+          new UsabilityModeFeaturesImpl(UseOfModeType.ACTIVE);
 
   /**
    * Constructor for bicycle mode
@@ -45,7 +47,8 @@ public class BicycleMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected BicycleMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.BICYCLE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, BICYCLE_PHYSICAL_FEATURES, BICYCLE_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.BICYCLE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, BICYCLE_PHYSICAL_FEATURES,
+            BICYCLE_USABLITY_FEATURES);
   }
 
   /**

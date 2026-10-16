@@ -13,7 +13,7 @@ import org.goplanit.utils.path.ManagedDirectedPathFactory;
  * 
  * @author markr
  */
-public class ManagedDirectedPathFactoryImpl extends ManagedIdEntityFactoryImpl<ManagedDirectedPath> implements ManagedDirectedPathFactory {
+public class ManagedDirectedPathFactoryImpl extends ManagedIdEntityFactoryImpl<ManagedDirectedPath> implements ManagedDirectedPathFactory<ManagedDirectedPath> {
 
   /**
    * Constructor

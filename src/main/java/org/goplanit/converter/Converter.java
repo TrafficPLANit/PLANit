@@ -27,30 +27,44 @@ public abstract class Converter<T> extends ConverterBase {
     super(reader, writer);
   }
 
+  /**
+   * Read the source
+   *
+   * @return read content
+   */
   protected T read(){
     var reader = ((ConverterReader<T>) getReader());
-    LOGGER.info(String.format("****************** [START] CONVERTER: READ %s [START] ********************", reader.getTypeDescription()));
+    LOGGER.info(String.format("****************** [START] CONVERTER: READ %s [START] ********************",
+            reader.getTypeDescription()));
     T entity = reader.read();
     reader.reset();
-    LOGGER.info(String.format("****************** [END]   CONVERTER: READ %s [END]   ********************", reader.getTypeDescription()));
+    LOGGER.info(String.format("****************** [END]   CONVERTER: READ %s [END]   ********************",
+            reader.getTypeDescription()));
     return entity;
   }
 
-  protected void write(T readEntity) throws PlanItException {
+  /**
+   * write the sink
+   *
+   * @param readEntity  read content
+   */
+  protected void write(T readEntity) {
     ConverterWriter<T> writer = ((ConverterWriter<T>) getWriter());
-    LOGGER.info(String.format("****************** [START] CONVERTER: WRITE %s [START] ********************", writer.getTypeDescription()));
+    LOGGER.info(String.format("****************** [START] CONVERTER: WRITE %s [START] ********************",
+            writer.getTypeDescription()));
     writer.write(readEntity);
     writer.reset();
-    LOGGER.info(String.format("****************** [END]   CONVERTER: WRITE %s [END]   ********************", writer.getTypeDescription()));
+    LOGGER.info(String.format("****************** [END]   CONVERTER: WRITE %s [END]   ********************",
+            writer.getTypeDescription()));
   }
 
   /**
-   * Convert the reader's parsed content by passing it on to the writer. It is assumed both reader and writer are fully configured when this method is called
-   * 
-   * @throws PlanItException thrown if error
+   * Convert the reader's parsed content by passing it on to the writer. It is assumed both reader and writer are
+   * fully configured when this method is called
+   *
    */
   @SuppressWarnings("unchecked")
-  public void convert() throws PlanItException {
+  public void convert() {
     write(read());
   }
 

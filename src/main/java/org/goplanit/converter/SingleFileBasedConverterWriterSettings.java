@@ -1,9 +1,8 @@
 package org.goplanit.converter;
 
 import org.goplanit.converter.ConverterWriterSettings;
-import org.goplanit.utils.locale.CountryNames;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.StringUtils;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import java.util.logging.Logger;
 
@@ -13,10 +12,12 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class SingleFileBasedConverterWriterSettings extends FileBasedConverterWriterSettings implements ConverterWriterSettings {
+public class SingleFileBasedConverterWriterSettings extends FileBasedConverterWriterSettings
+    implements ConverterWriterSettings {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(SingleFileBasedConverterWriterSettings.class.getCanonicalName());
+  private static final Logger LOGGER =
+      Logger.getLogger(SingleFileBasedConverterWriterSettings.class.getCanonicalName());
 
   /** destination file name to persist to */
   private String fileName = null;
@@ -68,7 +69,8 @@ public class SingleFileBasedConverterWriterSettings extends FileBasedConverterWr
    *  @param fileName to use
    *  @param countryName to use
    */
-  protected SingleFileBasedConverterWriterSettings(final String outputPathDirectory, final String fileName, final String countryName) {
+  protected SingleFileBasedConverterWriterSettings(
+      final String outputPathDirectory, final String fileName, final String countryName) {
     super(outputPathDirectory, countryName);
     this.setFileName(fileName);
   }
@@ -89,11 +91,14 @@ public class SingleFileBasedConverterWriterSettings extends FileBasedConverterWr
     this.fileName = fileName;
   }
 
+
   /**
-   * Convenience method to log all the current settings
+   * {@inheritDoc}
    */
-  public void logSettings() {
-    super.logSettings();
+  @Override
+  public void logSettings(int level) {
+    LOGGER.info(LoggingUtils.settingsValue("File name", getFileName(), level));
+    super.logSettings(level);
   }
 
   /**

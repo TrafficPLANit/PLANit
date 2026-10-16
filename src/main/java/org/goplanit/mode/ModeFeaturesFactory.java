@@ -15,6 +15,9 @@ import org.goplanit.utils.mode.VehicularModeType;
  */
 public class ModeFeaturesFactory {
 
+  /** Constructor to disallow instance creation */
+  private ModeFeaturesFactory(){}
+
   /**
    * create physical mode features
    * 
@@ -23,7 +26,8 @@ public class ModeFeaturesFactory {
    * @param trackType        to use
    * @return physical mode features that are created
    */
-  public static PhysicalModeFeatures createPhysicalFeatures(VehicularModeType vehicleType, MotorisationModeType motorisationType, TrackModeType trackType) {
+  public static PhysicalModeFeatures createPhysicalFeatures(
+      VehicularModeType vehicleType, MotorisationModeType motorisationType, TrackModeType trackType) {
     return new PhysicalModeFeaturesImpl(vehicleType, motorisationType, trackType);
   }
 

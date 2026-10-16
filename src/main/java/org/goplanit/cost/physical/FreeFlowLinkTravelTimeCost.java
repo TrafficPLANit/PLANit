@@ -45,10 +45,12 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
    */
   @Override
   public void initialiseBeforeSimulation(LayeredNetwork<?, ?> network) throws PlanItException {
-    PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "Free flow  travel time cost is only compatible with macroscopic networks");
+    PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "Free flow  travel time cost is " +
+        "only compatible with macroscopic networks");
     var macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
-        "Free flow travel time cost is currently only compatible with networks using a single infrastructure layer");
+        "Free flow travel time cost is currently only compatible with networks using a single" +
+            " infrastructure layer");
   }
 
   /**

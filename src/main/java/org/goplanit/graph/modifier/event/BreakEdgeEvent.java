@@ -17,7 +17,8 @@ import org.goplanit.utils.id.IdAble;
 public class BreakEdgeEvent extends EventImpl implements GraphModificationEvent {
 
   /** event type fired off when edge has been broken */
-  public static final GraphModifierEventType EVENT_TYPE = new GraphModifierEventType("GRAPHMODIFIER.BREAK_EDGE");
+  public static final GraphModifierEventType EVENT_TYPE =
+      new GraphModifierEventType("GRAPHMODIFIER.BREAK_EDGE");
 
   /**
    * Constructor
