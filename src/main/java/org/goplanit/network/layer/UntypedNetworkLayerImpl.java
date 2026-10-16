@@ -19,8 +19,8 @@ import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.UntypedDirectedGraphLayer;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
-import org.goplanit.utils.graph.directed.BannedMovement;
-import org.goplanit.utils.graph.directed.BannedMovements;
+import org.goplanit.utils.graph.directed.BannedTurn;
+import org.goplanit.utils.graph.directed.BannedTurns;
 import org.locationtech.jts.geom.Envelope;
 
 /**
@@ -82,7 +82,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    * @param vertices     managed vertices container to use
    * @param edges        managed edges container to use
    * @param edgeSegments managed edge Segments container to use
-   * @param bannedMovements    managed movements container to use
+   * @param bannedTurns    managed movements container to use
    */
   public <Vx extends ManagedGraphEntities<V>, Ex extends ManagedGraphEntities<E>, Sx extends ManagedGraphEntities<S>> 
       UntypedNetworkLayerImpl(
@@ -90,9 +90,9 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
           final Vx vertices,
           final Ex edges,
           final Sx edgeSegments,
-          final BannedMovements bannedMovements) {
+          final BannedTurns bannedTurns) {
     super(tokenId);
-    this.directedGraph = new UntypedDirectedGraphImpl<>(tokenId, vertices, edges, edgeSegments, bannedMovements);
+    this.directedGraph = new UntypedDirectedGraphImpl<>(tokenId, vertices, edges, edgeSegments, bannedTurns);
   }
 
   /**
@@ -106,7 +106,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    *                   (when provided, may be null)
    * @param edgeSegmentMapper to apply in case of deep copy to each original to copy combination
    *                         (when provided, may be null)
-   * @param movementMapper to apply in case of deep copy to each original to copy combination
+   * @param bannedTurnMapper to apply in case of deep copy to each original to copy combination
    *                       (when provided, may be null)
    *
    */
@@ -116,13 +116,13 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
           GraphEntityDeepCopyMapper<V> vertexMapper,
           GraphEntityDeepCopyMapper<E> edgeMapper,
           GraphEntityDeepCopyMapper<S> edgeSegmentMapper,
-          ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
+          ManagedIdDeepCopyMapper<BannedTurn> bannedTurnMapper) {
     super(other, deepCopy);
 
     /* network layer is in fact a graph, so requiring cloning even for shallow copy */
     this.directedGraph =
             deepCopy ? other.directedGraph.smartDeepClone(
-                vertexMapper, edgeMapper, edgeSegmentMapper, movementMapper) : other.directedGraph.shallowClone();
+                vertexMapper, edgeMapper, edgeSegmentMapper, bannedTurnMapper) : other.directedGraph.shallowClone();
   }
 
   // Getters - Setters
@@ -219,7 +219,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
     ((ManagedIdEntities<V>) this.directedGraph.getVertices()).reset(resetManagedIdToken);
     ((ManagedIdEntities<E>) this.directedGraph.getEdges()).reset(resetManagedIdToken);
     ((ManagedIdEntities<S>) this.directedGraph.getEdgeSegments()).reset(resetManagedIdToken);
-    this.directedGraph.getMovements().reset(resetManagedIdToken);
+    this.directedGraph.getBannedTurns().reset(resetManagedIdToken);
   }
 
   /**
@@ -232,7 +232,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
     ((ManagedIdEntities<V>) this.directedGraph.getVertices()).recreateIds(true);
     ((ManagedIdEntities<E>) this.directedGraph.getEdges()).recreateIds(true);
     ((ManagedIdEntities<S>) this.directedGraph.getEdgeSegments()).recreateIds(true);
-    this.directedGraph.getMovements().recreateIds(true);
+    this.directedGraph.getBannedTurns().recreateIds(true);
     return newId;
   }
 }

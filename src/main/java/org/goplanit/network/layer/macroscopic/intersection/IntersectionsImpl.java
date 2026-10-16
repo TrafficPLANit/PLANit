@@ -10,12 +10,16 @@ import java.util.stream.Stream;
 
 import org.goplanit.utils.containers.EntityIndex;
 import org.goplanit.utils.containers.IdentityEntityIndex;
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionFactory;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersections;
+import org.goplanit.utils.network.layer.macroscopic.intersection.NonSpatialIntersection;
+import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
@@ -39,7 +43,9 @@ public class IntersectionsImpl extends ManagedIdEntitiesImpl<Intersection> imple
    */
   private final EntityIndex<MacroscopicLinkSegment, Intersection> bySegment = new IdentityEntityIndex<>(
       intersection -> Stream.concat(intersection.getApproachSegments().stream(),
-          intersection.getInternalSegments().stream()).collect(Collectors.toList()));
+          intersection instanceof SpatialIntersection ?
+              ((SpatialIntersection) intersection).getInternalSegments().stream() : Stream.empty())
+          .collect(Collectors.toList()));
 
   /**
    * Index everything the intersection refers to at this moment
@@ -177,8 +183,23 @@ public class IntersectionsImpl extends ManagedIdEntitiesImpl<Intersection> imple
   }
 
   /**
-   * Update the approach and internal segments of every intersection based on the mapping provided, e.g. to their
-   * copies after a deep copy of the layer; the index is rebuilt to match
+   * Update the movements of every spatial intersection based on the mapping provided, e.g. to their copies after a
+   * deep copy of the layer
+   *
+   * @param movementToMovementMapping should contain the movement as currently used and then the value is the new
+   *                                  movement to replace it
+   */
+  public void updateMovementMapping(Function<SpatialMovement, SpatialMovement> movementToMovementMapping) {
+    forEach(intersection -> {
+      if (intersection instanceof SpatialIntersectionImpl) {
+        ((SpatialIntersectionImpl) intersection).updateMovementMapping(movementToMovementMapping);
+      }
+    });
+  }
+
+  /**
+   * Update the segments of every intersection based on the mapping provided, e.g. to their copies after a deep copy of
+   * the layer; the index is rebuilt to match
    *
    * @param segmentToSegmentMapping should contain the segment as currently used and then the value is the new segment
    *                                to replace it
@@ -214,13 +235,25 @@ public class IntersectionsImpl extends ManagedIdEntitiesImpl<Intersection> imple
    * Apply a change to a registered intersection, keeping the lookups in step with what it refers to before and after.
    * For keeping the container consistent with changes made through the layer modifier
    *
+   * @param <I> the kind of intersection
    * @param intersection to change
    * @param change to apply to it
    */
-  public void update(Intersection intersection, Consumer<Intersection> change) {
+  public <I extends Intersection> void update(I intersection, Consumer<I> change) {
     unindex(intersection);
     change.accept(intersection);
     index(intersection);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(boolean resetManagedIdClass) {
+    /* always reset the ids of each kind, kept next to the intersection id */
+    IdGenerator.reset(getFactory().getIdGroupingToken(), NonSpatialIntersection.NON_SPATIAL_INTERSECTION_ID_CLASS);
+    IdGenerator.reset(getFactory().getIdGroupingToken(), SpatialIntersection.SPATIAL_INTERSECTION_ID_CLASS);
+    super.recreateIds(resetManagedIdClass);
   }
 
   /**

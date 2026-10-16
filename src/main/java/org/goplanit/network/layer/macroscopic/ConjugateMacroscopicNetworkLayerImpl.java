@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.goplanit.network.layer.BannedMovementsImpl;
+import org.goplanit.network.layer.BannedTurnsImpl;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.layer.physical.ConjugateLinkSegmentsImpl;
 import org.goplanit.network.layer.physical.ConjugateLinksImpl;
 import org.goplanit.network.layer.physical.ConjugateNodesImpl;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
-import org.goplanit.utils.graph.directed.BannedMovements;
+import org.goplanit.utils.graph.directed.BannedTurns;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -72,7 +72,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
         new ConjugateNodesImpl(groupId),
         new ConjugateLinksImpl(groupId),
         new ConjugateLinkSegmentsImpl(groupId),
-        new BannedMovementsImpl(groupId),
+        new BannedTurnsImpl(groupId),
         originalLayer);
   }
 
@@ -83,7 +83,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    * @param conjugateNodes        to use
    * @param conjugateLinks        to use
    * @param conjugateLinkSegments to use
-   * @param bannedMovements             to use
+   * @param bannedTurns             to use
    * @param originalLayer         this conjugate is based on
    */
   protected ConjugateMacroscopicNetworkLayerImpl(
@@ -91,9 +91,9 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
       ConjugateNodes conjugateNodes,
       ConjugateLinks conjugateLinks,
       ConjugateLinkSegments conjugateLinkSegments,
-      BannedMovements bannedMovements,
+      BannedTurns bannedTurns,
       final MacroscopicNetworkLayer originalLayer) {
-    super(groupId, conjugateNodes, conjugateLinks, conjugateLinkSegments, bannedMovements);
+    super(groupId, conjugateNodes, conjugateLinks, conjugateLinkSegments, bannedTurns);
     this.originalLayer = originalLayer;
   }
 
@@ -241,8 +241,8 @@ public class ConjugateMacroscopicNetworkLayerImpl extends
    * {@inheritDoc}
    */
   @Override
-  public BannedMovements getBannedMovements() {
-    return getDirectedGraph().getMovements();
+  public BannedTurns getBannedTurns() {
+    return getDirectedGraph().getBannedTurns();
   }
 
   /**

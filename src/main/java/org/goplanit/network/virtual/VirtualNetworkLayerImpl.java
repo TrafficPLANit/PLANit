@@ -1,6 +1,6 @@
 package org.goplanit.network.virtual;
 
-import org.goplanit.network.layer.BannedMovementsImpl;
+import org.goplanit.network.layer.BannedTurnsImpl;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.virtual.graph.CentroidVerticesImpl;
 import org.goplanit.network.virtual.physical.ConnectoidLinksImpl;
@@ -10,8 +10,8 @@ import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.graph.directed.BannedMovement;
-import org.goplanit.utils.graph.directed.BannedMovements;
+import org.goplanit.utils.graph.directed.BannedTurn;
+import org.goplanit.utils.graph.directed.BannedTurns;
 import org.goplanit.utils.network.virtual.VirtualNetworkLayer;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.graph.CentroidVertices;
@@ -48,7 +48,7 @@ public class VirtualNetworkLayerImpl
         new CentroidVerticesImpl(tokenId),
         new ConnectoidLinksImpl(tokenId),
         new ConnectoidSegmentsImpl(tokenId),
-        new BannedMovementsImpl(tokenId));
+        new BannedTurnsImpl(tokenId));
   }
 
   /**
@@ -59,7 +59,7 @@ public class VirtualNetworkLayerImpl
    * @param connectoidEdgeMapper to use for tracking mapping between original and copied entity (may be null)
    * @param connectoidSegmentMapper to use for tracking mapping between original and copied entity (may be null)
    * @param centroidVertexMapper to use for tracking mapping between original and copied entity (may be null)
-   * @param movementMapper to apply in case of deep copy to each original to copy combination
+   * @param bannedTurnMapper to apply in case of deep copy to each original to copy combination
    *                       (when provided, may be null)
    */
   protected VirtualNetworkLayerImpl(
@@ -68,8 +68,8 @@ public class VirtualNetworkLayerImpl
       GraphEntityDeepCopyMapper<ConnectoidLink> connectoidEdgeMapper,
       GraphEntityDeepCopyMapper<ConnectoidSegment> connectoidSegmentMapper,
       GraphEntityDeepCopyMapper<CentroidVertex> centroidVertexMapper,
-      ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
-    super(other, deepCopy, centroidVertexMapper, connectoidEdgeMapper, connectoidSegmentMapper, movementMapper);
+      ManagedIdDeepCopyMapper<BannedTurn> bannedTurnMapper) {
+    super(other, deepCopy, centroidVertexMapper, connectoidEdgeMapper, connectoidSegmentMapper, bannedTurnMapper);
   }
 
   @Override
@@ -88,8 +88,8 @@ public class VirtualNetworkLayerImpl
   }
 
   @Override
-  public BannedMovements getMovements() {
-    return getDirectedGraph().getMovements();
+  public BannedTurns getBannedTurns() {
+    return getDirectedGraph().getBannedTurns();
   }
 
 
@@ -161,14 +161,14 @@ public class VirtualNetworkLayerImpl
   public VirtualNetworkLayerImpl deepCloneWithMapping(GraphEntityDeepCopyMapper<ConnectoidLink> connectoidLinkMapper,
                                                       GraphEntityDeepCopyMapper<ConnectoidSegment> connectoidSegmentMapper,
                                                       GraphEntityDeepCopyMapper<CentroidVertex> centroidVertexMapper,
-                                                      ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
+                                                      ManagedIdDeepCopyMapper<BannedTurn> bannedTurnMapper) {
     return new VirtualNetworkLayerImpl(
         this,
         true,
         connectoidLinkMapper,
         connectoidSegmentMapper,
         centroidVertexMapper,
-        movementMapper);
+        bannedTurnMapper);
   }
 
 

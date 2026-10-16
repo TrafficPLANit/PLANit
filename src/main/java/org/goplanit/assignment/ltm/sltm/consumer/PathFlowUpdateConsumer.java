@@ -29,7 +29,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
   /** data and configuration used for a flow update by derived classes */
   protected T dataConfig;
 
-  protected final CompiledRelationIndex compiledMovementIds;
+  protected final CompiledRelationIndex compiledTurnIds;
 
   /**
    * Od Paths to use
@@ -67,15 +67,15 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData>
    * 
    * @param dataConfig to use
    * @param odMultiPaths    to use
-   * @param compiledMovementIds to use
+   * @param compiledTurnIds to use
    */
   public PathFlowUpdateConsumer(
           final T dataConfig,
           final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odMultiPaths,
-          final CompiledRelationIndex compiledMovementIds) {
+          final CompiledRelationIndex compiledTurnIds) {
     this.dataConfig = dataConfig;
     this.odMultiPaths = odMultiPaths;
-    this.compiledMovementIds = compiledMovementIds;
+    this.compiledTurnIds = compiledTurnIds;
   }
 
   /**

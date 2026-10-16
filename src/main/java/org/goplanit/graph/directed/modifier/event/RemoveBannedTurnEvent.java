@@ -5,7 +5,7 @@ import org.goplanit.utils.graph.modifier.DirectedGraphModifier;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
-import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedTurn;
 
 /**
  * Event for when a movement has been removed from a (sub) graph
@@ -13,7 +13,7 @@ import org.goplanit.utils.graph.directed.BannedMovement;
  * @author markr
  *
  */
-public class RemoveMovementEvent extends EventImpl implements DirectedGraphModificationEvent {
+public class RemoveBannedTurnEvent extends EventImpl implements DirectedGraphModificationEvent {
 
   /** event type fired off when a movement has been removed */
   public static final GraphModifierEventType EVENT_TYPE =
@@ -25,7 +25,7 @@ public class RemoveMovementEvent extends EventImpl implements DirectedGraphModif
    * @param source             directed graph modifier firing the event
    * @param removedMovement    movement that is removed
    */
-  public RemoveMovementEvent(DirectedGraphModifier source, BannedMovement removedMovement) {
+  public RemoveBannedTurnEvent(DirectedGraphModifier source, BannedTurn removedMovement) {
     super(EVENT_TYPE, source, removedMovement);
   }
 
@@ -34,8 +34,8 @@ public class RemoveMovementEvent extends EventImpl implements DirectedGraphModif
    * 
    * @return removed movement
    */
-  public BannedMovement getRemovedMovement() {
-    return (BannedMovement) getContent()[0];
+  public BannedTurn getRemovedBannedTurn() {
+    return (BannedTurn) getContent()[0];
   }
 
 }

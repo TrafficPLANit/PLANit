@@ -1,11 +1,13 @@
 package org.goplanit.network.layer.macroscopic.intersection;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
@@ -19,13 +21,14 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionTyp
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
- * An intersection: the member nodes forming a junction or crossing, how it is controlled, and the link segments
- * entering it and lying inside it. Its methods change only this intersection; keeping it consistent with
- * the rest of the layer, and with the container's index, is up to the layer modifier
+ * What both kinds of intersection share: the member nodes forming a junction or crossing, how it is controlled, its
+ * kinds, and the link segments entering it with whether each has a signal of its own. Its methods change only this
+ * intersection; keeping it consistent with the rest of the layer, and with the container's index, is up to the layer
+ * modifier
  *
  * @author markr
  */
-public class IntersectionImpl extends ExternalIdAbleImpl implements Intersection {
+public abstract class IntersectionImpl extends ExternalIdAbleImpl implements Intersection {
 
   /** generated UID */
   private static final long serialVersionUID = 4112560832261209945L;
@@ -42,27 +45,27 @@ public class IntersectionImpl extends ExternalIdAbleImpl implements Intersection
   /** link segments entering the intersection, each at most once */
   private final List<MacroscopicLinkSegment> approachSegments;
 
-  /** link segments lying inside the intersection, running between member nodes */
-  private final List<MacroscopicLinkSegment> internalSegments;
+  /** approach segments whose own signal differs from the control type: at a signalised intersection those without a
+   * signal of their own, at an unsignalised one those with one */
+  private final List<MacroscopicLinkSegment> approachSegmentsDifferingFromControl;
 
   /**
    * Constructor
    *
    * @param groupId contiguous id generation within this group for instances of this class
-   * @param node first member node
+   * @param memberNodes of the intersection
    * @param controlType of the intersection
-   * @param type first kind of the intersection
+   * @param types kinds of the intersection, at least one
    */
   protected IntersectionImpl(
-      final IdGroupingToken groupId, final Node node, final IntersectionControlType controlType,
-      final IntersectionType type) {
+      final IdGroupingToken groupId, final Collection<Node> memberNodes, final IntersectionControlType controlType,
+      final Collection<IntersectionType> types) {
     super(IdGenerator.generateId(groupId, INTERSECTION_ID_CLASS));
-    this.memberNodes = new ArrayList<>(1);
-    this.memberNodes.add(node);
+    this.memberNodes = new ArrayList<>(memberNodes);
     this.controlType = controlType;
-    this.types = EnumSet.of(type);
+    this.types = EnumSet.copyOf(types);
     this.approachSegments = new ArrayList<>();
-    this.internalSegments = new ArrayList<>(0);
+    this.approachSegmentsDifferingFromControl = new ArrayList<>(0);
   }
 
   /**
@@ -78,7 +81,37 @@ public class IntersectionImpl extends ExternalIdAbleImpl implements Intersection
     this.controlType = other.controlType;
     this.types = EnumSet.copyOf(other.types);
     this.approachSegments = new ArrayList<>(other.approachSegments);
-    this.internalSegments = new ArrayList<>(other.internalSegments);
+    this.approachSegmentsDifferingFromControl = new ArrayList<>(other.approachSegmentsDifferingFromControl);
+  }
+
+  /**
+   * Remove what a kind of intersection holds on top of what all intersections hold, for a member node just removed
+   * together with its dependent references. The approach segments ending at the node are already removed
+   *
+   * @param node the member node removed
+   */
+  protected void removeReferencesOfRemovedMemberNode(Node node) {
+    /* nothing on top for an intersection that holds approaches only */
+  }
+
+  /**
+   * Remove what a kind of intersection holds on top of what all intersections hold, for an approach segment just
+   * removed
+   *
+   * @param approachSegment the approach segment removed
+   */
+  protected void removeReferencesOfRemovedApproachSegment(MacroscopicLinkSegment approachSegment) {
+    /* nothing on top for an intersection that holds approaches only */
+  }
+
+  /**
+   * Add a member node, after the kind of intersection has checked it may
+   *
+   * @param node to add
+   * @return true when added
+   */
+  protected boolean addToMemberNodes(Node node) {
+    return memberNodes.add(node);
   }
 
   /**
@@ -101,24 +134,15 @@ public class IntersectionImpl extends ExternalIdAbleImpl implements Intersection
    * {@inheritDoc}
    */
   @Override
-  public boolean addMemberNode(Node node) {
-    if (hasMemberNode(node) || approachSegments.stream().anyMatch(segment -> segment.getUpstreamVertex() == node)) {
-      return false;
-    }
-    return memberNodes.add(node);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public boolean removeMemberNode(Node node, boolean removeDependentReferences) {
     if (!memberNodes.removeIf(member -> member == node)) {
       return false;
     }
     if (removeDependentReferences) {
       approachSegments.removeIf(segment -> segment.getDownstreamVertex() == node);
-      internalSegments.removeIf(segment -> segment.getUpstreamVertex() == node || segment.getDownstreamVertex() == node);
+      approachSegmentsDifferingFromControl.removeIf(
+          segment -> !ListUtils.containsByIdentity(approachSegments, segment));
+      removeReferencesOfRemovedMemberNode(node);
     }
     return true;
   }
@@ -136,7 +160,15 @@ public class IntersectionImpl extends ExternalIdAbleImpl implements Intersection
    */
   @Override
   public void setControlType(IntersectionControlType controlType) {
+    var approachSegmentsWithOwnSignal =
+        approachSegments.stream().filter(this::hasOwnSignal).collect(Collectors.toList());
     this.controlType = controlType;
+    approachSegmentsDifferingFromControl.clear();
+    for (var approachSegment : approachSegments) {
+      if (ListUtils.containsByIdentity(approachSegmentsWithOwnSignal, approachSegment) != isSignalised()) {
+        approachSegmentsDifferingFromControl.add(approachSegment);
+      }
+    }
   }
 
   /**
@@ -176,7 +208,7 @@ public class IntersectionImpl extends ExternalIdAbleImpl implements Intersection
    */
   @Override
   public boolean addApproachSegment(MacroscopicLinkSegment segment) {
-    if (approachSegments.stream().anyMatch(held -> held == segment) || !hasMemberNode(segment.getDownstreamVertex())
+    if (ListUtils.containsByIdentity(approachSegments, segment) || !hasMemberNode(segment.getDownstreamVertex())
         || hasMemberNode(segment.getUpstreamVertex())) {
       return false;
     }
@@ -188,6 +220,8 @@ public class IntersectionImpl extends ExternalIdAbleImpl implements Intersection
    */
   @Override
   public boolean removeApproachSegment(MacroscopicLinkSegment segment) {
+    approachSegmentsDifferingFromControl.removeIf(held -> held == segment);
+    removeReferencesOfRemovedApproachSegment(segment);
     return approachSegments.removeIf(held -> held == segment);
   }
 
@@ -195,36 +229,24 @@ public class IntersectionImpl extends ExternalIdAbleImpl implements Intersection
    * {@inheritDoc}
    */
   @Override
-  public List<MacroscopicLinkSegment> getInternalSegments() {
-    return Collections.unmodifiableList(internalSegments);
+  public boolean hasOwnSignal(MacroscopicLinkSegment approachSegment) {
+    return ListUtils.containsByIdentity(approachSegments, approachSegment) &&
+        isSignalised() != ListUtils.containsByIdentity(approachSegmentsDifferingFromControl, approachSegment);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegment getInternalSegment(long segmentId) {
-    return IdAbleUtils.findById(internalSegments, segmentId);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean addInternalSegment(MacroscopicLinkSegment segment) {
-    if (internalSegments.stream().anyMatch(held -> held == segment) || !hasMemberNode(segment.getUpstreamVertex())
-        || !hasMemberNode(segment.getDownstreamVertex())) {
+  public boolean setApproachSegmentHasOwnSignal(MacroscopicLinkSegment approachSegment, boolean hasOwnSignal) {
+    if (!ListUtils.containsByIdentity(approachSegments, approachSegment)) {
       return false;
     }
-    return internalSegments.add(segment);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean removeInternalSegment(MacroscopicLinkSegment segment) {
-    return internalSegments.removeIf(held -> held == segment);
+    approachSegmentsDifferingFromControl.removeIf(held -> held == approachSegment);
+    if (hasOwnSignal != isSignalised()) {
+      approachSegmentsDifferingFromControl.add(approachSegment);
+    }
+    return true;
   }
 
   /**
@@ -239,8 +261,7 @@ public class IntersectionImpl extends ExternalIdAbleImpl implements Intersection
   }
 
   /**
-   * Update the approach and internal segments based on the mapping provided, e.g. to their copies after a deep copy of
-   * the layer
+   * Update the segments based on the mapping provided, e.g. to their copies after a deep copy of the layer
    *
    * @param segmentToSegmentMapping should contain the segment as currently used and then the value is the new segment
    *                                to replace it
@@ -249,7 +270,7 @@ public class IntersectionImpl extends ExternalIdAbleImpl implements Intersection
   protected void updateSegmentMapping(
       Function<MacroscopicLinkSegment, MacroscopicLinkSegment> segmentToSegmentMapping, boolean removeMissingMappings) {
     ListUtils.updateMapping(approachSegments, segmentToSegmentMapping, removeMissingMappings);
-    ListUtils.updateMapping(internalSegments, segmentToSegmentMapping, removeMissingMappings);
+    ListUtils.updateMapping(approachSegmentsDifferingFromControl, segmentToSegmentMapping, removeMissingMappings);
   }
 
   /**
@@ -265,15 +286,11 @@ public class IntersectionImpl extends ExternalIdAbleImpl implements Intersection
    * {@inheritDoc}
    */
   @Override
-  public IntersectionImpl shallowClone() {
-    return new IntersectionImpl(this, false);
-  }
+  public abstract IntersectionImpl shallowClone();
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public IntersectionImpl deepClone() {
-    return new IntersectionImpl(this, true);
-  }
+  public abstract IntersectionImpl deepClone();
 }

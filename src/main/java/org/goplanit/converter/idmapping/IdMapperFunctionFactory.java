@@ -16,8 +16,9 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
-import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedTurn;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
+import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
@@ -74,13 +75,13 @@ public class IdMapperFunctionFactory {
   }
 
   /**
-   * create a function that takes a movement and generates the appropriate id based on the user configuration
+   * create a function that takes a banned turn and generates the appropriate id based on the user configuration
    *
    * @param idMapper the type of mapping function to create
-   * @return function that generates mapped movement id's for persistence
+   * @return function that generates mapped banned turn id's for persistence
    */
-  public static Function<BannedMovement, String> createMovementIdMappingFunction(final IdMapperType idMapper) {
-    return IdMappingUtils.createIdMappingFunction(BannedMovement.class, idMapper);
+  public static Function<BannedTurn, String> createBannedTurnIdMappingFunction(final IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(BannedTurn.class, idMapper);
   }
 
   /**
@@ -91,6 +92,17 @@ public class IdMapperFunctionFactory {
    */
   public static Function<Intersection, String> createIntersectionIdMappingFunction(final IdMapperType idMapper) {
     return IdMappingUtils.createIdMappingFunction(Intersection.class, idMapper);
+  }
+
+  /**
+   * create a function that takes a spatial movement and generates the appropriate id based on the user configuration
+   *
+   * @param idMapper the type of mapping function to create
+   * @return function that generates mapped spatial movement id's for persistence
+   */
+  public static Function<SpatialMovement, String> createSpatialMovementIdMappingFunction(
+      final IdMapperType idMapper) {
+    return IdMappingUtils.createIdMappingFunction(SpatialMovement.class, idMapper);
   }
 
   /**

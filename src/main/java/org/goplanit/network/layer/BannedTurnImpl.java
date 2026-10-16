@@ -5,24 +5,24 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedTurn;
 import org.locationtech.jts.geom.*;
 
 import java.util.logging.Logger;
 
 /**
- * Movement represents a pair of link segments in a particular (single) direction.
+ * A banned turn is a pair of link segments in a particular (single) direction.
  *
  * @author markr
  *
  */
-public class BannedMovementImpl extends ExternalIdAbleImpl implements BannedMovement {
+public class BannedTurnImpl extends ExternalIdAbleImpl implements BannedTurn {
 
   /** serial UID */
   private static final long serialVersionUID = 1L;
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(BannedMovementImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(BannedTurnImpl.class.getCanonicalName());
 
   /**
    * Store the from edge segment
@@ -43,7 +43,7 @@ public class BannedMovementImpl extends ExternalIdAbleImpl implements BannedMove
   boolean geometryDirty = true;
 
   /**
-   * Construct combined geometry for the banned movement
+   * Construct combined geometry for the banned turn
    *
    * @return created Geometry
    */
@@ -99,9 +99,9 @@ public class BannedMovementImpl extends ExternalIdAbleImpl implements BannedMove
    * @param fromSegment  from segment to use
    * @param toSegment to segment to use
    */
-  protected BannedMovementImpl(
+  protected BannedTurnImpl(
       final IdGroupingToken groupId, final EdgeSegment fromSegment, final EdgeSegment toSegment) {
-    super(IdGenerator.generateId(groupId, BANNED_MOVEMENT_ID_CLASS));
+    super(IdGenerator.generateId(groupId, BANNED_TURN_ID_CLASS));
     this.segmentFrom = fromSegment;
     this.segmentTo = toSegment;
     this.lazyGeometry = null;
@@ -113,7 +113,7 @@ public class BannedMovementImpl extends ExternalIdAbleImpl implements BannedMove
    * @param movement to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected BannedMovementImpl(BannedMovementImpl movement, boolean deepCopy) {
+  protected BannedTurnImpl(BannedTurnImpl movement, boolean deepCopy) {
     super(movement);
     this.segmentFrom = movement.segmentFrom;
     this.segmentTo = movement.segmentTo;
@@ -161,16 +161,16 @@ public class BannedMovementImpl extends ExternalIdAbleImpl implements BannedMove
    * {@inheritDoc}
    */
   @Override
-  public BannedMovementImpl shallowClone() {
-    return new BannedMovementImpl(this, false);
+  public BannedTurnImpl shallowClone() {
+    return new BannedTurnImpl(this, false);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public BannedMovementImpl deepClone() {
-    return new BannedMovementImpl(this, true);
+  public BannedTurnImpl deepClone() {
+    return new BannedTurnImpl(this, true);
   }
 
   /**
@@ -187,7 +187,7 @@ public class BannedMovementImpl extends ExternalIdAbleImpl implements BannedMove
    */
   @Override
   public Class<? extends IdAble> getIdClass() {
-    return BANNED_MOVEMENT_ID_CLASS;
+    return BANNED_TURN_ID_CLASS;
   }
 
   /**

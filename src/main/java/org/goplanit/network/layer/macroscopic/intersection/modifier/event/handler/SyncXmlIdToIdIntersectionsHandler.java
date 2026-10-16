@@ -34,6 +34,8 @@ public class SyncXmlIdToIdIntersectionsHandler extends SyncXmlIdToIdHandler impl
           SyncXmlIdToIdIntersectionsHandler.class.getName()));
       return;
     }
-    ((RecreatedIntersectionsManagedIdsEvent) event).getIntersections().forEach(super::syncXmlIdToInternalId);
+    var recreated = (RecreatedIntersectionsManagedIdsEvent) event;
+    recreated.getIntersections().forEach(super::syncXmlIdToInternalId);
+    recreated.getSpatialMovements().forEach(super::syncXmlIdToInternalId);
   }
 }

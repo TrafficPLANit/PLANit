@@ -1,5 +1,8 @@
 package org.goplanit.network.layer.macroscopic;
 
+import org.goplanit.algorithms.shortest.ShortestPathBreadthFirst;
+import org.goplanit.algorithms.shortest.ShortestPathBreadthFirstResult;
+import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.algorithms.ConnectedComponents;
@@ -10,15 +13,21 @@ import org.goplanit.utils.misc.binning.BinnedCount;
 import org.goplanit.utils.misc.binning.BinningConfiguration;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicBannedTurn;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentUtils;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkUtils;
+import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
 import org.goplanit.utils.network.layer.physical.Node;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Set;
@@ -186,18 +195,56 @@ public class MacroscopicNetworkLayerUtils {
   }
 
   /**
-   * Replace the segment's type with one identical except that it no longer grants the given mode access.
-   * <p>
-   * Types are shared by many segments, so the type is never changed in place: that would silently withdraw access
+   * Find or register a link segment type identical to the given one except that it no longer grants the given modes
+   * access. Types are shared by many segments, so the original type is never changed: the variant is a copy, found
+   * in the cache when made before for the same original and withdrawn modes, and created and registered on the layer
+   * otherwise, with a {@code MODIFIED[id]:} prefix on its external id and name
+   *
+   * @param layer owning the link segment types
+   * @param modifiedTypes cache of already created variants
+   * @param original the type to vary
+   * @param withdrawnModes the modes the variant no longer grants access to
+   * @return the variant, or the original itself when no mode is withdrawn
+   */
+  public static MacroscopicLinkSegmentType findOrRegisterTypeWithoutModes(
+      final MacroscopicNetworkLayer layer,
+      final ModifiedLinkSegmentTypes modifiedTypes,
+      final MacroscopicLinkSegmentType original,
+      final Set<Mode> withdrawnModes) {
+    if (withdrawnModes.isEmpty()) {
+      return original;
+    }
+    var variant = modifiedTypes.getModifiedLinkSegmentType(original, Collections.emptySet(), withdrawnModes);
+    if (variant == null) {
+      variant = layer.getLinkSegmentTypes().getFactory().createUniqueDeepCopyOf(original);
+      layer.getLinkSegmentTypes().register(variant);
+      variant.setXmlId(Long.toString(variant.getId()));
+
+      final String modified = String.format("MODIFIED[%d]:", variant.getId());
+      if (variant.hasExternalId()) {
+        variant.setExternalId(modified + variant.getExternalId());
+      }
+      if (variant.hasName()) {
+        variant.setName(modified + variant.getName());
+      }
+
+      variant.removeModeAccess(withdrawnModes);
+      modifiedTypes.addModifiedLinkSegmentType(original, variant, Collections.emptySet(), withdrawnModes);
+    }
+    return variant;
+  }
+
+  /**
+   * Replace the segment's type with one identical except that it no longer grants the given mode access, see
+   * {@link #findOrRegisterTypeWithoutModes}. The type is never changed in place: that would silently withdraw access
    * everywhere the type is used. A variant is found or created once per (original type, withdrawn mode) pair.
-   * </p>
    *
    * @param layer owning the link segment types
    * @param modifiedTypes cache of already created variants
    * @param linkSegment to adjust
    * @param mode to withdraw
    */
-  private static void withdrawModeAccess(
+  public static void withdrawModeAccess(
       final MacroscopicNetworkLayer layer,
       final ModifiedLinkSegmentTypes modifiedTypes,
       final MacroscopicLinkSegment linkSegment,
@@ -208,27 +255,120 @@ public class MacroscopicNetworkLayerUtils {
       return;
     }
 
-    final Set<Mode> withdrawnModes = Collections.singleton(mode);
-    var replacement = modifiedTypes.getModifiedLinkSegmentType(
-        original, Collections.emptySet(), withdrawnModes);
-    if (replacement == null) {
-      replacement = layer.getLinkSegmentTypes().getFactory().createUniqueDeepCopyOf(original);
-      layer.getLinkSegmentTypes().register(replacement);
-      replacement.setXmlId(Long.toString(replacement.getId()));
+    linkSegment.setLinkSegmentType(
+        findOrRegisterTypeWithoutModes(layer, modifiedTypes, original, Collections.singleton(mode)));
+  }
 
-      final String modified = String.format("MODIFIED[%d]:", replacement.getId());
-      if (replacement.hasExternalId()) {
-        replacement.setExternalId(modified + replacement.getExternalId());
-      }
-      if (replacement.hasName()) {
-        replacement.setName(modified + replacement.getName());
-      }
+  /**
+   * Verify if a turn from one link segment onto the next is banned for a mode. A banned turn of a macroscopic layer
+   * names the modes it bans, or bans every mode when it names none
+   *
+   * @param layer holding the banned turns
+   * @param from link segment arriving at the node
+   * @param to link segment leaving it
+   * @param mode to verify
+   * @return true when a banned turn forbids the turn to the mode, false otherwise
+   */
+  public static boolean isTurnBannedForMode(
+      final MacroscopicNetworkLayer layer, MacroscopicLinkSegment from, MacroscopicLinkSegment to, Mode mode) {
+    return layer.getBannedTurns().getBySegment(from).stream()
+        .anyMatch(banned -> banned.getSegmentFrom() == from && banned.getSegmentTo() == to &&
+            (!(banned instanceof MacroscopicBannedTurn) || ((MacroscopicBannedTurn) banned).isModeBanned(mode)));
+  }
 
-      replacement.removeModeAccess(withdrawnModes);
-      modifiedTypes.addModifiedLinkSegmentType(
-          original, replacement, Collections.emptySet(), withdrawnModes);
+  /**
+   * Find the shortest connections along the road from a node to the nodes within a distance: over links a motorised
+   * road mode may use in at least one direction, followed in either direction, one-way or not
+   *
+   * @param source node to start from
+   * @param maximumDistanceMeters furthest a node reached may be
+   * @param canReach true for a node a connection may reach and pass
+   * @return the nodes reached, the source included, with their distances in metres and the connections to them
+   */
+  public static ShortestPathBreadthFirstResult<Node> findShortestConnectionsAlongRoad(
+      Node source, double maximumDistanceMeters, Predicate<Node> canReach) {
+    var isRoadLink = MacroscopicLinkUtils.permitsMotorisedRoadModeOnAnySegment();
+    return ShortestPathBreadthFirst.executeAlongEdges(source,
+        edge -> isRoadLink.test(edge) ? edge.getLengthMeters() : Double.POSITIVE_INFINITY,
+        canReach, maximumDistanceMeters);
+  }
+
+  /**
+   * Search from an approach over the internal segments of a spatial intersection for a mode, see
+   * {@link #findExitsReachedThroughSpatialIntersection}. The search never goes back along the link it just came along,
+   * nor onto the approach's own link. Otherwise a mode could get round a turn banned at a member node by driving into a
+   * two-way inner link and straight back, which no driver does inside a junction, and the movement would count as one
+   * the mode can make
+   *
+   * @param layer holding the banned turns
+   * @param intersection to search through
+   * @param approach to start from
+   * @param mode travelling, only over link segments allowing it
+   * @param respectBannedTurns when true a turn banned for the mode is not taken, when false banned turns are ignored
+   * @return the internal segments and exits reached, the approach included, each with the shortest connection to it
+   *         and its distance from where the approach ends, in metres
+   */
+  static ShortestPathBreadthFirstResult<MacroscopicLinkSegment> searchThroughSpatialIntersection(
+      final MacroscopicNetworkLayer layer, final SpatialIntersection intersection,
+      final MacroscopicLinkSegment approach, final Mode mode, boolean respectBannedTurns) {
+    Predicate<MacroscopicLinkSegment> isInternal =
+        segment -> ListUtils.containsByIdentity(intersection.getInternalSegments(), segment);
+    return ShortestPathBreadthFirst.<MacroscopicLinkSegment>executeAlongEdgeSegments(approach,
+        (from, onto) -> onto.isModeAllowed(mode) && onto.getParent() != approach.getParent() &&
+            onto.getParent() != from.getParent() &&
+            (isInternal.test(onto) || intersection.isExitSegment(onto)) &&
+            !(respectBannedTurns && isTurnBannedForMode(layer, from, onto, mode)),
+        isInternal, segment -> segment.getParent().getLengthMeters(), Double.POSITIVE_INFINITY);
+  }
+
+  /**
+   * Find the exits a mode can reach from an approach over the internal segments of a spatial intersection, along the
+   * shortest connection. An exit is a link segment starting at a member node and ending outside; the exit back along
+   * the approach's own link is not counted, and a connection never goes back along the link it just came along. The
+   * search runs over link segments rather than nodes, so a banned turn between two segments at a member node is
+   * respected even when the node can be reached another way
+   *
+   * @param layer holding the banned turns
+   * @param intersection to search through
+   * @param approach to start from
+   * @param mode travelling, only over link segments allowing it
+   * @param respectBannedTurns when true a turn banned for the mode is not taken, when false banned turns are ignored
+   * @return each exit reached with its distance from where the approach ends, in metres
+   */
+  public static Map<MacroscopicLinkSegment, Double> findExitsReachedThroughSpatialIntersection(
+      final MacroscopicNetworkLayer layer, final SpatialIntersection intersection,
+      final MacroscopicLinkSegment approach, final Mode mode, boolean respectBannedTurns) {
+    var reached = searchThroughSpatialIntersection(layer, intersection, approach, mode, respectBannedTurns);
+    var exitsReached = new LinkedHashMap<MacroscopicLinkSegment, Double>();
+    reached.getReached().stream().filter(intersection::isExitSegment)
+        .forEach(exit -> exitsReached.put(exit, reached.getCostToReach(exit)));
+    return exitsReached;
+  }
+
+  /**
+   * Ban a turn for the given modes. When the turn is banned already, its banned turn gains the modes rather than a
+   * second one being registered: a banned turn that bans every mode stays as it is, and one that names modes names
+   * these too, or every mode of the layer when none are given
+   *
+   * @param layer to register the banned turn on
+   * @param from link segment arriving at the node
+   * @param to link segment leaving it
+   * @param explicitlyBannedModes the modes to ban; when empty every mode is banned
+   * @return the banned turn registered or extended
+   */
+  public static MacroscopicBannedTurn banTurnForModes(
+      final MacroscopicNetworkLayer layer, MacroscopicLinkSegment from, MacroscopicLinkSegment to,
+      Collection<Mode> explicitlyBannedModes) {
+    var existing = layer.getBannedTurns().getBySegment(from).stream()
+        .filter(banned -> banned.getSegmentFrom() == from && banned.getSegmentTo() == to)
+        .map(MacroscopicBannedTurn.class::cast).findFirst().orElse(null);
+    if (existing == null) {
+      return layer.getBannedTurns().getFactory().registerNew(from, to, explicitlyBannedModes);
     }
-
-    linkSegment.setLinkSegmentType(replacement);
+    if (existing.hasExplicitlyBannedModes()) {
+      (explicitlyBannedModes.isEmpty() ? layer.getSupportedModes() : explicitlyBannedModes)
+          .forEach(existing::addExplicitlyBannedMode);
+    }
+    return existing;
   }
 }

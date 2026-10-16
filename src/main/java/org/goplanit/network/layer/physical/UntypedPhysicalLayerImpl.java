@@ -5,8 +5,8 @@ import java.util.logging.Logger;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
 import org.goplanit.utils.graph.ManagedGraphEntities;
-import org.goplanit.utils.graph.directed.BannedMovement;
-import org.goplanit.utils.graph.directed.BannedMovements;
+import org.goplanit.utils.graph.directed.BannedTurn;
+import org.goplanit.utils.graph.directed.BannedTurns;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.network.layer.physical.*;
@@ -42,7 +42,7 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
    * @param nodes        managed nodes container to use
    * @param links        managed links container to use
    * @param linkSegments managed linkSegments container to use
-   * @param bannedMovements    managed movements container to use
+   * @param bannedTurns    managed movements container to use
    */
   public <Nx extends ManagedGraphEntities<N>, Lx extends ManagedGraphEntities<L>, Sx extends ManagedGraphEntities<LS>>
   UntypedPhysicalLayerImpl(
@@ -50,8 +50,8 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
       final Nx nodes,
       final Lx links,
       final Sx linkSegments,
-      final BannedMovements bannedMovements) {
-    super(tokenId, nodes, links, linkSegments, bannedMovements);
+      final BannedTurns bannedTurns) {
+    super(tokenId, nodes, links, linkSegments, bannedTurns);
   }
 
   /**
@@ -63,7 +63,7 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
    * @param linkMapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    * @param linkSegmentMapper to apply in case of deep copy to each original to copy combination
    *                          (when provided, may be null)
-   * @param movementMapper to apply in case of deep copy to each original to copy combination
+   * @param bannedTurnMapper to apply in case of deep copy to each original to copy combination
    *                       (when provided, may be null)
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -73,8 +73,8 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
           GraphEntityDeepCopyMapper<N> nodeMapper,
           GraphEntityDeepCopyMapper<L> linkMapper,
           GraphEntityDeepCopyMapper<LS> linkSegmentMapper,
-          ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
-    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper, movementMapper);
+          ManagedIdDeepCopyMapper<BannedTurn> bannedTurnMapper) {
+    super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper, bannedTurnMapper);
   }
 
 
@@ -93,7 +93,7 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
     LOGGER.info(String.format("%s#links: %d", prefix, getLinks().size()));
     LOGGER.info(String.format("%s#link segments: %d", prefix, getLinkSegments().size()));
     LOGGER.info(String.format("%s#nodes: %d", prefix, getNodes().size()));
-    LOGGER.info(String.format("%s#movements: %d", prefix, getBannedMovements().size()));
+    LOGGER.info(String.format("%s#banned turns: %d", prefix, getBannedTurns().size()));
   }
 
   /**

@@ -1,6 +1,6 @@
 package org.goplanit.network.virtual;
 
-import org.goplanit.network.layer.BannedMovementsImpl;
+import org.goplanit.network.layer.BannedTurnsImpl;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.virtual.physical.conjugate.ConjugateConnectoidLinksImpl;
 import org.goplanit.network.virtual.physical.conjugate.ConjugateConnectoidNodesImpl;
@@ -12,8 +12,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.graph.directed.BannedMovement;
-import org.goplanit.utils.graph.directed.BannedMovements;
+import org.goplanit.utils.graph.directed.BannedTurn;
+import org.goplanit.utils.graph.directed.BannedTurns;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.physical.conjugate.*;
 
@@ -51,7 +51,7 @@ public class ConjugateVirtualNetworkLayerImpl
         new ConjugateConnectoidNodesImpl(tokenId),
         new ConjugateConnectoidLinksImpl(tokenId),
         new ConjugateConnectoidSegmentsImpl(tokenId),
-        new BannedMovementsImpl(tokenId));
+        new BannedTurnsImpl(tokenId));
     this.referenceLayer = referenceLayer;
   }
 
@@ -71,7 +71,7 @@ public class ConjugateVirtualNetworkLayerImpl
       GraphEntityDeepCopyMapper<ConjugateConnectoidLink> conjugateConnectoidLinkMapper,
       GraphEntityDeepCopyMapper<ConjugateConnectoidSegment> conjugateConnectoidSegmentMapper,
       GraphEntityDeepCopyMapper<ConjugateConnectoidNode> conjugateNodeMapper,
-      ManagedIdDeepCopyMapper<BannedMovement> conjugateMovementMapper) {
+      ManagedIdDeepCopyMapper<BannedTurn> conjugateMovementMapper) {
     super(other,
         deepCopy,
         conjugateNodeMapper,
@@ -191,8 +191,8 @@ public class ConjugateVirtualNetworkLayerImpl
    * {@inheritDoc}
    */
   @Override
-  public BannedMovements getMovements() {
-    return getDirectedGraph().getMovements();
+  public BannedTurns getBannedTurns() {
+    return getDirectedGraph().getBannedTurns();
   }
 
   /**
@@ -334,7 +334,7 @@ public class ConjugateVirtualNetworkLayerImpl
           GraphEntityDeepCopyMapper<ConjugateConnectoidLink> connectoidLinkMapper,
           GraphEntityDeepCopyMapper<ConjugateConnectoidSegment> connectoidSegmentMapper,
           GraphEntityDeepCopyMapper<ConjugateConnectoidNode> conjugateNodeMapper,
-          ManagedIdDeepCopyMapper<BannedMovement> conjugateMovementMapper) {
+          ManagedIdDeepCopyMapper<BannedTurn> conjugateMovementMapper) {
     return new ConjugateVirtualNetworkLayerImpl(
         this,
         true,

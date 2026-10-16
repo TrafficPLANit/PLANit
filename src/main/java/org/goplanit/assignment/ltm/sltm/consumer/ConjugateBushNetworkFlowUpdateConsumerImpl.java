@@ -34,7 +34,7 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
   protected T dataConfig;
 
   /** mapping from origin turn (segment, segment key) to movement data index */
-  protected final CompiledRelationMapping compiledMovementIds;
+  protected final CompiledRelationMapping compiledTurnIds;
 
   /** when null all edge segments are processed (Default during regular loading) */
   protected final Set<EdgeSegment> edgeSegmentsToUpdate;
@@ -55,12 +55,12 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
    * Constructor
    *
    * @param dataConfig              to use
-   * @param compiledMovementIds to use
+   * @param compiledTurnIds to use
    */
   public ConjugateBushNetworkFlowUpdateConsumerImpl(
-          final T dataConfig, final CompiledRelationMapping compiledMovementIds){
+          final T dataConfig, final CompiledRelationMapping compiledTurnIds){
     this.dataConfig = dataConfig;
-    this.compiledMovementIds = compiledMovementIds;
+    this.compiledTurnIds = compiledTurnIds;
     this.edgeSegmentsToUpdate = null;   // so all are updated
   }
 
@@ -69,15 +69,15 @@ public class ConjugateBushNetworkFlowUpdateConsumerImpl<T extends NetworkFlowUpd
    * only update the selected nodes and skip all others for the selected bushes.
    *
    * @param dataConfig              to use
-   * @param compiledMovementIds to use
+   * @param compiledTurnIds to use
    * @param edgeSegmentsToUpdate selective edge segments to update (all turn flows of all bushes of these edge segments)
    */
   public ConjugateBushNetworkFlowUpdateConsumerImpl(
       final T dataConfig,
-      CompiledRelationMapping compiledMovementIds,
+      CompiledRelationMapping compiledTurnIds,
       Set<EdgeSegment> edgeSegmentsToUpdate){
     this.dataConfig = dataConfig;
-    this.compiledMovementIds = compiledMovementIds;
+    this.compiledTurnIds = compiledTurnIds;
     this.edgeSegmentsToUpdate = edgeSegmentsToUpdate;
   }
 

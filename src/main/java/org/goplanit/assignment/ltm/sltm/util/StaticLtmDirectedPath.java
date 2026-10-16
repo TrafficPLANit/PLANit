@@ -34,5 +34,5 @@ public interface StaticLtmDirectedPath extends ManagedDirectedPath {
 //   *
 //   * @return movements
 //   */
-//  public abstract Movement[] getMovements();
+//  public abstract Turn[] getMovements();
 }

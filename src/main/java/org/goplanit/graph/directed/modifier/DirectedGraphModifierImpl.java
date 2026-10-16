@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.graph.directed.modifier.event.RemoveEdgeSegmentEvent;
-import org.goplanit.graph.directed.modifier.event.RemoveMovementEvent;
+import org.goplanit.graph.directed.modifier.event.RemoveBannedTurnEvent;
 import org.goplanit.graph.modifier.GraphModifierImpl;
 import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
 import org.goplanit.graph.directed.modifier.event.RecreatedDirectedGraphEntitiesManagedIdsEvent;
@@ -27,7 +27,7 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.network.layer.physical.MovementUtils;
+import org.goplanit.utils.network.layer.physical.BannedTurnUtils;
 
 /**
  * Implementation of a directed graph modifier that supports making changes to any untyped directed graph.
@@ -144,24 +144,24 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
    * @param <Ex>                    type of directed edge
    * @param aToBreak                first brokenLinkSection
    * @param breakToB                second brokenLinkSection
-   * @param touchedMovements to update from segment for any touched movements
+   * @param touchedBannedTurns to update from segment for any touched movements
    */
   private <Ex extends DirectedEdge> void updateMovementsItsBrokenSegments(
-      Ex aToBreak, Ex breakToB, List<BannedMovement> touchedMovements) {
+      Ex aToBreak, Ex breakToB, List<BannedTurn> touchedBannedTurns) {
 
-    for(var bannedMovement : touchedMovements){
+    for(var bannedTurn : touchedBannedTurns){
       // for from segment, this is the only situation where it is altered (as AToBreak is reused just shortened)
-      if(bannedMovement.getSegmentFrom().getUpstreamVertex().equals(aToBreak.getVertexA()) &&
-          breakToB.getVertexB().equals(bannedMovement.getSegmentTo().getUpstreamVertex())){
-        getGraph().getMovements().update(
-            bannedMovement, ban -> ban.setSegmentFrom(breakToB.getSegmentUpstreamOf(breakToB.getVertexB())));
+      if(bannedTurn.getSegmentFrom().getUpstreamVertex().equals(aToBreak.getVertexA()) &&
+          breakToB.getVertexB().equals(bannedTurn.getSegmentTo().getUpstreamVertex())){
+        getGraph().getBannedTurns().update(
+            bannedTurn, ban -> ban.setSegmentFrom(breakToB.getSegmentUpstreamOf(breakToB.getVertexB())));
       }
 
       // for to segment this is the only situations where it is altered
-      if(bannedMovement.getSegmentTo().getDownstreamVertex().equals(aToBreak.getVertexA()) &&
-          breakToB.getVertexB().equals(bannedMovement.getSegmentFrom().getDownstreamVertex())){
-        getGraph().getMovements().update(
-            bannedMovement, ban -> ban.setSegmentTo(breakToB.getSegmentDownstreamFrom(breakToB.getVertexB())));
+      if(bannedTurn.getSegmentTo().getDownstreamVertex().equals(aToBreak.getVertexA()) &&
+          breakToB.getVertexB().equals(bannedTurn.getSegmentFrom().getDownstreamVertex())){
+        getGraph().getBannedTurns().update(
+            bannedTurn, ban -> ban.setSegmentTo(breakToB.getSegmentDownstreamFrom(breakToB.getVertexB())));
       }
 
     }
@@ -250,7 +250,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
       boolean alwaysKeepLargest,
       Function<DirectedVertex, ? extends UntypedSubGraph<DirectedVertex, DirectedEdge>> identifySubGraphForVertex) {
     /* supply our own removal, otherwise the delegate calls its own undirected removeSubGraph and the directed
-     * portion of each subgraph - edge segments and banned movements - is left behind on the graph */
+     * portion of each subgraph - edge segments and banned turns - is left behind on the graph */
     graphModifier.removeDanglingSubGraphs(
         belowSize, aboveSize, alwaysKeepLargest, identifySubGraphForVertex, this::removeSubGraph);
   }
@@ -288,9 +288,9 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
       fireEvent(new RemoveEdgeSegmentEvent(this, edgeSegment));
     }
 
-    /* banned movements cannot outlive a segment they start or end at */
-    if (getGraph().getMovements() != null) {
-      getGraph().getMovements().getBySegment(edgeSegment).forEach(this::removeMovement);
+    /* banned turns cannot outlive a segment they start or end at */
+    if (getGraph().getBannedTurns() != null) {
+      getGraph().getBannedTurns().getBySegment(edgeSegment).forEach(this::removeBannedTurn);
     }
   }
 
@@ -298,8 +298,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
    * {@inheritDoc}
    */
   @Override
-  public void removeMovement(BannedMovement movement) {
-    getGraph().getMovements().remove(movement.getId());
+  public void removeBannedTurn(BannedTurn movement) {
+    getGraph().getBannedTurns().remove(movement.getId());
     if(movement.hasSegmentFrom()){
       movement.setSegmentFrom(null);
     }
@@ -307,8 +307,8 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
       movement.setSegmentTo(null);
     }
 
-    if (hasListener(RemoveMovementEvent.EVENT_TYPE)) {
-      fireEvent(new RemoveMovementEvent(this, movement));
+    if (hasListener(RemoveBannedTurnEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveBannedTurnEvent(this, movement));
     }
   }
 
@@ -343,7 +343,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
     edgeSegmentsToRemove.addAll(subGraphToRemove.getEdgeSegments(getGraph().getEdgeSegments()));
 
     /* remove the edge segment portion of the directed subgraph from the actual directed graph and fire event(s),
-     * each removal taking the banned movements on its segment with it */
+     * each removal taking the banned turns on its segment with it */
     for (var segment : edgeSegmentsToRemove) {
       removeEdgeSegment(segment);
     }
@@ -377,10 +377,10 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
       fireEvent(new RecreatedDirectedGraphEntitiesManagedIdsEvent(
           this, (ManagedIdEntities<?>) getGraph().getEdgeSegments()));
     }
-    if (getGraph().getMovements() != null) {
-      getGraph().getMovements().recreateIds();
+    if (getGraph().getBannedTurns() != null) {
+      getGraph().getBannedTurns().recreateIds();
       fireEvent(new RecreatedDirectedGraphEntitiesManagedIdsEvent(
-          this, getGraph().getMovements()));
+          this, getGraph().getBannedTurns()));
     }
   }
 
@@ -408,9 +408,9 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
     updateBrokenEdgeItsEdgeSegments(aToBreak, breakToB);
 
     /* only movements on breakToB need updating */
-    if(getGraph().hasMovements()){
-      var touchedMovements = MovementUtils.findBannedMovementsOnEdge(getGraph().getMovements(), aToBreak);
-      updateMovementsItsBrokenSegments(aToBreak, breakToB, touchedMovements);
+    if(getGraph().hasBannedTurns()){
+      var touchedBannedTurns = BannedTurnUtils.findBannedTurnsOnEdge(getGraph().getBannedTurns(), aToBreak);
+      updateMovementsItsBrokenSegments(aToBreak, breakToB, touchedBannedTurns);
     }
 
     return breakToB;

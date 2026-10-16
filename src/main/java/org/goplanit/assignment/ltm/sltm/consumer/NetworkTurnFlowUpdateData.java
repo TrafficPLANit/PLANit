@@ -73,7 +73,7 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
    * @param inflows to use
    * @param outflows to use
    * @param unconstrainedFlowData to use
-   * @param numMovements the number of movements available in the layer/network used
+   * @param numCompiledTurns the number of compiled turns available in the layer/network used
    */
   public NetworkTurnFlowUpdateData(
       final boolean trackAllNodeTurnFlows,
@@ -83,14 +83,14 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
       final double[] inflows,
       final double[] outflows,
       final UnconstrainedFlowData unconstrainedFlowData,
-      final int numMovements) {
+      final int numCompiledTurns) {
     super(
         networkLoadingSendingFlowData,
         networkLoadingFactorData.getCurrentFlowAcceptanceFactors(),
         inflows,
         outflows,
         unconstrainedFlowData);
-    this.acceptedTurnFlows = new double[numMovements];
+    this.acceptedTurnFlows = new double[numCompiledTurns];
     this.nlSplittingRateData = splittingRateData;
 
     /* see class description on why we use these flags */
@@ -104,16 +104,16 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
    * @param networkLoadingSendingFlowData          to use
    * @param splittingRateData        to use
    * @param networkLoadingFactorData to use
-   * @param numMovements the number of movements available in the layer/network used
+   * @param numCompiledTurns the number of compiled turns available in the layer/network used
    */
   public NetworkTurnFlowUpdateData(
           final boolean trackAllNodeTurnFlows,
           NetworkLoadingSendingFlowData networkLoadingSendingFlowData,
           final NetworkLoadingSplittingRateData splittingRateData,
           NetworkLoadingFactorData networkLoadingFactorData,
-          final long numMovements) {
+          final long numCompiledTurns) {
     super(networkLoadingSendingFlowData, networkLoadingFactorData);
-    this.acceptedTurnFlows = new double[(int) numMovements];
+    this.acceptedTurnFlows = new double[(int) numCompiledTurns];
     this.nlSplittingRateData = splittingRateData;
 
     /* see class description on why we use these flags */
@@ -126,15 +126,15 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
    * @param trackAllNodeTurnFlows    flag indicating where or not to track all node turn flows
    * @param splittingRateData        to use
    * @param networkLoadingFactorData to use
-   * @param numMovements the number of movements available in the layer/network used
+   * @param numCompiledTurns the number of compiled turns available in the layer/network used
    */
   public NetworkTurnFlowUpdateData(
           final boolean trackAllNodeTurnFlows,
           final NetworkLoadingSplittingRateData splittingRateData,
           NetworkLoadingFactorData networkLoadingFactorData,
-          final long numMovements) {
+          final long numCompiledTurns) {
     super(networkLoadingFactorData);
-    this.acceptedTurnFlows = new double[(int) numMovements];
+    this.acceptedTurnFlows = new double[(int) numCompiledTurns];
     this.nlSplittingRateData = splittingRateData;
 
     /* see class description on why we use these flags */

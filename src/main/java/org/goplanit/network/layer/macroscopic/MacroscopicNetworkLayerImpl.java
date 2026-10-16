@@ -3,10 +3,9 @@ package org.goplanit.network.layer.macroscopic;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import org.goplanit.network.layer.BannedMovementsImpl;
+import org.goplanit.network.layer.macroscopic.SpatialMovementsImpl;
 import org.goplanit.network.layer.macroscopic.intersection.IntersectionsImpl;
 import org.goplanit.network.layer.modifier.MacroscopicNetworkLayerModifierImpl;
-import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
 import org.goplanit.network.layer.physical.NodesImpl;
 import org.goplanit.network.layer.physical.UntypedPhysicalLayerImpl;
 import org.goplanit.utils.graph.GraphEntityDeepCopyMapper;
@@ -16,9 +15,8 @@ import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.*;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
-import org.goplanit.utils.network.layer.macroscopic.intersection.Intersections;
-import org.goplanit.utils.graph.directed.BannedMovement;
-import org.goplanit.utils.graph.directed.BannedMovements;
+import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
+import org.goplanit.utils.graph.directed.BannedTurn;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
 import org.goplanit.utils.network.layers.ConjugateMacroscopicNetworkLayerFactory;
@@ -42,7 +40,10 @@ public class MacroscopicNetworkLayerImpl
   public final MacroscopicLinkSegmentTypes linkSegmentTypes;
 
   /** The intersections of this layer */
-  protected final Intersections intersections;
+  protected final IntersectionsImpl intersections;
+
+  /** The movements through the intersections of this layer */
+  protected final SpatialMovementsImpl spatialMovements;
 
   /**
    * Constructor
@@ -54,7 +55,7 @@ public class MacroscopicNetworkLayerImpl
         new NodesImpl(groupId),
         new MacroscopicLinksImpl(groupId),
         new MacroscopicLinkSegmentsImpl(groupId),
-        new BannedMovementsImpl(groupId));
+        new MacroscopicBannedTurnsImpl(groupId));
   }
 
   /**
@@ -64,17 +65,18 @@ public class MacroscopicNetworkLayerImpl
    * @param nodes        to use
    * @param links        to use
    * @param linkSegments to use
-   * @param bannedMovements    to use
+   * @param bannedTurns    to use
    */
   protected MacroscopicNetworkLayerImpl(
           final IdGroupingToken groupId,
           Nodes nodes,
           MacroscopicLinks links,
           MacroscopicLinkSegments linkSegments,
-          BannedMovements bannedMovements) {
-    super(groupId, nodes, links, linkSegments, bannedMovements);
+          MacroscopicBannedTurns bannedTurns) {
+    super(groupId, nodes, links, linkSegments, bannedTurns);
     linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl(groupId);
     intersections = new IntersectionsImpl(groupId);
+    spatialMovements = new SpatialMovementsImpl(groupId);
   }
 
   /**
@@ -92,6 +94,8 @@ public class MacroscopicNetworkLayerImpl
    *                        (when provided, may be null)
    * @param intersectionMapper to apply in case of deep copy to each original to copy combination
    *                           (when provided, may be null)
+   * @param spatialMovementMapper to apply in case of deep copy to each original to copy combination
+   *                                   (when provided, may be null)
    */
   protected MacroscopicNetworkLayerImpl(
           MacroscopicNetworkLayerImpl other,
@@ -100,8 +104,9 @@ public class MacroscopicNetworkLayerImpl
           GraphEntityDeepCopyMapper<MacroscopicLink> linkMapper,
           GraphEntityDeepCopyMapper<MacroscopicLinkSegment> linkSegmentMapper,
           ManagedIdDeepCopyMapper<MacroscopicLinkSegmentType> linkSegmentTypeMapper,
-          ManagedIdDeepCopyMapper<BannedMovement> movementsMapper,
-          ManagedIdDeepCopyMapper<Intersection> intersectionMapper) {
+          ManagedIdDeepCopyMapper<BannedTurn> movementsMapper,
+          ManagedIdDeepCopyMapper<Intersection> intersectionMapper,
+          ManagedIdDeepCopyMapper<SpatialMovement> spatialMovementMapper) {
     super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper, movementsMapper);
 
     this.linkSegmentTypes = deepCopy ? other.linkSegmentTypes.deepCloneWithMapping(linkSegmentTypeMapper) :
@@ -111,12 +116,16 @@ public class MacroscopicNetworkLayerImpl
     }
     if (deepCopy) {
       /* after the graph is copied, so the node and link segment mappers hold every original to copy */
-      var copiedIntersections = (IntersectionsImpl) other.intersections.deepCloneWithMapping(intersectionMapper);
+      var copiedIntersections = other.intersections.deepCloneWithMapping(intersectionMapper);
       copiedIntersections.updateMemberNodeMapping(nodeMapper::getMapping, true);
       copiedIntersections.updateSegmentMapping(linkSegmentMapper::getMapping, true);
       this.intersections = copiedIntersections;
+      this.spatialMovements = other.spatialMovements.deepCloneWithMapping(spatialMovementMapper);
+      this.spatialMovements.updateSegmentMapping(linkSegmentMapper::getMapping);
+      copiedIntersections.updateMovementMapping(spatialMovementMapper::getMapping);
     } else {
       this.intersections = other.intersections.shallowClone();
+      this.spatialMovements = other.spatialMovements.shallowClone();
     }
   }
 
@@ -167,8 +176,16 @@ public class MacroscopicNetworkLayerImpl
    * {@inheritDoc}
    */
   @Override
-  public Intersections getIntersections() {
+  public IntersectionsImpl getIntersections() {
     return this.intersections;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SpatialMovementsImpl getSpatialMovements() {
+    return this.spatialMovements;
   }
 
   /**
@@ -183,8 +200,8 @@ public class MacroscopicNetworkLayerImpl
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicNetworkLayerModifier getLayerModifier() {
-    return (MacroscopicNetworkLayerModifier) super.getLayerModifier();
+  public MacroscopicNetworkLayerModifierImpl getLayerModifier() {
+    return (MacroscopicNetworkLayerModifierImpl) super.getLayerModifier();
   }
 
   /**
@@ -215,8 +232,9 @@ public class MacroscopicNetworkLayerImpl
    * {@inheritDoc}
    */
   @Override
-  public BannedMovements getBannedMovements() {
-    return this.directedGraph.getMovements();
+  public MacroscopicBannedTurns getBannedTurns() {
+    /* the graph holds the container this layer created, see the constructors */
+    return (MacroscopicBannedTurns) this.directedGraph.getBannedTurns();
   }
 
   /**
@@ -227,6 +245,7 @@ public class MacroscopicNetworkLayerImpl
     return new MacroscopicNetworkLayerImpl(
         this,
         false,
+        null,
         null,
         null,
         null,
@@ -246,6 +265,7 @@ public class MacroscopicNetworkLayerImpl
             new GraphEntityDeepCopyMapper<>(),
             new GraphEntityDeepCopyMapper<>(),
             new GraphEntityDeepCopyMapper<>(),
+            new ManagedIdDeepCopyMapper<>(),
             new ManagedIdDeepCopyMapper<>(),
             new ManagedIdDeepCopyMapper<>(),
             new ManagedIdDeepCopyMapper<>());
@@ -268,6 +288,7 @@ public class MacroscopicNetworkLayerImpl
     super.resetChildManagedIdEntities();
     this.linkSegmentTypes.reset();
     this.intersections.reset();
+    this.spatialMovements.reset();
   }
 
   /**
@@ -278,6 +299,7 @@ public class MacroscopicNetworkLayerImpl
     var newId = super.recreateManagedIds(tokenId);
     getLinkSegmentTypes().recreateIds(true);
     getIntersections().recreateIds(true);
+    getSpatialMovements().recreateIds(true);
     return newId;
   }
 

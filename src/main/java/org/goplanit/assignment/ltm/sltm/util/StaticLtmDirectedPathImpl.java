@@ -36,7 +36,7 @@ public class StaticLtmDirectedPathImpl extends ExternalIdAbleImpl implements Sta
   private double currentPathChoiceProbability;
 
   /** the path definition  */
-//  private Movement[] thePath;
+//  private Turn[] thePath;
   private Deque<? extends EdgeSegment> thePath;
 
   /**
@@ -63,7 +63,7 @@ public class StaticLtmDirectedPathImpl extends ExternalIdAbleImpl implements Sta
    * @param groupingToken grouping token
    * @param thePath to base path on
    */
-  //protected StaticLtmDirectedPathImpl(IdGroupingToken groupingToken, Movement[] movements){
+  //protected StaticLtmDirectedPathImpl(IdGroupingToken groupingToken, Turn[] movements){
   protected StaticLtmDirectedPathImpl(IdGroupingToken groupingToken, Deque<? extends EdgeSegment> thePath){
     super(generateId(groupingToken));
 
@@ -118,7 +118,7 @@ public class StaticLtmDirectedPathImpl extends ExternalIdAbleImpl implements Sta
   }
 
 //  @Override
-//  public Movement[] getMovements() {
+//  public Turn[] getMovements() {
 //    return thePath;
 //  }
 

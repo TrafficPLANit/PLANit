@@ -18,11 +18,11 @@ public class ConjugateBushSyncNetworkFlowConsumer
    * constructor
    *
    * @param dataConfig to use
-   * @param compiledMovementIds to use
+   * @param compiledTurnIds to use
    */
   public ConjugateBushSyncNetworkFlowConsumer(final NetworkTurnFlowUpdateData dataConfig,
-                                              final CompiledRelationMapping compiledMovementIds) {
-    super(dataConfig,compiledMovementIds);
+                                              final CompiledRelationMapping compiledTurnIds) {
+    super(dataConfig,compiledTurnIds);
   }
 
 }

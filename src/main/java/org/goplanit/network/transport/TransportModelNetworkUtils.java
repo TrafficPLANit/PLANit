@@ -133,17 +133,19 @@ public class TransportModelNetworkUtils {
    * @param transportModelNetwork to use
    * @return compiled index mapping
    */
-  public static CompiledRelationIndex createCompiledMovementIdMapping(
+  public static CompiledRelationIndex createCompiledTurnIdMapping(
       TransportModelNetwork<?,?> transportModelNetwork){
 
     // ------------------------------------------------------------
-    // Step 1: banned movements (original style, no streams)
+    // Step 1: banned turns (original style, no streams)
     // ------------------------------------------------------------
+    // todo: a banned turn of a macroscopic layer names the modes it bans; apply only those of the mode assigned
+    //  here, instead of leaving out every banned turn whatever its modes
     Map<EdgeSegment, List<EdgeSegment>> bannedByEntryExit = new HashMap<>();
     Streams.concat(
-            transportModelNetwork.getVirtualNetwork().getLayer().getMovements().stream(),
+            transportModelNetwork.getVirtualNetwork().getLayer().getBannedTurns().stream(),
             transportModelNetwork.getInfrastructureNetwork().getTransportLayers().stream().flatMap(
-                l -> l.getBannedMovements().stream())
+                l -> l.getBannedTurns().stream())
         ).forEach(m -> bannedByEntryExit
             .computeIfAbsent(m.getSegmentFrom(), k -> new java.util.ArrayList<>())
             .add(m.getSegmentTo())

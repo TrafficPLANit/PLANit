@@ -10,7 +10,7 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
 import org.goplanit.network.virtual.VirtualNetworkImpl;
-import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedTurn;
 import org.goplanit.utils.zoning.connectoid.*;
 import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.utils.geo.PlanitJtsUtils;
@@ -158,9 +158,9 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
       var connectoidEdgeMapper = new GraphEntityDeepCopyMapper<ConnectoidDirectedEdge>();
       var connectoidEdgeSegmentMapper = new GraphEntityDeepCopyMapper<ConnectoidSegment>();
       var centroidVertexMapper = new GraphEntityDeepCopyMapper<CentroidVertex>();
-      var movementMapper = new ManagedIdDeepCopyMapper<BannedMovement>();
+      var bannedTurnMapper = new ManagedIdDeepCopyMapper<BannedTurn>();
       this.virtualNetwork = other.virtualNetwork.deepCloneWithMapping(
-          connectoidEdgeMapper, connectoidEdgeSegmentMapper, centroidVertexMapper, movementMapper);
+          connectoidEdgeMapper, connectoidEdgeSegmentMapper, centroidVertexMapper, bannedTurnMapper);
 
       // make sure centroid vertex's parent centroid is updated properly (this goes across zones that own  zone
       // and centroids and virtual network, so done here)

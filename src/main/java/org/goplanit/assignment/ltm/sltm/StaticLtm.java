@@ -70,7 +70,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   /**
    * Factory method to create the desired assignment strategy to use
    *
-   * @param compiledMovementIds implicit movementIds used for turn based data indexing
+   * @param compiledTurnIds implicit compiled turn ids used for turn based data indexing
    * @return created strategy, null if unsupported type is set
    */
   private StaticLtmAssignmentStrategy createAssignmentStrategy() {

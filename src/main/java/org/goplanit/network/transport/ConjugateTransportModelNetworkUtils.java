@@ -30,10 +30,10 @@ public class ConjugateTransportModelNetworkUtils {
 
     // currently we do not support conjugate (banned) movements, to avoid issues, we chekc if they exists and if so
     // we throw
-    if(conjugateTransportModelNetwork.getVirtualNetwork().getLayer().hasMovements() ||
+    if(conjugateTransportModelNetwork.getVirtualNetwork().getLayer().hasBannedTurns() ||
         conjugateTransportModelNetwork.getInfrastructureNetwork().getTransportLayers().stream().anyMatch(
-            UntypedPhysicalLayer::hasBannedMovements)){
-      throw new PlanItRunTimeException("We do not yet support banned movements in conjugate network i.c.w. creating" +
+            UntypedPhysicalLayer::hasBannedTurns)){
+      throw new PlanItRunTimeException("We do not yet support banned turns in conjugate network i.c.w. creating" +
           "a mapping from pairs of segments to a conjugate segment");
     }
 

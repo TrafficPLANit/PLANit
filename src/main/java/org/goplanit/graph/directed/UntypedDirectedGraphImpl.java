@@ -9,8 +9,8 @@ import org.goplanit.utils.graph.UntypedDirectedGraph;
 import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
-import org.goplanit.utils.graph.directed.BannedMovements;
-import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedTurns;
+import org.goplanit.utils.graph.directed.BannedTurn;
 
 /**
  * 
@@ -36,7 +36,7 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
   protected final GraphEntities<ES> edgeSegments;
 
   /** movements of the graph (can be empty indicating all movements are allowed) */
-  protected final BannedMovements bannedMovements;
+  protected final BannedTurns bannedTurns;
 
   /**
    * DirectedGraph Constructor
@@ -45,17 +45,17 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
    * @param vertices     to use
    * @param edges        to use
    * @param edgeSegments to use
-   * @param bannedMovements to use
+   * @param bannedTurns to use
    */
   public UntypedDirectedGraphImpl(
           final IdGroupingToken groupToken,
           GraphEntities<V> vertices,
           GraphEntities<E> edges,
           GraphEntities<ES> edgeSegments,
-          final BannedMovements bannedMovements) {
+          final BannedTurns bannedTurns) {
     super(groupToken, vertices, edges);
     this.edgeSegments = edgeSegments;
-    this.bannedMovements = bannedMovements;
+    this.bannedTurns = bannedTurns;
   }
 
   /**
@@ -78,7 +78,7 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
    * @param vertexMapper tracking how original vertices are mapped to new vertices in case of deep copy
    * @param edgeMapper tracking how original edges are mapped to new edges in case of deep copy
    * @param edgeSegmentMapper tracking how original edge segments are mapped to new edge segments in case of deep copy
-   * @param movementMapper to apply in case of deep copy to each original to copy combination
+   * @param bannedTurnMapper to apply in case of deep copy to each original to copy combination
    *                       (when provided, may be null)
    */
   public UntypedDirectedGraphImpl(
@@ -87,21 +87,21 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
       GraphEntityDeepCopyMapper<V> vertexMapper,
       GraphEntityDeepCopyMapper<E> edgeMapper,
       GraphEntityDeepCopyMapper<ES> edgeSegmentMapper,
-      ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
+      ManagedIdDeepCopyMapper<BannedTurn> bannedTurnMapper) {
     super(directedGraphImpl, deepCopy, vertexMapper, edgeMapper);
 
     // container class, so clone upon shallow copy
     if(deepCopy) {
       this.edgeSegments = directedGraphImpl.getEdgeSegments().deepCloneWithMapping(edgeSegmentMapper);
-      this.bannedMovements = directedGraphImpl.bannedMovements.deepCloneWithMapping(movementMapper);
+      this.bannedTurns = directedGraphImpl.bannedTurns.deepCloneWithMapping(bannedTurnMapper);
       EdgeSegmentUtils.updateEdgeSegmentParentEdges(
           edgeSegments, edgeMapper::getMapping, true);
       DirectedEdgeUtils.updateDirectedEdgeEdgeSegments(
           edges, edgeSegmentMapper::getMapping, true);
-      bannedMovements.updateSegmentMapping(edgeSegmentMapper::getMapping, true);
+      bannedTurns.updateSegmentMapping(edgeSegmentMapper::getMapping, true);
     }else{
       this.edgeSegments = directedGraphImpl.getEdgeSegments().shallowClone();
-      this.bannedMovements = directedGraphImpl.getMovements().shallowClone();
+      this.bannedTurns = directedGraphImpl.getBannedTurns().shallowClone();
     }
   }
 
@@ -119,8 +119,8 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
    * {@inheritDoc}
    */
   @Override
-  public BannedMovements getMovements() {
-    return bannedMovements;
+  public BannedTurns getBannedTurns() {
+    return bannedTurns;
   }
 
   /**
@@ -148,7 +148,7 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
    * @param vertexMapper tracking original to copy mappings
    * @param edgeMapper tracking original to copy mappings
    * @param edgeSegmentMapper tracking original to copy mappings
-   * @param movementMapper to apply in case of deep copy to each original to copy combination
+   * @param bannedTurnMapper to apply in case of deep copy to each original to copy combination
    *                       (when provided, may be null)
    * @return created copy
    */
@@ -156,10 +156,10 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
       GraphEntityDeepCopyMapper<V> vertexMapper,
       GraphEntityDeepCopyMapper<E> edgeMapper,
       GraphEntityDeepCopyMapper<ES> edgeSegmentMapper,
-      ManagedIdDeepCopyMapper<BannedMovement> movementMapper
+      ManagedIdDeepCopyMapper<BannedTurn> bannedTurnMapper
       ) {
     return new UntypedDirectedGraphImpl<>(
-            this, true, vertexMapper, edgeMapper, edgeSegmentMapper, movementMapper);
+            this, true, vertexMapper, edgeMapper, edgeSegmentMapper, bannedTurnMapper);
   }
 
 }

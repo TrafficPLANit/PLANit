@@ -40,25 +40,25 @@ public class ConjugateBushTurnFlowUpdateConsumer
    * constructor
    *
    * @param dataConfig to use
-   * @param compiledMovementIds to use
+   * @param compiledTurnIds to use
    * @param edgeSegmentsToUpdate selective edge segments to update (all turn flows of all bushes of these edge segments)
    */
   public ConjugateBushTurnFlowUpdateConsumer(
       final NetworkTurnFlowUpdateData dataConfig,
-      final CompiledRelationMapping compiledMovementIds,
+      final CompiledRelationMapping compiledTurnIds,
       Set<EdgeSegment> edgeSegmentsToUpdate) {
-    super(dataConfig, compiledMovementIds, edgeSegmentsToUpdate);
+    super(dataConfig, compiledTurnIds, edgeSegmentsToUpdate);
   }
 
   /**
    * constructor
    * 
    * @param dataConfig to use
-   * @param compiledMovementIds to use
+   * @param compiledTurnIds to use
    */
   public ConjugateBushTurnFlowUpdateConsumer(final NetworkTurnFlowUpdateData dataConfig,
-                                             CompiledRelationMapping compiledMovementIds) {
-    super(dataConfig, compiledMovementIds);
+                                             CompiledRelationMapping compiledTurnIds) {
+    super(dataConfig, compiledTurnIds);
   }
 
   /**
@@ -83,6 +83,6 @@ public class ConjugateBushTurnFlowUpdateConsumer
    */
   @Override
   public TurnFlowAccessorConjugateSegments getAcceptedTurnFlows() {
-    return TurnFlowAccessorConjugateSegments.of(this.compiledMovementIds, dataConfig.getAcceptedTurnFlows());
+    return TurnFlowAccessorConjugateSegments.of(this.compiledTurnIds, dataConfig.getAcceptedTurnFlows());
   }
 }

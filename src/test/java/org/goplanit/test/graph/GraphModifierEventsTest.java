@@ -9,7 +9,7 @@ import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.graph.directed.modifier.DirectedGraphModifierImpl;
 import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
 import org.goplanit.graph.directed.modifier.event.RemoveEdgeSegmentEvent;
-import org.goplanit.graph.directed.modifier.event.RemoveMovementEvent;
+import org.goplanit.graph.directed.modifier.event.RemoveBannedTurnEvent;
 import org.goplanit.graph.modifier.event.BreakEdgeEvent;
 import org.goplanit.graph.modifier.event.RemoveEdgeEvent;
 import org.goplanit.graph.modifier.event.RemoveGraphEntityEvent;
@@ -17,7 +17,7 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
-import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedTurn;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
@@ -67,7 +67,7 @@ public class GraphModifierEventsTest extends LayerTestBase {
   /** a graph modifier on the layer's own containers, so listeners internal to it can be registered */
   private DirectedGraphModifierImpl graphModifierOnLayer() {
     return new DirectedGraphModifierImpl(new UntypedDirectedGraphImpl<>(IdGroupingToken.collectGlobalToken(),
-        layer.getNodes(), layer.getLinks(), layer.getLinkSegments(), layer.getBannedMovements()));
+        layer.getNodes(), layer.getLinks(), layer.getLinkSegments(), layer.getBannedTurns()));
   }
 
   /** listener for the break link events, registered for all the types it supports */
@@ -87,23 +87,23 @@ public class GraphModifierEventsTest extends LayerTestBase {
   }
 
   /**
-   * A listener registered for banned movement removal only receives the event when a banned movement is removed, here
+   * A listener registered for banned turn removal only receives the event when a banned turn is removed, here
    * as part of removing a dangling part of the network
    */
   @Test
-  public void removedBannedMovementFiresEventForItsOwnListener() {
+  public void removedBannedTurnFiresEventForItsOwnListener() {
     createNodes(7);
     oneWay(0, 1); oneWay(1, 2); oneWay(2, 3); oneWay(3, 0);         // main part, kept as the largest
     var in = oneWay(4, 5); var out = oneWay(5, 6);                  // dangling part, removed
-    layer.getBannedMovements().getFactory().registerNew(in.getLinkSegmentAb(), out.getLinkSegmentAb());
+    layer.getBannedTurns().getFactory().registerNew(in.getLinkSegmentAb(), out.getLinkSegmentAb());
 
     var listener = new RecordingListener();
-    layer.getLayerModifier().addListener(listener, RemoveMovementEvent.EVENT_TYPE);
+    layer.getLayerModifier().addListener(listener, RemoveBannedTurnEvent.EVENT_TYPE);
     layer.getLayerModifier().removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true, false);
 
-    assertEquals(0, layer.getBannedMovements().size());
+    assertEquals(0, layer.getBannedTurns().size());
     assertEquals(1, listener.received.size());
-    assertEquals(RemoveMovementEvent.EVENT_TYPE, ((RemoveMovementEvent) listener.received.get(0)).getType());
+    assertEquals(RemoveBannedTurnEvent.EVENT_TYPE, ((RemoveBannedTurnEvent) listener.received.get(0)).getType());
   }
 
   /** Removing a link removes both its segments from the layer, firing a removal event for each */
@@ -156,19 +156,19 @@ public class GraphModifierEventsTest extends LayerTestBase {
     var in = oneWay(0, 1);
     var out = oneWay(1, 2);
     var other = oneWay(3, 1);
-    var removedBan = layer.getBannedMovements().getFactory().registerNew(in.getLinkSegmentAb(), out.getLinkSegmentAb());
-    var keptBan = layer.getBannedMovements().getFactory().registerNew(other.getLinkSegmentAb(), out.getLinkSegmentAb());
+    var removedBan = layer.getBannedTurns().getFactory().registerNew(in.getLinkSegmentAb(), out.getLinkSegmentAb());
+    var keptBan = layer.getBannedTurns().getFactory().registerNew(other.getLinkSegmentAb(), out.getLinkSegmentAb());
     var modifier = graphModifierOnLayer();
-    var listener = new RecordingListener(RemoveEdgeSegmentEvent.EVENT_TYPE, RemoveMovementEvent.EVENT_TYPE);
+    var listener = new RecordingListener(RemoveEdgeSegmentEvent.EVENT_TYPE, RemoveBannedTurnEvent.EVENT_TYPE);
     modifier.addListener(listener);
 
     modifier.removeEdgeSegment(in.getLinkSegmentAb());
 
-    assertNull(layer.getBannedMovements().get(removedBan.getId()));
-    assertSame(keptBan, layer.getBannedMovements().get(keptBan.getId()));
+    assertNull(layer.getBannedTurns().get(removedBan.getId()));
+    assertSame(keptBan, layer.getBannedTurns().get(keptBan.getId()));
     assertEquals(2, listener.received.size());
     assertTrue(listener.received.get(0) instanceof RemoveEdgeSegmentEvent);
-    assertTrue(listener.received.get(1) instanceof RemoveMovementEvent);
+    assertTrue(listener.received.get(1) instanceof RemoveBannedTurnEvent);
   }
 
   /** Removing a segment that is no longer registered changes nothing and fires no event */
@@ -229,17 +229,17 @@ public class GraphModifierEventsTest extends LayerTestBase {
     createNodes(7);
     oneWay(0, 1); oneWay(1, 2); oneWay(2, 3); oneWay(3, 0);         // main part, kept
     var in = oneWay(4, 5); var out = oneWay(5, 6);                  // part around node 5, removed
-    layer.getBannedMovements().getFactory().registerNew(in.getLinkSegmentAb(), out.getLinkSegmentAb());
+    layer.getBannedTurns().getFactory().registerNew(in.getLinkSegmentAb(), out.getLinkSegmentAb());
 
     /* a directed graph modifier on the layer's own containers, as the layer wires its own */
     var graph = new UntypedDirectedGraphImpl<>(IdGroupingToken.collectGlobalToken(),
-        layer.getNodes(), layer.getLinks(), layer.getLinkSegments(), layer.getBannedMovements());
+        layer.getNodes(), layer.getLinks(), layer.getLinkSegments(), layer.getBannedTurns());
     new DirectedGraphModifierImpl(graph).removeSubGraphOf(nodes.get(5));
 
     assertEquals(4, layer.getNodes().size());
     assertEquals(4, layer.getLinks().size());
     assertEquals(4, layer.getLinkSegments().size());
-    assertEquals(0, layer.getBannedMovements().size());
+    assertEquals(0, layer.getBannedTurns().size());
   }
 
   /** Removing a dangling part of the network with several nodes fires one removed part event, not one per node */
@@ -335,9 +335,9 @@ public class GraphModifierEventsTest extends LayerTestBase {
     createNodes(3);
     var in = oneWay(0, 1);
     var out = oneWay(1, 2);
-    layer.getBannedMovements().getFactory().registerNew(in.getLinkSegmentAb(), out.getLinkSegmentAb());
+    layer.getBannedTurns().getFactory().registerNew(in.getLinkSegmentAb(), out.getLinkSegmentAb());
 
-    layer.getBannedMovements().recreateIds(true);
+    layer.getBannedTurns().recreateIds(true);
     var next = layer.getNodes().getFactory().registerNew();
 
     assertEquals(3, next.getNodeId());
@@ -350,8 +350,8 @@ public class GraphModifierEventsTest extends LayerTestBase {
     var in = oneWay(0, 1);
     var out = oneWay(1, 2);
     var elsewhere = oneWay(2, 3);
-    var valid = layer.getBannedMovements().getFactory().registerNew(in.getLinkSegmentAb(), out.getLinkSegmentAb());
-    var invalid = layer.getBannedMovements().getFactory().registerNew(in.getLinkSegmentAb(), elsewhere.getLinkSegmentAb());
+    var valid = layer.getBannedTurns().getFactory().registerNew(in.getLinkSegmentAb(), out.getLinkSegmentAb());
+    var invalid = layer.getBannedTurns().getFactory().registerNew(in.getLinkSegmentAb(), elsewhere.getLinkSegmentAb());
 
     assertSame(nodes.get(1), valid.getCentreVertex());
     assertFalse(invalid.hasCentreVertex());

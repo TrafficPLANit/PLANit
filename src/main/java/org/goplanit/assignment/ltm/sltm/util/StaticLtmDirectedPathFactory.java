@@ -19,7 +19,7 @@ public class StaticLtmDirectedPathFactory extends ManagedIdEntityFactoryImpl<Sta
   private static final Logger LOGGER = Logger.getLogger(StaticLtmDirectedPathFactory.class.getCanonicalName());
 
 //  /** two key mapping from segment,segment to a movement */
-//  private MultiKeyMap<Object, Movement> segmentPair2MovementMap;
+//  private MultiKeyMap<Object, Turn> segmentPair2MovementMap;
 
 //
 //  /**
@@ -28,8 +28,8 @@ public class StaticLtmDirectedPathFactory extends ManagedIdEntityFactoryImpl<Sta
 //   * @param edgeSegments to use
 //   * @return movement array
 //   */
-//  private Movement[] getMovements(Deque<? extends EdgeSegment> edgeSegments) {
-//    Movement[] movements = new Movement[edgeSegments.size()-1];
+//  private Turn[] getMovements(Deque<? extends EdgeSegment> edgeSegments) {
+//    Turn[] movements = new Turn[edgeSegments.size()-1];
 //
 //    int index = 0;
 //    var edgeSegmentIter = edgeSegments.iterator();
@@ -54,7 +54,7 @@ public class StaticLtmDirectedPathFactory extends ManagedIdEntityFactoryImpl<Sta
    * @param groupIdToken  to use for creating element ids
    */
   public StaticLtmDirectedPathFactory(
-      final IdGroupingToken groupIdToken /* MultiKeyMap<Object, Movement> segmentPair2MovementMap */){
+      final IdGroupingToken groupIdToken /* MultiKeyMap<Object, Turn> segmentPair2MovementMap */){
     super(groupIdToken);
     //this.segmentPair2MovementMap = segmentPair2MovementMap;
   }

@@ -4,11 +4,12 @@ import org.goplanit.network.UntypedPhysicalNetwork;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.graph.Vertex;
-import org.goplanit.utils.graph.directed.BannedMovement;
+import org.goplanit.utils.graph.directed.BannedTurn;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
+import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.physical.*;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -37,8 +38,9 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
     add(MacroscopicLinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
     add(ConjugateLinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
 
-    add(BannedMovement.class, IdMapperFunctionFactory.createMovementIdMappingFunction(type));
+    add(BannedTurn.class, IdMapperFunctionFactory.createBannedTurnIdMappingFunction(type));
     add(Intersection.class, IdMapperFunctionFactory.createIntersectionIdMappingFunction(type));
+    add(SpatialMovement.class, IdMapperFunctionFactory.createSpatialMovementIdMappingFunction(type));
   }
 
   /**
@@ -78,11 +80,11 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
     return get(MacroscopicLinkSegmentType.class);
   }
 
-  /** get id mapper for movements (banned turns)
+  /** get id mapper for banned turns
    * @return id mapper
    */
-  public Function<BannedMovement, String> getMovementIdMapper(){
-    return get(BannedMovement.class);
+  public Function<BannedTurn, String> getBannedTurnIdMapper(){
+    return get(BannedTurn.class);
   }
 
   /** get id mapper for intersections
@@ -90,6 +92,13 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
    */
   public Function<Intersection, String> getIntersectionIdMapper(){
     return get(Intersection.class);
+  }
+
+  /** get id mapper for movements through intersections
+   * @return id mapper
+   */
+  public Function<SpatialMovement, String> getSpatialMovementIdMapper(){
+    return get(SpatialMovement.class);
   }
 
   /** get id mapper for traveller types

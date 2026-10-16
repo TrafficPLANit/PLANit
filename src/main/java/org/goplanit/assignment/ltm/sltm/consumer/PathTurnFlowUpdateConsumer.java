@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.util.StaticLtmDirectedPath;
-import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessorMovements;
+import org.goplanit.assignment.ltm.sltm.loading.TurnFlowAccessorCompiledTurns;
 import org.goplanit.utils.network.layer.physical.CompiledRelationIndex;
 import org.goplanit.zoning.od.path.OdMultiPaths;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -73,7 +73,7 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
       /* v_ap = u_bp = alpha_a*...*f_p where we implicitly consider all
        * preceding alphas (flow acceptance factors) up to now */
       double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[fromSegmentId];
-      long movementId = compiledMovementIds.get(fromSegmentId, toSegment.getId());
+      long movementId = compiledTurnIds.get(fromSegmentId, toSegment.getId());
       dataConfig.addToAcceptedTurnFlows((int)movementId, acceptedTurnFlowPcuH);
 
       /* v_a = SUM(v_ap) (only when enabled) */
@@ -108,13 +108,13 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
    * 
    * @param dataConfig to use
    * @param odPaths    to use
-   * @param compiledMovementIds to use
+   * @param compiledTurnIds to use
    */
   public PathTurnFlowUpdateConsumer(
           final NetworkTurnFlowUpdateData dataConfig,
           final OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>> odPaths,
-          final CompiledRelationIndex compiledMovementIds) {
-    super(dataConfig, odPaths, compiledMovementIds);
+          final CompiledRelationIndex compiledTurnIds) {
+    super(dataConfig, odPaths, compiledTurnIds);
   }
 
   /**
@@ -122,8 +122,8 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
    * 
    * @return accepted turn flows
    */
-  public TurnFlowAccessorMovements getAcceptedTurnFlows() {
-    return TurnFlowAccessorMovements.of(compiledMovementIds, dataConfig.getAcceptedTurnFlows());
+  public TurnFlowAccessorCompiledTurns getAcceptedTurnFlows() {
+    return TurnFlowAccessorCompiledTurns.of(compiledTurnIds, dataConfig.getAcceptedTurnFlows());
   }
 
 }

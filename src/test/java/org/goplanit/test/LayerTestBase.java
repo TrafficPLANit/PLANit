@@ -9,14 +9,17 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.locationtech.jts.geom.Coordinate;
 
 /**
- * Base for tests building a small macroscopic network layer by hand: nodes by index, links between them, and the
- * segments running between two nodes. Ids are reset before and after each test
+ * Base for tests building a small macroscopic network layer by hand: nodes by index, links between them, the
+ * segments running between two nodes, and spatial junctions over nodes. Ids are reset before and after each test
  */
 public abstract class LayerTestBase {
 
@@ -151,5 +154,21 @@ public abstract class LayerTestBase {
   protected MacroscopicLinkSegment segment(int a, int b) {
     return layer.getLinkSegments().stream().filter(
         ls -> ls.getUpstreamVertex() == nodes.get(a) && ls.getDownstreamVertex() == nodes.get(b)).findFirst().orElseThrow();
+  }
+
+  /**
+   * Create a signalised spatial junction over the given nodes, not registered, so a test can complete it with raw
+   * edits before registering it
+   *
+   * @param nodeIndices indices of its member nodes, two or more
+   * @return the intersection
+   */
+  protected SpatialIntersection spatialJunctionOver(int... nodeIndices) {
+    var memberNodes = new ArrayList<Node>(nodeIndices.length);
+    for (int index : nodeIndices) {
+      memberNodes.add(nodes.get(index));
+    }
+    return layer.getIntersections().getFactory().createSpatial(
+        memberNodes, IntersectionControlType.SIGNALISED, List.of(IntersectionType.JUNCTION));
   }
 }

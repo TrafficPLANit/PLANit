@@ -2,7 +2,7 @@ package org.goplanit.network.transport;
 
 import org.goplanit.network.ConjugateMacroscopicNetwork;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.layer.BannedMovementsImpl;
+import org.goplanit.network.layer.BannedTurnsImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
@@ -41,7 +41,7 @@ public class ConjugateTransportModelNetwork
           final IdGroupingToken idToken,
           TransportModelNetwork<MacroscopicNetwork, VirtualNetwork> referenceTransportModelNetwork) {
     super();
-    this.bannedMovements = new BannedMovementsImpl(idToken);
+    this.bannedTurns = new BannedTurnsImpl(idToken);
     this.zoning = referenceTransportModelNetwork.getZoning();
     this.referenceTransportModelNetwork = referenceTransportModelNetwork;
 

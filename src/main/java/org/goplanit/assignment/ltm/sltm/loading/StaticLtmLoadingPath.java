@@ -28,7 +28,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
   /** Od Paths registered by mode */
   private final Map<Mode, OdMultiPaths<StaticLtmDirectedPath, ? extends List<StaticLtmDirectedPath>>> odMultiPathsByMode;
 
-  private final CompiledRelationIndex compiledMovementIds;
+  private final CompiledRelationIndex compiledTurnIds;
 
   //@formatter:off
 
@@ -90,7 +90,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
         
     /* turns + optional links update */
     if(updateTurnAcceptedFlows) {
-      long numPermissableMovements = compiledMovementIds.size();
+      long numPermissableCompiledTurns = compiledTurnIds.size();
       NetworkTurnFlowUpdateData dataConfig = null;
 
       if (updateUnconstrainedFlows) {
@@ -111,16 +111,16 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
                   nlSendingFlowData,
                   nlSplittingRateData,
                   networkLoadingFactorData,
-                  numPermissableMovements);
+                  numPermissableCompiledTurns);
         }
       }else {
         dataConfig = new NetworkTurnFlowUpdateData(
             isTrackAllNodeTurnFlowsDuringLoading(),
             nlSplittingRateData,
             networkLoadingFactorData,
-            numPermissableMovements);
+            numPermissableCompiledTurns);
       }
-      return new PathTurnFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode), compiledMovementIds);
+      return new PathTurnFlowUpdateConsumer(dataConfig, odMultiPathsByMode.get(mode), compiledTurnIds);
     }
 
     LOGGER.warning("Invalid network flow update requested for path based loading");
@@ -209,17 +209,17 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * 
    * @param idToken      to use
    * @param assignmentId to use
-   * @param compiledMovementIds to use
+   * @param compiledTurnIds to use
    * @param settings to use
    */
   public StaticLtmLoadingPath(
           IdGroupingToken idToken,
           long assignmentId,
-          CompiledRelationIndex compiledMovementIds,
+          CompiledRelationIndex compiledTurnIds,
           final StaticLtmSettings settings) {
     super(idToken, assignmentId, settings);
     this.odMultiPathsByMode = new HashMap<>();
-    this.compiledMovementIds = compiledMovementIds;
+    this.compiledTurnIds = compiledTurnIds;
   }
 
   /** Set the od multi paths to use in the loading (by mode). Expected to be set before this class is used

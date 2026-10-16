@@ -10,8 +10,8 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
-import org.goplanit.utils.graph.directed.BannedMovement;
-import org.goplanit.utils.graph.directed.BannedMovements;
+import org.goplanit.utils.graph.directed.BannedTurn;
+import org.goplanit.utils.graph.directed.BannedTurns;
 
 /**
  * 
@@ -38,15 +38,15 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
    * @param vertices     to use
    * @param edges        to use
    * @param edgeSegments to use
-   * @param bannedMovements to use
+   * @param bannedTurns to use
    */
   public DirectedGraphImpl(
       final IdGroupingToken groupToken,
       GraphEntities<V> vertices,
       GraphEntities<E> edges,
       GraphEntities<ES> edgeSegments,
-      final BannedMovements bannedMovements) {
-    super(groupToken, vertices, edges, edgeSegments, bannedMovements);
+      final BannedTurns bannedTurns) {
+    super(groupToken, vertices, edges, edgeSegments, bannedTurns);
   }
 
   /**
@@ -66,7 +66,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
    * @param vertexMapper tracking how original vertices are mapped to new vertices in case of deep copy
    * @param edgeMapper tracking how original edges are mapped to new edges in case of deep copy
    * @param edgeSegmentMapper tracking how original edge segments are mapped to new edge segments in case of deep copy
-   * @param movementMapper to apply in case of deep copy to each original to copy combination
+   * @param bannedTurnMapper to apply in case of deep copy to each original to copy combination
    *                       (when provided, may be null)
    */
   public DirectedGraphImpl(
@@ -75,8 +75,8 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
       GraphEntityDeepCopyMapper<V> vertexMapper,
       GraphEntityDeepCopyMapper<E> edgeMapper,
       GraphEntityDeepCopyMapper<ES> edgeSegmentMapper,
-      ManagedIdDeepCopyMapper<BannedMovement> movementMapper) {
-    super(directedGraphImpl, deepCopy, vertexMapper, edgeMapper, edgeSegmentMapper,movementMapper);
+      ManagedIdDeepCopyMapper<BannedTurn> bannedTurnMapper) {
+    super(directedGraphImpl, deepCopy, vertexMapper, edgeMapper, edgeSegmentMapper,bannedTurnMapper);
   }
 
   /**

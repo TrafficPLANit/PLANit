@@ -1,5 +1,7 @@
 package org.goplanit.network.layer.macroscopic.intersection;
 
+import java.util.Collection;
+
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
@@ -7,11 +9,13 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionCon
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionFactory;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersections;
+import org.goplanit.utils.network.layer.macroscopic.intersection.NonSpatialIntersection;
+import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
- * Factory for intersections, either created for the caller to complete and register, or created and registered at
- * once
+ * Factory for intersections of both kinds, either created for the caller to complete and register, or created and
+ * registered at once
  *
  * @author markr
  */
@@ -35,8 +39,18 @@ public class IntersectionFactoryImpl extends ManagedIdEntityFactoryImpl<Intersec
    * {@inheritDoc}
    */
   @Override
-  public Intersection create(Node node, IntersectionControlType controlType, IntersectionType type) {
-    return new IntersectionImpl(getIdGroupingToken(), node, controlType, type);
+  public NonSpatialIntersection createNonSpatial(
+      Node node, IntersectionControlType controlType, IntersectionType type) {
+    return new NonSpatialIntersectionImpl(getIdGroupingToken(), node, controlType, type);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SpatialIntersection createSpatial(
+      Collection<Node> memberNodes, IntersectionControlType controlType, Collection<IntersectionType> types) {
+    return new SpatialIntersectionImpl(getIdGroupingToken(), memberNodes, controlType, types);
   }
 
   /**
@@ -52,7 +66,21 @@ public class IntersectionFactoryImpl extends ManagedIdEntityFactoryImpl<Intersec
    * {@inheritDoc}
    */
   @Override
-  public Intersection registerNew(Node node, IntersectionControlType controlType, IntersectionType type) {
-    return register(create(node, controlType, type));
+  public NonSpatialIntersection registerNewNonSpatial(
+      Node node, IntersectionControlType controlType, IntersectionType type) {
+    var intersection = createNonSpatial(node, controlType, type);
+    register(intersection);
+    return intersection;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SpatialIntersection registerNewSpatial(
+      Collection<Node> memberNodes, IntersectionControlType controlType, Collection<IntersectionType> types) {
+    var intersection = createSpatial(memberNodes, controlType, types);
+    register(intersection);
+    return intersection;
   }
 }

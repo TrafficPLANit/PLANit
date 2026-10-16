@@ -81,7 +81,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   private final Pair<LongAdder, LongAdder> addedRemovedPathCounters = Pair.of(new LongAdder(), new LongAdder());
 
   /** track mapping from permissable movements to unique id for data tracking */
-  private final CompiledRelationIndex compiledMovementIds;
+  private final CompiledRelationIndex compiledTurnIds;
 
   /**
    * Convenience method for logging tracked Od paths, only log when od is tracked
@@ -635,7 +635,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   @Override
   protected StaticLtmLoadingPath createNetworkLoading() {
     return new StaticLtmLoadingPath(
-            getIdGroupingToken(), getAssignmentId(), this.compiledMovementIds, getSettings());
+            getIdGroupingToken(), getAssignmentId(), this.compiledTurnIds, getSettings());
   }
 
   /**
@@ -682,7 +682,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     // initialise path filtering setup
     initialiseSltmPathFilters();
 
-    this.compiledMovementIds = TransportModelNetworkUtils.createCompiledMovementIdMapping(transportModelNetwork);
+    this.compiledTurnIds = TransportModelNetworkUtils.createCompiledTurnIdMapping(transportModelNetwork);
   }
 
   /**
