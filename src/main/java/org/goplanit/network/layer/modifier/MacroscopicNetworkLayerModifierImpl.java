@@ -345,8 +345,8 @@ public class MacroscopicNetworkLayerModifierImpl
   public IntersectionConsolidationModifierResult consolidateIntersections(
       CoordinateReferenceSystem crs,
       IntersectionConsolidatorSettings settings,
-      Predicate<MacroscopicLinkSegment> hasVehicleSignal) {
-    return new IntersectionConsolidator(layer, crs, settings, hasVehicleSignal).consolidate();
+      Predicate<MacroscopicLinkSegment> hasSignalOfItsOwn) {
+    return new IntersectionConsolidator(layer, crs, settings, hasSignalOfItsOwn).consolidate();
   }
 
   /**

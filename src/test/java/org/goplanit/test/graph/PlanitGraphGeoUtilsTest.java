@@ -115,7 +115,6 @@ public class PlanitGraphGeoUtilsTest extends LayerTestBase {
     var point = PlanitJtsUtils.createPoint(5, 1);
     var edges = List.of(top, middle, bottom);
 
-    assertSame(bottom, PlanitGraphGeoUtils.findEdgeClosestToPoint(point, edges, projected));
     assertSame(bottom, PlanitGraphGeoUtils.findEdgeClosest(point, edges, projected));
   }
 
@@ -126,8 +125,20 @@ public class PlanitGraphGeoUtilsTest extends LayerTestBase {
     var lineString = PlanitJtsUtils.createLineString(new Coordinate(5, 30), new Coordinate(5, 6));
     var edges = List.of(top, middle, bottom);
 
-    assertSame(middle, PlanitGraphGeoUtils.findEdgeClosestToLineString(lineString, edges, projected));
     assertSame(middle, PlanitGraphGeoUtils.findEdgeClosest(lineString, edges, projected));
+  }
+
+  /** The closest edge to a polygon is the one closest to any of the coordinates of its ring */
+  @Test
+  public void closestEdgeToPolygonUsesItsRing() {
+    /* a square from (4,11) to (6,13): 6 from the middle edge, 7 from the top one, 11 from the bottom one */
+    var square = PlanitJtsUtils.create2DPolygon(new Envelope(4, 6, 11, 13));
+    var edges = List.of(top, middle, bottom);
+
+    assertSame(middle, PlanitGraphGeoUtils.findEdgeClosest(square, edges, projected));
+    var withTop = PlanitGraphGeoUtils.findEdgesClosest(square, edges, 1.5, projected);
+    assertSame(middle, withTop.first());
+    assertEquals(Set.of(top), withTop.second());
   }
 
   /** Edges within the buffer beyond the closest distance are returned with it, those further away are not */
@@ -137,7 +148,7 @@ public class PlanitGraphGeoUtilsTest extends LayerTestBase {
     var edges = List.of(top, middle, bottom);
 
     /* bottom at 1, middle at 4, top at 19 */
-    var withMiddle = PlanitGraphGeoUtils.findEdgesClosestToPoint(point, edges, 3.5, projected);
+    var withMiddle = PlanitGraphGeoUtils.findEdgesClosest(point, edges, 3.5, projected);
     assertSame(bottom, withMiddle.first());
     assertEquals(Set.of(middle), withMiddle.second());
 
@@ -147,7 +158,7 @@ public class PlanitGraphGeoUtilsTest extends LayerTestBase {
 
     var lineString = PlanitJtsUtils.createLineString(new Coordinate(5, 30), new Coordinate(5, 6));
     /* middle at 1, bottom at 6, top at 10 */
-    var withBottom = PlanitGraphGeoUtils.findEdgesClosestToLineString(lineString, edges, 5, projected);
+    var withBottom = PlanitGraphGeoUtils.findEdgesClosest(lineString, edges, 5, projected);
     assertSame(middle, withBottom.first());
     assertEquals(Set.of(bottom), withBottom.second());
   }
@@ -169,10 +180,6 @@ public class PlanitGraphGeoUtilsTest extends LayerTestBase {
     assertEquals(2, toPolygon.size());
     assertEquals(6, toPolygon.get(middle), PLANE_TOLERANCE);
     assertEquals(7, toPolygon.get(top), PLANE_TOLERANCE);
-
-    var closest = PlanitGraphGeoUtils.findEdgesClosestToGeometry(square, edges, 1.5, projected);
-    assertSame(middle, closest.first());
-    assertEquals(Set.of(top), closest.second());
   }
 
   /** Only points, line strings and polygons can be measured to */
@@ -226,6 +233,34 @@ public class PlanitGraphGeoUtilsTest extends LayerTestBase {
     var firstAb = PlanitGraphGeoUtils.extractClosestLineSegmentTo(nearFirstPiece, ab, projected);
     assertEquals(new Coordinate(0, -10), firstAb.p0);
     assertEquals(new Coordinate(10, -10), firstAb.p1);
+  }
+
+  /** A geometry lies left or right of an edge segment as seen in the direction the segment runs, at the piece of the
+   * edge's geometry closest to it, so what is left of one direction of a link is right of the other */
+  @Test
+  public void geometryLeftOfAnEdgeSegmentIsJudgedAtTheClosestPieceInItsDirection() {
+    /*
+     *   n6 ---------+ (10,-10)    bent link n6-n7, its geometry running from n6 (0,-10) via (10,-10) to n7 (10,-20)
+     *      o        |  x
+     *               n7
+     *
+     *   o at (3,-12) lies south of the piece running east, x at (12,-18) east of the piece running south
+     */
+    int n6 = nodeAt(0, -10);
+    int n7 = nodeAt(10, -20);
+    var bent = twoWay(n6, n7);
+    bent.setGeometry(PlanitJtsUtils.createLineString(
+        new Coordinate(0, -10), new Coordinate(10, -10), new Coordinate(10, -20)));
+    var ab = segment(n6, n7);
+    var ba = segment(n7, n6);
+
+    var x = PlanitJtsUtils.createPoint(12, -18);
+    assertTrue(PlanitGraphGeoUtils.isGeometryLeftOf(x, ab, projected));
+    assertFalse(PlanitGraphGeoUtils.isGeometryLeftOf(x, ba, projected));
+
+    var o = PlanitJtsUtils.createPoint(3, -12);
+    assertFalse(PlanitGraphGeoUtils.isGeometryLeftOf(o, ab, projected));
+    assertTrue(PlanitGraphGeoUtils.isGeometryLeftOf(o, ba, projected));
   }
 
   /** Without a geometry on its edge there is no line segment to extract */
@@ -294,6 +329,21 @@ public class PlanitGraphGeoUtilsTest extends LayerTestBase {
     assertEquals(geographic.getDistanceInKilometres(link.getGeometry()) * 1000,
         PlanitGraphGeoUtils.getDistanceToDownstreamVertexInMetres(
             segment(nodeA, nodeB), nodes.get(nodeA).getPosition(), geographic), 1e-6);
+  }
+
+  /** The distance to the furthest vertex is measured from the point to each positioned vertex, those without a
+   * position are ignored, and without any position it is zero */
+  @Test
+  public void distanceToFurthestVertexFromAPoint() {
+    /* the six nodes of the three edges lie at x 0 and 10, y 0, 5 and 20; from (0,0) the furthest is (10,20) */
+    var corner = PlanitJtsUtils.createPoint(0, 0);
+    assertEquals(Math.hypot(10, 20), PlanitGraphGeoUtils.getDistanceToFurthestVertexInMetres(corner, nodes, projected),
+        PLANE_TOLERANCE);
+
+    createNodes(1);
+    var withoutPosition = nodes.get(nodes.size() - 1);
+    assertEquals(0, PlanitGraphGeoUtils.getDistanceToFurthestVertexInMetres(corner, List.of(withoutPosition),
+        projected), PLANE_TOLERANCE);
   }
 
   /** A position that is not one of the edge's coordinates cannot be measured from */

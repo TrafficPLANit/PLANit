@@ -2,6 +2,7 @@ package org.goplanit.test.network.layer.modifier.consolidator;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
@@ -46,7 +47,7 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
     return collapse(layer.getIntersections().streamSpatial().collect(Collectors.toList()), collapsedModes);
   }
 
-  /** indices of the footway ends P and Q added by {@link #dividedRoadsCrossingWithFootways()} */
+  /** indices of the footway ends P and Q added by {@link #dividedRoadsCrossingWithFootways(IntConsumer)} */
   private static final int P = 12, Q = 13;
 
   /**
@@ -58,15 +59,17 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
    *         A ~~~~~~ B            ~ footway, 15 m
    *         C        D            roads as in dividedRoadsCrossing
    * </pre>
+   *
+   * @param signalisedJunctionAt registers the signalised junction at each corner, with the approaches it is to have
    */
-  private void dividedRoadsCrossingWithFootways() {
+  private void dividedRoadsCrossingWithFootways(IntConsumer signalisedJunctionAt) {
     dividedRoadsCrossing();
     node(-20, 30);
     node(35, 30);
     link(A, B, 15, true, footway);
     link(P, A, 25, true, footway);
     link(Q, B, 25, true, footway);
-    List.of(A, B, C, D).forEach(this::signalisedJunctionAt);
+    List.of(A, B, C, D).forEach(signalisedJunctionAt::accept);
   }
 
   /** register a link segment type allowing cars and pedestrians */
@@ -83,7 +86,7 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
    */
   @Test
   public void footwaysCollapsedRoadsKept() {
-    dividedRoadsCrossingWithFootways();
+    dividedRoadsCrossingWithFootways(this::signalisedJunctionAt);
     var footwayAtA = layer.getLinks().stream().filter(link -> link.getNodeA() == nodes.get(P))
         .findFirst().orElseThrow();
 
@@ -115,7 +118,7 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
   @Test
   public void sharedRoadKeepsTheCollapsedModeConnected() {
     var carAndPedestrian = carAndPedestrianType();
-    dividedRoadsCrossingWithFootways();
+    dividedRoadsCrossingWithFootways(this::signalisedJunctionAt);
     segment(8, B).setLinkSegmentType(carAndPedestrian);
 
     var result = consolidateThenCollapse(List.of(pedestrian));
@@ -136,7 +139,7 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
    */
   @Test
   public void everyModeCollapsedLeavesOneNode() {
-    dividedRoadsCrossingWithFootways();
+    dividedRoadsCrossingWithFootways(this::signalisedJunctionAt);
     var corners = List.of(nodes.get(A), nodes.get(B), nodes.get(C), nodes.get(D));
 
     consolidateThenCollapse(List.of(car, pedestrian));
@@ -194,7 +197,7 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
   @Test
   public void banThatNoNewTurnCanHoldIsCountedAsNotHeld() {
     var carAndPedestrian = carAndPedestrianType();
-    dividedRoadsCrossingWithFootways();
+    dividedRoadsCrossingWithFootways(this::signalisedJunctionAt);
     var r1 = segment(B, 7);
     r1.setLinkSegmentType(carAndPedestrian);
     var r2 = layer.getLinkSegments().getFactory().registerNew(segment(8, B).getParent(), false, true);
@@ -226,7 +229,7 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
    */
   @Test
   public void bannedTurnsOnInternalSegmentsLoseTheCollapsedModes() {
-    dividedRoadsCrossingWithFootways();
+    dividedRoadsCrossingWithFootways(this::signalisedJunctionAt);
     var bans = layer.getBannedTurns().getFactory();
     var carAndPedestrianBan = bans.registerNew(segment(A, C), segment(C, D), List.of(car, pedestrian));
     var pedestrianBan = bans.registerNew(segment(C, D), segment(D, B), List.of(pedestrian));
@@ -336,13 +339,34 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
   }
 
   /**
+   * Only the roads are approaches, as vehicle signals give them, so no movement starts from the footways P-A and Q-B.
+   * While the intersection was spatial, pedestrians could still walk from P to Q, and from Q to P, over the footway
+   * A-B. Once pedestrians are collapsed, the turns at the centre node from P onto Q and from Q onto P stay open
+   */
+  @Test
+  public void entryThatIsNotAnApproachKeepsTheTurnsItCouldMake() {
+    dividedRoadsCrossingWithFootways(this::signalisedJunctionWithRoadApproachesAt);
+    var pIn = segment(P, A);
+    var pOut = segment(A, P);
+    var qIn = segment(Q, B);
+    var qOut = segment(B, Q);
+    consolidate();
+    assertEquals(4, onlySpatialIntersection().getMemberNodes().size());
+
+    collapse(List.of(onlySpatialIntersection()), List.of(pedestrian));
+
+    assertFalse(isTurnBanned(pIn, qOut, pedestrian));
+    assertFalse(isTurnBanned(qIn, pOut, pedestrian));
+  }
+
+  /**
    * A spatial intersection that is not registered on the layer is refused before anything changes, even when it comes
    * after a registered one: the registered intersection keeps its four member nodes, and no node or link is added or
    * removed
    */
   @Test
   public void intersectionNotOnTheLayerIsRefusedBeforeAnyChange() {
-    dividedRoadsCrossingWithFootways();
+    dividedRoadsCrossingWithFootways(this::signalisedJunctionAt);
     consolidate();
     var registered = onlySpatialIntersection();
     var notRegistered = intersections.getFactory().createSpatial(
@@ -364,7 +388,7 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
    */
   @Test
   public void noModesOrNoIntersectionsChangeNothing() {
-    dividedRoadsCrossingWithFootways();
+    dividedRoadsCrossingWithFootways(this::signalisedJunctionAt);
     consolidate();
     var consolidated = onlySpatialIntersection();
     var nodesBefore = layer.getNodes().size();

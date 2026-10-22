@@ -30,6 +30,9 @@ public class MacroscopicLinkUtilsTest extends LayerTestBase {
   private MacroscopicLinkSegmentType carOnly;
   private MacroscopicLinkSegmentType busOnly;
   private MacroscopicLinkSegmentType walkOnly;
+  private MacroscopicLinkSegmentType tramOnly;
+  private MacroscopicLinkSegmentType trainOnly;
+  private Mode tram;
 
   @BeforeEach
   public void setUp() {
@@ -37,9 +40,11 @@ public class MacroscopicLinkUtilsTest extends LayerTestBase {
     var car = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
     var bus = network.getModes().getFactory().registerNew(PredefinedModeType.BUS);
     pedestrian = network.getModes().getFactory().registerNew(PredefinedModeType.PEDESTRIAN);
+    tram = network.getModes().getFactory().registerNew(PredefinedModeType.TRAM);
+    var train = network.getModes().getFactory().registerNew(PredefinedModeType.TRAIN);
 
     layer = network.getTransportLayers().getFactory().registerNew();
-    layer.registerSupportedModes(List.of(car, bus, pedestrian));
+    layer.registerSupportedModes(List.of(car, bus, pedestrian, tram, train));
 
     carOnly = layer.getLinkSegmentTypes().getFactory().registerNew("carOnly", 1800, 180);
     AccessGroupPropertiesFactory.createOnLinkSegmentType(carOnly, 50, List.of(car));
@@ -47,6 +52,10 @@ public class MacroscopicLinkUtilsTest extends LayerTestBase {
     AccessGroupPropertiesFactory.createOnLinkSegmentType(busOnly, 50, List.of(bus));
     walkOnly = layer.getLinkSegmentTypes().getFactory().registerNew("walkOnly", 1800, 180);
     AccessGroupPropertiesFactory.createOnLinkSegmentType(walkOnly, 5, List.of(pedestrian));
+    tramOnly = layer.getLinkSegmentTypes().getFactory().registerNew("tramOnly", 1800, 180);
+    AccessGroupPropertiesFactory.createOnLinkSegmentType(tramOnly, 50, List.of(tram));
+    trainOnly = layer.getLinkSegmentTypes().getFactory().registerNew("trainOnly", 1800, 180);
+    AccessGroupPropertiesFactory.createOnLinkSegmentType(trainOnly, 80, List.of(train));
   }
 
   /**
@@ -89,5 +98,118 @@ public class MacroscopicLinkUtilsTest extends LayerTestBase {
     link(1, 3, busOnly, null);
 
     assertEquals(2, nodes.get(1).getNumberOfEdges(MacroscopicLinkUtils.permitsMotorisedRoadModeOnAnySegment()));
+  }
+
+  /**
+   * A link a tram may use, in at least one direction, is selected when the condition asks for a tram or light rail
+   * mode. A link only for cars or walking is not
+   */
+  @Test
+  public void permitsModeMatchingOnAnySegmentSelectsLinksAMatchingModeMayUseInEitherDirection() {
+    /*
+     * 0 --walkOnly--> 1 <--carOnly--> 2
+     *   <--tramOnly-- |
+     *              tramOnly
+     *                 v
+     *                 3
+     */
+    createNodes(4);
+    link(0, 1, walkOnly, tramOnly);
+    link(1, 2, carOnly, carOnly);
+    link(1, 3, tramOnly, null);
+
+    assertTrue(tram.isTramOrLightRailMode());
+    assertFalse(pedestrian.isTramOrLightRailMode());
+    assertEquals(2, nodes.get(1).getNumberOfEdges(
+        MacroscopicLinkUtils.permitsModeMatchingOnAnySegment(Mode::isTramOrLightRailMode)));
+  }
+
+  /**
+   * A tram track meets a road where a link a car may use and a link only a tram may use share a node. A link that
+   * carries a car one way and a tram the other is a road, not a track
+   */
+  @Test
+  public void tramOrLightRailTrackMeetsRoadWhereARoadLinkAndATrackLinkShareANode() {
+    /*
+     * 0 --carOnly--> 1 --tramOnly--> 2        1: a road and a track meet
+     *
+     * 3 --carOnly--> 4 --carOnly--> 5         4: the link to 5 carries a tram back, on the road
+     *                  <--tramOnly--
+     */
+    createNodes(6);
+    link(0, 1, carOnly, null);
+    link(1, 2, tramOnly, null);
+    link(3, 4, carOnly, null);
+    link(4, 5, carOnly, tramOnly);
+
+    assertTrue(MacroscopicLinkUtils.isWhereTramOrLightRailTrackMeetsRoad(nodes.get(1)));
+    assertFalse(MacroscopicLinkUtils.isWhereTramOrLightRailTrackMeetsRoad(nodes.get(0)));
+    assertFalse(MacroscopicLinkUtils.isWhereTramOrLightRailTrackMeetsRoad(nodes.get(2)));
+    assertFalse(MacroscopicLinkUtils.isWhereTramOrLightRailTrackMeetsRoad(nodes.get(4)));
+  }
+
+  /**
+   * A mode uses a node when one of its links allows it, in either direction. So no motorised road or rail mode uses a
+   * node whose links only allow walking, and a link that allows a car, a tram or a train in one direction only uses its
+   * nodes all the same
+   */
+  @Test
+  public void usedByAModeWhenOneOfItsLinksAllowsItInEitherDirection() {
+    /*
+     * 0 --walkOnly--> 1 <--walkOnly--> 2 --walkOnly--> 3        0 and 1: only walking
+     *                                    <--carOnly---          2: a car back from 3
+     *
+     * 4 --walkOnly--> 5 --tramOnly--> 6                         4: only walking; 5: a tram on to 6
+     *
+     * 7 --walkOnly--> 8 --trainOnly--> 9                        8: a train on to 9
+     */
+    createNodes(10);
+    link(0, 1, walkOnly, null);
+    link(1, 2, walkOnly, walkOnly);
+    link(2, 3, walkOnly, carOnly);
+    link(4, 5, walkOnly, null);
+    link(5, 6, tramOnly, null);
+    link(7, 8, walkOnly, null);
+    link(8, 9, trainOnly, null);
+
+    assertTrue(tram.isMotorisedRoadOrRailMode());
+    assertFalse(pedestrian.isMotorisedRoadOrRailMode());
+    assertTrue(MacroscopicLinkUtils.isUsedByModeMatching(nodes.get(3), Mode::isMotorisedRoadMode));
+    assertFalse(MacroscopicLinkUtils.isUsedByModeMatching(nodes.get(1), Mode::isMotorisedRoadMode));
+    assertTrue(MacroscopicLinkUtils.isUsedByModeMatching(nodes.get(6), Mode::isTramOrLightRailMode));
+    assertTrue(MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(0)));
+    assertTrue(MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(1)));
+    assertFalse(MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(2)));
+    assertTrue(MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(4)));
+    assertFalse(MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(5)));
+    assertFalse(MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(8)));
+  }
+
+  /**
+   * Two links belong to the same road when they share their external id, as two pieces of one road of the source do,
+   * or a name that is not blank. Links without either, or with blank names, never do
+   */
+  @Test
+  public void sameRoadBySharedExternalIdOrName() {
+    /*
+     * 0 --- 1 --- 2 --- 3 --- 4 --- 5      0-1 and 1-2: external id 10; 2-3 and 3-4: named High Street;
+     *                                      4-5: no external id, blank name
+     */
+    createNodes(6);
+    var first = link(0, 1, carOnly, carOnly);
+    var second = link(1, 2, carOnly, carOnly);
+    var third = link(2, 3, carOnly, carOnly);
+    var fourth = link(3, 4, carOnly, carOnly);
+    var fifth = link(4, 5, carOnly, carOnly);
+    first.setExternalId("10");
+    second.setExternalId("10");
+    third.setName("High Street");
+    fourth.setName("High Street");
+    fifth.setName(" ");
+
+    assertTrue(MacroscopicLinkUtils.isSameExternalIdOrName(first, second));
+    assertTrue(MacroscopicLinkUtils.isSameExternalIdOrName(third, fourth));
+    assertFalse(MacroscopicLinkUtils.isSameExternalIdOrName(second, third));
+    assertFalse(MacroscopicLinkUtils.isSameExternalIdOrName(fifth, fifth));
   }
 }

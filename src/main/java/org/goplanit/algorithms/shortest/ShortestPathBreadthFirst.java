@@ -26,9 +26,10 @@ import org.goplanit.utils.math.Precision;
  *   <li>along edges, in either direction: the vertices within a cost of a vertex, such as the nodes within 25 m along
  *   the road whichever way its links run, see
  *   {@link #executeAlongEdges(Vertex, ToDoubleFunction, Predicate, double)};</li>
- *   <li>along edge segments, in their direction: the edge segments a traveller can reach from an edge segment, where
- *   the turn from one onto the next can be refused, such as by a banned turn, see
- *   {@link #executeAlongEdgeSegments(EdgeSegment, BiPredicate, Predicate, ToDoubleFunction, double)}.</li>
+ *   <li>along edge segments, with or against their direction: the edge segments a traveller can reach from an edge
+ *   segment, or come from to reach it, where the turn from one onto the next can be refused, such as by a banned
+ *   turn, see {@link #executeAlongEdgeSegments(EdgeSegment, boolean, BiPredicate, Predicate, ToDoubleFunction,
+ *   double)}.</li>
  * </ul>
  * <p>
  * Costs within {@link Precision#EPSILON_9} of each other count as equal; of equal ways, the first found is kept.
@@ -109,32 +110,38 @@ public final class ShortestPathBreadthFirst {
   }
 
   /**
-   * Find the shortest connections from where an edge segment ends to the edge segments a traveller can reach from it,
-   * along edge segments in their direction. The cost to reach an edge segment is that of the edge segments passed
-   * before it, so the start costs nothing and a reached edge segment's own cost is not part of its cost
+   * Find the shortest connections from an edge segment along edge segments, with or against their direction. With
+   * it, from where the start ends to the edge segments a traveller can reach from it. Against it, back from where the
+   * start begins to the edge segments a traveller can come from to reach it, such as tracing a road back from where it
+   * enters a junction. The cost to reach an edge segment is that of the edge segments passed between it and the start,
+   * so the start costs nothing and a reached edge segment's own cost is not part of its cost
    *
    * @param <ES> edge segment type
-   * @param start the edge segment to start from, at its downstream vertex
-   * @param canTurnOnto true when a traveller may turn from the first edge segment onto the second, which leaves the
-   *                    vertex the first one ends at
-   * @param canContinueOn true for an edge segment reached that a traveller may continue on beyond; the start is always
-   *                      continued on, and an edge segment that is not is reached but leads nowhere
+   * @param start the edge segment to start from
+   * @param inTrafficDirection true to search in the traffic direction, along the edge segments, false to search
+   *                           against it
+   * @param canTurn true when a traveller may turn from the first edge segment onto the second, which leaves the vertex
+   *                the first one ends at, whichever way the search goes
+   * @param canContinueOn true for an edge segment reached that the search may continue beyond; the start is always
+   *                      continued on, and an edge segment that is not is reached but leads nowhere further
    * @param segmentCost cost of passing an edge segment
    * @param maximumCost highest cost an edge segment may be reached at
    * @return the edge segments reached, the start included, with their costs and the connections to them
    */
   @SuppressWarnings("unchecked")
-  public static <ES extends EdgeSegment> ShortestPathBreadthFirstResult<ES> executeAlongEdgeSegments(
-      ES start, BiPredicate<ES, ES> canTurnOnto, Predicate<ES> canContinueOn, ToDoubleFunction<ES> segmentCost,
-      double maximumCost) {
+  public static <ES extends EdgeSegment> ShortestPathBreadthFirstResult<ES> executeAlongEdgeSegments(ES start,
+      boolean inTrafficDirection, BiPredicate<ES, ES> canTurn, Predicate<ES> canContinueOn,
+      ToDoubleFunction<ES> segmentCost, double maximumCost) {
     return execute(start, (segment, next) -> {
       if (segment != start && !canContinueOn.test(segment)) {
         return;
       }
       double cost = segment == start ? 0 : segmentCost.applyAsDouble(segment);
-      for (var onto : segment.getDownstreamVertex().getExitEdgeSegments()) {
-        if (canTurnOnto.test(segment, (ES) onto)) {
-          next.accept((ES) onto, cost);
+      var neighbours = inTrafficDirection ? segment.getDownstreamVertex().getExitEdgeSegments() :
+          segment.getUpstreamVertex().getEntryEdgeSegments();
+      for (var neighbour : neighbours) {
+        if (inTrafficDirection ? canTurn.test(segment, (ES) neighbour) : canTurn.test((ES) neighbour, segment)) {
+          next.accept((ES) neighbour, cost);
         }
       }
     }, maximumCost);

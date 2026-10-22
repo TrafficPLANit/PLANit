@@ -18,7 +18,6 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentUtils;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
 import org.goplanit.utils.network.layer.physical.Node;
@@ -277,20 +276,20 @@ public class MacroscopicNetworkLayerUtils {
   }
 
   /**
-   * Find the shortest connections along the road from a node to the nodes within a distance: over links a motorised
-   * road mode may use in at least one direction, followed in either direction, one-way or not
+   * Find the shortest connections from a node to the nodes within a distance, over the links that may be followed,
+   * such as those a motorised road mode may use, in either direction, one-way or not
    *
    * @param source node to start from
-   * @param maximumDistanceMeters furthest a node reached may be
+   * @param canFollow true for a link the connections may follow
    * @param canReach true for a node a connection may reach and pass
+   * @param maximumDistanceMeters furthest a node reached may be
    * @return the nodes reached, the source included, with their distances in metres and the connections to them
    */
-  public static ShortestPathBreadthFirstResult<Node> findShortestConnectionsAlongRoad(
-      Node source, double maximumDistanceMeters, Predicate<Node> canReach) {
-    var isRoadLink = MacroscopicLinkUtils.permitsMotorisedRoadModeOnAnySegment();
+  public static ShortestPathBreadthFirstResult<Node> findShortestConnections(
+      Node source, Predicate<? super Edge> canFollow, Predicate<Node> canReach, double maximumDistanceMeters) {
     return ShortestPathBreadthFirst.executeAlongEdges(source,
-        edge -> isRoadLink.test(edge) ? edge.getLengthMeters() : Double.POSITIVE_INFINITY,
-        canReach, maximumDistanceMeters);
+        edge -> canFollow.test(edge) ? edge.getLengthMeters() : Double.POSITIVE_INFINITY, canReach,
+        maximumDistanceMeters);
   }
 
   /**
@@ -313,7 +312,7 @@ public class MacroscopicNetworkLayerUtils {
       final MacroscopicLinkSegment approach, final Mode mode, boolean respectBannedTurns) {
     Predicate<MacroscopicLinkSegment> isInternal =
         segment -> ListUtils.containsByIdentity(intersection.getInternalSegments(), segment);
-    return ShortestPathBreadthFirst.<MacroscopicLinkSegment>executeAlongEdgeSegments(approach,
+    return ShortestPathBreadthFirst.<MacroscopicLinkSegment>executeAlongEdgeSegments(approach, true,
         (from, onto) -> onto.isModeAllowed(mode) && onto.getParent() != approach.getParent() &&
             onto.getParent() != from.getParent() &&
             (isInternal.test(onto) || intersection.isExitSegment(onto)) &&
@@ -330,7 +329,7 @@ public class MacroscopicNetworkLayerUtils {
    *
    * @param layer holding the banned turns
    * @param intersection to search through
-   * @param approach to start from
+   * @param approach to start from, or any other segment entering a member node from outside
    * @param mode travelling, only over link segments allowing it
    * @param respectBannedTurns when true a turn banned for the mode is not taken, when false banned turns are ignored
    * @return each exit reached with its distance from where the approach ends, in metres
