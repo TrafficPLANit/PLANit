@@ -9,6 +9,7 @@ import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicBannedTurn;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
@@ -17,6 +18,7 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionCon
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapseModifierResult;
+import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapserSettings;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,11 +31,21 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class CollapseTest extends IntersectionConsolidationTestBase {
 
-  /** collapse the given modes on the given spatial intersections */
+  /** collapse the given modes on the given spatial intersections, no node excluded */
   private IntersectionCollapseModifierResult collapse(
       List<SpatialIntersection> spatialIntersections, List<Mode> collapsedModes) {
+    return collapse(spatialIntersections, collapsedModes, IdMapperType.EXTERNAL_ID);
+  }
+
+  /** collapse the given modes on the given spatial intersections, excluding the given nodes, each by the given kind of
+   * id */
+  private IntersectionCollapseModifierResult collapse(List<SpatialIntersection> spatialIntersections,
+      List<Mode> collapsedModes, IdMapperType nodeIdType, String... nodeIdsExcluded) {
+    var settings = new IntersectionCollapserSettings();
+    settings.setCollapsedModes(collapsedModes);
+    settings.addNodeIdsExcludedFromCollapse(List.of(nodeIdsExcluded), nodeIdType);
     return layer.getLayerModifier().collapseIntersectionsToNonSpatialForModes(
-        spatialIntersections, collapsedModes, PlanitJtsCrsUtils.CARTESIANCRS);
+        spatialIntersections, settings, PlanitJtsCrsUtils.CARTESIANCRS);
   }
 
   /** true when the turn from one segment onto the other is banned for the mode */
@@ -407,5 +419,84 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
     assertEquals(4, consolidated.getMemberNodes().size());
     assertEquals(nodesBefore, layer.getNodes().size());
     assertEquals(linksBefore, layer.getLinks().size());
+  }
+
+  /**
+   * Corner A is excluded from collapse, so its intersection is not collapsed at all, though its other corners are not
+   * excluded: no centre node is added, no link is moved, added or removed, and the four corners stay its member nodes.
+   * The external id 404 is excluded too: no node has it, so it is listed as not found
+   * <pre>
+   *     P                Q
+   *       \            /
+   *         A ~~~~~~ B            A excluded from collapse
+   *         C        D            roads as in dividedRoadsCrossing
+   * </pre>
+   */
+  @Test
+  public void intersectionWithANodeExcludedFromCollapseIsNotCollapsed() {
+    dividedRoadsCrossingWithFootways(this::signalisedJunctionAt);
+    nodes.get(A).setExternalId("A");
+    consolidate();
+    var consolidated = onlySpatialIntersection();
+    var nodesBefore = layer.getNodes().size();
+    var linksBefore = layer.getLinks().size();
+
+    var result = collapse(List.of(consolidated), List.of(pedestrian), IdMapperType.EXTERNAL_ID, "A", "404");
+
+    assertSame(consolidated, onlySpatialIntersection());
+    assertEquals(4, consolidated.getMemberNodes().size());
+    assertEquals(nodesBefore, layer.getNodes().size());
+    assertEquals(linksBefore, layer.getLinks().size());
+    assertTrue(result.getLinksMovedToCentreNode().isEmpty());
+    assertTrue(result.getLinksAddedToCentreNode().isEmpty());
+    assertEquals(List.of("404"), result.getExcludedNodeIdsNotFound());
+  }
+
+  /**
+   * The nodes to exclude from collapse may be given by any kind of id. Corner A given by its PLANit id keeps its
+   * intersection from collapsing, as when given by its external id, see
+   * {@link #intersectionWithANodeExcludedFromCollapseIsNotCollapsed()}
+   * <pre>
+   *     P                Q
+   *       \            /
+   *         A ~~~~~~ B            A excluded from collapse by its id
+   *         C        D            roads as in dividedRoadsCrossing
+   * </pre>
+   */
+  @Test
+  public void nodeExcludedFromCollapseByItsIdKeepsItsIntersectionFromCollapsing() {
+    dividedRoadsCrossingWithFootways(this::signalisedJunctionAt);
+    consolidate();
+    var consolidated = onlySpatialIntersection();
+    var idOfA = String.valueOf(nodes.get(A).getId());
+
+    var result = collapse(List.of(consolidated), List.of(pedestrian), IdMapperType.ID, idOfA);
+
+    assertEquals(4, onlySpatialIntersection().getMemberNodes().size());
+    assertTrue(result.getLinksMovedToCentreNode().isEmpty());
+  }
+
+  /**
+   * The footway end P is excluded from collapse, but it is a member node of no intersection given to collapse, so the
+   * intersection collapses as it would otherwise: both footways move to the centre node, see
+   * {@link #footwaysCollapsedRoadsKept()}
+   * <pre>
+   *     P                Q        P excluded from collapse
+   *       \            /
+   *         A ~~~~~~ B
+   *         C        D            roads as in dividedRoadsCrossing
+   * </pre>
+   */
+  @Test
+  public void nodeExcludedFromCollapseInNoIntersectionChangesNothing() {
+    dividedRoadsCrossingWithFootways(this::signalisedJunctionAt);
+    nodes.get(P).setExternalId("P");
+    consolidate();
+    var consolidated = onlySpatialIntersection();
+
+    var result = collapse(List.of(consolidated), List.of(pedestrian), IdMapperType.EXTERNAL_ID, "P");
+
+    assertEquals(5, onlySpatialIntersection().getMemberNodes().size());
+    assertEquals(2, result.getLinksMovedToCentreNode().size());
   }
 }

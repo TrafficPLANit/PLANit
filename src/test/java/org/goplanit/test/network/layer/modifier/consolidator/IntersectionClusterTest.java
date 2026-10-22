@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.goplanit.network.layer.macroscopic.intersection.modifier.event.RemoveIntersectionEvent;
 import org.goplanit.utils.event.EventType;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModificationEvent;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierListener;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidationModifierResult;
@@ -624,5 +625,76 @@ public class IntersectionClusterTest extends IntersectionConsolidationTestBase {
 
     assertEquals(1, result.getIntersectionClustersSubdividedStepByStep().size());
     assertEquals(2, intersections.size());
+  }
+
+  /**
+   * The divided roads crossing becomes one intersection, see {@link #dividedRoadsCrossingBecomesOneIntersection()},
+   * but corners A and D are listed to keep in separate intersections, so no cluster subset holding both is allowed,
+   * and the next best subdivision wins: B, C and one of A and D form one intersection, and the other of A and D is on
+   * its own. The two mirror images of that subdivision score the same, so which of A and D is on its own is up to the
+   * tie breakers
+   * <pre>
+   *              4      7
+   *              |      ^
+   *              v      |
+   *     9 <----- A <--- B <----- 8
+   *              |      ^           A and D listed to keep in separate intersections
+   *              v      |
+   *    10 -----> C ---> D -----> 11
+   *              |      ^
+   *              v      |
+   *              5      6
+   * </pre>
+   */
+  @Test
+  public void cornersListedToKeepApartEndUpInDifferentIntersections() {
+    dividedRoadsCrossing();
+    List.of(A, B, C, D).forEach(this::signalisedJunctionAt);
+    nodes.get(A).setExternalId("A");
+    nodes.get(D).setExternalId("D");
+
+    consolidateWith(settings -> settings.addNodeIdsToKeepInSeparateIntersections(
+        List.of("A", "D"), IdMapperType.EXTERNAL_ID));
+
+    assertEquals(2, intersections.size());
+    assertNotSame(intersections.getByMemberNode(nodes.get(A)), intersections.getByMemberNode(nodes.get(D)));
+    var threeCorners = intersections.getByMemberNode(nodes.get(B));
+    assertSame(threeCorners, intersections.getByMemberNode(nodes.get(C)));
+    assertEquals(3, threeCorners.getMemberNodes().size());
+  }
+
+  /**
+   * Corners A and B are member nodes of one spatial junction before consolidation, and listed to keep in separate
+   * intersections. They cannot be split, so the list has no effect: the crossing becomes one intersection as it would
+   * without it
+   * <pre>
+   *              4      7
+   *              |      ^
+   *              v      |
+   *     9 <----- A <--- B <----- 8      A and B one spatial junction, listed to keep apart
+   *              |      ^
+   *              v      |
+   *    10 -----> C ---> D -----> 11
+   *              |      ^
+   *              v      |
+   *              5      6
+   * </pre>
+   */
+  @Test
+  public void nodesListedToKeepApartInOneIntersectionBeforeConsolidationAreNotKeptApart() {
+    dividedRoadsCrossing();
+    var cornersAB = spatialJunctionOver(A, B);
+    cornersAB.addApproachSegment(segment(4, A));
+    cornersAB.addApproachSegment(segment(8, B));
+    intersections.getFactory().register(cornersAB);
+    List.of(C, D).forEach(this::signalisedJunctionAt);
+    nodes.get(A).setExternalId("A");
+    nodes.get(B).setExternalId("B");
+
+    consolidateWith(settings -> settings.addNodeIdsToKeepInSeparateIntersections(
+        List.of("A", "B"), IdMapperType.EXTERNAL_ID));
+
+    var consolidated = onlySpatialIntersection();
+    assertTrue(List.of(A, B, C, D).stream().allMatch(index -> consolidated.hasMemberNode(nodes.get(index))));
   }
 }

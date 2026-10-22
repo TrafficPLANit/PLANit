@@ -23,6 +23,7 @@ import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.directed.BannedTurn;
 import org.goplanit.utils.id.IdAbleUtils;
+import org.goplanit.utils.id.IdMappingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicBannedTurn;
@@ -34,6 +35,7 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUti
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapseModifierResult;
+import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapserSettings;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.NodeUtils;
 
@@ -50,8 +52,11 @@ public class IntersectionModeCollapser {
   /** the layer whose spatial intersections are collapsed */
   private final MacroscopicNetworkLayerImpl layer;
 
-  /** the modes to collapse onto the centre nodes, a copy of those given */
+  /** the modes to collapse onto the centre nodes, those of the settings */
   private final List<Mode> modes;
+
+  /** the modes to collapse and the nodes excluded from collapse, a copy of the settings given */
+  private final IntersectionCollapserSettings settings;
 
   /** to measure distances with, in the layer's coordinate reference system */
   private final PlanitJtsCrsUtils crsUtils;
@@ -456,24 +461,44 @@ public class IntersectionModeCollapser {
   }
 
   /**
+   * The given spatial intersections less those holding a node the settings exclude from collapse, which stay as they
+   * are. For example, with junction node A excluded, the junction holding A is not collapsed, whatever its other member
+   * nodes. An excluded id no node has is recorded as not found
+   *
+   * @param collapsing the spatial intersections to collapse
+   * @return the spatial intersections to collapse, in order, without those holding a node excluded from collapse
+   */
+  private List<SpatialIntersection> leaveOutIntersectionsHoldingNodesExcludedFromCollapse(
+      List<SpatialIntersection> collapsing) {
+    var excludedNodes = IdMappingUtils.findEntitiesOfEachIdList(layer.getNodes(),
+        settings.getNodeIdsExcludedFromCollapse(), result::addExcludedNodeIdNotFound).stream()
+        .flatMap(List::stream).collect(Collectors.toSet());
+    return collapsing.stream()
+        .filter(intersection -> intersection.getMemberNodes().stream().noneMatch(excludedNodes::contains))
+        .collect(Collectors.toList());
+  }
+
+  /**
    * Constructor
    *
    * @param layer whose spatial intersections to collapse, through its own modifier
-   * @param modes to collapse onto the centre nodes
+   * @param settings the modes to collapse onto the centre nodes, and the nodes excluded from collapse
    * @param crs of the layer's geometry
    */
-  public IntersectionModeCollapser(MacroscopicNetworkLayerImpl layer, Collection<Mode> modes,
+  public IntersectionModeCollapser(MacroscopicNetworkLayerImpl layer, IntersectionCollapserSettings settings,
       CoordinateReferenceSystem crs) {
     this.layer = layer;
-    this.modes = List.copyOf(new LinkedHashSet<>(modes));
+    this.settings = new IntersectionCollapserSettings(settings);
+    this.modes = List.copyOf(this.settings.getCollapsedModes());
     this.crsUtils = new PlanitJtsCrsUtils(crs);
   }
 
   /**
    * Collapse the given spatial intersections, each onto one node for the modes. Nothing is done when no intersection
-   * or no mode is given. What is left without access is removed once, after all of them; a spatial intersection left
-   * with one member node becomes a non-spatial one through the modifier. Then the banned turns on the internal segments
-   * left lose the collapsed modes. Movements stay as they are
+   * or no mode is given. A spatial intersection with a member node the settings exclude from collapse stays as it is,
+   * see {@link #leaveOutIntersectionsHoldingNodesExcludedFromCollapse}. What is left without access is removed once,
+   * after all of them; a spatial intersection left with one member node becomes a non-spatial one through the
+   * modifier. Then the banned turns on the internal segments left lose the collapsed modes. Movements stay as they are
    *
    * @param intersections to collapse, each registered on the layer
    * @return what was done
@@ -488,6 +513,7 @@ public class IntersectionModeCollapser {
       PlanItRunTimeException.throwIf(!layer.getIntersections().contains(intersection),
           "Spatial intersection %s to collapse is not registered on the layer", intersection.getIdsAsString());
     }
+    collapsing = leaveOutIntersectionsHoldingNodesExcludedFromCollapse(collapsing);
 
     /* collapse each, reusing the modified copies of types across them */
     var modifiedTypes = new ModifiedLinkSegmentTypes();

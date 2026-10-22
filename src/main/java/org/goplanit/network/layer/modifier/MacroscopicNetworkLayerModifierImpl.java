@@ -29,7 +29,6 @@ import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.directed.BannedTurn;
 import org.goplanit.utils.graph.directed.Connectivity;
 import org.goplanit.utils.misc.LoggingUtils;
-import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
@@ -38,6 +37,7 @@ import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierEventType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierListener;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapseModifierResult;
+import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapserSettings;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidationModifierResult;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidatorSettings;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
@@ -354,8 +354,9 @@ public class MacroscopicNetworkLayerModifierImpl
    */
   @Override
   public IntersectionCollapseModifierResult collapseIntersectionsToNonSpatialForModes(
-      Collection<? extends SpatialIntersection> intersections, Collection<Mode> modes, CoordinateReferenceSystem crs) {
-    return new IntersectionModeCollapser(layer, modes, crs).collapse(intersections);
+      Collection<? extends SpatialIntersection> intersections, IntersectionCollapserSettings settings,
+      CoordinateReferenceSystem crs) {
+    return new IntersectionModeCollapser(layer, settings, crs).collapse(intersections);
   }
 
   /**

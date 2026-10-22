@@ -172,10 +172,16 @@ public abstract class IntersectionConsolidationTestBase extends LayerTestBase {
 
   /** consolidate with the default values except those the given change sets, no segment with a signal of its own */
   protected IntersectionConsolidationModifierResult consolidateWith(Consumer<IntersectionConsolidatorSettings> change) {
+    return consolidateWith(change, segment -> false);
+  }
+
+  /** consolidate with the default values except those the given change sets */
+  protected IntersectionConsolidationModifierResult consolidateWith(Consumer<IntersectionConsolidatorSettings> change,
+      Predicate<MacroscopicLinkSegment> hasSignalOfItsOwn) {
     var settings = new IntersectionConsolidatorSettings();
     change.accept(settings);
     return layer.getLayerModifier().consolidateIntersections(
-        PlanitJtsCrsUtils.CARTESIANCRS, settings, segment -> false);
+        PlanitJtsCrsUtils.CARTESIANCRS, settings, hasSignalOfItsOwn);
   }
 
   /** the one registered intersection */

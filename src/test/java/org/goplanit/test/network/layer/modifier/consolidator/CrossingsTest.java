@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidatorSettings;
 import org.junit.jupiter.api.Test;
@@ -347,5 +348,39 @@ public class CrossingsTest extends IntersectionConsolidationTestBase {
     for (var slipLaneSegment : List.of(segment(slipLaneStart, slipLane), segment(slipLane, slipLaneEnd))) {
       assertFalse(junction.getApproachSegments().contains(slipLaneSegment));
     }
+  }
+
+  /**
+   * The crossing K, 13 m along the east arm, would join the junction J, see {@link #crossingsNextToAJunctionJoinIt()}.
+   * But J and K are listed to keep in separate intersections, and no other junction is within reach, so the crossing
+   * stays as it is: both intersections are left unchanged, and no crossing is listed as joined. Only J and K are
+   * signalised
+   * <pre>
+   *            N
+   *            |
+   *           K2
+   *            |
+   *   W ------ J ----- K ----- E      J-K 13 m; J and K listed to keep in separate intersections
+   *            |       |
+   *            S       F2             the rest of the network as drawn for the shared scenario
+   * </pre>
+   */
+  @Test
+  public void crossingListedToKeepApartFromItsJunctionStaysAsItIs() {
+    var junctionAndCrossings = junctionWithCrossingsOnEastAndNorthArms(13);
+    int junctionNode = junctionAndCrossings[0];
+    int crossingNode = junctionAndCrossings[1];
+    nodes.get(junctionNode).setExternalId("J");
+    nodes.get(crossingNode).setExternalId("K");
+    var junction = signalisedJunctionAt(junctionNode);
+    var crossing = signalisedCrossingAt(crossingNode);
+
+    var result = consolidateWith(settings -> settings.addNodeIdsToKeepInSeparateIntersections(
+        List.of("J", "K"), IdMapperType.EXTERNAL_ID));
+
+    assertEquals(2, intersections.size());
+    assertSame(junction, intersections.getByMemberNode(nodes.get(junctionNode)));
+    assertSame(crossing, intersections.getByMemberNode(nodes.get(crossingNode)));
+    assertTrue(result.getIntersections(CROSSING_JOINED).isEmpty());
   }
 }

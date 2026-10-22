@@ -3,11 +3,9 @@ package org.goplanit.network.layer.modifier.consolidator;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -33,6 +31,7 @@ import org.goplanit.utils.geo.PlanitGraphGeoUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.id.IdAbleUtils;
+import org.goplanit.utils.id.IdMappingUtils;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
@@ -66,7 +65,10 @@ import org.locationtech.jts.geom.Point;
  * group would lose every approach with a signal, see {@link #wouldLoseEveryApproachWithSignal}. Intersections are
  * removed through the layer modifier, so each removal fires its event. Used once per consolidation, run through
  * {@link org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier#consolidateIntersections}, not on
- * its own.
+ * its own. The lists of nodes in the settings override the grouping. No step puts nodes of one list to keep apart into
+ * one intersection, see {@link IntersectionConsolidatorTrackingData#isRefuseJoining}. Once the crossings have joined,
+ * the intersections holding the nodes of one list to join are joined into one, and the steps from the pull-ins to the
+ * crossings run again for it, see {@link #joinIntersectionsListedToJoin}.
  *
  * @author markr
  */
@@ -129,21 +131,8 @@ public class IntersectionConsolidator {
    * whether a node lies in front of it, see {@link #isEnteredFromOutsideBeforeVehicleSignalIntoJunction} */
   private final Predicate<MacroscopicLinkSegment> hasSignalOfItsOwn;
 
-  /** the member nodes of the signalised crossing-only intersections before consolidation, so a segment into a crossing
-   * is still known once the crossing has joined a junction, see {@link #keepsCrossingSignalOnceInternal} */
-  private final Set<Node> memberNodesOfSignalisedCrossingOnlyIntersections = new HashSet<>();
-
-  /** the approaches with a signal of their own of the layer's intersections before consolidation, so such an approach
-   * is still known once its start node has joined, see {@link #continuesRoadOfApproachWithSignalTaggedOnNode} */
-  private final Set<MacroscopicLinkSegment> approachesWithSignalBeforeConsolidation = new HashSet<>();
-
-  /** per member node of a parsed intersection, the index of the intersection cluster it was weighed in, see
-   * {@link #wereWeighedInOneCluster} */
-  private final Map<Node, Integer> clusterIndexOfParsedMemberNode = new HashMap<>();
-
-  /** the spatial intersections consolidation made, as opposed to those the layer had. One merged away again is not
-   * listed as replaced itself, see {@link #joinIntoSpatialIntersection} */
-  private final Set<Intersection> madeByConsolidation = Collections.newSetFromMap(new IdentityHashMap<>());
+  /** what this run keeps track of, made at the start of {@link #consolidate()} from the layer as it is then */
+  private IntersectionConsolidatorTrackingData trackingData;
 
   /** what was done, filled where each change is made */
   private final IntersectionConsolidationModifierResult result = new IntersectionConsolidationModifierResult();
@@ -208,16 +197,19 @@ public class IntersectionConsolidator {
    *
    * @param parsedIntersections of the layer, by id
    * @param parsedIntersectionOfMemberNode each member node with its parsed intersection
+   * @param canJoin true for a node that may lie on a connection between them, or link them. A node of another
+   *                intersection may not when intersections are joined as listed, see
+   *                {@link #joinIntersectionsListedToJoin}
    * @return the intersection clusters, by the lowest id of their parsed intersections
    */
-  private List<IntersectionCluster> findJunctionClusters(
-      List<Intersection> parsedIntersections, Map<Node, Intersection> parsedIntersectionOfMemberNode) {
+  private List<IntersectionCluster> findJunctionClusters(List<Intersection> parsedIntersections,
+      Map<Node, Intersection> parsedIntersectionOfMemberNode, Predicate<Node> canJoin) {
     /* join parsed intersections that reach each other's member nodes along the road within the reach */
     var reachingPairs = new ArrayList<Pair<Intersection, Intersection>>();
     var connectionsFrom = new HashMap<Node, ShortestPathBreadthFirstResult<Node>>();
     for (var entry : parsedIntersectionOfMemberNode.entrySet()) {
       var connections = MacroscopicNetworkLayerUtils.findShortestConnections(
-          entry.getKey(), IS_ROAD_LINK, node -> true, settings.getMaximumJoiningReachMeters());
+          entry.getKey(), IS_ROAD_LINK, canJoin, settings.getMaximumJoiningReachMeters());
       connectionsFrom.put(entry.getKey(), connections);
       for (var reached : connections.getReached()) {
         var other = parsedIntersectionOfMemberNode.get(reached);
@@ -262,7 +254,7 @@ public class IntersectionConsolidator {
         Node neighbour = link.getOtherNode(memberNode);
         if (neighbour != memberNode && IS_ROAD_LINK.test(link) &&
             link.getLengthMeters() <= settings.getMaximumJoiningReachMeters() + Precision.EPSILON_9 &&
-            !parsedIntersectionOfMemberNode.containsKey(neighbour)) {
+            !parsedIntersectionOfMemberNode.containsKey(neighbour) && canJoin.test(neighbour)) {
           linkedParsedIntersections.computeIfAbsent(neighbour, node -> new HashSet<>()).add(entry.getValue());
           if (MacroscopicLinkUtils.hasSegmentMatching(
               link, segment -> segment.getUpstreamVertex() == memberNode && IS_ROAD_SEGMENT.test(segment))) {
@@ -532,7 +524,7 @@ public class IntersectionConsolidator {
    */
   private boolean keepsCrossingSignalOnceInternal(MacroscopicLinkSegment segment) {
     return !IS_ROAD_LINK.test(segment.getParent()) &&
-        memberNodesOfSignalisedCrossingOnlyIntersections.contains(segment.getDownstreamNode());
+        trackingData.isMemberNodeOfSignalisedCrossingOnlyIntersectionBeforeConsolidation(segment.getDownstreamNode());
   }
 
   /**
@@ -654,39 +646,41 @@ public class IntersectionConsolidator {
    * replaces all of them. Each of the layer's intersections merged away is listed as replaced, with the spatial
    * intersection that replaced it. A spatial intersection consolidation made and merged away again is not listed
    * itself: the intersections it replaced are listed as replaced by the one it is merged into, so each is listed once.
-   * A single non-spatial intersection that would gain no node is left as it is
+   * A single non-spatial intersection that would gain no node is left as it is. A node whose joining is refused does
+   * not join, see {@link IntersectionConsolidatorTrackingData#findNodesAllowedToJoin}
    *
-   * @param joining the intersections to join, by id
+   * @param joining the intersections to join, by id, whose joining is not refused
    * @param nodesToAdd further nodes to make member nodes
    * @return the intersection they are joined into
    */
   private Intersection joinIntoSpatialIntersection(List<Intersection> joining, Collection<Node> nodesToAdd) {
+    var nodesAllowedToJoin = trackingData.findNodesAllowedToJoin(joining, nodesToAdd);
     /* the spatial intersection to join into: one of them, or a new one that replaces them all */
     var spatial = joining.stream().filter(SpatialIntersection.class::isInstance).map(SpatialIntersection.class::cast)
         .findFirst().orElse(null);
     if (spatial == null) {
       var first = joining.get(0);
-      if (joining.size() == 1 && nodesToAdd.stream().allMatch(first::hasMemberNode)) {
+      if (joining.size() == 1 && nodesAllowedToJoin.stream().allMatch(first::hasMemberNode)) {
         return first;
       }
       spatial = layer.getIntersections().getFactory().createSpatial(first.getMemberNodes(), first.getControlType(),
           first.getTypes());
       spatial.setXmlId(String.valueOf(spatial.getId()));
       layer.getIntersections().getFactory().register(spatial);
-      madeByConsolidation.add(spatial);
+      trackingData.addMadeByConsolidation(spatial);
     }
     /* merge the others into it, each listed as replaced. When consolidation made one, the intersections it replaced are
        listed as replaced by the target instead */
     var target = spatial;
     var merged = joining.stream().filter(intersection -> intersection != target).collect(Collectors.toList());
     for (var other : merged) {
-      if (madeByConsolidation.contains(other)) {
+      if (trackingData.isMadeByConsolidation(other)) {
         result.reassignReplacedIntersections((SpatialIntersection) other, target);
       } else {
         result.addReplacedIntersection(other, target);
       }
     }
-    mergeInto(target, merged, nodesToAdd).forEach(result::addJoinedNode);
+    mergeInto(target, merged, nodesAllowedToJoin).forEach(result::addJoinedNode);
     return target;
   }
 
@@ -814,7 +808,9 @@ public class IntersectionConsolidator {
 
   /**
    * Join to each of the given spatial intersections the nodes found for it, see
-   * {@link #joinIntoSpatialIntersection(List, Collection)}, once or until none are found
+   * {@link #joinIntoSpatialIntersection(List, Collection)}, once or until none are found. A node found whose joining is
+   * refused is passed over, see {@link IntersectionConsolidatorTrackingData#findNodesAllowedToJoin}, so it is not
+   * found again and again
    *
    * @param intersections the spatial intersections to join the nodes to
    * @param findNodes finds the nodes to join to an intersection, empty when there are none
@@ -822,9 +818,11 @@ public class IntersectionConsolidator {
    */
   private void joinNodesFound(Collection<SpatialIntersection> intersections,
       Function<SpatialIntersection, Set<Node>> findNodes, boolean untilNoneFound) {
+    Function<SpatialIntersection, List<Node>> findNodesAllowedToJoin = intersection ->
+        trackingData.findNodesAllowedToJoin(List.of(intersection), findNodes.apply(intersection));
     for (var intersection : intersections) {
-      for (var found = findNodes.apply(intersection); !found.isEmpty();
-          found = untilNoneFound ? findNodes.apply(intersection) : Set.of()) {
+      for (var found = findNodesAllowedToJoin.apply(intersection); !found.isEmpty();
+          found = untilNoneFound ? findNodesAllowedToJoin.apply(intersection) : List.of()) {
         joinIntoSpatialIntersection(List.<Intersection>of(intersection), found);
       }
     }
@@ -848,8 +846,9 @@ public class IntersectionConsolidator {
    * the distance from the centre of the member nodes to the furthest of them, counting only the member nodes a
    * motorised road or rail mode uses, see {@link CentreAndRadius}. A junction on one node pulls in too, its radius
    * being nil, so two junctions a few metres apart that only footways link become one. It passes over the junctions it
-   * was weighed with in an intersection cluster, see {@link #wereWeighedInOneCluster}: the subdivision chosen there
-   * decided they stay apart. Another junction with a node within the
+   * was weighed with in an intersection cluster, see
+   * {@link IntersectionConsolidatorTrackingData#wereWeighedInOneCluster}: the subdivision chosen there decided they
+   * stay apart. Another junction with a node within the
    * radius plus {@link IntersectionConsolidatorSettings#getPullInMarginBeyondRadiusMeters()} of the centre, reached
    * from a member node within {@link IntersectionConsolidatorSettings#getMaximumPullInConnectionLengthMeters()} over
    * any links, is part of the same junction: a signal inside a junction belongs to it, even when the scoring kept it
@@ -892,7 +891,7 @@ public class IntersectionConsolidator {
       for (var reached : connections.getReached()) {
         var other = layer.getIntersections().getByMemberNode(reached);
         if (other == null || other == into || !other.isJunction() ||
-            (!(into instanceof SpatialIntersection) && wereWeighedInOneCluster(into, other))) {
+            (!(into instanceof SpatialIntersection) && trackingData.wereWeighedInOneCluster(into, other))) {
           continue;
         }
         var connection = connections.getEntitiesOnConnectionTo(reached);
@@ -911,24 +910,10 @@ public class IntersectionConsolidator {
   }
 
   /**
-   * Verify if two junctions hold parsed intersections that were weighed in one intersection cluster, see
-   * {@link #findJunctionClusters}. The subdivision chosen for the cluster then decided whether they form one
-   * junction. Junctions that no road within the joining reach links were never weighed together
-   *
-   * @param one junction
-   * @param other junction
-   * @return true when weighed in one cluster, false otherwise
-   */
-  private boolean wereWeighedInOneCluster(Intersection one, Intersection other) {
-    var clustersOfOne = one.getMemberNodes().stream().map(clusterIndexOfParsedMemberNode::get)
-        .filter(Objects::nonNull).collect(Collectors.toSet());
-    return other.getMemberNodes().stream().map(clusterIndexOfParsedMemberNode::get).anyMatch(clustersOfOne::contains);
-  }
-
-  /**
    * One round of pulling junctions into intersections. Each candidate, taken as the intersections are at the start
    * of the round and still there, pulls in the junctions found for it, with the nodes found with them, see
-   * {@link #pullIn}
+   * {@link #pullIn}. A junction whose pulling in is refused is not pulled in, see
+   * {@link IntersectionConsolidatorTrackingData#findJunctionsAllowedToBePulledIn}
    *
    * @param isCandidate true for an intersection junctions may be pulled into
    * @param findJunctionsToPullIn finds, for an intersection, the junctions to pull in, each with the nodes that come
@@ -944,7 +929,9 @@ public class IntersectionConsolidator {
       if (!layer.getIntersections().contains(into)) {
         continue;
       }
-      var junctionsToPullIn = findJunctionsToPullIn.apply(into);
+      var junctionsToPullIn = new LinkedHashMap<>(findJunctionsToPullIn.apply(into));
+      junctionsToPullIn.keySet().retainAll(
+          trackingData.findJunctionsAllowedToBePulledIn(into, junctionsToPullIn.keySet()));
       if (junctionsToPullIn.isEmpty()) {
         continue;
       }
@@ -1023,12 +1010,13 @@ public class IntersectionConsolidator {
   }
 
   /**
-   * Let each crossing-only intersection join the intersection with a parsed member node within the maximum internal
-   * link length of the crossing's node along the road, the nearest when it reaches several (C2 step 10). A crossing
-   * whose node no road uses, such as where a footway crosses a tram track, looks along any links instead. A junction
-   * whose connection passes a node in front of it is passed over, see {@link #passesNodeInFrontOfJunction}: a crossing
-   * on a side street leaving its approach before the stop line is no part of it. The crossing's node and the nodes on
-   * the connection between them become member nodes, see {@link #joinIntoSpatialIntersection(List, Collection)}. A
+   * Let each crossing-only intersection join the intersection with a parsed member node within the joining reach of
+   * the crossing's node along the road, the nearest when it reaches several (C2 step 10). A crossing whose node no road
+   * uses, such as where a footway crosses a tram track, looks along any links instead. A junction whose connection
+   * passes a node in front of it is passed over, see {@link #passesNodeInFrontOfJunction}: a crossing on a side street
+   * leaving its approach before the stop line is no part of it. So is a junction whose joining with the crossing is
+   * refused, see {@link IntersectionConsolidatorTrackingData#isRefuseJoining}. The crossing's node and the nodes on the
+   * connection between them become member nodes, see {@link #joinIntoSpatialIntersection(List, Collection)}. A
    * crossing that reaches no junction stays as it is. Crossings join once the junctions are grouped, so a crossing
    * never brings a junction within reach of another
    *
@@ -1058,7 +1046,8 @@ public class IntersectionConsolidator {
           if (meters < nearestMeters - Precision.EPSILON_9 || (meters <= nearestMeters +
               Precision.EPSILON_9 && junction.getId() < nearest.getId())) {
             var onConnection = connections.getEntitiesOnConnectionTo(reached);
-            if (passesNodeInFrontOfJunction(onConnection, junction, crossing)) {
+            if (passesNodeInFrontOfJunction(onConnection, junction, crossing) ||
+                trackingData.isRefuseJoining(List.of(junction, crossing), List.of())) {
               continue;
             }
             nearest = junction;
@@ -1150,7 +1139,9 @@ public class IntersectionConsolidator {
    * the junction and rejoins a road coming out of it, each within twice the slip lane reach along the road, and the
    * crossing lies within the slip lane reach of a member node of the junction in a straight line. Along the road the
    * crossing is further away, round the end of the slip lane. The crossing's node becomes a member node, with the slip
-   * lane segment into it an approach and the one out of it an exit; the slip lane's own ends stay outside
+   * lane segment into it an approach and the one out of it an exit; the slip lane's own ends stay outside. A junction
+   * whose joining with the crossing is refused is passed over, see
+   * {@link IntersectionConsolidatorTrackingData#isRefuseJoining}
    *
    * @param crossings left by {@link #joinCrossings(List, Set)}
    */
@@ -1182,7 +1173,8 @@ public class IntersectionConsolidator {
       }
       if (junction.getMemberNodes().stream().noneMatch(memberNode -> crsUtils.getDistanceInMetres(
           crossingNode.getPosition(), memberNode.getPosition()) <=
-          settings.getMaximumDistanceSlipLaneCrossingToJunctionMeters())) {
+          settings.getMaximumDistanceSlipLaneCrossingToJunctionMeters()) ||
+          trackingData.isRefuseJoining(List.of(junction, crossing), List.of())) {
         continue;
       }
       joinIntoSpatialIntersection(List.of(junction, crossing), List.of());
@@ -1305,9 +1297,91 @@ public class IntersectionConsolidator {
     return Boolean.TRUE.equals(MacroscopicLinkSegmentUtils.followSegmentsUntilAnswered(entering, true,
         entering.getParent().getLengthMeters(), Double.POSITIVE_INFINITY, (current, meters) -> {
           var onward = sameRoadOnInJunction.apply(current);
-          return onward != null && approachesWithSignalBeforeConsolidation.contains(onward) &&
+          return onward != null && trackingData.isApproachWithSignalBeforeConsolidation(onward) &&
               !hasSignalOfItsOwn.test(onward) ? Boolean.TRUE : null;
         }, sameRoadOnInJunction));
+  }
+
+  /**
+   * The grouping steps after the subdivision: junctions within the radius are pulled in, the nodes each intersection
+   * encloses join, junctions are pulled in to salvage approaches without a signal, and each intersection that grew this
+   * way joins the links now reached only through it and the nodes it now encloses. Then crossings join, and each
+   * intersection a crossing joined joins the nodes it now encloses. Each step looks at the intersections as they are,
+   * so running them again changes only what an intersection joined since then brings about
+   *
+   * @param junctionMemberNodes the member nodes of the parsed intersections, found in the intersection they are in now
+   */
+  private void pullInJunctionsAndJoinNodesAndCrossings(Set<Node> junctionMemberNodes) {
+    /* junctions inside the radius of a junction are pulled in, until nothing more is */
+    var grownByRadiusPullIn = new LinkedHashSet<Intersection>(pullInJunctionsWithinRadius());
+
+    /* the nodes each intersection encloses, before any salvage: an enclosed node stays a member however the
+       intersection grows, and enclosed road nodes widen the radius the pull-ins that follow reach with */
+    joinEnclosedNodes(layer.getIntersections().streamSpatial().collect(Collectors.toList()));
+
+    /* junctions are pulled in to salvage approaches without a signal, each round possibly bringing more junctions
+       within the radius, until a round pulls none in. Each intersection that grew by a pull-in then joins the links
+       now reached only through it, and the nodes it encloses */
+    for (var salvaged = pullInJunctionsToSalvageApproachesWithoutSignal(); !salvaged.isEmpty();
+        salvaged = pullInJunctionsToSalvageApproachesWithoutSignal()) {
+      grownByRadiusPullIn.addAll(salvaged);
+      grownByRadiusPullIn.addAll(pullInJunctionsWithinRadius());
+    }
+    var grownSpatial = grownByRadiusPullIn.stream().filter(layer.getIntersections()::contains)
+        .filter(SpatialIntersection.class::isInstance).map(SpatialIntersection.class::cast)
+        .collect(Collectors.toList());
+    joinNodesOfLinksReachedOnlyThroughIntersection(grownSpatial);
+    joinEnclosedNodes(grownSpatial);
+
+    /* crossings join once the junctions are grouped, so a crossing never brings a junction within reach of another.
+       Each intersection a crossing joined then joins the nodes it now encloses */
+    var crossings = layer.getIntersections().stream(Intersection::isCrossingOnly).collect(Collectors.toList());
+    joinCrossingsOnSlipLanes(joinCrossings(crossings, junctionMemberNodes));
+    var nodesOfCrossingsJoined = crossings.stream().filter(crossing -> !layer.getIntersections().contains(crossing))
+        .flatMap(crossing -> crossing.getMemberNodes().stream()).collect(Collectors.toSet());
+    joinEnclosedNodes(layer.getIntersections().streamSpatial()
+        .filter(intersection -> intersection.getMemberNodes().stream().anyMatch(nodesOfCrossingsJoined::contains))
+        .collect(Collectors.toList()));
+  }
+
+  /**
+   * Join, for each list of the settings to join, the intersections holding its nodes into one spatial intersection
+   * (C2 step 14), see {@link IntersectionConsolidatorSettings#addNodeIdsToJoinIntoOneIntersection}. It runs once the
+   * crossings have joined, so the intersections are those of the grouping. The nodes on the shortest road connections
+   * between them within the joining reach join too, passing no node of another intersection, and so do the links
+   * reached only through the intersection, as for a cluster subset, see {@link #buildConsolidatedIntersection}. Lists
+   * are taken in order, so a list holding a node of an intersection an earlier list joined joins that intersection. A
+   * node in no intersection has no effect. A list is not joined when its joining is refused, see
+   * {@link IntersectionConsolidatorTrackingData#isRefuseJoining}. Otherwise it is joined even where the grouping rules
+   * would keep the intersections apart, and a crossing that joined one of them before stays in it
+   *
+   * @param listedNodesOfEachList per list to join, the nodes found
+   * @return true when any list was joined, false otherwise
+   */
+  private boolean joinIntersectionsListedToJoin(List<List<Node>> listedNodesOfEachList) {
+    boolean joinedAny = false;
+    for (var listedNodes : listedNodesOfEachList) {
+      /* the intersections holding the listed nodes now; a node in no intersection has no effect */
+      var joining = listedNodes.stream().map(layer.getIntersections()::getByMemberNode).filter(Objects::nonNull)
+          .distinct().sorted(IdAbleUtils.byId()).collect(Collectors.toList());
+      if (joining.size() < 2 || trackingData.isRefuseJoining(joining, List.of())) {
+        continue;
+      }
+
+      /* the nodes on the road connections between them, as for a cluster subset, passing no node of another
+         intersection, and the nodes of the links reached only through the intersection they form */
+      var intersectionOfMemberNode = new HashMap<Node, Intersection>();
+      joining.forEach(intersection -> intersection.getMemberNodes()
+          .forEach(node -> intersectionOfMemberNode.put(node, intersection)));
+      var nodes = new LinkedHashSet<Node>();
+      findJunctionClusters(joining, intersectionOfMemberNode, node -> intersectionOfMemberNode.containsKey(node) ||
+          layer.getIntersections().getByMemberNode(node) == null)
+          .forEach(cluster -> nodes.addAll(cluster.getSubsetOfEveryParsedIntersection().nodes));
+      nodes.addAll(findNodesOfLinksReachedOnlyThroughIntersection(nodes));
+      joinIntoSpatialIntersection(joining, nodes);
+      joinedAny = true;
+    }
+    return joinedAny;
   }
 
   /**
@@ -1421,54 +1495,32 @@ public class IntersectionConsolidator {
     var junctionIntersectionByMemberNode = new HashMap<Node, Intersection>();
     junctionIntersections.forEach(junction -> junction.getMemberNodes()
         .forEach(node -> junctionIntersectionByMemberNode.put(node, junction)));
-    layer.getIntersections().stream(intersection -> intersection.isCrossingOnly() && intersection.isSignalised())
-        .forEach(crossing -> memberNodesOfSignalisedCrossingOnlyIntersections.addAll(crossing.getMemberNodes()));
-    layer.getIntersections().forEach(intersection -> intersection.getApproachSegments().stream()
-        .filter(intersection::hasOwnSignal).forEach(approachesWithSignalBeforeConsolidation::add));
+
+    /* the nodes of the lists of the settings, those to keep apart checked by every step that joins from here on */
+    var listedNodesToJoinOfEachList = IdMappingUtils.findEntitiesOfEachIdList(
+        layer.getNodes(), settings.getNodeIdsToJoinIntoOneIntersection(), result::addListedNodeIdNotFound);
+    trackingData = new IntersectionConsolidatorTrackingData(layer, IdMappingUtils.findEntitiesOfEachIdList(
+        layer.getNodes(), settings.getNodeIdsToKeepInSeparateIntersections(), result::addListedNodeIdNotFound));
 
     /* each intersection cluster becomes the consolidated intersections of its chosen subdivision */
-    var clusters = findJunctionClusters(junctionIntersections, junctionIntersectionByMemberNode);
+    var clusters = findJunctionClusters(junctionIntersections, junctionIntersectionByMemberNode, node -> true);
     for (int index = 0; index < clusters.size(); ++index) {
       var cluster = clusters.get(index);
-      final int clusterIndex = index;
-      cluster.getParsedIntersections().forEach(parsed -> parsed.getMemberNodes()
-          .forEach(node -> clusterIndexOfParsedMemberNode.put(node, clusterIndex)));
+      trackingData.addParsedIntersectionsWeighedInCluster(cluster.getParsedIntersections(), index);
       if (cluster.isTooLargeToTryEverySubdivision()) {
         result.addIntersectionClusterSubdividedStepByStep(cluster.getParsedIntersections());
       }
-      cluster.chooseSubdivision().forEach(this::buildConsolidatedIntersection);
+      cluster.chooseSubdivision(trackingData::isRefuseJoining).forEach(this::buildConsolidatedIntersection);
     }
 
-    /* junctions inside the radius of a junction are pulled in, until nothing more is */
-    var grownByRadiusPullIn = new LinkedHashSet<Intersection>(pullInJunctionsWithinRadius());
+    /* junctions are pulled in, enclosed nodes join and crossings join */
+    pullInJunctionsAndJoinNodesAndCrossings(junctionIntersectionByMemberNode.keySet());
 
-    /* the nodes each intersection encloses, before any salvage: an enclosed node stays a member however the
-       intersection grows, and enclosed road nodes widen the radius the pull-ins that follow reach with */
-    joinEnclosedNodes(layer.getIntersections().streamSpatial().collect(Collectors.toList()));
-
-    /* junctions are pulled in to salvage approaches without a signal, each round possibly bringing more junctions
-       within the radius, until a round pulls none in. Each intersection that grew by a pull-in then joins the links
-       now reached only through it, and the nodes it encloses */
-    for (var salvaged = pullInJunctionsToSalvageApproachesWithoutSignal(); !salvaged.isEmpty();
-        salvaged = pullInJunctionsToSalvageApproachesWithoutSignal()) {
-      grownByRadiusPullIn.addAll(salvaged);
-      grownByRadiusPullIn.addAll(pullInJunctionsWithinRadius());
+    /* the intersections holding the nodes of each list to join are joined into one, and the steps from the pull-ins to
+       the crossings run again for what that brings about */
+    if (joinIntersectionsListedToJoin(listedNodesToJoinOfEachList)) {
+      pullInJunctionsAndJoinNodesAndCrossings(junctionIntersectionByMemberNode.keySet());
     }
-    var grownSpatial = grownByRadiusPullIn.stream().filter(layer.getIntersections()::contains)
-        .filter(SpatialIntersection.class::isInstance).map(SpatialIntersection.class::cast)
-        .collect(Collectors.toList());
-    joinNodesOfLinksReachedOnlyThroughIntersection(grownSpatial);
-    joinEnclosedNodes(grownSpatial);
-
-    /* crossings join once the junctions are grouped, so a crossing never brings a junction within reach of another.
-       Each intersection a crossing joined then joins the nodes it now encloses */
-    var crossings = layer.getIntersections().stream(Intersection::isCrossingOnly).collect(Collectors.toList());
-    joinCrossingsOnSlipLanes(joinCrossings(crossings, junctionIntersectionByMemberNode.keySet()));
-    var nodesOfCrossingsJoined = crossings.stream().filter(crossing -> !layer.getIntersections().contains(crossing))
-        .flatMap(crossing -> crossing.getMemberNodes().stream()).collect(Collectors.toSet());
-    joinEnclosedNodes(layer.getIntersections().streamSpatial()
-        .filter(intersection -> intersection.getMemberNodes().stream().anyMatch(nodesOfCrossingsJoined::contains))
-        .collect(Collectors.toList()));
 
     /* roads entering without an approach become approaches, and movements are stored */
     addRoadsEnteringAsApproachesAndFindJunctionsWithFewSignalisedArms();

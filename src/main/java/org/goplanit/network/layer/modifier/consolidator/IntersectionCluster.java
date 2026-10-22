@@ -1,6 +1,7 @@
 package org.goplanit.network.layer.modifier.consolidator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -511,16 +513,17 @@ class IntersectionCluster {
    *
    * @param subdivision cluster subsets of the parsed intersections, ordered, see {@link #ordered}
    * @param single each parsed intersection's coverage on its own
-   * @return the scored subdivision, null when a subset of two or more is not connected or not allowed, see
-   *         {@link #score}
+   * @param isAllowed true when a subset of two or more may be chosen, see {@link #chooseSubdivision}
+   * @return the scored subdivision, null when a subset of two or more is not connected or not allowed
    */
-  private ScoredSubdivision scoreSubdivision(List<ClusterSubset> subdivision, Map<Intersection, Double> single) {
+  private ScoredSubdivision scoreSubdivision(List<ClusterSubset> subdivision, Map<Intersection, Double> single,
+      Predicate<ClusterSubset> isAllowed) {
     double total = 0;
     double longest = 0;
     for (var subset : subdivision) {
       if (subset.parsedIntersections.size() == 1) {
         total += single.get(subset.parsedIntersections.get(0));
-      } else if (!subset.connected || !score(subset).allowed) {
+      } else if (!subset.connected || !isAllowed.test(subset)) {
         return null;
       } else {
         total += score(subset).coverage * subset.parsedIntersections.size();
@@ -532,17 +535,19 @@ class IntersectionCluster {
 
   /**
    * The total a subdivision scores while it is searched step by step, see {@link #searchSubdivisionsStepByStep}. A
-   * subset of two or more that is not connected, or not allowed, see {@link #score}, counts as its members alone, so
-   * the search can pass through it on the way to one that keeps the rules
+   * subset of two or more that is not connected, or not allowed, counts as its members alone, so the search can pass
+   * through it on the way to one that keeps the rules
    *
    * @param subdivision cluster subsets of the parsed intersections
    * @param single each parsed intersection's coverage on its own
+   * @param isAllowed true when a subset of two or more may be chosen, see {@link #chooseSubdivision}
    * @return the total while searching
    */
-  private double searchTotal(List<ClusterSubset> subdivision, Map<Intersection, Double> single) {
+  private double searchTotal(List<ClusterSubset> subdivision, Map<Intersection, Double> single,
+      Predicate<ClusterSubset> isAllowed) {
     double total = 0;
     for (var subset : subdivision) {
-      if (subset.parsedIntersections.size() > 1 && subset.connected && score(subset).allowed) {
+      if (subset.parsedIntersections.size() > 1 && subset.connected && isAllowed.test(subset)) {
         total += score(subset).coverage * subset.parsedIntersections.size();
       } else {
         total += subset.parsedIntersections.stream().mapToDouble(single::get).sum();
@@ -592,9 +597,11 @@ class IntersectionCluster {
    * seen before
    *
    * @param single each parsed intersection's coverage on its own
+   * @param isAllowed true when a subset of two or more may be chosen, see {@link #chooseSubdivision}
    * @return every subdivision the search came across, each parsed intersection on its own among them
    */
-  private List<List<ClusterSubset>> searchSubdivisionsStepByStep(Map<Intersection, Double> single) {
+  private List<List<ClusterSubset>> searchSubdivisionsStepByStep(Map<Intersection, Double> single,
+      Predicate<ClusterSubset> isAllowed) {
     /* the whole cluster as one subset to start from, and each parsed intersection on its own, which keeps the rules */
     var seen = new HashSet<List<List<Long>>>();
     var found = new ArrayList<List<ClusterSubset>>();
@@ -628,7 +635,7 @@ class IntersectionCluster {
       found.addAll(next);
       var totals = new HashMap<List<ClusterSubset>, Double>();
       next.forEach(subdivision ->
-          totals.put(subdivision, RoundUtils.simpleDoubleRound(searchTotal(subdivision, single), 9)));
+          totals.put(subdivision, RoundUtils.simpleDoubleRound(searchTotal(subdivision, single, isAllowed), 9)));
       next.sort(Comparator.<List<ClusterSubset>>comparingDouble(subdivision -> -totals.get(subdivision))
           .thenComparing((first, second) -> compareIds(idsOf(first), idsOf(second))));
       kept = next.subList(0, Math.min(settings.getSubdivisionsKeptPerSearchStep(), next.size()));
@@ -703,15 +710,19 @@ class IntersectionCluster {
 
   /**
    * Choose the subdivision of the cluster. A cluster subset of two or more must be connected, every member must earn
-   * its place, and an approach with a signal must stay one. Each parsed intersection scores the coverage of its subset,
-   * or its own coverage when alone, and the highest total wins. Totals within the tie margin of the highest count as a
-   * tie, won by fewer subsets, then by the shorter longest internal link. Every subdivision is tried, or, for a cluster
-   * too large to try every one, those a step by step search comes across, see {@link #searchSubdivisionsStepByStep}. A
-   * cluster of one parsed intersection is its own subset, without scoring
+   * its place, an approach with a signal must stay one, and joining it must not be refused, as for nodes the settings
+   * keep in separate intersections. Each parsed intersection scores the coverage of its subset, or its own coverage
+   * when alone, and the highest total wins. Totals within the tie margin of the highest count as a tie, won by fewer
+   * subsets, then by the shorter longest internal link. Every subdivision is tried, or, for a cluster too large to try
+   * every one, those a step by step search comes across, see {@link #searchSubdivisionsStepByStep}. A cluster of one
+   * parsed intersection is its own subset, without scoring
    *
+   * @param isRefuseJoining true when joining the given intersections, with the given further nodes, into one is
+   *                        refused, see {@link IntersectionConsolidatorTrackingData#isRefuseJoining}
    * @return the cluster subsets of the chosen subdivision, largest first
    */
-  List<ClusterSubset> chooseSubdivision() {
+  List<ClusterSubset> chooseSubdivision(
+      BiPredicate<Collection<? extends Intersection>, Collection<Node>> isRefuseJoining) {
     if (parsedIntersections.size() == 1) {
       return List.of(getSubset(parsedIntersections));
     }
@@ -721,13 +732,17 @@ class IntersectionCluster {
       single.put(intersection, coverage(getSubset(List.of(intersection))));
     }
 
+    /* a subset of two or more may be chosen when its score allows it and joining it is not refused */
+    Predicate<ClusterSubset> isAllowed = subset -> score(subset).allowed &&
+        !isRefuseJoining.test(subset.parsedIntersections, subset.nodes);
+
     /* the subdivisions to choose from: every one, or those found step by step in a cluster too large for that */
-    var subdivisions = isTooLargeToTryEverySubdivision() ? searchSubdivisionsStepByStep(single) :
+    var subdivisions = isTooLargeToTryEverySubdivision() ? searchSubdivisionsStepByStep(single, isAllowed) :
         ListUtils.findAllPartitions(parsedIntersections).stream().map(this::toOrderedClusterSubsets)
             .collect(Collectors.toList());
 
     /* score those whose subsets of two or more are connected and allowed */
-    var scored = subdivisions.stream().map(subdivision -> scoreSubdivision(subdivision, single))
+    var scored = subdivisions.stream().map(subdivision -> scoreSubdivision(subdivision, single, isAllowed))
         .filter(Objects::nonNull).collect(Collectors.toList());
 
     /* the highest total wins; a tie within the margin goes to fewer subsets, then the shorter longest internal link */
@@ -760,5 +775,15 @@ class IntersectionCluster {
    */
   boolean isTooLargeToTryEverySubdivision() {
     return parsedIntersections.size() > settings.getMaximumParsedIntersectionsToTryEverySubdivision();
+  }
+
+  /**
+   * The cluster subset of every parsed intersection of the cluster, see {@link #getSubset}: its nodes are their member
+   * nodes and the nodes on the shortest road connections between them
+   *
+   * @return the cluster subset
+   */
+  public ClusterSubset getSubsetOfEveryParsedIntersection() {
+    return getSubset(parsedIntersections);
   }
 }
