@@ -232,4 +232,28 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
     assertEquals(List.of(nodes.get(1), nodes.get(2), nodes.get(3), nodes.get(0)), nodesReached);
   }
 
+  /**
+   * Following only the segment onward that meets the condition, it goes on past a branch the condition leaves out, and
+   * stops without an answer where more than one segment onward meets it
+   */
+  @Test
+  public void followOnlySegmentsOnwardUntilAnsweredStopsWhereSeveralSegmentsMeetTheCondition() {
+    /*
+     * 0 --carOnly--> 1 --carOnly--> 2
+     *                |
+     *                +--walkOnly--> 3
+     */
+    createNodes(4);
+    link(0, 1, carOnly, null);
+    link(1, 2, carOnly, null);
+    link(1, 3, walkOnly, null);
+
+    BiFunction<MacroscopicLinkSegment, Double, Node> answerAtNode2 =
+        (segment, meters) -> segment.getDownstreamNode() == nodes.get(2) ? segment.getDownstreamNode() : null;
+    assertEquals(nodes.get(2), MacroscopicLinkSegmentUtils.followOnlySegmentsOnwardUntilAnswered(
+        segment(0, 1), true, 1000, 10000, MacroscopicLinkSegmentUtils.permitsMotorisedRoadMode(), answerAtNode2));
+    assertNull(MacroscopicLinkSegmentUtils.followOnlySegmentsOnwardUntilAnswered(
+        segment(0, 1), true, 1000, 10000, segment -> true, answerAtNode2));
+  }
+
 }

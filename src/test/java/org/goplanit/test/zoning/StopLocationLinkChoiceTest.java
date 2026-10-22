@@ -309,10 +309,10 @@ public class StopLocationLinkChoiceTest extends LayerTestBase {
 
     var forBus = ZoningConverterUtils.findAccessLinkSegmentsForWaitingAreaOnLinks(
         "waiting area", WAITING_AREA, List.of(x), MacroscopicLink::getXmlId, List.of(bus), mode -> null,
-        CountryNames.AUSTRALIA, GEO_UTILS);
+        null, CountryNames.AUSTRALIA, GEO_UTILS);
     var forTrain = ZoningConverterUtils.findAccessLinkSegmentsForWaitingAreaOnLinks(
         "waiting area", WAITING_AREA, List.of(x), MacroscopicLink::getXmlId, List.of(train), mode -> null,
-        CountryNames.AUSTRALIA, GEO_UTILS);
+        null, CountryNames.AUSTRALIA, GEO_UTILS);
 
     assertEquals(Set.of(x.getLinkSegmentBa()), forBus);
     assertEquals(Set.of(x.getLinkSegmentAb(), x.getLinkSegmentBa()), forTrain);

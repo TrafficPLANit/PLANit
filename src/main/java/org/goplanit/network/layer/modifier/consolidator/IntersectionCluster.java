@@ -212,57 +212,66 @@ class IntersectionCluster {
   private final Map<ClusterSubset, SubsetScore> scores = new HashMap<>();
 
   /**
-   * The cluster subset of the given parsed intersections: its nodes are its member nodes, the nodes on the shortest
-   * road connections of at most the joining reach between them that stay on the cluster's nodes and do
-   * not pass member nodes of the cluster's other parsed intersections, and the nodes with short links to two or more of
+   * Build the cluster subset of the given parsed intersections: its nodes are its member nodes, the nodes on the
+   * shortest road connections of at most the joining reach between them that stay on the cluster's nodes and do not
+   * pass member nodes of the cluster's other parsed intersections, and the nodes with short links to two or more of
    * its member nodes. Such connections and nodes connect the parsed intersections they join
    *
    * @param subset parsed intersections of the cluster
    * @return the cluster subset
    */
+  private ClusterSubset buildSubset(List<Intersection> subset) {
+    var sorted = subset.stream().sorted(IdAbleUtils.byId()).collect(Collectors.toList());
+    /* the cluster's nodes a connection may pass: all but the member nodes of its other parsed intersections */
+    var subsetMemberNodes = IntersectionUtils.collectMemberNodes(sorted);
+    var allowed = new HashSet<>(nodes);
+    IntersectionUtils.collectMemberNodes(parsedIntersections).stream()
+        .filter(node -> !subsetMemberNodes.contains(node)).forEach(allowed::remove);
+
+    /* add the nodes on short road connections between its member nodes, joining the parsed intersections they link */
+    var subsetNodes = new LinkedHashSet<>(subsetMemberNodes);
+    var joinedPairs = new ArrayList<Pair<Intersection, Intersection>>();
+    for (var node : subsetMemberNodes) {
+      var connections = MacroscopicNetworkLayerUtils.findShortestConnections(node,
+          IntersectionConsolidator.IS_ROAD_LINK, allowed::contains, settings.getMaximumJoiningReachMeters());
+      for (var reached : connections.getReached()) {
+        if (reached != node && subsetMemberNodes.contains(reached)) {
+          subsetNodes.addAll(connections.getEntitiesOnConnectionTo(reached));
+          joinedPairs.add(
+              Pair.of(parsedIntersectionOfMemberNode.get(reached), parsedIntersectionOfMemberNode.get(node)));
+        }
+      }
+    }
+    /* add the nodes linked to two or more of its member nodes, joining those parsed intersections too */
+    for (var entry : linkedMemberNodes.entrySet()) {
+      var inside = entry.getValue().stream().filter(subsetMemberNodes::contains)
+          .sorted(IdAbleUtils.byId()).collect(Collectors.toList());
+      if (inside.size() >= 2) {
+        subsetNodes.add(entry.getKey());
+        for (var other : inside.subList(1, inside.size())) {
+          joinedPairs.add(
+              Pair.of(parsedIntersectionOfMemberNode.get(other), parsedIntersectionOfMemberNode.get(inside.get(0))));
+        }
+      }
+    }
+    /* connected when all its parsed intersections were joined; internal links are the short ones between its nodes */
+    boolean connected = ListUtils.extractDisjointSets(sorted, joinedPairs).size() == 1;
+
+    var internalLinks = shortLinks.stream()
+        .filter(link -> subsetNodes.contains(link.getNodeA()) && subsetNodes.contains(link.getNodeB()))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+    return new ClusterSubset(sorted, subsetNodes, connected, internalLinks);
+  }
+
+  /**
+   * The cluster subset of the given parsed intersections, built once for each set of parsed intersections, see
+   * {@link #buildSubset(List)}
+   *
+   * @param subset parsed intersections of the cluster
+   * @return the cluster subset
+   */
   private ClusterSubset getSubset(List<Intersection> subset) {
-    return subsets.computeIfAbsent(IdAbleUtils.collectSortedIds(subset), key -> {
-      var sorted = subset.stream().sorted(IdAbleUtils.byId()).collect(Collectors.toList());
-      /* the cluster's nodes a connection may pass: all but the member nodes of its other parsed intersections */
-      var subsetMemberNodes = IntersectionUtils.collectMemberNodes(sorted);
-      var allowed = new HashSet<>(nodes);
-      IntersectionUtils.collectMemberNodes(parsedIntersections).stream()
-          .filter(node -> !subsetMemberNodes.contains(node)).forEach(allowed::remove);
-
-      /* add the nodes on short road connections between its member nodes, joining the parsed intersections they link */
-      var subsetNodes = new LinkedHashSet<>(subsetMemberNodes);
-      var joinedPairs = new ArrayList<Pair<Intersection, Intersection>>();
-      for (var node : subsetMemberNodes) {
-        var connections = MacroscopicNetworkLayerUtils.findShortestConnections(node,
-            IntersectionConsolidator.IS_ROAD_LINK, allowed::contains, settings.getMaximumJoiningReachMeters());
-        for (var reached : connections.getReached()) {
-          if (reached != node && subsetMemberNodes.contains(reached)) {
-            subsetNodes.addAll(connections.getEntitiesOnConnectionTo(reached));
-            joinedPairs.add(
-                Pair.of(parsedIntersectionOfMemberNode.get(reached), parsedIntersectionOfMemberNode.get(node)));
-          }
-        }
-      }
-      /* add the nodes linked to two or more of its member nodes, joining those parsed intersections too */
-      for (var entry : linkedMemberNodes.entrySet()) {
-        var inside = entry.getValue().stream().filter(subsetMemberNodes::contains)
-            .sorted(IdAbleUtils.byId()).collect(Collectors.toList());
-        if (inside.size() >= 2) {
-          subsetNodes.add(entry.getKey());
-          for (var other : inside.subList(1, inside.size())) {
-            joinedPairs.add(
-                Pair.of(parsedIntersectionOfMemberNode.get(other), parsedIntersectionOfMemberNode.get(inside.get(0))));
-          }
-        }
-      }
-      /* connected when all its parsed intersections were joined; internal links are the short ones between its nodes */
-      boolean connected = ListUtils.extractDisjointSets(sorted, joinedPairs).size() == 1;
-
-      var internalLinks = shortLinks.stream()
-          .filter(link -> subsetNodes.contains(link.getNodeA()) && subsetNodes.contains(link.getNodeB()))
-          .collect(Collectors.toCollection(LinkedHashSet::new));
-      return new ClusterSubset(sorted, subsetNodes, connected, internalLinks);
-    });
+    return subsets.computeIfAbsent(IdAbleUtils.collectSortedIds(subset), key -> buildSubset(subset));
   }
 
   /**
@@ -411,32 +420,41 @@ class IntersectionCluster {
    * @param subset to score
    * @return its score
    */
-  private SubsetScore score(ClusterSubset subset) {
-    return scores.computeIfAbsent(subset, key -> {
-      double coverage = coverage(subset);
-      /* the least a judged member brings: its own gain, the others' loss without it, or the least gain if exit-only */
-      Double leastJudged = null;
-      for (var member : subset.parsedIntersections) {
-        Double justified = null;
-        for (var value : new Double[] {improvement(member, subset), provides(member, subset)}) {
-          if (value != null) {
-            justified = justified == null ? value : Math.max(justified, value);
-          }
-        }
-        if (isExitOnlyMember(member, subset)) {
-          justified = justified == null ? settings.getMinimumCoverageGainPerMember() :
-              Math.max(justified, settings.getMinimumCoverageGainPerMember());
-        }
-        if (justified != null) {
-          leastJudged = leastJudged == null ? justified : Math.min(leastJudged, justified);
+  private SubsetScore computeScore(ClusterSubset subset) {
+    double coverage = coverage(subset);
+    /* the least a judged member brings: its own gain, the others' loss without it, or the least gain if exit-only */
+    Double leastJudged = null;
+    for (var member : subset.parsedIntersections) {
+      Double justified = null;
+      for (var value : new Double[] {improvement(member, subset), provides(member, subset)}) {
+        if (value != null) {
+          justified = justified == null ? value : Math.max(justified, value);
         }
       }
-      /* allowed when every judged member brings at least the least gain, and an approach with a signal stays one */
-      boolean allowed = leastJudged != null &&
-          leastJudged >= settings.getMinimumCoverageGainPerMember() - Precision.EPSILON_9 &&
-          !IntersectionConsolidator.wouldLoseEveryApproachWithSignal(subset.parsedIntersections, subset.nodes);
-      return new SubsetScore(coverage, allowed);
-    });
+      if (isExitOnlyMember(member, subset)) {
+        justified = justified == null ? settings.getMinimumCoverageGainPerMember() :
+            Math.max(justified, settings.getMinimumCoverageGainPerMember());
+      }
+      if (justified != null) {
+        leastJudged = leastJudged == null ? justified : Math.min(leastJudged, justified);
+      }
+    }
+    /* allowed when every judged member brings at least the least gain, and an approach with a signal stays one */
+    boolean allowed = leastJudged != null &&
+        leastJudged >= settings.getMinimumCoverageGainPerMember() - Precision.EPSILON_9 &&
+        !IntersectionConsolidator.wouldLoseEveryApproachWithSignal(subset.parsedIntersections, subset.nodes);
+    return new SubsetScore(coverage, allowed);
+  }
+
+  /**
+   * The score of a cluster subset of two or more, worked out once for each cluster subset, see
+   * {@link #computeScore(ClusterSubset)}
+   *
+   * @param subset to score
+   * @return its score
+   */
+  private SubsetScore score(ClusterSubset subset) {
+    return scores.computeIfAbsent(subset, key -> computeScore(subset));
   }
 
   /**

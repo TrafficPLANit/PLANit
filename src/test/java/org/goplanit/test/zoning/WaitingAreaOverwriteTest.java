@@ -104,4 +104,16 @@ public class WaitingAreaOverwriteTest extends LayerTestBase {
   public void segmentAcrossTrafficServesTheWaitingAreaItsLinkIsNominatedFor() {
     assertTrue(mayServeWaitingArea(null, waitingArea -> "X"));
   }
+
+  /** among the access link segments of X for W, the one across traffic is left out, unless its node is attached to W */
+  @Test
+  public void accessLinkSegmentsKeepTheOneAcrossTrafficOnlyWhenItsNodeIsAttachedToTheWaitingArea() {
+    var withoutOverwrite = ZoningConverterUtils.findAccessLinkSegmentsForWaitingAreaOnLinks("W", WAITING_AREA,
+        List.of(x), link -> "X", List.of(bus), mode -> null, null, CountryNames.AUSTRALIA, GEO_UTILS);
+    var nodeAttached = ZoningConverterUtils.findAccessLinkSegmentsForWaitingAreaOnLinks("W", WAITING_AREA,
+        List.of(x), link -> "X", List.of(bus), mode -> null, node -> "W", CountryNames.AUSTRALIA, GEO_UTILS);
+
+    assertFalse(withoutOverwrite.contains(x.getLinkSegmentAb()));
+    assertTrue(nodeAttached.contains(x.getLinkSegmentAb()));
+  }
 }

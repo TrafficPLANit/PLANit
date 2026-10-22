@@ -474,6 +474,8 @@ public class ZoningConverterUtils {
    * @param accessModes to find access link segments for
    * @param getOverwrittenAccessLinkSourceIdByMode per access mode the mapping from waiting area source id to the access
    *                                               link source id the user nominated, which may be null for a mode
+   * @param getOverwrittenWaitingAreaSourceIdForNode the waiting area source id the user attached an access node to, may
+   *                                                 be null
    * @param countryName to take the driving direction from
    * @param geoUtils to use
    * @return the access link segments found, in id order
@@ -485,6 +487,7 @@ public class ZoningConverterUtils {
       Function<MacroscopicLink, String> linkToSourceId,
       Collection<Mode> accessModes,
       Function<Mode, Function<String, String>> getOverwrittenAccessLinkSourceIdByMode,
+      Function<Node, String> getOverwrittenWaitingAreaSourceIdForNode,
       String countryName,
       PlanitJtsCrsUtils geoUtils) {
 
@@ -495,7 +498,8 @@ public class ZoningConverterUtils {
       for(var link : links) {
         var linkAccessLinkSegments = findAccessLinkSegmentsForWaitingArea(
             waitingAreaSourceId, waitingAreaGeometry, link, linkToSourceId.apply(link), accessMode, countryName,
-            isAvoidCrossTrafficForAccessMode(accessMode), getOverwrittenAccessLinkSourceId, null, geoUtils);
+            isAvoidCrossTrafficForAccessMode(accessMode), getOverwrittenAccessLinkSourceId,
+            getOverwrittenWaitingAreaSourceIdForNode, geoUtils);
         if(linkAccessLinkSegments != null) {
           linkAccessLinkSegments.forEach(linkSegment -> accessLinkSegments.add((MacroscopicLinkSegment) linkSegment));
         }

@@ -562,6 +562,47 @@ public class IntersectionConsolidator {
   }
 
   /**
+   * Apply what merged intersections bring to the spatial intersection kept, see
+   * {@link #mergeInto(SpatialIntersection, List, Collection)}. An approach that starts at one of the member nodes is
+   * no longer an approach, and the segments between the member nodes become internal, see
+   * {@link #addInternalSegments(SpatialIntersection)}
+   *
+   * @param kept spatial intersection to apply it to
+   * @param signalised true when any of the intersections was signalised
+   * @param types the union of their kinds
+   * @param externalIds their external ids, each added once
+   * @param memberNodes all member nodes it has after the merge
+   * @param hasOwnSignalOfMergedApproach the approaches of the merged intersections, each with whether it has a signal
+   *                                     of its own
+   */
+  private void applyMergeTo(SpatialIntersection kept, boolean signalised, Set<IntersectionType> types,
+      List<String> externalIds, Set<Node> memberNodes,
+      Map<MacroscopicLinkSegment, Boolean> hasOwnSignalOfMergedApproach) {
+    if (signalised) {
+      kept.setControlType(IntersectionControlType.SIGNALISED);
+    }
+    types.forEach(kept::addType);
+    externalIds.stream().filter(externalId -> !kept.containsExternalId(externalId)).forEach(kept::appendExternalId);
+    /* an approach may not start at a member node, so those go before the member nodes are added */
+    for (var approach : List.copyOf(kept.getApproachSegments())) {
+      if (memberNodes.contains(approach.getUpstreamNode())) {
+        kept.removeApproachSegment(approach);
+        result.addApproach(ApproachOutcome.MADE_INTERNAL, approach);
+      }
+    }
+    memberNodes.forEach(kept::addMemberNode);
+    for (var entry : hasOwnSignalOfMergedApproach.entrySet()) {
+      var approach = entry.getKey();
+      if (memberNodes.contains(approach.getUpstreamNode())) {
+        result.addApproach(ApproachOutcome.MADE_INTERNAL, approach);
+      } else if (kept.addApproachSegment(approach)) {
+        kept.setApproachSegmentHasOwnSignal(approach, entry.getValue());
+      }
+    }
+    addInternalSegments(kept);
+  }
+
+  /**
    * Merge intersections into a spatial intersection (C2 steps 7 and 8). The merged intersections are removed through
    * the modifier, each with its removal event. The spatial intersection gains their member nodes and the given nodes,
    * the union of their kinds, the control type signalised if any of them was, their external ids, each once, and their
@@ -602,30 +643,8 @@ public class IntersectionConsolidator {
 
     /* apply it all to the kept intersection in one update, so the lookups of the intersections stay current */
     boolean keptSignalised = signalised;
-    layer.getIntersections().update(kept, intersection -> {
-      if (keptSignalised) {
-        intersection.setControlType(IntersectionControlType.SIGNALISED);
-      }
-      types.forEach(intersection::addType);
-      externalIds.stream().filter(externalId -> !intersection.containsExternalId(externalId))
-          .forEach(intersection::appendExternalId);
-      /* an approach may not start at a member node, so those go before the member nodes are added */
-      for (var approach : List.copyOf(intersection.getApproachSegments())) {
-        if (memberNodes.contains(approach.getUpstreamNode())) {
-          intersection.removeApproachSegment(approach);
-          result.addApproach(ApproachOutcome.MADE_INTERNAL, approach);
-        }
-      }
-      memberNodes.forEach(intersection::addMemberNode);
-      hasOwnSignalOfMergedApproach.forEach((approach, hasOwnSignal) -> {
-        if (memberNodes.contains(approach.getUpstreamNode())) {
-          result.addApproach(ApproachOutcome.MADE_INTERNAL, approach);
-        } else if (intersection.addApproachSegment(approach)) {
-          intersection.setApproachSegmentHasOwnSignal(approach, hasOwnSignal);
-        }
-      });
-      addInternalSegments(intersection);
-    });
+    layer.getIntersections().update(kept, intersection ->
+        applyMergeTo(intersection, keptSignalised, types, externalIds, memberNodes, hasOwnSignalOfMergedApproach));
     return joined;
   }
 
@@ -1078,12 +1097,13 @@ public class IntersectionConsolidator {
         continue;
       }
       /* follow the road while it simply continues, until it reaches a junction or goes beyond the distance */
-      var junction = MacroscopicLinkSegmentUtils.<Intersection>followSegmentsUntilAnswered(start, intoJunction,
-          start.getParent().getLengthMeters(), maximumDistanceMeters, (current, meters) -> {
+      var junction = MacroscopicLinkSegmentUtils.<Intersection>followOnlySegmentsOnwardUntilAnswered(start,
+          intoJunction, start.getParent().getLengthMeters(), maximumDistanceMeters, IS_ROAD_SEGMENT,
+          (current, meters) -> {
             var reached = layer.getIntersections().getByMemberNode(
                 intoJunction ? current.getDownstreamNode() : current.getUpstreamNode());
             return reached != null && reached.isJunction() ? reached : null;
-          }, current -> MacroscopicLinkSegmentUtils.findOnlySegmentOnward(current, intoJunction, IS_ROAD_SEGMENT));
+          });
       if (junction != null) {
         return junction;
       }
@@ -1338,21 +1358,21 @@ public class IntersectionConsolidator {
    * are not stored, see {@link SpatialMovementUtils#isImplicitlyBanned}
    */
   private void storeMovements() {
-    layer.getIntersections().streamSpatial().forEach(intersection -> {
+    for (var intersection : layer.getIntersections().streamSpatial().collect(Collectors.toList())) {
       /* remove the movements it had */
       List.copyOf(intersection.getMovements()).forEach(layer.getLayerModifier()::removeSpatialMovement);
       /* one movement for each exit an approach's internal segments connect, as long as the shortest connection */
       for (var approach : intersection.getApproachSegments()) {
         var shortestOfExit = SpatialMovementUtils.findShortestConnectionToEachExit(layer, intersection, approach);
-        shortestOfExit.keySet().stream().sorted(IdAbleUtils.byId()).forEach(exit -> {
+        for (var exit : shortestOfExit.keySet().stream().sorted(IdAbleUtils.byId()).collect(Collectors.toList())) {
           var movement = layer.getSpatialMovements().getFactory().registerNew(
               approach, exit, shortestOfExit.get(exit).getCostToReach(exit) / 1000);
           movement.setXmlId(String.valueOf(movement.getId()));
           intersection.addMovement(movement);
           result.addStoredSpatialMovement(movement);
-        });
+        }
       }
-    });
+    }
   }
 
   /**
