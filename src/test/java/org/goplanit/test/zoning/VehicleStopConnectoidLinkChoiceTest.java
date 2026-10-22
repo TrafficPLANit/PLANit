@@ -1,6 +1,6 @@
 package org.goplanit.test.zoning;
 
-import org.goplanit.converter.zoning.StopLocationOnLinkSegment;
+import org.goplanit.converter.zoning.VehicleStopConnectoidLocationOnLinkSegment;
 import org.goplanit.converter.zoning.ZoningConverterUtils;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
@@ -26,10 +26,10 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Choosing the link a waiting area's stop goes on: only segments a stop location can be made on count, the link
+ * Choosing the link a waiting area's stop goes on: only segments a connectoid location can be made on count, the link
  * closest to the waiting area wins, unless a link within the buffer of the closest one has a higher capacity, which
- * wins for a road mode. Closeness is the distance to a link's geometry, or to its stop location: how close its usable
- * places come to the waiting area's centre. The access segments to choose from
+ * wins for a road mode. Closeness is the distance to a link's geometry, or to its connectoid location: how close its
+ * usable places come to the waiting area's centre. The access segments to choose from
  * are the segments of the nearby links on the waiting area's side of the road, and on the chosen link the stop goes
  * where an end node is reused, else at the nearest location.
  * <pre>
@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Each link runs from west (A) to east (B), so the waiting area lies right of its A to B segment and left of its B to A
  * segment; with traffic on the left, a bus may only use the B to A segment.
  */
-public class StopLocationLinkChoiceTest extends LayerTestBase {
+public class VehicleStopConnectoidLinkChoiceTest extends LayerTestBase {
 
   /** distances in metres */
   private static final PlanitJtsCrsUtils GEO_UTILS =
@@ -84,7 +84,7 @@ public class StopLocationLinkChoiceTest extends LayerTestBase {
   }
 
   private MacroscopicLink choose(List<MacroscopicLinkSegment> candidates, Mode mode) {
-    var result = ZoningConverterUtils.findMostAppropriateStopLocationLinkByDistanceToLinkGeometry(
+    var result = ZoningConverterUtils.findMostAppropriateVehicleStopConnectoidLinkByDistanceToLinkGeometry(
         WAITING_AREA, candidates, List.of(mode), (segment, accessMode) -> true, BUFFER_METERS, GEO_UTILS);
     return result == null ? null : result.first();
   }
@@ -99,18 +99,18 @@ public class StopLocationLinkChoiceTest extends LayerTestBase {
     return link;
   }
 
-  /** a stop location at the segment's end node, for choosing by stop location */
-  private static StopLocationOnLinkSegment stopAtEnd(
+  /** a connectoid location at the segment's end node, for choosing by connectoid location */
+  private static VehicleStopConnectoidLocationOnLinkSegment stopAtEnd(
       MacroscopicLinkSegment segment, double metersFromCentre, boolean fromFallbackCheck) {
-    return new StopLocationOnLinkSegment(
+    return new VehicleStopConnectoidLocationOnLinkSegment(
         segment.getDownstreamVertex().getPosition(), metersFromCentre, fromFallbackCheck);
   }
 
-  private MacroscopicLink chooseByStopLocation(
+  private MacroscopicLink chooseByConnectoidLocation(
       List<MacroscopicLinkSegment> candidates,
       Mode mode,
-      Map<MacroscopicLinkSegment, StopLocationOnLinkSegment> stops) {
-    var result = ZoningConverterUtils.findMostAppropriateStopLocationLinkByDistanceToStopLocation(
+      Map<MacroscopicLinkSegment, VehicleStopConnectoidLocationOnLinkSegment> stops) {
+    var result = ZoningConverterUtils.findMostAppropriateVehicleStopConnectoidLinkByDistanceToConnectoidLocation(
         candidates, List.of(mode), (segment, accessMode) -> stops.get(segment), BUFFER_METERS);
     return result == null ? null : result.first();
   }
@@ -130,19 +130,19 @@ public class StopLocationLinkChoiceTest extends LayerTestBase {
     capacity2000 = segmentType("capacity2000", 2000);
   }
 
-  /** a link whose segments get no stop location is not chosen, however close */
+  /** a link whose segments get no connectoid location is not chosen, however close */
   @Test
-  public void onlySegmentsWithAStopLocationCount() {
+  public void onlySegmentsWithAConnectoidLocationCount() {
     var x = linkAt(1, capacity2000, null);
     var z = linkAt(5, capacity2000, null);
 
-    var result = ZoningConverterUtils.findMostAppropriateStopLocationLinkByDistanceToLinkGeometry(
+    var result = ZoningConverterUtils.findMostAppropriateVehicleStopConnectoidLinkByDistanceToLinkGeometry(
         WAITING_AREA, List.of(x.getLinkSegmentAb(), z.getLinkSegmentAb()), List.of(bus),
         (segment, accessMode) -> segment.getParent() != x, BUFFER_METERS, GEO_UTILS);
 
     assertSame(z, result.first());
     assertEquals(Set.of(z.getLinkSegmentAb()), result.second());
-    assertNull(ZoningConverterUtils.findMostAppropriateStopLocationLinkByDistanceToLinkGeometry(
+    assertNull(ZoningConverterUtils.findMostAppropriateVehicleStopConnectoidLinkByDistanceToLinkGeometry(
         WAITING_AREA, List.of(x.getLinkSegmentAb()), List.of(bus), (segment, accessMode) -> false, BUFFER_METERS,
         GEO_UTILS));
   }
@@ -201,10 +201,11 @@ public class StopLocationLinkChoiceTest extends LayerTestBase {
    *                                                          + (80,-30)
    * </pre>
    * Track Y comes nearest to the platform, 2.2 m from its corner, X runs 3 m from its long edge. By distance to the
-   * geometry Y is chosen, by distance to the stop location X is: its stop lies 5 m from the platform centre, Y's 42 m
+   * geometry Y is chosen, by distance to the connectoid location X is: its stop lies 5 m from the platform centre,
+   * Y's 42 m
    */
   @Test
-  public void byDistanceToStopLocationTheLinkAlongThePlatformWinsOverOneBendingInAtItsEnd() {
+  public void byDistanceToConnectoidLocationTheLinkAlongThePlatformWinsOverOneBendingInAtItsEnd() {
     var x = linkThrough(capacity2000, new Coordinate(-20, -3), new Coordinate(100, -3));
     var y = linkThrough(capacity2000, new Coordinate(80, -30), new Coordinate(82, -1), new Coordinate(120, -1));
     var platform = PlanitJtsUtils.createPolygon(new Coordinate[]{
@@ -212,11 +213,13 @@ public class StopLocationLinkChoiceTest extends LayerTestBase {
         new Coordinate(0, 0)});
     var candidates = List.of(x.getLinkSegmentAb(), y.getLinkSegmentAb());
 
-    var byDistanceToLinkGeometry = ZoningConverterUtils.findMostAppropriateStopLocationLinkByDistanceToLinkGeometry(
+    var byDistanceToLinkGeometry =
+        ZoningConverterUtils.findMostAppropriateVehicleStopConnectoidLinkByDistanceToLinkGeometry(
         platform, candidates, List.of(train), (segment, accessMode) -> true, BUFFER_METERS, GEO_UTILS);
-    var byDistanceToStopLocation = ZoningConverterUtils.findMostAppropriateStopLocationLinkByDistanceToStopLocation(
+    var byDistanceToConnectoidLocation =
+        ZoningConverterUtils.findMostAppropriateVehicleStopConnectoidLinkByDistanceToConnectoidLocation(
         candidates, List.of(train),
-        (segment, accessMode) -> ZoningConverterUtils.findStopLocationForWaitingAreaOnLinkSegment(
+        (segment, accessMode) -> ZoningConverterUtils.findVehicleStopConnectoidLocationForWaitingAreaOnLinkSegment(
             "platform", platform, segment, segment.getParent().getXmlId(), accessMode, 25,
             ZoningConverterUtils.DEFAULT_MAX_END_NODE_TO_IDEAL_STOP_POINT_METERS,
             ZoningConverterUtils.DEFAULT_MAX_SHAPE_POINT_TO_IDEAL_STOP_POINT_METERS, null, null, null,
@@ -224,36 +227,37 @@ public class StopLocationLinkChoiceTest extends LayerTestBase {
         BUFFER_METERS);
 
     assertSame(y, byDistanceToLinkGeometry.first());
-    assertSame(x, byDistanceToStopLocation.first());
-    assertEquals(Set.of(x.getLinkSegmentAb()), byDistanceToStopLocation.second());
+    assertSame(x, byDistanceToConnectoidLocation.first());
+    assertEquals(Set.of(x.getLinkSegmentAb()), byDistanceToConnectoidLocation.second());
   }
 
   /**
-   * A link whose only stop location comes from the fallback check ranks after every link with a stop location of its
-   * own, however near; among fallback locations only, the nearest wins
+   * A link whose only connectoid location comes from the fallback check ranks after every link with a connectoid
+   * location of its own, however near; among fallback locations only, the nearest wins
    */
   @Test
-  public void byDistanceToStopLocationALinkWithOnlyAFallbackLocationRanksLast() {
+  public void byDistanceToConnectoidLocationALinkWithOnlyAFallbackLocationRanksLast() {
     var x = linkAt(1, capacity2000, null);
     var z = linkAt(5, capacity2000, null);
     var stops = Map.of(
         x.getLinkSegmentAb(), stopAtEnd(x.getLinkSegmentAb(), 1, true),
         z.getLinkSegmentAb(), stopAtEnd(z.getLinkSegmentAb(), 12, false));
 
-    assertSame(z, chooseByStopLocation(List.of(x.getLinkSegmentAb(), z.getLinkSegmentAb()), train, stops));
+    assertSame(z, chooseByConnectoidLocation(List.of(x.getLinkSegmentAb(), z.getLinkSegmentAb()), train, stops));
 
     var fallbacksOnly = Map.of(
         x.getLinkSegmentAb(), stopAtEnd(x.getLinkSegmentAb(), 7, true),
         z.getLinkSegmentAb(), stopAtEnd(z.getLinkSegmentAb(), 3, true));
-    assertSame(z, chooseByStopLocation(List.of(x.getLinkSegmentAb(), z.getLinkSegmentAb()), train, fallbacksOnly));
+    assertSame(z,
+        chooseByConnectoidLocation(List.of(x.getLinkSegmentAb(), z.getLinkSegmentAb()), train, fallbacksOnly));
   }
 
   /**
-   * By distance to the stop location, a road mode prefers the higher capacity link among those whose stop lies within
-   * the buffer of the nearest stop, and takes the nearest stop beyond it
+   * By distance to the connectoid location, a road mode prefers the higher capacity link among those whose stop lies
+   * within the buffer of the nearest stop, and takes the nearest stop beyond it
    */
   @Test
-  public void byDistanceToStopLocationHigherCapacityWithinTheBufferWinsForARoadMode() {
+  public void byDistanceToConnectoidLocationHigherCapacityWithinTheBufferWinsForARoadMode() {
     var x = linkAt(1, capacity1500, null);
     var z = linkAt(5, capacity2000, null);
     var w = linkAt(20, capacity2000, null);
@@ -262,9 +266,9 @@ public class StopLocationLinkChoiceTest extends LayerTestBase {
         z.getLinkSegmentAb(), stopAtEnd(z.getLinkSegmentAb(), 5, false),
         w.getLinkSegmentAb(), stopAtEnd(w.getLinkSegmentAb(), 20, false));
 
-    assertSame(z, chooseByStopLocation(List.of(x.getLinkSegmentAb(), z.getLinkSegmentAb()), bus, stops));
-    assertSame(x, chooseByStopLocation(List.of(x.getLinkSegmentAb(), w.getLinkSegmentAb()), bus, stops));
-    assertNull(chooseByStopLocation(List.of(x.getLinkSegmentAb()), bus, Map.of()));
+    assertSame(z, chooseByConnectoidLocation(List.of(x.getLinkSegmentAb(), z.getLinkSegmentAb()), bus, stops));
+    assertSame(x, chooseByConnectoidLocation(List.of(x.getLinkSegmentAb(), w.getLinkSegmentAb()), bus, stops));
+    assertNull(chooseByConnectoidLocation(List.of(x.getLinkSegmentAb()), bus, Map.of()));
   }
 
   /**
@@ -281,21 +285,22 @@ public class StopLocationLinkChoiceTest extends LayerTestBase {
     var breakPoint = PlanitJtsUtils.createPoint(5, 1);
     var otherBreakPoint = PlanitJtsUtils.createPoint(6, 1);
 
-    assertSame(endOfAb, ZoningConverterUtils.chooseStopLocationOnAccessLink(List.of(ba, ab),
+    assertSame(endOfAb, ZoningConverterUtils.chooseVehicleStopConnectoidLocationOnAccessLink(List.of(ba, ab),
         segment -> segment == ab ? endOfAb : breakPoint, location -> location == endOfAb ? 9 : 2,
         (segment, location) -> false));
     var startOfAb = ab.getUpstreamVertex().getPosition();
-    assertSame(startOfAb, ZoningConverterUtils.chooseStopLocationOnAccessLink(List.of(ba, ab),
+    assertSame(startOfAb, ZoningConverterUtils.chooseVehicleStopConnectoidLocationOnAccessLink(List.of(ba, ab),
         segment -> segment == ab ? startOfAb : breakPoint, location -> location == startOfAb ? 9 : 2,
         (segment, location) -> false));
     var lowerIdSegment = ab.getId() < ba.getId() ? ab : ba;
-    assertSame(lowerIdSegment == ab ? breakPoint : otherBreakPoint, ZoningConverterUtils.chooseStopLocationOnAccessLink(
+    assertSame(lowerIdSegment == ab ? breakPoint : otherBreakPoint,
+        ZoningConverterUtils.chooseVehicleStopConnectoidLocationOnAccessLink(
         List.of(ba, ab), segment -> segment == ab ? breakPoint : otherBreakPoint, location -> 4,
         (segment, location) -> false));
-    assertSame(otherBreakPoint, ZoningConverterUtils.chooseStopLocationOnAccessLink(List.of(ab, ba),
+    assertSame(otherBreakPoint, ZoningConverterUtils.chooseVehicleStopConnectoidLocationOnAccessLink(List.of(ab, ba),
         segment -> segment == ab ? breakPoint : otherBreakPoint, location -> location == breakPoint ? 1 : 9,
         (segment, location) -> segment == ab));
-    assertSame(breakPoint, ZoningConverterUtils.chooseStopLocationOnAccessLink(List.of(ab, ba),
+    assertSame(breakPoint, ZoningConverterUtils.chooseVehicleStopConnectoidLocationOnAccessLink(List.of(ab, ba),
         segment -> segment == ab ? breakPoint : null, location -> 1, (segment, location) -> true));
   }
 

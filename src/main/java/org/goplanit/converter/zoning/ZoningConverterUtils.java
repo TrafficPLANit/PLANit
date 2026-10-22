@@ -47,11 +47,11 @@ import javax.annotation.Nullable;
 public class ZoningConverterUtils {
 
   /** an end node within this distance of a stop's ideal stop point is reused rather than breaking the link, see
-   * {@link #findStopLocationForWaitingAreaOnLinkSegment} */
+   * {@link #findVehicleStopConnectoidLocationForWaitingAreaOnLinkSegment} */
   public static final double DEFAULT_MAX_END_NODE_TO_IDEAL_STOP_POINT_METERS = 10;
 
   /** when breaking a link for a stop, an inner shape point within this distance of its ideal stop point is used rather
-   * than breaking it right next to it, see {@link #findStopLocationForWaitingAreaOnLinkSegment} */
+   * than breaking it right next to it, see {@link #findVehicleStopConnectoidLocationForWaitingAreaOnLinkSegment} */
   public static final double DEFAULT_MAX_SHAPE_POINT_TO_IDEAL_STOP_POINT_METERS = 5;
 
   /** Verify if based on passed in parameters either of the two overrides is active
@@ -134,15 +134,15 @@ public class ZoningConverterUtils {
   }
 
   /**
-   * The end of the given piece of an access link segment's link as stop location, when the waiting area lies on the
-   * side of the road its access mode needs. Any side will do for a user nominated access link, a mode that may cross
-   * traffic, or a waiting area the user mapped to the location
+   * The end of the given piece of an access link segment's link as connectoid location, when the waiting area lies on
+   * the side of the road its access mode needs. Any side will do for a user nominated access link, a mode that may
+   * cross traffic, or a waiting area the user mapped to the location
    *
    * @param waitingAreaSourceId the waiting area's source id
    * @param waitingAreaGeometry the waiting area's geometry
    * @param accessLinkSegment the piece lies on
-   * @param accessMode the stop location is for
-   * @param piece of the link, in the link's geometry direction, ending at the stop location
+   * @param accessMode the connectoid location is for
+   * @param piece of the link, in the link's geometry direction, ending at the connectoid location
    * @param isNominatedAccessLink whether the user nominated the access link for the waiting area
    * @param getOverwrittenWaitingAreaSourceIdForPoint function that provides the overwritten waiting area source id
    *                                                  for a given location, may return null if not overwritten
@@ -374,7 +374,8 @@ public class ZoningConverterUtils {
       /* determine location relative to infrastructure, at its line geometry closest to the location's centre */
       if (PlanitGraphGeoUtils.isGeometryLeftOf(
           PlanitJtsUtils.extractCentre(location), linkSegment, geoUtils) != leftHandDrive) {
-        /* not viable opposite traffic directions needs to be crossed on the link to get to stop location --> remove */
+        /* not viable opposite traffic directions needs to be crossed on the link to get to connectoid location
+         * --> remove */
         invalidAccessLinkSegments.add(linkSegment);
       }
     }
@@ -512,7 +513,7 @@ public class ZoningConverterUtils {
    * Choose the link a waiting area's stop goes on, from candidate access link segments, judging how close a link is
    * by the distance to its geometry:
    * <ol>
-   *   <li>keep the candidates a stop location can be made on, for an access mode they allow,</li>
+   *   <li>keep the candidates a connectoid location can be made on, for an access mode they allow,</li>
    *   <li>of several links, keep those within the buffer beyond the link closest to the waiting area,</li>
    *   <li>of several links, prefer the highest capacity when the first access mode is a road mode,</li>
    *   <li>take the closest remaining link.</li>
@@ -522,28 +523,28 @@ public class ZoningConverterUtils {
    * @param waitingAreaGeometry the waiting area's geometry
    * @param candidateAccessLinkSegments to choose from
    * @param accessModes the stop serves, of which the first decides whether the highest capacity is preferred
-   * @param hasStopLocation whether a stop location can be made on an access link segment for an access mode
+   * @param hasConnectoidLocation whether a connectoid location can be made on an access link segment for an access mode
    * @param closestLinkBufferMeters beyond the distance of the closest link, within which links are compared further
    * @param geoUtils to measure distances with
    * @return the chosen link with its remaining access link segments in id order, null when no candidate has a stop
    * location
    */
   public static Pair<MacroscopicLink, SortedSet<MacroscopicLinkSegment>>
-      findMostAppropriateStopLocationLinkByDistanceToLinkGeometry(
+      findMostAppropriateVehicleStopConnectoidLinkByDistanceToLinkGeometry(
           Geometry waitingAreaGeometry,
           Collection<MacroscopicLinkSegment> candidateAccessLinkSegments,
           Collection<Mode> accessModes,
-          BiPredicate<MacroscopicLinkSegment, Mode> hasStopLocation,
+          BiPredicate<MacroscopicLinkSegment, Mode> hasConnectoidLocation,
           double closestLinkBufferMeters,
           PlanitJtsCrsUtils geoUtils) {
 
-    /* 1) the candidates a stop location can be made on, in id order so nothing that follows depends on the order of
-     * the candidates */
+    /* 1) the candidates a connectoid location can be made on, in id order so nothing that follows depends on the order
+     * of the candidates */
     var accessLinkSegments =
         new TreeSet<MacroscopicLinkSegment>(Comparator.comparingLong(MacroscopicLinkSegment::getId));
     for(var accessMode : accessModes) {
       for(var candidate : candidateAccessLinkSegments) {
-        if(candidate.isModeAllowed(accessMode) && hasStopLocation.test(candidate, accessMode)) {
+        if(candidate.isModeAllowed(accessMode) && hasConnectoidLocation.test(candidate, accessMode)) {
           accessLinkSegments.add(candidate);
         }
       }
@@ -582,11 +583,11 @@ public class ZoningConverterUtils {
 
   /**
    * Choose the link a waiting area's stop goes on, from candidate access link segments, judging how close a link is
-   * by its stop location: how close the places a stop could take on its segments come to the waiting area's centre,
-   * see {@link StopLocationOnLinkSegment}. A link whose only stop locations come from the fallback check ranks after
-   * every link with a stop location of its own.
+   * by its connectoid location: how close the places a stop could take on its segments come to the waiting area's
+   * centre, see {@link VehicleStopConnectoidLocationOnLinkSegment}. A link whose only connectoid locations come from
+   * the fallback check ranks after every link with a connectoid location of its own.
    * <ol>
-   *   <li>keep the candidates with a stop location, for an access mode they allow,</li>
+   *   <li>keep the candidates with a connectoid location, for an access mode they allow,</li>
    *   <li>of several links, keep those whose stop lies within the buffer beyond the nearest stop,</li>
    *   <li>of several links, prefer the highest capacity when the first access mode is a road mode,</li>
    *   <li>take the remaining link with the nearest stop, the lowest id when equally near.</li>
@@ -594,37 +595,39 @@ public class ZoningConverterUtils {
    *
    * @param candidateAccessLinkSegments to choose from
    * @param accessModes the stop serves, of which the first decides whether the highest capacity is preferred
-   * @param stopLocationOnSegment the stop location on an access link segment for an access mode, null when it has none
+   * @param connectoidLocationOnSegment the connectoid location on an access link segment for an access mode, null when
+   *                                    it has none
    * @param closestStopBufferMeters beyond the nearest stop, within which links are compared further
    * @return the chosen link with its remaining access link segments in id order, null when no candidate has a stop
    * location or no link remains
    */
   public static Pair<MacroscopicLink, SortedSet<MacroscopicLinkSegment>>
-      findMostAppropriateStopLocationLinkByDistanceToStopLocation(
+      findMostAppropriateVehicleStopConnectoidLinkByDistanceToConnectoidLocation(
           Collection<MacroscopicLinkSegment> candidateAccessLinkSegments,
           Collection<Mode> accessModes,
-          BiFunction<MacroscopicLinkSegment, Mode, StopLocationOnLinkSegment> stopLocationOnSegment,
+          BiFunction<MacroscopicLinkSegment, Mode, VehicleStopConnectoidLocationOnLinkSegment>
+              connectoidLocationOnSegment,
           double closestStopBufferMeters) {
 
-    /* 1) the candidates with a stop location, each link judged by its nearest stop, a link whose stops all come
+    /* 1) the candidates with a connectoid location, each link judged by its nearest stop, a link whose stops all come
      * from the fallback check after every other link */
     var accessLinkSegments =
         new TreeSet<MacroscopicLinkSegment>(Comparator.comparingLong(MacroscopicLinkSegment::getId));
-    var nearestStopByLink = new HashMap<MacroscopicLink, StopLocationOnLinkSegment>();
-    Comparator<StopLocationOnLinkSegment> nearerStop = Comparator.comparing(
-        StopLocationOnLinkSegment::isFromFallbackCheck).thenComparingDouble(
-            StopLocationOnLinkSegment::getMetersFromWaitingAreaCentreToNearestPlace);
+    var nearestStopByLink = new HashMap<MacroscopicLink, VehicleStopConnectoidLocationOnLinkSegment>();
+    Comparator<VehicleStopConnectoidLocationOnLinkSegment> nearerStop = Comparator.comparing(
+        VehicleStopConnectoidLocationOnLinkSegment::isFromFallbackCheck).thenComparingDouble(
+            VehicleStopConnectoidLocationOnLinkSegment::getMetersFromWaitingAreaCentreToNearestPlace);
     for(var accessMode : accessModes) {
       for(var candidate : candidateAccessLinkSegments) {
         if(!candidate.isModeAllowed(accessMode)) {
           continue;
         }
-        var stopLocation = stopLocationOnSegment.apply(candidate, accessMode);
-        if(stopLocation == null) {
+        var connectoidLocation = connectoidLocationOnSegment.apply(candidate, accessMode);
+        if(connectoidLocation == null) {
           continue;
         }
         accessLinkSegments.add(candidate);
-        nearestStopByLink.merge(candidate.getParent(), stopLocation,
+        nearestStopByLink.merge(candidate.getParent(), connectoidLocation,
             (stop, otherStop) -> nearerStop.compare(otherStop, stop) < 0 ? otherStop : stop);
       }
     }
@@ -680,12 +683,12 @@ public class ZoningConverterUtils {
    * location the caller marks as a last resort is only used when no segment gives another location
    *
    * @param accessLinkSegments of the access link to choose from
-   * @param locationOnSegment the stop location on a segment, null when it has none
+   * @param locationOnSegment the connectoid location on a segment, null when it has none
    * @param metersToWaitingArea the distance from a location to the waiting area
    * @param isLastResort whether a segment's location is only used when no segment gives another location
    * @return the chosen location, null when no segment has one
    */
-  public static Point chooseStopLocationOnAccessLink(
+  public static Point chooseVehicleStopConnectoidLocationOnAccessLink(
       Collection<? extends MacroscopicLinkSegment> accessLinkSegments,
       Function<MacroscopicLinkSegment, Point> locationOnSegment,
       ToDoubleFunction<Point> metersToWaitingArea,
@@ -992,10 +995,10 @@ public class ZoningConverterUtils {
    *
    * @param waitingAreaSourceId the waiting area's source id
    * @param waitingAreaGeometry the waiting area's geometry
-   * @param accessLinkSegment to find the stop location on
+   * @param accessLinkSegment to find the connectoid location on
    * @param accessLinkSourceId the access link's source id
    * @param accessMode to be compatible with
-   * @param maxAllowedDistanceMeters the maximum allowed distance between stop location and waiting area
+   * @param maxAllowedDistanceMeters the maximum allowed distance between connectoid location and waiting area
    * @param maxEndNodeToIdealStopPointMeters the maximum distance from the ideal stop point to an end node that is
    *                                         reused
    * @param maxShapePointToIdealStopPointMeters the maximum distance from the ideal stop point to a shape point the
@@ -1008,9 +1011,9 @@ public class ZoningConverterUtils {
    *                                                               link source id the user nominated, may be null
    * @param countryName to extract driving direction from
    * @param geoUtils to use
-   * @return the stop location, null when the segment has none
+   * @return the connectoid location, null when the segment has none
    */
-  public static StopLocationOnLinkSegment findStopLocationForWaitingAreaOnLinkSegment(
+  public static VehicleStopConnectoidLocationOnLinkSegment findVehicleStopConnectoidLocationForWaitingAreaOnLinkSegment(
       String waitingAreaSourceId,
       final Geometry waitingAreaGeometry,
       final MacroscopicLinkSegment accessLinkSegment,
@@ -1028,7 +1031,7 @@ public class ZoningConverterUtils {
     var centre = PlanitJtsUtils.extractCentre(waitingAreaGeometry);
     if(ExternalIdAbleUtils.isMappedToId(
         getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, waitingAreaSourceId, accessLinkSourceId)) {
-      return StopLocationOnLinkSegment.of(
+      return VehicleStopConnectoidLocationOnLinkSegment.of(
           findConnectoidLocationForWaitingAreaOnLinkSegment(
             waitingAreaSourceId, waitingAreaGeometry, accessLinkSegment, accessLinkSourceId, accessMode,
             maxAllowedDistanceMeters, getOverwrittenWaitingAreaSourceIdForNode, getOverwrittenWaitingAreaSourceIdForPoint,
@@ -1119,13 +1122,13 @@ public class ZoningConverterUtils {
         reuseUpstreamEnd ? geoUtils.getClosestDistanceInMeters(upstreamEnd, centre) : Double.POSITIVE_INFINITY),
         breakLocation != null ? geoUtils.getClosestDistanceInMeters(idealStopPoint, centre) : Double.POSITIVE_INFINITY);
     if(reusedEnd != null) {
-      return new StopLocationOnLinkSegment(
+      return new VehicleStopConnectoidLocationOnLinkSegment(
           PlanitJtsUtils.createPoint(reusedEnd), metersToNearestPlace, false);
     }
     if(breakLocation != null) {
-      return new StopLocationOnLinkSegment(breakLocation, metersToNearestPlace, false);
+      return new VehicleStopConnectoidLocationOnLinkSegment(breakLocation, metersToNearestPlace, false);
     }
-    return StopLocationOnLinkSegment.of(
+    return VehicleStopConnectoidLocationOnLinkSegment.of(
         findConnectoidLocationForWaitingAreaOnLinkSegment(
             waitingAreaSourceId,
             waitingAreaGeometry,

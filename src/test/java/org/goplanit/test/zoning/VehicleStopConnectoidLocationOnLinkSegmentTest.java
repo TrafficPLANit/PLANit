@@ -1,6 +1,6 @@
 package org.goplanit.test.zoning;
 
-import org.goplanit.converter.zoning.StopLocationOnLinkSegment;
+import org.goplanit.converter.zoning.VehicleStopConnectoidLocationOnLinkSegment;
 import org.goplanit.converter.zoning.ZoningConverterUtils;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
@@ -33,13 +33,13 @@ import static org.junit.jupiter.api.Assertions.*;
  * stop goes where the nearest existing point check puts it, marked as such. The side of the road a waiting area lies
  * on is judged from its centre.
  */
-public class StopLocationOnLinkSegmentTest extends LayerTestBase {
+public class VehicleStopConnectoidLocationOnLinkSegmentTest extends LayerTestBase {
 
   /** distances in metres */
   private static final PlanitJtsCrsUtils GEO_UTILS =
       new PlanitJtsCrsUtils(PlanitJtsCrsUtils.DEFAULT_PROJECTED_CRS_EPSG_3857);
 
-  /** search radius from a platform to its stop location */
+  /** search radius from a platform to its connectoid location */
   private static final double SEARCH_RADIUS_METERS = 25;
 
   private Mode train;
@@ -56,8 +56,9 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
     return link;
   }
 
-  private StopLocationOnLinkSegment stopLocation(Geometry platform, MacroscopicLinkSegment segment) {
-    return ZoningConverterUtils.findStopLocationForWaitingAreaOnLinkSegment(
+  private VehicleStopConnectoidLocationOnLinkSegment connectoidLocation(
+      Geometry platform, MacroscopicLinkSegment segment) {
+    return ZoningConverterUtils.findVehicleStopConnectoidLocationForWaitingAreaOnLinkSegment(
         "platform", platform, segment, segment.getParent().getXmlId(), train, SEARCH_RADIUS_METERS,
         ZoningConverterUtils.DEFAULT_MAX_END_NODE_TO_IDEAL_STOP_POINT_METERS,
         ZoningConverterUtils.DEFAULT_MAX_SHAPE_POINT_TO_IDEAL_STOP_POINT_METERS,
@@ -121,11 +122,11 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
   public void endNodeWithinTenMetresOfTheIdealStopPointIsReused() {
     var link = trackThrough(new Coordinate(0, 0), new Coordinate(100, 0));
 
-    var stopLocation = stopLocation(PlanitJtsUtils.createPoint(94, 3), link.getLinkSegmentAb());
+    var connectoidLocation = connectoidLocation(PlanitJtsUtils.createPoint(94, 3), link.getLinkSegmentAb());
 
-    assertAt(100, 0, stopLocation.getLocation());
-    assertFalse(stopLocation.isFromFallbackCheck());
-    assertEquals(3, stopLocation.getMetersFromWaitingAreaCentreToNearestPlace(), 1e-6);
+    assertAt(100, 0, connectoidLocation.getLocation());
+    assertFalse(connectoidLocation.isFromFallbackCheck());
+    assertEquals(3, connectoidLocation.getMetersFromWaitingAreaCentreToNearestPlace(), 1e-6);
   }
 
   /**
@@ -145,10 +146,10 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
     oneWayTrack(p, a);
     var linkAb = oneWayTrack(a, b);
 
-    var stopLocation = stopLocation(PlanitJtsUtils.createPoint(3, 2), linkAb.getLinkSegmentAb());
+    var connectoidLocation = connectoidLocation(PlanitJtsUtils.createPoint(3, 2), linkAb.getLinkSegmentAb());
 
-    assertAt(0, 0, stopLocation.getLocation());
-    assertFalse(stopLocation.isFromFallbackCheck());
+    assertAt(0, 0, connectoidLocation.getLocation());
+    assertFalse(connectoidLocation.isFromFallbackCheck());
   }
 
   /**
@@ -165,9 +166,9 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
     int b = nodeAt(100, 0);
     var linkAb = oneWayTrack(a, b);
 
-    var stopLocation = stopLocation(PlanitJtsUtils.createPoint(3, 2), linkAb.getLinkSegmentAb());
+    var connectoidLocation = connectoidLocation(PlanitJtsUtils.createPoint(3, 2), linkAb.getLinkSegmentAb());
 
-    assertAt(3, 0, stopLocation.getLocation());
+    assertAt(3, 0, connectoidLocation.getLocation());
   }
 
   /**
@@ -192,9 +193,9 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
     oneWayTrack(q, a);
     var linkAb = oneWayTrack(a, b);
 
-    var stopLocation = stopLocation(PlanitJtsUtils.createPoint(3, 2), linkAb.getLinkSegmentAb());
+    var connectoidLocation = connectoidLocation(PlanitJtsUtils.createPoint(3, 2), linkAb.getLinkSegmentAb());
 
-    assertAt(3, 0, stopLocation.getLocation());
+    assertAt(3, 0, connectoidLocation.getLocation());
   }
 
   /**
@@ -219,9 +220,9 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
     oneWayTrack(a, q);
     var linkAb = oneWayTrack(a, b);
 
-    var stopLocation = stopLocation(PlanitJtsUtils.createPoint(3, 2), linkAb.getLinkSegmentAb());
+    var connectoidLocation = connectoidLocation(PlanitJtsUtils.createPoint(3, 2), linkAb.getLinkSegmentAb());
 
-    assertAt(3, 0, stopLocation.getLocation());
+    assertAt(3, 0, connectoidLocation.getLocation());
   }
 
   /**
@@ -240,9 +241,9 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
     twoWayTrack(p, a);
     var linkAb = twoWayTrack(a, b);
 
-    var stopLocation = stopLocation(PlanitJtsUtils.createPoint(3, 2), linkAb.getLinkSegmentAb());
+    var connectoidLocation = connectoidLocation(PlanitJtsUtils.createPoint(3, 2), linkAb.getLinkSegmentAb());
 
-    assertAt(0, 0, stopLocation.getLocation());
+    assertAt(0, 0, connectoidLocation.getLocation());
   }
 
   /**
@@ -263,9 +264,9 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
     var linkAb = oneWayTrack(a, b);
     oneWayTrack(b, q);
 
-    var stopLocation = stopLocation(PlanitJtsUtils.createPoint(5, 2), linkAb.getLinkSegmentAb());
+    var connectoidLocation = connectoidLocation(PlanitJtsUtils.createPoint(5, 2), linkAb.getLinkSegmentAb());
 
-    assertAt(0, 0, stopLocation.getLocation());
+    assertAt(0, 0, connectoidLocation.getLocation());
   }
 
   /**
@@ -280,11 +281,11 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
   public void endNodeBeyondTenMetresOfTheIdealStopPointLeavesTheLinkBrokenThere() {
     var link = trackThrough(new Coordinate(0, 0), new Coordinate(100, 0));
 
-    var stopLocation = stopLocation(PlanitJtsUtils.createPoint(85, 3), link.getLinkSegmentAb());
+    var connectoidLocation = connectoidLocation(PlanitJtsUtils.createPoint(85, 3), link.getLinkSegmentAb());
 
-    assertAt(85, 0, stopLocation.getLocation());
-    assertFalse(stopLocation.isFromFallbackCheck());
-    assertEquals(3, stopLocation.getMetersFromWaitingAreaCentreToNearestPlace(), 1e-6);
+    assertAt(85, 0, connectoidLocation.getLocation());
+    assertFalse(connectoidLocation.isFromFallbackCheck());
+    assertEquals(3, connectoidLocation.getMetersFromWaitingAreaCentreToNearestPlace(), 1e-6);
   }
 
   /**
@@ -300,8 +301,8 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
   public void linkIsBrokenAtAShapePointWithinFiveMetresOfTheIdealStopPoint() {
     var link = trackThrough(new Coordinate(0, 0), new Coordinate(50, 0), new Coordinate(100, 0));
 
-    assertAt(50, 0, stopLocation(PlanitJtsUtils.createPoint(53, 2), link.getLinkSegmentAb()).getLocation());
-    assertAt(57, 0, stopLocation(PlanitJtsUtils.createPoint(57, 2), link.getLinkSegmentAb()).getLocation());
+    assertAt(50, 0, connectoidLocation(PlanitJtsUtils.createPoint(53, 2), link.getLinkSegmentAb()).getLocation());
+    assertAt(57, 0, connectoidLocation(PlanitJtsUtils.createPoint(57, 2), link.getLinkSegmentAb()).getLocation());
   }
 
   /**
@@ -322,10 +323,10 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
         new Coordinate(10, 2), new Coordinate(70, 2), new Coordinate(70, 4), new Coordinate(10, 4),
         new Coordinate(10, 2)});
 
-    var stopLocation = stopLocation(platform, link.getLinkSegmentAb());
+    var connectoidLocation = connectoidLocation(platform, link.getLinkSegmentAb());
 
-    assertAt(40, 0, stopLocation.getLocation());
-    assertEquals(3, stopLocation.getMetersFromWaitingAreaCentreToNearestPlace(), 1e-6);
+    assertAt(40, 0, connectoidLocation.getLocation());
+    assertEquals(3, connectoidLocation.getMetersFromWaitingAreaCentreToNearestPlace(), 1e-6);
   }
 
   /**
@@ -342,10 +343,10 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
   public void platformBeforeTheSegmentStartGetsTheLocationOfTheNearestExistingPointCheck() {
     var link = trackThrough(new Coordinate(0, 0), new Coordinate(20, 0));
 
-    var stopLocation = stopLocation(PlanitJtsUtils.createPoint(-3, 2), link.getLinkSegmentAb());
+    var connectoidLocation = connectoidLocation(PlanitJtsUtils.createPoint(-3, 2), link.getLinkSegmentAb());
 
-    assertAt(20, 0, stopLocation.getLocation());
-    assertTrue(stopLocation.isFromFallbackCheck());
+    assertAt(20, 0, connectoidLocation.getLocation());
+    assertTrue(connectoidLocation.isFromFallbackCheck());
   }
 
   /**
@@ -359,10 +360,10 @@ public class StopLocationOnLinkSegmentTest extends LayerTestBase {
   public void endNodeThatIsTheIdealStopPointIsTheStop() {
     var link = trackThrough(new Coordinate(0, 0), new Coordinate(50, 0));
 
-    var stopLocation = stopLocation(PlanitJtsUtils.createPoint(70, 0), link.getLinkSegmentAb());
+    var connectoidLocation = connectoidLocation(PlanitJtsUtils.createPoint(70, 0), link.getLinkSegmentAb());
 
-    assertAt(50, 0, stopLocation.getLocation());
-    assertFalse(stopLocation.isFromFallbackCheck());
+    assertAt(50, 0, connectoidLocation.getLocation());
+    assertFalse(connectoidLocation.isFromFallbackCheck());
   }
 
   /**

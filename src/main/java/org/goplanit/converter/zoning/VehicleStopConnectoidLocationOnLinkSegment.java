@@ -5,13 +5,13 @@ import org.locationtech.jts.geom.Point;
 
 /**
  * Where a waiting area's stop goes on an access link segment, with how close the places a stop could take on the
- * segment come to the waiting area's centre, to compare segments and links by. For a stop location found as the
+ * segment come to the waiting area's centre, to compare segments and links by. For a connectoid location found as the
  * segment's reused end node or its break point, that is the nearest of those two places; otherwise it is the stop
- * location itself. A stop location from the fallback check is one the nearest existing point check gave, because the
- * segment offered neither place, see
- * {@link ZoningConverterUtils#findStopLocationForWaitingAreaOnLinkSegment}.
+ * location itself. A connectoid location from the fallback check is one the nearest existing point check gave, because
+ * the segment offered neither place, see
+ * {@link ZoningConverterUtils#findVehicleStopConnectoidLocationForWaitingAreaOnLinkSegment}.
  */
-public final class StopLocationOnLinkSegment {
+public final class VehicleStopConnectoidLocationOnLinkSegment {
 
   /** where the stop goes */
   private final Point location;
@@ -30,7 +30,7 @@ public final class StopLocationOnLinkSegment {
    *                                                  waiting area's centre
    * @param fromFallbackCheck whether the location comes from the fallback check
    */
-  public StopLocationOnLinkSegment(
+  public VehicleStopConnectoidLocationOnLinkSegment(
       Point location, double metersFromWaitingAreaCentreToNearestPlace, boolean fromFallbackCheck) {
     this.location = location;
     this.metersFromWaitingAreaCentreToNearestPlace = metersFromWaitingAreaCentreToNearestPlace;
@@ -38,20 +38,20 @@ public final class StopLocationOnLinkSegment {
   }
 
   /**
-   * A stop location whose only place is the location itself
+   * A connectoid location whose only place is the location itself
    *
    * @param location where the stop goes, may be null
    * @param waitingAreaCentre to measure from
    * @param fromFallbackCheck whether the location comes from the fallback check
    * @param geoUtils to measure with
-   * @return the stop location, null when the location is null
+   * @return the connectoid location, null when the location is null
    */
-  public static StopLocationOnLinkSegment of(
+  public static VehicleStopConnectoidLocationOnLinkSegment of(
       Point location, Point waitingAreaCentre, boolean fromFallbackCheck, PlanitJtsCrsUtils geoUtils) {
     if (location == null) {
       return null;
     }
-    return new StopLocationOnLinkSegment(
+    return new VehicleStopConnectoidLocationOnLinkSegment(
         location, geoUtils.getClosestDistanceInMeters(location.getCoordinate(), waitingAreaCentre), fromFallbackCheck);
   }
 
