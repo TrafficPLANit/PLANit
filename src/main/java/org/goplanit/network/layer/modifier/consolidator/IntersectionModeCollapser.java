@@ -108,7 +108,7 @@ public class IntersectionModeCollapser {
       var segment = layer.getLinkSegments().getFactory().registerNew(link, directionAb, true);
       segment.setLinkSegmentType(type);
       segment.setXmlId(String.valueOf(segment.getId()));
-      layer.getIntersections().update(intersection, i -> i.addInternalSegment(segment));
+      layer.getIntersections().update(intersection, i -> i.addNewInternalSegment(segment));
     }
     result.addLinkAddedToCentreNode(link);
   }

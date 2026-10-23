@@ -86,10 +86,10 @@ public class SpatialMovementUtilsTest extends LayerTestBase {
     oneWayRoad(1, 5, 85);
 
     junction = spatialJunctionOver(1, 2, 4);
-    junction.addApproachSegment(segment(0, 1));
-    junction.addInternalSegment(segment(1, 2));
-    junction.addInternalSegment(segment(1, 4));
-    junction.addInternalSegment(segment(4, 2));
+    junction.addNewApproachSegment(segment(0, 1));
+    junction.addNewInternalSegment(segment(1, 2));
+    junction.addNewInternalSegment(segment(1, 4));
+    junction.addNewInternalSegment(segment(4, 2));
     east = layer.getSpatialMovements().getFactory().registerNew(segment(0, 1), segment(2, 3), 0.010);
     corner = layer.getSpatialMovements().getFactory().registerNew(segment(0, 1), segment(1, 5), 0);
     junction.addMovement(east);
@@ -206,7 +206,7 @@ public class SpatialMovementUtilsTest extends LayerTestBase {
   public void goingBackAlongAnInnerLinkDoesNotGetRoundABan() {
     var back = layer.getLinkSegments().getFactory().registerNew(segment(1, 2).getParent(), false, true);
     back.setLinkSegmentType(carAndBus);
-    junction.addInternalSegment(back);
+    junction.addNewInternalSegment(back);
     layer.getBannedTurns().getFactory().registerNew(segment(0, 1), segment(1, 5), List.of(bus));
     layer.getBannedTurns().getFactory().registerNew(segment(0, 1), segment(1, 4), List.of(bus));
 

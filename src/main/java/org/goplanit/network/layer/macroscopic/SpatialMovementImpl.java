@@ -11,10 +11,12 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
 
 /**
- * A spatial movement: from one link segment to another, with its length and, when there is one, the ban placed on it
- * directly. Its methods change only this movement; keeping it consistent with the rest of the layer, and with the
+ * A spatial movement: from one link segment to another, with its length, when there is one the ban placed on it
+ * directly, and when set the green ratio and saturation flow factor it uses in place of its approach's. Its methods
+ * change only this movement; keeping it consistent with the rest of the layer, and with the
  * container's index, is up to the layer modifier
  *
  * @author markr
@@ -39,6 +41,12 @@ public class SpatialMovementImpl extends ExternalIdAbleImpl implements SpatialMo
   /** the modes the direct ban names, by identity since recreating ids changes ids in place; empty when there is no
    * direct ban or it bans every mode */
   private final Set<Mode> explicitlyDirectlyBannedModes;
+
+  /** green ratio used in place of that of its approach, null when it uses its approach's */
+  private Double greenRatio;
+
+  /** saturation flow factor used in place of that of its approach, null when it uses its approach's */
+  private Double saturationFlowFactor;
 
   /**
    * Constructor
@@ -72,6 +80,8 @@ public class SpatialMovementImpl extends ExternalIdAbleImpl implements SpatialMo
     this.directBan = other.directBan;
     this.explicitlyDirectlyBannedModes = Collections.newSetFromMap(new IdentityHashMap<>());
     this.explicitlyDirectlyBannedModes.addAll(other.explicitlyDirectlyBannedModes);
+    this.greenRatio = other.greenRatio;
+    this.saturationFlowFactor = other.saturationFlowFactor;
   }
 
   /**
@@ -150,6 +160,70 @@ public class SpatialMovementImpl extends ExternalIdAbleImpl implements SpatialMo
     }
     this.directBan = false;
     this.explicitlyDirectlyBannedModes.clear();
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Double getGreenRatio() {
+    return greenRatio;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean setGreenRatio(double greenRatio) {
+    if (!IntersectionUtils.isValidCapacityFactor(greenRatio)) {
+      return false;
+    }
+    this.greenRatio = greenRatio;
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeGreenRatio() {
+    if (greenRatio == null) {
+      return false;
+    }
+    this.greenRatio = null;
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Double getSaturationFlowFactor() {
+    return saturationFlowFactor;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean setSaturationFlowFactor(double saturationFlowFactor) {
+    if (!IntersectionUtils.isValidCapacityFactor(saturationFlowFactor)) {
+      return false;
+    }
+    this.saturationFlowFactor = saturationFlowFactor;
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeSaturationFlowFactor() {
+    if (saturationFlowFactor == null) {
+      return false;
+    }
+    this.saturationFlowFactor = null;
     return true;
   }
 

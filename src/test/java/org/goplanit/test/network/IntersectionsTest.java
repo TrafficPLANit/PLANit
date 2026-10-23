@@ -17,9 +17,12 @@ import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicBannedTurn;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.CapacityFactorOrigin;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSignalSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUnsignalisedSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.NonSpatialIntersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
@@ -32,7 +35,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the intersections memory model: the two kinds of intersection and their ids, member nodes, control type,
- * kinds, approach and internal segments, the movements of a spatial intersection, turns restricted by the layer's
+ * kinds, approach and internal segments, their green ratios and saturation flow factors and those of movements, the
+ * movements of a spatial intersection, turns restricted by the layer's
  * banned turns and the modes those ban, the container's lookup by member node, and that intersections leave the
  * network itself untouched
  *
@@ -43,6 +47,16 @@ public class IntersectionsTest extends LayerTestBase {
   private MacroscopicNetwork network;
   private MacroscopicLinkSegmentType road;
   private IntersectionsImpl intersections;
+
+  /** the approach of the intersection entering on the link segment from node a to node b, one with a signal */
+  private IntersectionSignalSegment approachWithSignal(Intersection intersection, int a, int b) {
+    return (IntersectionSignalSegment) intersection.getApproach(segment(a, b));
+  }
+
+  /** the internal segment of the intersection on the link segment from node a to node b, one with a signal */
+  private IntersectionSignalSegment internalWithSignal(SpatialIntersection intersection, int a, int b) {
+    return (IntersectionSignalSegment) intersection.getIntersectionInternalSegment(segment(a, b));
+  }
 
   @BeforeEach
   public void setUp() {
@@ -71,10 +85,10 @@ public class IntersectionsTest extends LayerTestBase {
   /** spatial junction over nodes 0 and 5: approaches from 1 and 6, internal both ways, not registered */
   private SpatialIntersection twoNodeJunction() {
     var junction = spatialJunctionOver(0, 5);
-    junction.addApproachSegment(segment(1, 0));
-    junction.addApproachSegment(segment(6, 5));
-    junction.addInternalSegment(segment(0, 5));
-    junction.addInternalSegment(segment(5, 0));
+    junction.addNewApproachSegment(segment(1, 0));
+    junction.addNewApproachSegment(segment(6, 5));
+    junction.addNewInternalSegment(segment(0, 5));
+    junction.addNewInternalSegment(segment(5, 0));
     return junction;
   }
 
@@ -130,10 +144,10 @@ public class IntersectionsTest extends LayerTestBase {
     createJunctionArea();
     var signalised = junctionAtCentre();
     for (int arm = 1; arm <= 4; ++arm) {
-      signalised.addApproachSegment(segment(arm, 0));
+      signalised.addNewApproachSegment(segment(arm, 0));
     }
 
-    assertTrue(signalised.setApproachSegmentHasOwnSignal(segment(4, 0), false));
+    assertNotNull(signalised.swapApproachToNewSignalOrUnsignalised(segment(4, 0), false));
     for (int arm = 1; arm <= 3; ++arm) {
       assertTrue(signalised.hasOwnSignal(segment(arm, 0)));
     }
@@ -143,16 +157,16 @@ public class IntersectionsTest extends LayerTestBase {
     var unsignalised = intersections.getFactory().createNonSpatial(
         nodes.get(0), IntersectionControlType.UNSIGNALISED, IntersectionType.JUNCTION);
     for (int arm = 1; arm <= 3; ++arm) {
-      unsignalised.addApproachSegment(segment(arm, 0));
+      unsignalised.addNewApproachSegment(segment(arm, 0));
     }
 
-    assertTrue(unsignalised.setApproachSegmentHasOwnSignal(segment(3, 0), true));
+    assertNotNull(unsignalised.swapApproachToNewSignalOrUnsignalised(segment(3, 0), true));
     assertTrue(unsignalised.hasOwnSignal(segment(3, 0)));
     assertFalse(unsignalised.hasOwnSignal(segment(1, 0)));
     assertFalse(unsignalised.hasOwnSignal(segment(2, 0)));
 
     var withoutApproaches = junctionAtCentre();
-    assertFalse(withoutApproaches.setApproachSegmentHasOwnSignal(segment(0, 1), true));
+    assertNull(withoutApproaches.swapApproachToNewSignalOrUnsignalised(segment(0, 1), true));
     assertFalse(withoutApproaches.hasOwnSignal(segment(0, 1)));
   }
 
@@ -160,9 +174,9 @@ public class IntersectionsTest extends LayerTestBase {
   public void changingControlTypeKeepsOwnSignals() {
     createJunctionArea();
     var junction = junctionAtCentre();
-    junction.addApproachSegment(segment(1, 0));
-    junction.addApproachSegment(segment(2, 0));
-    junction.setApproachSegmentHasOwnSignal(segment(2, 0), false);
+    junction.addNewApproachSegment(segment(1, 0));
+    junction.addNewApproachSegment(segment(2, 0));
+    junction.swapApproachToNewSignalOrUnsignalised(segment(2, 0), false);
 
     junction.setControlType(IntersectionControlType.UNSIGNALISED);
     assertTrue(junction.hasOwnSignal(segment(1, 0)));
@@ -174,11 +188,11 @@ public class IntersectionsTest extends LayerTestBase {
   public void removingApproachRemovesItsOwnSignal() {
     createJunctionArea();
     var junction = junctionAtCentre();
-    junction.addApproachSegment(segment(1, 0));
-    junction.setApproachSegmentHasOwnSignal(segment(1, 0), false);
+    junction.addNewApproachSegment(segment(1, 0));
+    junction.swapApproachToNewSignalOrUnsignalised(segment(1, 0), false);
 
     junction.removeApproachSegment(segment(1, 0));
-    junction.addApproachSegment(segment(1, 0));
+    junction.addNewApproachSegment(segment(1, 0));
     assertTrue(junction.hasOwnSignal(segment(1, 0)));
   }
 
@@ -191,16 +205,16 @@ public class IntersectionsTest extends LayerTestBase {
     createJunctionArea();
     var junction = twoNodeJunction();
 
-    assertTrue(junction.addInternalSegmentWithSignal(segment(5, 0)));
+    assertTrue(junction.addNewInternalSegmentWithSignal(segment(5, 0)));
     assertEquals(List.of(segment(5, 0)), junction.getInternalSegmentsWithSignal());
     assertEquals(2, junction.getInternalSegments().size());
-    assertFalse(junction.addInternalSegmentWithSignal(segment(5, 0)));
+    assertFalse(junction.addNewInternalSegmentWithSignal(segment(5, 0)));
 
     var bare = spatialJunctionOver(0, 5);
-    assertTrue(bare.addInternalSegmentWithSignal(segment(0, 5)));
+    assertTrue(bare.addNewInternalSegmentWithSignal(segment(0, 5)));
     assertEquals(List.of(segment(0, 5)), bare.getInternalSegments());
     assertEquals(List.of(segment(0, 5)), bare.getInternalSegmentsWithSignal());
-    assertFalse(bare.addInternalSegmentWithSignal(segment(5, 6)));
+    assertFalse(bare.addNewInternalSegmentWithSignal(segment(5, 6)));
   }
 
   /** Added again after removal, an internal segment is plain */
@@ -208,10 +222,10 @@ public class IntersectionsTest extends LayerTestBase {
   public void removingInternalSegmentRemovesItsSignal() {
     createJunctionArea();
     var junction = twoNodeJunction();
-    junction.addInternalSegmentWithSignal(segment(0, 5));
+    junction.addNewInternalSegmentWithSignal(segment(0, 5));
 
     junction.removeInternalSegment(segment(0, 5));
-    junction.addInternalSegment(segment(0, 5));
+    junction.addNewInternalSegment(segment(0, 5));
     assertTrue(junction.getInternalSegmentsWithSignal().isEmpty());
   }
 
@@ -219,13 +233,13 @@ public class IntersectionsTest extends LayerTestBase {
   public void removingMemberNodeRemovesSignalsOfItsSegments() {
     createJunctionArea();
     var junction = twoNodeJunction();
-    junction.addInternalSegmentWithSignal(segment(0, 5));
-    junction.setApproachSegmentHasOwnSignal(segment(6, 5), false);
+    junction.addNewInternalSegmentWithSignal(segment(0, 5));
+    junction.swapApproachToNewSignalOrUnsignalised(segment(6, 5), false);
 
     junction.removeMemberNode(nodes.get(5), true);
     junction.addMemberNode(nodes.get(5));
-    junction.addApproachSegment(segment(6, 5));
-    junction.addInternalSegment(segment(0, 5));
+    junction.addNewApproachSegment(segment(6, 5));
+    junction.addNewInternalSegment(segment(0, 5));
     assertTrue(junction.getInternalSegmentsWithSignal().isEmpty());
     assertTrue(junction.hasOwnSignal(segment(6, 5)));
   }
@@ -235,19 +249,397 @@ public class IntersectionsTest extends LayerTestBase {
   public void copyOfIntersectionKeepsSignals() {
     createJunctionArea();
     var original = twoNodeJunction();
-    original.setApproachSegmentHasOwnSignal(segment(1, 0), false);
-    original.addInternalSegmentWithSignal(segment(0, 5));
+    original.swapApproachToNewSignalOrUnsignalised(segment(1, 0), false);
+    original.addNewInternalSegmentWithSignal(segment(0, 5));
 
     for (var copy : List.of(original.deepClone(), original.shallowClone())) {
       assertFalse(copy.hasOwnSignal(segment(1, 0)));
       assertEquals(List.of(segment(0, 5)), copy.getInternalSegmentsWithSignal());
 
-      copy.setApproachSegmentHasOwnSignal(segment(1, 0), true);
+      copy.swapApproachToNewSignalOrUnsignalised(segment(1, 0), true);
       copy.removeInternalSegment(segment(0, 5));
     }
 
     assertFalse(original.hasOwnSignal(segment(1, 0)));
     assertEquals(List.of(segment(0, 5)), original.getInternalSegmentsWithSignal());
+  }
+
+  // GREEN RATIOS AND SATURATION FLOW FACTORS
+
+  /**
+   * Approaches are held in the order added, each found by the link segment it enters on; another segment has none. At
+   * a signalised intersection an approach added has a signal, at an unsignalised one it has none
+   */
+  @Test
+  public void approachesAreFoundByTheirLinkSegmentInTheOrderAdded() {
+    createJunctionArea();
+    var junction = junctionAtCentre();
+    var fromTwo = junction.addNewApproach(segment(2, 0));
+    var fromOne = junction.addNewApproach(segment(1, 0));
+
+    assertEquals(List.of(fromTwo, fromOne), junction.getApproaches());
+    assertSame(fromOne, junction.getApproach(segment(1, 0)));
+    assertSame(segment(1, 0), fromOne.getLinkSegment());
+    assertEquals(List.of(segment(2, 0), segment(1, 0)), junction.getApproachSegments());
+    assertNull(junction.getApproach(segment(0, 1)));
+    assertNull(junction.addNewApproach(segment(1, 0)));
+    assertTrue(fromOne instanceof IntersectionSignalSegment);
+
+    var unsignalised = intersections.getFactory().createNonSpatial(
+        nodes.get(0), IntersectionControlType.UNSIGNALISED, IntersectionType.JUNCTION);
+    assertTrue(unsignalised.addNewApproach(segment(1, 0)) instanceof IntersectionUnsignalisedSegment);
+  }
+
+  /** An approach added with or without a signal of its own is of that kind whatever the control type: one without a
+   * signal at a signalised junction, one with a signal at an unsignalised one */
+  @Test
+  public void approachAddedWithOrWithoutSignalWhateverTheControlType() {
+    createJunctionArea();
+    var signalised = junctionAtCentre();
+    var unsignalised = intersections.getFactory().createNonSpatial(
+        nodes.get(0), IntersectionControlType.UNSIGNALISED, IntersectionType.JUNCTION);
+
+    assertTrue(signalised.addNewApproach(segment(1, 0), false) instanceof IntersectionUnsignalisedSegment);
+    assertFalse(signalised.hasOwnSignal(segment(1, 0)));
+    assertTrue(unsignalised.addNewApproach(segment(1, 0), true) instanceof IntersectionSignalSegment);
+    assertTrue(unsignalised.hasOwnSignal(segment(1, 0)));
+    assertNull(signalised.addNewApproach(segment(1, 0), true));
+  }
+
+  /** An approach without values has a green ratio, saturation flow factor and effective capacity factor of 1 */
+  @Test
+  public void approachWithoutValuesHasOne() {
+    createJunctionArea();
+    var junction = junctionAtCentre();
+    junction.addNewApproach(segment(1, 0));
+    var approach = approachWithSignal(junction, 1, 0);
+
+    assertEquals(1, approach.getGreenRatio());
+    assertEquals(1, approach.getSaturationFlowFactor());
+    assertEquals(1, approach.getEffectiveCapacityFactor());
+    assertNull(approach.getGreenRatioOrigin());
+    assertNull(approach.getSaturationFlowFactorOrigin());
+  }
+
+  /**
+   * Each value is set on its own, with how it got its value: 0.44 and 0.95 give an effective capacity factor of 0.418,
+   * and another approach keeps 1. A removed value is 1 again, and the other value stays
+   */
+  @Test
+  public void approachValuesAreSetWithTheirOriginAndRemoved() {
+    createJunctionArea();
+    var junction = junctionAtCentre();
+    junction.addNewApproach(segment(1, 0));
+    junction.addNewApproach(segment(2, 0));
+    var approach = approachWithSignal(junction, 1, 0);
+
+    assertTrue(approach.setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED));
+    assertTrue(approach.setSaturationFlowFactor(0.95, CapacityFactorOrigin.SET_DIRECTLY));
+    assertEquals(0.44, approach.getGreenRatio());
+    assertEquals(CapacityFactorOrigin.COMPUTED, approach.getGreenRatioOrigin());
+    assertEquals(0.95, approach.getSaturationFlowFactor());
+    assertEquals(CapacityFactorOrigin.SET_DIRECTLY, approach.getSaturationFlowFactorOrigin());
+    assertEquals(0.418, approach.getEffectiveCapacityFactor(), 1e-9);
+    assertEquals(1, junction.getApproach(segment(2, 0)).getEffectiveCapacityFactor());
+
+    assertTrue(approach.removeGreenRatio());
+    assertFalse(approach.removeGreenRatio());
+    assertEquals(1, approach.getGreenRatio());
+    assertNull(approach.getGreenRatioOrigin());
+    assertEquals(0.95, approach.getSaturationFlowFactor());
+  }
+
+  /** A value outside 0 to 1 is refused and leaves the values as they were */
+  @Test
+  public void valueOutsideRangeIsRefused() {
+    createJunctionArea();
+    var junction = junctionAtCentre();
+    junction.addNewApproach(segment(1, 0));
+    var approach = approachWithSignal(junction, 1, 0);
+    approach.setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
+
+    assertFalse(approach.setGreenRatio(1.2, CapacityFactorOrigin.COMPUTED));
+    assertFalse(approach.setGreenRatio(-0.1, CapacityFactorOrigin.COMPUTED));
+    assertFalse(approach.setSaturationFlowFactor(Double.NaN, CapacityFactorOrigin.SET_DIRECTLY));
+    assertEquals(0.44, approach.getGreenRatio());
+    assertEquals(CapacityFactorOrigin.COMPUTED, approach.getGreenRatioOrigin());
+    assertEquals(1, approach.getSaturationFlowFactor());
+  }
+
+  /**
+   * An approach losing its signal is replaced, at its place, by one without a signal that keeps its saturation flow
+   * factor, which is then its effective capacity factor, and has no green ratio. Given its signal back, it has a green
+   * ratio of 1 again
+   */
+  @Test
+  public void approachLosingItsSignalKeepsItsPlaceAndSaturationFlowFactor() {
+    createJunctionArea();
+    var junction = junctionAtCentre();
+    junction.addNewApproach(segment(1, 0));
+    junction.addNewApproach(segment(2, 0));
+    var approach = approachWithSignal(junction, 1, 0);
+    approach.setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
+    approach.setSaturationFlowFactor(0.95, CapacityFactorOrigin.SET_DIRECTLY);
+
+    assertNotNull(junction.swapApproachToNewSignalOrUnsignalised(segment(1, 0), false));
+    var withoutSignal = junction.getApproaches().get(0);
+    assertTrue(withoutSignal instanceof IntersectionUnsignalisedSegment);
+    assertSame(segment(1, 0), withoutSignal.getLinkSegment());
+    assertEquals(0.95, withoutSignal.getSaturationFlowFactor());
+    assertEquals(CapacityFactorOrigin.SET_DIRECTLY, withoutSignal.getSaturationFlowFactorOrigin());
+    assertEquals(0.95, withoutSignal.getEffectiveCapacityFactor());
+    assertFalse(junction.hasOwnSignal(segment(1, 0)));
+
+    junction.swapApproachToNewSignalOrUnsignalised(segment(1, 0), true);
+    var withSignalAgain = approachWithSignal(junction, 1, 0);
+    assertSame(withSignalAgain, junction.getApproaches().get(0));
+    assertEquals(1, withSignalAgain.getGreenRatio());
+    assertEquals(0.95, withSignalAgain.getSaturationFlowFactor());
+  }
+
+  /**
+   * An internal segment with a signal has values of its own, 1 until set. A plain internal segment has no signal, and
+   * a segment that is not internal has no internal segment
+   */
+  @Test
+  public void internalSegmentWithSignalHasValuesOfItsOwn() {
+    createJunctionArea();
+    var junction = twoNodeJunction();
+    junction.addNewInternalSegmentWithSignal(segment(0, 5));
+    var withSignal = internalWithSignal(junction, 0, 5);
+
+    assertEquals(1, withSignal.getGreenRatio());
+    assertTrue(withSignal.setGreenRatio(0.6, CapacityFactorOrigin.SET_DIRECTLY));
+    assertTrue(withSignal.setSaturationFlowFactor(0.9, CapacityFactorOrigin.SET_DIRECTLY));
+    assertEquals(0.54, withSignal.getEffectiveCapacityFactor(), 1e-9);
+    assertTrue(junction.getIntersectionInternalSegment(segment(5, 0)) instanceof IntersectionUnsignalisedSegment);
+    assertNull(junction.getIntersectionInternalSegment(segment(1, 0)));
+  }
+
+  /** A plain internal segment given a signal is replaced, at its place, by one with a signal keeping its saturation
+   * flow factor */
+  @Test
+  public void plainInternalSegmentGivenASignalKeepsItsPlaceAndSaturationFlowFactor() {
+    createJunctionArea();
+    var junction = twoNodeJunction();
+    var plain = junction.getIntersectionInternalSegment(segment(5, 0));
+    plain.setSaturationFlowFactor(0.9, CapacityFactorOrigin.SET_DIRECTLY);
+
+    assertTrue(junction.addNewInternalSegmentWithSignal(segment(5, 0)));
+    assertFalse(junction.addNewInternalSegmentWithSignal(segment(5, 0)));
+    var withSignal = internalWithSignal(junction, 5, 0);
+    assertSame(withSignal, junction.getIntersectionInternalSegments().get(1));
+    assertEquals(0.9, withSignal.getSaturationFlowFactor());
+    assertEquals(List.of(segment(5, 0)), junction.getInternalSegmentsWithSignal());
+  }
+
+  /**
+   * A movement's own value is used in place of its approach's, each value on its own. On an approach of 0.44 and 0.9, a
+   * right turn with its own 0.15 uses 0.15 and 0.9, a movement without values uses 0.44 and 0.9, and a movement set to
+   * 1 uses 1. The movements of an approach are those starting on it
+   */
+  @Test
+  public void movementValueIsUsedInPlaceOfItsApproachValue() {
+    createJunctionArea();
+    var junction = twoNodeJunction();
+    var movements = layer.getSpatialMovements().getFactory();
+    var rightTurn = movements.create(segment(1, 0), segment(0, 2), 0);
+    var withoutValues = movements.create(segment(1, 0), segment(0, 4), 0);
+    var setToOne = movements.create(segment(1, 0), segment(0, 3), 0);
+    var fromOtherApproach = movements.create(segment(6, 5), segment(0, 2), 0.01);
+    List.of(rightTurn, withoutValues, setToOne, fromOtherApproach).forEach(junction::addMovement);
+    var approach = approachWithSignal(junction, 1, 0);
+    approach.setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
+    approach.setSaturationFlowFactor(0.9, CapacityFactorOrigin.SET_DIRECTLY);
+
+    assertTrue(rightTurn.setGreenRatio(0.15));
+    assertTrue(setToOne.setGreenRatio(1));
+
+    assertEquals(0.15, junction.getGreenRatioUsedBy(rightTurn));
+    assertEquals(0.9, junction.getSaturationFlowFactorUsedBy(rightTurn));
+    assertNull(withoutValues.getGreenRatio());
+    assertEquals(0.44, junction.getGreenRatioUsedBy(withoutValues));
+    assertEquals(0.9, junction.getSaturationFlowFactorUsedBy(withoutValues));
+    assertEquals(1, junction.getGreenRatioUsedBy(setToOne));
+    assertEquals(List.of(rightTurn, withoutValues, setToOne), junction.getMovementsFrom(approach));
+  }
+
+  /** Once an approach has no signal of its own, its movements lose their green ratios as the approach does, and keep
+   * their saturation flow factors; the movements of other approaches keep their green ratios */
+  @Test
+  public void approachWithoutSignalRemovesGreenRatioOfItsMovements() {
+    createJunctionArea();
+    var junction = twoNodeJunction();
+    var movements = layer.getSpatialMovements().getFactory();
+    var rightTurn = movements.create(segment(1, 0), segment(0, 2), 0);
+    var fromOtherApproach = movements.create(segment(6, 5), segment(0, 2), 0.01);
+    List.of(rightTurn, fromOtherApproach).forEach(junction::addMovement);
+    rightTurn.setGreenRatio(0.15);
+    rightTurn.setSaturationFlowFactor(0.8);
+    fromOtherApproach.setGreenRatio(0.3);
+
+    junction.swapApproachToNewSignalOrUnsignalised(segment(1, 0), false);
+
+    assertNull(rightTurn.getGreenRatio());
+    assertEquals(0.8, rightTurn.getSaturationFlowFactor());
+    assertEquals(0.3, fromOtherApproach.getGreenRatio());
+  }
+
+  /** A movement refuses a value outside 0 to 1, keeping what it had, and uses its approach's value again once its own
+   * is removed */
+  @Test
+  public void movementValueOutsideRangeIsRefusedAndRemovable() {
+    createJunctionArea();
+    var movement = layer.getSpatialMovements().getFactory().create(segment(1, 0), segment(0, 2), 0);
+    movement.setGreenRatio(0.15);
+
+    assertFalse(movement.setGreenRatio(1.5));
+    assertFalse(movement.setSaturationFlowFactor(-1));
+    assertEquals(0.15, movement.getGreenRatio());
+    assertNull(movement.getSaturationFlowFactor());
+
+    assertTrue(movement.removeGreenRatio());
+    assertFalse(movement.removeGreenRatio());
+    assertNull(movement.getGreenRatio());
+  }
+
+  /** Added again after removal, an approach has no values */
+  @Test
+  public void removingApproachRemovesItsValues() {
+    createJunctionArea();
+    var junction = junctionAtCentre();
+    junction.addNewApproach(segment(1, 0));
+    var approach = approachWithSignal(junction, 1, 0);
+    approach.setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
+    approach.setSaturationFlowFactor(0.95, CapacityFactorOrigin.SET_DIRECTLY);
+
+    junction.removeApproachSegment(segment(1, 0));
+    assertNull(junction.getApproach(segment(1, 0)));
+    var addedAgain = junction.addNewApproach(segment(1, 0));
+    assertEquals(1, addedAgain.getEffectiveCapacityFactor());
+    assertNull(addedAgain.getSaturationFlowFactorOrigin());
+  }
+
+  /** Added again after removal, an internal segment with a signal has no values */
+  @Test
+  public void removingInternalSegmentRemovesItsValues() {
+    createJunctionArea();
+    var junction = twoNodeJunction();
+    junction.addNewInternalSegmentWithSignal(segment(0, 5));
+    internalWithSignal(junction, 0, 5).setGreenRatio(0.6, CapacityFactorOrigin.SET_DIRECTLY);
+
+    junction.removeInternalSegment(segment(0, 5));
+    junction.addNewInternalSegmentWithSignal(segment(0, 5));
+    assertEquals(1, internalWithSignal(junction, 0, 5).getGreenRatio());
+  }
+
+  /** Removing a member node with its references removes the approaches and internal segments touching it, with their
+   * values, and keeps the others */
+  @Test
+  public void removingMemberNodeRemovesValuesOfItsSegments() {
+    createJunctionArea();
+    var junction = twoNodeJunction();
+    junction.addNewInternalSegmentWithSignal(segment(0, 5));
+    approachWithSignal(junction, 6, 5).setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
+    approachWithSignal(junction, 1, 0).setGreenRatio(0.3, CapacityFactorOrigin.COMPUTED);
+    internalWithSignal(junction, 0, 5).setGreenRatio(0.6, CapacityFactorOrigin.SET_DIRECTLY);
+
+    junction.removeMemberNode(nodes.get(5), true);
+    junction.addMemberNode(nodes.get(5));
+    junction.addNewApproachSegment(segment(6, 5));
+    junction.addNewInternalSegmentWithSignal(segment(0, 5));
+    assertEquals(1, approachWithSignal(junction, 6, 5).getGreenRatio());
+    assertEquals(1, internalWithSignal(junction, 0, 5).getGreenRatio());
+    assertEquals(0.3, approachWithSignal(junction, 1, 0).getGreenRatio());
+  }
+
+  /** A copy, deep or shallow, holds its own approaches and internal segments of the same kinds with the same values, so
+   * changing them on the copy leaves the original as it was */
+  @Test
+  public void copyOfIntersectionKeepsValues() {
+    createJunctionArea();
+    var original = twoNodeJunction();
+    original.addNewInternalSegmentWithSignal(segment(0, 5));
+    approachWithSignal(original, 1, 0).setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
+    internalWithSignal(original, 0, 5).setGreenRatio(0.6, CapacityFactorOrigin.SET_DIRECTLY);
+
+    for (var copy : List.of(original.deepClone(), original.shallowClone())) {
+      assertNotSame(original.getApproach(segment(1, 0)), copy.getApproach(segment(1, 0)));
+      assertEquals(0.44, approachWithSignal(copy, 1, 0).getGreenRatio());
+      assertEquals(CapacityFactorOrigin.COMPUTED, approachWithSignal(copy, 1, 0).getGreenRatioOrigin());
+      assertEquals(0.6, internalWithSignal(copy, 0, 5).getGreenRatio());
+      assertTrue(copy.getIntersectionInternalSegment(segment(5, 0)) instanceof IntersectionUnsignalisedSegment);
+
+      approachWithSignal(copy, 1, 0).setGreenRatio(0.2, CapacityFactorOrigin.SET_DIRECTLY);
+      internalWithSignal(copy, 0, 5).removeGreenRatio();
+    }
+
+    assertEquals(0.44, approachWithSignal(original, 1, 0).getGreenRatio());
+    assertEquals(CapacityFactorOrigin.COMPUTED, approachWithSignal(original, 1, 0).getGreenRatioOrigin());
+    assertEquals(0.6, internalWithSignal(original, 0, 5).getGreenRatio());
+  }
+
+  /** A clone, deep or shallow, of an approach or internal segment is a new object of the same kind, on the same link
+   * segment and with the same values, so changing the clone leaves the original as it was */
+  @Test
+  public void cloneOfIntersectionSegmentKeepsKindAndValues() {
+    createJunctionArea();
+    var junction = twoNodeJunction();
+    junction.addNewInternalSegmentWithSignal(segment(0, 5));
+    var withSignal = internalWithSignal(junction, 0, 5);
+    withSignal.setGreenRatio(0.6, CapacityFactorOrigin.SET_DIRECTLY);
+    withSignal.setSaturationFlowFactor(0.9, CapacityFactorOrigin.COMPUTED);
+    var unsignalised = junction.getIntersectionInternalSegment(segment(5, 0));
+    unsignalised.setSaturationFlowFactor(0.8, CapacityFactorOrigin.SET_DIRECTLY);
+
+    for (var clone : List.of(withSignal.deepClone(), withSignal.shallowClone())) {
+      assertNotSame(withSignal, clone);
+      assertSame(segment(0, 5), clone.getLinkSegment());
+      assertEquals(0.6, clone.getGreenRatio());
+      assertEquals(0.9, clone.getSaturationFlowFactor());
+      assertEquals(CapacityFactorOrigin.COMPUTED, clone.getSaturationFlowFactorOrigin());
+      clone.removeGreenRatio();
+    }
+    for (var clone : List.of(unsignalised.deepClone(), unsignalised.shallowClone())) {
+      assertNotSame(unsignalised, clone);
+      assertTrue(clone instanceof IntersectionUnsignalisedSegment);
+      assertEquals(0.8, clone.getSaturationFlowFactor());
+      clone.removeSaturationFlowFactor();
+    }
+
+    assertEquals(0.6, withSignal.getGreenRatio());
+    assertEquals(0.8, unsignalised.getSaturationFlowFactor());
+  }
+
+  /** A deep copy of the layer holds the values on its own approaches, internal segments with a signal and movements,
+   * which refer to its own link segments */
+  @Test
+  public void copyOfLayerKeepsValuesOnItsOwnEntities() {
+    createJunctionArea();
+    var junction = twoNodeJunction();
+    junction.addNewInternalSegmentWithSignal(segment(0, 5));
+    approachWithSignal(junction, 1, 0).setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
+    internalWithSignal(junction, 0, 5).setGreenRatio(0.6, CapacityFactorOrigin.SET_DIRECTLY);
+    var movement = layer.getSpatialMovements().getFactory().registerNew(segment(1, 0), segment(5, 6), 0.01);
+    movement.setGreenRatio(0.15);
+    junction.addMovement(movement);
+    intersections.getFactory().register(junction);
+
+    var copy = layer.deepClone();
+
+    var copied = (SpatialIntersection) copy.getIntersections().getFirst();
+    var copiedApproach = (IntersectionSignalSegment) copied.getApproach(
+        copy.getLinkSegments().get(segment(1, 0).getId()));
+    assertEquals(0.44, copiedApproach.getGreenRatio());
+    assertEquals(CapacityFactorOrigin.COMPUTED, copiedApproach.getGreenRatioOrigin());
+    assertNull(copied.getApproach(segment(1, 0)));
+    var copiedWithSignal = (IntersectionSignalSegment) copied.getIntersectionInternalSegment(
+        copy.getLinkSegments().get(segment(0, 5).getId()));
+    assertEquals(0.6, copiedWithSignal.getGreenRatio());
+    var copiedMovement = copy.getSpatialMovements().get(movement.getId());
+    assertNotSame(movement, copiedMovement);
+    assertEquals(0.15, copiedMovement.getGreenRatio());
+    assertEquals(0.44, approachWithSignal(junction, 1, 0).getGreenRatio());
   }
 
   // TWO KINDS OF INTERSECTION
@@ -319,12 +711,12 @@ public class IntersectionsTest extends LayerTestBase {
     assertFalse(junction.addType(IntersectionType.JUNCTION));
     assertEquals(EnumSet.of(IntersectionType.JUNCTION, IntersectionType.CROSSING), junction.getTypes());
 
-    assertFalse(junction.addApproachSegment(segment(0, 1)));   // starts at a member
-    assertFalse(junction.addApproachSegment(segment(5, 6)));   // does not end at a member
+    assertFalse(junction.addNewApproachSegment(segment(0, 1)));   // starts at a member
+    assertFalse(junction.addNewApproachSegment(segment(5, 6)));   // does not end at a member
     assertTrue(junction.getApproachSegments().isEmpty());
 
-    assertTrue(junction.addApproachSegment(segment(1, 0)));
-    assertFalse(junction.addApproachSegment(segment(1, 0)));
+    assertTrue(junction.addNewApproachSegment(segment(1, 0)));
+    assertFalse(junction.addNewApproachSegment(segment(1, 0)));
     assertEquals(1, junction.getApproachSegments().size());
     assertSame(segment(1, 0), junction.getApproachSegment(segment(1, 0).getId()));
   }
@@ -400,10 +792,10 @@ public class IntersectionsTest extends LayerTestBase {
 
     assertNull(junction.getInternalSegment(segment(0, 5).getId()));
     assertNull(junction.getApproachSegment(segment(0, 5).getId()));
-    assertFalse(junction.addInternalSegment(segment(0, 1)));
+    assertFalse(junction.addNewInternalSegment(segment(0, 1)));
     assertTrue(junction.getInternalSegments().isEmpty());
 
-    junction.addApproachSegment(segment(1, 0));
+    junction.addNewApproachSegment(segment(1, 0));
     assertFalse(junction.addMemberNode(nodes.get(1)));
     assertEquals(List.of(nodes.get(0), nodes.get(5)), junction.getMemberNodes());
 
@@ -547,7 +939,7 @@ public class IntersectionsTest extends LayerTestBase {
     assertFalse(layer.isSignalised(nodes.get(0)));
 
     var junction = junctionAtCentre();
-    junction.addApproachSegment(segment(1, 0));
+    junction.addNewApproachSegment(segment(1, 0));
     intersections.getFactory().register(junction);
 
     assertTrue(layer.hasIntersections());
@@ -663,8 +1055,8 @@ public class IntersectionsTest extends LayerTestBase {
     var junction = twoNodeJunction();
     junction.addType(IntersectionType.CROSSING);
     junction.setExternalId("osm:123");
-    junction.setApproachSegmentHasOwnSignal(segment(1, 0), false);
-    junction.addInternalSegmentWithSignal(segment(0, 5));
+    junction.swapApproachToNewSignalOrUnsignalised(segment(1, 0), false);
+    junction.addNewInternalSegmentWithSignal(segment(0, 5));
     var movement = layer.getSpatialMovements().getFactory().registerNew(segment(1, 0), segment(5, 6), 0.01);
     movement.banDirectly(List.of(bus));
     junction.addMovement(movement);

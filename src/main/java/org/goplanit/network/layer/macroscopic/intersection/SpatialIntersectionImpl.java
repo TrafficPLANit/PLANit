@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.goplanit.utils.containers.ListUtils;
-import org.goplanit.utils.id.IdAbleUtils;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.physical.Node;
@@ -45,11 +45,9 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
   /** id among the spatial intersections of the layer */
   private long spatialIntersectionId;
 
-  /** link segments lying inside the intersection, running between member nodes */
-  private final List<MacroscopicLinkSegment> internalSegments;
-
-  /** internal segments with a signal standing on them, each also one of the internal segments */
-  private final List<MacroscopicLinkSegment> internalSegmentsWithSignal;
+  /** internal segments, one for each link segment lying inside the intersection between member nodes, in the order
+   * added */
+  private final List<IntersectionSegmentImpl> internalSegments;
 
   /** movements through the intersection, each starting on one of its approaches */
   private final List<SpatialMovement> movements;
@@ -68,13 +66,13 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
     super(groupId, memberNodes, controlType, types);
     this.spatialIntersectionId = generateSpatialIntersectionId(groupId);
     this.internalSegments = new ArrayList<>();
-    this.internalSegmentsWithSignal = new ArrayList<>(0);
     this.movements = new ArrayList<>();
   }
 
   /**
-   * Copy constructor. Shallow and deep copies alike hold their own collections, referring to the same nodes, segments
-   * and movements; re-pointing those to copied ones is up to the copy of the layer
+   * Copy constructor. Shallow and deep copies alike hold their own collections and their own copies of the approaches
+   * and internal segments, referring to the same nodes, segments and movements; re-pointing those to copied ones is up
+   * to the copy of the layer
    *
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
@@ -82,8 +80,8 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
   protected SpatialIntersectionImpl(final SpatialIntersectionImpl other, boolean deepCopy) {
     super(other, deepCopy);
     this.spatialIntersectionId = other.spatialIntersectionId;
-    this.internalSegments = new ArrayList<>(other.internalSegments);
-    this.internalSegmentsWithSignal = new ArrayList<>(other.internalSegmentsWithSignal);
+    this.internalSegments = new ArrayList<>(other.internalSegments.size());
+    other.internalSegments.forEach(internal -> internalSegments.add(internal.deepClone()));
     this.movements = new ArrayList<>(other.movements);
   }
 
@@ -92,9 +90,9 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
    */
   @Override
   protected void removeReferencesOfRemovedMemberNode(Node node) {
-    internalSegments.removeIf(segment -> segment.getUpstreamVertex() == node || segment.getDownstreamVertex() == node);
-    internalSegmentsWithSignal.removeIf(segment -> !ListUtils.containsByIdentity(internalSegments, segment));
-    movements.removeIf(movement -> !ListUtils.containsByIdentity(getApproachSegments(), movement.getLinkSegmentFrom()));
+    internalSegments.removeIf(internal -> internal.getLinkSegment().getUpstreamVertex() == node ||
+        internal.getLinkSegment().getDownstreamVertex() == node);
+    movements.removeIf(movement -> getApproach(movement.getLinkSegmentFrom()) == null);
   }
 
   /**
@@ -129,7 +127,7 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
    * {@inheritDoc}
    */
   @Override
-  public List<MacroscopicLinkSegment> getInternalSegments() {
+  public List<IntersectionSegment> getIntersectionInternalSegments() {
     return Collections.unmodifiableList(internalSegments);
   }
 
@@ -137,20 +135,20 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegment getInternalSegment(long segmentId) {
-    return IdAbleUtils.findById(internalSegments, segmentId);
+  public IntersectionSegment getIntersectionInternalSegment(MacroscopicLinkSegment segment) {
+    return IntersectionSegmentUtils.findByLinkSegment(internalSegments, segment);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public boolean addInternalSegment(MacroscopicLinkSegment segment) {
-    if (ListUtils.containsByIdentity(internalSegments, segment) || !hasMemberNode(segment.getUpstreamVertex())
+  public boolean addNewInternalSegment(MacroscopicLinkSegment segment) {
+    if (getIntersectionInternalSegment(segment) != null || !hasMemberNode(segment.getUpstreamVertex())
         || !hasMemberNode(segment.getDownstreamVertex())) {
       return false;
     }
-    return internalSegments.add(segment);
+    return internalSegments.add(IntersectionSegmentFactory.create(segment, false));
   }
 
   /**
@@ -158,28 +156,32 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
    */
   @Override
   public boolean removeInternalSegment(MacroscopicLinkSegment segment) {
-    internalSegmentsWithSignal.removeIf(held -> held == segment);
-    return internalSegments.removeIf(held -> held == segment);
+    return IntersectionSegmentUtils.removeByLinkSegment(internalSegments, segment);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public List<MacroscopicLinkSegment> getInternalSegmentsWithSignal() {
-    return Collections.unmodifiableList(internalSegmentsWithSignal);
+  public IntersectionSegment swapApproachToNewSignalOrUnsignalised(
+      MacroscopicLinkSegment approachSegment, boolean hasOwnSignal) {
+    var approach = super.swapApproachToNewSignalOrUnsignalised(approachSegment, hasOwnSignal);
+    if (approach != null && !hasOwnSignal) {
+      getMovementsFrom(approach).forEach(SpatialMovement::removeGreenRatio);
+    }
+    return approach;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public boolean addInternalSegmentWithSignal(MacroscopicLinkSegment segment) {
-    if (ListUtils.containsByIdentity(internalSegmentsWithSignal, segment) ||
-        (!ListUtils.containsByIdentity(internalSegments, segment) && !addInternalSegment(segment))) {
+  public boolean addNewInternalSegmentWithSignal(MacroscopicLinkSegment segment) {
+    var internal = getIntersectionInternalSegment(segment);
+    if ((internal != null && internal.hasSignal()) || (internal == null && !addNewInternalSegment(segment))) {
       return false;
     }
-    return internalSegmentsWithSignal.add(segment);
+    return IntersectionSegmentUtils.swapToSignalOrUnsignalised(internalSegments, segment, true) != null;
   }
 
   /**
@@ -195,8 +197,7 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
    */
   @Override
   public boolean addMovement(SpatialMovement movement) {
-    if (ListUtils.containsByIdentity(movements, movement) ||
-        !ListUtils.containsByIdentity(getApproachSegments(), movement.getLinkSegmentFrom())) {
+    if (ListUtils.containsByIdentity(movements, movement) || getApproach(movement.getLinkSegmentFrom()) == null) {
       return false;
     }
     return movements.add(movement);
@@ -227,8 +228,9 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
   protected void updateSegmentMapping(
       Function<MacroscopicLinkSegment, MacroscopicLinkSegment> segmentToSegmentMapping, boolean removeMissingMappings) {
     super.updateSegmentMapping(segmentToSegmentMapping, removeMissingMappings);
-    ListUtils.updateMapping(internalSegments, segmentToSegmentMapping, removeMissingMappings);
-    ListUtils.updateMapping(internalSegmentsWithSignal, segmentToSegmentMapping, removeMissingMappings);
+    // each internal segment updates its own link segment; one without a mapping is removed when asked
+    internalSegments.removeIf(
+        internal -> !internal.updateLinkSegmentMapping(segmentToSegmentMapping) && removeMissingMappings);
   }
 
   /**

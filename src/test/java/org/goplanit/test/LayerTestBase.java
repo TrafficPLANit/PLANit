@@ -2,13 +2,16 @@ package org.goplanit.test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
+import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
@@ -23,11 +26,62 @@ import org.locationtech.jts.geom.Coordinate;
  */
 public abstract class LayerTestBase {
 
+  /** measures in the Cartesian coordinates of the nodes, in metres */
+  protected static final PlanitJtsCrsUtils CARTESIAN = new PlanitJtsCrsUtils(PlanitJtsCrsUtils.CARTESIANCRS);
+
   /** layer the test builds on, set by the test's own set up */
   protected MacroscopicNetworkLayer layer;
 
   /** nodes of the layer by index, in the order they were created */
   protected final List<Node> nodes = new ArrayList<>();
+
+  /**
+   * Register a node at a position
+   *
+   * @param x metres east
+   * @param y metres north
+   * @return index of the node
+   */
+  protected int node(double x, double y) {
+    var node = layer.getNodes().getFactory().registerNew();
+    node.setPosition(PlanitJtsUtils.createPoint(x, y));
+    nodes.add(node);
+    return nodes.size() - 1;
+  }
+
+  /**
+   * Register an intersection at a node with every segment entering it as an approach
+   *
+   * @param node index of the node
+   * @param controlType of the intersection
+   * @param type its kind
+   * @return the intersection
+   */
+  protected Intersection intersectionAt(int node, IntersectionControlType controlType, IntersectionType type) {
+    return intersectionAt(node, controlType, type, segment -> true);
+  }
+
+  /**
+   * Register an intersection at a node with the segments entering it that meet a condition as approaches
+   *
+   * @param node index of the node
+   * @param controlType of the intersection
+   * @param type its kind
+   * @param isApproach true for an entering segment to make an approach
+   * @return the intersection
+   */
+  protected Intersection intersectionAt(int node, IntersectionControlType controlType, IntersectionType type,
+      Predicate<MacroscopicLinkSegment> isApproach) {
+    var intersection = layer.getIntersections().getFactory().createNonSpatial(nodes.get(node), controlType, type);
+    nodes.get(node).streamEntrySegments().map(MacroscopicLinkSegment.class::cast).filter(isApproach)
+        .forEach(intersection::addNewApproachSegment);
+    return layer.getIntersections().getFactory().register(intersection);
+  }
+
+  /** a signalised junction at the node, every segment entering it an approach */
+  protected Intersection signalisedJunctionAt(int node) {
+    return intersectionAt(node, IntersectionControlType.SIGNALISED, IntersectionType.JUNCTION);
+  }
 
   /**
    * Reset the id generation before each test, ahead of the test's own set up

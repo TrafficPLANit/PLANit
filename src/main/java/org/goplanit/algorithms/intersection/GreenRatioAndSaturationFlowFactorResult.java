@@ -1,0 +1,168 @@
+package org.goplanit.algorithms.intersection;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegment;
+
+/**
+ * What an algorithm computing green ratios and saturation flow factors did, each recorded at the moment it was decided:
+ * the green ratios it computed, the approaches without a signal of their own it gave values, the values set directly it
+ * kept, the number of phases of each junction, the intersections it could not compute, and the earlier computed
+ * values it removed
+ *
+ * @author markr
+ */
+public class GreenRatioAndSaturationFlowFactorResult {
+
+  /** approaches given a computed green ratio, with the value, in the order computed */
+  private final Map<IntersectionSegment, Double> computedGreenRatios = new LinkedHashMap<>();
+
+  /** approaches without a signal of their own given a computed saturation flow factor */
+  private final Set<IntersectionSegment> approachesWithoutSignalGivenValues = new LinkedHashSet<>();
+
+  /** approaches keeping a value set directly where a value would have been computed */
+  private final Set<IntersectionSegment> approachesKeepingValueSetDirectly = new LinkedHashSet<>();
+
+  /** signalised junctions with their number of phases */
+  private final Map<Intersection, Integer> numberOfPhasesByJunction = new LinkedHashMap<>();
+
+  /** intersections that could not be computed, with their usable green time in seconds, 0 or less */
+  private final Map<Intersection, Double> notComputableIntersections = new LinkedHashMap<>();
+
+  /** approaches whose earlier computed value no longer applied and was removed */
+  private final Set<IntersectionSegment> approachesWithStaleComputedValueRemoved = new LinkedHashSet<>();
+
+  /**
+   * Record a green ratio computed for an approach
+   *
+   * @param approach given the green ratio
+   * @param greenRatio computed
+   */
+  protected void addComputedGreenRatio(IntersectionSegment approach, double greenRatio) {
+    computedGreenRatios.put(approach, greenRatio);
+  }
+
+  /**
+   * Record an approach without a signal of its own given a computed value
+   *
+   * @param approach given the value
+   */
+  protected void addApproachWithoutSignalGivenValue(IntersectionSegment approach) {
+    approachesWithoutSignalGivenValues.add(approach);
+  }
+
+  /**
+   * Record an approach keeping a value set directly where a value would have been computed
+   *
+   * @param approach keeping it
+   */
+  protected void addApproachKeepingValueSetDirectly(IntersectionSegment approach) {
+    approachesKeepingValueSetDirectly.add(approach);
+  }
+
+  /**
+   * Record the number of phases of a signalised junction
+   *
+   * @param junction the junction
+   * @param numberOfPhases its number of phases
+   */
+  protected void addNumberOfPhases(Intersection junction, int numberOfPhases) {
+    numberOfPhasesByJunction.put(junction, numberOfPhases);
+  }
+
+  /**
+   * Record an intersection that could not be computed
+   *
+   * @param intersection not computed
+   * @param usableGreenTimeSeconds its usable green time, 0 or less
+   */
+  protected void addNotComputableIntersection(Intersection intersection, double usableGreenTimeSeconds) {
+    notComputableIntersections.put(intersection, usableGreenTimeSeconds);
+  }
+
+  /**
+   * Record an approach whose earlier computed value was removed
+   *
+   * @param approach the value was removed from
+   */
+  protected void addApproachWithStaleComputedValueRemoved(IntersectionSegment approach) {
+    approachesWithStaleComputedValueRemoved.add(approach);
+  }
+
+  /**
+   * The approaches given a computed green ratio, at a junction or an isolated crossing, with the value
+   *
+   * @return unmodifiable map of approach to green ratio, in the order computed
+   */
+  public Map<IntersectionSegment, Double> getComputedGreenRatios() {
+    return Collections.unmodifiableMap(computedGreenRatios);
+  }
+
+  /**
+   * The approaches without a signal of their own at a signalised intersection given a computed saturation flow
+   * factor
+   *
+   * @return unmodifiable set of approaches
+   */
+  public Set<IntersectionSegment> getApproachesWithoutSignalGivenValues() {
+    return Collections.unmodifiableSet(approachesWithoutSignalGivenValues);
+  }
+
+  /**
+   * The approaches keeping a value set directly where a value would have been computed
+   *
+   * @return unmodifiable set of approaches
+   */
+  public Set<IntersectionSegment> getApproachesKeepingValueSetDirectly() {
+    return Collections.unmodifiableSet(approachesKeepingValueSetDirectly);
+  }
+
+  /**
+   * The number of phases of a signalised junction
+   *
+   * @param junction to get it for
+   * @return its number of phases, null when it was not given phases
+   */
+  public Integer getNumberOfPhases(Intersection junction) {
+    return numberOfPhasesByJunction.get(junction);
+  }
+
+  /**
+   * The intersections that could not be computed, because no green time was left once the time lost at the phase
+   * changes was taken off the cycle
+   *
+   * @return unmodifiable map of intersection to its usable green time in seconds, 0 or less
+   */
+  public Map<Intersection, Double> getNotComputableIntersections() {
+    return Collections.unmodifiableMap(notComputableIntersections);
+  }
+
+  /**
+   * The approaches whose earlier computed value no longer applied, for example because their intersection is no
+   * longer signalised, and was removed
+   *
+   * @return unmodifiable set of approaches
+   */
+  public Set<IntersectionSegment> getApproachesWithStaleComputedValueRemoved() {
+    return Collections.unmodifiableSet(approachesWithStaleComputedValueRemoved);
+  }
+
+  /**
+   * One line summing up what was done
+   *
+   * @return the summary
+   */
+  @Override
+  public String toString() {
+    return String.format("Green ratios computed for %d approaches at %d junctions, values given to %d approaches " +
+            "without a signal of their own, %d approaches keeping values set directly, %d intersections not " +
+            "computable, %d stale computed values removed", computedGreenRatios.size(), numberOfPhasesByJunction.size(),
+        approachesWithoutSignalGivenValues.size(), approachesKeepingValueSetDirectly.size(),
+        notComputableIntersections.size(), approachesWithStaleComputedValueRemoved.size());
+  }
+}

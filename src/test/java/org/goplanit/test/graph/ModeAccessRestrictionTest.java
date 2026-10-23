@@ -176,7 +176,7 @@ public class ModeAccessRestrictionTest extends LayerTestBase {
     link(2, 1, carOnly, null);   // car only, one way, so cars can leave node 2 but never reach it
     var junction = layer.getIntersections().getFactory().createNonSpatial(
         nodes.get(1), IntersectionControlType.SIGNALISED, IntersectionType.JUNCTION);
-    junction.addApproachSegment(segment(2, 1));
+    junction.addNewApproachSegment(segment(2, 1));
     layer.getIntersections().getFactory().register(junction);
 
     var cleanup = restrictAllAndCleanUp();
@@ -198,7 +198,7 @@ public class ModeAccessRestrictionTest extends LayerTestBase {
     link(1, 2, carOnly, null);   // car only, one way, so cars enter node 2 and cannot return
     var deadEnd = layer.getIntersections().getFactory().createNonSpatial(
         nodes.get(2), IntersectionControlType.SIGNALISED, IntersectionType.JUNCTION);
-    deadEnd.addApproachSegment(segment(1, 2));
+    deadEnd.addNewApproachSegment(segment(1, 2));
     layer.getIntersections().getFactory().register(deadEnd);
 
     var cleanup = restrictAllAndCleanUp();

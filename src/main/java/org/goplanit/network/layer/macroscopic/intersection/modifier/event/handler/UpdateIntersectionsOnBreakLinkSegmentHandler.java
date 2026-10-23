@@ -17,9 +17,10 @@ import org.goplanit.utils.network.layer.physical.Node;
 
 /**
  * Keeps the intersections referring to a broken link segment consistent once a link is broken at a node: a broken
- * internal segment leaves both pieces internal, with the node broken at as a member, and an approach moves to the new
- * segment when that is the piece ending at a member node. A movement through an intersection follows its approach or
- * exit to the piece that touches the intersection
+ * internal segment leaves both link segments internal, with the node broken at as a member, and an approach moves to
+ * the new link segment when that is the one ending at a member node, taking whether it has a signal of its own, its
+ * green ratio and its saturation flow factor along. A movement through an intersection follows its approach or exit to
+ * the link segment that touches the intersection
  *
  * @author markr
  */
@@ -36,11 +37,11 @@ public class UpdateIntersectionsOnBreakLinkSegmentHandler implements DirectedGra
   private final SpatialMovementsImpl spatialMovements;
 
   /**
-   * Point the movements entering or leaving on a broken segment to the piece touching their intersection: the piece
-   * ending where the approach ended, or starting where the exit started
+   * Point the movements entering or leaving on a broken segment to the link segment touching their intersection: the
+   * one ending where the approach ended, or starting where the exit started
    *
-   * @param original the segment broken, now one of the pieces
-   * @param brokenOff the other piece
+   * @param original the segment broken, now one of the two link segments it was broken into
+   * @param brokenOff the other link segment
    * @param brokenAt the node broken at
    */
   private void repointMovements(MacroscopicLinkSegment original, MacroscopicLinkSegment brokenOff, Node brokenAt) {
@@ -109,12 +110,9 @@ public class UpdateIntersectionsOnBreakLinkSegmentHandler implements DirectedGra
       if (i instanceof SpatialIntersection &&
           ListUtils.containsByIdentity(((SpatialIntersection) i).getInternalSegments(), original)) {
         ((SpatialIntersection) i).addMemberNode((Node) breakEvent.getVertexToBreakAt());
-        ((SpatialIntersection) i).addInternalSegment(brokenOff);
+        ((SpatialIntersection) i).addNewInternalSegment(brokenOff);
       } else if (!i.hasMemberNode(original.getDownstreamVertex())) {
-        boolean hasOwnSignal = i.hasOwnSignal(original);
-        i.removeApproachSegment(original);
-        i.addApproachSegment(brokenOff);
-        i.setApproachSegmentHasOwnSignal(brokenOff, hasOwnSignal);
+        i.setEntrySegmentOnApproach(original, brokenOff);
       }
     });
   }

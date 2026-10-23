@@ -11,7 +11,6 @@ import org.goplanit.network.layer.macroscopic.SpatialMovementUtils;
 import org.goplanit.network.layer.macroscopic.intersection.IntersectionsImpl;
 import org.goplanit.test.LayerTestBase;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
-import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
@@ -62,20 +61,6 @@ public abstract class IntersectionConsolidationTestBase extends LayerTestBase {
   }
 
   /**
-   * Register a node at a position
-   *
-   * @param x metres east
-   * @param y metres north
-   * @return index of the node
-   */
-  protected int node(double x, double y) {
-    var node = layer.getNodes().getFactory().registerNew();
-    node.setPosition(PlanitJtsUtils.createPoint(x, y));
-    nodes.add(node);
-    return nodes.size() - 1;
-  }
-
-  /**
    * Join two nodes with a link of the given length and type, one way from a to b or in both directions
    *
    * @param a index of node A
@@ -102,40 +87,6 @@ public abstract class IntersectionConsolidationTestBase extends LayerTestBase {
   /** a road in both directions */
   protected MacroscopicLink twoWayRoad(int a, int b, double meters) {
     return link(a, b, meters, true, road);
-  }
-
-  /**
-   * Register an intersection at a node with every segment entering it as an approach
-   *
-   * @param node index of the node
-   * @param controlType of the intersection
-   * @param type its kind
-   * @return the intersection
-   */
-  protected Intersection intersectionAt(int node, IntersectionControlType controlType, IntersectionType type) {
-    return intersectionAt(node, controlType, type, segment -> true);
-  }
-
-  /**
-   * Register an intersection at a node with the segments entering it that meet a condition as approaches
-   *
-   * @param node index of the node
-   * @param controlType of the intersection
-   * @param type its kind
-   * @param isApproach true for an entering segment to make an approach
-   * @return the intersection
-   */
-  protected Intersection intersectionAt(int node, IntersectionControlType controlType, IntersectionType type,
-      Predicate<MacroscopicLinkSegment> isApproach) {
-    var intersection = intersections.getFactory().createNonSpatial(nodes.get(node), controlType, type);
-    nodes.get(node).streamEntrySegments().map(MacroscopicLinkSegment.class::cast).filter(isApproach)
-        .forEach(intersection::addApproachSegment);
-    return intersections.getFactory().register(intersection);
-  }
-
-  /** a signalised junction at the node, every segment entering it an approach */
-  protected Intersection signalisedJunctionAt(int node) {
-    return intersectionAt(node, IntersectionControlType.SIGNALISED, IntersectionType.JUNCTION);
   }
 
   /** a signalised junction at the node, only the roads entering it approaches, as vehicle signals give them */

@@ -10,11 +10,12 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.layer.physical.BannedTurnUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -163,7 +164,28 @@ public class BannedTurnsImpl extends ManagedGraphEntitiesImpl<BannedTurn> implem
   @Override
   public <T extends EdgeSegment> void updateSegmentMapping(
       Function<T, T> segmentToSegmentMapping, boolean removeMissingMappings) {
-    BannedTurnUtils.updateBannedTurnSegmentMapping(this, segmentToSegmentMapping, removeMissingMappings);
+    Set<BannedTurn> unmapped = new TreeSet<>();
+    for (var bannedTurn : this) {
+      if (bannedTurn.hasSegmentFrom()) {
+        var from = segmentToSegmentMapping.apply((T) bannedTurn.getSegmentFrom());
+        if (from != null) {
+          bannedTurn.setSegmentFrom(from);
+        } else {
+          unmapped.add(bannedTurn);
+        }
+      }
+      if (bannedTurn.hasSegmentTo()) {
+        var to = segmentToSegmentMapping.apply((T) bannedTurn.getSegmentTo());
+        if (to != null) {
+          bannedTurn.setSegmentTo(to);
+        } else {
+          unmapped.add(bannedTurn);
+        }
+      }
+    }
+    if (removeMissingMappings) {
+      unmapped.forEach(this::remove);
+    }
     bySegment.reindex(this);
   }
 

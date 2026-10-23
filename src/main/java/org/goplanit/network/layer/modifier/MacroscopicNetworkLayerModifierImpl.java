@@ -32,6 +32,7 @@ import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierEventType;
@@ -88,9 +89,9 @@ public class MacroscopicNetworkLayerModifierImpl
 
   /**
    * Replace a spatial intersection left with one member node by a non-spatial intersection on that node. Its control
-   * type, kinds, external id, approaches and their signals carry over. Each of its movements with a direct ban becomes
-   * a banned turn at the node, banning the same modes; the banned turns the node already has stay. The spatial
-   * intersection and its movements are removed with their removal events
+   * type, kinds, external id, and approaches with their signals, green ratios and saturation flow factors carry over.
+   * Each of its movements with a direct ban becomes a banned turn at the node, banning the same modes; the banned turns
+   * the node already has stay. The spatial intersection and its movements are removed with their removal events
    *
    * @param spatial the spatial intersection to replace
    */
@@ -101,10 +102,7 @@ public class MacroscopicNetworkLayerModifierImpl
         layer.getIntersections().getFactory().createNonSpatial(node, spatial.getControlType(), types.get(0));
     types.forEach(nonSpatial::addType);
     nonSpatial.setExternalId(spatial.getExternalId());
-    for (var approach : spatial.getApproachSegments()) {
-      nonSpatial.addApproachSegment(approach);
-      nonSpatial.setApproachSegmentHasOwnSignal(approach, spatial.hasOwnSignal(approach));
-    }
+    spatial.getApproaches().forEach(approach -> IntersectionUtils.addCopyOfApproach(nonSpatial, approach));
     for (var movement : spatial.getMovements()) {
       if (movement.hasDirectBan() && movement.getLinkSegmentFrom().getDownstreamVertex() == node &&
           movement.getLinkSegmentTo().getUpstreamVertex() == node) {

@@ -36,8 +36,10 @@ import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicBannedTurn;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
+import org.goplanit.utils.network.layer.macroscopic.intersection.CapacityFactorOrigin;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSignalSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.NonSpatialIntersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
@@ -109,8 +111,8 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     twoWay(0, 1);
     twoWay(0, 2);
     var junction = junctionAt(0);
-    junction.addApproachSegment(segment(1, 0));
-    junction.addApproachSegment(segment(2, 0));
+    junction.addNewApproachSegment(segment(1, 0));
+    junction.addNewApproachSegment(segment(2, 0));
     return intersections.getFactory().register(junction);
   }
 
@@ -149,13 +151,13 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
 
   // INTERSECTIONS
 
-  /** Breaking an approach link at a new node leaves the approach on the piece ending at the member node */
+  /** Breaking an approach link at a new node leaves the approach on the link segment ending at the member node */
   @Test
-  public void approachLinkBrokenKeepsThePieceEndingAtTheMember() {
+  public void approachLinkBrokenKeepsTheLinkSegmentEndingAtTheMember() {
     createNodesOnLine(3);
     var link = breakableOneWay(0, 2);
     var junction = junctionAt(2);
-    junction.addApproachSegment(segment(0, 2));
+    junction.addNewApproachSegment(segment(0, 2));
     intersections.getFactory().register(junction);
 
     breakAt(link, 1);
@@ -165,15 +167,15 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     assertNull(intersections.getBySegment(segment(0, 1)));
   }
 
-  /** Breaking an approach link at a new node keeps whether the approach has a signal of its own on the piece ending at
-   * the member node */
+  /** Breaking an approach link at a new node keeps whether the approach has a signal of its own on the link segment
+   * ending at the member node */
   @Test
   public void approachLinkBrokenKeepsItsOwnSignal() {
     createNodesOnLine(3);
     var link = breakableOneWay(0, 2);
     var junction = junctionAt(2);
-    junction.addApproachSegment(segment(0, 2));
-    junction.setApproachSegmentHasOwnSignal(segment(0, 2), false);
+    junction.addNewApproachSegment(segment(0, 2));
+    junction.swapApproachToNewSignalOrUnsignalised(segment(0, 2), false);
     intersections.getFactory().register(junction);
 
     breakAt(link, 1);
@@ -182,13 +184,56 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     assertFalse(junction.hasOwnSignal(segment(1, 2)));
   }
 
-  /** Breaking an internal link at a new node leaves both pieces internal, with the new node a member */
+  /** Breaking an approach link at a new node upstream gives the approach's values, with how they got their value, to
+   * the new link segment ending at the member node */
   @Test
-  public void internalLinkBrokenLeavesBothPiecesInternal() {
+  public void approachLinkBrokenKeepsItsValues() {
+    createNodesOnLine(3);
+    var link = breakableOneWay(0, 2);
+    var junction = junctionAt(2);
+    junction.addNewApproachSegment(segment(0, 2));
+    var approach = (IntersectionSignalSegment) junction.getApproach(segment(0, 2));
+    approach.setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
+    approach.setSaturationFlowFactor(0.95, CapacityFactorOrigin.SET_DIRECTLY);
+    intersections.getFactory().register(junction);
+
+    breakAt(link, 1);
+
+    assertEquals(List.of(segment(1, 2)), junction.getApproachSegments());
+    var afterBreak = (IntersectionSignalSegment) junction.getApproach(segment(1, 2));
+    assertEquals(0.44, afterBreak.getGreenRatio());
+    assertEquals(CapacityFactorOrigin.COMPUTED, afterBreak.getGreenRatioOrigin());
+    assertEquals(0.95, afterBreak.getSaturationFlowFactor());
+    assertNull(junction.getApproach(segment(0, 1)));
+  }
+
+  /** Breaking an internal link with a signal at a new node keeps its values on the link segment that keeps the
+   * signal */
+  @Test
+  public void internalLinkBrokenKeepsItsValuesWithTheSignal() {
     createNodesOnLine(3);
     var link = breakableOneWay(0, 2);
     var junction = spatialJunctionOver(0, 2);
-    junction.addInternalSegment(segment(0, 2));
+    junction.addNewInternalSegmentWithSignal(segment(0, 2));
+    ((IntersectionSignalSegment) junction.getIntersectionInternalSegment(segment(0, 2)))
+        .setGreenRatio(0.6, CapacityFactorOrigin.SET_DIRECTLY);
+    intersections.getFactory().register(junction);
+
+    breakAt(link, 1);
+
+    assertEquals(1, junction.getInternalSegmentsWithSignal().size());
+    var withSignal = junction.getInternalSegmentsWithSignal().get(0);
+    var internalWithSignal = (IntersectionSignalSegment) junction.getIntersectionInternalSegment(withSignal);
+    assertEquals(0.6, internalWithSignal.getGreenRatio());
+  }
+
+  /** Breaking an internal link at a new node leaves both link segments internal, with the new node a member */
+  @Test
+  public void internalLinkBrokenLeavesBothLinkSegmentsInternal() {
+    createNodesOnLine(3);
+    var link = breakableOneWay(0, 2);
+    var junction = spatialJunctionOver(0, 2);
+    junction.addNewInternalSegment(segment(0, 2));
     intersections.getFactory().register(junction);
 
     breakAt(link, 1);
@@ -201,19 +246,19 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     assertSame(junction, intersections.getBySegment(segment(1, 2)));
   }
 
-  /** A crossing registered where a junction's approach was broken takes the piece ending at the crossing */
+  /** A crossing registered where a junction's approach was broken takes the link segment ending at the crossing */
   @Test
-  public void crossingRegisteredOnBrokenApproachTakesTheOuterPiece() {
+  public void crossingRegisteredOnBrokenApproachTakesTheOuterLinkSegment() {
     createNodesOnLine(3);
     var link = breakableOneWay(0, 2);
     var junction = junctionAt(2);
-    junction.addApproachSegment(segment(0, 2));
+    junction.addNewApproachSegment(segment(0, 2));
     intersections.getFactory().register(junction);
 
     breakAt(link, 1);
     var crossing = intersections.getFactory().createNonSpatial(
         nodes.get(1), IntersectionControlType.SIGNALISED, IntersectionType.CROSSING);
-    crossing.addApproachSegment(segment(0, 1));
+    crossing.addNewApproachSegment(segment(0, 1));
     intersections.getFactory().register(crossing);
 
     assertEquals(List.of(segment(1, 2)), junction.getApproachSegments());
@@ -229,7 +274,7 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     oneWay(4, 0);                                             // can only be left, removed with its link
     var approach = segment(4, 0);
     var junction = junctionAt(0);
-    junction.addApproachSegment(approach);
+    junction.addNewApproachSegment(approach);
     intersections.getFactory().register(junction);
 
     layer.getLayerModifier().removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true, false, ls -> true);
@@ -293,8 +338,8 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     twoWay(1, 2);
     twoWay(2, 3);
     var junction = spatialJunctionOver(1, 2, 3);
-    junction.addApproachSegment(segment(0, 1));
-    List.of(segment(1, 2), segment(2, 1), segment(2, 3), segment(3, 2)).forEach(junction::addInternalSegment);
+    junction.addNewApproachSegment(segment(0, 1));
+    List.of(segment(1, 2), segment(2, 1), segment(2, 3), segment(3, 2)).forEach(junction::addNewInternalSegment);
     intersections.getFactory().register(junction);
     var internal = segment(2, 3);
 
@@ -423,9 +468,9 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     assertTrue(bans.getBySegment(segment(0, 2)).isEmpty());
   }
 
-  /** Breaking the link a ban starts from leaves it found by the piece ending at its centre node only */
+  /** Breaking the link a ban starts from leaves it found by the link segment ending at its centre node only */
   @Test
-  public void banFoundByPieceEndingAtCentreAfterBreakingLink() {
+  public void banFoundByLinkSegmentEndingAtCentreAfterBreakingLink() {
     createNodesOnLine(4);
     var link = breakableOneWay(0, 2);
     oneWay(2, 3);
@@ -555,7 +600,7 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     createNodes(2);                                                  // nodes 3 and 4
     twoWay(3, 4);
     var kept = junctionAt(3);                                        // id 1
-    kept.addApproachSegment(segment(4, 3));
+    kept.addNewApproachSegment(segment(4, 3));
     intersections.getFactory().register(kept);
     layer.getLayerModifier().removeIntersection(removedFirst);
     var listener = new OutsideIntersectionListener(RecreatedIntersectionsManagedIdsEvent.EVENT_TYPE);
@@ -588,7 +633,7 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
       createNodes(2);                                                // nodes 3 and 4
       twoWay(3, 4);
       var second = junctionAt(3);
-      second.addApproachSegment(segment(4, 3));
+      second.addNewApproachSegment(segment(4, 3));
       intersections.getFactory().register(second);
       layer.getLayerModifier().setLogModifications(false);
       layer.getLayerModifier().removeVertex(nodes.get(3));
@@ -679,8 +724,8 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     exitLink = breakableOneWay(2, 4);
     layer.getLinkSegments().forEach(segment -> segment.setLinkSegmentType(road));
     var junction = spatialJunctionOver(1, 2);
-    junction.addApproachSegment(segment(0, 1));
-    junction.addInternalSegment(segment(1, 2));
+    junction.addNewApproachSegment(segment(0, 1));
+    junction.addNewInternalSegment(segment(1, 2));
     var movement = layer.getSpatialMovements().getFactory().registerNew(segment(0, 1), segment(2, 4), 0.001);
     junction.addMovement(movement);
     intersections.getFactory().register(junction);
@@ -811,10 +856,10 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     assertFalse(movement.hasDirectBan());
   }
 
-  /** Breaking the exit link at a new node, e.g. to place a stop, points the movement to the piece starting at the
-   * member node */
+  /** Breaking the exit link at a new node, e.g. to place a stop, points the movement to the link segment starting
+   * at the member node */
   @Test
-  public void exitBrokenPointsMovementToPieceStartingAtMember() {
+  public void exitBrokenPointsMovementToLinkSegmentStartingAtMember() {
     var movement = junctionWithMovement();
 
     breakAt(exitLink, 3);
@@ -885,8 +930,8 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     oneWay(1, 6);
     var approach = segment(0, 1);
     var junction = spatialJunctionOver(1, 2);
-    junction.addApproachSegment(approach);
-    junction.addInternalSegment(segment(1, 2));
+    junction.addNewApproachSegment(approach);
+    junction.addNewInternalSegment(segment(1, 2));
     var movements = layer.getSpatialMovements().getFactory();
     var through = movements.registerNew(approach, segment(2, 3), 0.001);
     var bannedCorner = movements.registerNew(approach, segment(1, 5), 0);
@@ -920,6 +965,38 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     assertEquals(Set.of(through, bannedCorner, corner), Set.copyOf(removedMovements));
     assertTrue(listener.received.stream().anyMatch(event -> event instanceof RemoveIntersectionEvent &&
         ((RemoveIntersectionEvent) event).getRemovedIntersection() == junction));
+  }
+
+  /**
+   * The non-spatial intersection replacing a spatial one left with one member node keeps the values of its approach,
+   * with how they got their value
+   * <pre>
+   *   0 -----> 1 ===> 2 -----> 3      1-2 internal
+   * </pre>
+   */
+  @Test
+  public void spatialIntersectionLeftWithOneMemberNodeKeepsApproachValues() {
+    createNodes(4);
+    oneWay(0, 1);
+    oneWay(1, 2);
+    oneWay(2, 3);
+    var approach = segment(0, 1);
+    var junction = spatialJunctionOver(1, 2);
+    junction.addNewApproachSegment(approach);
+    junction.addNewInternalSegment(segment(1, 2));
+    ((IntersectionSignalSegment) junction.getApproach(approach)).setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
+    junction.getApproach(approach).setSaturationFlowFactor(0.95, CapacityFactorOrigin.SET_DIRECTLY);
+    intersections.getFactory().register(junction);
+
+    layer.getLayerModifier().removeVertex(nodes.get(2));
+
+    var replacement = intersections.getByMemberNode(nodes.get(1));
+    assertTrue(replacement instanceof NonSpatialIntersection);
+    var handedOn = (IntersectionSignalSegment) replacement.getApproach(approach);
+    assertEquals(0.44, handedOn.getGreenRatio());
+    assertEquals(CapacityFactorOrigin.COMPUTED, handedOn.getGreenRatioOrigin());
+    assertEquals(0.95, handedOn.getSaturationFlowFactor());
+    assertEquals(CapacityFactorOrigin.SET_DIRECTLY, handedOn.getSaturationFlowFactorOrigin());
   }
 
   // INDEPENDENT MOVEMENTS

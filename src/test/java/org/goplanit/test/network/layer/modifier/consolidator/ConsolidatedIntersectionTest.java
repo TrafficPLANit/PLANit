@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.macroscopic.intersection.CapacityFactorOrigin;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSignalSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.junit.jupiter.api.Test;
@@ -41,6 +43,46 @@ public class ConsolidatedIntersectionTest extends IntersectionConsolidationTestB
     assertTrue(consolidated.getInternalSegments().contains(longLink.getLinkSegmentAb()));
     assertTrue(consolidated.getInternalSegments().contains(longLink.getLinkSegmentBa()));
     assertEquals(List.of(longLink), result.getInternalLinksLongerThanWarningLength());
+  }
+
+  /** The approach from B into A, with values, becomes an internal segment of the consolidated intersection, which has
+   * no approach, and so no approach values, for it */
+  @Test
+  public void approachMadeInternalHasNoApproachValues() {
+    dividedRoadsCrossing();
+    var intersectionAtA = signalisedJunctionAt(A);
+    List.of(B, C, D).forEach(this::signalisedJunctionAt);
+    var fromB = (IntersectionSignalSegment) intersectionAtA.getApproach(segment(B, A));
+    fromB.setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
+
+    consolidate();
+
+    var consolidated = onlySpatialIntersection();
+    assertTrue(consolidated.getInternalSegments().contains(segment(B, A)));
+    assertNull(consolidated.getApproach(segment(B, A)));
+  }
+
+  /** The approach from N into A, node 4, stays an approach of the consolidated intersection and keeps its values, with
+   * how they got their value */
+  @Test
+  public void approachStayingAnApproachKeepsItsValues() {
+    dividedRoadsCrossing();
+    var intersectionAtA = signalisedJunctionAt(A);
+    List.of(B, C, D).forEach(this::signalisedJunctionAt);
+    int north = 4;
+    var fromNorth = (IntersectionSignalSegment) intersectionAtA.getApproach(segment(north, A));
+    fromNorth.setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
+    fromNorth.setSaturationFlowFactor(0.95, CapacityFactorOrigin.SET_DIRECTLY);
+
+    consolidate();
+
+    var consolidated = onlySpatialIntersection();
+    var kept = (IntersectionSignalSegment) consolidated.getApproach(segment(north, A));
+    assertNotNull(kept);
+    assertEquals(0.44, kept.getGreenRatio());
+    assertEquals(CapacityFactorOrigin.COMPUTED, kept.getGreenRatioOrigin());
+    assertEquals(0.95, kept.getSaturationFlowFactor());
+    assertEquals(CapacityFactorOrigin.SET_DIRECTLY, kept.getSaturationFlowFactorOrigin());
   }
 
   // LINKS REACHED ONLY THROUGH THE INTERSECTION
@@ -184,7 +226,7 @@ public class ConsolidatedIntersectionTest extends IntersectionConsolidationTestB
     link(node(10, 10), junctionNode, 14, true, footway);
     var junction = intersections.getFactory().createNonSpatial(
         nodes.get(junctionNode), IntersectionControlType.SIGNALISED, IntersectionType.JUNCTION);
-    junction.addApproachSegment(segment(west, junctionNode));
+    junction.addNewApproachSegment(segment(west, junctionNode));
     intersections.getFactory().register(junction);
 
     var result = consolidate();
@@ -266,7 +308,7 @@ public class ConsolidatedIntersectionTest extends IntersectionConsolidationTestB
     oneWayRoad(s, junctionNode, 13);
     var junction = intersections.getFactory().createNonSpatial(
         nodes.get(junctionNode), IntersectionControlType.SIGNALISED, IntersectionType.JUNCTION);
-    junction.addApproachSegment(segment(x, junctionNode));
+    junction.addNewApproachSegment(segment(x, junctionNode));
     intersections.getFactory().register(junction);
     signalisedJunctionAt(u);
 
@@ -297,7 +339,7 @@ public class ConsolidatedIntersectionTest extends IntersectionConsolidationTestB
     twoWayRoad(s, junctionNode, 13);
     var junction = intersections.getFactory().createNonSpatial(
         nodes.get(junctionNode), IntersectionControlType.SIGNALISED, IntersectionType.JUNCTION);
-    junction.addApproachSegment(segment(x, junctionNode));
+    junction.addNewApproachSegment(segment(x, junctionNode));
     intersections.getFactory().register(junction);
 
     var result = consolidate();
@@ -321,9 +363,9 @@ public class ConsolidatedIntersectionTest extends IntersectionConsolidationTestB
     var junction = intersections.getFactory().createNonSpatial(
         nodes.get(junctionNode), IntersectionControlType.SIGNALISED, IntersectionType.JUNCTION);
     nodes.get(junctionNode).streamEntrySegments().forEach(
-        segment -> junction.addApproachSegment((MacroscopicLinkSegment) segment));
-    junction.setApproachSegmentHasOwnSignal(segment(north, junctionNode), false);
-    junction.setApproachSegmentHasOwnSignal(segment(south, junctionNode), false);
+        segment -> junction.addNewApproachSegment((MacroscopicLinkSegment) segment));
+    junction.swapApproachToNewSignalOrUnsignalised(segment(north, junctionNode), false);
+    junction.swapApproachToNewSignalOrUnsignalised(segment(south, junctionNode), false);
     intersections.getFactory().register(junction);
 
     var result = consolidate();

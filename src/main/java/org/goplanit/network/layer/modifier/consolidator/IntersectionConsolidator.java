@@ -40,6 +40,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentUtils;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
@@ -542,9 +543,9 @@ public class IntersectionConsolidator {
           continue;
         }
         if (hasSignalOfItsOwn.test(segment) || keepsCrossingSignalOnceInternal(segment)) {
-          intersection.addInternalSegmentWithSignal(segment);
+          intersection.addNewInternalSegmentWithSignal(segment);
         } else {
-          intersection.addInternalSegment(segment);
+          intersection.addNewInternalSegment(segment);
         }
         if (segment.getParent().getLengthMeters() > settings.getInternalLinkLengthWarningMeters()) {
           result.addInternalLinkLongerThanWarningLength(segment.getParent());
@@ -564,12 +565,12 @@ public class IntersectionConsolidator {
    * @param types the union of their kinds
    * @param externalIds their external ids, each added once
    * @param memberNodes all member nodes it has after the merge
-   * @param hasOwnSignalOfMergedApproach the approaches of the merged intersections, each with whether it has a signal
-   *                                     of its own
+   * @param mergedApproaches the approaches of the merged intersections, by their link segment, each added with its
+   *                         signal and values
    */
   private void applyMergeTo(SpatialIntersection kept, boolean signalised, Set<IntersectionType> types,
       List<String> externalIds, Set<Node> memberNodes,
-      Map<MacroscopicLinkSegment, Boolean> hasOwnSignalOfMergedApproach) {
+      Map<MacroscopicLinkSegment, IntersectionSegment> mergedApproaches) {
     if (signalised) {
       kept.setControlType(IntersectionControlType.SIGNALISED);
     }
@@ -583,12 +584,11 @@ public class IntersectionConsolidator {
       }
     }
     memberNodes.forEach(kept::addMemberNode);
-    for (var entry : hasOwnSignalOfMergedApproach.entrySet()) {
-      var approach = entry.getKey();
-      if (memberNodes.contains(approach.getUpstreamNode())) {
-        result.addApproach(ApproachOutcome.MADE_INTERNAL, approach);
-      } else if (kept.addApproachSegment(approach)) {
-        kept.setApproachSegmentHasOwnSignal(approach, entry.getValue());
+    for (var approach : mergedApproaches.values()) {
+      if (memberNodes.contains(approach.getLinkSegment().getUpstreamNode())) {
+        result.addApproach(ApproachOutcome.MADE_INTERNAL, approach.getLinkSegment());
+      } else {
+        IntersectionUtils.addCopyOfApproach(kept, approach);
       }
     }
     addInternalSegments(kept);
@@ -598,9 +598,10 @@ public class IntersectionConsolidator {
    * Merge intersections into a spatial intersection (C2 steps 7 and 8). The merged intersections are removed through
    * the modifier, each with its removal event. The spatial intersection gains their member nodes and the given nodes,
    * the union of their kinds, the control type signalised if any of them was, their external ids, each once, and their
-   * approaches, each keeping whether it has a signal of its own. An approach that starts at one of its member nodes is
-   * no longer an approach, and the segments between its member nodes become internal, see
-   * {@link #addInternalSegments(SpatialIntersection)}
+   * approaches, each keeping whether it has a signal of its own, its green ratio and its saturation flow factor. A
+   * merged intersection removed keeps its approaches, so they are read from it once removed. An approach that starts
+   * at one of its member nodes is no longer an approach, and the segments between its member nodes become internal,
+   * see {@link #addInternalSegments(SpatialIntersection)}
    *
    * @param kept spatial intersection to merge into
    * @param merged intersections to merge away
@@ -610,7 +611,7 @@ public class IntersectionConsolidator {
   private List<Node> mergeInto(SpatialIntersection kept, List<Intersection> merged, Collection<Node> nodesToAdd) {
     /* gather what the merged intersections bring, removing each through the modifier */
     var memberNodesBefore = new LinkedHashSet<>(kept.getMemberNodes());
-    var hasOwnSignalOfMergedApproach = new LinkedHashMap<MacroscopicLinkSegment, Boolean>();
+    var mergedApproaches = new LinkedHashMap<MacroscopicLinkSegment, IntersectionSegment>();
     var types = EnumSet.noneOf(IntersectionType.class);
     types.addAll(kept.getTypes());
     boolean signalised = kept.isSignalised();
@@ -620,8 +621,7 @@ public class IntersectionConsolidator {
         externalIds.addAll(List.of(other.getSplitExternalId()));
       }
       memberNodesBefore.addAll(other.getMemberNodes());
-      other.getApproachSegments().forEach(
-          approach -> hasOwnSignalOfMergedApproach.put(approach, other.hasOwnSignal(approach)));
+      other.getApproaches().forEach(approach -> mergedApproaches.put(approach.getLinkSegment(), approach));
       types.addAll(other.getTypes());
       signalised |= other.isSignalised();
       layer.getLayerModifier().removeIntersection(other);
@@ -636,7 +636,7 @@ public class IntersectionConsolidator {
     /* apply it all to the kept intersection in one update, so the lookups of the intersections stay current */
     boolean keptSignalised = signalised;
     layer.getIntersections().update(kept, intersection ->
-        applyMergeTo(intersection, keptSignalised, types, externalIds, memberNodes, hasOwnSignalOfMergedApproach));
+        applyMergeTo(intersection, keptSignalised, types, externalIds, memberNodes, mergedApproaches));
     return joined;
   }
 
@@ -1403,10 +1403,8 @@ public class IntersectionConsolidator {
       var entering = IntersectionUtils.findSegmentsEnteringFromOutsideThatAreNotApproaches(junction, IS_ROAD_SEGMENT);
       var withSignal = entering.stream().filter(segment -> continuesRoadOfApproachWithSignalTaggedOnNode(
           segment, junction)).collect(Collectors.toSet());
-      layer.getIntersections().update(junction, intersection -> entering.forEach(segment -> {
-        intersection.addApproachSegment(segment);
-        intersection.setApproachSegmentHasOwnSignal(segment, withSignal.contains(segment));
-      }));
+      layer.getIntersections().update(junction, intersection -> entering.forEach(
+          segment -> intersection.addNewApproach(segment, withSignal.contains(segment))));
       for (var segment : entering) {
         if (withSignal.contains(segment)) {
           result.addApproach(ApproachOutcome.ADDED_WITH_SIGNAL_TAGGED_ON_NODE_AHEAD, segment);

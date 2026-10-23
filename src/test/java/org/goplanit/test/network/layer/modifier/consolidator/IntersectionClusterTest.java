@@ -684,8 +684,8 @@ public class IntersectionClusterTest extends IntersectionConsolidationTestBase {
   public void nodesListedToKeepApartInOneIntersectionBeforeConsolidationAreNotKeptApart() {
     dividedRoadsCrossing();
     var cornersAB = spatialJunctionOver(A, B);
-    cornersAB.addApproachSegment(segment(4, A));
-    cornersAB.addApproachSegment(segment(8, B));
+    cornersAB.addNewApproachSegment(segment(4, A));
+    cornersAB.addNewApproachSegment(segment(8, B));
     intersections.getFactory().register(cornersAB);
     List.of(C, D).forEach(this::signalisedJunctionAt);
     nodes.get(A).setExternalId("A");

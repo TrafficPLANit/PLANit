@@ -3,14 +3,17 @@ package org.goplanit.test.network;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
 import org.goplanit.test.LayerTestBase;
+import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentUtils;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.locationtech.jts.geom.Coordinate;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -33,6 +36,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
 
+  /** direction of travel along the segment into its downstream node, over the given reach */
+  private static double arriving(MacroscopicLinkSegment segment, double reachMeters) {
+    return MacroscopicLinkSegmentUtils.getAzimuthArrivingAtDownstreamNodeInDegrees(segment, reachMeters, CARTESIAN);
+  }
+
   private MacroscopicLinkSegmentType carOnly;
   private MacroscopicLinkSegmentType busOnly;
   private MacroscopicLinkSegmentType walkOnly;
@@ -46,6 +54,36 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
    */
   private static UnaryOperator<MacroscopicLinkSegment> onlySegmentOnward(boolean inTrafficDirection) {
     return segment -> MacroscopicLinkSegmentUtils.findOnlySegmentOnward(segment, inTrafficDirection, other -> true);
+  }
+
+  /**
+   * A link from (60,60) curving through (30,20) and (0,10) into the centre at (0,0), its geometry drawn from the far
+   * end to the centre, or the other way round
+   * <pre>
+   *            (60,60)
+   *           /
+   *     (30,20)
+   *     /
+   *  (0,10)
+   *    |
+   *  (0,0)
+   * </pre>
+   *
+   * @param fromCentre true to draw its geometry from the centre outwards
+   * @return the indices of the centre and the far end
+   */
+  private int[] curvedLinkIntoCentre(boolean fromCentre) {
+    int centre = node(0, 0);
+    int far = node(60, 60);
+    var coordinates = new Coordinate[] {
+        new Coordinate(60, 60), new Coordinate(30, 20), new Coordinate(0, 10), new Coordinate(0, 0)};
+    if (fromCentre) {
+      twoWay(centre, far, carOnly).setGeometry(PlanitJtsUtils.createLineString(
+          new Coordinate[] {coordinates[3], coordinates[2], coordinates[1], coordinates[0]}));
+    } else {
+      twoWay(far, centre, carOnly).setGeometry(PlanitJtsUtils.createLineString(coordinates));
+    }
+    return new int[] {centre, far};
   }
 
   @BeforeEach
@@ -256,4 +294,53 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
         segment(0, 1), true, 1000, 10000, segment -> true, answerAtNode2));
   }
 
+  // DIRECTION ARRIVING AT A NODE
+
+  /** Without shape nodes the direction runs from the other node: south into (0,0), north into (0,100) */
+  @Test
+  public void directionArrivingWithoutShapeNodesRunsFromTheOtherNode() {
+    int south = node(0, 0);
+    int north = node(0, 100);
+    twoWay(north, south, carOnly);
+
+    assertEquals(180, arriving(segment(north, south), 25), 1e-9);
+    assertEquals(0, arriving(segment(south, north), 25), 1e-9);
+  }
+
+  /** The direction runs from the farthest shape node within reach: within 25 m only (0,10), heading south; within 50 m
+   * (30,20) too */
+  @Test
+  public void directionArrivingRunsFromTheFarthestShapeNodeWithinReach() {
+    var ends = curvedLinkIntoCentre(false);
+    var intoCentre = segment(ends[1], ends[0]);
+
+    assertEquals(180, arriving(intoCentre, 25), 1e-9);
+    assertEquals(CARTESIAN.getAzimuthInDegrees(new Coordinate(30, 20), new Coordinate(0, 0), true),
+        arriving(intoCentre, 50), 1e-9);
+  }
+
+  /** When the nearest shape node lies beyond reach it is used still: (0,10) lies 10 m from the centre, beyond 5 m */
+  @Test
+  public void directionArrivingUsesTheNearestShapeNodeWhenNoneIsWithinReach() {
+    var ends = curvedLinkIntoCentre(false);
+
+    assertEquals(180, arriving(segment(ends[1], ends[0]), 5), 1e-9);
+  }
+
+  /**
+   * The direction does not depend on which way the geometry is drawn: drawn from the centre outwards, the segment into
+   * the centre still arrives heading south, as the link does at the centre node, and the segment out to the far end
+   * arrives from (30,20), its nearest shape node, 50 m away
+   */
+  @Test
+  public void directionArrivingDoesNotDependOnTheDirectionOfTheGeometry() {
+    var ends = curvedLinkIntoCentre(true);
+    var link = segment(ends[1], ends[0]).getParent();
+
+    assertEquals(180, arriving(segment(ends[1], ends[0]), 25), 1e-9);
+    assertEquals(180, MacroscopicLinkUtils.getAzimuthArrivingAtNodeInDegrees(link, nodes.get(ends[0]), 25, CARTESIAN),
+        1e-9);
+    assertEquals(CARTESIAN.getAzimuthInDegrees(new Coordinate(30, 20), new Coordinate(60, 60), true),
+        arriving(segment(ends[0], ends[1]), 25), 1e-9);
+  }
 }
