@@ -10,7 +10,7 @@ import org.goplanit.utils.pcu.PcuCapacitated;
 
 /**
  * Computes green ratios giving each phase of a junction a share of its usable green time weighted by its capacity. The
- * capacity of a phase of two paired approaches is the larger of the two, the one that needs the green. For example a
+ * capacity of a phase is the largest capacity of its approaches, the one that needs the green most. For example a
  * main road of 3,600 pcu/h each way crossing a side road of 1,800 pcu/h each way gets 80 x 3,600 / 5,400 = 53.3 s of a
  * 90 s cycle, a green ratio of 0.59, and the side road 26.7 s, 0.30. Without capacity on any phase, the phases share it
  * equally, with a warning

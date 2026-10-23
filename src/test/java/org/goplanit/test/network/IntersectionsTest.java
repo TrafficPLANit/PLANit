@@ -416,6 +416,32 @@ public class IntersectionsTest extends LayerTestBase {
     assertNull(junction.getIntersectionInternalSegment(segment(1, 0)));
   }
 
+  /**
+   * A link segment's effective capacity factor is that of the approach or internal segment with a signal it is: 0.44
+   * and 0.95 give 0.418 for an approach, 0.6 and 0.9 give 0.54 for an internal segment with a signal. A plain internal
+   * segment gives 1, even with a saturation flow factor kept for when it gets a signal, and so does an exit
+   */
+  @Test
+  public void effectiveCapacityFactorOfLinkSegmentIsThatOfItsApproachOrInternalSegment() {
+    createJunctionArea();
+    var junction = twoNodeJunction();
+    junction.addNewInternalSegmentWithSignal(segment(0, 5));
+    intersections.getFactory().register(junction);
+    var approach = approachWithSignal(junction, 1, 0);
+    approach.setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
+    approach.setSaturationFlowFactor(0.95, CapacityFactorOrigin.SET_DIRECTLY);
+    var withSignal = internalWithSignal(junction, 0, 5);
+    withSignal.setGreenRatio(0.6, CapacityFactorOrigin.SET_DIRECTLY);
+    withSignal.setSaturationFlowFactor(0.9, CapacityFactorOrigin.SET_DIRECTLY);
+    junction.getIntersectionInternalSegment(segment(5, 0))
+        .setSaturationFlowFactor(0.9, CapacityFactorOrigin.SET_DIRECTLY);
+
+    assertEquals(0.418, intersections.getEffectiveCapacityFactorOf(segment(1, 0)), 1e-9);
+    assertEquals(0.54, intersections.getEffectiveCapacityFactorOf(segment(0, 5)), 1e-9);
+    assertEquals(1, intersections.getEffectiveCapacityFactorOf(segment(5, 0)));
+    assertEquals(1, intersections.getEffectiveCapacityFactorOf(segment(0, 2)));
+  }
+
   /** A plain internal segment given a signal is replaced, at its place, by one with a signal keeping its saturation
    * flow factor */
   @Test

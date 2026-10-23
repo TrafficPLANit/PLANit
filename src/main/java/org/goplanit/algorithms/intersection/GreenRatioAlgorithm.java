@@ -11,8 +11,10 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
  * where no signal timing is known. It changes only values that are not set or that it computed before, never a value
  * set directly, an internal segment or a movement. Create one with {@link GreenRatioAlgorithmFactory}.
  * <p>
- * Run it on intersections that each cover a whole junction, for example once they are consolidated: a junction split
- * over several intersections gets fewer phases per intersection, and so more green than it has.
+ * Run it on intersections that each cover a whole junction, for example once they are consolidated. A junction split
+ * over several intersections is timed as several junctions: one with fewer approaches gets fewer phases, and so more
+ * green than the junction has, and a carriageway between two of its nodes counts as an approach, so traffic through
+ * the junction meets two reduced approaches instead of one.
  * </p>
  *
  * @author markr

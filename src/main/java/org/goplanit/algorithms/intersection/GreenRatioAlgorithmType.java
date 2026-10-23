@@ -12,6 +12,6 @@ public enum GreenRatioAlgorithmType {
   /** every phase gets the same share of the usable green time */
   EQUAL_SPLIT,
 
-  /** each phase gets a share of the usable green time weighted by its capacity, the larger of its paired approaches */
+  /** each phase gets a share of the usable green time weighted by its capacity, the largest of its approaches */
   CAPACITY_WEIGHTED;
 }

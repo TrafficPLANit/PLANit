@@ -43,8 +43,11 @@ public class GreenRatioAndSaturationFlowFactorSettings {
   /** green ratio of road traffic at an isolated signalised crossing */
   private double isolatedCrossingGreenRatio = DEFAULT_ISOLATED_CROSSING_GREEN_RATIO;
 
-  /** tolerance in degrees for two approaches to count as opposite */
-  private double oppositeApproachToleranceDegrees = DEFAULT_OPPOSITE_APPROACH_TOLERANCE_DEGREES;
+  /** tolerance in degrees for two approaches to count as on the same axis */
+  private double sameAxisApproachToleranceDegrees = DEFAULT_SAME_AXIS_APPROACH_TOLERANCE_DEGREES;
+
+  /** the most phases a junction is given */
+  private int maximumNumberOfPhases = DEFAULT_MAXIMUM_NUMBER_OF_PHASES;
 
   /** saturation flow factor of an approach without a signal of its own at a signalised intersection */
   private double approachWithoutSignalSaturationFlowFactor = DEFAULT_APPROACH_WITHOUT_SIGNAL_SATURATION_FLOW_FACTOR;
@@ -61,8 +64,13 @@ public class GreenRatioAndSaturationFlowFactorSettings {
   /** default green ratio of road traffic at an isolated signalised crossing, which has green most of the time */
   public static final double DEFAULT_ISOLATED_CROSSING_GREEN_RATIO = 0.9;
 
-  /** default tolerance in degrees for two approaches to count as opposite: 150 to 210 degrees apart */
-  public static final double DEFAULT_OPPOSITE_APPROACH_TOLERANCE_DEGREES = 30;
+  /** default tolerance in degrees for two approaches to count as on the same axis: their directions within 30 degrees
+   * of each other or of the opposite direction */
+  public static final double DEFAULT_SAME_AXIS_APPROACH_TOLERANCE_DEGREES = 30;
+
+  /** default most phases a junction is given; complex junctions give several approaches green together, and four phases
+   * keep a green ratio from falling below (90 - 4 x 5) / 90 / 4, about 0.19, at the other defaults */
+  public static final int DEFAULT_MAXIMUM_NUMBER_OF_PHASES = 4;
 
   /** default saturation flow factor of an approach without a signal of its own at a signalised intersection */
   public static final double DEFAULT_APPROACH_WITHOUT_SIGNAL_SATURATION_FLOW_FACTOR = 0.5;
@@ -83,7 +91,8 @@ public class GreenRatioAndSaturationFlowFactorSettings {
     this.cycleTimeSeconds = other.cycleTimeSeconds;
     this.lostTimePerPhaseChangeSeconds = other.lostTimePerPhaseChangeSeconds;
     this.isolatedCrossingGreenRatio = other.isolatedCrossingGreenRatio;
-    this.oppositeApproachToleranceDegrees = other.oppositeApproachToleranceDegrees;
+    this.sameAxisApproachToleranceDegrees = other.sameAxisApproachToleranceDegrees;
+    this.maximumNumberOfPhases = other.maximumNumberOfPhases;
     this.approachWithoutSignalSaturationFlowFactor = other.approachWithoutSignalSaturationFlowFactor;
   }
 
@@ -180,26 +189,50 @@ public class GreenRatioAndSaturationFlowFactorSettings {
   }
 
   /**
-   * The tolerance for two approaches to count as opposite: their directions at the stop line are 180 degrees apart
-   * within it
+   * The tolerance for two approaches to count as on the same axis, and so share a phase: their directions at the stop
+   * line are within it of each other, arriving side by side, or of the opposite direction, facing each other
    *
    * @return the tolerance in degrees
    */
-  public double getOppositeApproachToleranceDegrees() {
-    return oppositeApproachToleranceDegrees;
+  public double getSameAxisApproachToleranceDegrees() {
+    return sameAxisApproachToleranceDegrees;
   }
 
   /**
-   * Set the tolerance for two approaches to count as opposite
+   * Set the tolerance for two approaches to count as on the same axis
    *
-   * @param oppositeApproachToleranceDegrees from 0 to below 90, so approaches at right angles never count as opposite
+   * @param sameAxisApproachToleranceDegrees from 0 to below 90, so approaches at right angles never share an axis
    * @return true when set, false when refused
    */
-  public boolean setOppositeApproachToleranceDegrees(double oppositeApproachToleranceDegrees) {
-    if (!(oppositeApproachToleranceDegrees >= 0 && oppositeApproachToleranceDegrees < 90)) {
-      return refuse("Opposite approach tolerance", oppositeApproachToleranceDegrees, "from 0 to below 90 degrees");
+  public boolean setSameAxisApproachToleranceDegrees(double sameAxisApproachToleranceDegrees) {
+    if (!(sameAxisApproachToleranceDegrees >= 0 && sameAxisApproachToleranceDegrees < 90)) {
+      return refuse("Same axis approach tolerance", sameAxisApproachToleranceDegrees, "from 0 to below 90 degrees");
     }
-    this.oppositeApproachToleranceDegrees = oppositeApproachToleranceDegrees;
+    this.sameAxisApproachToleranceDegrees = sameAxisApproachToleranceDegrees;
+    return true;
+  }
+
+  /**
+   * The most phases a junction is given. A junction with approaches on more axes has the phases whose axes are closest
+   * merged until it has this many, since a complex junction gives several approaches green together
+   *
+   * @return the maximum number of phases
+   */
+  public int getMaximumNumberOfPhases() {
+    return maximumNumberOfPhases;
+  }
+
+  /**
+   * Set the most phases a junction is given
+   *
+   * @param maximumNumberOfPhases 1 or more
+   * @return true when set, false when refused
+   */
+  public boolean setMaximumNumberOfPhases(int maximumNumberOfPhases) {
+    if (maximumNumberOfPhases < 1) {
+      return refuse("Maximum number of phases", maximumNumberOfPhases, "1 or more");
+    }
+    this.maximumNumberOfPhases = maximumNumberOfPhases;
     return true;
   }
 

@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class GreenRatioAndSaturationFlowFactorSettingsTest {
 
   /** The defaults: equal split, a cycle of 90 s, 5 s lost per phase change, 0.9 at an isolated crossing, 30 degrees for
-   * opposite approaches and 0.5 for an approach without a signal of its own */
+   * approaches on the same axis, at most four phases and 0.5 for an approach without a signal of its own */
   @Test
   public void defaults() {
     var settings = new GreenRatioAndSaturationFlowFactorSettings();
@@ -24,7 +24,8 @@ public class GreenRatioAndSaturationFlowFactorSettingsTest {
     assertEquals(90, settings.getCycleTimeSeconds());
     assertEquals(5, settings.getLostTimePerPhaseChangeSeconds());
     assertEquals(0.9, settings.getIsolatedCrossingGreenRatio());
-    assertEquals(30, settings.getOppositeApproachToleranceDegrees());
+    assertEquals(30, settings.getSameAxisApproachToleranceDegrees());
+    assertEquals(4, settings.getMaximumNumberOfPhases());
     assertEquals(0.5, settings.getApproachWithoutSignalSaturationFlowFactor());
   }
 
@@ -38,16 +39,20 @@ public class GreenRatioAndSaturationFlowFactorSettingsTest {
     assertFalse(settings.setLostTimePerPhaseChangeSeconds(-1));
     assertFalse(settings.setIsolatedCrossingGreenRatio(1.2));
     assertFalse(settings.setApproachWithoutSignalSaturationFlowFactor(-0.1));
-    assertFalse(settings.setOppositeApproachToleranceDegrees(90));
+    assertFalse(settings.setSameAxisApproachToleranceDegrees(90));
+    assertFalse(settings.setMaximumNumberOfPhases(0));
     assertFalse(settings.setAlgorithmType(null));
     assertEquals(90, settings.getCycleTimeSeconds());
     assertEquals(5, settings.getLostTimePerPhaseChangeSeconds());
     assertEquals(0.9, settings.getIsolatedCrossingGreenRatio());
     assertEquals(0.5, settings.getApproachWithoutSignalSaturationFlowFactor());
-    assertEquals(30, settings.getOppositeApproachToleranceDegrees());
+    assertEquals(30, settings.getSameAxisApproachToleranceDegrees());
+    assertEquals(4, settings.getMaximumNumberOfPhases());
     assertEquals(GreenRatioAlgorithmType.EQUAL_SPLIT, settings.getAlgorithmType());
 
     assertTrue(settings.setCycleTimeSeconds(120));
+    assertTrue(settings.setMaximumNumberOfPhases(3));
+    assertEquals(3, settings.getMaximumNumberOfPhases());
     assertTrue(settings.setAlgorithmType(GreenRatioAlgorithmType.CAPACITY_WEIGHTED));
     assertEquals(120, settings.getCycleTimeSeconds());
     assertEquals(GreenRatioAlgorithmType.CAPACITY_WEIGHTED, settings.getAlgorithmType());
@@ -58,9 +63,11 @@ public class GreenRatioAndSaturationFlowFactorSettingsTest {
   public void copyHoldsTheSameValuesOnItsOwn() {
     var original = new GreenRatioAndSaturationFlowFactorSettings();
     original.setCycleTimeSeconds(100);
+    original.setMaximumNumberOfPhases(3);
 
     var copy = new GreenRatioAndSaturationFlowFactorSettings(original);
     assertEquals(100, copy.getCycleTimeSeconds());
+    assertEquals(3, copy.getMaximumNumberOfPhases());
 
     copy.setCycleTimeSeconds(60);
     assertEquals(100, original.getCycleTimeSeconds());

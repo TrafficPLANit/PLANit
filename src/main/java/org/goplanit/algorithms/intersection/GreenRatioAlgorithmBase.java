@@ -3,7 +3,6 @@ package org.goplanit.algorithms.intersection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +26,9 @@ import org.goplanit.utils.network.layer.physical.LinkSegmentUtils;
  * having no signal, it has no green ratio;</li>
  * <li>at a crossing that is no junction, each approach with a signal gets the isolated crossing green ratio of the
  * settings;</li>
- * <li>at a junction, the approaches with a signal are grouped into phases of two opposite approaches, an approach
- * without an opposite a phase of its own. The usable green time, the cycle time less the time lost at each phase
+ * <li>at a junction, the approaches with a signal are grouped into phases by axis: approaches arriving side by side or
+ * facing each other share a phase, and the phases whose axes are closest are merged until there are no more than the
+ * maximum of the settings. The usable green time, the cycle time less the time lost at each phase
  * change, is shared between the phases, the one thing the algorithms differ in, and each approach gets its phase's
  * green time divided by the cycle time. A junction without usable green time, or whose green times as shared are not
  * valid, gets no values.</li>
@@ -61,32 +61,6 @@ public abstract class GreenRatioAlgorithmBase implements GreenRatioAlgorithm {
 
     /** left as it was */
     UNCHANGED;
-  }
-
-  /** Two approaches with a signal that may form a phase, by their index, with how far they are from opposite */
-  private static final class OppositeApproachCandidate {
-
-    /** index of the first approach */
-    private final int first;
-
-    /** index of the second approach */
-    private final int second;
-
-    /** how far their directions are from 180 degrees apart, in degrees */
-    private final double degreesFromOpposite;
-
-    /**
-     * Constructor
-     *
-     * @param first index of the first approach
-     * @param second index of the second approach
-     * @param degreesFromOpposite how far their directions are from 180 degrees apart
-     */
-    private OppositeApproachCandidate(int first, int second, double degreesFromOpposite) {
-      this.first = first;
-      this.second = second;
-      this.degreesFromOpposite = degreesFromOpposite;
-    }
   }
 
   /** the logger */
@@ -136,6 +110,37 @@ public abstract class GreenRatioAlgorithmBase implements GreenRatioAlgorithm {
         value -> withSignal.setGreenRatio(value, CapacityFactorOrigin.COMPUTED), withSignal::removeGreenRatio);
   }
 
+  /**
+   * Merge the two phases whose axes are closest into one, until there are no more phases than the maximum. The axis of
+   * a phase is the direction of its first approach, and a merged phase keeps the axis of the earlier of the two. When
+   * several pairs are equally close, the first pair in the order of the phases is merged
+   *
+   * @param phases to merge, each a list of approaches that can be added to
+   * @param phaseDirections the direction of the first approach of each phase, in the order of the phases
+   * @param maximumNumberOfPhases to merge down to
+   */
+  private static void mergeClosestAxesDownTo(
+      List<List<IntersectionSegment>> phases, List<Double> phaseDirections, int maximumNumberOfPhases) {
+    while (phases.size() > maximumNumberOfPhases) {
+      int closestFirst = 0;
+      int closestSecond = 1;
+      double closestAxisDifference = Double.POSITIVE_INFINITY;
+      for (int first = 0; first < phases.size(); ++first) {
+        for (int second = first + 1; second < phases.size(); ++second) {
+          double axisDifference =
+              PlanitJtsUtils.minDiffAxisAngleInDegrees(phaseDirections.get(first), phaseDirections.get(second));
+          if (axisDifference < closestAxisDifference) {
+            closestFirst = first;
+            closestSecond = second;
+            closestAxisDifference = axisDifference;
+          }
+        }
+      }
+      phases.get(closestFirst).addAll(phases.remove(closestSecond));
+      phaseDirections.remove(closestSecond);
+    }
+  }
+
   /** the settings */
   private final GreenRatioAndSaturationFlowFactorSettings settings;
 
@@ -143,45 +148,35 @@ public abstract class GreenRatioAlgorithmBase implements GreenRatioAlgorithm {
   private double stopLineDirectionReachMeters = DEFAULT_STOP_LINE_DIRECTION_REACH_METERS;
 
   /**
-   * Group the approaches with a signal of a junction into phases of two opposite approaches. Two are opposite when
-   * their directions at the stop line are 180 degrees apart within the tolerance of the settings. Pairs are made
-   * greedily, the most nearly opposite first, each approach in at most one pair; an approach without an opposite is a
-   * phase of its own
+   * Group the approaches with a signal of a junction into phases by axis. Two approaches are on the same axis when
+   * their directions at the stop line are within the tolerance of the settings of each other or of the opposite
+   * direction. An approach joins the phase of the first approach on its axis, and otherwise starts a phase of its own.
+   * While there are more phases than the maximum of the settings, the two whose axes are closest are merged
    *
    * @param withSignal the approaches with a signal, in the order of the junction
    * @param crsUtils to measure directions with
-   * @return the phases, each of one or two approaches
+   * @return the phases, each of one or more approaches
    */
-  private List<List<IntersectionSegment>> groupIntoPhasesOfOppositeApproaches(
+  private List<List<IntersectionSegment>> groupIntoPhasesByAxis(
       List<IntersectionSegment> withSignal, PlanitJtsCrsUtils crsUtils) {
-    var directions = withSignal.stream().mapToDouble(approach -> LinkSegmentUtils
-        .getAzimuthArrivingAtDownstreamNodeInDegrees(approach.getLinkSegment(), stopLineDirectionReachMeters, crsUtils))
-        .toArray();
-    var candidates = new ArrayList<OppositeApproachCandidate>();
-    for (int first = 0; first < directions.length; ++first) {
-      for (int second = first + 1; second < directions.length; ++second) {
-        double degreesFromOpposite = 180 - PlanitJtsUtils.minDiffAngleInDegrees(directions[first], directions[second]);
-        if (degreesFromOpposite <= settings.getOppositeApproachToleranceDegrees()) {
-          candidates.add(new OppositeApproachCandidate(first, second, degreesFromOpposite));
-        }
-      }
-    }
-    candidates.sort(Comparator.comparingDouble(candidate -> candidate.degreesFromOpposite));
-
-    var paired = new boolean[directions.length];
+    double toleranceDegrees = settings.getSameAxisApproachToleranceDegrees();
     var phases = new ArrayList<List<IntersectionSegment>>();
-    for (var candidate : candidates) {
-      if (!paired[candidate.first] && !paired[candidate.second]) {
-        phases.add(List.of(withSignal.get(candidate.first), withSignal.get(candidate.second)));
-        paired[candidate.first] = true;
-        paired[candidate.second] = true;
+    var phaseDirections = new ArrayList<Double>();
+    for (var approach : withSignal) {
+      double direction = LinkSegmentUtils.getAzimuthArrivingAtDownstreamNodeInDegrees(
+          approach.getLinkSegment(), stopLineDirectionReachMeters, crsUtils);
+      int phase = 0;
+      while (phase < phases.size() &&
+          PlanitJtsUtils.minDiffAxisAngleInDegrees(direction, phaseDirections.get(phase)) > toleranceDegrees) {
+        ++phase;
       }
-    }
-    for (int index = 0; index < directions.length; ++index) {
-      if (!paired[index]) {
-        phases.add(List.of(withSignal.get(index)));
+      if (phase == phases.size()) {
+        phases.add(new ArrayList<>());
+        phaseDirections.add(direction);
       }
+      phases.get(phase).add(approach);
     }
+    mergeClosestAxesDownTo(phases, phaseDirections, settings.getMaximumNumberOfPhases());
     return phases;
   }
 
@@ -226,7 +221,7 @@ public abstract class GreenRatioAlgorithmBase implements GreenRatioAlgorithm {
         approach -> (approach.hasSignal() ? withSignal : withoutSignal).add(approach));
 
     if (intersection.isJunction()) {
-      var phases = groupIntoPhasesOfOppositeApproaches(withSignal, crsUtils);
+      var phases = groupIntoPhasesByAxis(withSignal, crsUtils);
       double cycleTimeSeconds = settings.getCycleTimeSeconds();
       double usableGreenTimeSeconds = cycleTimeSeconds - phases.size() * settings.getLostTimePerPhaseChangeSeconds();
       if (usableGreenTimeSeconds <= 0) {
@@ -315,7 +310,7 @@ public abstract class GreenRatioAlgorithmBase implements GreenRatioAlgorithm {
    * Share the usable green time of a junction between its phases
    *
    * @param junction the phases are of
-   * @param phases of the junction, each of one or two approaches with a signal
+   * @param phases of the junction, each of one or more approaches with a signal
    * @param usableGreenTimeSeconds the cycle time less the time lost at the phase changes, above 0
    * @return the green time of each phase in seconds, in the order of the phases, adding up to the usable green time
    */

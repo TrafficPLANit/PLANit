@@ -214,6 +214,60 @@ public class GreenRatioAlgorithmTest extends LayerTestBase {
   }
 
   /**
+   * Approaches arriving side by side share a phase with the traffic facing them: a crossroads with a tram track 5
+   * degrees beside each road has eight approaches on two axes, so two phases and 0.44 for all eight
+   */
+  @Test
+  public void approachesArrivingSideBySideShareAPhase() {
+    var junction = signalisedJunctionAt(centreWithArms(0, 0, 0, 5, 90, 95, 180, 185, 270, 275));
+
+    var result = computeEqualSplit(junction);
+
+    assertEquals(2, result.getNumberOfPhases(junction));
+    assertEquals(8, junction.getApproaches().size());
+    junction.getApproaches().forEach(approach -> assertEquals(FOUR_ARM_EQUAL_SPLIT, greenRatioOf(approach), 1e-9));
+  }
+
+  /**
+   * A junction with approaches on more axes than the maximum number of phases has the closest axes merged: five arms
+   * 36 degrees apart are five axes, merged down to the default of four phases, so each approach gets
+   * (90 - 4 x 5) / 4 / 90, about 0.19
+   */
+  @Test
+  public void moreAxesThanTheMaximumAreMergedDownToIt() {
+    var junction = signalisedJunctionAt(centreWithArms(0, 0, 0, 36, 72, 108, 144));
+
+    var result = computeEqualSplit(junction);
+
+    assertEquals(4, result.getNumberOfPhases(junction));
+    junction.getApproaches().forEach(approach -> assertEquals(70.0 / 4 / 90, greenRatioOf(approach), 1e-9));
+  }
+
+  /**
+   * With a maximum of three phases, the two closest axes merge first. Arms at 0, 35, 90 and 130 degrees are four axes,
+   * the closest 0 and 35. Capacity weighted, with 3,600 on the arm at 35 and 1,800 on the others, the merged phase
+   * weighs as 3,600, so the arm at 0 gets 75 x 3,600 / 7,200 = 37.5 s of green
+   */
+  @Test
+  public void closestAxesMergeFirst() {
+    var mainRoad = layer.getLinkSegmentTypes().getFactory().registerNew("main road", 3600, 180);
+    int centre = node(0, 0);
+    int north = arm(centre, 0, road);
+    arm(centre, 35, mainRoad);
+    arm(centre, 90, road);
+    arm(centre, 130, road);
+    var junction = signalisedJunctionAt(centre);
+    var settings = new GreenRatioAndSaturationFlowFactorSettings();
+    settings.setAlgorithmType(GreenRatioAlgorithmType.CAPACITY_WEIGHTED);
+    settings.setMaximumNumberOfPhases(3);
+
+    var result = compute(settings, junction);
+
+    assertEquals(3, result.getNumberOfPhases(junction));
+    assertEquals(37.5 / 90, greenRatioOf(approach(junction, north, centre)), 1e-9);
+  }
+
+  /**
    * An approach without a signal of its own, here a fifth arm at 45 degrees, gets a computed saturation flow factor of
    * 0.5, which is its effective capacity factor, and takes no part in the phases, so the junction still has two
    */
@@ -441,10 +495,10 @@ public class GreenRatioAlgorithmTest extends LayerTestBase {
     assertEquals(sideRoadGreenRatio, greenRatioOf(approach(junction, west, centre)), 1e-9);
   }
 
-  /** The capacity of a phase is the larger of its paired approaches: a main road of 3,600 one way and 1,800 the other
+  /** The capacity of a phase is the largest of its approaches': a main road of 3,600 one way and 1,800 the other
    * weighs as 3,600 */
   @Test
-  public void phaseCapacityIsTheLargerOfItsPairedApproaches() {
+  public void phaseCapacityIsTheLargestOfItsApproaches() {
     var mainRoad = layer.getLinkSegmentTypes().getFactory().registerNew("main road", 3600, 180);
     int centre = node(0, 0);
     int north = arm(centre, 0, mainRoad);
