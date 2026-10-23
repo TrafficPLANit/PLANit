@@ -1,6 +1,7 @@
 package org.goplanit.test.algorithms.intersection;
 
 import java.util.List;
+import java.util.Map;
 
 import org.goplanit.algorithms.intersection.GreenRatioAlgorithmBase;
 import org.goplanit.algorithms.intersection.GreenRatioAlgorithmFactory;
@@ -451,6 +452,18 @@ public class GreenRatioAlgorithmTest extends LayerTestBase {
 
     assertEquals(2, result.getNumberOfPhases(fourArms));
     assertEquals(3, result.getNumberOfPhases(sixArms));
+  }
+
+  /** Run on two four-arm and one six-arm junction, the result gives two junctions with two phases and one with three */
+  @Test
+  public void resultGivesTheJunctionsPerNumberOfPhases() {
+    var firstFourArms = signalisedJunctionAt(centreWithArms(0, 0, 0, 90, 180, 270));
+    var secondFourArms = signalisedJunctionAt(centreWithArms(1000, 0, 0, 90, 180, 270));
+    var sixArms = signalisedJunctionAt(centreWithArms(2000, 0, 0, 60, 120, 180, 240, 300));
+
+    var result = computeEqualSplit(firstFourArms, secondFourArms, sixArms);
+
+    assertEquals(Map.of(2, 2L, 3, 1L), result.getNumberOfJunctionsByNumberOfPhases());
   }
 
   /** Run on one intersection, another is left as it was */

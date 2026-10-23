@@ -20,6 +20,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.CapacityFactorOrigin;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegmentKind;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSignalSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUnsignalisedSegment;
@@ -426,7 +427,6 @@ public class IntersectionsTest extends LayerTestBase {
     createJunctionArea();
     var junction = twoNodeJunction();
     junction.addNewInternalSegmentWithSignal(segment(0, 5));
-    intersections.getFactory().register(junction);
     var approach = approachWithSignal(junction, 1, 0);
     approach.setGreenRatio(0.44, CapacityFactorOrigin.COMPUTED);
     approach.setSaturationFlowFactor(0.95, CapacityFactorOrigin.SET_DIRECTLY);
@@ -436,10 +436,43 @@ public class IntersectionsTest extends LayerTestBase {
     junction.getIntersectionInternalSegment(segment(5, 0))
         .setSaturationFlowFactor(0.9, CapacityFactorOrigin.SET_DIRECTLY);
 
-    assertEquals(0.418, intersections.getEffectiveCapacityFactorOf(segment(1, 0)), 1e-9);
-    assertEquals(0.54, intersections.getEffectiveCapacityFactorOf(segment(0, 5)), 1e-9);
-    assertEquals(1, intersections.getEffectiveCapacityFactorOf(segment(5, 0)));
-    assertEquals(1, intersections.getEffectiveCapacityFactorOf(segment(0, 2)));
+    assertEquals(0.418, junction.getEffectiveCapacityFactorOf(segment(1, 0)), 1e-9);
+    assertEquals(0.54, junction.getEffectiveCapacityFactorOf(segment(0, 5)), 1e-9);
+    assertEquals(1, junction.getEffectiveCapacityFactorOf(segment(5, 0)));
+    assertEquals(1, junction.getEffectiveCapacityFactorOf(segment(0, 2)));
+  }
+
+  /** The kind of intersection segment a link segment is: an approach with a signal at a junction, also at one that is
+   * a crossing too, or at a crossing only; an approach without a signal; an internal segment with or without a signal;
+   * or none, both for a link segment arriving without being an approach and for an exit */
+  @Test
+  public void intersectionSegmentKindOfLinkSegment() {
+    createJunctionArea();
+    var junction = twoNodeJunction();
+    junction.addNewInternalSegmentWithSignal(segment(0, 5));
+    junction.swapApproachToNewSignalOrUnsignalised(segment(6, 5), false);
+    var crossing = intersections.getFactory().createNonSpatial(
+        nodes.get(3), IntersectionControlType.SIGNALISED, IntersectionType.CROSSING);
+    crossing.addNewApproachSegment(segment(0, 3));
+    var junctionAndCrossing = intersections.getFactory().createNonSpatial(
+        nodes.get(4), IntersectionControlType.SIGNALISED, IntersectionType.CROSSING);
+    junctionAndCrossing.addType(IntersectionType.JUNCTION);
+    junctionAndCrossing.addNewApproachSegment(segment(0, 4));
+
+    assertEquals(IntersectionSegmentKind.APPROACH_WITH_SIGNAL_AT_JUNCTION,
+        junction.getIntersectionSegmentKindOf(segment(1, 0)));
+    assertEquals(IntersectionSegmentKind.APPROACH_WITH_SIGNAL_AT_JUNCTION,
+        junctionAndCrossing.getIntersectionSegmentKindOf(segment(0, 4)));
+    assertEquals(IntersectionSegmentKind.APPROACH_WITH_SIGNAL_AT_CROSSING_ONLY,
+        crossing.getIntersectionSegmentKindOf(segment(0, 3)));
+    assertEquals(IntersectionSegmentKind.APPROACH_WITHOUT_SIGNAL,
+        junction.getIntersectionSegmentKindOf(segment(6, 5)));
+    assertEquals(IntersectionSegmentKind.INTERNAL_SEGMENT_WITH_SIGNAL,
+        junction.getIntersectionSegmentKindOf(segment(0, 5)));
+    assertEquals(IntersectionSegmentKind.INTERNAL_SEGMENT_WITHOUT_SIGNAL,
+        junction.getIntersectionSegmentKindOf(segment(5, 0)));
+    assertNull(junction.getIntersectionSegmentKindOf(segment(2, 0)));
+    assertNull(junction.getIntersectionSegmentKindOf(segment(0, 2)));
   }
 
   /** A plain internal segment given a signal is replaced, at its place, by one with a signal keeping its saturation

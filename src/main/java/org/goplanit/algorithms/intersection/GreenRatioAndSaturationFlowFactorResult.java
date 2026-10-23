@@ -5,6 +5,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegment;
@@ -133,6 +136,17 @@ public class GreenRatioAndSaturationFlowFactorResult {
   }
 
   /**
+   * How many signalised junctions got each number of phases, for example two junctions with two phases and one with
+   * three
+   *
+   * @return map of number of phases to the number of junctions with it, by number of phases
+   */
+  public SortedMap<Integer, Long> getNumberOfJunctionsByNumberOfPhases() {
+    return numberOfPhasesByJunction.values().stream().collect(
+        Collectors.groupingBy(numberOfPhases -> numberOfPhases, TreeMap::new, Collectors.counting()));
+  }
+
+  /**
    * The intersections that could not be computed, because no green time was left once the time lost at the phase
    * changes was taken off the cycle
    *
@@ -153,15 +167,20 @@ public class GreenRatioAndSaturationFlowFactorResult {
   }
 
   /**
-   * One line summing up what was done
+   * One line summing up what was done, with how many junctions got each number of phases, for example "(1 phase at
+   * 75, 2 phases at 348)"
    *
    * @return the summary
    */
   @Override
   public String toString() {
-    return String.format("Green ratios computed for %d approaches at %d junctions, values given to %d approaches " +
+    var junctionsByNumberOfPhases = getNumberOfJunctionsByNumberOfPhases().entrySet().stream().map(
+        entry -> String.format("%d %s at %d", entry.getKey(), entry.getKey() == 1 ? "phase" : "phases",
+            entry.getValue())).collect(Collectors.joining(", "));
+    return String.format("Green ratios computed for %d approaches at %d junctions%s, values given to %d approaches " +
             "without a signal of their own, %d approaches keeping values set directly, %d intersections not " +
             "computable, %d stale computed values removed", computedGreenRatios.size(), numberOfPhasesByJunction.size(),
+        junctionsByNumberOfPhases.isEmpty() ? "" : " (" + junctionsByNumberOfPhases + ")",
         approachesWithoutSignalGivenValues.size(), approachesKeepingValueSetDirectly.size(),
         notComputableIntersections.size(), approachesWithStaleComputedValueRemoved.size());
   }
