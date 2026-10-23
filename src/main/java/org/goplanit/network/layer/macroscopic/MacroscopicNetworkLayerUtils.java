@@ -14,12 +14,13 @@ import org.goplanit.utils.misc.binning.BinningConfiguration;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicBannedTurn;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegmentUtils;
+import org.goplanit.utils.network.layer.physical.LinkUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 
 import java.util.Collection;
@@ -171,26 +172,9 @@ public class MacroscopicNetworkLayerUtils {
       final MacroscopicNetworkLayer layer, final Mode mode, final Connectivity connectivity) {
     if (connectivity.isStrong()) {
       return StronglyConnectedComponents.execute(
-          layer.getNodes(), MacroscopicLinkSegmentUtils.permitsMode(mode)).getComponents();
+          layer.getNodes(), LinkSegmentUtils.permitsMode(mode)).getComponents();
     }
-    return ConnectedComponents.execute(layer.getNodes(), edgeCarriesMode(mode));
-  }
-
-  /**
-   * Condition for an edge taking part in a mode's undirected network, i.e. either of its segments permits the mode
-   *
-   * @param mode to test for
-   * @return predicate to use
-   */
-  private static Predicate<? super Edge> edgeCarriesMode(final Mode mode) {
-    return edge -> {
-      if (!(edge instanceof MacroscopicLink)) {
-        return false;
-      }
-      var link = (MacroscopicLink) edge;
-      return (link.hasEdgeSegmentAb() && link.getLinkSegmentAb().isModeAllowed(mode)) ||
-             (link.hasEdgeSegmentBa() && link.getLinkSegmentBa().isModeAllowed(mode));
-    };
+    return ConnectedComponents.execute(layer.getNodes(), LinkUtils.permitsModeMatchingOnAnySegment(mode::equals));
   }
 
   /**
@@ -269,7 +253,7 @@ public class MacroscopicNetworkLayerUtils {
    * @return true when a banned turn forbids the turn to the mode, false otherwise
    */
   public static boolean isTurnBannedForMode(
-      final MacroscopicNetworkLayer layer, MacroscopicLinkSegment from, MacroscopicLinkSegment to, Mode mode) {
+      final MacroscopicNetworkLayer layer, LinkSegment from, LinkSegment to, Mode mode) {
     return layer.getBannedTurns().getBySegment(from).stream()
         .anyMatch(banned -> banned.getSegmentFrom() == from && banned.getSegmentTo() == to &&
             (!(banned instanceof MacroscopicBannedTurn) || ((MacroscopicBannedTurn) banned).isModeBanned(mode)));
@@ -299,6 +283,10 @@ public class MacroscopicNetworkLayerUtils {
    * two-way inner link and straight back, which no driver does inside a junction, and the movement would count as one
    * the mode can make
    *
+   * A member node can also hold connectoid segments, once the zoning is integrated with the network, for example to
+   * write it or to assign on it. The search runs over link segments of either kind: a connectoid segment has the
+   * centroid of its zone at one end, so it is never internal, and is at most reached as an exit
+   *
    * @param layer holding the banned turns
    * @param intersection to search through
    * @param approach to start from
@@ -307,12 +295,12 @@ public class MacroscopicNetworkLayerUtils {
    * @return the internal segments and exits reached, the approach included, each with the shortest connection to it
    *         and its distance from where the approach ends, in metres
    */
-  static ShortestPathBreadthFirstResult<MacroscopicLinkSegment> searchThroughSpatialIntersection(
+  public static ShortestPathBreadthFirstResult<LinkSegment> searchThroughSpatialIntersection(
       final MacroscopicNetworkLayer layer, final SpatialIntersection intersection,
-      final MacroscopicLinkSegment approach, final Mode mode, boolean respectBannedTurns) {
-    Predicate<MacroscopicLinkSegment> isInternal =
+      final LinkSegment approach, final Mode mode, boolean respectBannedTurns) {
+    Predicate<LinkSegment> isInternal =
         segment -> ListUtils.containsByIdentity(intersection.getInternalSegments(), segment);
-    return ShortestPathBreadthFirst.<MacroscopicLinkSegment>executeAlongEdgeSegments(approach, true,
+    return ShortestPathBreadthFirst.<LinkSegment>executeAlongEdgeSegments(approach, true,
         (from, onto) -> onto.isModeAllowed(mode) && onto.getParent() != approach.getParent() &&
             onto.getParent() != from.getParent() &&
             (isInternal.test(onto) || intersection.isExitSegment(onto)) &&
@@ -332,13 +320,14 @@ public class MacroscopicNetworkLayerUtils {
    * @param approach to start from, or any other segment entering a member node from outside
    * @param mode travelling, only over link segments allowing it
    * @param respectBannedTurns when true a turn banned for the mode is not taken, when false banned turns are ignored
-   * @return each exit reached with its distance from where the approach ends, in metres
+   * @return each exit reached with its distance from where the approach ends, in metres, a connectoid segment leaving a
+   *         member node included, see {@link #searchThroughSpatialIntersection}
    */
-  public static Map<MacroscopicLinkSegment, Double> findExitsReachedThroughSpatialIntersection(
+  public static Map<LinkSegment, Double> findExitsReachedThroughSpatialIntersection(
       final MacroscopicNetworkLayer layer, final SpatialIntersection intersection,
-      final MacroscopicLinkSegment approach, final Mode mode, boolean respectBannedTurns) {
+      final LinkSegment approach, final Mode mode, boolean respectBannedTurns) {
     var reached = searchThroughSpatialIntersection(layer, intersection, approach, mode, respectBannedTurns);
-    var exitsReached = new LinkedHashMap<MacroscopicLinkSegment, Double>();
+    var exitsReached = new LinkedHashMap<LinkSegment, Double>();
     reached.getReached().stream().filter(intersection::isExitSegment)
         .forEach(exit -> exitsReached.put(exit, reached.getCostToReach(exit)));
     return exitsReached;
@@ -347,22 +336,26 @@ public class MacroscopicNetworkLayerUtils {
   /**
    * Ban a turn for the given modes. When the turn is banned already, its banned turn gains the modes rather than a
    * second one being registered: a banned turn that bans every mode stays as it is, and one that names modes names
-   * these too, or every mode of the layer when none are given
+   * these too, or every mode of the layer when none are given. A turn ban is physical, between link segments of the
+   * layer, so a turn onto or off a connectoid segment of an integrated zoning is not banned
    *
    * @param layer to register the banned turn on
    * @param from link segment arriving at the node
    * @param to link segment leaving it
    * @param explicitlyBannedModes the modes to ban; when empty every mode is banned
-   * @return the banned turn registered or extended
+   * @return the banned turn registered or extended, null when either segment is not a link segment of the layer
    */
   public static MacroscopicBannedTurn banTurnForModes(
-      final MacroscopicNetworkLayer layer, MacroscopicLinkSegment from, MacroscopicLinkSegment to,
-      Collection<Mode> explicitlyBannedModes) {
+      final MacroscopicNetworkLayer layer, LinkSegment from, LinkSegment to, Collection<Mode> explicitlyBannedModes) {
+    if (!(from instanceof MacroscopicLinkSegment && to instanceof MacroscopicLinkSegment)) {
+      return null;
+    }
     var existing = layer.getBannedTurns().getBySegment(from).stream()
         .filter(banned -> banned.getSegmentFrom() == from && banned.getSegmentTo() == to)
         .map(MacroscopicBannedTurn.class::cast).findFirst().orElse(null);
     if (existing == null) {
-      return layer.getBannedTurns().getFactory().registerNew(from, to, explicitlyBannedModes);
+      return layer.getBannedTurns().getFactory().registerNew(
+          (MacroscopicLinkSegment) from, (MacroscopicLinkSegment) to, explicitlyBannedModes);
     }
     if (existing.hasExplicitlyBannedModes()) {
       (explicitlyBannedModes.isEmpty() ? layer.getSupportedModes() : explicitlyBannedModes)

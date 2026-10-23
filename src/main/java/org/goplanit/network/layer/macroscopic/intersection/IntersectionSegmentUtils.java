@@ -2,7 +2,7 @@ package org.goplanit.network.layer.macroscopic.intersection;
 
 import java.util.List;
 
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
  * Utilities for a list of intersection segments, the approaches or the internal segments an intersection holds. They
@@ -26,7 +26,7 @@ public class IntersectionSegmentUtils {
    * @return the intersection segment, null when none has the link segment
    */
   public static <T extends IntersectionSegmentImpl> T findByLinkSegment(
-      List<T> intersectionSegments, MacroscopicLinkSegment linkSegment) {
+      List<T> intersectionSegments, LinkSegment linkSegment) {
     for (var intersectionSegment : intersectionSegments) {
       if (intersectionSegment.getLinkSegment() == linkSegment) {
         return intersectionSegment;
@@ -44,7 +44,7 @@ public class IntersectionSegmentUtils {
    * @return true when removed, false when none has the link segment
    */
   public static <T extends IntersectionSegmentImpl> boolean removeByLinkSegment(
-      List<T> intersectionSegments, MacroscopicLinkSegment linkSegment) {
+      List<T> intersectionSegments, LinkSegment linkSegment) {
     return intersectionSegments.removeIf(intersectionSegment -> intersectionSegment.getLinkSegment() == linkSegment);
   }
 
@@ -60,7 +60,7 @@ public class IntersectionSegmentUtils {
    * segment
    */
   public static IntersectionSegmentImpl swapToSignalOrUnsignalised(
-      List<IntersectionSegmentImpl> intersectionSegments, MacroscopicLinkSegment linkSegment, boolean hasSignal) {
+      List<IntersectionSegmentImpl> intersectionSegments, LinkSegment linkSegment, boolean hasSignal) {
     for (int index = 0; index < intersectionSegments.size(); ++index) {
       var intersectionSegment = intersectionSegments.get(index);
       if (intersectionSegment.getLinkSegment() == linkSegment) {

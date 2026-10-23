@@ -12,10 +12,10 @@ import org.goplanit.utils.containers.EntityIndex;
 import org.goplanit.utils.containers.IdentityEntityIndex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovementFactory;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovements;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
  * Container for the spatial movements of a macroscopic network layer, with a lookup of the movements starting or
@@ -31,7 +31,7 @@ public class SpatialMovementsImpl extends ManagedIdEntitiesImpl<SpatialMovement>
   private final SpatialMovementFactory spatialMovementFactory;
 
   /** link segment to the movements entering or leaving on it; by identity */
-  private final EntityIndex<MacroscopicLinkSegment, SpatialMovement> bySegment = new IdentityEntityIndex<>(
+  private final EntityIndex<LinkSegment, SpatialMovement> bySegment = new IdentityEntityIndex<>(
       movement -> Arrays.asList(movement.getLinkSegmentFrom(), movement.getLinkSegmentTo()));
 
   /**
@@ -128,7 +128,7 @@ public class SpatialMovementsImpl extends ManagedIdEntitiesImpl<SpatialMovement>
    * {@inheritDoc}
    */
   @Override
-  public List<SpatialMovement> getBySegment(MacroscopicLinkSegment segment) {
+  public List<SpatialMovement> getBySegment(LinkSegment segment) {
     return bySegment.get(segment);
   }
 
@@ -144,14 +144,16 @@ public class SpatialMovementsImpl extends ManagedIdEntitiesImpl<SpatialMovement>
    * Replace the segments of every movement based on the mapping provided, e.g. to their copies after a deep copy of
    * the layer, keeping the lookup by segment in step. A movement with a segment without a mapping is removed
    *
+   * @param <S> type of link segment the mapping takes, for example of the layer when it maps a deep copy
    * @param segmentToSegmentMapping should contain the segment as currently used and then the value is the new segment
    *                                to replace it
    */
-  public void updateSegmentMapping(Function<MacroscopicLinkSegment, MacroscopicLinkSegment> segmentToSegmentMapping) {
+  @SuppressWarnings("unchecked")
+  public <S extends LinkSegment> void updateSegmentMapping(Function<S, ? extends LinkSegment> segmentToSegmentMapping) {
     var unmapped = new ArrayList<SpatialMovement>();
     for (var movement : this) {
-      var from = segmentToSegmentMapping.apply(movement.getLinkSegmentFrom());
-      var to = segmentToSegmentMapping.apply(movement.getLinkSegmentTo());
+      var from = segmentToSegmentMapping.apply((S) movement.getLinkSegmentFrom());
+      var to = segmentToSegmentMapping.apply((S) movement.getLinkSegmentTo());
       if (from == null || to == null) {
         unmapped.add(movement);
         continue;

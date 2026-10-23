@@ -29,13 +29,15 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicBannedTurn;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkUtils;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapseModifierResult;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapserSettings;
+import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.NodeUtils;
 
@@ -48,6 +50,21 @@ import org.goplanit.utils.network.layer.physical.NodeUtils;
  * @author markr
  */
 public class IntersectionModeCollapser {
+
+  /**
+   * The link added for a collapsed mode from the centre node to a member node, see {@link #addLinkToCentreNode}. It is
+   * the one link between the two that allows the mode, since the links moved to the centre end outside the intersection
+   *
+   * @param centre node of the intersection
+   * @param memberNode the link joins the centre to
+   * @param mode collapsed, the only mode the link allows
+   * @return the link, null when none was added
+   */
+  private static Link findLinkToCentreNode(Node centre, Node memberNode, Mode mode) {
+    return centre.getEdges(memberNode).stream().map(Link.class::cast)
+        .filter(link -> LinkUtils.hasSegmentMatching(link, segment -> segment.isModeAllowed(mode)))
+        .findFirst().orElse(null);
+  }
 
   /** the layer whose spatial intersections are collapsed */
   private final MacroscopicNetworkLayerImpl layer;
@@ -114,21 +131,6 @@ public class IntersectionModeCollapser {
   }
 
   /**
-   * The link added for a collapsed mode from the centre node to a member node, see {@link #addLinkToCentreNode}. It is
-   * the one link between the two that allows the mode, since the links moved to the centre end outside the intersection
-   *
-   * @param centre node of the intersection
-   * @param memberNode the link joins the centre to
-   * @param mode collapsed, the only mode the link allows
-   * @return the link, null when none was added
-   */
-  private static MacroscopicLink findLinkToCentreNode(Node centre, Node memberNode, Mode mode) {
-    return centre.getEdges(memberNode).stream().map(MacroscopicLink.class::cast)
-        .filter(link -> MacroscopicLinkUtils.hasSegmentMatching(link, segment -> segment.isModeAllowed(mode)))
-        .findFirst().orElse(null);
-  }
-
-  /**
    * Collapse one spatial intersection: a centre node is added, the internal segments lose access for the collapsed
    * modes, links used only by them move their member node end to the centre, and a link for each of them joins the
    * centre to each member node where a kept road still allows it. The collapsed modes are banned on the new turns so
@@ -143,16 +145,19 @@ public class IntersectionModeCollapser {
     var collapsedModesBannedOfMovement = findCollapsedModesBannedOfMovements(intersection);
     var exitsReachedFromEntriesThatAreNotApproaches = findExitsReachedFromEntriesThatAreNotApproaches(intersection);
     var centre = addCentreNode(intersection);
-    /* the internal segments lose access for the collapsed modes */
+    /* the internal segments lose access for the collapsed modes. Each is a link segment of the layer: a connectoid
+     * segment has a centroid at one end, so it is never internal */
     for (var segment : List.copyOf(intersection.getInternalSegments())) {
-      modes.stream().filter(segment::isModeAllowed).forEach(
-          mode -> MacroscopicNetworkLayerUtils.withdrawModeAccess(layer, modifiedTypes, segment, mode));
+      modes.stream().filter(segment::isModeAllowed).forEach(mode -> MacroscopicNetworkLayerUtils.withdrawModeAccess(
+          layer, modifiedTypes, (MacroscopicLinkSegment) segment, mode));
     }
     /* links leaving the intersection that only collapsed modes use move their member node end to the centre */
     for (var memberNode : memberNodes) {
-      for (var link : List.copyOf(memberNode.<MacroscopicLink>getLinks())) {
+      /* links of the layer only: a connectoid link of an integrated zoning belongs to the zoning */
+      for (var link : memberNode.getLinks().stream().filter(MacroscopicLink.class::isInstance)
+          .map(MacroscopicLink.class::cast).collect(Collectors.toList())) {
         if (!intersection.hasMemberNode(link.getOtherNode(memberNode)) &&
-            MacroscopicLinkUtils.isUsedOnlyByModes(link, modes)) {
+            LinkUtils.isUsedOnlyByModes(link, modes)) {
           layer.getLayerModifier().moveLinkEndNode(link, memberNode, centre, crsUtils.getCoordinateReferenceSystem())
               .forEach(result::addRemovedBannedTurn);
           result.addLinkMovedToCentreNode(link);
@@ -162,8 +167,8 @@ public class IntersectionModeCollapser {
     /* a link per collapsed mode joins the centre to each member node where a kept road still allows that mode */
     for (var mode : modes) {
       for (var memberNode : memberNodes) {
-        var keptRoadSegment = memberNode.<MacroscopicLink>getLinks().stream()
-            .filter(link -> !intersection.hasMemberNode(link.getOtherNode(memberNode)))
+        var keptRoadSegment = memberNode.getLinks().stream().filter(MacroscopicLink.class::isInstance)
+            .map(MacroscopicLink.class::cast).filter(link -> !intersection.hasMemberNode(link.getOtherNode(memberNode)))
             .flatMap(link -> link.getLinkSegments().stream()).map(MacroscopicLinkSegment.class::cast)
             .filter(segment -> segment.isModeAllowed(mode)).min(IdAbleUtils.byId()).orElse(null);
         if (keptRoadSegment != null) {
@@ -210,10 +215,10 @@ public class IntersectionModeCollapser {
    * @param intersection to work out
    * @return per collapsed mode, each entering segment that is not an approach with an exit it could reach
    */
-  private Map<Mode, List<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>>>
+  private Map<Mode, List<Pair<LinkSegment, LinkSegment>>>
       findExitsReachedFromEntriesThatAreNotApproaches(SpatialIntersection intersection) {
-    var exitsReached = new LinkedHashMap<Mode, List<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>>>();
-    for (var entry : IntersectionUtils.findSegmentsEnteringFromOutsideThatAreNotApproaches(
+    var exitsReached = new LinkedHashMap<Mode, List<Pair<LinkSegment, LinkSegment>>>();
+    for (var entry : IntersectionUtils.<LinkSegment>findSegmentsEnteringFromOutsideThatAreNotApproaches(
         intersection, segment -> true)) {
       for (var mode : modes) {
         if (!entry.isModeAllowed(mode)) {
@@ -242,22 +247,22 @@ public class IntersectionModeCollapser {
    * @param mode collapsed
    * @return the turns as pairs of from and to segment, in order
    */
-  private List<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>> findTurnsOfCollapsedMode(
-      MacroscopicLinkSegment from, MacroscopicLinkSegment to, Node centre, Mode mode) {
+  private List<Pair<LinkSegment, LinkSegment>> findTurnsOfCollapsedMode(
+      LinkSegment from, LinkSegment to, Node centre, Mode mode) {
     var fromNode = from.getDownstreamNode();
     var toNode = to.getUpstreamNode();
     if (fromNode == toNode && fromNode != centre) {
       return List.of();
     }
     /* from a member node onto the link to the centre */
-    var turns = new ArrayList<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>>(3);
+    var turns = new ArrayList<Pair<LinkSegment, LinkSegment>>(3);
     var arriving = from;
     if (fromNode != centre) {
       var link = findLinkToCentreNode(centre, fromNode, mode);
       if (link == null) {
         return List.of();
       }
-      var towardsCentre = (MacroscopicLinkSegment) link.getSegmentDownstreamFrom(fromNode);
+      var towardsCentre = (LinkSegment) link.getSegmentDownstreamFrom(fromNode);
       turns.add(Pair.of(arriving, towardsCentre));
       arriving = towardsCentre;
     }
@@ -267,7 +272,7 @@ public class IntersectionModeCollapser {
       if (link == null) {
         return List.of();
       }
-      var fromCentre = (MacroscopicLinkSegment) link.getSegmentDownstreamFrom(centre);
+      var fromCentre = (LinkSegment) link.getSegmentDownstreamFrom(centre);
       turns.add(Pair.of(arriving, fromCentre));
       turns.add(Pair.of(fromCentre, to));
     } else {
@@ -299,14 +304,14 @@ public class IntersectionModeCollapser {
    */
   private void restrictNewTurnsToMovementsPossibleWhileSpatial(SpatialIntersection intersection, Node centre,
       Map<SpatialMovement, List<Mode>> collapsedModesBannedOfMovement,
-      Map<Mode, List<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>>>
+      Map<Mode, List<Pair<LinkSegment, LinkSegment>>>
           exitsReachedFromEntriesThatAreNotApproaches) {
-    var bannedModesOfTurn = new LinkedHashMap<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>, List<Mode>>();
+    var bannedModesOfTurn = new LinkedHashMap<Pair<LinkSegment, LinkSegment>, List<Mode>>();
     for (var mode : modes) {
       /* the new turns of each movement the mode has access to, and the movements passing each turn */
-      var turnsOfMovement = new LinkedHashMap<SpatialMovement, List<Pair<MacroscopicLinkSegment,
-          MacroscopicLinkSegment>>>();
-      var movementsOfTurn = new LinkedHashMap<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>,
+      var turnsOfMovement = new LinkedHashMap<SpatialMovement, List<Pair<LinkSegment,
+          LinkSegment>>>();
+      var movementsOfTurn = new LinkedHashMap<Pair<LinkSegment, LinkSegment>,
           List<SpatialMovement>>();
       for (var movement : intersection.getMovements()) {
         if (!movement.getLinkSegmentFrom().isModeAllowed(mode) || !movement.getLinkSegmentTo().isModeAllowed(mode)) {
@@ -318,12 +323,12 @@ public class IntersectionModeCollapser {
       }
       /* the new turns of what each entering segment that is not an approach could reach */
       var turnsOfEntriesThatAreNotApproaches =
-          new LinkedHashSet<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>>();
+          new LinkedHashSet<Pair<LinkSegment, LinkSegment>>();
       exitsReachedFromEntriesThatAreNotApproaches.getOrDefault(mode, List.of()).forEach(reached ->
           turnsOfEntriesThatAreNotApproaches.addAll(
               findTurnsOfCollapsedMode(reached.first(), reached.second(), centre, mode)));
       /* ban the mode on the new turns where it could not move while the intersection was spatial */
-      Consumer<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>> banForMode =
+      Consumer<Pair<LinkSegment, LinkSegment>> banForMode =
           turn -> bannedModesOfTurn.computeIfAbsent(turn, key -> new ArrayList<>()).add(mode);
       banNewTurnsOfMovementsTheModeCouldNotMake(mode, turnsOfMovement, movementsOfTurn,
           turnsOfEntriesThatAreNotApproaches, collapsedModesBannedOfMovement, banForMode);
@@ -331,9 +336,14 @@ public class IntersectionModeCollapser {
       turnsPassed.addAll(turnsOfEntriesThatAreNotApproaches);
       banNewTurnsNoMovementPasses(intersection, centre, mode, turnsPassed, banForMode);
     }
-    /* register the bans, extending a turn banned already */
-    bannedModesOfTurn.forEach((turn, bannedModes) -> result.addBannedTurnAddedOrExtendedForCollapsedModes(
-        MacroscopicNetworkLayerUtils.banTurnForModes(layer, turn.first(), turn.second(), bannedModes)));
+    /* register the bans, extending a turn banned already; a turn ban is physical, between link segments of the
+     * layer, so a turn onto or off a connectoid segment of an integrated zoning is not banned */
+    bannedModesOfTurn.forEach((turn, bannedModes) -> {
+      var bannedTurn = MacroscopicNetworkLayerUtils.banTurnForModes(layer, turn.first(), turn.second(), bannedModes);
+      if (bannedTurn != null) {
+        result.addBannedTurnAddedOrExtendedForCollapsedModes(bannedTurn);
+      }
+    });
   }
 
   /**
@@ -355,11 +365,11 @@ public class IntersectionModeCollapser {
    * @param banForMode bans the mode on a turn
    */
   private void banNewTurnsOfMovementsTheModeCouldNotMake(Mode mode,
-      Map<SpatialMovement, List<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>>> turnsOfMovement,
-      Map<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>, List<SpatialMovement>> movementsOfTurn,
-      Set<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>> turnsOfEntriesThatAreNotApproaches,
+      Map<SpatialMovement, List<Pair<LinkSegment, LinkSegment>>> turnsOfMovement,
+      Map<Pair<LinkSegment, LinkSegment>, List<SpatialMovement>> movementsOfTurn,
+      Set<Pair<LinkSegment, LinkSegment>> turnsOfEntriesThatAreNotApproaches,
       Map<SpatialMovement, List<Mode>> collapsedModesBannedOfMovement,
-      Consumer<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>> banForMode) {
+      Consumer<Pair<LinkSegment, LinkSegment>> banForMode) {
     /* a turn every movement passing it is one the mode could not make, and no entering segment needs */
     Predicate<SpatialMovement> couldNotMake = movement ->
         collapsedModesBannedOfMovement.getOrDefault(movement, List.of()).contains(mode);
@@ -395,13 +405,13 @@ public class IntersectionModeCollapser {
    * @param banForMode bans the mode on a turn
    */
   private void banNewTurnsNoMovementPasses(SpatialIntersection intersection, Node centre, Mode mode,
-      Set<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>> turnsPassed,
-      Consumer<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>> banForMode) {
-    Predicate<MacroscopicLinkSegment> allowsMode = segment -> segment.isModeAllowed(mode);
-    var newTurns = new ArrayList<Pair<MacroscopicLinkSegment, MacroscopicLinkSegment>>();
+      Set<Pair<LinkSegment, LinkSegment>> turnsPassed,
+      Consumer<Pair<LinkSegment, LinkSegment>> banForMode) {
+    Predicate<LinkSegment> allowsMode = segment -> segment.isModeAllowed(mode);
+    var newTurns = new ArrayList<Pair<LinkSegment, LinkSegment>>();
     /* at the centre, between every arriving and leaving segment, other than back onto the arm it arrived on */
-    for (var arriving : NodeUtils.<MacroscopicLinkSegment>findEntryLinkSegments(centre, allowsMode)) {
-      for (var leaving : NodeUtils.<MacroscopicLinkSegment>findExitLinkSegments(centre, allowsMode)) {
+    for (var arriving : NodeUtils.<LinkSegment>findEntryLinkSegments(centre, allowsMode)) {
+      for (var leaving : NodeUtils.<LinkSegment>findExitLinkSegments(centre, allowsMode)) {
         if (leaving.getParent() != arriving.getParent() || intersection.hasMemberNode(arriving.getUpstreamNode())) {
           newTurns.add(Pair.of(arriving, leaving));
         }
@@ -413,11 +423,11 @@ public class IntersectionModeCollapser {
       if (link == null) {
         continue;
       }
-      var towardsCentre = (MacroscopicLinkSegment) link.getSegmentDownstreamFrom(memberNode);
-      var fromCentre = (MacroscopicLinkSegment) link.getSegmentDownstreamFrom(centre);
-      NodeUtils.<MacroscopicLinkSegment>findEntryLinkSegments(memberNode, allowsMode)
+      var towardsCentre = (LinkSegment) link.getSegmentDownstreamFrom(memberNode);
+      var fromCentre = (LinkSegment) link.getSegmentDownstreamFrom(centre);
+      NodeUtils.<LinkSegment>findEntryLinkSegments(memberNode, allowsMode)
           .forEach(arriving -> newTurns.add(Pair.of(arriving, towardsCentre)));
-      NodeUtils.<MacroscopicLinkSegment>findExitLinkSegments(memberNode, allowsMode).stream()
+      NodeUtils.<LinkSegment>findExitLinkSegments(memberNode, allowsMode).stream()
           .filter(leaving -> leaving != towardsCentre).forEach(leaving -> newTurns.add(Pair.of(fromCentre, leaving)));
     }
     /* banned where nothing the mode could do passes */

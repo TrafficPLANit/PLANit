@@ -37,6 +37,7 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
 
     add(MacroscopicLinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
     add(ConjugateLinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
+    add(LinkSegment.class, IdMapperFunctionFactory.createLinkSegmentIdMappingFunction(type));
 
     add(BannedTurn.class, IdMapperFunctionFactory.createBannedTurnIdMappingFunction(type));
     add(Intersection.class, IdMapperFunctionFactory.createIntersectionIdMappingFunction(type));
@@ -71,6 +72,13 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
    */
   public Function<ConjugateLinkSegment, String> getConjugateLinkSegmentIdMapper(){
     return get(ConjugateLinkSegment.class);
+  }
+
+  /** get id mapper for link segments of any kind, those of a layer and connectoid segments alike
+   * @return id mapper
+   */
+  public Function<LinkSegment, String> getLinkSegmentIdMapper(){
+    return get(LinkSegment.class);
   }
 
   /** get id mapper for link segment types

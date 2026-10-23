@@ -13,12 +13,12 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdAbleUtils;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
@@ -98,7 +98,7 @@ public abstract class IntersectionImpl extends ExternalIdAbleImpl implements Int
    *
    * @param approachSegment the approach segment removed
    */
-  protected void removeReferencesOfRemovedApproachSegment(MacroscopicLinkSegment approachSegment) {
+  protected void removeReferencesOfRemovedApproachSegment(LinkSegment approachSegment) {
     /* nothing on top for an intersection that holds approaches only */
   }
 
@@ -187,7 +187,7 @@ public abstract class IntersectionImpl extends ExternalIdAbleImpl implements Int
    * {@inheritDoc}
    */
   @Override
-  public IntersectionSegment getApproach(MacroscopicLinkSegment entrySegment) {
+  public IntersectionSegment getApproach(LinkSegment entrySegment) {
     return IntersectionSegmentUtils.findByLinkSegment(approaches, entrySegment);
   }
 
@@ -195,7 +195,7 @@ public abstract class IntersectionImpl extends ExternalIdAbleImpl implements Int
    * {@inheritDoc}
    */
   @Override
-  public IntersectionSegment addNewApproach(MacroscopicLinkSegment entrySegment, boolean hasOwnSignal) {
+  public IntersectionSegment addNewApproach(LinkSegment entrySegment, boolean hasOwnSignal) {
     if (!IntersectionUtils.isSegmentEnteringFromOutsideThatIsNotAnApproach(this, entrySegment)) {
       return null;
     }
@@ -208,7 +208,7 @@ public abstract class IntersectionImpl extends ExternalIdAbleImpl implements Int
    * {@inheritDoc}
    */
   @Override
-  public boolean removeApproachSegment(MacroscopicLinkSegment segment) {
+  public boolean removeApproachSegment(LinkSegment segment) {
     removeReferencesOfRemovedApproachSegment(segment);
     return IntersectionSegmentUtils.removeByLinkSegment(approaches, segment);
   }
@@ -218,7 +218,7 @@ public abstract class IntersectionImpl extends ExternalIdAbleImpl implements Int
    */
   @Override
   public boolean setEntrySegmentOnApproach(
-      MacroscopicLinkSegment approachSegment, MacroscopicLinkSegment entrySegment) {
+      LinkSegment approachSegment, LinkSegment entrySegment) {
     var approach = IntersectionSegmentUtils.findByLinkSegment(approaches, approachSegment);
     if (approach == null || !IntersectionUtils.isSegmentEnteringFromOutsideThatIsNotAnApproach(this, entrySegment)) {
       return false;
@@ -232,7 +232,7 @@ public abstract class IntersectionImpl extends ExternalIdAbleImpl implements Int
    */
   @Override
   public IntersectionSegment swapApproachToNewSignalOrUnsignalised(
-      MacroscopicLinkSegment approachSegment, boolean hasOwnSignal) {
+      LinkSegment approachSegment, boolean hasOwnSignal) {
     return IntersectionSegmentUtils.swapToSignalOrUnsignalised(approaches, approachSegment, hasOwnSignal);
   }
 
@@ -250,13 +250,14 @@ public abstract class IntersectionImpl extends ExternalIdAbleImpl implements Int
   /**
    * Update the segments based on the mapping provided, e.g. to their copies after a deep copy of the layer
    *
+   * @param <S> type of link segment the mapping takes, for example of the layer when it maps a deep copy
    * @param segmentToSegmentMapping should contain the segment as currently used and then the value is the new segment
    *                                to replace it
    * @param removeMissingMappings when true an approach whose segment has no mapping is removed, otherwise it is left
    *                              in-tact
    */
-  protected void updateSegmentMapping(
-      Function<MacroscopicLinkSegment, MacroscopicLinkSegment> segmentToSegmentMapping, boolean removeMissingMappings) {
+  protected <S extends LinkSegment> void updateSegmentMapping(
+      Function<S, ? extends LinkSegment> segmentToSegmentMapping, boolean removeMissingMappings) {
     // each approach updates its own link segment; one without a mapping is removed when asked
     approaches.removeIf(
         approach -> !approach.updateLinkSegmentMapping(segmentToSegmentMapping) && removeMissingMappings);

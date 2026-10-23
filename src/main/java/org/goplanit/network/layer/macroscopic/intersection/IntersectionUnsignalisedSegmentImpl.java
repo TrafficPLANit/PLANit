@@ -1,7 +1,7 @@
 package org.goplanit.network.layer.macroscopic.intersection;
 
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUnsignalisedSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
  * A link segment of an intersection without a signal: the link segment and, when set, its saturation flow factor with
@@ -20,7 +20,7 @@ public class IntersectionUnsignalisedSegmentImpl extends IntersectionSegmentImpl
    *
    * @param linkSegment the link segment
    */
-  protected IntersectionUnsignalisedSegmentImpl(MacroscopicLinkSegment linkSegment) {
+  protected IntersectionUnsignalisedSegmentImpl(LinkSegment linkSegment) {
     super(linkSegment);
   }
 

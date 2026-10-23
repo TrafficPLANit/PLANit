@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 import org.goplanit.algorithms.shortest.ShortestPathBreadthFirstResult;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 
 /**
@@ -43,7 +43,7 @@ public class SpatialMovementUtils {
    * @param movement to find the connection of
    * @return the search, null when the movement's from and to segments are no longer connected
    */
-  private static ShortestPathBreadthFirstResult<MacroscopicLinkSegment> findShortestConnection(
+  private static ShortestPathBreadthFirstResult<LinkSegment> findShortestConnection(
       final MacroscopicNetworkLayer layer, final SpatialIntersection intersection, final SpatialMovement movement) {
     return findShortestConnectionToEachExit(layer, intersection, movement.getLinkSegmentFrom())
         .get(movement.getLinkSegmentTo());
@@ -56,8 +56,8 @@ public class SpatialMovementUtils {
    * @param movement the connection is of
    * @return internal segments in order, empty when the from and to segments meet at one member node
    */
-  private static List<MacroscopicLinkSegment> findInternalSegmentsOnConnection(
-      final ShortestPathBreadthFirstResult<MacroscopicLinkSegment> search, final SpatialMovement movement) {
+  private static List<LinkSegment> findInternalSegmentsOnConnection(
+      final ShortestPathBreadthFirstResult<LinkSegment> search, final SpatialMovement movement) {
     var onConnection = search.getEntitiesOnConnectionTo(movement.getLinkSegmentTo());
     return List.copyOf(onConnection.subList(1, onConnection.size() - 1));
   }
@@ -73,13 +73,13 @@ public class SpatialMovementUtils {
    * @param approach to start from
    * @return for each exit reached, the search that reached it over the shortest connection: its cost to reach the exit
    *         is the length in metres, and the link segments on its connection to the exit run from the approach to the
-   *         exit
+   *         exit. A connectoid segment leaving a member node is an exit too, see
+   *         {@link MacroscopicNetworkLayerUtils#searchThroughSpatialIntersection}
    */
-  public static Map<MacroscopicLinkSegment, ShortestPathBreadthFirstResult<MacroscopicLinkSegment>>
-      findShortestConnectionToEachExit(final MacroscopicNetworkLayer layer, final SpatialIntersection intersection,
-      final MacroscopicLinkSegment approach) {
-    var shortestOfExit =
-        new LinkedHashMap<MacroscopicLinkSegment, ShortestPathBreadthFirstResult<MacroscopicLinkSegment>>();
+  public static Map<LinkSegment, ShortestPathBreadthFirstResult<LinkSegment>> findShortestConnectionToEachExit(
+      final MacroscopicNetworkLayer layer, final SpatialIntersection intersection,
+      final LinkSegment approach) {
+    var shortestOfExit = new LinkedHashMap<LinkSegment, ShortestPathBreadthFirstResult<LinkSegment>>();
     var modes = approach.getAllowedModes().stream().sorted(Comparator.comparingLong(Mode::getId))
         .collect(Collectors.toList());
     for (var mode : modes) {
@@ -107,7 +107,7 @@ public class SpatialMovementUtils {
    * @return internal segments passed, in order; empty when it passes none, null when its from and to segments are no
    *         longer connected
    */
-  public static List<MacroscopicLinkSegment> findInternalSegmentsPassed(
+  public static List<LinkSegment> findInternalSegmentsPassed(
       final MacroscopicNetworkLayer layer, final SpatialIntersection intersection, final SpatialMovement movement) {
     var search = findShortestConnection(layer, intersection, movement);
     return search == null ? null : findInternalSegmentsOnConnection(search, movement);
@@ -126,7 +126,7 @@ public class SpatialMovementUtils {
    * @return internal segments passed, in order; empty when it passes none, null when its from and to segments are no
    *         longer connected
    */
-  public static List<MacroscopicLinkSegment> findInternalSegmentsPassed(
+  public static List<LinkSegment> findInternalSegmentsPassed(
       final MacroscopicNetworkLayer layer, final SpatialIntersection intersection, final SpatialMovement movement,
       double warningLengthMeters) {
     var search = findShortestConnection(layer, intersection, movement);

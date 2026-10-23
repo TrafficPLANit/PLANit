@@ -35,10 +35,6 @@ import org.goplanit.utils.id.IdMappingUtils;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentUtils;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
@@ -50,6 +46,10 @@ import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsol
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidationModifierResult.IntersectionOutcome;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidationModifierResult.LinkReachedOnlyThroughIntersection;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidatorSettings;
+import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegmentUtils;
+import org.goplanit.utils.network.layer.physical.LinkUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.NodeUtils;
 import org.locationtech.jts.geom.Point;
@@ -116,6 +116,38 @@ public class IntersectionConsolidator {
     }
   }
 
+  /**
+   * Trace a road back from a road segment against the traffic, shortest way first: the road segments traffic can come
+   * from to reach it, never back along the link it leaves, so turning back does not count as a way in
+   *
+   * @param entering the road segment to trace back from
+   * @param canTraceBackBeyond true for a road segment reached that the trace may go on back beyond
+   * @param maximumMeters furthest the start of a road segment reached may lie from where the entering segment ends,
+   *                      along the road; road segments starting beyond it may still be reached, but are not gone beyond
+   * @return the road segments reached, the entering one included, see {@link #findMetersBackToStartOf}
+   */
+  private static ShortestPathBreadthFirstResult<LinkSegment> traceRoadBack(
+      LinkSegment entering, Predicate<LinkSegment> canTraceBackBeyond, double maximumMeters) {
+    return ShortestPathBreadthFirst.executeAlongEdgeSegments(entering, false,
+        (from, onto) -> from.getParent() != onto.getParent() && IS_ROAD_SEGMENT.test(from), canTraceBackBeyond,
+        segment -> segment.getParent().getLengthMeters(), maximumMeters - entering.getParent().getLengthMeters());
+  }
+
+  /**
+   * The distance along the road from where a traced back road segment starts to where the segment it was traced back
+   * from ends, both segments included, see {@link #traceRoadBack}
+   *
+   * @param segment reached by the trace
+   * @param entering the road segment traced back from
+   * @param tracedBack the result of the trace
+   * @return the distance, in metres
+   */
+  private static double findMetersBackToStartOf(LinkSegment segment, LinkSegment entering,
+      ShortestPathBreadthFirstResult<LinkSegment> tracedBack) {
+    return entering.getParent().getLengthMeters() + tracedBack.getCostToReach(segment) +
+        (segment == entering ? 0 : segment.getParent().getLengthMeters());
+  }
+
   /** the layer to consolidate */
   private final MacroscopicNetworkLayerImpl layer;
 
@@ -130,20 +162,13 @@ public class IntersectionConsolidator {
    * added as an internal segment with a signal when it has one, and a link reached only through the intersection is
    * listed as having a signal when one of its segments has one. Asked of road segments into a junction too, to tell
    * whether a node lies in front of it, see {@link #isEnteredFromOutsideBeforeVehicleSignalIntoJunction} */
-  private final Predicate<MacroscopicLinkSegment> hasSignalOfItsOwn;
+  private final Predicate<LinkSegment> hasSignalOfItsOwn;
 
   /** what this run keeps track of, made at the start of {@link #consolidate()} from the layer as it is then */
   private IntersectionConsolidatorTrackingData trackingData;
 
   /** what was done, filled where each change is made */
   private final IntersectionConsolidationModifierResult result = new IntersectionConsolidationModifierResult();
-
-  /** true for a link a motorised road mode may use in at least one direction */
-  static final Predicate<Edge> IS_ROAD_LINK = MacroscopicLinkUtils.permitsMotorisedRoadModeOnAnySegment();
-
-  /** true for a segment a motorised road mode may use, false for none */
-  static final Predicate<MacroscopicLinkSegment> IS_ROAD_SEGMENT =
-      MacroscopicLinkSegmentUtils.permitsMotorisedRoadMode()::test;
 
   /**
    * The centre and radius of an intersection with the given member nodes, see {@link CentreAndRadius}
@@ -153,7 +178,7 @@ public class IntersectionConsolidator {
    */
   private CentreAndRadius computeCentreAndRadius(Collection<Node> memberNodes) {
     var onRoadOrRail = memberNodes.stream()
-        .filter(node -> !MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(node)).collect(Collectors.toList());
+        .filter(node -> !LinkUtils.isUsedByNoMotorisedRoadOrRailMode(node)).collect(Collectors.toList());
     var counted = onRoadOrRail.isEmpty() ? memberNodes : onRoadOrRail;
     var centre = PlanitGraphGeoUtils.createCentroid(counted);
     return new CentreAndRadius(
@@ -251,13 +276,13 @@ public class IntersectionConsolidator {
     var arrivingFromParsedIntersections = new HashMap<Node, Set<Intersection>>();
     for (var entry : parsedIntersectionOfMemberNode.entrySet()) {
       var memberNode = entry.getKey();
-      for (var link : memberNode.<MacroscopicLink>getLinks()) {
+      for (var link : memberNode.<Link>getLinks()) {
         Node neighbour = link.getOtherNode(memberNode);
         if (neighbour != memberNode && IS_ROAD_LINK.test(link) &&
             link.getLengthMeters() <= settings.getMaximumJoiningReachMeters() + Precision.EPSILON_9 &&
             !parsedIntersectionOfMemberNode.containsKey(neighbour) && canJoin.test(neighbour)) {
           linkedParsedIntersections.computeIfAbsent(neighbour, node -> new HashSet<>()).add(entry.getValue());
-          if (MacroscopicLinkUtils.hasSegmentMatching(
+          if (LinkUtils.hasSegmentMatching(
               link, segment -> segment.getUpstreamVertex() == memberNode && IS_ROAD_SEGMENT.test(segment))) {
             arrivingFromParsedIntersections.computeIfAbsent(neighbour, node -> new HashSet<>()).add(entry.getValue());
           }
@@ -313,7 +338,7 @@ public class IntersectionConsolidator {
   private boolean isEnteredFromOutsideBeforeVehicleSignalIntoJunction(Node node, Set<Node> memberNodes,
       Set<Node> joiningNodes, Set<Node> crossingNodes) {
     Predicate<Object> isOfJunction = vertex -> memberNodes.contains(vertex) || joiningNodes.contains(vertex);
-    if (NodeUtils.<MacroscopicLinkSegment>findEntryLinkSegments(node, segment ->
+    if (NodeUtils.<LinkSegment>findEntryLinkSegments(node, segment ->
         IS_ROAD_SEGMENT.test(segment) && !isOfJunction.test(segment.getUpstreamVertex())).isEmpty()) {
       return false;
     }
@@ -321,7 +346,7 @@ public class IntersectionConsolidator {
     var passed = new HashSet<Node>(List.of(node));
     var toFollow = new ArrayDeque<Node>(List.of(node));
     while (!toFollow.isEmpty()) {
-      for (var segment : NodeUtils.<MacroscopicLinkSegment>findExitLinkSegments(toFollow.poll(), IS_ROAD_SEGMENT)) {
+      for (var segment : NodeUtils.<LinkSegment>findExitLinkSegments(toFollow.poll(), IS_ROAD_SEGMENT)) {
         var next = (Node) segment.getDownstreamVertex();
         if (!isOfJunction.test(next)) {
           continue;
@@ -340,7 +365,7 @@ public class IntersectionConsolidator {
   /**
    * True when a connection between two junctions crosses a tram or light rail track. A node on it that is a member node
    * of neither junction is where such a track meets a road, see
-   * {@link MacroscopicLinkUtils#isWhereTramOrLightRailTrackMeetsRoad}
+   * {@link LinkUtils#isWhereTramOrLightRailTrackMeetsRoad}
    *
    * @param connection the nodes on the connection, from one junction to the other
    * @param from the junction the connection starts at
@@ -350,7 +375,7 @@ public class IntersectionConsolidator {
   private static boolean connectionCrossesTramOrLightRailTrackBetween(
       List<Node> connection, Intersection from, Intersection to) {
     return connection.stream().anyMatch(node -> !from.hasMemberNode(node) && !to.hasMemberNode(node) &&
-        MacroscopicLinkUtils.isWhereTramOrLightRailTrackMeetsRoad(node));
+        LinkUtils.isWhereTramOrLightRailTrackMeetsRoad(node));
   }
 
   /**
@@ -393,7 +418,7 @@ public class IntersectionConsolidator {
       var stillJoining = new HashSet<Node>(joiningNodes);
       return node -> {
         boolean usedByRoadTraffic = !NodeUtils.findEntryLinkSegments(node, IS_ROAD_SEGMENT).isEmpty();
-        boolean reachedFromJunction = !NodeUtils.<MacroscopicLinkSegment>findEntryLinkSegments(node, segment ->
+        boolean reachedFromJunction = !NodeUtils.<LinkSegment>findEntryLinkSegments(node, segment ->
             IS_ROAD_SEGMENT.test(segment) && (memberNodes.contains(segment.getUpstreamVertex()) ||
                 stillJoining.contains(segment.getUpstreamVertex()))).isEmpty();
         return (usedByRoadTraffic && !reachedFromJunction) ||
@@ -435,7 +460,7 @@ public class IntersectionConsolidator {
     var nodesPassed = new LinkedHashSet<Node>();
     /* each road segment entering the nodes from outside, itself within the reach, is a candidate */
     for (var node : nodes.stream().sorted(IdAbleUtils.byId()).collect(Collectors.toList())) {
-      for (var entering : NodeUtils.<MacroscopicLinkSegment>findEntryLinkSegments(node, IS_ROAD_SEGMENT)) {
+      for (var entering : NodeUtils.<LinkSegment>findEntryLinkSegments(node, IS_ROAD_SEGMENT)) {
         if (nodes.contains(entering.getUpstreamNode()) ||
             entering.getParent().getLengthMeters() > maximumMeters + Precision.EPSILON_9) {
           continue;
@@ -454,7 +479,7 @@ public class IntersectionConsolidator {
             longest = Math.max(longest, meters);
             continue;
           }
-          var predecessors = MacroscopicLinkSegmentUtils.findPredecessors(segment, IS_ROAD_SEGMENT);
+          var predecessors = LinkSegmentUtils.findPredecessors(segment, IS_ROAD_SEGMENT);
           if (predecessors.isEmpty() || predecessors.stream().anyMatch(predecessor ->
               meters + predecessor.getParent().getLengthMeters() > maximumMeters + Precision.EPSILON_9)) {
             fromOutside = true;
@@ -470,43 +495,11 @@ public class IntersectionConsolidator {
         result.addLinkReachedOnlyThroughIntersection(new LinkReachedOnlyThroughIntersection(entering,
             new ArrayList<>(feedingNodes), longest, segmentsTracedBack,
             segmentsTracedBack.stream().anyMatch(hasSignalOfItsOwn)));
-        segmentsTracedBack.stream().map(MacroscopicLinkSegment::getUpstreamNode)
+        segmentsTracedBack.stream().map(LinkSegment::getUpstreamNode)
             .filter(upstream -> !nodes.contains(upstream)).forEach(nodesPassed::add);
       }
     }
     return nodesPassed;
-  }
-
-  /**
-   * Trace a road back from a road segment against the traffic, shortest way first: the road segments traffic can come
-   * from to reach it, never back along the link it leaves, so turning back does not count as a way in
-   *
-   * @param entering the road segment to trace back from
-   * @param canTraceBackBeyond true for a road segment reached that the trace may go on back beyond
-   * @param maximumMeters furthest the start of a road segment reached may lie from where the entering segment ends,
-   *                      along the road; road segments starting beyond it may still be reached, but are not gone beyond
-   * @return the road segments reached, the entering one included, see {@link #findMetersBackToStartOf}
-   */
-  private static ShortestPathBreadthFirstResult<MacroscopicLinkSegment> traceRoadBack(
-      MacroscopicLinkSegment entering, Predicate<MacroscopicLinkSegment> canTraceBackBeyond, double maximumMeters) {
-    return ShortestPathBreadthFirst.executeAlongEdgeSegments(entering, false,
-        (from, onto) -> from.getParent() != onto.getParent() && IS_ROAD_SEGMENT.test(from), canTraceBackBeyond,
-        segment -> segment.getParent().getLengthMeters(), maximumMeters - entering.getParent().getLengthMeters());
-  }
-
-  /**
-   * The distance along the road from where a traced back road segment starts to where the segment it was traced back
-   * from ends, both segments included, see {@link #traceRoadBack}
-   *
-   * @param segment reached by the trace
-   * @param entering the road segment traced back from
-   * @param tracedBack the result of the trace
-   * @return the distance, in metres
-   */
-  private static double findMetersBackToStartOf(MacroscopicLinkSegment segment, MacroscopicLinkSegment entering,
-      ShortestPathBreadthFirstResult<MacroscopicLinkSegment> tracedBack) {
-    return entering.getParent().getLengthMeters() + tracedBack.getCostToReach(segment) +
-        (segment == entering ? 0 : segment.getParent().getLengthMeters());
   }
 
   /**
@@ -523,7 +516,7 @@ public class IntersectionConsolidator {
    * @param segment the internal segment
    * @return true when it keeps the crossing's signal, false otherwise
    */
-  private boolean keepsCrossingSignalOnceInternal(MacroscopicLinkSegment segment) {
+  private boolean keepsCrossingSignalOnceInternal(LinkSegment segment) {
     return !IS_ROAD_LINK.test(segment.getParent()) &&
         trackingData.isMemberNodeOfSignalisedCrossingOnlyIntersectionBeforeConsolidation(segment.getDownstreamNode());
   }
@@ -538,7 +531,7 @@ public class IntersectionConsolidator {
    */
   private void addInternalSegments(SpatialIntersection intersection) {
     for (var memberNode : intersection.getMemberNodes()) {
-      for (var segment : memberNode.<MacroscopicLinkSegment>getExitLinkSegments()) {
+      for (var segment : memberNode.<LinkSegment>getExitLinkSegments()) {
         if (intersection.isExitSegment(segment)) {
           continue;
         }
@@ -570,7 +563,7 @@ public class IntersectionConsolidator {
    */
   private void applyMergeTo(SpatialIntersection kept, boolean signalised, Set<IntersectionType> types,
       List<String> externalIds, Set<Node> memberNodes,
-      Map<MacroscopicLinkSegment, IntersectionSegment> mergedApproaches) {
+      Map<LinkSegment, IntersectionSegment> mergedApproaches) {
     if (signalised) {
       kept.setControlType(IntersectionControlType.SIGNALISED);
     }
@@ -611,7 +604,7 @@ public class IntersectionConsolidator {
   private List<Node> mergeInto(SpatialIntersection kept, List<Intersection> merged, Collection<Node> nodesToAdd) {
     /* gather what the merged intersections bring, removing each through the modifier */
     var memberNodesBefore = new LinkedHashSet<>(kept.getMemberNodes());
-    var mergedApproaches = new LinkedHashMap<MacroscopicLinkSegment, IntersectionSegment>();
+    var mergedApproaches = new LinkedHashMap<LinkSegment, IntersectionSegment>();
     var types = EnumSet.noneOf(IntersectionType.class);
     types.addAll(kept.getTypes());
     boolean signalised = kept.isSignalised();
@@ -744,7 +737,7 @@ public class IntersectionConsolidator {
         connected.addAll(MacroscopicNetworkLayerUtils.findShortestConnections(
             memberNode, edge -> true, joiningNodes::contains, Double.POSITIVE_INFINITY).getReached());
       }
-      return node -> MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(node) && (!connected.contains(node) ||
+      return node -> LinkUtils.isUsedByNoMotorisedRoadOrRailMode(node) && (!connected.contains(node) ||
           node.getEdges().stream().map(edge -> edge.getOtherVertex(node))
               .filter(other -> memberNodes.contains(other) || joiningNodes.contains(other)).distinct().count() < 2);
     });
@@ -767,7 +760,7 @@ public class IntersectionConsolidator {
     for (var memberNode : intersection.getMemberNodes()) {
       var connections = MacroscopicNetworkLayerUtils.findShortestConnections(memberNode, edge -> true,
           node -> layer.getIntersections().getByMemberNode(node) == null &&
-              MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(node),
+              LinkUtils.isUsedByNoMotorisedRoadOrRailMode(node),
           MAXIMUM_CONNECTION_THROUGH_NODES_NOT_ON_ROAD_OR_RAIL_METERS);
       connections.getReached().stream().filter(node -> node != memberNode).forEach(node -> metersFromMemberNodes
           .computeIfAbsent(node, key -> new ArrayList<>()).add(connections.getCostToReach(node)));
@@ -1034,7 +1027,7 @@ public class IntersectionConsolidator {
       List<Node> connectionNodes = null;
       double nearestMeters = Double.POSITIVE_INFINITY;
       for (var crossingNode : crossing.getMemberNodes()) {
-        boolean onRoad = MacroscopicLinkUtils.isUsedByModeMatching(crossingNode, Mode::isMotorisedRoadMode);
+        boolean onRoad = LinkUtils.isUsedByModeMatching(crossingNode, Mode::isMotorisedRoadMode);
         var connections = MacroscopicNetworkLayerUtils.findShortestConnections(crossingNode,
             onRoad ? IS_ROAD_LINK : edge -> true, node -> true, settings.getMaximumJoiningReachMeters());
         for (var reached : connections.getReached()) {
@@ -1077,7 +1070,7 @@ public class IntersectionConsolidator {
    * @param maximumDistanceMeters furthest to follow
    * @return the junction reached, null when none
    */
-  private Intersection findJunctionAlongRoad(Node node, MacroscopicLink skippedLink, boolean intoJunction,
+  private Intersection findJunctionAlongRoad(Node node, Link skippedLink, boolean intoJunction,
       double maximumDistanceMeters) {
     /* start along each road segment at the node, other than on the slip lane */
     for (var start : intoJunction ? NodeUtils.findExitLinkSegments(node, IS_ROAD_SEGMENT) :
@@ -1086,7 +1079,7 @@ public class IntersectionConsolidator {
         continue;
       }
       /* follow the road while it simply continues, until it reaches a junction or goes beyond the distance */
-      var junction = MacroscopicLinkSegmentUtils.<Intersection>followOnlySegmentsOnwardUntilAnswered(start,
+      Intersection junction = LinkSegmentUtils.followOnlySegmentsOnwardUntilAnswered(start,
           intoJunction, start.getParent().getLengthMeters(), maximumDistanceMeters, IS_ROAD_SEGMENT,
           (current, meters) -> {
             var reached = layer.getIntersections().getByMemberNode(
@@ -1110,14 +1103,13 @@ public class IntersectionConsolidator {
    * @return the junction the road the slip lane leaves leads into, null when none is reached or the segment is on no
    *         slip lane
    */
-  private Intersection findJunctionWhoseRoadASlipLaneLeaves(MacroscopicLinkSegment segment) {
-    var otherWay = (MacroscopicLinkSegment) segment.getOppositeDirectionSegment();
+  private Intersection findJunctionWhoseRoadASlipLaneLeaves(LinkSegment segment) {
+    var otherWay = (LinkSegment) segment.getOppositeDirectionSegment();
     if (otherWay != null && IS_ROAD_SEGMENT.test(otherWay)) {
       return null;
     }
     double roadSearchMeters = 2 * settings.getMaximumDistanceSlipLaneCrossingToJunctionMeters();
-    var leavingRoad = MacroscopicLinkSegmentUtils.followUntilItBranches(
-        segment, false, roadSearchMeters, IS_ROAD_SEGMENT);
+    var leavingRoad = LinkSegmentUtils.followUntilItBranches(segment, false, roadSearchMeters, IS_ROAD_SEGMENT);
     return leavingRoad == null ? null :
         findJunctionAlongRoad(leavingRoad.getUpstreamNode(), leavingRoad.getParent(), true, roadSearchMeters);
   }
@@ -1130,7 +1122,7 @@ public class IntersectionConsolidator {
    * @param junction the junction it enters
    * @return true when on a slip lane of the junction, false otherwise
    */
-  private boolean isOnSlipLaneOf(MacroscopicLinkSegment segment, Intersection junction) {
+  private boolean isOnSlipLaneOf(LinkSegment segment, Intersection junction) {
     return findJunctionWhoseRoadASlipLaneLeaves(segment) == junction;
   }
 
@@ -1160,9 +1152,7 @@ public class IntersectionConsolidator {
       }
       /* the junction whose road the slip lane leaves, and where the slip lane rejoins a road */
       var junction = findJunctionWhoseRoadASlipLaneLeaves(in.get(0));
-      var rejoiningRoad =
-          MacroscopicLinkSegmentUtils.followUntilItBranches(
-              out.get(0), true, roadSearchMeters, IS_ROAD_SEGMENT);
+      var rejoiningRoad = LinkSegmentUtils.followUntilItBranches(out.get(0), true, roadSearchMeters, IS_ROAD_SEGMENT);
       if (junction == null || rejoiningRoad == null) {
         continue;
       }
@@ -1198,7 +1188,7 @@ public class IntersectionConsolidator {
    * no signalised junction is reached within the reach
    */
   private List<Node> traceRoadBackToSignalisedJunctionWithinReach(
-      MacroscopicLinkSegment entering, Intersection junction, CentreAndRadius centreAndRadius) {
+      LinkSegment entering, Intersection junction, CentreAndRadius centreAndRadius) {
     double maximumMeters = settings.getMaximumPullInConnectionLengthMeters();
     var tracedBack = traceRoadBack(entering,
         segment -> layer.getIntersections().getByMemberNode(segment.getUpstreamNode()) == null, maximumMeters);
@@ -1278,7 +1268,7 @@ public class IntersectionConsolidator {
   /**
    * Verify if a road segment entering a junction carries on the road of an approach whose signal was tagged on the
    * node it entered: following the same road on, past member nodes, see
-   * {@link MacroscopicLinkUtils#isSameExternalIdOrName}, it reaches a segment that was an approach with a signal of
+   * {@link LinkUtils#isSameExternalIdOrName}, it reaches a segment that was an approach with a signal of
    * its own before consolidation, with no vehicle signal standing on it. Such a signal says that the node is
    * signalised, not where on the road traffic stops. Once that node has become a member node, the signal stands where
    * the road enters the junction
@@ -1287,14 +1277,13 @@ public class IntersectionConsolidator {
    * @param junction the junction it enters
    * @return true when it carries on the road of such an approach, false otherwise
    */
-  private boolean continuesRoadOfApproachWithSignalTaggedOnNode(MacroscopicLinkSegment entering,
-      Intersection junction) {
-    UnaryOperator<MacroscopicLinkSegment> sameRoadOnInJunction = current ->
-        MacroscopicLinkSegmentUtils.findContinuations(current, onward -> IS_ROAD_SEGMENT.test(onward) &&
+  private boolean continuesRoadOfApproachWithSignalTaggedOnNode(LinkSegment entering, Intersection junction) {
+    UnaryOperator<LinkSegment> sameRoadOnInJunction = current ->
+        LinkSegmentUtils.findContinuations(current, onward -> IS_ROAD_SEGMENT.test(onward) &&
             junction.hasMemberNode(onward.getDownstreamVertex()) &&
-            MacroscopicLinkUtils.isSameExternalIdOrName(current.getParent(), onward.getParent()))
+            LinkUtils.isSameExternalIdOrName(current.getParent(), onward.getParent()))
             .stream().findFirst().orElse(null);
-    return Boolean.TRUE.equals(MacroscopicLinkSegmentUtils.followSegmentsUntilAnswered(entering, true,
+    return Boolean.TRUE.equals(LinkSegmentUtils.followSegmentsUntilAnswered(entering, true,
         entering.getParent().getLengthMeters(), Double.POSITIVE_INFINITY, (current, meters) -> {
           var onward = sameRoadOnInJunction.apply(current);
           return onward != null && trackingData.isApproachWithSignalBeforeConsolidation(onward) &&
@@ -1447,6 +1436,12 @@ public class IntersectionConsolidator {
     }
   }
 
+  /** true for a link a motorised road mode may use in at least one direction */
+  static final Predicate<Edge> IS_ROAD_LINK = LinkUtils.permitsMotorisedRoadModeOnAnySegment();
+
+  /** true for a segment a motorised road mode may use, false for none */
+  static final Predicate<LinkSegment> IS_ROAD_SEGMENT = LinkSegmentUtils.permitsMotorisedRoadMode()::test;
+
   /**
    * Verify if intersections joined into one, with the given member nodes, would lose every approach with a signal of
    * its own: at least one of them has such an approach, yet each starts at a member node, so it would become an
@@ -1475,7 +1470,7 @@ public class IntersectionConsolidator {
    *                          for road segments into a junction
    */
   public IntersectionConsolidator(MacroscopicNetworkLayerImpl layer, CoordinateReferenceSystem crs,
-      IntersectionConsolidatorSettings settings, Predicate<MacroscopicLinkSegment> hasSignalOfItsOwn) {
+      IntersectionConsolidatorSettings settings, Predicate<LinkSegment> hasSignalOfItsOwn) {
     this.layer = layer;
     this.crsUtils = new PlanitJtsCrsUtils(crs);
     this.settings = new IntersectionConsolidatorSettings(settings);

@@ -43,6 +43,7 @@ import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsol
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidatorSettings;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
 import org.goplanit.utils.network.layer.modifier.ModeAccessCleanupModifierResult;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.locationtech.jts.geom.Coordinate;
 
@@ -343,7 +344,7 @@ public class MacroscopicNetworkLayerModifierImpl
   public IntersectionConsolidationModifierResult consolidateIntersections(
       CoordinateReferenceSystem crs,
       IntersectionConsolidatorSettings settings,
-      Predicate<MacroscopicLinkSegment> hasSignalOfItsOwn) {
+      Predicate<LinkSegment> hasSignalOfItsOwn) {
     return new IntersectionConsolidator(layer, crs, settings, hasSignalOfItsOwn).consolidate();
   }
 

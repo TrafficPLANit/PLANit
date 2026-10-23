@@ -13,9 +13,9 @@ import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
  * Keeps the intersections consistent when link segments are removed, on their own or still attached to a removed link:
@@ -45,7 +45,7 @@ public class UpdateIntersectionsOnLinkSegmentRemovalHandler implements DirectedG
    *
    * @param segment removed
    */
-  private void removeSegment(MacroscopicLinkSegment segment) {
+  private void removeSegment(LinkSegment segment) {
     List.copyOf(spatialMovements.getBySegment(segment)).forEach(removeSpatialMovement);
     var intersection = intersections.getBySegment(segment);
     if (intersection == null) {
@@ -92,7 +92,7 @@ public class UpdateIntersectionsOnLinkSegmentRemovalHandler implements DirectedG
           UpdateIntersectionsOnLinkSegmentRemovalHandler.class.getName()));
       return;
     }
-    removeSegment((MacroscopicLinkSegment) RemoveEdgeSegmentEvent.class.cast(event).getRemovedEdgeSegment());
+    removeSegment((LinkSegment) RemoveEdgeSegmentEvent.class.cast(event).getRemovedEdgeSegment());
   }
 
   /**
@@ -108,7 +108,7 @@ public class UpdateIntersectionsOnLinkSegmentRemovalHandler implements DirectedG
     /* segments still attached to the removed link, if any */
     var link = (DirectedEdge) RemoveEdgeEvent.class.cast(event).getRemovedEdge();
     if (link.hasEdgeSegment()) {
-      link.getEdgeSegments().forEach(segment -> removeSegment((MacroscopicLinkSegment) segment));
+      link.getEdgeSegments().forEach(segment -> removeSegment((LinkSegment) segment));
     }
   }
 }

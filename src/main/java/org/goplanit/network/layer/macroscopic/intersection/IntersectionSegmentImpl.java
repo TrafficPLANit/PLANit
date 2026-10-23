@@ -3,10 +3,10 @@ package org.goplanit.network.layer.macroscopic.intersection;
 import java.io.Serializable;
 import java.util.function.Function;
 
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.CapacityFactorOrigin;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
  * What every link segment of an intersection holds, with a signal or not: the link segment and, when set, its
@@ -21,7 +21,7 @@ public abstract class IntersectionSegmentImpl implements IntersectionSegment, Se
   private static final long serialVersionUID = 2915708385526283416L;
 
   /** the link segment */
-  private MacroscopicLinkSegment linkSegment;
+  private LinkSegment linkSegment;
 
   /** the saturation flow factor, null when not set */
   private Double saturationFlowFactor;
@@ -34,7 +34,7 @@ public abstract class IntersectionSegmentImpl implements IntersectionSegment, Se
    *
    * @param linkSegment the link segment
    */
-  protected IntersectionSegmentImpl(MacroscopicLinkSegment linkSegment) {
+  protected IntersectionSegmentImpl(LinkSegment linkSegment) {
     this.linkSegment = linkSegment;
   }
 
@@ -42,8 +42,8 @@ public abstract class IntersectionSegmentImpl implements IntersectionSegment, Se
    * Copy constructor, for the same link segment and with the same saturation flow factor
    *
    * @param other to copy
-   * @param deepCopy when true, create a deep copy, shallow copy otherwise. Both are the same: the link segment is shared
-   *                 either way and the values are plain numbers
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise. Both are the same: the link segment is
+   *                 shared either way and the values are plain numbers
    */
   protected IntersectionSegmentImpl(IntersectionSegmentImpl other, boolean deepCopy) {
     this.linkSegment = other.linkSegment;
@@ -56,20 +56,22 @@ public abstract class IntersectionSegmentImpl implements IntersectionSegment, Se
    *
    * @param linkSegment to set
    */
-  protected void setLinkSegment(MacroscopicLinkSegment linkSegment) {
+  protected void setLinkSegment(LinkSegment linkSegment) {
     this.linkSegment = linkSegment;
   }
 
   /**
    * Update the link segment based on the mapping provided, e.g. to its copy after a deep copy of the layer
    *
+   * @param <S> type of link segment the mapping takes, for example of the layer when it maps a deep copy
    * @param segmentToSegmentMapping should contain the link segment as currently used and then the value is the new
    *                                link segment to replace it
    * @return true when the link segment has a mapping and is replaced, false when it has none and is left as it was
    */
-  protected boolean updateLinkSegmentMapping(
-      Function<MacroscopicLinkSegment, MacroscopicLinkSegment> segmentToSegmentMapping) {
-    var mapped = segmentToSegmentMapping.apply(linkSegment);
+  @SuppressWarnings("unchecked")
+  protected <S extends LinkSegment> boolean updateLinkSegmentMapping(
+      Function<S, ? extends LinkSegment> segmentToSegmentMapping) {
+    var mapped = segmentToSegmentMapping.apply((S) linkSegment);
     if (mapped == null) {
       return false;
     }
@@ -103,7 +105,7 @@ public abstract class IntersectionSegmentImpl implements IntersectionSegment, Se
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegment getLinkSegment() {
+  public LinkSegment getLinkSegment() {
     return linkSegment;
   }
 

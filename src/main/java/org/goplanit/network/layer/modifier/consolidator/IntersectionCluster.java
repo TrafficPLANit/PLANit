@@ -23,11 +23,11 @@ import org.goplanit.utils.id.IdAbleUtils;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.math.RoundUtils;
 import org.goplanit.utils.misc.Pair;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidatorSettings;
+import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
@@ -51,7 +51,7 @@ class IntersectionCluster {
   static final class ClusterSegment {
 
     /** the segment */
-    final MacroscopicLinkSegment segment;
+    final LinkSegment segment;
 
     /** its start node */
     final Node from;
@@ -71,7 +71,7 @@ class IntersectionCluster {
      * @param segment the segment
      * @param crsUtils to measure its direction with
      */
-    ClusterSegment(MacroscopicLinkSegment segment, PlanitJtsCrsUtils crsUtils) {
+    ClusterSegment(LinkSegment segment, PlanitJtsCrsUtils crsUtils) {
       this.segment = segment;
       this.from = (Node) segment.getUpstreamVertex();
       this.to = (Node) segment.getDownstreamVertex();
@@ -107,7 +107,7 @@ class IntersectionCluster {
 
     /** its links of at most the joining reach between two of its nodes. They follow from its nodes, and
      * are kept because every step of a search over the subset checks them */
-    final Set<MacroscopicLink> internalLinks;
+    final Set<Link> internalLinks;
 
     /**
      * Constructor
@@ -118,7 +118,7 @@ class IntersectionCluster {
      * @param internalLinks of the subset
      */
     ClusterSubset(List<Intersection> parsedIntersections, Set<Node> nodes, boolean connected,
-        Set<MacroscopicLink> internalLinks) {
+        Set<Link> internalLinks) {
       this.parsedIntersections = parsedIntersections;
       this.nodes = nodes;
       this.connected = connected;
@@ -131,7 +131,7 @@ class IntersectionCluster {
      * @return its length in metres, 0 when there are none
      */
     double getLongestInternalLinkMeters() {
-      return internalLinks.stream().mapToDouble(MacroscopicLink::getLengthMeters).max().orElse(0);
+      return internalLinks.stream().mapToDouble(Link::getLengthMeters).max().orElse(0);
     }
   }
 
@@ -192,7 +192,7 @@ class IntersectionCluster {
   private final Set<Node> nodes;
 
   /** road links of at most the joining reach with both ends at nodes of the cluster */
-  private final List<MacroscopicLink> shortLinks;
+  private final List<Link> shortLinks;
 
   /** nodes of the cluster that are not member nodes, with the member nodes they have short links to, when those belong
    * to two or more of its parsed intersections */
@@ -285,9 +285,9 @@ class IntersectionCluster {
    * @return nodes reached
    */
   private static Set<Node> reach(Set<Node> starts, ClusterSubset subset) {
-    Predicate<MacroscopicLinkSegment> alongInternalLink = segment ->
+    Predicate<LinkSegment> alongInternalLink = segment ->
         IntersectionConsolidator.IS_ROAD_SEGMENT.test(segment) && subset.internalLinks.contains(segment.getParent());
-    return BreadthFirstSearch.<Node, MacroscopicLinkSegment>execute(starts, false, alongInternalLink,
+    return BreadthFirstSearch.<Node, LinkSegment>execute(starts, false, alongInternalLink,
         (previous, segment) -> alongInternalLink.test(segment), (node, segment) -> false).second().keySet();
   }
 
@@ -666,10 +666,10 @@ class IntersectionCluster {
     var memberNodes = IntersectionUtils.collectMemberNodes(this.parsedIntersections);
 
     /* the road links touching the cluster's nodes, and the short ones among them with both ends in the cluster */
-    var linksTouching = new LinkedHashSet<MacroscopicLink>();
+    var linksTouching = new LinkedHashSet<Link>();
     for (var node : nodes) {
       for (var edge : node.getEdges()) {
-        var link = (MacroscopicLink) edge;
+        var link = (Link) edge;
         if (IntersectionConsolidator.IS_ROAD_LINK.test(link)) {
           linksTouching.add(link);
         }
@@ -681,7 +681,7 @@ class IntersectionCluster {
         .collect(Collectors.toList());
     /* their road segments with their directions, and those leaving the cluster as its exits */
     for (var link : linksTouching) {
-      for (var segment : new MacroscopicLinkSegment[] {link.getLinkSegmentAb(), link.getLinkSegmentBa()}) {
+      for (var segment : new LinkSegment[] {link.getLinkSegmentAb(), link.getLinkSegmentBa()}) {
         if (IntersectionConsolidator.IS_ROAD_SEGMENT.test(segment)) {
           segments.add(new ClusterSegment(segment, crsUtils));
         }

@@ -8,12 +8,12 @@ import java.util.function.Function;
 
 import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
@@ -99,7 +99,7 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
    * {@inheritDoc}
    */
   @Override
-  protected void removeReferencesOfRemovedApproachSegment(MacroscopicLinkSegment approachSegment) {
+  protected void removeReferencesOfRemovedApproachSegment(LinkSegment approachSegment) {
     movements.removeIf(movement -> movement.getLinkSegmentFrom() == approachSegment);
   }
 
@@ -135,7 +135,7 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
    * {@inheritDoc}
    */
   @Override
-  public IntersectionSegment getIntersectionInternalSegment(MacroscopicLinkSegment segment) {
+  public IntersectionSegment getIntersectionInternalSegment(LinkSegment segment) {
     return IntersectionSegmentUtils.findByLinkSegment(internalSegments, segment);
   }
 
@@ -143,7 +143,7 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
    * {@inheritDoc}
    */
   @Override
-  public boolean addNewInternalSegment(MacroscopicLinkSegment segment) {
+  public boolean addNewInternalSegment(LinkSegment segment) {
     if (getIntersectionInternalSegment(segment) != null || !hasMemberNode(segment.getUpstreamVertex())
         || !hasMemberNode(segment.getDownstreamVertex())) {
       return false;
@@ -155,7 +155,7 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
    * {@inheritDoc}
    */
   @Override
-  public boolean removeInternalSegment(MacroscopicLinkSegment segment) {
+  public boolean removeInternalSegment(LinkSegment segment) {
     return IntersectionSegmentUtils.removeByLinkSegment(internalSegments, segment);
   }
 
@@ -164,7 +164,7 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
    */
   @Override
   public IntersectionSegment swapApproachToNewSignalOrUnsignalised(
-      MacroscopicLinkSegment approachSegment, boolean hasOwnSignal) {
+      LinkSegment approachSegment, boolean hasOwnSignal) {
     var approach = super.swapApproachToNewSignalOrUnsignalised(approachSegment, hasOwnSignal);
     if (approach != null && !hasOwnSignal) {
       getMovementsFrom(approach).forEach(SpatialMovement::removeGreenRatio);
@@ -176,7 +176,7 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
    * {@inheritDoc}
    */
   @Override
-  public boolean addNewInternalSegmentWithSignal(MacroscopicLinkSegment segment) {
+  public boolean addNewInternalSegmentWithSignal(LinkSegment segment) {
     var internal = getIntersectionInternalSegment(segment);
     if ((internal != null && internal.hasSignal()) || (internal == null && !addNewInternalSegment(segment))) {
       return false;
@@ -225,8 +225,8 @@ public class SpatialIntersectionImpl extends IntersectionImpl implements Spatial
    * {@inheritDoc}
    */
   @Override
-  protected void updateSegmentMapping(
-      Function<MacroscopicLinkSegment, MacroscopicLinkSegment> segmentToSegmentMapping, boolean removeMissingMappings) {
+  protected <S extends LinkSegment> void updateSegmentMapping(
+      Function<S, ? extends LinkSegment> segmentToSegmentMapping, boolean removeMissingMappings) {
     super.updateSegmentMapping(segmentToSegmentMapping, removeMissingMappings);
     // each internal segment updates its own link segment; one without a mapping is removed when asked
     internalSegments.removeIf(

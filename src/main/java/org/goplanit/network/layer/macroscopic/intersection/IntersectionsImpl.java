@@ -13,13 +13,13 @@ import org.goplanit.utils.containers.IdentityEntityIndex;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionFactory;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersections;
 import org.goplanit.utils.network.layer.macroscopic.intersection.NonSpatialIntersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
@@ -41,7 +41,7 @@ public class IntersectionsImpl extends ManagedIdEntitiesImpl<Intersection> imple
    * link segment to the intersections referring to it as approach or internal segment, the first indexed returned; by
    * identity. A valid layer has at most one per segment, since a node is a member of at most one
    */
-  private final EntityIndex<MacroscopicLinkSegment, Intersection> bySegment = new IdentityEntityIndex<>(
+  private final EntityIndex<LinkSegment, Intersection> bySegment = new IdentityEntityIndex<>(
       intersection -> Stream.concat(intersection.getApproachSegments().stream(),
           intersection instanceof SpatialIntersection ?
               ((SpatialIntersection) intersection).getInternalSegments().stream() : Stream.empty())
@@ -201,12 +201,13 @@ public class IntersectionsImpl extends ManagedIdEntitiesImpl<Intersection> imple
    * Update the segments of every intersection based on the mapping provided, e.g. to their copies after a deep copy of
    * the layer; the index is rebuilt to match
    *
+   * @param <S> type of link segment the mapping takes, for example of the layer when it maps a deep copy
    * @param segmentToSegmentMapping should contain the segment as currently used and then the value is the new segment
    *                                to replace it
    * @param removeMissingMappings when true a segment without a mapping is removed, otherwise it is left in-tact
    */
-  public void updateSegmentMapping(
-      Function<MacroscopicLinkSegment, MacroscopicLinkSegment> segmentToSegmentMapping, boolean removeMissingMappings) {
+  public <S extends LinkSegment> void updateSegmentMapping(
+      Function<S, ? extends LinkSegment> segmentToSegmentMapping, boolean removeMissingMappings) {
     forEach(intersection ->
         ((IntersectionImpl) intersection).updateSegmentMapping(segmentToSegmentMapping, removeMissingMappings));
     reindex();
@@ -219,7 +220,7 @@ public class IntersectionsImpl extends ManagedIdEntitiesImpl<Intersection> imple
    * @param segment to look up
    * @return intersection, null when none
    */
-  public Intersection getBySegment(MacroscopicLinkSegment segment) {
+  public Intersection getBySegment(LinkSegment segment) {
     return bySegment.getFirst(segment);
   }
 

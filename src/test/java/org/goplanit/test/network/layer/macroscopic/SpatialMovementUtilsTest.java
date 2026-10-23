@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
 import org.goplanit.network.layer.macroscopic.SpatialMovementUtils;
+import org.goplanit.network.transport.TransportModelNetworkImpl;
 import org.goplanit.test.LayerTestBase;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
@@ -18,6 +19,7 @@ import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
+import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -129,6 +131,24 @@ public class SpatialMovementUtilsTest extends LayerTestBase {
     assertFalse(SpatialMovementUtils.isBanned(layer, junction, east, bus, true, true));
     assertFalse(SpatialMovementUtils.isBannedForEveryMode(layer, junction, east, true, true));
     assertTrue(SpatialMovementUtils.findBannedModes(layer, junction, east, true, true).isEmpty());
+  }
+
+  /**
+   * A zone connected at member nodes 1 and 2, with the network and zoning integrated, adds connectoid segments at those
+   * nodes. Each has a centroid at one end, so it is never internal: the movements pass the same internal segments and
+   * keep their bans as without the zone
+   */
+  @Test
+  public void connectoidSegmentsAtMemberNodesChangeNoInternalSegmentsPassed() {
+    var zoning = new Zoning(IdGroupingToken.collectGlobalToken(), layer.getLayerIdGroupingToken());
+    var zone = zoning.getOdZones().getFactory().registerNew();
+    zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zone, nodes.get(1));
+    zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zone, nodes.get(2));
+    new TransportModelNetworkImpl(network, zoning).integrateTransportNetworkViaConnectoids(false);
+
+    assertEquals(List.of(segment(1, 2)), SpatialMovementUtils.findInternalSegmentsPassed(layer, junction, east));
+    assertTrue(SpatialMovementUtils.findInternalSegmentsPassed(layer, junction, corner).isEmpty());
+    assertFalse(SpatialMovementUtils.isImplicitlyBanned(layer, junction, east, car));
   }
 
   // INTERNAL SEGMENTS PASSED

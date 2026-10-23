@@ -1,8 +1,11 @@
 package org.goplanit.network.virtual.physical;
 
+import java.util.Set;
+
 import org.goplanit.graph.directed.EdgeSegmentImpl;
 import org.goplanit.network.layer.physical.LinkSegmentImpl;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.virtual.graph.ConnectoidDirectedEdge;
 import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
@@ -52,6 +55,28 @@ public class ConnectoidSegmentImpl extends LinkSegmentImpl implements Connectoid
   @Override
   public ConnectoidLink getParent(){
     return (ConnectoidLink) super.getParent();
+  }
+
+  /**
+   * A mode is allowed when the access zone entry of its link allows it, see {@link ConnectoidLinkImpl#isModeAllowed}:
+   * every mode when the entry lists none explicitly
+   *
+   * @param mode to verify
+   * @return true when allowed, false otherwise
+   */
+  @Override
+  public boolean isModeAllowed(Mode mode) {
+    return ((ConnectoidLinkImpl) getParent()).isModeAllowed(mode);
+  }
+
+  /**
+   * The modes its link allows, see {@link ConnectoidLinkImpl#getAllowedModes()}
+   *
+   * @return the allowed modes, unmodifiable
+   */
+  @Override
+  public Set<Mode> getAllowedModes() {
+    return ((ConnectoidLinkImpl) getParent()).getAllowedModes();
   }
 
   // Public getters - setters

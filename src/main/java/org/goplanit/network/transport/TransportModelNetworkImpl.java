@@ -25,6 +25,7 @@ import org.locationtech.jts.geom.Polygon;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Transport network implementation that is being modeled including both the physical and virtual aspects of it as
@@ -171,8 +172,8 @@ public class TransportModelNetworkImpl
     double connectoidLength = connectoid.getAccessZoneEntry(accessZone, type).getLengthKm().orElseThrow(
         () -> new PlanItRunTimeException(
                 "Unable to retrieve length for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
-    var connectoidEdge =
-        connectoidLinkFactory.registerNew(centroidVertex, connectoid.getReferenceVertex(), connectoidLength);
+    var connectoidEdge = connectoidLinkFactory.registerNew(
+        centroidVertex, connectoid.getReferenceVertex(), connectoidLength, connectoid, type);
     connectVerticesToEdge(connectoidEdge);
     connectoidEdge.setXmlId(constructConnectoidXmlId(accessZone, connectoidEdge, isSource));
     // since sink/source centroid vertices will only ever have one segment per edge, we reuse the xmlId of the
@@ -272,6 +273,8 @@ public class TransportModelNetworkImpl
 
     var centroidVertexFactory = virtualNetwork.getLayer().getVertices().getFactory();
     var cLinkFactory = virtualNetwork.getLayer().getConnectoidLinks().getFactory();
+    /* the links list the modes they allow out of all modes of the network, when their connectoid lists none */
+    cLinkFactory.setAllModesProducer(() -> getInfrastructureNetwork().getModes().stream().collect(Collectors.toSet()));
     var cSegmentFactory = virtualNetwork.getLayer().getConnectoidSegments().getFactory();
     var geoTools = new PlanitJtsCrsUtils(getInfrastructureNetwork().getCoordinateReferenceSystem());
 

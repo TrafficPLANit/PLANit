@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegment;
+import org.goplanit.utils.pcu.PcuCapacitated;
 
 /**
  * Computes green ratios giving each phase of a junction a share of its usable green time weighted by its capacity. The
@@ -37,7 +38,7 @@ public class CapacityWeightedGreenRatioAlgorithm extends GreenRatioAlgorithmBase
   protected double[] shareUsableGreenTime(
       Intersection junction, List<List<IntersectionSegment>> phases, double usableGreenTimeSeconds) {
     var capacities = phases.stream().mapToDouble(phase -> phase.stream().mapToDouble(
-        approach -> approach.getLinkSegment().getCapacityOrDefaultPcuH()).max().orElse(0)).toArray();
+        approach -> ((PcuCapacitated) approach.getLinkSegment()).getCapacityOrDefaultPcuH()).max().orElse(0)).toArray();
     double totalCapacity = Arrays.stream(capacities).sum();
     if (!(totalCapacity > 0)) {
       LOGGER.warning(String.format("No capacity on any phase of intersection %s, its usable green time is shared " +

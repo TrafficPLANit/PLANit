@@ -8,8 +8,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentUtils;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkUtils;
+import org.goplanit.utils.network.layer.physical.LinkSegmentUtils;
+import org.goplanit.utils.network.layer.physical.LinkUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,11 +34,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * @author markr
  */
-public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
+public class LinkSegmentUtilsTest extends LayerTestBase {
 
   /** direction of travel along the segment into its downstream node, over the given reach */
   private static double arriving(MacroscopicLinkSegment segment, double reachMeters) {
-    return MacroscopicLinkSegmentUtils.getAzimuthArrivingAtDownstreamNodeInDegrees(segment, reachMeters, CARTESIAN);
+    return LinkSegmentUtils.getAzimuthArrivingAtDownstreamNodeInDegrees(segment, reachMeters, CARTESIAN);
   }
 
   private MacroscopicLinkSegmentType carOnly;
@@ -47,13 +47,13 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
 
   /**
    * The segment to follow next in a direction: the only one onward, see
-   * {@link MacroscopicLinkSegmentUtils#findOnlySegmentOnward}
+   * {@link LinkSegmentUtils#findOnlySegmentOnward}
    *
    * @param inTrafficDirection true to go in the traffic direction, false to go back against it
    * @return the segment to follow next, null when there is none
    */
   private static UnaryOperator<MacroscopicLinkSegment> onlySegmentOnward(boolean inTrafficDirection) {
-    return segment -> MacroscopicLinkSegmentUtils.findOnlySegmentOnward(segment, inTrafficDirection, other -> true);
+    return segment -> LinkSegmentUtils.findOnlySegmentOnward(segment, inTrafficDirection, other -> true);
   }
 
   /**
@@ -118,7 +118,7 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
     link(1, 2, busOnly, null);
     link(2, 3, walkOnly, null);
 
-    var permitsMotorisedRoadMode = MacroscopicLinkSegmentUtils.permitsMotorisedRoadMode();
+    var permitsMotorisedRoadMode = LinkSegmentUtils.permitsMotorisedRoadMode();
     assertTrue(permitsMotorisedRoadMode.test(segment(0, 1)));
     assertTrue(permitsMotorisedRoadMode.test(segment(1, 2)));
     assertFalse(permitsMotorisedRoadMode.test(segment(2, 3)));
@@ -146,10 +146,10 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
 
     var arriving = segment(0, 1);
     assertEquals(List.of(segment(1, 2)),
-        MacroscopicLinkSegmentUtils.findContinuations(arriving, MacroscopicLinkSegmentUtils.permitsMotorisedRoadMode()));
+        LinkSegmentUtils.findContinuations(arriving, LinkSegmentUtils.permitsMotorisedRoadMode()));
     assertEquals(Set.of(segment(1, 2), segment(1, 3)),
-        Set.copyOf(MacroscopicLinkSegmentUtils.findContinuations(arriving, segment -> true)));
-    assertTrue(MacroscopicLinkSegmentUtils.findContinuations(segment(1, 3), segment -> true).isEmpty());
+        Set.copyOf(LinkSegmentUtils.findContinuations(arriving, segment -> true)));
+    assertTrue(LinkSegmentUtils.findContinuations(segment(1, 3), segment -> true).isEmpty());
   }
 
   /**
@@ -174,10 +174,10 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
 
     var leaving = segment(1, 2);
     assertEquals(List.of(segment(0, 1)),
-        MacroscopicLinkSegmentUtils.findPredecessors(leaving, MacroscopicLinkSegmentUtils.permitsMotorisedRoadMode()));
+        LinkSegmentUtils.findPredecessors(leaving, LinkSegmentUtils.permitsMotorisedRoadMode()));
     assertEquals(Set.of(segment(0, 1), segment(3, 1)),
-        Set.copyOf(MacroscopicLinkSegmentUtils.findPredecessors(leaving, segment -> true)));
-    assertTrue(MacroscopicLinkSegmentUtils.findPredecessors(segment(0, 1), segment -> true).isEmpty());
+        Set.copyOf(LinkSegmentUtils.findPredecessors(leaving, segment -> true)));
+    assertTrue(LinkSegmentUtils.findPredecessors(segment(0, 1), segment -> true).isEmpty());
   }
 
   /**
@@ -197,12 +197,12 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
     link(1, 2, carOnly, null);
     link(1, 3, walkOnly, null);
 
-    assertEquals(segment(1, 2), MacroscopicLinkSegmentUtils.findOnlySegmentOnward(
-        segment(0, 1), true, MacroscopicLinkSegmentUtils.permitsMotorisedRoadMode()));
-    assertNull(MacroscopicLinkSegmentUtils.findOnlySegmentOnward(segment(0, 1), true, segment -> true));
-    assertNull(MacroscopicLinkSegmentUtils.findOnlySegmentOnward(segment(1, 2), true, segment -> true));
+    assertEquals(segment(1, 2), LinkSegmentUtils.findOnlySegmentOnward(
+        segment(0, 1), true, LinkSegmentUtils.permitsMotorisedRoadMode()));
+    assertNull(LinkSegmentUtils.findOnlySegmentOnward(segment(0, 1), true, segment -> true));
+    assertNull(LinkSegmentUtils.findOnlySegmentOnward(segment(1, 2), true, segment -> true));
     assertEquals(segment(0, 1),
-        MacroscopicLinkSegmentUtils.findOnlySegmentOnward(segment(1, 2), false, segment -> true));
+        LinkSegmentUtils.findOnlySegmentOnward(segment(1, 2), false, segment -> true));
   }
 
   /**
@@ -223,7 +223,7 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
     link(2, 3, carOnly, null);
 
     var metersAtNodeReached = new LinkedHashMap<Node, Double>();
-    assertNull(MacroscopicLinkSegmentUtils.followSegmentsUntilAnswered(segment(0, 1), true, 500, 10000,
+    assertNull(LinkSegmentUtils.followSegmentsUntilAnswered(segment(0, 1), true, 500, 10000,
         (segment, meters) -> {
           metersAtNodeReached.put(segment.getDownstreamNode(), meters);
           return null;
@@ -233,12 +233,12 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
 
     BiFunction<MacroscopicLinkSegment, Double, MacroscopicLinkSegment> answerArrivingAtNode2 =
         (segment, meters) -> segment.getDownstreamNode() == nodes.get(2) ? segment : null;
-    assertEquals(segment(1, 2), MacroscopicLinkSegmentUtils.followSegmentsUntilAnswered(
+    assertEquals(segment(1, 2), LinkSegmentUtils.followSegmentsUntilAnswered(
         segment(0, 1), true, 500, 1500, answerArrivingAtNode2, onlySegmentOnward(true)));
-    assertNull(MacroscopicLinkSegmentUtils.followSegmentsUntilAnswered(
+    assertNull(LinkSegmentUtils.followSegmentsUntilAnswered(
         segment(0, 1), true, 500, 1400, answerArrivingAtNode2, onlySegmentOnward(true)));
 
-    assertEquals(segment(0, 1), MacroscopicLinkSegmentUtils.followSegmentsUntilAnswered(
+    assertEquals(segment(0, 1), LinkSegmentUtils.followSegmentsUntilAnswered(
         segment(2, 3), false, 1000, 10000,
         (segment, meters) -> segment.getUpstreamNode() == nodes.get(0) ? segment : null, onlySegmentOnward(false)));
   }
@@ -262,7 +262,7 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
     link(3, 0, carOnly, null);
 
     var nodesReached = new ArrayList<Node>();
-    assertNull(MacroscopicLinkSegmentUtils.followSegmentsUntilAnswered(segment(0, 1), true, 1000, 100000,
+    assertNull(LinkSegmentUtils.followSegmentsUntilAnswered(segment(0, 1), true, 1000, 100000,
         (segment, meters) -> {
           nodesReached.add(segment.getDownstreamNode());
           return null;
@@ -288,9 +288,9 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
 
     BiFunction<MacroscopicLinkSegment, Double, Node> answerAtNode2 =
         (segment, meters) -> segment.getDownstreamNode() == nodes.get(2) ? segment.getDownstreamNode() : null;
-    assertEquals(nodes.get(2), MacroscopicLinkSegmentUtils.followOnlySegmentsOnwardUntilAnswered(
-        segment(0, 1), true, 1000, 10000, MacroscopicLinkSegmentUtils.permitsMotorisedRoadMode(), answerAtNode2));
-    assertNull(MacroscopicLinkSegmentUtils.followOnlySegmentsOnwardUntilAnswered(
+    assertEquals(nodes.get(2), LinkSegmentUtils.followOnlySegmentsOnwardUntilAnswered(
+        segment(0, 1), true, 1000, 10000, LinkSegmentUtils.permitsMotorisedRoadMode(), answerAtNode2));
+    assertNull(LinkSegmentUtils.followOnlySegmentsOnwardUntilAnswered(
         segment(0, 1), true, 1000, 10000, segment -> true, answerAtNode2));
   }
 
@@ -338,7 +338,7 @@ public class MacroscopicLinkSegmentUtilsTest extends LayerTestBase {
     var link = segment(ends[1], ends[0]).getParent();
 
     assertEquals(180, arriving(segment(ends[1], ends[0]), 25), 1e-9);
-    assertEquals(180, MacroscopicLinkUtils.getAzimuthArrivingAtNodeInDegrees(link, nodes.get(ends[0]), 25, CARTESIAN),
+    assertEquals(180, LinkUtils.getAzimuthArrivingAtNodeInDegrees(link, nodes.get(ends[0]), 25, CARTESIAN),
         1e-9);
     assertEquals(CARTESIAN.getAzimuthInDegrees(new Coordinate(30, 20), new Coordinate(60, 60), true),
         arriving(segment(ends[0], ends[1]), 25), 1e-9);

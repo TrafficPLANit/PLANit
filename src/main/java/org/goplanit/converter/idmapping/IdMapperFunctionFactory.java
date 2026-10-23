@@ -14,12 +14,12 @@ import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.id.IdMappingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.graph.directed.BannedTurn;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
@@ -120,30 +120,32 @@ public class IdMapperFunctionFactory {
    * create a function that takes a link segment and (optional) id mapper and generates the appropriate link segment
    * id based on the user configuration
    * 
+   * @param <LS> type of the link segments
    * @param idMapper that generates mapped link segment id's for persistence
    * @return created function
    */
-  public static Function<MacroscopicLinkSegment, String> createLinkSegmentIdMappingFunction(
+  public static <LS extends LinkSegment> Function<LS, String> createLinkSegmentIdMappingFunction(
       final IdMapperType idMapper) {
     switch (idMapper) {
     case EXTERNAL_ID:
-      return (macroscopicLinkSegment) -> {
+      return (linkSegment) -> {
         /* when present on link segment use that external id, otherwise try link */
-        if (macroscopicLinkSegment.getExternalId() != null) {
-          return String.format("%s", macroscopicLinkSegment.getExternalId());
-        } else if (macroscopicLinkSegment.getParent() != null &&
-            macroscopicLinkSegment.getParent().getExternalId() != null) {
+        if (linkSegment.getExternalId() != null) {
+          return String.format("%s", linkSegment.getExternalId());
+        } else if (linkSegment.getParent() != null &&
+            linkSegment.getParent().getExternalId() != null) {
           return String.format("%s_%s",
-              macroscopicLinkSegment.getParent().getExternalId(), macroscopicLinkSegment.isDirectionAb()
+              linkSegment.getParent().getExternalId(), linkSegment.isDirectionAb()
                   ? "ab" : "ba");
         } else {
           LOGGER.severe(String.format("unable to map id for link, PLANit link segment external id not available or " +
-              "parent link missing (id:%d)", macroscopicLinkSegment.getId()));
+              "parent link missing (id:%d)", linkSegment.getId()));
           return "-1";
         }
       };
     default:
-      return IdMappingUtils.createIdMappingFunction(MacroscopicLinkSegment.class, idMapper);
+      Function<LinkSegment, String> mapping = IdMappingUtils.createIdMappingFunction(LinkSegment.class, idMapper);
+      return mapping::apply;
     }
   }
 

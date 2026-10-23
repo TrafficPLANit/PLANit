@@ -9,9 +9,9 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
  * A spatial movement: from one link segment to another, with its length, when there is one the ban placed on it
@@ -27,10 +27,10 @@ public class SpatialMovementImpl extends ExternalIdAbleImpl implements SpatialMo
   private static final long serialVersionUID = -2284511640725312861L;
 
   /** the link segment it starts on */
-  private MacroscopicLinkSegment linkSegmentFrom;
+  private LinkSegment linkSegmentFrom;
 
   /** the link segment it ends on */
-  private MacroscopicLinkSegment linkSegmentTo;
+  private LinkSegment linkSegmentTo;
 
   /** length in km */
   private final double lengthKm;
@@ -56,8 +56,8 @@ public class SpatialMovementImpl extends ExternalIdAbleImpl implements SpatialMo
    * @param to the link segment it ends on
    * @param lengthKm from where the from segment ends to where the to segment starts
    */
-  protected SpatialMovementImpl(final IdGroupingToken groupId, final MacroscopicLinkSegment from,
-      final MacroscopicLinkSegment to, final double lengthKm) {
+  protected SpatialMovementImpl(final IdGroupingToken groupId, final LinkSegment from,
+      final LinkSegment to, final double lengthKm) {
     super(IdGenerator.generateId(groupId, SPATIAL_MOVEMENT_ID_CLASS));
     this.linkSegmentFrom = from;
     this.linkSegmentTo = to;
@@ -88,7 +88,7 @@ public class SpatialMovementImpl extends ExternalIdAbleImpl implements SpatialMo
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegment getLinkSegmentFrom() {
+  public LinkSegment getLinkSegmentFrom() {
     return linkSegmentFrom;
   }
 
@@ -96,7 +96,7 @@ public class SpatialMovementImpl extends ExternalIdAbleImpl implements SpatialMo
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegment getLinkSegmentTo() {
+  public LinkSegment getLinkSegmentTo() {
     return linkSegmentTo;
   }
 
@@ -104,7 +104,7 @@ public class SpatialMovementImpl extends ExternalIdAbleImpl implements SpatialMo
    * {@inheritDoc}
    */
   @Override
-  public void setLinkSegmentFrom(MacroscopicLinkSegment linkSegment) {
+  public void setLinkSegmentFrom(LinkSegment linkSegment) {
     this.linkSegmentFrom = linkSegment;
   }
 
@@ -112,7 +112,7 @@ public class SpatialMovementImpl extends ExternalIdAbleImpl implements SpatialMo
    * {@inheritDoc}
    */
   @Override
-  public void setLinkSegmentTo(MacroscopicLinkSegment linkSegment) {
+  public void setLinkSegmentTo(LinkSegment linkSegment) {
     this.linkSegmentTo = linkSegment;
   }
 

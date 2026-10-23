@@ -14,11 +14,11 @@ import java.util.logging.Logger;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.CapacityFactorOrigin;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSignalSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegmentUtils;
 
 /**
  * What the algorithms computing green ratios and saturation flow factors share. At each signalised intersection given:
@@ -154,7 +154,7 @@ public abstract class GreenRatioAlgorithmBase implements GreenRatioAlgorithm {
    */
   private List<List<IntersectionSegment>> groupIntoPhasesOfOppositeApproaches(
       List<IntersectionSegment> withSignal, PlanitJtsCrsUtils crsUtils) {
-    var directions = withSignal.stream().mapToDouble(approach -> MacroscopicLinkSegmentUtils
+    var directions = withSignal.stream().mapToDouble(approach -> LinkSegmentUtils
         .getAzimuthArrivingAtDownstreamNodeInDegrees(approach.getLinkSegment(), stopLineDirectionReachMeters, crsUtils))
         .toArray();
     var candidates = new ArrayList<OppositeApproachCandidate>();
@@ -327,7 +327,7 @@ public abstract class GreenRatioAlgorithmBase implements GreenRatioAlgorithm {
 
   /**
    * The reach back from the stop line, along the link, over which the direction of an approach is measured, see
-   * {@link MacroscopicLinkSegmentUtils#getAzimuthArrivingAtDownstreamNodeInDegrees}
+   * {@link LinkSegmentUtils#getAzimuthArrivingAtDownstreamNodeInDegrees}
    *
    * @return the reach in metres
    */

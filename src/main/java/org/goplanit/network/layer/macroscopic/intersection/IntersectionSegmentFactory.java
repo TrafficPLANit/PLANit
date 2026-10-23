@@ -1,6 +1,6 @@
 package org.goplanit.network.layer.macroscopic.intersection;
 
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
  * Creates the intersection segments an intersection holds as its approach and internal segment objects: an
@@ -22,7 +22,7 @@ public class IntersectionSegmentFactory {
    * @param hasSignal true for a signal segment, false for an unsignalised one
    * @return the intersection segment
    */
-  public static IntersectionSegmentImpl create(MacroscopicLinkSegment linkSegment, boolean hasSignal) {
+  public static IntersectionSegmentImpl create(LinkSegment linkSegment, boolean hasSignal) {
     return hasSignal ?
         new IntersectionSignalSegmentImpl(linkSegment) : new IntersectionUnsignalisedSegmentImpl(linkSegment);
   }

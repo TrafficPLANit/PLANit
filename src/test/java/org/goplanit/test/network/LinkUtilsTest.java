@@ -7,8 +7,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentUtils;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkUtils;
+import org.goplanit.utils.network.layer.physical.LinkSegmentUtils;
+import org.goplanit.utils.network.layer.physical.LinkUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * @author markr
  */
-public class MacroscopicLinkUtilsTest extends LayerTestBase {
+public class LinkUtilsTest extends LayerTestBase {
 
   private Mode pedestrian;
 
@@ -73,11 +73,11 @@ public class MacroscopicLinkUtilsTest extends LayerTestBase {
     var walkBothWays = link(1, 2, walkOnly, walkOnly);
     var carOneWay = link(2, 3, carOnly, null);
 
-    var permitsMotorisedRoadMode = MacroscopicLinkSegmentUtils.permitsMotorisedRoadMode();
-    assertTrue(MacroscopicLinkUtils.hasSegmentMatching(carOneWayBack, permitsMotorisedRoadMode));
-    assertFalse(MacroscopicLinkUtils.hasSegmentMatching(walkBothWays, permitsMotorisedRoadMode));
-    assertTrue(MacroscopicLinkUtils.hasSegmentMatching(carOneWay, permitsMotorisedRoadMode));
-    assertFalse(MacroscopicLinkUtils.hasSegmentMatching(carOneWay, segment -> segment.isModeAllowed(pedestrian)));
+    var permitsMotorisedRoadMode = LinkSegmentUtils.permitsMotorisedRoadMode();
+    assertTrue(LinkUtils.hasSegmentMatching(carOneWayBack, permitsMotorisedRoadMode));
+    assertFalse(LinkUtils.hasSegmentMatching(walkBothWays, permitsMotorisedRoadMode));
+    assertTrue(LinkUtils.hasSegmentMatching(carOneWay, permitsMotorisedRoadMode));
+    assertFalse(LinkUtils.hasSegmentMatching(carOneWay, segment -> segment.isModeAllowed(pedestrian)));
   }
 
   /**
@@ -97,7 +97,7 @@ public class MacroscopicLinkUtilsTest extends LayerTestBase {
     link(1, 2, walkOnly, walkOnly);
     link(1, 3, busOnly, null);
 
-    assertEquals(2, nodes.get(1).getNumberOfEdges(MacroscopicLinkUtils.permitsMotorisedRoadModeOnAnySegment()));
+    assertEquals(2, nodes.get(1).getNumberOfEdges(LinkUtils.permitsMotorisedRoadModeOnAnySegment()));
   }
 
   /**
@@ -121,7 +121,7 @@ public class MacroscopicLinkUtilsTest extends LayerTestBase {
     assertTrue(tram.isTramOrLightRailMode());
     assertFalse(pedestrian.isTramOrLightRailMode());
     assertEquals(2, nodes.get(1).getNumberOfEdges(
-        MacroscopicLinkUtils.permitsModeMatchingOnAnySegment(Mode::isTramOrLightRailMode)));
+        LinkUtils.permitsModeMatchingOnAnySegment(Mode::isTramOrLightRailMode)));
   }
 
   /**
@@ -142,10 +142,10 @@ public class MacroscopicLinkUtilsTest extends LayerTestBase {
     link(3, 4, carOnly, null);
     link(4, 5, carOnly, tramOnly);
 
-    assertTrue(MacroscopicLinkUtils.isWhereTramOrLightRailTrackMeetsRoad(nodes.get(1)));
-    assertFalse(MacroscopicLinkUtils.isWhereTramOrLightRailTrackMeetsRoad(nodes.get(0)));
-    assertFalse(MacroscopicLinkUtils.isWhereTramOrLightRailTrackMeetsRoad(nodes.get(2)));
-    assertFalse(MacroscopicLinkUtils.isWhereTramOrLightRailTrackMeetsRoad(nodes.get(4)));
+    assertTrue(LinkUtils.isWhereTramOrLightRailTrackMeetsRoad(nodes.get(1)));
+    assertFalse(LinkUtils.isWhereTramOrLightRailTrackMeetsRoad(nodes.get(0)));
+    assertFalse(LinkUtils.isWhereTramOrLightRailTrackMeetsRoad(nodes.get(2)));
+    assertFalse(LinkUtils.isWhereTramOrLightRailTrackMeetsRoad(nodes.get(4)));
   }
 
   /**
@@ -174,15 +174,15 @@ public class MacroscopicLinkUtilsTest extends LayerTestBase {
 
     assertTrue(tram.isMotorisedRoadOrRailMode());
     assertFalse(pedestrian.isMotorisedRoadOrRailMode());
-    assertTrue(MacroscopicLinkUtils.isUsedByModeMatching(nodes.get(3), Mode::isMotorisedRoadMode));
-    assertFalse(MacroscopicLinkUtils.isUsedByModeMatching(nodes.get(1), Mode::isMotorisedRoadMode));
-    assertTrue(MacroscopicLinkUtils.isUsedByModeMatching(nodes.get(6), Mode::isTramOrLightRailMode));
-    assertTrue(MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(0)));
-    assertTrue(MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(1)));
-    assertFalse(MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(2)));
-    assertTrue(MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(4)));
-    assertFalse(MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(5)));
-    assertFalse(MacroscopicLinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(8)));
+    assertTrue(LinkUtils.isUsedByModeMatching(nodes.get(3), Mode::isMotorisedRoadMode));
+    assertFalse(LinkUtils.isUsedByModeMatching(nodes.get(1), Mode::isMotorisedRoadMode));
+    assertTrue(LinkUtils.isUsedByModeMatching(nodes.get(6), Mode::isTramOrLightRailMode));
+    assertTrue(LinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(0)));
+    assertTrue(LinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(1)));
+    assertFalse(LinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(2)));
+    assertTrue(LinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(4)));
+    assertFalse(LinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(5)));
+    assertFalse(LinkUtils.isUsedByNoMotorisedRoadOrRailMode(nodes.get(8)));
   }
 
   /**
@@ -207,9 +207,9 @@ public class MacroscopicLinkUtilsTest extends LayerTestBase {
     fourth.setName("High Street");
     fifth.setName(" ");
 
-    assertTrue(MacroscopicLinkUtils.isSameExternalIdOrName(first, second));
-    assertTrue(MacroscopicLinkUtils.isSameExternalIdOrName(third, fourth));
-    assertFalse(MacroscopicLinkUtils.isSameExternalIdOrName(second, third));
-    assertFalse(MacroscopicLinkUtils.isSameExternalIdOrName(fifth, fifth));
+    assertTrue(LinkUtils.isSameExternalIdOrName(first, second));
+    assertTrue(LinkUtils.isSameExternalIdOrName(third, fourth));
+    assertFalse(LinkUtils.isSameExternalIdOrName(second, third));
+    assertFalse(LinkUtils.isSameExternalIdOrName(fifth, fifth));
   }
 }

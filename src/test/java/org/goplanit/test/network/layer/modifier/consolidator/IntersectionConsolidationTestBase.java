@@ -25,6 +25,7 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.NonSpatialInter
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidationModifierResult;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidatorSettings;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.junit.jupiter.api.BeforeEach;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -111,7 +112,7 @@ public abstract class IntersectionConsolidationTestBase extends LayerTestBase {
 
   /** consolidate with the default values */
   protected IntersectionConsolidationModifierResult consolidate(
-      Predicate<MacroscopicLinkSegment> hasSignalOfItsOwn) {
+      Predicate<LinkSegment> hasSignalOfItsOwn) {
     return layer.getLayerModifier().consolidateIntersections(
         PlanitJtsCrsUtils.CARTESIANCRS, new IntersectionConsolidatorSettings(), hasSignalOfItsOwn);
   }
@@ -128,7 +129,7 @@ public abstract class IntersectionConsolidationTestBase extends LayerTestBase {
 
   /** consolidate with the default values except those the given change sets */
   protected IntersectionConsolidationModifierResult consolidateWith(Consumer<IntersectionConsolidatorSettings> change,
-      Predicate<MacroscopicLinkSegment> hasSignalOfItsOwn) {
+      Predicate<LinkSegment> hasSignalOfItsOwn) {
     var settings = new IntersectionConsolidatorSettings();
     change.accept(settings);
     return layer.getLayerModifier().consolidateIntersections(

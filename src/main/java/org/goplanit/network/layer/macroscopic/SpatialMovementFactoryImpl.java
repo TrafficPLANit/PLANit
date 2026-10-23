@@ -3,10 +3,10 @@ package org.goplanit.network.layer.macroscopic;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovementFactory;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovements;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
  * Factory to create spatial movements and register them on their container
@@ -36,7 +36,7 @@ public class SpatialMovementFactoryImpl extends ManagedIdEntityFactoryImpl<Spati
    */
   @Override
   public SpatialMovement create(
-      MacroscopicLinkSegment from, MacroscopicLinkSegment to, double lengthKm) {
+      LinkSegment from, LinkSegment to, double lengthKm) {
     return new SpatialMovementImpl(getIdGroupingToken(), from, to, lengthKm);
   }
 
@@ -45,7 +45,7 @@ public class SpatialMovementFactoryImpl extends ManagedIdEntityFactoryImpl<Spati
    */
   @Override
   public SpatialMovement registerNew(
-      MacroscopicLinkSegment from, MacroscopicLinkSegment to, double lengthKm) {
+      LinkSegment from, LinkSegment to, double lengthKm) {
     var movement = create(from, to, lengthKm);
     spatialMovements.register(movement);
     return movement;

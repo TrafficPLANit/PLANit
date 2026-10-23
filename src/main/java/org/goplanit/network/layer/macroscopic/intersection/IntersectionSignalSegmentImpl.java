@@ -1,9 +1,9 @@
 package org.goplanit.network.layer.macroscopic.intersection;
 
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.CapacityFactorOrigin;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSignalSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
  * A link segment of an intersection with a signal: the link segment and, when set, its saturation flow factor and green
@@ -27,7 +27,7 @@ public class IntersectionSignalSegmentImpl extends IntersectionSegmentImpl imple
    *
    * @param linkSegment the link segment
    */
-  protected IntersectionSignalSegmentImpl(MacroscopicLinkSegment linkSegment) {
+  protected IntersectionSignalSegmentImpl(LinkSegment linkSegment) {
     super(linkSegment);
   }
 

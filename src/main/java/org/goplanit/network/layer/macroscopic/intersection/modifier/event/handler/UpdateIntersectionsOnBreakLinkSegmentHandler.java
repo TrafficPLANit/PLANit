@@ -11,8 +11,8 @@ import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
@@ -44,7 +44,7 @@ public class UpdateIntersectionsOnBreakLinkSegmentHandler implements DirectedGra
    * @param brokenOff the other link segment
    * @param brokenAt the node broken at
    */
-  private void repointMovements(MacroscopicLinkSegment original, MacroscopicLinkSegment brokenOff, Node brokenAt) {
+  private void repointMovements(LinkSegment original, LinkSegment brokenOff, Node brokenAt) {
     for (var movement : List.copyOf(spatialMovements.getBySegment(original))) {
       spatialMovements.update(movement, m -> {
         if (m.getLinkSegmentFrom() == original && original.getDownstreamVertex() == brokenAt) {
@@ -97,8 +97,8 @@ public class UpdateIntersectionsOnBreakLinkSegmentHandler implements DirectedGra
       return;
     }
     var breakEvent = BreakEdgeSegmentEvent.class.cast(event);
-    var original = (MacroscopicLinkSegment) breakEvent.getOriginalEdgeSegment();
-    var brokenOff = (MacroscopicLinkSegment) breakEvent.getNewlyBrokenEdgeSegment();
+    var original = (LinkSegment) breakEvent.getOriginalEdgeSegment();
+    var brokenOff = (LinkSegment) breakEvent.getNewlyBrokenEdgeSegment();
     if (original != brokenOff) {
       repointMovements(original, brokenOff, (Node) breakEvent.getVertexToBreakAt());
     }

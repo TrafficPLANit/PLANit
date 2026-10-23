@@ -16,9 +16,9 @@ import java.util.stream.Stream;
 import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.id.IdAbleUtils;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersections;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
@@ -71,7 +71,7 @@ public class IntersectionConsolidatorTrackingData {
   private final Set<Node> memberNodesOfSignalisedCrossingOnlyIntersections = new HashSet<>();
 
   /** the approaches with a signal of their own of the layer's intersections before consolidation */
-  private final Set<MacroscopicLinkSegment> approachesWithSignalBeforeConsolidation = new HashSet<>();
+  private final Set<LinkSegment> approachesWithSignalBeforeConsolidation = new HashSet<>();
 
   /** per member node of a parsed intersection, the index of the intersection cluster it was weighed in */
   private final Map<Node, Integer> clusterIndexOfParsedMemberNode = new HashMap<>();
@@ -120,7 +120,7 @@ public class IntersectionConsolidatorTrackingData {
    * @param segment to verify
    * @return true when it was, false otherwise
    */
-  public boolean isApproachWithSignalBeforeConsolidation(MacroscopicLinkSegment segment) {
+  public boolean isApproachWithSignalBeforeConsolidation(LinkSegment segment) {
     return approachesWithSignalBeforeConsolidation.contains(segment);
   }
 
