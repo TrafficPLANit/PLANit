@@ -18,7 +18,8 @@ import java.util.logging.Logger;
  * 
  * @author markr
  */
-public class MacroscopicLinkFactoryImpl extends GraphEntityFactoryImpl<MacroscopicLink> implements MacroscopicLinkFactory {
+public class MacroscopicLinkFactoryImpl extends GraphEntityFactoryImpl<MacroscopicLink>
+    implements MacroscopicLinkFactory {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkFactoryImpl.class.getCanonicalName());
@@ -54,15 +55,27 @@ public class MacroscopicLinkFactoryImpl extends GraphEntityFactoryImpl<Macroscop
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkImpl<Node, MacroscopicLinkSegment> registerNew(final Node nodeA, final Node nodeB, double lengthKm, boolean registerOnNodes) {
+  public MacroscopicLinkImpl<Node, MacroscopicLinkSegment> registerNew() {
+    MacroscopicLinkImpl<Node, MacroscopicLinkSegment> newLink = new MacroscopicLinkImpl<>(getIdGroupingToken());
+    getGraphEntities().register(newLink);
+    return newLink;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkImpl<Node, MacroscopicLinkSegment> registerNew(
+      final Node nodeA, final Node nodeB, double lengthKm, boolean registerOnNodes) {
     if (nodeA == null || nodeB == null) {
       LOGGER.warning("Unable to create new macroscopic link, one or more of its nodes are not defined");
       return null;
     }
 
-    MacroscopicLinkImpl<Node, MacroscopicLinkSegment> newLink = new MacroscopicLinkImpl<>(getIdGroupingToken(), nodeA, nodeB);
-    getGraphEntities().register(newLink);
+    var newLink = registerNew();
     newLink.setLengthKm(lengthKm);
+    newLink.setVertexA(nodeA);
+    newLink.setVertexB(nodeB);
     if (registerOnNodes) {
       nodeA.addEdge(newLink);
       nodeB.addEdge(newLink);

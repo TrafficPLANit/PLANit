@@ -30,8 +30,9 @@ public class DirectedEdgeFactoryImpl extends GraphEntityFactoryImpl<DirectedEdge
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdge registerNew(DirectedVertex vertexA, DirectedVertex vertexB, boolean registerOnVertices) throws PlanItException {
-    final DirectedEdge newEdge = new DirectedEdgeImpl<DirectedVertex, EdgeSegment>(getIdGroupingToken(), vertexA, vertexB);
+  public DirectedEdge registerNew(DirectedVertex vertexA, DirectedVertex vertexB, boolean registerOnVertices)
+      throws PlanItException {
+    final DirectedEdge newEdge = new DirectedEdgeImpl<>(getIdGroupingToken(), vertexA, vertexB);
     getGraphEntities().register(newEdge);
     if (registerOnVertices) {
       vertexA.addEdge(newEdge);

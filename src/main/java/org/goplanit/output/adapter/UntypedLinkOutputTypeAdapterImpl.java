@@ -1,21 +1,23 @@
 package org.goplanit.output.adapter;
 
-import java.util.Optional;
-import java.util.logging.Logger;
-
 import org.goplanit.assignment.TrafficAssignment;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
+
+import java.util.Optional;
+import java.util.logging.Logger;
 
 /**
  * Top-level abstract class which defines the common methods required by Link output type adapters
  * 
- * @author gman6028
- *
+ * @author gman6028, markr
+ * @param <LS> type of segment
  */
-public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> extends OutputTypeAdapterImpl implements UntypedLinkOutputTypeAdapter<LS> {
+public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment>
+    extends UntypedEdgeOutputTypeAdapterImpl<LS> implements UntypedLinkOutputTypeAdapter<LS> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -23,7 +25,7 @@ public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> e
 
   /**
    * Constructor
-   * 
+   *
    * @param outputType        the OutputType this adapter corresponds to
    * @param trafficAssignment TrafficAssignment object which this adapter wraps
    */
@@ -41,49 +43,18 @@ public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> e
    */
   @Override
   public Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, LS linkSegment) {
-    Optional<?> result = Optional.empty();
+
+    Optional<?> result = super.getEdgeSegmentOutputPropertyValue(outputProperty, linkSegment);
+    if(result.isPresent()){
+      return result;
+    }
+
     try {
       switch (outputProperty.getOutputPropertyType()) {
-      case DOWNSTREAM_NODE_EXTERNAL_ID:
-        result = getDownstreamNodeExternalId(linkSegment);
-        break;
-      case DOWNSTREAM_NODE_XML_ID:
-        result = getDownstreamNodeXmlId(linkSegment);
-        break;
-      case DOWNSTREAM_NODE_ID:
-        result = getDownstreamNodeId(linkSegment);
-        break;
-      case DOWNSTREAM_NODE_LOCATION:
-        result = getDownstreamNodeLocation(linkSegment);
-        break;
-      case LENGTH:
-        result = getLength(linkSegment);
-        break;
-      case LINK_SEGMENT_EXTERNAL_ID:
-        result = getLinkSegmentExternalId(linkSegment);
-        break;
-      case LINK_SEGMENT_XML_ID:
-        result = getLinkSegmentXmlId(linkSegment);
-        break;
-      case LINK_SEGMENT_ID:
-        result = getLinkSegmentId(linkSegment);
-        break;
-      case NUMBER_OF_LANES:
-        result = getNumberOfLanes(linkSegment);
-        break;
-      case UPSTREAM_NODE_EXTERNAL_ID:
-        result = getUpstreamNodeExternalId(linkSegment);
-        break;
-      case UPSTREAM_NODE_XML_ID:
-        result = getUpstreamNodeXmlId(linkSegment);
-        break;
-      case UPSTREAM_NODE_ID:
-        result = getUpstreamNodeId(linkSegment);
-        break;
-      case UPSTREAM_NODE_LOCATION:
-        result = getUpstreamNodeLocation(linkSegment);
-        break;
-      default:
+        case NUMBER_OF_LANES:
+          result = getNumberOfLanes(linkSegment);
+          break;
+        default:
       }
 
       if (outputProperty.supportsUnitOverride() && outputProperty.isUnitOverride()) {

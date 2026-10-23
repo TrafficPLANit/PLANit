@@ -20,18 +20,19 @@ import org.goplanit.utils.mode.*;
  */
 public class FerryMode extends PredefinedModeImpl {
 
-  /* default max speed value for ferry mode */
+  /** default max speed value for ferry mode */
   public static final double DEFAULT_MAX_SPEED_KMH = 20;
 
-  /* default pcu value for ferry mode */
+  /** default pcu value for ferry mode */
   public static final double DEFAULT_PCU = 6;
 
-  /* default physical features of ferry (VEHICLE, MOTORISED, WATER) */
+  /** default physical features of ferry (VEHICLE, MOTORISED, WATER) */
   public static final PhysicalModeFeatures FERRY_PHYSICAL_FEATURES =
       new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.WATER);
 
-  /* default usability features of ferry (PUBLIC) */
-  public static final UsabilityModeFeatures FERRY_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
+  /** default usability features of ferry (PUBLIC) */
+  public static final UsabilityModeFeatures FERRY_USABLITY_FEATURES =
+      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
 
   /**
    * Constructor for ferry mode
@@ -39,7 +40,12 @@ public class FerryMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected FerryMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.FERRY, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, FERRY_PHYSICAL_FEATURES, FERRY_USABLITY_FEATURES);
+    super(groupId,
+        PredefinedModeType.FERRY,
+        DEFAULT_MAX_SPEED_KMH,
+        DEFAULT_PCU,
+        FERRY_PHYSICAL_FEATURES,
+        FERRY_USABLITY_FEATURES);
   }
 
   /**

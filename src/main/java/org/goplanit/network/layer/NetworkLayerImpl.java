@@ -6,12 +6,12 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.goplanit.network.Network;
+import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.mode.PredefinedMode;
-import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.NetworkLayer;
 
 /**
@@ -79,7 +79,7 @@ public abstract class NetworkLayerImpl extends ExternalIdAbleImpl implements Net
   @Override
   public boolean registerSupportedModes(Collection<Mode> supportedModes) {
     boolean success = false;
-    if (supportedModes != null && supportedModes.size() > 0) {
+    if (supportedModes != null && !supportedModes.isEmpty()) {
       success = true;
       for (Mode mode : supportedModes) {
         if (!registerSupportedMode(mode)) {
@@ -101,20 +101,12 @@ public abstract class NetworkLayerImpl extends ExternalIdAbleImpl implements Net
 
   /**
    * {@inheritDoc}
-   */
-  @Override
-  public boolean supportsPredefinedMode(PredefinedModeType predefinedModeType) {
-    return supportedModes.values().stream().filter( m -> m.isPredefinedModeType() && ((PredefinedMode)m).getPredefinedModeType() == predefinedModeType).findFirst().isPresent();
-  }
-
-  /**
-   * {@inheritDoc}
    * 
    */
   @Override
   public void logInfo(String prefix) {
     /* log supported modes */
-    LOGGER.info(String.format("%ssupported modes: %s", prefix, getSupportedModes().stream().map((mode) -> mode.getXmlId()).collect(Collectors.joining(", "))));
+    LOGGER.info(String.format("%ssupported modes: %s", prefix, getSupportedModes().stream().map(ExternalIdAble::getXmlId).collect(Collectors.joining(", "))));
   }
 
   /**
@@ -131,7 +123,7 @@ public abstract class NetworkLayerImpl extends ExternalIdAbleImpl implements Net
    * {@inheritDoc}
    */
   @Override
-  public void reset() {
+  public void reset(boolean resetManagedIdToken) {
     this.supportedModes.clear();
   }
 

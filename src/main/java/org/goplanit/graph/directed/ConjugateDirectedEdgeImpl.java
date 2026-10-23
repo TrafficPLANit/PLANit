@@ -2,22 +2,23 @@ package org.goplanit.graph.directed;
 
 import java.util.logging.Logger;
 
-import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
-import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.graph.ConjugateEdgeImpl;
+import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.locationtech.jts.geom.LineString;
 
 /**
- * Conjugate Edge implementation class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry
+ * Conjugate Edge implementation class connecting two vertices via some geometry. Each edge has one or
+ * two underlying edge segments in a particular direction which may carry
  * additional information for each particular direction of the edge.
  *
  * @author markr
- *
+ * @param <V> type of vertex
+ * @param <ES> type of segment
  */
-public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES extends ConjugateEdgeSegment> extends DirectedEdgeImpl<V, ES> implements ConjugateDirectedEdge {
+public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES extends ConjugateEdgeSegment>
+    extends DirectedEdgeImpl<V, ES> implements ConjugateDirectedEdge {
 
   // Protected
 
@@ -28,9 +29,9 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
   private static final Logger LOGGER = Logger.getLogger(ConjugateDirectedEdgeImpl.class.getCanonicalName());
 
   /**
-   * adjacent original directed edges represented by this conjugate
+   * adjacent originals represented by this conjugate
    */
-  protected final Pair<DirectedEdge, DirectedEdge> originalEdges;
+  protected final Pair<EdgeSegment, EdgeSegment> originals;
 
   /**
    * Constructor
@@ -38,13 +39,17 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param vertexA  first conjugate vertex in the link
    * @param vertexB  second conjugate vertex in the link
-   * @param originalEdge1 to use
-   * @param originalEdge2 to use
+   * @param original1 to use
+   * @param original2 to use
    */
-  protected ConjugateDirectedEdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB, final DirectedEdge originalEdge1,
-      final DirectedEdge originalEdge2) {
+  protected ConjugateDirectedEdgeImpl(
+          final IdGroupingToken groupId,
+          final V vertexA,
+          final V vertexB,
+          final EdgeSegment original1,
+          final EdgeSegment original2) {
     super(groupId, vertexA, vertexB);
-    this.originalEdges = Pair.of(originalEdge1, originalEdge2);
+    this.originals = Pair.of(original1, original2);
   }
 
   /**
@@ -55,18 +60,7 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
    */
   protected ConjugateDirectedEdgeImpl(ConjugateDirectedEdgeImpl<V,ES> other, boolean deepCopy) {
     super(other, deepCopy);
-    this.originalEdges = other.originalEdges.copy(); // not owned so never deep copied
-  }
-
-  /**
-   * Length not supported on conjugate edge, collect from original underlying edges instead if required
-   * 
-   * @return negative infinity
-   */
-  @Override
-  public double getLengthKm() {
-    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, collect those instead, negative infinity returned");
-    return Double.NEGATIVE_INFINITY;
+    this.originals = other.originals.copy(); // not owned so never deep copied
   }
 
   /**
@@ -80,14 +74,26 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
   }
 
   /**
-   * Geometry not supported on conjugate edge, collect from original underlying edge segments instead if required
-   * 
-   * @return null
+   * Length is sum of length of its underlying two edges. Computed on-the-fly. If any edge is null, it is assumed
+   * length may be set to 0km for that edge.
+   *
+   * @return on-the-fly length calculation
+   */
+  @Override
+  public double getLengthKm() {
+    return ConjugateEdgeImpl.getLengthKm(this);
+  }
+
+  /**
+   * Geometry on conjugate directed edge is created on-the-fly by joining the two nodes on its extremes (direct line).
+   * This to be able to overlay the conjugate network on top of the original network and show how it differs.
+   * The actual geometry can be retrieved from the underlying original edges. It is assumed the vertices have a coordinate.
+   *
+   * @return on-the-fly vertex connecting linestring
    */
   @Override
   public LineString getGeometry() {
-    LOGGER.warning("Geometry of conjugate is combination of underlying original geometries, collect those instead, null returned");
-    return null;
+    return ConjugateEdgeImpl.getGeometry(this);
   }
 
   /**
@@ -104,8 +110,8 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
    * {@inheritDoc}
    */
   @Override
-  public Pair<DirectedEdge, DirectedEdge> getOriginalAdjacentEdges() {
-    return originalEdges;
+  public Pair<EdgeSegment, EdgeSegment> getOriginalAdjacentSegments() {
+    return originals;
   }
 
   /**

@@ -15,7 +15,8 @@ import org.goplanit.utils.misc.LoggingUtils;
 public class StaticLtmNetworkLoadingConvergenceAnalyser {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(StaticLtmNetworkLoadingConvergenceAnalyser.class.getCanonicalName());
+  private static final Logger LOGGER =
+      Logger.getLogger(StaticLtmNetworkLoadingConvergenceAnalyser.class.getCanonicalName());
 
   /**
    * Tracked iteration gaps
@@ -23,7 +24,8 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
   private final ArrayList<Double> gapsByIteration;
 
   /**
-   * iteration offset to use in applying iteration based thresholds, e.g. when iteration=10, but offset is 8, then we are working with an actual iteration of 2.
+   * iteration offset to use in applying iteration based thresholds, e.g. when iteration=10, but offset is 8,
+   * then we are working with an actual iteration of 2.
    */
   private int iterationOffset = DEFAULT_ITERATION_OFFSET;
 
@@ -40,7 +42,8 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
   private int maxIterationThreshold = DEFAULT_MAX_ITERATION_THRESHOLD;
 
   /**
-   * Whenever a change in gap is detected worse than this value, we consider the network non-convergent conditional on the min iteration threshold to be satisfied
+   * Whenever a change in gap is detected worse than this value, we consider the network non-convergent conditional
+   * on the min iteration threshold to be satisfied
    */
   private final double maxSingleIterationWorseningGapThreshold = DEFAULT_MAX_SINGLE_WORSENING_THRESHOLD;
 
@@ -178,7 +181,8 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
    */
   public void logGapsSince(long runId, int referenceIteration) {
     LOGGER.info(
-        String.format("%sGaps for iteration %d-%d: %s", LoggingUtils.runIdPrefix(runId), referenceIteration, getRegisteredIterations(), this.gapsByIteration.toString()));
+        String.format("%sGaps for iteration %d-%d: %s",
+            LoggingUtils.runIdPrefix(runId), referenceIteration, getRegisteredIterations(), this.gapsByIteration));
   }
 
   /**

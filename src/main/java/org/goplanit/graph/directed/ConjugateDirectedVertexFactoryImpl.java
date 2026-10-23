@@ -1,10 +1,7 @@
 package org.goplanit.graph.directed;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertexFactory;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertices;
-import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.*;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -12,7 +9,8 @@ import org.goplanit.utils.id.IdGroupingToken;
  * 
  * @author markr
  */
-public class ConjugateDirectedVertexFactoryImpl extends GraphEntityFactoryImpl<ConjugateDirectedVertex> implements ConjugateDirectedVertexFactory {
+public class ConjugateDirectedVertexFactoryImpl
+        extends GraphEntityFactoryImpl<ConjugateDirectedVertex> implements ConjugateDirectedVertexFactory {
 
   /**
    * Constructor
@@ -20,7 +18,8 @@ public class ConjugateDirectedVertexFactoryImpl extends GraphEntityFactoryImpl<C
    * @param groupId            to use
    * @param conjugatedVertices to use
    */
-  protected ConjugateDirectedVertexFactoryImpl(final IdGroupingToken groupId, final ConjugateDirectedVertices conjugatedVertices) {
+  protected ConjugateDirectedVertexFactoryImpl(
+          final IdGroupingToken groupId, final ConjugateDirectedVertices conjugatedVertices) {
     super(groupId, conjugatedVertices);
   }
 
@@ -28,16 +27,16 @@ public class ConjugateDirectedVertexFactoryImpl extends GraphEntityFactoryImpl<C
    * {@inheritDoc}
    */
   @Override
-  public ConjugateDirectedVertex createNew(final DirectedEdge originalEdge) {
-    return new ConjugateDirectedVertexImpl(getIdGroupingToken(), originalEdge);
+  public ConjugateDirectedVertex createNew(final EdgeSegment original) {
+    return new ConjugateDirectedVertexImpl(getIdGroupingToken(), original);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ConjugateDirectedVertex registerNew(final DirectedEdge originalEdge) {
-    final ConjugateDirectedVertex newConjugateVertex = createNew(originalEdge);
+  public ConjugateDirectedVertex registerNew(final EdgeSegment original) {
+    final ConjugateDirectedVertex newConjugateVertex = createNew(original);
     getGraphEntities().register(newConjugateVertex);
     return newConjugateVertex;
   }

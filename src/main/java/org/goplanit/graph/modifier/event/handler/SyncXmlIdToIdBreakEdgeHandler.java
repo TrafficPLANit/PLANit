@@ -15,7 +15,8 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
  * the memory model. For example when the network is persisted to disk afterwards in which case the XML ids can be used to map ids. In this situation the XML ids need to remain
  * unique.
  * 
- * If it is known that the XML ids are initially synced with the internal ids, then this listener can be used to sync all broken links' XML id to the internal id of these links
+ * If it is known that the XML ids are initially synced with the internal ids, then this listener can be used to
+ * sync all broken links' XML id to the internal id of these links
  * ensuring uniqueness after performing a break link action.
  * 
  * Class supports BreakEdgeEvent.EVENT_TYPE to apply its syncing functionality upon notification
@@ -59,11 +60,12 @@ public class SyncXmlIdToIdBreakEdgeHandler implements GraphModifierListener {
   @Override
   public void onGraphModificationEvent(GraphModificationEvent event) {
     if (!event.getType().equals(BreakEdgeEvent.EVENT_TYPE)) {
-      LOGGER.warning(String.format("%s only supports break edge events", SyncXmlIdToIdBreakEdgeHandler.class.getName()));
+      LOGGER.warning(String.format("%s only supports break edge events",
+          SyncXmlIdToIdBreakEdgeHandler.class.getName()));
       return;
     }
 
-    BreakEdgeEvent breakEdgeEvent = BreakEdgeEvent.class.cast(event);
+    BreakEdgeEvent breakEdgeEvent = (BreakEdgeEvent) event;
     onBreakEdge(breakEdgeEvent.getEdgeFromVertexAToBreak(), breakEdgeEvent.getEdgeFromBreakToVertexB());
   }
 

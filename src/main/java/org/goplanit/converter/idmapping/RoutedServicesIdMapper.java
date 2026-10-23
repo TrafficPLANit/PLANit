@@ -1,6 +1,6 @@
 package org.goplanit.converter.idmapping;
 
-import org.goplanit.utils.function.PlanitExceptionFunction;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.service.routed.RoutedService;
 import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.utils.service.routed.RoutedTrip;

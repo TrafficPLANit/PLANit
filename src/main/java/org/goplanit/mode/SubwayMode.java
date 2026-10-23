@@ -33,10 +33,12 @@ public class SubwayMode extends PredefinedModeImpl {
   public static final double DEFAULT_PCU = 6;
 
   /* default physical features of subway (VEHICLE, MOTORISED, RAIL) */
-  public static final PhysicalModeFeatures SUBWAY_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.RAIL);
+  public static final PhysicalModeFeatures SUBWAY_PHYSICAL_FEATURES =
+      new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.RAIL);
 
   /* default usability features of subway (PUBLIC) */
-  public static final UsabilityModeFeatures SUBWAY_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
+  public static final UsabilityModeFeatures SUBWAY_USABLITY_FEATURES =
+      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
 
   /**
    * Constructor for subway mode
@@ -44,7 +46,8 @@ public class SubwayMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected SubwayMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.SUBWAY, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, SUBWAY_PHYSICAL_FEATURES, SUBWAY_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.SUBWAY, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU,
+        SUBWAY_PHYSICAL_FEATURES, SUBWAY_USABLITY_FEATURES);
   }
 
   /**
