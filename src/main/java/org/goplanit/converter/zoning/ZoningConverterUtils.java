@@ -20,7 +20,6 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
@@ -107,7 +106,7 @@ public class ZoningConverterUtils {
       Set<MacroscopicLink> links,
       SortedSet<MacroscopicLinkSegment> accessLinkSegments,
       Mode firstAccessMode) {
-    if(firstAccessMode.getPhysicalFeatures().getTrackType() != TrackModeType.ROAD || accessLinkSegments.stream().map(
+    if(!firstAccessMode.isRoadMode() || accessLinkSegments.stream().map(
         MacroscopicLinkSegment::getCapacityOrDefaultPcuHLane).distinct().count() <= 1) {
       return links;
     }
@@ -303,7 +302,7 @@ public class ZoningConverterUtils {
    * @return true when restricted for driving direction, false otherwise
    */
   public static boolean isAvoidCrossTrafficForAccessMode(final Mode accessMode) {
-    return accessMode.getPhysicalFeatures().getTrackType().equals(TrackModeType.ROAD);
+    return accessMode.isRoadMode();
   }
 
   /** create a subset of links from the passed in ones, removing all links for which we can be certain that geometry

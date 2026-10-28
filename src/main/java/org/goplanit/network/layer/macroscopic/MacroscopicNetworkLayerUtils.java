@@ -77,8 +77,9 @@ public class MacroscopicNetworkLayerUtils {
    * </p>
    * <p>
    * Connectoids are deliberately not considered. They are not part of the physical network, so what they
-   * reference does not decide what the network may do; a connectoid left pointing at a segment that no longer
-   * grants its mode access is a zoning concern to be handled on the zoning side.
+   * reference does not decide what the network may do. Access is withdrawn by changing the segment's type through the
+   * layer's modifier, so the zoning side can follow it with a listener, see
+   * {@link org.goplanit.zoning.modifier.event.handler.UpdateConnectoidsOnLinkSegmentChangeHandler}.
    * </p>
    *
    * @param layer to apply this to
@@ -220,7 +221,9 @@ public class MacroscopicNetworkLayerUtils {
   /**
    * Replace the segment's type with one identical except that it no longer grants the given mode access, see
    * {@link #findOrRegisterTypeWithoutModes}. The type is never changed in place: that would silently withdraw access
-   * everywhere the type is used. A variant is found or created once per (original type, withdrawn mode) pair.
+   * everywhere the type is used. A variant is found or created once per (original type, withdrawn mode) pair. The
+   * type is replaced through the layer's modifier, so its listeners hear of it, see
+   * {@link MacroscopicNetworkLayerModifier#changeLinkSegmentType(MacroscopicLinkSegment, MacroscopicLinkSegmentType)}.
    *
    * @param layer owning the link segment types
    * @param modifiedTypes cache of already created variants
@@ -238,8 +241,8 @@ public class MacroscopicNetworkLayerUtils {
       return;
     }
 
-    linkSegment.setLinkSegmentType(
-        findOrRegisterTypeWithoutModes(layer, modifiedTypes, original, Collections.singleton(mode)));
+    layer.getLayerModifier().changeLinkSegmentType(
+        linkSegment, findOrRegisterTypeWithoutModes(layer, modifiedTypes, original, Collections.singleton(mode)));
   }
 
   /**

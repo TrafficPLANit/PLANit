@@ -52,8 +52,8 @@ public class GreenRatioAndSaturationFlowFactorSettings {
   /** saturation flow factor of an approach without a signal of its own at a signalised intersection */
   private double approachWithoutSignalSaturationFlowFactor = DEFAULT_APPROACH_WITHOUT_SIGNAL_SATURATION_FLOW_FACTOR;
 
-  /** default algorithm, the simpler of the two */
-  public static final GreenRatioAlgorithmType DEFAULT_ALGORITHM_TYPE = GreenRatioAlgorithmType.EQUAL_SPLIT;
+  /** default algorithm: each phase gets green time by its capacity, so a main road gets more than a side street */
+  public static final GreenRatioAlgorithmType DEFAULT_ALGORITHM_TYPE = GreenRatioAlgorithmType.CAPACITY_WEIGHTED;
 
   /** default cycle time in seconds; city signals mostly run 80 to 120 s */
   public static final double DEFAULT_CYCLE_TIME_SECONDS = 90;

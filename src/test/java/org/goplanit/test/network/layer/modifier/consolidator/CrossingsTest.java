@@ -1,5 +1,6 @@
 package org.goplanit.test.network.layer.modifier.consolidator;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidationModifierResult.IntersectionOutcome.CROSSING_JOINED;
 import static org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidationModifierResult.IntersectionOutcome.CROSSING_JOINED_FROM_SLIP_LANE;
+import static org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidationModifierResult.IntersectionOutcome.CROSSING_JOINED_SIDE_BY_SIDE;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -62,6 +64,37 @@ public class CrossingsTest extends IntersectionConsolidationTestBase {
     link(footwaySouthEnd, node(meters - 10, -10), 10, true, tramway);
     link(footwaySouthEnd, node(meters + 10, -10), 10, true, tramway);
     return new int[] {junctionNode, crossingNode, northCrossingNode, footwaySouthEnd};
+  }
+
+  /**
+   * A straight two-way road with signalised crossings in a row, each on a node of its own, the given distance apart
+   * along the road, with a node halfway between each two where the road simply continues. No junction is near
+   * <pre>
+   *   W ------ K1 -- M -- K2 -- M -- K3 ------ E      W to the first crossing and the last crossing to E 85 m each
+   * </pre>
+   *
+   * @param numberOfCrossings in the row
+   * @param meters between two crossings next to each other
+   * @return indices of the crossing nodes, west to east; the halfway node before each but the first is one less
+   */
+  private int[] crossingsInARow(int numberOfCrossings, double meters) {
+    int[] crossingNodes = new int[numberOfCrossings];
+    int previous = node(-85, 0);
+    for (int index = 0; index < numberOfCrossings; ++index) {
+      if (index > 0) {
+        int halfway = node(index * meters - meters / 2, 0);
+        twoWayRoad(previous, halfway, meters / 2);
+        previous = halfway;
+      }
+      crossingNodes[index] = node(index * meters, 0);
+      twoWayRoad(previous, crossingNodes[index], index == 0 ? 85 : meters / 2);
+      previous = crossingNodes[index];
+    }
+    twoWayRoad(previous, node((numberOfCrossings - 1) * meters + 85, 0), 85);
+    for (int crossingNode : crossingNodes) {
+      signalisedCrossingAt(crossingNode);
+    }
+    return crossingNodes;
   }
 
   /**
@@ -382,5 +415,107 @@ public class CrossingsTest extends IntersectionConsolidationTestBase {
     assertSame(junction, intersections.getByMemberNode(nodes.get(junctionNode)));
     assertSame(crossing, intersections.getByMemberNode(nodes.get(crossingNode)));
     assertTrue(result.getIntersections(CROSSING_JOINED).isEmpty());
+  }
+
+  /**
+   * Two crossings 10 m apart along the road join into one crossing intersection: the node between them becomes a
+   * member, the road between them is internal, without a signal, and the roads entering from W and E are its
+   * approaches. The crossing that joined the other is listed
+   */
+  @Test
+  public void crossingsSideBySideJoinIntoOne() {
+    int[] crossingNodes = crossingsInARow(2, 10);
+    int west = crossingNodes[0] - 1;
+    int halfway = crossingNodes[1] - 1;
+    int east = nodes.size() - 1;
+
+    var result = consolidate();
+
+    var joined = onlySpatialIntersection();
+    assertEquals(Set.of(IntersectionType.CROSSING), joined.getTypes());
+    assertEquals(Set.of(nodes.get(crossingNodes[0]), nodes.get(halfway), nodes.get(crossingNodes[1])),
+        Set.copyOf(joined.getMemberNodes()));
+    assertEquals(Set.of(segment(crossingNodes[0], halfway), segment(halfway, crossingNodes[0]),
+        segment(halfway, crossingNodes[1]), segment(crossingNodes[1], halfway)),
+        Set.copyOf(joined.getInternalSegments()));
+    assertTrue(joined.getInternalSegmentsWithSignal().isEmpty());
+    assertEquals(Set.of(segment(west, crossingNodes[0]), segment(east, crossingNodes[1])),
+        Set.copyOf(joined.getApproachSegments()));
+    assertEquals(1, result.getIntersections(CROSSING_JOINED_SIDE_BY_SIDE).size());
+  }
+
+  /**
+   * Three crossings 10 m apart in a row become one crossing intersection, not a pair and a single: each joining
+   * crossing is listed
+   */
+  @Test
+  public void rowOfThreeCrossingsBecomesOne() {
+    int[] crossingNodes = crossingsInARow(3, 10);
+
+    var result = consolidate();
+
+    var joined = onlySpatialIntersection();
+    assertTrue(Arrays.stream(crossingNodes).allMatch(index -> joined.hasMemberNode(nodes.get(index))));
+    assertEquals(2, result.getIntersections(CROSSING_JOINED_SIDE_BY_SIDE).size());
+  }
+
+  /**
+   * Two crossings 10 m apart with a side street joining the road halfway between them stay apart: the road does not
+   * simply continue there
+   * <pre>
+   *   W ------ K1 -- X -- K2 ------ E      W-K1 and K2-E 85 m, K1-X and X-K2 5 m
+   *                  |
+   *                  S                     X-S 85 m
+   * </pre>
+   */
+  @Test
+  public void crossingsWithASideStreetBetweenThemStayApart() {
+    int firstCrossing = node(0, 0);
+    int sideStreetNode = node(5, 0);
+    int secondCrossing = node(10, 0);
+    twoWayRoad(node(-85, 0), firstCrossing, 85);
+    twoWayRoad(firstCrossing, sideStreetNode, 5);
+    twoWayRoad(sideStreetNode, secondCrossing, 5);
+    twoWayRoad(secondCrossing, node(95, 0), 85);
+    twoWayRoad(sideStreetNode, node(5, -85), 85);
+    signalisedCrossingAt(firstCrossing);
+    signalisedCrossingAt(secondCrossing);
+
+    var result = consolidate();
+
+    assertEquals(2, intersections.size());
+    assertTrue(result.getIntersections(CROSSING_JOINED_SIDE_BY_SIDE).isEmpty());
+  }
+
+  /**
+   * Two crossings 5 m beyond the distance between crossings side by side stay apart
+   */
+  @Test
+  public void crossingsFurtherApartThanSideBySideStayApart() {
+    crossingsInARow(
+        2, IntersectionConsolidatorSettings.DEFAULT_MAXIMUM_DISTANCE_BETWEEN_CROSSINGS_SIDE_BY_SIDE_METERS + 5);
+
+    var result = consolidate();
+
+    assertEquals(2, intersections.size());
+    assertTrue(result.getIntersections(CROSSING_JOINED_SIDE_BY_SIDE).isEmpty());
+  }
+
+  /**
+   * A stop line on the road between two crossings side by side holds no traffic of its own once they are one
+   * intersection: road traffic is held once, on the road entering it, so the segment it stands on is a plain internal
+   * segment
+   */
+  @Test
+  public void stopLineBetweenCrossingsSideBySideHoldsNoTrafficOfItsOwn() {
+    int[] crossingNodes = crossingsInARow(2, 10);
+    int halfway = crossingNodes[1] - 1;
+    var withStopLine = segment(crossingNodes[0], halfway);
+
+    consolidate(segment -> segment == withStopLine);
+
+    var joined = onlySpatialIntersection();
+    assertTrue(joined.getInternalSegments().contains(withStopLine));
+    assertTrue(joined.getInternalSegmentsWithSignal().isEmpty());
   }
 }

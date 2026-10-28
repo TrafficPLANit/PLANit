@@ -482,6 +482,28 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     assertTrue(layer.getBannedTurns().getBySegment(segment(0, 1)).isEmpty());
   }
 
+  /**
+   * A U-turn ban between two parallel one-way links, such as the two carriageways of a divided road, keeps the other
+   * carriageway's segment when the link it starts from is broken: only a segment of the broken link moves
+   * <pre>
+   *   0 ----> 1 ----> 2    link broken at node 1
+   *   0 <------------ 2    parallel link, the U-turn ban at node 2 runs from 1-2 onto it
+   * </pre>
+   */
+  @Test
+  public void uTurnBanOntoParallelLinkKeepsItsSegmentAfterBreakingLink() {
+    createNodesOnLine(3);
+    var link = breakableOneWay(0, 2);
+    oneWay(2, 0);
+    var ban = layer.getBannedTurns().getFactory().registerNew(segment(0, 2), segment(2, 0));
+
+    breakAt(link, 1);
+
+    assertSame(segment(1, 2), ban.getSegmentFrom());
+    assertSame(segment(2, 0), ban.getSegmentTo());
+    assertEquals(List.of(ban), layer.getBannedTurns().getBySegment(segment(2, 0)));
+  }
+
   /** A deep copy of the layer finds its bans by its own segments, and the original by the original's */
   @Test
   public void copiedLayerFindsItsBansByItsOwnSegments() {

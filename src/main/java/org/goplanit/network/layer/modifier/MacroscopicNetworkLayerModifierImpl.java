@@ -23,6 +23,7 @@ import org.goplanit.network.layer.macroscopic.intersection.modifier.event.handle
 import org.goplanit.network.layer.macroscopic.intersection.modifier.event.handler.UpdateIntersectionsOnVertexRemovalHandler;
 import org.goplanit.network.layer.modifier.consolidator.IntersectionConsolidator;
 import org.goplanit.network.layer.modifier.consolidator.IntersectionModeCollapser;
+import org.goplanit.network.layer.modifier.event.ChangeLinkSegmentTypeEvent;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
@@ -31,6 +32,7 @@ import org.goplanit.utils.graph.directed.Connectivity;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
@@ -41,6 +43,8 @@ import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollap
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapserSettings;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidationModifierResult;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidatorSettings;
+import org.goplanit.utils.network.layer.modifier.event.LinkSegmentTypeModifierEventType;
+import org.goplanit.utils.network.layer.modifier.event.LinkSegmentTypeModifierListener;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
 import org.goplanit.utils.network.layer.modifier.ModeAccessCleanupModifierResult;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
@@ -65,6 +69,10 @@ public class MacroscopicNetworkLayerModifierImpl
 
   /** produces the intersection events to the intersection listeners registered on this modifier */
   private final IntersectionModifierEventProducerImpl intersectionEvents = new IntersectionModifierEventProducerImpl();
+
+  /** produces the link segment type events to the link segment type listeners registered on this modifier */
+  private final LinkSegmentTypeModifierEventProducerImpl linkSegmentTypeEvents =
+      new LinkSegmentTypeModifierEventProducerImpl();
 
   /** keeps intersections consistent with removed nodes, and reports those left without member nodes */
   private final UpdateIntersectionsOnVertexRemovalHandler vertexRemovalHandler;
@@ -306,6 +314,21 @@ public class MacroscopicNetworkLayerModifierImpl
    * {@inheritDoc}
    */
   @Override
+  public void changeLinkSegmentType(MacroscopicLinkSegment linkSegment, MacroscopicLinkSegmentType linkSegmentType) {
+    var previousType = linkSegment.getLinkSegmentType();
+    if (previousType == linkSegmentType) {
+      return;
+    }
+    linkSegment.setLinkSegmentType(linkSegmentType);
+    if (linkSegmentTypeEvents.hasListener(ChangeLinkSegmentTypeEvent.EVENT_TYPE)) {
+      linkSegmentTypeEvents.fireEvent(new ChangeLinkSegmentTypeEvent(this, linkSegment, previousType, linkSegmentType));
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public List<BannedTurn> moveLinkEndNode(
       MacroscopicLink link, Node currentEndNode, Node newEndNode, CoordinateReferenceSystem crs) {
     boolean atNodeA = link.getNodeA() == currentEndNode;
@@ -365,6 +388,7 @@ public class MacroscopicNetworkLayerModifierImpl
   public void removeAllNonInternalListeners() {
     super.removeAllNonInternalListeners();
     intersectionEvents.removeAllNonInternalListeners();
+    linkSegmentTypeEvents.removeAllNonInternalListeners();
   }
 
   /**
@@ -397,6 +421,38 @@ public class MacroscopicNetworkLayerModifierImpl
   @Override
   public void removeListener(IntersectionModifierListener listener) {
     intersectionEvents.removeListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addListener(LinkSegmentTypeModifierListener listener) {
+    linkSegmentTypeEvents.addListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addListener(LinkSegmentTypeModifierListener listener, LinkSegmentTypeModifierEventType eventType) {
+    linkSegmentTypeEvents.addListener(listener, eventType);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeListener(LinkSegmentTypeModifierListener listener, LinkSegmentTypeModifierEventType eventType) {
+    linkSegmentTypeEvents.removeListener(listener, eventType);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeListener(LinkSegmentTypeModifierListener listener) {
+    linkSegmentTypeEvents.removeListener(listener);
   }
 
   /**

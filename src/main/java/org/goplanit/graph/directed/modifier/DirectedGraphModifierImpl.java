@@ -150,15 +150,19 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
       Ex aToBreak, Ex breakToB, List<BannedTurn> touchedBannedTurns) {
 
     for(var bannedTurn : touchedBannedTurns){
+      /* only a segment of the broken edge moves: a parallel edge between the same two vertices, such as the other
+       * carriageway of a divided road, keeps its segment */
       // for from segment, this is the only situation where it is altered (as AToBreak is reused just shortened)
-      if(bannedTurn.getSegmentFrom().getUpstreamVertex().equals(aToBreak.getVertexA()) &&
+      if(bannedTurn.getSegmentFrom().getParent() == aToBreak &&
+          bannedTurn.getSegmentFrom().getUpstreamVertex().equals(aToBreak.getVertexA()) &&
           breakToB.getVertexB().equals(bannedTurn.getSegmentTo().getUpstreamVertex())){
         getGraph().getBannedTurns().update(
             bannedTurn, ban -> ban.setSegmentFrom(breakToB.getSegmentUpstreamOf(breakToB.getVertexB())));
       }
 
       // for to segment this is the only situations where it is altered
-      if(bannedTurn.getSegmentTo().getDownstreamVertex().equals(aToBreak.getVertexA()) &&
+      if(bannedTurn.getSegmentTo().getParent() == aToBreak &&
+          bannedTurn.getSegmentTo().getDownstreamVertex().equals(aToBreak.getVertexA()) &&
           breakToB.getVertexB().equals(bannedTurn.getSegmentFrom().getDownstreamVertex())){
         getGraph().getBannedTurns().update(
             bannedTurn, ban -> ban.setSegmentTo(breakToB.getSegmentDownstreamFrom(breakToB.getVertexB())));

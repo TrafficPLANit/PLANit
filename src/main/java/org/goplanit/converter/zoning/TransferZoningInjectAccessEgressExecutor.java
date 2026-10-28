@@ -7,7 +7,6 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedMode;
 import org.goplanit.utils.mode.PredefinedModeType;
-import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
@@ -294,7 +293,7 @@ public class TransferZoningInjectAccessEgressExecutor {
     var referenceZoning = zoningConverterData.getReferenceZoning();
 
     var railBasedModes = referenceNetwork.getModes().stream().filter(
-        m -> m.getPhysicalFeatures().getTrackType().equals(TrackModeType.RAIL)).collect(Collectors.toSet());
+        Mode::isRailMode).collect(Collectors.toSet());
     if(railBasedModes.isEmpty()){
       return;
     }
@@ -408,7 +407,7 @@ public class TransferZoningInjectAccessEgressExecutor {
     }
 
     var roadModes = zoningConverterData.getReferenceNetwork().getModes().stream().filter(
-        m -> m.getPhysicalFeatures().getTrackType().equals(TrackModeType.ROAD)).collect(Collectors.toSet());
+        Mode::isRoadMode).collect(Collectors.toSet());
     if(!roadModes.isEmpty()){
       LOGGER.info(String.format("No active modes present to connect pt stops with, falling back on road modes [%s]",
           roadModes.stream().map(Mode::getName).collect(Collectors.joining(","))));

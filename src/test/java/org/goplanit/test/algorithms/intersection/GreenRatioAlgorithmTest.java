@@ -67,9 +67,11 @@ public class GreenRatioAlgorithmTest extends LayerTestBase {
         List.of(intersections), CARTESIAN);
   }
 
-  /** run equal split at the defaults on the intersections */
+  /** run equal split, otherwise at the defaults, on the intersections */
   private static GreenRatioAndSaturationFlowFactorResult computeEqualSplit(Intersection... intersections) {
-    return compute(new GreenRatioAndSaturationFlowFactorSettings(), intersections);
+    var settings = new GreenRatioAndSaturationFlowFactorSettings();
+    settings.setAlgorithmType(GreenRatioAlgorithmType.EQUAL_SPLIT);
+    return compute(settings, intersections);
   }
 
   /** the green ratio of an approach with a signal */
@@ -130,14 +132,14 @@ public class GreenRatioAlgorithmTest extends LayerTestBase {
 
   // CHOOSING AN ALGORITHM
 
-  /** Default settings create equal split, and the type in the settings chooses the algorithm */
+  /** Default settings create capacity weighted, and the type in the settings chooses the algorithm */
   @Test
   public void typeInTheSettingsChoosesTheAlgorithm() {
     var settings = new GreenRatioAndSaturationFlowFactorSettings();
-    assertEquals(GreenRatioAlgorithmType.EQUAL_SPLIT, GreenRatioAlgorithmFactory.create(settings).getType());
-
-    settings.setAlgorithmType(GreenRatioAlgorithmType.CAPACITY_WEIGHTED);
     assertEquals(GreenRatioAlgorithmType.CAPACITY_WEIGHTED, GreenRatioAlgorithmFactory.create(settings).getType());
+
+    settings.setAlgorithmType(GreenRatioAlgorithmType.EQUAL_SPLIT);
+    assertEquals(GreenRatioAlgorithmType.EQUAL_SPLIT, GreenRatioAlgorithmFactory.create(settings).getType());
   }
 
   /** The reach over which the direction at the stop line is measured is 25 m by default, and a negative one is

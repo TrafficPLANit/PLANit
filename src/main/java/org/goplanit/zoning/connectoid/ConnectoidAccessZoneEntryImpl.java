@@ -95,6 +95,19 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
    * {@inheritDoc}
    */
   @Override
+  public boolean removeExplicitAllowedMode(Mode mode) {
+    if (explicitAllowedModes == null || explicitAllowedModes.size() < 2 ||
+        !explicitAllowedModes.containsKey(mode.getId())) {
+      return false;
+    }
+    explicitAllowedModes.remove(mode.getId());
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public boolean isModeAllowed(Mode mode) {
     if (explicitAllowedModes == null) {
       return true;

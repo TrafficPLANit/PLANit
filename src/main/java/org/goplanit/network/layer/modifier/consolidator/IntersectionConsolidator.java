@@ -59,12 +59,12 @@ import org.locationtech.jts.geom.Point;
  * {@link IntersectionCluster}, and builds the consolidated intersections. It then pulls in the junctions within their
  * radius, joins the nodes they enclose, and pulls in the junctions that the roads of would-be approaches without a
  * signal lead back to. Each intersection that grew by pulling in a junction then makes internal the links now reached
- * only through it, and joins the nodes it now encloses. Once the junctions are grouped, crossings join them, and each
- * intersection a crossing joined joins the nodes it now encloses. The roads still entering a signalised junction
- * without an approach become approaches, with the signal tagged on the node ahead when they carry on its road and
- * without a signal otherwise, and the movements are stored. Junctions never join when the
- * group would lose every approach with a signal, see {@link #wouldLoseEveryApproachWithSignal}. Intersections are
- * removed through the layer modifier, so each removal fires its event. Used once per consolidation, run through
+ * only through it, and joins the nodes it now encloses. Once the junctions are grouped, crossings join them, crossings
+ * left side by side join each other, and each intersection a crossing joined joins the nodes it now encloses. The
+ * roads still entering a signalised junction without an approach become approaches, with the signal tagged on the node
+ * ahead when they carry on its road and without a signal otherwise, and the movements are stored. Junctions never join
+ * when the group would lose every approach with a signal, see {@link #wouldLoseEveryApproachWithSignal}. Intersections
+ * are removed through the layer modifier, so each removal fires its event. Used once per consolidation, run through
  * {@link org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier#consolidateIntersections}, not on
  * its own. The lists of nodes in the settings override the grouping. No step puts nodes of one list to keep apart into
  * one intersection, see {@link IntersectionConsolidatorTrackingData#isRefuseJoining}. Once the crossings have joined,
@@ -524,7 +524,9 @@ public class IntersectionConsolidator {
   /**
    * Make every link segment between two member nodes of an intersection an internal segment (C2 step 8). One with a
    * signal of its own, see {@link #hasSignalOfItsOwn}, or one that keeps a crossing's signal, see
-   * {@link #keepsCrossingSignalOnceInternal}, becomes an internal segment with a signal. A raw edit of the
+   * {@link #keepsCrossingSignalOnceInternal}, becomes an internal segment with a signal. In an intersection of
+   * crossings only, a road segment between its crossings never gets a signal, even with one of its own: road traffic is
+   * held once, on the road entering it, even when a stop line stands between crossings this close. A raw edit of the
    * intersection
    *
    * @param intersection to add the internal segments to
@@ -535,7 +537,8 @@ public class IntersectionConsolidator {
         if (intersection.isExitSegment(segment)) {
           continue;
         }
-        if (hasSignalOfItsOwn.test(segment) || keepsCrossingSignalOnceInternal(segment)) {
+        boolean ownSignalHolds = !intersection.isCrossingOnly() || !IS_ROAD_LINK.test(segment.getParent());
+        if ((ownSignalHolds && hasSignalOfItsOwn.test(segment)) || keepsCrossingSignalOnceInternal(segment)) {
           intersection.addNewInternalSegmentWithSignal(segment);
         } else {
           intersection.addNewInternalSegment(segment);
@@ -1173,6 +1176,72 @@ public class IntersectionConsolidator {
   }
 
   /**
+   * Let crossing intersections side by side along the road join into one crossing intersection (C2 step 11a), such as
+   * a cycle crossing beside a foot crossing. Two crossings are side by side when a node of one is reached from a node
+   * of the other along the road within
+   * {@link IntersectionConsolidatorSettings#getMaximumDistanceBetweenCrossingsSideBySideMeters()}, passing only nodes
+   * where the road simply continues, or nodes of other crossings, never a junction. The nodes on the road between them
+   * become member nodes, so the road between them is internal: traffic is held once, at the road entering the first.
+   * Joining repeats until no crossing intersection has another beside it that it may join, so a row of crossings
+   * becomes one intersection, not pairs
+   */
+  private void joinCrossingsSideBySide() {
+    Predicate<Node> roadContinuesOrCrossing = node -> {
+      var intersection = layer.getIntersections().getByMemberNode(node);
+      return intersection != null ? intersection.isCrossingOnly() : node.getNumberOfEdges(IS_ROAD_LINK) <= 2;
+    };
+    boolean joinedAny;
+    do {
+      joinedAny = joinCrossingsSideBySideOnce(roadContinuesOrCrossing);
+    } while (joinedAny);
+  }
+
+  /**
+   * One round of {@link #joinCrossingsSideBySide()}: each crossing intersection there is now joins the nearest crossing
+   * intersection beside it, if any. A crossing whose joining with it is refused is passed over, see
+   * {@link IntersectionConsolidatorTrackingData#isRefuseJoining}
+   *
+   * @param roadContinuesOrCrossing true for a node the road may be followed through
+   * @return true when any crossings joined, false otherwise
+   */
+  private boolean joinCrossingsSideBySideOnce(Predicate<Node> roadContinuesOrCrossing) {
+    boolean joinedAny = false;
+    for (var crossing : layer.getIntersections().stream(Intersection::isCrossingOnly).collect(Collectors.toList())) {
+      if (!layer.getIntersections().contains(crossing)) {
+        continue;
+      }
+      /* find the nearest other crossing along the road from any of the crossing's nodes */
+      Intersection nearest = null;
+      List<Node> connectionNodes = null;
+      double nearestMeters = Double.POSITIVE_INFINITY;
+      for (var crossingNode : crossing.getMemberNodes()) {
+        var connections = MacroscopicNetworkLayerUtils.findShortestConnections(crossingNode, IS_ROAD_LINK,
+            roadContinuesOrCrossing, settings.getMaximumDistanceBetweenCrossingsSideBySideMeters());
+        for (var reached : connections.getReached()) {
+          var other = layer.getIntersections().getByMemberNode(reached);
+          double meters = connections.getCostToReach(reached);
+          if (other == null || other == crossing || !other.isCrossingOnly() ||
+              meters >= nearestMeters - Precision.EPSILON_9 ||
+              trackingData.isRefuseJoining(List.of(crossing, other), List.of())) {
+            continue;
+          }
+          nearest = other;
+          nearestMeters = meters;
+          connectionNodes = connections.getEntitiesOnConnectionTo(reached);
+        }
+      }
+      if (nearest != null) {
+        joinIntoSpatialIntersection(
+            List.of(crossing, nearest).stream().sorted(IdAbleUtils.byId()).collect(Collectors.toList()),
+            connectionNodes);
+        result.addIntersection(IntersectionOutcome.CROSSING_JOINED_SIDE_BY_SIDE, crossing);
+        joinedAny = true;
+      }
+    }
+    return joinedAny;
+  }
+
+  /**
    * Trace the road of a segment entering a junction back against the traffic, see {@link #traceRoadBack}, to the
    * nearest signalised junction along the road within the pull-in reach plus
    * {@link #PULL_IN_EXTRA_MARGIN_TO_SALVAGE_APPROACH_WITHOUT_SIGNAL_METERS} of the junction's centre, see
@@ -1326,6 +1395,7 @@ public class IntersectionConsolidator {
        Each intersection a crossing joined then joins the nodes it now encloses */
     var crossings = layer.getIntersections().stream(Intersection::isCrossingOnly).collect(Collectors.toList());
     joinCrossingsOnSlipLanes(joinCrossings(crossings, junctionMemberNodes));
+    joinCrossingsSideBySide();
     var nodesOfCrossingsJoined = crossings.stream().filter(crossing -> !layer.getIntersections().contains(crossing))
         .flatMap(crossing -> crossing.getMemberNodes().stream()).collect(Collectors.toSet());
     joinEnclosedNodes(layer.getIntersections().streamSpatial()
