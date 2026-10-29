@@ -1483,10 +1483,12 @@ public class IntersectionConsolidator {
 
   /**
    * Store the movements of every spatial intersection, replacing those it had, each removed with its removal
-   * event. From each approach and for each mode allowed on it, every exit its internal segments connect gives a
-   * movement, banned turns ignored, so the list is complete; its length is the shortest connection over those modes,
-   * see {@link SpatialMovementUtils#findShortestConnectionToEachExit}. The modes a movement is banned for implicitly
-   * are not stored, see {@link SpatialMovementUtils#isImplicitlyBanned}
+   * event. From each approach and for each motorised road or rail mode allowed on it, or each mode when active modes
+   * are included, see {@link IntersectionConsolidatorSettings#setIncludeActiveModesInMovements(boolean)}, every exit
+   * its internal segments connect for that mode gives a movement, banned turns ignored, so the list is complete; its
+   * length is the shortest connection over those modes, see
+   * {@link SpatialMovementUtils#findShortestConnectionToEachExit}. The modes a movement is banned for implicitly are
+   * not stored, see {@link SpatialMovementUtils#isImplicitlyBanned}
    */
   private void storeMovements() {
     for (var intersection : layer.getIntersections().streamSpatial().collect(Collectors.toList())) {
@@ -1494,7 +1496,8 @@ public class IntersectionConsolidator {
       List.copyOf(intersection.getMovements()).forEach(layer.getLayerModifier()::removeSpatialMovement);
       /* one movement for each exit an approach's internal segments connect, as long as the shortest connection */
       for (var approach : intersection.getApproachSegments()) {
-        var shortestOfExit = SpatialMovementUtils.findShortestConnectionToEachExit(layer, intersection, approach);
+        var shortestOfExit = SpatialMovementUtils.findShortestConnectionToEachExit(
+            layer, intersection, approach, settings.isIncludeActiveModesInMovements());
         for (var exit : shortestOfExit.keySet().stream().sorted(IdAbleUtils.byId()).collect(Collectors.toList())) {
           var movement = layer.getSpatialMovements().getFactory().registerNew(
               approach, exit, shortestOfExit.get(exit).getCostToReach(exit) / 1000);

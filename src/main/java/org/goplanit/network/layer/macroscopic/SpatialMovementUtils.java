@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.goplanit.algorithms.shortest.ShortestPathBreadthFirstResult;
 import org.goplanit.utils.mode.Mode;
@@ -30,6 +31,34 @@ public class SpatialMovementUtils {
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(SpatialMovementUtils.class.getCanonicalName());
 
+  /**
+   * The shortest connection over the internal segments of a spatial intersection from an approach to each exit they
+   * connect for any of the given modes, banned turns ignored. Modes are tried in order of id; of connections of equal
+   * length, the first found is kept
+   *
+   * @param layer of the intersection
+   * @param intersection to search through
+   * @param approach to start from
+   * @param modes to search for
+   * @return for each exit reached, the search that reached it over the shortest connection
+   */
+  private static Map<LinkSegment, ShortestPathBreadthFirstResult<LinkSegment>> findShortestConnectionToEachExitForModes(
+      final MacroscopicNetworkLayer layer, final SpatialIntersection intersection, final LinkSegment approach,
+      final Stream<Mode> modes) {
+    var shortestOfExit = new LinkedHashMap<LinkSegment, ShortestPathBreadthFirstResult<LinkSegment>>();
+    for (var mode : modes.sorted(Comparator.comparingLong(Mode::getId)).collect(Collectors.toList())) {
+      var search =
+          MacroscopicNetworkLayerUtils.searchThroughSpatialIntersection(layer, intersection, approach, mode, false);
+      search.getReached().stream().filter(intersection::isExitSegment).forEach(exit -> {
+        var shortest = shortestOfExit.get(exit);
+        if (shortest == null || search.getCostToReach(exit) < shortest.getCostToReach(exit)) {
+          shortestOfExit.put(exit, search);
+        }
+      });
+    }
+    return shortestOfExit;
+  }
+
   /** Constructor to disallow instance creation */
   private SpatialMovementUtils() {
   }
@@ -45,7 +74,9 @@ public class SpatialMovementUtils {
    */
   private static ShortestPathBreadthFirstResult<LinkSegment> findShortestConnection(
       final MacroscopicNetworkLayer layer, final SpatialIntersection intersection, final SpatialMovement movement) {
-    return findShortestConnectionToEachExit(layer, intersection, movement.getLinkSegmentFrom())
+    /* active modes included: a movement only they make has its connection for them, any other its connection for the
+     * motorised road and rail modes, however the movements were stored */
+    return findShortestConnectionToEachExit(layer, intersection, movement.getLinkSegmentFrom(), true)
         .get(movement.getLinkSegmentTo());
   }
 
@@ -64,13 +95,18 @@ public class SpatialMovementUtils {
 
   /**
    * Find the shortest connection over the internal segments of a spatial intersection from an approach to each exit
-   * they connect, for any mode allowed on the approach, banned turns ignored. A movement's length is that of its
+   * they connect, banned turns ignored, for the motorised road and rail modes allowed on the approach, see
+   * {@link Mode#isMotorisedRoadOrRailMode()}. When active modes are included, an exit no such mode reaches, such as a
+   * footway, gets its shortest connection for the other modes allowed on the approach, such as pedestrians; an exit a
+   * motorised mode reaches keeps its connection for the motorised modes. A movement's length is that of its
    * connection, so this gives the length of each movement from the approach. Modes are tried in order of id; of
    * connections of equal length, the first found is kept
    *
    * @param layer of the intersection
    * @param intersection to search through
    * @param approach to start from
+   * @param includeActiveModes true to reach the exits only active modes such as pedestrians and bicycles reach too,
+   *                           false for the exits the motorised road and rail modes reach only
    * @return for each exit reached, the search that reached it over the shortest connection: its cost to reach the exit
    *         is the length in metres, and the link segments on its connection to the exit run from the approach to the
    *         exit. A connectoid segment leaving a member node is an exit too, see
@@ -78,19 +114,13 @@ public class SpatialMovementUtils {
    */
   public static Map<LinkSegment, ShortestPathBreadthFirstResult<LinkSegment>> findShortestConnectionToEachExit(
       final MacroscopicNetworkLayer layer, final SpatialIntersection intersection,
-      final LinkSegment approach) {
-    var shortestOfExit = new LinkedHashMap<LinkSegment, ShortestPathBreadthFirstResult<LinkSegment>>();
-    var modes = approach.getAllowedModes().stream().sorted(Comparator.comparingLong(Mode::getId))
-        .collect(Collectors.toList());
-    for (var mode : modes) {
-      var search =
-          MacroscopicNetworkLayerUtils.searchThroughSpatialIntersection(layer, intersection, approach, mode, false);
-      search.getReached().stream().filter(intersection::isExitSegment).forEach(exit -> {
-        var shortest = shortestOfExit.get(exit);
-        if (shortest == null || search.getCostToReach(exit) < shortest.getCostToReach(exit)) {
-          shortestOfExit.put(exit, search);
-        }
-      });
+      final LinkSegment approach, boolean includeActiveModes) {
+    var shortestOfExit = findShortestConnectionToEachExitForModes(
+        layer, intersection, approach, approach.getAllowedModes().stream().filter(Mode::isMotorisedRoadOrRailMode));
+    if (includeActiveModes) {
+      findShortestConnectionToEachExitForModes(layer, intersection, approach,
+          approach.getAllowedModes().stream().filter(mode -> !mode.isMotorisedRoadOrRailMode()))
+          .forEach(shortestOfExit::putIfAbsent);
     }
     return shortestOfExit;
   }

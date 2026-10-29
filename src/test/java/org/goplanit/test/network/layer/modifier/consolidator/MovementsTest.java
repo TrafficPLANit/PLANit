@@ -6,6 +6,7 @@ import java.util.Set;
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerUtils;
 import org.goplanit.utils.mode.PredefinedModeType;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.junit.jupiter.api.Test;
 
@@ -13,11 +14,39 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the movements consolidation stores for each spatial intersection: one for each approach and exit its internal
- * segments connect, banned or not, with the length of the shortest connection
+ * segments connect for a motorised road or rail mode, or for any mode when active modes are included, banned or not,
+ * with the length of the shortest connection
  *
  * @author markr
  */
 public class MovementsTest extends IntersectionConsolidationTestBase {
+
+  /**
+   * The divided roads crossing, see {@link #dividedRoadsCrossing()}, its approach from the north a street pedestrians
+   * may use too, a footway leaving the corner A, and a signalised junction at each of its four nodes, with only the
+   * roads approaches
+   * <pre>
+   *       4
+   *       |  street, car and pedestrian
+   *   F   |
+   *     \ |
+   *       A ---- B       F-A footway, 14 m
+   *       |      |
+   *       C ---- D
+   * </pre>
+   *
+   * @return the footway segment leaving A
+   */
+  private MacroscopicLinkSegment dividedRoadsCrossingWithStreetFromNorthAndFootwayFromCorner() {
+    dividedRoadsCrossing();
+    var street = layer.getLinkSegmentTypes().getFactory().registerNew("street", 1800, 180);
+    AccessGroupPropertiesFactory.createOnLinkSegmentType(street, 50, List.of(car, pedestrian));
+    segment(4, A).setLinkSegmentType(street);
+    int footwayEnd = node(-10, 25);
+    link(A, footwayEnd, 14, true, footway);
+    List.of(A, B, C, D).forEach(this::signalisedJunctionWithRoadApproachesAt);
+    return segment(A, footwayEnd);
+  }
 
   /**
    * A car entering the divided roads crossing from the north, at A, turns left to the east over the internal segments
@@ -109,5 +138,37 @@ public class MovementsTest extends IntersectionConsolidationTestBase {
     assertSame(junction, onlyNonSpatialIntersection());
     assertTrue(layer.getSpatialMovements().isEmpty());
     assertTrue(result.getStoredSpatialMovements().isEmpty());
+  }
+
+  /**
+   * By default movements are for motorised road and rail modes only. The approach from the north is a street
+   * pedestrians may use too, and a footway leaves the corner A, but no car can get from that approach onto the
+   * footway, so no movement is stored there: the 16 movements of the crossing stay
+   */
+  @Test
+  public void movementNoMotorisedModeCanMakeIsNotStored() {
+    var footwayFromCorner = dividedRoadsCrossingWithStreetFromNorthAndFootwayFromCorner();
+
+    consolidate();
+
+    var consolidated = onlySpatialIntersection();
+    assertEquals(16, consolidated.getMovements().size());
+    assertTrue(consolidated.getMovements().stream()
+        .noneMatch(movement -> movement.getLinkSegmentTo() == footwayFromCorner));
+  }
+
+  /**
+   * With active modes included in movements, the walk from the street in the north onto the footway leaving the corner
+   * A is a movement too, besides the 16 of the crossing
+   */
+  @Test
+  public void movementOnlyActiveModeCanMakeIsStoredWhenIncluded() {
+    var footwayFromCorner = dividedRoadsCrossingWithStreetFromNorthAndFootwayFromCorner();
+
+    consolidateWith(settings -> settings.setIncludeActiveModesInMovements(true));
+
+    var consolidated = onlySpatialIntersection();
+    assertEquals(17, consolidated.getMovements().size());
+    assertNotNull(movementBetween(consolidated, segment(4, A), footwayFromCorner));
   }
 }

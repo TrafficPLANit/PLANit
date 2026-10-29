@@ -9,6 +9,7 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.NetworkLayer;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicBannedTurn;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 
 import java.util.ArrayList;
@@ -61,7 +62,10 @@ public class MacroscopicNetworkUtils {
 
   /**
    * Take reference mode and make sure all expansion modes are added to the supported modes of the network and add
-   * them as access modes to all link segment types where the reference mode is supported
+   * them as access modes to all link segment types where the reference mode is supported. A turn banned for the
+   * reference mode is banned for the expansion modes too, for example a turn banned for cars is banned for taxis
+   * when car is expanded with taxi. A turn banned for every mode names no modes, so it bans them already. When the
+   * network does not have the reference mode, nothing is expanded
    *
    * @param network network to expand mode support on
    * @param referenceModeType the mode to use as a reference
@@ -74,6 +78,7 @@ public class MacroscopicNetworkUtils {
     if(refMode == null){
       LOGGER.warning(String.format("Reference mode (%s) to expand not available on network, abort mode expansion",
           referenceModeType));
+      return;
     }
 
     var expansionModeList = new ArrayList<Mode>();
@@ -96,5 +101,11 @@ public class MacroscopicNetworkUtils {
         // then add to all link types of that layer as well when ref mode supports it
         .flatMap(l -> l.getLinkSegmentTypes().stream()).filter(lt -> lt.isModeAllowed(refMode)).forEach(
             lt -> expansionModeList.forEach(em -> lt.registerModeOnAccessGroup(em, lt.getAccessProperties(refMode))));
+
+    // ban the expansion modes on each turn that names the reference mode as banned
+    network.getTransportLayers().stream().filter(l -> l.supports(refMode))
+        .flatMap(l -> l.getBannedTurns().stream()).map(MacroscopicBannedTurn.class::cast)
+        .filter(bannedTurn -> bannedTurn.getExplicitlyBannedModes().contains(refMode))
+        .forEach(bannedTurn -> expansionModeList.forEach(bannedTurn::addExplicitlyBannedMode));
   }
 }

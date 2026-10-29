@@ -18,6 +18,7 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionCon
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapseModifierResult;
+import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidationModifierResult;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapserSettings;
 import org.junit.jupiter.api.Test;
 
@@ -53,9 +54,15 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
     return MacroscopicNetworkLayerUtils.isTurnBannedForMode(layer, from, onto, mode);
   }
 
-  /** consolidate with the default values, then collapse the given modes on every spatial intersection */
+  /** consolidate with the default values, but with active modes in the movements, since a collapsed pedestrian keeps
+   * only the turns its movements give it */
+  private IntersectionConsolidationModifierResult consolidateWithActiveModesInMovements() {
+    return consolidateWith(settings -> settings.setIncludeActiveModesInMovements(true));
+  }
+
+  /** consolidate with active modes in the movements, then collapse the given modes on every spatial intersection */
   private IntersectionCollapseModifierResult consolidateThenCollapse(List<Mode> collapsedModes) {
-    consolidate();
+    consolidateWithActiveModesInMovements();
     return collapse(layer.getIntersections().streamSpatial().collect(Collectors.toList()), collapsedModes);
   }
 
@@ -319,7 +326,7 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
     List.of(A, B, C, D).forEach(this::signalisedJunctionAt);
     var north = segment(4, A);
     var exitAtB = segment(B, 7);
-    consolidate();
+    consolidateWithActiveModesInMovements();
     assertEquals(4, onlySpatialIntersection().getMemberNodes().size());
 
     collapse(List.of(onlySpatialIntersection()), List.of(car, pedestrian));
