@@ -43,6 +43,9 @@ public class GreenRatioAndSaturationFlowFactorSettings {
   /** green ratio of road traffic at an isolated signalised crossing */
   private double isolatedCrossingGreenRatio = DEFAULT_ISOLATED_CROSSING_GREEN_RATIO;
 
+  /** green ratio of road traffic at a ramp meter */
+  private double rampMeterGreenRatio = DEFAULT_RAMP_METER_GREEN_RATIO;
+
   /** tolerance in degrees for two approaches to count as on the same axis */
   private double sameAxisApproachToleranceDegrees = DEFAULT_SAME_AXIS_APPROACH_TOLERANCE_DEGREES;
 
@@ -51,6 +54,12 @@ public class GreenRatioAndSaturationFlowFactorSettings {
 
   /** saturation flow factor of an approach without a signal of its own at a signalised intersection */
   private double approachWithoutSignalSaturationFlowFactor = DEFAULT_APPROACH_WITHOUT_SIGNAL_SATURATION_FLOW_FACTOR;
+
+  /** fixed green ratio of the rail-based phase of a junction */
+  private double fixedRailBasedPhaseGreenRatio = DEFAULT_FIXED_RAIL_BASED_PHASE_GREEN_RATIO;
+
+  /** the least green time in seconds a phase sharing the green time gets */
+  private double minimumGreenTimeSeconds = DEFAULT_MINIMUM_GREEN_TIME_SECONDS;
 
   /** default algorithm: each phase gets green time by its capacity, so a main road gets more than a side street */
   public static final GreenRatioAlgorithmType DEFAULT_ALGORITHM_TYPE = GreenRatioAlgorithmType.CAPACITY_WEIGHTED;
@@ -64,16 +73,34 @@ public class GreenRatioAndSaturationFlowFactorSettings {
   /** default green ratio of road traffic at an isolated signalised crossing, which has green most of the time */
   public static final double DEFAULT_ISOLATED_CROSSING_GREEN_RATIO = 0.9;
 
+  /** default green ratio of road traffic at a ramp meter. A single-lane meter letting one vehicle go per green tops out
+   * around 800 veh/h, about 0.45 of the lane's capacity, but meters only run in the peaks, so for a whole day the
+   * default holds traffic back only mildly */
+  public static final double DEFAULT_RAMP_METER_GREEN_RATIO = 0.9;
+
   /** default tolerance in degrees for two approaches to count as on the same axis: their directions within 30 degrees
    * of each other or of the opposite direction */
   public static final double DEFAULT_SAME_AXIS_APPROACH_TOLERANCE_DEGREES = 30;
 
-  /** default most phases a junction is given; complex junctions give several approaches green together, and four phases
-   * keep a green ratio from falling below (90 - 4 x 5) / 90 / 4, about 0.19, at the other defaults */
+  /** default most phases the road approaches of a junction are given; complex junctions give several approaches green
+   * together, and four phases keep an equal split from falling below (90 - 4 x 5) / 90 / 4, about 0.19, at the other
+   * defaults */
   public static final int DEFAULT_MAXIMUM_NUMBER_OF_PHASES = 4;
 
   /** default saturation flow factor of an approach without a signal of its own at a signalised intersection */
   public static final double DEFAULT_APPROACH_WITHOUT_SIGNAL_SATURATION_FLOW_FACTOR = 0.5;
+
+  /** default fixed green ratio of the rail-based phase of a junction. A tram or light rail phase runs only when a tram
+   * arrives. A busy city line, such as Sydney's light rail through the city centre in the peak, runs about every 5
+   * minutes each way, so about 24 trams an hour cross a junction. Each needs about 15 s of green to clear it, a 67 m
+   * tram at about 20 km/h: 24 x 15 = 360 s an hour, 0.1 of the time. The time lost at the phase change is counted
+   * separately, as for any phase */
+  public static final double DEFAULT_FIXED_RAIL_BASED_PHASE_GREEN_RATIO = 0.1;
+
+  /** default minimum green time of a phase in seconds, long enough for queued vehicles to start moving: the Transport
+   * for NSW traffic signal operation manual gives typically 5 s, up to 8 s on steep upgrades or with many heavy
+   * vehicles */
+  public static final double DEFAULT_MINIMUM_GREEN_TIME_SECONDS = 5;
 
   /**
    * Constructor, with the defaults
@@ -91,9 +118,12 @@ public class GreenRatioAndSaturationFlowFactorSettings {
     this.cycleTimeSeconds = other.cycleTimeSeconds;
     this.lostTimePerPhaseChangeSeconds = other.lostTimePerPhaseChangeSeconds;
     this.isolatedCrossingGreenRatio = other.isolatedCrossingGreenRatio;
+    this.rampMeterGreenRatio = other.rampMeterGreenRatio;
     this.sameAxisApproachToleranceDegrees = other.sameAxisApproachToleranceDegrees;
     this.maximumNumberOfPhases = other.maximumNumberOfPhases;
     this.approachWithoutSignalSaturationFlowFactor = other.approachWithoutSignalSaturationFlowFactor;
+    this.fixedRailBasedPhaseGreenRatio = other.fixedRailBasedPhaseGreenRatio;
+    this.minimumGreenTimeSeconds = other.minimumGreenTimeSeconds;
   }
 
   /**
@@ -189,6 +219,29 @@ public class GreenRatioAndSaturationFlowFactorSettings {
   }
 
   /**
+   * The green ratio of road traffic at a ramp meter, given to each of its approaches with a signal of its own
+   *
+   * @return the green ratio
+   */
+  public double getRampMeterGreenRatio() {
+    return rampMeterGreenRatio;
+  }
+
+  /**
+   * Set the green ratio of road traffic at a ramp meter
+   *
+   * @param rampMeterGreenRatio from 0 to 1
+   * @return true when set, false when refused
+   */
+  public boolean setRampMeterGreenRatio(double rampMeterGreenRatio) {
+    if (!IntersectionUtils.isValidCapacityFactor(rampMeterGreenRatio)) {
+      return refuse("Ramp meter green ratio", rampMeterGreenRatio, "from 0 to 1");
+    }
+    this.rampMeterGreenRatio = rampMeterGreenRatio;
+    return true;
+  }
+
+  /**
    * The tolerance for two approaches to count as on the same axis, and so share a phase: their directions at the stop
    * line are within it of each other, arriving side by side, or of the opposite direction, facing each other
    *
@@ -213,8 +266,9 @@ public class GreenRatioAndSaturationFlowFactorSettings {
   }
 
   /**
-   * The most phases a junction is given. A junction with approaches on more axes has the phases whose axes are closest
-   * merged until it has this many, since a complex junction gives several approaches green together
+   * The most phases the road approaches of a junction are given. A junction with road approaches on more axes has the
+   * phases whose axes are closest merged until it has this many, since a complex junction gives several approaches
+   * green together. A rail-based phase comes on top, see {@link #getFixedRailBasedPhaseGreenRatio()}
    *
    * @return the maximum number of phases
    */
@@ -258,6 +312,57 @@ public class GreenRatioAndSaturationFlowFactorSettings {
           approachWithoutSignalSaturationFlowFactor, "from 0 to 1");
     }
     this.approachWithoutSignalSaturationFlowFactor = approachWithoutSignalSaturationFlowFactor;
+    return true;
+  }
+
+  /**
+   * The fixed green ratio of the rail-based phase of a junction: the one phase that all of its approaches used only by
+   * rail-based modes, such as tram, light rail and train, share. They never share a phase with road approaches, since
+   * a tram crossing or turning may block the road beside it. The rail-based phase always gets this ratio, whatever the
+   * algorithm; its green time comes off the usable green time, and the road phases share the rest
+   *
+   * @return the fixed green ratio
+   */
+  public double getFixedRailBasedPhaseGreenRatio() {
+    return fixedRailBasedPhaseGreenRatio;
+  }
+
+  /**
+   * Set the fixed green ratio of the rail-based phase of a junction
+   *
+   * @param fixedRailBasedPhaseGreenRatio from 0 to 1
+   * @return true when set, false when refused
+   */
+  public boolean setFixedRailBasedPhaseGreenRatio(double fixedRailBasedPhaseGreenRatio) {
+    if (!IntersectionUtils.isValidCapacityFactor(fixedRailBasedPhaseGreenRatio)) {
+      return refuse("Fixed rail-based phase green ratio", fixedRailBasedPhaseGreenRatio, "from 0 to 1");
+    }
+    this.fixedRailBasedPhaseGreenRatio = fixedRailBasedPhaseGreenRatio;
+    return true;
+  }
+
+  /**
+   * The minimum green time of a road phase. A phase whose share of the green time is below it gets it, and the other
+   * phases share what is left, in turn. When the green time cannot give every phase its minimum, the phases share it
+   * equally. 0 turns it off
+   *
+   * @return the minimum green time in seconds
+   */
+  public double getMinimumGreenTimeSeconds() {
+    return minimumGreenTimeSeconds;
+  }
+
+  /**
+   * Set the minimum green time of a road phase
+   *
+   * @param minimumGreenTimeSeconds 0 or more
+   * @return true when set, false when refused
+   */
+  public boolean setMinimumGreenTimeSeconds(double minimumGreenTimeSeconds) {
+    if (!(minimumGreenTimeSeconds >= 0)) {
+      return refuse("Minimum green time", minimumGreenTimeSeconds, "0 s or more");
+    }
+    this.minimumGreenTimeSeconds = minimumGreenTimeSeconds;
     return true;
   }
 }

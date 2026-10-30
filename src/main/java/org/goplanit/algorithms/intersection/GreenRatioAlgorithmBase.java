@@ -9,10 +9,15 @@ import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoublePredicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.mode.TrackModeType;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.CapacityFactorOrigin;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegment;
@@ -24,14 +29,18 @@ import org.goplanit.utils.network.layer.physical.LinkSegmentUtils;
  * <ul>
  * <li>an approach without a signal of its own gets the saturation flow factor of the settings for such approaches;
  * having no signal, it has no green ratio;</li>
+ * <li>at a ramp meter, each approach with a signal gets the ramp meter green ratio of the settings;</li>
  * <li>at a crossing that is no junction, each approach with a signal gets the isolated crossing green ratio of the
  * settings;</li>
- * <li>at a junction, the approaches with a signal are grouped into phases by axis: approaches arriving side by side or
- * facing each other share a phase, and the phases whose axes are closest are merged until there are no more than the
- * maximum of the settings. The usable green time, the cycle time less the time lost at each phase
- * change, is shared between the phases, the one thing the algorithms differ in, and each approach gets its phase's
- * green time divided by the cycle time. A junction without usable green time, or whose green times as shared are not
- * valid, gets no values.</li>
+ * <li>at a junction, the approaches with a signal used only by rail-based modes, such as tram, light rail and train,
+ * share one rail-based phase. The other approaches with a signal are grouped into road phases by axis: approaches
+ * arriving side by side or facing each other share a phase, and the phases whose axes are closest are merged until
+ * there are no more than the maximum of the settings. The usable green time is the cycle time less the time lost at
+ * each phase change. The rail-based phase gets the fixed green ratio of the settings, its green time comes off the
+ * usable green time, and the road phases share the rest, the one thing the algorithms differ in. A road phase whose
+ * share is below the minimum green time of the settings gets the minimum, and the other road phases share what is
+ * left again. Each approach gets its phase's green time divided by the cycle time. A junction without green time left
+ * to share, or whose green times as shared are not valid, gets no values.</li>
  * </ul>
  * <p>
  * Only values that are not set or were computed before change: a value set directly is kept, and its approach still
@@ -204,6 +213,59 @@ public abstract class GreenRatioAlgorithmBase implements GreenRatioAlgorithm {
   }
 
   /**
+   * Calculate the green time of each road phase of a junction from the green time they share. The algorithm shares it;
+   * each phase whose share is below the minimum green time of the settings gets the minimum, which comes off the green
+   * time, and the algorithm shares what is left between the other phases, until no share is below the minimum. When the
+   * green time is less than the minimum for every phase, the phases share it equally, with a warning
+   *
+   * @param junction the phases are of
+   * @param phases the road phases, one or more
+   * @param greenTimeToShareSeconds above 0
+   * @param result to record the number of phases raised to the minimum in
+   * @return the green time of each phase in seconds, in the order of the phases, null when the algorithm shared out
+   *         green times that are not valid
+   */
+  private double[] calculateGreenTimeShares(Intersection junction, List<List<IntersectionSegment>> phases,
+      double greenTimeToShareSeconds, GreenRatioAndSaturationFlowFactorResult result) {
+    double minimumSeconds = settings.getMinimumGreenTimeSeconds();
+    if (greenTimeToShareSeconds < phases.size() * minimumSeconds) {
+      LOGGER.warning(String.format("Green time of %s s at intersection %s cannot give each of its %d road phases the " +
+          "minimum green time of %s s, they share it equally", greenTimeToShareSeconds, junction.getIdsAsString(),
+          phases.size(), minimumSeconds));
+      return shareEqually(phases.size(), greenTimeToShareSeconds);
+    }
+
+    var greenTimesSeconds = new double[phases.size()];
+    var sharing = IntStream.range(0, phases.size()).boxed().collect(Collectors.toCollection(ArrayList::new));
+    double leftSeconds = greenTimeToShareSeconds;
+    int numberRaised = 0;
+    while (!sharing.isEmpty()) {
+      var shares = shareUsableGreenTime(
+          junction, sharing.stream().map(phases::get).collect(Collectors.toList()), leftSeconds);
+      if (!validateGreenTimes(junction, shares, sharing.size(), leftSeconds)) {
+        return null;
+      }
+      var raised = new ArrayList<Integer>();
+      for (int index = 0; index < sharing.size(); ++index) {
+        greenTimesSeconds[sharing.get(index)] = Math.max(shares[index], minimumSeconds);
+        if (shares[index] < minimumSeconds) {
+          raised.add(sharing.get(index));
+        }
+      }
+      if (raised.isEmpty()) {
+        break;
+      }
+      leftSeconds -= raised.size() * minimumSeconds;
+      numberRaised += raised.size();
+      sharing.removeAll(raised);
+    }
+    if (numberRaised > 0) {
+      result.addNumberOfPhasesRaisedToMinimumGreenTime(junction, numberRaised);
+    }
+    return greenTimesSeconds;
+  }
+
+  /**
    * Work out the values to compute for the approaches of a signalised intersection, see the class description
    *
    * @param intersection signalised
@@ -221,25 +283,40 @@ public abstract class GreenRatioAlgorithmBase implements GreenRatioAlgorithm {
         approach -> (approach.hasSignal() ? withSignal : withoutSignal).add(approach));
 
     if (intersection.isJunction()) {
-      var phases = groupIntoPhasesByAxis(withSignal, crsUtils);
+      var railBased = new ArrayList<IntersectionSegment>();
+      var road = new ArrayList<IntersectionSegment>();
+      withSignal.forEach(approach -> (MacroscopicLinkSegmentUtils.isExclusivelyOfTrackType(
+          (MacroscopicLinkSegment) approach.getLinkSegment(), TrackModeType.RAIL) ? railBased : road).add(approach));
+      var roadPhases = groupIntoPhasesByAxis(road, crsUtils);
+      int numberOfPhases = roadPhases.size() + (railBased.isEmpty() ? 0 : 1);
       double cycleTimeSeconds = settings.getCycleTimeSeconds();
-      double usableGreenTimeSeconds = cycleTimeSeconds - phases.size() * settings.getLostTimePerPhaseChangeSeconds();
-      if (usableGreenTimeSeconds <= 0) {
-        result.addNotComputableIntersection(intersection, usableGreenTimeSeconds);
+      double railBasedGreenTimeSeconds =
+          railBased.isEmpty() ? 0 : settings.getFixedRailBasedPhaseGreenRatio() * cycleTimeSeconds;
+      double greenTimeToShareSeconds = cycleTimeSeconds -
+          numberOfPhases * settings.getLostTimePerPhaseChangeSeconds() - railBasedGreenTimeSeconds;
+      if (greenTimeToShareSeconds <= 0) {
+        result.addNotComputableIntersection(intersection, greenTimeToShareSeconds);
         return;
       }
-      var greenTimesSeconds = shareUsableGreenTime(intersection, phases, usableGreenTimeSeconds);
-      if (!validateGreenTimes(intersection, greenTimesSeconds, phases.size(), usableGreenTimeSeconds)) {
-        result.addNotComputableIntersection(intersection, usableGreenTimeSeconds);
+      var greenTimesSeconds = roadPhases.isEmpty() ? new double[0] :
+          calculateGreenTimeShares(intersection, roadPhases, greenTimeToShareSeconds, result);
+      if (greenTimesSeconds == null) {
+        result.addNotComputableIntersection(intersection, greenTimeToShareSeconds);
         return;
       }
-      result.addNumberOfPhases(intersection, phases.size());
-      for (int phase = 0; phase < phases.size(); ++phase) {
+      result.addNumberOfPhases(intersection, numberOfPhases);
+      if (!railBased.isEmpty()) {
+        result.addJunctionWithRailBasedPhase(intersection);
+        railBased.forEach(approach -> greenRatios.put(approach, settings.getFixedRailBasedPhaseGreenRatio()));
+      }
+      for (int phase = 0; phase < roadPhases.size(); ++phase) {
         double greenRatio = greenTimesSeconds[phase] / cycleTimeSeconds;
-        phases.get(phase).forEach(approach -> greenRatios.put(approach, greenRatio));
+        roadPhases.get(phase).forEach(approach -> greenRatios.put(approach, greenRatio));
       }
     } else {
-      withSignal.forEach(approach -> greenRatios.put(approach, settings.getIsolatedCrossingGreenRatio()));
+      double fixedGreenRatio = intersection.isRampMeterOnly() ?
+          settings.getRampMeterGreenRatio() : settings.getIsolatedCrossingGreenRatio();
+      withSignal.forEach(approach -> greenRatios.put(approach, fixedGreenRatio));
     }
 
     withoutSignal.forEach(
@@ -311,7 +388,8 @@ public abstract class GreenRatioAlgorithmBase implements GreenRatioAlgorithm {
    *
    * @param junction the phases are of
    * @param phases of the junction, each of one or more approaches with a signal
-   * @param usableGreenTimeSeconds the cycle time less the time lost at the phase changes, above 0
+   * @param usableGreenTimeSeconds the green time to share, above 0: the cycle time less the time lost at the phase
+   *        changes, the green time of the rail-based phase and any minimum green times already given
    * @return the green time of each phase in seconds, in the order of the phases, adding up to the usable green time
    */
   protected abstract double[] shareUsableGreenTime(

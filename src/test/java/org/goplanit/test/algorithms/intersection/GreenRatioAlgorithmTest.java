@@ -2,6 +2,7 @@ package org.goplanit.test.algorithms.intersection;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.goplanit.algorithms.intersection.GreenRatioAlgorithmBase;
 import org.goplanit.algorithms.intersection.GreenRatioAlgorithmFactory;
@@ -9,15 +10,18 @@ import org.goplanit.algorithms.intersection.GreenRatioAlgorithmType;
 import org.goplanit.algorithms.intersection.GreenRatioAndSaturationFlowFactorResult;
 import org.goplanit.algorithms.intersection.GreenRatioAndSaturationFlowFactorSettings;
 import org.goplanit.network.MacroscopicNetwork;
+import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
 import org.goplanit.test.LayerTestBase;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.CapacityFactorOrigin;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionControlType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegment;
+import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSegmentKind;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionSignalSegment;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,7 +88,20 @@ public class GreenRatioAlgorithmTest extends LayerTestBase {
     return ((IntersectionSignalSegment) approach).getGreenRatioOrigin();
   }
 
+  /** assert that a junction has approaches of a type, each with the expected green ratio */
+  private static void assertGreenRatioOfApproachesOfType(
+      Intersection junction, MacroscopicLinkSegmentType type, double expectedGreenRatio) {
+    var ofType = junction.getApproaches().stream().filter(
+        approach -> ((MacroscopicLinkSegment) approach.getLinkSegment()).getLinkSegmentType() == type)
+        .collect(Collectors.toList());
+    assertFalse(ofType.isEmpty());
+    ofType.forEach(approach -> assertEquals(expectedGreenRatio, greenRatioOf(approach), 1e-9));
+  }
+
   private MacroscopicLinkSegmentType road;
+
+  /** a light rail track, at the capacity a parsed network gives rail */
+  private MacroscopicLinkSegmentType track;
 
   /**
    * Add an arm of 100 m to a node, a two-way road at a compass bearing from it
@@ -118,16 +135,51 @@ public class GreenRatioAlgorithmTest extends LayerTestBase {
     return centre;
   }
 
+  /**
+   * A centre node at the origin with one axis of two opposite arms per type, the axes spread evenly: two axes at 0 and
+   * 90 degrees, three at 0, 60 and 120
+   *
+   * @param typePerAxis the type of both arms of each axis
+   * @return index of the centre node
+   */
+  private int centreWithAxesOf(MacroscopicLinkSegmentType... typePerAxis) {
+    int centre = node(0, 0);
+    for (int axis = 0; axis < typePerAxis.length; ++axis) {
+      double bearing = 180.0 * axis / typePerAxis.length;
+      arm(centre, bearing, typePerAxis[axis]);
+      arm(centre, bearing + 180, typePerAxis[axis]);
+    }
+    return centre;
+  }
+
   /** the approach entering on the link segment from node a to node b */
   private IntersectionSegment approach(Intersection intersection, int a, int b) {
     return intersection.getApproach(segment(a, b));
   }
 
+  /**
+   * A signalised ramp meter in the middle of a one-way road of 200 m running east, its only approach the segment
+   * arriving from the west
+   *
+   * @param y metres north of the origin
+   * @return the ramp meter
+   */
+  private Intersection rampMeterOnOneWayRoadAt(double y) {
+    int meter = node(0, y);
+    link(node(-100, y), meter, road, null);
+    link(meter, node(100, y), road, null);
+    return intersectionAt(meter, IntersectionControlType.SIGNALISED, IntersectionType.RAMP_METER);
+  }
+
   @BeforeEach
   public void setUp() {
     var network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
+    var lightRail = network.getModes().getFactory().registerNew(PredefinedModeType.LIGHTRAIL);
     layer = network.getTransportLayers().getFactory().registerNew();
+    layer.registerSupportedModes(List.of(lightRail));
     road = layer.getLinkSegmentTypes().getFactory().registerNew("road", 1800, 180);
+    track = layer.getLinkSegmentTypes().getFactory().registerNew("track", 10000, 180);
+    AccessGroupPropertiesFactory.createOnLinkSegmentType(track, 50, List.of(lightRail));
   }
 
   // CHOOSING AN ALGORITHM
@@ -373,6 +425,41 @@ public class GreenRatioAlgorithmTest extends LayerTestBase {
     assertNull(result.getNumberOfPhases(crossing));
   }
 
+  // RAMP METERS
+
+  /** The one approach of a ramp meter is of its own kind and gets 0.9, so its effective capacity factor is 0.9 */
+  @Test
+  public void rampMeterGetsNineTenths() {
+    var rampMeter = rampMeterOnOneWayRoadAt(0);
+
+    var result = computeEqualSplit(rampMeter);
+
+    var approach = rampMeter.getApproaches().get(0);
+    assertEquals(1, rampMeter.getApproaches().size());
+    assertEquals(IntersectionSegmentKind.APPROACH_WITH_SIGNAL_AT_RAMP_METER,
+        rampMeter.getIntersectionSegmentKindOf(approach.getLinkSegment()));
+    assertEquals(0.9, greenRatioOf(approach), 1e-9);
+    assertEquals(CapacityFactorOrigin.COMPUTED, greenRatioOriginOf(approach));
+    assertEquals(0.9, rampMeter.getEffectiveCapacityFactorOf(approach.getLinkSegment()), 1e-9);
+    assertNull(result.getNumberOfPhases(rampMeter));
+  }
+
+  /** The ramp meter green ratio is a setting of its own: set to 0.6, a ramp meter gets 0.6 while a signalised
+   * mid-block crossing keeps the isolated crossing green ratio of 0.9 */
+  @Test
+  public void rampMeterGreenRatioIsASettingApartFromIsolatedCrossings() {
+    var rampMeter = rampMeterOnOneWayRoadAt(0);
+    var crossing = intersectionAt(
+        centreWithArms(0, 500, 0, 180), IntersectionControlType.SIGNALISED, IntersectionType.CROSSING);
+    var settings = new GreenRatioAndSaturationFlowFactorSettings();
+    settings.setRampMeterGreenRatio(0.6);
+
+    compute(settings, rampMeter, crossing);
+
+    assertEquals(0.6, greenRatioOf(rampMeter.getApproaches().get(0)), 1e-9);
+    crossing.getApproaches().forEach(approach -> assertEquals(0.9, greenRatioOf(approach), 1e-9));
+  }
+
   // WHAT AN ALGORITHM MAY CHANGE
 
   /** A green ratio of 0.6 set directly is kept, and its approach still takes part in the phases */
@@ -544,5 +631,130 @@ public class GreenRatioAlgorithmTest extends LayerTestBase {
     compute(settings, junction);
 
     junction.getApproaches().forEach(approach -> assertEquals(FOUR_ARM_EQUAL_SPLIT, greenRatioOf(approach), 1e-9));
+  }
+
+  // RAIL-BASED PHASE
+
+  /**
+   * A road crossing a light rail line has a road phase and a rail-based phase. Under either algorithm the rail-based
+   * phase gets 0.1 of the cycle, 9 s, which comes off the usable green time of 90 - 2 x 5 = 80 s, so the road gets
+   * 71 s
+   */
+  @Test
+  public void railBasedPhaseGetsATenthOfTheCycleUnderEitherAlgorithm() {
+    var junction = signalisedJunctionAt(centreWithAxesOf(track, road));
+    for (var algorithmType : GreenRatioAlgorithmType.values()) {
+      var settings = new GreenRatioAndSaturationFlowFactorSettings();
+      settings.setAlgorithmType(algorithmType);
+
+      var result = compute(settings, junction);
+
+      assertEquals(2, result.getNumberOfPhases(junction));
+      assertTrue(result.getJunctionsWithRailBasedPhase().contains(junction));
+      assertGreenRatioOfApproachesOfType(junction, track, 0.1);
+      assertGreenRatioOfApproachesOfType(junction, road, 71.0 / 90);
+    }
+  }
+
+  /**
+   * Rail approaches never share a phase with roads, and all of them share one rail-based phase. A crossroads with a
+   * light rail line 5 degrees beside its north-south road, and a third track arriving from 95 degrees, has two road
+   * phases and one rail-based phase: 90 - 3 x 5 = 75 s usable, 9 s for the rail, and 33 s for each road. Capacity
+   * weighted gives the same, as the 10,000 per lane of the track does not weigh in a road phase
+   */
+  @Test
+  public void railApproachesShareOneRailBasedPhaseApartFromTheRoads() {
+    int centre = centreWithArms(0, 0, 0, 90, 180, 270);
+    arm(centre, 5, track);
+    arm(centre, 185, track);
+    arm(centre, 95, track);
+    var junction = signalisedJunctionAt(centre);
+    for (var algorithmType : GreenRatioAlgorithmType.values()) {
+      var settings = new GreenRatioAndSaturationFlowFactorSettings();
+      settings.setAlgorithmType(algorithmType);
+
+      var result = compute(settings, junction);
+
+      assertEquals(3, result.getNumberOfPhases(junction));
+      assertGreenRatioOfApproachesOfType(junction, track, 0.1);
+      assertGreenRatioOfApproachesOfType(junction, road, 33.0 / 90);
+    }
+  }
+
+  /**
+   * A rail-based phase taking more green time than is usable leaves none to share: at a ratio of 0.9 it takes 81 s of
+   * the 80 s usable, so the junction gets no values and is listed as not computable, with -1 s left to share
+   */
+  @Test
+  public void railBasedGreenLeavingNoGreenToShareIsNotComputable() {
+    var junction = signalisedJunctionAt(centreWithAxesOf(track, road));
+    var settings = new GreenRatioAndSaturationFlowFactorSettings();
+    settings.setFixedRailBasedPhaseGreenRatio(0.9);
+
+    var result = compute(settings, junction);
+
+    junction.getApproaches().forEach(approach -> assertNull(greenRatioOriginOf(approach)));
+    assertEquals(-1, result.getNotComputableIntersections().get(junction), 1e-9);
+  }
+
+  // MINIMUM GREEN TIME
+
+  /**
+   * Capacity weighted, a side road of 600 against two main roads of 10,000 would get 75 x 600 / 20,600, about 2.2 s,
+   * below the minimum green time of 5 s. It gets 5 s, and the main roads share the other 70 s by capacity, 35 s each
+   */
+  @Test
+  public void phaseBelowTheMinimumGreenTimeGetsItAndTheOthersShareTheRest() {
+    var mainRoad = layer.getLinkSegmentTypes().getFactory().registerNew("main road", 10000, 180);
+    var sideRoad = layer.getLinkSegmentTypes().getFactory().registerNew("side road", 600, 180);
+    var junction = signalisedJunctionAt(centreWithAxesOf(mainRoad, mainRoad, sideRoad));
+
+    var result = compute(new GreenRatioAndSaturationFlowFactorSettings(), junction);
+
+    assertEquals(1, result.getNumberOfPhasesRaisedToMinimumGreenTime(junction));
+    assertGreenRatioOfApproachesOfType(junction, sideRoad, 5.0 / 90);
+    assertGreenRatioOfApproachesOfType(junction, mainRoad, 35.0 / 90);
+  }
+
+  /**
+   * Phases sharing what is left after the minimum green time can drop below it in turn. Capacity weighted, phases of
+   * 100, 750 and 10,000 first get 75 x 100 / 10,850, about 0.7 s, raised to 5 s, and 75 x 750 / 10,850, about 5.2 s.
+   * Sharing the other 70 s gives the 750 phase 70 x 750 / 10,750, about 4.9 s, so it is raised to 5 s as well, and the
+   * 10,000 phase gets the last 65 s
+   */
+  @Test
+  public void phaseDroppingBelowTheMinimumGreenTimeWhenSharedAgainGetsItToo() {
+    var mainRoad = layer.getLinkSegmentTypes().getFactory().registerNew("main road", 10000, 180);
+    var secondaryRoad = layer.getLinkSegmentTypes().getFactory().registerNew("secondary road", 750, 180);
+    var lane = layer.getLinkSegmentTypes().getFactory().registerNew("lane", 100, 180);
+    var junction = signalisedJunctionAt(centreWithAxesOf(mainRoad, secondaryRoad, lane));
+
+    var result = compute(new GreenRatioAndSaturationFlowFactorSettings(), junction);
+
+    assertEquals(2, result.getNumberOfPhasesRaisedToMinimumGreenTime(junction));
+    assertGreenRatioOfApproachesOfType(junction, lane, 5.0 / 90);
+    assertGreenRatioOfApproachesOfType(junction, secondaryRoad, 5.0 / 90);
+    assertGreenRatioOfApproachesOfType(junction, mainRoad, 65.0 / 90);
+  }
+
+  /**
+   * When the green time to share cannot give every phase the minimum green time, the phases share it equally. A cycle
+   * of 25 s with three phases leaves 25 - 3 x 5 = 10 s, less than 3 x 5 s, so each phase gets 10 / 3 s whatever its
+   * capacity
+   */
+  @Test
+  public void phasesShareEquallyWhenTheMinimumGreenTimeCannotBeGivenToEach() {
+    var mainRoad = layer.getLinkSegmentTypes().getFactory().registerNew("main road", 10000, 180);
+    var lane = layer.getLinkSegmentTypes().getFactory().registerNew("lane", 100, 180);
+    var junction = signalisedJunctionAt(centreWithAxesOf(mainRoad, road, lane));
+    var settings = new GreenRatioAndSaturationFlowFactorSettings();
+    settings.setCycleTimeSeconds(25);
+
+    var result = compute(settings, junction);
+
+    assertEquals(3, result.getNumberOfPhases(junction));
+    for (var type : List.of(mainRoad, road, lane)) {
+      assertGreenRatioOfApproachesOfType(junction, type, 10.0 / 3 / 25);
+    }
   }
 }

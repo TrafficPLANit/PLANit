@@ -73,6 +73,9 @@ public class IntersectionConsolidatorTrackingData {
   /** the approaches with a signal of their own of the layer's intersections before consolidation */
   private final Set<LinkSegment> approachesWithSignalBeforeConsolidation = new HashSet<>();
 
+  /** the approaches with a signal of their own of the layer's ramp meters before consolidation */
+  private final Set<LinkSegment> approachesWithSignalOfRampMetersBeforeConsolidation = new HashSet<>();
+
   /** per member node of a parsed intersection, the index of the intersection cluster it was weighed in */
   private final Map<Node, Integer> clusterIndexOfParsedMemberNode = new HashMap<>();
 
@@ -98,6 +101,8 @@ public class IntersectionConsolidatorTrackingData {
         .forEach(crossing -> memberNodesOfSignalisedCrossingOnlyIntersections.addAll(crossing.getMemberNodes()));
     layer.getIntersections().forEach(intersection -> intersection.getApproachSegments().stream()
         .filter(intersection::hasOwnSignal).forEach(approachesWithSignalBeforeConsolidation::add));
+    layer.getIntersections().stream(Intersection::isRampMeterOnly).forEach(rampMeter -> rampMeter.getApproachSegments()
+        .stream().filter(rampMeter::hasOwnSignal).forEach(approachesWithSignalOfRampMetersBeforeConsolidation::add));
     nodesKeptApartOfEachList = groupNodesToKeepApart(layer.getIntersections(), listedNodesToKeepApartOfEachList);
     nodesKeptApartOfEachList.forEach(nodesKeptApartOfList -> nodesKeptApartOfList.forEach(nodesKeptApart::addAll));
   }
@@ -122,6 +127,17 @@ public class IntersectionConsolidatorTrackingData {
    */
   public boolean isApproachWithSignalBeforeConsolidation(LinkSegment segment) {
     return approachesWithSignalBeforeConsolidation.contains(segment);
+  }
+
+  /**
+   * Verify if a segment was an approach with a signal of its own of a ramp meter before consolidation, so it is still
+   * known as one once the ramp meter has joined a junction
+   *
+   * @param segment to verify
+   * @return true when it was, false otherwise
+   */
+  public boolean isApproachWithSignalOfRampMeterBeforeConsolidation(LinkSegment segment) {
+    return approachesWithSignalOfRampMetersBeforeConsolidation.contains(segment);
   }
 
   /**
