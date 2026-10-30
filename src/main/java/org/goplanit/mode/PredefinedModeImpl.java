@@ -37,7 +37,8 @@ public class PredefinedModeImpl extends ModeImpl implements PredefinedMode {
           double pcu,
           PhysicalModeFeatures physicalFeatures,
           UsabilityModeFeatures usabilityFeatures) {
-    super(groupId, modeType.value(), maxSpeed, pcu, (PhysicalModeFeaturesImpl) physicalFeatures, (UsabilityModeFeaturesImpl) usabilityFeatures);
+    super(groupId, modeType.value(), maxSpeed, pcu,
+        (PhysicalModeFeaturesImpl) physicalFeatures, (UsabilityModeFeaturesImpl) usabilityFeatures);
     this.modeType = modeType;
     /* Xml id is always its predefined mode type value (name) */
     setXmlId(modeType.value());

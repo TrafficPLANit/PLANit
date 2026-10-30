@@ -11,9 +11,11 @@ import org.goplanit.zoning.Zoning;
  * abstract base class implementation to write an intermodal PLANit network to disk
  * 
  * @author markr
- *
+ * @param <T> type of service network
+ * @param <U> type of routes services
  */
-public interface IntermodalWriter<T extends ServiceNetwork, U extends RoutedServices> extends PairConverterWriter<MacroscopicNetwork, Zoning> {
+public interface IntermodalWriter<T extends ServiceNetwork, U extends RoutedServices>
+    extends PairConverterWriter<MacroscopicNetwork, Zoning> {
 
   /**
    * {@inheritDoc}
@@ -32,6 +34,7 @@ public interface IntermodalWriter<T extends ServiceNetwork, U extends RoutedServ
    * @param routedServices to write
    * @throws PlanItException thrown if error
    */
-  public abstract void writeWithServices(MacroscopicNetwork physicalNetwork, Zoning zoning, T serviceNetwork, U routedServices) throws PlanItException;
+  public abstract void writeWithServices(
+      MacroscopicNetwork physicalNetwork, Zoning zoning, T serviceNetwork, U routedServices) throws PlanItException;
 
 }

@@ -7,7 +7,8 @@ import java.util.Map;
 import org.goplanit.utils.reflection.ReflectionUtils;
 
 /**
- * StopCriterion class. In its base form we only provide an epsilon value. However by deriving from this class additional citeria can be added
+ * StopCriterion class. In its base form we only provide an epsilon value. However, by deriving from this class
+ * additional criteria can be added
  * 
  * @author markr
  *
@@ -54,7 +55,7 @@ public class StopCriterion {
    * 
    * @param gap            gap for the current iteration
    * @param iterationIndex index of current iteration
-   * @return true if gap is smaller than criterion, false otherwise
+   * @return true if gap is smaller than criterion (or we reached max iterations), false otherwise
    */
   public boolean hasConverged(double gap, int iterationIndex) {
     if (iterationIndex == maxIterations)
@@ -122,7 +123,8 @@ public class StopCriterion {
    * @return Map with settings as key value pairs 
    */
   public Map<String, String> collectSettingsAsKeyValueMap() {
-    var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(this, i -> Modifier.isPrivate(i) && !Modifier.isStatic(i));
+    var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(
+        this, i -> Modifier.isPrivate(i) && !Modifier.isStatic(i));
     var keyValueMap = new HashMap<String, String>();
     privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
     return keyValueMap;

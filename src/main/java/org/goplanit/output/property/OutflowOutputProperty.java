@@ -15,6 +15,10 @@ public final class OutflowOutputProperty extends OutputProperty {
    * Name of the property
    */
   public static final String NAME = "Outflow";
+  /**
+   * Public no-arg constructor required for reflective instantiation.
+   */
+  public OutflowOutputProperty(){}
 
   /**
    * {@inheritDoc}

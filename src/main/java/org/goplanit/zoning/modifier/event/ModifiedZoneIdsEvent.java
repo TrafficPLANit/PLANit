@@ -16,10 +16,12 @@ import org.goplanit.zoning.Zoning;
 public class ModifiedZoneIdsEvent extends EventImpl implements ZoningModificationEvent {
 
   /** event type fired off when zone ids have been modified */
-  public static final ZoningModifierEventType EVENT_TYPE = new ZoningModifierEventType("ZONINGEVENT.MODIFIED_ZONE_IDS");
+  public static final ZoningModifierEventType EVENT_TYPE =
+      new ZoningModifierEventType("ZONINGEVENT.MODIFIED_ZONE_IDS");
 
   /**
-   * Wrapper for a modified zoning ids event indicating that one or more managed internal ids of the zoning have been changed
+   * Wrapper for a modified zoning ids event indicating that one or more managed internal ids
+   * of the zoning have been changed
    * 
    * @param source zoning modifier firing the event
    * @param zoning to use

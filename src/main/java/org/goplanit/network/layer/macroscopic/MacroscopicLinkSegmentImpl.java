@@ -4,25 +4,21 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.goplanit.network.layer.physical.LinkSegmentBase;
+import org.goplanit.network.layer.physical.LinkSegmentImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
-import org.goplanit.utils.network.layer.physical.Link;
 
 /**
  * Link segment for macroscopic transport networks.
  *
  * @author markr
  */
-public class MacroscopicLinkSegmentImpl extends LinkSegmentBase<MacroscopicLink> implements MacroscopicLinkSegment {
+public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements MacroscopicLinkSegment {
 
   // Private
-
-  /** generated UID */
-  private static final long serialVersionUID = 4574164258794764853L;
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -44,7 +40,8 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentBase<MacroscopicLink>
    * @param parentLink  the parent link of this link segment
    * @param directionAB direction of travel
    */
-  protected MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final MacroscopicLink parentLink, final boolean directionAB) {
+  protected MacroscopicLinkSegmentImpl(
+      final IdGroupingToken groupId, final MacroscopicLink parentLink, final boolean directionAB) {
     super(groupId, parentLink, directionAB);
   }
 
@@ -72,7 +69,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentBase<MacroscopicLink>
       return Double.MAX_VALUE;
     }
 
-    return getParentLink().getLengthKm() / getModelledSpeedLimitKmH(mode);
+    return getParent().getLengthKm() / getModelledSpeedLimitKmH(mode);
   }
 
   /**
@@ -107,6 +104,14 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentBase<MacroscopicLink>
   @Override
   public MacroscopicLinkSegmentType getLinkSegmentType() {
     return linkSegmentType;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLink getParent() {
+    return (MacroscopicLink)super.getParent();
   }
 
 

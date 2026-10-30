@@ -15,7 +15,8 @@ import org.goplanit.utils.id.ManagedIdEntities;
 public class RecreatedDirectedGraphEntitiesManagedIdsEvent extends EventImpl implements DirectedGraphModificationEvent {
 
   /** event type fired off when managed id entities have been recreated */
-  public static final DirectedGraphModifierEventType EVENT_TYPE = new DirectedGraphModifierEventType("DIRECTEDGRAPHMODIFIER.MANAGEDIDENTITIES.RECREATED");
+  public static final DirectedGraphModifierEventType EVENT_TYPE =
+      new DirectedGraphModifierEventType("DIRECTEDGRAPHMODIFIER.MANAGEDIDENTITIES.RECREATED");
 
   /**
    * Constructor
@@ -23,7 +24,8 @@ public class RecreatedDirectedGraphEntitiesManagedIdsEvent extends EventImpl imp
    * @param source of the event
    * @param managedIdEntities that have been recreated in terms of their ids
    */
-  public RecreatedDirectedGraphEntitiesManagedIdsEvent(final DirectedGraphModifier source, final ManagedIdEntities<? extends ManagedId> managedIdEntities) {
+  public RecreatedDirectedGraphEntitiesManagedIdsEvent(
+      final DirectedGraphModifier source, final ManagedIdEntities<? extends ManagedId> managedIdEntities) {
     super(EVENT_TYPE, source, new Object[] {managedIdEntities});
   }
 

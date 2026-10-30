@@ -10,7 +10,8 @@ import org.goplanit.utils.service.routed.RoutedTripsFrequency;
  * 
  * @author markr
  */
-public class RoutedTripFrequencyFactoryImpl extends RoutedTripFactoryImpl<RoutedTripFrequency> implements RoutedTripFrequencyFactory {
+public class RoutedTripFrequencyFactoryImpl extends RoutedTripFactoryImpl<RoutedTripFrequency>
+    implements RoutedTripFrequencyFactory {
 
 
   /**

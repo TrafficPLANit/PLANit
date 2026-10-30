@@ -23,6 +23,9 @@ import org.goplanit.utils.resource.ResourceUtils;
  */
 public class Logging {
 
+  /** disallow constructor */
+  private Logging(){}
+
   private static final String DEFAULT_LOGGING_PROPERTIES_FILE_NAME = "logging.properties";
   private static final String LEVEL_PROPERTY = "java.util.logging.FileHandler.level";
   private static final Level DEFAULT_LEVEL = Level.INFO;

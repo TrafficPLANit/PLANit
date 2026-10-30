@@ -28,7 +28,7 @@ public class VirtualCostConfigurator<T extends AbstractVirtualCost> extends Conf
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void configure(AbstractVirtualCost virtualCost) throws PlanItException {
+  public void configure(AbstractVirtualCost virtualCost) {
     super.configure((T) virtualCost);
   }
 
