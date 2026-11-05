@@ -39,7 +39,7 @@ public class BicycleMode extends PredefinedModeImpl {
 
   /** default usability features of bicycle (ACTIVE) */
   public static final UsabilityModeFeatures BICYCLE_USABLITY_FEATURES =
-          new UsabilityModeFeaturesImpl(UseOfModeType.ACTIVE);
+          new UsabilityModeFeaturesImpl(UseOfModeType.ACTIVE, PredefinedModeType.BICYCLE.getDriverType());
 
   /**
    * Constructor for bicycle mode

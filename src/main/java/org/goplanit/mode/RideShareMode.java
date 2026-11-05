@@ -34,7 +34,7 @@ public class RideShareMode extends PredefinedModeImpl {
 
   /** default usability features of ride-share (RIDE_SHARE) different to taxi as it may be shared payment with others*/
   public static final UsabilityModeFeatures RIDE_SHARE_USABLITY_FEATURES =
-          new UsabilityModeFeaturesImpl(UseOfModeType.RIDE_SHARE);
+          new UsabilityModeFeaturesImpl(UseOfModeType.RIDE_SHARE, PredefinedModeType.RIDE_SHARE.getDriverType());
 
   /**
    * Constructor for ride-share mode

@@ -37,7 +37,8 @@ public class GoodsMode extends PredefinedModeImpl {
       new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.ROAD);
 
   /** default usability features of gv (GOODS) */
-  public static final UsabilityModeFeatures GV_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.GOODS);
+  public static final UsabilityModeFeatures GV_USABLITY_FEATURES =
+      new UsabilityModeFeaturesImpl(UseOfModeType.GOODS, PredefinedModeType.GOODS_VEHICLE.getDriverType());
 
   /**
    * Constructor for heavy goods vehicle mode

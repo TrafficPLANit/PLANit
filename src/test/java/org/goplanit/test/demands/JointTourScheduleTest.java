@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalTime;
 
+import static org.goplanit.test.demands.DiscreteDemandsTestUtils.addAccompanyingParticipant;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -57,15 +58,6 @@ class JointTourScheduleTest {
         tour, DirectionBound.INBOUND, true);
     inboundTrip.setStartTime(inbound);
     return tour;
-  }
-
-  /**
-   * Add an accompanying participant to an existing tour and place that participation on their schedule
-   */
-  private ParticipantTour addAccompanyingParticipant(Tour tour, Person person) {
-    var participation = tour.addParticipant(person, TourParticipantRole.ACCOMPANYING);
-    person.getSchedule().add(participation);
-    return participation;
   }
 
   private Person registerPerson() {

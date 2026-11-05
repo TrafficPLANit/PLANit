@@ -34,7 +34,7 @@ public class CarShareMode extends PredefinedModeImpl {
 
   /** default usability features of car share (PRIVATE) since you are not driven it is a short term rental*/
   public static final UsabilityModeFeatures CAR_SHARE_USABLITY_FEATURES =
-          new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);
+          new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE, PredefinedModeType.CAR_SHARE.getDriverType());
 
   /**
    * Constructor for car share mode

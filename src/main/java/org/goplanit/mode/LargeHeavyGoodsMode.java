@@ -37,7 +37,8 @@ public class LargeHeavyGoodsMode extends PredefinedModeImpl {
       new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.ROAD);
 
   /** default usability features of lhgv (GOODS) */
-  public static final UsabilityModeFeatures LHGV_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.GOODS);
+  public static final UsabilityModeFeatures LHGV_USABLITY_FEATURES =
+      new UsabilityModeFeaturesImpl(UseOfModeType.GOODS, PredefinedModeType.LARGE_HEAVY_GOODS_VEHICLE.getDriverType());
 
   /**
    * Constructor for large heavy goods vehicle mode

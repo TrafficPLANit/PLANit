@@ -38,7 +38,7 @@ public class SubwayMode extends PredefinedModeImpl {
 
   /* default usability features of subway (PUBLIC) */
   public static final UsabilityModeFeatures SUBWAY_USABLITY_FEATURES =
-      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
+      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC, PredefinedModeType.SUBWAY.getDriverType());
 
   /**
    * Constructor for subway mode

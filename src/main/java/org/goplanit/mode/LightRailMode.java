@@ -39,7 +39,7 @@ public class LightRailMode extends PredefinedModeImpl {
 
   /** default usability features of lightrail (PUBLIC) */
   public static final UsabilityModeFeatures LIGHTRAIL_USABLITY_FEATURES =
-      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
+      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC, PredefinedModeType.LIGHTRAIL.getDriverType());
 
   /**
    * Constructor for lightrail mode

@@ -11,10 +11,11 @@ import java.time.LocalTime;
  * while each person's schedule remains their own.
  * <p>
  * All travel related information is held by the underlying {@link Tour} and is exposed here read-only, since
- * participants by definition share the same origin, destination, times and trips. Only the person and their role are
- * specific to the participation. Changing any of the shared information is deliberately <b>not</b> possible through
- * this participation: obtain the tour via {@link #getTour()} and change it there, so it is evident at the call site
- * that every participant is affected.
+ * participants by definition share the same origin, destination, times and trips. Only the person, their role and
+ * whether they drive are specific to the participation, and whether they drive can be set on it, as that affects no
+ * other participant. Changing any of the shared information is deliberately <b>not</b> possible through this
+ * participation: obtain the tour via {@link #getTour()} and change it there, so it is evident at the call site that
+ * every participant is affected.
  * </p>
  */
 public interface ParticipantTour extends ScheduleElement {
@@ -47,6 +48,30 @@ public interface ParticipantTour extends ScheduleElement {
    */
   default boolean isPrimary() {
     return getRole() != null && getRole().isPrimary();
+  }
+
+  /**
+   * Whether this person drives the tour's trips by a mode that needs a driver, such as a car
+   *
+   * @return true or false when known, null when not known
+   */
+  Boolean getDriver();
+
+  /**
+   * Set whether this person drives the tour's trips by a mode that needs a driver. Only this participation changes; to
+   * make one participant the driver of the tour and every other one not, see {@link Tour#setDriver(ParticipantTour)}
+   *
+   * @param driver true or false when known, null when not known
+   */
+  void setDriver(Boolean driver);
+
+  /**
+   * Whether this person is assumed to drive those trips: the known value, else true for the primary participant only
+   *
+   * @return true when assumed to drive, false otherwise
+   */
+  default boolean isAssumedAsDriver() {
+    return getDriver() != null ? getDriver() : isPrimary();
   }
 
   /**

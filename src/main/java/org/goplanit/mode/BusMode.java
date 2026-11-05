@@ -38,7 +38,7 @@ public class BusMode extends PredefinedModeImpl {
 
   /** default usability features of bus (PUBLIC) */
   public static final UsabilityModeFeatures BUS_USABLITY_FEATURES =
-          new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
+          new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC, PredefinedModeType.BUS.getDriverType());
 
   /**
    * Constructor for bus mode

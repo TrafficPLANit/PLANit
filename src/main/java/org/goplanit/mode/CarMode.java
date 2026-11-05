@@ -38,7 +38,7 @@ public class CarMode extends PredefinedModeImpl {
 
   /** default usability features of car (PRIVATE) */
   public static final UsabilityModeFeatures CAR_USABLITY_FEATURES =
-          new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);
+          new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE, PredefinedModeType.CAR.getDriverType());
 
   /**
    * Constructor for car mode

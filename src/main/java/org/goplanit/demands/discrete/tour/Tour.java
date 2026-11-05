@@ -1,6 +1,8 @@
 package org.goplanit.demands.discrete.tour;
 
 import org.goplanit.demands.discrete.person.Person;
+import org.goplanit.demands.discrete.trip.Trip;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.mode.Mode;
@@ -9,6 +11,7 @@ import org.goplanit.utils.zoning.OdZone;
 import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -34,14 +37,47 @@ public interface Tour extends ExternalIdAble, ManagedId {
   List<ParticipantTour> getParticipantTours();
 
   /**
-   * Register a person as participating in this tour. The participation is not placed on the person's schedule
-   * here, see {@link ToursFactory} for the regular creation path
+   * Register a person as participating in this tour, without knowing whether they drive. The participation is not
+   * placed on the person's schedule here, see {@link ToursFactory} for the regular creation path
    *
    * @param person to register
    * @param role the person takes on this tour
    * @return created participation
    */
-  ParticipantTour addParticipant(Person person, TourParticipantRole role);
+  default ParticipantTour addParticipant(Person person, TourParticipantRole role) {
+    return addParticipant(person, role, null);
+  }
+
+  /**
+   * Register a person as participating in this tour. The participation is not placed on the person's schedule
+   * here, see {@link ToursFactory} for the regular creation path
+   *
+   * @param person to register
+   * @param role the person takes on this tour
+   * @param driver whether the person drives the tour's trips by a mode that needs a driver, null when not known
+   * @return created participation
+   */
+  ParticipantTour addParticipant(Person person, TourParticipantRole role, Boolean driver);
+
+  /**
+   * Set the driver of this tour: the given participation drives the tour's trips by a mode that needs a driver and
+   * every other participation does not. To set the value of one participation only, see
+   * {@link ParticipantTour#setDriver(Boolean)}
+   *
+   * @param driver participation on this tour that drives
+   * @throws PlanItRunTimeException when the participation is not on this tour, leaving every value as it was
+   */
+  void setDriver(ParticipantTour driver);
+
+  /**
+   * Verify if this tour's driver is known, which is so once any of its participations says whether its person drives.
+   * An own tour whose person does not drive counts as known, as someone not on the tour drives it
+   *
+   * @return true when known, false otherwise
+   */
+  default boolean isDriverKnown() {
+    return getParticipantTours().stream().anyMatch(participantTour -> participantTour.getDriver() != null);
+  }
 
   /**
    * Remove a participation from this tour
@@ -139,6 +175,20 @@ public interface Tour extends ExternalIdAble, ManagedId {
    */
   default boolean hasSchedule() {
     return getSchedule() != null;
+  }
+
+  /**
+   * Verify if one of this tour's trips is by a mode the predicate accepts. The trips of a sub tour belong to the sub
+   * tour, not to this tour
+   *
+   * @param modePredicate to test the mode of each trip with
+   * @return true when such a trip is found, false otherwise
+   */
+  default boolean hasTripByMode(Predicate<Mode> modePredicate) {
+    return hasSchedule() && getSchedule().stream()
+        .filter(Trip.class::isInstance)
+        .map(element -> ((Trip) element).getMode())
+        .anyMatch(mode -> mode != null && modePredicate.test(mode));
   }
 
   /**

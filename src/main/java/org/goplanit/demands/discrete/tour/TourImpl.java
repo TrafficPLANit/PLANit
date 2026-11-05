@@ -54,6 +54,22 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
   private LocalTime endTime;
 
   /**
+   * Replace the participation at the given position by a new one with the given role and the same driver value, on
+   * this tour and on the schedule that holds it. The participation that was there is dropped from both
+   *
+   * @param index of the participation on this tour
+   * @param role of the new participation
+   * @return the new participation, now in the place of the old one
+   */
+  private ParticipantTour replaceByNewParticipation(int index, TourParticipantRole role) {
+    var existing = participantTours.get(index);
+    var replacement = new ParticipantTourImpl(this, existing.getPerson(), role, existing.getDriver());
+    participantTours.set(index, replacement);
+    replaceOnScheduleOf(existing, replacement);
+    return replacement;
+  }
+
+  /**
    * Generate id for instances of this class based on the token and class identifier
    *
    * @param tokenId to use
@@ -94,7 +110,7 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
   public TourImpl(TourImpl tour, boolean deepCopy) {
     super(tour);
     this.participantTours = new ArrayList<>(tour.participantTours.size());
-    tour.participantTours.forEach(pt -> addParticipant(pt.getPerson(), pt.getRole()));
+    tour.participantTours.forEach(pt -> addParticipant(pt.getPerson(), pt.getRole(), pt.getDriver()));
     this.origin = tour.origin;
     this.destination = tour.destination;
     this.purpose = tour.purpose;
@@ -116,7 +132,7 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
    * {@inheritDoc}
    */
   @Override
-  public ParticipantTour addParticipant(Person person, TourParticipantRole role) {
+  public ParticipantTour addParticipant(Person person, TourParticipantRole role, Boolean driver) {
     if(role != null && role.isPrimary() && hasPrimaryParticipant()){
       throw new PlanItRunTimeException(
           "Tour (%s) already has a primary participant (%s), unable to add person (%s) as primary as well",
@@ -124,7 +140,7 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
           person != null ? person.getIdsAsString() : "-");
     }
 
-    var participantTour = new ParticipantTourImpl(this, person, role);
+    var participantTour = new ParticipantTourImpl(this, person, role, driver);
     if(role != null && role.isPrimary()){
       /* keep the primary participant first, which getPrimaryParticipant and the writers rely on */
       participantTours.add(0, participantTour);
@@ -148,16 +164,26 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
      * is attributed to. Where the primary is the one leaving, the next participant takes over rather than the tour
      * being left without one */
     if(participantTour.isPrimary() && !participantTours.isEmpty()){
-      var successor = participantTours.get(0);
-      participantTours.set(0, new ParticipantTourImpl(this, successor.getPerson(), TourParticipantRole.PRIMARY));
-      replaceOnScheduleOf(successor, participantTours.get(0));
+      replaceByNewParticipation(0, TourParticipantRole.PRIMARY);
     }
     return true;
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setDriver(ParticipantTour driver) {
+    if(!participantTours.contains(driver)){
+      throw new PlanItRunTimeException(
+          "Participation (%s) is not on tour (%s), unable to make it the driver", driver, getIdsAsString());
+    }
+    participantTours.forEach(participation -> participation.setDriver(participation.equals(driver)));
+  }
+
+  /**
    * Swap a participation for its replacement on the schedule that holds it, being the person's schedule for a top
-   * level tour and the parent tour's schedule for a sub-tour. A participation is immutable, so a change of role
+   * level tour and the parent tour's schedule for a sub-tour. A participation's role is fixed, so a change of role
    * yields a new instance that must take the old one's place
    *
    * @param existing participation to replace

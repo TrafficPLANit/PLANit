@@ -34,7 +34,7 @@ public class CarHighOccupancyMode extends PredefinedModeImpl {
 
   /** default usability features of car hov (PRIVATE) */
   public static final UsabilityModeFeatures CAR_HOV_USABLITY_FEATURES =
-          new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);
+          new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE, PredefinedModeType.CAR_HIGH_OCCUPANCY.getDriverType());
 
   /**
    * Constructor for car hov mode

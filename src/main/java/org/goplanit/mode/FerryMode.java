@@ -32,7 +32,7 @@ public class FerryMode extends PredefinedModeImpl {
 
   /** default usability features of ferry (PUBLIC) */
   public static final UsabilityModeFeatures FERRY_USABLITY_FEATURES =
-      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
+      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC, PredefinedModeType.FERRY.getDriverType());
 
   /**
    * Constructor for ferry mode

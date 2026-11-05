@@ -38,7 +38,7 @@ public class TrainMode extends PredefinedModeImpl {
 
   /* default usability features of train (PUBLIC) */
   public static final UsabilityModeFeatures TRAIN_USABLITY_FEATURES =
-      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
+      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC, PredefinedModeType.TRAIN.getDriverType());
 
   /**
    * Constructor for train mode

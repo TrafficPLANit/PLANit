@@ -32,7 +32,7 @@ public class TaxiMode extends PredefinedModeImpl {
 
   /** default usability features of taxi  (TAXI) */
   public static final UsabilityModeFeatures TAXI_USABLITY_FEATURES =
-          new UsabilityModeFeaturesImpl(UseOfModeType.TAXI);
+          new UsabilityModeFeaturesImpl(UseOfModeType.TAXI, PredefinedModeType.TAXI.getDriverType());
 
   /**
    * Constructor for taxi mode

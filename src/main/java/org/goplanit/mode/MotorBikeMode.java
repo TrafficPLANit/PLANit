@@ -39,7 +39,7 @@ public class MotorBikeMode extends PredefinedModeImpl {
 
   /** default usability features of motor bike (PRIVATE) */
   public static final UsabilityModeFeatures MOTOR_BIKE_USABLITY_FEATURES =
-      new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);
+      new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE, PredefinedModeType.MOTOR_BIKE.getDriverType());
 
   /**
    * Constructor for motor bike mode

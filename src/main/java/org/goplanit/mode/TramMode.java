@@ -38,7 +38,7 @@ public class TramMode extends PredefinedModeImpl {
 
   /* default usability features of tram (PUBLIC) */
   public static final UsabilityModeFeatures TRAM_USABLITY_FEATURES =
-      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
+      new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC, PredefinedModeType.TRAM.getDriverType());
 
   /**
    * Constructor for train mode

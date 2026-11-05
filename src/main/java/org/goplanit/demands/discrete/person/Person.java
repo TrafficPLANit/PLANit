@@ -32,6 +32,21 @@ public class Person extends ExternalIdAbleImpl implements ManagedId {
    * activities are undertaken */
   private String initialPurpose;
 
+  /** age in whole years, null when not known */
+  private Integer age;
+
+  /** sex, null when not known */
+  private Sex sex;
+
+  /** employment status, null when not known */
+  private EmploymentStatus employmentStatus;
+
+  /** study status, null when not known */
+  private StudyStatus studyStatus;
+
+  /** whether the person holds a licence to drive a car, null when not known */
+  private Boolean carLicence;
+
   /**
    * Generate id for instances of this class based on the token and class identifier
    *
@@ -73,6 +88,12 @@ public class Person extends ExternalIdAbleImpl implements ManagedId {
     super(person);
     this.household = person.household;
     this.activitySchedule = deepCopy ? person.activitySchedule.deepClone() : person.activitySchedule.shallowClone();
+    this.initialPurpose = person.initialPurpose;
+    this.age = person.age;
+    this.sex = person.sex;
+    this.employmentStatus = person.employmentStatus;
+    this.studyStatus = person.studyStatus;
+    this.carLicence = person.carLicence;
   }
 
   /**
@@ -123,6 +144,106 @@ public class Person extends ExternalIdAbleImpl implements ManagedId {
    */
   public void setInitialPurpose(String initialPurpose) {
     this.initialPurpose = initialPurpose;
+  }
+
+  /**
+   * Age of the person in whole years
+   *
+   * @return age, null when not known
+   */
+  public Integer getAge() {
+    return age;
+  }
+
+  /**
+   * Set the age of the person in whole years
+   *
+   * @param age to set, null when not known
+   */
+  public void setAge(Integer age) {
+    this.age = age;
+  }
+
+  /**
+   * Sex of the person
+   *
+   * @return sex, null when not known
+   */
+  public Sex getSex() {
+    return sex;
+  }
+
+  /**
+   * Set the sex of the person
+   *
+   * @param sex to set, null when not known
+   */
+  public void setSex(Sex sex) {
+    this.sex = sex;
+  }
+
+  /**
+   * Whether the person works and how much
+   *
+   * @return employment status, null when not known
+   */
+  public EmploymentStatus getEmploymentStatus() {
+    return employmentStatus;
+  }
+
+  /**
+   * Set whether the person works and how much
+   *
+   * @param employmentStatus to set, null when not known
+   */
+  public void setEmploymentStatus(EmploymentStatus employmentStatus) {
+    this.employmentStatus = employmentStatus;
+  }
+
+  /**
+   * Whether the person studies and where
+   *
+   * @return study status, null when not known
+   */
+  public StudyStatus getStudyStatus() {
+    return studyStatus;
+  }
+
+  /**
+   * Set whether the person studies and where
+   *
+   * @param studyStatus to set, null when not known
+   */
+  public void setStudyStatus(StudyStatus studyStatus) {
+    this.studyStatus = studyStatus;
+  }
+
+  /**
+   * Whether the person holds a licence to drive a car
+   *
+   * @return true when holding one, false when not, null when not known
+   */
+  public Boolean getCarLicence() {
+    return carLicence;
+  }
+
+  /**
+   * Set whether the person holds a licence to drive a car
+   *
+   * @param carLicence to set, null when not known
+   */
+  public void setCarLicence(Boolean carLicence) {
+    this.carLicence = carLicence;
+  }
+
+  /**
+   * Whether the person may drive: true unless known to hold no car licence or known to be younger than the given age
+   *
+   * @param minimumDrivingAge age from which a person may drive
+   * @return false when known not to be allowed to drive, true otherwise
+   */
+  public boolean mayDrive(int minimumDrivingAge) {
+    return !Boolean.FALSE.equals(carLicence) && (age == null || age >= minimumDrivingAge);
   }
 
   /**

@@ -1,5 +1,6 @@
 package org.goplanit.mode;
 
+import org.goplanit.utils.mode.DriverType;
 import org.goplanit.utils.mode.MotorisationModeType;
 import org.goplanit.utils.mode.PhysicalModeFeatures;
 import org.goplanit.utils.mode.TrackModeType;
@@ -32,13 +33,24 @@ public class ModeFeaturesFactory {
   }
 
   /**
-   * create usability mode features
-   * 
+   * create usability mode features, who drives the mode not known
+   *
    * @param useOfModeType to use
    * @return usability mode features that are created
    */
   public static UsabilityModeFeatures createUsabilityFeatures(UseOfModeType useOfModeType) {
-    return new UsabilityModeFeaturesImpl(useOfModeType);
+    return createUsabilityFeatures(useOfModeType, null);
+  }
+
+  /**
+   * create usability mode features
+   *
+   * @param useOfModeType to use
+   * @param driverType who drives the mode, null when not known
+   * @return usability mode features that are created
+   */
+  public static UsabilityModeFeatures createUsabilityFeatures(UseOfModeType useOfModeType, DriverType driverType) {
+    return new UsabilityModeFeaturesImpl(useOfModeType, driverType);
   }
 
   /**

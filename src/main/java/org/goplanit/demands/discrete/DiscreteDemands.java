@@ -110,16 +110,19 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
    */
   private void updateTourPersons(Function<Person,Person> pToPMapping, boolean removeMissingMappings) {
     for(var tour : this.tours){
-      /* participations are immutable, so a remapped person means replacing the participation. Iterating in the
-       * original order and re-adding preserves that order, the primary participant re-entering at the front */
-      for(var participation : new ArrayList<>(tour.getParticipantTours())){
+      /* a participation's person is fixed, so a remapped person means replacing the participation. All are taken off
+       * last first, so the primary participant leaves last and nobody takes over from it, then put back in order */
+      var participations = new ArrayList<>(tour.getParticipantTours());
+      for(int index = participations.size() - 1; index >= 0; --index){
+        tour.removeParticipant(participations.get(index));
+      }
+      for(var participation : participations){
         var newPerson = pToPMapping.apply(participation.getPerson());
         if (newPerson == null && !removeMissingMappings) {
-          continue; // leave in-tact
+          newPerson = participation.getPerson(); // leave in-tact
         }
-        tour.removeParticipant(participation);
         if(newPerson != null){
-          tour.addParticipant(newPerson, participation.getRole());
+          tour.addParticipant(newPerson, participation.getRole(), participation.getDriver());
         }
       }
     }

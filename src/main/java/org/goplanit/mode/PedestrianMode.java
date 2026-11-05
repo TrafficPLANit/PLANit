@@ -39,7 +39,7 @@ public class PedestrianMode extends PredefinedModeImpl {
 
   /* default usability features of pedestrian (ACTIVE) */
   public static final UsabilityModeFeatures PEDESTRIAN_USABLITY_FEATURES =
-      new UsabilityModeFeaturesImpl(UseOfModeType.ACTIVE);
+      new UsabilityModeFeaturesImpl(UseOfModeType.ACTIVE, PredefinedModeType.PEDESTRIAN.getDriverType());
 
   /**
    * Constructor for pedestrian mode
