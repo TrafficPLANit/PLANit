@@ -1,7 +1,7 @@
 package org.goplanit.test.demands;
 
 import org.goplanit.demands.discrete.DiscreteDemands;
-import org.goplanit.demands.discrete.ScheduleJitterType;
+import org.goplanit.demands.discrete.jitter.ScheduleJitterType;
 import org.goplanit.demands.discrete.person.Person;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.trip.Trip;

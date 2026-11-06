@@ -1,4 +1,4 @@
-package org.goplanit.demands.discrete;
+package org.goplanit.demands.discrete.jitter;
 
 /**
  * Strategy for spreading discrete demand schedules within their originating time bin, used to remove the peaking

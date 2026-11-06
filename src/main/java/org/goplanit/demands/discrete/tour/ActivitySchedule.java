@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * A schedule can be nested since each element may have a schedule by itself. Each element can be of a different
@@ -409,6 +410,18 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
    */
   public boolean testNested(Predicate<ScheduleElement> predicate) {
     return stream().anyMatch( se -> se.testNested(predicate));
+  }
+
+  /**
+   * Collect the tours on this schedule shared by several participants, in schedule order, without looking into nested
+   * schedules
+   *
+   * @return a new list of the shared tours
+   */
+  public List<Tour> collectSharedTours() {
+    return stream().filter(element -> element instanceof ParticipantTour)
+        .map(element -> ((ParticipantTour) element).getTour()).filter(Tour::hasMultipleParticipants)
+        .collect(Collectors.toList());
   }
 
   /**

@@ -1,5 +1,6 @@
 package org.goplanit.demands.discrete;
 
+import org.goplanit.demands.discrete.jitter.ScheduleJitterExecutor;
 import org.goplanit.demands.discrete.person.Person;
 import org.goplanit.demands.discrete.tour.ParticipantTour;
 import org.goplanit.demands.discrete.tour.Tour;
@@ -221,6 +222,25 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
   }
 
   /**
+   * Strip a person of everything they do, as {@link #clearPersonSchedule(Person)} does, except that a tour they share
+   * with others is removed for all its participants rather than only ending their part in it. The other participants
+   * keep the rest of their schedule
+   * todo: does not use any events yet, it should
+   *
+   * @param person whose schedule to clear
+   * @return number of shared tours removed
+   */
+  public int clearPersonScheduleAndSharedTours(Person person) {
+    if (person.getSchedule() == null) {
+      return 0;
+    }
+    var sharedTours = person.getSchedule().collectSharedTours();
+    sharedTours.forEach(tour -> removeTour(tour, false));
+    clearPersonSchedule(person);
+    return sharedTours.size();
+  }
+
+  /**
    * Shift each person's whole schedule by a single random offset, deterministically per person and kept within the
    * allowed period boundaries. Elements that share a time bin stay together, the whole schedule simply moves.
    *
@@ -237,7 +257,7 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
       return;
     }
 
-    discreteDemands.getPersons().forEach(person -> ScheduleJitter.applyRigidPersonJitter(
+    discreteDemands.getPersons().forEach(person -> ScheduleJitterExecutor.applyRigidPersonJitter(
         person, maxDeviationSeconds, symmetric, minAllowedTimeSeconds, maxAllowedTimeSeconds));
   }
 
@@ -258,7 +278,7 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
     if (maxDeviationSeconds <= 0) {
       return;
     }
-    ScheduleJitter.applyRigidPersonJitter(
+    ScheduleJitterExecutor.applyRigidPersonJitter(
         person, maxDeviationSeconds, symmetric, minAllowedTimeSeconds, maxAllowedTimeSeconds);
   }
 
@@ -301,7 +321,7 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
       return List.of();
     }
 
-    return ScheduleJitter.applySubBinJitter(
+    return ScheduleJitterExecutor.applySubBinJitter(
         discreteDemands.getTours(), discreteDemands.getPersons(), spreadWidthSeconds, minAllowedTimeSeconds,
         maxAllowedTimeSeconds, minDurationTours, minDurationSeconds);
   }
@@ -335,7 +355,7 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
   public void adjustPersonScheduleSubBinJitter(
       Person person, int spreadWidthSeconds, int minAllowedTimeSeconds, int maxAllowedTimeSeconds,
       Set<Tour> minDurationTours, int minDurationSeconds) {
-    ScheduleJitter.applySubBinJitter(
+    ScheduleJitterExecutor.applySubBinJitter(
         person, spreadWidthSeconds, minAllowedTimeSeconds, maxAllowedTimeSeconds, minDurationTours,
         minDurationSeconds);
   }
