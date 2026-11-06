@@ -14,9 +14,9 @@ import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.mode.PredefinedMode;
 
 /**
- * Configurator class that allows one to create and modify a setup for the mapping of modes and macroscopic network layers without actually creating them yet. The final result can
- * be used to instantiate the layers on the actual network when the time is right.
- * 
+ * Configurator class that allows one to create and modify a setup for the mapping of modes and macroscopic network
+ * layers without actually creating them yet. The final result can be used to instantiate the layers on
+ * the actual network when the time is right.
  * We also provide some default suggestions for quick setups avoiding complicated manual configurations.
  * 
  * @author markr
@@ -32,6 +32,11 @@ public class MacroscopicNetworkLayerConfigurator {
 
   /** track mode to layer mapping */
   protected final Map<Mode, String> modeToLayerXmlId = new TreeMap<>();
+
+  /**
+   * Default constructor
+   */
+  protected MacroscopicNetworkLayerConfigurator(){}
 
   /**
    * proposed on_street layer id

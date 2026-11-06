@@ -26,6 +26,7 @@ import org.goplanit.sdinteraction.smoothing.SmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.SmoothingConfiguratorFactory;
 import org.goplanit.utils.builder.Configurator;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.zoning.Zoning;
 
@@ -185,9 +186,9 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    *
    * @param gapFunctionType the type of gap function component to be created
    * @return gap function configuration object
-   * @throws PlanItException thrown if there is an error
    */
-  public GapFunctionConfigurator<? extends GapFunction> createAndRegisterGapFunction(final String gapFunctionType) throws PlanItException {
+  public GapFunctionConfigurator<? extends GapFunction> createAndRegisterGapFunction(
+          final String gapFunctionType){
     gapFunctionConfigurator = GapFunctionConfiguratorFactory.createConfigurator(gapFunctionType);
     return gapFunctionConfigurator;
   }
@@ -197,9 +198,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    *
    * @param smoothingType the type of smoothing component to be created
    * @return Smoothing configuration object
-   * @throws PlanItException thrown if there is an error
    */
-  public SmoothingConfigurator<? extends Smoothing> createAndRegisterSmoothing(final String smoothingType) throws PlanItException {
+  public SmoothingConfigurator<? extends Smoothing> createAndRegisterSmoothing(final String smoothingType) {
     smoothingConfigurator = SmoothingConfiguratorFactory.createConfigurator(smoothingType);
     return smoothingConfigurator;
   }
@@ -209,9 +209,9 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    *
    * @param physicalTravelTimeCostFunctionType the type of cost function to be created
    * @return the physical cost created
-   * @throws PlanItException thrown if there is an error
    */
-  public PhysicalCostConfigurator<? extends AbstractPhysicalCost> createAndRegisterPhysicalCost(final String physicalTravelTimeCostFunctionType) throws PlanItException {
+  public PhysicalCostConfigurator<? extends AbstractPhysicalCost> createAndRegisterPhysicalCost(
+          final String physicalTravelTimeCostFunctionType){
     physicalCostConfigurator = PhysicalCostConfiguratorFactory.createConfigurator(physicalTravelTimeCostFunctionType);
     return physicalCostConfigurator;
   }
@@ -219,12 +219,12 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   /**
    * Create and Register virtual link cost function to determine travel time
    *
-   * @param virtualTraveltimeCostFunctionType the type of cost function to be created
+   * @param virtualTravelTimeCostFunctionType the type of cost function to be created
    * @return the cost function created
-   * @throws PlanItException thrown if there is an error
    */
-  public VirtualCostConfigurator<? extends AbstractVirtualCost> createAndRegisterVirtualCost(final String virtualTraveltimeCostFunctionType) throws PlanItException {
-    virtualCostConfigurator = VirtualCostConfiguratorFactory.createConfigurator(virtualTraveltimeCostFunctionType);
+  public VirtualCostConfigurator<? extends AbstractVirtualCost> createAndRegisterVirtualCost(
+          final String virtualTravelTimeCostFunctionType) {
+    virtualCostConfigurator = VirtualCostConfiguratorFactory.createConfigurator(virtualTravelTimeCostFunctionType);
     return virtualCostConfigurator;
   }
 
@@ -232,21 +232,18 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * Register an output formatter
    *
    * @param outputFormatter OutputFormatter being registered
-   * @throws PlanItException thrown if there is an error or validation failure during setup of the output formatter
    */
-  public void registerOutputFormatter(final OutputFormatter outputFormatter) throws PlanItException {
+  public void registerOutputFormatter(final OutputFormatter outputFormatter){
     getOutputManager().registerOutputFormatter(outputFormatter);
   }
 
   /**
-   * Remove an output formatter which has already been registered
-   * 
+   * Remove an output formatter which has already been registered.
    * This is used by the Python interface, which registers the PlanItIO formatter by default
    * 
    * @param outputFormatter the output formatter to be removed
-   * @throws PlanItException thrown if there is an error during removal of the output formatter
    */
-  public void unregisterOutputFormatter(final OutputFormatter outputFormatter) throws PlanItException {
+  public void unregisterOutputFormatter(final OutputFormatter outputFormatter){
     getOutputManager().unregisterOutputFormatter(outputFormatter);
   }
 
@@ -274,8 +271,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   }
 
   /**
-   * Register the initial link segment cost without relating it to a particular period, meaning that it is applied to all time periods that do not have a specified initial link
-   * segment costs registered for them
+   * Register the initial link segment cost without relating it to a particular period, meaning that it is applied to
+   * all time periods that do not have a specified initial link segment costs registered for them
    *
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    */
@@ -288,10 +285,11 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    *
    * @param timePeriod             the specified time period
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
-   * @throws PlanItException thrown if time period is null
    */
-  public void registerInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialModesLinkSegmentCost initialLinkSegmentCost) throws PlanItException {
-    PlanItException.throwIf(timePeriod == null, "time period null when registering initial link segment costs");
+  public void registerInitialLinkSegmentCost(
+          final TimePeriod timePeriod, final InitialModesLinkSegmentCost initialLinkSegmentCost){
+    PlanItRunTimeException.throwIf(
+        timePeriod == null, "time period null when registering initial link segment costs");
     registerDelayedMethodCall(SET_INITIAL_LINK_SEGMENT_COST, timePeriod, initialLinkSegmentCost);
   }
 
@@ -300,9 +298,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    *
    * @param outputType OutputType object to be used
    * @return outputTypeConfiguration the output type configuration that is now active
-   * @throws PlanItException thrown if there is an error activating the output
    */
-  public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
+  public OutputTypeConfiguration activateOutput(final OutputType outputType){
     if (!isOutputTypeActive(outputType)) {
       return getOutputManager().createAndRegisterOutputTypeConfiguration(outputType);
     } else {

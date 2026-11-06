@@ -33,6 +33,11 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
   public static final String NORM_BASED_GAP = NormBasedGapFunction.class.getCanonicalName();
 
   /**
+   * short code for a path based gap function type
+   */
+  public static final String PATH_BASED_GAP = PathBasedGapFunction.class.getCanonicalName();
+
+  /**
    * Constructor
    * 
    * @param idToken       to use for the generation of its id
@@ -59,8 +64,7 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
    */
   @Override
   public Map<String, String> collectSettingsAsKeyValueMap() {
-    Map<String,String> stopCriterionSettings = getStopCriterion().collectSettingsAsKeyValueMap();    
-    return stopCriterionSettings;
+    return getStopCriterion().collectSettingsAsKeyValueMap();
   }
 
   /**
@@ -84,10 +88,21 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
 
   /**
    * Compute the gap and return it
-   * 
+   *
+   * @param internalStateChange when true update the intenral gap and previous gap, when false leave it untouched and
+   *                            only compute on the fly
    * @return the gap for the current iteration
    */
-  public abstract double computeGap();
+  public abstract double computeGap(boolean internalStateChange);
+
+  /**
+   * Compute the gap, update internal state (gap and previous gap)
+   *
+   * @return the computed gap for the current iteration
+   */
+  public double computeGap(){
+    return computeGap(true);
+  }
 
   /**
    * Returns the last computed gap
@@ -97,8 +112,33 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
   public abstract double getGap();
 
   /**
-   * Reset the gap function
+   * Returns the last computed gap capped to given value
+   *
+   * @param truncateTo value to truncate to if gap exceeds this value
+   * @return latest gap truncated
    */
+  public double getGap(double truncateTo){
+    return Math.min(truncateTo, getGap());
+  }
+
+  /**
+   * Returns the previous computed gap
+   *
+   * @return previous gap
+   */
+  public abstract double getPreviousGap();
+
+  /**
+   * Reset the gap function's internal state. This should not reset
+   * the gap/previous itself as this might be required in subsequent iterations
+   */
+  public abstract void resetIteration();
+
+  /**
+   * Reset the gap function's internal state. This will also reset
+   * the gap/previous gap itself so should be used with caution
+   */
+  @Override
   public abstract void reset();
 
   /**

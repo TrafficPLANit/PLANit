@@ -3,9 +3,18 @@ package org.goplanit.output.property;
 import org.goplanit.output.enums.DataType;
 import org.goplanit.utils.unit.Unit;
 
+/**
+ * Output property for Maximum Speed.
+ */
 public final class MaximumSpeedOutputProperty extends OutputProperty {
 
+
+  /** Maximum Speed. */
   public static final String NAME = "Maximum Speed";
+  /**
+   * Public no-arg constructor required for reflective instantiation.
+   */
+  public MaximumSpeedOutputProperty(){}
 
   /**
    * {@inheritDoc}

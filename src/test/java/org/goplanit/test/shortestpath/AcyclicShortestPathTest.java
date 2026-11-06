@@ -6,10 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -17,7 +14,7 @@ import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.network.transport.TransportModelNetworkImpl;
 import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
@@ -29,9 +26,12 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.utils.network.virtual.VirtualNetworkUtils;
+import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.zoning.Centroid;
+import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
 
@@ -53,7 +53,7 @@ public class AcyclicShortestPathTest {
   /** the logger */
   private static Logger LOGGER = null;
 
-  private TransportModelNetwork transportNetwork;
+  private TransportModelNetworkImpl transportNetwork;
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
   private Zoning zoning;
@@ -65,7 +65,7 @@ public class AcyclicShortestPathTest {
   private Centroid centroidA;
   private Centroid centroidB;
 
-  private ManagedDirectedPathFactory pathFactory;
+  private ManagedDirectedPathFactory<ManagedDirectedPath> pathFactory;
 
   @BeforeAll
   public static void setUp() throws Exception {
@@ -82,7 +82,7 @@ public class AcyclicShortestPathTest {
   //@formatter:off
   @BeforeEach
   public void intialise() {
-    // construct the network. The is the same network as in shortest path algorithm integration tests
+    // construct the network. This is the same network as in shortest path algorithm integration tests
     //
     //
     //
@@ -124,8 +124,8 @@ public class AcyclicShortestPathTest {
       //horizontal links
       for(int linkRowIndex = 0;linkRowIndex<=gridSize;++linkRowIndex) {
         for(int linkColIndex = 1;linkColIndex<=gridSize;++linkColIndex) {
-          Node nodeA = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex-1);
-          Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex);
+          Node nodeA = networkLayer.getNodes().get((long) linkRowIndex*(gridSize+1) + linkColIndex-1);
+          Node nodeB = networkLayer.getNodes().get((long) linkRowIndex*(gridSize+1) + linkColIndex);
           // all links are 1 km in length and move from left to right         
           MacroscopicLink link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
@@ -136,8 +136,8 @@ public class AcyclicShortestPathTest {
       for(int linkRowIndex = 1;linkRowIndex<=gridSize;++linkRowIndex) {
         for(int linkColIndex = 0;linkColIndex<=gridSize;++linkColIndex) {
           // all links are 1 km in length
-          Node nodeA = networkLayer.getNodes().get((linkRowIndex-1)*(gridSize+1)+linkColIndex);
-          Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1)+linkColIndex);
+          Node nodeA = networkLayer.getNodes().get((long) (linkRowIndex-1)*(gridSize+1)+linkColIndex);
+          Node nodeB = networkLayer.getNodes().get((long) linkRowIndex*(gridSize+1)+linkColIndex);
           MacroscopicLink link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
         }  
@@ -154,12 +154,22 @@ public class AcyclicShortestPathTest {
       centroidB = zoneB.getCentroid();
       centroidB.setPosition(geoFactory.createPoint(new Coordinate(2*1000, 2*1000)));      
       
-      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(0), zoneA, 0);
-      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(8), zoneB, 0);      
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zoneA, networkLayer.getNodes().get(0));
+      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zoneB, networkLayer.getNodes().get(8));
       
-      transportNetwork = new TransportModelNetwork(network, zoning);
-      transportNetwork.integrateTransportNetworkViaConnectoids();
-      var zone2VertexMapping = transportNetwork.createZoneToCentroidVertexMapping(true, false);
+      transportNetwork = new TransportModelNetworkImpl(network, zoning);
+      transportNetwork.integrateTransportNetworkViaConnectoids(false);
+
+      boolean considerOds = true;
+      boolean considerTransfers = false;
+      boolean sourceVertices = true;
+      Map<OdZone, CentroidVertex> zone2SourceVertexMapping =
+          (Map<OdZone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+              transportNetwork.getVirtualNetwork().getLayer(), sourceVertices, considerOds, considerTransfers);
+      sourceVertices = false;
+      Map<OdZone, CentroidVertex> zone2SinkVertexMapping =
+              (Map<OdZone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+                      transportNetwork.getVirtualNetwork().getLayer(), sourceVertices, considerOds, considerTransfers);
           
       // costs
       linkSegmentCosts = new double[]
@@ -174,13 +184,16 @@ public class AcyclicShortestPathTest {
             
           };
       
-      assertEquals(networkLayer.getLinkSegments().size()+zoning.getVirtualNetwork().getConnectoidSegments().size(), transportNetwork.getNumberOfEdgeSegmentsAllLayers());
+      assertEquals(
+          networkLayer.getLinkSegments().size() + zoning.getVirtualNetwork().getLayer().getConnectoidSegments().size(),
+          transportNetwork.getNumberOfEdgeSegmentsAllLayers());
       
       // SUBGRAPH -> containing all link segments except the connectoids in the wrong direction      
       long totalEdgeSegments = transportNetwork.getNumberOfEdgeSegmentsAllLayers();
-      var zoneACentroidVertex = zone2VertexMapping.get(zoneA);
-      var zoneBCentroidVertex = zone2VertexMapping.get(zoneB);
-      acyclicSubGraph = new ACyclicSubGraphImpl(network.getNetworkGroupingTokenId(), zoneACentroidVertex, false, (int) totalEdgeSegments);
+      var zoneACentroidVertex = zone2SourceVertexMapping.get(zoneA);
+      var zoneBCentroidVertex = zone2SinkVertexMapping.get(zoneB);
+      acyclicSubGraph = new ACyclicSubGraphImpl(
+              network.getNetworkGroupingTokenId(), zoneACentroidVertex, false, (int) totalEdgeSegments);
 
       /* add all physical link segments */
       acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(0).getEdgeSegment(networkLayer.getNodes().get(1)));
@@ -223,33 +236,33 @@ public class AcyclicShortestPathTest {
 
         // vertex 0 should occur before 1,3
         if (vertex.getId() == 1 || vertex.getId() == 3) {
-          assertTrue(processed.contains(0l));
+          assertTrue(processed.contains(0L));
         }
 
         // vertex 1 should occur before 2,5
         if (vertex.getId() == 2 || vertex.getId() == 5) {
-          assertTrue(processed.contains(1l));
+          assertTrue(processed.contains(1L));
         }
 
         // vertex 3 should occur before 4,6
         if (vertex.getId() == 4 || vertex.getId() == 6) {
-          assertTrue(processed.contains(3l));
+          assertTrue(processed.contains(3L));
         }
 
         // vertex 4 should occur before 5,7
         if (vertex.getId() == 5 || vertex.getId() == 7) {
-          assertTrue(processed.contains(4l));
+          assertTrue(processed.contains(4L));
         }
 
         // vertex 6 should occur before 7
         if (vertex.getId() == 7) {
-          assertTrue(processed.contains(6l));
+          assertTrue(processed.contains(6L));
         }
 
         // vertex 5 and 7 should occur before 8
         if (vertex.getId() == 8) {
-          assertTrue(processed.contains(5l));
-          assertTrue(processed.contains(7l));
+          assertTrue(processed.contains(5L));
+          assertTrue(processed.contains(7L));
         }
 
         processed.add(vertex.getId());
@@ -257,8 +270,10 @@ public class AcyclicShortestPathTest {
 
       // now add a link segment connecting 8 back to 0 (cycle), this should cause the topological
       // sorting to fail
-      MacroscopicLink link = networkLayer.getLinks().getFactory().registerNew(networkLayer.getNodes().get(8), networkLayer.getNodes().get(0), 1, true);
-      MacroscopicLinkSegment cyclicSegment = networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
+      MacroscopicLink link = networkLayer.getLinks().getFactory().registerNew(
+              networkLayer.getNodes().get(8), networkLayer.getNodes().get(0), 1, true);
+      MacroscopicLinkSegment cyclicSegment = networkLayer.getLinkSegments().getFactory().registerNew(
+              link, true, true);
       acyclicSubGraph.addEdgeSegment(cyclicSegment);
 
       topologicalOrder = acyclicSubGraph.topologicalSort(true /*update*/);
@@ -275,33 +290,33 @@ public class AcyclicShortestPathTest {
 
         // vertex 0 should occur before 1,3
         if (vertex.getId() == 1 || vertex.getId() == 3) {
-          assertTrue(processed.contains(0l));
+          assertTrue(processed.contains(0L));
         }
 
         // vertex 1 should occur before 2,5
         if (vertex.getId() == 2 || vertex.getId() == 5) {
-          assertTrue(processed.contains(1l));
+          assertTrue(processed.contains(1L));
         }
 
         // vertex 3 should occur before 4,6
         if (vertex.getId() == 4 || vertex.getId() == 6) {
-          assertTrue(processed.contains(3l));
+          assertTrue(processed.contains(3L));
         }
 
         // vertex 4 should occur before 5,7
         if (vertex.getId() == 5 || vertex.getId() == 7) {
-          assertTrue(processed.contains(4l));
+          assertTrue(processed.contains(4L));
         }
 
         // vertex 6 should occur before 7
         if (vertex.getId() == 7) {
-          assertTrue(processed.contains(6l));
+          assertTrue(processed.contains(6L));
         }
 
         // vertex 5 and 7 should occur before 8
         if (vertex.getId() == 8) {
-          assertTrue(processed.contains(5l));
-          assertTrue(processed.contains(7l));
+          assertTrue(processed.contains(5L));
+          assertTrue(processed.contains(7L));
         }
 
         processed.add(vertex.getId());
@@ -319,16 +334,27 @@ public class AcyclicShortestPathTest {
   public void minMaxPathTest() {
     try {
 
-      var zone2VertexMapping = transportNetwork.createZoneToCentroidVertexMapping(true, false);
-      var zoneACentroidVertex = zone2VertexMapping.get(centroidA.getParentZone());
-      var zoneBCentroidVertex = zone2VertexMapping.get(centroidB.getParentZone());
+      boolean considerOds = true;
+      boolean considerTransfers = false;
+      boolean sourceVertices = true;
+      Map<OdZone, CentroidVertex> zone2SourceVertexMapping =
+              (Map<OdZone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+                      transportNetwork.getVirtualNetwork().getLayer(), sourceVertices, considerOds, considerTransfers);
+      sourceVertices = false;
+      Map<OdZone, CentroidVertex> zone2SinkVertexMapping =
+              (Map<OdZone, CentroidVertex>) VirtualNetworkUtils.createZoneToCentroidVertexMapping(
+                      transportNetwork.getVirtualNetwork().getLayer(), sourceVertices, considerOds, considerTransfers);
 
-      var minMaxPathAlgo = new ShortestPathAcyclicMinMaxGeneralised(acyclicSubGraph, true /*update sort*/, linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
+      var zoneACentroidVertex = zone2SourceVertexMapping.get(centroidA.getParentZone());
+      var zoneBCentroidVertex = zone2SinkVertexMapping.get(centroidB.getParentZone());
+
+      var minMaxPathAlgo = new ShortestPathAcyclicMinMaxGeneralised(
+          acyclicSubGraph, true /*update sort*/, linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
       var minMaxResult = minMaxPathAlgo.executeOneToAll(zoneACentroidVertex);
       
       // MIN PATH RESULT
       minMaxResult.setMinPathState(true);
-      assertEquals(minMaxResult.getCostOf(zoneBCentroidVertex),20.0, Precision.EPSILON_6);
+      assertEquals(minMaxResult.getCostToReach(zoneBCentroidVertex),20.0, Precision.EPSILON_6);
       ManagedDirectedPath minPath = minMaxResult.createPath(pathFactory, zoneACentroidVertex, zoneBCentroidVertex);
       
       MacroscopicLinkSegments segments = networkLayer.getLinkSegments();
@@ -337,7 +363,7 @@ public class AcyclicShortestPathTest {
       // MAX PATH RESULT
       minMaxResult.setMinPathState(false);
       
-      assertEquals(24.0, minMaxResult.getCostOf(zoneBCentroidVertex), Precision.EPSILON_6);
+      assertEquals(24.0, minMaxResult.getCostToReach(zoneBCentroidVertex), Precision.EPSILON_6);
       ManagedDirectedPath maxPath = minMaxResult.createPath(pathFactory, zoneACentroidVertex, zoneBCentroidVertex);
       
       assertTrue(maxPath.containsSubPath(List.of(segments.get(6),segments.get(9), segments.get(4), segments.get(5))));      

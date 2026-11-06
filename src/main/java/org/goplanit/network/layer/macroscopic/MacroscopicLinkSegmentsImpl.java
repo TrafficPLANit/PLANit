@@ -2,12 +2,15 @@ package org.goplanit.network.layer.macroscopic;
 
 import org.goplanit.mode.ModesImpl;
 import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentFactory;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.physical.Node;
 
 import java.util.function.BiConsumer;
 
@@ -18,7 +21,8 @@ import java.util.function.BiConsumer;
  * @author markr
  *
  */
-public class MacroscopicLinkSegmentsImpl extends ManagedGraphEntitiesImpl<MacroscopicLinkSegment> implements MacroscopicLinkSegments {
+public class MacroscopicLinkSegmentsImpl extends ManagedGraphEntitiesImpl<MacroscopicLinkSegment>
+    implements MacroscopicLinkSegments {
 
   /** factory to use */
   private final MacroscopicLinkSegmentFactory linkSegmentFactory;
@@ -51,10 +55,14 @@ public class MacroscopicLinkSegmentsImpl extends ManagedGraphEntitiesImpl<Macros
    * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    * @param mapper to apply in case of deep copy to each original to copy combination (when provided, may be null)
    */
-  public MacroscopicLinkSegmentsImpl(MacroscopicLinkSegmentsImpl other, boolean deepCopy, BiConsumer<MacroscopicLinkSegment,MacroscopicLinkSegment> mapper) {
+  public MacroscopicLinkSegmentsImpl(
+      MacroscopicLinkSegmentsImpl other,
+      boolean deepCopy,
+      BiConsumer<MacroscopicLinkSegment,MacroscopicLinkSegment> mapper) {
     super(other, deepCopy, mapper);
     this.linkSegmentFactory =
-            new MacroscopicLinkSegmentFactoryImpl(other.linkSegmentFactory.getIdGroupingToken(), this);
+            new MacroscopicLinkSegmentFactoryImpl(
+                other.linkSegmentFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -63,6 +71,19 @@ public class MacroscopicLinkSegmentsImpl extends ManagedGraphEntitiesImpl<Macros
   @Override
   public MacroscopicLinkSegmentFactory getFactory() {
     return linkSegmentFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   * todo: this method should ideally exist in a linkSegments container class rather than this more specific one
+   */
+  @Override
+  public void recreateIds(boolean resetManagedIdClass) {
+    /* always reset the additional link segment id class */
+    IdGenerator.reset(getFactory().getIdGroupingToken(), LinkSegment.LINK_SEGMENT_ID_CLASS);
+
+    super.recreateIds(resetManagedIdClass);
   }
 
   /**
@@ -85,7 +106,8 @@ public class MacroscopicLinkSegmentsImpl extends ManagedGraphEntitiesImpl<Macros
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentsImpl deepCloneWithMapping(BiConsumer<MacroscopicLinkSegment,MacroscopicLinkSegment> mapper) {
+  public MacroscopicLinkSegmentsImpl deepCloneWithMapping(
+      BiConsumer<MacroscopicLinkSegment,MacroscopicLinkSegment> mapper) {
     return new MacroscopicLinkSegmentsImpl(this, true, mapper);
   }
 

@@ -1,7 +1,6 @@
 package org.goplanit.demands;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -9,23 +8,26 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
-import org.goplanit.demands.modifier.DemandsModifier;
-import org.goplanit.od.demand.OdDemands;
+import org.goplanit.zoning.zonetozone.OdDemands;
 import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
+import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Container class for all demands registered on the project. In PlanIt we assume that all traffic flows between an origin and destination. Hence all demand for a given time period
- * and mode is provided between an origin and destination via ODDemand.
- *
- * Further, unlike other components, we let anyone register OdDemand compatible instances on this class to provide maximum flexibility in the underlying container since depending
- * on the od data different containers might be preferred for optimizing memory usage. Also not all OdDemand instances on the same Demands instance might utilize the same data
- * structure, hence the need to avoid a general approach across all entries within a Demands instance
+ * Container class for all demands registered on the project. In PlanIt we assume that all traffic flows between an
+ * origin and destination. Hence, all demand for a given time period and mode is provided between an origin and
+ * destination via ODDemand.
+ * <p>
+ * Further, unlike other components, we let anyone register OdDemand compatible instances on this class to provide
+ * maximum flexibility in the underlying container since depending on the od data different containers might be
+ * preferred for optimizing memory usage. Also not all OdDemand instances on the same Demands instance might utilize
+ * the same data structure, hence the need to avoid a general approach across all entries within a Demands instance
+ * </p>
  *
  * @author markr
  *
@@ -74,7 +76,7 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     this.travelerTypes = new TravellerTypes(groupId);
     this.userClasses = new UserClasses(groupId);
     this.timePeriods = new TimePeriods(groupId);
-    odDemandsByTimePeriodAndMode = new TreeMap<Long, TreeMap<Mode, OdDemands>>();
+    odDemandsByTimePeriodAndMode = new TreeMap<>();
     demandModifier = new DemandsModifier(this);
   }
 
@@ -97,7 +99,7 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
       this.userClasses  = other.userClasses.deepCloneWithMapping(userClassesMapper);
       this.timePeriods = other.timePeriods.deepCloneWithMapping(timePeriodMapper);
 
-      updateUserClassTravellerTypes(t -> travellerTypesMapper.getMapping(t), true);
+      updateUserClassTravellerTypes(travellerTypesMapper::getMapping, true);
 
       /* OD DEMANDS */
       for (var timePeriod : timePeriods) {
@@ -128,10 +130,13 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
 
   /**
    * Update the traveller type of all user classes based on the mapping provided (if any)
-   * @param ttToTtMapping to use should contain original travellerType as currently used on user class and then the value is the new traveller type to replace it
-   * @param removeMissingMappings when true if there is no mapping, the traveller type is nullified, otherwise they are left in-tact
+   * @param ttToTtMapping to use should contain original travellerType as currently used on user class and then
+   *                      the value is the new traveller type to replace it
+   * @param removeMissingMappings when true if there is no mapping, the traveller type is nullified, otherwise they are
+   *                              left in-tact
    */
-  public void updateUserClassTravellerTypes(Function<TravellerType,TravellerType> ttToTtMapping, boolean removeMissingMappings) {
+  public void updateUserClassTravellerTypes(
+          Function<TravellerType,TravellerType> ttToTtMapping, boolean removeMissingMappings) {
     for(var userClass : this.userClasses){
       var travellerType = userClass.getTravelerType();
       var newTravellerType = ttToTtMapping.apply(travellerType);
@@ -147,11 +152,13 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    * @param timePeriod       the time period for this origin-demand object
    * @param mode             the mode for this origin-demand object
    * @param odDemandsPcuHour the origin-demand object to be registered in pcu/hour
-   * @return oldOdDemand if there already existed an odDemand for the given mode and time period, the overwritten entry is returned
+   * @return oldOdDemand if there already existed an odDemand for the given mode and time period, the overwritten
+   * entry is returned
    */
-  public OdDemands registerOdDemandPcuHour(final TimePeriod timePeriod, final Mode mode, final OdDemands odDemandsPcuHour) {
+  public OdDemands registerOdDemandPcuHour(
+          final TimePeriod timePeriod, final Mode mode, final OdDemands odDemandsPcuHour) {
     if (!odDemandsByTimePeriodAndMode.containsKey(timePeriod.getId())) {
-      odDemandsByTimePeriodAndMode.put(timePeriod.getId(), new TreeMap<Mode, OdDemands>());
+      odDemandsByTimePeriodAndMode.put(timePeriod.getId(), new TreeMap<>());
     }
     return odDemandsByTimePeriodAndMode.get(timePeriod.getId()).put(mode, odDemandsPcuHour);
   }
@@ -165,11 +172,28 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    */
 
   public OdDemands get(final Mode mode, final TimePeriod timePeriod) {
-    if (odDemandsByTimePeriodAndMode.containsKey(timePeriod.getId()) && odDemandsByTimePeriodAndMode.get(timePeriod.getId()).containsKey(mode)) {
+    if (odDemandsByTimePeriodAndMode.containsKey(timePeriod.getId()) &&
+            odDemandsByTimePeriodAndMode.get(timePeriod.getId()).containsKey(mode)) {
       return odDemandsByTimePeriodAndMode.get(timePeriod.getId()).get(mode);
     } else {
       return null;
     }
+  }
+
+  /**
+   * Find first entry if it exists and return it
+   *
+   * @return first entry found
+   */
+  public OdDemands getFirst() {
+    if(odDemandsByTimePeriodAndMode==null || CollectionUtils.nullOrEmpty(odDemandsByTimePeriodAndMode.values())){
+      return null;
+    }
+    var firstEntryValue = odDemandsByTimePeriodAndMode.firstEntry().getValue();
+    if(firstEntryValue==null || CollectionUtils.nullOrEmpty(firstEntryValue.values())){
+      return null;
+    }
+    return firstEntryValue.firstEntry().getValue();
   }
 
   /**
@@ -212,9 +236,9 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     LOGGER.info(String.format("%s#user classes: %d", prefix, userClasses.size()));
     LOGGER.info(String.format("%s#traveller types: %d", prefix, travelerTypes.size()));
 
-    odDemandsByTimePeriodAndMode.entrySet().forEach(
-            tpEntry -> LOGGER.info(String.format(
-                    "%s#Oddemands by mode for time period %s: %d", prefix, timePeriods.get(tpEntry.getKey()).getDescription(), tpEntry.getValue().entrySet().size())));
+    odDemandsByTimePeriodAndMode.forEach((key, value) -> LOGGER.info(String.format(
+        "%s#Oddemands by mode for time period %s: %d", prefix,
+        timePeriods.get(key).getDescription(), value.size())));
   }
 
   /**

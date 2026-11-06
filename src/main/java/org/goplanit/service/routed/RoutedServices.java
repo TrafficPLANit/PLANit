@@ -15,17 +15,21 @@ import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.utils.service.routed.RoutedServicesLayers;
 
 /**
- * Routed services are service that follow a predefined paths (route) on a service network layer that are offered as a service of some sort, i.e., it either follows a schedule or a
- * frequency. The most well known routed service would a public transport service, or alternatively scheduled freight movements between warehouses.
+ * Routed services are service that follow a predefined paths (route) on a service network layer that are offered as a
+ * service of some sort, i.e., it either follows a schedule or a frequency. The most well known routed service
+ * would a public transport service, or alternatively scheduled freight movements between warehouses.
  * <p>
- * Each routed service can have one or more trips based on a schedule. The trips follow a service path comprising of legs between predefined stopping points. In PLANit these points
- * are modelled as connectoids. Since connectoids are in turn connected to (transfer) zones, the combination of (travel) demand between zones and routed services allows for a
- * multi-modal trip chain using one or more routed services. This holds for people but potentially also for goods.
+ * Each routed service can have one or more trips based on a schedule. The trips follow a service path comprising
+ * legs between predefined stopping points. In PLANit these points are modelled as connectoids. Since connectoids
+ * are in turn connected to (transfer) zones, the combination of (travel) demand between zones and routed services
+ * allows for a multi-modal trip chain using one or more routed services. This holds for people but potentially
+ * also for goods.
  * <p>
- * Routed services rely on routes that exist within a single layer of a (service) network. Therefore any instance of routesServices resides within this layer rather than on the
- * network as a whole.
+ * Routed services rely on routes that exist within a single layer of a (service) network. Therefore,
+ * any instance of routesServices resides within this layer rather than on the network as a whole.
  * <p>
- * Routed services are a top-level input in PLANit and therefore extend TrafficAssignmentComponent such that they can be integrated into any input builder
+ * Routed services are a top-level input in PLANit and therefore extend TrafficAssignmentComponent such that they
+ * can be integrated into any input builder
  * 
  * @author markr
  *
@@ -66,7 +70,8 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedServices(final RoutedServices other, boolean deepCopy, BiConsumer<RoutedServicesLayer, RoutedServicesLayer> mapper) {
+  public RoutedServices(
+      final RoutedServices other, boolean deepCopy, BiConsumer<RoutedServicesLayer, RoutedServicesLayer> mapper) {
     super(other, deepCopy);
     this.parentServiceNetwork = other.parentServiceNetwork;
 
@@ -129,7 +134,9 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
    * @param prefix to apply
    * */
   public void logInfo(String prefix) {
-    LOGGER.info(String.format("%s XML id %s (external id: %s) has %d layers", prefix, getXmlId(), getExternalId(), getLayers().size()));
-    getLayers().forEach( layer -> layer.logInfo(prefix.concat(LoggingUtils.routedServiceLayerPrefix(layer.getId()))));
+    LOGGER.info(String.format("%s XML id %s (external id: %s) has %d layers",
+        prefix, getXmlId(), getExternalId(), getLayers().size()));
+    getLayers().forEach( layer ->
+        layer.logInfo(prefix.concat(LoggingUtils.routedServiceLayerPrefix(layer.getId()))));
   }
 }

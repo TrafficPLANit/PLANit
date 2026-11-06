@@ -42,7 +42,8 @@ public class TravellerTypes extends ManagedIdEntitiesImpl<TravellerType> impleme
   /**
    * Retrieve a TravelerType by its XML Id
    * <p>
-   * This method is not efficient, since it loops through all the registered traveler type in order to find the required entry.
+   * This method is not efficient, since it loops through all the registered traveler type in order to
+   * find the required entry.
    *
    * @param xmlId the XML Id of the specified traveler type
    * @return the retrieved traveler type, or null if no traveler type was found

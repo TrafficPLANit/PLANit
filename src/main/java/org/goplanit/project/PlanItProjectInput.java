@@ -30,7 +30,8 @@ import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Class that holds all the input traffic components for a PLANit project. The PLANit project holds an instance of this class and delegates all calls relating to inputs to this
+ * Class that holds all the input traffic components for a PLANit project. The PLANit project holds an instance of
+ * this class and delegates all calls relating to inputs to this
  * class.
  * 
  * @author markr
@@ -59,15 +60,16 @@ public class PlanItProjectInput {
     planitComponentFactories.add(new PlanitComponentFactory<InitialPhysicalCost>(InitialPhysicalCost.class));
 
     // due to nested generics, we supply class name rather than class
-    planitComponentFactories.add(new PlanitComponentFactory<Network>(Network.class.getCanonicalName()));
-    
-    planitComponentFactories.add(new PlanitComponentFactory<Zoning>(Zoning.class));
-    
-    planitComponentFactories.add(new PlanitComponentFactory<Demands>(Demands.class));        
-    
-    planitComponentFactories.add(new PlanitComponentFactory<RoutedServices>(RoutedServices.class));
-    
-    planitComponentFactories.add(new PlanitComponentFactory<FundamentalDiagramComponent>(FundamentalDiagramComponent.class));
+    planitComponentFactories.add(
+        new PlanitComponentFactory<Network>(Network.class.getCanonicalName()));
+    planitComponentFactories.add(
+        new PlanitComponentFactory<Zoning>(Zoning.class));
+    planitComponentFactories.add(
+        new PlanitComponentFactory<Demands>(Demands.class));
+    planitComponentFactories.add(
+        new PlanitComponentFactory<RoutedServices>(RoutedServices.class));
+    planitComponentFactories.add(
+        new PlanitComponentFactory<FundamentalDiagramComponent>(FundamentalDiagramComponent.class));
     
     /* register input builder as listener whenever an instance is created */
     planitComponentFactories.forEach( (factory) -> factory.addListener(inputBuilderListener));
@@ -83,13 +85,16 @@ public class PlanItProjectInput {
    * @throws PlanItException  when not available
    */
   @SuppressWarnings("unchecked")
-  private <T extends PlanitComponent<?>> PlanitComponentFactory<T> getComponentFactory(Class<T> clazz) throws PlanItException {
+  private <T extends PlanitComponent<?>> PlanitComponentFactory<T> getComponentFactory(Class<T> clazz)
+      throws PlanItException {
     return (PlanitComponentFactory<T>) planitComponentFactories.stream().filter(
-        factory -> factory.isFactoryForDerivedClassesOf(clazz)).findFirst().orElseThrow(() -> new PlanItException("component factory unavailable for %s", clazz.getCanonicalName()));
+        factory -> factory.isFactoryForDerivedClassesOf(clazz)).findFirst().orElseThrow(
+            () -> new PlanItException("component factory unavailable for %s", clazz.getCanonicalName()));
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file for all time periods (which are assumed are sorted by start time)
+   * Create and register initial link segment costs from a (single) file for all time periods (which are assumed
+   * are sorted by start time)
    *
    * @param network  network the InitialLinkSegmentCost object will be registered for
    * @param fileName location of file containing the initial link segment cost values
@@ -97,21 +102,29 @@ public class PlanItProjectInput {
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  protected InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(LayeredNetwork<?, ?> network, String fileName, final TimePeriod timePeriod) throws PlanItException {
-    PlanItException.throwIf(network == null, "Physical network must be read in before initial costs can be read");
+  protected InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(
+      LayeredNetwork<?, ?> network, String fileName, final TimePeriod timePeriod) throws PlanItException {
+    PlanItException.throwIf(network == null,
+        "Physical network must be read in before initial costs can be read");
 
     if (!initialLinkSegmentCosts.containsKey(network)) {
       initialLinkSegmentCosts.put(network, new ArrayList<>());
     }
         
-    /* note that the time period(s) are hidden in the eventual event (although available via additional content) as it is generally not useful
-     * to the handler who's task it is to populate the component based on the file, regardless to what period it is mapped */
+    /* note that the time period(s) are hidden in the eventual event (although available via additional content)
+    as it is generally not useful to the handler whose task it is to populate the component based on the file,
+     regardless to what period it is mapped */
     final InitialMacroscopicLinkSegmentCost initialLinkSegmentCost =
-        getComponentFactory(InitialPhysicalCost.class).create(
-            InitialMacroscopicLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId}, fileName, network, timePeriod);
+        getComponentFactory(InitialPhysicalCost.class).createAndDispatch(
+            InitialMacroscopicLinkSegmentCost.class.getCanonicalName(),
+            new Object[] { projectGroupId},
+            fileName,
+            network,
+            timePeriod);
     
     if(timePeriod!=null) {   
-      LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.timePeriodPrefix(timePeriod)+"populated initial link segment costs");
+      LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.timePeriodPrefix(timePeriod)+
+          "populated initial link segment costs");
     }else {
       LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populated initial link segment costs");      
     }
@@ -123,7 +136,8 @@ public class PlanItProjectInput {
   /**
    * Map to store all InitialLinkSegmentCost objects for each physical network
    */
-  protected final Map<LayeredNetwork<?,?>, List<InitialMacroscopicLinkSegmentCost>> initialLinkSegmentCosts = new HashMap<>();
+  protected final Map<LayeredNetwork<?,?>, List<InitialMacroscopicLinkSegmentCost>> initialLinkSegmentCosts =
+      new HashMap<>();
 
   // FACTORIES
   
@@ -169,7 +183,8 @@ public class PlanItProjectInput {
    * @param projectGroupId the id generator token
    * @param inputBuilderListener the input builder to parse inputs
    */
-  public PlanItProjectInput(long projectId, IdGroupingToken projectGroupId, InputBuilderListener inputBuilderListener) {
+  public PlanItProjectInput(
+      long projectId, IdGroupingToken projectGroupId, InputBuilderListener inputBuilderListener) {
     this.projectId = projectId;
     this.projectGroupId = projectGroupId;
 
@@ -183,9 +198,11 @@ public class PlanItProjectInput {
    * @return the generated network
    * @throws PlanItException thrown if there is an error
    */
-  public LayeredNetwork<?,?> createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
+  public LayeredNetwork<?,?> createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType)
+      throws PlanItException {
     LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populating network");
-    final Network theNetwork = getComponentFactory(Network.class).create(infrastructureNetworkType, new Object[] { projectGroupId });
+    final Network theNetwork = getComponentFactory(Network.class).createAndDispatch(
+        infrastructureNetworkType, new Object[] { projectGroupId });
     
     /* for now we only support infrastructure based networks even though class heirarchy is more generic */
     if(!(theNetwork instanceof LayeredNetwork)){
@@ -194,7 +211,8 @@ public class PlanItProjectInput {
     LayeredNetwork<?,?> infrastructureNetwork = (LayeredNetwork<?,?>) theNetwork;
 
     /* log info across layers */
-    String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.networkPrefix(infrastructureNetwork.getId());
+    String prefix = LoggingUtils.projectPrefix(
+        this.projectId)+LoggingUtils.networkPrefix(infrastructureNetwork.getId());
     LOGGER.info(String.format("%s#modes: %d", prefix, infrastructureNetwork.getModes().size()));
 
     infrastructureNetwork.logInfo(prefix);
@@ -211,11 +229,12 @@ public class PlanItProjectInput {
    * @throws PlanItException thrown if there is an error
    */
   public Zoning createAndRegisterZoning(final LayeredNetwork<?,?> infrastructureNetwork) throws PlanItException {
-    PlanItException.throwIf(infrastructureNetwork == null, "The physical network must be defined before definition of zones can begin");
+    PlanItException.throwIf(infrastructureNetwork == null,
+        "The physical network must be defined before definition of zones can begin");
 
     LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populating zoning");
     final Zoning zoning = 
-        getComponentFactory(Zoning.class).create(
+        getComponentFactory(Zoning.class).createAndDispatch(
             Zoning.class.getCanonicalName(), 
             new Object[] { projectGroupId, infrastructureNetwork.getNetworkGroupingTokenId() }, 
             infrastructureNetwork);
@@ -232,13 +251,16 @@ public class PlanItProjectInput {
    * @return            the generated demands object
    * @throws PlanItException thrown if there is an error
    */
-  public Demands createAndRegisterDemands(final Zoning zoning, final LayeredNetwork<?,?> network) throws PlanItException {
-    PlanItException.throwIf(zoning == null, "Zones must be defined before definition of demands can begin");
-    PlanItException.throwIf(network == null, "network must be defined before definition of demands can begin");
+  public Demands createAndRegisterDemands(final Zoning zoning, final LayeredNetwork<?,?> network)
+      throws PlanItException {
+    PlanItException.throwIf(zoning == null,
+        "Zones must be defined before definition of demands can begin");
+    PlanItException.throwIf(network == null,
+        "network must be defined before definition of demands can begin");
 
     LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populating demands");
     final Demands demands = 
-        getComponentFactory(Demands.class).create(
+        getComponentFactory(Demands.class).createAndDispatch(
             Demands.class.getCanonicalName(), new Object[] { projectGroupId }, zoning, network);  
 
     this.demands.register(demands);
@@ -253,11 +275,13 @@ public class PlanItProjectInput {
    * @throws PlanItException thrown if there is an error
    */
   public ServiceNetwork createAndRegisterServiceNetwork(final MacroscopicNetwork network) throws PlanItException {
-    PlanItException.throwIf(network == null, "Physical network must be defined before definition of service network can begin");
+    PlanItException.throwIf(network == null,
+        "Physical network must be defined before definition of service network can begin");
 
-    LOGGER.info(String.format("%spopulating service network with parent physical network %s", LoggingUtils.projectPrefix(this.projectId), network.getXmlId()));
+    LOGGER.info(String.format("%spopulating service network with parent physical network %s",
+        LoggingUtils.projectPrefix(this.projectId), network.getXmlId()));
     final Network theNetwork = 
-        getComponentFactory(Network.class).create(
+        getComponentFactory(Network.class).createAndDispatch(
             ServiceNetwork.class.getCanonicalName(), new Object[] { projectGroupId, network });
         
     /* for now we only support infrastructure based networks even though class heirarchy is more generic */
@@ -267,7 +291,8 @@ public class PlanItProjectInput {
     }
     ServiceNetwork serviceNetwork = (ServiceNetwork) theNetwork;
     
-    String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.serviceNetworkPrefix(serviceNetwork.getId());    
+    String prefix = LoggingUtils.projectPrefix(this.projectId)+
+        LoggingUtils.serviceNetworkPrefix(serviceNetwork.getId());
     if(serviceNetwork.getTransportLayers().isEmpty()) {
       LOGGER.warning(String.format("Created service network for parent network %s is empty",network.getXmlId()));
     }else {
@@ -292,14 +317,17 @@ public class PlanItProjectInput {
    * @throws PlanItException thrown if there is an error
    */
   public RoutedServices createAndRegisterRoutedServices(final ServiceNetwork serviceNetwork) throws PlanItException {
-    PlanItException.throwIf(serviceNetwork == null, "Parent service network must be defined before definition of routed services can begin");
+    PlanItException.throwIf(serviceNetwork == null,
+        "Parent service network must be defined before definition of routed services can begin");
 
-    LOGGER.info(String.format("%spopulating routed services with parent service network %s", LoggingUtils.projectPrefix(this.projectId), serviceNetwork.getXmlId()));
+    LOGGER.info(String.format("%spopulating routed services with parent service network %s",
+        LoggingUtils.projectPrefix(this.projectId), serviceNetwork.getXmlId()));
     final RoutedServices routedServices = 
-        getComponentFactory(RoutedServices.class).create(
+        getComponentFactory(RoutedServices.class).createAndDispatch(
             RoutedServices.class.getCanonicalName(), new Object[] { projectGroupId, serviceNetwork});  
     
-    String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.routedServicesPrefix(routedServices.getId());
+    String prefix = LoggingUtils.projectPrefix(this.projectId)+
+        LoggingUtils.routedServicesPrefix(routedServices.getId());
     for(RoutedServicesLayer layer : routedServices.getLayers()) {
       layer.logInfo(prefix);
     }
@@ -318,13 +346,16 @@ public class PlanItProjectInput {
    * @return od path sets that have been parsed
    * @throws PlanItException thrown if there is an error
    */
-  public OdPathSets createAndRegisterOdPathSets(final NetworkLayer networkLayer, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
-    PlanItException.throwIf(zoning == null, "Zones must be defined before definition of od path sets can proceed");
-    PlanItException.throwIf(networkLayer == null, "Physical network must be defined before of od path sets can proceed");
+  public OdPathSets createAndRegisterOdPathSets(
+      final NetworkLayer networkLayer, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
+    PlanItException.throwIf(zoning == null,
+        "Zones must be defined before definition of od path sets can proceed");
+    PlanItException.throwIf(networkLayer == null,
+        "Physical network must be defined before of od path sets can proceed");
 
     LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populating od path sets");
     final OdPathSets odPathSets = 
-        getComponentFactory(OdPathSets.class).create(
+        getComponentFactory(OdPathSets.class).createAndDispatch(
             OdPathSets.class.getCanonicalName(), new Object[] { projectGroupId }, odPathSetInputPath);
     
     String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.odPathSetsPrefix(odPathSets.getId());
@@ -335,15 +366,18 @@ public class PlanItProjectInput {
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file which we assume are available in the native XML/CSV output format as provided in this project. This initial
-   * cost is not specifically tied to a particular time period and can be used as a fallback cost in case more specific costs (for a specific time period) are not available. 
+   * Create and register initial link segment costs from a (single) file which we assume are available in the
+   * native XML/CSV output format as provided in this project. This initial cost is not specifically tied to a
+   * particular time period and can be used as a fallback cost in case more specific costs (for a specific time period)
+   * are not available.
    *
    * @param network  network the InitialLinkSegmentCost object will be registered for
    * @param fileName file containing the initial link segment cost values
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final LayeredNetwork<?,?> network, final String fileName) throws PlanItException {
+  public InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(
+      final LayeredNetwork<?,?> network, final String fileName) throws PlanItException {
     return createAndRegisterInitialLinkSegmentCost(network, fileName, (TimePeriod) null);
   }
 
