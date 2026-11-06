@@ -2,11 +2,9 @@ package org.goplanit.demands.discrete.jitter;
 
 import org.goplanit.demands.discrete.tour.ParticipantTour;
 import org.goplanit.demands.discrete.tour.Tour;
-import org.goplanit.utils.time.LocalTimeUtils;
 
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.IntStream;
 
 /**
@@ -42,24 +40,21 @@ final class ParticipantSlotBoundsInSharedTour {
    * @param anchorIndex index of the anchor's point
    * @param binStartSeconds start of the bin as seconds from the window start
    * @param windowStartTime start of the allowed window as a time of day
-   * @param minDurationTours tours given a minimum duration, may be null
-   * @param minDurationSeconds minimum duration given to them
+   * @param minTourDuration the minimum duration and the tours given it
    * @return the earliest time as seconds from the window start
    */
   private static long findAnchorLowerLimit(
       List<JitterPoint> points, int anchorIndex, long binStartSeconds, LocalTime windowStartTime,
-      Set<Tour> minDurationTours, int minDurationSeconds) {
+      MinTourDuration minTourDuration) {
     long lowerLimitSeconds = binStartSeconds;
     /* when the anchor is a tour's end, the point before it is that tour's last trip */
     if (anchorIndex > 0) {
-      lowerLimitSeconds = Math.max(lowerLimitSeconds,
-          LocalTimeUtils.secondsFromWrapAroundDayAnchor(windowStartTime, points.get(anchorIndex - 1).getTime()));
+      lowerLimitSeconds = Math.max(lowerLimitSeconds, points.get(anchorIndex - 1).getElapsedSeconds(windowStartTime));
     }
     var anchorPoint = points.get(anchorIndex);
     if (anchorPoint.isTourEndTime()) {
-      Long minDurationEndSeconds = SubBinDrawUtils.findMinDurationEndSeconds(
-          ((ParticipantTour) anchorPoint.getElement()).getTour(), minDurationTours, minDurationSeconds,
-          windowStartTime);
+      Long minDurationEndSeconds = minTourDuration.findEndSeconds(
+          ((ParticipantTour) anchorPoint.getElement()).getTour(), windowStartTime);
       if (minDurationEndSeconds != null) {
         lowerLimitSeconds = Math.max(lowerLimitSeconds, minDurationEndSeconds);
       }
@@ -90,7 +85,7 @@ final class ParticipantSlotBoundsInSharedTour {
   private Long movedAnchorSeconds;
 
   /**
-   * Constructor, slot bounds are found with {@link #find(List, List, long, long, LocalTime, Set, int)}
+   * Constructor, slot bounds are found with {@link #find(List, List, long, long, LocalTime, MinTourDuration)}
    */
   private ParticipantSlotBoundsInSharedTour() {
   }
@@ -108,13 +103,12 @@ final class ParticipantSlotBoundsInSharedTour {
    * @param binStartSeconds start of the bin as seconds from the window start
    * @param binEndSeconds end of the bin as seconds from the window start
    * @param windowStartTime start of the allowed window as a time of day
-   * @param minDurationTours tours given a minimum duration, may be null
-   * @param minDurationSeconds minimum duration given to them
+   * @param minTourDuration the minimum duration and the tours given it
    * @return the slot bounds, null when the tour's time points are not on the participant's schedule
    */
   public static ParticipantSlotBoundsInSharedTour find(
       List<JitterPoint> timePointsInBin, List<JitterPoint> points, long binStartSeconds, long binEndSeconds,
-      LocalTime windowStartTime, Set<Tour> minDurationTours, int minDurationSeconds) {
+      LocalTime windowStartTime, MinTourDuration minTourDuration) {
     int firstInBinIndex = IntStream.range(0, points.size())
         .filter(index -> points.get(index).isSameTimeAs(timePointsInBin.get(0))).findFirst().orElse(-1);
     if (firstInBinIndex < 0) {
@@ -130,7 +124,7 @@ final class ParticipantSlotBoundsInSharedTour {
       if (index >= firstInBinIndex && index < firstInBinIndex + timePointsInBin.size()) {
         continue;
       }
-      long seconds = LocalTimeUtils.secondsFromWrapAroundDayAnchor(windowStartTime, points.get(index).getTime());
+      long seconds = points.get(index).getElapsedSeconds(windowStartTime);
       if (seconds < binStartSeconds || seconds >= binEndSeconds) {
         continue;
       }
@@ -140,8 +134,8 @@ final class ParticipantSlotBoundsInSharedTour {
         if (seconds >= slot.anchorSeconds) {
           slot.anchorSeconds = seconds;
           slot.anchorPoint = points.get(index);
-          slot.anchorLowerLimitSeconds = findAnchorLowerLimit(
-              points, index, binStartSeconds, windowStartTime, minDurationTours, minDurationSeconds);
+          slot.anchorLowerLimitSeconds =
+              findAnchorLowerLimit(points, index, binStartSeconds, windowStartTime, minTourDuration);
         }
         slot.pointsBefore = 0;
       } else {
@@ -230,11 +224,11 @@ final class ParticipantSlotBoundsInSharedTour {
     if (movedAnchorSeconds == null) {
       return null;
     }
-    long currentSeconds = LocalTimeUtils.secondsFromWrapAroundDayAnchor(windowStartTime, anchorPoint.getTime());
+    long currentSeconds = anchorPoint.getElapsedSeconds(windowStartTime);
     if (movedAnchorSeconds >= currentSeconds) {
       return null;
     }
-    anchorPoint.setTime(LocalTimeUtils.ofSecondOfDayWrapped(windowStartTime.toSecondOfDay() + movedAnchorSeconds));
+    anchorPoint.setElapsedSeconds(movedAnchorSeconds, windowStartTime);
     return ((ParticipantTour) anchorPoint.getElement()).getTour();
   }
 }

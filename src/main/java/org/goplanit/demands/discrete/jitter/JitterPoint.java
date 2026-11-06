@@ -5,6 +5,7 @@ import org.goplanit.demands.discrete.tour.ParticipantTour;
 import org.goplanit.demands.discrete.tour.ScheduleElement;
 import org.goplanit.demands.discrete.trip.Trip;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.time.LocalTimeUtils;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -176,6 +177,27 @@ final class JitterPoint {
       throw new PlanItRunTimeException("Unsupported schedule element type (%s) encountered when applying jitter",
           element.getClass().getCanonicalName());
     }
+  }
+
+  /**
+   * The time of this point as seconds from the start of the allowed window, so a time past midnight in a window
+   * running past midnight counts as late, not early
+   *
+   * @param windowStartTime start of the allowed window as a time of day
+   * @return the time as seconds from the window start
+   */
+  public long getElapsedSeconds(LocalTime windowStartTime) {
+    return LocalTimeUtils.secondsFromWrapAroundDayAnchor(windowStartTime, getTime());
+  }
+
+  /**
+   * Set the time of this point, given as seconds from the start of the allowed window
+   *
+   * @param elapsedSeconds the time as seconds from the window start
+   * @param windowStartTime start of the allowed window as a time of day
+   */
+  public void setElapsedSeconds(long elapsedSeconds, LocalTime windowStartTime) {
+    setTime(LocalTimeUtils.ofSecondOfDayWrapped(windowStartTime.toSecondOfDay() + elapsedSeconds));
   }
 
   /**

@@ -7,7 +7,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Used only by the shared tour draw, see {@link SharedTourJitterUtils}: finds, bin by bin, the draw range of a shared
@@ -28,11 +27,8 @@ final class SharedTourDrawRanges {
   /** start of the allowed window as a time of day */
   private final LocalTime windowStartTime;
 
-  /** tours given a minimum duration, may be null */
-  private final Set<Tour> minDurationTours;
-
-  /** minimum duration given to them */
-  private final int minDurationSeconds;
+  /** the minimum duration and the tours given it */
+  private final MinTourDuration minTourDuration;
 
   /** to record the tours whose end moved and the tours kept in order at one time */
   private final SharedTourRoomAdjustments roomAdjustments;
@@ -42,17 +38,15 @@ final class SharedTourDrawRanges {
    *
    * @param tour the shared tour being drawn
    * @param windowStartTime start of the allowed window as a time of day
-   * @param minDurationTours tours given a minimum duration, may be null
-   * @param minDurationSeconds minimum duration given to them
+   * @param minTourDuration the minimum duration and the tours given it
    * @param roomAdjustments to record the tours whose end moved and the tours kept in order at one time
    */
   public SharedTourDrawRanges(
-      Tour tour, LocalTime windowStartTime, Set<Tour> minDurationTours, int minDurationSeconds,
+      Tour tour, LocalTime windowStartTime, MinTourDuration minTourDuration,
       SharedTourRoomAdjustments roomAdjustments) {
     this.tour = tour;
     this.windowStartTime = windowStartTime;
-    this.minDurationTours = minDurationTours;
-    this.minDurationSeconds = minDurationSeconds;
+    this.minTourDuration = minTourDuration;
     this.roomAdjustments = roomAdjustments;
     this.participantsPoints = new ArrayList<>(tour.getParticipantTours().size());
     for (var participation : tour.getParticipantTours()) {
@@ -67,8 +61,8 @@ final class SharedTourDrawRanges {
 
   /**
    * Find the draw range of the tour's time points in a bin, from the slot each participant leaves them, see
-   * {@link ParticipantSlotBoundsInSharedTour#find(List, List, long, long, LocalTime, Set, int)}. The draw range runs
-   * from the latest of the participants' starts to the earliest of their ends.
+   * {@link ParticipantSlotBoundsInSharedTour#find(List, List, long, long, LocalTime, MinTourDuration)}. The draw
+   * range runs from the latest of the participants' starts to the earliest of their ends.
    * <p>
    * When the participants' needs conflict there is no such range. The participant starting latest then moves the end
    * of their earlier shared tour at their anchor earlier, see
@@ -86,8 +80,8 @@ final class SharedTourDrawRanges {
   public Pair<Double, Double> findInBin(List<JitterPoint> timePointsInBin, long binStartSeconds, long binEndSeconds) {
     var slots = new ArrayList<ParticipantSlotBoundsInSharedTour>(participantsPoints.size());
     for (var points : participantsPoints) {
-      var slot = ParticipantSlotBoundsInSharedTour.find(timePointsInBin, points, binStartSeconds, binEndSeconds,
-          windowStartTime, minDurationTours, minDurationSeconds);
+      var slot = ParticipantSlotBoundsInSharedTour.find(
+          timePointsInBin, points, binStartSeconds, binEndSeconds, windowStartTime, minTourDuration);
       if (slot != null) {
         slots.add(slot);
       }

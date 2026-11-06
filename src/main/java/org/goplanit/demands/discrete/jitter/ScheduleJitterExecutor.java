@@ -71,6 +71,49 @@ public class ScheduleJitterExecutor {
   private static final Logger LOGGER = Logger.getLogger(ScheduleJitterExecutor.class.getCanonicalName());
 
   /**
+   * Spread a person's schedule within the time bins it occupies, see
+   * {@link #applySubBinJitter(Person, int, int, int, Set, int)}
+   *
+   * @param person the person whose schedule to jitter
+   * @param spreadWidthSeconds width to spread the time points in a bin over
+   * @param minAllowedTimeSeconds the lower boundary in seconds
+   * @param maxAllowedTimeSeconds the upper boundary in seconds
+   * @param minTourDuration the minimum duration and the tours to give it
+   * @return true when the resulting schedule is in chronological order, false when it could not be made so
+   */
+  private static boolean applySubBinJitter(
+      Person person, int spreadWidthSeconds, int minAllowedTimeSeconds, int maxAllowedTimeSeconds,
+      MinTourDuration minTourDuration) {
+
+    if (spreadWidthSeconds <= 0 || person == null || person.getSchedule() == null
+        || person.getSchedule().isEmpty()) {
+      return true;
+    }
+
+    var schedule = person.getSchedule();
+    var jitterPoints = new ArrayList<JitterPoint>(schedule.sizeUnrolled(false) + 1);
+    JitterPoint.collect(schedule, jitterPoints, false);
+    if (jitterPoints.isEmpty()) {
+      return true;
+    }
+
+    final var windowStartTime = LocalTimeUtils.ofSecondOfDayWrapped(minAllowedTimeSeconds);
+    final long windowDurationSeconds = maxAllowedTimeSeconds - minAllowedTimeSeconds;
+    var rng = new SplittableRandom(PersonUtils.generatePersonSeed(person));
+
+    SubBinDrawUtils.drawSubBins(jitterPoints, spreadWidthSeconds, windowStartTime, windowDurationSeconds, rng,
+        null /* a person's own points, drawn over the whole bin */);
+    SubBinDrawUtils.enforceNonDecreasingOrder(jitterPoints, windowStartTime);
+
+    // tour starts are not drawn, they follow the first trip that has now been placed
+    schedule.syncTourStartTimesToFirstElement();
+
+    SubBinDrawUtils.enforceMinTourDuration(jitterPoints, minTourDuration, windowStartTime, windowDurationSeconds);
+
+    return SubBinDrawUtils.isNonDecreasing(jitterPoints, windowStartTime);
+  }
+
+  /**
    * Spread the schedules of the provided persons within the time bins they occupy. Tours shared by several
    * participants are drawn first, once each and in the order they take place, as the class documentation explains.
    * Then each person is drawn, see {@link #applySubBinJitter(Person, int, int, int, Set, int)}. Drawing a shared tour
@@ -97,10 +140,11 @@ public class ScheduleJitterExecutor {
     }
 
     final var windowStartTime = LocalTimeUtils.ofSecondOfDayWrapped(minAllowedTimeSeconds);
+    var minTourDuration = new MinTourDuration(minDurationTours, minDurationSeconds);
     var roomAdjustments = new SharedTourRoomAdjustments();
     SharedTourJitterUtils.collectSharedToursInOrder(tours, persons, windowStartTime).forEach(
         tour -> SharedTourJitterUtils.applySharedTourSubBinJitter(tour, spreadWidthSeconds, minAllowedTimeSeconds,
-            maxAllowedTimeSeconds, minDurationTours, minDurationSeconds, roomAdjustments));
+            maxAllowedTimeSeconds, minTourDuration, roomAdjustments));
     roomAdjustments.log();
 
     var nonChronologicalPersons = new ArrayList<Person>();
@@ -110,8 +154,7 @@ public class ScheduleJitterExecutor {
           spreadWidthSeconds,
           minAllowedTimeSeconds,
           maxAllowedTimeSeconds,
-          minDurationTours,
-          minDurationSeconds)) {
+          minTourDuration)) {
         nonChronologicalPersons.add(person);
       }
     });
@@ -144,35 +187,8 @@ public class ScheduleJitterExecutor {
   public static boolean applySubBinJitter(
       Person person, int spreadWidthSeconds, int minAllowedTimeSeconds, int maxAllowedTimeSeconds,
       Set<Tour> minDurationTours, int minDurationSeconds) {
-
-    if (spreadWidthSeconds <= 0 || person == null || person.getSchedule() == null
-        || person.getSchedule().isEmpty()) {
-      return true;
-    }
-
-    var schedule = person.getSchedule();
-    var jitterPoints = new ArrayList<JitterPoint>(schedule.sizeUnrolled(false) + 1);
-    JitterPoint.collect(schedule, jitterPoints, false);
-    if (jitterPoints.isEmpty()) {
-      return true;
-    }
-
-    final var windowStartTime = LocalTimeUtils.ofSecondOfDayWrapped(minAllowedTimeSeconds);
-    final long windowDurationSeconds = maxAllowedTimeSeconds - minAllowedTimeSeconds;
-    var rng = new SplittableRandom(PersonUtils.generatePersonSeed(person));
-
-    SubBinDrawUtils.drawSubBins(jitterPoints, spreadWidthSeconds, windowStartTime, windowDurationSeconds, rng,
-        null /* a person's own points, drawn over the whole bin */);
-    SubBinDrawUtils.enforceNonDecreasingOrder(jitterPoints, minAllowedTimeSeconds, windowStartTime);
-
-    // tour starts are not drawn, they follow the first trip that has now been placed
-    schedule.syncTourStartTimesToFirstElement();
-
-    SubBinDrawUtils.enforceMinTourDuration(
-        jitterPoints, minDurationTours, minDurationSeconds, minAllowedTimeSeconds, windowStartTime,
-        windowDurationSeconds);
-
-    return SubBinDrawUtils.isNonDecreasing(jitterPoints, windowStartTime);
+    return applySubBinJitter(person, spreadWidthSeconds, minAllowedTimeSeconds, maxAllowedTimeSeconds,
+        new MinTourDuration(minDurationTours, minDurationSeconds));
   }
 
   /**

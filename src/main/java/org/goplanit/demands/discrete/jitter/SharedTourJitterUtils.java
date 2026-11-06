@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.Set;
 import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
@@ -116,13 +115,12 @@ final class SharedTourJitterUtils {
    * @param spreadWidthSeconds width to spread the time points in a bin over
    * @param minAllowedTimeSeconds the lower boundary in seconds
    * @param maxAllowedTimeSeconds the upper boundary in seconds
-   * @param minDurationTours tours to give a minimum duration, may be null
-   * @param minDurationSeconds minimum duration to give the tours provided
+   * @param minTourDuration the minimum duration and the tours to give it
    * @param roomAdjustments to record the tours whose end moved and the tours kept in order at one time
    */
   public static void applySharedTourSubBinJitter(
       Tour tour, int spreadWidthSeconds, int minAllowedTimeSeconds, int maxAllowedTimeSeconds,
-      Set<Tour> minDurationTours, int minDurationSeconds, SharedTourRoomAdjustments roomAdjustments) {
+      MinTourDuration minTourDuration, SharedTourRoomAdjustments roomAdjustments) {
 
     if (spreadWidthSeconds <= 0 || tour == null || !tour.hasMultipleParticipants() || !tour.hasSchedule()) {
       return;
@@ -152,8 +150,8 @@ final class SharedTourJitterUtils {
     var rng = new SplittableRandom(PersonUtils.generatePersonSeed(primaryParticipant));
 
     SubBinDrawUtils.drawSubBins(jitterPoints, spreadWidthSeconds, windowStartTime, windowDurationSeconds, rng,
-        new SharedTourDrawRanges(tour, windowStartTime, minDurationTours, minDurationSeconds, roomAdjustments));
-    SubBinDrawUtils.enforceNonDecreasingOrder(jitterPoints, minAllowedTimeSeconds, windowStartTime);
+        new SharedTourDrawRanges(tour, windowStartTime, minTourDuration, roomAdjustments));
+    SubBinDrawUtils.enforceNonDecreasingOrder(jitterPoints, windowStartTime);
 
     // the tour's start follows the first trip that has now been placed
     tour.getSchedule().syncTourStartTimesToFirstElement();
@@ -163,7 +161,6 @@ final class SharedTourJitterUtils {
       tour.setStartTime(firstElementStartTime);
     }
 
-    SubBinDrawUtils.enforceMinTourDuration(jitterPoints, minDurationTours, minDurationSeconds, minAllowedTimeSeconds,
-        windowStartTime, windowDurationSeconds);
+    SubBinDrawUtils.enforceMinTourDuration(jitterPoints, minTourDuration, windowStartTime, windowDurationSeconds);
   }
 }
