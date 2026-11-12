@@ -15,11 +15,14 @@ import org.goplanit.demands.discrete.trip.Trip;
 import org.goplanit.demands.discrete.trip.TripImpl;
 import org.goplanit.demands.discrete.trip.Trips;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
+import org.goplanit.utils.time.LocalTimeUtils;
 import org.goplanit.utils.time.TimePeriod;
 
 import java.io.Serializable;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.function.Function;
@@ -231,11 +234,13 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
    */
   public DiscreteDemands(IdGroupingToken groupId) {
     super(groupId, DiscreteDemands.class);
-    this.timePeriods = new TimePeriods(groupId);
-    this.households = new Households(groupId);
-    this.persons = new Persons(groupId);
-    this.tours = new Tours(groupId);
-    this.trips = new Trips(groupId);
+    /* its entities numbered from 0 by a token of its own, so reading the same input again gives the same ids */
+    var demandsToken = IdGenerator.createIdGroupingToken(this, getId());
+    this.timePeriods = new TimePeriods(demandsToken);
+    this.households = new Households(demandsToken);
+    this.persons = new Persons(demandsToken);
+    this.tours = new Tours(demandsToken);
+    this.trips = new Trips(demandsToken);
 
     this.discreteDemandsModifier = new DiscreteDemandsModifier(this);
   }
@@ -292,6 +297,17 @@ public class DiscreteDemands extends PlanitComponent<DiscreteDemands> implements
    */
   public TimePeriods getTimePeriods(){
     return timePeriods;
+  }
+
+  /**
+   * The time of day this demand's day starts at: the start of its earliest time period, or midnight when it has none.
+   * Times are kept on the clock, so a time before the day start is the next morning
+   *
+   * @return the day start
+   */
+  public LocalTime getDayStartTime() {
+    return timePeriods.isEmpty() ? LocalTime.MIDNIGHT : LocalTimeUtils.ofSecondOfDayWrapped(
+        timePeriods.asSortedSetByStartTime().first().getStartTimeSeconds());
   }
 
   /**

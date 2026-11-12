@@ -4,6 +4,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.goplanit.output.enums.SkimSubOutputType;
 import org.ojalgo.array.Array2D;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.unit.Unit;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZonePrimitiveMatrix;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZonePrimitiveMatrixIterator;
 import org.goplanit.utils.zoning.OdZones;
@@ -42,17 +43,31 @@ public class OdSkimMatrix extends ZoneToZonePrimitiveMatrix<Double> {
   private final SkimSubOutputType odSkimOutputType;
 
   /**
-   * Constructor
-   * 
+   * Constructor, the values in the default unit of the skim output type, km for a distance and hours for a time or a
+   * cost
+   *
    * @param zones            holding the zones in the network
    * @param odSkimOutputType the skim output type for this OD skim matrix
    */
   public OdSkimMatrix(OdZones zones, SkimSubOutputType odSkimOutputType) {
+    this(zones, odSkimOutputType, odSkimOutputType.getDefaultUnit());
+  }
+
+  /**
+   * Constructor
+   *
+   * @param zones            holding the zones in the network
+   * @param odSkimOutputType the skim output type for this OD skim matrix
+   * @param unit             of the values, one that fits the skim output type, such as metres for a distance
+   */
+  public OdSkimMatrix(OdZones zones, SkimSubOutputType odSkimOutputType, Unit unit) {
     super(OdSkimMatrix.class,
         IdGroupingToken.collectGlobalToken(),
         Double.class,
         zones,
-        Array2D.PRIMITIVE32.makeZero(zones.size(), zones.size()));
+        Array2D.PRIMITIVE32.makeZero(zones.size(), zones.size()),
+        unit);
+    odSkimOutputType.verifyUnit(unit);
     this.odSkimOutputType = odSkimOutputType;
   }
 

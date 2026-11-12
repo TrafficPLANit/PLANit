@@ -32,14 +32,6 @@ public class PersonUtils {
   }
 
   /**
-   * Generates a deterministic seed based on person ID and structural characteristics
-   * to ensure reproducibility across runs.
-   */
-  public static long generatePersonSeed(Person person) {
-    return person.generateIdBasedRandomSeed();
-  }
-
-  /**
    * Find the persons whose schedule is not in chronological order, e.g. a tour ending before one of its own trips
    * departs. Such a schedule indicates a defect in the demand input rather than in PLANit, so what is done with the
    * persons found is left to the caller

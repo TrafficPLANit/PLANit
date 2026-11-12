@@ -74,6 +74,31 @@ public class TourTripByModeTest {
   }
 
   /**
+   * A tour leaves by the mode of its first trip and returns by that of its last: out by high occupancy car, an at-work
+   * sub tour by car in between, and back by car, it leaves by high occupancy car and returns by car; a tour without
+   * trips has neither
+   */
+  @Test
+  public void testOutboundModeIsTheFirstTripsAndInboundModeTheLasts() {
+    var person = discreteDemands.getPersons().getFactory().registerNew();
+    var workTour = discreteDemands.getTours().getFactory().registerNew(person, true);
+    registerTripBy(workTour, PredefinedModeType.CAR_HIGH_OCCUPANCY);
+    var atWorkSubTour = discreteDemands.getTours().getFactory().registerNew(workTour, true);
+    registerTripBy(atWorkSubTour, PredefinedModeType.CAR);
+    registerTripBy(workTour, PredefinedModeType.CAR);
+
+    var car = network.getModes().get(PredefinedModeType.CAR);
+    assertEquals(network.getModes().get(PredefinedModeType.CAR_HIGH_OCCUPANCY), workTour.getOutboundMode());
+    assertEquals(car, workTour.getInboundMode());
+    assertEquals(car, atWorkSubTour.getOutboundMode());
+    assertEquals(car, atWorkSubTour.getInboundMode());
+
+    var tourWithoutTrips = discreteDemands.getTours().getFactory().registerNew(person, true);
+    assertNull(tourWithoutTrips.getOutboundMode());
+    assertNull(tourWithoutTrips.getInboundMode());
+  }
+
+  /**
    * A tour by a custom motorised mode that one of the people travelling in it drives has a trip by a mode driven by one
    * of the people in it
    */

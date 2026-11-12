@@ -5,6 +5,7 @@ import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.time.TimePeriodUtils;
 
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.BiConsumer;
 
@@ -25,7 +26,7 @@ public final class TimePeriods extends ManagedIdEntitiesImpl<TimePeriod> impleme
    * @param tokenId  to use for id generation
    */
   public TimePeriods(final IdGroupingToken tokenId) {
-    super(TimePeriod::getId, TimePeriod.TIMEPERIOD_ID_CLASS);
+    super(new TreeMap<>(), TimePeriod::getId, TimePeriod.TIMEPERIOD_ID_CLASS);
     this.factory = new TimePeriodsFactory(tokenId, this);
   }
 

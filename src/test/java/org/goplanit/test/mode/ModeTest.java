@@ -110,4 +110,23 @@ public class ModeTest {
     assertFalse(cargoBike.isSelfDrivenMotorisedMode());
     assertFalse(scooter.isSelfDrivenMotorisedMode());
   }
+
+  /**
+   * A mode is active when its use is active, as walking and cycling are: a predefined mode exactly when its type is an
+   * active one, a custom cargo bike whose use is active, but not a custom mode without features
+   */
+  @Test
+  public void activeModeIsOneWhoseUseIsActive() {
+    for (var modeType : PredefinedModeType.getPredefinedModeTypesWithout(PredefinedModeType.CUSTOM)) {
+      var mode = network.getModes().getFactory().registerNew(modeType);
+      assertEquals(modeType.isActiveModeType(), mode.isActiveMode(), modeType.name());
+    }
+    var factory = network.getModes().getFactory();
+    var cargoBike = factory.registerNewCustomMode("cargo bike", 20, 0.5, ModeFeaturesFactory.createPhysicalFeatures(
+            VehicularModeType.VEHICLE, MotorisationModeType.NON_MOTORISED, TrackModeType.ROAD),
+        ModeFeaturesFactory.createUsabilityFeatures(UseOfModeType.ACTIVE, DriverType.TRAVELLER));
+    var scooter = factory.registerNewCustomMode("scooter", 25, 0.5, null, null);
+    assertTrue(cargoBike.isActiveMode());
+    assertFalse(scooter.isActiveMode());
+  }
 }

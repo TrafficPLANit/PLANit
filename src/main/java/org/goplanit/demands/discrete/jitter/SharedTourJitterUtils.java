@@ -1,7 +1,6 @@
 package org.goplanit.demands.discrete.jitter;
 
 import org.goplanit.demands.discrete.person.Person;
-import org.goplanit.demands.discrete.person.PersonUtils;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.utils.id.IdAbleUtils;
 import org.goplanit.utils.time.LocalTimeUtils;
@@ -147,7 +146,7 @@ final class SharedTourJitterUtils {
 
     final var windowStartTime = LocalTimeUtils.ofSecondOfDayWrapped(minAllowedTimeSeconds);
     final long windowDurationSeconds = maxAllowedTimeSeconds - minAllowedTimeSeconds;
-    var rng = new SplittableRandom(PersonUtils.generatePersonSeed(primaryParticipant));
+    var rng = new SplittableRandom(primaryParticipant.generateIdBasedRandomSeed());
 
     SubBinDrawUtils.drawSubBins(jitterPoints, spreadWidthSeconds, windowStartTime, windowDurationSeconds, rng,
         new SharedTourDrawRanges(tour, windowStartTime, minTourDuration, roomAdjustments));

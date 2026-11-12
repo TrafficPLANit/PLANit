@@ -344,28 +344,14 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
    */
   @Override
   public Mode getOutboundMode() {
-    if(!hasSchedule()){
-      return null; // tour is expected to have a schedule
-    }
-    var firstEntry = getSchedule().getFirst();
-    if(firstEntry.hasSchedule()){
-      return firstEntry.getSchedule().getOutboundMode();
-    }
-    return firstEntry.getOutboundMode();
+    return hasSchedule() ? getSchedule().getOutboundMode() : null;
   }
   /**
    * {@inheritDoc}
    */
   @Override
   public Mode getInboundMode() {
-    if(!hasSchedule()){
-      return null;
-    }
-    var firstEntry = getSchedule().getFirst();
-    if(firstEntry.hasSchedule()){
-      return firstEntry.getSchedule().getInboundMode();
-    }
-    return firstEntry.getInboundMode();
+    return hasSchedule() ? getSchedule().getInboundMode() : null;
   }
 
   /**

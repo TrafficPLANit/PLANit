@@ -118,7 +118,7 @@ final class SubBinDrawUtils {
           long offsetSeconds = Math.round(drawRangeOffsetSeconds + (index + rng.nextDouble()) * subBinSeconds);
           var point = jitterPoints.get(firstIndexInBin + index);
           if (!point.isFixed()) {
-            point.setTime(binTime.plusSeconds(offsetSeconds));
+            point.setElapsedSeconds(binElapsedSeconds + offsetSeconds, windowStartTime);
           }
         }
       }

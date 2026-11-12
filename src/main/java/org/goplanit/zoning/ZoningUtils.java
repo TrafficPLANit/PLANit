@@ -4,6 +4,9 @@ import org.goplanit.converter.utils.ProjectedBoundingAreaHelper;
 import org.goplanit.converter.zoning.AccessEgressInjectionSettings;
 import org.goplanit.converter.zoning.TransferZoningInjectAccessEgressExecutor;
 import org.goplanit.converter.zoning.ZoningConverterCommonData;
+import org.goplanit.converter.zoning.connectoid.OdConnectoidCreationExecutor;
+import org.goplanit.converter.zoning.connectoid.OdConnectoidCreationResult;
+import org.goplanit.converter.zoning.connectoid.OdConnectoidCreationSettings;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.Pair;
@@ -48,6 +51,31 @@ public class ZoningUtils {
 
     new TransferZoningInjectAccessEgressExecutor(
         ProjectedBoundingAreaHelper.empty(), new ZoningConverterCommonData(network, zoning)).execute(settings);
+  }
+
+  /**
+   * Create OD connectoids for the OD zones of a zoning that have none, so the network can be reached from each zone for
+   * the modes asked for, see {@link OdConnectoidCreationExecutor}
+   * <p>
+   * A zoning read without connectoids, such as zones from a shapefile, is unreachable once the network and zoning are
+   * integrated for a shortest path search or an assignment. This gives each zone the number of connectoids asked for,
+   * spread around it on nodes the modes can use, within a distance scaled to the zone's size. For example, with the
+   * defaults each zone gets one connectoid at the nearest node on a road of 60 km/h or less, on the main network, no
+   * further than 5 km away.
+   * </p>
+   *
+   * @param network to connect to
+   * @param zoning holding the OD zones to connect
+   * @param settings determining the modes, the number per zone, the distances and where connectoids attach
+   * @return what was created
+   */
+  public static OdConnectoidCreationResult createOdConnectoids(
+      MacroscopicNetwork network, Zoning zoning, OdConnectoidCreationSettings settings) {
+    PlanItRunTimeException.throwIfNull(network, "Network to create OD connectoids on is null");
+    PlanItRunTimeException.throwIfNull(zoning, "Zoning to create OD connectoids for is null");
+    PlanItRunTimeException.throwIfNull(settings, "Settings to create OD connectoids with are null");
+
+    return new OdConnectoidCreationExecutor(new ZoningConverterCommonData(network, zoning)).execute(settings);
   }
 
   /**

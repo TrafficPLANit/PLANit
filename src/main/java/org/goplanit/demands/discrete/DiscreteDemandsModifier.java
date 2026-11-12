@@ -1,5 +1,6 @@
 package org.goplanit.demands.discrete;
 
+import org.goplanit.demands.discrete.household.Household;
 import org.goplanit.demands.discrete.jitter.ScheduleJitterExecutor;
 import org.goplanit.demands.discrete.person.Person;
 import org.goplanit.demands.discrete.tour.ParticipantTour;
@@ -16,7 +17,9 @@ import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.id.ManagedIdEntities;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -176,15 +179,43 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
   }
 
   /**
-   * Person to remove, including every tour and trip it owns
-   * todo: does not use any events yet, it should
+   * Person to remove, including every tour and trip it owns. Listeners to {@link RemovePersonEvent} are told once the
+   * person is removed
    *
    * @param person to remove
    * @return person that was removed
    */
   public Person removePerson(Person person) {
     clearPersonSchedule(person);
-    return discreteDemands.getPersons().remove(person);
+    var removed = discreteDemands.getPersons().remove(person);
+    if (removed != null && hasListener(RemovePersonEvent.EVENT_TYPE)) {
+      fireEvent(new RemovePersonEvent(this, removed));
+    }
+    return removed;
+  }
+
+  /**
+   * Household to remove, with each of its persons and everything they do, see {@link #removePerson(Person)}, then the
+   * household itself. The persons come from an index of the persons by household, built once by the caller with
+   * {@code getPersons().createGroupByIndex(Person::getHousehold)}, so removing many households needs no search of the
+   * persons for each; the index is not changed. Listeners are told of each person removed and then of the household,
+   * by {@link RemovePersonEvent} and {@link RemoveHouseholdEvent}
+   *
+   * @param household to remove
+   * @param personsByHousehold the persons of each household
+   * @return household that was removed
+   */
+  public Household removeHousehold(Household household,
+      Map<Household, ? extends Collection<Person>> personsByHousehold) {
+    var persons = personsByHousehold.get(household);
+    if (persons != null) {
+      persons.forEach(this::removePerson);
+    }
+    var removed = discreteDemands.getHouseholds().remove(household);
+    if (removed != null && hasListener(RemoveHouseholdEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveHouseholdEvent(this, removed));
+    }
+    return removed;
   }
 
   /**

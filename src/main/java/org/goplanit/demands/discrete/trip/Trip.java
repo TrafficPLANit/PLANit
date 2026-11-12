@@ -180,4 +180,14 @@ public interface Trip extends ExternalIdAble, ManagedId, ScheduleElement {
    * @param destination value of destination
    */
   void setDestination(OdZone destination);
+
+  /**
+   * The number of participants making this trip: the persons taking part in its tour, or one for a trip without a
+   * tour
+   *
+   * @return the number
+   */
+  default int getNumberOfParticipants() {
+    return getTour() == null ? 1 : getTour().getParticipantTours().size();
+  }
 }

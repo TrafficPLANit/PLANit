@@ -15,6 +15,12 @@ import java.util.*;
  */
 public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry {
 
+  /**
+   * the explicitly allowed modes in the order of their ids, when null all modes allowed; the modes themselves are held,
+   * not their ids, so the entry still knows them after their network recreates their ids, which keeps their order
+   */
+  private TreeSet<Mode> explicitAllowedModes = null;
+
   /** access zone for these properties */
   protected Zone accessZone;
 
@@ -23,9 +29,6 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
 
   /** type of the connectoid to zone combination */
   protected final ZoneConnectoidType type;
-
-  /** the explicitly allowed modes, when null all modes allowed */
-  private TreeMap<Long, Mode> explicitAllowedModes = null;
 
   /**
    * constructor
@@ -51,7 +54,7 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
 
     /* shallow */
     if (other.explicitAllowedModes != null) {
-      this.explicitAllowedModes = new TreeMap<>(other.explicitAllowedModes);
+      this.explicitAllowedModes = new TreeSet<>(other.explicitAllowedModes);
     }
   }
 
@@ -86,9 +89,9 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
   @Override
   public void addExplicitAllowedMode(Mode mode) {
     if (explicitAllowedModes == null) {
-      explicitAllowedModes = new TreeMap<>();
+      explicitAllowedModes = new TreeSet<>();
     }
-    explicitAllowedModes.put(mode.getId(), mode);
+    explicitAllowedModes.add(mode);
   }
 
   /**
@@ -97,10 +100,10 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
   @Override
   public boolean removeExplicitAllowedMode(Mode mode) {
     if (explicitAllowedModes == null || explicitAllowedModes.size() < 2 ||
-        !explicitAllowedModes.containsKey(mode.getId())) {
+        !explicitAllowedModes.contains(mode)) {
       return false;
     }
-    explicitAllowedModes.remove(mode.getId());
+    explicitAllowedModes.remove(mode);
     return true;
   }
 
@@ -112,7 +115,7 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
     if (explicitAllowedModes == null) {
       return true;
     }else{
-      return explicitAllowedModes.containsKey(mode.getId());
+      return explicitAllowedModes.contains(mode);
     }
   }
 
@@ -122,7 +125,7 @@ public class ConnectoidAccessZoneEntryImpl implements ConnectoidAccessZoneEntry 
   @Override
   public Collection<Mode> getExplicitlyAllowedModes() {
     return explicitAllowedModes==null ? Collections.emptySet() :
-        Collections.unmodifiableCollection(explicitAllowedModes.values());
+        Collections.unmodifiableCollection(explicitAllowedModes);
   }
 
   @Override

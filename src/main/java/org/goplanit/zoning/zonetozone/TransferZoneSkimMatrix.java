@@ -3,6 +3,7 @@ package org.goplanit.zoning.zonetozone;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.unit.Unit;
 import org.goplanit.utils.zoning.TransferZones;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZonePrimitiveMatrix;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZonePrimitiveMatrixIterator;
@@ -34,17 +35,31 @@ public class TransferZoneSkimMatrix extends ZoneToZonePrimitiveMatrix<Double> {
   private final SkimSubOutputType skimType;
 
   /**
-   * Constructor
+   * Constructor, the values in the default unit of the skim output type, km for a distance and hours for a time or a
+   * cost
    *
    * @param zones            holding the zones in the network
    * @param skimType the skim output type for this skim matrix
    */
   public TransferZoneSkimMatrix(TransferZones zones, SkimSubOutputType skimType) {
+    this(zones, skimType, skimType.getDefaultUnit());
+  }
+
+  /**
+   * Constructor
+   *
+   * @param zones    holding the zones in the network
+   * @param skimType the skim output type for this skim matrix
+   * @param unit     of the values, one that fits the skim output type, such as metres for a distance
+   */
+  public TransferZoneSkimMatrix(TransferZones zones, SkimSubOutputType skimType, Unit unit) {
     super(TransferZoneSkimMatrix.class,
         IdGroupingToken.collectGlobalToken(),
         Double.class,
         zones,
-        Array2D.PRIMITIVE32.makeZero(zones.size(), zones.size()));
+        Array2D.PRIMITIVE32.makeZero(zones.size(), zones.size()),
+        unit);
+    skimType.verifyUnit(unit);
     this.skimType = skimType;
   }
 

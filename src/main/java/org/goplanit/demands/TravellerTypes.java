@@ -4,6 +4,7 @@ import org.goplanit.userclass.TravellerType;
 import org.goplanit.utils.id.*;
 import org.goplanit.utils.time.TimePeriod;
 
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
 /**
@@ -22,7 +23,7 @@ public class TravellerTypes extends ManagedIdEntitiesImpl<TravellerType> impleme
    * @param tokenId to use
    */
   public TravellerTypes(final IdGroupingToken tokenId) {
-    super(TravellerType::getId, TravellerType.TRAVELLERTYPE_ID_CLASS);
+    super(new TreeMap<>(), TravellerType::getId, TravellerType.TRAVELLERTYPE_ID_CLASS);
     this.factory = new TravellerTypesFactory(tokenId, this);
   }
 

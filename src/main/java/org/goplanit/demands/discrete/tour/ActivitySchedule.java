@@ -332,9 +332,12 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
    * the last
    *
    * @param asFlattened when true flatten and obtain last element, otherwise just get last element of this list
-   * @return last element found
+   * @return last element found, null when the schedule is empty, as {@link #getFirst()} gives
    */
   public ScheduleElement getLast(boolean asFlattened) {
+    if (scheduleElements.isEmpty()) {
+      return null;
+    }
     var lastElement = scheduleElements.get(scheduleElements.size() - 1);
     if(asFlattened && lastElement.hasSchedule()){
       return  lastElement.getSchedule().getLast(asFlattened);
@@ -373,6 +376,17 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
    */
   public ActivitySchedule deepCloneWithMapping(Function<ScheduleElement, ScheduleElement> elementToElementMapping) {
     return new ActivitySchedule(this, elementToElementMapping);
+  }
+
+  /**
+   * The first element of the given type on this schedule, without looking into nested schedules
+   *
+   * @param scheduleElementClass to look for
+   * @return found, otherwise null
+   * @param <T> type of element
+   */
+  public <T extends ScheduleElement> T getFirstOfType(Class<T> scheduleElementClass) {
+    return stream().filter(scheduleElementClass::isInstance).map(scheduleElementClass::cast).findFirst().orElse(null);
   }
 
   /**

@@ -1,10 +1,8 @@
 package org.goplanit.demands.event.discrete;
 
-import org.goplanit.demands.event.RecreatedDemandsEntitiesManagedIdsEvent;
 import org.goplanit.event.handler.SyncXmlIdToIdHandler;
-import org.goplanit.graph.modifier.event.RecreatedGraphEntitiesManagedIdsEvent;
 import org.goplanit.utils.event.EventType;
-import org.goplanit.utils.graph.GraphEntity;
+import org.goplanit.utils.id.ExternalIdAble;
 
 import java.util.logging.Logger;
 
@@ -25,7 +23,7 @@ public class SyncXmlIdToIdDiscreteDemandsEntitiesHandler extends SyncXmlIdToIdHa
    * @param superEventType to also support
    */
   protected SyncXmlIdToIdDiscreteDemandsEntitiesHandler(EventType superEventType) {
-    super(RecreatedGraphEntitiesManagedIdsEvent.EVENT_TYPE, superEventType);
+    super(RecreatedDiscreteDemandsEntitiesManagedIdsEvent.EVENT_TYPE, superEventType);
   }
 
   /**
@@ -33,7 +31,7 @@ public class SyncXmlIdToIdDiscreteDemandsEntitiesHandler extends SyncXmlIdToIdHa
    *
    */
   public SyncXmlIdToIdDiscreteDemandsEntitiesHandler() {
-    super(RecreatedDemandsEntitiesManagedIdsEvent.EVENT_TYPE);
+    super(RecreatedDiscreteDemandsEntitiesManagedIdsEvent.EVENT_TYPE);
   }
 
   /**
@@ -47,7 +45,7 @@ public class SyncXmlIdToIdDiscreteDemandsEntitiesHandler extends SyncXmlIdToIdHa
       return;
     }
 
-    RecreatedGraphEntitiesManagedIdsEvent theEvent = (RecreatedGraphEntitiesManagedIdsEvent) event;
-    theEvent.getManagedIdEntities().forEach(e -> super.syncXmlIdToInternalId((GraphEntity) e));
+    var theEvent = (RecreatedDiscreteDemandsEntitiesManagedIdsEvent) event;
+    theEvent.getManagedIdEntities().forEach(e -> super.syncXmlIdToInternalId((ExternalIdAble) e));
   }
 }

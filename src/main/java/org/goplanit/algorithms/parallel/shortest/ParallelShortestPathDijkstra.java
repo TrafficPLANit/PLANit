@@ -3,55 +3,113 @@ package org.goplanit.algorithms.parallel.shortest;
 import org.goplanit.algorithms.parallel.GenericBatchExecutorService;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
- * Wrapper around shortest path Dijkstra algorithm to perform parallel batch execution
+ * Runs Dijkstra's one-to-all search from many origins in parallel, each thread with a search of its own, and keeps of
+ * each search only the value a given function makes of its result.
+ * <p>
+ * A one-to-all result holds a cost and an edge segment per vertex of the network, so on a large network keeping the
+ * results of all origins would take far more memory than the work needs. Here a function turns each result into the
+ * value wanted, such as a row of a zone to zone skim, in the worker thread straight after its search, so a result is
+ * never held beyond its own origin. Each thread has a function of its own, made by a given supplier, so a function
+ * may keep working arrays over the searches of its thread. The values come in the origins' order, whatever thread
+ * made them, so the outcome is the same on any number of threads.
+ * </p>
  *
  * @author markr
  */
 public class ParallelShortestPathDijkstra {
 
-  public void runParallelDijkstra(
-      List<DirectedVertex> targetOrigins,
-      double[] sharedCosts,
-      DirectedVertex[] verticesById) throws ExecutionException, InterruptedException {
+  /**
+   * The search and the function of one thread
+   *
+   * @param <T> type of the value made of a result
+   */
+  private static final class SearchOfThread<T> {
 
-    // Define instantiating Dijkstra context for thread
-    // Each thread gets its own instance, ensuring distinct tracking arrays
-    var algoProvider = (BiFunction<Thread, Integer, ShortestPathDijkstra>) (thread, id) -> {
-      // Cloning cost reference or passing local state copy if necessary
-      return new ShortestPathDijkstra(sharedCosts, verticesById);
-    };
+    /** the thread's search */
+    private final ShortestPathDijkstra search;
 
-    // Define the isolated path execution logic
-    var taskProcessor = (BiFunction<DirectedVertex, ShortestPathDijkstra, ShortestPathResult>) (origin, dijkstra) -> {
-      return dijkstra.executeOneToAll(origin, java.util.Collections.emptySet());
-    };
+    /** the thread's function, from an origin and its one-to-all result to a value */
+    private final BiFunction<DirectedVertex, ShortestPathResult, T> valueOfResult;
 
-    // Define what to do with results once a chunk finishes
-    var resultConsumer = (Consumer<List<ShortestPathResult>>) (batchOutputs) -> {
-      for (ShortestPathResult res : batchOutputs) {
-        processPathResultData(res);
-      }
-    };
-
-    // Wrap everything up and trigger execution
-    GenericBatchExecutorService<DirectedVertex, ShortestPathResult, ShortestPathDijkstra> executor =
-        new GenericBatchExecutorService<>(targetOrigins, algoProvider, taskProcessor, resultConsumer);
-
-    int threads = Runtime.getRuntime().availableProcessors();
-    int batchSize = 128; // todo: revisit this
-
-    executor.execute(threads, batchSize);
+    /**
+     * Constructor
+     *
+     * @param search of the thread
+     * @param valueOfResult function of the thread
+     */
+    private SearchOfThread(ShortestPathDijkstra search, BiFunction<DirectedVertex, ShortestPathResult, T> valueOfResult) {
+      this.search = search;
+      this.valueOfResult = valueOfResult;
+    }
   }
 
-  private void processPathResultData(ShortestPathResult result) {
-    // Domain specific handling code goes here...
+  /** origins handed to a thread at a time; each search covers the whole network, so few keep the threads evenly busy */
+  private static final int ORIGINS_PER_BATCH = 8;
+
+  /** costs by edge segment id, shared by the searches of all threads */
+  private final double[] edgeSegmentCosts;
+
+  /** vertices by id, shared by the searches of all threads */
+  private final DirectedVertex[] verticesById;
+
+  /** number of threads the searches run on */
+  private final int numberOfThreads;
+
+  /**
+   * Constructor
+   *
+   * @param edgeSegmentCosts costs by edge segment id, both physical and virtual
+   * @param verticesById vertices by id, both nodes and centroids
+   * @param numberOfThreads to run the searches on, at least 1
+   */
+  public ParallelShortestPathDijkstra(
+      final double[] edgeSegmentCosts, final DirectedVertex[] verticesById, int numberOfThreads) {
+    PlanItRunTimeException.throwIf(numberOfThreads < 1, "Number of threads must be at least 1, found %d",
+        numberOfThreads);
+    this.edgeSegmentCosts = edgeSegmentCosts;
+    this.verticesById = verticesById;
+    this.numberOfThreads = numberOfThreads;
+  }
+
+  /**
+   * Run a one-to-all search from each origin and make a value of each result in the thread that ran its search
+   *
+   * @param <T> type of the value made of a result
+   * @param origins to search from
+   * @param valueOfResultPerThread makes the function of each thread, from an origin and its one-to-all result to a
+   *                               value; the result is only valid while the function runs
+   * @return the value of each origin, in the origins' order
+   */
+  public <T> List<T> executeOneToAll(
+      final List<? extends DirectedVertex> origins,
+      final Supplier<BiFunction<DirectedVertex, ShortestPathResult, T>> valueOfResultPerThread) {
+    final Object[] values = new Object[origins.size()];
+    BiFunction<Integer, SearchOfThread<T>, Integer> searchFromOrigin = (index, searchOfThread) -> {
+      var origin = origins.get(index);
+      values[index] = searchOfThread.valueOfResult.apply(origin, searchOfThread.search.executeOneToAll(origin));
+      return index;
+    };
+    List<Integer> originIndices = IntStream.range(0, origins.size()).boxed().collect(Collectors.toList());
+
+    var executor = new GenericBatchExecutorService<Integer, Integer, SearchOfThread<T>>(originIndices,
+        (thread, threadId) -> new SearchOfThread<>(
+            new ShortestPathDijkstra(edgeSegmentCosts, verticesById), valueOfResultPerThread.get()),
+        searchFromOrigin, null);
+    executor.executeOrThrowRunTimeException(numberOfThreads, ORIGINS_PER_BATCH, "One-to-all searches");
+
+    @SuppressWarnings("unchecked")
+    List<T> valuesInOriginOrder = (List<T>) Arrays.asList(values);
+    return valuesInOriginOrder;
   }
 }

@@ -11,6 +11,7 @@ import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetworkImpl;
+import org.goplanit.network.transport.TransportModelNetworkUtils;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -30,6 +31,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 
+import static org.goplanit.utils.zoning.connectoid.ZoneConnectoidType.ZONE_ACCESS_EGRESS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -173,11 +175,13 @@ public class ShortestPathTest {
       centroidE = zoneE.getCentroid();
       centroidE.setPosition(geoFactory.createPoint(new Coordinate(4*1000, 4*1000)));
       
-      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zoneA, networkLayer.getNodes().get(0));
-      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zoneB, networkLayer.getNodes().get(21));
-      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zoneC, networkLayer.getNodes().get(12));
-      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zoneD, networkLayer.getNodes().get(23));
-      zoning.getOdConnectoids().getFactory().registerNewWithUndirectedEntry(zoneE, networkLayer.getNodes().get(24));
+      /* connectoids of 0.1 km for A up to 0.5 km for E, their lengths used only by the lengths test */
+      var connectoids = zoning.getOdConnectoids().getFactory();
+      connectoids.registerNewWithUndirectedEntry(zoneA, networkLayer.getNodes().get(0), ZONE_ACCESS_EGRESS, 0.1);
+      connectoids.registerNewWithUndirectedEntry(zoneB, networkLayer.getNodes().get(21), ZONE_ACCESS_EGRESS, 0.2);
+      connectoids.registerNewWithUndirectedEntry(zoneC, networkLayer.getNodes().get(12), ZONE_ACCESS_EGRESS, 0.3);
+      connectoids.registerNewWithUndirectedEntry(zoneD, networkLayer.getNodes().get(23), ZONE_ACCESS_EGRESS, 0.4);
+      connectoids.registerNewWithUndirectedEntry(zoneE, networkLayer.getNodes().get(24), ZONE_ACCESS_EGRESS, 0.5);
       
       transportNetwork = new TransportModelNetworkImpl(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids(false);
@@ -222,6 +226,25 @@ public class ShortestPathTest {
     }
   }
 //@formatter:on
+
+  /**
+   * The length of each edge segment of the joined network by its id: each link segment its link's, 1 km here, and
+   * each connectoid segment its connectoid's length for its zone, 0.1 km for A up to 0.5 km for E
+   */
+  @Test
+  public void edgeSegmentLengthsByIdTest() {
+    double[] lengthsKm = TransportModelNetworkUtils.createIdIndexedEdgeSegmentLengthsKmAllLayers(
+        transportNetwork.getInfrastructureNetwork(), transportNetwork.getVirtualNetwork());
+    assertEquals(transportNetwork.getNumberOfEdgeSegmentsAllLayers(), lengthsKm.length);
+    for (var linkSegment : networkLayer.getLinkSegments()) {
+      assertEquals(1, lengthsKm[(int) linkSegment.getId()], Precision.EPSILON_6);
+    }
+    var lengthByZone = Map.of("A", 0.1, "B", 0.2, "C", 0.3, "D", 0.4, "E", 0.5);
+    for (var connectoidSegment : transportNetwork.getVirtualNetwork().getLayer().getConnectoidSegments()) {
+      var zone = connectoidSegment.getParent().getCentroidVertex().getParent().getParentZone();
+      assertEquals(lengthByZone.get(zone.getXmlId()), lengthsKm[(int) connectoidSegment.getId()], Precision.EPSILON_6);
+    }
+  }
 
   /**
    * Test Dijsktra one-to-all based on above network

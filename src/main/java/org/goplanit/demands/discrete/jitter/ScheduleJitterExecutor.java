@@ -1,7 +1,6 @@
 package org.goplanit.demands.discrete.jitter;
 
 import org.goplanit.demands.discrete.person.Person;
-import org.goplanit.demands.discrete.person.PersonUtils;
 import org.goplanit.demands.discrete.tour.ParticipantTour;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.utils.time.LocalTimeUtils;
@@ -99,7 +98,7 @@ public class ScheduleJitterExecutor {
 
     final var windowStartTime = LocalTimeUtils.ofSecondOfDayWrapped(minAllowedTimeSeconds);
     final long windowDurationSeconds = maxAllowedTimeSeconds - minAllowedTimeSeconds;
-    var rng = new SplittableRandom(PersonUtils.generatePersonSeed(person));
+    var rng = new SplittableRandom(person.generateIdBasedRandomSeed());
 
     SubBinDrawUtils.drawSubBins(jitterPoints, spreadWidthSeconds, windowStartTime, windowDurationSeconds, rng,
         null /* a person's own points, drawn over the whole bin */);
@@ -276,7 +275,7 @@ public class ScheduleJitterExecutor {
       return;
     }
 
-    SplittableRandom rng = new SplittableRandom(PersonUtils.generatePersonSeed(person));
+    SplittableRandom rng = new SplittableRandom(person.generateIdBasedRandomSeed());
     int offsetSeconds = (int) Math.round(
         lowerOffsetBound + rng.nextDouble() * (upperOffsetBound - lowerOffsetBound));
     if (offsetSeconds == 0) {

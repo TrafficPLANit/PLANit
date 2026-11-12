@@ -2,14 +2,14 @@ package org.goplanit.demands.event.discrete;
 
 import org.goplanit.demands.discrete.DiscreteDemandsModifier;
 import org.goplanit.utils.event.EventImpl;
-import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
 import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.id.ManagedIdEntities;
 
 /**
  * Event fired upon recreation of managed ids for discrete demand entities
  */
-public class RecreatedDiscreteDemandsEntitiesManagedIdsEvent extends EventImpl implements GraphModificationEvent {
+public class RecreatedDiscreteDemandsEntitiesManagedIdsEvent extends EventImpl
+    implements DiscreteDemandsModificationEvent {
 
   /** event type fired off when managed id entities have been recreated */
   public static final DiscreteDemandsModifierEventType EVENT_TYPE =

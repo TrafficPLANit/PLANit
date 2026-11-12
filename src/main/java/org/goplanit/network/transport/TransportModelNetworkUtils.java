@@ -111,6 +111,26 @@ public class TransportModelNetworkUtils {
   }
 
   /**
+   * Create an array of the length in km of every edge segment of the physical and virtual network, indexed by its
+   * internal id: the link segments of every layer and the connectoid segments, a connectoid segment's length being its
+   * connectoid's length for its zone
+   *
+   * @param physicalNetwork to use
+   * @param virtualNetwork to use
+   * @return the lengths by edge segment id
+   */
+  public static double[] createIdIndexedEdgeSegmentLengthsKmAllLayers(
+          UntypedPhysicalNetwork<?, ?> physicalNetwork, UntypedVirtualNetwork<?> virtualNetwork) {
+    var lengthsKm = new double[
+        getNumberOfPhysicalLinkSegmentsAllLayers(physicalNetwork) + getNumberOfConnectoidSegments(virtualNetwork)];
+    physicalNetwork.getTransportLayers().stream().flatMap(layer -> layer.getLinkSegments().stream())
+        .forEach(linkSegment -> lengthsKm[(int) linkSegment.getId()] = linkSegment.getLengthKm());
+    virtualNetwork.getLayer().getConnectoidSegments().forEach(
+        connectoidSegment -> lengthsKm[(int) connectoidSegment.getId()] = connectoidSegment.getLengthKm());
+    return lengthsKm;
+  }
+
+  /**
    * Returns the total number of physical nodes available in this transport network across all eligible layers
    *
    * @param theNetwork to use

@@ -1,9 +1,8 @@
 package org.goplanit.demands.event;
 
 import org.goplanit.event.handler.SyncXmlIdToIdHandler;
-import org.goplanit.graph.modifier.event.RecreatedGraphEntitiesManagedIdsEvent;
 import org.goplanit.utils.event.EventType;
-import org.goplanit.utils.graph.GraphEntity;
+import org.goplanit.utils.id.ExternalIdAble;
 
 import java.util.logging.Logger;
 
@@ -22,7 +21,7 @@ public class SyncXmlIdToIdDemandsEntitiesHandler extends SyncXmlIdToIdHandler im
    * @param superEventType to also support
    */
   protected SyncXmlIdToIdDemandsEntitiesHandler(EventType superEventType) {
-    super(RecreatedGraphEntitiesManagedIdsEvent.EVENT_TYPE, superEventType);
+    super(RecreatedDemandsEntitiesManagedIdsEvent.EVENT_TYPE, superEventType);
   }
 
   /**
@@ -44,8 +43,8 @@ public class SyncXmlIdToIdDemandsEntitiesHandler extends SyncXmlIdToIdHandler im
       return;
     }
 
-    RecreatedGraphEntitiesManagedIdsEvent theEvent = (RecreatedGraphEntitiesManagedIdsEvent) event;
+    RecreatedDemandsEntitiesManagedIdsEvent theEvent = (RecreatedDemandsEntitiesManagedIdsEvent) event;
     theEvent.getManagedIdEntities().forEach(
-        e -> super.syncXmlIdToInternalId((GraphEntity) e));
+        e -> super.syncXmlIdToInternalId((ExternalIdAble) e));
   }
 }

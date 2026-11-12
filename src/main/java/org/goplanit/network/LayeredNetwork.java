@@ -69,7 +69,7 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
     super(tokenId, networkGroupingToken);
 
     /* for mode management */
-    this.modes = new ModesImpl(tokenId);
+    this.modes = new ModesImpl(getNetworkGroupingTokenId());
 
     /* until accessed remains null */
     this.transportLayers = null;

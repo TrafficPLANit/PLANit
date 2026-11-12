@@ -2,6 +2,8 @@ package org.goplanit.zoning.zonetozone;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.RoundUtils;
+import org.goplanit.utils.unit.Unit;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZonePrimitiveMatrix;
 import org.goplanit.utils.zoning.zonetozone.ZoneToZonePrimitiveMatrixIterator;
 import org.goplanit.utils.zoning.OdZone;
@@ -39,17 +41,28 @@ public class OdDemandMatrix extends ZoneToZonePrimitiveMatrix<Double> implements
   }
 
   /**
-   * Constructor
-   * 
+   * Constructor, the values in pcu per hour, the unit a PLANit demand holds OD demand in
+   *
    * @param zones holds the zones defined in the network
    */
   public OdDemandMatrix(OdZones zones) {
+    this(zones, Unit.PCU_HOUR);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param zones holds the zones defined in the network
+   * @param unit of the values, such as none for a count of person trips
+   */
+  public OdDemandMatrix(OdZones zones, Unit unit) {
     super(OdDemandMatrix.class,
             IdGroupingToken.collectGlobalToken(),
             Double.class,
             zones,
             Array2D.PRIMITIVE32.makeZero(zones.size(),
-            zones.size()));
+            zones.size()),
+            unit);
   }
 
   /**
@@ -132,13 +145,11 @@ public class OdDemandMatrix extends ZoneToZonePrimitiveMatrix<Double> implements
           nonZeroCount.increment();
         }
 
-        double draw = rand.nextDouble() * upperBound;
-        if(draw < arg ){
+        double rounded = RoundUtils.roundStochastically(arg, upperBound, rand::nextDouble);
+        if(rounded > 0){
           roundedKeptCount.increment();
-          return upperBound;
-        }else{
-          return 0.0;
         }
+        return rounded;
       }
 
       @Override

@@ -5,6 +5,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.time.TimePeriod;
 
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
 /**
@@ -23,7 +24,7 @@ public class UserClasses extends ManagedIdEntitiesImpl<UserClass> {
    * @param tokenId to use
    */
   public UserClasses(final IdGroupingToken tokenId) {
-    super(UserClass::getId, UserClass.USERCLASS_ID_CLASS);
+    super(new TreeMap<>(), UserClass::getId, UserClass.USERCLASS_ID_CLASS);
     this.factory = new UserClassesFactory(tokenId, this);
   }
 

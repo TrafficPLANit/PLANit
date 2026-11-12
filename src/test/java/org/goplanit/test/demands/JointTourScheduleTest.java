@@ -2,6 +2,10 @@ package org.goplanit.test.demands;
 
 import org.goplanit.demands.discrete.DiscreteDemands;
 import org.goplanit.demands.discrete.person.Person;
+import org.goplanit.demands.event.discrete.DiscreteDemandsModificationEvent;
+import org.goplanit.demands.event.discrete.DiscreteDemandsModifierListener;
+import org.goplanit.demands.event.discrete.RemoveHouseholdEvent;
+import org.goplanit.demands.event.discrete.RemovePersonEvent;
 import org.goplanit.demands.discrete.tour.ParticipantTour;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.tour.TourParticipantRole;
@@ -14,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -536,5 +541,48 @@ class JointTourScheduleTest {
     assertEquals(1, secondOther.getSchedule().size(), "second other participant's schedule not as expected");
     assertEquals(secondOtherOwnTour.getPrimaryParticipation(), secondOther.getSchedule().getFirst(),
         "second other participant lost their own tour");
+  }
+
+  /**
+   * Removing a household removes each of its persons with everything they do: a household of two sharing a joint tour,
+   * each with a tour of their own, leaves no person, tour or trip of theirs, while another household keeps its person
+   * and their tour. A listener hears each of the two persons removed and the household
+   */
+  @Test
+  void testRemovingAHouseholdRemovesItsPersonsToursAndTrips() {
+    var removedHousehold = discreteDemands.getHouseholds().getFactory().registerNew();
+    var keptHousehold = discreteDemands.getHouseholds().getFactory().registerNew();
+    var first = discreteDemands.getPersons().getFactory().registerNew(removedHousehold);
+    var second = discreteDemands.getPersons().getFactory().registerNew(removedHousehold);
+    var other = discreteDemands.getPersons().getFactory().registerNew(keptHousehold);
+
+    var fivePm = LocalTime.of(17, 0);
+    Tour jointTour = registerTourFor(first, NOON, LocalTime.of(14, 0), NOON, LocalTime.of(13, 30));
+    addAccompanyingParticipant(jointTour, second);
+    registerTourFor(first, fivePm, LocalTime.of(18, 0), fivePm, LocalTime.of(17, 30));
+    registerTourFor(second, fivePm, LocalTime.of(18, 0), fivePm, LocalTime.of(17, 30));
+    Tour otherTour = registerTourFor(other, fivePm, LocalTime.of(18, 0), fivePm, LocalTime.of(17, 30));
+
+    var modifier = discreteDemands.getDiscreteDemandsModifier();
+    var heard = new ArrayList<DiscreteDemandsModificationEvent>();
+    DiscreteDemandsModifierListener listener = heard::add;
+    modifier.addListener(listener, RemovePersonEvent.EVENT_TYPE);
+    modifier.addListener(listener, RemoveHouseholdEvent.EVENT_TYPE);
+
+    modifier.removeHousehold(removedHousehold, discreteDemands.getPersons().createGroupByIndex(Person::getHousehold));
+
+    assertFalse(discreteDemands.getHouseholds().containsKey(removedHousehold.getId()), "removed household kept");
+    assertFalse(discreteDemands.getPersons().containsKey(first.getId()), "first person of the household kept");
+    assertFalse(discreteDemands.getPersons().containsKey(second.getId()), "second person of the household kept");
+    assertEquals(1, discreteDemands.getTours().size(), "tours of the household kept, or others removed");
+    assertTrue(discreteDemands.getTours().containsKey(otherTour.getId()), "other household's tour removed");
+    assertEquals(2, discreteDemands.getTrips().size(), "trips of the household kept, or others removed");
+    assertTrue(discreteDemands.getHouseholds().containsKey(keptHousehold.getId()), "other household removed");
+    assertTrue(discreteDemands.getPersons().containsKey(other.getId()), "other household's person removed");
+    assertEquals(1, other.getSchedule().size(), "other household's person lost their tour");
+    assertEquals(2, heard.stream().filter(event -> event instanceof RemovePersonEvent).count(),
+        "persons removed not heard each");
+    assertEquals(1, heard.stream().filter(event -> event instanceof RemoveHouseholdEvent).count(),
+        "household removed not heard once");
   }
 }

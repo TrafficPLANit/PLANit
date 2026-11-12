@@ -247,6 +247,15 @@ public class Person extends ExternalIdAbleImpl implements ManagedId {
   }
 
   /**
+   * Whether the person's employment status is known to be employed, full or part time
+   *
+   * @return true when employed full or part time, false when not employed or the employment status is not known
+   */
+  public boolean isKnownToBeEmployed() {
+    return employmentStatus == EmploymentStatus.FULL_TIME || employmentStatus == EmploymentStatus.PART_TIME;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override

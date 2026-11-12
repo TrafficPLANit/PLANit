@@ -1,5 +1,7 @@
 package org.goplanit.algorithms.parallel;
 
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,6 +48,31 @@ public class GenericBatchExecutorService<I, O, A> {
      */
     public int getProcessedCount() {
       return processedCount;
+    }
+  }
+
+  /**
+   * The number of threads to run on unless asked otherwise: one fewer than the machine's processors, leaving one for
+   * the rest of the machine, and at least one
+   *
+   * @return the number of threads
+   */
+  public static int getDefaultNumberOfThreads() {
+    return Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
+  }
+
+  /**
+   * Verify a number of threads asked for: from 1 up to {@link #getDefaultNumberOfThreads()}, so a setting never
+   * takes the machine's last processor
+   *
+   * @param numberOfThreads asked for
+   * @throws IllegalArgumentException when it is outside that range
+   */
+  public static void verifyNumberOfThreads(int numberOfThreads) {
+    if (numberOfThreads < 1 || numberOfThreads > getDefaultNumberOfThreads()) {
+      throw new IllegalArgumentException(String.format(
+          "Number of threads must be from 1 up to %d, one less than the machine's processors, was %d",
+          getDefaultNumberOfThreads(), numberOfThreads));
     }
   }
 
@@ -110,6 +137,26 @@ public class GenericBatchExecutorService<I, O, A> {
     } finally {
       exec.shutdown();
       threadIsolatedAlgo.remove();
+    }
+  }
+
+  /**
+   * Executes processing over the inputs across a thread pool as {@link #execute(int, int)} does, reporting a failure
+   * or an interruption as a run time exception naming the work, so a caller that cannot go on without the outcome
+   * need not handle either itself.
+   *
+   * @param threadsToUse number of threads
+   * @param batchSize the batch size to chunk the problem into
+   * @param work what is executed, for the message, such as "One-to-all searches"
+   */
+  public void executeOrThrowRunTimeException(int threadsToUse, int batchSize, String work) {
+    try {
+      execute(threadsToUse, batchSize);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new PlanItRunTimeException(String.format("%s interrupted", work), e);
+    } catch (ExecutionException e) {
+      throw new PlanItRunTimeException(String.format("%s failed", work), e.getCause());
     }
   }
 
