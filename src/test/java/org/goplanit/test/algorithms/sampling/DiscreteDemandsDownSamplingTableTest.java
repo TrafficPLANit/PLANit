@@ -312,30 +312,30 @@ public class DiscreteDemandsDownSamplingTableTest {
 
   /**
    * Seven sampling units: h3 and h4 joined by their tour, in B, the zone of h3, their first household, which is placed
-   * by its polygon; p7 one of their own in C, where their tour starts; p14 without a zone in a stratum after the
-   * zones. Within C the sampling units are in the order given, households first: h6 before h5, as h6 was added first,
+   * by its polygon; p7 one of their own in C, where their tour starts; p14 without a zone, with the zone id in the
+   * table after the zones'. Within C the sampling units are in the order given, households first: h6 before h5, as h6 was added first,
    * then p7
    */
   @Test
   public void testUnitsJoinedPlacedAndOrdered() {
     var table = createWholeTable();
     assertEquals(7, table.size());
-    assertEquals(4, table.getNumberOfStrata());
+    assertEquals(4, table.getNumberOfZonesInTable());
 
     var firstXmlIds = new ArrayList<String>();
-    var strata = new ArrayList<Integer>();
+    var zoneIdsInTable = new ArrayList<Integer>();
     for (int unit : table.createUnitOrder()) {
       firstXmlIds.add(xmlIdsOf(table, wholeDemand, unit).get(0));
-      strata.add(table.getStratum(unit));
+      zoneIdsInTable.add(table.getZoneIdInTable(unit));
     }
     assertEquals(List.of("h1", "h2", "h3", "h6", "h5", "p7", "p14"), firstXmlIds);
-    assertEquals(List.of(0, 0, 1, 2, 2, 2, 3), strata);
+    assertEquals(List.of(0, 0, 1, 2, 2, 2, 3), zoneIdsInTable);
 
     int joined = unitOf(table, "h4");
     assertEquals(List.of("h3", "h4"), xmlIdsOf(table, wholeDemand, joined));
     assertEquals(2, table.getHouseholdIds(joined).length);
     assertEquals(2, table.getPersons(joined));
-    assertEquals(1, table.getStratum(joined));
+    assertEquals(1, table.getZoneIdInTable(joined));
 
     int alone = unitOf(table, "p7");
     assertEquals(0, table.getHouseholdIds(alone).length);
@@ -435,7 +435,7 @@ public class DiscreteDemandsDownSamplingTableTest {
     assertEquals(0, valueOf(table, p7, HOUSEHOLDS_BY_SIZE, "1"));
 
     int p14 = unitOf(table, "p14");
-    assertEquals(3, table.getStratum(p14));
+    assertEquals(3, table.getZoneIdInTable(p14));
     assertEquals(0, valueOf(table, p14, PERSON_TRIPS_BY_MODE, car.getXmlId() + " driven"));
     assertEquals(1, valueOf(table, p14, PERSONS_BY_AGE_BAND, "45-64"));
   }

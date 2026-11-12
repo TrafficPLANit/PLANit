@@ -10,7 +10,6 @@
  * chance of being kept is the rate, on average.</li>
  * <li><b>Sampling unit</b>: the unit of the sampler, what is kept or dropped whole: a household with its persons,
  * tours and trips; households whose persons share a tour, together; or a person without a household.</li>
- * <li><b>Stratum</b>: a zone. Each zone keeps its sampling units times the rate, rounded down or up.</li>
  * <li><b>Quality</b>: how the sampling units are chosen, from households at random to the best of several balanced
  * draws, see {@link org.goplanit.algorithms.sampling.demands.enums.DiscreteDemandsDownSamplingAlgorithmType}.</li>
  * <li><b>Group of totals</b>: one way of counting the demand, such as person trips by mode, with a total for each of
@@ -23,6 +22,9 @@
  * quality draws from, see {@link org.goplanit.algorithms.sampling.demands.table.DiscreteDemandsDownSamplingTable}.</li>
  * <li><b>Along the curve</b>: the zones in their order along a Hilbert curve, so zones next to each other in the order
  * lie close together. An <b>area</b> is a run of zones next to each other in that order.</li>
+ * <li><b>Zone id in the table</b>: the down-sampling table's number of a zone, its place along the curve from 0, the
+ * sampling units without a zone taking one more, the last. These zones are the balanced sampler's strata: each keeps
+ * its sampling units times the rate, rounded down or up.</li>
  * <li><b>Random spread</b>: how far a total would typically be off in a draw of households at random at the rate.</li>
  * <li><b>Error</b>: how far a group's totals are off together, see
  * {@link org.goplanit.algorithms.sampling.demands.result.DownSamplingTotalsSummary}. The <b>score</b> is the checked

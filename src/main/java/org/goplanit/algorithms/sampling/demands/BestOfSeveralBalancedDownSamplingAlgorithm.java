@@ -43,7 +43,7 @@ public class BestOfSeveralBalancedDownSamplingAlgorithm extends BalancedDownSamp
 
   /**
    * part of the seed of each draw after the first, after the settings' seed, setting it apart from every seed a draw
-   * takes within: the zones' rounding, -1, and the sampler's, a stratum, 0 or more, or a run, 1, there
+   * takes within: the zones' rounding, -1, and the sampler's, a zone id in the table, 0 or more, or a run, 1, there
    */
   private static final long DRAW_SEED_PART = -2;
 
@@ -62,7 +62,7 @@ public class BestOfSeveralBalancedDownSamplingAlgorithm extends BalancedDownSamp
    * same
    *
    * @param table to choose from, not changed
-   * @return the sampling units kept, by row of the down-sampling table, and the chance each stratum's were
+   * @return the sampling units kept, by row of the down-sampling table, and the chance each zone's were
    *         drawn with
    */
   @Override

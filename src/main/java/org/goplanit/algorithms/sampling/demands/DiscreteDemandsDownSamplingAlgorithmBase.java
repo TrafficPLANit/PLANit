@@ -81,7 +81,7 @@ public abstract class DiscreteDemandsDownSamplingAlgorithmBase implements Discre
    * Choose the sampling units kept, each with the same chance on average, the down-sample rate
    *
    * @param table to choose from, not changed
-   * @return the sampling units kept, by row of the down-sampling table, and the chance each stratum's were drawn with
+   * @return the sampling units kept, by row of the down-sampling table, and the chance each zone's were drawn with
    */
   protected abstract DownSamplingDraw chooseUnitsKept(DiscreteDemandsDownSamplingTable table);
 

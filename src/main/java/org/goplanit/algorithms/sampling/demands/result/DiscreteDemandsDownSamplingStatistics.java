@@ -176,7 +176,7 @@ public class DiscreteDemandsDownSamplingStatistics {
    * </p>
    *
    * @param table drawn from
-   * @param draw the sampling units kept and each stratum's chance
+   * @param draw the sampling units kept and each zone's chance
    * @param rate the down-sample rate, for the random spread
    */
   public DiscreteDemandsDownSamplingStatistics(
@@ -201,8 +201,8 @@ public class DiscreteDemandsDownSamplingStatistics {
     var carDrivenByZone = new double[numberOfZones];
 
     for (int unit = 0; unit < table.size(); ++unit) {
-      int stratum = table.getStratum(unit);
-      double chance = draw.getChance(stratum);
+      int zoneIdInTable = table.getZoneIdInTable(unit);
+      double chance = draw.getChance(zoneIdInTable);
       boolean kept = draw.getKept().get(unit);
       table.collectValues(unit, row);
       groupSums.add(row, chance, randomShare, kept);
@@ -210,13 +210,13 @@ public class DiscreteDemandsDownSamplingStatistics {
         table.collectValues(unit, checkedTable, cells[checkedTable.ordinal()]);
         checkedSums[checkedTable.ordinal()].add(cells[checkedTable.ordinal()], chance, randomShare, kept);
       }
-      if (stratum < numberOfZones) {
-        householdsByZone[stratum] = table.getHouseholdIds(unit).length;
-        personsByZone[stratum] = table.getPersons(unit);
+      if (zoneIdInTable < numberOfZones) {
+        householdsByZone[zoneIdInTable] = table.getHouseholdIds(unit).length;
+        personsByZone[zoneIdInTable] = table.getPersons(unit);
         householdSums.add(householdsByZone, chance, randomShare, kept);
         personSums.add(personsByZone, chance, randomShare, kept);
-        householdsByZone[stratum] = 0;
-        personsByZone[stratum] = 0;
+        householdsByZone[zoneIdInTable] = 0;
+        personsByZone[zoneIdInTable] = 0;
       }
       table.collectCarDrivenTripsByOrigin(unit, carDrivenByZone);
       carDrivenSums.add(carDrivenByZone, chance, randomShare, kept);

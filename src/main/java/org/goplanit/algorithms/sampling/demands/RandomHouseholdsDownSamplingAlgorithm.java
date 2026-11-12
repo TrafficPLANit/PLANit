@@ -42,7 +42,7 @@ public class RandomHouseholdsDownSamplingAlgorithm extends DiscreteDemandsDownSa
    * of the down-sampling table in the order given, so the same demand and seed always keep the same households
    *
    * @param table to choose from, not changed
-   * @return the sampling units kept, by row of the down-sampling table, each stratum's drawn with the rate as its
+   * @return the sampling units kept, by row of the down-sampling table, each zone's drawn with the rate as its
    *         chance
    */
   @Override
@@ -55,9 +55,9 @@ public class RandomHouseholdsDownSamplingAlgorithm extends DiscreteDemandsDownSa
         kept.set(unit);
       }
     }
-    var chanceByStratum = new double[table.getNumberOfStrata()];
-    Arrays.fill(chanceByStratum, rate);
-    return new DownSamplingDraw(kept, chanceByStratum);
+    var chanceByZone = new double[table.getNumberOfZonesInTable()];
+    Arrays.fill(chanceByZone, rate);
+    return new DownSamplingDraw(kept, chanceByZone);
   }
 
   /**

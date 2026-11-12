@@ -3,12 +3,12 @@ package org.goplanit.algorithms.sampling.demands.result;
 import java.util.BitSet;
 
 /**
- * What a draw of a down-sampling kept, by row of its down-sampling table, and the chance each stratum's sampling units
+ * What a draw of a down-sampling kept, by row of its down-sampling table, and the chance each zone's sampling units
  * were drawn with
  * <p>
  * Terms used here, all listed in {@link org.goplanit.algorithms.sampling.demands}: a <b>draw</b> is one sample; a row
  * of the down-sampling table is one <b>sampling unit</b>, a household with its persons, tours and trips; a
- * <b>stratum</b> is a zone, and its <b>chance</b> the share of its sampling units kept, such as 13 of 130, 0.1.
+ * zone's <b>chance</b> is the share of its sampling units kept, such as 13 of 130, 0.1.
  * </p>
  * <p>
  * The statistics measure each total against what the draw aimed at: each sampling unit's chance times its value. At
@@ -29,18 +29,18 @@ public final class DownSamplingDraw {
   /** the sampling units kept, by row of the down-sampling table */
   private final BitSet kept;
 
-  /** the chance of each stratum's sampling units */
-  private final double[] chanceByStratum;
+  /** the chance of each zone's sampling units, by zone id in the down-sampling table */
+  private final double[] chanceByZone;
 
   /**
    * Constructor
    *
    * @param kept the sampling units kept, by row of the down-sampling table
-   * @param chanceByStratum the chance of each stratum's sampling units, by stratum of the down-sampling table
+   * @param chanceByZone the chance of each zone's sampling units, by zone id in the down-sampling table
    */
-  public DownSamplingDraw(BitSet kept, double[] chanceByStratum) {
+  public DownSamplingDraw(BitSet kept, double[] chanceByZone) {
     this.kept = kept;
-    this.chanceByStratum = chanceByStratum;
+    this.chanceByZone = chanceByZone;
   }
 
   /**
@@ -53,12 +53,13 @@ public final class DownSamplingDraw {
   }
 
   /**
-   * The chance a stratum's sampling units were drawn with
+   * The chance a zone's sampling units were drawn with
    *
-   * @param stratum of the down-sampling table, from 0
+   * @param zoneIdInTable the zone's id in the down-sampling table, from 0, see
+   *     {@link org.goplanit.algorithms.sampling.demands.table.DiscreteDemandsDownSamplingTable#getZoneIdInTable(int)}
    * @return the chance
    */
-  public double getChance(int stratum) {
-    return chanceByStratum[stratum];
+  public double getChance(int zoneIdInTable) {
+    return chanceByZone[zoneIdInTable];
   }
 }

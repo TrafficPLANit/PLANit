@@ -428,8 +428,7 @@ public class DiscreteDemandsDownSamplingTable {
    * <p>
    * Everything the demand could be refused for is checked first, so a refusal comes before the work of counting. A
    * zone must be the zoning's, as the order of the zones and each trip's distance come from it; a household's zone, and
-   * the zone of each sampling unit, must have a place, as the sampling unit's stratum is that zone's place along the
-   * curve.
+   * the zone of each sampling unit, must have a place, as the zone's id in the table is its place along the curve.
    * </p>
    *
    * @param demands to verify
@@ -1028,27 +1027,28 @@ public class DiscreteDemandsDownSamplingTable {
   }
 
   /**
-   * Number of strata: the zoning's OD zones with a place along the curve, and one more when a sampling unit has no
-   * zone
+   * Number of zones in the table: the zoning's OD zones with a place along the curve, and one more when a sampling
+   * unit has no zone
    *
    * @return the number
    */
-  public int getNumberOfStrata() {
+  public int getNumberOfZonesInTable() {
     return numberOfPlacedZones + (anyUnitWithoutZone ? 1 : 0);
   }
 
   /**
-   * The stratum of a sampling unit: its zone's position along the curve, or the last stratum for one without a zone
+   * The zone id in the table of a sampling unit: its zone's position along the curve, from 0, or one past the last
+   * zone for one without a zone, so zones next to each other along the curve have ids next to each other
    *
    * @param unit sampling unit, from 0
-   * @return the stratum
+   * @return the zone id in the table
    */
-  public int getStratum(int unit) {
+  public int getZoneIdInTable(int unit) {
     return zonePositionOfUnit[unit] < 0 ? numberOfPlacedZones : zonePositionOfUnit[unit];
   }
 
   /**
-   * The persons of a sampling unit, the total each stratum keeps besides its sampling units
+   * The persons of a sampling unit, the total each zone keeps besides its sampling units
    *
    * @param unit sampling unit, from 0
    * @return the number of persons
@@ -1078,8 +1078,8 @@ public class DiscreteDemandsDownSamplingTable {
   }
 
   /**
-   * The sampling units in the order a draw takes them: by stratum, so zones next to each other along the curve follow
-   * each other, and within a stratum in the order given, those with a household before persons without one
+   * The sampling units in the order a draw takes them: by zone id in the table, so zones next to each other along the
+   * curve follow each other, and within a zone in the order given, those with a household before persons without one
    * <p>
    * The order given is the id, and ids follow the order a demand is read in, so the same demand read again gives the
    * same order and a draw with the same seed keeps the same households.
@@ -1091,7 +1091,7 @@ public class DiscreteDemandsDownSamplingTable {
     /* sampling units are numbered as they are added, by their first member, the households before the persons without
      * a household and each by id */
     return IntStream.range(0, numberOfUnits).boxed()
-        .sorted(Comparator.comparingInt(this::getStratum)
+        .sorted(Comparator.comparingInt(this::getZoneIdInTable)
             .thenComparing(unit -> memberIsPerson[unitMemberStarts[unit]]).thenComparingInt(unit -> unit))
         .mapToInt(Integer::intValue).toArray();
   }
