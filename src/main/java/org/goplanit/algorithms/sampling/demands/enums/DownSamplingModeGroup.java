@@ -28,7 +28,7 @@ public enum DownSamplingModeGroup {
   /** trips by a mode whose use is public, such as a bus or a train */
   PUBLIC_TRANSPORT,
 
-  /** trips by a mode that is not motorised: walking and cycling */
+  /** trips by a mode whose use is active ({@code Mode#isActiveMode}): walking and cycling */
   ACTIVE,
 
   /** every other trip, such as one whose mode is not known */

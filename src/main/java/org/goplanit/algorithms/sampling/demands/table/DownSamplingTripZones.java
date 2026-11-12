@@ -17,7 +17,7 @@ import java.util.Arrays;
  * <p>
  * The trips between areas can only be counted once the areas are cut, after every sampling unit is counted, while the
  * down-sampling table counts each sampling unit as it comes. A count per pair of zones would be far too many
- * categories, 3,378 by 3,378 by three mode groups for the GMA; the two zones and the mode group of a person trip take
+ * categories, 3,378 by 3,378 by five mode groups for the GMA; the two zones and the mode group of a person trip take
  * 9 bytes, about 0.19 GB for the GMA's 21 million person trips. The rows are filled one at a time, as the down-sampling
  * table's other values are.
  * </p>
@@ -53,7 +53,7 @@ final class DownSamplingTripZones {
    * @param trip index of the person trip, from 0
    * @param areaOfPosition the area of each zone position along the curve
    * @param areaSlots the number of areas, and one more for an area not known, the last
-   * @return the cell, from 0 up to three times the area slots squared
+   * @return the cell, from 0 up to the number of mode groups times the area slots squared
    */
   private int findCell(int trip, int[] areaOfPosition, int areaSlots) {
     int originArea = origins[trip] < 0 ? areaSlots - 1 : areaOfPosition[origins[trip]];

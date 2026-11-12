@@ -798,8 +798,8 @@ public class DiscreteDemandsDownSamplingTable {
    * The car driven trips of all zones are matched as a whole, which leaves a region with more of them than it should
    * have and another with fewer. Matched per area as well, each region keeps its share, but every total balanced costs
    * the draw some freedom, and too many leave it unable to meet them, so the floor gives each area at least 4 sampling
-   * units kept per total balanced over all zones: at a rate of 0.1 of 2.6 million sampling units, with 118 such totals,
-   * at most 550 areas. Persons per zone are left out of that count, being held per zone rather than over all zones.
+   * units kept per total balanced over all zones: at a rate of 0.1 of 2.6 million sampling units, with 134 such totals,
+   * at most 485 areas. Persons per zone are left out of that count, being held per zone rather than over all zones.
    * The areas are cut last, after every other group, so the count is known. One area would only repeat the car driven
    * trips of all zones, so below 2 there are none. A zone before the first area's first car driven trip is in the first
    * area.
