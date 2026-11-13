@@ -467,9 +467,9 @@ public class DiscreteDemandsDownSamplingAlgorithmTest {
   }
 
   /**
-   * Origin areas are off by default: their group has no categories. Allowed three at a rate of 0.5, the zones are cut
-   * along the curve into three areas of about equal car driven trips by origin, a third each give or take a zone's
-   * worth, together every car driven trip of the full demand
+   * Origin areas are off by default: their group has no categories. Allowed three at a rate of 0.5, the zones are
+   * binned along the curve into three areas of about equal car driven trips by origin, a third each give or take a
+   * zone's worth, together every car driven trip of the full demand
    */
   @Test
   public void testOriginAreasCutByCarDrivenTrips() {

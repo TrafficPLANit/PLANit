@@ -46,6 +46,7 @@ import static org.goplanit.test.demands.DiscreteDemandsTestUtils.createDemandsWi
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerHousehold;
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerPerson;
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerTour;
+import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerTourThereAndBack;
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerTrip;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -508,7 +509,7 @@ public class DiscreteDemandsDownSamplingTableTest {
 
   /**
    * Income bands are the fifths of the known incomes of the whole demand, 10 to 50, one household each, h4's not
-   * known; the tour destinations, one in A, three in B and one in C, cut along the curve into two areas at the third
+   * known; the tour destinations, one in A, three in B and one in C, binned along the curve into two areas at the third
    * destination, in B: A, and B with C
    */
   @Test
@@ -618,6 +619,40 @@ public class DiscreteDemandsDownSamplingTableTest {
     assertEquals(List.of("work " + bus.getXmlId()),
         table.getCategories(DownSamplingCheckedTable.TOURS_BY_PURPOSE_AND_MODE));
     assertEquals(1, table.getValue(0, DownSamplingCheckedTable.TOURS_BY_PURPOSE_AND_MODE, 0));
+  }
+
+  /**
+   * A tour by car from A to X, a zone without polygon or centroid position, is counted rather than refused, beside a
+   * commute by car from A to B, 3 km: the visit's destination is not known while the commute's is in area 1, which
+   * starts at B and so holds A, before it; the visit's trip back from X is not a car driven trip of any origin zone,
+   * so A has 2 and B 1; the visit's trips have no distance, as the skim cannot infer one for X, so the car driven
+   * metres are the commute's 6,000; and between areas they go from area 1 to the area not known and back
+   */
+  @Test
+  public void testTourToAZoneWithoutAPlace() {
+    var demands = createDemandsWithDayStart(token, THREE_AM);
+    var household = registerHousehold(demands, "h40", a, 1, 10.0);
+    var person = registerPerson(
+        demands, household, "p40", 40, EmploymentStatus.FULL_TIME, StudyStatus.NOT_STUDYING, true, Sex.MALE);
+    registerTourThereAndBack(demands, List.of(person), a, b, "work", car, LocalTime.of(7, 30), LocalTime.of(17, 30));
+    registerTourThereAndBack(demands, List.of(person), a, x, "visit", car, LocalTime.of(10, 0), LocalTime.of(12, 0));
+    var table = new DiscreteDemandsDownSamplingTable(settings, zoning, distances, demands);
+    String driven = car.getXmlId() + " driven";
+
+    assertEquals(1, table.size());
+    assertEquals(1, valueOf(table, 0, TOUR_DESTINATIONS_BY_AREA, NOT_KNOWN));
+    assertEquals(1, valueOf(table, 0, TOUR_DESTINATIONS_BY_AREA, "1"));
+    assertEquals(2, table.getCarDrivenTrips(0, a));
+    assertEquals(1, table.getCarDrivenTrips(0, b));
+    assertEquals(0, table.getCarDrivenTrips(0, x));
+    assertEquals(2,
+        valueOf(table, 0, DownSamplingCheckedTable.PERSON_TRIPS_BY_MODE_AND_DISTANCE_BAND, driven + " " + NOT_KNOWN));
+    assertEquals(6000,
+        valueOf(table, 0, PERSON_KILOMETRES_BY_MODE_GROUP, DownSamplingModeGroup.CAR_DRIVER.toString()));
+    for (var areas : List.of("1 to " + NOT_KNOWN, NOT_KNOWN + " to 1")) {
+      assertEquals(1, valueOf(table, 0, DownSamplingCheckedTable.PERSON_TRIPS_BY_AREAS_AND_MODE_GROUP,
+          DownSamplingModeGroup.CAR_DRIVER + " " + areas));
+    }
   }
 
   /** Refused: a household in a zone of another zoning, one in a zone without a place, and a tour to a zone of another

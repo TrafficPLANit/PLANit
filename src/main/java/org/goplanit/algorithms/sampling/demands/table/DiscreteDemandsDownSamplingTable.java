@@ -31,17 +31,7 @@ import org.goplanit.zoning.zonetozone.OdSkimMatrix;
 import org.goplanit.zoning.zonetozone.OdSkimMatrixUtils;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.IntFunction;
 import java.util.function.IntToLongFunction;
 import java.util.stream.Collectors;
@@ -60,7 +50,7 @@ import java.util.stream.IntStream;
  * never the demand's objects, so it is compact, can be drawn from as often as needed without changing the demand, and
  * gives the statistics of any draw. The sampling units are ordered by their zone along a Hilbert curve and within a
  * zone in the order given, see {@link #createUnitOrder()}, and the categories that need the whole demand, the income
- * bands and the areas of the tour destinations, are cut once every sampling unit is counted.
+ * bands and the areas of the tour destinations, are binned once every sampling unit is counted.
  * </p>
  * <p>
  * Each person taking part in a trip makes a person trip, so a trip on a tour of two persons counts twice. A trip by a
@@ -142,7 +132,7 @@ public class DiscreteDemandsDownSamplingTable {
   private Map<Mode, OdSkimMatrix> distances;
 
   /** true when every distance skim is in km, as they usually are, so each trip's distance is read as it is */
-  private final boolean distancesInKm;
+  private final boolean areAllDistancesInKm;
 
   /** position of each OD zone of the zoning along the Hilbert curve, -1 for a zone without a place */
   private final Map<OdZone, Integer> positionOfZone = new IdentityHashMap<>();
@@ -241,9 +231,6 @@ public class DiscreteDemandsDownSamplingTable {
 
   /** the zones with a place, in their order along the curve */
   private final List<OdZone> zonesAlongCurve;
-
-  /** each zone position along the curve, so a row by zone position reads into its own position */
-  private final int[] samePosition;
 
   /** number of sampling units */
   private int numberOfUnits;
@@ -613,7 +600,7 @@ public class DiscreteDemandsDownSamplingTable {
    * @return the distance in km, NaN when it cannot be measured
    */
   private double findDistanceKmOf(Trip trip) {
-    return distancesInKm ? TripUtils.getDistance(trip, distances) : TripUtils.getDistance(trip, distances, Unit.KM);
+    return areAllDistancesInKm ? TripUtils.getDistance(trip, distances) : TripUtils.getDistance(trip, distances, Unit.KM);
   }
 
   /**
@@ -721,7 +708,7 @@ public class DiscreteDemandsDownSamplingTable {
    * The income bands: as many as the settings say, each holding about as many of the known incomes of all households,
    * the fifths by default, and their income not known
    */
-  private void cutIncomeBands() {
+  private void binHouseholdIncomes() {
     var knownIncomes = IntStream.range(0, numberOfMembers)
         .filter(member -> !memberIsPerson[member] && !Double.isNaN(memberIncomes[member]))
         .mapToDouble(member -> memberIncomes[member]).sorted().toArray();
@@ -741,29 +728,30 @@ public class DiscreteDemandsDownSamplingTable {
   }
 
   /**
-   * Cut the zones in their order along the curve into runs with about equal counts, each zone's count standing for as
-   * many values at its position, see {@link BinBuilder#ofEqualCountDoubleBins(double[], int)}
+   * Bin the zones in their order along the curve, each bin a run of neighbouring zones with about equal counts, each
+   * zone's count standing for as many values at its position, see
+   * {@link BinBuilder#ofEqualCountDoubleBins(double[], int)}
    *
    * @param countAtPosition the count of each zone position
-   * @param numberOfRuns to cut, at least one; fewer come out when one zone holds more than a run's share
-   * @return the runs, binned by zone position, null when no zone has a count
+   * @param numberOfBins to make, at least one; fewer come out when one zone holds more than a bin's share
+   * @return the bins of zone positions, null when no zone has a count
    */
-  private BinningConfiguration<Double> cutAlongCurve(IntToLongFunction countAtPosition, int numberOfRuns) {
+  private BinningConfiguration<Double> binAlongCurve(IntToLongFunction countAtPosition, int numberOfBins) {
     var positions = IntStream.range(0, numberOfPlacedZones)
         .flatMap(position -> IntStream.generate(() -> position).limit(countAtPosition.applyAsLong(position)))
         .asDoubleStream().toArray();
-    return positions.length == 0 ? null : BinBuilder.ofEqualCountDoubleBins(positions, numberOfRuns);
+    return positions.length == 0 ? null : BinBuilder.ofEqualCountDoubleBins(positions, numberOfBins);
   }
 
   /**
-   * The destination areas: the zones in their order along the curve cut into runs with about equal numbers of tour
+   * The destination areas: the zones in their order along the curve binned into runs with about equal numbers of tour
    * destinations, as many as the settings say, numbered from 1, and the destinations not known. Every zone with a place
    * gets its area, for the trips between areas; a zone before the first area's first destination is in the first area
    *
    * @param firstColumn of the group
    */
-  private void cutDestinationAreas(int firstColumn) {
-    var areas = cutAlongCurve(position -> destinationKeyByZonePosition[position] < 0 ?
+  private void binTourDestinationsIntoAreas(int firstColumn) {
+    var areas = binAlongCurve(position -> destinationKeyByZonePosition[position] < 0 ?
         0 : values.getColumnTotal(destinationKeyByZonePosition[position]), settings.getNumberOfDestinationAreas());
     int numberOfAreas = areas == null ? 0 : areas.size();
     areaSlots = numberOfAreas + 1;
@@ -791,7 +779,7 @@ public class DiscreteDemandsDownSamplingTable {
   }
 
   /**
-   * The origin areas: the zones in their order along the curve cut into runs with about equal numbers of car driven
+   * The origin areas: the zones in their order along the curve binned into runs with about equal numbers of car driven
    * trips leaving them, numbered from 1, as many as the settings and the sampling units kept allow, none below 2
    * <p>
    * The car driven trips of all zones are matched as a whole, which leaves a region with more of them than it should
@@ -799,21 +787,21 @@ public class DiscreteDemandsDownSamplingTable {
    * the draw some freedom, and too many leave it unable to meet them, so the floor gives each area at least 4 sampling
    * units kept per total balanced over all zones: at a rate of 0.1 of 2.6 million sampling units, with 134 such totals,
    * at most 485 areas. Persons per zone are left out of that count, being held per zone rather than over all zones.
-   * The areas are cut last, after every other group, so the count is known. One area would only repeat the car driven
-   * trips of all zones, so below 2 there are none. A zone before the first area's first car driven trip is in the first
-   * area.
+   * The areas are binned last, after every other group, so the count is known. One area would only repeat the car
+   * driven trips of all zones, so below 2 there are none. A zone before the first area's first car driven trip is in
+   * the first area.
    * </p>
    *
    * @param firstColumn of the group
    */
-  private void cutOriginAreas(int firstColumn) {
+  private void binCarDrivenTripsIntoOriginAreas(int firstColumn) {
     int totalsBalanced = settings.getBalanceOrder().stream()
         .filter(group -> group != DownSamplingBalanceGroup.PERSONS_PER_ZONE
             && group != DownSamplingBalanceGroup.CAR_DRIVEN_TRIPS_BY_ORIGIN_AREA)
         .mapToInt(group -> categoriesByGroup.get(group.ordinal()).size()).sum();
     int allowed = Math.min(settings.getMaximumNumberOfOriginAreas(), (int) (settings.getDownSampleRate() * numberOfUnits
         / (UNITS_KEPT_PER_TOTAL_OF_AN_ORIGIN_AREA * (double) totalsBalanced)));
-    var areas = allowed < 2 ? null : cutAlongCurve(carDrivenTripsByOrigin::getColumnTotal, allowed);
+    var areas = allowed < 2 ? null : binAlongCurve(carDrivenTripsByOrigin::getColumnTotal, allowed);
     if (areas == null) {
       categoriesByGroup.add(List.of());
       fullTotalsByGroup.add(new long[0]);
@@ -836,7 +824,7 @@ public class DiscreteDemandsDownSamplingTable {
    *
    * @return the cell labels
    */
-  private List<String> cutAreaCells() {
+  private List<String> collectAreaCells() {
     var totals = tripZones.collectCellTotals(areaOfPosition, areaSlots);
     cellOfAreaCell = new int[totals.length];
     Arrays.fill(cellOfAreaCell, -1);
@@ -854,7 +842,7 @@ public class DiscreteDemandsDownSamplingTable {
   }
 
   /**
-   * Cut the cells of every checked table: those some sampling unit has, sorted by label, and for the trips between
+   * Collect the cells of every checked table: those some sampling unit has, sorted by label, and for the trips between
    * areas in the order of their mode groups and areas
    * <p>
    * A cell is registered the first time a sampling unit has a value for it, so the cells are only known once every
@@ -862,13 +850,13 @@ public class DiscreteDemandsDownSamplingTable {
    * demand's tour destinations decide: until then each person trip keeps its zones, see {@link DownSamplingTripZones}.
    * </p>
    */
-  private void cutCheckedTables() {
+  private void collectCellsOfCheckedTables() {
     var checkedTables = DownSamplingCheckedTable.values();
     cellsByCheckedTable = new ArrayList<>(checkedTables.length);
     cellOfCheckedKey = new int[checkedTables.length][];
     for (var checkedTable : checkedTables) {
       if (checkedTable == DownSamplingCheckedTable.PERSON_TRIPS_BY_AREAS_AND_MODE_GROUP) {
-        cellsByCheckedTable.add(cutAreaCells());
+        cellsByCheckedTable.add(collectAreaCells());
         continue;
       }
       var keys = checkedKeyByLabel.getOrDefault(checkedTable, Map.of()).values().stream()
@@ -885,17 +873,17 @@ public class DiscreteDemandsDownSamplingTable {
   }
 
   /**
-   * Cut the categories of every group and the cells of every checked table, once every sampling unit is counted, as
-   * some need the whole demand
+   * Collect the categories of every group and the cells of every checked table, once every sampling unit is counted,
+   * as some need the whole demand
    * <p>
-   * A category is registered when a sampling unit first has a value for it, and the income bands and the areas need
-   * every sampling unit's values, so nothing can be numbered before. The groups then take their columns in the order of
-   * {@link DownSamplingBalanceGroup}, each a run of its categories. The origin areas come last because how many there
-   * may be depends on the number of categories of every other group balanced. The distance skims are dropped here,
-   * every trip having been counted.
+   * A category is registered when a sampling unit first has a value for it, and the income bands and the areas are
+   * binned from every sampling unit's values, so nothing can be numbered before. The groups then take their columns
+   * in the order of {@link DownSamplingBalanceGroup}, each a run of its categories. The origin areas come last because
+   * how many there may be depends on the number of categories of every other group balanced. The distance skims are
+   * dropped here, every trip having been counted.
    * </p>
    */
-  private void cutCategories() {
+  private void collectGroupCategoriesAndCells() {
     var groups = DownSamplingBalanceGroup.values();
     categoriesByGroup = new ArrayList<>(groups.length);
     fullTotalsByGroup = new ArrayList<>(groups.length);
@@ -911,13 +899,13 @@ public class DiscreteDemandsDownSamplingTable {
           fullTotalsByGroup.add(new long[]{Arrays.stream(personsOfUnit, 0, numberOfUnits).asLongStream().sum()});
           break;
         case HOUSEHOLDS_BY_INCOME_BAND:
-          cutIncomeBands();
+          binHouseholdIncomes();
           break;
         case TOUR_DESTINATIONS_BY_AREA:
-          cutDestinationAreas(column);
+          binTourDestinationsIntoAreas(column);
           break;
         case CAR_DRIVEN_TRIPS_BY_ORIGIN_AREA:
-          cutOriginAreas(column);
+          binCarDrivenTripsIntoOriginAreas(column);
           break;
         default:
           collectCategoriesOfKeys(group, column);
@@ -925,7 +913,7 @@ public class DiscreteDemandsDownSamplingTable {
       column += categoriesByGroup.get(group.ordinal()).size();
     }
     numberOfColumns = column;
-    cutCheckedTables();
+    collectCellsOfCheckedTables();
     distances = null;
   }
 
@@ -957,7 +945,7 @@ public class DiscreteDemandsDownSamplingTable {
     PlanItRunTimeException.throwIfNull(demands, "Demand of the down-sampling table is null, not allowed");
     this.settings = settings.shallowClone();
     this.distances = distances;
-    this.distancesInKm = OdSkimMatrixUtils.areInUnit(distances.values(), Unit.KM);
+    this.areAllDistancesInKm = OdSkimMatrixUtils.areInUnit(distances.values(), Unit.KM);
 
     var placedZones = new ArrayList<OdZone>();
     for (var zone : zoning.getOdZones()) {
@@ -973,8 +961,7 @@ public class DiscreteDemandsDownSamplingTable {
       positionOfZone.put(curveOrder.get(position), position);
     }
     numberOfPlacedZones = curveOrder.size();
-    zonesAlongCurve = List.copyOf(curveOrder);
-    samePosition = IntStream.range(0, numberOfPlacedZones).toArray();
+    zonesAlongCurve = Collections.unmodifiableList(curveOrder);
     destinationKeyByZonePosition = new int[numberOfPlacedZones];
     Arrays.fill(destinationKeyByZonePosition, -1);
     ageSexKeys = new int[this.settings.getAgeBands().size() + 1][Sex.values().length + 1];
@@ -1014,7 +1001,7 @@ public class DiscreteDemandsDownSamplingTable {
     registerDeparturePeriods(demands.getDayStartTime());
     makeRoomForUnitsAndMembers(demandUnits.getUnits().size(), demandUnits.getNumberOfMembers());
     demandUnits.getUnits().forEach(this::addUnit);
-    cutCategories();
+    collectGroupCategoriesAndCells();
   }
 
   /**
@@ -1241,7 +1228,7 @@ public class DiscreteDemandsDownSamplingTable {
    */
   public void collectCarDrivenTripsByOrigin(int unit, double[] byZonePosition) {
     Arrays.fill(byZonePosition, 0);
-    carDrivenTripsByOrigin.addRowTo(unit, samePosition, byZonePosition);
+    carDrivenTripsByOrigin.addRowTo(unit, byZonePosition);
   }
 
   /**

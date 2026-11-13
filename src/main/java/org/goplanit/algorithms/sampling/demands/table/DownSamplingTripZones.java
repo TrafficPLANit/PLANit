@@ -15,8 +15,8 @@ import java.util.Arrays;
  * that order; a <b>sampling unit</b> is a household with its persons, tours and trips, kept or dropped whole.
  * </p>
  * <p>
- * The trips between areas can only be counted once the areas are cut, after every sampling unit is counted, while the
- * down-sampling table counts each sampling unit as it comes. A count per pair of zones would be far too many
+ * The trips between areas can only be counted once the areas are binned, after every sampling unit is counted, while
+ * the down-sampling table counts each sampling unit as it comes. A count per pair of zones would be far too many
  * categories, 3,378 by 3,378 by five mode groups for the GMA; the two zones and the mode group of a person trip take
  * 9 bytes, about 0.19 GB for the GMA's 21 million person trips. The rows are filled one at a time, as the down-sampling
  * table's other values are.
