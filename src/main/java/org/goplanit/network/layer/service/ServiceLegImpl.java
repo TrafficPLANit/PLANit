@@ -2,23 +2,23 @@ package org.goplanit.network.layer.service;
 
 import java.util.logging.Logger;
 
+import org.geotools.api.geometry.MismatchedDimensionException;
+import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.api.referencing.operation.TransformException;
 import org.goplanit.graph.directed.DirectedEdgeImpl;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.MultiLineString;
-import org.opengis.geometry.MismatchedDimensionException;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
 
 /**
- * A service leg connects two service nodes. Underlying are one or more physical links represented by this single service leg.
+ * A service leg connects two service nodes. Underlying are one or more physical links represented by this single
+ * service leg.
  * 
  * @author markr
  *
@@ -60,7 +60,7 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
     if (getLegSegments() == null || getLegSegments().isEmpty()) {
       return false;
     } else {
-      return getLegSegments().stream().allMatch(ls -> ls.hasGeometry());
+      return getLegSegments().stream().allMatch(ServiceLegSegment::hasGeometry);
     }
   }
 
@@ -79,7 +79,8 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
    */
   @Override
   public void transformGeometry(MathTransform transformer) throws MismatchedDimensionException, TransformException {
-    throw new TransformException("Not allowed to transform geometry on service leg since it holds no geometry. Consider transforming underlying parent links instead");
+    throw new TransformException("Not allowed to transform geometry on service leg since it holds no geometry. " +
+        "Consider transforming underlying parent links instead");
   }
 
   /**
@@ -97,9 +98,9 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
       for (var linkSegment : legSegment.getPhysicalParentSegments()) {
         if (linkSegment.hasGeometry()) {
           if (envelope == null) {
-            envelope = linkSegment.getParentLink().createEnvelope();
+            envelope = linkSegment.getParent().createEnvelope();
           } else {
-            envelope.expandToInclude(linkSegment.getParentLink().createEnvelope());
+            envelope.expandToInclude(linkSegment.getParent().createEnvelope());
           }
         }
       }
@@ -156,7 +157,7 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
   @Override
   public double getLengthKm(LengthType lengthType){
     double resultIfAbsent = 0;
-    var streamOfLinkSegmentLengths = getLegSegments().stream().mapToDouble(ls -> ls.getLengthKm());
+    var streamOfLinkSegmentLengths = getLegSegments().stream().mapToDouble(EdgeSegment::getLengthKm);
     switch (lengthType){
       case MAX:
         return streamOfLinkSegmentLengths.max().orElse(resultIfAbsent);
@@ -165,7 +166,8 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
       case AVERAGE:
         return streamOfLinkSegmentLengths.average().orElse(resultIfAbsent);
       default:
-        LOGGER.warning(String.format("Unsupported length type %s when constructing length for service leg %s, revert to default %.2f", getIdsAsString(), resultIfAbsent));
+        LOGGER.warning(String.format("Unsupported length type %s when constructing length for service leg %s, " +
+                "revert to default %.2f", lengthType, getIdsAsString(), resultIfAbsent));
         return  resultIfAbsent;
     }
   }

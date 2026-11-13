@@ -4,13 +4,18 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 
+import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
+import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
+import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.path.DirectedPathFactory;
-import org.goplanit.utils.path.ManagedDirectedPath;
-import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.path.SimpleDirectedPath;
 
 /**
@@ -18,8 +23,8 @@ import org.goplanit.utils.path.SimpleDirectedPath;
  * However not both at the same time, so either the internal state reflects a one-to-all result, or an all-to-one result and methods supported by that specific interface have
  * defined behaviour
  * <p>
- * Note that for one-to-all we traverse a path from an origin to a destination in reversed order to extract the path, whereas in all-to-one we can directly extract it as we start
- * at the origin directly.
+ * Note that for one-to-all we traverse a path from an origin to a destination in reversed order to extract the path,
+ * whereas in all-to-one we can directly extract it as we start at the origin directly.
  * 
  * @author markr
  *
@@ -30,27 +35,50 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
   private static final Logger LOGGER = Logger.getLogger(ShortestPathResultGeneralised.class.getCanonicalName());
   
   /**
-   * the next edge segment to reach the vertex with the given measured cost (preceding in one-to-all, succeeding in all-to-one)
+   * the next edge segment to reach the vertex with the given measured cost (preceding in one-to-all, succeeding
+   * in all-to-one).
    */
-  protected final EdgeSegment[] nextEdgeSegmentByVertex;  
+  protected final EdgeSegment[] nextEdgeSegmentByVertex;
+
+  /** number of network edge segments, used to be able to create efficient DAG if required */
+  protected int numberOfEdgeSegments;
 
   /**
    * Constructor only to be used by shortest path algorithms
-   * 
+   *
+   * @param startVertex             that was used for the search
    * @param vertexMeasuredCost      measured costs to get to the vertex (by id)
    * @param nextEdgeSegmentByVertex the next edge segment for each vertex (by id)
    * @param searchType              used (one-to-all, all-to-one, etc)
+   * @param numberOfEdgeSegments    numberOfEdgeSegments in the entire network we're searching
    */
-  protected ShortestPathResultGeneralised(double[] vertexMeasuredCost, EdgeSegment[] nextEdgeSegmentByVertex, ShortestSearchType searchType) {
-    super(vertexMeasuredCost, searchType);
+  protected ShortestPathResultGeneralised(
+          DirectedVertex startVertex,
+          double[] vertexMeasuredCost,
+          EdgeSegment[] nextEdgeSegmentByVertex,
+          ShortestSearchType searchType,
+          int numberOfEdgeSegments) {
+    super(startVertex, vertexMeasuredCost, searchType);
     this.nextEdgeSegmentByVertex = nextEdgeSegmentByVertex;
+    this.numberOfEdgeSegments = numberOfEdgeSegments;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public <T extends SimpleDirectedPath> T createPath(final DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
+  public <T extends SimpleDirectedPath> T createPath(
+          final DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
+    // create path
+    var rawPath = createRawPath(origin, destination);
+    if(rawPath == null){
+      return null;
+    }
+    return pathFactory.createNew(rawPath);
+  }
+
+  @Override
+  public Deque<EdgeSegment> createRawPath(DirectedVertex origin, DirectedVertex destination) {
     // path edge segment container
     final Deque<EdgeSegment> pathEdgeSegments = new LinkedList<>();
 
@@ -76,7 +104,7 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
         /* from origin towards destination, add to back */
         pathEdgeSegments.add(nextEdgeSegment);
       } else {
-        /* from destination back toorigin, add to front */
+        /* from destination back to origin, add to front */
         pathEdgeSegments.addFirst(nextEdgeSegment);
       }
 
@@ -85,7 +113,7 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
     }
 
     // create path
-    return pathFactory.createNew(pathEdgeSegments);
+    return pathEdgeSegments;
   }
 
   /**
@@ -100,10 +128,59 @@ public class ShortestPathResultGeneralised extends ShortestResultGeneralised imp
    * {@inheritDoc}
    */
   @Override
-  public double getCostOf(Vertex vertex) {
+  public EdgeSegment overwriteNextSegmentForVertex(Vertex vertex, EdgeSegment nextSegment) {
+    var original = nextEdgeSegmentByVertex[(int) vertex.getId()];
+    nextEdgeSegmentByVertex[(int) vertex.getId()] = nextSegment;
+    return original;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ACyclicSubGraph createAndPopulateDirectedAcyclicSubGraphSpanningTree(IdGroupingToken idToken) {
+    // search tree "normal" direction is in the inverse of the normal direction, yet DAG coincides with the normal
+    // perspective, hence we need to invert the flag to set it correctly in the context of the DAG
+    var toPopulate = new ACyclicSubGraphImpl(idToken, getRootSearchVertex(), !isInverted(), numberOfEdgeSegments);
+    populateDirectedAcyclicSubGraphSpanningTree(toPopulate);
+    return toPopulate;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> void
+  populateDirectedAcyclicSubGraphSpanningTree(UntypedACyclicSubGraph<V, E, ES> dagToPopulate) {
+
+    if(dagToPopulate == null){
+      throw new PlanItRunTimeException("provided dag is null, unable to populate spanning tree");
+    }
+
+    // add all edge segments in tree with a backlink, this covers all vertices unless they were dangling in the
+    // original network
+    for(EdgeSegment nextEdgeSegment : nextEdgeSegmentByVertex){
+      if(nextEdgeSegment != null) {
+        dagToPopulate.addEdgeSegment((ES) nextEdgeSegment);
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getCostToReach(Vertex vertex) {
     return vertexMeasuredCost[(int) vertex.getId()];
   }
 
+  /**
+   * In case of one-to-one search we return the start vertex
+   */
+  @Override
+  public DirectedVertex getRootSearchVertex() {
+    return rootSearchVertex;
+  }
 
 
 }

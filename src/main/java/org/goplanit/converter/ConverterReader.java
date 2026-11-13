@@ -1,7 +1,5 @@
 package org.goplanit.converter;
 
-import org.goplanit.utils.exceptions.PlanItException;
-
 /**
  * Interface for classes able to convert entities of some type which are then returned
  * 
@@ -13,7 +11,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 public interface ConverterReader<T> extends ConverterEntity {
   
   /** any settings to configure the reader can be configured by collecting these settings
-   * @return the settings to configrue the reader
+   * @return the settings to configure the reader
    */
   public abstract ConverterReaderSettings getSettings();  
 

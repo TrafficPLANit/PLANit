@@ -5,6 +5,7 @@ import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.time.TimePeriodUtils;
 
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.BiConsumer;
 
@@ -25,7 +26,7 @@ public final class TimePeriods extends ManagedIdEntitiesImpl<TimePeriod> impleme
    * @param tokenId  to use for id generation
    */
   public TimePeriods(final IdGroupingToken tokenId) {
-    super(TimePeriod::getId, TimePeriod.TIMEPERIOD_ID_CLASS);
+    super(new TreeMap<>(), TimePeriod::getId, TimePeriod.TIMEPERIOD_ID_CLASS);
     this.factory = new TimePeriodsFactory(tokenId, this);
   }
 
@@ -55,7 +56,8 @@ public final class TimePeriods extends ManagedIdEntitiesImpl<TimePeriod> impleme
   /**
    * Retrieve a TimePeriod by its xml Id
    * <p>
-   * This method is not efficient, since it loops through all the registered time periods in order to find the required time period.
+   * This method is not efficient, since it loops through all the registered time periods in order to find the
+   * required time period.
    *
    * @param xmlId the XML Id of the specified time period
    * @return the retrieved time period, or null if no time period was found

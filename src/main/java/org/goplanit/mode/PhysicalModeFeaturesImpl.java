@@ -6,7 +6,8 @@ import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.mode.VehicularModeType;
 
 /**
- * the physical features of a mode are listed by this class. Inspired by the categorisation as offered in open street maps as per
+ * the physical features of a mode are listed by this class. Inspired by the categorisation as offered in open
+ * street maps as per
  * https://wiki.openstreetmap.org/wiki/Key:access#Transport_mode_restrictions
  * 
  * @author markr
@@ -64,7 +65,8 @@ public class PhysicalModeFeaturesImpl implements PhysicalModeFeatures {
    * @param motorisationType to use
    * @param trackType        to use
    */
-  protected PhysicalModeFeaturesImpl(VehicularModeType vehicularType, MotorisationModeType motorisationType, TrackModeType trackType) {
+  protected PhysicalModeFeaturesImpl(
+      VehicularModeType vehicularType, MotorisationModeType motorisationType, TrackModeType trackType) {
     this.vehicularType = vehicularType;
     this.motorisationType = motorisationType;
     this.trackType = trackType;

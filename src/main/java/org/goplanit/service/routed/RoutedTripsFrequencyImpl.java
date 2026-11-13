@@ -31,7 +31,8 @@ public class RoutedTripsFrequencyImpl extends RoutedTripsImpl<RoutedTripFrequenc
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedTripsFrequencyImpl(RoutedTripsFrequencyImpl other, boolean deepCopy, BiConsumer<RoutedTripFrequency, RoutedTripFrequency> mapper) {
+  public RoutedTripsFrequencyImpl(
+      RoutedTripsFrequencyImpl other, boolean deepCopy, BiConsumer<RoutedTripFrequency, RoutedTripFrequency> mapper) {
     super(other, deepCopy, mapper);
     setFactory(
             new RoutedTripFrequencyFactoryImpl(other.getFactory().getIdGroupingToken(), this));

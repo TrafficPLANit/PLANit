@@ -3,6 +3,7 @@ package org.goplanit.output.formatter;
 import java.util.Set;
 
 import org.goplanit.output.adapter.OutputAdapter;
+import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.configuration.OutputConfiguration;
 import org.goplanit.output.configuration.OutputTypeConfiguration;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -20,7 +21,7 @@ public interface OutputFormatter {
   /**
    * Constant to report that an output value has not been set
    */
-  public static final String NOT_SPECIFIED = "Not Specified";
+  public static final String NOT_AVAILABLE = OutputTypeAdapter.PROPERTY_NOT_AVAILABLE;
 
   /**
    * Default output formatter supported by PLANit from PLANitIO repository
@@ -47,28 +48,35 @@ public interface OutputFormatter {
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to be saved
    * @param outputAdapter           OutputAdapter for the assignment to be saved
-   * @throws PlanItException thrown if there is an error
    */
-  public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter)
-      throws PlanItException;
+  public void persist(
+          TimePeriod timePeriod,
+          Set<Mode> modes,
+          OutputConfiguration outputConfiguration,
+          OutputTypeConfiguration outputTypeConfiguration,
+          OutputAdapter outputAdapter);
 
   /**
    * Open resources to store results
    * 
    * @param outputConfiguration OutputTypeConfiguration for the assignment to be saved
    * @param runId               the id number of the run
-   * @throws PlanItException thrown if there is an error
    */
-  public void initialiseBeforeSimulation(OutputConfiguration outputConfiguration, long runId) throws PlanItException;
+  public void initialiseBeforeSimulation(OutputConfiguration outputConfiguration, long runId);
 
   /**
    * Close resources to store results
    * 
    * @param outputConfiguration OutputTypeConfiguration for the assignment to be saved
    * @param outputAdapter       the outputAdapter
-   * @throws PlanItException thrown if there is an error
+   * @param timePeriod the last time period used before simulation ended
+   * @param iterationIndex the last iteration index of the last time period used before the simulation eneded
    */
-  public void finaliseAfterSimulation(OutputConfiguration outputConfiguration, OutputAdapter outputAdapter) throws PlanItException;
+  public void finaliseAfterSimulation(
+          OutputConfiguration outputConfiguration,
+          OutputAdapter outputAdapter,
+          TimePeriod timePeriod,
+          int iterationIndex);
 
   /**
    * Flag to indicate whether an implementation can handle multiple iterations

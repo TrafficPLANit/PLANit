@@ -19,12 +19,21 @@ package org.goplanit.output.property;
 
 public enum OutputPropertyPriority {
 
+  /** Priority for identifier columns. */
   ID_PRIORITY(0),
+  /** Priority for input columns. */
   INPUT_PRIORITY(1),
+  /** Priority for result columns. */
   RESULT_PRIORITY(2);
 
+  /** Integer priority value. */
   private final int value;
 
+  /**
+   * Constructor.
+   *
+   * @param v integer priority value
+   */
   OutputPropertyPriority(int v) {
     value = v;
   }

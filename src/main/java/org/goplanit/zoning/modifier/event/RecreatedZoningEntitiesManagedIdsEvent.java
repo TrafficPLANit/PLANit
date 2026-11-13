@@ -15,7 +15,8 @@ import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
 public class RecreatedZoningEntitiesManagedIdsEvent extends EventImpl implements ZoningModificationEvent {
 
   /** event type fired off when managed id entities have been recreated */
-  public static final DirectedGraphModifierEventType EVENT_TYPE = new DirectedGraphModifierEventType("ZONINGMODIFIER.MANAGEDIDENTITIES.RECREATED");
+  public static final DirectedGraphModifierEventType EVENT_TYPE =
+      new DirectedGraphModifierEventType("ZONINGMODIFIER.MANAGEDIDENTITIES.RECREATED");
 
   /**
    * Constructor
@@ -23,7 +24,8 @@ public class RecreatedZoningEntitiesManagedIdsEvent extends EventImpl implements
    * @param source of the event
    * @param managedIdEntities that have been recreated in terms of their ids
    */
-  public RecreatedZoningEntitiesManagedIdsEvent(final ZoningModifier source, final ManagedIdEntities<? extends ManagedId> managedIdEntities) {
+  public RecreatedZoningEntitiesManagedIdsEvent(
+      final ZoningModifier source, final ManagedIdEntities<? extends ManagedId> managedIdEntities) {
     super(EVENT_TYPE, source, new Object[] {managedIdEntities});
   }
 

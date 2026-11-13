@@ -21,11 +21,6 @@ public class OutputConfiguration {
   private static final Logger LOGGER = Logger.getLogger(OutputConfiguration.class.getCanonicalName());
 
   /**
-   * persisting final iteration only or not
-   */
-  protected boolean persistOnlyFinalIteration = PERSIST_ONLY_FINAL_ITERATION;
-
-  /**
    * persisting zero flows or not
    */
   protected boolean persistZeroFlow = PERSIST_ZERO_FLOW;
@@ -34,11 +29,6 @@ public class OutputConfiguration {
    * output configurations per output type
    */
   protected final Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations;
-
-  /**
-   * Default for persisting final iteration
-   */
-  public static final boolean PERSIST_ONLY_FINAL_ITERATION = true;
 
   /**
    * Default for persisting zero flows
@@ -104,22 +94,27 @@ public class OutputConfiguration {
    * 
    * @param outputType the output type to register the configuration for
    * @return outputTypeconfiguration the output type configuration that has been newly registered
-   * @throws PlanItException thrown if there is an error
    */
-  public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType) throws PlanItException {
+  public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType) {
     OutputTypeConfiguration createdOutputTypeConfiguration = null;
     switch (outputType) {
-    case LINK:
-      createdOutputTypeConfiguration = new LinkOutputTypeConfiguration();
-      break;
-    case OD:
-      createdOutputTypeConfiguration = new OdOutputTypeConfiguration();
-      break;
-    case PATH:
-      createdOutputTypeConfiguration = new PathOutputTypeConfiguration();
-      break;
-    default:
-      LOGGER.warning(outputType.value() + " has not been defined yet.");
+      case LINK:
+        createdOutputTypeConfiguration = new LinkOutputTypeConfiguration();
+        break;
+      case OD:
+        createdOutputTypeConfiguration = new OdOutputTypeConfiguration();
+        break;
+      case PATH:
+        createdOutputTypeConfiguration = new PathOutputTypeConfiguration();
+        break;
+      case BUSH:
+        createdOutputTypeConfiguration = new BushOutputTypeConfiguration();
+        break;
+      case SIMULATION:
+        createdOutputTypeConfiguration = new SimulationOutputTypeConfiguration();
+        break;
+      default:
+        LOGGER.warning(outputType.value() + " output type configuration has not been defined yet.");
     }
 
     if (createdOutputTypeConfiguration != null) {
@@ -131,21 +126,31 @@ public class OutputConfiguration {
   // getters - setters
 
   /**
-   * Set whether only the final iteration will be recorded (default is true)
+   * Set whether only the final iteration will be recorded for all currently activated output type configurations
    * 
    * @param persistOnlyFinalIteration true if only the final iteration will be recorded
    */
   public void setPersistOnlyFinalIteration(boolean persistOnlyFinalIteration) {
-    this.persistOnlyFinalIteration = persistOnlyFinalIteration;
+    outputTypeConfigurations.values().forEach( otc -> otc.setPersistOnlyFinalIteration(persistOnlyFinalIteration));
   }
 
   /**
-   * Returns whether only the final iteration will be recorded (default is true)
+   * Returns whether only the final iteration will be recorded for all activated output types
    * 
-   * @return true if only the final iteration will be recorded, false otherwise
+   * @return true if only the final iteration will be recorded for all activated types, false otherwise
    */
   public boolean isPersistOnlyFinalIteration() {
-    return persistOnlyFinalIteration;
+    return outputTypeConfigurations.values().stream().allMatch(OutputTypeConfiguration::isPersistOnlyFinalIteration);
+  }
+
+  /**
+   * Returns whether only the final iteration will be recorded for the given output type
+   *
+   * @param type to check
+   * @return true if only the final iteration will be recorded, false otherwise
+   */
+  public boolean isPersistOnlyFinalIteration(OutputType type) {
+    return outputTypeConfigurations.keySet().contains(type) && outputTypeConfigurations.get(type).isPersistOnlyFinalIteration();
   }
 
   /**

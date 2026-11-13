@@ -16,17 +16,25 @@ import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierEventType;
 public class BreakEdgeSegmentEvent extends EventImpl implements DirectedGraphModificationEvent {
 
   /** event type fired off when edge has been broken */
-  public static final DirectedGraphModifierEventType EVENT_TYPE = new DirectedGraphModifierEventType("DIRECTEDGRAPHMODIFIER.EDGESEGMENT.BREAK");
+  public static final DirectedGraphModifierEventType EVENT_TYPE =
+      new DirectedGraphModifierEventType("DIRECTEDGRAPHMODIFIER.EDGESEGMENT.BREAK");
 
   /**
    * constructor
    * 
    * @param source            of the event
    * @param vertexToBreakAt   vertex to break at
-   * @param brokenEdgeSegment a new edge segment as a result of breaking at vertexToBreakAt
+   * @param edgeSegmentNow    the new edge segment as a result of breaking at vertexToBreakAt
+   * @param edgeSegmentBefore the edge segment that the new edge segment replaced (may be partially changed as it may
+   *                          be repurposed for memory efficiency reasons, but the instance was the original before
+   *                          breaking)
    */
-  public BreakEdgeSegmentEvent(final DirectedGraphModifier source, final DirectedVertex vertexToBreakAt, EdgeSegment brokenEdgeSegment) {
-    super(EVENT_TYPE, source, new Object[] { vertexToBreakAt, brokenEdgeSegment });
+  public BreakEdgeSegmentEvent(
+      final DirectedGraphModifier source,
+      final DirectedVertex vertexToBreakAt,
+      EdgeSegment edgeSegmentNow,
+      EdgeSegment edgeSegmentBefore) {
+    super(EVENT_TYPE, source, new Object[] { vertexToBreakAt, edgeSegmentNow, edgeSegmentBefore });
   }
 
   /**
@@ -45,6 +53,15 @@ public class BreakEdgeSegmentEvent extends EventImpl implements DirectedGraphMod
    */
   public EdgeSegment getNewlyBrokenEdgeSegment() {
     return (EdgeSegment) ((Object[]) getContent())[1];
+  }
+
+  /**
+   * Collect broken edge segment
+   *
+   * @return edgeSegment
+   */
+  public EdgeSegment getOriginalEdgeSegment() {
+    return (EdgeSegment) ((Object[]) getContent())[2];
   }
 
 }

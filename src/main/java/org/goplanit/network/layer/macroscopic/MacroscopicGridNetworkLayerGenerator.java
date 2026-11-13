@@ -5,15 +5,18 @@ import java.util.logging.Logger;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.goplanit.network.layer.NetworkLayerGenerator;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.macroscopic.MacroscopicConstants;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layers.MacroscopicNetworkLayers;
 import org.goplanit.utils.unit.Unit;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 
 /**
- * Generate a grid based network layer for specified modes of a given size. When using defaults it creates one link segment type named "default".
+ * Generate a grid based network layer for specified modes of a given size. When using defaults it creates one link
+ * segment type named "default".
  * 
  * @author markr
  *
@@ -41,14 +44,19 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
   /** supported modes */
   private final Mode[] modes;
 
+  /** default to use  for link segment type */
+  private final double defaultLinkSegmentCapacityPcuH;
+
+  /** default to use for link segment type */
+  private final double defaultLinkSegmentJamDensityPcuKm;
+
   /**
    * Create the nodes of the grid starting at (0,0) for row=0,col=0, then at (0,1000) for row=1, col=0, etc.
    * 
    * @param networkLayer to use
    * @param geoFactory   to use
-   * @throws PlanItException thrown if error
    */
-  private void createNodes(MacroscopicNetworkLayer networkLayer, final GeometryFactory geoFactory) throws PlanItException {
+  private void createNodes(MacroscopicNetworkLayer networkLayer, final GeometryFactory geoFactory) {
     for (int colIndex = 0; colIndex < columns; ++colIndex) {
       for (int rowIndex = 0; rowIndex < rows; ++rowIndex) {
         long yMeters = Math.round(Unit.KM.convertTo(Unit.METER, rowIndex));
@@ -61,14 +69,14 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
   }
 
   /**
-   * Create the vertical links of the grid first starting at (0,0)-to(0,1) for link 0 etc. and do this for all columns. Then create the horizontal links of the grid starting at
+   * Create the vertical links of the grid first starting at (0,0)-to(0,1) for link 0 etc. and do this for all columns.
+   * Then create the horizontal links of the grid starting at
    * (0,0)-to(1,0) for link starting with id (rows-1)*cols
    * 
    * @param networkLayer to use
    * @param geoFactory   to use
-   * @throws PlanItException thrown if error
    */
-  private void createLinks(MacroscopicNetworkLayer networkLayer, final GeometryFactory geoFactory) throws PlanItException {
+  private void createLinks(MacroscopicNetworkLayer networkLayer, final GeometryFactory geoFactory) {
     /* vertical links */
     int offset = 0;
     for (int colIndex = 0; colIndex < columns; ++colIndex, offset += rows) {
@@ -77,10 +85,12 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
         long nodeBId = nodeAId + 1;
         var nodeA = networkLayer.getNodes().get(nodeAId);
         var nodeB = networkLayer.getNodes().get(nodeBId);
-        var newLink = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true /* register on node */);
+        var newLink = networkLayer.getLinks().getFactory().registerNew(
+            nodeA, nodeB, 1, true /* register on node */);
 
         if (newLink == null) {
-          LOGGER.severe(String.format("Unable to create link for nodes with internal ids (A:%d, B:%d)", nodeAId, nodeBId));
+          LOGGER.severe(String.format("Unable to create link for nodes with internal ids (A:%d, B:%d)",
+              nodeAId, nodeBId));
           continue;
         }
         newLink.setXmlId(String.valueOf(newLink.getId()));
@@ -96,10 +106,12 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
         long nodeBId = nodeAId + rows;
         var nodeA = networkLayer.getNodes().get(nodeAId);
         var nodeB = networkLayer.getNodes().get(nodeBId);
-        var newLink = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true /* register on node */);
+        var newLink = networkLayer.getLinks().getFactory().registerNew(
+            nodeA, nodeB, 1, true /* register on node */);
 
         if (newLink == null) {
-          LOGGER.severe(String.format("Unable to create link for nodes with internal ids (A:%d, B:%d)", nodeAId, nodeBId));
+          LOGGER.severe(String.format("Unable to create link for nodes with internal ids (A:%d, B:%d)",
+              nodeAId, nodeBId));
           continue;
         }
         newLink.setXmlId(String.valueOf(newLink.getId()));
@@ -113,15 +125,16 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
    * 
    * @param networkLayer to use
    * @param geoFactory   to use
-   * @throws PlanItException thrown if error
    */
-  private void createLinkSegments(MacroscopicNetworkLayer networkLayer, final GeometryFactory geoFactory) throws PlanItException {
+  private void createLinkSegments(MacroscopicNetworkLayer networkLayer, final GeometryFactory geoFactory) {
     var defaultLinkSegmentType = networkLayer.getLinkSegmentTypes().getFirst();
     boolean registerOnNodes = true;
     for (var link : networkLayer.getLinks()) {
-      var linkSegment = networkLayer.getLinkSegments().getFactory().registerNew(link, defaultLinkSegmentType, true /* A->B */, registerOnNodes);
+      var linkSegment = networkLayer.getLinkSegments().getFactory().registerNew(
+          link, defaultLinkSegmentType, true /* A->B */, registerOnNodes);
       linkSegment.setXmlId(String.valueOf(linkSegment.getId()));
-      linkSegment = networkLayer.getLinkSegments().getFactory().registerNew(link, defaultLinkSegmentType, false /* B->A */, registerOnNodes);
+      linkSegment = networkLayer.getLinkSegments().getFactory().registerNew(
+          link, defaultLinkSegmentType, false /* B->A */, registerOnNodes);
       linkSegment.setXmlId(String.valueOf(linkSegment.getId()));
     }
   }
@@ -129,10 +142,9 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
   /**
    * Populate the network layer by means of a grid
    * 
-   * @param networkLayer
-   * @throws PlanItException thrown if error
+   * @param networkLayer to use
    */
-  private void populateGrid(final MacroscopicNetworkLayer networkLayer) throws PlanItException {
+  private void populateGrid(final MacroscopicNetworkLayer networkLayer) {
     GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
     createNodes(networkLayer, geoFactory);
     createLinks(networkLayer, geoFactory);
@@ -145,13 +157,23 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
    * @param rows            to use
    * @param columns         to use
    * @param layersContainer to use
+   * @param defaultLinkSegmentCapacityPcuH the capacity to apply to the link segment type
+   * @param defaultLinkSegmentJamDensityPcuKm the jam density to apply to the link segment type
    * @param modes           to support
    */
-  protected MacroscopicGridNetworkLayerGenerator(int rows, int columns, final MacroscopicNetworkLayers layersContainer, final Mode... modes) {
+  protected MacroscopicGridNetworkLayerGenerator(
+          int rows,
+          int columns,
+          final MacroscopicNetworkLayers layersContainer,
+          double defaultLinkSegmentCapacityPcuH,
+          double defaultLinkSegmentJamDensityPcuKm,
+          final Mode... modes) {
     this.rows = rows;
     this.columns = columns;
     this.layersContainer = layersContainer;
     this.modes = modes;
+    this.defaultLinkSegmentCapacityPcuH = defaultLinkSegmentCapacityPcuH;
+    this.defaultLinkSegmentJamDensityPcuKm = defaultLinkSegmentJamDensityPcuKm;
   }
 
   /** name used for default physical link segment type name */
@@ -174,27 +196,68 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
   }
 
   /**
-   * Create the default link segment type on the given layer, supported modes are registered but nothing else
+   * Create the default link segment type on the given layer, supported modes capacity and jam density are registered
+   * based on settings
    * 
    * @param networkLayer to register on
    */
   private void createDefaultLinkSegmentType(final MacroscopicNetworkLayer networkLayer, String linkSegmentTypeName) {
-    final var linkSegmentType = networkLayer.getLinkSegmentTypes().getFactory().registerNew(linkSegmentTypeName);
+    final var linkSegmentType =
+            networkLayer.getLinkSegmentTypes().getFactory().registerNew(
+                    linkSegmentTypeName, defaultLinkSegmentCapacityPcuH, defaultLinkSegmentJamDensityPcuKm);
+    linkSegmentType.setXmlId(String.valueOf(linkSegmentType.getId()));
+
     final var accessGroupProperties = AccessGroupPropertiesFactory.create(modes);
-    linkSegmentType.addAccessGroupProperties(accessGroupProperties);
+    linkSegmentType.addAccessGroupProperties(accessGroupProperties, true);
   }
 
   /**
-   * create the generator with a number of rows and columns. It is assumed that the grid has coordinates in Cartesian form in meters. A single link segment type is created with the
-   * name "default" but without setting capacity, max density or access group information. This is left to the invoked of this method to further specify.
+   * create the generator with a number of rows and columns. It is assumed that the grid has coordinates in
+   * Cartesian form in meters. A single link segment type is created with the
+   * name "default" but without setting capacity, max density or access group information. This is left to the
+   * invoked of this method to further specify.
    * 
+   * @param rows            to use
+   * @param columns         to use
+   * @param layersContainer to register on
+   * @param defaultLinkSegmentCapacityPcuH the capacity to apply to the link segment type
+   * @param defaultLinkSegmentJamDensityPcuKm the jam density to apply to the link segment type
+   * @param modes           to support
+   * @return created grid network layer
+   */
+  public static MacroscopicGridNetworkLayerGenerator create(
+          int rows,
+          int columns,
+          final MacroscopicNetworkLayers layersContainer,
+          double defaultLinkSegmentCapacityPcuH,
+          double defaultLinkSegmentJamDensityPcuKm,
+          final Mode... modes) {
+    return new MacroscopicGridNetworkLayerGenerator(
+            rows, columns, layersContainer, defaultLinkSegmentCapacityPcuH, defaultLinkSegmentJamDensityPcuKm, modes);
+  }
+
+  /**
+   * identical to {@link #create(int, int, MacroscopicNetworkLayers, double, double, Mode...)}
+   * only using default capacity and
+   * jam density based on #MacroscopicConstants.
+   *
    * @param rows            to use
    * @param columns         to use
    * @param layersContainer to register on
    * @param modes           to support
    * @return created grid network layer
    */
-  public static MacroscopicGridNetworkLayerGenerator create(int rows, int columns, final MacroscopicNetworkLayers layersContainer, final Mode... modes) {
-    return new MacroscopicGridNetworkLayerGenerator(rows, columns, layersContainer, modes);
+  public static MacroscopicGridNetworkLayerGenerator create(
+          int rows,
+          int columns,
+          final MacroscopicNetworkLayers layersContainer,
+          final Mode... modes) {
+    return create(
+            rows,
+            columns,
+            layersContainer,
+            MacroscopicConstants.DEFAULT_CAPACITY_PCU_HOUR_LANE,
+            MacroscopicConstants.DEFAULT_MAX_DENSITY_PCU_KM_LANE,
+            modes);
   }
 }

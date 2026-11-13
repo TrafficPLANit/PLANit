@@ -10,7 +10,8 @@ import org.goplanit.utils.time.TimePeriod;
 /**
  * Factory class for TravellerType instances to be registered on its parent container passed in to constructor
  */
-public class TravellerTypesFactory extends ManagedIdEntityFactoryImpl<TravellerType> implements ManagedIdEntityFactory<TravellerType> {
+public class TravellerTypesFactory extends ManagedIdEntityFactoryImpl<TravellerType>
+    implements ManagedIdEntityFactory<TravellerType> {
 
   /** container to use */
   protected final TravellerTypes travellerTypes;

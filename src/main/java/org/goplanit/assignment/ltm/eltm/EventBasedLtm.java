@@ -9,9 +9,11 @@ import org.goplanit.output.enums.OutputType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Event based Link Transmission Model implementation (eLTM) for network loading using a capacity constrained (Deterministic) assignment
+ * Event based Link Transmission Model implementation (eLTM) for network loading using a capacity constrained
+ * (Deterministic) assignment
  *
  * @author markr
  *
@@ -44,6 +46,11 @@ public class EventBasedLtm extends LtmAssignment {
   public OutputTypeAdapter createOutputTypeAdapter(OutputType outputType) {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  protected boolean isRequireConjugateNetwork() {
+    return false;
   }
 
   @Override

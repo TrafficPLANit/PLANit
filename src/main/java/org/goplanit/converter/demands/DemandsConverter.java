@@ -9,7 +9,7 @@ import org.goplanit.demands.Demands;
 import org.goplanit.utils.exceptions.PlanItException;
 
 /**
- * Network converter class able to convert demands from one type to another
+ * Demands converter class able to convert demands from one type to another
  * 
  * @author markr
  *
@@ -27,10 +27,9 @@ public class DemandsConverter extends Converter<Demands> {
    * (if not already available)
    *
    * @param demands demands to write
-   * @throws PlanItException thrown when error
    */
   @Override
-  protected void write(Demands demands) throws PlanItException {
+  protected void write(Demands demands) {
     var reader = getReader();
     var writer = getWriter();
 

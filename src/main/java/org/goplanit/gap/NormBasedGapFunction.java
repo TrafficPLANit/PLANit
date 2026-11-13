@@ -9,9 +9,12 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.reflection.ReflectionUtils;
 
 /**
- * Gap function based on the norm, e.g. ||x||_p where p indicates which norm (norm 1, norm 2 etc) and x represents a vector of differences between two values. When averaged
- * (default) we divide the result by the number of elements in the vector. e.g. for the average norm 1 we would compute: 1/|x| * ( (x_1-x_1_alt) + (x_2-x_2_alt) + .... +
- * (x_n-x_n_alt)), whereas for the averaged norm 2 we would do: 1/|x| * sqrt( (x_1-x_1_alt)^2 + (x_2-x_2_alt)^2 + .... + (x_n-x_n_alt)^2) etc.
+ * Gap function based on the norm, e.g. ||x||_p where p indicates which norm (norm 1, norm 2 etc) and x represents
+ * a vector of differences between two values. When averaged
+ * (default) we divide the result by the number of elements in the vector. e.g. for the average norm 1 we would
+ * compute: 1/|x| * ( (x_1-x_1_alt) + (x_2-x_2_alt) + .... +
+ * (x_n-x_n_alt)), whereas for the averaged norm 2 we would do: 1/|x| * sqrt( (x_1-x_1_alt)^2 + (x_2-x_2_alt)^2
+ * + .... + (x_n-x_n_alt)^2) etc.
  * 
  * @author markr
  *
@@ -59,7 +62,8 @@ public class NormBasedGapFunction extends GapFunction {
    * @param norm          to use
    * @param averaged      to use
    */
-  public NormBasedGapFunction(final IdGroupingToken idToken, final StopCriterion stopCriterion, final int norm, final boolean averaged) {
+  public NormBasedGapFunction(
+      final IdGroupingToken idToken, final StopCriterion stopCriterion, final int norm, final boolean averaged) {
     super(idToken, stopCriterion);
     if (norm < 1) {
       LOGGER.warning(String.format("Invalid norm, reset to default %d", norm));
@@ -81,6 +85,7 @@ public class NormBasedGapFunction extends GapFunction {
     this.averaged = other.averaged;
     this.count = other.count;
     this.gap = other.gap;
+    this.previousGap = other.previousGap;
     this.measuredValue = other.measuredValue;
     this.norm = other.norm;
   }
@@ -99,6 +104,11 @@ public class NormBasedGapFunction extends GapFunction {
    * gap
    */
   protected double gap = MAX_GAP;
+
+  /**
+   * previous gap
+   */
+  protected double previousGap = MAX_GAP;
 
   /** maximum gap possible */
   public static final double MAX_GAP = Double.POSITIVE_INFINITY;
@@ -119,14 +129,16 @@ public class NormBasedGapFunction extends GapFunction {
   }
 
   /**
-   * Increase value by abs(value1-value2)^p, where p is the norm set. Note that every call to this method also increases the count
+   * Increase value by abs(value1-value2)^p, where p is the norm set. Note that every call to this method
+   * also increases the count
    * 
    * @param vector1 first value vector
    * @param vector2 second value vector
    */
   public void increaseMeasuredValue(final double[] vector1, final double[] vector2) {
     if (vector1.length != vector2.length) {
-      LOGGER.warning("Cannot compute increasedMEaseredValue of NormBasedGapFunction for two vectors when they are of different size");
+      LOGGER.warning("Cannot compute increasedMEaseredValue of NormBasedGapFunction for two vectors " +
+          "when they are of different size");
       return;
     }
 
@@ -142,7 +154,8 @@ public class NormBasedGapFunction extends GapFunction {
   }
 
   /**
-   * Increase value by abs(value1-value2)^p, where p is the norm set. Note that every call to this method also increases the count
+   * Increase value by abs(value1-value2)^p, where p is the norm set. Note that every call to this method
+   * also increases the count
    * 
    * @param value1 first value
    * @param value2 second value
@@ -157,28 +170,43 @@ public class NormBasedGapFunction extends GapFunction {
   }
 
   /**
-   * Reset
+   * {@inheritDoc}
    */
+  @Override
   public void reset() {
-    this.measuredValue = 0;
-    this.count = 0;
+    resetIteration();
     this.gap = MAX_GAP;
+    this.previousGap = MAX_GAP;
   }
 
   /**
-   * Compute the gap
-   * 
-   * @return the gap for the current iteration
+   * {@inheritDoc}
    */
   @Override
-  public double computeGap() {
-    if (count <= 0) {
-      gap = MAX_GAP;
-    } else {
-      double multiplicationFactor = isAveraged() ? (1.0 / count) : 1;
-      gap = multiplicationFactor * Math.pow(measuredValue, 1.0 / norm);
+  public void resetIteration() {
+    this.measuredValue = 0;
+    this.count = 0;
+    // do not reset gap and previous gap because this is state that needs preserving if it is to work
+    // in an iterative fashion where we reset every iteration but need to keep trakc of the previous iteration gap
+    // do not reset gap and previous gap because this is state that needs preserving if it is to work
+    // in an iterative fashion where we reset every iteration but need to keep track of the previous iteration gap
+  }
+
+  @Override
+  public double computeGap(boolean internalStateChange) {
+    if(internalStateChange) {
+      previousGap = gap;
     }
-    return getGap();
+
+    double computedGap = MAX_GAP;
+    if (count > 0) {
+      double multiplicationFactor = isAveraged() ? (1.0 / count) : 1;
+      computedGap = multiplicationFactor * Math.pow(measuredValue, 1.0 / norm);
+    }
+    if(internalStateChange) {
+      gap = computedGap;
+    }
+    return computedGap;
   }
 
   /**
@@ -186,6 +214,14 @@ public class NormBasedGapFunction extends GapFunction {
    */
   @Override
   public double getGap() {
+    return gap;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getPreviousGap() {
     return gap;
   }
 
@@ -212,9 +248,10 @@ public class NormBasedGapFunction extends GapFunction {
    */
   @Override
   public Map<String, String> collectSettingsAsKeyValueMap() {
-    var keyValueMap = new HashMap<String, String>(super.collectSettingsAsKeyValueMap());
+    var keyValueMap = new HashMap<>(super.collectSettingsAsKeyValueMap());
     
-    var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(this, i -> Modifier.isProtected(i) && !Modifier.isStatic(i));
+    var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(
+        this, i -> Modifier.isProtected(i) && !Modifier.isStatic(i));
     privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
     return keyValueMap;
   }

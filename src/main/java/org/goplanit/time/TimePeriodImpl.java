@@ -73,8 +73,10 @@ public class TimePeriodImpl extends ExternalIdAbleImpl implements TimePeriod {
    */
   public TimePeriodImpl(IdGroupingToken groupId, String description, long startTimeSeconds, long durationSeconds) {
     super(IdGenerator.generateId(groupId, TimePeriod.class));
-    PlanItRunTimeException.throwIf(durationSeconds > (24.0 * 3600), "Duration more than 24 hours");
-    PlanItRunTimeException.throwIf(startTimeSeconds > (24.0 * 3600), "Start time later than 24 hours");
+    PlanItRunTimeException.throwIf(
+        durationSeconds > (24 * 3600), "Duration more than 24 hours (%d s)", durationSeconds);
+    PlanItRunTimeException.throwIf(startTimeSeconds > (24 * 3600),
+        "Start time later than 24 hours (%d s)", startTimeSeconds);
     this.startTimeSeconds = startTimeSeconds;
     this.durationSeconds = durationSeconds;
     this.description = description;

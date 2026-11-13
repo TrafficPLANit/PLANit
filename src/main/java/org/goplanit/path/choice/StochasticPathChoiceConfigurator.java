@@ -1,60 +1,92 @@
 package org.goplanit.path.choice;
 
-import org.goplanit.od.path.OdPathMatrix;
-import org.goplanit.path.choice.logit.LogitChoiceModel;
-import org.goplanit.path.choice.logit.LogitChoiceModelConfigurator;
-import org.goplanit.path.choice.logit.LogitChoiceModelConfiguratorFactory;
+import org.goplanit.choice.ChoiceModel;
+import org.goplanit.choice.ChoiceModelConfigurator;
+import org.goplanit.choice.ChoiceModelConfiguratorFactory;
+import org.goplanit.path.filter.PathFilter;
+import org.goplanit.path.filter.PathFilterConfigurator;
 import org.goplanit.utils.exceptions.PlanItException;
 
 /**
- * Configurator for FixedConnectoidTravelTimeCost implementation
+ * Configurator for StochasticPathChoice implementation
  * 
  * @author markr
  */
 public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<StochasticPathChoice> {
-  
-  private static final String SET_OD_PATH_MATRIX = "setOdPathMatrix";
+
+  private static final String SET_REMOVE_PATH_PROBABILITY_THRESHOLD = "setRemovePathPobabilityThreshold";
     
   /**
-   * logit choice model configurator
+   * Choice model configurator
    */
-  protected LogitChoiceModelConfigurator<? extends LogitChoiceModel> logitChoiceModelConfigurator;
+  protected ChoiceModelConfigurator<? extends ChoiceModel> choiceModelConfigurator;
+
+  /**
+   * PathFilter configurator
+   */
+  protected PathFilterConfigurator pathFilterConfigurator;
+
+  /**
+   * Threshold to apply when deciding whether to keep or remove paths considered in path choice, value
+   * between 0 and 1 expected
+   */
+  protected double removePathPobabilityThreshold;
   
   /**
    * Constructor
    * 
    */
   protected StochasticPathChoiceConfigurator() {
-    super(StochasticPathChoice.class);        
+    super(StochasticPathChoice.class);
+    pathFilterConfigurator = new PathFilterConfigurator();
   }
   
   /**
-   * create and register the logit model of choice
+   * create and register the choice model to apply
    * 
-   * @param logitChoiceModelType name of the class to be instantiated
+   * @param choiceModelType name of the class to be instantiated
    * @return the logit choice model that is registered
-   * @throws PlanItException thrown if error
    */
-  public LogitChoiceModelConfigurator<? extends LogitChoiceModel> createAndRegisterLogitModel(final String logitChoiceModelType) throws PlanItException {
-    LogitChoiceModelConfigurator<? extends LogitChoiceModel> logitChoiceModelConfigurator = LogitChoiceModelConfiguratorFactory.createConfigurator(logitChoiceModelType);
-    return logitChoiceModelConfigurator;
+  public ChoiceModelConfigurator<? extends ChoiceModel> createAndRegisterChoiceModel(final String choiceModelType){
+    this.choiceModelConfigurator = ChoiceModelConfiguratorFactory.createConfigurator(choiceModelType);
+    return choiceModelConfigurator;
   }
   
   /**
-   * Collect the logit model configurator
+   * Collect the choice model configurator
    * 
-   * @return logit model configurator
+   * @return choice model configurator
    */
-  public LogitChoiceModelConfigurator<? extends LogitChoiceModel> getLogitModel() {
-    return logitChoiceModelConfigurator;
+  public ChoiceModelConfigurator<? extends ChoiceModel> getChoiceModel() {
+    return choiceModelConfigurator;
   }
 
   /**
-   * Register a fixed od path set to use in the form of an ODPathMatrix
+   * Collect the path filter configurator (only relevant when on-the-fly paths are being generated, otherwise ignored)
    *
-   * @param odPathSet the fixed od path set in the shape of an od path matrix
+   * @return path filter configurator
    */
-  public void setOdPathMatrix(final OdPathMatrix odPathSet) {
-    registerDelayedMethodCall(SET_OD_PATH_MATRIX, odPathSet);
+  public PathFilterConfigurator getPathFilter() {
+    return pathFilterConfigurator;
+  }
+
+  /**
+   * Get the threshold below which paths are expected to be removed (and therefore no longer considered in path choice,
+   * where 0 means only unused paths will be removed whereas 1 means all paths will be removed
+   *
+   * @return removePathPobabilityThreshold set
+   */
+  public double getRemovePathPobabilityThreshold() {
+    return getTypedFirstParameterOfDelayedMethodCall(SET_REMOVE_PATH_PROBABILITY_THRESHOLD);
+  }
+
+  /**
+   * Set the threshold below which paths are expected to be removed (and therefore no longer considered in path choice,
+   * where 0 means only unused paths will be removed whereas 1 means all paths will be removed
+   *
+   * @param removePathPobabilityThreshold the threshold to apply (between 0 and 1)
+   */
+  public void setRemovePathPobabilityThreshold(double removePathPobabilityThreshold) {
+    registerDelayedMethodCall(SET_REMOVE_PATH_PROBABILITY_THRESHOLD,removePathPobabilityThreshold);
   }
 }

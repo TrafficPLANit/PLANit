@@ -4,6 +4,7 @@ import org.goplanit.userclass.TravellerType;
 import org.goplanit.utils.id.*;
 import org.goplanit.utils.time.TimePeriod;
 
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
 /**
@@ -22,7 +23,7 @@ public class TravellerTypes extends ManagedIdEntitiesImpl<TravellerType> impleme
    * @param tokenId to use
    */
   public TravellerTypes(final IdGroupingToken tokenId) {
-    super(TravellerType::getId, TravellerType.TRAVELLERTYPE_ID_CLASS);
+    super(new TreeMap<>(), TravellerType::getId, TravellerType.TRAVELLERTYPE_ID_CLASS);
     this.factory = new TravellerTypesFactory(tokenId, this);
   }
 
@@ -42,7 +43,8 @@ public class TravellerTypes extends ManagedIdEntitiesImpl<TravellerType> impleme
   /**
    * Retrieve a TravelerType by its XML Id
    * <p>
-   * This method is not efficient, since it loops through all the registered traveler type in order to find the required entry.
+   * This method is not efficient, since it loops through all the registered traveler type in order to
+   * find the required entry.
    *
    * @param xmlId the XML Id of the specified traveler type
    * @return the retrieved traveler type, or null if no traveler type was found

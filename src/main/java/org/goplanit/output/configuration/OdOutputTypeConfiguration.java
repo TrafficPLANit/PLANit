@@ -6,11 +6,10 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
-import org.goplanit.output.enums.OdSkimSubOutputType;
+import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.output.property.OutputProperty;
 import org.goplanit.output.property.OutputPropertyType;
-import org.goplanit.utils.exceptions.PlanItException;
 
 /**
  * The configuration for the origin-destination output type.
@@ -68,13 +67,11 @@ public class OdOutputTypeConfiguration extends OutputTypeConfiguration {
    * Constructor
    * 
    * Define the default output properties here.
-   * 
-   * @throws PlanItException thrown if there is an error adding the default properties
    */
-  public OdOutputTypeConfiguration() throws PlanItException {
+  public OdOutputTypeConfiguration() {
     super(OutputType.OD);
     // add default sub output types (OD - SKIM - COST);
-    activeSubOutputTypes.add(OdSkimSubOutputType.COST);
+    activeSubOutputTypes.add(SkimSubOutputType.COST);
     // add default output properties
     addProperty(OutputPropertyType.TIME_PERIOD_XML_ID);
     addProperty(OutputPropertyType.MODE_XML_ID);
@@ -131,7 +128,7 @@ public class OdOutputTypeConfiguration extends OutputTypeConfiguration {
    * 
    * @param odSkimOutputType ODSkimOutputType to be activated
    */
-  public void activateOdSkimOutputType(OdSkimSubOutputType odSkimOutputType) {
+  public void activateOdSkimOutputType(SkimSubOutputType odSkimOutputType) {
     activateSubOutputType(odSkimOutputType);
   }
 
@@ -140,7 +137,7 @@ public class OdOutputTypeConfiguration extends OutputTypeConfiguration {
    * 
    * @param odSkimOutputType ODSkimOutputType to be deactivated
    */
-  public void deactivateOdSkimOutputType(OdSkimSubOutputType odSkimOutputType) {
+  public void deactivateOdSkimOutputType(SkimSubOutputType odSkimOutputType) {
     deactivateSubOutputType(odSkimOutputType);
   }
 
@@ -184,7 +181,7 @@ public class OdOutputTypeConfiguration extends OutputTypeConfiguration {
     case TIME_PERIOD_ID:
       return true;
     default:
-      LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an output property, which is inappropriate for Origin-Destination output. This will be ignored");
+      LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an output property, not registered for Origin-Destination output. This will be ignored");
     }
     return false;
   }

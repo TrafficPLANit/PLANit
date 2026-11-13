@@ -2,8 +2,10 @@ package org.goplanit.network.layer.physical;
 
 import java.util.logging.Logger;
 
-import org.goplanit.graph.directed.DirectedEdgeImpl;
+import org.goplanit.graph.ConjugateEdgeImpl;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
+import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.ConjugateLink;
@@ -20,20 +22,18 @@ import org.locationtech.jts.geom.LineString;
  * @author markr
  *
  */
-public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex, ConjugateLinkSegment> implements ConjugateLink {
+public class ConjugateLinkImpl
+        extends LinkImpl<ConjugateDirectedVertex, ConjugateLinkSegment> implements ConjugateLink {
 
   // Protected
-
-  /** UID */
-  private static final long serialVersionUID = 1017598997588544001L;
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(ConjugateLinkImpl.class.getCanonicalName());
 
   /**
-   * adjacent original directed edges represented by this conjugate
+   * adjacent originals represented by this conjugate
    */
-  protected final Pair<Link, Link> originalLinks;
+  protected final Pair<? extends EdgeSegment, ? extends EdgeSegment> originals;
 
   /**
    * Copy constructor
@@ -43,7 +43,7 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    */
   protected ConjugateLinkImpl(ConjugateLinkImpl other, boolean deepCopy) {
     super(other, deepCopy);
-    this.originalLinks = other.originalLinks.copy();
+    this.originals = other.originals.copy();
   }
 
   /**
@@ -52,24 +52,28 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param nodeA    the first node in the link
    * @param nodeB    the second node in the link
-   * @param originalLink1 to use
-   * @param originalLink2 to use
+   * @param original1 to use
+   * @param original2 to use
    */
-  protected ConjugateLinkImpl(final IdGroupingToken groupId, final ConjugateDirectedVertex nodeA, final ConjugateDirectedVertex nodeB, final Link originalLink1,
-      final Link originalLink2) {
+  protected ConjugateLinkImpl(
+          final IdGroupingToken groupId,
+          final ConjugateDirectedVertex nodeA,
+          final ConjugateDirectedVertex nodeB,
+          final EdgeSegment original1,
+          final EdgeSegment original2) {
     super(groupId, nodeA, nodeB);
-    this.originalLinks = Pair.of(originalLink1, originalLink2);
+    this.originals = Pair.of(original1, original2);
   }
 
   /**
-   * Length not supported on conjugate edge, collect from original underlying edges instead if required
-   * 
-   * @return negative infinity
+   * Length is sum of length of its underlying two edges. Computed on-the-fly. If any link is null, it is assumed
+   * length may be set to 0km for that link.
+   *
+   * @return on-the-fly length calculation
    */
   @Override
   public double getLengthKm() {
-    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, collect those instead, negative infinity returned");
-    return Double.NEGATIVE_INFINITY;
+    return ConjugateEdgeImpl.getLengthKm(this);
   }
 
   /**
@@ -79,7 +83,8 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    */
   @Override
   public void setLengthKm(double lengthInKm) {
-    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, set those instead");
+    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, " +
+        "set those instead");
   }
 
   /**
@@ -89,8 +94,7 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    */
   @Override
   public LineString getGeometry() {
-    LOGGER.warning("Geometry of conjugate is combination of underlying original geometries, collect those instead, null returned");
-    return null;
+    return ConjugateEdgeImpl.getGeometry(this);
   }
 
   /**
@@ -123,8 +127,8 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    * {@inheritDoc}
    */
   @Override
-  public Pair<? extends Link, ? extends Link> getOriginalAdjacentEdges() {
-    return this.originalLinks;
+  public Pair<? extends EdgeSegment, ? extends EdgeSegment> getOriginalAdjacentSegments() {
+    return this.originals;
   }
 
 }

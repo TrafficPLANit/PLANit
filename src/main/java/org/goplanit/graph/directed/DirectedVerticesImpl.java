@@ -49,7 +49,8 @@ public class DirectedVerticesImpl extends GraphEntitiesImpl<DirectedVertex> impl
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param biConsumer when deepCopy applied to each original and copy, may be null
    */
-  public DirectedVerticesImpl(DirectedVerticesImpl other, boolean deepCopy, BiConsumer<DirectedVertex, DirectedVertex> biConsumer) {
+  public DirectedVerticesImpl(
+      DirectedVerticesImpl other, boolean deepCopy, BiConsumer<DirectedVertex, DirectedVertex> biConsumer) {
     super(other, deepCopy, biConsumer);
     this.directedVertexFactory =
             new DirectedVertexFactoryImpl(other.directedVertexFactory.getIdGroupingToken(), this);

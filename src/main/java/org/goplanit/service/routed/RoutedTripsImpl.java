@@ -12,8 +12,10 @@ import java.util.function.BiConsumer;
  * Base class for toued trips of some derived type (either schedule or frequency based for example).
  * 
  * @author markr
+ * @param <T> type of routed trip
  */
-public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEntitiesImpl<T> implements RoutedTrips<T> {
+public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEntitiesImpl<T>
+    implements RoutedTrips<T> {
 
   /** factory for this container class */
   protected RoutedTripFactoryImpl<T> factory;
@@ -45,7 +47,7 @@ public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEnt
    */
   protected RoutedTripsImpl(RoutedTripsImpl<T> routedTripsBase, boolean deepCopy, BiConsumer<T, T> mapper) {
     super(routedTripsBase, deepCopy, mapper);
-    this.factory = null; // reset so it is clear it needs to be set by concrete implementing class afterwards
+    this.factory = null; // reset so it is clear it needs to be set by concrete implementing class afterward
   }
 
   /**

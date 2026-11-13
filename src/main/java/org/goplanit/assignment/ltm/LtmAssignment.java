@@ -10,6 +10,7 @@ import org.goplanit.supply.network.nodemodel.NodeModelComponent;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.time.TimePeriod;
 
 /**
  * Link Transmission Model implementation base implementation for network loading based on LTM network loading paradigm.
@@ -27,6 +28,17 @@ public abstract class LtmAssignment extends TrafficAssignment {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(LtmAssignment.class.getCanonicalName());
 
+  /** track most recent time period that is being simulated */
+  protected TimePeriod mostRecentTimePeriod = null;
+
+  /**
+   * set time period
+   * @param timePeriod to set
+   */
+  protected void setTimePeriod(TimePeriod timePeriod){
+    this.mostRecentTimePeriod = timePeriod;
+  }
+
   /**
    * The used network layer
    * 
@@ -37,22 +49,26 @@ public abstract class LtmAssignment extends TrafficAssignment {
   }
 
   /**
-   * Verify if the network contains a single compatible infrastructure layer because sLTM does not (yet) support multiple (or intermodal) network layers
+   * Verify if the network contains a single compatible infrastructure layer because sLTM does not (yet) support
+   * multiple (or intermodal) network layers
    *
    * @throws PlanItException thrown if the components are not compatible
    */
   @Override
   protected void verifyNetworkDemandZoningCompatibility() throws PlanItException {
-    PlanItException.throwIf(!(getInfrastructureNetwork() instanceof MacroscopicNetwork), "sLTM is only compatible with macroscopic networks");
+    PlanItException.throwIf(!(getInfrastructureNetwork() instanceof MacroscopicNetwork), "sLTM is only " +
+        "compatible with macroscopic networks");
     var macroscopicNetwork = (MacroscopicNetwork) getInfrastructureNetwork();
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
         "LTM is currently only compatible with networks using a single transport layer in its physical network");
     var networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
     if (getInfrastructureNetwork().getModes().size() != networkLayer.getSupportedModes().size()) {
-      LOGGER.warning("LTM network wide modes do not match modes supported by the single available layer, consider removing unused modes");
+      LOGGER.warning("LTM network wide modes do not match modes supported by the single available layer, consider " +
+          "removing unused modes");
     }
     if (getInfrastructureNetwork().getModes().size() != 1) {
-      LOGGER.warning(String.format("LTM currently only supports a single mode but found %d", getInfrastructureNetwork().getModes().size()));
+      LOGGER.warning(String.format("LTM currently only supports a single mode but found %d",
+          getInfrastructureNetwork().getModes().size()));
     }
   }
 
@@ -60,7 +76,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * {@inheritDoc}
    */
   @Override
-  protected void verifyComponentCompatibility() throws PlanItException {
+  protected void verifyComponentCompatibility(){
     // not implemented yet
   }
 
@@ -81,6 +97,16 @@ public abstract class LtmAssignment extends TrafficAssignment {
    */
   protected LtmAssignment(final LtmAssignment other, boolean deepCopy) {
     super(other, deepCopy);
+  }
+
+  /**
+   * Provide access to current/most recently simulated time period
+   *
+   * @return time period
+   */
+  @Override
+  public TimePeriod getTimePeriod() {
+    return this.mostRecentTimePeriod;
   }
 
   /**

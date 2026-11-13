@@ -2,7 +2,6 @@ package org.goplanit.zoning;
 
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.OdZoneFactory;
 import org.goplanit.utils.zoning.OdZones;

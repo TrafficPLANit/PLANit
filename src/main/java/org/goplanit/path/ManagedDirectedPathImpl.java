@@ -5,7 +5,8 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.path.ManagedDirectedPath;
-import org.goplanit.utils.path.SimpleDirectedPath;
+import org.goplanit.utils.path.SimpleDirectedPathImpl;
+import org.locationtech.jts.geom.Geometry;
 
 import java.util.Collection;
 import java.util.Deque;
@@ -14,8 +15,6 @@ import java.util.logging.Logger;
 
 /**
  * This object represents a path based on a number of consecutive LinkSegments
- *
- * The path creation makes use of the fact that the origin pair will have a null EdgeSegment, so there is no need to specify the origin.
  *
  * @author gman6028, markr
  *
@@ -37,6 +36,23 @@ public class ManagedDirectedPathImpl extends ExternalIdAbleImpl implements Manag
    */
   protected static long generateId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, ManagedDirectedPath.PATH_ID_CLASS);
+  }
+
+  /**
+   * Constructor
+   */
+  private ManagedDirectedPathImpl() {
+    super(-1);
+    path = new SimpleDirectedPathImpl();
+  }
+
+  /**
+   * Allow creation of specific empty path for dummy use, assigned unused id of -1.
+   *
+   * @return dummy empty path
+   */
+  public static ManagedDirectedPathImpl createEmptyDummyPath(){
+    return new ManagedDirectedPathImpl();
   }
 
   /**
@@ -128,6 +144,11 @@ public class ManagedDirectedPathImpl extends ExternalIdAbleImpl implements Manag
   @Override
   public EdgeSegment getLastSegment() {
     return this.path.getLastSegment();
+  }
+
+  @Override
+  public Geometry createGeometry() {
+    return this.path.createGeometry();
   }
 
   /**
