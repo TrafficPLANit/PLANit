@@ -5,15 +5,19 @@ import org.goplanit.algorithms.sampling.demands.enums.DiscreteDemandsDownSamplin
 import org.goplanit.algorithms.sampling.demands.DiscreteDemandsDownSamplingSettings;
 import org.goplanit.algorithms.sampling.demands.enums.DownSamplingBalanceGroup;
 import org.goplanit.demands.TimePeriods;
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.binning.BinningConfiguration;
 import org.goplanit.utils.time.LocalTimeUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,6 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @author markr
  */
 public class DiscreteDemandsDownSamplingSettingsTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   /** the default departure period boundaries */
   private static final List<LocalTime> DEFAULT_PERIODS = List.of(LocalTime.of(6, 0), LocalTime.of(8, 0),
@@ -58,6 +65,24 @@ public class DiscreteDemandsDownSamplingSettingsTest {
    */
   private static int periodOf(BinningConfiguration<Integer> periods, LocalTime dayStart, LocalTime time) {
     return periods.binIndexOf((int) LocalTimeUtils.secondsFromWrapAroundDayAnchor(dayStart, time));
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(DiscreteDemandsDownSamplingSettingsTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
   }
 
   /** Every setting starts at its default */

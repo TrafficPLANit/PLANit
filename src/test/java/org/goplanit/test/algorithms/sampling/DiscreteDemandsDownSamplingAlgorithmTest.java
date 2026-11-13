@@ -12,6 +12,8 @@ import org.goplanit.demands.discrete.DiscreteDemands;
 import org.goplanit.demands.discrete.household.Household;
 import org.goplanit.demands.discrete.person.Person;
 import org.goplanit.demands.discrete.trip.TripUtils;
+import org.goplanit.logging.Logging;
+import org.goplanit.test.algorithms.sampling.utils.DownSamplingTestDemands;
 import org.goplanit.utils.id.IdAbleUtils;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -20,7 +22,9 @@ import org.goplanit.utils.unit.Unit;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.zoning.zonetozone.OdSkimMatrix;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,11 +36,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
-import static org.goplanit.test.algorithms.sampling.DownSamplingTestDemands.SHARED_TOUR_EVERY;
-import static org.goplanit.test.algorithms.sampling.DownSamplingTestDemands.collectXmlIdsOfSamplingUnitMembers;
+import static org.goplanit.test.algorithms.sampling.utils.DownSamplingTestDemands.SHARED_TOUR_EVERY;
+import static org.goplanit.test.algorithms.sampling.utils.DownSamplingTestDemands.collectXmlIdsOfSamplingUnitMembers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -47,6 +52,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author markr
  */
 public class DiscreteDemandsDownSamplingAlgorithmTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   /** index of the car driven trips in the values of a household */
   private static final int CAR_DRIVEN_TRIPS = 0;
@@ -184,6 +192,24 @@ public class DiscreteDemandsDownSamplingAlgorithmTest {
   private DiscreteDemandsDownSamplingAlgorithm createAlgorithm(DiscreteDemandsDownSamplingAlgorithmType type) {
     settings.setAlgorithmType(type);
     return DiscreteDemandsDownSamplingAlgorithmFactory.create(settings);
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(DiscreteDemandsDownSamplingAlgorithmTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
   }
 
   /** The synthetic demands' grid of zones, modes and lookup, and the settings, before each test */

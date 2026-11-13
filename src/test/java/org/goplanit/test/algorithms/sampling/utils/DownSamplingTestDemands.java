@@ -1,4 +1,4 @@
-package org.goplanit.test.algorithms.sampling;
+package org.goplanit.test.algorithms.sampling.utils;
 
 import org.goplanit.demands.discrete.DiscreteDemands;
 import org.goplanit.demands.discrete.person.EmploymentStatus;
@@ -6,11 +6,6 @@ import org.goplanit.demands.discrete.person.Person;
 import org.goplanit.demands.discrete.person.Sex;
 import org.goplanit.demands.discrete.person.StudyStatus;
 import org.goplanit.demands.discrete.util.DirectionBound;
-import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.output.enums.SkimSubOutputType;
-import org.goplanit.utils.geo.HilbertCurveUtils;
-import org.goplanit.utils.geo.PlanitJtsCrsUtils;
-import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.HashUtils;
 import org.goplanit.utils.mode.Mode;
@@ -33,6 +28,7 @@ import static org.goplanit.test.demands.DiscreteDemandsTestUtils.addAccompanying
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerHousehold;
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerPerson;
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerTour;
+import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerTourThereAndBack;
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerTrip;
 
 /**
@@ -63,9 +59,6 @@ public final class DownSamplingTestDemands {
 
   /** zones along each side of the grid */
   private static final int GRID_SIDE = 20;
-
-  /** metres between the centres of neighbouring zones */
-  private static final double ZONE_SPACING_METRES = 1000;
 
   /** distance of a trip within a zone */
   private static final double INTRAZONAL_KM = 0.5;
@@ -193,31 +186,15 @@ public final class DownSamplingTestDemands {
    */
   public DownSamplingTestDemands(IdGroupingToken token) {
     this.token = token;
-    var network = new MacroscopicNetwork(token);
-    car = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
-    bus = network.getModes().getFactory().registerNew(PredefinedModeType.BUS);
-    walk = network.getModes().getFactory().registerNew(PredefinedModeType.PEDESTRIAN);
-    var layer = network.getTransportLayers().getFactory().registerNew();
-    zoning = new Zoning(token, layer.getLayerIdGroupingToken());
-    zoning.setCoordinateReferenceSystem(PlanitJtsCrsUtils.CARTESIANCRS);
-    for (int x = 0; x < GRID_SIDE; ++x) {
-      for (int y = 0; y < GRID_SIDE; ++y) {
-        var zone = zoning.getOdZones().getFactory().registerNew();
-        zone.setXmlId(x + "_" + y);
-        zone.getCentroid().setPosition(PlanitJtsUtils.createPoint(x * ZONE_SPACING_METRES, y * ZONE_SPACING_METRES));
-      }
-    }
-    curveOrder = HilbertCurveUtils.sortAlongCurve(
-        zoning.getOdZones(), zone -> zone.getGeometryCentreOrCentroidPosition().getCoordinate());
-
-    var skim = new OdSkimMatrix(zoning.getOdZones(), SkimSubOutputType.DISTANCE);
-    for (var origin : zoning.getOdZones()) {
-      for (var destination : zoning.getOdZones()) {
-        skim.setValue(origin, destination, origin == destination ? INTRAZONAL_KM :
+    var grid = new DownSamplingTestGrid(token, GRID_SIDE, 0, (x, y) -> x + "_" + y,
+        (origin, destination) -> origin == destination ? INTRAZONAL_KM :
             origin.getCentroid().getPosition().distance(destination.getCentroid().getPosition()) / 1000);
-      }
-    }
-    distances = Map.of(car, skim, bus, skim, walk, skim);
+    car = grid.getMode(PredefinedModeType.CAR);
+    bus = grid.getMode(PredefinedModeType.BUS);
+    walk = grid.getMode(PredefinedModeType.PEDESTRIAN);
+    zoning = grid.getZoning();
+    curveOrder = grid.getCurveOrder();
+    distances = grid.getDistances();
   }
 
   /**
@@ -253,18 +230,15 @@ public final class DownSamplingTestDemands {
 
       if (mixedUnits && index > 2 * SHARED_TOUR_EVERY && index % SHARED_TOUR_EVERY == 1
           && firstPersonOfHouseholdBefore != null) {
-        var visit = registerTour(demands, persons.get(0), zone, firstPersonOfHouseholdBefore.getHousehold().getZone(),
-            "visit");
-        addAccompanyingParticipant(visit, firstPersonOfHouseholdBefore);
-        registerTrip(demands, visit, DirectionBound.OUTBOUND, car, LocalTime.of(11, 0));
-        registerTrip(demands, visit, DirectionBound.INBOUND, car, LocalTime.of(14, 0));
+        registerTourThereAndBack(demands, List.of(persons.get(0), firstPersonOfHouseholdBefore), zone,
+            firstPersonOfHouseholdBefore.getHousehold().getZone(), "visit", car, LocalTime.of(11, 0),
+            LocalTime.of(14, 0));
       }
       if (mixedUnits && index % PERSON_ALONE_EVERY == PERSON_ALONE_EVERY / 2) {
         var alone = registerPerson(demands, null, "p" + index, 30, EmploymentStatus.FULL_TIME,
             StudyStatus.NOT_STUDYING, true, Sex.FEMALE);
-        var commute = registerTour(demands, alone, zone, curveOrder.get(random.nextInt(curveOrder.size())), "work");
-        registerTrip(demands, commute, DirectionBound.OUTBOUND, car, LocalTime.of(7, 30));
-        registerTrip(demands, commute, DirectionBound.INBOUND, car, LocalTime.of(17, 0));
+        registerTourThereAndBack(demands, List.of(alone), zone, curveOrder.get(random.nextInt(curveOrder.size())),
+            "work", car, LocalTime.of(7, 30), LocalTime.of(17, 0));
       }
       firstPersonOfHouseholdBefore = persons.get(0);
     }

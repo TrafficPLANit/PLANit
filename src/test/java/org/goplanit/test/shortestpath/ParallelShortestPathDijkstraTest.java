@@ -3,9 +3,12 @@ package org.goplanit.test.shortestpath;
 import org.goplanit.algorithms.parallel.shortest.ParallelShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
+import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetworkUtils;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGenerator;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,6 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author markr
  */
 public class ParallelShortestPathDijkstraTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   /**
    * Cost to reach every vertex in a one-to-all result
@@ -48,6 +55,24 @@ public class ParallelShortestPathDijkstraTest {
 
   /** every node of the grid as origin, in an order other than their ids */
   private List<DirectedVertex> origins;
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(ParallelShortestPathDijkstraTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
+  }
 
   /**
    * A grid of 6 by 6 nodes, 1 km apart, with every link two way, and costs that differ from segment to segment so

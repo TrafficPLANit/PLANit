@@ -5,12 +5,16 @@ import org.goplanit.demands.discrete.person.PersonUtils;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.trip.Trip;
 import org.goplanit.demands.discrete.util.DirectionBound;
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalTime;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,6 +23,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * than of any modification applied to it.
  */
 class ActivityScheduleChronologyTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   private DiscreteDemands discreteDemands;
 
@@ -198,5 +205,23 @@ class ActivityScheduleChronologyTest {
     assertTrue(
         PersonUtils.findPersonsWithNonChronologicalSchedule(discreteDemands.getPersons(), DAY_ANCHOR).isEmpty(),
         "person without a schedule reported as inconsistent");
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(ActivityScheduleChronologyTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
   }
 }

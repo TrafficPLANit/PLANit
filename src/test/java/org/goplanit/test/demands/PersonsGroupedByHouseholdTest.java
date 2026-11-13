@@ -2,12 +2,16 @@ package org.goplanit.test.demands;
 
 import org.goplanit.demands.discrete.DiscreteDemands;
 import org.goplanit.demands.discrete.person.Person;
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -19,6 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
  * @author markr
  */
 class PersonsGroupedByHouseholdTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   /**
    * Two persons of one household, one of another, and one without a household: the index holds the two households,
@@ -44,5 +51,23 @@ class PersonsGroupedByHouseholdTest {
     assertEquals(Set.of(onlyOfSecond), new HashSet<>(index.get(secondHousehold)), "persons of the second household");
     assertFalse(index.values().stream().anyMatch(group -> group.contains(withoutHousehold)),
         "person without a household in the index");
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(PersonsGroupedByHouseholdTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
   }
 }

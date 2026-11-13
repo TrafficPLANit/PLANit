@@ -9,9 +9,13 @@ import org.goplanit.algorithms.sampling.demands.result.DownSamplingTotal;
 import org.goplanit.algorithms.sampling.demands.result.DownSamplingTotalsSummary;
 import org.goplanit.algorithms.sampling.demands.enums.DownSamplingZoneMeasure;
 import org.goplanit.demands.discrete.DiscreteDemands;
+import org.goplanit.logging.Logging;
+import org.goplanit.test.algorithms.sampling.utils.DownSamplingTestDemands;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -21,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -35,6 +40,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author markr
  */
 public class DiscreteDemandsDownSamplingStatisticsTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   /** id token of the test */
   private final IdGroupingToken token = IdGroupingToken.collectGlobalToken();
@@ -54,6 +62,24 @@ public class DiscreteDemandsDownSamplingStatisticsTest {
   private DiscreteDemandsDownSamplingStatistics downSample(DiscreteDemands demands) {
     return DiscreteDemandsDownSamplingAlgorithmFactory.create(settings)
         .downSample(demands, synthetic.getZoning(), synthetic.getDistances(), false);
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(DiscreteDemandsDownSamplingStatisticsTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
   }
 
   /** The synthetic demands' grid of zones, modes and lookup, and the settings, before each test */

@@ -11,15 +11,30 @@ import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.tour.TourParticipantRole;
 import org.goplanit.demands.discrete.trip.Trip;
 import org.goplanit.demands.discrete.util.DirectionBound;
+import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.zoning.OdZone;
 
 import java.time.LocalTime;
+import java.util.List;
 
 /**
  * Builds discrete demands in tests
  */
 public final class DiscreteDemandsTestUtils {
+
+  /**
+   * A demand whose day starts at the given time, by one time period of 24 hours from it
+   *
+   * @param token to create it with
+   * @param dayStart time its day starts at
+   * @return the demand
+   */
+  public static DiscreteDemands createDemandsWithDayStart(IdGroupingToken token, LocalTime dayStart) {
+    var demands = new DiscreteDemands(token);
+    demands.getTimePeriods().getFactory().registerNew(dayStart.toSecondOfDay(), 24 * 3600);
+    return demands;
+  }
 
   /**
    * Register a household
@@ -126,5 +141,28 @@ public final class DiscreteDemandsTestUtils {
     var participation = tour.addParticipant(person, TourParticipantRole.ACCOMPANYING, driver);
     person.getSchedule().add(participation);
     return participation;
+  }
+
+  /**
+   * Register a tour with a trip there and a trip back by one mode, made by the first of the given persons with the
+   * others accompanying, without knowing whether they drive
+   *
+   * @param demands to register it on
+   * @param participants making it, the primary participant first
+   * @param origin of the tour
+   * @param destination of the tour
+   * @param purpose of the tour
+   * @param mode of both trips
+   * @param departure time of the trip there
+   * @param returnDeparture time of the trip back
+   * @return the tour
+   */
+  public static Tour registerTourThereAndBack(DiscreteDemands demands, List<Person> participants, OdZone origin,
+      OdZone destination, String purpose, Mode mode, LocalTime departure, LocalTime returnDeparture) {
+    var tour = registerTour(demands, participants.get(0), origin, destination, purpose);
+    participants.stream().skip(1).forEach(person -> addAccompanyingParticipant(tour, person));
+    registerTrip(demands, tour, DirectionBound.OUTBOUND, mode, departure);
+    registerTrip(demands, tour, DirectionBound.INBOUND, mode, returnDeparture);
+    return tour;
   }
 }

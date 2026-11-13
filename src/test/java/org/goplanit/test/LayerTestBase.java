@@ -3,7 +3,9 @@ package org.goplanit.test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.id.IdGenerator;
@@ -16,7 +18,9 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionCon
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.locationtech.jts.geom.Coordinate;
 
@@ -25,6 +29,9 @@ import org.locationtech.jts.geom.Coordinate;
  * segments running between two nodes, and spatial junctions over nodes. Ids are reset before and after each test
  */
 public abstract class LayerTestBase {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   /** measures in the Cartesian coordinates of the nodes, in metres */
   protected static final PlanitJtsCrsUtils CARTESIAN = new PlanitJtsCrsUtils(PlanitJtsCrsUtils.CARTESIANCRS);
@@ -81,6 +88,24 @@ public abstract class LayerTestBase {
   /** a signalised junction at the node, every segment entering it an approach */
   protected Intersection signalisedJunctionAt(int node) {
     return intersectionAt(node, IntersectionControlType.SIGNALISED, IntersectionType.JUNCTION);
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(LayerTestBase.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
   }
 
   /**

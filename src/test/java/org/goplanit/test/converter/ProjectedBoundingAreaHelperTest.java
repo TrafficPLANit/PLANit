@@ -1,11 +1,16 @@
 package org.goplanit.test.converter;
 
 import org.goplanit.converter.utils.ProjectedBoundingAreaHelper;
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Polygon;
+
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -17,6 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author markr
  */
 public class ProjectedBoundingAreaHelperTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   private static final String AUSTRALIA = "Australia";
 
@@ -61,6 +69,24 @@ public class ProjectedBoundingAreaHelperTest {
   private static ProjectedBoundingAreaHelper createHelper(double allowanceMeters) {
     return ProjectedBoundingAreaHelper.of(
         createBoundingPolygon(), PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS, AUSTRALIA, allowanceMeters);
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(ProjectedBoundingAreaHelperTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
   }
 
   @Test

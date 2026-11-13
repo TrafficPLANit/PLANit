@@ -2,12 +2,16 @@ package org.goplanit.test.zoning;
 
 import org.goplanit.converter.zoning.connectoid.OdConnectoidAttachment;
 import org.goplanit.converter.zoning.connectoid.OdConnectoidCreationSettings;
+import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.PredefinedModeType;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -20,6 +24,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author markr
  */
 public class OdConnectoidCreationSettingsTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(OdConnectoidCreationSettingsTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
+  }
 
   /** Every setting starts at its default */
   @Test

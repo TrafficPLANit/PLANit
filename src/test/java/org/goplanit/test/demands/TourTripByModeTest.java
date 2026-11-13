@@ -3,6 +3,7 @@ package org.goplanit.test.demands;
 import org.goplanit.demands.discrete.DiscreteDemands;
 import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.util.DirectionBound;
+import org.goplanit.logging.Logging;
 import org.goplanit.mode.ModeFeaturesFactory;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.id.IdGenerator;
@@ -14,8 +15,12 @@ import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.mode.UseOfModeType;
 import org.goplanit.utils.mode.VehicularModeType;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,6 +29,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * holding it
  */
 public class TourTripByModeTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   private MacroscopicNetwork network;
 
@@ -42,6 +50,24 @@ public class TourTripByModeTest {
    */
   private void registerTripBy(Tour tour, PredefinedModeType modeType) {
     registerTripBy(tour, network.getModes().get(modeType));
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(TourTripByModeTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
   }
 
   @BeforeEach

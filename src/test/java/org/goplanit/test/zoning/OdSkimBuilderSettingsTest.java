@@ -1,13 +1,18 @@
 package org.goplanit.test.zoning;
 
+import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.zoning.zonetozone.IntrazonalDistanceMethod;
 import org.goplanit.zoning.zonetozone.OdSkimBuilderSettings;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -22,6 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class OdSkimBuilderSettingsTest {
 
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
+
   /** car mode */
   private Mode car;
 
@@ -30,6 +38,24 @@ public class OdSkimBuilderSettingsTest {
 
   /** bus mode */
   private Mode bus;
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(OdSkimBuilderSettingsTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
+  }
 
   /** Car, taxi and bus, before each test */
   @BeforeEach

@@ -8,6 +8,7 @@ import org.goplanit.demands.discrete.DiscreteDemands;
 import org.goplanit.demands.discrete.trip.Trip;
 import org.goplanit.demands.discrete.trip.TripUtils;
 import org.goplanit.demands.discrete.util.DirectionBound;
+import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.userclass.UserClass;
 import org.goplanit.output.enums.SkimSubOutputType;
@@ -27,7 +28,9 @@ import org.goplanit.zoning.zonetozone.OdDemandMatrix;
 import org.goplanit.zoning.zonetozone.OdSkimBuilderSettings;
 import org.goplanit.zoning.zonetozone.OdSkimMatrix;
 import org.goplanit.zoning.zonetozone.OdSkimMatrixUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -39,6 +42,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.addAccompanyingParticipant;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,6 +55,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author markr
  */
 public class TripLengthDistributionTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   /** tolerance on trips and kilometres */
   private static final double TOLERANCE = 1e-5;
@@ -108,6 +115,24 @@ public class TripLengthDistributionTest {
     Trip outbound = discreteDemands.getTrips().getFactory().registerNew(tour, DirectionBound.OUTBOUND, true);
     outbound.setMode(car);
     return outbound;
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(TripLengthDistributionTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
   }
 
   /** Zones A and B, the skims and the OD demand, before each test */

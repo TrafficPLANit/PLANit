@@ -1,10 +1,14 @@
 package org.goplanit.test.algorithms.sampling;
 
 import org.goplanit.algorithms.sampling.BalancedSamplingUnits;
+import org.goplanit.logging.Logging;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
 import java.util.SplittableRandom;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,8 +20,29 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class BalancedSamplingUnitsTest {
 
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
+
   /** no values for totals kept per stratum */
   private static final double[] NO_STRATUM_VALUES = new double[0];
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(BalancedSamplingUnitsTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
+  }
 
   /**
    * Totals A of 0 or 1, B between 0 and 1, A + B, 2 for every unit, 0 for every unit, C of 1 for one unit only, and 3A -

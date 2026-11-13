@@ -2,10 +2,18 @@ package org.goplanit.test.algorithms.sampling;
 
 import org.goplanit.algorithms.sampling.BalancedSampler;
 import org.goplanit.algorithms.sampling.BalancedSamplingUnits;
+import org.goplanit.logging.Logging;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.SplittableRandom;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -20,8 +28,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class BalancedSamplerTest {
 
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
+
   /** no values for totals kept per stratum */
   private static final double[] NO_STRATUM_VALUES = new double[0];
+
+  /** car driven kilometres of five households in one zone, h4, h12, h2, h11 and h16 in that order */
+  private static final double[][] FIVE_HOUSEHOLDS_KM = {{2}, {6}, {4}, {4}, {4}};
 
   /**
    * Count the units kept whose value at the given position is 1
@@ -57,6 +71,17 @@ public class BalancedSamplerTest {
   }
 
   /**
+   * Draw 2 of the five households, each with chance 0.4, balancing their car driven kilometres on a target of 8
+   *
+   * @param seed of the draw
+   * @return the households kept by their place in the order
+   */
+  private static List<Integer> drawTwoOfFiveHouseholds(long seed) {
+    return new BalancedSampler(1).draw(createOneStratum(0.4, FIVE_HOUSEHOLDS_KM), seed).stream().boxed()
+        .collect(Collectors.toList());
+  }
+
+  /**
    * 100 units, a count A of 1 for 30 of them spread through the order, three in every ten, and values B and C drawn
    * between 0 and 1, in the order given. With A and one value only, A would be kept exactly in either order: the units
    * left undecided with A of 1 always have chances adding up to a whole number, so the landing never needs to give A
@@ -76,6 +101,24 @@ public class BalancedSamplerTest {
       values[unit] = countFirst ? new double[]{countA, valueB, valueC} : new double[]{valueB, valueC, countA};
     }
     return values;
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(BalancedSamplerTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
   }
 
   /**
@@ -300,5 +343,45 @@ public class BalancedSamplerTest {
     var onOneThread = new BalancedSampler(1).draw(units, 42);
     assertEquals(onOneThread, new BalancedSampler(1).draw(units, 42));
     assertEquals(onOneThread, new BalancedSampler(8).draw(units, 42));
+  }
+
+  /**
+   * Five households in one zone keeping 2 of them, h4, h12, h2, h11 and h16 with 2, 6, 4, 4 and 4 car driven km, each
+   * with chance 0.4 and the km balanced on a target of 8. A step takes three households, the km and the count leaving
+   * one direction. At seed 1 each of the three steps moves along it: the first keeps h2, the second drops h4 and h12,
+   * the third keeps h16 against h11, 8 km
+   */
+  @Test
+  public void testTwoOfFiveHouseholdsEveryStepAlong() {
+    assertEquals(List.of(2, 4), drawTwoOfFiveHouseholds(1));
+  }
+
+  /**
+   * At seed 0 the three steps of the five households go against, against and along: h2 and h11 are dropped and h16 is
+   * kept, leaving h4 and h12 at 0.5 with no direction that keeps both the km and the count. The landing gives up the
+   * km and keeps h4, 6 km
+   */
+  @Test
+  public void testTwoOfFiveHouseholdsLanding() {
+    assertEquals(List.of(0, 4), drawTwoOfFiveHouseholds(0));
+  }
+
+  /**
+   * Over 10,000 seeds each pair of the five households is kept as often as the chances of the steps leading to it
+   * multiply out to, within 0.02, so each household is kept in 2 draws of 5, and the km come out at 8 in 79 draws of
+   * 125, against 4 pairs in 10 drawn at random
+   */
+  @Test
+  public void testTwoOfFiveHouseholdsPairsKeptWithTheirChances() {
+    var chanceOfPair = Map.of(
+        List.of(0, 1), 27 / 125.0, List.of(2, 4), 12 / 75.0, List.of(2, 3), 4 / 25.0, List.of(3, 4), 12 / 125.0,
+        List.of(1, 2), 1 / 25.0, List.of(0, 2), 1 / 25.0, List.of(1, 3), 9 / 125.0, List.of(0, 3), 9 / 125.0,
+        List.of(1, 4), 9 / 125.0, List.of(0, 4), 9 / 125.0);
+    var draws = new HashMap<List<Integer>, Integer>();
+    for (int seed = 0; seed < 10_000; ++seed) {
+      draws.merge(drawTwoOfFiveHouseholds(seed), 1, Integer::sum);
+    }
+    assertEquals(chanceOfPair.keySet(), draws.keySet());
+    chanceOfPair.forEach((pair, chance) -> assertEquals(chance, draws.get(pair) / 10_000.0, 0.02));
   }
 }

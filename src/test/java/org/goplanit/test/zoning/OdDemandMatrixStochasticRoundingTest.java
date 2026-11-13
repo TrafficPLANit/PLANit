@@ -1,11 +1,16 @@
 package org.goplanit.test.zoning;
 
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.zoning.zonetozone.OdDemandMatrix;
 import org.goplanit.zoning.zonetozone.OdDemands;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,6 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author markr
  */
 public class OdDemandMatrixStochasticRoundingTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   /** demand of the 16 cells of four zones, origin by origin, with zeros, values up to the bound of 1 and above it */
   private static final double[] DEMAND =
@@ -51,6 +59,24 @@ public class OdDemandMatrixStochasticRoundingTest {
           zones.getByXmlId(String.valueOf(cell / 4)), zones.getByXmlId(String.valueOf(cell % 4)));
     }
     return rounded;
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(OdDemandMatrixStochasticRoundingTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
   }
 
   /** Cells of zero and cells above the bound keep their demand, the others become 0 or the bound */

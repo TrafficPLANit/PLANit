@@ -3,11 +3,14 @@ package org.goplanit.test.path.choice;
 import org.goplanit.choice.logit.BoundedMultinomialLogit;
 import org.goplanit.choice.logit.MultinomialLogit;
 import org.goplanit.choice.weibit.Weibit;
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.junit.jupiter.api.*;
+
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,6 +18,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * Test for the MNL logit implementation
  */
 public class ChoiceTest {
+
+    /** the logger, giving the log output PLANit's format */
+    private static Logger LOGGER = null;
 
     private static final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("ChoiceTest");
 
@@ -38,6 +44,24 @@ public class ChoiceTest {
      */
     @AfterAll
     public static void tearDown() {
+    }
+
+    /**
+     * Create the logger once for all tests of the class
+     *
+     * @throws Exception when the log file cannot be opened
+     */
+    @BeforeAll
+    public static void setUpLogger() throws Exception {
+        if (LOGGER == null) {
+            LOGGER = Logging.createLogger(ChoiceTest.class);
+        }
+    }
+
+    /** Close the logger after all tests of the class */
+    @AfterAll
+    public static void tearDownLogger() {
+        Logging.closeLogger(LOGGER);
     }
 
     //@formatter:off

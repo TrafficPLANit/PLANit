@@ -6,12 +6,16 @@ import org.goplanit.demands.discrete.person.EmploymentStatus;
 import org.goplanit.demands.discrete.person.Person;
 import org.goplanit.demands.discrete.person.Sex;
 import org.goplanit.demands.discrete.person.StudyStatus;
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,6 +24,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * household holds the same values as the original, and what is concluded from them rests only on values that are known.
  */
 public class PersonHouseholdAttributesTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   /**
    * Assert that none of the person's age, sex, employment status, study status and car licence is known
@@ -54,6 +61,24 @@ public class PersonHouseholdAttributesTest {
     person.setCarLicence(true);
     person.setInitialPurpose("home");
     return person;
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(PersonHouseholdAttributesTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
   }
 
   @BeforeEach

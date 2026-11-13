@@ -3,11 +3,16 @@ package org.goplanit.test.nodemodel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelInput;
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.math.Precision;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ojalgo.array.Array1D;
 import org.ojalgo.array.Array2D;
+
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -20,9 +25,30 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public class TamperNodeModelSimpleTest {
 
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
+
   Array1D<Double> inCapacities;
   Array1D<Double> outReceivingFlows;
   Array2D<Double> turnSendingflows;
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(TamperNodeModelSimpleTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
+  }
 
   //@formatter:off
   @BeforeEach

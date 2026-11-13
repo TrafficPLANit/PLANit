@@ -2,7 +2,12 @@ package org.goplanit.test.algorithms.intersection;
 
 import org.goplanit.algorithms.intersection.GreenRatioAlgorithmType;
 import org.goplanit.algorithms.intersection.GreenRatioAndSaturationFlowFactorSettings;
+import org.goplanit.logging.Logging;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,6 +18,27 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author markr
  */
 public class GreenRatioAndSaturationFlowFactorSettingsTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(GreenRatioAndSaturationFlowFactorSettingsTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
+  }
 
   /** The defaults: capacity weighted, a cycle of 90 s, 5 s lost per phase change, 0.9 at an isolated crossing and at a
    * ramp meter, 30 degrees for approaches on the same axis, at most four phases, 0.5 for an approach without a signal

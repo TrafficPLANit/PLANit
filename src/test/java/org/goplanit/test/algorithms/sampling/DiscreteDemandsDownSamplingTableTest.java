@@ -11,6 +11,7 @@ import org.goplanit.demands.discrete.person.EmploymentStatus;
 import org.goplanit.demands.discrete.person.Sex;
 import org.goplanit.demands.discrete.person.StudyStatus;
 import org.goplanit.demands.discrete.util.DirectionBound;
+import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.output.enums.SkimSubOutputType;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
@@ -25,7 +26,9 @@ import org.goplanit.zoning.Zoning;
 import org.goplanit.zoning.zonetozone.OdSkimBuilderSettings;
 import org.goplanit.zoning.zonetozone.OdSkimMatrix;
 import org.goplanit.zoning.zonetozone.OdSkimMatrixUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Envelope;
@@ -34,10 +37,12 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import static org.goplanit.algorithms.sampling.demands.table.DiscreteDemandsDownSamplingTable.NOT_KNOWN;
 import static org.goplanit.algorithms.sampling.demands.enums.DownSamplingBalanceGroup.*;
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.addAccompanyingParticipant;
+import static org.goplanit.test.demands.DiscreteDemandsTestUtils.createDemandsWithDayStart;
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerHousehold;
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerPerson;
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.registerTour;
@@ -58,6 +63,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @author markr
  */
 public class DiscreteDemandsDownSamplingTableTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   /** the day start of an ActivitySim day */
   private static final LocalTime THREE_AM = LocalTime.of(3, 0);
@@ -169,17 +177,6 @@ public class DiscreteDemandsDownSamplingTableTest {
   }
 
   /**
-   * A demand with a day starting at 03:00
-   *
-   * @return the demand
-   */
-  private DiscreteDemands newDemand() {
-    var demands = new DiscreteDemands(token);
-    demands.getTimePeriods().getFactory().registerNew(THREE_AM.toSecondOfDay(), 24 * 3600);
-    return demands;
-  }
-
-  /**
    * The first half of the demand: h1 and h2 in A with tours, h3 in B and h4 in C sharing a tour, p7 without a household
    *
    * @param demands to add it to
@@ -252,10 +249,28 @@ public class DiscreteDemandsDownSamplingTableTest {
    * @return the table
    */
   private DiscreteDemandsDownSamplingTable createWholeTable() {
-    wholeDemand = newDemand();
+    wholeDemand = createDemandsWithDayStart(token, THREE_AM);
     addFirstHalf(wholeDemand);
     addSecondHalf(wholeDemand);
     return new DiscreteDemandsDownSamplingTable(settings, zoning, distances, wholeDemand);
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(DiscreteDemandsDownSamplingTableTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
   }
 
   /** Zones, modes, the lookup and the settings, before each test */
@@ -306,7 +321,7 @@ public class DiscreteDemandsDownSamplingTableTest {
   /** A demand's day starts at the start of its first time period, at midnight when it has none */
   @Test
   public void testDayStartOfTheDemand() {
-    assertEquals(THREE_AM, newDemand().getDayStartTime());
+    assertEquals(THREE_AM, createDemandsWithDayStart(token, THREE_AM).getDayStartTime());
     assertEquals(LocalTime.MIDNIGHT, new DiscreteDemands(token).getDayStartTime());
   }
 
@@ -591,7 +606,7 @@ public class DiscreteDemandsDownSamplingTableTest {
   /** A tour counts by its first trip's mode: a work tour out by bus and back on foot is a work tour by bus */
   @Test
   public void testTourByItsFirstTripsMode() {
-    var demands = newDemand();
+    var demands = createDemandsWithDayStart(token, THREE_AM);
     var household = registerHousehold(demands, "h30", a, 0, 10.0);
     var person = registerPerson(
         demands, household, "p30", 40, EmploymentStatus.FULL_TIME, StudyStatus.NOT_STUDYING, false, Sex.MALE);
@@ -609,17 +624,17 @@ public class DiscreteDemandsDownSamplingTableTest {
    * zoning */
   @Test
   public void testRefusals() {
-    var otherZoning = newDemand();
+    var otherZoning = createDemandsWithDayStart(token, THREE_AM);
     registerHousehold(otherZoning, "h20", otherZoningZone, 1, 10.0);
     assertThrows(IllegalArgumentException.class,
         () -> new DiscreteDemandsDownSamplingTable(settings, zoning, distances, otherZoning));
 
-    var noPlace = newDemand();
+    var noPlace = createDemandsWithDayStart(token, THREE_AM);
     registerHousehold(noPlace, "h21", x, 1, 10.0);
     assertThrows(IllegalArgumentException.class,
         () -> new DiscreteDemandsDownSamplingTable(settings, zoning, distances, noPlace));
 
-    var tourOfOtherZoning = newDemand();
+    var tourOfOtherZoning = createDemandsWithDayStart(token, THREE_AM);
     var traveller = registerPerson(tourOfOtherZoning, registerHousehold(tourOfOtherZoning, "h23", a, 1, 10.0), "p23",
         30, EmploymentStatus.FULL_TIME, StudyStatus.NOT_STUDYING, true, Sex.MALE);
     registerTour(tourOfOtherZoning, traveller, a, otherZoningZone, "work");

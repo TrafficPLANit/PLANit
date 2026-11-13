@@ -11,9 +11,12 @@ import org.goplanit.demands.discrete.tour.Tour;
 import org.goplanit.demands.discrete.tour.TourParticipantRole;
 import org.goplanit.demands.discrete.trip.Trip;
 import org.goplanit.demands.discrete.util.DirectionBound;
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +24,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import static org.goplanit.test.demands.DiscreteDemandsTestUtils.addAccompanyingParticipant;
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,6 +35,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * them and must be drawn exactly once.
  */
 class JointTourScheduleTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   /** ActivitySim style window, 3AM to 3AM the next day */
   private static final int WINDOW_START = 3 * 3600;
@@ -584,5 +591,23 @@ class JointTourScheduleTest {
         "persons removed not heard each");
     assertEquals(1, heard.stream().filter(event -> event instanceof RemoveHouseholdEvent).count(),
         "household removed not heard once");
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(JointTourScheduleTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
   }
 }

@@ -5,13 +5,17 @@ import org.goplanit.demands.DemandsModifierUtils;
 import org.goplanit.demands.discrete.DiscreteDemands;
 import org.goplanit.demands.discrete.DiscreteDemandsModifierUtils;
 import org.goplanit.demands.discrete.util.DirectionBound;
+import org.goplanit.logging.Logging;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -22,6 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author markr
  */
 class SyncXmlIdsToIdsTest {
+
+  /** the logger, giving the log output PLANit's format */
+  private static Logger LOGGER = null;
 
   @BeforeEach
   void setUp() {
@@ -73,6 +80,24 @@ class SyncXmlIdsToIdsTest {
     for (ExternalIdAble entity : List.<ExternalIdAble>of(timePeriod, firstType, secondType)) {
       assertEquals(String.valueOf(entity.getId()), entity.getXmlId(), "XML id not synced to the id");
     }
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(SyncXmlIdsToIdsTest.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
   }
 
   /**
