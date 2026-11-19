@@ -455,8 +455,17 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge>
    *
    * @param listener to add
    */
+  @Override
   public void addInternalListener(GraphModifierListener listener) {
     super.addInternalListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeInternalListener(GraphModifierListener listener) {
+    super.removeInternalListener(listener);
   }
 
   /**

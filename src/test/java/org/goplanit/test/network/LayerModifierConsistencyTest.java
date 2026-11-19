@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.graph.directed.modifier.DirectedGraphModifierImpl;
+import org.goplanit.graph.directed.modifier.event.MoveEdgeEndsAtVertexEvent;
 import org.goplanit.graph.directed.modifier.event.RemoveEdgeSegmentEvent;
 import org.goplanit.graph.directed.modifier.event.RemoveBannedTurnEvent;
 import org.goplanit.network.MacroscopicNetwork;
@@ -22,6 +23,7 @@ import org.goplanit.network.layer.macroscopic.intersection.modifier.event.Recrea
 import org.goplanit.network.layer.macroscopic.intersection.modifier.event.RemoveIntersectionEvent;
 import org.goplanit.network.layer.macroscopic.intersection.modifier.event.RemoveSpatialMovementEvent;
 import org.goplanit.network.layer.modifier.MacroscopicNetworkLayerModifierImpl;
+import org.goplanit.network.layer.modifier.event.ChangeLinkSegmentTypeEvent;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
@@ -45,6 +47,8 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.NonSpatialInter
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModificationEvent;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierListener;
+import org.goplanit.utils.network.layer.modifier.event.LinkSegmentTypeModificationEvent;
+import org.goplanit.utils.network.layer.modifier.event.LinkSegmentTypeModifierListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.locationtech.jts.geom.Coordinate;
 import org.junit.jupiter.api.Test;
@@ -703,8 +707,8 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     breakableOneWay(1, 2);
     var ban = layer.getBannedTurns().getFactory().registerNew(segment(0, 1), segment(1, 2));
 
-    var removedBans = layer.getLayerModifier().moveLinkEndNode(
-        footway, nodes.get(1), nodes.get(3), PlanitJtsCrsUtils.CARTESIANCRS);
+    var removedBans = layer.getLayerModifier().moveLinkEndsAtNode(
+        List.of(footway), nodes.get(1), nodes.get(3), PlanitJtsCrsUtils.CARTESIANCRS);
 
     assertSame(nodes.get(3), footway.getNodeB());
     assertFalse(nodes.get(1).getEdges().contains(footway));
@@ -716,6 +720,37 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     assertEquals(0.002, footway.getLengthKm(), 1e-9);
     assertEquals(List.of(ban), removedBans);
     assertTrue(layer.getBannedTurns().isEmpty());
+  }
+
+  /**
+   * Moving the ends at node 1 of two footways to a centre node 3 in one call: both end at 3, and the move is reported
+   * once, naming both
+   * <pre>
+   *               3       (1, 1)
+   *   0 ---> 1 &lt;--- 2     footways 0-1 and 2-1, nodes on a line, 1 m apart
+   * </pre>
+   */
+  @Test
+  public void movingTheEndsOfTwoLinksInOneCall() {
+    createNodesOnLine(3);
+    createNodes(1);
+    nodes.get(3).setPosition(PlanitJtsUtils.createPoint(1, 1));
+    var west = oneWay(0, 1);
+    var east = oneWay(2, 1);
+    var outside = new OutsideListener();
+    layer.getLayerModifier().addListener(outside, MoveEdgeEndsAtVertexEvent.EVENT_TYPE);
+
+    layer.getLayerModifier().moveLinkEndsAtNode(
+        List.of(west, east), nodes.get(1), nodes.get(3), PlanitJtsCrsUtils.CARTESIANCRS);
+
+    assertSame(nodes.get(3), west.getNodeB());
+    assertSame(nodes.get(3), east.getNodeB());
+    assertTrue(nodes.get(1).getEdges().isEmpty());
+    assertEquals(1, outside.received.size());
+    var move = (MoveEdgeEndsAtVertexEvent) outside.received.get(0);
+    assertEquals(List.of(west, east), move.getEdges());
+    assertSame(nodes.get(1), move.getPreviousEndVertex());
+    assertSame(nodes.get(3), move.getNewEndVertex());
   }
 
   // SPATIAL MOVEMENTS
@@ -1112,5 +1147,83 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     assertEquals(Set.of(car), bannedModes(movement));
     assertSame(movement, layer.getSpatialMovements().get(movement.getId()));
     assertEquals(0.001, movement.getLengthKm());
+  }
+
+  /** A listener of removed link segments can still ask the removed segment for both its end nodes, the segment being
+   * taken off its link only after the listeners have run */
+  @Test
+  public void removedSegmentKnowsItsEndNodesWhileListenersRun() {
+    createNodes(2);
+    var link = oneWay(0, 1);
+    var removed = segment(0, 1);
+    var endNodesSeen = new ArrayList<Object>();
+    layer.getLayerModifier().addListener(new DirectedGraphModifierListener() {
+      @Override public void onGraphModificationEvent(GraphModificationEvent event) { }
+      @Override public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
+        var segment = ((RemoveEdgeSegmentEvent) event).getRemovedEdgeSegment();
+        endNodesSeen.add(segment.getUpstreamVertex());
+        endNodesSeen.add(segment.getDownstreamVertex());
+      }
+    }, RemoveEdgeSegmentEvent.EVENT_TYPE);
+
+    layer.getLayerModifier().removeEdgeSegment(removed);
+
+    assertEquals(List.of(nodes.get(0), nodes.get(1)), endNodesSeen);
+    assertFalse(link.hasEdgeSegmentAb());
+    assertFalse(removed.hasParent());
+  }
+
+  /** An internal graph listener on the layer modifier keeps hearing after the other listeners are removed, and hears
+   * nothing once removed itself */
+  @Test
+  public void internalGraphListenerSurvivesClearingAndStopsOnceRemoved() {
+    createNodes(3);
+    oneWay(0, 1);
+    oneWay(1, 2);
+    var heard = new ArrayList<DirectedGraphModificationEvent>();
+    DirectedGraphModifierListener internal = new DirectedGraphModifierListener() {
+      @Override public void onGraphModificationEvent(GraphModificationEvent event) { }
+      @Override public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) { heard.add(event); }
+      @Override public EventType[] getKnownSupportedEventTypes() {
+        return new EventType[] { RemoveEdgeSegmentEvent.EVENT_TYPE };
+      }
+    };
+    var modifier = layer.getLayerModifier();
+    modifier.addInternalListener(internal);
+    modifier.removeAllNonInternalListeners();
+
+    modifier.removeEdgeSegment(segment(0, 1));
+    assertEquals(1, heard.size());
+
+    modifier.removeInternalListener(internal);
+    modifier.removeEdgeSegment(segment(1, 2));
+    assertEquals(1, heard.size());
+  }
+
+  /** An internal link segment type listener on the layer modifier keeps hearing after the other listeners are removed,
+   * and hears nothing once removed itself */
+  @Test
+  public void internalLinkSegmentTypeListenerSurvivesClearingAndStopsOnceRemoved() {
+    createNodes(2);
+    oneWay(0, 1);
+    var road = layer.getLinkSegmentTypes().getFactory().registerNew("road", 1800, 180);
+    var lane = layer.getLinkSegmentTypes().getFactory().registerNew("lane", 900, 90);
+    var heard = new ArrayList<LinkSegmentTypeModificationEvent>();
+    LinkSegmentTypeModifierListener internal = new LinkSegmentTypeModifierListener() {
+      @Override public void onLinkSegmentTypeModifierEvent(LinkSegmentTypeModificationEvent event) { heard.add(event); }
+      @Override public EventType[] getKnownSupportedEventTypes() {
+        return new EventType[] { ChangeLinkSegmentTypeEvent.EVENT_TYPE };
+      }
+    };
+    var modifier = layer.getLayerModifier();
+    modifier.addInternalListener(internal);
+    modifier.removeAllNonInternalListeners();
+
+    modifier.changeLinkSegmentType(segment(0, 1), road);
+    assertEquals(1, heard.size());
+
+    modifier.removeInternalListener(internal);
+    modifier.changeLinkSegmentType(segment(0, 1), lane);
+    assertEquals(1, heard.size());
   }
 }

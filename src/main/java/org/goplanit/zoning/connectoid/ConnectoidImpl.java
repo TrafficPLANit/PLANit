@@ -1,6 +1,7 @@
 package org.goplanit.zoning.connectoid;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -28,6 +29,10 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(ConnectoidImpl.class.getCanonicalName());
+
+  /** the containers holding this connectoid, each told when its access node changes so its index follows; null while
+   * not registered */
+  private transient List<Consumer<Connectoid>> accessNodeChangeListeners = null;
 
   // Protected
 
@@ -63,6 +68,31 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   protected void setId(long id) {
     super.setId(id);
+  }
+
+  /**
+   * Tell a container holding this connectoid when its access node changes, so its index follows; for the connectoid
+   * containers
+   *
+   * @param listener of the container, told with this connectoid after its access node changed
+   */
+  protected void addAccessNodeChangeListener(Consumer<Connectoid> listener) {
+    if (accessNodeChangeListeners == null) {
+      accessNodeChangeListeners = new ArrayList<>(1);
+    }
+    accessNodeChangeListeners.add(listener);
+  }
+
+  /**
+   * Stop telling a container that no longer holds this connectoid; for the connectoid containers
+   *
+   * @param listener of the container, as added
+   */
+  protected void removeAccessNodeChangeListener(Consumer<Connectoid> listener) {
+    if (accessNodeChangeListeners != null && accessNodeChangeListeners.removeIf(held -> held == listener)
+        && accessNodeChangeListeners.isEmpty()) {
+      accessNodeChangeListeners = null;
+    }
   }
 
   /**
@@ -148,13 +178,16 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   }
 
   /**
-   * Set the accessVertex
+   * Set the accessVertex; each container holding this connectoid follows it to its new access node
    *
    * @param accessVertex to use
    */
   @Override
   public void setReferenceVertex(final DirectedVertex accessVertex) {
     this.refVertex = accessVertex;
+    if (accessNodeChangeListeners != null) {
+      List.copyOf(accessNodeChangeListeners).forEach(listener -> listener.accept(this));
+    }
   }
 
   /**

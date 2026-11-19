@@ -88,7 +88,7 @@ public abstract class ZoneImpl extends ExternalIdAbleImpl implements Zone {
     }
     this.centroid.setParentZone(this);
 
-    this.geometry = deepCopy ? other.getGeometry().copy() : other.geometry;
+    this.geometry = deepCopy && other.geometry != null ? other.geometry.copy() : other.geometry;
     this.inputProperties = new HashMap<>();
     if (other.inputProperties != null) {
       if (deepCopy) {

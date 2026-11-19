@@ -2,9 +2,7 @@ package org.goplanit.network.layer.macroscopic;
 
 import org.goplanit.algorithms.shortest.ShortestPathBreadthFirst;
 import org.goplanit.algorithms.shortest.ShortestPathBreadthFirstResult;
-import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.algorithms.ConnectedComponents;
 import org.goplanit.utils.graph.directed.Connectivity;
 import org.goplanit.utils.graph.directed.algorithms.StronglyConnectedComponents;
@@ -16,22 +14,21 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicBannedTurn;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
-import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
-import org.goplanit.utils.network.layer.physical.LinkSegmentUtils;
 import org.goplanit.utils.network.layer.physical.LinkUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Utilities operating on a macroscopic network layer as a whole, i.e. requiring both its graph and the mode
@@ -41,16 +38,75 @@ import java.util.function.Predicate;
  */
 public class MacroscopicNetworkLayerUtils {
 
-  /** Constructor to disallow instance creation */
-  private MacroscopicNetworkLayerUtils(){}
+  /** The link segments allowing a mode in one of its subnetworks, with the number of nodes the subnetwork counts as */
+  private static final class ModeSubNetwork {
+
+    /** the link segments allowing the mode in this subnetwork */
+    private final List<MacroscopicLinkSegment> linkSegments;
+
+    /** the number of nodes this subnetwork counts as */
+    private final int numberOfNodes;
+
+    /**
+     * Constructor
+     *
+     * @param linkSegments allowing the mode in this subnetwork
+     * @param numberOfNodes the subnetwork counts as
+     */
+    private ModeSubNetwork(List<MacroscopicLinkSegment> linkSegments, int numberOfNodes) {
+      this.linkSegments = linkSegments;
+      this.numberOfNodes = numberOfNodes;
+    }
+  }
 
   /**
-   * Subnetwork sizes reported against, in vertices. Deliberately not configurable for now: the bins exist to make a
-   * size threshold choosable from a single run, and this spread is fine grained where the choice actually is, namely
-   * among the small subnetworks.
+   * Subnetwork sizes reported against, in nodes, see {@link #restrictModeAccessToConnectedSubNetworks} for how they
+   * are counted. Deliberately not configurable for now: the bins exist to make a size threshold choosable from a single
+   * run, and this spread is fine grained where the choice actually is, namely among the small subnetworks.
    */
   private static final BinningConfiguration<Integer> SUBNETWORK_SIZE_BINS =
       BinBuilder.ofInclusiveIntegerLowerBounds(1, 2, 5, 20, 50, 200);
+
+  /**
+   * Partition the link segments allowing a mode into the mode's subnetworks under the given notion of connectivity,
+   * largest first by number of nodes. Under strong connectivity a subnetwork is a set of link segments the mode can
+   * travel between both ways through the turns not banned for it, and counts as the number of different nodes its link
+   * segments start at. Under weak connectivity it is a set of nodes joined by links the mode may use in either
+   * direction, and counts as its number of nodes, holding the link segments allowing the mode that start at them; a
+   * node without any link segment of the mode is then a subnetwork of its own, without link segments
+   *
+   * @param layer to inspect
+   * @param mode to partition for
+   * @param connectivity what constitutes a subnetwork
+   * @return subnetworks, largest first
+   */
+  private static List<ModeSubNetwork> collectSubNetworks(
+      final MacroscopicNetworkLayer layer, final Mode mode, final Connectivity connectivity) {
+    final var subNetworks = new ArrayList<ModeSubNetwork>();
+    if (connectivity.isStrong()) {
+      final var linkSegmentsOfMode =
+          layer.getLinkSegments().stream().filter(ls -> ls.isModeAllowed(mode)).collect(Collectors.toList());
+      for (var component : StronglyConnectedComponents.executeOnEdgeSegments(
+          linkSegmentsOfMode, (from, onto) -> !isTurnBannedForMode(layer, from, onto, mode)).getComponents()) {
+        subNetworks.add(new ModeSubNetwork(
+            component, (int) component.stream().map(LinkSegment::getUpstreamVertex).distinct().count()));
+      }
+    } else {
+      final var linkSegmentsOfModeByUpstreamNode = layer.getLinkSegments().stream()
+          .filter(ls -> ls.isModeAllowed(mode)).collect(Collectors.groupingBy(LinkSegment::getUpstreamVertex));
+      for (var component : ConnectedComponents.execute(
+          layer.getNodes(), LinkUtils.permitsModeMatchingOnAnySegment(mode::equals))) {
+        subNetworks.add(new ModeSubNetwork(component.stream().flatMap(
+            node -> linkSegmentsOfModeByUpstreamNode.getOrDefault(node, List.of()).stream())
+            .collect(Collectors.toList()), component.size()));
+      }
+    }
+    subNetworks.sort(Comparator.comparingInt((ModeSubNetwork subNetwork) -> subNetwork.numberOfNodes).reversed());
+    return subNetworks;
+  }
+
+  /** Constructor to disallow instance creation */
+  private MacroscopicNetworkLayerUtils(){}
 
   /**
    * Withdraw a mode's access from the subnetworks of that mode which do not meet the given criteria, leaving its
@@ -70,6 +126,20 @@ public class MacroscopicNetworkLayerUtils {
    * leaves the mode with a single network it can route across in full.
    * </p>
    * <p>
+   * Under strong connectivity the mode moves from link segment to link segment through the turns not banned for it, so
+   * what keeps the mode can be routed across with every banned turn in place. A link segment that banned turns cut
+   * off, such as an on-ramp every turn onto which is banned, is then a small subnetwork like one behind a one way trap,
+   * and loses the mode in the same way; no banned turn is changed. Turning back onto the other direction of a link is a
+   * turn like any other, allowed unless banned, as a router allows it: without it, the last link segment of every
+   * dead-end street would have no way out. Ignoring direction, a banned turn has no meaning, so weak connectivity
+   * leaves banned turns out.
+   * </p>
+   * <p>
+   * The size of a subnetwork is its number of nodes. Under strong connectivity that is the number of different nodes
+   * its link segments start at; without banned turns these are the nodes a node to node partition finds, so the
+   * thresholds mean the same thing either way.
+   * </p>
+   * <p>
    * Nothing is removed here, not even a segment left with no permitted mode at all: it is given a type granting
    * nothing, and {@link MacroscopicNetworkLayerModifier#removeInfrastructureWithoutModeAccess()} clears such
    * segments once every mode has been dealt with. Keeping the two apart is what allows modes to be processed
@@ -79,13 +149,13 @@ public class MacroscopicNetworkLayerUtils {
    * Connectoids are deliberately not considered. They are not part of the physical network, so what they
    * reference does not decide what the network may do. Access is withdrawn by changing the segment's type through the
    * layer's modifier, so the zoning side can follow it with a listener, see
-   * {@link org.goplanit.zoning.modifier.event.handler.UpdateConnectoidsOnLinkSegmentChangeHandler}.
+   * {@link org.goplanit.zoning.connectoid.TransferConnectoidsImpl}.
    * </p>
    *
    * @param layer to apply this to
    * @param mode the mode whose access is judged
-   * @param belowSize withdraw access on subnetworks smaller than this
-   * @param aboveSize withdraw access on subnetworks larger than this, typically the maximum value
+   * @param belowSize withdraw access on subnetworks of fewer nodes than this
+   * @param aboveSize withdraw access on subnetworks of more nodes than this, typically the maximum value
    * @param alwaysKeepLargest when true the largest subnetwork keeps its access whatever the thresholds say
    * @param connectivity what constitutes a subnetwork of this mode
    * @param retainAccessRegardless segments that keep their access whatever the outcome, may be null. An escape
@@ -102,30 +172,28 @@ public class MacroscopicNetworkLayerUtils {
       final Connectivity connectivity,
       final Predicate<MacroscopicLinkSegment> retainAccessRegardless) {
 
-    var components = collectSubNetworks(layer, mode, connectivity);
-    final int largestSize = components.isEmpty() ? 0 : components.get(0).size();
+    var subNetworks = collectSubNetworks(layer, mode, connectivity);
+    final int largestSize = subNetworks.isEmpty() ? 0 : subNetworks.get(0).numberOfNodes;
 
-    var retainedVertices = new HashSet<Vertex>();
     int retainedSubNetworks = 0;
     var discardedSubNetworks = BinnedCount.of(SUBNETWORK_SIZE_BINS);
     var withdrawnLinkSegments = BinnedCount.of(SUBNETWORK_SIZE_BINS);
     /* so a withdrawn segment can be attributed to the size of the subnetwork it belonged to, which is what makes
      * the distribution readable rather than just the totals */
-    final Map<Vertex, Integer> discardedSubNetworkSizeByVertex = new HashMap<>();
+    final Map<MacroscopicLinkSegment, Integer> discardedSubNetworkSizeByLinkSegment = new HashMap<>();
 
-    for (var component : components) {
-      final int size = component.size();
+    for (var subNetwork : subNetworks) {
+      final int size = subNetwork.numberOfNodes;
       /* deliberately the same rule dangling subnetwork removal applies, so that the thresholds mean the same
        * thing whichever of the two a caller reaches for */
       boolean withdraw = (size < largestSize || !alwaysKeepLargest) && (size < belowSize || size > aboveSize);
       if (!withdraw) {
-        retainedVertices.addAll(component);
         ++retainedSubNetworks;
         continue;
       }
       discardedSubNetworks.increment(size);
-      for (var vertex : component) {
-        discardedSubNetworkSizeByVertex.put(vertex, size);
+      for (var linkSegment : subNetwork.linkSegments) {
+        discardedSubNetworkSizeByLinkSegment.put(linkSegment, size);
       }
     }
 
@@ -133,12 +201,11 @@ public class MacroscopicNetworkLayerUtils {
     int withdrawn = 0;
     int protectedSegments = 0;
 
+    /* in the layer's order rather than the subnetworks', so the link segment type variants withdrawing creates are
+     * made in the same order whatever order the partition finds the subnetworks in */
     for (var linkSegment : layer.getLinkSegments()) {
-      if (!linkSegment.isModeAllowed(mode)) {
-        continue;
-      }
-      if (retainedVertices.contains(linkSegment.getUpstreamVertex()) &&
-          retainedVertices.contains(linkSegment.getDownstreamVertex())) {
+      final Integer size = discardedSubNetworkSizeByLinkSegment.get(linkSegment);
+      if (size == null) {
         continue;
       }
       if (retainAccessRegardless != null && retainAccessRegardless.test(linkSegment)) {
@@ -147,35 +214,10 @@ public class MacroscopicNetworkLayerUtils {
       }
       withdrawModeAccess(layer, modifiedTypes, linkSegment, mode);
       ++withdrawn;
-
-      /* attribute to whichever end sat in a discarded subnetwork, the upstream one when both did */
-      var size = discardedSubNetworkSizeByVertex.get(linkSegment.getUpstreamVertex());
-      if (size == null) {
-        size = discardedSubNetworkSizeByVertex.get(linkSegment.getDownstreamVertex());
-      }
-      if (size != null) {
-        withdrawnLinkSegments.increment(size);
-      }
+      withdrawnLinkSegments.increment(size);
     }
-    return new ModeAccessRestrictionResult(mode, withdrawn, protectedSegments, components.size(), retainedSubNetworks,
+    return new ModeAccessRestrictionResult(mode, withdrawn, protectedSegments, subNetworks.size(), retainedSubNetworks,
         largestSize, discardedSubNetworks, withdrawnLinkSegments);
-  }
-
-  /**
-   * Partition the layer into this mode's subnetworks under the given notion of connectivity, largest first.
-   *
-   * @param layer to inspect
-   * @param mode to partition for
-   * @param connectivity what constitutes a subnetwork
-   * @return subnetworks, largest first
-   */
-  private static List<List<Node>> collectSubNetworks(
-      final MacroscopicNetworkLayer layer, final Mode mode, final Connectivity connectivity) {
-    if (connectivity.isStrong()) {
-      return StronglyConnectedComponents.execute(
-          layer.getNodes(), LinkSegmentUtils.permitsMode(mode)).getComponents();
-    }
-    return ConnectedComponents.execute(layer.getNodes(), LinkUtils.permitsModeMatchingOnAnySegment(mode::equals));
   }
 
   /**
@@ -277,63 +319,6 @@ public class MacroscopicNetworkLayerUtils {
     return ShortestPathBreadthFirst.executeAlongEdges(source,
         edge -> canFollow.test(edge) ? edge.getLengthMeters() : Double.POSITIVE_INFINITY, canReach,
         maximumDistanceMeters);
-  }
-
-  /**
-   * Search from an approach over the internal segments of a spatial intersection for a mode, see
-   * {@link #findExitsReachedThroughSpatialIntersection}. The search never goes back along the link it just came along,
-   * nor onto the approach's own link. Otherwise a mode could get round a turn banned at a member node by driving into a
-   * two-way inner link and straight back, which no driver does inside a junction, and the movement would count as one
-   * the mode can make
-   *
-   * A member node can also hold connectoid segments, once the zoning is integrated with the network, for example to
-   * write it or to assign on it. The search runs over link segments of either kind: a connectoid segment has the
-   * centroid of its zone at one end, so it is never internal, and is at most reached as an exit
-   *
-   * @param layer holding the banned turns
-   * @param intersection to search through
-   * @param approach to start from
-   * @param mode travelling, only over link segments allowing it
-   * @param respectBannedTurns when true a turn banned for the mode is not taken, when false banned turns are ignored
-   * @return the internal segments and exits reached, the approach included, each with the shortest connection to it
-   *         and its distance from where the approach ends, in metres
-   */
-  public static ShortestPathBreadthFirstResult<LinkSegment> searchThroughSpatialIntersection(
-      final MacroscopicNetworkLayer layer, final SpatialIntersection intersection,
-      final LinkSegment approach, final Mode mode, boolean respectBannedTurns) {
-    Predicate<LinkSegment> isInternal =
-        segment -> ListUtils.containsByIdentity(intersection.getInternalSegments(), segment);
-    return ShortestPathBreadthFirst.<LinkSegment>executeAlongEdgeSegments(approach, true,
-        (from, onto) -> onto.isModeAllowed(mode) && onto.getParent() != approach.getParent() &&
-            onto.getParent() != from.getParent() &&
-            (isInternal.test(onto) || intersection.isExitSegment(onto)) &&
-            !(respectBannedTurns && isTurnBannedForMode(layer, from, onto, mode)),
-        isInternal, segment -> segment.getParent().getLengthMeters(), Double.POSITIVE_INFINITY);
-  }
-
-  /**
-   * Find the exits a mode can reach from an approach over the internal segments of a spatial intersection, along the
-   * shortest connection. An exit is a link segment starting at a member node and ending outside; the exit back along
-   * the approach's own link is not counted, and a connection never goes back along the link it just came along. The
-   * search runs over link segments rather than nodes, so a banned turn between two segments at a member node is
-   * respected even when the node can be reached another way
-   *
-   * @param layer holding the banned turns
-   * @param intersection to search through
-   * @param approach to start from, or any other segment entering a member node from outside
-   * @param mode travelling, only over link segments allowing it
-   * @param respectBannedTurns when true a turn banned for the mode is not taken, when false banned turns are ignored
-   * @return each exit reached with its distance from where the approach ends, in metres, a connectoid segment leaving a
-   *         member node included, see {@link #searchThroughSpatialIntersection}
-   */
-  public static Map<LinkSegment, Double> findExitsReachedThroughSpatialIntersection(
-      final MacroscopicNetworkLayer layer, final SpatialIntersection intersection,
-      final LinkSegment approach, final Mode mode, boolean respectBannedTurns) {
-    var reached = searchThroughSpatialIntersection(layer, intersection, approach, mode, respectBannedTurns);
-    var exitsReached = new LinkedHashMap<LinkSegment, Double>();
-    reached.getReached().stream().filter(intersection::isExitSegment)
-        .forEach(exit -> exitsReached.put(exit, reached.getCostToReach(exit)));
-    return exitsReached;
   }
 
   /**

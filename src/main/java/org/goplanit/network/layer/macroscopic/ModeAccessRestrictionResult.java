@@ -30,7 +30,7 @@ public class ModeAccessRestrictionResult {
   /** number of those subnetworks that kept the mode's access */
   private final int subNetworksRetained;
 
-  /** number of vertices in the mode's largest subnetwork */
+  /** number of nodes the mode's largest subnetwork counts as */
   private final int largestSubNetworkSize;
 
   /** number of discarded subnetworks per size bin */
@@ -48,11 +48,11 @@ public class ModeAccessRestrictionResult {
    * @param protectedSegments number of link segments that kept access only because they were protected
    * @param subNetworksFound number of subnetworks the mode was found to have
    * @param subNetworksRetained number of those subnetworks that kept the mode's access
-   * @param largestSubNetworkSize number of vertices in the mode's largest subnetwork
+   * @param largestSubNetworkSize number of nodes the mode's largest subnetwork counts as
    * @param discardedSubNetworks number of discarded subnetworks per size bin
    * @param withdrawnLinkSegments number of link segments access was withdrawn on per size bin, binned the same way
    */
-  ModeAccessRestrictionResult(Mode mode, int withdrawn, int protectedSegments, int subNetworksFound,
+  protected ModeAccessRestrictionResult(Mode mode, int withdrawn, int protectedSegments, int subNetworksFound,
       int subNetworksRetained, int largestSubNetworkSize, BinnedCount<Integer> discardedSubNetworks,
       BinnedCount<Integer> withdrawnLinkSegments) {
     this.discardedSubNetworks = discardedSubNetworks;
@@ -66,7 +66,8 @@ public class ModeAccessRestrictionResult {
   }
 
   /**
-   * Number of subnetworks this mode was found to have
+   * Number of subnetworks this mode was found to have. Under strong connectivity each holds at least one link segment
+   * of the mode; under weak connectivity a node without any link segment of the mode is a subnetwork of its own
    *
    * @return count
    */
@@ -84,7 +85,8 @@ public class ModeAccessRestrictionResult {
   }
 
   /**
-   * Number of vertices in the mode's largest subnetwork
+   * Number of nodes the mode's largest subnetwork counts as, see
+   * {@link MacroscopicNetworkLayerUtils#restrictModeAccessToConnectedSubNetworks} for how they are counted
    *
    * @return count
    */
@@ -96,8 +98,9 @@ public class ModeAccessRestrictionResult {
    * How many subnetworks were discarded, by the size of the subnetwork.
    * <p>
    * Reported because the totals alone mislead when choosing a size threshold: a mode can have thousands of
-   * subnetworks discarded while barely any link segment loses access, most of them being a single vertex with
-   * no traversable segment between anything. Where the link segments sit, see
+   * subnetworks discarded while few link segments lose access, most of them being a single link segment between two
+   * subnetworks or, under weak connectivity, a single node without any link segment of the mode. Where the link
+   * segments sit, see
    * {@link #getWithdrawnLinkSegmentCounts()}, is what a threshold actually decides.
    * </p>
    *

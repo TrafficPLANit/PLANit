@@ -1276,9 +1276,6 @@ public class ZoningConverterUtils {
           Collection<Mode> ptStopAccessModes,
           Set<Mode> accessEgressModes) {
 
-    var accessEgressTypes =
-        Set.of(ZoneConnectoidType.ZONE_ACCESS,ZoneConnectoidType.ZONE_EGRESS, ZoneConnectoidType.ZONE_ACCESS_EGRESS);
-
     // reduce to zones with any main mode connectoid listed
     Set<TransferZone> mainModeTransferZones = new TreeSet<>();
     for(var entry : connectoidsByTransferZoneMapping.entrySet()){
@@ -1300,7 +1297,7 @@ public class ZoningConverterUtils {
       // check connectoid-zone-type entries of transfer zone without any alt mode support
       boolean transferZoneWithoutSupport =
           connectoidsByTransferZoneMapping.get(transferZone).stream().flatMap(
-            tc -> tc.getAccessZoneEntriesStream(accessEgressTypes)).filter(
+            tc -> tc.getAccessZoneEntriesStream(ZoneConnectoidType.ACCESS_OR_EGRESS_TYPES)).filter(
                 e -> e.getAccessZone().equals(transferZone)).noneMatch(
                     connectoidZoneEntryForTransferZone ->
                         !connectoidZoneEntryForTransferZone.isAnyModeAllowed(ptStopAccessModes) &&
@@ -1310,6 +1307,33 @@ public class ZoningConverterUtils {
       }
     }
     return Pair.of(mainModeTransferZones, transferZonesDisconnectedFromAltModes);
+  }
+
+  /**
+   * Identify the transfer zones with an access zone entry of any of the types given and of none of the types to lack,
+   * over all their connectoids. For example, the zones with access or egress but no stop, which travellers can reach
+   * but no vehicle serves
+   *
+   * @param connectoidsByTransferZoneMapping mapping can be obtained from zoning
+   * @param anyOfTypes of which a transfer zone has at least one entry
+   * @param noneOfTypes of which a transfer zone has no entry
+   * @return the transfer zones identified
+   */
+  public static Set<TransferZone> findTransferZonesWithAnyButNoneOfEntryTypes(
+      Map<Zone, Set<TransferConnectoid>> connectoidsByTransferZoneMapping,
+      Set<ZoneConnectoidType> anyOfTypes,
+      Set<ZoneConnectoidType> noneOfTypes) {
+    Set<TransferZone> transferZonesFound = new TreeSet<>();
+    for(var entry : connectoidsByTransferZoneMapping.entrySet()){
+      var transferZone = entry.getKey();
+      var entryTypesOfTransferZone = entry.getValue().stream().flatMap(
+          tc -> tc.getAccessZoneEntriesByType(transferZone).keySet().stream()).collect(Collectors.toSet());
+      if(entryTypesOfTransferZone.stream().anyMatch(anyOfTypes::contains) &&
+          entryTypesOfTransferZone.stream().noneMatch(noneOfTypes::contains)){
+        transferZonesFound.add((TransferZone) transferZone);
+      }
+    }
+    return transferZonesFound;
   }
 
   /**

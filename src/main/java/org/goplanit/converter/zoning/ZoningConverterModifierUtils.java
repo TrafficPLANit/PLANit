@@ -3,30 +3,26 @@ package org.goplanit.converter.zoning;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitEntityGeoUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
-import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.zoning.connectoid.ConnectoidUtils;
-import org.goplanit.zoning.modifier.event.handler.UpdateDirectedConnectoidsOnBreakLinkSegmentHandler;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.linearref.LinearLocation;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Utilities that change the network a zoning converter works on, through the network's modifiers and their listeners,
- * keeping the converter's data in line with the change
+ * Utilities that change the network a zoning converter works on, through the network's modifiers, keeping the
+ * converter's data in line with the change
  * <p>
- * A zoning converter keeps its own view of the network beside it: a spatial index of the links and the transfer
- * connectoids by location. Breaking a link at a node, to join a stop or a zone to the network along it, replaces the
- * link and its segments, so that view, and the connectoids reached over the old segments, would be wrong afterwards.
- * These change the network and bring the converter's data and the connectoids along in one step, as readers placing
- * stops along links and the creation of OD connectoids at new nodes both need.
+ * A zoning converter keeps its own view of the network beside it, a spatial index of the links. Breaking a link at a
+ * node, to join a stop or a zone to the network along it, replaces the link and its segments, so that view would be
+ * wrong afterwards. These change the network and bring the converter's data along in one step, as readers placing
+ * stops along links and the creation of OD connectoids at new nodes both need; the connectoids follow through their
+ * zoning.
  * </p>
  *
  * @author markr
@@ -38,45 +34,30 @@ public final class ZoningConverterModifierUtils {
   }
 
   /**
-   * Break links at a node, keeping what refers to them right: each transfer connectoid tracked by the converter data
-   * whose access link segment lies on a broken link is moved to the piece ending where its segment ended, and the
-   * spatial index of links holds the pieces in place of the links broken
+   * Break links at a node, keeping the converter's spatial index of links right: it holds the two links each broken
+   * link became, in place of the link broken. The transfer connectoids follow the break through the zoning, when it is
+   * attached to the network, see {@code Zoning#attachTo}
    * <p>
    * Breaking a link replaces each of its link segments by two, so whatever held on to the old ones is wrong afterwards:
-   * a vehicle stop would be reached over a segment that no longer ends at its stop, and a search of the spatial index
-   * would find a link whose shape has changed. Readers that place stops along links break them this way, and so does
-   * the creation of OD connectoids at new nodes. What a caller tracks of its own, such as the source ways of the links,
-   * it updates from the pieces returned.
+   * a search of the spatial index would find a link whose shape has changed. Readers that place stops along links break
+   * them this way, and so does the creation of OD connectoids at new nodes. What a caller tracks of its own, such as the
+   * source ways of the links, it updates from the links returned.
    * </p>
    *
-   * @param data of the zoning converter, its spatial index of links and transfer connectoids kept in line
+   * @param data of the zoning converter, its spatial index of links kept in line
    * @param node to break the links at, registered at its location on them
    * @param networkLayer the node and links lie on
    * @param linksToBreak the links to break
-   * @return per id of a link broken, its two pieces
+   * @return per id of a link broken, the two links it became
    */
   public static Map<Long, Pair<MacroscopicLink, MacroscopicLink>> breakLinksAtNode(ZoningConverterCommonData data,
       Node node, MacroscopicNetworkLayer networkLayer, List<MacroscopicLink> linksToBreak) {
-    var connectoidsOnLinks = ConnectoidUtils.findDirectedConnectoidsReferencingLinks(
-        linksToBreak, data.getConnectoidData().getTransferConnectoidsByLocation(networkLayer).values().stream()
-            .flatMap(Collection::stream));
-    GraphModifierListener listener = connectoidsOnLinks.isEmpty() ? null :
-        new UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(connectoidsOnLinks);
-    if (listener != null) {
-      networkLayer.getLayerModifier().addListener(listener);
-    }
-    try {
-      data.removeLinksFromSpatialLinkIndex(linksToBreak);
-      var brokenLinks = networkLayer.getLayerModifier().breakAt(
-          linksToBreak, node, data.getReferenceNetwork().getCoordinateReferenceSystem());
-      brokenLinks.values().forEach(
-          pieces -> data.addLinksToSpatialLinkIndex(networkLayer, pieces.first(), pieces.second()));
-      return brokenLinks;
-    } finally {
-      if (listener != null) {
-        networkLayer.getLayerModifier().removeListener(listener);
-      }
-    }
+    data.removeLinksFromSpatialLinkIndex(linksToBreak);
+    var brokenLinks = networkLayer.getLayerModifier().breakAt(
+        linksToBreak, node, data.getReferenceNetwork().getCoordinateReferenceSystem());
+    brokenLinks.values().forEach(
+        links -> data.addLinksToSpatialLinkIndex(networkLayer, links.first(), links.second()));
+    return brokenLinks;
   }
 
   /**

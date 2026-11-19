@@ -66,4 +66,20 @@ public class LinkSegmentTypeModifierEventProducerImpl extends EventProducerImpl
   public void removeListener(LinkSegmentTypeModifierListener listener) {
     super.removeListener(listener);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addInternalListener(LinkSegmentTypeModifierListener listener) {
+    super.addInternalListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeInternalListener(LinkSegmentTypeModifierListener listener) {
+    super.removeInternalListener(listener);
+  }
 }

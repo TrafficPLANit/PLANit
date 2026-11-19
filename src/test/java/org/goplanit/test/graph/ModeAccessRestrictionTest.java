@@ -46,6 +46,53 @@ public class ModeAccessRestrictionTest extends LayerTestBase {
   private MacroscopicLinkSegmentType walkOnly;
   private MacroscopicLinkSegmentType carOnly;
 
+  /** the safest configuration, a single subnetwork the mode can route across in full */
+  private ModeAccessRestrictionResult restrict(Mode mode) {
+    return MacroscopicNetworkLayerUtils.restrictModeAccessToConnectedSubNetworks(
+        layer, mode, Integer.MAX_VALUE, Integer.MAX_VALUE, true, Connectivity.STRONG, null);
+  }
+
+  /** run every mode then clean up, i.e. what a caller does */
+  private ModeAccessCleanupModifierResult restrictAllAndCleanUp() {
+    for (var mode : List.of(car, bus, pedestrian)) {
+      restrict(mode);
+    }
+    return layer.getLayerModifier().removeInfrastructureWithoutModeAccess();
+  }
+
+  /**
+   * A two-way street with a one-way ramp leaving it at node 1 that leads back into it at node 2, the street being of
+   * type road with footway
+   * <pre>
+   *           3 ----&gt; 4
+   *     ramp  ^        |
+   *           |        v
+   *   0 ===== 1 ====== 2
+   * </pre>
+   *
+   * @param rampType type of the three one-way link segments from node 1 by way of nodes 3 and 4 to node 2
+   * @return the three one-way link segments, the ramp from node 1 first
+   */
+  private List<MacroscopicLinkSegment> createStreetWithRamp(MacroscopicLinkSegmentType rampType) {
+    createNodes(5);
+    link(0, 1, roadWithFootway, roadWithFootway);
+    link(1, 2, roadWithFootway, roadWithFootway);
+    link(1, 3, rampType, null);
+    link(3, 4, rampType, null);
+    link(4, 2, rampType, null);
+    return List.of(segment(1, 3), segment(3, 4), segment(4, 2));
+  }
+
+  /**
+   * Ban both turns from the street onto the ramp of {@link #createStreetWithRamp(MacroscopicLinkSegmentType)}
+   *
+   * @param modes the modes to ban, every mode when empty
+   */
+  private void banTurnsOntoRamp(List<Mode> modes) {
+    MacroscopicNetworkLayerUtils.banTurnForModes(layer, segment(0, 1), segment(1, 3), modes);
+    MacroscopicNetworkLayerUtils.banTurnForModes(layer, segment(2, 1), segment(1, 3), modes);
+  }
+
   @BeforeEach
   public void setUp() {
     network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
@@ -77,20 +124,6 @@ public class ModeAccessRestrictionTest extends LayerTestBase {
     busAndWalk = layer.getLinkSegmentTypes().getFactory().registerNew("busAndWalk", 1800, 180);
     AccessGroupPropertiesFactory.createOnLinkSegmentType(busAndWalk, 50, List.of(bus));
     AccessGroupPropertiesFactory.createOnLinkSegmentType(busAndWalk, 5, List.of(pedestrian));
-  }
-
-  /** the safest configuration, a single subnetwork the mode can route across in full */
-  private ModeAccessRestrictionResult restrict(Mode mode) {
-    return MacroscopicNetworkLayerUtils.restrictModeAccessToConnectedSubNetworks(
-        layer, mode, Integer.MAX_VALUE, Integer.MAX_VALUE, true, Connectivity.STRONG, null);
-  }
-
-  /** run every mode then clean up, i.e. what a caller does */
-  private ModeAccessCleanupModifierResult restrictAllAndCleanUp() {
-    for (var mode : List.of(car, bus, pedestrian)) {
-      restrict(mode);
-    }
-    return layer.getLayerModifier().removeInfrastructureWithoutModeAccess();
   }
 
   /**
@@ -302,5 +335,153 @@ public class ModeAccessRestrictionTest extends LayerTestBase {
     assertTrue(healthy.getLinkSegmentAb().isModeAllowed(car), "unrelated segment of the same type keeps car");
     assertTrue(healthy.getLinkSegmentBa().isModeAllowed(car), "unrelated segment of the same type keeps car");
     assertTrue(roadWithFootway.isModeAllowed(car), "the original type itself must be unchanged");
+  }
+
+  /**
+   * Every turn onto the ramp is banned for cars, so cars can never enter it. The ramp is dangling for cars, and so is
+   * what lies beyond it, even though it leads back into the street; the street keeps car access
+   */
+  @Test
+  public void rampTrappedByBannedTurnsIsDanglingForCar() {
+    var ramp = createStreetWithRamp(carOnly);
+    banTurnsOntoRamp(List.of(car));
+
+    assertEquals(3, restrict(car).getWithdrawn());
+    assertTrue(ramp.stream().noneMatch(segment -> segment.isModeAllowed(car)));
+    assertTrue(segment(0, 1).isModeAllowed(car));
+    assertTrue(segment(2, 1).isModeAllowed(car));
+  }
+
+  /**
+   * The turns onto the ramp are banned for buses only, so cars keep the ramp while buses lose it
+   */
+  @Test
+  public void banForBusesOnlyLeavesRampNotDanglingForCar() {
+    var ramp = createStreetWithRamp(roadWithFootway);
+    banTurnsOntoRamp(List.of(bus));
+
+    assertEquals(0, restrict(car).getWithdrawn());
+    assertTrue(ramp.stream().allMatch(segment -> segment.isModeAllowed(car)));
+    assertEquals(3, restrict(bus).getWithdrawn());
+  }
+
+  /**
+   * A banned turn naming no mode bans every mode, so the ramp is dangling for each of them
+   */
+  @Test
+  public void banNamingNoModeMakesRampDanglingForEveryMode() {
+    var ramp = createStreetWithRamp(roadWithFootway);
+    banTurnsOntoRamp(List.of());
+
+    for (var mode : List.of(car, bus, pedestrian)) {
+      assertEquals(3, restrict(mode).getWithdrawn());
+      assertTrue(ramp.stream().noneMatch(segment -> segment.isModeAllowed(mode)));
+    }
+  }
+
+  /**
+   * Cars lose the ramp to banned turns, while pedestrians and buses can still use it, so the final pass keeps it
+   */
+  @Test
+  public void linkDanglingForCarKeepsPedestrians() {
+    var ramp = createStreetWithRamp(roadWithFootway).get(0);
+    banTurnsOntoRamp(List.of(car));
+
+    var cleanup = restrictAllAndCleanUp();
+
+    assertTrue(cleanup.getRemovedLinkSegments().isEmpty());
+    assertFalse(ramp.isModeAllowed(car));
+    assertTrue(ramp.isModeAllowed(pedestrian));
+  }
+
+  /**
+   * Both ends of a two-way street are dead ends, left only by turning back. Turning back is a turn like any other, so
+   * nothing is dangling
+   */
+  @Test
+  public void deadEndIsNotDanglingWhenTurningBackIsAllowed() {
+    createNodes(3);
+    link(0, 1, roadWithFootway, roadWithFootway);
+    link(1, 2, roadWithFootway, roadWithFootway);
+
+    assertEquals(0, restrict(car).getWithdrawn());
+  }
+
+  /**
+   * A two-way dead end hangs off a one-way loop, and turning back at its end is banned for cars. Cars could drive in
+   * but never out, and never onto the way back out, so both its link segments are dangling for cars
+   * <pre>
+   *   0 ----&gt; 1 ===== 3 (dead end)
+   *    ^      |
+   *     \     v
+   *       --- 2
+   * </pre>
+   */
+  @Test
+  public void deadEndIsDanglingWhenTurningBackIsBanned() {
+    createNodes(4);
+    link(0, 1, carOnly, null);
+    link(1, 2, carOnly, null);
+    link(2, 0, carOnly, null);
+    var deadEnd = link(1, 3, carOnly, carOnly);
+    MacroscopicNetworkLayerUtils.banTurnForModes(layer, segment(1, 3), segment(3, 1), List.of(car));
+
+    assertEquals(2, restrict(car).getWithdrawn());
+    assertFalse(deadEnd.getLinkSegmentAb().isModeAllowed(car));
+    assertFalse(deadEnd.getLinkSegmentBa().isModeAllowed(car));
+  }
+
+  /**
+   * The size of a dangling subnetwork is the number of nodes its link segments start at. The smaller island has 3
+   * nodes and 4 link segments: a threshold of 3 keeps it, a threshold of 4 does not
+   */
+  @Test
+  public void danglingSizeThresholdCountsNodes() {
+    createNodes(7);
+    var smallIsland = link(0, 1, roadWithFootway, roadWithFootway);   // island of three nodes
+    link(1, 2, roadWithFootway, roadWithFootway);
+    link(3, 4, roadWithFootway, roadWithFootway);                     // island of four nodes
+    link(4, 5, roadWithFootway, roadWithFootway);
+    link(5, 6, roadWithFootway, roadWithFootway);
+
+    var atThree = MacroscopicNetworkLayerUtils.restrictModeAccessToConnectedSubNetworks(
+        layer, car, 3, Integer.MAX_VALUE, true, Connectivity.STRONG, null);
+    assertTrue(atThree.isEmpty());
+
+    var atFour = MacroscopicNetworkLayerUtils.restrictModeAccessToConnectedSubNetworks(
+        layer, car, 4, Integer.MAX_VALUE, true, Connectivity.STRONG, null);
+    assertEquals(4, atFour.getWithdrawn());
+    assertFalse(smallIsland.getLinkSegmentAb().isModeAllowed(car));
+  }
+
+  /**
+   * Ignoring direction, a banned turn has no meaning, so weak connectivity keeps cars on a ramp the banned turns
+   * trap. Strong connectivity does not
+   */
+  @Test
+  public void weakConnectivityDoesNotSeeARampTrappedByBannedTurns() {
+    createStreetWithRamp(carOnly);
+    banTurnsOntoRamp(List.of(car));
+
+    var weak = MacroscopicNetworkLayerUtils.restrictModeAccessToConnectedSubNetworks(
+        layer, car, Integer.MAX_VALUE, Integer.MAX_VALUE, true, Connectivity.WEAK, null);
+    assertTrue(weak.isEmpty());
+
+    assertEquals(3, restrict(car).getWithdrawn());
+  }
+
+  /**
+   * The dangling check leaves banned turns as they are: the bans that take cars off the ramp are still registered once
+   * the ramp has lost car access, since pedestrians and buses keep both link segments of each ban
+   */
+  @Test
+  public void banTrappingARampIsKeptAfterTheDanglingCheck() {
+    var ramp = createStreetWithRamp(roadWithFootway).get(0);
+    banTurnsOntoRamp(List.of(car));
+
+    restrictAllAndCleanUp();
+
+    assertFalse(ramp.isModeAllowed(car));
+    assertEquals(2, layer.getBannedTurns().getBySegment(ramp).size());
   }
 }

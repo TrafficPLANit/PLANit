@@ -6,12 +6,10 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.goplanit.utils.containers.EntityIndex;
-import org.goplanit.utils.containers.IdentityEntityIndex;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.id.ManagedIdEntitiesWithForeignKeyIndicesImpl;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovementFactory;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovements;
@@ -24,14 +22,14 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
  *
  * @author markr
  */
-public class SpatialMovementsImpl extends ManagedIdEntitiesImpl<SpatialMovement>
+public class SpatialMovementsImpl extends ManagedIdEntitiesWithForeignKeyIndicesImpl<SpatialMovement>
     implements SpatialMovements {
 
   /** factory to create movements with */
   private final SpatialMovementFactory spatialMovementFactory;
 
   /** link segment to the movements entering or leaving on it; by identity */
-  private final EntityIndex<LinkSegment, SpatialMovement> bySegment = new IdentityEntityIndex<>(
+  private final EntityIndex<LinkSegment, SpatialMovement> bySegment = addForeignKeyIndex(
       movement -> Arrays.asList(movement.getLinkSegmentFrom(), movement.getLinkSegmentTo()));
 
   /**
@@ -56,7 +54,6 @@ public class SpatialMovementsImpl extends ManagedIdEntitiesImpl<SpatialMovement>
     super(other, deepCopy, mapper);
     this.spatialMovementFactory =
         new SpatialMovementFactoryImpl(other.spatialMovementFactory.getIdGroupingToken(), this);
-    bySegment.reindex(this);
   }
 
   /**
@@ -71,73 +68,8 @@ public class SpatialMovementsImpl extends ManagedIdEntitiesImpl<SpatialMovement>
    * {@inheritDoc}
    */
   @Override
-  public SpatialMovement register(final SpatialMovement movement) {
-    var previous = super.register(movement);
-    bySegment.replace(previous, movement);
-    return previous;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SpatialMovement remove(final SpatialMovement movement) {
-    var removed = super.remove(movement);
-    if (removed != null) {
-      bySegment.unindex(removed);
-    }
-    return removed;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SpatialMovement remove(final long key) {
-    var removed = super.remove(key);
-    if (removed != null) {
-      bySegment.unindex(removed);
-    }
-    return removed;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void removeIf(Predicate<SpatialMovement> condition) {
-    var toRemove = new ArrayList<SpatialMovement>();
-    forEach(movement -> {
-      if (condition.test(movement)) {
-        toRemove.add(movement);
-      }
-    });
-    toRemove.forEach(this::remove);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void clear() {
-    super.clear();
-    bySegment.clear();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public List<SpatialMovement> getBySegment(LinkSegment segment) {
     return bySegment.get(segment);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void update(SpatialMovement movement, Consumer<SpatialMovement> change) {
-    bySegment.update(movement, change);
   }
 
   /**
@@ -162,7 +94,7 @@ public class SpatialMovementsImpl extends ManagedIdEntitiesImpl<SpatialMovement>
       movement.setLinkSegmentTo(to);
     }
     unmapped.forEach(this::remove);
-    bySegment.reindex(this);
+    reindex();
   }
 
   /**

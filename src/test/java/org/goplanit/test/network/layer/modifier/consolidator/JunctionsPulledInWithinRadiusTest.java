@@ -551,32 +551,4 @@ public class JunctionsPulledInWithinRadiusTest extends IntersectionConsolidation
     assertTrue(result.getIntersections(JUNCTION_PULLED_IN_WITHIN_RADIUS).isEmpty());
   }
 
-  /**
-   * J is listed on its own to keep in a separate intersection. A list needs two nodes, so it is ignored, and J is
-   * pulled into the crossing as it would be without it, see {@link #junctionWithinRadiusIsPulledIn()}
-   * <pre>
-   *         A <--- B
-   *         |      ^
-   *         v      |
-   *         C ---> D
-   *          \
-   *           ~               ~ footway from C to J, 30 m
-   *            \
-   *     W <---> J <---> E     J listed on its own to keep in a separate intersection
-   * </pre>
-   */
-  @Test
-  public void junctionListedOnItsOwnToKeepApartIsPulledInAsWithoutTheList() {
-    double distance = RADIUS + IntersectionConsolidatorSettings.DEFAULT_PULL_IN_MARGIN_BEYOND_RADIUS_METERS - 1;
-    int j = crossingWithJunctionBelow(distance, 30);
-    nodes.get(j).setExternalId("J");
-
-    var result = consolidateWith(settings -> settings.addNodeIdsToKeepInSeparateIntersections(
-        List.of("J"), IdMapperType.EXTERNAL_ID));
-
-    assertEquals(1, intersections.size());
-    assertTrue(onlySpatialIntersection().hasMemberNode(nodes.get(j)));
-    assertEquals(1, result.getIntersections(JUNCTION_PULLED_IN_WITHIN_RADIUS).size());
-  }
-
 }

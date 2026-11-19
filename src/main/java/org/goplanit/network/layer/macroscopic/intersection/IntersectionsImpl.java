@@ -1,18 +1,14 @@
 package org.goplanit.network.layer.macroscopic.intersection;
 
-import java.util.ArrayList;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.goplanit.utils.containers.EntityIndex;
-import org.goplanit.utils.containers.IdentityEntityIndex;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.id.ManagedIdEntitiesWithForeignKeyIndicesImpl;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionFactory;
@@ -25,56 +21,34 @@ import org.goplanit.utils.network.layer.physical.Node;
 /**
  * Container for the intersections of a macroscopic network layer, with a lookup of the intersection a node is a member
  * of, and of the intersection a link segment belongs to. Registering an intersection indexes what it refers to at that
- * moment; later raw edits on it are not seen by the lookup
+ * moment; a later direct edit of it is seen once it is reindexed
+ * <p>
+ * The layer modifier keeps the intersections in step with every change to the graph, so for each node or link segment
+ * it removes or breaks it needs the intersection concerned at once. For example, removing a member node of a spatial
+ * intersection finds that intersection by the node, and breaking one of its approach segments finds it by the segment,
+ * without going over every intersection of the layer.
+ * </p>
  *
  * @author markr
  */
-public class IntersectionsImpl extends ManagedIdEntitiesImpl<Intersection> implements Intersections {
+public class IntersectionsImpl extends ManagedIdEntitiesWithForeignKeyIndicesImpl<Intersection>
+    implements Intersections {
 
   /** factory to create intersections with */
   private final IntersectionFactory intersectionFactory;
 
   /** member node to the intersections it belongs to, the first indexed returned; by identity */
-  private final EntityIndex<Node, Intersection> byMemberNode = new IdentityEntityIndex<>(Intersection::getMemberNodes);
+  private final EntityIndex<Node, Intersection> byMemberNode = addForeignKeyIndex(Intersection::getMemberNodes);
 
   /**
    * link segment to the intersections referring to it as approach or internal segment, the first indexed returned; by
    * identity. A valid layer has at most one per segment, since a node is a member of at most one
    */
-  private final EntityIndex<LinkSegment, Intersection> bySegment = new IdentityEntityIndex<>(
+  private final EntityIndex<LinkSegment, Intersection> bySegment = addForeignKeyIndex(
       intersection -> Stream.concat(intersection.getApproachSegments().stream(),
           intersection instanceof SpatialIntersection ?
               ((SpatialIntersection) intersection).getInternalSegments().stream() : Stream.empty())
           .collect(Collectors.toList()));
-
-  /**
-   * Index everything the intersection refers to at this moment
-   *
-   * @param intersection to index
-   */
-  private void index(Intersection intersection) {
-    byMemberNode.index(intersection);
-    bySegment.index(intersection);
-  }
-
-  /**
-   * Remove what the intersection refers to at this moment from the index
-   *
-   * @param intersection to unindex
-   */
-  private void unindex(Intersection intersection) {
-    byMemberNode.unindex(intersection);
-    bySegment.unindex(intersection);
-  }
-
-  /**
-   * Rebuild the lookups from what every registered intersection refers to at this moment, e.g. after raw edits of
-   * registered intersections
-   */
-  public void reindex() {
-    byMemberNode.reindex(this);
-    bySegment.reindex(this);
-  }
 
   /**
    * Constructor
@@ -97,7 +71,6 @@ public class IntersectionsImpl extends ManagedIdEntitiesImpl<Intersection> imple
       final IntersectionsImpl other, boolean deepCopy, BiConsumer<Intersection, Intersection> mapper) {
     super(other, deepCopy, mapper);
     this.intersectionFactory = new IntersectionFactoryImpl(other.intersectionFactory.getIdGroupingToken(), this);
-    forEach(this::index);
   }
 
   /**
@@ -106,65 +79,6 @@ public class IntersectionsImpl extends ManagedIdEntitiesImpl<Intersection> imple
   @Override
   public IntersectionFactory getFactory() {
     return intersectionFactory;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Intersection register(final Intersection intersection) {
-    var previous = super.register(intersection);
-    byMemberNode.replace(previous, intersection);
-    bySegment.replace(previous, intersection);
-    return previous;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Intersection remove(final Intersection intersection) {
-    var removed = super.remove(intersection);
-    if (removed != null) {
-      unindex(removed);
-    }
-    return removed;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Intersection remove(final long key) {
-    var removed = super.remove(key);
-    if (removed != null) {
-      unindex(removed);
-    }
-    return removed;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void removeIf(Predicate<Intersection> condition) {
-    var toRemove = new ArrayList<Intersection>();
-    forEach(intersection -> {
-      if (condition.test(intersection)) {
-        toRemove.add(intersection);
-      }
-    });
-    toRemove.forEach(this::remove);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void clear() {
-    super.clear();
-    byMemberNode.clear();
-    bySegment.clear();
   }
 
   /**
@@ -230,20 +144,6 @@ public class IntersectionsImpl extends ManagedIdEntitiesImpl<Intersection> imple
   @Override
   public Intersection getByMemberNode(Node node) {
     return byMemberNode.getFirst(node);
-  }
-
-  /**
-   * Apply a change to a registered intersection, keeping the lookups in step with what it refers to before and after.
-   * For keeping the container consistent with changes made through the layer modifier
-   *
-   * @param <I> the kind of intersection
-   * @param intersection to change
-   * @param change to apply to it
-   */
-  public <I extends Intersection> void update(I intersection, Consumer<I> change) {
-    unindex(intersection);
-    change.accept(intersection);
-    index(intersection);
   }
 
   /**

@@ -27,9 +27,10 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
 
   /**
    * Explicit allowed access points to an infrastructure layer if used, otherwise all are assumed
-   * allowed as long as they are mode compatible
+   * allowed as long as they are mode compatible. Held by object, in the order of their ids: renumbering the ids keeps
+   * that order, so the list stays ordered without being sorted again
    */
-  private TreeMap<Long,EdgeSegment> accessEdgeSegments = new TreeMap<>();
+  private List<EdgeSegment> accessEdgeSegments = new ArrayList<>(1);
 
   /**
    * constructor
@@ -52,10 +53,7 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
   public DirectedConnectoidAccessZoneEntryImpl(DirectedConnectoidAccessZoneEntryImpl other) {
     super(other);
     this.parentConnectoid = other.parentConnectoid;
-
-    if(other.accessEdgeSegments != null) {
-      this.accessEdgeSegments = new TreeMap<>(other.accessEdgeSegments);
-    }
+    this.accessEdgeSegments = new ArrayList<>(other.accessEdgeSegments);
   }
 
   /**
@@ -89,8 +87,15 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
           accessEdgeSegment.getIdsAsString(), parentConnectoid.getIdsAsString()));
       return false;
     }
-    var old = accessEdgeSegments.put(accessEdgeSegment.getId(), accessEdgeSegment);
-    return old != null;
+    if (!hasAccessLinkSegment(accessEdgeSegment)) {
+      int position = 0;
+      while (position < accessEdgeSegments.size() &&
+          accessEdgeSegments.get(position).getId() < accessEdgeSegment.getId()) {
+        ++position;
+      }
+      accessEdgeSegments.add(position, accessEdgeSegment);
+    }
+    return true;
   }
 
   /**
@@ -98,7 +103,15 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
    */
   @Override
   public boolean removeAccessLinkSegment(EdgeSegment accessEdgeSegment) {
-    return accessEdgeSegments.remove(accessEdgeSegment.getId()) !=null;
+    return accessEdgeSegments.removeIf(held -> held == accessEdgeSegment);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean hasAccessLinkSegment(EdgeSegment accessSegment) {
+    return accessEdgeSegments.stream().anyMatch(held -> held == accessSegment);
   }
 
   /**
@@ -106,7 +119,7 @@ public class DirectedConnectoidAccessZoneEntryImpl extends ConnectoidAccessZoneE
    */
   @Override
   public Collection<? extends EdgeSegment> getAccessLinkSegments() {
-    return Collections.unmodifiableCollection(accessEdgeSegments.values());
+    return Collections.unmodifiableList(accessEdgeSegments);
   }
 
   /**

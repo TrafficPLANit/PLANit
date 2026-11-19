@@ -67,12 +67,12 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
     super(other, deepCopy);
 
     this.virtualLayer = deepCopy ?
-            getLayer().deepCloneWithMapping(
+            other.getLayer().deepCloneWithMapping(
                 (GraphEntityDeepCopyMapper<ConnectoidLink>) connectoidLinkMapper,
                 (GraphEntityDeepCopyMapper<ConnectoidSegment>) connectoidSegmentMapper,
                 (GraphEntityDeepCopyMapper<CentroidVertex>) centroidVertexMapper,
                 bannedTurnMapper) :
-            getLayer().shallowClone();
+            other.getLayer().shallowClone();
   }
 
 

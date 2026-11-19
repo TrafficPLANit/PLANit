@@ -11,6 +11,7 @@ import java.util.function.ToDoubleFunction;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegmentUtils;
 import org.goplanit.utils.math.Precision;
 
 /**
@@ -38,12 +39,6 @@ import org.goplanit.utils.math.Precision;
  * @author markr
  */
 public final class ShortestPathBreadthFirst {
-
-  /**
-   * Not instantiable
-   */
-  private ShortestPathBreadthFirst() {
-  }
 
   /**
    * Search breadth first from a start, looking at an entity again when a shorter way to it is found
@@ -82,6 +77,12 @@ public final class ShortestPathBreadthFirst {
       });
     }
     return new ShortestPathBreadthFirstResult<>(start, costToReach, previous);
+  }
+
+  /**
+   * Not instantiable
+   */
+  private ShortestPathBreadthFirst() {
   }
 
   /**
@@ -128,7 +129,6 @@ public final class ShortestPathBreadthFirst {
    * @param maximumCost highest cost an edge segment may be reached at
    * @return the edge segments reached, the start included, with their costs and the connections to them
    */
-  @SuppressWarnings("unchecked")
   public static <ES extends EdgeSegment> ShortestPathBreadthFirstResult<ES> executeAlongEdgeSegments(ES start,
       boolean inTrafficDirection, BiPredicate<ES, ES> canTurn, Predicate<ES> canContinueOn,
       ToDoubleFunction<ES> segmentCost, double maximumCost) {
@@ -137,12 +137,8 @@ public final class ShortestPathBreadthFirst {
         return;
       }
       double cost = segment == start ? 0 : segmentCost.applyAsDouble(segment);
-      var neighbours = inTrafficDirection ? segment.getDownstreamVertex().getExitEdgeSegments() :
-          segment.getUpstreamVertex().getEntryEdgeSegments();
-      for (var neighbour : neighbours) {
-        if (inTrafficDirection ? canTurn.test(segment, (ES) neighbour) : canTurn.test((ES) neighbour, segment)) {
-          next.accept((ES) neighbour, cost);
-        }
+      for (var neighbour : EdgeSegmentUtils.findEdgeSegmentsOneAllowedTurnAway(segment, !inTrafficDirection, canTurn)) {
+        next.accept(neighbour, cost);
       }
     }, maximumCost);
   }

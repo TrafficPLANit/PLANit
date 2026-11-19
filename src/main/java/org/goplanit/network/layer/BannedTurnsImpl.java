@@ -1,17 +1,15 @@
 package org.goplanit.network.layer;
 
 import org.goplanit.utils.containers.EntityIndex;
-import org.goplanit.utils.containers.IdentityEntityIndex;
-import org.goplanit.utils.graph.ManagedGraphEntitiesImpl;
+import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.graph.directed.BannedTurn;
 import org.goplanit.utils.graph.directed.BannedTurnFactory;
 import org.goplanit.utils.graph.directed.BannedTurns;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.id.ManagedIdEntitiesWithForeignKeyIndicesImpl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -20,18 +18,23 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
- * 
+ *
  * Movements primary managed container implementation, with a lookup of the banned turns starting or ending at a
- * link segment. Registering a banned turn indexes the segments it refers to at that moment; later raw edits of its
- * segments are not seen by the lookup, see {@link #update(BannedTurn, Consumer)}
+ * link segment. Registering a banned turn indexes the segments it refers to at that moment; a later direct edit of its
+ * segments is seen once it is reindexed, or at once when made through {@link #update(BannedTurn, Consumer)}
+ * <p>
+ * A banned turn names the link segment it starts from and the one it ends on, so whenever the graph removes or breaks
+ * a link segment the banned turns using it must follow. For example, breaking a link replaces the segment a turn starts
+ * from by the new link segment ending at the node, and the lookup finds that turn by the segment without going over
+ * every banned turn of the layer.
+ * </p>
  *
  * @author markr
  *
  */
-public class BannedTurnsImpl extends ManagedGraphEntitiesImpl<BannedTurn> implements BannedTurns {
+public class BannedTurnsImpl extends ManagedIdEntitiesWithForeignKeyIndicesImpl<BannedTurn> implements BannedTurns {
 
   /** creates the factory of a container, kept so that a copy gets a factory of the same kind */
   private final BiFunction<IdGroupingToken, BannedTurns, BannedTurnFactory> factoryCreator;
@@ -40,7 +43,7 @@ public class BannedTurnsImpl extends ManagedGraphEntitiesImpl<BannedTurn> implem
   private final BannedTurnFactory bannedTurnFactory;
 
   /** link segment to the banned turns starting or ending at it, by identity */
-  private final EntityIndex<EdgeSegment, BannedTurn> bySegment = new IdentityEntityIndex<>(
+  private final EntityIndex<EdgeSegment, BannedTurn> bySegment = addForeignKeyIndex(
       bannedTurn -> Arrays.asList(bannedTurn.getSegmentFrom(), bannedTurn.getSegmentTo()));
 
   /**
@@ -78,7 +81,6 @@ public class BannedTurnsImpl extends ManagedGraphEntitiesImpl<BannedTurn> implem
     super(other, deepCopy, mapper);
     this.factoryCreator = other.factoryCreator;
     this.bannedTurnFactory = factoryCreator.apply(other.bannedTurnFactory.getIdGroupingToken(), this);
-    bySegment.reindex(this);
   }
 
   /**
@@ -91,55 +93,13 @@ public class BannedTurnsImpl extends ManagedGraphEntitiesImpl<BannedTurn> implem
 
   /**
    * {@inheritDoc}
+   *
+   * Note: not an efficient implementation since it loops over all entities in linear time to identify the correct one,
+   * preferably use {@link #get(Object)} instead whenever possible.
    */
   @Override
-  public BannedTurn register(final BannedTurn bannedTurn) {
-    var previous = super.register(bannedTurn);
-    bySegment.replace(previous, bannedTurn);
-    return previous;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public BannedTurn remove(final BannedTurn bannedTurn) {
-    var removed = super.remove(bannedTurn);
-    bySegment.unindex(removed);
-    return removed;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public BannedTurn remove(final long key) {
-    var removed = super.remove(key);
-    bySegment.unindex(removed);
-    return removed;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void removeIf(Predicate<BannedTurn> condition) {
-    var toRemove = new ArrayList<BannedTurn>();
-    forEach(bannedTurn -> {
-      if (condition.test(bannedTurn)) {
-        toRemove.add(bannedTurn);
-      }
-    });
-    toRemove.forEach(this::remove);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void clear() {
-    super.clear();
-    bySegment.clear();
+  public BannedTurn getByXmlId(String xmlId) {
+    return GraphEntities.getByXmlId(this, xmlId);
   }
 
   /**
@@ -148,14 +108,6 @@ public class BannedTurnsImpl extends ManagedGraphEntitiesImpl<BannedTurn> implem
   @Override
   public List<BannedTurn> getBySegment(EdgeSegment segment) {
     return bySegment.get(segment);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void update(BannedTurn bannedTurn, Consumer<BannedTurn> change) {
-    bySegment.update(bannedTurn, change);
   }
 
   /**
@@ -186,7 +138,7 @@ public class BannedTurnsImpl extends ManagedGraphEntitiesImpl<BannedTurn> implem
     if (removeMissingMappings) {
       unmapped.forEach(this::remove);
     }
-    bySegment.reindex(this);
+    reindex();
   }
 
   /**

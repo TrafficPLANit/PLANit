@@ -65,4 +65,20 @@ public class IntersectionModifierEventProducerImpl extends EventProducerImpl
   public void removeListener(IntersectionModifierListener listener) {
     super.removeListener(listener);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addInternalListener(IntersectionModifierListener listener) {
+    super.addInternalListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeInternalListener(IntersectionModifierListener listener) {
+    super.removeInternalListener(listener);
+  }
 }

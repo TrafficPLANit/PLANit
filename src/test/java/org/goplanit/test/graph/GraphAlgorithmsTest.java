@@ -10,6 +10,8 @@ import org.goplanit.utils.graph.directed.algorithms.StronglyConnectedComponents;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -19,8 +21,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -36,11 +41,51 @@ public class GraphAlgorithmsTest {
   /** the logger, giving the log output PLANit's format */
   private static Logger LOGGER = null;
 
+  /** all edge segments qualify */
+  private static final Predicate<EdgeSegment> ANY = es -> true;
+
   private MacroscopicNetworkLayer layer;
   private List<Node> nodes;
 
-  /** all edge segments qualify */
-  private static final Predicate<EdgeSegment> ANY = es -> true;
+  /** create the given number of nodes, addressable by index */
+  private void createNodes(int count) {
+    for (int i = 0; i < count; ++i) {
+      nodes.add(layer.getNodes().getFactory().registerNew());
+    }
+  }
+
+  /** connect a to b, with a segment in the a-&gt;b direction only, and return that segment */
+  private MacroscopicLinkSegment oneWay(int a, int b) {
+    var link = layer.getLinks().getFactory().registerNew(nodes.get(a), nodes.get(b), 1, true);
+    return layer.getLinkSegments().getFactory().registerNew(link, true, true);
+  }
+
+  /** connect a and b with segments in both directions, and return the link they are on */
+  private MacroscopicLink twoWay(int a, int b) {
+    var link = layer.getLinks().getFactory().registerNew(nodes.get(a), nodes.get(b), 1, true);
+    layer.getLinkSegments().getFactory().registerNew(link, true, true);
+    layer.getLinkSegments().getFactory().registerNew(link, false, true);
+    return link;
+  }
+
+  private ConnectivityAssessment.Result<Node> assess() {
+    return ConnectivityAssessment.assess(layer.getNodes(), ANY);
+  }
+
+  /** main cycle 0,1,2,3 and pocket cycle 4,5,6, deliberately of unequal size, see note below */
+  private void createMainAndPocket() {
+    createNodes(7);
+    /* main cycle, four nodes so that it is unambiguously the largest. Equal sized components would leave which
+     * one counts as "main" down to iteration order, and the assessment would be describing the wrong half */
+    oneWay(0, 1);
+    oneWay(1, 2);
+    oneWay(2, 3);
+    oneWay(3, 0);
+    /* pocket cycle, three nodes */
+    oneWay(4, 5);
+    oneWay(5, 6);
+    oneWay(6, 4);
+  }
 
   /**
    * Create the logger once for all tests of the class
@@ -73,30 +118,6 @@ public class GraphAlgorithmsTest {
     IdGenerator.reset();
   }
 
-  /** create the given number of nodes, addressable by index */
-  private void createNodes(int count) {
-    for (int i = 0; i < count; ++i) {
-      nodes.add(layer.getNodes().getFactory().registerNew());
-    }
-  }
-
-  /** connect a to b, with a segment in the a-&gt;b direction only */
-  private void oneWay(int a, int b) {
-    var link = layer.getLinks().getFactory().registerNew(nodes.get(a), nodes.get(b), 1, true);
-    layer.getLinkSegments().getFactory().registerNew(link, true, true);
-  }
-
-  /** connect a and b with segments in both directions */
-  private void twoWay(int a, int b) {
-    var link = layer.getLinks().getFactory().registerNew(nodes.get(a), nodes.get(b), 1, true);
-    layer.getLinkSegments().getFactory().registerNew(link, true, true);
-    layer.getLinkSegments().getFactory().registerNew(link, false, true);
-  }
-
-  private ConnectivityAssessment.Result<Node> assess() {
-    return ConnectivityAssessment.assess(layer.getNodes(), ANY);
-  }
-
   /**
    * A single directed cycle is strongly connected in its entirety: every vertex reaches every other by going
    * round.
@@ -109,7 +130,7 @@ public class GraphAlgorithmsTest {
     oneWay(2, 3);
     oneWay(3, 0);
 
-    var result = StronglyConnectedComponents.execute(layer.getNodes(), ANY);
+    var result = StronglyConnectedComponents.executeOnVertices(layer.getNodes(), ANY);
     assertEquals(1, result.size());
     assertEquals(4, result.getLargest().size());
     assertTrue(result.areMutuallyReachable(nodes.get(0), nodes.get(2)));
@@ -125,25 +146,10 @@ public class GraphAlgorithmsTest {
     oneWay(1, 2);
     oneWay(2, 3);
 
-    var result = StronglyConnectedComponents.execute(layer.getNodes(), ANY);
+    var result = StronglyConnectedComponents.executeOnVertices(layer.getNodes(), ANY);
     assertEquals(4, result.size());
     assertEquals(1, result.getLargest().size());
     assertFalse(result.areMutuallyReachable(nodes.get(0), nodes.get(1)));
-  }
-
-  /** main cycle 0,1,2,3 and pocket cycle 4,5,6, deliberately of unequal size, see note below */
-  private void createMainAndPocket() {
-    createNodes(7);
-    /* main cycle, four nodes so that it is unambiguously the largest. Equal sized components would leave which
-     * one counts as "main" down to iteration order, and the assessment would be describing the wrong half */
-    oneWay(0, 1);
-    oneWay(1, 2);
-    oneWay(2, 3);
-    oneWay(3, 0);
-    /* pocket cycle, three nodes */
-    oneWay(4, 5);
-    oneWay(5, 6);
-    oneWay(6, 4);
   }
 
   /**
@@ -160,7 +166,7 @@ public class GraphAlgorithmsTest {
     assertEquals(1, weak.size());
     assertEquals(7, weak.get(0).size());
 
-    var strong = StronglyConnectedComponents.execute(layer.getNodes(), ANY);
+    var strong = StronglyConnectedComponents.executeOnVertices(layer.getNodes(), ANY);
     assertEquals(2, strong.size());
     assertEquals(4, strong.getLargest().size());
 
@@ -276,7 +282,7 @@ public class GraphAlgorithmsTest {
     var middleLink = layer.getLinks().get(1);
     Predicate<EdgeSegment> notMiddle = es -> es.getParent() == null || !es.getParent().idEquals(middleLink);
 
-    var components = StronglyConnectedComponents.execute(layer.getNodes(), notMiddle);
+    var components = StronglyConnectedComponents.executeOnVertices(layer.getNodes(), notMiddle);
     assertEquals(2, components.size());
     assertEquals(2, components.getLargest().size());
   }
@@ -289,7 +295,7 @@ public class GraphAlgorithmsTest {
     createNodes(3);
     twoWay(0, 1);
 
-    var components = StronglyConnectedComponents.execute(layer.getNodes(), ANY);
+    var components = StronglyConnectedComponents.executeOnVertices(layer.getNodes(), ANY);
     assertEquals(2, components.size());
     assertEquals(2, components.getLargest().size());
     assertEquals(1, components.getComponents().get(1).size());
@@ -325,7 +331,127 @@ public class GraphAlgorithmsTest {
       oneWay(i, i + 1);
     }
 
-    var components = StronglyConnectedComponents.execute(layer.getNodes(), ANY);
+    var components = StronglyConnectedComponents.executeOnVertices(layer.getNodes(), ANY);
     assertEquals(count, components.size());
+  }
+
+  /**
+   * A two-way street of two links with every turn allowed, turning back at either dead end included, is one component
+   * of all four of its link segments
+   * <pre>
+   *   0 ===== 1 ===== 2
+   * </pre>
+   */
+  @Test
+  public void stronglyConnectedEdgeSegmentsOfTwoWayStreetWithEveryTurnAllowedAreOneComponent() {
+    createNodes(3);
+    twoWay(0, 1);
+    twoWay(1, 2);
+
+    var result = StronglyConnectedComponents.executeOnEdgeSegments(layer.getLinkSegments(), (from, onto) -> true);
+    assertEquals(1, result.size());
+    assertEquals(4, result.getLargest().size());
+  }
+
+  /**
+   * A ramp leaving node 1 that no turn may enter is cut off from the street, and so are the link segments that can
+   * only be reached through it, even though they lead back into the street. With every turn allowed all seven link
+   * segments are one component
+   * <pre>
+   *           3 ----&gt; 4
+   *     ramp  ^        |
+   *           |        v
+   *   0 ===== 1 ====== 2
+   * </pre>
+   */
+  @Test
+  public void stronglyConnectedEdgeSegmentsCutOffSegmentWhoseOnlyTurnInIsNotAllowed() {
+    createNodes(5);
+    var west = twoWay(0, 1);
+    twoWay(1, 2);
+    var ramp = oneWay(1, 3);
+    var beyondRamp = oneWay(3, 4);
+    var backIntoStreet = oneWay(4, 2);
+
+    var everyTurnAllowed =
+        StronglyConnectedComponents.executeOnEdgeSegments(layer.getLinkSegments(), (from, onto) -> true);
+    assertEquals(1, everyTurnAllowed.size());
+
+    var result =
+        StronglyConnectedComponents.executeOnEdgeSegments(layer.getLinkSegments(), (from, onto) -> onto != ramp);
+    assertEquals(4, result.getLargest().size());
+    assertTrue(result.getLargest().contains(west.getLinkSegmentAb()));
+    assertFalse(result.areMutuallyReachable(west.getLinkSegmentAb(), ramp));
+    assertFalse(result.areMutuallyReachable(west.getLinkSegmentAb(), beyondRamp));
+    assertFalse(result.areMutuallyReachable(west.getLinkSegmentAb(), backIntoStreet));
+  }
+
+  /**
+   * Turning back at a dead end is a turn like any other. Allowed, the dead-end link belongs with the cycle it hangs
+   * off. Not allowed, neither of its link segments does: the one into the dead end can never be left, the one out of
+   * it never entered
+   * <pre>
+   *   0 ----&gt; 1 ===== 3 (dead end)
+   *    ^      |
+   *     \     v
+   *       --- 2
+   * </pre>
+   */
+  @Test
+  public void stronglyConnectedEdgeSegmentsCountTurningBackOnlyWhenAllowed() {
+    createNodes(4);
+    var cycleStart = oneWay(0, 1);
+    oneWay(1, 2);
+    oneWay(2, 0);
+    var deadEnd = twoWay(1, 3);
+    var intoDeadEnd = deadEnd.getLinkSegmentAb();
+    var outOfDeadEnd = deadEnd.getLinkSegmentBa();
+
+    var turningBackAllowed =
+        StronglyConnectedComponents.executeOnEdgeSegments(layer.getLinkSegments(), (from, onto) -> true);
+    assertEquals(1, turningBackAllowed.size());
+    assertEquals(5, turningBackAllowed.getLargest().size());
+
+    var result = StronglyConnectedComponents.executeOnEdgeSegments(
+        layer.getLinkSegments(), (from, onto) -> !(from == intoDeadEnd && onto == outOfDeadEnd));
+    assertEquals(3, result.getLargest().size());
+    assertFalse(result.areMutuallyReachable(cycleStart, intoDeadEnd));
+    assertFalse(result.areMutuallyReachable(cycleStart, outOfDeadEnd));
+  }
+
+  /**
+   * Link segments outside the set are never passed, so the link segments of the set on either side of the middle link
+   * are in different components
+   * <pre>
+   *   0 ===== 1 ===== 2 ===== 3      the middle link, 1 to 2, is left out of the set
+   * </pre>
+   */
+  @Test
+  public void stronglyConnectedEdgeSegmentsNeverPassSegmentsOutsideTheSet() {
+    createNodes(4);
+    twoWay(0, 1);
+    var middle = twoWay(1, 2);
+    twoWay(2, 3);
+    var outsideMiddle = layer.getLinkSegments().stream()
+        .filter(segment -> segment.getParent() != middle).collect(Collectors.toList());
+
+    var result = StronglyConnectedComponents.executeOnEdgeSegments(outsideMiddle, (from, onto) -> true);
+    assertEquals(2, result.size());
+    assertEquals(2, result.getLargest().size());
+  }
+
+  /**
+   * Any items can be partitioned given their next and previous items: items 1, 2 and 3 in a cycle form one component,
+   * and item 4, which leads into the cycle but cannot be reached from it, a component of its own
+   */
+  @Test
+  public void stronglyConnectedItemsInACycleFormOneComponent() {
+    Map<Integer, List<Integer>> next = Map.of(1, List.of(2), 2, List.of(3), 3, List.of(1), 4, List.of(1));
+    Map<Integer, List<Integer>> previous = Map.of(1, List.of(3, 4), 2, List.of(1), 3, List.of(2), 4, List.of());
+
+    var result = StronglyConnectedComponents.execute(List.of(1, 2, 3, 4), next::get, previous::get);
+    assertEquals(2, result.size());
+    assertEquals(Set.of(1, 2, 3), Set.copyOf(result.getLargest()));
+    assertEquals(1, result.getComponentIndexOf(4));
   }
 }

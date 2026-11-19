@@ -1,35 +1,23 @@
 package org.goplanit.algorithms.intersection;
 
-import java.util.logging.Logger;
-
+import org.goplanit.utils.exceptions.ExceptionUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
+import org.goplanit.utils.settings.annotations.SettingsKeyLevel;
+import org.goplanit.utils.settings.annotations.SettingsRead;
+import org.goplanit.utils.settings.annotations.SettingsWrite;
 
 /**
  * Settings of the algorithms that compute green ratios and saturation flow factors: which algorithm, and the signal
- * timing it assumes where none is known. Each setting has a default; a setter refuses a value that makes no sense,
- * with a warning, and leaves the setting as it was
+ * timing it assumes where none is known. Each setting has a default; a setter refuses a value that makes no sense and
+ * leaves the setting as it was
+ * <p>
+ * Input networks rarely hold signal timing, so the algorithms assume a typical one; these settings give a study's own
+ * values where it knows better, such as a longer cycle in a city centre
+ * </p>
  *
  * @author markr
  */
 public class GreenRatioAndSaturationFlowFactorSettings {
-
-  /** the logger */
-  private static final Logger LOGGER =
-      Logger.getLogger(GreenRatioAndSaturationFlowFactorSettings.class.getCanonicalName());
-
-  /**
-   * Warn that a value is refused
-   *
-   * @param setting name of the setting, starting with a capital
-   * @param value refused
-   * @param validValues what a value must be
-   * @return false, the setting was not changed
-   */
-  private static boolean refuse(String setting, Object value, String validValues) {
-    LOGGER.warning(String.format("%s of %s refused, it must be %s; the setting is unchanged", setting, value,
-        validValues));
-    return false;
-  }
 
   /** the algorithm */
   private GreenRatioAlgorithmType algorithmType = DEFAULT_ALGORITHM_TYPE;
@@ -131,6 +119,7 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    *
    * @return the algorithm type
    */
+  @SettingsRead(key = "algorithmType")
   public GreenRatioAlgorithmType getAlgorithmType() {
     return algorithmType;
   }
@@ -139,14 +128,13 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    * Set the algorithm
    *
    * @param algorithmType to use, not null
-   * @return true when set, false when refused
+   * @throws IllegalArgumentException the setting unchanged, when it is null
    */
-  public boolean setAlgorithmType(GreenRatioAlgorithmType algorithmType) {
-    if (algorithmType == null) {
-      return refuse("Algorithm type", null, "given");
-    }
+  @SettingsWrite(key = "algorithmType", level = SettingsKeyLevel.COMMON,
+      description = "How the phases share the green time, such as by their capacity")
+  public void setAlgorithmType(GreenRatioAlgorithmType algorithmType) {
+    ExceptionUtils.throwIllegalSettingValueIf(algorithmType == null, "Algorithm type", null, "given");
     this.algorithmType = algorithmType;
-    return true;
   }
 
   /**
@@ -154,6 +142,7 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    *
    * @return cycle time in seconds
    */
+  @SettingsRead(key = "cycleTimeSeconds")
   public double getCycleTimeSeconds() {
     return cycleTimeSeconds;
   }
@@ -162,14 +151,13 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    * Set the cycle time
    *
    * @param cycleTimeSeconds above 0
-   * @return true when set, false when refused
+   * @throws IllegalArgumentException naming the value, the setting unchanged, when it is not above 0
    */
-  public boolean setCycleTimeSeconds(double cycleTimeSeconds) {
-    if (!(cycleTimeSeconds > 0)) {
-      return refuse("Cycle time", cycleTimeSeconds, "above 0 s");
-    }
+  @SettingsWrite(key = "cycleTimeSeconds", level = SettingsKeyLevel.UNCOMMON,
+      description = "Time in which a signal shows each of its phases once, in seconds")
+  public void setCycleTimeSeconds(double cycleTimeSeconds) {
+    ExceptionUtils.throwIllegalSettingValueIf(!(cycleTimeSeconds > 0), "Cycle time", cycleTimeSeconds, "above 0 s");
     this.cycleTimeSeconds = cycleTimeSeconds;
-    return true;
   }
 
   /**
@@ -177,6 +165,7 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    *
    * @return lost time per phase change in seconds
    */
+  @SettingsRead(key = "lostTimePerPhaseChangeSeconds")
   public double getLostTimePerPhaseChangeSeconds() {
     return lostTimePerPhaseChangeSeconds;
   }
@@ -185,14 +174,14 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    * Set the time lost at each phase change
    *
    * @param lostTimePerPhaseChangeSeconds 0 or more
-   * @return true when set, false when refused
+   * @throws IllegalArgumentException naming the value, the setting unchanged, when it is below 0
    */
-  public boolean setLostTimePerPhaseChangeSeconds(double lostTimePerPhaseChangeSeconds) {
-    if (!(lostTimePerPhaseChangeSeconds >= 0)) {
-      return refuse("Lost time per phase change", lostTimePerPhaseChangeSeconds, "0 s or more");
-    }
+  @SettingsWrite(key = "lostTimePerPhaseChangeSeconds", level = SettingsKeyLevel.UNCOMMON,
+      description = "Time lost at each phase change, while the signal shows yellow and all-red, in seconds")
+  public void setLostTimePerPhaseChangeSeconds(double lostTimePerPhaseChangeSeconds) {
+    ExceptionUtils.throwIllegalSettingValueIf(!(lostTimePerPhaseChangeSeconds >= 0), "Lost time per phase change",
+        lostTimePerPhaseChangeSeconds, "0 s or more");
     this.lostTimePerPhaseChangeSeconds = lostTimePerPhaseChangeSeconds;
-    return true;
   }
 
   /**
@@ -200,6 +189,7 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    *
    * @return the green ratio
    */
+  @SettingsRead(key = "isolatedCrossingGreenRatio")
   public double getIsolatedCrossingGreenRatio() {
     return isolatedCrossingGreenRatio;
   }
@@ -208,14 +198,14 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    * Set the green ratio of road traffic at a signalised crossing that is no junction
    *
    * @param isolatedCrossingGreenRatio from 0 to 1
-   * @return true when set, false when refused
+   * @throws IllegalArgumentException naming the value, the setting unchanged, when it is not from 0 to 1
    */
-  public boolean setIsolatedCrossingGreenRatio(double isolatedCrossingGreenRatio) {
-    if (!IntersectionUtils.isValidCapacityFactor(isolatedCrossingGreenRatio)) {
-      return refuse("Isolated crossing green ratio", isolatedCrossingGreenRatio, "from 0 to 1");
-    }
+  @SettingsWrite(key = "isolatedCrossingGreenRatio", level = SettingsKeyLevel.UNCOMMON,
+      description = "Green ratio of road traffic at a signalised crossing that is no junction, from 0 to 1")
+  public void setIsolatedCrossingGreenRatio(double isolatedCrossingGreenRatio) {
+    ExceptionUtils.throwIllegalSettingValueIf(!IntersectionUtils.isValidCapacityFactor(isolatedCrossingGreenRatio),
+        "Isolated crossing green ratio", isolatedCrossingGreenRatio, "from 0 to 1");
     this.isolatedCrossingGreenRatio = isolatedCrossingGreenRatio;
-    return true;
   }
 
   /**
@@ -223,6 +213,7 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    *
    * @return the green ratio
    */
+  @SettingsRead(key = "rampMeterGreenRatio")
   public double getRampMeterGreenRatio() {
     return rampMeterGreenRatio;
   }
@@ -231,14 +222,14 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    * Set the green ratio of road traffic at a ramp meter
    *
    * @param rampMeterGreenRatio from 0 to 1
-   * @return true when set, false when refused
+   * @throws IllegalArgumentException naming the value, the setting unchanged, when it is not from 0 to 1
    */
-  public boolean setRampMeterGreenRatio(double rampMeterGreenRatio) {
-    if (!IntersectionUtils.isValidCapacityFactor(rampMeterGreenRatio)) {
-      return refuse("Ramp meter green ratio", rampMeterGreenRatio, "from 0 to 1");
-    }
+  @SettingsWrite(key = "rampMeterGreenRatio", level = SettingsKeyLevel.UNCOMMON,
+      description = "Green ratio of road traffic at a ramp meter, from 0 to 1")
+  public void setRampMeterGreenRatio(double rampMeterGreenRatio) {
+    ExceptionUtils.throwIllegalSettingValueIf(!IntersectionUtils.isValidCapacityFactor(rampMeterGreenRatio),
+        "Ramp meter green ratio", rampMeterGreenRatio, "from 0 to 1");
     this.rampMeterGreenRatio = rampMeterGreenRatio;
-    return true;
   }
 
   /**
@@ -247,6 +238,7 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    *
    * @return the tolerance in degrees
    */
+  @SettingsRead(key = "sameAxisApproachToleranceDegrees")
   public double getSameAxisApproachToleranceDegrees() {
     return sameAxisApproachToleranceDegrees;
   }
@@ -255,14 +247,15 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    * Set the tolerance for two approaches to count as on the same axis
    *
    * @param sameAxisApproachToleranceDegrees from 0 to below 90, so approaches at right angles never share an axis
-   * @return true when set, false when refused
+   * @throws IllegalArgumentException naming the value, the setting unchanged, when it is not from 0 to below 90
    */
-  public boolean setSameAxisApproachToleranceDegrees(double sameAxisApproachToleranceDegrees) {
-    if (!(sameAxisApproachToleranceDegrees >= 0 && sameAxisApproachToleranceDegrees < 90)) {
-      return refuse("Same axis approach tolerance", sameAxisApproachToleranceDegrees, "from 0 to below 90 degrees");
-    }
+  @SettingsWrite(key = "sameAxisApproachToleranceDegrees", level = SettingsKeyLevel.UNCOMMON,
+      description = "Tolerance for two approaches to count as on the same axis and share a phase, in degrees")
+  public void setSameAxisApproachToleranceDegrees(double sameAxisApproachToleranceDegrees) {
+    ExceptionUtils.throwIllegalSettingValueIf(
+        !(sameAxisApproachToleranceDegrees >= 0 && sameAxisApproachToleranceDegrees < 90),
+        "Same axis approach tolerance", sameAxisApproachToleranceDegrees, "from 0 to below 90 degrees");
     this.sameAxisApproachToleranceDegrees = sameAxisApproachToleranceDegrees;
-    return true;
   }
 
   /**
@@ -272,6 +265,7 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    *
    * @return the maximum number of phases
    */
+  @SettingsRead(key = "maximumNumberOfPhases")
   public int getMaximumNumberOfPhases() {
     return maximumNumberOfPhases;
   }
@@ -280,14 +274,14 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    * Set the most phases a junction is given
    *
    * @param maximumNumberOfPhases 1 or more
-   * @return true when set, false when refused
+   * @throws IllegalArgumentException naming the value, the setting unchanged, when it is below 1
    */
-  public boolean setMaximumNumberOfPhases(int maximumNumberOfPhases) {
-    if (maximumNumberOfPhases < 1) {
-      return refuse("Maximum number of phases", maximumNumberOfPhases, "1 or more");
-    }
+  @SettingsWrite(key = "maximumNumberOfPhases", level = SettingsKeyLevel.UNCOMMON,
+      description = "Most phases the road approaches of a junction are given")
+  public void setMaximumNumberOfPhases(int maximumNumberOfPhases) {
+    ExceptionUtils.throwIllegalSettingValueIf(maximumNumberOfPhases < 1, "Maximum number of phases",
+        maximumNumberOfPhases, "1 or more");
     this.maximumNumberOfPhases = maximumNumberOfPhases;
-    return true;
   }
 
   /**
@@ -296,6 +290,7 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    *
    * @return the saturation flow factor
    */
+  @SettingsRead(key = "approachWithoutSignalSaturationFlowFactor")
   public double getApproachWithoutSignalSaturationFlowFactor() {
     return approachWithoutSignalSaturationFlowFactor;
   }
@@ -304,15 +299,17 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    * Set the saturation flow factor of an approach without a signal of its own at a signalised intersection
    *
    * @param approachWithoutSignalSaturationFlowFactor from 0 to 1
-   * @return true when set, false when refused
+   * @throws IllegalArgumentException naming the value, the setting unchanged, when it is not from 0 to 1
    */
-  public boolean setApproachWithoutSignalSaturationFlowFactor(double approachWithoutSignalSaturationFlowFactor) {
-    if (!IntersectionUtils.isValidCapacityFactor(approachWithoutSignalSaturationFlowFactor)) {
-      return refuse("Saturation flow factor of an approach without a signal",
-          approachWithoutSignalSaturationFlowFactor, "from 0 to 1");
-    }
+  @SettingsWrite(key = "approachWithoutSignalSaturationFlowFactor", level = SettingsKeyLevel.UNCOMMON,
+      description = "Saturation flow factor of an approach without a signal of its own at a signalised " +
+          "intersection, from 0 to 1")
+  public void setApproachWithoutSignalSaturationFlowFactor(double approachWithoutSignalSaturationFlowFactor) {
+    ExceptionUtils.throwIllegalSettingValueIf(
+        !IntersectionUtils.isValidCapacityFactor(approachWithoutSignalSaturationFlowFactor),
+        "Saturation flow factor of an approach without a signal", approachWithoutSignalSaturationFlowFactor,
+        "from 0 to 1");
     this.approachWithoutSignalSaturationFlowFactor = approachWithoutSignalSaturationFlowFactor;
-    return true;
   }
 
   /**
@@ -323,6 +320,7 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    *
    * @return the fixed green ratio
    */
+  @SettingsRead(key = "fixedRailBasedPhaseGreenRatio")
   public double getFixedRailBasedPhaseGreenRatio() {
     return fixedRailBasedPhaseGreenRatio;
   }
@@ -331,14 +329,14 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    * Set the fixed green ratio of the rail-based phase of a junction
    *
    * @param fixedRailBasedPhaseGreenRatio from 0 to 1
-   * @return true when set, false when refused
+   * @throws IllegalArgumentException naming the value, the setting unchanged, when it is not from 0 to 1
    */
-  public boolean setFixedRailBasedPhaseGreenRatio(double fixedRailBasedPhaseGreenRatio) {
-    if (!IntersectionUtils.isValidCapacityFactor(fixedRailBasedPhaseGreenRatio)) {
-      return refuse("Fixed rail-based phase green ratio", fixedRailBasedPhaseGreenRatio, "from 0 to 1");
-    }
+  @SettingsWrite(key = "fixedRailBasedPhaseGreenRatio", level = SettingsKeyLevel.UNCOMMON,
+      description = "Fixed green ratio of the phase of the rail-based approaches of a junction, from 0 to 1")
+  public void setFixedRailBasedPhaseGreenRatio(double fixedRailBasedPhaseGreenRatio) {
+    ExceptionUtils.throwIllegalSettingValueIf(!IntersectionUtils.isValidCapacityFactor(fixedRailBasedPhaseGreenRatio),
+        "Fixed rail-based phase green ratio", fixedRailBasedPhaseGreenRatio, "from 0 to 1");
     this.fixedRailBasedPhaseGreenRatio = fixedRailBasedPhaseGreenRatio;
-    return true;
   }
 
   /**
@@ -348,6 +346,7 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    *
    * @return the minimum green time in seconds
    */
+  @SettingsRead(key = "minimumGreenTimeSeconds")
   public double getMinimumGreenTimeSeconds() {
     return minimumGreenTimeSeconds;
   }
@@ -356,13 +355,13 @@ public class GreenRatioAndSaturationFlowFactorSettings {
    * Set the minimum green time of a road phase
    *
    * @param minimumGreenTimeSeconds 0 or more
-   * @return true when set, false when refused
+   * @throws IllegalArgumentException naming the value, the setting unchanged, when it is below 0
    */
-  public boolean setMinimumGreenTimeSeconds(double minimumGreenTimeSeconds) {
-    if (!(minimumGreenTimeSeconds >= 0)) {
-      return refuse("Minimum green time", minimumGreenTimeSeconds, "0 s or more");
-    }
+  @SettingsWrite(key = "minimumGreenTimeSeconds", level = SettingsKeyLevel.UNCOMMON,
+      description = "Least green time of a road phase, in seconds, 0 for none")
+  public void setMinimumGreenTimeSeconds(double minimumGreenTimeSeconds) {
+    ExceptionUtils.throwIllegalSettingValueIf(!(minimumGreenTimeSeconds >= 0), "Minimum green time",
+        minimumGreenTimeSeconds, "0 s or more");
     this.minimumGreenTimeSeconds = minimumGreenTimeSeconds;
-    return true;
   }
 }

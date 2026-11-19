@@ -153,6 +153,25 @@ public class ExternalToPlanitModeMapping {
   }
 
   /**
+   * Whether a PLANit mode is registered for an external mode, as a default or overridden, whether active or not
+   *
+   * @param externalMode external mode identifier, not null
+   * @return true when a mapping is registered
+   */
+  public boolean hasMapping(String externalMode) {
+    return defaultMappings.containsKey(externalMode) || activeMappings.containsKey(externalMode);
+  }
+
+  /**
+   * The default mapping of each external mode: the PLANit mode it maps to once activated, whether active or not
+   *
+   * @return the mappings by external mode, in alphabetical order, unmodifiable
+   */
+  public SortedMap<String, PredefinedModeType> getDefaultMappings() {
+    return Collections.unmodifiableSortedMap(new TreeMap<>(defaultMappings));
+  }
+
+  /**
    * Retrieve the mapped PLANit mode for a given external mode.
    * Returns {@code null} if:
    * <ul>

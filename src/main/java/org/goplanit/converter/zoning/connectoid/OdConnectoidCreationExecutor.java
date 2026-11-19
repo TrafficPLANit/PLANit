@@ -158,8 +158,8 @@ public class OdConnectoidCreationExecutor {
         usableSegmentByMode.put(mode, LinkSegmentUtils.permitsMode(mode).and(segment ->
             ((MacroscopicLinkSegment) segment).getModelledSpeedLimitKmH(mode) <= maximumLinkSpeedKmh));
         if (mainNetworkOnly) {
-          mainPartByMode.put(mode, new HashSet<>(
-              StronglyConnectedComponents.execute(layer.getNodes(), LinkSegmentUtils.permitsMode(mode)).getLargest()));
+          mainPartByMode.put(mode, new HashSet<>(StronglyConnectedComponents.executeOnVertices(
+              layer.getNodes(), LinkSegmentUtils.permitsMode(mode)).getLargest()));
         }
       }
     }

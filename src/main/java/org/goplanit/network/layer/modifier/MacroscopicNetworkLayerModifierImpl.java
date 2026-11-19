@@ -197,7 +197,7 @@ public class MacroscopicNetworkLayerModifierImpl
    */
   @Override
   public boolean removeIntersection(Intersection intersection) {
-    if (layer.getIntersections().get(intersection.getId()) != intersection) {
+    if (!layer.getIntersections().containsValue(intersection)) {
       return false;
     }
     if (intersection instanceof SpatialIntersection) {
@@ -242,7 +242,7 @@ public class MacroscopicNetworkLayerModifierImpl
   @Override
   public boolean removeSpatialMovement(SpatialMovement spatialMovement) {
     var spatialMovements = layer.getSpatialMovements();
-    if (spatialMovements.get(spatialMovement.getId()) != spatialMovement) {
+    if (!spatialMovements.containsValue(spatialMovement)) {
       return false;
     }
     var intersection = layer.getIntersections().getBySegment(spatialMovement.getLinkSegmentFrom());
@@ -329,32 +329,35 @@ public class MacroscopicNetworkLayerModifierImpl
    * {@inheritDoc}
    */
   @Override
-  public List<BannedTurn> moveLinkEndNode(
-      MacroscopicLink link, Node currentEndNode, Node newEndNode, CoordinateReferenceSystem crs) {
-    boolean atNodeA = link.getNodeA() == currentEndNode;
-    PlanItRunTimeException.throwIf(!atNodeA && link.getNodeB() != currentEndNode,
-        "Node %s is not an end of link %s", currentEndNode.getIdsAsString(), link.getIdsAsString());
-
-    var coordinates = new ArrayList<>(link.hasGeometry() ? List.of(link.getGeometry().getCoordinates()) :
-        List.of(link.getNodeA().getPosition().getCoordinate(), link.getNodeB().getPosition().getCoordinate()));
+  public List<BannedTurn> moveLinkEndsAtNode(Collection<? extends MacroscopicLink> links,
+      Node currentEndNode, Node newEndNode, CoordinateReferenceSystem crs) {
+    /* each geometry runs on in a straight line to the new node, set before the move so its event sees finished links */
+    var crsUtils = new PlanitJtsCrsUtils(crs);
     var newPosition = newEndNode.getPosition().getCoordinate();
-    if (atNodeA) {
-      coordinates.add(0, newPosition);
-    } else {
-      coordinates.add(newPosition);
+    for (var link : links) {
+      boolean atNodeA = link.getNodeA() == currentEndNode;
+      PlanItRunTimeException.throwIf(!atNodeA && link.getNodeB() != currentEndNode,
+          "Node %s is not an end of link %s", currentEndNode.getIdsAsString(), link.getIdsAsString());
+      var coordinates = new ArrayList<>(link.hasGeometry() ? List.of(link.getGeometry().getCoordinates()) :
+          List.of(link.getNodeA().getPosition().getCoordinate(), link.getNodeB().getPosition().getCoordinate()));
+      if (atNodeA) {
+        coordinates.add(0, newPosition);
+      } else {
+        coordinates.add(newPosition);
+      }
+      link.setGeometry(PlanitJtsUtils.createLineString(coordinates.toArray(Coordinate[]::new)));
+      link.setLengthKm(crsUtils.getDistanceInKilometres(link.getGeometry()));
     }
-    link.replace(currentEndNode, newEndNode);
-    currentEndNode.removeEdge(link);
-    newEndNode.addEdge(link);
-    link.setGeometry(PlanitJtsUtils.createLineString(coordinates.toArray(Coordinate[]::new)));
-    link.setLengthKm(new PlanitJtsCrsUtils(crs).getDistanceInKilometres(link.getGeometry()));
+    graphModifier.moveEdgeEndsAtVertex(links, currentEndNode, newEndNode);
 
-    /* the link's segments now meet other segments at the new end */
+    /* the links' segments now meet other segments at the new end */
     var bansNoLongerMeeting = new ArrayList<BannedTurn>();
-    for (var segment : link.getEdgeSegments()) {
-      layer.getBannedTurns().getBySegment(segment).stream()
-          .filter(ban -> !ban.hasCentreVertex() && !bansNoLongerMeeting.contains(ban))
-          .forEach(bansNoLongerMeeting::add);
+    for (var link : links) {
+      for (var segment : link.getEdgeSegments()) {
+        layer.getBannedTurns().getBySegment(segment).stream()
+            .filter(ban -> !ban.hasCentreVertex() && !bansNoLongerMeeting.contains(ban))
+            .forEach(bansNoLongerMeeting::add);
+      }
     }
     bansNoLongerMeeting.forEach(graphModifier::removeBannedTurn);
     return bansNoLongerMeeting;
@@ -378,7 +381,7 @@ public class MacroscopicNetworkLayerModifierImpl
   public IntersectionCollapseModifierResult collapseIntersectionsToNonSpatialForModes(
       Collection<? extends SpatialIntersection> intersections, IntersectionCollapserSettings settings,
       CoordinateReferenceSystem crs) {
-    return new IntersectionModeCollapser(layer, settings, crs).collapse(intersections);
+    return new IntersectionModeCollapser(layer, settings, crs, intersectionEvents).collapse(intersections);
   }
 
   /**
@@ -427,6 +430,22 @@ public class MacroscopicNetworkLayerModifierImpl
    * {@inheritDoc}
    */
   @Override
+  public void addInternalListener(IntersectionModifierListener listener) {
+    intersectionEvents.addInternalListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeInternalListener(IntersectionModifierListener listener) {
+    intersectionEvents.removeInternalListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void addListener(LinkSegmentTypeModifierListener listener) {
     linkSegmentTypeEvents.addListener(listener);
   }
@@ -453,6 +472,22 @@ public class MacroscopicNetworkLayerModifierImpl
   @Override
   public void removeListener(LinkSegmentTypeModifierListener listener) {
     linkSegmentTypeEvents.removeListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addInternalListener(LinkSegmentTypeModifierListener listener) {
+    linkSegmentTypeEvents.addInternalListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeInternalListener(LinkSegmentTypeModifierListener listener) {
+    linkSegmentTypeEvents.removeInternalListener(listener);
   }
 
   /**

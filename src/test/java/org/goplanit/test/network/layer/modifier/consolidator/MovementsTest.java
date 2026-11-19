@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
-import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerUtils;
+import org.goplanit.network.layer.macroscopic.SpatialIntersectionUtils;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
@@ -115,9 +115,9 @@ public class MovementsTest extends IntersectionConsolidationTestBase {
     consolidate();
 
     var consolidated = onlySpatialIntersection();
-    assertTrue(MacroscopicNetworkLayerUtils.findExitsReachedThroughSpatialIntersection(
+    assertTrue(SpatialIntersectionUtils.findExitsReached(
         layer, consolidated, north, car, true).containsKey(east));
-    assertFalse(MacroscopicNetworkLayerUtils.findExitsReachedThroughSpatialIntersection(
+    assertFalse(SpatialIntersectionUtils.findExitsReached(
         layer, consolidated, north, bus, true).containsKey(east));
     assertEquals(Set.of(bus), bannedModes(consolidated, movementBetween(consolidated, north, east)));
   }

@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.goplanit.graph.directed.modifier.event.MoveEdgeEndsAtVertexEvent;
 import org.goplanit.graph.directed.modifier.event.RemoveEdgeSegmentEvent;
 import org.goplanit.graph.directed.modifier.event.RemoveBannedTurnEvent;
 import org.goplanit.graph.modifier.GraphModifierImpl;
@@ -16,6 +17,7 @@ import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.graph.*;
 import org.goplanit.utils.graph.directed.*;
@@ -277,20 +279,42 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
    * {@inheritDoc}
    */
   @Override
+  public void moveEdgeEndsAtVertex(
+      Collection<? extends DirectedEdge> edges, DirectedVertex currentEndVertex, DirectedVertex newEndVertex) {
+    for (var edge : edges) {
+      PlanItRunTimeException.throwIf(edge.getVertexA() != currentEndVertex && edge.getVertexB() != currentEndVertex,
+          "Vertex %s is not an end of edge %s", currentEndVertex.getIdsAsString(), edge.getIdsAsString());
+    }
+    for (var edge : edges) {
+      edge.replace(currentEndVertex, newEndVertex);
+      currentEndVertex.removeEdge(edge);
+      newEndVertex.addEdge(edge);
+    }
+    if (hasListener(MoveEdgeEndsAtVertexEvent.EVENT_TYPE)) {
+      fireEvent(new MoveEdgeEndsAtVertexEvent(this, List.copyOf(edges), currentEndVertex, newEndVertex));
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void removeEdgeSegment(EdgeSegment edgeSegment) {
     /* only a registered segment is removed, so removing it again changes nothing and fires nothing */
-    if(getGraph().getEdgeSegments().get(edgeSegment.getId()) != edgeSegment){
+    if(!getGraph().getEdgeSegments().containsValue(edgeSegment)){
       return;
     }
     getGraph().getEdgeSegments().remove(edgeSegment.getId());
-    if(edgeSegment.getParent() != null){
-      edgeSegment.getParent().removeEdgeSegment(edgeSegment);
-    }
-    edgeSegment.removeParentEdge();
 
     if (hasListener(RemoveEdgeSegmentEvent.EVENT_TYPE)) {
       fireEvent(new RemoveEdgeSegmentEvent(this, edgeSegment));
     }
+
+    /* taken off its edge only once the listeners have run, so they can still ask the segment its vertices */
+    if(edgeSegment.getParent() != null){
+      edgeSegment.getParent().removeEdgeSegment(edgeSegment);
+    }
+    edgeSegment.removeParentEdge();
 
     /* banned turns cannot outlive a segment they start or end at */
     if (getGraph().getBannedTurns() != null) {
@@ -497,11 +521,25 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
    *
    * @param listener to add
    */
+  @Override
   public void addInternalListener(GraphModifierListener listener) {
     if (listener instanceof DirectedGraphModifierListener) {
       super.addInternalListener(listener);
     }
     graphModifier.addInternalListener(listener);
+  }
+
+  /**
+   * Remove a listener internal to the owner of this modifier, from this modifier and the underlying graph modifier
+   *
+   * @param listener to remove
+   */
+  @Override
+  public void removeInternalListener(GraphModifierListener listener) {
+    if (listener instanceof DirectedGraphModifierListener) {
+      super.removeInternalListener(listener);
+    }
+    graphModifier.removeInternalListener(listener);
   }
 
   /**

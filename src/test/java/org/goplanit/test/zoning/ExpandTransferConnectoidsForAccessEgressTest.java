@@ -96,4 +96,29 @@ public class ExpandTransferConnectoidsForAccessEgressTest extends LayerTestBase 
     assertEquals(Set.of(pedestrian), added.first());
     assertEquals(Set.of(pedestrian), added.second());
   }
+
+  /** transfer zones are found by the entry types they have and lack over all their connectoids: a station with its stop
+   * on one connectoid and its access and egress on another has both */
+  @Test
+  public void transferZonesAreFoundByEntryTypesOverAllTheirConnectoids() {
+    var walk = twoWay(0, 1, walkOnly).getLinkSegmentAb();
+    var stopOnly = zoning.getTransferZones().getFactory().registerNew(TransferZoneType.POLE, true);
+    var station = zoning.getTransferZones().getFactory().registerNew(TransferZoneType.STATION, true);
+    var accessOnly = zoning.getTransferZones().getFactory().registerNew(TransferZoneType.POLE, true);
+    var atPole = zoning.getTransferConnectoids().getFactory().registerNewWithDirectedEntry(
+        stopOnly, true, walk, ZoneConnectoidType.PT_VEHICLE_STOP);
+    atPole.createUndirectedAccessZoneEntry(station, ZoneConnectoidType.ZONE_ACCESS_EGRESS);
+    atPole.createUndirectedAccessZoneEntry(accessOnly, ZoneConnectoidType.ZONE_ACCESS);
+    zoning.getTransferConnectoids().getFactory().registerNewWithDirectedEntry(
+        station, true, walk, ZoneConnectoidType.PT_VEHICLE_STOP);
+    var connectoidsByTransferZone = zoning.getTransferConnectoids().createIndexByAccessZone();
+
+    var accessOrEgressWithoutStop = ZoningConverterUtils.findTransferZonesWithAnyButNoneOfEntryTypes(
+        connectoidsByTransferZone, ZoneConnectoidType.ACCESS_OR_EGRESS_TYPES, Set.of(ZoneConnectoidType.PT_VEHICLE_STOP));
+    var stopWithoutAccessOrEgress = ZoningConverterUtils.findTransferZonesWithAnyButNoneOfEntryTypes(
+        connectoidsByTransferZone, Set.of(ZoneConnectoidType.PT_VEHICLE_STOP), ZoneConnectoidType.ACCESS_OR_EGRESS_TYPES);
+
+    assertEquals(Set.of(accessOnly), accessOrEgressWithoutStop);
+    assertEquals(Set.of(stopOnly), stopWithoutAccessOrEgress);
+  }
 }

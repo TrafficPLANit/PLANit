@@ -8,8 +8,12 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.zoning.TransferZoneType;
 import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 import org.goplanit.zoning.Zoning;
+import org.goplanit.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
+import org.goplanit.zoning.modifier.event.RemoveConnectoidEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -75,5 +79,36 @@ public class RemoveUnusedTransferConnectoidsTest extends LayerTestBase {
     assertFalse(connectoid.hasAccessZoneEntry(busStop));
     assertTrue(connectoid.hasAccessZoneEntry(station, ZoneConnectoidType.ZONE_EGRESS));
     assertEquals(1, connectoid.getNumberOfAccessZoneEntries());
+  }
+
+  /** the connectoid of an unused stop serving nothing else is reported once, as the connectoid removed */
+  @Test
+  public void connectoidOfUnusedStopOnlyIsReportedOnce() {
+    var busStop = zoning.getTransferZones().getFactory().registerNew(TransferZoneType.POLE, true);
+    var connectoid = zoning.getTransferConnectoids().getFactory().registerNewWithDirectedEntry(
+        busStop, true, segment, ZoneConnectoidType.PT_VEHICLE_STOP);
+    connectoid.createUndirectedAccessZoneEntry(busStop, ZoneConnectoidType.ZONE_ACCESS_EGRESS);
+    var recorder = new ZoningLossEventRecorder(zoning);
+
+    zoning.getZoningModifier().removeUnusedTransferConnectoids(serviceNetwork.getTransportLayers(), false);
+
+    assertEquals(List.of(RemoveConnectoidEvent.EVENT_TYPE), recorder.getHeardTypes());
+  }
+
+  /** the two entries of an unused stop on a connectoid that also serves a station are each reported once */
+  @Test
+  public void entriesOfUnusedStopAreEachReportedOnce() {
+    var busStop = zoning.getTransferZones().getFactory().registerNew(TransferZoneType.POLE, true);
+    var station = zoning.getTransferZones().getFactory().registerNew(TransferZoneType.STATION, true);
+    var connectoid = zoning.getTransferConnectoids().getFactory().registerNewWithDirectedEntry(
+        busStop, true, segment, ZoneConnectoidType.PT_VEHICLE_STOP);
+    connectoid.createUndirectedAccessZoneEntry(busStop, ZoneConnectoidType.ZONE_ACCESS_EGRESS);
+    connectoid.createUndirectedAccessZoneEntry(station, ZoneConnectoidType.ZONE_EGRESS);
+    var recorder = new ZoningLossEventRecorder(zoning);
+
+    zoning.getZoningModifier().removeUnusedTransferConnectoids(serviceNetwork.getTransportLayers(), false);
+
+    assertEquals(List.of(RemoveConnectoidAccessZoneEntryEvent.EVENT_TYPE, RemoveConnectoidAccessZoneEntryEvent.EVENT_TYPE),
+        recorder.getHeardTypes());
   }
 }

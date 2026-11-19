@@ -1,7 +1,12 @@
 package org.goplanit.zoning;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -9,6 +14,7 @@ import java.util.stream.Stream;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.virtual.VirtualNetworkImpl;
 import org.goplanit.utils.graph.directed.BannedTurn;
 import org.goplanit.utils.zoning.connectoid.*;
@@ -19,6 +25,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
+import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
 import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.graph.CentroidVertexUtils;
@@ -27,6 +34,7 @@ import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
+import org.goplanit.zoning.connectoid.ConnectoidsImpl;
 import org.goplanit.zoning.connectoid.OdConnectoidsImpl;
 import org.goplanit.zoning.connectoid.TransferConnectoidsImpl;
 import org.goplanit.zoning.modifier.ZoningModifierImpl;
@@ -44,6 +52,22 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(Zoning.class.getCanonicalName());
+
+  /** the networks this zoning follows: its connectoid containers listen to the modifier of each of their layers */
+  private final List<MacroscopicNetwork> networksFollowed = new ArrayList<>(1);
+
+  /** the layer modifiers the connectoid containers listen to, by identity, so each layer is listened to once */
+  private final Set<MacroscopicNetworkLayerModifier> layerModifiersFollowed =
+      Collections.newSetFromMap(new IdentityHashMap<>());
+
+  /**
+   * The connectoid containers of this zoning, which follow the networks it is attached to
+   *
+   * @return the OD and transfer connectoid containers
+   */
+  private List<ConnectoidsImpl<?>> getConnectoidContainers() {
+    return List.of((ConnectoidsImpl<?>) odConnectoids, (ConnectoidsImpl<?>) transferConnectoids);
+  }
 
   // Protected
 
@@ -114,6 +138,19 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   }
 
   /**
+   * Constructor for a zoning on a network: its virtual network takes the network's grouping token, so the ids of its
+   * centroids and connectoids are unique alongside the network's, and the zoning follows the network, see
+   * {@link #attachTo(MacroscopicNetwork)}
+   *
+   * @param groupId contiguous id generation within this group for instances of this class
+   * @param network the zoning lies on
+   */
+  public Zoning(IdGroupingToken groupId, MacroscopicNetwork network) {
+    this(groupId, network.getNetworkGroupingTokenId());
+    attachTo(network);
+  }
+
+  /**
    * Copy constructor
    * 
    * @param other to copy
@@ -133,9 +170,6 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
       ManagedIdDeepCopyMapper<TransferZone> transferZoneMapper,
       ManagedIdDeepCopyMapper<TransferZoneGroup> transferZoneGroupMapper) {
     super(other, deepCopy);
-
-    // extension of class, with reference to this, so copy always required
-    this.zoningModifier = new ZoningModifierImpl(this);
 
     // These are all container wrappers as well, so always require a clone
     if(deepCopy){
@@ -177,6 +211,50 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
       this.transferZoneGroups =   other.transferZoneGroups.shallowClone();
 
       this.virtualNetwork =       other.virtualNetwork.shallowClone();
+    }
+
+    // extension of class, with reference to this and its containers, so made once the containers are
+    this.zoningModifier = new ZoningModifierImpl(this);
+    other.networksFollowed.forEach(this::attachTo);
+  }
+
+  /**
+   * Follow the changes made through the modifier of each layer of a network, so the connectoids stay valid: a
+   * connectoid at a removed node is removed, for example. The connectoid containers listen as internal listeners, so
+   * they keep following when the other listeners of a layer are removed
+   * <p>
+   * The layers the network has now are followed; a layer added later is followed once this is called again, such as by
+   * a reader that made the zoning before reading the network. A layer already followed is left as it is
+   * </p>
+   *
+   * @param network to follow
+   */
+  public void attachTo(MacroscopicNetwork network) {
+    if (networksFollowed.stream().noneMatch(followed -> followed == network)) {
+      networksFollowed.add(network);
+    }
+    for (var layer : network.getTransportLayers()) {
+      var layerModifier = layer.getLayerModifier();
+      if (layerModifiersFollowed.add(layerModifier)) {
+        getConnectoidContainers().forEach(connectoids -> connectoids.listenTo(layerModifier));
+      }
+    }
+  }
+
+  /**
+   * Stop following a network, e.g. for a copy of this zoning no longer used while the network lives on
+   *
+   * @param network to stop following
+   */
+  public void detachFrom(MacroscopicNetwork network) {
+    if (!networksFollowed.removeIf(followed -> followed == network)) {
+      return;
+    }
+    for (var layer : network.getTransportLayers()) {
+      var layerModifier = layer.getLayerModifier();
+      if (layerModifiersFollowed.remove(layerModifier)) {
+        getConnectoidContainers().forEach(connectoids -> connectoids.stopListeningTo(layerModifier));
+      }
     }
   }
 

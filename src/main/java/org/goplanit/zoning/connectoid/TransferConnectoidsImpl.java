@@ -10,7 +10,12 @@ import java.util.function.BiConsumer;
 
 /**
  * Implementation of directed connectoids class
- * 
+ * <p>
+ * Besides following removed nodes, as every connectoid container does, the transfer connectoids follow the link
+ * segments their entries are reached over, see {@link UpdateTransferConnectoidsOnNetworkChangeHandler}. For example, a
+ * bus stop reached only over a road that stops allowing buses loses its vehicle stop entry.
+ * </p>
+ *
  * @author markr
  *
  */
@@ -18,6 +23,14 @@ public class TransferConnectoidsImpl extends ConnectoidsImpl<TransferConnectoid>
 
   /** factory to use */
   private final TransferConnectoidFactory directedConnectoidFactory;
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected UpdateTransferConnectoidsOnNetworkChangeHandler createNetworkChangeHandler() {
+    return new UpdateTransferConnectoidsOnNetworkChangeHandler(this);
+  }
 
   /**
    * Constructor

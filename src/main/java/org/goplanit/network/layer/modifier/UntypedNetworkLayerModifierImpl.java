@@ -235,6 +235,22 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
    * {@inheritDoc}
    */
   @Override
+  public void addInternalListener(GraphModifierListener listener) {
+    graphModifier.addInternalListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeInternalListener(GraphModifierListener listener) {
+    graphModifier.removeInternalListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void removeAllNonInternalListeners() {
     graphModifier.removeAllNonInternalListeners();
   }

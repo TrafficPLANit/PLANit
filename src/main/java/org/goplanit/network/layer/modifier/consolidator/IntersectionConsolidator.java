@@ -52,6 +52,7 @@ import org.goplanit.utils.network.layer.physical.LinkSegmentUtils;
 import org.goplanit.utils.network.layer.physical.LinkUtils;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.NodeUtils;
+import org.goplanit.utils.settings.UserOverride;
 import org.locationtech.jts.geom.Point;
 
 /**
@@ -1574,9 +1575,11 @@ public class IntersectionConsolidator {
 
     /* the nodes of the lists of the settings, those to keep apart checked by every step that joins from here on */
     var listedNodesToJoinOfEachList = IdMappingUtils.findEntitiesOfEachIdList(
-        layer.getNodes(), settings.getNodeIdsToJoinIntoOneIntersection(), result::addListedNodeIdNotFound);
+        layer.getNodes(), UserOverride.valuesOf(settings.getNodeIdsToJoinIntoOneIntersection()),
+        result::addListedNodeIdNotFound);
     trackingData = new IntersectionConsolidatorTrackingData(layer, IdMappingUtils.findEntitiesOfEachIdList(
-        layer.getNodes(), settings.getNodeIdsToKeepInSeparateIntersections(), result::addListedNodeIdNotFound));
+        layer.getNodes(), UserOverride.valuesOf(settings.getNodeIdsToKeepInSeparateIntersections()),
+        result::addListedNodeIdNotFound));
 
     /* each intersection cluster becomes the consolidated intersections of its chosen subdivision */
     var clusters = findJunctionClusters(junctionIntersections, junctionIntersectionByMemberNode, node -> true);

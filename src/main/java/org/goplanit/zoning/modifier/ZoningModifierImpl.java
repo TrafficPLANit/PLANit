@@ -8,13 +8,18 @@ import java.util.stream.Collectors;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.modifier.LoggableModifier;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.network.layers.ServiceNetworkLayers;
 import org.goplanit.utils.zoning.*;
 import org.goplanit.utils.zoning.connectoid.Connectoid;
+import org.goplanit.utils.zoning.connectoid.ConnectoidAccessZoneEntry;
+import org.goplanit.utils.zoning.connectoid.DirectedConnectoidAccessZoneEntry;
+import org.goplanit.utils.zoning.connectoid.OdConnectoid;
 import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
 import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
@@ -22,8 +27,13 @@ import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierEventType;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierListener;
 import org.goplanit.zoning.Zoning;
+import org.goplanit.zoning.connectoid.ConnectoidsImpl;
 import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
 import org.goplanit.zoning.modifier.event.RecreatedZoningEntitiesManagedIdsEvent;
+import org.goplanit.zoning.modifier.event.RemoveConnectoidAccessLinkSegmentEvent;
+import org.goplanit.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
+import org.goplanit.zoning.modifier.event.RemoveConnectoidAllowedModeEvent;
+import org.goplanit.zoning.modifier.event.RemoveConnectoidEvent;
 
 /**
  * Implementation of the zoningModifier interface
@@ -50,12 +60,15 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   }
 
   /**
-   * register listeners for the internally fired events on the internally known containers of the zoning
+   * register listeners for the internally fired events on the internally known containers of the zoning, and give
+   * the connectoid containers this modifier, through which they make every change to the connectoids
    */
   private void addInternalEventListeners() {
     this.addListener(zoning.getOdConnectoids());
     this.addListener(zoning.getTransferConnectoids());
     this.addListener(zoning.getTransferZoneGroups());
+    ((ConnectoidsImpl<?>) zoning.getOdConnectoids()).setZoningModifier(this);
+    ((ConnectoidsImpl<?>) zoning.getTransferConnectoids()).setZoningModifier(this);
   }
 
   /**
@@ -289,18 +302,20 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
               transferConnectoidsByPhysicalAccessNodeToRemove::remove); // prune
 
       /* at a node no service calls at the stops served there are unused, so their entries go; entries of other zones,
-       * giving travellers access to or egress from them, stay; a connectoid is only removed once no entry remains */
+       * giving travellers access to or egress from them, stay; a connectoid serving only unused stops goes whole */
       if(transferConnectoidsByPhysicalAccessNodeToRemove!=null &&
               !transferConnectoidsByPhysicalAccessNodeToRemove.isEmpty()) {
         transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().flatMap(Collection::stream).forEach(
             unused -> {
+              if (unused.getAccessZoneStream().allMatch(
+                  zone -> unused.hasAccessZoneEntry(zone, ZoneConnectoidType.PT_VEHICLE_STOP))) {
+                removeConnectoid(unused);
+                counter.increment();
+                return;
+              }
               unused.getAccessZoneStream(ZoneConnectoidType.PT_VEHICLE_STOP).collect(Collectors.toList()).forEach(
                   unusedStop -> List.copyOf(unused.getAccessZoneEntriesByType(unusedStop).keySet()).forEach(
-                      type -> unused.removeAccessZoneEntry(unusedStop, type)));
-              if(unused.getNumberOfAccessZoneEntries() == 0) {
-                zoning.getTransferConnectoids().remove(unused);
-                counter.increment();
-              }
+                      type -> removeAccessZoneEntry(unused, unusedStop, type)));
             });
       }
     }
@@ -310,6 +325,68 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
     }
     logModification(String.format("%sRemoved %d unused transfer connectoids",
         LoggingUtils.zoningPrefix(zoning.getId()), counter.longValue()));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeConnectoid(Connectoid connectoid) {
+    if (connectoid instanceof TransferConnectoid &&
+        zoning.getTransferConnectoids().containsValue((TransferConnectoid) connectoid)) {
+      zoning.getTransferConnectoids().remove((TransferConnectoid) connectoid);
+    } else if (connectoid instanceof OdConnectoid &&
+        zoning.getOdConnectoids().containsValue((OdConnectoid) connectoid)) {
+      zoning.getOdConnectoids().remove((OdConnectoid) connectoid);
+    } else {
+      return false;
+    }
+    if (hasListener(RemoveConnectoidEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveConnectoidEvent(this, connectoid));
+    }
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidAccessZoneEntry removeAccessZoneEntry(
+      Connectoid connectoid, Zone accessZone, ZoneConnectoidType type) {
+    var removed = connectoid.removeAccessZoneEntry(accessZone, type);
+    if (removed != null && hasListener(RemoveConnectoidAccessZoneEntryEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveConnectoidAccessZoneEntryEvent(this, connectoid, removed));
+    }
+    return removed;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeAccessLinkSegment(
+      Connectoid connectoid, DirectedConnectoidAccessZoneEntry entry, EdgeSegment accessLinkSegment) {
+    if (!entry.removeAccessLinkSegment(accessLinkSegment)) {
+      return false;
+    }
+    if (hasListener(RemoveConnectoidAccessLinkSegmentEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveConnectoidAccessLinkSegmentEvent(this, connectoid, entry, accessLinkSegment));
+    }
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeExplicitAllowedMode(Connectoid connectoid, ConnectoidAccessZoneEntry entry, Mode mode) {
+    if (!entry.removeExplicitAllowedMode(mode)) {
+      return false;
+    }
+    if (hasListener(RemoveConnectoidAllowedModeEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveConnectoidAllowedModeEvent(this, connectoid, entry, mode));
+    }
+    return true;
   }
 
   /**

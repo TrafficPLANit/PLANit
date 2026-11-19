@@ -8,7 +8,13 @@ import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 
 /**
- * Event for when an edge segment has been removed from a (sub) graph
+ * Event for when an edge segment has been removed from a (sub) graph. While the listeners run, the segment is out of
+ * the graph but still on its parent edge, so it can tell the vertices it ran between; it is taken off the edge after
+ * <p>
+ * Whatever refers to a segment has to follow its removal: the intersections it approaches, the movements entering or
+ * leaving on it, the connectoids reached over it. A listener finds those by the segment itself, or by the vertices it
+ * ran between, for example the connectoids at its downstream vertex that use it as an access link segment.
+ * </p>
  * 
  * @author markr
  *

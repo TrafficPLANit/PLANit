@@ -446,7 +446,7 @@ public class TransferZoningInjectAccessEgressExecutor {
 
     // if configured connect all ferry stops to land network (for modes allowed on each ferry at waiting area)
     if(settings.isConnectFerryStopsToNearbyLandNetwork()) {
-      connectFerriesToLandNetwork(settings.getFerryStopToNearbyLandNetworkSearchRadiusMeters());
+      connectFerriesToLandNetwork(settings.getFerryStopToLandNetworkSearchRadiusMeters());
     }
 
     // if configured connect all rail stops to active mode (pedestrian, bicycle) network

@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import org.goplanit.logging.Logging;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
@@ -32,6 +33,20 @@ public abstract class LayerTestBase {
 
   /** the logger, giving the log output PLANit's format */
   private static Logger LOGGER = null;
+
+  /**
+   * The registered link segment running from one node to another that meets a condition
+   *
+   * @param upstream node of the segment
+   * @param downstream node of the segment
+   * @param condition to meet
+   * @return the segment, the first found when there are several
+   */
+  private MacroscopicLinkSegment segmentMatching(
+      DirectedVertex upstream, DirectedVertex downstream, Predicate<? super MacroscopicLinkSegment> condition) {
+    return layer.getLinkSegments().stream().filter(ls -> ls.getUpstreamVertex() == upstream
+        && ls.getDownstreamVertex() == downstream && condition.test(ls)).findFirst().orElseThrow();
+  }
 
   /** measures in the Cartesian coordinates of the nodes, in metres */
   protected static final PlanitJtsCrsUtils CARTESIAN = new PlanitJtsCrsUtils(PlanitJtsCrsUtils.CARTESIANCRS);
@@ -88,40 +103,6 @@ public abstract class LayerTestBase {
   /** a signalised junction at the node, every segment entering it an approach */
   protected Intersection signalisedJunctionAt(int node) {
     return intersectionAt(node, IntersectionControlType.SIGNALISED, IntersectionType.JUNCTION);
-  }
-
-  /**
-   * Create the logger once for all tests of the class
-   *
-   * @throws Exception when the log file cannot be opened
-   */
-  @BeforeAll
-  public static void setUpLogger() throws Exception {
-    if (LOGGER == null) {
-      LOGGER = Logging.createLogger(LayerTestBase.class);
-    }
-  }
-
-  /** Close the logger after all tests of the class */
-  @AfterAll
-  public static void tearDownLogger() {
-    Logging.closeLogger(LOGGER);
-  }
-
-  /**
-   * Reset the id generation before each test, ahead of the test's own set up
-   */
-  @BeforeEach
-  public void resetIdsBefore() {
-    IdGenerator.reset();
-  }
-
-  /**
-   * Reset the id generation after each test
-   */
-  @AfterEach
-  public void resetIdsAfter() {
-    IdGenerator.reset();
   }
 
   /**
@@ -224,6 +205,20 @@ public abstract class LayerTestBase {
   }
 
   /**
+   * Connect nodes a and b with a segment in each direction, without segment type, with a geometry passing through
+   * every node on the line between them, see {@link #breakableOneWay(int, int)}
+   *
+   * @param a index of node A
+   * @param b index of node B, greater than a
+   * @return the link
+   */
+  protected MacroscopicLink breakableTwoWay(int a, int b) {
+    var link = breakableOneWay(a, b);
+    layer.getLinkSegments().getFactory().registerNew(link, false, true);
+    return link;
+  }
+
+  /**
    * The registered link segment running from node a to node b
    *
    * @param a index of the upstream node
@@ -231,8 +226,32 @@ public abstract class LayerTestBase {
    * @return the segment
    */
   protected MacroscopicLinkSegment segment(int a, int b) {
-    return layer.getLinkSegments().stream().filter(
-        ls -> ls.getUpstreamVertex() == nodes.get(a) && ls.getDownstreamVertex() == nodes.get(b)).findFirst().orElseThrow();
+    return segmentMatching(nodes.get(a), nodes.get(b), ls -> true);
+  }
+
+  /**
+   * The registered link segment of a type running from node a to node b, where segments of other types run between them
+   * too, such as a footway beside a road
+   *
+   * @param a index of the upstream node
+   * @param b index of the downstream node
+   * @param type of the segment
+   * @return the segment
+   */
+  protected MacroscopicLinkSegment segment(int a, int b, MacroscopicLinkSegmentType type) {
+    return segmentMatching(nodes.get(a), nodes.get(b), ls -> ls.getLinkSegmentType() == type);
+  }
+
+  /**
+   * The registered link segment running from one node to another, for nodes without an index, such as one a change to
+   * the layer added
+   *
+   * @param upstream node of the segment
+   * @param downstream node of the segment
+   * @return the segment, the first found when there are several
+   */
+  protected MacroscopicLinkSegment segment(DirectedVertex upstream, DirectedVertex downstream) {
+    return segmentMatching(upstream, downstream, ls -> true);
   }
 
   /**
@@ -249,5 +268,39 @@ public abstract class LayerTestBase {
     }
     return layer.getIntersections().getFactory().createSpatial(
         memberNodes, IntersectionControlType.SIGNALISED, List.of(IntersectionType.JUNCTION));
+  }
+
+  /**
+   * Create the logger once for all tests of the class
+   *
+   * @throws Exception when the log file cannot be opened
+   */
+  @BeforeAll
+  public static void setUpLogger() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(LayerTestBase.class);
+    }
+  }
+
+  /** Close the logger after all tests of the class */
+  @AfterAll
+  public static void tearDownLogger() {
+    Logging.closeLogger(LOGGER);
+  }
+
+  /**
+   * Reset the id generation before each test, ahead of the test's own set up
+   */
+  @BeforeEach
+  public void resetIdsBefore() {
+    IdGenerator.reset();
+  }
+
+  /**
+   * Reset the id generation after each test
+   */
+  @AfterEach
+  public void resetIdsAfter() {
+    IdGenerator.reset();
   }
 }
