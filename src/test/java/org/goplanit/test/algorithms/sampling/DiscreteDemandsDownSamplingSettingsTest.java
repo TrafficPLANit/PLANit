@@ -100,12 +100,37 @@ public class DiscreteDemandsDownSamplingSettingsTest {
     assertEquals(DEFAULT_PER_HOUSEHOLD_BANDS, settings.getWorkersPerHouseholdBands().getLabels());
     assertEquals(5, settings.getNumberOfIncomeBands());
     assertEquals(12, settings.getNumberOfDestinationAreas());
+    assertEquals(0.1, settings.getOriginAreasAsShareOfZones());
+    assertEquals(10, settings.getMinimumNumberOfOriginAreas());
     assertEquals(0, settings.getMaximumNumberOfOriginAreas());
     assertEquals(16, settings.getMinimumDrivingAge());
     assertEquals(3, settings.getNumberOfDraws());
     assertEquals(42, settings.getSeed());
     assertNull(settings.getStatisticsFile());
     assertEquals(GenericBatchExecutorService.getDefaultNumberOfThreads(), settings.getNumberOfThreads());
+  }
+
+  /**
+   * The number of origin areas is the share of the zones, at least the minimum and at most the maximum, neither bound
+   * above the number of zones: a tenth, at least 10 and at most 100 gives the GMA's 3,378 zones 100 areas, 500 zones
+   * 50, 60 zones 10 and 6 zones 6. A maximum of 0 gives none, and a maximum below the minimum wins
+   */
+  @Test
+  public void testNumberOfOriginAreasFromTheZones() {
+    var settings = new DiscreteDemandsDownSamplingSettings();
+    settings.setMaximumNumberOfOriginAreas(100);
+    assertEquals(100, settings.getNumberOfOriginAreas(3_378));
+    assertEquals(50, settings.getNumberOfOriginAreas(500));
+    assertEquals(10, settings.getNumberOfOriginAreas(60));
+    assertEquals(6, settings.getNumberOfOriginAreas(6));
+    assertEquals(0, settings.getNumberOfOriginAreas(0));
+
+    settings.setMaximumNumberOfOriginAreas(0);
+    assertEquals(0, settings.getNumberOfOriginAreas(3_378));
+
+    settings.setMinimumNumberOfOriginAreas(20);
+    settings.setMaximumNumberOfOriginAreas(15);
+    assertEquals(15, settings.getNumberOfOriginAreas(500));
   }
 
   /**
@@ -256,6 +281,11 @@ public class DiscreteDemandsDownSamplingSettingsTest {
     assertEquals(5, settings.getNumberOfIncomeBands());
     assertThrows(IllegalArgumentException.class, () -> settings.setNumberOfDestinationAreas(0));
     assertEquals(12, settings.getNumberOfDestinationAreas());
+    assertThrows(IllegalArgumentException.class, () -> settings.setOriginAreasAsShareOfZones(0));
+    assertThrows(IllegalArgumentException.class, () -> settings.setOriginAreasAsShareOfZones(1.5));
+    assertEquals(0.1, settings.getOriginAreasAsShareOfZones());
+    assertThrows(IllegalArgumentException.class, () -> settings.setMinimumNumberOfOriginAreas(-1));
+    assertEquals(10, settings.getMinimumNumberOfOriginAreas());
     assertThrows(IllegalArgumentException.class, () -> settings.setMaximumNumberOfOriginAreas(-1));
     assertEquals(0, settings.getMaximumNumberOfOriginAreas());
     assertThrows(IllegalArgumentException.class, () -> settings.setNumberOfDraws(0));
@@ -270,6 +300,10 @@ public class DiscreteDemandsDownSamplingSettingsTest {
     /* the bounds themselves are allowed */
     settings.setDownSampleRate(1);
     assertEquals(1.0, settings.getDownSampleRate());
+    settings.setOriginAreasAsShareOfZones(1);
+    assertEquals(1.0, settings.getOriginAreasAsShareOfZones());
+    settings.setMinimumNumberOfOriginAreas(0);
+    assertEquals(0, settings.getMinimumNumberOfOriginAreas());
     settings.setMinimumDrivingAge(0);
     assertEquals(0, settings.getMinimumDrivingAge());
     settings.setNumberOfThreads(1);
@@ -292,6 +326,8 @@ public class DiscreteDemandsDownSamplingSettingsTest {
     copy.setWorkersPerHouseholdBandBoundaries(1);
     copy.setNumberOfIncomeBands(10);
     copy.setNumberOfDestinationAreas(4);
+    copy.setOriginAreasAsShareOfZones(0.2);
+    copy.setMinimumNumberOfOriginAreas(5);
     copy.setMaximumNumberOfOriginAreas(100);
     copy.setMinimumDrivingAge(17);
     copy.setNumberOfDraws(5);
@@ -315,6 +351,10 @@ public class DiscreteDemandsDownSamplingSettingsTest {
     assertEquals(2, copy.getWorkersPerHouseholdBands().size());
     assertEquals(10, copy.getNumberOfIncomeBands());
     assertEquals(12, settings.getNumberOfDestinationAreas());
+    assertEquals(0.1, settings.getOriginAreasAsShareOfZones());
+    assertEquals(0.2, copy.getOriginAreasAsShareOfZones());
+    assertEquals(10, settings.getMinimumNumberOfOriginAreas());
+    assertEquals(5, copy.getMinimumNumberOfOriginAreas());
     assertEquals(0, settings.getMaximumNumberOfOriginAreas());
     assertEquals(100, copy.getMaximumNumberOfOriginAreas());
     assertEquals(16, settings.getMinimumDrivingAge());

@@ -513,6 +513,26 @@ public class DiscreteDemandsDownSamplingAlgorithmTest {
     assertEquals(expected, table.getCategories(DownSamplingBalanceGroup.CAR_DRIVEN_TRIPS_BY_ORIGIN_AREA).size());
   }
 
+  /**
+   * The number of origin areas follows the settings' share of the zones placed along the curve: an eightieth of the
+   * test's 400 zones, at least 2 and at most 100, is 5 areas, the households kept at a rate of 0.5 allowing more
+   */
+  @Test
+  public void testOriginAreasFromAShareOfTheZones() {
+    settings.setDownSampleRate(0.5);
+    settings.setOriginAreasAsShareOfZones(1.0 / 80);
+    settings.setMinimumNumberOfOriginAreas(2);
+    settings.setMaximumNumberOfOriginAreas(100);
+    var table = createAlgorithm(DiscreteDemandsDownSamplingAlgorithmType.BALANCED)
+        .createDownSamplingTable(synthetic.createDemand(10_000, false), zoning, distances);
+    int totals = settings.getBalanceOrder().stream()
+        .filter(group -> group != DownSamplingBalanceGroup.PERSONS_PER_ZONE
+            && group != DownSamplingBalanceGroup.CAR_DRIVEN_TRIPS_BY_ORIGIN_AREA)
+        .mapToInt(group -> table.getCategories(group).size()).sum();
+    assertTrue(settings.getDownSampleRate() * table.size() / (4.0 * totals) > 5);
+    assertEquals(5, table.getCategories(DownSamplingBalanceGroup.CAR_DRIVEN_TRIPS_BY_ORIGIN_AREA).size());
+  }
+
   /** Balanced with three origin areas at a rate of 0.5, each area's car driven trips come within a tenth of the spread
    * a random draw gives */
   @Test

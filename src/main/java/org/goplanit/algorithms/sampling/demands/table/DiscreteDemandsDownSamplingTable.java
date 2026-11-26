@@ -780,7 +780,8 @@ public class DiscreteDemandsDownSamplingTable {
 
   /**
    * The origin areas: the zones in their order along the curve binned into runs with about equal numbers of car driven
-   * trips leaving them, numbered from 1, as many as the settings and the sampling units kept allow, none below 2
+   * trips leaving them, numbered from 1, as many as the settings give for the zones along the curve and the sampling
+   * units kept allow, none below 2
    * <p>
    * The car driven trips of all zones are matched as a whole, which leaves a region with more of them than it should
    * have and another with fewer. Matched per area as well, each region keeps its share, but every total balanced costs
@@ -799,8 +800,8 @@ public class DiscreteDemandsDownSamplingTable {
         .filter(group -> group != DownSamplingBalanceGroup.PERSONS_PER_ZONE
             && group != DownSamplingBalanceGroup.CAR_DRIVEN_TRIPS_BY_ORIGIN_AREA)
         .mapToInt(group -> categoriesByGroup.get(group.ordinal()).size()).sum();
-    int allowed = Math.min(settings.getMaximumNumberOfOriginAreas(), (int) (settings.getDownSampleRate() * numberOfUnits
-        / (UNITS_KEPT_PER_TOTAL_OF_AN_ORIGIN_AREA * (double) totalsBalanced)));
+    int allowed = Math.min(settings.getNumberOfOriginAreas(numberOfPlacedZones), (int) (settings.getDownSampleRate()
+        * numberOfUnits / (UNITS_KEPT_PER_TOTAL_OF_AN_ORIGIN_AREA * (double) totalsBalanced)));
     var areas = allowed < 2 ? null : binAlongCurve(carDrivenTripsByOrigin::getColumnTotal, allowed);
     if (areas == null) {
       categoriesByGroup.add(List.of());

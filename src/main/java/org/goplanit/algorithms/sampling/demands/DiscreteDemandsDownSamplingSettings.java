@@ -120,7 +120,13 @@ public class DiscreteDemandsDownSamplingSettings {
   /** number of areas the tour destinations are counted in */
   private int numberOfDestinationAreas = DEFAULT_NUMBER_OF_DESTINATION_AREAS;
 
-  /** most areas the car driven trips are counted in by origin, 0 for none */
+  /** share of the zones the number of origin areas is, before its bounds */
+  private double originAreasAsShareOfZones = DEFAULT_ORIGIN_AREAS_AS_SHARE_OF_ZONES;
+
+  /** fewest origin areas, taken at most the number of zones */
+  private int minimumNumberOfOriginAreas = DEFAULT_MINIMUM_NUMBER_OF_ORIGIN_AREAS;
+
+  /** most areas the car driven trips are counted in by origin, taken at most the number of zones, 0 for none */
   private int maximumNumberOfOriginAreas = DEFAULT_MAXIMUM_NUMBER_OF_ORIGIN_AREAS;
 
   /** age from which a person not known to lack a licence may drive */
@@ -156,6 +162,8 @@ public class DiscreteDemandsDownSamplingSettings {
     this.workersPerHouseholdBands = other.workersPerHouseholdBands;
     this.numberOfIncomeBands = other.numberOfIncomeBands;
     this.numberOfDestinationAreas = other.numberOfDestinationAreas;
+    this.originAreasAsShareOfZones = other.originAreasAsShareOfZones;
+    this.minimumNumberOfOriginAreas = other.minimumNumberOfOriginAreas;
     this.maximumNumberOfOriginAreas = other.maximumNumberOfOriginAreas;
     this.minimumDrivingAge = other.minimumDrivingAge;
     this.numberOfDraws = other.numberOfDraws;
@@ -208,6 +216,12 @@ public class DiscreteDemandsDownSamplingSettings {
 
   /** enough to tell the regions of a metropolitan area apart, few enough to stay cheap */
   public static final int DEFAULT_NUMBER_OF_DESTINATION_AREAS = 12;
+
+  /** about ten zones to an origin area */
+  public static final double DEFAULT_ORIGIN_AREAS_AS_SHARE_OF_ZONES = 0.1;
+
+  /** enough areas for a small zoning to tell its regions apart */
+  public static final int DEFAULT_MINIMUM_NUMBER_OF_ORIGIN_AREAS = 10;
 
   /** none, so the car driven trips are matched over all zones only, as without origin areas */
   public static final int DEFAULT_MAXIMUM_NUMBER_OF_ORIGIN_AREAS = 0;
@@ -546,7 +560,51 @@ public class DiscreteDemandsDownSamplingSettings {
   }
 
   /**
-   * The most areas the car driven trips are counted in by the zone they leave from
+   * The share of the zones the number of origin areas is, before its bounds
+   *
+   * @return the share, above 0 and at most 1
+   */
+  public double getOriginAreasAsShareOfZones() {
+    return originAreasAsShareOfZones;
+  }
+
+  /**
+   * Set the share of the zones the number of origin areas is, before its bounds: 0.1 for about ten zones to an area
+   *
+   * @param originAreasAsShareOfZones above 0 and at most 1
+   */
+  public void setOriginAreasAsShareOfZones(double originAreasAsShareOfZones) {
+    if (!(originAreasAsShareOfZones > 0) || originAreasAsShareOfZones > 1) {
+      throw new IllegalArgumentException(String.format(
+          "Origin areas as a share of the zones must be above 0 and at most 1, was %s", originAreasAsShareOfZones));
+    }
+    this.originAreasAsShareOfZones = originAreasAsShareOfZones;
+  }
+
+  /**
+   * The fewest origin areas, taken at most the number of zones
+   *
+   * @return the number, 0 or more
+   */
+  public int getMinimumNumberOfOriginAreas() {
+    return minimumNumberOfOriginAreas;
+  }
+
+  /**
+   * Set the fewest origin areas, taken at most the number of zones, so a small zoning still gets areas
+   *
+   * @param minimumNumberOfOriginAreas 0 or more
+   */
+  public void setMinimumNumberOfOriginAreas(int minimumNumberOfOriginAreas) {
+    if (minimumNumberOfOriginAreas < 0) {
+      throw new IllegalArgumentException(String.format(
+          "Minimum number of origin areas must be 0 or more, was %d", minimumNumberOfOriginAreas));
+    }
+    this.minimumNumberOfOriginAreas = minimumNumberOfOriginAreas;
+  }
+
+  /**
+   * The most areas the car driven trips are counted in by the zone they leave from, taken at most the number of zones
    *
    * @return the number, 0 for none
    */
@@ -555,9 +613,10 @@ public class DiscreteDemandsDownSamplingSettings {
   }
 
   /**
-   * Set the most areas the car driven trips are counted in by the zone they leave from. There are fewer when the
-   * households kept are too few for so many, each area needing 4 sampling units kept per total balanced over all
-   * zones, and none below 2, as one area would only repeat the car driven trips of all zones
+   * Set the most areas the car driven trips are counted in by the zone they leave from, taken at most the number of
+   * zones; 0 switches them off. There are fewer when the share of the zones gives fewer, or the households kept are too
+   * few for so many, each area needing 4 sampling units kept per total balanced over all zones, and none below 2, as
+   * one area would only repeat the car driven trips of all zones
    *
    * @param maximumNumberOfOriginAreas 0 or more, 0 for none
    */
@@ -567,6 +626,21 @@ public class DiscreteDemandsDownSamplingSettings {
           "Maximum number of origin areas must be 0 or more, was %d", maximumNumberOfOriginAreas));
     }
     this.maximumNumberOfOriginAreas = maximumNumberOfOriginAreas;
+  }
+
+  /**
+   * The number of origin areas for a number of zones: their share of the zones, rounded, at least the minimum and at
+   * most the maximum, neither bound above the number of zones, so the maximum wins over a higher minimum; 0 when the
+   * maximum is 0. With a tenth, at least 10 and at most 100, 3,378 zones get 100, 500 get 50, 60 get 10 and 6 get 6.
+   * The down-sampling uses fewer when the households kept are too few for so many
+   *
+   * @param numberOfZones the zones the areas are made of, 0 or more
+   * @return the number of origin areas
+   */
+  public int getNumberOfOriginAreas(int numberOfZones) {
+    int upper = Math.min(maximumNumberOfOriginAreas, numberOfZones);
+    int lower = Math.min(minimumNumberOfOriginAreas, numberOfZones);
+    return Math.min(upper, Math.max(lower, (int) Math.round(originAreasAsShareOfZones * numberOfZones)));
   }
 
   /**
