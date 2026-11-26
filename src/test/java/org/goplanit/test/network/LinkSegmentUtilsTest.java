@@ -29,8 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests the link segment utilities that select segments by the modes allowed on them, and that find the segments a
- * segment continues on beyond the node it arrives at
+ * Tests the link segment utilities that select segments by the modes allowed on them, and that find the segments
+ * adjacent to a segment
  *
  * @author markr
  */
@@ -41,20 +41,19 @@ public class LinkSegmentUtilsTest extends LayerTestBase {
     return LinkSegmentUtils.getAzimuthArrivingAtDownstreamNodeInDegrees(segment, reachMeters, CARTESIAN);
   }
 
-  private MacroscopicLinkSegmentType carOnly;
-  private MacroscopicLinkSegmentType busOnly;
-  private MacroscopicLinkSegmentType walkOnly;
-
   /**
-   * The segment to follow next in a direction: the only one onward, see
-   * {@link LinkSegmentUtils#findOnlySegmentOnward}
+   * The segment to follow next in a direction: the only adjacent one, see {@link LinkSegmentUtils#findOnlyAdjacent}
    *
    * @param inTrafficDirection true to go in the traffic direction, false to go back against it
    * @return the segment to follow next, null when there is none
    */
-  private static UnaryOperator<MacroscopicLinkSegment> onlySegmentOnward(boolean inTrafficDirection) {
-    return segment -> LinkSegmentUtils.findOnlySegmentOnward(segment, inTrafficDirection, other -> true);
+  private static UnaryOperator<MacroscopicLinkSegment> onlyAdjacent(boolean inTrafficDirection) {
+    return segment -> LinkSegmentUtils.findOnlyAdjacent(segment, inTrafficDirection, other -> true);
   }
+
+  private MacroscopicLinkSegmentType carOnly;
+  private MacroscopicLinkSegmentType busOnly;
+  private MacroscopicLinkSegmentType walkOnly;
 
   /**
    * A link from (60,60) curving through (30,20) and (0,10) into the centre at (0,0), its geometry drawn from the far
@@ -125,11 +124,11 @@ public class LinkSegmentUtilsTest extends LayerTestBase {
   }
 
   /**
-   * The continuations of a segment leave the node it arrives at and meet the condition. Going back along the link
-   * arrived on is never one. A segment arriving at a dead end has none
+   * The segments adjacent downstream of a segment leave the node it arrives at and meet the condition. Going back along
+   * the link arrived on is never one. A segment arriving at a dead end has none
    */
   @Test
-  public void findContinuationsLeavesOutTheLinkArrivedOnAndSegmentsFailingTheCondition() {
+  public void findAdjacentDownstreamLeavesOutTheLinkArrivedOnAndSegmentsFailingTheCondition() {
     /*
      * 0 <--carOnly--> 1 --carOnly--> 2
      *                 |
@@ -146,18 +145,18 @@ public class LinkSegmentUtilsTest extends LayerTestBase {
 
     var arriving = segment(0, 1);
     assertEquals(List.of(segment(1, 2)),
-        LinkSegmentUtils.findContinuations(arriving, LinkSegmentUtils.permitsMotorisedRoadMode()));
+        LinkSegmentUtils.findAdjacentDownstream(arriving, LinkSegmentUtils.permitsMotorisedRoadMode()));
     assertEquals(Set.of(segment(1, 2), segment(1, 3)),
-        Set.copyOf(LinkSegmentUtils.findContinuations(arriving, segment -> true)));
-    assertTrue(LinkSegmentUtils.findContinuations(segment(1, 3), segment -> true).isEmpty());
+        Set.copyOf(LinkSegmentUtils.findAdjacentDownstream(arriving, segment -> true)));
+    assertTrue(LinkSegmentUtils.findAdjacentDownstream(segment(1, 3), segment -> true).isEmpty());
   }
 
   /**
-   * The predecessors of a segment enter the node it leaves and meet the condition. Coming from the link it leaves along
-   * is never one. A segment leaving a node nothing enters has none
+   * The segments adjacent upstream of a segment enter the node it leaves and meet the condition. Coming from the link it
+   * leaves along is never one. A segment leaving a node nothing enters has none
    */
   @Test
-  public void findPredecessorsLeavesOutTheLinkLeftAlongAndSegmentsFailingTheCondition() {
+  public void findAdjacentUpstreamLeavesOutTheLinkLeftAlongAndSegmentsFailingTheCondition() {
     /*
      * 0 --carOnly--> 1 <--carOnly--> 2
      *                ^
@@ -174,17 +173,18 @@ public class LinkSegmentUtilsTest extends LayerTestBase {
 
     var leaving = segment(1, 2);
     assertEquals(List.of(segment(0, 1)),
-        LinkSegmentUtils.findPredecessors(leaving, LinkSegmentUtils.permitsMotorisedRoadMode()));
+        LinkSegmentUtils.findAdjacentUpstream(leaving, LinkSegmentUtils.permitsMotorisedRoadMode()));
     assertEquals(Set.of(segment(0, 1), segment(3, 1)),
-        Set.copyOf(LinkSegmentUtils.findPredecessors(leaving, segment -> true)));
-    assertTrue(LinkSegmentUtils.findPredecessors(segment(0, 1), segment -> true).isEmpty());
+        Set.copyOf(LinkSegmentUtils.findAdjacentUpstream(leaving, segment -> true)));
+    assertTrue(LinkSegmentUtils.findAdjacentUpstream(segment(0, 1), segment -> true).isEmpty());
   }
 
   /**
-   * The only segment onward in a direction meets the condition. Where several go on, or none, there is no such segment
+   * The only adjacent segment in a direction meets the condition. Where several are adjacent, or none, there is no such
+   * segment
    */
   @Test
-  public void findOnlySegmentOnwardGivesNoneWhereSeveralOrNoneGoOn() {
+  public void findOnlyAdjacentGivesNoneWhereSeveralOrNoneAreAdjacent() {
     /*
      * 0 --carOnly--> 1 --carOnly--> 2
      *                |
@@ -197,12 +197,12 @@ public class LinkSegmentUtilsTest extends LayerTestBase {
     link(1, 2, carOnly, null);
     link(1, 3, walkOnly, null);
 
-    assertEquals(segment(1, 2), LinkSegmentUtils.findOnlySegmentOnward(
+    assertEquals(segment(1, 2), LinkSegmentUtils.findOnlyAdjacent(
         segment(0, 1), true, LinkSegmentUtils.permitsMotorisedRoadMode()));
-    assertNull(LinkSegmentUtils.findOnlySegmentOnward(segment(0, 1), true, segment -> true));
-    assertNull(LinkSegmentUtils.findOnlySegmentOnward(segment(1, 2), true, segment -> true));
+    assertNull(LinkSegmentUtils.findOnlyAdjacent(segment(0, 1), true, segment -> true));
+    assertNull(LinkSegmentUtils.findOnlyAdjacent(segment(1, 2), true, segment -> true));
     assertEquals(segment(0, 1),
-        LinkSegmentUtils.findOnlySegmentOnward(segment(1, 2), false, segment -> true));
+        LinkSegmentUtils.findOnlyAdjacent(segment(1, 2), false, segment -> true));
   }
 
   /**
@@ -227,20 +227,20 @@ public class LinkSegmentUtilsTest extends LayerTestBase {
         (segment, meters) -> {
           metersAtNodeReached.put(segment.getDownstreamNode(), meters);
           return null;
-        }, onlySegmentOnward(true)));
+        }, onlyAdjacent(true)));
     assertEquals(Map.of(nodes.get(1), 500.0, nodes.get(2), 1500.0, nodes.get(3), 2500.0), metersAtNodeReached);
     assertEquals(List.of(nodes.get(1), nodes.get(2), nodes.get(3)), List.copyOf(metersAtNodeReached.keySet()));
 
     BiFunction<MacroscopicLinkSegment, Double, MacroscopicLinkSegment> answerArrivingAtNode2 =
         (segment, meters) -> segment.getDownstreamNode() == nodes.get(2) ? segment : null;
     assertEquals(segment(1, 2), LinkSegmentUtils.followSegmentsUntilAnswered(
-        segment(0, 1), true, 500, 1500, answerArrivingAtNode2, onlySegmentOnward(true)));
+        segment(0, 1), true, 500, 1500, answerArrivingAtNode2, onlyAdjacent(true)));
     assertNull(LinkSegmentUtils.followSegmentsUntilAnswered(
-        segment(0, 1), true, 500, 1400, answerArrivingAtNode2, onlySegmentOnward(true)));
+        segment(0, 1), true, 500, 1400, answerArrivingAtNode2, onlyAdjacent(true)));
 
     assertEquals(segment(0, 1), LinkSegmentUtils.followSegmentsUntilAnswered(
         segment(2, 3), false, 1000, 10000,
-        (segment, meters) -> segment.getUpstreamNode() == nodes.get(0) ? segment : null, onlySegmentOnward(false)));
+        (segment, meters) -> segment.getUpstreamNode() == nodes.get(0) ? segment : null, onlyAdjacent(false)));
   }
 
   /**
@@ -266,13 +266,13 @@ public class LinkSegmentUtilsTest extends LayerTestBase {
         (segment, meters) -> {
           nodesReached.add(segment.getDownstreamNode());
           return null;
-        }, onlySegmentOnward(true)));
+        }, onlyAdjacent(true)));
     assertEquals(List.of(nodes.get(1), nodes.get(2), nodes.get(3), nodes.get(0)), nodesReached);
   }
 
   /**
-   * Following only the segment onward that meets the condition, it goes on past a branch the condition leaves out, and
-   * stops without an answer where more than one segment onward meets it
+   * Following only the adjacent segment that meets the condition, it goes on past a branch the condition leaves out,
+   * and stops without an answer where more than one adjacent segment meets it
    */
   @Test
   public void followOnlySegmentsOnwardUntilAnsweredStopsWhereSeveralSegmentsMeetTheCondition() {

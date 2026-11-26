@@ -171,7 +171,7 @@ public class IntersectionModeCollapser {
     var collapsedModesBannedOfMovement =
         SpatialIntersectionUtils.findModesBannedOfEachMovement(layer, intersection, modes, true, true);
     var exitsReachedFromEntriesThatAreNotApproaches = SpatialIntersectionUtils
-        .findExitsReachedFromSegmentsEnteringFromOutsideThatAreNotApproaches(layer, intersection, modes, true);
+        .findExitsReachedFromSegmentsEnteringIntersectionThatAreNotApproaches(layer, intersection, modes, true);
     var centre = addCentreNode(intersection);
     /* reported as started before any link or access changes, so a listener sees the intersection still spatial */
     var started = new CollapseSpatialIntersectionEvent(

@@ -107,11 +107,11 @@ public class SpatialIntersectionUtils {
    * @return per internal segment reached, by identity, the segments entering from outside that reach it; an internal
    *         segment none reaches is absent
    */
-  public static Map<LinkSegment, List<LinkSegment>> findSegmentsEnteringFromOutsideReachingEachInternalSegment(
+  public static Map<LinkSegment, List<LinkSegment>> findSegmentsEnteringIntersectionReachingEachInternalSegment(
       final MacroscopicNetworkLayer layer, final SpatialIntersection intersection, final Mode mode,
       boolean respectBannedTurns) {
     var reaching = new IdentityHashMap<LinkSegment, List<LinkSegment>>();
-    for (var entering : IntersectionUtils.<LinkSegment>findSegmentsEnteringFromOutside(
+    for (var entering : IntersectionUtils.<LinkSegment>findSegmentsEnteringIntersection(
         intersection, segment -> segment.isModeAllowed(mode))) {
       searchThrough(layer, intersection, entering, mode, respectBannedTurns).getReached().stream()
           .filter(segment -> ListUtils.containsByIdentity(intersection.getInternalSegments(), segment))
@@ -161,10 +161,10 @@ public class SpatialIntersectionUtils {
    * @return per mode with any, each entering segment that is not an approach with an exit it can reach
    */
   public static Map<Mode, List<Pair<LinkSegment, LinkSegment>>>
-      findExitsReachedFromSegmentsEnteringFromOutsideThatAreNotApproaches(final MacroscopicNetworkLayer layer,
+      findExitsReachedFromSegmentsEnteringIntersectionThatAreNotApproaches(final MacroscopicNetworkLayer layer,
       final SpatialIntersection intersection, final List<Mode> modes, boolean respectBannedTurns) {
     var exitsReached = new LinkedHashMap<Mode, List<Pair<LinkSegment, LinkSegment>>>();
-    for (var entering : IntersectionUtils.<LinkSegment>findSegmentsEnteringFromOutsideThatAreNotApproaches(
+    for (var entering : IntersectionUtils.<LinkSegment>findSegmentsEnteringIntersectionThatAreNotApproaches(
         intersection, segment -> true)) {
       for (var mode : modes) {
         if (!entering.isModeAllowed(mode)) {

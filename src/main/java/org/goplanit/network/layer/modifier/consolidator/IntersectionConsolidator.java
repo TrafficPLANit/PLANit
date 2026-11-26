@@ -480,9 +480,9 @@ public class IntersectionConsolidator {
             longest = Math.max(longest, meters);
             continue;
           }
-          var predecessors = LinkSegmentUtils.findPredecessors(segment, IS_ROAD_SEGMENT);
-          if (predecessors.isEmpty() || predecessors.stream().anyMatch(predecessor ->
-              meters + predecessor.getParent().getLengthMeters() > maximumMeters + Precision.EPSILON_9)) {
+          var adjacentUpstream = LinkSegmentUtils.findAdjacentUpstream(segment, IS_ROAD_SEGMENT);
+          if (adjacentUpstream.isEmpty() || adjacentUpstream.stream().anyMatch(upstream ->
+              meters + upstream.getParent().getLengthMeters() > maximumMeters + Precision.EPSILON_9)) {
             fromOutside = true;
             break;
           }
@@ -1321,7 +1321,7 @@ public class IntersectionConsolidator {
    * @return the junctions with the nodes on the roads leading back to them, empty when none
    */
   private Map<Intersection, List<Node>> findJunctionsToSalvageApproachesWithoutSignal(Intersection into) {
-    var withoutSignal = IntersectionUtils.findSegmentsEnteringFromOutsideThatAreNotApproaches(into, IS_ROAD_SEGMENT)
+    var withoutSignal = IntersectionUtils.findSegmentsEnteringIntersectionThatAreNotApproaches(into, IS_ROAD_SEGMENT)
         .stream().filter(segment -> !isOnSlipLaneOf(segment, into)).collect(Collectors.toList());
     var roadsOf = new LinkedHashMap<Intersection, List<Node>>();
     if (withoutSignal.isEmpty()) {
@@ -1355,9 +1355,9 @@ public class IntersectionConsolidator {
    */
   private boolean continuesRoadOfApproachWithSignalTaggedOnNode(LinkSegment entering, Intersection junction) {
     UnaryOperator<LinkSegment> sameRoadOnInJunction = current ->
-        LinkSegmentUtils.findContinuations(current, onward -> IS_ROAD_SEGMENT.test(onward) &&
-            junction.hasMemberNode(onward.getDownstreamVertex()) &&
-            LinkUtils.isSameExternalIdOrName(current.getParent(), onward.getParent()))
+        LinkSegmentUtils.findAdjacentDownstream(current, adjacent -> IS_ROAD_SEGMENT.test(adjacent) &&
+            junction.hasMemberNode(adjacent.getDownstreamVertex()) &&
+            LinkUtils.isSameExternalIdOrName(current.getParent(), adjacent.getParent()))
             .stream().findFirst().orElse(null);
     return Boolean.TRUE.equals(LinkSegmentUtils.followSegmentsUntilAnswered(entering, true,
         entering.getParent().getLengthMeters(), Double.POSITIVE_INFINITY, (current, meters) -> {
@@ -1470,7 +1470,7 @@ public class IntersectionConsolidator {
     for (var junction : junctions) {
       /* road segments entering a member node from outside that are not approaches become approaches, with a signal
          when they carry on the road of an approach whose signal was tagged on the node it entered */
-      var entering = IntersectionUtils.findSegmentsEnteringFromOutsideThatAreNotApproaches(junction, IS_ROAD_SEGMENT);
+      var entering = IntersectionUtils.findSegmentsEnteringIntersectionThatAreNotApproaches(junction, IS_ROAD_SEGMENT);
       var withSignal = entering.stream().filter(segment -> continuesRoadOfApproachWithSignalTaggedOnNode(
           segment, junction)).collect(Collectors.toSet());
       layer.getIntersections().update(junction, intersection -> entering.forEach(

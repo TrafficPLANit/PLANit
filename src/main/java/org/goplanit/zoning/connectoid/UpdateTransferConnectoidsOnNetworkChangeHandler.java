@@ -117,9 +117,9 @@ public class UpdateTransferConnectoidsOnNetworkChangeHandler
     private void findSegmentsAtCentre(DirectedVertex centre) {
       reachedByMode.forEach((mode, reached) -> reached.forEach(segment -> {
         var nearEnd = entersItsNode ? segment.getDownstreamVertex() : segment.getUpstreamVertex();
-        var atCentre = nearEnd == centre ? List.of(segment) : LinkSegmentUtils.findOnward(segment, entersItsNode,
-            onward -> (entersItsNode ? onward.getDownstreamVertex() : onward.getUpstreamVertex()) == centre
-                && onward.isModeAllowed(mode));
+        var atCentre = nearEnd == centre ? List.of(segment) : LinkSegmentUtils.findAdjacent(segment, entersItsNode,
+            adjacent -> (entersItsNode ? adjacent.getDownstreamVertex() : adjacent.getUpstreamVertex()) == centre
+                && adjacent.isModeAllowed(mode));
         if (!atCentre.isEmpty()) {
           segmentsAtCentre.addAll(atCentre);
           modesAtCentre.add(mode);
@@ -384,7 +384,7 @@ public class UpdateTransferConnectoidsOnNetworkChangeHandler
         var mode = reached.getKey();
         if (held.entersItsNode) {
           reached.setValue(reachingByMode.computeIfAbsent(mode, m -> SpatialIntersectionUtils
-              .findSegmentsEnteringFromOutsideReachingEachInternalSegment(started.getLayer(), intersection, m, true))
+              .findSegmentsEnteringIntersectionReachingEachInternalSegment(started.getLayer(), intersection, m, true))
               .getOrDefault(held.internalSegment, List.of()));
         } else {
           reached.setValue(List.copyOf(SpatialIntersectionUtils.findExitsReached(

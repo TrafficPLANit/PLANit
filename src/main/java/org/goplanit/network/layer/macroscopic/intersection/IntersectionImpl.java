@@ -196,7 +196,7 @@ public abstract class IntersectionImpl extends ExternalIdAbleImpl implements Int
    */
   @Override
   public IntersectionSegment addNewApproach(LinkSegment entrySegment, boolean hasOwnSignal) {
-    if (!IntersectionUtils.isSegmentEnteringFromOutsideThatIsNotAnApproach(this, entrySegment)) {
+    if (!IntersectionUtils.isSegmentEnteringIntersectionThatIsNotAnApproach(this, entrySegment)) {
       return null;
     }
     var approach = IntersectionSegmentFactory.create(entrySegment, hasOwnSignal);
@@ -220,7 +220,7 @@ public abstract class IntersectionImpl extends ExternalIdAbleImpl implements Int
   public boolean setEntrySegmentOnApproach(
       LinkSegment approachSegment, LinkSegment entrySegment) {
     var approach = IntersectionSegmentUtils.findByLinkSegment(approaches, approachSegment);
-    if (approach == null || !IntersectionUtils.isSegmentEnteringFromOutsideThatIsNotAnApproach(this, entrySegment)) {
+    if (approach == null || !IntersectionUtils.isSegmentEnteringIntersectionThatIsNotAnApproach(this, entrySegment)) {
       return false;
     }
     approach.setLinkSegment(entrySegment);
