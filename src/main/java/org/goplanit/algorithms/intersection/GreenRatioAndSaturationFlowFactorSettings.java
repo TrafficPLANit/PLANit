@@ -1,7 +1,11 @@
 package org.goplanit.algorithms.intersection;
 
+import java.util.logging.Logger;
+
 import org.goplanit.utils.exceptions.ExceptionUtils;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
+import org.goplanit.utils.settings.annotations.NoSettingsKey;
 import org.goplanit.utils.settings.annotations.SettingsKeyLevel;
 import org.goplanit.utils.settings.annotations.SettingsRead;
 import org.goplanit.utils.settings.annotations.SettingsWrite;
@@ -18,6 +22,10 @@ import org.goplanit.utils.settings.annotations.SettingsWrite;
  * @author markr
  */
 public class GreenRatioAndSaturationFlowFactorSettings {
+
+  /** logger to use */
+  private static final Logger LOGGER =
+      Logger.getLogger(GreenRatioAndSaturationFlowFactorSettings.class.getCanonicalName());
 
   /** the algorithm */
   private GreenRatioAlgorithmType algorithmType = DEFAULT_ALGORITHM_TYPE;
@@ -363,5 +371,28 @@ public class GreenRatioAndSaturationFlowFactorSettings {
     ExceptionUtils.throwIllegalSettingValueIf(!(minimumGreenTimeSeconds >= 0), "Minimum green time",
         minimumGreenTimeSeconds, "0 s or more");
     this.minimumGreenTimeSeconds = minimumGreenTimeSeconds;
+  }
+
+  /**
+   * Log the settings
+   *
+   * @param level to indent the values at
+   */
+  @NoSettingsKey(reason = "logs the settings")
+  public void logSettings(int level) {
+    LOGGER.info(LoggingUtils.settingsValue("Algorithm", getAlgorithmType(), level));
+    LOGGER.info(LoggingUtils.settingsValue("Cycle time (s)", getCycleTimeSeconds(), level));
+    LOGGER.info(LoggingUtils.settingsValue("Lost time per phase change (s)",
+        getLostTimePerPhaseChangeSeconds(), level));
+    LOGGER.info(LoggingUtils.settingsValue("Isolated crossing green ratio", getIsolatedCrossingGreenRatio(), level));
+    LOGGER.info(LoggingUtils.settingsValue("Ramp meter green ratio", getRampMeterGreenRatio(), level));
+    LOGGER.info(LoggingUtils.settingsValue("Same axis approach tolerance (degrees)",
+        getSameAxisApproachToleranceDegrees(), level));
+    LOGGER.info(LoggingUtils.settingsValue("Maximum number of phases", getMaximumNumberOfPhases(), level));
+    LOGGER.info(LoggingUtils.settingsValue("Approach without signal saturation flow factor",
+        getApproachWithoutSignalSaturationFlowFactor(), level));
+    LOGGER.info(LoggingUtils.settingsValue("Fixed rail-based phase green ratio",
+        getFixedRailBasedPhaseGreenRatio(), level));
+    LOGGER.info(LoggingUtils.settingsValue("Minimum green time (s)", getMinimumGreenTimeSeconds(), level));
   }
 }

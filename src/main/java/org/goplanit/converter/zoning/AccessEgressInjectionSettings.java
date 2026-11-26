@@ -1,6 +1,10 @@
 package org.goplanit.converter.zoning;
 
+import java.util.logging.Logger;
+
 import org.goplanit.utils.exceptions.ExceptionUtils;
+import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.settings.annotations.NoSettingsKey;
 import org.goplanit.utils.settings.annotations.SettingsKeyLevel;
 import org.goplanit.utils.settings.annotations.SettingsRead;
 import org.goplanit.utils.settings.annotations.SettingsWrite;
@@ -18,6 +22,9 @@ import org.goplanit.utils.settings.annotations.SettingsWrite;
  * @author markr
  */
 public class AccessEgressInjectionSettings {
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(AccessEgressInjectionSettings.class.getCanonicalName());
 
   /**
    * When a ferry stop is disconnected from to the land network it cannot be used for transfers, this
@@ -251,5 +258,34 @@ public class AccessEgressInjectionSettings {
       description = "Connect stops by the road modes when no walking or cycling mode is modelled")
   public void setFallbackOnRoadModesWithoutActiveModes(boolean fallbackOnRoadModesWithoutActiveModes) {
     this.fallbackOnRoadModesWithoutActiveModes = fallbackOnRoadModesWithoutActiveModes;
+  }
+
+  /**
+   * Log the settings, each search radius only when its stops are connected
+   *
+   * @param level to indent the values at
+   */
+  @NoSettingsKey(reason = "logs the settings")
+  public void logSettings(int level) {
+    LOGGER.info(LoggingUtils.settingsValue("Connect ferry stops to nearby passenger land network (if eligible)",
+        isConnectFerryStopsToNearbyLandNetwork(), level));
+    if(isConnectFerryStopsToNearbyLandNetwork()) {
+      LOGGER.info(LoggingUtils.settingsValue("Ferry stop to land network search radius (m)",
+          String.format("%.2f", getFerryStopToLandNetworkSearchRadiusMeters()), level));
+    }
+    LOGGER.info(LoggingUtils.settingsValue("Connect rail-based stops to nearby passenger network (if eligible)",
+        isConnectRailBasedStopsToPassengerNetwork(), level));
+    if(isConnectRailBasedStopsToPassengerNetwork()) {
+      LOGGER.info(LoggingUtils.settingsValue("Rail-based stop to road network search radius (m)",
+          String.format("%.2f", getRailBasedStopToPassengerNetworkSearchRadiusMeters()), level));
+    }
+    LOGGER.info(LoggingUtils.settingsValue("Connect bus-based stops to nearby passenger network (if eligible)",
+        isConnectBusBasedStopsToPassengerNetwork(), level));
+    if(isConnectBusBasedStopsToPassengerNetwork()) {
+      LOGGER.info(LoggingUtils.settingsValue("Bus-based stop to passenger network search radius (m)",
+          String.format("%.2f", getBusBasedStopToPassengerNetworkSearchRadiusMeters()), level));
+    }
+    LOGGER.info(LoggingUtils.settingsValue("Connect stops by road modes when no active mode is modelled",
+        isFallbackOnRoadModesWithoutActiveModes(), level));
   }
 }
