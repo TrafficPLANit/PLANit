@@ -100,15 +100,14 @@ public class CrossingsTest extends IntersectionConsolidationTestBase {
   /**
    * Crossings 13 m along the road from the junction, on its east and north arms, join it. So does the crossing of the
    * tram track at F2: no road reaches it, so it looks for its junction along its own links, and J lies 23 m away over
-   * the footway and the road. The junction, on one node, gains the crossings' nodes, so a new spatial intersection replaces
-   * it: the four nodes are members, the kind crossing is added, the roads between them and the footways between the
-   * crossings become internal, and the road into the east crossing and the tram track into F2 stay approaches. The
-   * footways entering the crossings from outside are not approaches: a crossing's approaches are for road and rail
-   * traffic only. The
-   * footways between the crossings carry the crossings' signals, so each direction becomes an internal segment with a
-   * signal. The roads do not, in either direction. Into a crossing, its signal is for road traffic from outside, which
-   * keeps its approach, and walking along the road from J to K2 passes no light. Into the junction, the junction's
-   * signal stands on its node, which counts for its approaches only
+   * the footway and the road. The junction, on one node, gains the crossings' nodes, so a new spatial intersection
+   * replaces it: the four nodes are members, the kind crossing is added, the roads between them and the footways
+   * between the crossings become internal, and the road into the east crossing and the tram track into F2 stay
+   * approaches. The footways entering the crossings from outside are not approaches: a crossing's approaches are for
+   * road and rail traffic only. The footways between the crossings carry the crossings' signals, so each direction
+   * becomes an internal segment with a signal. The roads do not, in either direction. Into a crossing, its signal is
+   * for road traffic from outside, which keeps its approach, and walking along the road from J to K2 passes no light.
+   * Into the junction, the junction's signal stands on its node, which counts for its approaches only
    */
   @Test
   public void crossingsNextToAJunctionJoinIt() {

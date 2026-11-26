@@ -68,7 +68,7 @@ public class Weibit extends ChoiceModel {
 
   /**
    * For Weibit the perceived cost in the context of OD path based demand = ln(abs_cost) + 1/scale * ln(demand).
-   * However, for demand and/or cost smaller than 1 this is a problem because the result can become negative, so we may transform this by taking the
+   * For demand and/or cost smaller than 1 the result can become negative, so it may be transformed by taking the
    * exponent.
    *
    * {@inheritDoc}

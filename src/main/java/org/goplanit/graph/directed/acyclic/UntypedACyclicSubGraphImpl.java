@@ -59,11 +59,10 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Dire
   private final long id;
 
   /**
-   * track data for the vertices used in this acyclic graph, mainly used to enable topological sorting
-   * 
-   * TODO: candidate to be generated based on registered link segments and provide as parameter to methods requiring it.
-   *  This would allow one the option to not store this but
-   * generate on-the-fly trading-off memory vs computational speed. Now we always have this in memory which is costly
+   * track data for the vertices used in this acyclic graph, mainly to enable topological sorting
+   *
+   * TODO: could instead be generated from the registered link segments when needed and passed to the methods requiring
+   *  it, trading memory for computation speed. Now it is always held in memory, which is costly
    */
   private Map<V, AcyclicVertexData> vertexData;
 

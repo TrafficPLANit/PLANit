@@ -16,11 +16,11 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 /**
- * Top-level class which defines the common methods required by bush link output type adapters.
- * Specifically designed for the use in conjunction with bushes and their link segments.
+ * Top-level class which defines the common methods required by bush link output type adapters, for use with bushes
+ * and their link segments.
  * <p>
- *   Currently no additional options compared to the regular network link output type adapter are supported hence
- *   this class only masks its untyped counterpart, when new option are to be made available implement them here.
+ *   Currently it supports no options beyond those of the regular network link output type adapter, so this class only
+ *   masks its untyped counterpart. New options are to be implemented here.
  * </p>
  *
  * @author markr

@@ -22,9 +22,9 @@ public class StaticLtmSimulationData extends SimulationData {
   private static final Logger LOGGER = Logger.getLogger(StaticLtmSimulationData.class.getCanonicalName());
 
   /**
-   * Track whether initial costs were applied to construct initial solution. If so, we may need to
-   * recalculate link segment costs after first iteration even if some links/nodes are not blocking otherwise
-   * they remain inconsistent with actual link costs.
+   * Whether initial costs were applied to construct the initial solution. If so, link segment costs may need
+   * recalculating after the first iteration, even where links/nodes are not blocking, as otherwise they remain
+   * inconsistent with the actual link costs.
    */
   private final TreeMap<Mode, Boolean> initialCostsAppliedInFirstIteration;
 

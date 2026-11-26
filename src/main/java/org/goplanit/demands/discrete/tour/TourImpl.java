@@ -41,9 +41,8 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
   /** purpose of the tour. "bigger" than purpose of a trip as it encompasses the entire tour */
   private String purpose;
 
-  /** tour schedule contains order tour schedule elements which can either be trips, and/or sub tours. When it is a
-   * sub tour, the trips or sub tours within the sub tour are ordered as well and assumed to be carried out before the
-   * next element on the schedule at the level where the sub tour was scheduled
+  /** tour schedule of ordered elements: trips and/or sub tours. The trips or sub tours within a sub tour are ordered as
+   * well, and assumed to be carried out before the next element at the level of the sub tour
    */
   private ActivitySchedule schedule;
 
@@ -99,10 +98,9 @@ public class TourImpl extends ExternalIdAbleImpl implements Tour {
   }
 
   /**
-   * Copy constructor. The deep copy flag governs the schedule, i.e. whether the trips and sub tours are shared with
-   * the original or cloned along. Participations are always recreated regardless: a participation binds a person to
-   * one specific tour and holds a reference back to it, so sharing them would leave this copy with participations
-   * that claim to belong to the original tour
+   * Copy constructor. The deep copy flag governs the schedule: whether the trips and sub tours are shared with the
+   * original or cloned. Participations are always recreated: a participation binds a person to one specific tour and
+   * refers back to it, so shared participations would claim to belong to the original tour
    *
    * @param tour to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise

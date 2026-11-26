@@ -8,9 +8,8 @@ import org.goplanit.utils.network.layer.macroscopic.AccessGroupProperties;
 
 /**
  * Group of modes with specific properties for the macroscopic perspective on the supply side, i.e. on a link segment
- * of a particular type. While the group specifies the allowed
- * modes, it is not compulsory to define restricted maximum and or critical speeds. When absent context of the mode
- * and links is to be used to determine the applied maximum speeds.
+ * of a particular type. The group specifies the allowed modes; restricted maximum and/or critical speeds are optional.
+ * When absent, the maximum speeds applied follow from the mode and the links.
  * 
  * @author markr
  *
@@ -199,9 +198,9 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
   /**
    * Add mode to access group.
    * 
-   * Use with caution if registered on a link segment type, in which case adding the mode here is not sufficient
-   * since it also requires mode based indexing on the type. Better to
-   * use the link segment type methods to properly update the group access instead
+   * Use with caution if registered on a link segment type: adding the mode here is then not enough, as it also
+   * requires mode based indexing on the type. Better use the link segment type methods to update the group access
+   * instead
    */
   @Override
   public void addAccessMode(Mode mode) {

@@ -100,8 +100,7 @@ public class ModeAccessRestrictionResult {
    * Reported because the totals alone mislead when choosing a size threshold: a mode can have thousands of
    * subnetworks discarded while few link segments lose access, most of them being a single link segment between two
    * subnetworks or, under weak connectivity, a single node without any link segment of the mode. Where the link
-   * segments sit, see
-   * {@link #getWithdrawnLinkSegmentCounts()}, is what a threshold actually decides.
+   * segments sit, see {@link #getWithdrawnLinkSegmentCounts()}, is what a threshold actually decides.
    * </p>
    *
    * @return counts per size bin

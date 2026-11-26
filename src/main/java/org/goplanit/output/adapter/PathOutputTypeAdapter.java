@@ -172,10 +172,9 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
 
   /**
    * Returns the specified output property values for the current cell in the OdMultiPathIterator.
-   * this version will produce x results for the property based on how many paths there are present
-   * for the given od, e.g., if 5 paths exist for the od, and an originId is the output property then
-   * 5 times the same origin id is produced, if the path string is required, then the 5 unique path strings are
-   * constructed and returned
+   * This version produces one result for the property per path of the od. For example, if 5 paths exist for the od
+   * and the output property is an originId, the same origin id is produced 5 times; if it is the path string, the 5
+   * unique path strings are constructed and returned
    * 
    * @param outputProperty the specified output property
    * @param odMultiPathIterator the iterator through the current ODMultiPath object

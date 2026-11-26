@@ -8,24 +8,22 @@ import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSplittingRateData;
 import org.goplanit.assignment.ltm.sltm.loading.UnconstrainedFlowData;
 
 /**
- * Base class to aid updating of the network turn flows during loading. Derived classes can apply a path or bush
- * based approach to this update for example. This class stores the current network state information required to
- * perform the update regardless of the chosen assignment strategy (bush, path).
+ * Base class to help update the network turn flows during loading. Derived classes can, for example, take a path or
+ * bush based approach to this update. This class stores the current network state needed for the update, whatever
+ * the assignment strategy (bush, path).
  * <p>
- * Depending on the applied solution scheme a slightly different approach is to be taken with this update where:
+ * The update differs slightly by solution scheme:
  * <p>
- * POINT QUEUE BASIC: Also update the network sending flow. Only during basic point queue solution scheme, sending
- * flows are NOT locally updated in the sending flow update step. Therefore, sending flows of most links are not
- * updated during the sending flow update because it only updates the sending flows of outgoing links of potentially
- * blocking nodes. When an incoming link of any node is not also an outgoing link of another potentially blocking
- * node its sending flow remains the same even if it actually changes due to further upstream changes in restrictions.
- * In this approach this is taken care of by making sure the sending flows are updated during (this) loading on the
- * path level. Hence, we must update sending flows here.
+ * POINT QUEUE BASIC: also update the network sending flow. Only in the basic point queue solution scheme are sending
+ * flows NOT updated locally in the sending flow update step: it updates only the sending flows of outgoing links of
+ * potentially blocking nodes, so most links are not updated. An incoming link of a node that is not also an outgoing
+ * link of another potentially blocking node keeps its sending flow, even if it changes due to further upstream changes
+ * in restrictions. This is taken care of by updating the sending flows during (this) loading on the path level, so
+ * sending flows must be updated here.
  * <p>
- * ANY OTHER SOLUTION APPROACH: Here we update all used nodes and sending flows are updated iteratively and locally
- * propagated without the need of the loading in the sending flow update. Therefore, there is no need to update
- * the sending flows. On the other hand we now update the turn flows on all used nodes rather than only the
- * potentially blocking ones.
+ * ANY OTHER SOLUTION APPROACH: all used nodes are updated, and sending flows are updated iteratively and propagated
+ * locally without needing the loading in the sending flow update. So there is no need to update the sending flows.
+ * On the other hand, the turn flows are updated on all used nodes rather than only the potentially blocking ones.
  * 
  * 
  * @author markr

@@ -6,16 +6,15 @@ import org.goplanit.utils.mode.Mode;
 import java.time.LocalTime;
 
 /**
- * A single person's participation in a tour. This, rather than the tour itself, is what appears on a person's
- * {@link ActivitySchedule}, so that one tour can be shared by several persons - for example a joint household tour -
- * while each person's schedule remains their own.
+ * A single person's participation in a tour. This, not the tour itself, appears on a person's {@link ActivitySchedule},
+ * so one tour can be shared by several persons, for example a joint household tour, while each person's schedule
+ * remains their own.
  * <p>
- * All travel related information is held by the underlying {@link Tour} and is exposed here read-only, since
- * participants by definition share the same origin, destination, times and trips. Only the person, their role and
- * whether they drive are specific to the participation, and whether they drive can be set on it, as that affects no
- * other participant. Changing any of the shared information is deliberately <b>not</b> possible through this
- * participation: obtain the tour via {@link #getTour()} and change it there, so it is evident at the call site that
- * every participant is affected.
+ * All travel related information is held by the underlying {@link Tour} and exposed here read-only, as participants
+ * by definition share the same origin, destination, times and trips. Only the person, their role and whether they
+ * drive are specific to the participation, and whether they drive can be set on it, as that affects no other
+ * participant. The shared information can <b>not</b> be changed through the participation: obtain the tour via
+ * {@link #getTour()} and change it there, so it is evident at the call site that every participant is affected.
  * </p>
  */
 public interface ParticipantTour extends ScheduleElement {

@@ -331,13 +331,13 @@ public class IntersectionModeCollapser {
 
   /**
    * Ban a collapsed mode on the new turns of the movements it has access to but could not make while the intersection
-   * was spatial, see {@link SpatialIntersectionUtils#findModesBannedOfEachMovement}: banned directly, by a turn banned at
-   * a member node, or by an inner link the mode may not use. Collapse joins such a movement's arms through the centre node, so without
-   * a ban the mode could now make it. A turn is banned only when every movement passing it is one the mode could not
-   * make, and no entering segment that is not an approach passes it on the way to an exit it could reach, so nothing
-   * the mode could do becomes banned. A movement whose new turns are all shared with something the mode could do
-   * keeps no ban, and is listed as not held; this only happens for a movement with an arm that stays on its member
-   * node, since the link from that node to the centre is shared by every arm there
+   * was spatial, see {@link SpatialIntersectionUtils#findModesBannedOfEachMovement}: banned directly, by a turn banned
+   * at a member node, or by an inner link the mode may not use. Collapse joins such a movement's arms through the
+   * centre node, so without a ban the mode could now make it. A turn is banned only when every movement passing it is
+   * one the mode could not make, and no entering segment that is not an approach passes it on the way to an exit it
+   * could reach, so nothing the mode could do becomes banned. A movement whose new turns are all shared with something
+   * the mode could do keeps no ban, and is listed as not held; this only happens for a movement with an arm that stays
+   * on its member node, since the link from that node to the centre is shared by every arm there
    *
    * @param mode collapsed
    * @param turnsOfMovement the new turns of each movement the mode has access to

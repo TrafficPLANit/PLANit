@@ -18,10 +18,9 @@ import java.util.stream.Collectors;
  * See also <a href="https://en.wikipedia.org/wiki/Yen%27s_algorithm#cite_note-yenksp2-2">k-shortest path by Yen</a>
  * </p>
  * <p>
- * Yen's K-shortest path algorithm does not allow for cycles which makes it suitable for path choice. It is however
- * costly to run, especially without any additional constraints on these paths and using Dijkstra for all
- * intermediate path searches. However, it is easy to understand and a good benchmark implementation for other
- * more sophisticated approaches.
+ * Yen's K-shortest path algorithm does not allow cycles, which makes it suitable for path choice. It is costly to
+ * run, especially without additional constraints on the paths and with Dijkstra for all intermediate path searches.
+ * However, it is easy to understand and a good benchmark implementation for more sophisticated approaches.
  * </p>
  *
  * @author markr
@@ -126,12 +125,11 @@ public class ShortestPathKShortestYen implements ShortestPathOneToOne{
   /**
    * Construct k-shortest paths from source node to sink based on directed LinkSegment edges.
    * <p>
-   *   find all fork node alternative shortest paths related to the k-1 shortest path in the set by starting at each
-   *   node of the previous shortest path and excluding the adjacent links of that node from consideration when they
-   *   have   been used in ANY preceding shortest path. Continue to find paths until all fork nodes are exhausted,
-   *   after which   the single shortest alternative found is chosen as the next k-shortest path. It is added to
-   *   the set and then we use that alternative to find the next shortest path forking off from that shortest path,
-   *   repeat until k-shortest paths are found.
+   *   Find all fork node alternative shortest paths of the k-1 shortest path in the set, starting at each node of the
+   *   previous shortest path and excluding the adjacent links of that node when they have been used in ANY preceding
+   *   shortest path. Once all fork nodes are exhausted, the single shortest alternative found becomes the next
+   *   k-shortest path. It is added to the set and used to find the next shortest path forking off it, until k
+   *   shortest paths are found.
    * </p>
    *
    * @param origin origin vertex of source node

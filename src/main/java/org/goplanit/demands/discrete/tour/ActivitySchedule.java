@@ -13,9 +13,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * A schedule can be nested since each element may have a schedule by itself. Each element can be of a different
- * type, but what type is not specified strictly to allow for a simple interface. In practice though it is always
- * a trip or a tour instance of which only tours may have another internal schedule of their own.
+ * A schedule can be nested, as each element may have a schedule of its own. Elements can be of different types, which
+ * are not strictly specified, to keep the interface simple. In practice each element is a trip or a tour, and only
+ * tours may have an internal schedule of their own.
  */
 public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
 
@@ -192,10 +192,9 @@ public class ActivitySchedule extends AbstractCollection<ScheduleElement> {
   }
 
   /**
-   * Set each tour's start time to the start time of the first element it contains, deepest tours first so that a
-   * nested tour's own start is settled before its parent reads it. A tour starts precisely when its first trip
-   * departs, the two being one and the same event, so the tour follows the trip rather than carrying a time of its
-   * own.
+   * Set each tour's start time to that of the first element it contains, deepest tours first, so a nested tour's start
+   * is settled before its parent reads it. A tour starts precisely when its first trip departs, the two being the same
+   * event, so the tour follows the trip rather than carrying a time of its own.
    */
   public void syncTourStartTimesToFirstElement() {
     syncTourStartTimesToFirstElement(new HashSet<>());

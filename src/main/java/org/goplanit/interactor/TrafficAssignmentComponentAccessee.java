@@ -10,11 +10,9 @@ public interface TrafficAssignmentComponentAccessee extends InteractorAccessee {
 
   /**
    * Collect the desired traffic assignment component by its class assuming it is available on the assignment.
-   * These are traffic assignment components that are created and
-   * registered upon the assignment, so not component inputs that are readily available upon creation,
-   * but components specific to the assignment itself. Derived assignments might
-   * also register additional components as well beyond the standard components registered here on the
-   * base class (gapfunction, smoothing, physical, virtual cost).
+   * These are components created and registered on the assignment, specific to the assignment itself, not component
+   * inputs available upon creation. Derived assignments might register more components beyond the standard ones
+   * registered on the base class (gapfunction, smoothing, physical, virtual cost).
    * 
    * @param <T>                  component type
    * @param planitComponentClass to collect of type T
@@ -24,11 +22,9 @@ public interface TrafficAssignmentComponentAccessee extends InteractorAccessee {
 
   /**
    * Verify if the desired traffic assignment component (by its class) is available on the assignment.
-   * These are traffic assignment components that are created and
-   * registered upon the assignment, so not component inputs that are readily available upon creation,
-   * but components specific to the assignment itself. Derived assignments might
-   * also register additional components as well beyond the standard components registered here on the
-   * base class (gapfunction, smoothing, physical, virtual cost).
+   * These are components created and registered on the assignment, specific to the assignment itself, not component
+   * inputs available upon creation. Derived assignments might register more components beyond the standard ones
+   * registered on the base class (gapfunction, smoothing, physical, virtual cost).
    *
    * @param <T>                  component type
    * @param planitComponentClass to collect of type T

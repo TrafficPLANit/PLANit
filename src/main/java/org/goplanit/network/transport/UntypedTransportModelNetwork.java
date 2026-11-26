@@ -11,11 +11,10 @@ import org.goplanit.zoning.Zoning;
 import java.util.logging.Logger;
 
 /**
- * Untyped version base abstract class for any transport network that is being modeled including both the
- * physical and virtual aspects of it as well as the zoning. It acts as a wrapper unifying the two components
- * during the assignment stage.
+ * Untyped abstract base class for any transport network being modelled, including both its physical and virtual
+ * aspects as well as the zoning. It wraps the two components to unify them during the assignment stage.
  * <p>
- *   It also tracks movements if the user desired to generate those
+ *   It also tracks movements if the user wants to generate those
  * </p>
  * 
  * @author markr

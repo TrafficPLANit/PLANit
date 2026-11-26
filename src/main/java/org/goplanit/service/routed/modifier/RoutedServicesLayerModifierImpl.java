@@ -40,11 +40,11 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
   protected final RoutedServicesLayerImpl routedServicesLayer;
 
   /**
-   * Recursive method supporting both #RoutedTripFrequency and #RoutedTripSchedule truncations. Based on the given
-   * offset related to the to be removed timing segments, identifies the first upcoming valid chain after this offset.
-   * If found, it creates a copy of the original and removes all segments around the identified valid chain and adds
-   * it to the list of new "truncated" routed trip schedules (or frequecnies) to replace the original after finishing.
-   * It is assumed at least part of the schedule or frequency's segments are valid (is to be checked beforehand)
+   * Recursive method supporting both #RoutedTripFrequency and #RoutedTripSchedule truncations. From the given offset
+   * into the timing segments to remove, it identifies the first valid chain after this offset. If found, it copies the
+   * original, removes all segments around that chain, and adds the copy to the list of new "truncated" routed trip
+   * schedules (or frequencies) that replace the original after finishing. At least part of the schedule or
+   * frequency's segments is assumed to be valid (to be checked beforehand)
    *
    * @param indexOffset to use, relates to index in the toBeRemovedSegments, first call it should be set to -1
    * @param toBeRemovedSegments identified leg segments (or rel timing segments) to remove in the routedTrip
@@ -208,15 +208,15 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
   }
 
   /**
-   * Truncate routed trip(s) - schedule based -  at hand to the remaining service network (which likely has undergone
-   * changes). This means removing parts of a trip schedule that is no longer present or valid, or even splitting
-   * into multiple trip schedules in case gaps within the same entry are detected
+   * Truncate the given schedule based routed trip(s) to the remaining service network (which likely has undergone
+   * changes): remove the parts of a trip schedule no longer present or valid, or even split it into multiple trip
+   * schedules when gaps within the same entry are detected
    * <p>
    * Ids are not recreated in this call, only truncation is performed
    * </p>
    * <p>
-   * It is possible the routed trip schedule ends up without any departures or leg timings in which case the
-   * invoker is expected to cull the schedule as it is no longer viable.
+   * The routed trip schedule may end up without any departures or leg timings, in which case the invoker is expected
+   * to cull it, as it is no longer viable.
    * </p>
    *
    * @param routedTripSchedule a routed trip(s) group for a given schedule to truncate to underlying service network
@@ -467,14 +467,14 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
   /**
    * {@inheritDoc}
    *
-   *  Note that this implementation will automatically overwrite all pre-existing XML ids with the internal
-   *  ids of all managed id containers within the routed services layer to ensure  uniqueness on both levels of ids.
+   *  Note that this implementation automatically overwrites all pre-existing XML ids with the internal ids of all
+   *  managed id containers within the routed services layer, to ensure uniqueness on both levels of ids.
    *  <p>
    *    Listeners can be registered for existing id modification events
    *  </p>
    *
-   *  If, for some reason, the provided services by mode have no (more) entries the services by mode are removed
-   *  from the layer. Same goes for routed services that have no more trips
+   *  Services by mode that have no (more) entries are removed from the layer, as are routed services that have no
+   *  more trips
    */
   public void truncateToServiceNetwork(){
     logModification(String.format("%sTruncating routed services to remaining service network",

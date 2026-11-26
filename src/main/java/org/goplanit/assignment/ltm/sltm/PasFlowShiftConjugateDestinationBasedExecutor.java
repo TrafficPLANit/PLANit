@@ -58,11 +58,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
   /** track total sending flow on s1 and s2 alternatives of this flow shift executor's PAS */
   private Pair<Double,Double> s1S2SendingFlows;
 
-  /** access to original bush turn flows. To be used for constraining identifying available sending flows
-   * for flow shifts. Requires updating when constraining further as part of this instance conducting
-   * flow shifts, so it is available to other PASs as a constraint.
-   * Note: it should NOT contain all original turn flows per bush, only those where the original turn flow
-   * was at some point was reduced to save memory.
+  /** access to original bush turn flows, to constrain the available sending flows identified for flow shifts. It must
+   * be updated when constraining further during this instance's flow shifts, so it is available to other PASs as a
+   * constraint.
+   * Note: to save memory it should NOT contain all original turn flows per bush, only those where the original turn
+   * flow was reduced at some point.
    * NOTE: not owned by this executor, owned by parent strategy
    * todo: this injected approach is ugly, needs refactoring at some point
    */
@@ -127,9 +127,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
 
   /**
    * Helper to perform a flow shift on a network turn in conjugate form.
-   * If the turn has no more flow, the flow is set to zero but the turn is not removed. If this is desired,
-   * it needs to be done manually after the fact by removing it from the underlying DAG
-   * (we do not remove it because it may be added back in later, to avoid inefficiencies).
+   * A turn left without flow gets zero flow but is not removed, as it may be added back later, and removing it would
+   * then be inefficient. To remove it, remove it from the underlying DAG afterwards.
    *
    * @param conjBush        bush to use
    * @param conjSegment     turn entry segment
@@ -674,8 +673,8 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
    * run node model and update unconstrained flows, inflows, sending flows, acceptance factors and costs on network
    * level rather than individual bush level, either with or without a node model update.
    *<p>
-   *   this assumes network level splitting rates of the node model on the network level are correct, they are not
-   *   updated as part of this exercise. If required first do that.
+   *   this assumes the network level splitting rates of the node model are correct. They are not updated here, so if
+   *   required update them first.
    *</p>
    *
    * @param theMode               to use
@@ -2746,11 +2745,11 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
     return Pair.of(totalFlowShift, snappedToZeroByPassedFinalSmoothing);
   }
 
-  /** common code for checking if we should allow bypassing any smoothing to ensure we can still remove
-   *  S2 alternatives without being hampered by infinetely reduced steps towards a known outcome
-   * rationale: if the cost difference is large enough and the s2 flow is sufficiently small we "know" we should
-   * remove it despite the network as a whole perhaps having a restricted step size. If we do not do this
-   * this will further reduce smoothing and we never get to convergence.
+  /** common code checking whether smoothing may be bypassed, so S2 alternatives can still be removed without
+   *  infinitely reduced steps towards a known outcome
+   * rationale: if the cost difference is large enough and the s2 flow small enough, we "know" it should be removed,
+   * even though the network as a whole may have a restricted step size. Otherwise smoothing reduces further and
+   * convergence is never reached.
    *
    * @param proposedFlowShift to check
    * @param s2AvailableSendingFlow to use
@@ -2765,15 +2764,14 @@ public class PasFlowShiftConjugateDestinationBasedExecutor
             pasCostDiff > EPSILON_6;
   }
 
-  /** only exists to have common code between no node model update and node model update version of bush smoothing after
-   *  internal pas convergence/stoppage.
+  /** only exists to share code between the versions of bush smoothing after internal pas convergence/stoppage with and
+   *  without node model update.
    * <p>
-   * Provided flow shifts are expected to be for the initial high cost alt segment on pas at the start of shifting
-   * (may no longer be the case in the final state now) --> so this should be a negative value for each bush...however
-   * due to symmetric updates in case we hit zero flow, it can happen that some bushes will add flow over the course
-   * of multiple updates (remove once , add multiple times), where because of the removal the bush comparatively gains
-   * weight compared to the other bushes, so during adding more is added than was removed. --> we must take measures so we
-   * can use them as weights by taking the absolute value rather than actual value
+   * The given flow shifts are expected to be for the initial high cost alternative segment of the pas at the start of
+   * shifting (which may no longer be so in the final state), so each bush's should be negative. However, due to
+   * symmetric updates when zero flow is hit, some bushes may add flow over multiple updates (removed once, added
+   * multiple times): the removal makes the bush gain weight compared to the other bushes, so more is added than was
+   * removed. To use the shifts as weights, their absolute value is therefore taken rather than their actual value
    * </p>
    *
    * @param appliedFlowShiftsForInitialTurnByBush applied shifts in total

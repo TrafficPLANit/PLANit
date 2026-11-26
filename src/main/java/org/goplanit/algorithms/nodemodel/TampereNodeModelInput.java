@@ -8,9 +8,9 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.math.Precision;
 
 /**
- * Inner class that allows the user to set all inputs for the TampereNodeModel, it takes fixed inputs and supplements
- * it with the information of the variable inputs, meaning inputs that can vary during the simulation such as turn
- * sending flows (t_ab), and potentially receiving flows (r_b).
+ * Inner class that allows the user to set all inputs for the TampereNodeModel. It supplements the fixed inputs with
+ * the variable inputs, which can vary during the simulation, such as turn sending flows (t_ab), and potentially
+ * receiving flows (r_b).
  * 
  */
 public class TampereNodeModelInput {

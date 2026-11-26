@@ -43,9 +43,8 @@ public abstract class UntypedNetworkSegmentsOutputTypeAdapterTraitImpl<ES extend
   /**
    * Default implementation to be made available, using transport model network of assignment as reference.
    * <p>
-   * Implemented as separate method to avoid single-dispatch problems
-   * where this method would be invoked even if an overridden version in more specific implementation exists.
-   * (stupid Java)
+   * A separate method, to avoid single-dispatch problems where this method would be invoked even if a more specific
+   * implementation overrides it. (stupid Java)
    * </p>
    *
    * @param mode to use
@@ -58,9 +57,8 @@ public abstract class UntypedNetworkSegmentsOutputTypeAdapterTraitImpl<ES extend
   /**
    * Default implementation to be made available, using transport model network of assignment as reference.
    * <p>
-   * Implemented as separate method to avoid single-dispatch problems
-   * where this method would be invoked even if an overridden version in more specific implementation exists.
-   * (stupid Java)
+   * A separate method, to avoid single-dispatch problems where this method would be invoked even if a more specific
+   * implementation overrides it. (stupid Java)
    * </p>
    *
    * @param layerId to use

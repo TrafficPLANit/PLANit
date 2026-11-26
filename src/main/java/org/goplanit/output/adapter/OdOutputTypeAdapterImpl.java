@@ -95,9 +95,8 @@ public abstract class OdOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
 
   /**
    * ODSkimOutputType.COST: Cost is collected through the shortest path in iteration i based on the link costs of
-   * iteration i-1, so the od cost of i-1 are only known once we are in iteration i, hence this information is
-   * trailing behind one iteration, and we can only store it in i. Hence, we must reduce the iteration index by 1 to
-   * obtain the true iteration index that goes with this information.
+   * iteration i-1, so the od costs of i-1 are only known, and stored, in iteration i, trailing one iteration behind.
+   * So the iteration index is reduced by 1 to obtain the true iteration index of this information.
    * all other od information is based on the actual iteration index and will return i
    */
   @Override

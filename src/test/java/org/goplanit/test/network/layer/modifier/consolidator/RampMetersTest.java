@@ -17,8 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests how consolidation treats a ramp meter: like a crossing, it joins a signalised junction within the joining reach
  * along the road, and beyond it stays alone; listed with a junction to join, it is joined whatever the distance. The
  * intersection joined is a junction holding a ramp meter, as one a crossing joined is a junction and a crossing.
- * Unlike a crossing's, a ramp meter's road approach keeps its
- * signal once it is internal: a ramp meter is not run with the junction's signals. Each node's external id is its name
+ * Unlike a crossing's, a ramp meter's road approach keeps its signal once it is internal: a ramp meter is not run with
+ * the junction's signals. Each node's external id is its name
  *
  * @author markr
  */

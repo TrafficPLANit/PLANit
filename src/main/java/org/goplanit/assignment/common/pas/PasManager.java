@@ -134,11 +134,10 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
-   * find the first PAS of the PASs considered and which if we would extend the bush
-   * with its least cost alternative would improve to the point it is considered effective enough compared to the
-   * upper bound (reduced cost) improvement provided as well as that the bush has sufficient flow on the high-cost
-   * alternative of the PAS such that it can improve sufficiently by shifting flow towards the new low cost segment.
-   * If this all holds the PAS is selected and returned. We select the first PAS we can find that matches the criteria.
+   * Find the first of the given PASs that would improve the bush enough: extending the bush with its least cost
+   * alternative is effective compared to the given upper bound on the improvement (reduced cost), and the bush has
+   * enough flow on the high cost alternative of the PAS to improve sufficiently by shifting flow to the new low cost
+   * segment.
    *
    * @param bush                  to find suitable PAS for
    * @param pass                  to consider
@@ -242,17 +241,16 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   public static final boolean DETAILED_LOGGING = false;
 
   /**
-   * Verify if extending a bush with the given PAS given the reduced cost found, it would be effective in improving
-   * the bush. This is verified by
+   * Verify if extending a bush with the given PAS would be effective in improving the bush, given the reduced cost
+   * found. With
    * <p>
-   * reducedCost = bush_min_path_cost - PAS_min_path_cost, then it is considered effective if
+   * reducedCost = bush_min_path_cost - PAS_min_path_cost, it is considered effective if
    * (PAS_max_path_cost - PAS_min_path_cost) exceeds mu*bushReducedCost.
    * <p>
-   * Formulation based on Bar-Gera (2010). IDea is that if the PAS has little difference between high and low cost,
-   * we can't shift much flow to improve and it is less attractive. This is ok if the reduced cost, i.e., the maximum
-   * improvement given the current state of the network, is also low, but when the best option (which might not
-   * exactly follow this PAS) is much better than what this PAS offers, we regard this PAS as not cost-effective and
-   * ignore it as a viable option.
+   * Formulation based on Bar-Gera (2010). If the PAS has little difference between high and low cost, little flow can
+   * be shifted to improve, so it is less attractive. That is fine if the reduced cost, the maximum improvement in the
+   * current state of the network, is also low. But when the best option (which might not exactly follow this PAS) is
+   * much better than what this PAS offers, the PAS is not cost effective and is ignored as an option.
    *
    * @param alternativeHighCost to use
    * @param alternativeLowCost to use
@@ -443,12 +441,11 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
-   * Extract a subpath in the form of a raw edge segment array in downstream direction based on the breadth-first (BF)
-   * search result provided. This search result is expected to be constructed from the regular shortest path result
-   * which direction depends on the search type. the BF search results are expected to be provided in the SAME direction
-   * as the search itself (unlike shortestXResults which are in the opposite direction), i.e., if the search was
-   * one-to-all (not inverted) then the bf results are also provided in the downstream direction, whereas all-to-one is
-   * in the opposite direction.
+   * Extract a subpath as a raw edge segment array in downstream direction from the given breadth-first (BF) search
+   * result. This result is expected to be built from the regular shortest path result, whose direction depends on the
+   * search type. The BF search results are expected in the SAME direction as the search itself (unlike
+   * shortestXResults, which are in the opposite direction): in downstream direction if the search was one-to-all (not
+   * inverted), and in the opposite direction if it was all-to-one.
    *
    * @param <Vs> vertex type to use
    * @param <ESs> edge segment type to use
@@ -746,12 +743,9 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
-   * find the first ACTIVE PAS which if we would extend the bush with its least cost alternative would improve
-   * to the point it is considered effective enough compared to the upper bound (reduced cost) improvement
-   * provided as well as that the bush has sufficient flow on the high-cost alternative of the PAS such
-   * that it can improve sufficiently by shifting flow towards the new low cost segment.
-   * If this all holds the PAS is selected and returned. We select the first PAS we can find that matches
-   * the criteria.
+   * Find the first ACTIVE PAS that would improve the bush enough: extending the bush with its least cost alternative
+   * is effective compared to the given upper bound on the improvement (reduced cost), and the bush has enough flow on
+   * the high cost alternative of the PAS to improve sufficiently by shifting flow to the new low cost segment.
    *
    * @param bush            to find suitable PAS for
    * @param referenceVertex           to use
@@ -778,12 +772,9 @@ public class PasManager<V extends DirectedVertex, ES extends EdgeSegment> {
   }
 
   /**
-   * find the first INACTIVE PAS which if we would extend the bush with its least cost alternative would improve
-   * to the point it is considered effective enough compared to the upper bound (reduced cost) improvement
-   * provided as well as that the bush has sufficient flow on the high-cost alternative of the PAS such
-   * that it can improve sufficiently by shifting flow towards the new low cost segment.
-   * If this all holds the PAS is selected and returned. We select the first PAS we can find that matches
-   * the criteria.
+   * Find the first INACTIVE PAS that would improve the bush enough: extending the bush with its least cost alternative
+   * is effective compared to the given upper bound on the improvement (reduced cost), and the bush has enough flow on
+   * the high cost alternative of the PAS to improve sufficiently by shifting flow to the new low cost segment.
    *
    * @param bush            to find suitable PAS for
    * @param referenceVertex           to use

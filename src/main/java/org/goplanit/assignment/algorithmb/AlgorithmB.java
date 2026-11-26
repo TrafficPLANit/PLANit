@@ -17,9 +17,8 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Algorithm B implementation based on the work of Dial (2006). Due to a lack of explicit explanation for the
- * implementation of the underlying algorithm, the implementation follows the main principles explained in this work
- * but the algorithm design is likely different than the one implemented for the results discussed in the original paper.
+ * Algorithm B, based on Dial (2006). The paper does not explicitly explain how the algorithm is implemented, so this
+ * follows its main principles, but its design is likely different from the one behind the paper's results.
  * <p>
  * <b>INCOMPLETE IMPLEMENTATION</b>
  * 

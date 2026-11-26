@@ -11,11 +11,14 @@ import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoid
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidSegment;
 
 /**
- * Conjugate (non-directional) connectoid edge class connecting two conjugate nodes. This conjugate only partly exists in the original network to be able to comprise the initial
- * turn entering the network (at origin) or the last turn leaving the network (at destination).
+ * Conjugate (non-directional) connectoid edge class connecting two conjugate nodes. This conjugate only partly exists
+ * in the original network, so it can comprise the initial turn entering the network (at origin) or the last turn
+ * leaving the network (at destination).
  * <p>
- * Since a conjugate edge is in fact a turn it may be that the node is a connectoid edge and its conjugate is not a conjugate node but a conjugate connectoid node. Therefore we use
- * conjugate directed vertices rather than require a conjugate node as the base class
+ * A conjugate edge is in fact a turn, so one of its original edges may be a connectoid edge, whose conjugate is not a
+ * conjugate node but a conjugate connectoid node. Therefore conjugate directed vertices are used rather than requiring
+ * a conjugate node as the base class
+ * </p>
  *
  * @author markr
  *

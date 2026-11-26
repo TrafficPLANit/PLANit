@@ -77,9 +77,9 @@ public class DanglingSubNetworkRemovalTest extends LayerTestBase {
   }
 
   /**
-   * Following direction the pocket is a subnetwork of its own, so it is removed. Critically the link joining it to
-   * the main network goes with it: it belongs to neither component, and leaving it behind would strand the node it
-   * attaches to.
+   * Following direction, the pocket is a subnetwork of its own, so it is removed. The link joining it to the main
+   * network goes with it: it belongs to neither component, and leaving it behind would strand the node it attaches
+   * to.
    */
   @Test
   public void strongConnectivityRemovesTheOneWayPocketWithoutLeavingAStub() {
@@ -123,14 +123,14 @@ public class DanglingSubNetworkRemovalTest extends LayerTestBase {
   }
 
   /**
-   * The rule that protects shared infrastructure must survive the move to strong connectivity, since it is the
-   * only thing stopping a pass over one network from deleting nodes another network still hangs off.
+   * The rule that protects shared infrastructure must also hold under strong connectivity, since it is the only thing
+   * stopping a pass over one network from deleting nodes another network still hangs off.
    * <p>
    * Node 5 sits in the pocket but also carries a link outside the network being pruned, standing in for the rail
-   * line embedded in a street. The pocket is removed around it, yet node 5 and its outside link must remain. Note
-   * this is precisely the case that distinguishes the two reasons an edge can be excluded: node 4 is also attached
-   * to an excluded link, the one joining it to the main network, but that one is excluded merely for crossing to
-   * another component of the <i>same</i> network and so does not protect it.
+   * line embedded in a street. The pocket is removed around it, yet node 5 and its outside link must remain. This
+   * case tells apart the two reasons an edge can be excluded: node 4 is also attached to an excluded link, the one
+   * joining it to the main network, but that link is excluded only for crossing to another component of the
+   * <i>same</i> network, so it does not protect node 4.
    * </p>
    */
   @Test

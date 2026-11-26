@@ -213,12 +213,11 @@ public abstract class StaticLtmAssignmentStrategy {
   }
 
   /**
-   * We can simplify the cost update by only considering a subset of links connected to potentially blocked
-   * nodes. This is checked via this method.
+   * Verify if the cost update can be simplified by only considering the subset of links connected to potentially
+   * blocked nodes.
    * <p>
-   *   eligible for subset of node updates only when we have no storage constraints activated (no physical
-   *   queues/spillback) AND
-   *   we have linear free flow branches on all fundamental diagrams (cost is flow independent on non-blocked links
+   *   This is only allowed when no storage constraints are activated (no physical queues/spillback) AND all
+   *   fundamental diagrams have linear free flow branches (cost is flow independent on non-blocked links)
    * </p>
    * @return true when we can use subset, false otherwise
    */

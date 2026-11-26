@@ -15,21 +15,20 @@ import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.utils.service.routed.RoutedServicesLayers;
 
 /**
- * Routed services are service that follow a predefined paths (route) on a service network layer that are offered as a
- * service of some sort, i.e., it either follows a schedule or a frequency. The most well known routed service
- * would a public transport service, or alternatively scheduled freight movements between warehouses.
+ * Routed services follow a predefined path (route) on a service network layer and are offered as a service of some
+ * sort: they follow either a schedule or a frequency. The best known routed service is a public transport service;
+ * another is scheduled freight movements between warehouses.
  * <p>
- * Each routed service can have one or more trips based on a schedule. The trips follow a service path comprising
- * legs between predefined stopping points. In PLANit these points are modelled as connectoids. Since connectoids
- * are in turn connected to (transfer) zones, the combination of (travel) demand between zones and routed services
- * allows for a multi-modal trip chain using one or more routed services. This holds for people but potentially
- * also for goods.
+ * Each routed service can have one or more trips based on a schedule. The trips follow a service path of legs
+ * between predefined stopping points, modelled in PLANit as connectoids. Connectoids are connected to (transfer)
+ * zones, so (travel) demand between zones combined with routed services allows for a multi-modal trip chain using
+ * one or more routed services. This holds for people but potentially also for goods.
  * <p>
- * Routed services rely on routes that exist within a single layer of a (service) network. Therefore,
- * any instance of routesServices resides within this layer rather than on the network as a whole.
+ * Routed services rely on routes within a single layer of a (service) network. So any instance of routedServices
+ * resides within this layer rather than on the network as a whole.
  * <p>
- * Routed services are a top-level input in PLANit and therefore extend TrafficAssignmentComponent such that they
- * can be integrated into any input builder
+ * Routed services are a top-level input in PLANit, so they extend TrafficAssignmentComponent and can be integrated
+ * into any input builder
  * 
  * @author markr
  *

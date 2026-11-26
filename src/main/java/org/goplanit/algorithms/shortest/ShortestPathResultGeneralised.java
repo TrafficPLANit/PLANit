@@ -19,12 +19,13 @@ import org.goplanit.utils.path.DirectedPathFactory;
 import org.goplanit.utils.path.SimpleDirectedPath;
 
 /**
- * Class that stores the result of a shortest path execution allowing one to extract paths or cost information. Can be used for a one-to-all as well as an all-to-one search result.
- * However not both at the same time, so either the internal state reflects a one-to-all result, or an all-to-one result and methods supported by that specific interface have
- * defined behaviour
+ * Stores the result of a shortest path execution, from which paths or cost information can be extracted. It can hold a
+ * one-to-all or an all-to-one search result, but not both at the same time: the internal state reflects one of the
+ * two, and the methods of that specific interface have defined behaviour
  * <p>
- * Note that for one-to-all we traverse a path from an origin to a destination in reversed order to extract the path,
- * whereas in all-to-one we can directly extract it as we start at the origin directly.
+ * For one-to-all a path from an origin to a destination is traversed in reverse order to extract it, whereas for
+ * all-to-one it is extracted directly, starting at the origin.
+ * </p>
  * 
  * @author markr
  *

@@ -12,21 +12,18 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 /**
  * Consumer to apply during path based turn flow update for each combination of origin, destination, and demand
  * <p>
- * Depending on the configuration which in turn depends on the active solution scheme a slightly different approach
- * is taken to this update where:
+ * The update differs slightly by configuration, which depends on the active solution scheme:
  * <p>
- * POINT QUEUE BASIC: Also update the current sending flow. Only during basic point queue solution scheme, sending
- * flows are NOT locally updated in the sending flow update step. Therefore, sending flows of most links are not updated
- * during this sending flow update because it only updates the sending flows of outgoing links of potentially blocking
- * nodes. When an incoming link of any node is not also an outgoing link of another potentially blocking node its
- * sending flow remains the same even if it actually changes due to further upstream changes in restrictions. In this
- * approach this is only identified when we make sure the sending flows are updated during (this) loading on the path
- * level. Hence, we must update sending flows here.
+ * POINT QUEUE BASIC: also update the current sending flow. Only in the basic point queue solution scheme are sending
+ * flows NOT updated locally in the sending flow update step: it updates only the sending flows of outgoing links of
+ * potentially blocking nodes, so most links are not updated. An incoming link of a node that is not also an outgoing
+ * link of another potentially blocking node keeps its sending flow, even if it changes due to further upstream changes
+ * in restrictions. This is only picked up by updating the sending flows during (this) loading on the path level, so
+ * sending flows must be updated here.
  * <p>
- * ANY OTHER SOLUTION APPROACH: Here we update all used nodes and sending flows are updated iteratively and locally
- * propagated without the need of the loading in the sending flow update. Therefore, there is no need to update the
- * sending flows. On the other hand we now update the turn flows on all used nodes rather than only the potentially
- * blocking ones.
+ * ANY OTHER SOLUTION APPROACH: all used nodes are updated, and sending flows are updated iteratively and propagated
+ * locally without needing the loading in the sending flow update. So there is no need to update the sending flows.
+ * On the other hand, the turn flows are updated on all used nodes rather than only the potentially blocking ones.
  * 
  * @author markr
  *
@@ -88,10 +85,9 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
   }
 
   /**
-   * Since this is a turn update and the final turn has no outgoing edge segment it is never tracked
-   * (because it does not exist), therefore, we can disregard updating the final segment flow in a turn flow
-   * update setting, even when tracking link segment sending flows (since this sending flow is never required as input
-   * to a node model update.
+   * In a turn update the final turn has no outgoing edge segment: it does not exist, so it is never tracked. The final
+   * segment flow therefore need not be updated, even when tracking link segment sending flows, as this sending flow is
+   * never an input to a node model update.
    *
    * @param lastEdgeSegment      to use
    * @param acceptedPathFlowRate to use

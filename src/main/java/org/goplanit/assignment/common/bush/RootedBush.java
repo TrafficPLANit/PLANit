@@ -17,14 +17,13 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 /**
- * A rooted bush is an acyclic directed graph comprising implicit paths along a network. It has a root which can be any
- * vertex with only outgoing edge segments (or ingoing ones if it is an inverted bushed), so
- * while acyclic its direction can be either be in up or downstream direction compared to the super network it is
- * situated on.
+ * A rooted bush is an acyclic directed graph of implicit paths along a network. Its root can be any vertex with only
+ * outgoing edge segments (or incoming ones if it is an inverted bush), so its direction can be up or downstream
+ * compared to the super network it is on.
  * <p>
- * The vertices in the bush represent link segments in the physical network, whereas each edge represents a turn from
- * one link to another. This way each splitting rate uniquely relates to a single turn and all outgoing edges of a
- * vertex represent all turns of a node's incoming link
+ * The vertices in the bush represent link segments in the physical network, and each edge a turn from one link to
+ * another. So each splitting rate uniquely relates to a single turn, and the outgoing edges of a vertex are all turns
+ * of a node's incoming link
  * 
  * @author markr
  * @param <ES> type of edge segment
@@ -99,14 +98,13 @@ public abstract class RootedBush<V extends DirectedVertex, E extends DirectedEdg
   }
 
   /**
-   * The alternative subpath on the network we're finding a within-bush alternative for is provided through link
-   * segment labels of value -1. The point at which they coincide with the bush is indicated with label 1 at the
-   * given reference vertex (passed in). Here we do a breadth-first search on the bush in the direction towards
-   * its root to find a location the alternative path reconnects to the bush, which, at the latest, should be at
-   * the root and at the earliest directly at the next vertex compared to the reference vertex.
+   * The alternative subpath on the network, for which a within-bush alternative is sought, is given by link segment
+   * labels of value -1, and the point where it meets the bush by label 1 at the given reference vertex. A
+   * breadth-first search on the bush towards its root finds where the alternative path reconnects to the bush: at the
+   * latest at the root, at the earliest at the vertex next to the reference vertex.
    * <p>
-   * The returned map contains the next edge segment for each vertex, from the vertex closer to the bush root
-   * to the reference vertex where for the reference vertex the edge segment remains null
+   * The returned map holds the next edge segment for each vertex, from the vertex closer to the bush root to the
+   * reference vertex, whose edge segment remains null
    * </p>
    *
    * @param referenceVertex                to start breadth first search from as it is the point of coincidence of

@@ -107,9 +107,9 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
    * {@link #removeDanglingSubnetworks(Integer, Integer, boolean, boolean)}, except that connectivity is judged
    * only across the edge segments accepted by the given criterion rather than across each layer as a whole.
    * <p>
-   * A single layer can carry multiple networks that are independent of each other. Judging them as one graph makes
-   * any of them appear dangling purely because it cannot be reached from the others, so supplying a criterion
-   * allows each to be pruned on its own terms by invoking this once per criterion.
+   * A single layer can carry multiple networks that are independent of each other. Judged as one graph, any of them
+   * appears dangling purely because it cannot be reached from the others. A criterion lets each be pruned on its own
+   * terms, by invoking this once per criterion.
    * </p>
    *
    * @param belowSize         remove subnetworks below the given size
@@ -135,8 +135,8 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
    * <p>
    * Under {@link Connectivity#STRONG} infrastructure that cannot be both entered and left, e.g. a car park served
    * only by a one way road pointing outwards, forms a subnetwork of its own rather than counting as part of the
-   * network it hangs off. Whether that should be removed is a modelling decision rather than a correctness one,
-   * which is why it is requested explicitly.
+   * network it hangs off. Whether that should be removed is a modelling decision, not a correctness one, so it is
+   * requested explicitly.
    * </p>
    *
    * @param belowSize         remove subnetworks below the given size

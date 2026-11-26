@@ -13,10 +13,9 @@ import org.goplanit.zoning.Zoning;
  */
 public interface DiscreteDemandsReader extends ConverterReader<DiscreteDemands> {
 
-  /** each DiscreteDemands reader is expected to ensure that its demand relates to a zoning
-   * this reference zoning can be obtained (after reading is complete). the converter uses this to avoid the user
-   * having to manually transfer this zoning to the writer which also requires this same zoning consistency
-    *  This is what this method enables
+  /** each DiscreteDemands reader is expected to ensure that its demand relates to a zoning, which can be obtained here
+   * once reading is complete. The converter uses this to pass the zoning on to the writer, which requires the same
+   * zoning, so the user does not have to do so manually
    *
    * @return referenceZoning to supply demands writer with (after invoking {@link #read()}
    */

@@ -51,9 +51,9 @@ public final class TripLengthDistributionFactory {
   }
 
   /**
-   * The distribution of a discrete demand's trips per mode: each person taking part in a trip counts once, as the
-   * trip of a tour shared by two persons is travelled twice, with the trip's distance between its origin and
-   * destination zone, its tour's where the trip has none of its own
+   * The distribution of a discrete demand's trips per mode. Each person taking part in a trip counts once, as the
+   * trip of a tour shared by two persons is travelled twice. A trip's distance is that between its origin and
+   * destination zone, or its tour's zones where the trip has none of its own
    * <p>
    * A trip without a mode is left out, and one without both zones, or whose mode has no skim, counts as out of range
    * without distance; how many trips without a mode or zones is logged. The skims' units are checked once: skims in

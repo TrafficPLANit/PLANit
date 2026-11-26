@@ -27,16 +27,13 @@ import org.locationtech.jts.geom.LineString;
 /**
  * Apply modifications to the graph in an integrated fashion.
  * <p>
- * While graphs are assumed to have a managed id for all their entities it is not a given that the edges, vertices,
- * etc. are the primary containers where these are uniquely
- * tracked. For example a subgraph might only contain a subset of vertices. Therefore, whenever modifications are
- * made to a graph, the invoker of these changes should be aware
- * whether the graph entities containers are the primary containers or not. If so, and the ids used are
- * expected to remain contiguous (directly) after completion of the
- * modification, additional effort is required by invoking {@link #recreateManagedEntitiesIds()} to ensure that
- * all entity containers on the graph are triggered to perform an
- * update of their internally managed ids.
- * 
+ * Graphs are assumed to have a managed id for all their entities, but their edges, vertices, etc. are not necessarily
+ * the primary containers tracking these uniquely: a subgraph, for example, might only contain a subset of vertices. So
+ * whoever modifies a graph should know whether its entity containers are the primary containers. If so, and the ids
+ * are expected to stay contiguous directly after the modification, invoke {@link #recreateManagedEntitiesIds()} so
+ * all entity containers on the graph update their internally managed ids.
+ * </p>
+ *
  * @author markr
  *
  */
@@ -92,11 +89,11 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge>
   }
 
   /**
-   * Access to the graph at this modifier's own binding rather than as a wildcard.
+   * Access to the graph typed by this modifier's own V and E, not as a wildcard.
    * <p>
-   * The graph is stored as a wildcard so that any graph whose entities derive from V and E can be wrapped without
-   * the caller having to name the exact types. Everything registered on it is a V and an E by construction of the
-   * constructor, so narrowing here is safe; it is confined to this one accessor so no caller has to repeat it.
+   * The graph is stored as a wildcard so any graph whose entities derive from V and E can be wrapped without the
+   * caller naming the exact types. The constructor makes sure everything on it is a V and an E, so narrowing here is
+   * safe. It is done in this one accessor so no caller has to repeat it.
    * </p>
    *
    * @return the underlying graph typed to this modifier
@@ -199,10 +196,10 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge>
    * Identical to {@link #removeDanglingSubGraphs(Integer, Integer, boolean, Function)} except that the caller
    * supplies how an identified subgraph is to be removed.
    * <p>
-   * This exists because this modifier is also used by composition, e.g. the directed modifier delegates its
-   * undirected work here. In that setup an unqualified call to removeSubGraph resolves against this instance, not
-   * against the composing modifier, so any removal behaviour the composer adds - edge segments, movements - would
-   * be skipped. Passing the action in restores that dispatch.
+   * This modifier is also used by composition, e.g. the directed modifier delegates its undirected work here. Then an
+   * unqualified call to removeSubGraph runs on this instance, not on the composing modifier, so any removal behaviour
+   * the composer adds (edge segments, movements) would be skipped. Passing the action in makes the composer's removal
+   * run.
    * </p>
    *
    * @param belowSize         remove subgraphs below the given size

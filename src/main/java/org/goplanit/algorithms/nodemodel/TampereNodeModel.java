@@ -188,12 +188,12 @@ public class TampereNodeModel implements NodeModel {
   }
 
   /**
-   * Based on the most restricting out-link segment, determine the flow acceptance factor for all
-   * unprocessed in-link with non-zero (remaining) flows towards this out-link segment.
+   * Based on the most restricting out-link segment, determine the flow acceptance factor for all unprocessed in-links
+   * with non-zero (remaining) flows towards this out-link segment.
    * <p>
-   *   When considering turn-based we also track the acceptance factors on turns even if they have zero-flow
-   *   because any flow on that turn (in the limit to zero) would be exposed to the restriction on that exit link
-   *   and has information that can be used in the context of route choice for example
+   *   Turn-based, the acceptance factors are also tracked on turns with zero flow, because any flow on that turn (in
+   *   the limit to zero) would face the restriction on that exit link, which is information useful for route choice,
+   *   for example
    * </p>
    * 
    * @param mostRestrictingOutLinkSegmentData out-link segment restriction factor and index
@@ -350,13 +350,13 @@ public class TampereNodeModel implements NodeModel {
   }
 
   /**
-   * Run the node model in either of the two run types, link-based which is the regular and default approach as in
-   * the original paper, or turn-based where we track acceptance factors on each turn and zero flow turns receive
-   * the acceptance factor of the exit link even if there is no flow into it. the latter provides more granular
-   * information that may be helpful in route choice or cost calculations than the former.
+   * Run the node model link-based, the regular and default approach as in the original paper, or turn-based, tracking
+   * acceptance factors on each turn, where a zero flow turn receives the acceptance factor of the exit link even if
+   * there is no flow into it. Turn-based gives more granular information, which may help route choice or cost
+   * calculations.
    * <p>
-   *   Calling method is expected to return the link or turn based results to the user. this method does not return
-   *   anything it just populates the expected results depending on the flag provided.
+   *   The calling method is expected to return the link or turn based results to the user. This method returns
+   *   nothing: it populates the results the flag asks for.
    * </p>
    *
    * @param linkBasedDefault flag to apply

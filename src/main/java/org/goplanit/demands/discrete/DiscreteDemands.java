@@ -29,12 +29,11 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
- * Container class for all discrete demands (agents). For now this is only used for conversion support rather than
- * directly as part of the more macroscopic oriented assignment in PLANit, but the idea is it will also allow for
- * conversion from discrete to continuous or macroscopic demands that are used in PLANit already through the normal
- * demands setup
+ * Container class for all discrete demands (agents). For now it is only used for conversion rather than directly in
+ * the more macroscopic assignment of PLANit, but the idea is that it will also allow conversion from discrete to
+ * continuous or macroscopic demands, which PLANit already uses through the normal demands setup
  * <p>
- * In future we can contemplate supporting this directly also for assignment
+ * In future it could also be supported directly for assignment
  * </p>
  *
  * @author markr

@@ -5,14 +5,13 @@ import org.goplanit.demands.discrete.person.Person;
 import java.util.Objects;
 
 /**
- * Implementation of a person's participation in a tour. Holds only what is specific to the participation, i.e. the
- * person, their role and whether they drive, and defers everything else to the underlying tour, see
- * {@link ParticipantTour}.
+ * Implementation of a person's participation in a tour. Holds only what is specific to the participation, the person,
+ * their role and whether they drive, and defers everything else to the underlying tour, see {@link ParticipantTour}.
  * <p>
- * A participation is uniquely identified by the combination of its tour and its person, since a person takes part in
- * a given tour at most once. Equality and hashing are therefore delegated to the tour and person, which compare on
- * their own id as all {@link org.goplanit.utils.id.IdAble}s do, rather than being based on object identity. This
- * keeps hashing stable across runs, which object identity would not.
+ * A person takes part in a given tour at most once, so a participation is uniquely identified by its tour and its
+ * person. Equality and hashing are therefore delegated to the tour and person, which compare on their own id as all
+ * {@link org.goplanit.utils.id.IdAble}s do, rather than on object identity. This keeps hashing stable across runs,
+ * which object identity would not.
  * </p>
  * <p>
  * The tour, the person and the role are fixed: the tour and the person identify the participation, and the tour keeps

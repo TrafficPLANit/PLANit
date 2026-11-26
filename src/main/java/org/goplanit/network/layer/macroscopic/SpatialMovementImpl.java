@@ -14,10 +14,10 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUti
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
- * A spatial movement: from one link segment to another, with its length, when there is one the ban placed on it
- * directly, and when set the green ratio and saturation flow factor it uses in place of its approach's. Its methods
- * change only this movement; keeping it consistent with the rest of the layer, and with the
- * container's index, is up to the layer modifier
+ * A spatial movement: from one link segment to another, with its length, the ban placed on it directly if there is
+ * one, and, when set, the green ratio and saturation flow factor it uses in place of its approach's. Its methods
+ * change only this movement; keeping it consistent with the rest of the layer, and with the container's index, is up
+ * to the layer modifier
  *
  * @author markr
  */

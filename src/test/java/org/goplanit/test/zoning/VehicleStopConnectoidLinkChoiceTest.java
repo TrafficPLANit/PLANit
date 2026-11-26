@@ -29,9 +29,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * Choosing the link a waiting area's stop goes on: only segments a connectoid location can be made on count, the link
  * closest to the waiting area wins, unless a link within the buffer of the closest one has a higher capacity, which
  * wins for a road mode. Closeness is the distance to a link's geometry, or to its connectoid location: how close its
- * usable places come to the waiting area's centre. The access segments to choose from
- * are the segments of the nearby links on the waiting area's side of the road, and on the chosen link the stop goes
- * where an end node is reused, else at the nearest location.
+ * usable places come to the waiting area's centre. The access segments to choose from are the segments of the nearby
+ * links on the waiting area's side of the road, and on the chosen link the stop goes where an end node is reused, else
+ * at the nearest location.
  * <pre>
  *   W  (0,20) ===================================== (10,20)
  *

@@ -15,10 +15,8 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.CollectionUtils;
 
 /**
- * Class that stores the result of a shortest bush execution allowing one to extract bushes or cost information
- * for a given origin-to-vertex.
- * Note that we construct the bush in reverse order from destination to the origin via all viable paths to
- * construct the bush.
+ * Stores the result of a shortest bush execution, from which bushes or cost information for a given origin-to-vertex
+ * can be extracted. The bush is constructed in reverse order, from destination to origin via all viable paths.
  * 
  * @author markr
  *

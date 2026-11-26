@@ -12,9 +12,8 @@ import org.goplanit.utils.event.EventProducer;
 public interface DiscreteDemandsModifierEventProducer extends EventProducer{
 
   /**
-   * Recreate managed ids of all underlying managed entities id containers and fire
-   * a #RecreatedDemandsEntitiesManagedIdsEvent
-   * for each container that was updated
+   * Recreate managed ids of all underlying managed entities id containers and fire a
+   * #RecreatedDemandsEntitiesManagedIdsEvent for each container that was updated
    */
   public abstract void recreateManagedEntitiesIds();
 

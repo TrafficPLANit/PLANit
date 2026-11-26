@@ -10,11 +10,9 @@ import org.goplanit.utils.reflection.ReflectionUtils;
 
 /**
  * Gap function based on the norm, e.g. ||x||_p where p indicates which norm (norm 1, norm 2 etc) and x represents
- * a vector of differences between two values. When averaged
- * (default) we divide the result by the number of elements in the vector. e.g. for the average norm 1 we would
- * compute: 1/|x| * ( (x_1-x_1_alt) + (x_2-x_2_alt) + .... +
- * (x_n-x_n_alt)), whereas for the averaged norm 2 we would do: 1/|x| * sqrt( (x_1-x_1_alt)^2 + (x_2-x_2_alt)^2
- * + .... + (x_n-x_n_alt)^2) etc.
+ * a vector of differences between two values. When averaged (default) the result is divided by the number of elements
+ * in the vector. For example, the average norm 1 is 1/|x| * ( (x_1-x_1_alt) + (x_2-x_2_alt) + .... + (x_n-x_n_alt)),
+ * and the averaged norm 2 is 1/|x| * sqrt( (x_1-x_1_alt)^2 + (x_2-x_2_alt)^2 + .... + (x_n-x_n_alt)^2) etc.
  * 
  * @author markr
  *

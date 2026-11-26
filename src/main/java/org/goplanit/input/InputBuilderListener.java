@@ -16,9 +16,8 @@ import org.goplanit.component.event.PopulateZoningEvent;
 
 /**
  * Base input builder class that gets notified whenever traffic assignment components are to be populated or
- * configured. It also has readers for each of the main inputs (network,
- * zoning, demands) that can be set by any derived class using specific subclasses dedicated to the specific
- * formats of the data sources used.
+ * configured. It also has readers for each of the main inputs (network, zoning, demands), which any derived class can
+ * set with subclasses dedicated to the formats of the data sources used.
  * 
  * @author markr
  *
@@ -27,9 +26,8 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
 
   //@formatter:off
   /**
-   * Each input builder listener should be able to deal with at least the following Events and as such is
-   * automatically registered to listen for them when providing a derived
-   * instance to a PLANit project by providing them here:
+   * Each input builder listener should handle at least the following Events. They are given here, so a derived
+   * instance given to a PLANit project is registered to listen for them automatically:
    * 
    * <ul>
    * <li>PopulateNetworkEvent for populating a newly created empty network</li>
@@ -37,7 +35,7 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
    * <li>PopulateDemandsEvent for populating a newly created empty demands</li>
    * <li>PopulatePhysicalCostEvent for populating a newly created empty physical costs</li>
    * <li>PopulateInitialLinkSegmentCostEvent for populating a newly created empty initial link segment costs</li>
-   * <li>PopulateComponentEvent for all events that can be intercepted byt no dedicated event exists for
+   * <li>PopulateComponentEvent for all events that can be intercepted but no dedicated event exists for
    * (likely only for internal platform use)</li>
    * </ul>
    * 

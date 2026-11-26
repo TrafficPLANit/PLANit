@@ -59,10 +59,9 @@ public class StaticLtmSettings {
    */
   private TriPredicate<Integer,Double, Double> innerIterationStoppagePredicate = DEFAULT_INNER_ITERATION_PREDICATE;
 
-  /** User configurable function for smoothing the flow shift for a PAS based on the pas importance ordering.
-   * provides the index of the PAS and the relative location (between zero and 1) of the PAS in the importance ordering
-   * (running from least important, to most important), expects to return a double between zero and one with which to
-   * smooth the flow shift to apply
+  /** User configurable function smoothing the flow shift of a PAS by the PAS importance ordering. It is given the index
+   * of the PAS and the relative location (between zero and 1) of the PAS in the importance ordering (from least to most
+   * important), and returns a double between zero and one to smooth the flow shift with
    */
   private BiFunction<Integer,Double, Double> innerIterationPasImportanceSmoothingFunction =
       DEFAULT_PAS_IMPORTANCE_SMOOTHING_FUNCTION;
@@ -107,10 +106,10 @@ public class StaticLtmSettings {
   public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmType.PATH_BASED;
 
   /**
-   * Default threshold for number of outer iterations in bush-based internal loops between loading is set to:
-   * (-log_10(minNetworkGapSoFar)+1) * 4, so number of decimals in global convergence gap * 4 is the maximum we allow.
-   * The idea being that with an ever tighter global gap, the inner gap needs to be better as well. to avoid spending
-   * time there while we are far away from convergence we make it a function of the global convergence
+   * Default threshold for the number of outer iterations in bush-based internal loops between loadings:
+   * (-log_10(minNetworkGapSoFar)+1) * 4, so the number of decimals in the global convergence gap * 4 is the maximum.
+   * With an ever tighter global gap, the inner gap needs to be better as well. Making it a function of the global
+   * convergence avoids spending time there while far from convergence
    */
   public static BiPredicate<Integer,Double> DEFAULT_OUTER_ITERATION_PREDICATE =
       (outerIteration, minNetworkGapAsThreshold) ->
@@ -124,9 +123,9 @@ public class StaticLtmSettings {
       outerIteration -> 1.0/(Math.pow(outerIteration,0.66));
 
   /**
-   * Default threshold for number of inner iterations in bush-based internal loops between loading is set to:
-   * either a 100 or stop earlier when the current PAS gap drops below the global convergence gap epsilon set by the
-   * user (the latter is passed in, so it is safe to change the predicate before this epsilon is configured by the user)
+   * Default threshold for the number of inner iterations in bush-based internal loops between loadings: 100, or fewer
+   * when the current PAS gap drops below the global convergence gap epsilon set by the user. The epsilon is passed in,
+   * so the predicate can safely be changed before the user configures it
    */
   public static TriPredicate<Integer,Double, Double> DEFAULT_INNER_ITERATION_PREDICATE =
       (innerIteration, currPasGap, globalGapStopCriterionEpsilon) -> {

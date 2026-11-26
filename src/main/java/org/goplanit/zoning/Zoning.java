@@ -117,9 +117,10 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   /**
    * Constructor
    * 
-   * The second id generation token should be the token used by the physical network to create physical network entities such as links, nodes, etc. The virtual network should
-   * register connectoids, centroids, etc. with ids compatible under this same network. For example, a centroid is a vertex, like a node, so the vertex ids should be contiguous and
-   * unique throughout the combination of the virtual and physical network. Hence, they should use the same network id token
+   * The second id generation token should be the token the physical network uses to create its entities, such as
+   * links, nodes, etc. The virtual network should register connectoids, centroids, etc. with ids compatible under this
+   * same network. For example, a centroid is a vertex, like a node, so the vertex ids should be contiguous and unique
+   * across the virtual and physical network combined. Hence, they should use the same network id token
    * 
    * @param groupId        contiguous id generation within this group for instances of this class
    * @param virtualNetworkGroupId contiguous id generation for all instances created by the virtual network

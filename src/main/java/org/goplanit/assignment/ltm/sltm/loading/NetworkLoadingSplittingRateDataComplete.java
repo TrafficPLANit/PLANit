@@ -8,12 +8,12 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.ojalgo.array.Array1D;
 
 /**
- * Store the splitting rates used during sLTM loading updates (Step 1 and 5). In this implementation we track all
- * splitting rates of turns that are used by a path and assumed they are potentially blocking. This implementation
- * explicitly requires registering tracked nodes (not all nodes might be used in loading) but the way the information
- * is stored is different to reduce the memory footprint. All nodes of used paths are tracked providing a complete
- * picture of the network. This requires more memory compared to the partial implementation. This way of tracking
- * is compatible with the PhysicalQueue solution methods as well as the Advanced PointQueue solution method.
+ * Store the splitting rates used during sLTM loading updates (Step 1 and 5). This implementation tracks all
+ * splitting rates of turns used by a path, assuming they are potentially blocking. Tracked nodes must be registered
+ * explicitly (not all nodes might be used in loading), but the information is stored differently to reduce the memory
+ * footprint. All nodes of used paths are tracked, giving a complete picture of the network, which requires more memory
+ * than the partial implementation. This way of tracking is compatible with the PhysicalQueue solution methods and the
+ * Advanced PointQueue solution method.
  * 
  * @author markr
  *
@@ -30,9 +30,8 @@ public class NetworkLoadingSplittingRateDataComplete extends NetworkLoadingSplit
   private final TreeSet<DirectedVertex> activatedNodes;
 
   /**
-   * Splitting rates per link segment (as different lengths Array1D), only activated link segments will have an
-   * actual instantiation of the splitting rate array to minimise memory use. Also, we cannot have a typed array
-   * because Array1D has no public default constructor
+   * Splitting rates per link segment (as Array1D of different lengths). Only activated link segments have a splitting
+   * rate array, to minimise memory use. The array cannot be typed, as Array1D has no public default constructor
    */
   private Object[] splittingRates;
 

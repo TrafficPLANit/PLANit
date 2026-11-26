@@ -70,10 +70,9 @@ public abstract class CrsReaderImpl<T> extends BaseReaderImpl<T>{
         new CrsConversionHelper(sourceCrs, userDefinedDestinationCrs, destinationCountry, logResolvedDestinationCrs);
   }
 
-  /** get the destination crs transformer. Note it might be null and should only be collected after
-   * {@link #prepareCoordinateReferenceSystem(CoordinateReferenceSystem, CoordinateReferenceSystem, String, boolean)}
-   * has been
-   * invoked which determines if and which transformer should be applied
+  /** get the destination crs transformer. It might be null, and should only be collected after invoking
+   * {@link #prepareCoordinateReferenceSystem(CoordinateReferenceSystem, CoordinateReferenceSystem, String, boolean)},
+   * which determines if and which transformer applies
    *
    * @return destination crs transformer
    */

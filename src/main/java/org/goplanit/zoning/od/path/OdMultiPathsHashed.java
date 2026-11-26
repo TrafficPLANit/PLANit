@@ -12,10 +12,9 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * This class stores (multiple) paths per origin and destination by creating a unique hash for the combined ids of
- * the od zones. This results in a memory efficient implementation on the Od aspect of the data, requiring only a
- * single hash based container, instead of having containers for each origin (and or destination).
- * It also means only conducting a single lookup despite the fact we have two keys (o and d).
+ * Stores (multiple) paths per origin and destination, by a unique hash of the combined ids of the od zones. This is
+ * memory efficient on the Od aspect of the data: a single hash based container instead of containers for each origin
+ * (and or destination). It also takes only a single lookup despite the two keys (o and d).
  *
  * @author markr
  * @param <T> type of path

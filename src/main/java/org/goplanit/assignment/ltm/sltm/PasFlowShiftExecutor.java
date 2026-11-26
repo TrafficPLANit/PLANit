@@ -48,10 +48,9 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   }
 
   /**
-   * Threshold used to trigger derivatives based on congested situation even if we are not yet congested.
-   * This threshold is the difference between those two states on the segment level for that to happen,
-   * e.g. if capacity is 1000 and flow is 995, then with a threshold of 10 it would be treated as if it is congested
-   * w.r.t. derivative calculation. if te flow would be 985, it would not, and would be considered uncongested.
+   * Threshold to use derivatives of the congested state on a segment not yet congested: the difference between
+   * capacity and flow on the segment within which this happens. For example, with a capacity of 1000 and a threshold
+   * of 10, a flow of 995 is treated as congested for the derivative calculation, and a flow of 985 as uncongested.
    */
   public static double UNCONGESTED_AS_CONGESTED_FLOW_THRESHOLD_PCUH = 10;
 
@@ -99,11 +98,10 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   }
 
   /**
-   * Verify if segment is congested. Use threshold in case we want to be more circumspect when reaching
-   * congestion. For example when taking derivatives we may want to treat a segment already as congested
-   * in case its next segment is very near to congestion. This to avoid overshooting any flow shift steps.
-   * The threshold considered is configurable. When set to zero only segments themselves with a flow
-   * acceptance factor smaller than one will be considered congested.
+   * Verify if segment is congested. The threshold allows being more circumspect near congestion: when taking
+   * derivatives, for example, a segment may be treated as congested already when its next segment is very near
+   * congestion, to avoid overshooting flow shift steps. The threshold is configurable. When zero, only segments
+   * themselves with a flow acceptance factor smaller than one are congested.
    *
    * @param loading to use
    * @param segment to check
@@ -161,15 +159,14 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   }
 
   /**
-   * Verify if segment is congested. Use threshold in case we want to be more circumspect when reaching
-   * congestion. For example when taking derivatives we may want to treat a segment as congested
-   * in case ANY non-uturn exit segment is congested to not overshoot any flow shift steps. The threshold considered is
-   * configurable. When set to zero only segments themselves with a flow acceptance factor smaller than one will be
-   * considered congested.
+   * Verify if segment is congested. The threshold allows being more circumspect near congestion: when taking
+   * derivatives, for example, a segment may be treated as congested when ANY non-u-turn exit segment is congested, to
+   * not overshoot flow shift steps. The threshold is configurable. When zero, only segments themselves with a flow
+   * acceptance factor smaller than one are congested.
    * <p>
-   *   TODO: would be better to use PAS splitting rates as input to determine which exist segment are actually relevant
-   *     but for now we just use the most restricting approach possible as a strtaing point, so any exit segment near
-   *     capacity will trigger the label congested on our segment if it falls within the threshold
+   *   TODO: PAS splitting rates would better tell which exit segments are relevant, but for now the most restrictive
+   *     approach is the starting point: any exit segment near capacity, within the threshold, labels this segment
+   *     congested
    * </p>
    *
    * @param loading to use
@@ -275,9 +272,9 @@ public abstract class PasFlowShiftExecutor<V extends DirectedVertex, ES extends 
   protected static final double EPSILON = EPSILON_12;
 
   /**
-   * whenever a PAS S2 alternative's flow drops below this threshold for a given bush, we allow the flow shift to move
-   * all remaining flow towards the S1 segment across all entry segments and unregister the bush for this PAS as it
-   * is no longer deemed a true alternative.
+   * when the flow of a PAS's S2 alternative drops below this threshold for a bush, the flow shift may move all
+   * remaining flow to the S1 segment across all entry segments, and the bush is unregistered for this PAS, as it is no
+   * longer deemed a true alternative.
    */
   protected static final double PAS_MIN_S2_FLOW_THRESHOLD = 1;
 

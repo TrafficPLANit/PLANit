@@ -13,9 +13,8 @@ import org.goplanit.utils.zoning.OdZone;
 /**
  * Base Consumer to apply during path based flow update for each combination of origin, destination, and demand
  * <p>
- * Derived implementation can apply different changes to each of the (turn/link) flows on the known paths by
- * providing different single flow update implementations that are applied to each turn on each path with
- * non-zero demand.
+ * Derived classes change the (turn/link) flows on the known paths in different ways, each through its own single
+ * flow update, applied to each turn on each path with non-zero demand.
  * 
  * @author markr
  * @param <T> type of data

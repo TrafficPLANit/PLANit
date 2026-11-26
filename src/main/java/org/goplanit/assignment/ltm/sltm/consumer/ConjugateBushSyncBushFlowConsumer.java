@@ -17,22 +17,22 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 /**
- * Conjugate Bush consumer to use when we sync the bush turn flows to the results of the network
- * loading to ensure the bush turn sending flows reflect the correct level of flow
+ * Conjugate bush consumer that syncs the bush turn flows to the results of the network loading, so the bush turn
+ * sending flows reflect the correct level of flow
  * <p>
- *   Reason 1: alphas change due to network loading, causing bush flows to be too high or too low
- *   Reason 2: if inconsistencies were introduced when performing flow shifts in the previous iteration, e.g.
- *     flow shifts violating capacities that are difficult to fix while performing route choice, we ensure
- *     that any dangling turn flows on no longer used turns are wiped out here and we start fresh.
- *     Example: adding flow to uncongested turn (claiming larger fair share) into congested exit, causes total
- *     exceeding capacity. We truncate network flows, but do not do this for all other bushes on other turns that should
- *     get reduced as this would be computationally costly and require loading effectively. this can cause ghost bush
- *     flow downstream when we remove flows in the longer term. For splitting rates this becomes an issue if we do not
- *     detect ghost flows as they should be reduced back to zero based on the loading
- *     result, which is what we do here by propagating from origins.
+ *   Reason 1: alphas change with the network loading, making bush flows too high or too low
+ *   Reason 2: flow shifts in the previous iteration may have introduced inconsistencies, such as flow shifts
+ *     violating capacities that are difficult to fix during route choice. Here any dangling turn flows on turns no
+ *     longer used are wiped out, to start fresh.
+ *     Example: adding flow to an uncongested turn (claiming a larger fair share) into a congested exit makes the total
+ *     exceed capacity. Network flows are truncated, but not those of all other bushes on other turns that should be
+ *     reduced, as that would be computationally costly and in effect require a loading. This can cause ghost bush flow
+ *     downstream when flows are removed in the longer term. For splitting rates this is an issue if ghost flows are
+ *     not detected, as they should go back to zero based on the loading result, which is what this does by
+ *     propagating from origins.
  * </p>
  * <p>
- *   replace turn sending flows with synced ones propagated from origin, we make sure to update all.
+ *   Turn sending flows are replaced by synced ones propagated from origin, all of them being updated.
  * </p>
  * 
  * @author markr
@@ -80,10 +80,9 @@ public class ConjugateBushSyncBushFlowConsumer implements Consumer<ConjugateDire
   /**
    * Update the bush turn sending flows in line with its splitting rates AND origin sending flows AND
    * current network loading acceptance factors
-   * todo: I have not bothered with the final link segments before the destination as we only update the turn
-   *   sending flows on the entries. Given that the last segment always leads to the destination and nothing else
-   *   it should not matter if the flows are not correct as it should always only have a single non-zero flow to the
-   *   destination, so leaving that for now.
+   * todo: the final link segments before the destination are not updated, as only the turn sending flows on the
+   *   entries are. The last segment always leads to the destination and nothing else, so it should only ever have a
+   *   single non-zero flow, to the destination, and incorrect flows there should not matter; left as is for now.
    *
    * @param currConjVertex to apply to
    */

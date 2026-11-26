@@ -1,8 +1,7 @@
 package org.goplanit.output.enums;
 
 /**
- * Different configurations exist for different types of output which we
- * identify via this enum
+ * Different configurations exist for different types of output, identified via this enum
  * GENERAL:
  * LINK: link based output on a network wide level
  * SIMULATION: simulation based output such as profile information, objects created etc.

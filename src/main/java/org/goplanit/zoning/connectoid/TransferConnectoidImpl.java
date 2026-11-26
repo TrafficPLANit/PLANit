@@ -16,10 +16,10 @@ import static org.goplanit.utils.zoning.connectoid.ConnectoidAccessZoneEntry.DEF
 
 
 /**
- * Undirected connectoid connecting one or more (transfer/OD) zone(s) to the physical road network, it comprises
- * one or more combinations of zone-access segments when constructing the transport network internally based on
- * the referenced access node. It may also explicitly allow modes (and thus excluding other modes). If no modes
- * are attached to an access segment zone combination it is assumed all modes are allowed
+ * Undirected connectoid connecting one or more (transfer/OD) zone(s) to the physical road network. When the transport
+ * network is constructed internally, it comprises one or more combinations of zone-access segments, based on the
+ * referenced access node. It may also explicitly allow modes (and so exclude other modes). An access segment zone
+ * combination without modes attached is assumed to allow all modes
  *
  * @author markr
  *

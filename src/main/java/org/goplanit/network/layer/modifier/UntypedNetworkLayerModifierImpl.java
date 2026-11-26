@@ -24,10 +24,9 @@ import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifi
 import org.goplanit.utils.network.layer.physical.Link;
 
 /**
- * Modifier class for model free network layer, generics used to allow derived classes to provide typed versions
- * for containers and content of containers. It wraps a directed graph modifier while allowing the methods to be
- * typed in a more user-friendly way and hide or add additional functionality compared to the raw modifications
- * exposed by the underlying graph modifier.
+ * Modifier for a model free network layer, generic so derived classes can provide typed versions of the containers
+ * and their content. It wraps a directed graph modifier, with methods typed in a more user-friendly way, hiding or
+ * adding functionality compared to the raw modifications of the underlying graph modifier.
  *
  * @author markr
  *

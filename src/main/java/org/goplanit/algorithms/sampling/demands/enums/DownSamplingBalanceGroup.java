@@ -14,8 +14,7 @@ package org.goplanit.algorithms.sampling.demands.enums;
  * go, and the households and persons who make them. Each group is one such side of the demand, matched as a whole
  * over all zones, so the user picks which sides matter and in what order, see
  * {@link org.goplanit.algorithms.sampling.demands.DiscreteDemandsDownSamplingSettings#setBalanceOrder}. The households
- * per zone
- * are not a group: every down-sampling but households at random keeps them.
+ * per zone are not a group: every down-sampling but households at random keeps them.
  * </p>
  *
  * @author markr

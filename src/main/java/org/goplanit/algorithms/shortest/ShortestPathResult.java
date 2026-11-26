@@ -86,11 +86,10 @@ public interface ShortestPathResult extends ShortestResult{
   populateDirectedAcyclicSubGraphSpanningTree(UntypedACyclicSubGraph<V, E, ES> dagToPopulate);
 
   /**
-   * apply consumer to each edge segment on path. Depending on the type of shortest path (direction), the next segment
-   * is either in the backward direction from destination to origin (one-to-all) or in the forward direction from the
-   * origin to the destination (all-to-one). This depends on the implementation of the
-   * {@link #getNextEdgeSegmentForVertex(Vertex)}. If path does not lead to origin/destination, the loop terminates
-   * when no more next edge segment is found.
+   * apply consumer to each edge segment on path. Depending on the type of shortest path (direction), as implemented
+   * by {@link #getNextEdgeSegmentForVertex(Vertex)}, the next segment is either backward from destination to origin
+   * (one-to-all) or forward from origin to destination (all-to-one). If the path does not lead to the
+   * origin/destination, the loop ends when no next edge segment is found.
    * 
    * @param startVertex             to use
    * @param endVertex               to use

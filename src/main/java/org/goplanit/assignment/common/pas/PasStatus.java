@@ -2,8 +2,8 @@ package org.goplanit.assignment.common.pas;
 
 /**
  * Status of a PAS
- * Note: used originally to speed up calcs by computing uncongested flow shifts separately and without node model
- * updates. This is now abandonded until convergence is more stable. Once stable we can revisit this optimization.
+ * Note: originally used to speed up computation by computing uncongested flow shifts separately, without node model
+ * updates. This is set aside until convergence is more stable, after which this optimisation can be revisited.
  */
 public enum PasStatus {
   /** Congestion state has not yet been determined. */

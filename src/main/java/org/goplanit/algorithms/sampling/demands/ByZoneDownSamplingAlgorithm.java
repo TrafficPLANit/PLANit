@@ -131,10 +131,9 @@ public class ByZoneDownSamplingAlgorithm extends DiscreteDemandsDownSamplingAlgo
   }
 
   /**
-   * Draw the sampling units kept at a seed: each zone's number, see
-   * {@link #calculateNumbersKeptByZone(int[], long)}, drawn by {@link BalancedSampler}
-   * over the sampling units in the down-sampling table's order, keeping the totals of {@link #getGroupsBalanced()}
-   * as closely as whole sampling units allow
+   * Draw the sampling units kept at a seed: each zone's number, see {@link #calculateNumbersKeptByZone(int[], long)},
+   * drawn by {@link BalancedSampler} over the sampling units in the down-sampling table's order, keeping the totals of
+   * {@link #getGroupsBalanced()} as closely as whole sampling units allow
    *
    * @param table to choose from, not changed
    * @param seed of the draw; the same down-sampling table and seed give the same sampling units

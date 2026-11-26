@@ -25,9 +25,9 @@ import org.goplanit.utils.zoning.connectoid.Connectoid;
  * Connectoids join zones to a network that changes after they are made: nodes and link segments are removed or
  * replaced. So that they never refer to a node that is gone, the handler listens, as an internal listener, to the
  * modifier of each layer of the networks the zoning is attached to, and finds the connectoids affected by their access
- * node. A node collapse removes from an intersection it collapses is the exception: its connectoids move to the
- * intersection's centre node once the collapse is done, since the centre then stands for the whole intersection, and a
- * move is not a loss. What following a collapse needs to remember lives here, so the container stays a container.
+ * node. A node that a collapse removes from the intersection it collapses is the exception: its connectoids move to
+ * the intersection's centre node once the collapse is done, since the centre then stands for the whole intersection,
+ * and a move is not a loss. What following a collapse needs to remember lives here, so the container stays a container.
  * </p>
  *
  * @author markr

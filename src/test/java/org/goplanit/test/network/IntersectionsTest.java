@@ -37,9 +37,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Tests the intersections memory model: the two kinds of intersection and their ids, member nodes, control type,
  * kinds, approach and internal segments, their green ratios and saturation flow factors and those of movements, the
- * movements of a spatial intersection, turns restricted by the layer's
- * banned turns and the modes those ban, the container's lookup by member node, and that intersections leave the
- * network itself untouched
+ * movements of a spatial intersection, turns restricted by the layer's banned turns and the modes those ban, the
+ * container's lookup by member node, and that intersections leave the network itself untouched
  *
  * @author markr
  */

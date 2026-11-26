@@ -25,10 +25,10 @@ import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoid
 import org.goplanit.utils.zoning.OdZone;
 
 /**
- * Track conjugate edge segment based data, i.e., original network turns in a conjugate bush form.
+ * Tracks data per conjugate edge segment, that is per turn of the original network, in conjugate bush form.
  * <p>
- * For now we only track (turn/conjugate segment) sending flows to minimise bookkeeping and memory usage,
- * splitting rates are deduced from the sending flows when needed.
+ * For now only the sending flows of turns (conjugate segments) are tracked, to minimise bookkeeping and memory usage.
+ * Splitting rates are derived from the sending flows when needed.
  *
  * todo: (not todo) NOTE to self, last synced with LabelledBushTurnData implementation on 22/11
  * 
@@ -299,10 +299,10 @@ public class ConjugateBushTurnData implements Iterable<Map.Entry<ConjugateEdgeSe
    * Collect the splitting rate for a given conjugate link segment. Splitting rates are based on the current turn
    * sending flows s_ab.
    * <p>
-   * When collecting multiple splitting rates with the same in link, do not use this method but instead collect all
-   * splitting rates at once and then filter the ones you require it is computationally more efficient.
-   * 
-   * 
+   * For several splitting rates with the same in link, do not use this method: collecting all splitting rates at once
+   * and filtering the ones required is computationally more efficient.
+   *
+   *
    * @param turnSegment the turn to collect splitting rate for
    * @return splitting rate, when turn is not present or not used, zero is returned
    */

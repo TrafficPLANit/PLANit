@@ -9,13 +9,12 @@ import java.util.logging.Logger;
 /**
  * MSRA smoothing (Method of self-regulating averages, as per Liu et al., 2009) + additional lambda power function
  * <p>
- *   Note that we do not force a particular approach on the the user to decide what to apply: kappa or gamma step,
- *   as was proposed in Liu et al., instead   it is assumed the user performs the two values to compare outside
- *   of this class and then provides these to the MSRA smoothing to decide whether we encountered a   bad iteration
- *   (use kappa), or not (use gamma). Also, different to Liu et al, we do not look at whether the current value is
- *   better or worse directly but apply   a user configurable threshold on how much worse a step needs
- *   to be before we impose the label "bad iteration". As being more lenient can benefit the convergence in the
- *   long term as a smaller step size by definition leads to slower convergence.
+ *   Unlike Liu et al., no particular approach is forced on the user to decide whether to apply a kappa or gamma step.
+ *   Instead the user is assumed to compute the two values to compare outside this class and provide them to the MSRA
+ *   smoothing, which decides whether the iteration was bad (use kappa) or not (use gamma). Also unlike Liu et al., it
+ *   does not look directly at whether the current value is better or worse, but applies a user configurable threshold
+ *   on how much worse a step needs to be before it is labelled a "bad iteration". Being more lenient can benefit
+ *   convergence in the long term, as a smaller step size by definition leads to slower convergence.
  * </p>
  *
  * @author markr
@@ -37,10 +36,9 @@ public class MSRASmoothing extends IterationBasedSmoothing {
    */
   protected double stepSize = DEFAULT_INITIAL;
 
-  /** threshold value for deciding whether an iteration is bad or not. This represents a proportional deterioration,
-   *  i.e., if set to 0.9 and previous was 0.85 and current is 1, then it has worsened by more than 0.9, i.e.,
-   *  0.85/1 and thus it is considered a bad iteration, if it is 0.95 and 1, then it is worse than before,
-   *  but not below the threshold and therefore it is not a bad iteration */
+  /** threshold value for deciding whether an iteration is bad or not, as a proportional deterioration. For example,
+   *  if set to 0.9, a previous value of 0.85 and a current value of 1 have worsened by more than 0.9 (0.85/1), so it is
+   *  a bad iteration. With 0.95 and 1 it is worse than before, but not below the threshold, so not a bad iteration */
   private double badIterationThreshold = 1;
   private boolean badIteration = false;
 
@@ -211,10 +209,9 @@ public class MSRASmoothing extends IterationBasedSmoothing {
   }
 
   /**
-   * Based on threshold value determine if we should consider upcoming iteration as a bad Iteration or not. Provide
-   *  previous and current reference values to do this, i.e., if
-   *  previousIterationReferenceValue/currentIterationReferenceValue is smaller than
-   *  {@link #badIterationThreshold} then it is a bad  iteration otherwise not
+   * Determine from the threshold value and the previous and current reference values whether the upcoming iteration
+   * is a bad iteration: it is when previousIterationReferenceValue/currentIterationReferenceValue is smaller than
+   * {@link #badIterationThreshold}
    *
    * @param previousIterationReferenceValue previous reference value to use
    * @param currentIterationReferenceValue current reference value to use

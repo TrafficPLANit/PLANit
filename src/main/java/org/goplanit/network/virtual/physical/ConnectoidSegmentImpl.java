@@ -11,14 +11,15 @@ import org.goplanit.utils.network.virtual.physical.ConnectoidLink;
 import org.goplanit.utils.network.virtual.physical.ConnectoidSegment;
 
 /**
- * The link segment that connects a zone to the physical network is not a physical link segment. However in order to be able to efficiently conduct path searches this connection
- * needs to materialise in a similar form.
+ * The link segment that connects a zone to the physical network is not a physical link segment. Yet, to conduct path
+ * searches efficiently, this connection needs to take a similar form.
  *
- * to do this we construct ConnectoidLinkSegment instances which are a link segment, but do not have any physical characteristics apart from connecting a zone (via its centroid) to
- * a physical node.
+ * So ConnectoidLinkSegment instances are link segments without any physical characteristics, apart from connecting a
+ * zone (via its centroid) to a physical node.
  *
- * these segments are NOT registered on the network because they are not part of the physical network, instead they are registered on the adopted zoning. they are however
- * injected/connected to the connectoid reference nodes in the network as link segments to provide the above mentioned interface
+ * These segments are NOT registered on the network, as they are not part of the physical network; they are registered
+ * on the adopted zoning instead. They are however injected into/connected to the connectoid reference nodes in the
+ * network as link segments, to provide the interface mentioned above
  *
  * @author markr
  *

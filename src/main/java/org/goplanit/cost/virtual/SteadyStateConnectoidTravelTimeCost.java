@@ -28,20 +28,17 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
- * Connectoid cost computation for travel times based on the work of Raadsen and Bliemer (2019), Steady-state link travel time
- * methods: Formulation, derivation, classification, and unification.
+ * Connectoid cost computation for travel times based on the work of Raadsen and Bliemer (2019), Steady-state link
+ * travel time methods: Formulation, derivation, classification, and unification.
  * <p>
  * Suitable for static and semi-dynamic traffic assignment methods that are steady-state with respect to their
- * inflow and outflow rates which necessarily are able to take on different values, where the difference between in
- * and outflow results in a queue on the link. Most notable assignment method that adopts this method is sLTM.
+ * inflow and outflow rates, which must be able to take different values: the difference between inflow and outflow
+ * results in a queue on the link. The most notable assignment method using it is sLTM.
  * </p>
  * <p>
- * Raadsen and Bliemer (2019) highlight three main computation methods to compute the same steady-state travel time
- * on the link level. In this implementation we adopt the exact same approach as for its physical cost equivalent albeit
- * that we opt for a fixed hypo critical cost, whereas the hyper critical delay is based on any queue that exists.
- * </p>
- * <p>
- *   the hypo critical aspect of this cost is currently always a fixed cost.
+ * Raadsen and Bliemer (2019) highlight three main methods to compute the same steady-state travel time on the link
+ * level. This implementation takes the exact same approach as its physical cost equivalent, except that the hypo
+ * critical cost is fixed (currently always), whereas the hyper critical delay is based on any queue that exists.
  * </p>
  *
  * @author markr

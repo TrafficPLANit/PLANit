@@ -121,10 +121,9 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?,?>> exte
   public abstract BushFlowUpdateConsumer<B> createSyncAllNetworkFlowUpdateConsumer();
 
   /**
-   * Factory method to create the right flow update consumer to use when conducting a bush based flow update.
-   * We either create one that updates turn accepted flows (and possibly also sending flows), or one that
-   * only updates (network wide) link sending flows and/or link outflows. The latter is to be used for
-   * initialisation/finalisation purposes only. The former is the one used during the iterative loading procedure.
+   * Factory method to create the flow update consumer for a bush based flow update: either one that updates turn
+   * accepted flows (and possibly also sending flows), used during the iterative loading procedure, or one that only
+   * updates (network wide) link sending flows and/or link outflows, for initialisation/finalisation only.
    *
    * @param updateTurnAcceptedFlows  flag indicating if the turn accepted flows are to be updated by this consumer
    * @param updateSendingFlows       flag indicating if the link sending flow are to be updated by this consumer
@@ -234,15 +233,14 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?,?>> exte
   }
 
   /**
-   * Initialise tracking of splitting rates and network flows on all nodes that are used by any currently
-   * active AND inactive PAS. This way we are able to ascertain how much total network flow runs through each PAS
-   * which in turn is used to determine how much flow we can shift between segments.
+   * Initialise tracking of splitting rates and network flows on all nodes used by any currently active AND inactive
+   * PAS. This tells how much total network flow runs through each PAS, which determines how much flow can be shifted
+   * between segments.
    * <p>
-   *   We also activate all inactive PASs here to ensure that if an inactive PAS gets reactivated we have all the
-   *   information readily available.
+   *   The nodes of inactive PASs are tracked too, so all information is at hand when an inactive PAS is reactivated.
    * </p>
-   * todo: we could reduce memory footprint by postponing flow shifts on reactivated PASs by one iteration in which case
-   *   we only need to track active PASs.
+   * todo: the memory footprint could be reduced by postponing flow shifts on reactivated PASs by one iteration, so only
+   *   active PASs need tracking.
    */
   @Override
   protected void activateEligibleSplittingRateTrackedNodes() {
@@ -281,10 +279,9 @@ public abstract class StaticLtmLoadingBushBase<B extends RootedBush<?,?,?>> exte
     this.pasManager = pasManager;
   } 
 
-  /** For each PAS we must be able to determine the network level flows along the segments, see computeSubPathSendingFlow(). 
-   * This requires knowing the network level splitting rates on the network level as well as the sending flows and
-   * acceptance factors, otherwise we cannot determine this. Therefore, for each newly identified PAS we activate
-   * node tracking for all (eligible) nodes along the segments of this PAS, if not already done so
+  /** For each PAS the network level flows along its segments must be known, see computeSubPathSendingFlow(). This
+   * requires the network level splitting rates, sending flows and acceptance factors. So for each newly identified
+   * PAS, node tracking is activated for all (eligible) nodes along its segments, if not already done
    *
    *@param newPas to activate nodes on segments for
    */

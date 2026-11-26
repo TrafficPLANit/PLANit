@@ -24,13 +24,12 @@ import org.goplanit.utils.network.virtual.graph.CentroidVertex;
 import org.goplanit.utils.network.virtual.physical.conjugate.ConjugateConnectoidNode;
 
 /**
- * A conjugate rooted bush is an acyclic directed graph comprising implicit paths along a conjugate network, i.e.
- * turn based network (conjugate edge segments). It has a single root based on the original network, i.e. in the
- * conjugate network it can represent multiple conjugate nodes since conjugate nodes are edges/edgeSegments on the
- * original network leading to this vertex.
+ * A conjugate rooted bush is an acyclic directed graph of implicit paths along a conjugate network, that is a turn
+ * based network (conjugate edge segments). It has a single root in the original network, which can be several
+ * conjugate nodes in the conjugate network, as conjugate nodes are the edges/edge segments of the original network
+ * leading to this vertex.
  * <p>
- * The conjugate edge segments in the conjugate bush represent pairs of original link segments, i.e. turns in the
- * physical network
+ * Its conjugate edge segments are pairs of original link segments, that is turns in the physical network
  * 
  * @author markr
  *
@@ -514,23 +513,21 @@ public class ConjugateDestinationBush extends
   }
 
   /**
-   * The alternative subpath is provided through link segment labels of value -1. The point at which they coincide
-   * with the bush is indicated with label 1 at the given reference vertex (passed in). Here we do a breadth-first
-   * search on the bush in the direction towards its root to find a location the alternative path reconnects to the
-   * bush, which, at the latest, should be at the root and at the earliest directly at the next vertex compared to
-   * the reference vertex.
+   * The alternative subpath is given by link segment labels of value -1, and the point where it meets the bush by
+   * label 1 at the given reference vertex. A breadth-first search on the bush towards its root finds where the
+   * alternative path reconnects to the bush: at the latest at the root, at the earliest at the vertex next to the
+   * reference vertex.
    * <p>
-   * Note that the breadth-first approach is a choice not a necessity but the underlying idea is that a shorter
-   * PAS (which is likely to be found) is used by more origins and therefore more useful to explore than a really
-   * long PAS. This is preferred - in the original TAPAS - over simply backtracking along either the shortest or
-   * longest path of the min-max tree which would also be viable options,a s would a depth-first search.
+   * Breadth-first is a choice, not a necessity: a shorter PAS, which is likely to be found, is used by more origins
+   * and so more useful to explore than a very long one. In the original TAPAS this is preferred over backtracking
+   * along the shortest or longest path of the min-max tree, which would also be viable options, as would a
+   * depth-first search.
    * <p>
-   * Consider implementing various strategies here in order to explore what works best but for now we adopt a
-   * breadth-first search
+   * Other strategies could be tried here to find what works best, but for now a breadth-first search is used
    * <p>
-   * The returned map contains the next edge segment for each vertex, from the vertex closer to the bush root to
-   * the reference vertex where for the reference vertex the edge segment remains null
-   * 
+   * The returned map holds the next edge segment for each vertex, from the vertex closer to the bush root to the
+   * reference vertex, whose edge segment remains null
+   *
    * @param referenceVertex                to start breadth first search from as it is the point of coincidence
    *                                       of the alternative path (via labelled vertices) and bush
    * @param forbiddenInitialSegment        the first segment of the shortest path segment from the root, that we

@@ -186,10 +186,10 @@ public class TransportModelNetworkImpl
   }
 
   /**
-   * Create connectoid links/segments for transfer connectoids. We create a single link and segment in indicated
-   * direction for each access entry of a connectoids zone/type combination. We do so because we assume
-   * that the type imposes restrictions on the allowed modes and as such is allowed to have different lengths specified
-   * and therefore must be kept separate from other types. The type also defines the direction(s) created
+   * Create connectoid links/segments for transfer connectoids: a single link and segment in the indicated direction
+   * for each access entry of a connectoid's zone/type combination. The type is assumed to restrict the allowed modes,
+   * so it may have different lengths specified and must be kept separate from other types. The type also defines the
+   * direction(s) created
    *
    * @param zone2CentroidVertexMappingToPopulate mapping to update if centroid of zone processed for connectoid
    *                                             not already tracked

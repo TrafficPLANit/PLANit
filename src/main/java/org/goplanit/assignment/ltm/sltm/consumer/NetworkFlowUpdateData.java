@@ -8,11 +8,11 @@ import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingSendingFlowData;
 import org.goplanit.assignment.ltm.sltm.loading.UnconstrainedFlowData;
 
 /**
- * Base class to aid updating of the network link flows during loading. Derived classes can apply a path or bush based
- * approach to this update for example. This class stores the current network state information required to perform
- * the update regardless of the chosen assignment strategy (bush, path).
+ * Base class to help update the network link flows during loading. Derived classes can, for example, take a path or
+ * bush based approach to this update. This class stores the current network state needed for the update, whatever
+ * the assignment strategy (bush, path).
  * <p>
- * Sending flows are allowed to be null as in certain derived classes they might not be required
+ * Sending flows may be null, as some derived classes might not need them
  * 
  * @author markr
  *

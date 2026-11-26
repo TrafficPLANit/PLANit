@@ -12,14 +12,13 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * This class allows an OdPath instance to be wrapped such that it can be processed as if it is an OD multi-path
- * instance. Not to be used to add paths, only to read existing paths.
+ * Wraps an OdPath instance so it can be processed as if it is an OD multi-path instance. Only to read existing paths,
+ * not to add paths.
  * <p>
- *   This should not be used unless there is significant benefit of using the OdPath approach during
- *   computational costly exercises, e.g.,   assignment, and the conversion to multi-path only occurs very
- *   infrequently, since the conversion requires on-the-fly creation   of container instances which is
- *   computationally costly. It may be worth the trade-off as it may save memory during simulation since
- *   single paths per od require no container within the odPath instances.
+ *   Only use this when the OdPath approach has a significant benefit during computationally costly work, e.g.
+ *   assignment, and the conversion to multi-path is very infrequent, as the conversion creates container instances
+ *   as it goes, which is computationally costly. The trade-off may be worth it, as it may save memory during
+ *   simulation: single paths per od need no container within the odPath instances.
  * </p>
  *
  * @author markr

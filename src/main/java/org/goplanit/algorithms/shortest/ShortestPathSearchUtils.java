@@ -33,11 +33,11 @@ public final class ShortestPathSearchUtils {
   }
 
   /**
-   * Based on the bush configuration we collect different vertex direction from edge segment (up or downstream)
-   * compatible with a (shortest) path search. In case the bush is not inverted, i.e., runs from single origin to
-   * one or more destinations we collect the downstream vertex, otherwise the upstream vertex. This direction can be
-   * swapped if desired with the invertDirection parameter.
-   * 
+   * Based on the bush configuration, collect the vertex of an edge segment (up or downstream) compatible with a
+   * (shortest) path search. When the bush is not inverted, i.e., runs from a single origin to one or more
+   * destinations, the downstream vertex is collected, otherwise the upstream vertex. The invertDirection parameter
+   * swaps this direction.
+   *
    * @param bush            based on the configuration of the bush determine which vertex to collect.
    * @param invertDirection flag to invert direction compared to "regular" result
    * @return lambda collecting vertex based on given edge segment
@@ -52,10 +52,10 @@ public final class ShortestPathSearchUtils {
   }
 
   /**
-   * Based on the bush configuration we collect different vertex direction from edge segment (up or downstream)
-   * compatible with a (shortest) path search. In case the bush is not inverted, i.e., runs from single origin to
-   * one or more destinations we collect the downstream vertex, otherwise the upstream vertex.
-   * 
+   * Based on the bush configuration, collect the vertex of an edge segment (up or downstream) compatible with a
+   * (shortest) path search. When the bush is not inverted, i.e., runs from a single origin to one or more
+   * destinations, the downstream vertex is collected, otherwise the upstream vertex.
+   *
    * @param bush based on the configuration of the bush determine which vertex to collect.
    * @return lambda collecting vertex based on given edge segment
    */
@@ -87,10 +87,10 @@ public final class ShortestPathSearchUtils {
   }
 
   /**
-   * Based on the bush configuration we collect different edge segments from vertex (entry or exit segments)
-   * compatible with a (shortest) path search. In case the bush is not inverted, i.e., runs from single origin
-   * to one or more destinations we collect the downstream edge segments, otherwise the upstream edge segments.
-   * This direction can be swapped if desired with the invertDirection parameter.
+   * Based on the bush configuration, collect the edge segments of a vertex (entry or exit segments) compatible with a
+   * (shortest) path search. When the bush is not inverted, i.e., runs from a single origin to one or more
+   * destinations, the downstream edge segments are collected, otherwise the upstream edge segments. The
+   * invertDirection parameter swaps this direction.
    * 
    * @param bush            to base lambda on
    * @param invertDirection flag to invert direction compared to "regular" result
@@ -106,9 +106,9 @@ public final class ShortestPathSearchUtils {
   }
 
   /**
-   * Based on the bush configuration we collect different edge segments from vertex (entry or exit segments)
-   * compatible with a (shortest) path search. i.e., runs from single origin to one or more destinations we
-   * collect the downstream edge segments, otherwise the upstream edge segments.
+   * Based on the bush configuration, collect the edge segments of a vertex (entry or exit segments) compatible with a
+   * (shortest) path search. When the bush is not inverted, i.e., runs from a single origin to one or more
+   * destinations, the downstream edge segments are collected, otherwise the upstream edge segments.
    * 
    * @param bush to base lambda on
    * @return lambda collecting edge segments in given direction based on vertex provided

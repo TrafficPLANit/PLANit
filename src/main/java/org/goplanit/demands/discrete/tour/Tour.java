@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
 /**
  * Tour interface.
  * <p>
- * A tour is not itself a {@link ScheduleElement}; a person's schedule holds a {@link ParticipantTour} instead. This
- * allows a single tour to be shared by more than one person, for example a joint household tour, while each person
- * keeps their own schedule. A tour with a single participant is expressed the same way, so there is exactly one
- * mechanism regardless of how many people travel together.
+ * A tour is not itself a {@link ScheduleElement}; a person's schedule holds a {@link ParticipantTour} instead. So a
+ * single tour can be shared by more than one person, for example a joint household tour, while each person keeps
+ * their own schedule. A tour with a single participant works the same way, so there is exactly one mechanism however
+ * many people travel together.
  * </p>
  */
 public interface Tour extends ExternalIdAble, ManagedId {

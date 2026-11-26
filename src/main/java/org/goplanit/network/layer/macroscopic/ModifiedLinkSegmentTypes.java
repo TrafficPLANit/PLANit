@@ -12,18 +12,17 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 
 /**
- * Helper class that tracks all modified, i.e., custom link segment types, that differ from the link segment type
- * they are based on by the modes they grant access to.
+ * Tracks all modified, i.e. custom, link segment types that differ from the link segment type they are based on by
+ * the modes they grant access to.
  * <p>
- * Link segment types are shared by many link segments, so granting or withdrawing access for a single segment can
- * never be done by changing its type in place: that would silently change every other segment carrying the same
- * type. The alternative is to give the segment a type that differs in exactly the intended way, which without
- * bookkeeping would create a fresh type per segment. This tracks the variants already created so they are reused.
+ * Link segment types are shared by many link segments, so access for a single segment can never be granted or
+ * withdrawn by changing its type in place: that would silently change every other segment of the same type. Instead
+ * the segment gets a type that differs in exactly the intended way, which without bookkeeping would create a new type
+ * per segment. This tracks the variants already created so they are reused.
  * </p>
- * 
- * All custom link segment types are stored by their original link segment type (id) that they are based on.
- * To make it efficient to look them up when verifying if some potential new custom link segment type already exists
- * (or not)
+ *
+ * All custom link segment types are stored by the original link segment type (id) they are based on, so checking
+ * whether a potential new custom link segment type already exists is efficient
  * 
  * @author markr
  *

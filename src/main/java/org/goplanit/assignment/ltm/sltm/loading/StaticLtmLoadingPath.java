@@ -32,10 +32,9 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
 
   //@formatter:off
 
-  /** Factory method to create the right flow update consumer to use when conducting a path based flow update.
-   * We either create one that updates turn accepted flows (and possibly also sending flows), or one that only
-   * updates link sending flows. The latter is to be used for initialisation purposes only where
-   * the former is the one used during the iterative loading procedure.
+  /** Factory method to create the flow update consumer for a path based flow update: either one that updates turn
+   * accepted flows (and possibly also sending flows), used during the iterative loading procedure, or one that only
+   * updates link sending flows, for initialisation only.
    *
    * @param mode                      to use
    * @param updateTurnAcceptedFlows   flag indicating if the turn accepted flows are to be updated by this consumer
@@ -195,9 +194,8 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
         getTransportNetwork().getZoning().getOdZones(), syncFlowConsumer);
   }
 
-  /** In a path based implementation, tracked nodes overlap with potentially blocking nodes. Since potentially
-   * blocking nodes are identified by the base class, there is no need for additional work in this implementation.
-   * Empty implementation
+  /** In a path based implementation the tracked nodes are the potentially blocking nodes, which the base class
+   * identifies, so nothing more is needed here. Empty implementation
    */
   @Override
   protected void activateEligibleSplittingRateTrackedNodes() {

@@ -12,9 +12,8 @@ import java.util.logging.Logger;
 /**
  * Interface to classify costs of physical links
  * 
- * Physical links can be either InitialPhysicalCosts (which are read in at the start and are constant) or
- * PhysicalCosts (which are derived from other inputs and are recalculated
- * after each iteration).
+ * Physical link costs can be either InitialPhysicalCosts (read in at the start and constant) or PhysicalCosts (derived
+ * from other inputs and recalculated after each iteration).
  * 
  * @author markr
  * @param <LS> type of segment
@@ -38,11 +37,9 @@ public interface PhysicalCost<LS extends LinkSegment> extends Cost<LS> {
   public static final String STEADY_STATE = SteadyStateTravelTimeCost.class.getCanonicalName();
 
   /**
-   * Invoker expects (mode specific ) costs in passed in array to be filled, where each entry signifies a link
-   * segment by its id. This allows for more efficient implementations
-   * than having to revert to one by one updates. It does however require network information hence its placement
-   * here where via the initialiseBeforeSimulation, the network is
-   * provided
+   * The invoker expects the given array to be filled with (mode specific) costs, each entry being a link segment by
+   * its id. This allows for more efficient implementations than one by one updates. It does however require network
+   * information, hence its place here, where the network is provided via initialiseBeforeSimulation
    *
    * @param layer these cost pertain to
    * @param mode          the mode these costs pertain to
@@ -57,11 +54,9 @@ public interface PhysicalCost<LS extends LinkSegment> extends Cost<LS> {
   }
 
   /**
-   * Invoker expects (mode specific ) costs in passed in array to be filled, where each entry signifies a link
-   * segment by its id. This allows for more efficient implementations
-   * than having to revert to one by one updates. It does however require network information hence its placement
-   * here where via the initialiseBeforeSimulation, the network is
-   * provided
+   * The invoker expects the given array to be filled with (mode specific) costs, each entry being a link segment by
+   * its id. This allows for more efficient implementations than one by one updates. It does however require network
+   * information, hence its place here, where the network is provided via initialiseBeforeSimulation
    *
    * @param linkSegments these cost pertain to
    * @param mode         the mode these costs pertain to

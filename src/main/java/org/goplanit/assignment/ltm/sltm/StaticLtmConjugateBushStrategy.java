@@ -60,11 +60,11 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmConjugateBushStrategy.class.getCanonicalName());
 
-  /** access to original bush turn flows. To be used for constraining identifying available sending flows
-   * for flow shifts. Requires updating when constraining further as part of this instance conducting
-   * flow shifts, so it is available to other PASs as a constraint.
-   * Note: it should NOT contain all original turn flows per bush, only those where the original turn flow
-   * was at some point was reduced to save memory.
+  /** access to original bush turn flows, to constrain the available sending flows identified for flow shifts. It must
+   * be updated when constraining further during this instance's flow shifts, so it is available to other PASs as a
+   * constraint.
+   * Note: to save memory it should NOT contain all original turn flows per bush, only those where the original turn
+   * flow was reduced at some point.
    * NOTE: not owned by this executor, owned by parent strategy
    * todo: this injected approach is ugly, needs refactoring at some point
    */
@@ -97,11 +97,10 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<
   }
 
   /**
-   * For all congested nodes, recompute node model in turn based setting to obtain turn costs considering zero flow
-   * discontinuities. For any such turns with: (i) currently uncongested, (ii) having zero flow, (iii) leading into a
-   * congested link (iv) having non-zero flow would cause the incoming link become congested: we replace the current
-   * cost with one based on the limit towards zero flow cost produced (which is higher) to ensure a PAS is not
-   * considered unless it is attractive even under this situation.
+   * For all congested nodes, recompute the node model turn based, to obtain turn costs considering zero flow
+   * discontinuities. A turn that is (i) currently uncongested, (ii) without flow, (iii) leading into a congested link,
+   * and (iv) would make the incoming link congested with non-zero flow, gets the cost of the limit towards zero flow
+   * (which is higher) instead of its current cost. So a PAS is only considered if it is attractive even then.
    *
    * @param theMode to use
    * @param conjSegmentCosts to update zero-flow turns at a discontinuity to utilise most restricting cost rather than
@@ -337,11 +336,10 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<
 
 
   /**
-   * Try to create a new PAS for the given bush and the provided diverge vertex. We do so using the bush min-max path
-   * tree.
-   * First, we mark the newly added segment, and then all bush min path links back to the destination.
-   * Second, we traverse the max path from the diverge vertex back to the destination.
-   * Third, when the max path coincides with the min path, we have found our new PAS
+   * Try to create a new PAS for the given bush and diverge vertex, using the bush min-max path tree.
+   * First, mark the newly added segment, and then all bush min path links back to the destination.
+   * Second, traverse the max path from the diverge vertex back to the destination.
+   * Third, where the max path coincides with the min path, the new PAS is found
    *
    * @param bush                          to identify new PAS for
    * @param reducedCostVertex             to use for creating the PAS as a cheaper path to the root exists at
@@ -968,10 +966,9 @@ public class StaticLtmConjugateBushStrategy extends StaticLtmBushStrategyBase<
   }
 
   /**
-   * Identify the set of bushes deemed eligible for PAS flow shifting based on criteria. The current criteria is
-   * based on the bush gap vs the network convergence gap stop criterion. Whenever the bush gap is larger it is deemed
-   * eligible, otherwise it is considered converged and deemed that spending computation time on converging it further
-   * is better spent on other less converged bushes first.
+   * Identify the bushes eligible for PAS flow shifting. Currently a bush is eligible when its gap is larger than the
+   * network convergence gap stop criterion. Otherwise it is considered converged, and computation time is better spent
+   * on less converged bushes first.
    *
    * @return set of eligible bushes for PAS flow shifting
    */

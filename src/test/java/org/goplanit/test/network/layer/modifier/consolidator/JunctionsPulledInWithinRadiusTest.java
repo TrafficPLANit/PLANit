@@ -158,8 +158,8 @@ public class JunctionsPulledInWithinRadiusTest extends IntersectionConsolidation
   }
 
   /**
-   * A tram track meets the road at corner A, but the connection from C to J is a footway that crosses no track, so J may lie
-   * only the margin beyond the radius. It lies further, so it stays apart
+   * A tram track meets the road at corner A, but the connection from C to J is a footway that crosses no track, so J
+   * may lie only the margin beyond the radius. It lies further, so it stays apart
    * <pre>
    *     #
    *      #

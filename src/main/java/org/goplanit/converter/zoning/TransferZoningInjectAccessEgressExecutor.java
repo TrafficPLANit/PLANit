@@ -20,13 +20,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Executor able to facilitate injection of access egress of modes other than the PT transfer zone vehicle modes.
- * Depending on the user configuration of the converter wanting to use this. This may be a no-op but if any
- * true multi-modal trips are to be modeled this is a vital final step in completing the pt network.
- * this is especially useful when the importer (OSM/GTFS) has no well-defined connections directly. In that
- * case this functionality is capable of adding in additional infrastructure and/or connectoids to allow
- * for these connections to the relevant physical network nearby that is available in OSM. Mode compatibility is
- * tested for to ensure the access/egress points are valid.
+ * Executor injecting access/egress of modes other than the PT transfer zone vehicle modes. Depending on the user
+ * configuration of the converter using it, this may do nothing, but if any true multi-modal trips are to be modelled
+ * it is a vital final step in completing the pt network. It is especially useful when the importer (OSM/GTFS) has no
+ * well-defined direct connections. It can then add infrastructure and/or connectoids for these connections to the
+ * relevant physical network nearby that is available in OSM. Mode compatibility is tested so the access/egress points
+ * are valid.
  *
  * @author markr
  */
@@ -45,10 +44,10 @@ public class TransferZoningInjectAccessEgressExecutor {
   private final ZoningConverterCommonData zoningConverterData;
 
   /**
-   * Connect the provided transfer zone to the nearest network point via a connectoid with the appropriate
-   * modes given it falls within max distance. Since transfer connectoids can be directed and we are not dealing
-   * with fixed routes but access for let's say pedestrians, we must create a connectoid/entry for each
-   * access/egress mode supported at the chosen network access node.
+   * Connect the provided transfer zone to the nearest network point via a connectoid with the appropriate modes, when
+   * within max distance. Transfer connectoids can be directed, and this is not about fixed routes but access, for
+   * example for pedestrians, so a connectoid/entry is created for each access/egress mode supported at the chosen
+   * network access node.
    *
    * @param transferZone        to connect
    * @param tzConnectoids existing connectoids of zone
@@ -165,9 +164,9 @@ public class TransferZoningInjectAccessEgressExecutor {
 
   /**
    * Connect the provided transfer zone to the nearest land network via a connectoid with the appropriate (inferred)
-   * land modes given it falls within max distance. Since transfer connectoids can be directed and we are not dealing
-   * with fixed routes but access for example pedestrians, we must create a connectoid/entry for each
-   * access/egress mode supported  into the chosen land network access node.
+   * land modes, when within max distance. Transfer connectoids can be directed, and this is not about fixed routes but
+   * access, for example for pedestrians, so a connectoid/entry is created for each access/egress mode supported into
+   * the chosen land network access node.
    *
    * @param transferZone                                   to connect
    * @param connectoids                                    existing connectoids of zone
@@ -388,13 +387,13 @@ public class TransferZoningInjectAccessEgressExecutor {
    * The modes to create access/egress entries with: the preferred ones when available, otherwise the road based
    * modes if the settings allow falling back on those.
    * <p>
-   * A scenario modelling only motorised modes has no active modes, in which case stops would not be connected to the
-   * road network at all and nothing would say so. Finding where a stop meets that network does not require an active
-   * mode to exist, the modes only decide which links are eligible to attach to.
+   * A scenario modelling only motorised modes has no active modes, so stops would not be connected to the road network
+   * at all and nothing would say so. Finding where a stop meets that network does not need an active mode: the modes
+   * only decide which links are eligible to attach to.
    * </p>
    * <p>
-   * The fallback modes do end up recorded on the created entry, so a consumer should read those as identifying the
-   * attachment point rather than as stating who may travel there.
+   * The fallback modes are recorded on the created entry, so a consumer should read them as identifying the attachment
+   * point, not as stating who may travel there.
    * </p>
    *
    * @param preferredModes to use when available

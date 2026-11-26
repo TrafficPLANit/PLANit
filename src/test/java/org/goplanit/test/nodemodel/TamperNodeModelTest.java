@@ -109,15 +109,13 @@ public class TamperNodeModelTest {
   //@formatter:on
 
   /**
-   * Test to verify running the node model with turn costs that
-   * allow for different turn cost at flow-cost discontinuities, e.g., if a turn flow is zero but it would
-   * turn into a congested out link that would cause the in-link to become mroe restricted than it currently is then
-   * its zero-flow turn cost has two values on for the zero flow and one for the non zero flow in the limit to zero.
+   * Run the node model with turn costs that can differ at flow-cost discontinuities. For example, a turn with zero
+   * flow into a congested out link, where any flow on the turn would make its in-link more restricted than it is, has
+   * two zero-flow turn costs: one for the zero flow and one for non-zero flow in the limit to zero.
    * <p>
-   *   Capturing the most retrictive turn costs considering these discontinuities can be useful in certain situations
-   *   and it is an option to switch on. The results are tested here.
+   *   Capturing the most restrictive turn costs at these discontinuities can be useful in certain situations, and is
+   *   an option to switch on. This test checks the results.
    * </p>
-   *
    */
   @Test
   public void testForTurnCost() {

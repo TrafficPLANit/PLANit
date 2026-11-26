@@ -23,9 +23,9 @@ public interface TransportModelNetwork<G extends UntypedPhysicalNetwork<?, ?>, V
 
   /**
    * Integrate physical and virtual links within od zones (undirected connectoid access node and centroid).
-   * One may want to recreate all managed ids when there is a possibility this is not the first and only call to
-   * this method. This to ensure they are contiguous and start at zero if the transport model network is used for
-   * assignment that relies on a contiguous numbering. If network is only used once, it can be ignored (set to false)
+   * When this may not be the first and only call, one may want to recreate all managed ids, so they are contiguous and
+   * start at zero if the transport model network is used for an assignment relying on contiguous numbering. If the
+   * network is only used once, this can be ignored (set to false)
    *
    * @param resetAndRecreateManagedIds when true, reset and then recreate all internal managed ids of transport
    *                                   model network components (links, nodes, connectoids etc.), when false do not.

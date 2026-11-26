@@ -72,13 +72,13 @@ public interface OdDemands extends ZoneToZoneData<Double> {
 
   /**
    * Option to apply stochastic rounding to all entries.
-   * <p> All values between zero and upperBound are eligible for rounding. We draw a uniform random number
-   * between 0 and upperbound, if the drawn value is lower than the value at hand it is rounded to the upper
-   * bound, otherwise it is truncated to zero.
+   * <p> All values between zero and upperBound are eligible for rounding. A uniform random number is drawn between 0
+   * and upperbound: if it is lower than the value at hand, the value is rounded to the upper bound, otherwise it is
+   * truncated to zero.
    * </p>
    * <p>
-   *   this approach ensures the  average across all rounded values remains largely unchanged while reducing the number
-   *   of non-zero entries in the data, potentially speeding up the algorithms using them
+   *   This keeps the average across all rounded values largely unchanged while reducing the number of non-zero entries
+   *   in the data, potentially speeding up the algorithms using them
    * </p>
    *
    * @param upperBound all values below or equal to the upperbound are considered for rounding

@@ -23,13 +23,12 @@ import java.util.logging.Logger;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * A schedule holds participations in tours and trips, nothing else. Every place that walks a schedule therefore
- * rejects anything else rather than quietly passing over it, so that introducing a third kind of schedule element -
- * a participation in a single trip, say - forces each of those places to be revisited instead of silently doing
- * nothing there.
+ * A schedule holds participations in tours and trips, nothing else. So every place that walks a schedule rejects
+ * anything else rather than passing over it. That way, adding a third kind of schedule element, such as a
+ * participation in a single trip, forces each of those places to be revisited instead of silently doing nothing there.
  * <p>
- * These tests plant such an unknown element and assert each of those places rejects it. They are not about the
- * element itself, they are about the absence of silent gaps
+ * These tests plant such an unknown element and assert each of those places rejects it. They are about the absence of
+ * silent gaps, not about the element itself
  * </p>
  */
 class UnsupportedScheduleElementTest {

@@ -32,10 +32,8 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.BannedTurnUtils;
 
 /**
- * Implementation of a directed graph modifier that supports making changes to any untyped directed graph.
- * The benefit of using the untyped directed graph is that it does not rely
- * on knowing the specific typed containers used for vertices, edges, edge segments which in turn signals
- * that no information on the underlying factories is required.
+ * Directed graph modifier that can change any untyped directed graph. Working on the untyped graph means it need not
+ * know the typed containers of vertices, edges and edge segments, so it needs no information on their factories.
  *
  * @author markr
  *

@@ -24,10 +24,9 @@ public interface OutputTypeAdapter {
   public abstract OutputType getOutputType();
 
   /**
-   * Determine the iteration index that is relevant for the data related to the provided output type enum Generally,
-   * this equates to the actual current iteration index, but if the data for example is trailing an iteration then
-   * this will collect the correct iteration index for this data as opposed to the iteration index of the simulation
-   * itself. Hence, it is always safer to use this method when persisting data
+   * Determine the iteration index of the data of the provided output type enum. Generally this is the current
+   * iteration index, but if the data is, for example, trailing an iteration, this gives the correct iteration index of
+   * the data rather than that of the simulation itself. So it is always safer to use this method when persisting data
    * 
    * @param subOutputTypeEnum, allowed to be null, in that case it is assumed there does not exist a suboutputtype
    *                           for this output type

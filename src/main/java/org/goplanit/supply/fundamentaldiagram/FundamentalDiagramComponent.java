@@ -19,15 +19,15 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 
 /**
- * Fundamental diagram traffic component. Here we track the relation between a macroscopic link segment and its
- * fundamental diagram. To minimise memory usage only unique fundamental diagrams are retained based on their
- * relaxed hash codes. If a duplicate it registered it is simply discarded and the related link segment is attached
- * to the already present fundamental diagram in the pool
+ * Fundamental diagram traffic component. It tracks the relation between a macroscopic link segment and its
+ * fundamental diagram. To minimise memory usage only unique fundamental diagrams are retained, based on their relaxed
+ * hash codes: a duplicate registered is discarded, and its link segment is attached to the fundamental diagram
+ * already in the pool
  * <p>
- *   Any overrides using PLANit network entities directly are to be invoked  AFTER the initialization of the FDs
- *   and from within PLANit itself (that is what they are available). Any settings carried over from a user directly
- *   (via a configurator) are to be considered separate and as part of the initialization (not yet implemented).
- *   These two should interactions should be kept separate.
+ *   Any overrides using PLANit network entities directly are to be invoked AFTER the initialization of the FDs, from
+ *   within PLANit itself (that is where they are available). Any settings carried over from a user directly (via a
+ *   configurator) are separate and part of the initialization (not yet implemented). These two interactions should be
+ *   kept separate.
  * </p>
  *
  * @author markr
@@ -115,17 +115,15 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
           MacroscopicLinkSegmentType lsType, Mode mode);
 
   /**
-   /**
-   * Populate the fundamental diagram component with FDs for each link segment type. We do not generate any specifically
-   * for a link segment unless the physical speed limit of the link is more restrictive than the one posted in the type.
-   * This however is rare and will also trigger a warning to the user. The user can then further change the used Fds via
-   * the configurator if desired.
+   * Populate the fundamental diagram component with FDs for each link segment type. None is generated for a specific
+   * link segment, unless the physical speed limit of the link is more restrictive than the one posted in the type.
+   * This is rare and triggers a warning to the user, who can then change the FDs used via the configurator if desired.
    * <p>
-   * It will generate all fundamental diagrams per macroscopic link segment type. In case the fundamental diagrams can
-   * be constructed based solely on physical characteristics, i.e., free speed, we do so. If the registered link segment
-   * types explicitly require a particular capacity to be used than the estimated capacity of the FD is overruled with
-   * the one of the type (or if the FD cannot derive its capacity from physical characteristics, in which case either
-   * the set or default capacity of the link segment type is used).
+   * All fundamental diagrams are generated per macroscopic link segment type, based solely on physical
+   * characteristics, i.e., free speed, where that is possible. The estimated capacity of the FD is overruled with the
+   * one of the type when a registered link segment type explicitly requires a particular capacity, or when the FD
+   * cannot derive its capacity from physical characteristics, in which case either the set or default capacity of the
+   * link segment type is used.
    * </p>
    *
    * @param parentNetworkLayer to use
@@ -158,10 +156,10 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * check if the speed limit of the link differs from the link segment type mode's limit, Only override the FD for
-   * the link if the speed limit is MORE restrictive, if it is not, the link segment type is more restrictive and
-   * is to be used. It is unlikely that the link speed is more restrictive, so log this as well so the user can
-   * decide if it is to be altered
+   * check if the speed limit of the link differs from the link segment type mode's limit. Only when the link's speed
+   * limit is MORE restrictive is the FD of the link overridden; otherwise the link segment type is more restrictive and
+   * is used. A more restrictive link speed is unlikely, so it is also logged, for the user to decide whether to alter
+   * it
    *
    * @param linkSegment to check
    * @param mode to check
@@ -191,11 +189,10 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * Register the given fundamental diagram for the link segment. This overrules the fundamental diagram that would be
-   * used based on the link segment's type. In case there already exists an identical fundamental diagram (based on
-   * relaxed hashcode comparison), the link segment is assigned the already present fundamental diagram. The
-   * fundamental diagram used for the link segment is returned, which is either the passed in one, or an already
-   * present functionally identical version
+   * Register the given fundamental diagram for the link segment, overruling the one based on the link segment's type.
+   * When an identical fundamental diagram already exists (by relaxed hashcode comparison), the link segment is
+   * assigned that one. The fundamental diagram used for the link segment is returned: either the one passed in, or an
+   * already present functionally identical version
    * 
    * @param linkSegment        to use
    * @param fundamentalDiagram to register
@@ -221,10 +218,10 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * Register the given fundamental diagram for the link segment type. In case there already exists an identical
-   * fundamental diagram (based on relaxed hashcode comparison), the link segment type is assigned the already
-   * present fundamental diagram. The fundamental diagram used for the link segment type is returned, which is
-   * either the passed in one, or an already present functionally identical version
+   * Register the given fundamental diagram for the link segment type. When an identical fundamental diagram already
+   * exists (by relaxed hashcode comparison), the link segment type is assigned that one. The fundamental diagram used
+   * for the link segment type is returned: either the one passed in, or an already present functionally identical
+   * version
    *
    * @param linkSegmentType    to use
    * @param fundamentalDiagram to register
@@ -381,12 +378,11 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * Method to collect all fundamental diagrams for the given link segments in a 1:1 fashion in a raw array based on the
-   * current setup of this component. The returned array is indexed by the link segments linkSegmentId (not id).
-   * The returned array is a newly created array yet the fundamental diagrams contained in it are references to
-   * the fundamental diagrams registered on this component. Further, it is also assumed that the provided link
-   * segments are indeed the segments (and types) on which the registered fundamental diagrams on this component
-   * are based. If not, then this would result in undefined behaviour.
+   * Collect the fundamental diagram of each of the given link segments in a raw array, from the current setup of this
+   * component. The array is indexed by the link segments' linkSegmentId (not id). The array is new, but the
+   * fundamental diagrams in it are references to those registered on this component. The given link segments are
+   * assumed to be the segments (and types) the registered fundamental diagrams are based on; if not, the behaviour is
+   * undefined.
    * 
    * @param linkSegments to collect fundamental diagrams for
    * @return fundamental diagrams per link segment by linkSegmentId, if no fd is present, the entry remains null
@@ -431,10 +427,10 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * Registered for PopulateFundamentalDiagramEvent which allows the component to initialise all the default available
-   * Fds based on the network layer it is registered for. Delegates to
-   * {@link #initialiseDefaultFundamentalDiagramsForLayer(MacroscopicNetworkLayer)} for concrete derived
-   * implementations to execute
+   * Registered for PopulateFundamentalDiagramEvent, which lets the component initialise all default Fds based on the
+   * network layer it is registered for. Delegates to
+   * {@link #initialiseDefaultFundamentalDiagramsForLayer(MacroscopicNetworkLayer)}, which concrete derived
+   * implementations execute
    *
    * @param event to process
    */

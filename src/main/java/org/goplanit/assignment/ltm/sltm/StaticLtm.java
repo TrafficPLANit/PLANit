@@ -38,8 +38,8 @@ import org.goplanit.utils.time.RunTimesTracker;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Static Link Transmission Model implementation (sLTM) for network loading based on solution method presented in Raadsen and Bliemer (2021) General solution scheme for the Static
- * Link Transmission Model .
+ * Static Link Transmission Model implementation (sLTM) for network loading, based on the solution method presented in
+ * Raadsen and Bliemer (2021), General solution scheme for the Static Link Transmission Model.
  * <p>
  * Defaults initiated via configurator:
  * <ul>

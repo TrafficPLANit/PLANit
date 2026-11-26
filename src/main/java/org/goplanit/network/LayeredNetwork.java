@@ -13,10 +13,11 @@ import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layers.NetworkLayers;
 
 /**
- * A transport network with one or more layers. One can choose the container for the different layers as a generic type that defines the container level operations available. Each
- * container has a certain base class for the TransportLayer entities which is the second generic type. This allows one to have a base class for each layer, while the layer itself
- * can derive from this base level. This way the user has maximum flexibility regarding what the functionality and properties of each layer are and how they are exposed via the
- * container
+ * A transport network with one or more layers. The container of the layers is chosen as a generic type, which defines
+ * the container level operations available. Each container has a base class for the TransportLayer entities, which is
+ * the second generic type. So there is a base class for each layer, while the layer itself can derive from it. This
+ * gives the user maximum flexibility in what the functionality and properties of each layer are and how the container
+ * exposes them
  * 
  * @author markr
  *

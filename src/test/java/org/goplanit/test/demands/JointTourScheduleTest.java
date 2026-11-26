@@ -188,9 +188,9 @@ class JointTourScheduleTest {
   }
 
   /**
-   * A tour that still has participants must still have a primary among them, so when the primary is the one leaving
-   * the next participant takes over. Without this the tour survives with nobody its shared information is attributed
-   * to, which the XML writer rightly refuses to persist
+   * A tour that still has participants must have a primary among them, so when the primary leaves the next
+   * participant takes over. Without this the tour survives with nobody its shared information is attributed to, which
+   * the XML writer refuses to persist
    */
   @Test
   void testRemovingThePrimaryPromotesTheNextParticipant() {

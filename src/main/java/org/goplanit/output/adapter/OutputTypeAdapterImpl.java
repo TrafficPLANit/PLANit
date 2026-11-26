@@ -122,9 +122,9 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
   }
 
   /**
-   * Default implementation assumes that regular iteration index is used, which in most cases it true, only when
-   * for example costs are trailing one iteration behind in case they
-   * are only revealed in the next iteration this method should be overridden
+   * Default implementation assumes the regular iteration index is used, which in most cases is true. Only when, for
+   * example, costs trail one iteration behind, as they are only revealed in the next iteration, should this method be
+   * overridden
    */
   @Override
   public Optional<Integer> getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) {

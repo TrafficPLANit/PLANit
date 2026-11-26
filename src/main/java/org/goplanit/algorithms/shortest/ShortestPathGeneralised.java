@@ -16,9 +16,9 @@ import org.goplanit.utils.misc.Pair;
  * Dijkstra's shortest path algorithm
  * <p>
  * Dijkstra's shortest path is a one-to-all implementation of the shortest path algorithm based on the generalized
- * costs on each link segment (edge). The costs should be provided upon instantiation and are reused whenever a
- * One-To-All execution conditional on the chosen source node is performed. Note that while it is one-to-all the
- * direction of the search can be inverted such that it effectively becomes an all-to-one search.
+ * costs on each link segment (edge). The costs should be provided upon instantiation and are reused for each
+ * one-to-all execution from the chosen source node. The direction of the search can be inverted, so it effectively
+ * becomes an all-to-one search.
  * </p>
  * <p>
  * In its current form, it assumes a macroscopic network and macroscopic link segments to operate on
@@ -179,10 +179,9 @@ public class ShortestPathGeneralised {
   }
 
   /**
-   * Generalised one-to-all shortest-X search where the test whether or not an alternative edge segment is shortest
-   * is dictated by the provided predicate while the processing of alternative edge segment when the predicate tests
-   * as true is outsourced to the provided consumer. It is however assumed that only a single cost is stored per
-   * vertex resulting in the returned vertex measured cost array
+   * Generalised one-to-all shortest-X search: the provided predicate tests whether an alternative edge segment is
+   * shortest, and the provided consumer processes it when it is. Only a single cost is assumed to be stored per vertex,
+   * giving the returned vertex measured cost array
    * 
    * @param verifyVertex                        predicate to test if the new cost to reach vertex is considered
    *                                            shortest compared to existing cost
@@ -202,10 +201,9 @@ public class ShortestPathGeneralised {
   }
 
   /**
-   * Generalised all-to-one shortest-X search where the test whether or not an alternative edge segment is shortest
-   * is dictated by the provided predicate while the processing of the alternative edge segment when the predicate
-   * tests as true is outsourced to the provided consumer. It is however assumed that only a single cost is stored
-   * per vertex resulting in the returned vertex measured cost array
+   * Generalised all-to-one shortest-X search: the provided predicate tests whether an alternative edge segment is
+   * shortest, and the provided consumer processes it when it is. Only a single cost is assumed to be stored per vertex,
+   * giving the returned vertex measured cost array
    * 
    * @param verifyVertex                        predicate to test if the new cost to reach vertex is considered
    *                                            shortest compared to existing cost

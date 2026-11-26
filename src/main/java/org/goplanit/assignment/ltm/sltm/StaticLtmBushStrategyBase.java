@@ -372,11 +372,10 @@ StaticLtmBushStrategyBase<V extends DirectedVertex, E extends DirectedEdge, ES e
   protected abstract void updatePasCosts(Mode theMode, double[] originalNetworkLinkSegmentCosts);
 
   /**
-   * Update all existing PASs status based on current state of network without considering
-   * any information on proposed flow shifts, determine congested or uncongested (without flow shift).
-   * All PASs get assigned
-   * todo: optimisation could be to not do this for inactive PASs, but then we have to do this on the fly
-   *  when a PAS changes from inactive to active.
+   * Update the status of all existing PASs, congested or uncongested (without flow shift), from the current state of
+   * the network, without considering proposed flow shifts. All PASs get a status
+   * todo: as an optimisation inactive PASs could be skipped, but then this has to be done on the fly when a PAS
+   *  changes from inactive to active.
    *
    * @param theMode                                 the mode to use
    * @param networkLinkSegmentFlowAcceptanceFactors to determine if a link segment is congested or not

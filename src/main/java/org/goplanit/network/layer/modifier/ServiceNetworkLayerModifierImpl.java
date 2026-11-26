@@ -64,10 +64,9 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
   }
 
   /**
-   * todo: implement by removing dangling service network subnetworks. But unclear what this means. What if
-   * service network is dangling but the underlying physical network is not
-   * for now not yet supported. If we implement it in the strict sense, we can simply borrow the functionality
-   * from super class and remove override
+   * Not yet supported. todo: implement by removing dangling service network subnetworks, but it is unclear what this
+   * means when the service network is dangling but the underlying physical network is not. If it is implemented in the
+   * strict sense, the super class functionality can be used and this override removed
    */
   @Override
   public void removeDanglingSubnetworks(

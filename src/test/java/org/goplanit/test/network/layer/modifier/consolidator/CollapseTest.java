@@ -54,9 +54,9 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
   private static final int P = 12, Q = 13;
 
   /**
-   * register a stop: a waiting area, and a transfer connectoid named and with external id "stop" at the node the segment
-   * enters, or leaves for an egress entry, with a vehicle stop entry over it allowing the given modes explicitly, or
-   * every mode when none are given
+   * register a stop: a waiting area, and a transfer connectoid named and with external id "stop" at the node the
+   * segment enters, or leaves for an egress entry, with a vehicle stop entry over it allowing the given modes
+   * explicitly, or every mode when none are given
    */
   private static TransferConnectoid stopReachedOver(
       Zoning zoning, MacroscopicLinkSegment segment, boolean entersItsNode, Mode... modes) {
@@ -172,10 +172,10 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
   }
 
   /**
-   * Two divided roads crossings 500 m apart, each with a footway between its corners A and B, collapsed for pedestrians.
-   * Each intersection is reported as started once, then both as done once, each done with the centre node and member
-   * nodes it started with. When the first starts both footways allow pedestrians, when the second starts only its own
-   * still does, and when each is done both footways, left without access, are gone
+   * Two divided roads crossings 500 m apart, each with a footway between its corners A and B, collapsed for
+   * pedestrians. Each intersection is reported as started once, then both as done once, each done with the centre node
+   * and member nodes it started with. When the first starts both footways allow pedestrians, when the second starts
+   * only its own still does, and when each is done both footways, left without access, are gone
    * <pre>
    *     A ~~~~ B                    A2 ~~~~ B2        ~ footway, 15 m
    *     C      D    (500 m east)    C2      D2        roads as in dividedRoadsCrossing
@@ -396,9 +396,10 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
   }
 
   /**
-   * A stop at A whose egress entry leaves over the footway to B, from which pedestrians reach the footway from B to Q.
-   * Collapsing pedestrians moves that footway's end at B to the centre node. The stop's connectoid, left with nothing at
-   * A, is at the centre, its entry over that footway, which now starts at the centre, and nothing is reported lost
+   * A stop at A whose egress entry leaves over the footway to B, from which pedestrians reach the footway from B to
+   * Q. Collapsing pedestrians moves that footway's end at B to the centre node. The stop's connectoid, left with
+   * nothing at A, is at the centre, its entry over that footway, which now starts at the centre, and nothing is
+   * reported lost
    */
   @Test
   public void egressEntryFollowsTheExits() {
@@ -470,9 +471,9 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
   }
 
   /**
-   * Collapsing cars and pedestrians removes the four corners, see {@link #everyModeCollapsedLeavesOneNode()}. A transfer
-   * connectoid with an undirected access and egress entry at corner C, and an OD connectoid at corner D, are at the
-   * centre node with their entries once the intersection is done, and nothing is reported lost
+   * Collapsing cars and pedestrians removes the four corners, see {@link #everyModeCollapsedLeavesOneNode()}. A
+   * transfer connectoid with an undirected access and egress entry at corner C, and an OD connectoid at corner D, are
+   * at the centre node with their entries once the intersection is done, and nothing is reported lost
    */
   @Test
   public void connectoidsAtRemovedMemberNodesMoveToTheCentre() {

@@ -108,11 +108,10 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   }
 
   /**
-   * The initial link segment cost to use where the mapping is based on the user provided time period. Note that
-   * the registered InitialLinkSegmentCostMode is part of another registered initialCost that is present on the
-   * project. However, a user might have decided that while they were parsed under one time period, to apply them
-   * on the assignment in another time period. Hence, we only track the initialcosts themselves and not their
-   * original parsed time periods nor their umbrella instance
+   * The initial link segment cost to use per time period given by the user. The registered
+   * InitialLinkSegmentCostMode is part of another registered initialCost on the project. However, a user may apply
+   * costs parsed under one time period to the assignment in another time period. So only the initial costs themselves
+   * are tracked, not their originally parsed time periods nor their umbrella instance
    */
   protected Map<TimePeriod, InitialModesLinkSegmentCost> initialLinkSegmentCostByTimePeriod;
 
@@ -151,29 +150,27 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   }
 
   /**
-   * Verify if the create traffic assignment (sbu)components are compatible with each other and the created
-   * transport network. Called before starting the simulation and after the transport network has been generated
-   * from physical and virtual network. So this is called after the build of the assignment instance
+   * Verify if the created traffic assignment (sub)components are compatible with each other and the created transport
+   * network. Called after the build of the assignment instance: before starting the simulation, and after the
+   * transport network has been generated from the physical and virtual network
    */
   protected abstract void verifyComponentCompatibility();
 
   /**
-   * Verify if the traffic assignment inputs (components which are provided upon creation and not subcomponents
-   * that are created as part of the build process of the assignment are compatible). Called after creation
-   * of the assignment instance by the builder, but before the traffic assignment's (sub)components have been created.
-   * So this is invoked during the build of the assignment instance, not after.
+   * Verify if the traffic assignment inputs are compatible: the components provided upon creation, not the
+   * subcomponents created while building the assignment. Called during the build of the assignment instance, not
+   * after: once the builder has created the instance, but before its (sub)components are created.
    *
    * @throws PlanItException thrown if the components are not compatible
    */
   protected abstract void verifyNetworkDemandZoningCompatibility() throws PlanItException;
 
   /**
-   * Assignments rely on a network representation. This network representation may be in regular form or in
-   * dual/conjugate form. this method provides which of the two is being created and provided to each
-   * implementation of the assignment.
+   * Assignments rely on a network representation, in regular or in dual/conjugate form. This tells which of the two
+   * is created and provided to the implementation of the assignment.
    * <p>
-   *   When creating the transport model network, the result of this call is provided to construct the correct
-   *   network type that feeds into the derived assignment calls afterwards
+   *   When creating the transport model network, the result of this call decides the network type constructed, which
+   *   feeds into the derived assignment calls afterwards
    * </p>
    *
    * @return true when conjugate form is requried, false otherwise

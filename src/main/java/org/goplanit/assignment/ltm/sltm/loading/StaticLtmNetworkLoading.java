@@ -75,10 +75,10 @@ public abstract class StaticLtmNetworkLoading {
   // SIMULATION DATA //
 
   /**
-   * initialise the way the solution scheme is applied. Which in case of storage constraints is the basic decomposition
-   * scheme described in Raadsen and Bliemer (2021), and if storage constraints are disabled, it the basic point queue
-   * model described in Bliemer et al (2014). Both solution schemes can be altered in case they do not converge by
-   * activating various extensions see also {@link #activateNextExtension(Mode, boolean)}
+   * initialise the way the solution scheme is applied: with storage constraints the basic decomposition scheme
+   * described in Raadsen and Bliemer (2021), with storage constraints disabled the basic point queue model described
+   * in Bliemer et al (2014). Either scheme can be altered by activating extensions when it does not converge, see
+   * also {@link #activateNextExtension(Mode, boolean)}
    * 
    * @param logSolutionScheme when true log the set solution scheme, when false do not
    */
@@ -173,18 +173,17 @@ public abstract class StaticLtmNetworkLoading {
   }
 
   /**
-   * Activate all nodes that require tracking during loading. Conduct after initial unconstrained loading is conducted.
+   * Activate all nodes that require tracking during loading, after the initial unconstrained loading.
    * <p>
-   * In case the solution scheme is set the POINTQ_QUEUE_BASIC: Only a subset of all nodes require tracking. This is
-   * the least memory intensive approach where only nodes where for any outgoing link b it holds that s_b  greater than
-   * c_b (sending flow greater than capacity) is potentially restrictive, i.e., reduces sending flow to meet capacity
-   * requirements, needs to be tracked. In this case the splitting rates data is required only for its incoming links
-   * during the loading.
+   * With the POINT_QUEUE_BASIC solution scheme only a subset of nodes requires tracking, the least memory intensive
+   * approach: only the potentially restrictive nodes, which may reduce sending flow to meet capacity, that is those
+   * with an outgoing link b where s_b is greater than c_b (sending flow greater than capacity). Their splitting rates
+   * data is then required only for their incoming links during the loading.
    * </p><p>
-   * In all other cases, the solution scheme adopts a locally iterative update of sending flows without any loading
-   * in between, this means that for flows to reach downstream nodes the entire used network needs to be tracked,
-   * otherwise flows cannot propagate. Therefore, in this case we initialise the tracked nodes by considering all
-   * paths with non-zero flows and activate the entry links of nodes passed.
+   * In all other cases the solution scheme updates sending flows locally and iteratively without any loading in
+   * between. So for flows to reach downstream nodes the entire used network must be tracked, otherwise flows cannot
+   * propagate. The tracked nodes are then initialised from all paths with non-zero flows, activating the entry links of
+   * the nodes passed.
    * </p>
    *
    * @return created splittingRateData class
@@ -342,11 +341,10 @@ public abstract class StaticLtmNetworkLoading {
    * Update (next) storage capacity factors, Eq. (11) using the next sending flows (representing the current inflows)
    * and the current receiving flows.
    * <p>
-   * We only update the factors for incoming links of potentially blocking nodes, because if the node is not
-   * potentially blocking the storage capacity factor multiplied by the flow capacity factor results in inflow
-   * divided by outflow which always equals to one, so no need to actively track it (do note that this requires to
-   * also apply this to the updates of flow capacity and flow acceptance factors, otherwise the combined result is
-   * inconsistent and can lead to serious issues in the outcomes)
+   * Only the factors of incoming links of potentially blocking nodes are updated. At a node that is not potentially
+   * blocking, the storage capacity factor times the flow capacity factor is inflow divided by outflow, which always
+   * equals one, so it need not be tracked. The updates of flow capacity and flow acceptance factors must do the same,
+   * otherwise the combined result is inconsistent and can lead to serious issues in the outcomes.
    * </p>
    */
   private void updateNextStorageCapacityFactors() {
@@ -374,8 +372,8 @@ public abstract class StaticLtmNetworkLoading {
    * Update (next) flow acceptance factors, Eq. (9) using the current storage capacity and current flow capacity
    * factors.
    * <p>
-   * We only update the factors for incoming links of potentially blocking nodes, because if the node is not
-   * potentially blocking the flow acceptance factor is known to be 1 and won't change throughout the loading
+   * Only the factors of incoming links of potentially blocking nodes are updated, as at a node that is not
+   * potentially blocking the flow acceptance factor is known to be 1 and does not change during the loading
    * </p>
    */
   private void updateNextFlowAcceptanceFactors() {
@@ -408,12 +406,11 @@ public abstract class StaticLtmNetworkLoading {
   /**
    * Update (next) flow capacity factors, Eq. (10) using the next receiving flows and the current accepted outflows.
    * <p>
-   * We only update the factors for incoming links of potentially blocking nodes, because if the node is not
-   * potentially blocking the storage capacity factor multiplied by the flow capacity factor results in inflow
-   * divided by outflow which always equals to one, so no need to actively track it (do note that this requires to
-   * also apply this to the updates of storage capacity and flow acceptance factors, otherwise the combined result
-   * is inconsistent and can lead to serious issues in the outcomes)
-   </p>
+   * Only the factors of incoming links of potentially blocking nodes are updated. At a node that is not potentially
+   * blocking, the storage capacity factor times the flow capacity factor is inflow divided by outflow, which always
+   * equals one, so it need not be tracked. The updates of storage capacity and flow acceptance factors must do the
+   * same, otherwise the combined result is inconsistent and can lead to serious issues in the outcomes.
+   * </p>
    *
    */
   private void updateNextFlowCapacityFactors() {
@@ -537,10 +534,9 @@ public abstract class StaticLtmNetworkLoading {
   }
 
   /**
-   * Verify if the sending flows are updated iteratively and locally in the Step 2 sending flow update. when not
-   * updated iteratively, only a single update is performed before doing another loading consistent with
-   * Bliemer et al. (2014). When updated iteratively, the solution scheme presented in Raadsen and Bliemer (2021)
-   * is active.
+   * Verify if the sending flows are updated iteratively and locally in the Step 2 sending flow update. If so, the
+   * solution scheme presented in Raadsen and Bliemer (2021) is active. If not, a single update is performed before
+   * another loading, consistent with Bliemer et al. (2014).
    * 
    * @return true when not in POINT_QUEUE_BASIC scheme, false otherwise
    */
@@ -626,9 +622,9 @@ public abstract class StaticLtmNetworkLoading {
   protected abstract void networkLoadingSyncFlowsUpdate(Mode mode);
 
   /**
-   * Let derived loading implementation initialise which nodes are to be tracked for network splitting rates, e.g.
-   * a bush-based implementation requires all nodes along PASs to be tracked (Regardless if they are
-   * potentially blocking), whereas a path based implementation only requires potentially blocking node to be tracked.
+   * Let the derived loading implementation initialise which nodes to track for network splitting rates. For example,
+   * a bush-based implementation tracks all nodes along PASs (whether potentially blocking or not), whereas a path based
+   * implementation tracks only potentially blocking nodes.
    */
   protected abstract void activateEligibleSplittingRateTrackedNodes();
 
@@ -1122,13 +1118,12 @@ public abstract class StaticLtmNetworkLoading {
   }
   
   /**
-   * When loading has converged, outputs might be persisted or used for cost calculations, i.e., analysis. Since the
-   * loading does not always track the entire network for performance reasons, this method can be invoked before
-   * this analysis/data is required to fill the gaps (if any) regarding for example link in and outflows that might
-   * otherwise not be available, e.g. in the POINT_QUEUE_BASIC loading scheme under a triangular FD as then only
-   * potentially blocking nodes and their immediate adjacent links and their data are tracked on the network level.
-   * Whereas if we want to see the results of this iteration, we would want the full inflows/outflows on all links
-   * in the network.
+   * When loading has converged, outputs might be persisted or used for cost calculations, that is analysis. For
+   * performance the loading does not always track the entire network, so this method can be invoked before such
+   * analysis to fill the gaps (if any), for example link inflows and outflows that might otherwise not be available.
+   * In the POINT_QUEUE_BASIC loading scheme under a triangular FD, for example, only potentially blocking nodes and
+   * their immediately adjacent links and data are tracked on the network level, whereas the results of this iteration
+   * need the full inflows/outflows on all links in the network.
    * <p>
    * This is somewhat costly since one additional pass over the network loading may be triggered.
    * </p>

@@ -329,8 +329,8 @@ public class DiscreteDemandsDownSamplingTableTest {
   /**
    * Seven sampling units: h3 and h4 joined by their tour, in B, the zone of h3, their first household, which is placed
    * by its polygon; p7 one of their own in C, where their tour starts; p14 without a zone, with the zone id in the
-   * table after the zones'. Within C the sampling units are in the order given, households first: h6 before h5, as h6 was added first,
-   * then p7
+   * table after the zones'. Within C the sampling units are in the order given, households first: h6 before h5, as h6
+   * was added first, then p7
    */
   @Test
   public void testUnitsJoinedPlacedAndOrdered() {

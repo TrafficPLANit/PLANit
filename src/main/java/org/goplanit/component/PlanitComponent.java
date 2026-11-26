@@ -16,13 +16,10 @@ import org.goplanit.utils.id.IdGroupingToken;
 /**
  * PLANit components are the main building blocks to create PLANit applications with.
  * <p>
- * Each component is also a listener for PlanitComponentEvents, upon creation by the component factory each component
- * is automatically registered for these events (at high
- * priority). This allows each component to initialise itself in a flexible way before any user or builder would make
- * changes to its default configuration via the same or other
- * events. It is not mandatory to implement any actions upon receiving such events. Therefore this base class
- * implements an empty notify method which may be overridden by derived
- * implementations if desired.
+ * Each component is also a listener for PlanitComponentEvents: when the component factory creates a component, it is
+ * registered for these events automatically (at high priority). So each component can initialise itself flexibly
+ * before any user or builder changes its default configuration via the same or other events. Acting on these events
+ * is not mandatory, so this base class implements an empty notify method, which derived implementations may override.
  *
  * @author markr
  * @param <T> type of component

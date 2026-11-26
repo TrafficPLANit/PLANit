@@ -366,10 +366,9 @@ public class PlanItProjectInput {
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file which we assume are available in the
-   * native XML/CSV output format as provided in this project. This initial cost is not specifically tied to a
-   * particular time period and can be used as a fallback cost in case more specific costs (for a specific time period)
-   * are not available.
+   * Create and register initial link segment costs from a (single) file, assumed to be in the native XML/CSV output
+   * format of this project. This initial cost is not tied to a particular time period, and can be used as a fallback
+   * when more specific costs (for a specific time period) are not available.
    *
    * @param network  network the InitialLinkSegmentCost object will be registered for
    * @param fileName file containing the initial link segment cost values

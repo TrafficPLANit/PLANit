@@ -15,13 +15,13 @@ import java.util.logging.Logger;
  * Bounded MNL choice model implementation for probabilities considering absolute differences in utility.
  * (it has an additive error term, i.e. utility_i = modelled_utility_i + epsilon_i).
  * <p>
- *  It is bounded because
- *  the utility domain can be tweaked with a delta parameter to yield 0/1 probabilities when falling outside the bound in relation
- *  to a reference utility (alternative). Based on Watling et. al. 2018: Stochastic User Equilibrium with a bounded choice model.
+ *  It is bounded because a delta parameter bounds the utility domain around a reference utility (alternative):
+ *  outside the bound, probabilities are 0/1. Based on Watling et. al. 2018: Stochastic User Equilibrium with a bounded
+ *  choice model.
  * </p>
  * <p>
- *   Note that the formulation  for obtaining the perceived cost has been first derived here as it was not part of the paper. In addition,
- *   the derivative of the perceived cost towards flow has also been newly derived here.
+ *   The formulation of the perceived cost was first derived here, as it is not part of the paper, and so was the
+ *   derivative of the perceived cost towards flow.
  * </p>
  *
  * @author markr

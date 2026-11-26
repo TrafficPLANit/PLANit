@@ -199,9 +199,9 @@ public class IntersectionClusterTest extends IntersectionConsolidationTestBase {
 
   /**
    * S is where a two-way road from the north splits into the carriageways of the divided roads crossing: the inbound
-   * one into A with a vehicle signal on it, the outbound one from B. Outbound traffic reaches S from B, but traffic from
-   * outside enters S before the signal, so S lies in front of the stop line and stays outside: the inbound carriageway
-   * stays an approach with its signal, the outbound one an exit, and no approach without a signal is added
+   * one into A with a vehicle signal on it, the outbound one from B. Outbound traffic reaches S from B, but traffic
+   * from outside enters S before the signal, so S lies in front of the stop line and stays outside: the inbound
+   * carriageway stays an approach with its signal, the outbound one an exit, and no approach without a signal is added
    * <pre>
    *                 N
    *                 |          N-S 85 m, two-way
@@ -273,9 +273,9 @@ public class IntersectionClusterTest extends IntersectionConsolidationTestBase {
   /**
    * A tram track runs beside the carriageway from A to C through T, a node with only the two tram links. No road
    * reaches T, but both its links end at member nodes, so T joins, and the tram links on either side of it become
-   * internal instead of arms. A second tram track runs from T to C through Y. Y lies beyond the radius of the crossing at
-   * first, but once T has joined, the radius grows and Y lies within it, connecting T and C, so Y joins too: the nodes
-   * an intersection encloses are looked for again until none join
+   * internal instead of arms. A second tram track runs from T to C through Y. Y lies beyond the radius of the crossing
+   * at first, but once T has joined, the radius grows and Y lies within it, connecting T and C, so Y joins too: the
+   * nodes an intersection encloses are looked for again until none join
    * <pre>
    *              4      7
    *              |      ^

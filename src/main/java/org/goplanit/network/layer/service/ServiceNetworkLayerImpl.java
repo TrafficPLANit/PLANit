@@ -22,15 +22,12 @@ import org.goplanit.utils.network.layer.service.ServiceNodes;
 
 /**
  * A service network layer is built on top of a physical network (layer). Its nodes (service nodes) and links (legs)
- * contain references to the underlying physical network resulting
- * in an efficient use of memory while allowing one to treat the service layer as a normal network at the same time.
- * Service Nodes are one-to-one matches to the underlying network
- * nodes and represent locations where services can be accessed/egressed. Edges are represented by ServiceLegs, while
- * edge segments are represented by ServiceLegSegments. A leg
- * comprises one or more physical links in the underlying network and as long as the underlying links differ, multiple
- * legs can exist between the same service nodes.
- * ServiceLegSegments have a direction which determines the order in which they traverse the underlying physical links
- * of the ServiceLeg.
+ * refer to the underlying physical network, which uses memory efficiently while the service layer can still be
+ * treated as a normal network. Service nodes match underlying network nodes one-to-one and are where services can be
+ * accessed/egressed. Edges are ServiceLegs and edge segments are ServiceLegSegments. A leg comprises one or more
+ * physical links of the underlying network, and multiple legs can exist between the same service nodes as long as
+ * their underlying links differ. The direction of a ServiceLegSegment determines the order in which it traverses the
+ * underlying physical links of its ServiceLeg.
  *
  * @author markr
  *

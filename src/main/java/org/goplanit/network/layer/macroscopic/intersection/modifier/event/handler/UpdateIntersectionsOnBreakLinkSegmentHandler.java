@@ -16,11 +16,11 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
- * Keeps the intersections referring to a broken link segment consistent once a link is broken at a node: a broken
- * internal segment leaves both link segments internal, with the node broken at as a member, and an approach moves to
- * the new link segment when that is the one ending at a member node, taking whether it has a signal of its own, its
- * green ratio and its saturation flow factor along. A movement through an intersection follows its approach or exit to
- * the link segment that touches the intersection
+ * Keeps the intersections referring to a broken link segment consistent once a link is broken at a node. A broken
+ * internal segment leaves both link segments internal, with the node broken at as a member. An approach moves to the
+ * new link segment when that is the one ending at a member node, taking along whether it has a signal of its own, its
+ * green ratio and its saturation flow factor. A movement through an intersection follows its approach or exit to the
+ * link segment that touches the intersection
  *
  * @author markr
  */

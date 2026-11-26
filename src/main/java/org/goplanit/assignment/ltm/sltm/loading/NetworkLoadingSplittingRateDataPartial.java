@@ -9,10 +9,10 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.ojalgo.array.Array1D;
 
 /**
- * Store the splitting rates used during sLTM loading updates (Step 1 and 5). In this implementation we only track
- * splitting rates of explicitly registered node. This is compatible with the basic PointQueue solution method where
- * we do not require any information of nodes that are not potentially blocking. It requires the less memory than
- * the other approach where we track all splitting rates of all used nodes.
+ * Store the splitting rates used during sLTM loading updates (Step 1 and 5). This implementation only tracks
+ * splitting rates of explicitly registered nodes. This is compatible with the basic PointQueue solution method, which
+ * needs no information on nodes that are not potentially blocking. It requires less memory than tracking all
+ * splitting rates of all used nodes.
  * 
  * @author markr
  *

@@ -18,9 +18,8 @@ public class ModeImpl extends ExternalIdAbleImpl implements Mode {
   public final static Long DEFAULT_EXTERNAL_ID = Long.valueOf(1);
 
   /**
-   * Each mode has a maximum speed indicating the maximum speed this mode can take on in the context of the network.
-   * Typically this would be chosen as the maximum speed limit
-   * encountered for this mode across all road segments in the network.
+   * The maximum speed this mode can take on in the network, typically the highest speed limit for this mode across all
+   * road segments in the network.
    */
   private final double maxSpeed;
 

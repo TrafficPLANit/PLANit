@@ -88,10 +88,9 @@ public class MSRASmoothingConfigurator extends SmoothingConfigurator<MSRASmoothi
   /**
    * Set the badIterationThreshold to use
    * <p>
-   *   threshold value for deciding whether an iteration is bad or not. This represents a proportional deterioration, i.e.,
-   *   when previous was 0.85 and current is 1, then it has worsened by more than 0.9, i.e., 0.85/1 and thus it is considered
-   *   a bad iteration, if it is 0.95 and 1, then it is worse than before, but not below the threshold and therefore it is not
-   *   a bad iteration
+   *   threshold value for deciding whether an iteration is bad or not, as a proportional deterioration. For example,
+   *   when previous was 0.85 and current is 1, it has worsened by more than 0.9 (0.85/1), so it is a bad iteration.
+   *   With 0.95 and 1 it is worse than before, but not below the threshold, so not a bad iteration
    * </p>
    *
    * @param badIterationThreshold the kappa step

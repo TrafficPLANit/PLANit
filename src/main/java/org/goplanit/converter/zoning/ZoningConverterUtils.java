@@ -239,11 +239,10 @@ public class ZoningConverterUtils {
     return enteringSegments != null && !enteringSegments.isEmpty();
   }
 
-  /** Verify if the provided line segment (somewhere along the geometry of the access link segment)
-   * resides on the correct side
-   * of the waiting area location, assuming this matters. The side is judged from the waiting area's centre, see
-   * {@link PlanitJtsUtils#extractCentre(Geometry)}, so a long platform is judged by its middle rather than by an end
-   * that happens to come nearer to the road
+  /** Verify if the provided line segment (somewhere along the geometry of the access link segment) resides on the
+   * correct side of the waiting area location, assuming this matters. The side is judged from the waiting area's
+   * centre, see {@link PlanitJtsUtils#extractCentre(Geometry)}, so a long platform is judged by its middle rather than
+   * by an end that happens to come nearer to the road
    *
    * @param waitingAreaGeometry for which to check location
    * @param accessLinkSegment the location resides on
@@ -268,9 +267,8 @@ public class ZoningConverterUtils {
   }
 
   /** Verify if the waiting area for an access mode's access link(segment) must be on the logical relative location
-   * (left hand side for left hand drive) or not.
-   * In case the mapping is overwritten it is assumed the driving direction does not matter as it is user defined
-   * to be explicitly mapped.
+   * (left hand side for left hand drive) or not. When the mapping is overwritten, the driving direction is assumed not
+   * to matter, as the user mapped it explicitly.
    *
    * @param <T> type of access entity
    * @param accessMode to check
@@ -305,14 +303,12 @@ public class ZoningConverterUtils {
     return accessMode.isRoadMode();
   }
 
-  /** create a subset of links from the passed in ones, removing all links for which we can be certain that geometry
-   * is located on the wrong side of the road infrastructure geometry. Note that
-   * rails is not excluded in this exercise, i.e., it is assumed rail lines ar bidirectional.
-   * Right or wrong side is verified by checking if the link is one-way. If so, we can be sure (based on the driving
-   * direction of the country) if the geometry is located to the closest by (logical)
-   * driving direction given the placement of the geometry, i.e., on the left hand side for left hand drive countries,
-   * on the right hand side for right hand driving countries. The side is judged from the location's centre, see
-   * {@link PlanitJtsUtils#extractCentre(Geometry)}
+  /** create a subset of the passed in links, removing all links for which the location's geometry is certainly on the
+   * wrong side of the road infrastructure geometry. Rail is not excluded this way, i.e., rail lines are assumed
+   * bidirectional. The side is only certain when the link is one-way: then the driving direction of the country tells
+   * whether the geometry lies on the side of the (logical) driving direction, i.e., on the left hand side for left
+   * hand drive countries, on the right hand side for right hand drive countries. The side is judged from the
+   * location's centre, see {@link PlanitJtsUtils#extractCentre(Geometry)}
    *
    * @param location representing the location of concern expected to have access to the link
    * @param links to remove in-eligible ones from
@@ -677,9 +673,8 @@ public class ZoningConverterUtils {
   /**
    * Choose a stop's location on its access link, from the locations its access link segments give: the nearest
    * location at an end node of its segment, its end or its start, so the link is not broken, otherwise the nearest
-   * location. When
-   * equally near, the segment with the lowest id wins, so the choice does not depend on the order of the segments. A
-   * location the caller marks as a last resort is only used when no segment gives another location
+   * location. When equally near, the segment with the lowest id wins, so the choice does not depend on the order of
+   * the segments. A location the caller marks as a last resort is only used when no segment gives another location
    *
    * @param accessLinkSegments of the access link to choose from
    * @param locationOnSegment the connectoid location on a segment, null when it has none
@@ -859,12 +854,10 @@ public class ZoningConverterUtils {
     return true;
   }
 
-  /** find a suitable connectoid location on the given link based on the constraints that it must be able to reside
-   * on a link segment that is in the correct relative position
-   * to the transfer zone and supports the access mode on at least one of the designated link segment(s) that is
-   * eligible (if any). If not null is returned, otherwise the returned
-   * location may be an existing extreme node's location, or a location internal to the link if the extreme node
-   * does not fall within the constraints provided
+  /** find a suitable connectoid location on the given link: it must lie on a link segment that is in the correct
+   * relative position to the transfer zone and supports the access mode on at least one of the designated link
+   * segment(s) that is eligible (if any). If not, null is returned. Otherwise the location may be an existing extreme
+   * node's location, or a location internal to the link if the extreme node does not fall within the constraints
    *
    * @param waitingAreaSourceId supplies a relevant source id of the waiting area in question to use for exceptions
    *                            or logging when needed
@@ -980,8 +973,8 @@ public class ZoningConverterUtils {
    *   area and within the given distance of the ideal stop point, and the access mode can use it: the segment's end
    *   node when the mode can arrive at it along the segment, its start node when the mode can arrive at it along
    *   exactly one other link and can leave it only along the segment, turning back aside, so every vehicle stopping
-   *   there comes from that link and passes the waiting area; the one nearer the ideal
-   *   stop point when both qualify,</li>
+   *   there comes from that link and passes the waiting area; the one nearer the ideal stop point when both
+   *   qualify,</li>
    *   <li>otherwise the link is broken at the ideal stop point, when it lies inside the link, within reach and on the
    *   side of the road the access mode needs; at the inner shape point nearest to it instead when that lies within the
    *   given distance of it and on the side of the road too,</li>
@@ -1257,12 +1250,11 @@ public class ZoningConverterUtils {
   }
 
   /**
-   * Identify transfer zones from provided container that have connectoids supporting any of the provided modes for
-   * PT_STOP labelled connectoids as well as the transfer zones from the set that on top do not support
-   * any of the access/egress type modes provided.
+   * Identify the transfer zones from the provided container whose PT_STOP labelled connectoids support any of the
+   * provided modes, and of those, the transfer zones that do not support any of the access/egress type modes provided.
    *
-   * todo: not great should be for single accessEgress mode at the time, as now partial support is classified
-   *  as no support (some modes supported, some not, then we still say no support)
+   * todo: not great, should be for a single access/egress mode at a time, as now partial support (some modes
+   *  supported, some not) is still classified as no support
    *
    * @param connectoidsByTransferZoneMapping mapping can be obtained from zoning
    * @param ptStopAccessModes to filter by (pt stop is type filter)

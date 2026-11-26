@@ -159,8 +159,8 @@ public class IntersectionConsolidator {
   private final IntersectionConsolidatorSettings settings;
 
   /** true for a link segment with a signal of its own, which the layer does not record: a vehicle signal standing on
-   * it, or a light for the footway or cycleway it is on where no road or rail passes. A segment that becomes internal is
-   * added as an internal segment with a signal when it has one, and a link reached only through the intersection is
+   * it, or a light for the footway or cycleway it is on where no road or rail passes. A segment that becomes internal
+   * is added as an internal segment with a signal when it has one, and a link reached only through the intersection is
    * listed as having a signal when one of its segments has one. Asked of road segments into a junction too, to tell
    * whether a node lies in front of it, see {@link #isEnteredFromOutsideBeforeVehicleSignalIntoJunction} */
   private final Predicate<LinkSegment> hasSignalOfItsOwn;
@@ -727,10 +727,10 @@ public class IntersectionConsolidator {
 
   /**
    * Leave out the nodes about to join an intersection that no motorised road or rail mode uses and that would hang off
-   * it (C2 step 12). Such a node hangs off when it links to fewer than two of the intersection's nodes, its member nodes
-   * and the other nodes about to join: a node on a pavement leading away from a footway corner, for example. It also
-   * hangs off when it is not connected to the member nodes through the other nodes about to join: footway nodes beyond
-   * a node in front of the junction that stays outside, for example. Leaving one node out can leave the next one
+   * it (C2 step 12). Such a node hangs off when it links to fewer than two of the intersection's nodes, its member
+   * nodes and the other nodes about to join: a node on a pavement leading away from a footway corner, for example. It
+   * also hangs off when it is not connected to the member nodes through the other nodes about to join: footway nodes
+   * beyond a node in front of the junction that stays outside, for example. Leaving one node out can leave the next one
    * hanging, so this repeats until no more nodes are left out. A node a motorised road or rail mode uses is not left
    * out this way
    *
@@ -755,8 +755,8 @@ public class IntersectionConsolidator {
   /**
    * Find the nodes no motorised road or rail mode uses, such as those of footways and cycleways, that lie on a
    * connection between two member nodes of an intersection, through such nodes only, at most
-   * {@value #MAXIMUM_CONNECTION_THROUGH_NODES_NOT_ON_ROAD_OR_RAIL_METERS} m long. A footway corner between two crossings
-   * is an example: such corners can lie well beyond the radius. A node on a pavement leading away from the
+   * {@value #MAXIMUM_CONNECTION_THROUGH_NODES_NOT_ON_ROAD_OR_RAIL_METERS} m long. A footway corner between two
+   * crossings is an example: such corners can lie well beyond the radius. A node on a pavement leading away from the
    * intersection can be found too, by going out to it and back; it would hang off the intersection, so it is left out
    * afterwards, see {@link #leaveOutJoiningNodesNotOnRoadOrRailHangingOffIntersection}
    *
@@ -850,18 +850,17 @@ public class IntersectionConsolidator {
    * being nil, so two junctions a few metres apart that only footways link become one. It passes over the junctions it
    * was weighed with in an intersection cluster, see
    * {@link IntersectionConsolidatorTrackingData#wereWeighedInOneCluster}: the subdivision chosen there decided they
-   * stay apart. Another junction with a node within the
-   * radius plus {@link IntersectionConsolidatorSettings#getPullInMarginBeyondRadiusMeters()} of the centre, reached
+   * stay apart. Another junction with a node within the radius plus
+   * {@link IntersectionConsolidatorSettings#getPullInMarginBeyondRadiusMeters()} of the centre, reached
    * from a member node within {@link IntersectionConsolidatorSettings#getMaximumPullInConnectionLengthMeters()} over
    * any links, is part of the same junction: a signal inside a junction belongs to it, even when the scoring kept it
    * apart or no road brought it into the intersection cluster. It joins with the nodes on that connection, see
    * {@link #joinIntoSpatialIntersection(List, Collection)}, and is listed. A node on the connection that lies in front
    * of the junction stays outside, see {@link #leaveOutJoiningNodesInFrontOfJunction}. A junction whose connection
-   * crosses a tram or light rail track may lie
-   * {@link #PULL_IN_EXTRA_MARGIN_WHERE_CONNECTION_CROSSES_TRACK_METERS} further, see
-   * {@link #connectionCrossesTramOrLightRailTrackBetween}, since the corridor between them makes for a larger junction
-   * layout, see {@link #computePullInReachMeters}. The centre and radius move as junctions join, so this repeats until
-   * a round pulls nothing in
+   * crosses a tram or light rail track may lie {@link #PULL_IN_EXTRA_MARGIN_WHERE_CONNECTION_CROSSES_TRACK_METERS}
+   * further, see {@link #connectionCrossesTramOrLightRailTrackBetween}, since the corridor between them makes for a
+   * larger junction layout, see {@link #computePullInReachMeters}. The centre and radius move as junctions join, so
+   * this repeats until a round pulls nothing in
    *
    * @return the intersections junctions were pulled into, empty when none
    */

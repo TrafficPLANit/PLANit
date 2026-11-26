@@ -27,29 +27,26 @@ public class AccessEgressInjectionSettings {
   private static final Logger LOGGER = Logger.getLogger(AccessEgressInjectionSettings.class.getCanonicalName());
 
   /**
-   * When a ferry stop is disconnected from to the land network it cannot be used for transfers, this
-   * option will generate simple link connectoid based on the accessible modes of the ferry to nearby land network
+   * A ferry stop disconnected from the land network cannot be used for transfers. When true, a simple link
+   * connectoid is created, based on the accessible modes of the ferry, to the nearby land network
    */
   private boolean connectFerryStopToNearbyLandNetwork = DEFAULT_CONNECT_FERRY_STOP_TO_PASSENGER_LAND_NETWORK;
 
   /**
-   * When a ferry stop is disconnected from the land network it cannot be used for transfers, the provided distance
-   * is the maximum distance it will use when creating links based on the accessible modes of the ferry
-   * to nearby land network
+   * A ferry stop disconnected from the land network cannot be used for transfers. This is the maximum distance used
+   * when creating links, based on the accessible modes of the ferry, to the nearby land network
    */
   private double  searchRadiusFerryStopToLandNetworkMeters = DEFAULT_SEARCH_RADIUS_FERRY_STOP_TO_LAND_NETWORK_M;
 
   /**
-   * When a rail based stop is disconnected from the road network it cannot be used for transfers, this
-   * option will generate connectoids based on the accessible modes of the rail (e.g., pedestrian, bicycle) to nearby
-   * road network
+   * A rail based stop disconnected from the road network cannot be used for transfers. When true, connectoids are
+   * created, based on the accessible modes of the rail (e.g., pedestrian, bicycle), to the nearby road network
    */
   private boolean connectRailBasedStopToPassengerNetwork = DEFAULT_CONNECT_RAIL_STOP_TO_PASSENGER_NETWORK;
 
   /**
-   * When a bus based stop is disconnected from the road network it cannot be used for transfers, this
-   * option will generate connectoids based on the accessible modes of the bus (e.g., pedestrian) to nearby
-   * road network
+   * A bus based stop disconnected from the road network cannot be used for transfers. When true, connectoids are
+   * created, based on the accessible modes of the bus (e.g., pedestrian), to the nearby road network
    */
   private boolean connectBusBasedStopToPassengerNetwork = DEFAULT_CONNECT_BUS_STOP_TO_PASSENGER_NETWORK;
 
@@ -61,16 +58,14 @@ public class AccessEgressInjectionSettings {
   private boolean fallbackOnRoadModesWithoutActiveModes = DEFAULT_FALLBACK_ON_ROAD_MODES_WITHOUT_ACTIVE_MODES;
 
   /**
-   * When a rail based stop is disconnected from the land network it cannot be used for transfers, the provided distance
-   * is the maximum distance it will use when creating links based on the accessible modes of the rail
-   * to nearby road network
+   * A rail based stop disconnected from the land network cannot be used for transfers. This is the maximum distance
+   * used when creating links, based on the accessible modes of the rail, to the nearby road network
    */
   private double searchRadiusRailBasedStopToPassengerNetworkMeters = DEFAULT_SEARCH_RADIUS_RAIL_STOP_TO_ROAD_NETWORK_M;
 
   /**
-   * When a bus based stop is disconnected from the road network it cannot be used for transfers, the provided distance
-   * is the maximum distance it will use when creating links based on the accessible modes of the bus to nearby road
-   * network
+   * A bus based stop disconnected from the road network cannot be used for transfers. This is the maximum distance
+   * used when creating links, based on the accessible modes of the bus, to the nearby road network
    */
   private double searchRadiusBusBasedStopToPassengerNetworkMeters = DEFAULT_SEARCH_RADIUS_BUS_STOP_TO_ROAD_NETWORK_M;
 
@@ -87,23 +82,23 @@ public class AccessEgressInjectionSettings {
   public static final boolean DEFAULT_FALLBACK_ON_ROAD_MODES_WITHOUT_ACTIVE_MODES = true;
 
   /**
-   * default search radius in meters for mapping ferry stops to land network. When found and
-   * {@link #isConnectFerryStopsToNearbyLandNetwork()} is true then a new connectoid to the nearest road
-   * supporting non-ferry modes is created to avoid the ferry stop to be dangling
+   * default search radius in meters for mapping ferry stops to the land network. When found and
+   * {@link #isConnectFerryStopsToNearbyLandNetwork()} is true, a new connectoid to the nearest road supporting
+   * non-ferry modes is created, so the ferry stop is not dangling
    */
   public static final double DEFAULT_SEARCH_RADIUS_FERRY_STOP_TO_LAND_NETWORK_M = 500;
 
   /**
-   * default search radius in meters for mapping rail based stops to road network. When found and
-   * {@link #isConnectRailBasedStopsToPassengerNetwork()} is true then a new connectoid to the nearest road
-   * supporting access mode is created to avoid the stop to be dangling
+   * default search radius in meters for mapping rail based stops to the road network. When found and
+   * {@link #isConnectRailBasedStopsToPassengerNetwork()} is true, a new connectoid to the nearest road supporting the
+   * access mode is created, so the stop is not dangling
    */
   public static final double DEFAULT_SEARCH_RADIUS_RAIL_STOP_TO_ROAD_NETWORK_M = 200;
 
   /**
-   * default search radius in meters for mapping bus based stops to road network. When found and
-   * {@link #isConnectBusBasedStopsToPassengerNetwork()} is true then a new connectoid to the nearest road
-   * supporting configured access mode is created to avoid the stop to be dangling
+   * default search radius in meters for mapping bus based stops to the road network. When found and
+   * {@link #isConnectBusBasedStopsToPassengerNetwork()} is true, a new connectoid to the nearest road supporting the
+   * configured access mode is created, so the stop is not dangling
    */
   public static final double DEFAULT_SEARCH_RADIUS_BUS_STOP_TO_ROAD_NETWORK_M = 25;
 

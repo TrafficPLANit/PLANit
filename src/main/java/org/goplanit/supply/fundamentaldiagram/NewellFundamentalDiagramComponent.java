@@ -96,11 +96,10 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
   }
 
   /**
-   * Register the given Newell fundamental diagram for the link segment. This overrules the fundamental diagram that
-   * would be used based on the link segment's type. In case there already exists an identical fundamental diagram
-   * (based on relaxed hashcode comparison), the link segment is assigned the already present fundamental diagram.
-   * The fundamental diagram used for the link segment is returned, which is either the passed in one, or an
-   * already present functionally identical version
+   * Register the given Newell fundamental diagram for the link segment, overruling the one based on the link
+   * segment's type. When an identical fundamental diagram already exists (by relaxed hashcode comparison), the link
+   * segment is assigned that one. The fundamental diagram used for the link segment is returned: either the one passed
+   * in, or an already present functionally identical version
    * 
    * @param linkSegment        to use
    * @param fundamentalDiagram to register
@@ -113,10 +112,10 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
   }
 
   /**
-   * Register the given Newell fundamental diagram for the link segment type. In case there already exists an
-   * identical fundamental diagram (based on relaxed hashcode comparison), the link segment type is assigned
-   * the already present fundamental diagram. The fundamental diagram used for the link segment type is returned,
-   * which is either the passed in one, or an already present functionally identical version
+   * Register the given Newell fundamental diagram for the link segment type. When an identical fundamental diagram
+   * already exists (by relaxed hashcode comparison), the link segment type is assigned that one. The fundamental
+   * diagram used for the link segment type is returned: either the one passed in, or an already present functionally
+   * identical version
    * 
    * @param linkSegmentType    to use
    * @param fundamentalDiagram to register

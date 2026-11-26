@@ -41,19 +41,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * Test the sLTM assignment basic functionality (route choice) using a single PAS where the merge
- * and diverge are working against each other.
+ * Test the basic functionality of the sLTM assignment (route choice) using a single PAS where the merge and diverge
+ * work against each other.
  * <p>
- *   Merge has one congested entry claiming potentially beyond its fair share and one that is not
- *   necessarily congested claiming less than its fair share, resulting in difficult to solve derivatives
+ *   The merge has one congested entry, possibly claiming beyond its fair share, and one not necessarily congested,
+ *   claiming less than its fair share, which makes the derivatives difficult to solve
  * </p>
  * <p>
- *   Diverge works opposite, getting only congested when moving flow from congested merge towards uncongested
- *   entry of the merge. In doing so the merge's previously congested arm becomes more attractive again.
+ *   The diverge works the other way: it only becomes congested when flow moves from the merge's congested entry
+ *   towards its uncongested entry. That makes the merge's previously congested arm more attractive again.
  * </p>
- * 
- * @author markr
  *
+ * @author markr
  */
 public class sLtmAssignmentBushSingleOdTest4 {
 
@@ -268,11 +267,9 @@ public class sLtmAssignmentBushSingleOdTest4 {
   //@formatter:on
 
   /**
-  /**
-   * Test sLTM conjugate bush-based assignment on above network for a point queue model
-   * so far it has proven impossible to solve this without reducing the step size due to
-   * the interaction between diverge and merge bottlenecks. even with derivatives
-   * this will overshoot.
+   * Test sLTM conjugate bush-based assignment on the above network for a point queue model. So far it has proven
+   * impossible to solve without reducing the step size, because of the interaction between the diverge and merge
+   * bottlenecks: even with derivatives it overshoots.
    */
   @Test
   public void sLtmPointQueueConjugateBushDestinationBasedAssignmentTest() {

@@ -107,10 +107,9 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   /**
    * Returns the specified output property values for the current cell in the ODMulti-PathIterator
    * <p>
-   * Since we allow for multiple paths per OD, we may end up with multiple values, one per path. Hence, we process
-   * each path separately resulting in a column vector inf the form of a list which x times the same value in case
-   * the output property is constant
-   * across the paths, or x different results in case it varies per path.
+   * An OD may have multiple paths, so there may be multiple values, one per path. Each path is therefore processed
+   * separately, giving a column vector in the form of a list: x times the same value when the output property is
+   * constant across the paths, or x different results when it varies per path.
    * </p>
    *
    * @param outputProperty the specified output property
@@ -163,10 +162,9 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   /**
    * Returns the specified output property values for the current cell in the ODMulti-PathIterator
    * <p>
-   * Since we allow for multiple paths per OD, we may end up with multiple values, one per path. Hence, we process
-   * each path separately resulting in a column vector inf the form of a list which x times the same value in
-   * case the output property is constant
-   * across the paths, or x different results in case it varies per path.
+   * An OD may have multiple paths, so there may be multiple values, one per path. Each path is therefore processed
+   * separately, giving a column vector in the form of a list: x times the same value when the output property is
+   * constant across the paths, or x different results when it varies per path.
    * </p>
    *
    * @param outputProperty the specified output property

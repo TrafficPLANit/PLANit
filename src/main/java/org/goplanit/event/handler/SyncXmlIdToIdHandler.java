@@ -16,10 +16,9 @@ import org.goplanit.utils.service.routed.modifier.RoutedServicesModificationEven
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
 
 /**
- * Whenever managed Ids containers with entities also supporting an external id are changed in terms of their internal
- * id, their XML ids remain the same and might no longer be unique. When this is not desirable and the user wants to
- * keep the XML ids unique, for example when the network is persisted to disk afterwards, in which case the XML ids
- * must be unique, then this handler can be used to sync the XML ids to the newly assigned unique internal ids.
+ * When the internal ids in a managed ids container whose entities also support an external id change, their XML ids
+ * remain the same and might no longer be unique. When the XML ids must stay unique, for example when the network is
+ * persisted to disk afterwards, this handler syncs the XML ids to the newly assigned unique internal ids.
  *
  * @author markr
  */

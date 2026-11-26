@@ -231,8 +231,8 @@ public class EntryExitBushTurnData {
    * Collect the splitting rate for a given link segment. Splitting rates are based on the current turn sending
    * flows s_ab.
    * <p>
-   * When collecting multiple splitting rates with the same in link, do not use this method but instead collect
-   * all splitting rates at once and then filter the ones you require it is computationally more efficient.
+   * For several splitting rates with the same in link, do not use this method: collecting all splitting rates at once
+   * and filtering the ones required is computationally more efficient.
    * 
    * 
    * @param fromSegment of turn to collect splitting rate for

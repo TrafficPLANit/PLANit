@@ -15,10 +15,9 @@ import org.ojalgo.array.Array2D;
 public interface NodeModelRunTurnBasedResultConsumer {
 
   /**
-   * A centroid node or non-blocking nodes are nodes where all flow is always accepted. For centroids these
-   * can be destination incoming links, or for origin outgoing links the sending flows
-   * do not come from turns but from origin zone (origin exit links). As such we present only the original link
-   * segment sending flows in those cases.
+   * At a centroid node or a non-blocking node all flow is always accepted. At a centroid the links are destination
+   * incoming links, or origin outgoing links whose sending flows come from the origin zone (origin exit links), not
+   * from turns. So in those cases only the original link segment sending flows are given.
    * 
    * @param node                   to use
    * @param linkSegmentSendingFlow to use. Note that these are the network wide sending flows by link segment id,

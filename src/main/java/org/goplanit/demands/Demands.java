@@ -19,14 +19,14 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Container class for all demands registered on the project. In PlanIt we assume that all traffic flows between an
- * origin and destination. Hence, all demand for a given time period and mode is provided between an origin and
- * destination via ODDemand.
+ * Container class for all demands registered on the project. PLANit assumes all traffic flows between an origin and
+ * destination, so all demand for a given time period and mode is provided between an origin and destination via
+ * ODDemand.
  * <p>
- * Further, unlike other components, we let anyone register OdDemand compatible instances on this class to provide
- * maximum flexibility in the underlying container since depending on the od data different containers might be
- * preferred for optimizing memory usage. Also not all OdDemand instances on the same Demands instance might utilize
- * the same data structure, hence the need to avoid a general approach across all entries within a Demands instance
+ * Unlike other components, anyone may register OdDemand compatible instances on this class, for maximum flexibility in
+ * the underlying container: depending on the od data, different containers might use memory better. Not all OdDemand
+ * instances on the same Demands instance need use the same data structure, hence no general approach across all its
+ * entries
  * </p>
  *
  * @author markr

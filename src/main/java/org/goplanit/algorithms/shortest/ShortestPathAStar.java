@@ -15,9 +15,9 @@ import org.goplanit.utils.misc.Pair;
 /**
  * A* shortest path algorithm
  * <p>
- * A* shortest path is a one-to-one implementation of the shortest path algorithm based on the generalized costs
- * on each link segment (edge). The costs should be provided upon instantiation and are reused whenever a
- * One-To-One execution conditional on the chosen source node is performed.
+ * A* shortest path is a one-to-one implementation of the shortest path algorithm based on the generalized costs on
+ * each link segment (edge). The costs should be provided upon instantiation and are reused for each one-to-one
+ * execution from the chosen source node.
  * </p>
  * <p>
  * In its current form, it assumes a macroscopic network and macroscopic link segments to operate on
@@ -98,10 +98,10 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
   /**
    * {@inheritDoc}
    * 
-   * We create the heuristic costs on-the-fly based on the coordinates of the vertex and computing the
-   * as-the-crow-flies lower bound cost. Can only be used when instance was created by providing ${code CRS} and
-   * ${code heuristicDistanceMultiplier} in constructor. Also, all network entities should hold geo positions
-   * otherwise the execution will fail with a null pointer.
+   * The heuristic costs are computed when needed, as the as-the-crow-flies lower bound cost from the coordinates of
+   * the vertex. Can only be used when the instance was created with {@code CRS} and
+   * {@code heuristicDistanceMultiplier} in the constructor. All network entities should hold geo positions, otherwise
+   * the execution fails with a null pointer.
    *
    */
   @Override

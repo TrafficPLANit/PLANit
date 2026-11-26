@@ -28,13 +28,12 @@ import java.util.concurrent.atomic.LongAdder;
  * methods: Formulation, derivation, classification, and unification.
  * <p>
  * Suitable for static and semi-dynamic traffic assignment methods that are steady-state with respect to their
- * inflow and outflow rates which necessarily are able to take on different values, where the difference between in
- * and outflow results in a queue on the link. Most notable assignment method that adopts this method is sLTM.
+ * inflow and outflow rates, which must be able to take different values: the difference between inflow and outflow
+ * results in a queue on the link. The most notable assignment method using it is sLTM.
  * <p>
- * Raadsen and Bliemer (2019) highlight three main computation methods to compute the same steady-state travel time
- * on the link level. In this implementation we utilise the so called static-functional - longitudinal method where
- * we compute the travel time via three components: 1) free flow travel time + 2) hypocritical delay + 3)
- * hypercritical delay.
+ * Raadsen and Bliemer (2019) highlight three main methods to compute the same steady-state travel time on the link
+ * level. This implementation uses the so called static-functional - longitudinal method, computing the travel time
+ * from three components: 1) free flow travel time + 2) hypocritical delay + 3) hypercritical delay.
  *
  * @author markr
  */

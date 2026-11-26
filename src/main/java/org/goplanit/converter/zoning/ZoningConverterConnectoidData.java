@@ -79,8 +79,8 @@ public class ZoningConverterConnectoidData {
    * Set the length of an access zone entry to the distance between the transfer zone and the access node it attaches
    * to, but only when it is still at its default.
    * <p>
-   * Whoever creates the entry is what chose the access node, so it is what knows how far away the zone is. Without
-   * this the length stays zero and anything downstream, a MATSim writer for example, has to invent one.
+   * Whoever creates the entry chose the access node, so it knows how far away the zone is. Without this the length
+   * stays zero and anything downstream, a MATSim writer for example, has to invent one.
    * </p>
    *
    * @param entry to update, may be null in which case nothing happens
@@ -336,13 +336,13 @@ public class ZoningConverterConnectoidData {
   /**
    * Index the transfer connectoids already present on the reference zoning, both by location and by transfer zone.
    * <p>
-   * Readers have no need for this, they index each connectoid as they create it. It exists for working on a zoning
-   * parsed earlier, where all connectoids are present but nothing is indexed yet. Without it an existing connectoid
-   * is invisible, so a second one is created at a node that already has one rather than the existing one being
-   * expanded with the additional modes.
+   * Readers do not need this, as they index each connectoid as they create it. It is for working on a zoning parsed
+   * earlier, where all connectoids are present but nothing is indexed yet. Without it an existing connectoid is
+   * invisible, so a second one is created at a node that already has one, instead of the existing one gaining the
+   * additional modes.
    * </p>
    * <p>
-   * Safe to call repeatedly, both underlying registrations ignore a connectoid they already hold.
+   * Safe to call repeatedly: both underlying registrations ignore a connectoid they already hold.
    * </p>
    */
   public void indexExistingTransferConnectoids(){

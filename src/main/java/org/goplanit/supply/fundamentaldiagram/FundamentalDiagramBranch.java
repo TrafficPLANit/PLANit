@@ -102,10 +102,9 @@ public interface FundamentalDiagramBranch {
   public abstract double getDSpeedDDensityAtDensity(double densityPcuKm);
 
   /**
-   * A fundamental diagram branch is based on a limited number of double variables to define it. In case we want to
-   * reuse the same branch for extremely similar variables, then we can use this relaxed hash code that ensures
-   * that for the given precision level identical hashes are created even if the underlying floating point
-   * variables differ beyond this precision.
+   * A fundamental diagram branch is defined by a limited number of double variables. To reuse the same branch for
+   * extremely similar variables, this relaxed hash code gives identical hashes at the given precision level, even if
+   * the underlying floating point variables differ beyond this precision.
    * 
    * @param scale indicating how many decimals to consider, e.g., 2 considers 2 decimals for precision
    * @return the created relaxed hash code

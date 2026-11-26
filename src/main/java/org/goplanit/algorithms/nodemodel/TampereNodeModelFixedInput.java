@@ -12,9 +12,9 @@ import org.ojalgo.array.Array1D;
 import org.ojalgo.function.PrimitiveFunction;
 
 /**
- * Inner class that holds the mapping of the inputs to/from the underlying physical network (if any).
- * Currently, we support the PLANit network format for this mapping, or one
- * provides the fixed input separate from a particular network format By default, we:
+ * Inner class that holds the mapping of the inputs to/from the underlying physical network (if any). Currently the
+ * PLANit network format is supported for this mapping, or one provides the fixed input separate from a particular
+ * network format. By default, we:
  * <ul>
  * <li>map incoming link segments in order of appearance to index a=0,...,|A^in|-1</li>
  * <li>map outgoing link segments in order of appearance to index b=0,...,|B^out|-1</li>
@@ -22,8 +22,8 @@ import org.ojalgo.function.PrimitiveFunction;
  * <li>extract receiving flow capacities such that R_b=C_b</li>
  * </ul>
  * 
- * Note that in case the receiving flows are not fixed at the outgoing link's capacity this can be omitted and
- * provided as a separate input via the TampereNodeModelInput
+ * When the receiving flows are not fixed at the outgoing link's capacity, this can be omitted and provided as a
+ * separate input via the TampereNodeModelInput
  * 
  */
 public class TampereNodeModelFixedInput {
@@ -100,9 +100,9 @@ public class TampereNodeModelFixedInput {
 
   /**
    * Extract the available outgoing link receiving flows by setting them to capacity. It is assumed the incoming
-   * link segments are available. Note that assignment methods that support storage constraints, i.e., spillback
-   * do not always have receiving flows equal to capacity. In that case receiving flows are not fixed and should
-   * not be initialised here but instead by provided on-the-fly for each tampere node model update.
+   * link segments are available. Assignment methods that support storage constraints, i.e., spillback, do not always
+   * have receiving flows equal to capacity. Their receiving flows are not fixed, so they should not be initialised
+   * here but provided for each Tampere node model update instead.
    * 
    * @param initialiseReceivingFlowsAtCapacity to use
    */

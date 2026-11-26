@@ -106,9 +106,8 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
   }
 
   /**
-   * For the Newell FD this means that all remains the same except for the congested wave speed to ensure the
-   * FD remains viable since the capacity is derived and not explicitly set. By changing the backward
-   * wave speed to the adjusted value we ensure we obtain the desired capacity
+   * For the Newell FD all remains the same except the congested wave speed, to keep the FD viable, as the capacity is
+   * derived, not set explicitly. Changing the backward wave speed to the adjusted value gives the desired capacity
    */   
   @Override
   public void setCapacityPcuHour(double capacityPcuHour) {

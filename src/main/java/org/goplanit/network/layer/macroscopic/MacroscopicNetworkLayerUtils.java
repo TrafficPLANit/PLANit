@@ -61,19 +61,19 @@ public class MacroscopicNetworkLayerUtils {
 
   /**
    * Subnetwork sizes reported against, in nodes, see {@link #restrictModeAccessToConnectedSubNetworks} for how they
-   * are counted. Deliberately not configurable for now: the bins exist to make a size threshold choosable from a single
-   * run, and this spread is fine grained where the choice actually is, namely among the small subnetworks.
+   * are counted. Not configurable for now: the bins let a size threshold be chosen from a single run, and this spread
+   * is fine grained where that choice is, among the small subnetworks.
    */
   private static final BinningConfiguration<Integer> SUBNETWORK_SIZE_BINS =
       BinBuilder.ofInclusiveIntegerLowerBounds(1, 2, 5, 20, 50, 200);
 
   /**
-   * Partition the link segments allowing a mode into the mode's subnetworks under the given notion of connectivity,
-   * largest first by number of nodes. Under strong connectivity a subnetwork is a set of link segments the mode can
-   * travel between both ways through the turns not banned for it, and counts as the number of different nodes its link
-   * segments start at. Under weak connectivity it is a set of nodes joined by links the mode may use in either
-   * direction, and counts as its number of nodes, holding the link segments allowing the mode that start at them; a
-   * node without any link segment of the mode is then a subnetwork of its own, without link segments
+   * Partition the link segments allowing a mode into the mode's subnetworks under the given connectivity, largest first
+   * by number of nodes. Under strong connectivity a subnetwork is a set of link segments the mode can travel between
+   * both ways through the turns not banned for it. Its size is the number of different nodes its link segments start
+   * at. Under weak connectivity it is a set of nodes joined by links the mode may use in either direction. Its size is
+   * its number of nodes, and it holds the link segments allowing the mode that start at them. A node without any link
+   * segment of the mode is then a subnetwork of its own, without link segments
    *
    * @param layer to inspect
    * @param mode to partition for
@@ -109,21 +109,21 @@ public class MacroscopicNetworkLayerUtils {
   private MacroscopicNetworkLayerUtils(){}
 
   /**
-   * Withdraw a mode's access from the subnetworks of that mode which do not meet the given criteria, leaving its
-   * access only where the mode has a network worth having.
+   * Withdraw a mode's access from its subnetworks that do not meet the given criteria, so the mode keeps access only
+   * where it has a network worth having.
    * <p>
-   * The counterpart of dangling subnetwork removal, judged per mode rather than per track type, and withdrawing
-   * access rather than removing infrastructure. Both differences are necessary rather than stylistic. Track type
-   * is too coarse to see the problem, since a one way street usually still permits pedestrians against the flow
-   * and is therefore bidirectional as road infrastructure while being a dead end for cars. And removal is the
-   * wrong remedy, because the link a car cannot use is typically carrying another mode perfectly well.
+   * The counterpart of dangling subnetwork removal, but judged per mode rather than per track type, and withdrawing
+   * access rather than removing infrastructure. Both differences are necessary, not stylistic. Track type is too coarse
+   * to see the problem: a one way street usually still permits pedestrians against the flow, so it is bidirectional as
+   * road infrastructure while being a dead end for cars. And removal is the wrong remedy, as the link a car cannot use
+   * typically carries another mode perfectly well.
    * </p>
    * <p>
-   * What counts as a subnetwork follows the given {@link Connectivity}: weakly connected components when
-   * ignoring direction, strongly connected components when a mode must be able to both reach and leave. The size
-   * thresholds then apply to those components exactly as they do for dangling subnetwork removal, so
-   * {@code belowSize} at its maximum together with {@code alwaysKeepLargest} and {@link Connectivity#STRONG}
-   * leaves the mode with a single network it can route across in full.
+   * What counts as a subnetwork follows the given {@link Connectivity}: weakly connected components when ignoring
+   * direction, strongly connected components when a mode must be able to both reach and leave. The size thresholds
+   * apply to those components exactly as for dangling subnetwork removal, so {@code belowSize} at its maximum with
+   * {@code alwaysKeepLargest} and {@link Connectivity#STRONG} leaves the mode a single network it can route across in
+   * full.
    * </p>
    * <p>
    * Under strong connectivity the mode moves from link segment to link segment through the turns not banned for it, so
@@ -142,14 +142,13 @@ public class MacroscopicNetworkLayerUtils {
    * <p>
    * Nothing is removed here, not even a segment left with no permitted mode at all: it is given a type granting
    * nothing, and {@link MacroscopicNetworkLayerModifier#removeInfrastructureWithoutModeAccess()} clears such
-   * segments once every mode has been dealt with. Keeping the two apart is what allows modes to be processed
-   * independently, since removing as we go would mutate the graph underneath the modes not yet processed.
+   * segments once every mode is done. Keeping the two apart lets modes be processed independently, as removing as we
+   * go would change the graph under the modes not yet processed.
    * </p>
    * <p>
-   * Connectoids are deliberately not considered. They are not part of the physical network, so what they
-   * reference does not decide what the network may do. Access is withdrawn by changing the segment's type through the
-   * layer's modifier, so the zoning side can follow it with a listener, see
-   * {@link org.goplanit.zoning.connectoid.TransferConnectoidsImpl}.
+   * Connectoids are not considered: they are not part of the physical network, so what they reference does not decide
+   * what the network may do. Access is withdrawn by changing the segment's type through the layer's modifier, so the
+   * zoning side can follow it with a listener, see {@link org.goplanit.zoning.connectoid.TransferConnectoidsImpl}.
    * </p>
    *
    * @param layer to apply this to
