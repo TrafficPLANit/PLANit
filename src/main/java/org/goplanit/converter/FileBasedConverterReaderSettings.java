@@ -94,4 +94,12 @@ public abstract class FileBasedConverterReaderSettings implements ConverterReade
   public void logSettings(int level) {
     LOGGER.info(LoggingUtils.settingsValue("Input source", getInputSource(), level));
   }
+
+  /**
+   * Clear the input source; a reader's settings put back what they add and call this for the rest
+   */
+  @Override
+  public void reset() {
+    this.inputSource = null;
+  }
 }

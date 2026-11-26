@@ -17,13 +17,13 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -41,12 +41,6 @@ public class FileBasedConverterSettingsTest {
     /** Constructor, without an input source */
     public TestReaderSettings() {
       super();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void reset() {
-      setInputSource((URL) null);
     }
 
     /** {@inheritDoc} */
@@ -193,6 +187,15 @@ public class FileBasedConverterSettingsTest {
     var readBack = create(READER_SCHEMA, TestReaderSettings.class,
         SettingsSource.ofText(writtenOut(READER_SCHEMA, settings)));
     assertEquals(SYDNEY_URL, readBack.getInputSource().toString());
+  }
+
+  /** A reset of reader settings clears the input source, as the reader base does for every reader */
+  @Test
+  public void readerSettingsResetClearTheInputSource() {
+    var settings = new TestReaderSettings();
+    settings.setInputSource(SYDNEY_URL);
+    settings.reset();
+    assertNull(settings.getInputSource());
   }
 
   /**
