@@ -95,15 +95,16 @@ public class FileBasedConverterSettingsTest {
   }
 
   /**
-   * Settings written out, the keys differing from the defaults, without descriptions
+   * Settings written out, the keys differing from the defaults, without descriptions, by a writer made for a file it
+   * does not write
    *
    * @param schema layout of the file
    * @param settings to write
    * @return the text of the file
    */
   private static String writtenOut(SettingsSchema schema, Object settings) {
-    return new SettingsYamlWriter(schema, settings, SettingsFileContentType.KEYS_DIFFERING_FROM_DEFAULTS, false)
-        .toString();
+    return new SettingsYamlWriter(schema, settings, SettingsFileContentType.KEYS_DIFFERING_FROM_DEFAULTS, false,
+        Path.of("settings.yaml")).toString();
   }
 
   /**
@@ -230,7 +231,8 @@ public class FileBasedConverterSettingsTest {
     var readBack = create(WRITER_SCHEMA, TestWriterSettings.class, SettingsSource.ofText(written));
     assertEquals(Path.of(settings.getOutputDirectory()), Path.of(readBack.getOutputDirectory()));
     assertEquals(settings.getCountry(), readBack.getCountry());
-    assertEquals(settings.getDestinationCoordinateReferenceSystem(), readBack.getDestinationCoordinateReferenceSystem());
+    assertEquals(settings.getDestinationCoordinateReferenceSystem(),
+        readBack.getDestinationCoordinateReferenceSystem());
     assertEquals(settings.getFileName(), readBack.getFileName());
   }
 }

@@ -15,6 +15,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -126,7 +127,8 @@ public class GreenRatioAndSaturationFlowFactorSettingsTest {
             + "    minimumGreenTimeSeconds: 7.0\n"
             + "    rampMeterGreenRatio: 0.6\n"
             + "    sameAxisApproachToleranceDegrees: 20.0\n",
-        new SettingsYamlWriter(schema, holder, SettingsFileContentType.KEYS_DIFFERING_FROM_DEFAULTS, false).toString());
+        new SettingsYamlWriter(schema, holder, SettingsFileContentType.KEYS_DIFFERING_FROM_DEFAULTS, false,
+            Path.of("settings.yaml")).toString());
   }
 
   /** A value that makes no sense is refused and leaves the setting as it was; a sensible one is set */
