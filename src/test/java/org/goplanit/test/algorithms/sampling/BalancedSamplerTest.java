@@ -165,7 +165,9 @@ public class BalancedSamplerTest {
     }
   }
 
-  /** A stratum of 30 units with chance 0.1 and one of 20 units with chance 0.15 keep exactly 3 units each, every draw */
+  /**
+   * A stratum of 30 units with chance 0.1 and one of 20 units with chance 0.15 keep exactly 3 units each, every draw
+   */
   @Test
   public void testStrataKeepTheirNumberOfUnits() {
     var random = new SplittableRandom(5);

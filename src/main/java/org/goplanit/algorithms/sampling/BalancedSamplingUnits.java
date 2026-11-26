@@ -239,6 +239,7 @@ public class BalancedSamplingUnits {
     return stratumValues[unit * numberOfStratumTotals + stratumTotal];
   }
 
+
   /**
    * Collect the totals over all units implied by the number of units and the totals before them: those whose value is,
    * for every unit, the same combination of 1 and the unit's values for the totals before it
@@ -253,8 +254,8 @@ public class BalancedSamplingUnits {
    * <p>
    * The test covers all units at once, through the sums of the products of every pair of columns, the count's column of
    * ones first and then the totals in their order: a combination of the columns is 0 for every unit exactly when it is
-   * 0 for those sums. Each column's sums are scaled by the square root of its own sum of squares, so one tolerance suits
-   * values of any size, and Gaussian elimination takes the columns in their order; a column that gets no pivot is
+   * 0 for those sums. Each column's sums are scaled by the square root of its own sum of squares, so one tolerance
+   * suits values of any size, and Gaussian elimination takes the columns in their order; a column that gets no pivot is
    * implied by the ones before it. A total that differs from such a combination for even one unit in a million is not
    * implied.
    * </p>

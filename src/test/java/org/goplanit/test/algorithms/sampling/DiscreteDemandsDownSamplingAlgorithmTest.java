@@ -468,8 +468,8 @@ public class DiscreteDemandsDownSamplingAlgorithmTest {
   }
 
   /**
-   * Origin areas are off by default: their group has no categories. Allowed three at a rate of 0.5, the zones are
-   * binned along the curve into three areas of about equal car driven trips by origin, a third each give or take a
+   * Origin areas are off at a maximum of 0: their group has no categories. Allowed three at a rate of 0.5, the zones
+   * are binned along the curve into three areas of about equal car driven trips by origin, a third each give or take a
    * zone's worth, together every car driven trip of the full demand
    */
   @Test
@@ -477,6 +477,7 @@ public class DiscreteDemandsDownSamplingAlgorithmTest {
     var group = DownSamplingBalanceGroup.CAR_DRIVEN_TRIPS_BY_ORIGIN_AREA;
     var demands = synthetic.createDemand(10_000, false);
     settings.setDownSampleRate(0.5);
+    settings.setMaximumNumberOfOriginAreas(0);
     var off = createAlgorithm(DiscreteDemandsDownSamplingAlgorithmType.BALANCED)
         .createDownSamplingTable(demands, zoning, distances);
     assertTrue(off.getCategories(group).isEmpty());
@@ -532,15 +533,6 @@ public class DiscreteDemandsDownSamplingAlgorithmTest {
         .mapToInt(group -> table.getCategories(group).size()).sum();
     assertTrue(settings.getDownSampleRate() * table.size() / (4.0 * totals) > 5);
     assertEquals(5, table.getCategories(DownSamplingBalanceGroup.CAR_DRIVEN_TRIPS_BY_ORIGIN_AREA).size());
-  }
-
-  /** Of the groups, only the origin areas, areas of many zones, are kept across zones only */
-  @Test
-  public void testOnlyOriginAreasKeptAcrossZonesOnly() {
-    for (var group : DownSamplingBalanceGroup.values()) {
-      assertEquals(group == DownSamplingBalanceGroup.CAR_DRIVEN_TRIPS_BY_ORIGIN_AREA, group.isKeptAcrossZonesOnly(),
-          group.name());
-    }
   }
 
   /** Balanced with three origin areas at a rate of 0.5, each area's car driven trips come within a tenth of the spread

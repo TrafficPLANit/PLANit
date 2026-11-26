@@ -99,7 +99,8 @@ public enum DownSamplingBalanceGroup {
 
   /**
    * car driven trips by origin area, the areas being runs of zones in their spatial order with about equal numbers of
-   * car driven trips leaving them, as many as the settings and the households kept allow, none by default
+   * car driven trips leaving them, as many as the settings give for the zones and the households kept allow: by
+   * default a tenth of the zones, at least 10 and at most 100
    */
   CAR_DRIVEN_TRIPS_BY_ORIGIN_AREA
 }

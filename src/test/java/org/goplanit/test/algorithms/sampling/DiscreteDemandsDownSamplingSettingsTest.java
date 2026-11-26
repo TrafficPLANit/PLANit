@@ -102,7 +102,7 @@ public class DiscreteDemandsDownSamplingSettingsTest {
     assertEquals(12, settings.getNumberOfDestinationAreas());
     assertEquals(0.1, settings.getOriginAreasAsShareOfZones());
     assertEquals(10, settings.getMinimumNumberOfOriginAreas());
-    assertEquals(0, settings.getMaximumNumberOfOriginAreas());
+    assertEquals(100, settings.getMaximumNumberOfOriginAreas());
     assertEquals(16, settings.getMinimumDrivingAge());
     assertEquals(3, settings.getNumberOfDraws());
     assertEquals(42, settings.getSeed());
@@ -287,7 +287,7 @@ public class DiscreteDemandsDownSamplingSettingsTest {
     assertThrows(IllegalArgumentException.class, () -> settings.setMinimumNumberOfOriginAreas(-1));
     assertEquals(10, settings.getMinimumNumberOfOriginAreas());
     assertThrows(IllegalArgumentException.class, () -> settings.setMaximumNumberOfOriginAreas(-1));
-    assertEquals(0, settings.getMaximumNumberOfOriginAreas());
+    assertEquals(100, settings.getMaximumNumberOfOriginAreas());
     assertThrows(IllegalArgumentException.class, () -> settings.setNumberOfDraws(0));
     assertEquals(3, settings.getNumberOfDraws());
     assertThrows(IllegalArgumentException.class, () -> settings.setMinimumDrivingAge(-1));
@@ -328,7 +328,7 @@ public class DiscreteDemandsDownSamplingSettingsTest {
     copy.setNumberOfDestinationAreas(4);
     copy.setOriginAreasAsShareOfZones(0.2);
     copy.setMinimumNumberOfOriginAreas(5);
-    copy.setMaximumNumberOfOriginAreas(100);
+    copy.setMaximumNumberOfOriginAreas(50);
     copy.setMinimumDrivingAge(17);
     copy.setNumberOfDraws(5);
     copy.setSeed(7);
@@ -355,8 +355,8 @@ public class DiscreteDemandsDownSamplingSettingsTest {
     assertEquals(0.2, copy.getOriginAreasAsShareOfZones());
     assertEquals(10, settings.getMinimumNumberOfOriginAreas());
     assertEquals(5, copy.getMinimumNumberOfOriginAreas());
-    assertEquals(0, settings.getMaximumNumberOfOriginAreas());
-    assertEquals(100, copy.getMaximumNumberOfOriginAreas());
+    assertEquals(100, settings.getMaximumNumberOfOriginAreas());
+    assertEquals(50, copy.getMaximumNumberOfOriginAreas());
     assertEquals(16, settings.getMinimumDrivingAge());
     assertEquals(3, settings.getNumberOfDraws());
     assertEquals(42, settings.getSeed());

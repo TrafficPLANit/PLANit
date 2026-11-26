@@ -223,8 +223,11 @@ public class DiscreteDemandsDownSamplingSettings {
   /** enough areas for a small zoning to tell its regions apart */
   public static final int DEFAULT_MINIMUM_NUMBER_OF_ORIGIN_AREAS = 10;
 
-  /** none, so the car driven trips are matched over all zones only, as without origin areas */
-  public static final int DEFAULT_MAXIMUM_NUMBER_OF_ORIGIN_AREAS = 0;
+  /**
+   * a hundred, matching the car driven trips by origin at about the scale of a metropolitan area's districts while the
+   * draw stays affordable
+   */
+  public static final int DEFAULT_MAXIMUM_NUMBER_OF_ORIGIN_AREAS = 100;
 
   /** the age from which a learner may drive in most places */
   public static final int DEFAULT_MINIMUM_DRIVING_AGE = 16;

@@ -45,8 +45,8 @@ public class BalancedSamplingUnitsTest {
   }
 
   /**
-   * Totals A of 0 or 1, B between 0 and 1, A + B, 2 for every unit, 0 for every unit, C of 1 for one unit only, and 3A -
-   * 2C: A + B, the 2 (twice the count), the 0 and 3A - 2C are implied, A, B and the rare C are not
+   * Totals A of 0 or 1, B between 0 and 1, A + B, 2 for every unit, 0 for every unit, C of 1 for one unit only, and
+   * 3A - 2C: A + B, the 2 (twice the count), the 0 and 3A - 2C are implied, A, B and the rare C are not
    */
   @Test
   public void testImpliedTotals() {
