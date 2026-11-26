@@ -144,22 +144,22 @@ public class StaticLtmSettings {
           Math.min(1, (1 - (Math.pow(0.01, (currPasCounterIndex * perPasPercentageOfTotal))) + 0.01));
 
   /** default order for PAS processing is in ascending order, from least important to most important */
-  public static boolean DEFAULT_IS_PAS_ORDER_DIRECTION_ASCENDING = true;
+  public static final boolean DEFAULT_IS_PAS_ORDER_DIRECTION_ASCENDING = true;
 
   /** default network loading gap epsilon to apply */
-  public static double DEFAULT_NETWORK_LOADING_GAP_EPSILON = 0.001;
+  public static final double DEFAULT_NETWORK_LOADING_GAP_EPSILON = 0.001;
 
   /** default network loading minimum iterations to apply */
-  public static int DEFAULT_NETWORK_LOADING_MIN_ITERATIONS = 1;
+  public static final int DEFAULT_NETWORK_LOADING_MIN_ITERATIONS = 1;
 
   /** default for disabling path generation after a certain iteration */
-  public static int DEFAULT_DISABLE_PATH_GENERATION_AFTER_ITERATION = Integer.MAX_VALUE;
+  public static final int DEFAULT_DISABLE_PATH_GENERATION_AFTER_ITERATION = Integer.MAX_VALUE;
 
   /** default for activating relative scaling factor path choice ODs */
-  public static boolean DEFAULT_RELATIVE_SCALING_FACTOR_ACTIVE = true;
+  public static final boolean DEFAULT_RELATIVE_SCALING_FACTOR_ACTIVE = true;
 
   /** default for disabling relative scaling factor update after a certain iteration */
-  public static int DEFAULT_DISABLE_RELATIVE_SCALING_FACTOR_AFTER_ITERATION = 20;
+  public static final int DEFAULT_DISABLE_RELATIVE_SCALING_FACTOR_AFTER_ITERATION = 20;
 
   /**
    * Provide OD pair to track extended logging for during assignment for debugging purposes.

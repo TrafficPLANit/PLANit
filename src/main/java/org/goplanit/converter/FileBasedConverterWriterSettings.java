@@ -79,7 +79,7 @@ public class FileBasedConverterWriterSettings implements ConverterWriterSettings
   }
 
   /** default destination country to use if none is set */
-  public static String DEFAULT_COUNTRY = CountryNames.GLOBAL;
+  public static final String DEFAULT_COUNTRY = CountryNames.GLOBAL;
 
   /** The outputPathDirectory used
    *

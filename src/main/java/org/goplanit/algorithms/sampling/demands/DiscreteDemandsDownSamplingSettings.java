@@ -3,6 +3,7 @@ package org.goplanit.algorithms.sampling.demands;
 import org.goplanit.algorithms.parallel.GenericBatchExecutorService;
 import org.goplanit.algorithms.sampling.demands.enums.DiscreteDemandsDownSamplingAlgorithmType;
 import org.goplanit.algorithms.sampling.demands.enums.DownSamplingBalanceGroup;
+import org.goplanit.utils.exceptions.ExceptionUtils;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.misc.binning.BinBuilder;
 import org.goplanit.utils.misc.binning.BinningConfiguration;
@@ -63,9 +64,7 @@ public class DiscreteDemandsDownSamplingSettings {
    * @throws IllegalArgumentException when the boundaries are null, not above 0 or not strictly increasing
    */
   private static BinningConfiguration<Integer> createCountBands(String name, int[] boundaries) {
-    if (boundaries == null) {
-      throw new IllegalArgumentException(String.format("%s boundaries must be given, were null", name));
-    }
+    ExceptionUtils.throwIllegalArgumentIf(boundaries == null, "%s boundaries must be given, were null", name);
     var inclusiveUpperBounds = new int[boundaries.length + 1];
     for (int index = 0; index < boundaries.length; ++index) {
       inclusiveUpperBounds[index] = boundaries[index] - 1;
@@ -266,9 +265,7 @@ public class DiscreteDemandsDownSamplingSettings {
    * @param algorithmType to use, not null
    */
   public void setAlgorithmType(DiscreteDemandsDownSamplingAlgorithmType algorithmType) {
-    if (algorithmType == null) {
-      throw new IllegalArgumentException("Down-sampling algorithm type must be given, was null");
-    }
+    ExceptionUtils.throwIllegalArgumentIf(algorithmType == null, "Down-sampling algorithm type must be given, was null");
     this.algorithmType = algorithmType;
   }
 
@@ -288,10 +285,8 @@ public class DiscreteDemandsDownSamplingSettings {
    * @param downSampleRate above 0 and at most 1, 1 leaving the demand as it is
    */
   public void setDownSampleRate(double downSampleRate) {
-    if (!(downSampleRate > 0 && downSampleRate <= 1)) {
-      throw new IllegalArgumentException(String.format(
-          "Down-sample rate must be above 0 and at most 1, was %f", downSampleRate));
-    }
+    ExceptionUtils.throwIllegalArgumentIf(!(downSampleRate > 0 && downSampleRate <= 1),
+        "Down-sample rate must be above 0 and at most 1, was %f", downSampleRate);
     this.downSampleRate = downSampleRate;
   }
 
@@ -313,10 +308,8 @@ public class DiscreteDemandsDownSamplingSettings {
   public void setBalanceOrder(DownSamplingBalanceGroup... groups) {
     var named = EnumSet.noneOf(DownSamplingBalanceGroup.class);
     for (var group : groups == null ? new DownSamplingBalanceGroup[]{null} : groups) {
-      if (group == null || !named.add(group)) {
-        throw new IllegalArgumentException(String.format(
-            "Balance order must name each group once, was %s", Arrays.toString(groups)));
-      }
+      ExceptionUtils.throwIllegalArgumentIf(group == null || !named.add(group),
+          "Balance order must name each group once, was %s", Arrays.toString(groups));
     }
     this.balanceOrder = List.of(groups);
   }
@@ -339,10 +332,8 @@ public class DiscreteDemandsDownSamplingSettings {
   public void setDeparturePeriodBoundaries(LocalTime... boundaries) {
     var sortedBoundaries = new TreeSet<LocalTime>();
     for (var boundary : boundaries == null ? new LocalTime[]{null} : boundaries) {
-      if (boundary == null || !sortedBoundaries.add(boundary)) {
-        throw new IllegalArgumentException(String.format(
-            "Departure period boundaries must each be given once, were %s", Arrays.toString(boundaries)));
-      }
+      ExceptionUtils.throwIllegalArgumentIf(boundary == null || !sortedBoundaries.add(boundary),
+          "Departure period boundaries must each be given once, were %s", Arrays.toString(boundaries));
     }
     this.departurePeriodBoundaries = List.copyOf(sortedBoundaries);
   }
@@ -360,9 +351,8 @@ public class DiscreteDemandsDownSamplingSettings {
    *                    clock
    */
   public void setDeparturePeriodBoundaries(Iterable<? extends TimePeriod> timePeriods) {
-    if (timePeriods == null) {
-      throw new IllegalArgumentException("Time periods for the departure period boundaries must be given, was null");
-    }
+    ExceptionUtils.throwIllegalArgumentIf(timePeriods == null,
+        "Time periods for the departure period boundaries must be given, was null");
     var sortedBoundaries = new TreeSet<LocalTime>();
     for (var timePeriod : timePeriods) {
       sortedBoundaries.add(LocalTimeUtils.ofSecondOfDayWrapped(timePeriod.getStartTimeSeconds()));
@@ -413,9 +403,7 @@ public class DiscreteDemandsDownSamplingSettings {
    * @param boundariesKm in km, above 0 and strictly increasing, none at all making one band of every distance
    */
   public void setDistanceBandBoundariesKm(double... boundariesKm) {
-    if (boundariesKm == null) {
-      throw new IllegalArgumentException("Distance band boundaries must be given, were null");
-    }
+    ExceptionUtils.throwIllegalArgumentIf(boundariesKm == null, "Distance band boundaries must be given, were null");
     var boundaries = boundariesKm.clone();
     try {
       this.distanceBands = createDistanceBands(boundaries);
@@ -533,10 +521,8 @@ public class DiscreteDemandsDownSamplingSettings {
    * @param numberOfIncomeBands 1 or more
    */
   public void setNumberOfIncomeBands(int numberOfIncomeBands) {
-    if (numberOfIncomeBands < 1) {
-      throw new IllegalArgumentException(String.format(
-          "Number of income bands must be 1 or more, was %d", numberOfIncomeBands));
-    }
+    ExceptionUtils.throwIllegalArgumentIf(numberOfIncomeBands < 1,
+        "Number of income bands must be 1 or more, was %d", numberOfIncomeBands);
     this.numberOfIncomeBands = numberOfIncomeBands;
   }
 
@@ -555,10 +541,8 @@ public class DiscreteDemandsDownSamplingSettings {
    * @param numberOfDestinationAreas 1 or more
    */
   public void setNumberOfDestinationAreas(int numberOfDestinationAreas) {
-    if (numberOfDestinationAreas < 1) {
-      throw new IllegalArgumentException(String.format(
-          "Number of destination areas must be 1 or more, was %d", numberOfDestinationAreas));
-    }
+    ExceptionUtils.throwIllegalArgumentIf(numberOfDestinationAreas < 1,
+        "Number of destination areas must be 1 or more, was %d", numberOfDestinationAreas);
     this.numberOfDestinationAreas = numberOfDestinationAreas;
   }
 
@@ -577,10 +561,8 @@ public class DiscreteDemandsDownSamplingSettings {
    * @param originAreasAsShareOfZones above 0 and at most 1
    */
   public void setOriginAreasAsShareOfZones(double originAreasAsShareOfZones) {
-    if (!(originAreasAsShareOfZones > 0) || originAreasAsShareOfZones > 1) {
-      throw new IllegalArgumentException(String.format(
-          "Origin areas as a share of the zones must be above 0 and at most 1, was %s", originAreasAsShareOfZones));
-    }
+    ExceptionUtils.throwIllegalArgumentIf(!(originAreasAsShareOfZones > 0) || originAreasAsShareOfZones > 1,
+        "Origin areas as a share of the zones must be above 0 and at most 1, was %s", originAreasAsShareOfZones);
     this.originAreasAsShareOfZones = originAreasAsShareOfZones;
   }
 
@@ -599,10 +581,8 @@ public class DiscreteDemandsDownSamplingSettings {
    * @param minimumNumberOfOriginAreas 0 or more
    */
   public void setMinimumNumberOfOriginAreas(int minimumNumberOfOriginAreas) {
-    if (minimumNumberOfOriginAreas < 0) {
-      throw new IllegalArgumentException(String.format(
-          "Minimum number of origin areas must be 0 or more, was %d", minimumNumberOfOriginAreas));
-    }
+    ExceptionUtils.throwIllegalArgumentIf(minimumNumberOfOriginAreas < 0,
+        "Minimum number of origin areas must be 0 or more, was %d", minimumNumberOfOriginAreas);
     this.minimumNumberOfOriginAreas = minimumNumberOfOriginAreas;
   }
 
@@ -624,10 +604,8 @@ public class DiscreteDemandsDownSamplingSettings {
    * @param maximumNumberOfOriginAreas 0 or more, 0 for none
    */
   public void setMaximumNumberOfOriginAreas(int maximumNumberOfOriginAreas) {
-    if (maximumNumberOfOriginAreas < 0) {
-      throw new IllegalArgumentException(String.format(
-          "Maximum number of origin areas must be 0 or more, was %d", maximumNumberOfOriginAreas));
-    }
+    ExceptionUtils.throwIllegalArgumentIf(maximumNumberOfOriginAreas < 0,
+        "Maximum number of origin areas must be 0 or more, was %d", maximumNumberOfOriginAreas);
     this.maximumNumberOfOriginAreas = maximumNumberOfOriginAreas;
   }
 
@@ -661,10 +639,8 @@ public class DiscreteDemandsDownSamplingSettings {
    * @param minimumDrivingAge in years, 0 or more
    */
   public void setMinimumDrivingAge(int minimumDrivingAge) {
-    if (minimumDrivingAge < 0) {
-      throw new IllegalArgumentException(String.format(
-          "Minimum driving age must be 0 or more, was %d", minimumDrivingAge));
-    }
+    ExceptionUtils.throwIllegalArgumentIf(minimumDrivingAge < 0,
+        "Minimum driving age must be 0 or more, was %d", minimumDrivingAge);
     this.minimumDrivingAge = minimumDrivingAge;
   }
 
@@ -683,9 +659,7 @@ public class DiscreteDemandsDownSamplingSettings {
    * @param numberOfDraws 1 or more
    */
   public void setNumberOfDraws(int numberOfDraws) {
-    if (numberOfDraws < 1) {
-      throw new IllegalArgumentException(String.format("Number of draws must be 1 or more, was %d", numberOfDraws));
-    }
+    ExceptionUtils.throwIllegalArgumentIf(numberOfDraws < 1, "Number of draws must be 1 or more, was %d", numberOfDraws);
     this.numberOfDraws = numberOfDraws;
   }
 

@@ -75,37 +75,37 @@ public class AccessEgressInjectionSettings {
   private double searchRadiusBusBasedStopToPassengerNetworkMeters = DEFAULT_SEARCH_RADIUS_BUS_STOP_TO_ROAD_NETWORK_M;
 
   /** by default, we connect dangling ferry stops to the nearest ferry route */
-  public static boolean DEFAULT_CONNECT_FERRY_STOP_TO_PASSENGER_LAND_NETWORK = true;
+  public static final boolean DEFAULT_CONNECT_FERRY_STOP_TO_PASSENGER_LAND_NETWORK = true;
 
   /** by default, we connect dangling rail based stops to the nearest road network link with eligible access modes */
-  public static boolean DEFAULT_CONNECT_RAIL_STOP_TO_PASSENGER_NETWORK = true;
+  public static final boolean DEFAULT_CONNECT_RAIL_STOP_TO_PASSENGER_NETWORK = true;
 
   /** by default, we connect bus based stops to the nearest road network link with eligible access modes */
-  public static boolean DEFAULT_CONNECT_BUS_STOP_TO_PASSENGER_NETWORK = true;
+  public static final boolean DEFAULT_CONNECT_BUS_STOP_TO_PASSENGER_NETWORK = true;
 
   /** by default, we fall back on road based modes to connect stops when no active modes are modelled at all */
-  public static boolean DEFAULT_FALLBACK_ON_ROAD_MODES_WITHOUT_ACTIVE_MODES = true;
+  public static final boolean DEFAULT_FALLBACK_ON_ROAD_MODES_WITHOUT_ACTIVE_MODES = true;
 
   /**
    * default search radius in meters for mapping ferry stops to land network. When found and
    * {@link #isConnectFerryStopsToNearbyLandNetwork()} is true then a new connectoid to the nearest road
    * supporting non-ferry modes is created to avoid the ferry stop to be dangling
    */
-  public static double DEFAULT_SEARCH_RADIUS_FERRY_STOP_TO_LAND_NETWORK_M = 500;
+  public static final double DEFAULT_SEARCH_RADIUS_FERRY_STOP_TO_LAND_NETWORK_M = 500;
 
   /**
    * default search radius in meters for mapping rail based stops to road network. When found and
    * {@link #isConnectRailBasedStopsToPassengerNetwork()} is true then a new connectoid to the nearest road
    * supporting access mode is created to avoid the stop to be dangling
    */
-  public static double DEFAULT_SEARCH_RADIUS_RAIL_STOP_TO_ROAD_NETWORK_M = 200;
+  public static final double DEFAULT_SEARCH_RADIUS_RAIL_STOP_TO_ROAD_NETWORK_M = 200;
 
   /**
    * default search radius in meters for mapping bus based stops to road network. When found and
    * {@link #isConnectBusBasedStopsToPassengerNetwork()} is true then a new connectoid to the nearest road
    * supporting configured access mode is created to avoid the stop to be dangling
    */
-  public static double DEFAULT_SEARCH_RADIUS_BUS_STOP_TO_ROAD_NETWORK_M = 25;
+  public static final double DEFAULT_SEARCH_RADIUS_BUS_STOP_TO_ROAD_NETWORK_M = 25;
 
   /**
    * Default constructor
