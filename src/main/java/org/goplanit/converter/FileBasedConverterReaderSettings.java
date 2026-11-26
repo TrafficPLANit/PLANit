@@ -2,8 +2,10 @@ package org.goplanit.converter;
 
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.logging.Logger;
 
 import org.goplanit.utils.math.TypeConversionUtil;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.settings.annotations.CoveredBySettingsKey;
 import org.goplanit.utils.settings.annotations.SettingsKeyLevel;
 import org.goplanit.utils.settings.annotations.SettingsRead;
@@ -27,6 +29,9 @@ import org.goplanit.utils.settings.annotations.SettingsWrite;
  * @author markr
  */
 public abstract class FileBasedConverterReaderSettings implements ConverterReaderSettings {
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(FileBasedConverterReaderSettings.class.getCanonicalName());
 
   /** the file or folder to read, null when not given */
   private URL inputSource;
@@ -78,5 +83,15 @@ public abstract class FileBasedConverterReaderSettings implements ConverterReade
   @CoveredBySettingsKey("inputSource")
   public void setInputSource(final String inputSource) {
     setInputSource(inputSource == null ? null : TypeConversionUtil.fromString(inputSource, URL.class, Path.of("")));
+  }
+
+  /**
+   * Log the input source; a reader's settings log what they add and call this for the rest
+   *
+   * @param level indentation level to apply
+   */
+  @Override
+  public void logSettings(int level) {
+    LOGGER.info(LoggingUtils.settingsValue("Input source", getInputSource(), level));
   }
 }

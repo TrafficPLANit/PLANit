@@ -600,7 +600,8 @@ public class DiscreteDemandsDownSamplingTable {
    * @return the distance in km, NaN when it cannot be measured
    */
   private double findDistanceKmOf(Trip trip) {
-    return areAllDistancesInKm ? TripUtils.getDistance(trip, distances) : TripUtils.getDistance(trip, distances, Unit.KM);
+    return areAllDistancesInKm ?
+        TripUtils.getDistance(trip, distances) : TripUtils.getDistance(trip, distances, Unit.KM);
   }
 
   /**

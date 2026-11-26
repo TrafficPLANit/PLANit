@@ -108,8 +108,8 @@ public class SingleFileBasedConverterWriterSettings extends FileBasedConverterWr
    */
   @Override
   public void logSettings(int level) {
-    LOGGER.info(LoggingUtils.settingsValue("File name", getFileName(), level));
     super.logSettings(level);
+    LOGGER.info(LoggingUtils.settingsValue("File name", getFileName(), level));
   }
 
   /**

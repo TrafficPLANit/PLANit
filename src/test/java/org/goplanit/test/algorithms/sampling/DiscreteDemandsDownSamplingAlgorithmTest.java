@@ -462,7 +462,8 @@ public class DiscreteDemandsDownSamplingAlgorithmTest {
     var result = algorithm.drawFrom(algorithm.createDownSamplingTable(demands, zoning, distances));
     var named = new TreeSet<String>();
     result.getHouseholdIdsKept().stream().forEach(id -> named.add(demands.getHouseholds().get(id).getXmlId()));
-    result.getPersonIdsWithoutHouseholdKept().stream().forEach(id -> named.add(demands.getPersons().get(id).getXmlId()));
+    result.getPersonIdsWithoutHouseholdKept().stream()
+        .forEach(id -> named.add(demands.getPersons().get(id).getXmlId()));
     assertEquals(collectXmlIdsOfSamplingUnitMembers(inPlace), named);
   }
 
@@ -531,6 +532,15 @@ public class DiscreteDemandsDownSamplingAlgorithmTest {
         .mapToInt(group -> table.getCategories(group).size()).sum();
     assertTrue(settings.getDownSampleRate() * table.size() / (4.0 * totals) > 5);
     assertEquals(5, table.getCategories(DownSamplingBalanceGroup.CAR_DRIVEN_TRIPS_BY_ORIGIN_AREA).size());
+  }
+
+  /** Of the groups, only the origin areas, areas of many zones, are kept across zones only */
+  @Test
+  public void testOnlyOriginAreasKeptAcrossZonesOnly() {
+    for (var group : DownSamplingBalanceGroup.values()) {
+      assertEquals(group == DownSamplingBalanceGroup.CAR_DRIVEN_TRIPS_BY_ORIGIN_AREA, group.isKeptAcrossZonesOnly(),
+          group.name());
+    }
   }
 
   /** Balanced with three origin areas at a rate of 0.5, each area's car driven trips come within a tenth of the spread
