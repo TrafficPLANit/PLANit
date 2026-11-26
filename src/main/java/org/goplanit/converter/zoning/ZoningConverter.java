@@ -18,6 +18,23 @@ public class ZoningConverter extends Converter<Zoning> {
   private static final Logger LOGGER = Logger.getLogger(ZoningConverter.class.getCanonicalName());
 
   /**
+   * {@inheritDoc}
+   * <p>
+   * The writer is given the network the reader's zoning refers to when it holds none, as it can be made before
+   * anything is read
+   * </p>
+   *
+   * @param zoning to write
+   */
+  @Override
+  protected void write(Zoning zoning) {
+    if (getWriter().getReferenceNetwork() == null) {
+      getWriter().setReferenceNetwork(getReader().getReferenceNetwork());
+    }
+    super.write(zoning);
+  }
+
+  /**
    * constructor
    * 
    * @param reader to use for parsing
