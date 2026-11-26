@@ -3,11 +3,19 @@ package org.goplanit.converter;
 import org.goplanit.converter.ConverterWriterSettings;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.StringUtils;
+import org.goplanit.utils.settings.annotations.SettingsKeyLevel;
+import org.goplanit.utils.settings.annotations.SettingsRead;
+import org.goplanit.utils.settings.annotations.SettingsWrite;
 
 import java.util.logging.Logger;
 
 /**
  * Settings relevant for file based converter writers, can be used as base implementation
+ * <p>
+ * Besides the keys of {@link FileBasedConverterWriterSettings}, the settings file of a writer of one file gives its
+ * name, such as {@code fileName: roads.xml}, written in the output directory. It is here so that every writer of one
+ * file takes that name with the same key and methods, whatever the format.
+ * </p>
  *
  * @author markr
  *
@@ -79,6 +87,7 @@ public class SingleFileBasedConverterWriterSettings extends FileBasedConverterWr
    *
    * @return file name to use
    */
+  @SettingsRead(key = "fileName")
   public String getFileName() {
     return fileName;
   }
@@ -87,6 +96,8 @@ public class SingleFileBasedConverterWriterSettings extends FileBasedConverterWr
    *
    * @param fileName to use
    */
+  @SettingsWrite(key = "fileName", level = SettingsKeyLevel.STANDARD,
+      description = "The name of the file to write, in the output directory, such as roads.xml")
   public void setFileName(String fileName) {
     this.fileName = fileName;
   }
