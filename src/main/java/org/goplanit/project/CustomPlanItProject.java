@@ -29,6 +29,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.time.TimePeriod;
+import org.goplanit.pricing.NetworkPricing;
 import org.goplanit.zoning.Zoning;
 
 import javax.crypto.Mac;
@@ -113,6 +114,11 @@ public class CustomPlanItProject {
   public final ProjectZonings zonings;
 
   /**
+   * The registered network pricings
+   */
+  public final ProjectNetworkPricings networkPricings;
+
+  /**
    * The registered OD path sets
    */
   public final ProjectOdPathSets odPathSets;
@@ -149,6 +155,7 @@ public class CustomPlanItProject {
     this.physicalNetworks = inputs.physicalNetworks;
     this.demands = inputs.demands;
     this.zonings = inputs.zonings;
+    this.networkPricings = inputs.networkPricings;
     this.odPathSets = inputs.odPathSets;
     this.serviceNetworks = inputs.serviceNetworks;
     this.routedServices = inputs.routedServices;
@@ -162,7 +169,8 @@ public class CustomPlanItProject {
    * @param theClazz the class that we want to mark as eligible from an outside source
    * @throws PlanItException thrown if class cannot be registered
    */
-  public void registerEligibleTrafficComponentClass(Class<? extends PlanitComponent<?>> theClazz) throws PlanItException {
+  public void registerEligibleTrafficComponentClass(
+      Class<? extends PlanitComponent<?>> theClazz) throws PlanItException {
     PlanitComponentFactory.registerPlanitComponentType(theClazz);
   }
 
@@ -197,6 +205,17 @@ public class CustomPlanItProject {
    */
   public Zoning createAndRegisterZoning(final LayeredNetwork<?, ?> network) throws PlanItException {
     return inputs.createAndRegisterZoning(network);
+  }
+
+  /**
+   * Create and register a network pricing on a network
+   *
+   * @param network the pricing refers to
+   * @return the network pricing, populated by the input builder
+   * @throws PlanItException thrown if there is an error
+   */
+  public NetworkPricing createAndRegisterNetworkPricing(final MacroscopicNetwork network) throws PlanItException {
+    return inputs.createAndRegisterNetworkPricing(network);
   }
 
   /**

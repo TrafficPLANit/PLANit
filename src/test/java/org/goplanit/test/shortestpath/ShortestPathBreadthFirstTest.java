@@ -5,7 +5,6 @@ import java.util.Set;
 
 import org.goplanit.algorithms.shortest.ShortestPathBreadthFirst;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerUtils;
 import org.goplanit.test.LayerTestBase;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -13,6 +12,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -125,9 +125,9 @@ public class ShortestPathBreadthFirstTest extends LayerTestBase {
     oneWay(1, 2, 1);
     oneWay(2, 0, 1);
 
-    var result = MacroscopicNetworkLayerUtils.findShortestConnections(
+    var result = ShortestPathSearchUtils.findShortestConnections(
         nodes.get(0), edge -> edge != direct, node -> true, 5000);
-    var withinOneAndAHalf = MacroscopicNetworkLayerUtils.findShortestConnections(
+    var withinOneAndAHalf = ShortestPathSearchUtils.findShortestConnections(
         nodes.get(0), edge -> edge != direct, node -> true, 1500);
 
     assertEquals(2000, result.getCostToReach(nodes.get(1)), 1e-6);

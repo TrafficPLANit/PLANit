@@ -1,7 +1,7 @@
 package org.goplanit.graph.directed.modifier.event.handler;
 
-import org.goplanit.graph.directed.modifier.event.RecreatedDirectedGraphEntitiesManagedIdsEvent;
-import org.goplanit.graph.modifier.event.RecreatedGraphEntitiesManagedIdsEvent;
+import org.goplanit.utils.graph.modifier.event.RecreatedDirectedGraphEntitiesManagedIdsEvent;
+import org.goplanit.utils.graph.modifier.event.RecreatedGraphEntitiesManagedIdsEvent;
 import org.goplanit.graph.modifier.event.handler.SyncXmlIdToIdGraphEntitiesHandler;
 import org.goplanit.utils.graph.GraphEntity;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;

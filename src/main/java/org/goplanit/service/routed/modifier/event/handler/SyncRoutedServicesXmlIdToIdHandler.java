@@ -1,7 +1,7 @@
 package org.goplanit.service.routed.modifier.event.handler;
 
 import org.goplanit.event.handler.SyncXmlIdToIdHandler;
-import org.goplanit.service.routed.modifier.event.ModifiedRoutedServicesIdsEvent;
+import org.goplanit.utils.service.routed.modifier.ModifiedRoutedServicesIdsEvent;
 import org.goplanit.utils.service.routed.RoutedService;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModificationEvent;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;

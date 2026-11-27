@@ -21,7 +21,7 @@ import org.goplanit.utils.zoning.connectoid.Connectoids;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
 import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
-import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
+import org.goplanit.utils.zoning.modifier.event.ModifiedZoneIdsEvent;
 
 /**
  * Base implementation of Connectoids container and factory class

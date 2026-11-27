@@ -17,9 +17,9 @@ import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerUtils;
 import org.goplanit.network.layer.macroscopic.ModifiedLinkSegmentTypes;
 import org.goplanit.network.layer.macroscopic.SpatialIntersectionUtils;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.IntersectionModifierEventProducerImpl;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.event.CollapseSpatialIntersectionEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.CollapseSpatialIntersectionEvent;
 import org.goplanit.utils.event.EventState;
+import org.goplanit.utils.event.TypedEventProducer;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitGraphGeoUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
@@ -34,6 +34,9 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModificationEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierEventType;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierListener;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapseModifierResult;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapserSettings;
@@ -84,7 +87,8 @@ public class IntersectionModeCollapser {
   private final IntersectionCollapseModifierResult result = new IntersectionCollapseModifierResult();
 
   /** the layer modifier's intersection event producer, to report each intersection collapsed */
-  private final IntersectionModifierEventProducerImpl intersectionEvents;
+  private final TypedEventProducer<IntersectionModifierListener, IntersectionModificationEvent,
+      IntersectionModifierEventType> intersectionEvents;
 
   /**
    * Add the centre node of an intersection at the centroid of its member nodes, and make it a member
@@ -427,7 +431,7 @@ public class IntersectionModeCollapser {
   private void removeCollapsedModesFromBannedTurnsOnInternalSegments(SpatialIntersection intersection) {
     Set<BannedTurn> seen = new LinkedHashSet<>();
     for (var internalSegment : intersection.getInternalSegments()) {
-      for (var bannedTurn : List.copyOf(layer.getBannedTurns().getBySegment(internalSegment))) {
+      for (var bannedTurn : layer.getBannedTurns().getBySegment(internalSegment)) {
         if (!seen.add(bannedTurn)) {
           continue;
         }
@@ -479,8 +483,12 @@ public class IntersectionModeCollapser {
    * @param crs of the layer's geometry
    * @param intersectionEvents the layer modifier's intersection event producer, to report each intersection collapsed
    */
-  public IntersectionModeCollapser(MacroscopicNetworkLayerImpl layer, IntersectionCollapserSettings settings,
-      CoordinateReferenceSystem crs, IntersectionModifierEventProducerImpl intersectionEvents) {
+  public IntersectionModeCollapser(
+      MacroscopicNetworkLayerImpl layer,
+      IntersectionCollapserSettings settings,
+      CoordinateReferenceSystem crs,
+      TypedEventProducer<IntersectionModifierListener, IntersectionModificationEvent, IntersectionModifierEventType>
+          intersectionEvents) {
     this.layer = layer;
     this.settings = new IntersectionCollapserSettings(settings);
     this.modes = List.copyOf(this.settings.getCollapsedModes());

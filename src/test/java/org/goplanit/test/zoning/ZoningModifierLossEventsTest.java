@@ -15,15 +15,20 @@ import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
 import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
 import org.goplanit.zoning.Zoning;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAccessLinkSegmentEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAllowedModeEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAccessLinkSegmentEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAllowedModeEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
+import java.util.ArrayList;
+import org.goplanit.utils.event.EventType;
+import org.goplanit.utils.zoning.modifier.event.RecreatedZoningEntitiesManagedIdsEvent;
+import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
+import org.goplanit.utils.zoning.modifier.event.ZoningModifierListener;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -35,8 +40,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * nothing is fired when nothing changes
  *
  * <pre>
- *   0 -----&gt; 1 &lt;----- 2      one-way segments 0-&gt;1 and 2-&gt;1 into node 1, the access node of the stop's connectoid;
- *                             its vehicle stop entry is reached over both and allows bus and car
+ *   0 -----&gt; 1 &lt;----- 2      one-way segments 0-&gt;1 and 2-&gt;1 into node 1, the access node of the
+ *                             stop's connectoid; its vehicle stop entry is reached over both and allows bus and car
  * </pre>
  */
 public class ZoningModifierLossEventsTest extends LayerTestBase {
@@ -172,5 +177,30 @@ public class ZoningModifierLossEventsTest extends LayerTestBase {
     assertFalse(modifier.removeExplicitAllowedMode(connectoid, entry, car));
     assertEquals(Set.of(car), Set.copyOf(entry.getExplicitlyAllowedModes()));
     assertEquals(List.of(RemoveConnectoidAllowedModeEvent.EVENT_TYPE), recorder.getHeardTypes());
+  }
+
+  /**
+   * A listener registered on the zoning modifier by type for the recreation of the zoning's entity ids hears it when
+   * the connectoid ids are recreated, once for the OD and once for the transfer connectoids ("Zoning entity ids
+   * recreated")
+   */
+  @Test
+  public void zoningEntityIdsRecreated() {
+    var heard = new ArrayList<ZoningModificationEvent>();
+    modifier.addListener(new ZoningModifierListener() {
+      @Override
+      public void onZoningModifierEvent(ZoningModificationEvent event) {
+        heard.add(event);
+      }
+
+      @Override
+      public EventType[] getKnownSupportedEventTypes() {
+        return new EventType[] {RecreatedZoningEntitiesManagedIdsEvent.EVENT_TYPE};
+      }
+    }, RecreatedZoningEntitiesManagedIdsEvent.EVENT_TYPE);
+
+    modifier.recreateConnectoidIds();
+
+    assertEquals(2, heard.size());
   }
 }

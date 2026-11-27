@@ -7,12 +7,12 @@ import java.util.Map;
 
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.graph.directed.modifier.DirectedGraphModifierImpl;
-import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
-import org.goplanit.graph.directed.modifier.event.RemoveEdgeSegmentEvent;
-import org.goplanit.graph.directed.modifier.event.RemoveBannedTurnEvent;
-import org.goplanit.graph.modifier.event.BreakEdgeEvent;
-import org.goplanit.graph.modifier.event.RemoveEdgeEvent;
-import org.goplanit.graph.modifier.event.RemoveGraphEntityEvent;
+import org.goplanit.utils.graph.modifier.event.BreakEdgeSegmentEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveEdgeSegmentEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveBannedTurnEvent;
+import org.goplanit.utils.graph.modifier.event.BreakEdgeEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveEdgeEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveGraphEntityEvent;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -47,7 +47,9 @@ public class GraphModifierEventsTest extends LayerTestBase {
     /** @param supported event types it registers for when added without naming any */
     RecordingListener(EventType... supported) { this.supported = supported; }
     @Override public void onGraphModificationEvent(GraphModificationEvent event) { received.add(event); }
-    @Override public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) { received.add(event); }
+    @Override public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
+      received.add(event);
+    }
     @Override public EventType[] getKnownSupportedEventTypes() { return supported; }
   }
 
@@ -149,7 +151,9 @@ public class GraphModifierEventsTest extends LayerTestBase {
     assertNull(layer.getLinks().get(link.getId()));
   }
 
-  /** Removing a segment directly on the graph modifier removes only the bans referring to it, firing an event for each */
+  /**
+   * Removing a segment directly on the graph modifier removes only the bans referring to it, firing an event for each
+   */
   @Test
   public void removedSegmentRemovesItsBans() {
     createNodes(4);
@@ -356,5 +360,22 @@ public class GraphModifierEventsTest extends LayerTestBase {
     assertSame(nodes.get(1), valid.getCentreVertex());
     assertFalse(invalid.hasCentreVertex());
     assertNull(invalid.getCentreVertex());
+  }
+
+  /**
+   * A listener supporting only directed graph event types, registered on the layer modifier for every type it supports,
+   * hears both link segments of a removed link, as a listener of link segment removals such as the intersections' break
+   * handler registers
+   */
+  @Test
+  public void listenerOfDirectedTypesOnlyHearsLinkSegmentsRemoved() {
+    createNodes(2);
+    var link = twoWay(0, 1);
+    var listener = new RecordingListener(RemoveEdgeSegmentEvent.EVENT_TYPE);
+    layer.getLayerModifier().addListener(listener);
+
+    layer.getLayerModifier().removeEdge(link);
+
+    assertEquals(2, listener.received.size());
   }
 }

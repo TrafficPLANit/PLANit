@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.goplanit.graph.modifier.event.RemoveVertexEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveVertexEvent;
 import org.goplanit.network.layer.macroscopic.intersection.IntersectionsImpl;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;

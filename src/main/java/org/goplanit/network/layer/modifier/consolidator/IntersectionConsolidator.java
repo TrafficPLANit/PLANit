@@ -23,7 +23,6 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.algorithms.shortest.ShortestPathBreadthFirst;
 import org.goplanit.algorithms.shortest.ShortestPathBreadthFirstResult;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
-import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerUtils;
 import org.goplanit.network.layer.macroscopic.SpatialMovementUtils;
 import org.goplanit.utils.containers.ContainerUtils;
 import org.goplanit.utils.containers.ListUtils;
@@ -54,6 +53,7 @@ import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.NodeUtils;
 import org.goplanit.utils.settings.UserOverride;
 import org.locationtech.jts.geom.Point;
+import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
 
 /**
  * Consolidates the intersections of a layer. It decides which parsed intersections form one junction, see
@@ -235,7 +235,7 @@ public class IntersectionConsolidator {
     var reachingPairs = new ArrayList<Pair<Intersection, Intersection>>();
     var connectionsFrom = new HashMap<Node, ShortestPathBreadthFirstResult<Node>>();
     for (var entry : parsedIntersectionOfMemberNode.entrySet()) {
-      var connections = MacroscopicNetworkLayerUtils.findShortestConnections(
+      var connections = ShortestPathSearchUtils.findShortestConnections(
           entry.getKey(), IS_ROAD_LINK, canJoin, settings.getMaximumJoiningReachMeters());
       connectionsFrom.put(entry.getKey(), connections);
       for (var reached : connections.getReached()) {
@@ -708,7 +708,7 @@ public class IntersectionConsolidator {
     double maximumLinkMeters = settings.getMaximumJoiningReachMeters();
     var memberNodesConnected = new HashMap<Node, Set<Node>>();
     for (var memberNode : intersection.getMemberNodes()) {
-      MacroscopicNetworkLayerUtils.findShortestConnections(memberNode,
+      ShortestPathSearchUtils.findShortestConnections(memberNode,
           edge -> edge.getLengthMeters() <= maximumLinkMeters + Precision.EPSILON_9,
           node -> layer.getIntersections().getByMemberNode(node) == null && isWithinRadius(centreAndRadius, node),
           Double.POSITIVE_INFINITY).getReached().stream().filter(node -> node != memberNode)
@@ -743,7 +743,7 @@ public class IntersectionConsolidator {
       /* the nodes about to join that the member nodes reach through them */
       var connected = new HashSet<Node>();
       for (var memberNode : memberNodes) {
-        connected.addAll(MacroscopicNetworkLayerUtils.findShortestConnections(
+        connected.addAll(ShortestPathSearchUtils.findShortestConnections(
             memberNode, edge -> true, joiningNodes::contains, Double.POSITIVE_INFINITY).getReached());
       }
       return node -> LinkUtils.isUsedByNoMotorisedRoadOrRailMode(node) && (!connected.contains(node) ||
@@ -767,7 +767,7 @@ public class IntersectionConsolidator {
     /* per node reached, its distance from each member node it is reached from */
     var metersFromMemberNodes = new HashMap<Node, List<Double>>();
     for (var memberNode : intersection.getMemberNodes()) {
-      var connections = MacroscopicNetworkLayerUtils.findShortestConnections(memberNode, edge -> true,
+      var connections = ShortestPathSearchUtils.findShortestConnections(memberNode, edge -> true,
           node -> layer.getIntersections().getByMemberNode(node) == null &&
               LinkUtils.isUsedByNoMotorisedRoadOrRailMode(node),
           MAXIMUM_CONNECTION_THROUGH_NODES_NOT_ON_ROAD_OR_RAIL_METERS);
@@ -804,7 +804,8 @@ public class IntersectionConsolidator {
    */
   private void joinNodesOfLinksReachedOnlyThroughIntersection(Collection<SpatialIntersection> intersections) {
     joinNodesFound(intersections,
-        intersection -> findNodesOfLinksReachedOnlyThroughIntersection(new LinkedHashSet<>(intersection.getMemberNodes())),
+        intersection -> findNodesOfLinksReachedOnlyThroughIntersection(
+            new LinkedHashSet<>(intersection.getMemberNodes())),
         false);
   }
 
@@ -887,7 +888,7 @@ public class IntersectionConsolidator {
     var connectionOf = new LinkedHashMap<Intersection, List<Node>>();
     var lengthOf = new HashMap<Intersection, Double>();
     for (var memberNode : into.getMemberNodes()) {
-      var connections = MacroscopicNetworkLayerUtils.findShortestConnections(
+      var connections = ShortestPathSearchUtils.findShortestConnections(
           memberNode, edge -> true, node -> true, settings.getMaximumPullInConnectionLengthMeters());
       for (var reached : connections.getReached()) {
         var other = layer.getIntersections().getByMemberNode(reached);
@@ -1036,7 +1037,7 @@ public class IntersectionConsolidator {
       double nearestMeters = Double.POSITIVE_INFINITY;
       for (var memberNode : crossingOrRampMeter.getMemberNodes()) {
         boolean onRoad = LinkUtils.isUsedByModeMatching(memberNode, Mode::isMotorisedRoadMode);
-        var connections = MacroscopicNetworkLayerUtils.findShortestConnections(memberNode,
+        var connections = ShortestPathSearchUtils.findShortestConnections(memberNode,
             onRoad ? IS_ROAD_LINK : edge -> true, node -> true, settings.getMaximumJoiningReachMeters());
         for (var reached : connections.getReached()) {
           var junction = parsedMemberNodes.contains(reached) ? layer.getIntersections().getByMemberNode(reached) : null;
@@ -1221,7 +1222,7 @@ public class IntersectionConsolidator {
       List<Node> connectionNodes = null;
       double nearestMeters = Double.POSITIVE_INFINITY;
       for (var crossingNode : crossing.getMemberNodes()) {
-        var connections = MacroscopicNetworkLayerUtils.findShortestConnections(crossingNode, IS_ROAD_LINK,
+        var connections = ShortestPathSearchUtils.findShortestConnections(crossingNode, IS_ROAD_LINK,
             roadContinuesOrCrossing, settings.getMaximumDistanceBetweenCrossingsSideBySideMeters());
         for (var reached : connections.getReached()) {
           var other = layer.getIntersections().getByMemberNode(reached);

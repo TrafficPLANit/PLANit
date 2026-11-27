@@ -1,9 +1,8 @@
 package org.goplanit.network.layer.macroscopic.intersection.modifier.event.handler;
 
-import java.util.List;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
+import org.goplanit.utils.graph.modifier.event.BreakEdgeSegmentEvent;
 import org.goplanit.network.layer.macroscopic.SpatialMovementsImpl;
 import org.goplanit.network.layer.macroscopic.intersection.IntersectionsImpl;
 import org.goplanit.utils.containers.ListUtils;
@@ -45,7 +44,7 @@ public class UpdateIntersectionsOnBreakLinkSegmentHandler implements DirectedGra
    * @param brokenAt the node broken at
    */
   private void repointMovements(LinkSegment original, LinkSegment brokenOff, Node brokenAt) {
-    for (var movement : List.copyOf(spatialMovements.getBySegment(original))) {
+    for (var movement : spatialMovements.getBySegment(original)) {
       spatialMovements.update(movement, m -> {
         if (m.getLinkSegmentFrom() == original && original.getDownstreamVertex() == brokenAt) {
           m.setLinkSegmentFrom(brokenOff);

@@ -1,15 +1,12 @@
 package org.goplanit.network.layer.macroscopic.intersection.modifier.event.handler;
 
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.directed.modifier.event.RemoveEdgeSegmentEvent;
-import org.goplanit.graph.modifier.event.RemoveEdgeEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveEdgeSegmentEvent;
 import org.goplanit.network.layer.macroscopic.SpatialMovementsImpl;
 import org.goplanit.network.layer.macroscopic.intersection.IntersectionsImpl;
 import org.goplanit.utils.event.EventType;
-import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
@@ -18,9 +15,15 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersec
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
- * Keeps the intersections consistent when link segments are removed, on their own or still attached to a removed link:
- * a removed segment is no longer an approach or internal segment of the intersection referring to it, and the
- * movements entering or leaving on it are removed. Removing an internal segment leaves every movement as it is
+ * Keeps the intersections consistent when link segments are removed: a removed segment is no longer an approach or
+ * internal segment of the intersection referring to it, and the movements entering or leaving on it are removed.
+ * Removing an internal segment leaves every movement as it is. A removed link is no concern of it, as removing a link
+ * removes each of its link segments first
+ * <p>
+ * Link segments are removed when a network is cleaned, for example dangling parts or link segments no mode may use. An
+ * intersection must not keep an approach that is gone, nor a movement along it, or a route search or a signal would
+ * use a link segment that no longer exists.
+ * </p>
  *
  * @author markr
  */
@@ -46,7 +49,7 @@ public class UpdateIntersectionsOnLinkSegmentRemovalHandler implements DirectedG
    * @param segment removed
    */
   private void removeSegment(LinkSegment segment) {
-    List.copyOf(spatialMovements.getBySegment(segment)).forEach(removeSpatialMovement);
+    spatialMovements.getBySegment(segment).forEach(removeSpatialMovement);
     var intersection = intersections.getBySegment(segment);
     if (intersection == null) {
       return;
@@ -79,7 +82,7 @@ public class UpdateIntersectionsOnLinkSegmentRemovalHandler implements DirectedG
    */
   @Override
   public EventType[] getKnownSupportedEventTypes() {
-    return new EventType[] { RemoveEdgeSegmentEvent.EVENT_TYPE, RemoveEdgeEvent.EVENT_TYPE };
+    return new EventType[] { RemoveEdgeSegmentEvent.EVENT_TYPE };
   }
 
   /**
@@ -88,7 +91,7 @@ public class UpdateIntersectionsOnLinkSegmentRemovalHandler implements DirectedG
   @Override
   public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
     if (!event.getType().equals(RemoveEdgeSegmentEvent.EVENT_TYPE)) {
-      LOGGER.warning(String.format("%s only supports link segment and link removal events",
+      LOGGER.warning(String.format("%s only supports link segment removal events",
           UpdateIntersectionsOnLinkSegmentRemovalHandler.class.getName()));
       return;
     }
@@ -100,15 +103,7 @@ public class UpdateIntersectionsOnLinkSegmentRemovalHandler implements DirectedG
    */
   @Override
   public void onGraphModificationEvent(GraphModificationEvent event) {
-    if (!event.getType().equals(RemoveEdgeEvent.EVENT_TYPE)) {
-      LOGGER.warning(String.format("%s only supports link segment and link removal events",
-          UpdateIntersectionsOnLinkSegmentRemovalHandler.class.getName()));
-      return;
-    }
-    /* segments still attached to the removed link, if any */
-    var link = (DirectedEdge) RemoveEdgeEvent.class.cast(event).getRemovedEdge();
-    if (link.hasEdgeSegment()) {
-      link.getEdgeSegments().forEach(segment -> removeSegment((LinkSegment) segment));
-    }
+    LOGGER.warning(String.format("%s only supports link segment removal events",
+        UpdateIntersectionsOnLinkSegmentRemovalHandler.class.getName()));
   }
 }

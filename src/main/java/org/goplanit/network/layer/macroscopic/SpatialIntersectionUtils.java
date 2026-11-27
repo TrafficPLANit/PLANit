@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.goplanit.algorithms.shortest.ShortestPathBreadthFirst;
 import org.goplanit.algorithms.shortest.ShortestPathBreadthFirstResult;
 import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.misc.Pair;
@@ -18,6 +17,7 @@ import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
 
 /**
  * Utilities answering what modes can do inside a spatial intersection: where a mode can get from a segment over its
@@ -36,9 +36,9 @@ public class SpatialIntersectionUtils {
 
   /**
    * Search from an approach over the internal segments of a spatial intersection for a mode, see
-   * {@link #findExitsReached}. The search never goes back along the link it just came along, nor onto the approach's
-   * own link. Otherwise a mode could get round a turn banned at a member node by driving into a two-way inner link and
-   * straight back, which no driver does inside a junction, and the movement would count as one the mode can make
+   * {@link #findExitsReached}, through {@link ShortestPathSearchUtils#findShortestConnectionsForMode}: it never
+   * goes back along the link it just came along, nor onto the approach's own link, so a mode cannot get round a turn
+   * banned at a member node by driving into a two-way inner link and straight back
    *
    * A member node can also hold connectoid segments, once the zoning is integrated with the network, for example to
    * write it or to assign on it. The search runs over link segments of either kind: a connectoid segment has the
@@ -57,12 +57,8 @@ public class SpatialIntersectionUtils {
       final LinkSegment approach, final Mode mode, boolean respectBannedTurns) {
     Predicate<LinkSegment> isInternal =
         segment -> ListUtils.containsByIdentity(intersection.getInternalSegments(), segment);
-    return ShortestPathBreadthFirst.<LinkSegment>executeAlongEdgeSegments(approach, true,
-        (from, onto) -> onto.isModeAllowed(mode) && onto.getParent() != approach.getParent() &&
-            onto.getParent() != from.getParent() &&
-            (isInternal.test(onto) || intersection.isExitSegment(onto)) &&
-            !(respectBannedTurns && MacroscopicNetworkLayerUtils.isTurnBannedForMode(layer, from, onto, mode)),
-        isInternal, segment -> segment.getParent().getLengthMeters(), Double.POSITIVE_INFINITY);
+    return ShortestPathSearchUtils.findShortestConnectionsForMode(layer, approach, mode, isInternal,
+        segment -> isInternal.test(segment) || intersection.isExitSegment(segment), respectBannedTurns);
   }
 
   /**

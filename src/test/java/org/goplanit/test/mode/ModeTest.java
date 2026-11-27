@@ -6,11 +6,13 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.DriverType;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.MotorisationModeType;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.mode.TrackModeType;
 import org.goplanit.utils.mode.UseOfModeType;
 import org.goplanit.utils.mode.VehicularModeType;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.PricedModeSelection;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -18,6 +20,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -153,5 +157,65 @@ public class ModeTest {
     var scooter = factory.registerNewCustomMode("scooter", 25, 0.5, null, null);
     assertTrue(cargoBike.isActiveMode());
     assertFalse(scooter.isActiveMode());
+  }
+
+  /** A mode is an emergency mode when its use is emergency, as an ambulance's is; no predefined mode is one */
+  @Test
+  public void emergencyModeIsOneWhoseUseIsEmergency() {
+    for (var modeType : PredefinedModeType.getPredefinedModeTypesWithout(PredefinedModeType.CUSTOM)) {
+      assertFalse(network.getModes().getFactory().registerNew(modeType).isEmergencyMode(), modeType.name());
+    }
+    assertTrue(ModeTestUtils.registerAmbulance(network.getModes().getFactory()).isEmergencyMode());
+  }
+
+  /**
+   * The modes paying on a toll road that names none: every motorised mode whose use is not public transport, active
+   * or emergency, so private cars, goods vehicles, taxis and ride share, not buses, trains, bicycles, pedestrians or an
+   * ambulance ("Default priced modes")
+   */
+  @Test
+  public void pricedByDefaultAreMotorisedModesNotPublicActiveOrEmergency() {
+    var pricedByDefault = EnumSet.of(PredefinedModeType.CAR, PredefinedModeType.CAR_SHARE,
+        PredefinedModeType.CAR_HIGH_OCCUPANCY, PredefinedModeType.MOTOR_BIKE, PredefinedModeType.GOODS_VEHICLE,
+        PredefinedModeType.HEAVY_GOODS_VEHICLE, PredefinedModeType.LARGE_HEAVY_GOODS_VEHICLE, PredefinedModeType.TAXI,
+        PredefinedModeType.RIDE_SHARE);
+    for (var modeType : PredefinedModeType.getPredefinedModeTypesWithout(PredefinedModeType.CUSTOM)) {
+      var mode = network.getModes().getFactory().registerNew(modeType);
+      assertEquals(pricedByDefault.contains(modeType), PricedModeSelection.isPricedByDefault(mode), modeType.name());
+    }
+    assertFalse(PricedModeSelection.isPricedByDefault(
+        ModeTestUtils.registerAmbulance(network.getModes().getFactory())));
+  }
+
+  /**
+   * Modes given by name resolve to those named among the candidates, modes given by exemption to the candidates paying
+   * by default less those exempted, and modes not given to the candidates paying by default. The modes given that the
+   * candidates lack are found, so they can be dropped or reported: car named on a road only heavy goods may pay on
+   */
+  @Test
+  public void pricedModeSelectionResolvesAgainstTheCandidates() {
+    var factory = network.getModes().getFactory();
+    var car = factory.registerNew(PredefinedModeType.CAR);
+    var heavyGoods = factory.registerNew(PredefinedModeType.HEAVY_GOODS_VEHICLE);
+    var motorBike = factory.registerNew(PredefinedModeType.MOTOR_BIKE);
+    var bus = factory.registerNew(PredefinedModeType.BUS);
+    List<Mode> candidates = List.of(car, heavyGoods, motorBike, bus);
+
+    var unspecified = PricedModeSelection.unspecified();
+    assertTrue(unspecified.isUnspecified());
+    assertEquals(Set.of(car, heavyGoods, motorBike), unspecified.findPricedModesIn(candidates,
+        PricedModeSelection::isPricedByDefault));
+    assertTrue(unspecified.findPricedOrExemptedModesNotIn(candidates).isEmpty());
+
+    var named = PricedModeSelection.named(List.of(heavyGoods));
+    assertEquals(Set.of(heavyGoods), named.findPricedModesIn(candidates, PricedModeSelection::isPricedByDefault));
+    var exempting = PricedModeSelection.exempting(List.of(motorBike));
+    assertEquals(Set.of(car, heavyGoods), exempting.findPricedModesIn(candidates,
+        PricedModeSelection::isPricedByDefault));
+
+    var carAndHeavyGoods = PricedModeSelection.named(List.of(car, heavyGoods));
+    assertEquals(Set.of(heavyGoods), carAndHeavyGoods.findPricedModesIn(List.of(heavyGoods), mode -> true));
+    assertEquals(Set.of(car), carAndHeavyGoods.findPricedOrExemptedModesNotIn(List.of(heavyGoods)));
+    assertEquals(Set.of(motorBike), exempting.findPricedOrExemptedModesNotIn(List.of(car, heavyGoods)));
   }
 }

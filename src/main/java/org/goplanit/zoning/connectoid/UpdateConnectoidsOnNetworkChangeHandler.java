@@ -2,11 +2,10 @@ package org.goplanit.zoning.connectoid;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Set;
 
-import org.goplanit.graph.modifier.event.RemoveVertexEvent;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.event.CollapseSpatialIntersectionEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveVertexEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.CollapseSpatialIntersectionEvent;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
@@ -59,7 +58,7 @@ public class UpdateConnectoidsOnNetworkChangeHandler<T extends Connectoid, C ext
     for (var memberNode : done.getMemberNodes()) {
       intersectionMemberNodesBeingCollapsed.remove(memberNode);
       if (memberNodesRemovedWhileCollapsing.remove(memberNode)) {
-        List.copyOf(connectoids.getByAccessNode(memberNode))
+        connectoids.getByAccessNode(memberNode)
             .forEach(connectoid -> connectoid.setReferenceVertex(done.getCentreNode()));
       }
     }

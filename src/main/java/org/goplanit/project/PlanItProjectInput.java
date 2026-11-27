@@ -21,6 +21,7 @@ import org.goplanit.path.OdPathSets;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
+import org.goplanit.pricing.NetworkPricing;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -69,6 +70,8 @@ public class PlanItProjectInput {
     planitComponentFactories.add(
         new PlanitComponentFactory<RoutedServices>(RoutedServices.class));
     planitComponentFactories.add(
+        new PlanitComponentFactory<NetworkPricing>(NetworkPricing.class));
+    planitComponentFactories.add(
         new PlanitComponentFactory<FundamentalDiagramComponent>(FundamentalDiagramComponent.class));
     
     /* register input builder as listener whenever an instance is created */
@@ -93,6 +96,55 @@ public class PlanItProjectInput {
   }
 
   /**
+   * Map to store all InitialLinkSegmentCost objects for each physical network
+   */
+  protected final Map<LayeredNetwork<?,?>, List<InitialMacroscopicLinkSegmentCost>> initialLinkSegmentCosts =
+      new HashMap<>();
+
+  // FACTORIES
+  
+  /** available traffic assignment component factories by their derived class implementation */
+  protected final Collection<PlanitComponentFactory<?>> planitComponentFactories =
+      new ArrayList<PlanitComponentFactory<?>>();
+  
+  // INNER CLASS INSTANCES
+
+  /**
+   * The registered physical networks
+   */
+  protected final ProjectNetworks physicalNetworks = new ProjectNetworks();
+
+  /**
+   * The registered demands
+   */
+  protected final ProjectDemands demands = new ProjectDemands();
+
+  /**
+   * The registered zonings
+   */
+  protected final ProjectZonings zonings = new ProjectZonings();
+
+  /**
+   * The registered network pricings
+   */
+  protected final ProjectNetworkPricings networkPricings = new ProjectNetworkPricings();
+  
+  /**
+   * The registered service networks
+   */
+  protected final ProjectServiceNetworks serviceNetworks = new ProjectServiceNetworks();  
+  
+  /**
+   * The registered routed services
+   */
+  protected final ProjectRoutedServices routedServices = new ProjectRoutedServices();  
+
+  /**
+   * The registered OD path sets
+   */
+  protected final ProjectOdPathSets odPathSets = new ProjectOdPathSets();
+
+  /**
    * Create and register initial link segment costs from a (single) file for all time periods (which are assumed
    * are sorted by start time)
    *
@@ -103,7 +155,9 @@ public class PlanItProjectInput {
    * @throws PlanItException thrown if there is an error
    */
   protected InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(
-      LayeredNetwork<?, ?> network, String fileName, final TimePeriod timePeriod) throws PlanItException {
+      LayeredNetwork<?, ?> network,
+      String fileName,
+      final TimePeriod timePeriod) throws PlanItException {
     PlanItException.throwIf(network == null,
         "Physical network must be read in before initial costs can be read");
 
@@ -132,49 +186,6 @@ public class PlanItProjectInput {
     initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
     return initialLinkSegmentCost;
   }
-
-  /**
-   * Map to store all InitialLinkSegmentCost objects for each physical network
-   */
-  protected final Map<LayeredNetwork<?,?>, List<InitialMacroscopicLinkSegmentCost>> initialLinkSegmentCosts =
-      new HashMap<>();
-
-  // FACTORIES
-  
-  /** available traffic assignment component factories by their derived class implementation */
-  protected final Collection<PlanitComponentFactory<?>> planitComponentFactories = new ArrayList<PlanitComponentFactory<?>>();
-  
-  // INNER CLASS INSTANCES
-
-  /**
-   * The registered physical networks
-   */
-  protected final ProjectNetworks physicalNetworks = new ProjectNetworks();
-
-  /**
-   * The registered demands
-   */
-  protected final ProjectDemands demands = new ProjectDemands();
-
-  /**
-   * The registered zonings
-   */
-  protected final ProjectZonings zonings = new ProjectZonings();
-  
-  /**
-   * The registered service networks
-   */
-  protected final ProjectServiceNetworks serviceNetworks = new ProjectServiceNetworks();  
-  
-  /**
-   * The registered routed services
-   */
-  protected final ProjectRoutedServices routedServices = new ProjectRoutedServices();  
-
-  /**
-   * The registered OD path sets
-   */
-  protected final ProjectOdPathSets odPathSets = new ProjectOdPathSets();
 
   /**
    * Constructor
@@ -241,6 +252,23 @@ public class PlanItProjectInput {
 
     zonings.register(zoning);
     return zoning;
+  }
+
+  /**
+   * Create and register a network pricing on a network, populated by the input builder
+   *
+   * @param network the pricing refers to
+   * @return the network pricing
+   * @throws PlanItException thrown if there is an error
+   */
+  public NetworkPricing createAndRegisterNetworkPricing(final MacroscopicNetwork network) throws PlanItException {
+    PlanItException.throwIf(network == null, "The network must be defined before its pricing");
+
+    LOGGER.info(LoggingUtils.projectPrefix(this.projectId) + "populating network pricing");
+    final NetworkPricing networkPricing = getComponentFactory(NetworkPricing.class).createAndDispatch(
+        NetworkPricing.class.getCanonicalName(), new Object[] { projectGroupId, network }, network);
+    networkPricings.register(networkPricing);
+    return networkPricing;
   }
 
   /**

@@ -8,8 +8,8 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.zoning.TransferZoneType;
 import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 import org.goplanit.zoning.Zoning;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -108,7 +108,8 @@ public class RemoveUnusedTransferConnectoidsTest extends LayerTestBase {
 
     zoning.getZoningModifier().removeUnusedTransferConnectoids(serviceNetwork.getTransportLayers(), false);
 
-    assertEquals(List.of(RemoveConnectoidAccessZoneEntryEvent.EVENT_TYPE, RemoveConnectoidAccessZoneEntryEvent.EVENT_TYPE),
+    assertEquals(List.of(RemoveConnectoidAccessZoneEntryEvent.EVENT_TYPE,
+        RemoveConnectoidAccessZoneEntryEvent.EVENT_TYPE),
         recorder.getHeardTypes());
   }
 }

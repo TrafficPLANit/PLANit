@@ -15,7 +15,6 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerUtils;
 import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.graph.directed.algorithms.BreadthFirstSearch;
@@ -29,6 +28,7 @@ import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsol
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
 
 /**
  * An intersection cluster: parsed intersections within the joining reach of each other along the road,
@@ -234,7 +234,7 @@ class IntersectionCluster {
     var subsetNodes = new LinkedHashSet<>(subsetMemberNodes);
     var joinedPairs = new ArrayList<Pair<Intersection, Intersection>>();
     for (var node : subsetMemberNodes) {
-      var connections = MacroscopicNetworkLayerUtils.findShortestConnections(node,
+      var connections = ShortestPathSearchUtils.findShortestConnections(node,
           IntersectionConsolidator.IS_ROAD_LINK, allowed::contains, settings.getMaximumJoiningReachMeters());
       for (var reached : connections.getReached()) {
         if (reached != node && subsetMemberNodes.contains(reached)) {

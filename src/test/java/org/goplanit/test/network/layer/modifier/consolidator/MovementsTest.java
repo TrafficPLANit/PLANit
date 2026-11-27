@@ -2,13 +2,17 @@ package org.goplanit.test.network.layer.modifier.consolidator;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
 import org.goplanit.network.layer.macroscopic.SpatialIntersectionUtils;
+import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.junit.jupiter.api.Test;
+import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -120,6 +124,30 @@ public class MovementsTest extends IntersectionConsolidationTestBase {
     assertFalse(SpatialIntersectionUtils.findExitsReached(
         layer, consolidated, north, bus, true).containsKey(east));
     assertEquals(Set.of(bus), bannedModes(consolidated, movementBetween(consolidated, north, east)));
+  }
+
+  /**
+   * The search for a mode through link segments works on any set of them, not only on an intersection's internal
+   * segments: along the westbound carriageway 8-B-A-9, with no intersection registered, it reaches B-A and A-9, 15 m on
+   * from where 8-B ends, and nothing off the carriageway. A turn at A banned for cars stops it there when banned turns
+   * are respected
+   */
+  @Test
+  public void searchForAModeThroughLinkSegmentsThatAreNoIntersection() {
+    dividedRoadsCrossing();
+    var westbound = List.of(segment(8, B), segment(B, A), segment(A, 9));
+    Predicate<LinkSegment> onWestbound = segment -> ListUtils.containsByIdentity(westbound, segment);
+
+    var reached = ShortestPathSearchUtils.findShortestConnectionsForMode(
+        layer, segment(8, B), car, onWestbound, onWestbound, true);
+    assertEquals(Set.copyOf(westbound), Set.copyOf(reached.getReached()));
+    assertEquals(15, reached.getCostToReach(segment(A, 9)), 1e-9);
+
+    layer.getBannedTurns().getFactory().registerNew(segment(B, A), segment(A, 9), List.of(car));
+    assertFalse(ShortestPathSearchUtils.findShortestConnectionsForMode(
+        layer, segment(8, B), car, onWestbound, onWestbound, true).getReached().contains(segment(A, 9)));
+    assertTrue(ShortestPathSearchUtils.findShortestConnectionsForMode(
+        layer, segment(8, B), car, onWestbound, onWestbound, false).getReached().contains(segment(A, 9)));
   }
 
   /**

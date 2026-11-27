@@ -50,6 +50,7 @@ public class DemandsModifier extends EventProducerImpl implements DemandsModifie
    * @param demands parent demands to perform modifications on
    */
   public DemandsModifier(Demands demands){
+    super(DemandsModifierEventProducer.FIRED_DEMANDS_EVENT_TYPES);
     this.demands = demands;
   }
 

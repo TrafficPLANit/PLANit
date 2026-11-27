@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.network.layer.macroscopic.SpatialMovementsImpl;
 import org.goplanit.network.layer.macroscopic.intersection.IntersectionsImpl;
+import org.goplanit.network.layer.macroscopic.tollroad.TollRoadsImpl;
 import org.goplanit.network.layer.modifier.MacroscopicNetworkLayerModifierImpl;
 import org.goplanit.network.layer.physical.NodesImpl;
 import org.goplanit.network.layer.physical.UntypedPhysicalLayerImpl;
@@ -16,6 +17,7 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.*;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.TollRoad;
 import org.goplanit.utils.graph.directed.BannedTurn;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
@@ -36,14 +38,14 @@ public class MacroscopicNetworkLayerImpl
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicNetworkLayerImpl.class.getCanonicalName());
 
-  /** The container for the link segment types available across all link segments */
-  public final MacroscopicLinkSegmentTypes linkSegmentTypes;
-
   /** The intersections of this layer */
   protected final IntersectionsImpl intersections;
 
   /** The movements through the intersections of this layer */
   protected final SpatialMovementsImpl spatialMovements;
+
+  /** The toll roads of this layer */
+  protected final TollRoadsImpl tollRoads;
 
   /**
    * Constructor
@@ -77,6 +79,7 @@ public class MacroscopicNetworkLayerImpl
     linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl(groupId);
     intersections = new IntersectionsImpl(groupId);
     spatialMovements = new SpatialMovementsImpl(groupId);
+    tollRoads = new TollRoadsImpl(groupId);
   }
 
   /**
@@ -96,17 +99,20 @@ public class MacroscopicNetworkLayerImpl
    *                           (when provided, may be null)
    * @param spatialMovementMapper to apply in case of deep copy to each original to copy combination
    *                                   (when provided, may be null)
+   * @param tollRoadMapper to apply in case of deep copy to each original to copy combination
+   *                       (when provided, may be null)
    */
   protected MacroscopicNetworkLayerImpl(
-          MacroscopicNetworkLayerImpl other,
-          boolean deepCopy,
-          GraphEntityDeepCopyMapper<Node> nodeMapper,
-          GraphEntityDeepCopyMapper<MacroscopicLink> linkMapper,
-          GraphEntityDeepCopyMapper<MacroscopicLinkSegment> linkSegmentMapper,
-          ManagedIdDeepCopyMapper<MacroscopicLinkSegmentType> linkSegmentTypeMapper,
-          ManagedIdDeepCopyMapper<BannedTurn> movementsMapper,
-          ManagedIdDeepCopyMapper<Intersection> intersectionMapper,
-          ManagedIdDeepCopyMapper<SpatialMovement> spatialMovementMapper) {
+      MacroscopicNetworkLayerImpl other,
+      boolean deepCopy,
+      GraphEntityDeepCopyMapper<Node> nodeMapper,
+      GraphEntityDeepCopyMapper<MacroscopicLink> linkMapper,
+      GraphEntityDeepCopyMapper<MacroscopicLinkSegment> linkSegmentMapper,
+      ManagedIdDeepCopyMapper<MacroscopicLinkSegmentType> linkSegmentTypeMapper,
+      ManagedIdDeepCopyMapper<BannedTurn> movementsMapper,
+      ManagedIdDeepCopyMapper<Intersection> intersectionMapper,
+      ManagedIdDeepCopyMapper<SpatialMovement> spatialMovementMapper,
+      ManagedIdDeepCopyMapper<TollRoad> tollRoadMapper) {
     super(other, deepCopy, nodeMapper, linkMapper, linkSegmentMapper, movementsMapper);
 
     this.linkSegmentTypes = deepCopy ? other.linkSegmentTypes.deepCloneWithMapping(linkSegmentTypeMapper) :
@@ -123,11 +129,25 @@ public class MacroscopicNetworkLayerImpl
       this.spatialMovements = other.spatialMovements.deepCloneWithMapping(spatialMovementMapper);
       this.spatialMovements.updateSegmentMapping(linkSegmentMapper::getMapping);
       copiedIntersections.updateMovementMapping(spatialMovementMapper::getMapping);
+      this.tollRoads = other.tollRoads.deepCloneWithMapping(tollRoadMapper);
+      this.tollRoads.updateLinkSegmentMapping(linkSegmentMapper::getMapping, true);
     } else {
       this.intersections = other.intersections.shallowClone();
       this.spatialMovements = other.spatialMovements.shallowClone();
+      this.tollRoads = other.tollRoads.shallowClone();
     }
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected MacroscopicNetworkLayerModifierImpl createLayerModifier() {
+    return new MacroscopicNetworkLayerModifierImpl(this, directedGraph);
+  }
+
+  /** The container for the link segment types available across all link segments */
+  public final MacroscopicLinkSegmentTypes linkSegmentTypes;
 
   /**
    * Update the parent edge of all edge segments based on the mapping provided (if any)
@@ -160,6 +180,7 @@ public class MacroscopicNetworkLayerImpl
 
     LOGGER.info(String.format("%s#link segment types: %d", prefix, linkSegmentTypes.size()));
     LOGGER.info(String.format("%s#intersections: %d", prefix, intersections.size()));
+    LOGGER.info(String.format("%s#toll roads: %d", prefix, tollRoads.size()));
   }
 
   /**
@@ -192,8 +213,8 @@ public class MacroscopicNetworkLayerImpl
    * {@inheritDoc}
    */
   @Override
-  protected MacroscopicNetworkLayerModifierImpl createLayerModifier() {
-    return new MacroscopicNetworkLayerModifierImpl(this, directedGraph);
+  public TollRoadsImpl getTollRoads() {
+    return this.tollRoads;
   }
 
   /**
@@ -251,6 +272,7 @@ public class MacroscopicNetworkLayerImpl
         null,
         null,
         null,
+        null,
         null);
   }
 
@@ -265,6 +287,7 @@ public class MacroscopicNetworkLayerImpl
             new GraphEntityDeepCopyMapper<>(),
             new GraphEntityDeepCopyMapper<>(),
             new GraphEntityDeepCopyMapper<>(),
+            new ManagedIdDeepCopyMapper<>(),
             new ManagedIdDeepCopyMapper<>(),
             new ManagedIdDeepCopyMapper<>(),
             new ManagedIdDeepCopyMapper<>(),
@@ -289,6 +312,7 @@ public class MacroscopicNetworkLayerImpl
     this.linkSegmentTypes.reset();
     this.intersections.reset();
     this.spatialMovements.reset();
+    this.tollRoads.reset();
   }
 
   /**
@@ -300,6 +324,7 @@ public class MacroscopicNetworkLayerImpl
     getLinkSegmentTypes().recreateIds(true);
     getIntersections().recreateIds(true);
     getSpatialMovements().recreateIds(true);
+    getTollRoads().recreateIds(true);
     return newId;
   }
 

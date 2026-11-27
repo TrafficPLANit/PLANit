@@ -2,7 +2,7 @@ package org.goplanit.graph.modifier.event.handler;
 
 import java.util.logging.Logger;
 
-import org.goplanit.graph.modifier.event.BreakEdgeEvent;
+import org.goplanit.utils.graph.modifier.event.BreakEdgeEvent;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Edges;

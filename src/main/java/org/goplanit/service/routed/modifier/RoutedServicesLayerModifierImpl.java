@@ -1,8 +1,8 @@
 package org.goplanit.service.routed.modifier;
 
 import org.goplanit.service.routed.RoutedServicesLayerImpl;
-import org.goplanit.service.routed.modifier.event.ModifiedRoutedServicesIdsEvent;
-import org.goplanit.service.routed.modifier.event.ModifiedRoutedTripIdsEvent;
+import org.goplanit.utils.service.routed.modifier.ModifiedRoutedServicesIdsEvent;
+import org.goplanit.utils.service.routed.modifier.ModifiedRoutedTripIdsEvent;
 import org.goplanit.utils.containers.IntegerListUtils;
 import org.goplanit.utils.containers.ListUtils;
 import org.goplanit.utils.event.Event;
@@ -20,12 +20,13 @@ import org.goplanit.utils.service.routed.modifier.RoutedServicesLayerModifier;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModificationEvent;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierEventType;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
-import org.goplanit.zoning.modifier.event.ModifiedTripScheduleDepartureIdsEvent;
+import org.goplanit.utils.service.routed.modifier.ModifiedTripScheduleDepartureIdsEvent;
 
 import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierEventProducer;
 
 /**
  * Implementation of {@link RoutedServicesLayerModifier}
@@ -197,8 +198,8 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
     List<RoutedTripFrequency> truncatedRoutedTripFrequencies =
             truncateFrequencyTripChainToServiceNetwork(toBeRemovedLegSegments, routedTripFrequency, factory);
     if(truncatedRoutedTripFrequencies == null || truncatedRoutedTripFrequencies.isEmpty()){
-      throw new PlanItRunTimeException("Invalid truncation of routed trip frequency, expected at least one alternative " +
-          "to be created");
+      throw new PlanItRunTimeException("Invalid truncation of routed trip frequency, expected at least one " +
+          "alternative to be created");
     }
     // now mark existing schedule for removal, it is replaced by partial (truncated) copies reflecting new
     // valid sub-trips
@@ -460,6 +461,7 @@ public class RoutedServicesLayerModifierImpl extends EventProducerImpl implement
    * @param routedServicesLayer this modifier acts upon
    */
   public RoutedServicesLayerModifierImpl(final RoutedServicesLayerImpl routedServicesLayer) {
+    super(RoutedServicesModifierEventProducer.FIRED_ROUTED_SERVICES_EVENT_TYPES);
     this.routedServicesLayer = routedServicesLayer;
   }
 

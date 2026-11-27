@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.goplanit.network.layer.macroscopic.intersection.modifier.event.RemoveIntersectionEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.RemoveIntersectionEvent;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModificationEvent;

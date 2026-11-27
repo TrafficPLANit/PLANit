@@ -4,7 +4,7 @@ import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import org.goplanit.zoning.connectoid.ConnectoidsImpl;
-import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
+import org.goplanit.utils.zoning.modifier.event.ModifiedZoneIdsEvent;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
@@ -14,8 +14,8 @@ import org.goplanit.utils.zoning.TransferZoneGroups;
 import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
 
 /**
- * Container for transfer zone groups where each transfer zone group logically groups multiple transfer zones together. Practically this can be used to represent public transport
- * stations for example
+ * Container for transfer zone groups where each transfer zone group logically groups multiple transfer zones together.
+ * Practically this can be used to represent public transport stations for example
  * 
  * @author markr
  *
@@ -29,12 +29,13 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
   private static final Logger LOGGER = Logger.getLogger(ConnectoidsImpl.class.getCanonicalName());
 
   /**
-   * Update all transfer zone groups' id mappings for underlying transfer zones since the transfer zone id might have changed
+   * Update all transfer zone groups' id mappings for underlying transfer zones since the transfer zone id might have
+   * changed
    */
   protected void recreateTransferZoneGroupsZoneIdMapping() {
     for (var group : this) {
       if (!(group instanceof TransferZoneGroupImpl)) {
-        LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of " +
+        LOGGER.severe("Recreation of transfer zone ids utilises unsupported implementation of " +
                 "TransferZoneGroup interface when attempting to update references");
       }
       ((TransferZoneGroupImpl) group).recreateTransferZoneIdMapping();

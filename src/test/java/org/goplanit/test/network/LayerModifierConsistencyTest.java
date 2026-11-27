@@ -4,26 +4,26 @@ import org.goplanit.test.LayerTestBase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.graph.directed.modifier.DirectedGraphModifierImpl;
-import org.goplanit.graph.directed.modifier.event.MoveEdgeEndsAtVertexEvent;
-import org.goplanit.graph.directed.modifier.event.RemoveEdgeSegmentEvent;
-import org.goplanit.graph.directed.modifier.event.RemoveBannedTurnEvent;
+import org.goplanit.utils.graph.modifier.event.MoveEdgeEndsAtVertexEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveEdgeSegmentEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveBannedTurnEvent;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.MacroscopicNetworkModifierUtils;
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
 import org.goplanit.network.layer.macroscopic.SpatialMovementUtils;
 import org.goplanit.network.layer.macroscopic.intersection.IntersectionsImpl;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.event.RecreatedIntersectionsManagedIdsEvent;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.event.RemoveIntersectionEvent;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.event.RemoveSpatialMovementEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.RecreatedIntersectionsManagedIdsEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.RemoveIntersectionEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.RemoveSpatialMovementEvent;
 import org.goplanit.network.layer.modifier.MacroscopicNetworkLayerModifierImpl;
-import org.goplanit.network.layer.modifier.event.ChangeLinkSegmentTypeEvent;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.modifier.event.RemoveTollRoadEvent;
+import org.goplanit.utils.network.layer.modifier.event.ChangeLinkSegmentTypeEvent;
+import org.goplanit.utils.network.layer.modifier.event.RemoveLinkSegmentTypeEvent;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
@@ -47,11 +47,23 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.NonSpatialInter
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModificationEvent;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierListener;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.PricedModeSelection;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.modifier.event.TollRoadModificationEvent;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.modifier.event.TollRoadModifierListener;
 import org.goplanit.utils.network.layer.modifier.event.LinkSegmentTypeModificationEvent;
 import org.goplanit.utils.network.layer.modifier.event.LinkSegmentTypeModifierListener;
+import org.goplanit.utils.test.LogRecorder;
 import org.junit.jupiter.api.BeforeEach;
 import org.locationtech.jts.geom.Coordinate;
 import org.junit.jupiter.api.Test;
+import java.util.HashSet;
+import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierEventProducer;
+import org.goplanit.utils.graph.modifier.event.GraphModifierEventProducer;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierEventProducer;
+import org.goplanit.utils.network.layer.modifier.event.LinkSegmentTypeModifierEventProducer;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.modifier.event.RecreatedTollRoadsManagedIdsEvent;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.modifier.event.TollRoadModifierEventProducer;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidEvent;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -63,14 +75,13 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class LayerModifierConsistencyTest extends LayerTestBase {
 
-  private MacroscopicNetwork network;
-  private IntersectionsImpl intersections;
-
   /** an outside listener, registered for chosen event types */
   private static class OutsideListener implements DirectedGraphModifierListener {
     final List<Event> received = new ArrayList<>();
     @Override public void onGraphModificationEvent(GraphModificationEvent event) { received.add(event); }
-    @Override public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) { received.add(event); }
+    @Override public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
+      received.add(event);
+    }
     @Override public EventType[] getKnownSupportedEventTypes() { return new EventType[0]; }
   }
 
@@ -83,20 +94,26 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     @Override public EventType[] getKnownSupportedEventTypes() { return supported; }
   }
 
-  /** records what the macroscopic layer modifier logs */
-  private static class RecordingHandler extends Handler {
-    final List<LogRecord> records = new ArrayList<>();
-    @Override public void publish(LogRecord record) { records.add(record); }
-    @Override public void flush() {}
-    @Override public void close() {}
+  /** an outside listener for toll road events, registered for chosen event types */
+  private static class OutsideTollRoadListener implements TollRoadModifierListener {
+    final List<TollRoadModificationEvent> received = new ArrayList<>();
+    private final EventType[] supported;
+    OutsideTollRoadListener(EventType... supported) { this.supported = supported; }
+    @Override public void onTollRoadModifierEvent(TollRoadModificationEvent event) { received.add(event); }
+    @Override public EventType[] getKnownSupportedEventTypes() { return supported; }
   }
 
-  @BeforeEach
-  public void setUp() {
-    network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
-    layer = network.getTransportLayers().getFactory().registerNew();
-    intersections = (IntersectionsImpl) layer.getIntersections();
-  }
+  private MacroscopicNetwork network;
+  private IntersectionsImpl intersections;
+
+  // SPATIAL MOVEMENTS
+
+  /** the modes registered by {@link #junctionWithMovement()} and some tests */
+  private Mode car;
+  private Mode bus;
+
+  /** the exit link of {@link #junctionWithMovement()} */
+  private MacroscopicLink exitLink;
 
   /** break the link at the node through the layer modifier */
   private void breakAt(MacroscopicLink link, int node) {
@@ -118,6 +135,55 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     junction.addNewApproachSegment(segment(1, 0));
     junction.addNewApproachSegment(segment(2, 0));
     return intersections.getFactory().register(junction);
+  }
+
+  /**
+   * A spatial junction of member nodes 1 and 2, joined by the internal segment 1-2, with the approach 0-1, the exit 2-4
+   * (whose geometry passes node 3) and a movement from that approach to that exit, without a direct ban. Every segment
+   * allows cars and buses
+   * <pre>
+   *   0 ---> 1 ===> 2 ---------> 4      nodes on a line; 3 lies on the exit, not linked yet
+   * </pre>
+   *
+   * @return the movement
+   */
+  private SpatialMovement junctionWithMovement() {
+    car = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
+    bus = network.getModes().getFactory().registerNew(PredefinedModeType.BUS);
+    layer.registerSupportedModes(List.of(car, bus));
+    var road = layer.getLinkSegmentTypes().getFactory().registerNew("road", 1800, 180);
+    AccessGroupPropertiesFactory.createOnLinkSegmentType(road, 50, List.of(car, bus));
+    createNodesOnLine(5);
+    breakableOneWay(0, 1);
+    breakableOneWay(1, 2);
+    exitLink = breakableOneWay(2, 4);
+    layer.getLinkSegments().forEach(segment -> segment.setLinkSegmentType(road));
+    var junction = spatialJunctionOver(1, 2);
+    junction.addNewApproachSegment(segment(0, 1));
+    junction.addNewInternalSegment(segment(1, 2));
+    var movement = layer.getSpatialMovements().getFactory().registerNew(segment(0, 1), segment(2, 4), 0.001);
+    junction.addMovement(movement);
+    intersections.getFactory().register(junction);
+    return movement;
+  }
+
+  /**
+   * The modes a movement of the junction of {@link #junctionWithMovement()} is banned for, directly or implicitly,
+   * worked out from the layer
+   *
+   * @param movement to work out the banned modes of
+   * @return the modes
+   */
+  private Set<Mode> bannedModes(SpatialMovement movement) {
+    return SpatialMovementUtils.findBannedModes(
+        layer, (SpatialIntersection) intersections.getFirst(), movement, true, true);
+  }
+
+  @BeforeEach
+  public void setUp() {
+    network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
+    layer = network.getTransportLayers().getFactory().registerNew();
+    intersections = (IntersectionsImpl) layer.getIntersections();
   }
 
   // MODIFIER
@@ -321,14 +387,19 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     assertNull(intersections.getBySegment(removed));
   }
 
-  /** Removing a link while keeping its segments still takes those segments out of the intersections */
+  /**
+   * Removing a link while keeping its segments leaves them to the caller: the intersection keeps a kept segment until
+   * the segment is removed itself, which takes it out
+   */
   @Test
-  public void linkRemovedKeepingItsSegmentsRemovesThemFromIntersections() {
+  public void linkRemovedKeepingItsSegmentsLeavesThemUntilTheyAreRemoved() {
     var junction = junctionWithTwoApproaches();
     var kept = segment(1, 0);
 
     layer.getLayerModifier().removeEdge(kept.getParent(), false);
+    assertSame(junction, intersections.getBySegment(kept));
 
+    layer.getLayerModifier().removeEdgeSegment(kept);
     assertEquals(List.of(segment(2, 0)), junction.getApproachSegments());
     assertNull(intersections.getBySegment(kept));
   }
@@ -385,7 +456,8 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
   public void removalDirectlyOnGraphLeavesIntersectionsUnchanged() {
     var junction = junctionWithTwoApproaches();
     var approach = segment(1, 0);
-    var graphModifier = new DirectedGraphModifierImpl(new UntypedDirectedGraphImpl<>(IdGroupingToken.collectGlobalToken(),
+    var graphModifier = new DirectedGraphModifierImpl(new UntypedDirectedGraphImpl<>(
+        IdGroupingToken.collectGlobalToken(),
         layer.getNodes(), layer.getLinks(), layer.getLinkSegments(), layer.getBannedTurns()));
 
     graphModifier.removeEdgeSegment(approach);
@@ -647,27 +719,19 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
   /** An intersection removed with its last member node is logged, unless logging is switched off */
   @Test
   public void intersectionRemovedWithLastNodeIsLoggedUnlessSwitchedOff() {
-    var logger = Logger.getLogger(MacroscopicNetworkLayerModifierImpl.class.getCanonicalName());
-    var handler = new RecordingHandler();
-    logger.addHandler(handler);
-    try {
-      junctionWithTwoApproaches();
-      layer.getLayerModifier().removeVertex(nodes.get(0));
-      assertEquals(1, handler.records.size());
+    junctionWithTwoApproaches();
+    assertEquals(1, LogRecorder.countRecords(MacroscopicNetworkLayerModifierImpl.class, Level.ALL,
+        () -> layer.getLayerModifier().removeVertex(nodes.get(0))));
 
-      handler.records.clear();
-      createNodes(2);                                                // nodes 3 and 4
-      twoWay(3, 4);
-      var second = junctionAt(3);
-      second.addNewApproachSegment(segment(4, 3));
-      intersections.getFactory().register(second);
-      layer.getLayerModifier().setLogModifications(false);
-      layer.getLayerModifier().removeVertex(nodes.get(3));
-      assertTrue(handler.records.isEmpty());
-      assertNull(intersections.get(second.getId()));
-    } finally {
-      logger.removeHandler(handler);
-    }
+    createNodes(2);                                                // nodes 3 and 4
+    twoWay(3, 4);
+    var second = junctionAt(3);
+    second.addNewApproachSegment(segment(4, 3));
+    intersections.getFactory().register(second);
+    layer.getLayerModifier().setLogModifications(false);
+    assertEquals(0, LogRecorder.countRecords(MacroscopicNetworkLayerModifierImpl.class, Level.ALL,
+        () -> layer.getLayerModifier().removeVertex(nodes.get(3))));
+    assertNull(intersections.get(second.getId()));
   }
 
   /** Syncing a network's XML ids to its ids covers its intersections, including those renumbered by a removal */
@@ -686,6 +750,102 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     assertEquals(0, second.getId());
     assertEquals(String.valueOf(second.getId()), second.getXmlId());
     assertEquals(String.valueOf(third.getId()), third.getXmlId());
+  }
+
+  // TOLL ROADS
+
+  /**
+   * Breaking a link of a toll road at a node leaves both new link segments on it, and only those of the tolled
+   * direction ("Break a link of a toll road")
+   */
+  @Test
+  public void brokenLinkOfATollRoadLeavesBothNewLinkSegmentsOnIt() {
+    createNodesOnLine(3);
+    var link = breakableTwoWay(0, 2);
+    var tollRoad = layer.getTollRoads().getFactory().registerNew(
+        List.of(segment(0, 2)), PricedModeSelection.unspecified());
+
+    breakAt(link, 1);
+
+    assertEquals(Set.of(segment(0, 1), segment(1, 2)), Set.copyOf(tollRoad.getLinkSegments()));
+    assertEquals(2, tollRoad.getLinkSegments().size());
+    assertSame(tollRoad, layer.getTollRoads().getByLinkSegment(segment(0, 1)));
+    assertSame(tollRoad, layer.getTollRoads().getByLinkSegment(segment(1, 2)));
+    assertNull(layer.getTollRoads().getByLinkSegment(segment(2, 1)));
+    assertNull(layer.getTollRoads().getByLinkSegment(segment(1, 0)));
+  }
+
+  /**
+   * Removing one of two link segments of a toll road keeps the toll road with the other; removing its only link
+   * segment, on its own or with its link, removes the toll road, which an outside listener hears of once each ("Remove
+   * the only link segment of a toll road")
+   */
+  @Test
+  public void tollRoadLeftWithoutLinkSegmentsIsRemoved() {
+    createNodes(4);
+    oneWay(0, 1);
+    oneWay(1, 2);
+    var lastLink = oneWay(2, 3);
+    var tollRoads = layer.getTollRoads();
+    var first = tollRoads.getFactory().registerNew(List.of(segment(0, 1)), PricedModeSelection.unspecified());
+    var second = tollRoads.getFactory().registerNew(
+        List.of(segment(1, 2), segment(2, 3)), PricedModeSelection.unspecified());
+    var listener = new OutsideTollRoadListener(RemoveTollRoadEvent.EVENT_TYPE);
+    layer.getLayerModifier().addListener(listener);
+
+    layer.getLayerModifier().removeEdgeSegment(segment(1, 2));
+    assertSame(second, tollRoads.get(second.getId()));
+    assertEquals(List.of(segment(2, 3)), second.getLinkSegments());
+    assertTrue(listener.received.isEmpty());
+
+    layer.getLayerModifier().removeEdgeSegment(segment(0, 1));
+    assertNull(tollRoads.get(first.getId()));
+    layer.getLayerModifier().removeEdge(lastLink);
+    assertTrue(tollRoads.isEmpty());
+    assertEquals(List.of(first, second), listener.received.stream()
+        .map(event -> ((RemoveTollRoadEvent) event).getRemovedTollRoad()).collect(Collectors.toList()));
+  }
+
+  /**
+   * Syncing a network's XML ids to its ids covers its toll roads, including one renumbered by a removal, which keeps
+   * its name and external id
+   */
+  @Test
+  public void syncingXmlIdsToIdsCoversTollRoads() {
+    createNodes(3);
+    oneWay(0, 1);
+    oneWay(1, 2);
+    var tollRoads = layer.getTollRoads();
+    var first = tollRoads.getFactory().registerNew(List.of(segment(0, 1)), PricedModeSelection.unspecified());
+    var second = tollRoads.getFactory().registerNew(List.of(segment(1, 2)), PricedModeSelection.unspecified());
+    second.setXmlId("m4");
+    second.setName("M4");
+    second.setExternalId("way 7");
+    tollRoads.remove(first);
+
+    MacroscopicNetworkModifierUtils.updateAndSyncManagedIdEntitiesContainerXmlIdsToIds(network);
+
+    assertEquals(0, second.getId());
+    assertEquals("0", second.getXmlId());
+    assertEquals("M4", second.getName());
+    assertEquals("way 7", second.getExternalId());
+  }
+
+  /** The toll roads still follow the layer once every listener registered from outside is removed */
+  @Test
+  public void tollRoadsStillUpdatedAfterRemovingAllNonInternalListeners() {
+    createNodes(2);
+    oneWay(0, 1);
+    var tollRoad = layer.getTollRoads().getFactory().registerNew(
+        List.of(segment(0, 1)), PricedModeSelection.unspecified());
+    var listener = new OutsideTollRoadListener(RemoveTollRoadEvent.EVENT_TYPE);
+    layer.getLayerModifier().addListener(listener);
+    layer.getLayerModifier().removeAllNonInternalListeners();
+
+    layer.getLayerModifier().removeEdgeSegment(segment(0, 1));
+
+    assertNull(layer.getTollRoads().get(tollRoad.getId()));
+    assertTrue(listener.received.isEmpty());
   }
 
   // MOVING A LINK END
@@ -751,57 +911,6 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     assertEquals(List.of(west, east), move.getEdges());
     assertSame(nodes.get(1), move.getPreviousEndVertex());
     assertSame(nodes.get(3), move.getNewEndVertex());
-  }
-
-  // SPATIAL MOVEMENTS
-
-  /** the modes registered by {@link #junctionWithMovement()} and some tests */
-  private Mode car;
-  private Mode bus;
-
-  /**
-   * A spatial junction of member nodes 1 and 2, joined by the internal segment 1-2, with the approach 0-1, the exit 2-4
-   * (whose geometry passes node 3) and a movement from that approach to that exit, without a direct ban. Every segment
-   * allows cars and buses
-   * <pre>
-   *   0 ---> 1 ===> 2 ---------> 4      nodes on a line; 3 lies on the exit, not linked yet
-   * </pre>
-   *
-   * @return the movement
-   */
-  private SpatialMovement junctionWithMovement() {
-    car = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
-    bus = network.getModes().getFactory().registerNew(PredefinedModeType.BUS);
-    layer.registerSupportedModes(List.of(car, bus));
-    var road = layer.getLinkSegmentTypes().getFactory().registerNew("road", 1800, 180);
-    AccessGroupPropertiesFactory.createOnLinkSegmentType(road, 50, List.of(car, bus));
-    createNodesOnLine(5);
-    breakableOneWay(0, 1);
-    breakableOneWay(1, 2);
-    exitLink = breakableOneWay(2, 4);
-    layer.getLinkSegments().forEach(segment -> segment.setLinkSegmentType(road));
-    var junction = spatialJunctionOver(1, 2);
-    junction.addNewApproachSegment(segment(0, 1));
-    junction.addNewInternalSegment(segment(1, 2));
-    var movement = layer.getSpatialMovements().getFactory().registerNew(segment(0, 1), segment(2, 4), 0.001);
-    junction.addMovement(movement);
-    intersections.getFactory().register(junction);
-    return movement;
-  }
-
-  /** the exit link of {@link #junctionWithMovement()} */
-  private MacroscopicLink exitLink;
-
-  /**
-   * The modes a movement of the junction of {@link #junctionWithMovement()} is banned for, directly or implicitly,
-   * worked out from the layer
-   *
-   * @param movement to work out the banned modes of
-   * @return the modes
-   */
-  private Set<Mode> bannedModes(SpatialMovement movement) {
-    return SpatialMovementUtils.findBannedModes(
-        layer, (SpatialIntersection) intersections.getFirst(), movement, true, true);
   }
 
   /** A movement created without a direct ban reports none, also when a banned turn lies on its connection */
@@ -1225,5 +1334,94 @@ public class LayerModifierConsistencyTest extends LayerTestBase {
     modifier.removeInternalListener(internal);
     modifier.changeLinkSegmentType(segment(0, 1), lane);
     assertEquals(1, heard.size());
+  }
+
+  /**
+   * Removing infrastructure without mode access removes a link segment type no mode may use once its link segments are
+   * gone, and an outside listener hears of it after the removal of the link segment that carried it ("Link segment type
+   * removed with infrastructure without mode access")
+   */
+  @Test
+  public void linkSegmentTypeRemovedWithInfrastructureWithoutModeAccess() {
+    createNodes(2);
+    oneWay(0, 1);
+    var closed = layer.getLinkSegmentTypes().getFactory().registerNew("closed", 1800, 180);
+    segment(0, 1).setLinkSegmentType(closed);
+    var heard = new ArrayList<Event>();
+    var modifier = layer.getLayerModifier();
+    modifier.addListener(new DirectedGraphModifierListener() {
+      @Override public void onGraphModificationEvent(GraphModificationEvent event) { }
+      @Override public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) { heard.add(event); }
+      @Override public EventType[] getKnownSupportedEventTypes() { return new EventType[0]; }
+    }, RemoveEdgeSegmentEvent.EVENT_TYPE);
+    modifier.addListener(new LinkSegmentTypeModifierListener() {
+      @Override public void onLinkSegmentTypeModifierEvent(LinkSegmentTypeModificationEvent event) { heard.add(event); }
+      @Override public EventType[] getKnownSupportedEventTypes() { return new EventType[0]; }
+    }, RemoveLinkSegmentTypeEvent.EVENT_TYPE);
+
+    modifier.removeInfrastructureWithoutModeAccess();
+
+    assertNull(layer.getLinkSegmentTypes().get(closed.getId()));
+    assertEquals(2, heard.size());
+    assertTrue(heard.get(0) instanceof RemoveEdgeSegmentEvent);
+    assertSame(closed, ((RemoveLinkSegmentTypeEvent) heard.get(1)).getRemovedLinkSegmentType());
+  }
+
+  // FIRED EVENT TYPES
+
+  /**
+   * The layer modifier gives the removal of a toll road and the recreation of toll road ids as its toll road event
+   * types, and no type of another kind ("Toll road events of the layer modifier")
+   */
+  @Test
+  public void tollRoadEventsOfTheLayerModifier() {
+    assertEquals(Set.of(RemoveTollRoadEvent.EVENT_TYPE, RecreatedTollRoadsManagedIdsEvent.EVENT_TYPE),
+        layer.getLayerModifier().getFiredTollRoadEventTypes());
+  }
+
+  /**
+   * The layer modifier gives its graph, directed graph, intersection, link segment type and toll road event types
+   * together ("Every type of the layer modifier")
+   */
+  @Test
+  public void everyTypeOfTheLayerModifier() {
+    var expected = new HashSet<EventType>(GraphModifierEventProducer.FIRED_GRAPH_EVENT_TYPES);
+    expected.addAll(DirectedGraphModifierEventProducer.FIRED_DIRECTED_GRAPH_EVENT_TYPES);
+    expected.addAll(IntersectionModifierEventProducer.FIRED_INTERSECTION_EVENT_TYPES);
+    expected.addAll(LinkSegmentTypeModifierEventProducer.FIRED_LINK_SEGMENT_TYPE_EVENT_TYPES);
+    expected.addAll(TollRoadModifierEventProducer.FIRED_TOLL_ROAD_EVENT_TYPES);
+    assertEquals(expected, layer.getLayerModifier().getFiredEventTypes());
+  }
+
+  /**
+   * A toll road listener also supporting directed graph, intersection and link segment type event types, registered on
+   * the layer modifier's toll road events for every type it supports, hears the removal of a toll road ("Listener of
+   * several kinds")
+   */
+  @Test
+  public void listenerOfSeveralKinds() {
+    createNodes(2);
+    oneWay(0, 1);
+    var tollRoad = layer.getTollRoads().getFactory().registerNew(
+        List.of(segment(0, 1)), PricedModeSelection.unspecified());
+    var listener = new OutsideTollRoadListener(RemoveEdgeSegmentEvent.EVENT_TYPE, RemoveIntersectionEvent.EVENT_TYPE,
+        ChangeLinkSegmentTypeEvent.EVENT_TYPE, RemoveTollRoadEvent.EVENT_TYPE);
+    layer.getLayerModifier().addListener(listener);
+
+    layer.getLayerModifier().removeEdgeSegment(segment(0, 1));
+
+    assertEquals(1, listener.received.size());
+    assertSame(tollRoad, ((RemoveTollRoadEvent) listener.received.get(0)).getRemovedTollRoad());
+  }
+
+  /**
+   * A toll road listener supporting only zoning event types is refused by the layer modifier's toll road events
+   * ("Listener of types never fired")
+   */
+  @Test
+  public void listenerOfTypesNeverFired() {
+    var listener = new OutsideTollRoadListener(RemoveConnectoidEvent.EVENT_TYPE);
+
+    assertThrows(IllegalArgumentException.class, () -> layer.getLayerModifier().addListener(listener));
   }
 }

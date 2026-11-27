@@ -6,7 +6,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
 import org.goplanit.zoning.Zoning;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

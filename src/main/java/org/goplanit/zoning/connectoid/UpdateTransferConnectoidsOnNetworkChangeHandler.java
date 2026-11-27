@@ -17,12 +17,12 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
-import org.goplanit.graph.directed.modifier.event.MoveEdgeEndsAtVertexEvent;
-import org.goplanit.graph.directed.modifier.event.RemoveEdgeSegmentEvent;
+import org.goplanit.utils.graph.modifier.event.BreakEdgeSegmentEvent;
+import org.goplanit.utils.graph.modifier.event.MoveEdgeEndsAtVertexEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveEdgeSegmentEvent;
 import org.goplanit.network.layer.macroscopic.SpatialIntersectionUtils;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.event.CollapseSpatialIntersectionEvent;
-import org.goplanit.network.layer.modifier.event.ChangeLinkSegmentTypeEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.CollapseSpatialIntersectionEvent;
+import org.goplanit.utils.network.layer.modifier.event.ChangeLinkSegmentTypeEvent;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -44,10 +44,10 @@ import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
  * removed nodes, as for every connectoid, they follow the link segments their entries are reached over
  * <p>
  * A removed link segment is taken out of every entry reached over it, and a link segment losing modes withdraws them
- * from the entries allowing modes explicitly. For example, a bus stop reached only over a road that stops allowing buses
- * loses its vehicle stop entry. Each loss is reported once, at the level it stops. A connectoid also follows the links it
- * is reached over when their ends move to another node, moving with them, or splitting when it is also reached over a
- * link left behind; that loses nothing. When an intersection is collapsed, the entries reached over its internal
+ * from the entries allowing modes explicitly. For example, a bus stop reached only over a road that stops allowing
+ * buses loses its vehicle stop entry. Each loss is reported once, at the level it stops. A connectoid also follows the
+ * links it is reached over when their ends move to another node, moving with them, or splitting when it is also reached
+ * over a link left behind; that loses nothing. When an intersection is collapsed, the entries reached over its internal
  * segments for a collapsed mode are held from the start of the collapse, and left alone meanwhile; once it is done,
  * they are reached at its centre node for the collapsed modes that reached them, see {@link #moveHeldEntriesToCentre}.
  * </p>
@@ -288,7 +288,7 @@ public class UpdateTransferConnectoidsOnNetworkChangeHandler
   private void followMovedEdgeEnds(MoveEdgeEndsAtVertexEvent moved) {
     Set<EdgeSegment> movedSegments = Collections.newSetFromMap(new IdentityHashMap<>());
     moved.getEdges().forEach(edge -> movedSegments.addAll(edge.getEdgeSegments()));
-    for (var connectoid : List.copyOf(getConnectoids().getByAccessNode(moved.getPreviousEndVertex()))) {
+    for (var connectoid : getConnectoids().getByAccessNode(moved.getPreviousEndVertex())) {
       var accessLinkSegments = connectoid.getExplicitAccessLinkSegmentsStream().collect(Collectors.toList());
       if (accessLinkSegments.stream().noneMatch(movedSegments::contains)) {
         continue;

@@ -1,8 +1,5 @@
 package org.goplanit.network.layer.macroscopic;
 
-import org.goplanit.algorithms.shortest.ShortestPathBreadthFirst;
-import org.goplanit.algorithms.shortest.ShortestPathBreadthFirstResult;
-import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.algorithms.ConnectedComponents;
 import org.goplanit.utils.graph.directed.Connectivity;
 import org.goplanit.utils.graph.directed.algorithms.StronglyConnectedComponents;
@@ -17,7 +14,6 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkUtils;
-import org.goplanit.utils.network.layer.physical.Node;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -301,23 +297,6 @@ public class MacroscopicNetworkLayerUtils {
     return layer.getBannedTurns().getBySegment(from).stream()
         .anyMatch(banned -> banned.getSegmentFrom() == from && banned.getSegmentTo() == to &&
             (!(banned instanceof MacroscopicBannedTurn) || ((MacroscopicBannedTurn) banned).isModeBanned(mode)));
-  }
-
-  /**
-   * Find the shortest connections from a node to the nodes within a distance, over the links that may be followed,
-   * such as those a motorised road mode may use, in either direction, one-way or not
-   *
-   * @param source node to start from
-   * @param canFollow true for a link the connections may follow
-   * @param canReach true for a node a connection may reach and pass
-   * @param maximumDistanceMeters furthest a node reached may be
-   * @return the nodes reached, the source included, with their distances in metres and the connections to them
-   */
-  public static ShortestPathBreadthFirstResult<Node> findShortestConnections(
-      Node source, Predicate<? super Edge> canFollow, Predicate<Node> canReach, double maximumDistanceMeters) {
-    return ShortestPathBreadthFirst.executeAlongEdges(source,
-        edge -> canFollow.test(edge) ? edge.getLengthMeters() : Double.POSITIVE_INFINITY, canReach,
-        maximumDistanceMeters);
   }
 
   /**

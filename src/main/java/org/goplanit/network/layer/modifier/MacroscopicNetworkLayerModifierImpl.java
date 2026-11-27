@@ -14,16 +14,23 @@ import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerUtils;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.IntersectionModifierEventProducerImpl;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.event.RecreatedIntersectionsManagedIdsEvent;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.event.RemoveIntersectionEvent;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.event.RemoveSpatialMovementEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.RecreatedIntersectionsManagedIdsEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.RemoveIntersectionEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.RemoveSpatialMovementEvent;
 import org.goplanit.network.layer.macroscopic.intersection.modifier.event.handler.UpdateIntersectionsOnBreakLinkSegmentHandler;
 import org.goplanit.network.layer.macroscopic.intersection.modifier.event.handler.UpdateIntersectionsOnLinkSegmentRemovalHandler;
 import org.goplanit.network.layer.macroscopic.intersection.modifier.event.handler.UpdateIntersectionsOnVertexRemovalHandler;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.modifier.event.RecreatedTollRoadsManagedIdsEvent;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.modifier.event.RemoveTollRoadEvent;
+import org.goplanit.network.layer.macroscopic.tollroad.modifier.event.handler.UpdateTollRoadsOnBreakLinkSegmentHandler;
+import org.goplanit.network.layer.macroscopic.tollroad.modifier.event.handler.UpdateTollRoadsOnLinkSegmentRemovalHandler;
 import org.goplanit.network.layer.modifier.consolidator.IntersectionConsolidator;
 import org.goplanit.network.layer.modifier.consolidator.IntersectionModeCollapser;
-import org.goplanit.network.layer.modifier.event.ChangeLinkSegmentTypeEvent;
+import org.goplanit.utils.network.layer.modifier.event.ChangeLinkSegmentTypeEvent;
+import org.goplanit.utils.network.layer.modifier.event.RemoveLinkSegmentTypeEvent;
+import org.goplanit.utils.containers.ContainerUtils;
+import org.goplanit.utils.event.EventType;
+import org.goplanit.utils.event.TypedEventProducer;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
@@ -37,12 +44,18 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionUtils;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModificationEvent;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierEventType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierListener;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.TollRoad;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.modifier.event.TollRoadModificationEvent;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.modifier.event.TollRoadModifierEventType;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.modifier.event.TollRoadModifierListener;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapseModifierResult;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapserSettings;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidationModifierResult;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidatorSettings;
+import org.goplanit.utils.network.layer.modifier.event.LinkSegmentTypeModificationEvent;
 import org.goplanit.utils.network.layer.modifier.event.LinkSegmentTypeModifierEventType;
 import org.goplanit.utils.network.layer.modifier.event.LinkSegmentTypeModifierListener;
 import org.goplanit.utils.network.layer.modifier.MacroscopicNetworkLayerModifier;
@@ -50,10 +63,21 @@ import org.goplanit.utils.network.layer.modifier.ModeAccessCleanupModifierResult
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.locationtech.jts.geom.Coordinate;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierEventProducer;
+import org.goplanit.utils.network.layer.modifier.event.LinkSegmentTypeModifierEventProducer;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.modifier.event.TollRoadModifierEventProducer;
 
 /**
- * Modifier for macroscopic network layers. It keeps the layer's intersections consistent with every graph change it
- * makes, and adds the removal of intersections, with the events that go with it
+ * Modifier for macroscopic network layers. It keeps the layer's intersections and toll roads consistent with every
+ * graph change it makes, and adds the removal of intersections, with the events that go with it
+ * <p>
+ * It does so through internal listeners on its graph modifier, one per kind of change: for example, when a link
+ * segment is removed, one takes it off its intersection and removes the movements over it, and another takes it off its
+ * toll road and has a toll road left empty removed. Internal listeners hear each change before any listener registered
+ * from outside, so a zoning or a network pricing following the layer finds it consistent already. It holds one event
+ * producer per kind of event it fires (intersections, link segment types, toll roads), so a listener of several kinds
+ * hears each event once.
+ * </p>
  *
  * @author markr
  */
@@ -68,11 +92,22 @@ public class MacroscopicNetworkLayerModifierImpl
   private final MacroscopicNetworkLayerImpl layer;
 
   /** produces the intersection events to the intersection listeners registered on this modifier */
-  private final IntersectionModifierEventProducerImpl intersectionEvents = new IntersectionModifierEventProducerImpl();
+  private final TypedEventProducer<IntersectionModifierListener, IntersectionModificationEvent,
+      IntersectionModifierEventType> intersectionEvents =
+      new TypedEventProducer<>(IntersectionModifierListener::onIntersectionModifierEvent,
+          IntersectionModifierEventProducer.FIRED_INTERSECTION_EVENT_TYPES);
 
   /** produces the link segment type events to the link segment type listeners registered on this modifier */
-  private final LinkSegmentTypeModifierEventProducerImpl linkSegmentTypeEvents =
-      new LinkSegmentTypeModifierEventProducerImpl();
+  private final TypedEventProducer<LinkSegmentTypeModifierListener, LinkSegmentTypeModificationEvent,
+      LinkSegmentTypeModifierEventType> linkSegmentTypeEvents =
+      new TypedEventProducer<>(LinkSegmentTypeModifierListener::onLinkSegmentTypeModifierEvent,
+          LinkSegmentTypeModifierEventProducer.FIRED_LINK_SEGMENT_TYPE_EVENT_TYPES);
+
+  /** produces the toll road events to the toll road listeners registered on this modifier */
+  private final TypedEventProducer<TollRoadModifierListener, TollRoadModificationEvent,
+      TollRoadModifierEventType> tollRoadEvents =
+      new TypedEventProducer<>(TollRoadModifierListener::onTollRoadModifierEvent,
+          TollRoadModifierEventProducer.FIRED_TOLL_ROAD_EVENT_TYPES);
 
   /** keeps intersections consistent with removed nodes, and reports those left without member nodes */
   private final UpdateIntersectionsOnVertexRemovalHandler vertexRemovalHandler;
@@ -85,15 +120,6 @@ public class MacroscopicNetworkLayerModifierImpl
     removeIntersections(vertexRemovalHandler.drainIntersectionsLeftWithoutMemberNodes());
     vertexRemovalHandler.drainSpatialIntersectionsLeftWithOneMemberNode()
         .forEach(this::replaceByNonSpatialIntersection);
-  }
-
-  /**
-   * Remove a banned turn from the layer, firing its removal event. For the collapse run by this modifier
-   *
-   * @param bannedTurn to remove
-   */
-  public void removeBannedTurn(BannedTurn bannedTurn) {
-    graphModifier.removeBannedTurn(bannedTurn);
   }
 
   /**
@@ -124,9 +150,41 @@ public class MacroscopicNetworkLayerModifierImpl
   }
 
   /**
+   * Remove a toll road left without link segments from the layer, firing its removal event
+   *
+   * @param tollRoad to remove
+   */
+  private void removeTollRoad(TollRoad tollRoad) {
+    layer.getTollRoads().remove(tollRoad);
+    if (tollRoadEvents.hasListener(RemoveTollRoadEvent.EVENT_TYPE)) {
+      tollRoadEvents.fireEvent(new RemoveTollRoadEvent(this, tollRoad));
+    }
+  }
+
+  /**
+   * Log what the modifier changed, unless the caller keeps its own account of it
+   *
+   * @param message to log
+   */
+  private void logModification(String message) {
+    if (isLogModifications()) {
+      LOGGER.info(message);
+    }
+  }
+
+  /**
+   * Remove a banned turn from the layer, firing its removal event. For the collapse run by this modifier
+   *
+   * @param bannedTurn to remove
+   */
+  public void removeBannedTurn(BannedTurn bannedTurn) {
+    graphModifier.removeBannedTurn(bannedTurn);
+  }
+
+  /**
    * Constructor
    *
-   * @param layer to modify, whose intersections are kept consistent with the changes of this modifier
+   * @param layer to modify, whose intersections and toll roads are kept consistent with the changes of this modifier
    * @param graph of the layer
    */
   public MacroscopicNetworkLayerModifierImpl(
@@ -140,6 +198,9 @@ public class MacroscopicNetworkLayerModifierImpl
     graphModifier.addInternalListener(new UpdateIntersectionsOnLinkSegmentRemovalHandler(
         layer.getIntersections(), layer.getSpatialMovements(), this::removeSpatialMovement));
     graphModifier.addInternalListener(vertexRemovalHandler);
+    graphModifier.addInternalListener(new UpdateTollRoadsOnBreakLinkSegmentHandler(layer.getTollRoads()));
+    graphModifier.addInternalListener(
+        new UpdateTollRoadsOnLinkSegmentRemovalHandler(layer.getTollRoads(), this::removeTollRoad));
   }
 
   /**
@@ -186,6 +247,10 @@ public class MacroscopicNetworkLayerModifierImpl
     super.recreateManagedIdEntities();
     layer.getIntersections().recreateIds(true);
     layer.getSpatialMovements().recreateIds(true);
+    layer.getTollRoads().recreateIds(true);
+    if (tollRoadEvents.hasListener(RecreatedTollRoadsManagedIdsEvent.EVENT_TYPE)) {
+      tollRoadEvents.fireEvent(new RecreatedTollRoadsManagedIdsEvent(this, layer.getTollRoads()));
+    }
     if (intersectionEvents.hasListener(RecreatedIntersectionsManagedIdsEvent.EVENT_TYPE)) {
       intersectionEvents.fireEvent(
           new RecreatedIntersectionsManagedIdsEvent(this, layer.getIntersections(), layer.getSpatialMovements()));
@@ -304,6 +369,9 @@ public class MacroscopicNetworkLayerModifierImpl
         .collect(Collectors.toList());
     for (var type : unusedTypes) {
       layer.getLinkSegmentTypes().remove(type);
+      if (linkSegmentTypeEvents.hasListener(RemoveLinkSegmentTypeEvent.EVENT_TYPE)) {
+        linkSegmentTypeEvents.fireEvent(new RemoveLinkSegmentTypeEvent(this, type));
+      }
     }
 
     return new ModeAccessCleanupModifierResult(
@@ -392,6 +460,19 @@ public class MacroscopicNetworkLayerModifierImpl
     super.removeAllNonInternalListeners();
     intersectionEvents.removeAllNonInternalListeners();
     linkSegmentTypeEvents.removeAllNonInternalListeners();
+    tollRoadEvents.removeAllNonInternalListeners();
+  }
+
+  /**
+   * The event types this modifier fires, of every kind: the graph and directed graph types of its graph modifier, and
+   * its intersection, link segment type and toll road types
+   *
+   * @return unmodifiable set of the event types fired
+   */
+  @Override
+  public Set<EventType> getFiredEventTypes() {
+    return ContainerUtils.unmodifiableUnionOf(super.getFiredEventTypes(), intersectionEvents.getFiredEventTypes(),
+        linkSegmentTypeEvents.getFiredEventTypes(), tollRoadEvents.getFiredEventTypes());
   }
 
   /**
@@ -491,13 +572,50 @@ public class MacroscopicNetworkLayerModifierImpl
   }
 
   /**
-   * Log what the modifier changed, unless the caller keeps its own account of it
-   *
-   * @param message to log
+   * {@inheritDoc}
    */
-  private void logModification(String message) {
-    if (isLogModifications()) {
-      LOGGER.info(message);
-    }
+  @Override
+  public void addListener(TollRoadModifierListener listener) {
+    tollRoadEvents.addListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addListener(TollRoadModifierListener listener, TollRoadModifierEventType eventType) {
+    tollRoadEvents.addListener(listener, eventType);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeListener(TollRoadModifierListener listener, TollRoadModifierEventType eventType) {
+    tollRoadEvents.removeListener(listener, eventType);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeListener(TollRoadModifierListener listener) {
+    tollRoadEvents.removeListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addInternalListener(TollRoadModifierListener listener) {
+    tollRoadEvents.addInternalListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeInternalListener(TollRoadModifierListener listener) {
+    tollRoadEvents.removeInternalListener(listener);
   }
 }

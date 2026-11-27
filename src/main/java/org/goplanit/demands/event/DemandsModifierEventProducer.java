@@ -1,6 +1,7 @@
 package org.goplanit.demands.event;
 
 import org.goplanit.utils.event.EventProducer;
+import java.util.Set;
 
 /** Interface dedicated to the {@link DemandsModifierListener} event related exposed methods.
  * Specifies method signatures  for registering
@@ -10,6 +11,21 @@ import org.goplanit.utils.event.EventProducer;
  *
  */
 public interface DemandsModifierEventProducer extends EventProducer{
+
+  /**
+   * The event types a demands modifier fires: {@link RecreatedDemandsEntitiesManagedIdsEvent}
+   */
+  public static final Set<DemandsModifierEventType> FIRED_DEMANDS_EVENT_TYPES =
+      Set.of(RecreatedDemandsEntitiesManagedIdsEvent.EVENT_TYPE);
+
+  /**
+   * The event types of this kind the producer fires, see {@link #FIRED_DEMANDS_EVENT_TYPES}
+   *
+   * @return unmodifiable set of the event types fired
+   */
+  public default Set<DemandsModifierEventType> getFiredDemandsEventTypes() {
+    return FIRED_DEMANDS_EVENT_TYPES;
+  }
 
   /**
    * Recreate managed ids of all underlying managed entities id containers and fire a

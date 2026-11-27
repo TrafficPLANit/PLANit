@@ -6,10 +6,10 @@ import java.util.Set;
 import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 
-import org.goplanit.graph.directed.modifier.event.RemoveEdgeSegmentEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveEdgeSegmentEvent;
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerUtils;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.event.CollapseSpatialIntersectionEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.CollapseSpatialIntersectionEvent;
 import org.goplanit.test.zoning.ZoningLossEventRecorder;
 import org.goplanit.utils.event.EventState;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
@@ -28,6 +28,7 @@ import org.goplanit.utils.network.layer.macroscopic.intersection.IntersectionTyp
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModificationEvent;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierListener;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.PricedModeSelection;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapseModifierResult;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionConsolidationModifierResult;
 import org.goplanit.utils.network.layer.modifier.consolidator.IntersectionCollapserSettings;
@@ -36,8 +37,8 @@ import org.goplanit.utils.zoning.connectoid.DirectedConnectoidAccessZoneEntry;
 import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
 import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 import org.goplanit.zoning.Zoning;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAllowedModeEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAllowedModeEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidEvent;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -556,6 +557,28 @@ public class CollapseTest extends IntersectionConsolidationTestBase {
     corners.forEach(corner -> assertNull(layer.getNodes().get(corner.getId())));
     assertEquals(10, layer.getLinks().size());
     assertTrue(layer.getSpatialMovements().isEmpty());
+  }
+
+  /**
+   * A toll road on the eastbound carriageway 10-C-D-11, collapsed for every mode: it keeps its arms, now ending and
+   * starting at the centre node, and loses the inner link segment C-D the collapse removes
+   */
+  @Test
+  public void collapseThroughATollRoadLeavesItsArmsOnIt() {
+    dividedRoadsCrossing();
+    List.of(A, B, C, D).forEach(this::signalisedJunctionAt);
+    var west = segment(10, C);
+    var east = segment(D, 11);
+    var tollRoad = layer.getTollRoads().getFactory().registerNew(
+        List.of(west, segment(C, D), east), PricedModeSelection.unspecified());
+
+    consolidateThenCollapse(List.of(car, pedestrian));
+
+    var centre = onlyNonSpatialIntersection().getNode();
+    assertEquals(List.of(west, east), tollRoad.getLinkSegments());
+    assertSame(centre, west.getDownstreamVertex());
+    assertSame(centre, east.getUpstreamVertex());
+    assertSame(tollRoad, layer.getTollRoads().getByLinkSegment(east));
   }
 
   /**

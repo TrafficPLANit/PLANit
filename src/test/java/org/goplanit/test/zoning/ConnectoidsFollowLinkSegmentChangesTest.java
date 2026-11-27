@@ -19,10 +19,10 @@ import org.goplanit.utils.zoning.TransferZoneType;
 import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
 import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 import org.goplanit.zoning.Zoning;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAccessLinkSegmentEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAllowedModeEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAccessLinkSegmentEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAllowedModeEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,9 +41,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * segment is removed or loses modes when its type changes, reporting each loss once, at the level it stopped
  *
  * <pre>
- *   0 -----&gt; 1 &lt;----- 2 &lt;----- 3      one-way segments 0-&gt;1 (id 0), 3-&gt;2 (id 1) and 2-&gt;1 (id 2); 0-&gt;1 and 2-&gt;1
- *                                      enter node 1, the access node of the stop's connectoid; all allow bus, car and
- *                                      pedestrian
+ *   0 -----&gt; 1 &lt;----- 2 &lt;----- 3      one-way segments 0-&gt;1 (id 0), 3-&gt;2 (id 1) and 2-&gt;1
+ *                                      (id 2); 0-&gt;1 and 2-&gt;1 enter node 1, the access node of the stop's
+ *                                      connectoid; all allow bus, car and pedestrian
  * </pre>
  */
 public class ConnectoidsFollowLinkSegmentChangesTest extends LayerTestBase {
@@ -216,8 +216,10 @@ public class ConnectoidsFollowLinkSegmentChangesTest extends LayerTestBase {
     assertEquals(List.of(RemoveConnectoidAllowedModeEvent.EVENT_TYPE), lossEventTypes());
   }
 
-  /** An entry for bus and car reached over 0-&gt;1 and 2-&gt;1, where 2-&gt;1 allows no bus: 0-&gt;1 losing both bus and
-   * car at once is taken out, and bus goes from the entry with it, since 2-&gt;1 does not allow it */
+  /**
+   * An entry for bus and car reached over 0-&gt;1 and 2-&gt;1, where 2-&gt;1 allows no bus: 0-&gt;1 losing both
+   * bus and car at once is taken out, and bus goes from the entry with it, since 2-&gt;1 does not allow it
+   */
   @Test
   public void modeOnlyTheRemovedAccessLinkSegmentAllowedIsRemovedFromEntry() {
     var connectoid = vehicleStopConnectoid(bus, car);
@@ -234,7 +236,8 @@ public class ConnectoidsFollowLinkSegmentChangesTest extends LayerTestBase {
     assertFalse(entry.hasAccessLinkSegment(fromWest));
     assertTrue(entry.hasAccessLinkSegment(fromEast));
     assertEquals(Set.of(car), Set.copyOf(entry.getExplicitlyAllowedModes()));
-    assertEquals(List.of(RemoveConnectoidAccessLinkSegmentEvent.EVENT_TYPE, RemoveConnectoidAllowedModeEvent.EVENT_TYPE),
+    assertEquals(List.of(RemoveConnectoidAccessLinkSegmentEvent.EVENT_TYPE,
+        RemoveConnectoidAllowedModeEvent.EVENT_TYPE),
         lossEventTypes().subList(lossesBefore, lossEventTypes().size()));
   }
 
@@ -321,8 +324,11 @@ public class ConnectoidsFollowLinkSegmentChangesTest extends LayerTestBase {
     assertTrue(lossEventTypes().isEmpty());
   }
 
-  /** Only the link of 0-&gt;1 moved to a new node splits the connectoid also reached over 2-&gt;1: the stop's entry over
-   * 0-&gt;1 goes to a new connectoid at the new node, the other stop's entry over 2-&gt;1 stays, and nothing is lost */
+  /**
+   * Only the link of 0-&gt;1 moved to a new node splits the connectoid also reached over 2-&gt;1: the stop's entry
+   * over 0-&gt;1 goes to a new connectoid at the new node, the other stop's entry over 2-&gt;1 stays, and nothing
+   * is lost
+   */
   @Test
   public void connectoidAlsoReachedOverALinkLeftAtTheNodeIsSplit() {
     var connectoid = vehicleStopConnectoid(bus);

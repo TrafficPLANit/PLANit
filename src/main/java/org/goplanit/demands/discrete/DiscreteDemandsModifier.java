@@ -64,6 +64,7 @@ public class DiscreteDemandsModifier extends EventProducerImpl implements Discre
    * @param discreteDemands parent demands to perform modifications on
    */
   public DiscreteDemandsModifier(DiscreteDemands discreteDemands){
+    super(DiscreteDemandsModifierEventProducer.FIRED_DISCRETE_DEMANDS_EVENT_TYPES);
     this.discreteDemands = discreteDemands;
   }
 

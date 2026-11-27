@@ -3,7 +3,7 @@ package org.goplanit.network.layer.macroscopic.intersection.modifier.event.handl
 import java.util.logging.Logger;
 
 import org.goplanit.event.handler.SyncXmlIdToIdHandler;
-import org.goplanit.network.layer.macroscopic.intersection.modifier.event.RecreatedIntersectionsManagedIdsEvent;
+import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.RecreatedIntersectionsManagedIdsEvent;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModificationEvent;
 import org.goplanit.utils.network.layer.macroscopic.intersection.modifier.event.IntersectionModifierListener;
 

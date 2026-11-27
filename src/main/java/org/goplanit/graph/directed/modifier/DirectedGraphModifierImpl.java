@@ -7,12 +7,12 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
-import org.goplanit.graph.directed.modifier.event.MoveEdgeEndsAtVertexEvent;
-import org.goplanit.graph.directed.modifier.event.RemoveEdgeSegmentEvent;
-import org.goplanit.graph.directed.modifier.event.RemoveBannedTurnEvent;
+import org.goplanit.utils.graph.modifier.event.MoveEdgeEndsAtVertexEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveEdgeSegmentEvent;
+import org.goplanit.utils.graph.modifier.event.RemoveBannedTurnEvent;
 import org.goplanit.graph.modifier.GraphModifierImpl;
-import org.goplanit.graph.directed.modifier.event.BreakEdgeSegmentEvent;
-import org.goplanit.graph.directed.modifier.event.RecreatedDirectedGraphEntitiesManagedIdsEvent;
+import org.goplanit.utils.graph.modifier.event.BreakEdgeSegmentEvent;
+import org.goplanit.utils.graph.modifier.event.RecreatedDirectedGraphEntitiesManagedIdsEvent;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
@@ -30,6 +30,10 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.BannedTurnUtils;
+import org.goplanit.utils.containers.ContainerUtils;
+import org.goplanit.utils.event.EventType;
+import org.goplanit.utils.exceptions.ExceptionUtils;
+import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierEventProducer;
 
 /**
  * Directed graph modifier that can change any untyped directed graph. Working on the untyped graph means it need not
@@ -50,19 +54,6 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
    * directed graph aspects
    */
   private final GraphModifierImpl<DirectedVertex, DirectedEdge> graphModifier;
-
-  /**
-   * Depending on whether these are directed or undirected evens call the appropriate notification method
-   */
-  @Override
-  protected void fireEvent(EventListener eventListener, Event event) {
-    if (event.getType() instanceof DirectedGraphModifierEventType) {
-      ((DirectedGraphModifierListener) eventListener).onDirectedGraphModificationEvent(
-          (DirectedGraphModificationEvent) event);
-    } else {
-      graphModifier.fireEvent(eventListener, event);
-    }
-  }
 
   /**
    * For each broken edge, its underlying edge segments are simply copies of the original edge. These require
@@ -175,11 +166,60 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
   }
 
   /**
+   * Whether this modifier fires one of the event types a listener supports, and can tell it, as it tells directed
+   * graph listeners only
+   *
+   * @param listener to check
+   * @return true when this modifier would register it for one or more types
+   */
+  private boolean firesSupportedTypeOf(GraphModifierListener listener) {
+    return listener instanceof DirectedGraphModifierListener
+        && listener.findKnownSupportedEventTypesAmong(super.getFiredEventTypes()).length > 0;
+  }
+
+  /**
+   * Whether the graph modifier this modifier holds fires one of the event types a listener supports
+   *
+   * @param listener to check
+   * @return true when the graph modifier would register it for one or more types
+   */
+  private boolean graphModifierFiresSupportedTypeOf(GraphModifierListener listener) {
+    return listener.findKnownSupportedEventTypesAmong(graphModifier.getFiredEventTypes()).length > 0;
+  }
+
+  /**
+   * Refuse a listener neither this modifier nor the graph modifier it holds would register for any type
+   *
+   * @param listener to check
+   * @throws IllegalArgumentException when neither fires a type the listener supports, or could tell it
+   */
+  private void refuseWhenNoneFired(GraphModifierListener listener) {
+    ExceptionUtils.throwIllegalArgumentIf(listener.hasKnownSupportedEventTypes() &&
+        !firesSupportedTypeOf(listener) && !graphModifierFiresSupportedTypeOf(listener),
+        "Listener %s refused by %s: it supports none of the event types it fires, %s", listener.getClass().getName(),
+        getClass().getName(), getFiredEventTypes());
+  }
+
+  /**
+   * Depending on whether these are directed or undirected evens call the appropriate notification method
+   */
+  @Override
+  protected void fireEvent(EventListener eventListener, Event event) {
+    if (event.getType() instanceof DirectedGraphModifierEventType) {
+      ((DirectedGraphModifierListener) eventListener).onDirectedGraphModificationEvent(
+          (DirectedGraphModificationEvent) event);
+    } else {
+      graphModifier.fireEvent(eventListener, event);
+    }
+  }
+
+  /**
    * Constructor.
    * 
    * @param theDirectedGraph to use
    */
   public DirectedGraphModifierImpl(final UntypedDirectedGraph<?, ?, ?> theDirectedGraph) {
+    super(DirectedGraphModifierEventProducer.FIRED_DIRECTED_GRAPH_EVENT_TYPES);
     this.graphModifier = new GraphModifierImpl<>(theDirectedGraph);
   }
 
@@ -488,43 +528,80 @@ public class DirectedGraphModifierImpl extends EventProducerImpl
 
   /**
    * {@inheritDoc}
+   * <p>
+   * Each type goes to the one that fires it: directed graph types to this modifier, graph types to the graph modifier
+   * it holds. Refused when neither fires a type the listener supports
+   * </p>
    */
   @Override
   public void addListener(GraphModifierListener listener) {
-
-    if (listener instanceof DirectedGraphModifierListener) {
+    refuseWhenNoneFired(listener);
+    if (firesSupportedTypeOf(listener)) {
       super.addListener(listener);
     }
-
-    if(listener instanceof GraphModifierListener){
+    if (graphModifierFiresSupportedTypeOf(listener) || !listener.hasKnownSupportedEventTypes()) {
       graphModifier.addListener(listener);
     }
   }
 
   /**
    * {@inheritDoc}
+   * <p>
+   * To the one that fires the type: this modifier for a directed graph type, which it tells directed graph listeners
+   * only, the graph modifier it holds for a graph type. Refused when neither fires it
+   * </p>
    */
   @Override
   public void addListener(GraphModifierListener listener, GraphModifierEventType eventType) {
-    if (listener instanceof DirectedGraphModifierListener) {
+    if (super.getFiredEventTypes().contains(eventType)) {
+      ExceptionUtils.throwIllegalArgumentIf(!(listener instanceof DirectedGraphModifierListener),
+          "Listener %s refused for event type %s by %s: only a directed graph listener can be told it",
+          listener.getClass().getName(), eventType, getClass().getName());
       super.addListener(listener, eventType);
+    } else {
+      graphModifier.addListener(listener, eventType);
     }
-    graphModifier.addListener(listener, eventType);
   }
 
   /**
-   * Add a listener internal to the owner of this modifier, for the event types it is known to support, on this
-   * modifier and the underlying graph modifier. It receives each of these events before the other listeners do, and
-   * is not removed with them
+   * Add a listener internal to the owner of this modifier, for the event types it is known to support, each on the one
+   * that fires it, this modifier or the underlying graph modifier, as {@link #addListener(GraphModifierListener)}
+   * does. It receives each of these events before the other listeners do, and is not removed with them
    *
    * @param listener to add
+   * @throws IllegalArgumentException when neither fires a type the listener supports
    */
   @Override
   public void addInternalListener(GraphModifierListener listener) {
-    if (listener instanceof DirectedGraphModifierListener) {
+    refuseWhenNoneFired(listener);
+    if (firesSupportedTypeOf(listener)) {
       super.addInternalListener(listener);
     }
-    graphModifier.addInternalListener(listener);
+    if (graphModifierFiresSupportedTypeOf(listener) || !listener.hasKnownSupportedEventTypes()) {
+      graphModifier.addInternalListener(listener);
+    }
+  }
+
+  /**
+   * The event types this modifier fires, of both kinds: its own directed graph types and the graph types of the graph
+   * modifier it holds
+   *
+   * @return unmodifiable set of the event types fired
+   */
+  @Override
+  public Set<EventType> getFiredEventTypes() {
+    return ContainerUtils.unmodifiableUnionOf(super.getFiredEventTypes(), graphModifier.getFiredEventTypes());
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Those of the graph modifier it holds
+   * </p>
+   */
+  @Override
+  public Set<GraphModifierEventType> getFiredGraphEventTypes() {
+    return graphModifier.getFiredGraphEventTypes();
   }
 
   /**

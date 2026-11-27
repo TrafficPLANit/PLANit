@@ -28,12 +28,13 @@ import org.goplanit.utils.zoning.modifier.event.ZoningModifierEventType;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierListener;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.zoning.connectoid.ConnectoidsImpl;
-import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
-import org.goplanit.zoning.modifier.event.RecreatedZoningEntitiesManagedIdsEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAccessLinkSegmentEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAllowedModeEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidEvent;
+import org.goplanit.utils.zoning.modifier.event.ModifiedZoneIdsEvent;
+import org.goplanit.utils.zoning.modifier.event.RecreatedZoningEntitiesManagedIdsEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAccessLinkSegmentEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAllowedModeEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidEvent;
+import org.goplanit.utils.zoning.modifier.event.ZoningModifierEventProducer;
 
 /**
  * Implementation of the zoningModifier interface
@@ -126,6 +127,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
    * @param zoning instance to apply modifications on
    */
   public ZoningModifierImpl(Zoning zoning) {
+    super(ZoningModifierEventProducer.FIRED_ZONING_EVENT_TYPES);
     this.zoning = zoning;
     addInternalEventListeners();
   }
@@ -165,7 +167,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
     // used internally by connectoids for example,
     // todo: ideally replace by using the RecreatedZoningEntitiesManagedIdsEvent instead, ugly to have two different
     //  events for the same thing
-    fireEvent(new ModifiedZoneIdsEvent(this, zoning));
+    fireEvent(new ModifiedZoneIdsEvent(this, zoning.getOdZones(), zoning.getTransferZones()));
   }
 
   /**

@@ -26,6 +26,9 @@ public class PlanitComponentIdMappers {
   /** id mappers for discrete demands entities */
   private DiscreteDemandsIdMapper discreteDemandsIdMapper;
 
+  /** id mappers for network pricing entities */
+  private NetworkPricingIdMapper networkPricingIdMapper;
+
   /**
    * Constructor
    */
@@ -46,6 +49,8 @@ public class PlanitComponentIdMappers {
       demandsIdMapper = (DemandsIdMapper)componentIdMapper;
     }else if(componentIdMapper instanceof  DiscreteDemandsIdMapper){
       discreteDemandsIdMapper = (DiscreteDemandsIdMapper)componentIdMapper;
+    }else if(componentIdMapper instanceof NetworkPricingIdMapper){
+      networkPricingIdMapper = (NetworkPricingIdMapper)componentIdMapper;
     }else if(componentIdMapper instanceof  ServiceNetworkIdMapper){
       serviceNetworkIdMapper = (ServiceNetworkIdMapper)componentIdMapper;
     }else if(componentIdMapper instanceof  RoutedServicesIdMapper){
@@ -81,6 +86,9 @@ public class PlanitComponentIdMappers {
     if(discreteDemandsIdMapper == null) {
       discreteDemandsIdMapper = new DiscreteDemandsIdMapper(idMapperType);
     }
+    if(networkPricingIdMapper == null) {
+      networkPricingIdMapper = new NetworkPricingIdMapper(idMapperType);
+    }
     if(virtualNetworkIdMapper == null) {
       virtualNetworkIdMapper = new VirtualNetworkIdMapper(idMapperType);
     }
@@ -108,6 +116,15 @@ public class PlanitComponentIdMappers {
 
   public DiscreteDemandsIdMapper getDiscreteDemandsIdMapper() {
     return discreteDemandsIdMapper;
+  }
+
+  /**
+   * Get the id mappers for network pricing entities
+   *
+   * @return id mappers
+   */
+  public NetworkPricingIdMapper getNetworkPricingIdMapper() {
+    return networkPricingIdMapper;
   }
 
   public VirtualNetworkIdMapper getVirtualNetworkIdMapper() {

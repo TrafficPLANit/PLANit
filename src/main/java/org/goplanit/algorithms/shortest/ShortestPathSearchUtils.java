@@ -6,11 +6,23 @@ import java.util.logging.Logger;
 import org.goplanit.assignment.common.bush.RootedBush;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import java.util.function.Predicate;
+import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerUtils;
+import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
  * Some common utilities for various shortest path algorithms. The lambdas provided base their direction
  * (up/downstream) on the direction used in the shortest path search NOT the results it yields. To traverse the
  * results, the opposite direciton is required which can be obtained by inverting the call via a flag.
+ * <p>
+ * It also holds the ready-made searches built on {@link ShortestPathBreadthFirst}: the shortest connections from a
+ * vertex within a distance, and those a mode can make from a link segment respecting its banned turns, so every caller
+ * asks the same search rather than setting up its own.
+ * </p>
  * 
  * 
  * @author markr
@@ -152,5 +164,62 @@ public final class ShortestPathSearchUtils {
               shortestPathSearchType));
       return null;
     }
+  }
+
+  /**
+   * Find the shortest connections from a vertex to the vertices within a distance, over the edges that may be followed,
+   * such as the links a motorised road mode may use, in either direction, one-way or not
+   *
+   * @param <V> type of the vertices
+   * @param source vertex to start from
+   * @param canFollow true for an edge the connections may follow
+   * @param canReach true for a vertex a connection may reach and pass
+   * @param maximumDistanceMeters furthest a vertex reached may be
+   * @return the vertices reached, the source included, with their distances in metres and the connections to them
+   */
+  public static <V extends Vertex> ShortestPathBreadthFirstResult<V> findShortestConnections(
+      V source,
+      Predicate<? super Edge> canFollow,
+      Predicate<V> canReach,
+      double maximumDistanceMeters) {
+    return ShortestPathBreadthFirst.executeAlongEdges(source,
+        edge -> canFollow.test(edge) ? edge.getLengthMeters() : Double.POSITIVE_INFINITY, canReach,
+        maximumDistanceMeters);
+  }
+
+  /**
+   * Find the shortest connections a mode can make from a link segment, in the traffic direction, over the link
+   * segments it may continue on, such as the internal segments of a spatial intersection or the link segments of a
+   * toll road, to those it may reach, such as the intersection's exits. It runs over link segments rather than nodes,
+   * so a turn banned between two link segments is respected even when their node can be reached another way
+   * <p>
+   * The search never goes back along the link it just came along, nor onto the start's own link. Otherwise a mode
+   * could get round a turn banned at a node by driving into a two-way link and straight back, which no driver does, and
+   * a connection would count as one the mode can make. For example, from where a toll road is entered, the places it
+   * is left that a car can reach along it, with the distance to each.
+   * </p>
+   *
+   * @param layer holding the banned turns
+   * @param start link segment to start from
+   * @param mode travelling, only over link segments allowing it
+   * @param canContinueOn true for a link segment reached that the search may continue beyond; the start is always
+   *                      continued on
+   * @param canReach true for a link segment the search may reach
+   * @param respectBannedTurns when true a turn banned for the mode is not taken, when false banned turns are ignored
+   * @return the link segments reached, the start included, each with the shortest connection to it and its distance
+   *         from where the start ends, in metres
+   */
+  public static ShortestPathBreadthFirstResult<LinkSegment> findShortestConnectionsForMode(
+      final MacroscopicNetworkLayer layer,
+      final LinkSegment start,
+      final Mode mode,
+      final Predicate<LinkSegment> canContinueOn,
+      final Predicate<LinkSegment> canReach,
+      boolean respectBannedTurns) {
+    return ShortestPathBreadthFirst.<LinkSegment>executeAlongEdgeSegments(start, true,
+        (from, onto) -> onto.isModeAllowed(mode) && onto.getParent() != start.getParent() &&
+            onto.getParent() != from.getParent() && canReach.test(onto) &&
+            !(respectBannedTurns && MacroscopicNetworkLayerUtils.isTurnBannedForMode(layer, from, onto, mode)),
+        canContinueOn, segment -> segment.getParent().getLengthMeters(), Double.POSITIVE_INFINITY);
   }
 }

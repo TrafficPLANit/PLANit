@@ -4,7 +4,7 @@ import org.goplanit.event.handler.SyncXmlIdToIdHandler;
 import org.goplanit.utils.service.routed.RoutedTripDeparture;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModificationEvent;
 import org.goplanit.utils.service.routed.modifier.RoutedServicesModifierListener;
-import org.goplanit.zoning.modifier.event.ModifiedTripScheduleDepartureIdsEvent;
+import org.goplanit.utils.service.routed.modifier.ModifiedTripScheduleDepartureIdsEvent;
 
 import java.util.logging.Logger;
 
@@ -13,8 +13,8 @@ import java.util.logging.Logger;
  * might no longer be unique. When the XML ids must stay unique, for example when the network is persisted to disk
  * afterwards, this handler syncs the XML ids to the newly assigned unique internal ids.
  *
- * Class supports {@link org.goplanit.zoning.modifier.event.ModifiedTripScheduleDepartureIdsEvent}.EVENT_TYPE to apply
- * its syncing functionality upon notification
+ * Class supports {@link org.goplanit.utils.service.routed.modifier.ModifiedTripScheduleDepartureIdsEvent}.EVENT_TYPE to
+ * apply its syncing functionality upon notification
  *
  * @author markr
  */

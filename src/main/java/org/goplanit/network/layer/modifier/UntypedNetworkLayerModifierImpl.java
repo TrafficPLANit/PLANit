@@ -22,6 +22,8 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.modifier.LoggableModifier;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
 import org.goplanit.utils.network.layer.physical.Link;
+import java.util.Set;
+import org.goplanit.utils.event.EventType;
 
 /**
  * Modifier for a model free network layer, generic so derived classes can provide typed versions of the containers
@@ -252,6 +254,16 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   @Override
   public void removeAllNonInternalListeners() {
     graphModifier.removeAllNonInternalListeners();
+  }
+
+  /**
+   * The event types of the directed graph modifier this layer modifier holds, of both its kinds
+   *
+   * @return unmodifiable set of the event types fired
+   */
+  @Override
+  public Set<EventType> getFiredEventTypes() {
+    return graphModifier.getFiredEventTypes();
   }
 
   /**

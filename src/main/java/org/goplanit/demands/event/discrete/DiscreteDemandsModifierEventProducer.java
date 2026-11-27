@@ -1,6 +1,7 @@
 package org.goplanit.demands.event.discrete;
 
 import org.goplanit.utils.event.EventProducer;
+import java.util.Set;
 
 /** Interface dedicated to the {@link org.goplanit.demands.discrete.DiscreteDemandsModifier} event related
  * exposed methods. Specifies method signatures  for registering
@@ -10,6 +11,23 @@ import org.goplanit.utils.event.EventProducer;
  *
  */
 public interface DiscreteDemandsModifierEventProducer extends EventProducer{
+
+  /**
+   * The event types a discrete demands modifier fires: {@link RecreatedDiscreteDemandsEntitiesManagedIdsEvent},
+   * {@link RemoveHouseholdEvent}, {@link RemovePersonEvent}
+   */
+  public static final Set<DiscreteDemandsModifierEventType> FIRED_DISCRETE_DEMANDS_EVENT_TYPES = Set.of(
+      RecreatedDiscreteDemandsEntitiesManagedIdsEvent.EVENT_TYPE, RemoveHouseholdEvent.EVENT_TYPE,
+      RemovePersonEvent.EVENT_TYPE);
+
+  /**
+   * The event types of this kind the producer fires, see {@link #FIRED_DISCRETE_DEMANDS_EVENT_TYPES}
+   *
+   * @return unmodifiable set of the event types fired
+   */
+  public default Set<DiscreteDemandsModifierEventType> getFiredDiscreteDemandsEventTypes() {
+    return FIRED_DISCRETE_DEMANDS_EVENT_TYPES;
+  }
 
   /**
    * Recreate managed ids of all underlying managed entities id containers and fire a

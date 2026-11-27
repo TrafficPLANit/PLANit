@@ -124,6 +124,39 @@ public class LinkSegmentUtilsTest extends LayerTestBase {
   }
 
   /**
+   * Traffic comes into a group of segments at each of its segments with an adjacent upstream segment outside it, and
+   * goes out at each with an adjacent downstream segment outside it: an interchange's on-ramp and off-ramp, and the two
+   * ends. A segment in the middle is neither, also when it leads from one toll road of the group onto another
+   */
+  @Test
+  public void findSegmentsEnteringFromOutsideAndLeavingToOutsideGiveTheSegmentsAtTheGroupsEdge() {
+    /*
+     *                              7 (on-ramp)
+     *                              |
+     *                              v
+     * 0 --> 1 --> 2 --> 3 --> 4 --> 5 --> 6
+     *                         |
+     *                         v
+     *                         8 (off-ramp)
+     *
+     * the group: 1->2 and 2->3 (one toll road), 3->4 and 4->5 (another), the on-ramp 7->4 joining at 4 and the
+     * off-ramp 4->8 leaving at 4
+     */
+    createNodes(9);
+    for (int index = 0; index < 6; index++) {
+      link(index, index + 1, carOnly, null);
+    }
+    link(7, 4, carOnly, null);
+    link(4, 8, carOnly, null);
+    var group = Set.of(segment(1, 2), segment(2, 3), segment(3, 4), segment(4, 5));
+
+    assertEquals(Set.of(segment(1, 2), segment(4, 5)),
+        Set.copyOf(LinkSegmentUtils.findSegmentsEnteringFromOutside(group)));
+    assertEquals(Set.of(segment(3, 4), segment(4, 5)),
+        Set.copyOf(LinkSegmentUtils.findSegmentsLeavingToOutside(group)));
+  }
+
+  /**
    * The segments adjacent downstream of a segment leave the node it arrives at and meet the condition. Going back along
    * the link arrived on is never one. A segment arriving at a dead end has none
    */
@@ -152,8 +185,8 @@ public class LinkSegmentUtilsTest extends LayerTestBase {
   }
 
   /**
-   * The segments adjacent upstream of a segment enter the node it leaves and meet the condition. Coming from the link it
-   * leaves along is never one. A segment leaving a node nothing enters has none
+   * The segments adjacent upstream of a segment enter the node it leaves and meet the condition. Coming from the link
+   * it leaves along is never one. A segment leaving a node nothing enters has none
    */
   @Test
   public void findAdjacentUpstreamLeavesOutTheLinkLeftAlongAndSegmentsFailingTheCondition() {

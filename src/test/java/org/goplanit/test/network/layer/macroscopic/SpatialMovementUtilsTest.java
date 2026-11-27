@@ -1,12 +1,8 @@
 package org.goplanit.test.network.layer.macroscopic;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.macroscopic.AccessGroupPropertiesFactory;
@@ -19,6 +15,7 @@ import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
 import org.goplanit.utils.network.layer.macroscopic.intersection.SpatialIntersection;
+import org.goplanit.utils.test.LogRecorder;
 import org.goplanit.zoning.Zoning;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,14 +45,6 @@ public class SpatialMovementUtilsTest extends LayerTestBase {
   private SpatialIntersection junction;
   private SpatialMovement east;
   private SpatialMovement corner;
-
-  /** records what the utilities log */
-  private static class RecordingHandler extends Handler {
-    final List<LogRecord> records = new ArrayList<>();
-    @Override public void publish(LogRecord record) { records.add(record); }
-    @Override public void flush() {}
-    @Override public void close() {}
-  }
 
   /**
    * Join node a to node b one way, with a segment allowing cars and buses
@@ -113,19 +102,10 @@ public class SpatialMovementUtilsTest extends LayerTestBase {
     assertEquals(List.of(segment(1, 2)), SpatialMovementUtils.findInternalSegmentsPassed(layer, junction, east));
     assertTrue(SpatialMovementUtils.findInternalSegmentsPassed(layer, junction, corner).isEmpty());
 
-    var logger = Logger.getLogger(SpatialMovementUtils.class.getCanonicalName());
-    var handler = new RecordingHandler();
-    logger.addHandler(handler);
-    try {
-      assertEquals(List.of(segment(1, 2)), SpatialMovementUtils.findInternalSegmentsPassed(layer, junction, east, 5));
-      assertEquals(1, handler.records.stream().filter(record -> record.getLevel() == Level.WARNING).count());
-
-      handler.records.clear();
-      assertEquals(List.of(segment(1, 2)), SpatialMovementUtils.findInternalSegmentsPassed(layer, junction, east, 15));
-      assertTrue(handler.records.isEmpty());
-    } finally {
-      logger.removeHandler(handler);
-    }
+    assertEquals(1, LogRecorder.countWarnings(SpatialMovementUtils.class, () -> assertEquals(List.of(segment(1, 2)),
+        SpatialMovementUtils.findInternalSegmentsPassed(layer, junction, east, 5))));
+    assertEquals(0, LogRecorder.countRecords(SpatialMovementUtils.class, Level.ALL, () -> assertEquals(
+        List.of(segment(1, 2)), SpatialMovementUtils.findInternalSegmentsPassed(layer, junction, east, 15))));
 
     assertFalse(SpatialMovementUtils.isImplicitlyBanned(layer, junction, east, car));
     assertFalse(SpatialMovementUtils.isBanned(layer, junction, east, bus, true, true));

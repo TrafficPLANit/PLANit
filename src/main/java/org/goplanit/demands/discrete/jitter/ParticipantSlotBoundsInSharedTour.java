@@ -5,7 +5,7 @@ import org.goplanit.demands.discrete.tour.Tour;
 
 import java.time.LocalTime;
 import java.util.List;
-import java.util.stream.IntStream;
+import org.goplanit.utils.containers.ListUtils;
 
 /**
  * Used only by the shared tour draw, see {@link SharedTourDrawRanges}: the bounds of the slot one participant of a
@@ -109,8 +109,8 @@ final class ParticipantSlotBoundsInSharedTour {
   public static ParticipantSlotBoundsInSharedTour find(
       List<JitterPoint> timePointsInBin, List<JitterPoint> points, long binStartSeconds, long binEndSeconds,
       LocalTime windowStartTime, MinTourDuration minTourDuration) {
-    int firstInBinIndex = IntStream.range(0, points.size())
-        .filter(index -> points.get(index).isSameTimeAs(timePointsInBin.get(0))).findFirst().orElse(-1);
+    int firstInBinIndex = ListUtils.findIndexOfFirstMatching(points,
+        point -> point.isSameTimeAs(timePointsInBin.get(0)));
     if (firstInBinIndex < 0) {
       return null;
     }

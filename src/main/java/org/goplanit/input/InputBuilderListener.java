@@ -12,6 +12,7 @@ import org.goplanit.component.event.PopulateNetworkEvent;
 import org.goplanit.component.event.PopulatePhysicalCostEvent;
 import org.goplanit.component.event.PopulateRoutedServicesEvent;
 import org.goplanit.component.event.PopulateServiceNetworkEvent;
+import org.goplanit.component.event.PopulateNetworkPricingEvent;
 import org.goplanit.component.event.PopulateZoningEvent;
 
 /**
@@ -32,6 +33,7 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
    * <ul>
    * <li>PopulateNetworkEvent for populating a newly created empty network</li>
    * <li>PopulateZoningEvent for populating a newly created empty zoning</li>
+   * <li>PopulateNetworkPricingEvent for populating a newly created empty network pricing</li>
    * <li>PopulateDemandsEvent for populating a newly created empty demands</li>
    * <li>PopulatePhysicalCostEvent for populating a newly created empty physical costs</li>
    * <li>PopulateInitialLinkSegmentCostEvent for populating a newly created empty initial link segment costs</li>
@@ -52,7 +54,8 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
         PopulateFundamentalDiagramEvent.EVENT_TYPE,
         PopulateInitialLinkSegmentCostEvent.EVENT_TYPE, 
         PopulateServiceNetworkEvent.EVENT_TYPE, 
-        PopulateRoutedServicesEvent.EVENT_TYPE };
+        PopulateRoutedServicesEvent.EVENT_TYPE,
+        PopulateNetworkPricingEvent.EVENT_TYPE };
   }
 
   /** the logger */

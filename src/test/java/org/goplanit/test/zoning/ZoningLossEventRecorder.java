@@ -8,10 +8,10 @@ import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierListener;
 import org.goplanit.zoning.Zoning;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAccessLinkSegmentEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidAllowedModeEvent;
-import org.goplanit.zoning.modifier.event.RemoveConnectoidEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAccessLinkSegmentEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAllowedModeEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidEvent;
 
 /**
  * Records the connectoid loss events a zoning's modifier fires, in order, so a test can check what was reported and

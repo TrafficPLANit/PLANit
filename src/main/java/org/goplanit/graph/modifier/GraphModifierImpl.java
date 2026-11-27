@@ -8,8 +8,8 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
-import org.goplanit.graph.modifier.event.RecreatedGraphEntitiesManagedIdsEvent;
-import org.goplanit.graph.modifier.event.*;
+import org.goplanit.utils.graph.modifier.event.RecreatedGraphEntitiesManagedIdsEvent;
+import org.goplanit.utils.graph.modifier.event.*;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
@@ -61,7 +61,7 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge>
       updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesAfter(
           vertexBrokenAt.getPosition(), brokenEdge.getGeometry());
     } else {
-      LOGGER.warning(String.format("unable to locate vertex to break at (%s) for broken edge %s (id:%d)",
+      LOGGER.warning(String.format("Unable to locate vertex to break at (%s) for broken edge %s (id:%d)",
           vertexBrokenAt.getPosition().toString(), brokenEdge.getExternalId(),
           brokenEdge.getId()));
     }
@@ -75,7 +75,7 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge>
    * @param theGraph to use
    */
   public GraphModifierImpl(final UntypedGraph<? extends V, ? extends E> theGraph) {
-    super();
+    super(GraphModifierEventProducer.FIRED_GRAPH_EVENT_TYPES);
     this.theGraph = theGraph;
   }
 
@@ -368,7 +368,7 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge>
     Ex aToBreak = edgeToBreak;
 
     if (edgeToBreak.getVertexA() == null || edgeToBreak.getVertexB() == null) {
-      LOGGER.severe(String.format("unable to break edge since edge to break %s (id:%d) is missing one or " +
+      LOGGER.severe(String.format("Unable to break edge since edge to break %s (id:%d) is missing one or " +
           "more vertices", edgeToBreak.getExternalId(), edgeToBreak.getId()));
       return null;
     }

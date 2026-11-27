@@ -6,10 +6,12 @@ import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.BannedTurn;
 import org.goplanit.utils.id.IdMapperType;
+import org.goplanit.utils.id.IdMappingUtils;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.intersection.Intersection;
 import org.goplanit.utils.network.layer.macroscopic.SpatialMovement;
+import org.goplanit.utils.network.layer.macroscopic.tollroad.TollRoad;
 import org.goplanit.utils.network.layer.physical.*;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -42,6 +44,7 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
     add(BannedTurn.class, IdMapperFunctionFactory.createBannedTurnIdMappingFunction(type));
     add(Intersection.class, IdMapperFunctionFactory.createIntersectionIdMappingFunction(type));
     add(SpatialMovement.class, IdMapperFunctionFactory.createSpatialMovementIdMappingFunction(type));
+    add(TollRoad.class, IdMappingUtils.createIdMappingFunction(TollRoad.class, type));
   }
 
   /**
@@ -107,6 +110,13 @@ public class NetworkIdMapper extends PlanitComponentIdMapper {
    */
   public Function<SpatialMovement, String> getSpatialMovementIdMapper(){
     return get(SpatialMovement.class);
+  }
+
+  /** get id mapper for toll roads
+   * @return id mapper
+   */
+  public Function<TollRoad, String> getTollRoadIdMapper(){
+    return get(TollRoad.class);
   }
 
   /** get id mapper for traveller types

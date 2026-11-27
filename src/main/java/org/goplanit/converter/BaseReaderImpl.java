@@ -1,8 +1,17 @@
 package org.goplanit.converter;
 
+import org.goplanit.utils.misc.CharacterUtils;
 import org.goplanit.utils.misc.CustomIndexTracker;
+import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.wrapper.MapWrapper;
+import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.utils.zoning.TransferZone;
+import org.goplanit.utils.zoning.Zone;
+import org.goplanit.zoning.Zoning;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -68,6 +77,38 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
   }
 
   /**
+   * Register a new source id tracker holding the entities of each of several containers, such as the link segments of
+   * every layer of a network a reader refers to, so a reference by source id finds an entity whichever layer holds it
+   *
+   * @param <K>        key type used
+   * @param <V>        value type used
+   * @param <C>        type of the containers, such as a network layer
+   * @param clazz      identifier in container of containers
+   * @param valueToKey function mapping value to key, such as its XML id
+   * @param containers whose entities to add, such as a network's layers
+   * @param entitiesOf the entities of one container to add, such as a layer's link segments
+   */
+  protected <K, V, C> void initialiseSourceIdMap(
+      Class<V> clazz,
+      final Function<V, K> valueToKey,
+      Iterable<? extends C> containers,
+      Function<? super C, ? extends Iterable<? extends V>> entitiesOf) {
+    sourceIdTracker.initialiseEntityContainer(clazz, valueToKey);
+    containers.forEach(container -> getSourceIdContainer(clazz).addAll(entitiesOf.apply(container)));
+  }
+
+  /**
+   * Register the source id trackers of the zones of a zoning a reader refers to, its OD zones and its transfer zones,
+   * each by its XML id, such as for demands naming their origins and destinations
+   *
+   * @param zoning whose zones to track
+   */
+  protected void initialiseZoneSourceIdMaps(Zoning zoning) {
+    initialiseSourceIdMap(OdZone.getOdZoneIdClass(), Zone::getXmlId, zoning.getOdZones());
+    initialiseSourceIdMap(TransferZone.getTransferZoneIdClass(), Zone::getXmlId, zoning.getTransferZones());
+  }
+
+  /**
    * access to the container with sourceIds
    *
    * @param <V>   value of the container
@@ -90,6 +131,32 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
    */
   protected <V, K> V getBySourceId(Class<V> clazz, K key) {
     return sourceIdTracker.get(clazz, key);
+  }
+
+  /**
+   * Find the entities a comma-separated list of source ids refers to, telling the caller of each id that is unknown, so
+   * it can skip it, or the whole list, as it needs
+   *
+   * @param <T>        type of entity
+   * @param type       of entity, the source id map to look in
+   * @param refs       to parse, may be null or blank
+   * @param unknownRef told each id that is unknown
+   * @return the entities found, in the order listed, empty when none are listed
+   */
+  protected <T> List<T> findBySourceIds(Class<T> type, String refs, Consumer<String> unknownRef) {
+    if (StringUtils.isNullOrBlank(refs)) {
+      return List.of();
+    }
+    var found = new ArrayList<T>();
+    for (var ref : refs.split(CharacterUtils.COMMA.toString())) {
+      var entity = getBySourceId(type, ref.trim());
+      if (entity == null) {
+        unknownRef.accept(ref.trim());
+      } else {
+        found.add(entity);
+      }
+    }
+    return found;
   }
 
   /**
