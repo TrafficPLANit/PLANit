@@ -23,6 +23,9 @@ import org.goplanit.utils.resource.ResourceUtils;
  */
 public class Logging {
 
+  /** disallow constructor */
+  private Logging(){}
+
   private static final String DEFAULT_LOGGING_PROPERTIES_FILE_NAME = "logging.properties";
   private static final String LEVEL_PROPERTY = "java.util.logging.FileHandler.level";
   private static final Level DEFAULT_LEVEL = Level.INFO;
@@ -40,10 +43,10 @@ public class Logging {
   }
 
   /**
-   * Create logger using configuration. If no configuration exists, it is attempted to be reader from the
-   * available resources. If it does not exist, null is returned. Otherwise the logger is returned based
-   * on the configuration. Use this to inialise a PLANit application with a particular logging configuration
-   * and the ability to verify this has worked using the default configuration properties by checking for null
+   * Create logger using configuration. If no configuration exists, an attempt is made to read it from the available
+   * resources. If it does not exist, null is returned, otherwise the logger based on the configuration. Use this to
+   * initialise a PLANit application with a particular logging configuration, and to verify, by checking for null, that
+   * this worked using the default configuration properties
    * 
    * @param clazz class for which the logger is being created
    * @return the logger for this class

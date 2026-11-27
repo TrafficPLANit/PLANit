@@ -1,7 +1,6 @@
 package org.goplanit.network;
 
 import org.goplanit.graph.directed.modifier.event.handler.SyncXmlIdToIdDirectedGraphEntitiesHandler;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.UntypedDirectedGraphLayer;
 
 /**
@@ -14,9 +13,11 @@ class NetworkModifierUtils {
    * Note this also recreates all managed id entities ids as well
    * @param network to use
    */
-  public static <T extends TopologicalLayerNetwork<? extends UntypedDirectedGraphLayer<?,?,?>,?>> void syncManagedIdEntitiesContainerXmlIdsToIds(T network) {
+  public static <T extends TopologicalLayerNetwork<? extends UntypedDirectedGraphLayer<?,?,?>,?>> void
+  updateAndSyncManagedIdEntitiesContainerXmlIdsToIds(T network) {
 
-    SyncXmlIdToIdDirectedGraphEntitiesHandler syncXmlIdToNetworkEntitiesIds = new SyncXmlIdToIdDirectedGraphEntitiesHandler();
+    SyncXmlIdToIdDirectedGraphEntitiesHandler syncXmlIdToNetworkEntitiesIds =
+            new SyncXmlIdToIdDirectedGraphEntitiesHandler();
 
     /* network layers */
     for(var networkLayer : network.getTransportLayers()){

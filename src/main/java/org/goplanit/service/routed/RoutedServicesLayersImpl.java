@@ -14,7 +14,8 @@ import java.util.function.BiConsumer;
  * 
  * @author markr
  */
-public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServicesLayer> implements RoutedServicesLayers {
+public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServicesLayer>
+    implements RoutedServicesLayers {
 
   /** factory for this container class */
   protected final RoutedServicesLayerFactoryImpl factory;
@@ -36,7 +37,10 @@ public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServic
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper to use for tracking mapping between original and copied entity (may be null)
    */
-  public RoutedServicesLayersImpl(final RoutedServicesLayersImpl other, boolean deepCopy, BiConsumer<RoutedServicesLayer, RoutedServicesLayer> mapper) {
+  public RoutedServicesLayersImpl(
+      final RoutedServicesLayersImpl other,
+      boolean deepCopy,
+      BiConsumer<RoutedServicesLayer, RoutedServicesLayer> mapper) {
     super(other, deepCopy, mapper);
     this.factory = new RoutedServicesLayerFactoryImpl(other.factory.getIdGroupingToken(), this);
   }

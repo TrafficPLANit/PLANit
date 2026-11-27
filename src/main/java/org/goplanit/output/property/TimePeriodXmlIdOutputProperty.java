@@ -7,30 +7,54 @@ import org.goplanit.output.enums.DataType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.unit.Unit;
 
+/**
+ * Output property for Time Period Xml Id.
+ */
 public final class TimePeriodXmlIdOutputProperty extends OutputProperty {
 
-  public static final String NAME = "Time Period Xml Id";
 
+  /** Time Period Xml Id. */
+  public static final String NAME = "Time Period Xml Id";
+  /**
+   * Public no-arg constructor required for reflective instantiation.
+   */
+  public TimePeriodXmlIdOutputProperty(){}
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String getName() {
     return NAME;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Unit getDefaultUnit() {
     return Unit.NONE;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public DataType getDataType() {
     return DataType.STRING;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public OutputPropertyType getOutputPropertyType() {
     return OutputPropertyType.TIME_PERIOD_XML_ID;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public OutputPropertyPriority getColumnPriority() {
     return OutputPropertyPriority.ID_PRIORITY;

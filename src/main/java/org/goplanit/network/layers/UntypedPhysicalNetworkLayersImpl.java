@@ -12,8 +12,10 @@ import java.util.function.BiConsumer;
  * 
  * @author markr
  *
+ * @param <L> type of layer container
  */
-public abstract class UntypedPhysicalNetworkLayersImpl<L extends UntypedPhysicalLayer<?, ?, ?>> extends TopologicalLayersImpl<L> implements UntypedPhysicalNetworkLayers<L> {
+public abstract class UntypedPhysicalNetworkLayersImpl<L extends UntypedPhysicalLayer<?, ?, ?>>
+    extends TopologicalLayersImpl<L> implements UntypedPhysicalNetworkLayers<L> {
 
   /**
    * Constructor
@@ -31,7 +33,8 @@ public abstract class UntypedPhysicalNetworkLayersImpl<L extends UntypedPhysical
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    * @param mapper apply to each mapping from original to copy
    */
-  public UntypedPhysicalNetworkLayersImpl(UntypedPhysicalNetworkLayersImpl<L> other, boolean deepCopy, BiConsumer<L, L> mapper) {
+  public UntypedPhysicalNetworkLayersImpl(
+          UntypedPhysicalNetworkLayersImpl<L> other, boolean deepCopy, BiConsumer<L, L> mapper) {
     super(other,deepCopy, mapper);
   }
 

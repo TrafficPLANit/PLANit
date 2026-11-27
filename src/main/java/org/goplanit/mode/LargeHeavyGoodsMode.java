@@ -26,17 +26,19 @@ import org.goplanit.utils.mode.VehicularModeType;
  */
 public class LargeHeavyGoodsMode extends PredefinedModeImpl {
 
-  /* default max speed value for lhgv mode */
+  /** default max speed value for lhgv mode */
   public static final double DEFAULT_MAX_SPEED_KMH = 90;
 
-  /* default pcu value for lhgv mode */
+  /** default pcu value for lhgv mode */
   public static final double DEFAULT_PCU = 3;
 
-  /* default physical features of lhgv (VEHICLE, MOTORISED, ROAD) */
-  public static final PhysicalModeFeatures LHGV_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.ROAD);
+  /** default physical features of lhgv (VEHICLE, MOTORISED, ROAD) */
+  public static final PhysicalModeFeatures LHGV_PHYSICAL_FEATURES =
+      new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.ROAD);
 
-  /* default usability features of lhgv (GOODS) */
-  public static final UsabilityModeFeatures LHGV_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.GOODS);
+  /** default usability features of lhgv (GOODS) */
+  public static final UsabilityModeFeatures LHGV_USABLITY_FEATURES =
+      new UsabilityModeFeaturesImpl(UseOfModeType.GOODS, PredefinedModeType.LARGE_HEAVY_GOODS_VEHICLE.getDriverType());
 
   /**
    * Constructor for large heavy goods vehicle mode
@@ -44,7 +46,12 @@ public class LargeHeavyGoodsMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected LargeHeavyGoodsMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.LARGE_HEAVY_GOODS_VEHICLE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, LHGV_PHYSICAL_FEATURES, LHGV_USABLITY_FEATURES);
+    super(groupId,
+        PredefinedModeType.LARGE_HEAVY_GOODS_VEHICLE,
+        DEFAULT_MAX_SPEED_KMH,
+        DEFAULT_PCU,
+        LHGV_PHYSICAL_FEATURES,
+        LHGV_USABLITY_FEATURES);
   }
 
   /**

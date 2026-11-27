@@ -11,8 +11,11 @@ import org.goplanit.utils.unit.Unit;
  */
 public final class InflowOutputProperty extends OutputProperty {
 
+  /** Public no-arg constructor required for reflective instantiation. */
+  public InflowOutputProperty(){}
+
   /**
-   * Name of the property
+   * Inflow
    */
   public static final String NAME = "Inflow";
 

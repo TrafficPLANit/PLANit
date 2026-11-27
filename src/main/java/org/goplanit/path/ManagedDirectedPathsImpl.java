@@ -7,6 +7,7 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.ManagedDirectedPaths;
 
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
 /**
@@ -25,7 +26,7 @@ public class ManagedDirectedPathsImpl extends ManagedIdEntitiesImpl<ManagedDirec
    * @param groupId to use for creating ids for instances
    */
   public ManagedDirectedPathsImpl(final IdGroupingToken groupId) {
-    super(ManagedDirectedPath::getId, ManagedDirectedPath.PATH_ID_CLASS);
+    super(new TreeMap<>(), ManagedDirectedPath::getId, ManagedDirectedPath.PATH_ID_CLASS);
     this.directedPathFactory = new ContainerisedDirectedPathFactoryImpl(groupId, this);
   }
 
@@ -36,7 +37,7 @@ public class ManagedDirectedPathsImpl extends ManagedIdEntitiesImpl<ManagedDirec
    * @param directedPathFactory the factory to use
    */
   public ManagedDirectedPathsImpl(final IdGroupingToken groupId, ContainerisedDirectedPathFactoryImpl directedPathFactory) {
-    super(ManagedDirectedPath::getId, ManagedDirectedPath.PATH_ID_CLASS);
+    super(new TreeMap<>(), ManagedDirectedPath::getId, ManagedDirectedPath.PATH_ID_CLASS);
     this.directedPathFactory = directedPathFactory;
   }
 

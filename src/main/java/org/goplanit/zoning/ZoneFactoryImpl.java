@@ -8,6 +8,7 @@ import org.goplanit.utils.zoning.Zone;
  * Factory for creating od zones (on container)
  * 
  * @author markr
+ * @param <Z> type of zone
  */
 public abstract class ZoneFactoryImpl<Z extends Zone> extends ManagedIdEntityFactoryImpl<Z> {
 

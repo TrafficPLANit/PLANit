@@ -3,6 +3,7 @@ package org.goplanit.converter.idmapping;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.function.PlanitExceptionFunction;
 import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.id.IdMapperType;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;

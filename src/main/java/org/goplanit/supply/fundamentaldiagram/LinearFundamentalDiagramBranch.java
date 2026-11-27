@@ -64,7 +64,7 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    */
   @Override
   public double getFlowPcuHour(double densityPcuKm) {
-    return (densityPcuKm - densityAtZeroFlowPcuKm) * getCharateristicWaveSpeedKmHour();
+    return (densityPcuKm - densityAtZeroFlowPcuKm) * getCharacteristicWaveSpeedKmHour();
   }
 
   /**
@@ -72,15 +72,44 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    */
   @Override
   public double getDensityPcuKm(double flowPcuHour) {
-    return densityAtZeroFlowPcuKm + (flowPcuHour / getCharateristicWaveSpeedKmHour());
+    return densityAtZeroFlowPcuKm + (flowPcuHour / getCharacteristicWaveSpeedKmHour());
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public double getFlowTangent(double flowPcuHour) {
-    return getCharateristicWaveSpeedKmHour();
+  public double getDFlowDDensityAtFlow(double flowPcuHour) {
+    return getCharacteristicWaveSpeedKmHour();
+  }
+
+  /**
+   * The dFlow/dDensity given a particular density
+   *
+   * @param densityPcuKm to use
+   * @return tangent at density
+   */
+  @Override
+  public double getDFlowDDensityAtDensity(double densityPcuKm) {
+    return getCharacteristicWaveSpeedKmHour();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getDSpeedDFlowAtFlow(double flowPcuHour) {
+    // speed is fixed
+    return 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getDSpeedDDensityAtDensity(double densityPcuKm) {
+    // speed is fixed
+    return 0;
   }
 
   /**
@@ -88,7 +117,7 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    * 
    * @return wave speed
    */
-  public double getCharateristicWaveSpeedKmHour() {
+  public double getCharacteristicWaveSpeedKmHour() {
     return characteristicWaveSpeedKmHour;
   }
 
@@ -99,7 +128,8 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
   public int relaxedHashCode(int scale) {
     NumberFormat nf = NumberFormat.getInstance();
     nf.setMaximumFractionDigits(scale);
-    return HashUtils.createCombinedHashCode(nf.format(this.characteristicWaveSpeedKmHour), nf.format(this.densityAtZeroFlowPcuKm));
+    return HashUtils.createCombinedHashCode(
+        nf.format(this.characteristicWaveSpeedKmHour), nf.format(this.densityAtZeroFlowPcuKm));
   }
 
   /**
@@ -111,11 +141,19 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinearFundamentalDiagramBranch deepClone() {
+    return new LinearFundamentalDiagramBranch(this);
+  }
+
+  /**
    * speed at zero flow is the same as the characteristic wave speed
    */
   @Override
   public double getSpeedKmHourAtZeroFlow() {
-    return getCharateristicWaveSpeedKmHour();
+    return getCharacteristicWaveSpeedKmHour();
   }
 
   /**
@@ -123,7 +161,7 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    */
   @Override
   public double getSpeedKmHourAtZeroDensity() {
-    return getCharateristicWaveSpeedKmHour();
+    return getCharacteristicWaveSpeedKmHour();
   }
 
   /**

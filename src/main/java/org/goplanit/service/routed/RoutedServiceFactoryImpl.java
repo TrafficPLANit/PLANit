@@ -11,7 +11,8 @@ import org.goplanit.utils.service.routed.RoutedServiceFactory;
  * 
  * @author markr
  */
-public class RoutedServiceFactoryImpl extends ManagedIdEntityFactoryImpl<RoutedService> implements RoutedServiceFactory {
+public class RoutedServiceFactoryImpl extends ManagedIdEntityFactoryImpl<RoutedService>
+    implements RoutedServiceFactory {
 
   /** container to use */
   protected final RoutedModeServices routedModeServices;

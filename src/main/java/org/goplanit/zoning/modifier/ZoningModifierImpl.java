@@ -1,8 +1,6 @@
 package org.goplanit.zoning.modifier;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -10,16 +8,33 @@ import java.util.stream.Collectors;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.modifier.LoggableModifier;
+import org.goplanit.utils.network.layer.ServiceNetworkLayer;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.goplanit.utils.network.layers.ServiceNetworkLayers;
 import org.goplanit.utils.zoning.*;
+import org.goplanit.utils.zoning.connectoid.Connectoid;
+import org.goplanit.utils.zoning.connectoid.ConnectoidAccessZoneEntry;
+import org.goplanit.utils.zoning.connectoid.DirectedConnectoidAccessZoneEntry;
+import org.goplanit.utils.zoning.connectoid.OdConnectoid;
+import org.goplanit.utils.zoning.connectoid.TransferConnectoid;
+import org.goplanit.utils.zoning.connectoid.ZoneConnectoidType;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
 import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierEventType;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierListener;
 import org.goplanit.zoning.Zoning;
-import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
-import org.goplanit.zoning.modifier.event.RecreatedZoningEntitiesManagedIdsEvent;
+import org.goplanit.zoning.connectoid.ConnectoidsImpl;
+import org.goplanit.utils.zoning.modifier.event.ModifiedZoneIdsEvent;
+import org.goplanit.utils.zoning.modifier.event.RecreatedZoningEntitiesManagedIdsEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAccessLinkSegmentEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAccessZoneEntryEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidAllowedModeEvent;
+import org.goplanit.utils.zoning.modifier.event.RemoveConnectoidEvent;
+import org.goplanit.utils.zoning.modifier.event.ZoningModifierEventProducer;
 
 /**
  * Implementation of the zoningModifier interface
@@ -31,13 +46,30 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   /** the logger to use */
   private static final Logger LOGGER = Logger.getLogger(ZoningModifierImpl.class.getCanonicalName());
 
+  /** whether the modifications applied are reported */
+  private boolean logModifications = LoggableModifier.DEFAULT_LOG_MODIFICATIONS;
+
   /**
-   * register listeners for the internally fired events on the internally known containers of the zoning
+   * Log the given modification, unless the modifications applied are not to be reported
+   *
+   * @param message to log
+   */
+  private void logModification(String message) {
+    if(logModifications) {
+      LOGGER.info(message);
+    }
+  }
+
+  /**
+   * register listeners for the internally fired events on the internally known containers of the zoning, and give
+   * the connectoid containers this modifier, through which they make every change to the connectoids
    */
   private void addInternalEventListeners() {
     this.addListener(zoning.getOdConnectoids());
     this.addListener(zoning.getTransferConnectoids());
     this.addListener(zoning.getTransferZoneGroups());
+    ((ConnectoidsImpl<?>) zoning.getOdConnectoids()).setZoningModifier(this);
+    ((ConnectoidsImpl<?>) zoning.getTransferConnectoids()).setZoningModifier(this);
   }
 
   /**
@@ -64,7 +96,8 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
     } else if (toRemove instanceof TransferZone) {
       zoning.getTransferZones().remove((TransferZone) toRemove);
     } else {
-      LOGGER.severe(String.format("Unsupported zone %s to be removed by zoning modifier, ignored", Zone.class.getCanonicalName()));
+      LOGGER.severe(String.format("Unsupported zone %s to be removed by zoning modifier, ignored",
+              Zone.class.getCanonicalName()));
     }
   }
 
@@ -94,6 +127,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
    * @param zoning instance to apply modifications on
    */
   public ZoningModifierImpl(Zoning zoning) {
+    super(ZoningModifierEventProducer.FIRED_ZONING_EVENT_TYPES);
     this.zoning = zoning;
     addInternalEventListeners();
   }
@@ -104,8 +138,9 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   @Override
   public void recreateConnectoidIds() {
     /*
-     * both connectoids containers use the same underlying id generated for the connectoid managed id, so it is unique across the two containers. Hence, we should only reset it
-     * once, otherwise it is not longer unique across both when recreating the ids
+     * both connectoids containers use the same underlying id generated for the connectoid managed id, so it is
+     * unique across the two containers. Hence, we should only reset it
+     * once, otherwise it is no longer unique across both when recreating the ids
      */
     boolean recreateManagedIdClass = true;
     zoning.getOdConnectoids().recreateIds(recreateManagedIdClass);
@@ -122,14 +157,17 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   @Override
   public void recreateZoneIds() {
     /*
-     * both connectoids containers use the same underlying id generated for the zone managed id, so it is unique across the two containers. Hence, we should only reset it once,
-     * otherwise it is no longer unique across both when recreating the ids
+     * both connectoids containers use the same underlying id generated for the zone managed id, so it is unique
+     * across the two containers. Hence, we should only reset it once, otherwise it is no longer unique across
+     * both when recreating the ids
      */
     recreateOdZoneIds(true);
     recreateTransferZoneIds(false);
 
-    // used internally by connectoids for example, todo: ideally replace by using the RecreatedZoningEntitiesManagedIdsEvent instead, ugly to have two different events for the same thing
-    fireEvent(new ModifiedZoneIdsEvent(this, zoning));
+    // used internally by connectoids for example,
+    // todo: ideally replace by using the RecreatedZoningEntitiesManagedIdsEvent instead, ugly to have two different
+    //  events for the same thing
+    fireEvent(new ModifiedZoneIdsEvent(this, zoning.getOdZones(), zoning.getTransferZones()));
   }
 
   /**
@@ -148,7 +186,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   public void removeDanglingTransferZones(boolean recreateZoneIds) {
     /* identify all dangling transfer zones */
     Set<Zone> danglingZones = new HashSet<>(zoning.getTransferZones().toCollection());
-    zoning.getTransferConnectoids().forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));
+    zoning.getTransferConnectoids().stream().flatMap(Connectoid::getAccessZoneStream).forEach(danglingZones::remove);
 
     /* remove all zones that are not referenced by any connectoid */
     if (!danglingZones.isEmpty()) {
@@ -164,7 +202,8 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
         recreateZoneIds();
       }
 
-      LOGGER.info(String.format("%sRemoved %d dangling transfer zones", LoggingUtils.zoningPrefix(zoning.getId()), danglingZones.size()));
+      logModification(String.format("%sRemoved %d dangling transfer zones",
+              LoggingUtils.zoningPrefix(zoning.getId()), danglingZones.size()));
     }
   }
 
@@ -175,7 +214,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   public void removeDanglingOdZones(boolean recreateZoneIds) {
     /* identify all dangling OD zones */
     Set<Zone> danglingZones = new HashSet<>(zoning.getOdZones().toCollection());
-    zoning.getOdConnectoids().forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));
+    zoning.getOdConnectoids().stream().flatMap(Connectoid::getAccessZoneStream).forEach(danglingZones::remove);
 
     if (!danglingZones.isEmpty()) {
       for (Zone danglingZone : danglingZones) {
@@ -188,7 +227,8 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
         }
       }
 
-      LOGGER.info(String.format("%sRemoved %d dangling OD zones", LoggingUtils.zoningPrefix(zoning.getId()), danglingZones.size()));
+      logModification(String.format("%sRemoved %d dangling OD zones",
+          LoggingUtils.zoningPrefix(zoning.getId()), danglingZones.size()));
     }
   }
 
@@ -196,17 +236,22 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
    * {@inheritDoc}
    */
   @Override
-  public void removeDanglingZones() {
-    /* remove all dangling zones, recreate ids only at the end for both (since they share uniqueness of the ids) */
-    removeDanglingTransferZones(false);
-    removeDanglingOdZones(true);
+  public void removeDanglingZones(boolean recreateIds) {
+    if(recreateIds) {
+      /* remove all dangling zones, recreate ids only at the end for both (since they share uniqueness of the ids) */
+      removeDanglingTransferZones(false);
+      removeDanglingOdZones(true);
+    }else{
+      removeDanglingTransferZones(false);
+      removeDanglingOdZones(false);
+    }
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void removeDanglingTransferZoneGroups() {
+  public void removeDanglingTransferZoneGroups(boolean recreateIds) {
 
     LongAdder counter = new LongAdder();
     /* remove group if dangling */
@@ -220,46 +265,130 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
     }
 
     /* recreate the ids if any */
-    if (counter.longValue()>0) {
+    if (counter.longValue()>0 && recreateIds) {
       recreateTransferZoneGroupIds();
-
-      LOGGER.info(String.format("%sRemoved %d dangling transfer zone groups", LoggingUtils.zoningPrefix(zoning.getId()), counter.longValue()));
     }
+
+    logModification(String.format("%sRemoved %d dangling transfer zone groups",
+            LoggingUtils.zoningPrefix(zoning.getId()), counter.longValue()));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void removeUnusedTransferConnectoids(final ServiceNetworkLayers serviceNetworkLayers, boolean recreateManagedConnectoidIds) {
-    /* partition by physical layer - because a connectoids only relates to a single layer, entries do not occur twice */
-    var physicalLayers = serviceNetworkLayers.stream().map(snl -> snl.getParentNetworkLayer()).collect(Collectors.toList());
+  public void removeUnusedTransferConnectoids(
+          final ServiceNetworkLayers serviceNetworkLayers, boolean recreateManagedConnectoidIds) {
+
+    /* partition by physical layer - assume connectoids only relates to a single layer, entries do not occur twice */
+    // todo: this may change in future in which case this is no longer a safe implementation
+    var physicalLayers = serviceNetworkLayers.stream().map(
+            ServiceNetworkLayer::getParentNetworkLayer).collect(Collectors.toList());
     var transferConnectoidsByPhysicalLayer =
-        this.zoning.getTransferConnectoids().groupByPhysicalLayerAndCustomKey(physicalLayers, DirectedConnectoid::getAccessNode);
+        this.zoning.getTransferConnectoids().groupByPhysicalLayerAndCustomKey(
+                physicalLayers, TransferConnectoid::getReferenceVertex);
 
     LongAdder counter = new LongAdder();
     for(var serviceNetworkLayer : serviceNetworkLayers){
 
-      var serviceNodesByPhysicalNodes = serviceNetworkLayer.getServiceNodes().groupBy( sn -> sn.getPhysicalParentNodes());
+      var serviceNodesByPhysicalNodes = serviceNetworkLayer.getServiceNodes().groupBy(
+              ServiceNode::getPhysicalParentNodes);
       serviceNodesByPhysicalNodes.remove(null); // make sure that unmapped service nodes do not cause issues
 
-      /* from all entries, remove the entries for which a service node exists --> remaining entries are the ones to remove*/
-      var transferConnectoidsByPhysicalAccessNodeToRemove = transferConnectoidsByPhysicalLayer.get(serviceNetworkLayer.getParentNetworkLayer());
+      /* from all entries, remove the entries for which a service node exists --> remaining entries are the
+      ones to remove*/
+      var transferConnectoidsByPhysicalAccessNodeToRemove =
+              transferConnectoidsByPhysicalLayer.get(serviceNetworkLayer.getParentNetworkLayer());
       var physicalNodesWithServices = serviceNodesByPhysicalNodes.keySet();
-      physicalNodesWithServices.stream().flatMap(e -> e.stream()).forEach(accessNode -> transferConnectoidsByPhysicalAccessNodeToRemove.remove(accessNode)); // prune
+      physicalNodesWithServices.stream().flatMap(Collection::stream).forEach(
+              transferConnectoidsByPhysicalAccessNodeToRemove::remove); // prune
 
-      /* remove identified entries from zoning */
-      if(transferConnectoidsByPhysicalAccessNodeToRemove!=null && transferConnectoidsByPhysicalAccessNodeToRemove.isEmpty()) {
-        transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().flatMap(l -> l.stream()).forEach(
-            transferConnectoidToRemove -> zoning.getTransferConnectoids().remove(transferConnectoidToRemove));
-        counter.add(transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().collect(Collectors.summingInt(l -> l.size())));
+      /* at a node no service calls at the stops served there are unused, so their entries go; entries of other zones,
+       * giving travellers access to or egress from them, stay; a connectoid serving only unused stops goes whole */
+      if(transferConnectoidsByPhysicalAccessNodeToRemove!=null &&
+              !transferConnectoidsByPhysicalAccessNodeToRemove.isEmpty()) {
+        transferConnectoidsByPhysicalAccessNodeToRemove.values().stream().flatMap(Collection::stream).forEach(
+            unused -> {
+              if (unused.getAccessZoneStream().allMatch(
+                  zone -> unused.hasAccessZoneEntry(zone, ZoneConnectoidType.PT_VEHICLE_STOP))) {
+                removeConnectoid(unused);
+                counter.increment();
+                return;
+              }
+              unused.getAccessZoneStream(ZoneConnectoidType.PT_VEHICLE_STOP).collect(Collectors.toList()).forEach(
+                  unusedStop -> List.copyOf(unused.getAccessZoneEntriesByType(unusedStop).keySet()).forEach(
+                      type -> removeAccessZoneEntry(unused, unusedStop, type)));
+            });
       }
     }
 
     if(recreateManagedConnectoidIds) {
       recreateConnectoidIds();
     }
-    LOGGER.info(String.format("%sRemoved %d unused transfer connectoids", LoggingUtils.zoningPrefix(zoning.getId()), counter.longValue()));
+    logModification(String.format("%sRemoved %d unused transfer connectoids",
+        LoggingUtils.zoningPrefix(zoning.getId()), counter.longValue()));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeConnectoid(Connectoid connectoid) {
+    if (connectoid instanceof TransferConnectoid &&
+        zoning.getTransferConnectoids().containsValue((TransferConnectoid) connectoid)) {
+      zoning.getTransferConnectoids().remove((TransferConnectoid) connectoid);
+    } else if (connectoid instanceof OdConnectoid &&
+        zoning.getOdConnectoids().containsValue((OdConnectoid) connectoid)) {
+      zoning.getOdConnectoids().remove((OdConnectoid) connectoid);
+    } else {
+      return false;
+    }
+    if (hasListener(RemoveConnectoidEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveConnectoidEvent(this, connectoid));
+    }
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidAccessZoneEntry removeAccessZoneEntry(
+      Connectoid connectoid, Zone accessZone, ZoneConnectoidType type) {
+    var removed = connectoid.removeAccessZoneEntry(accessZone, type);
+    if (removed != null && hasListener(RemoveConnectoidAccessZoneEntryEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveConnectoidAccessZoneEntryEvent(this, connectoid, removed));
+    }
+    return removed;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeAccessLinkSegment(
+      Connectoid connectoid, DirectedConnectoidAccessZoneEntry entry, EdgeSegment accessLinkSegment) {
+    if (!entry.removeAccessLinkSegment(accessLinkSegment)) {
+      return false;
+    }
+    if (hasListener(RemoveConnectoidAccessLinkSegmentEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveConnectoidAccessLinkSegmentEvent(this, connectoid, entry, accessLinkSegment));
+    }
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeExplicitAllowedMode(Connectoid connectoid, ConnectoidAccessZoneEntry entry, Mode mode) {
+    if (!entry.removeExplicitAllowedMode(mode)) {
+      return false;
+    }
+    if (hasListener(RemoveConnectoidAllowedModeEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveConnectoidAllowedModeEvent(this, connectoid, entry, mode));
+    }
+    return true;
   }
 
   /**
@@ -303,6 +432,22 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   public void removeListener(ZoningModifierListener listener) {
     super.removeListener(listener);
 
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isLogModifications() {
+    return logModifications;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setLogModifications(boolean logModifications) {
+    this.logModifications = logModifications;
   }
 
 }

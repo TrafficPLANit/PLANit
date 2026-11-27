@@ -13,6 +13,8 @@ import java.util.logging.Logger;
  * 
  * @author markr
  *
+ * @param <V> type of vertex
+ * @param <E> type of edge
  */
 public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleImpl implements UntypedGraph<V, E> {
 
@@ -52,7 +54,8 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
    * @param vertices to use
    * @param edges    to use
    */
-  public UntypedGraphImpl(final IdGroupingToken groupId, final GraphEntities<V> vertices, final GraphEntities<E> edges) {
+  public UntypedGraphImpl(
+          final IdGroupingToken groupId, final GraphEntities<V> vertices, final GraphEntities<E> edges) {
     super(generatedGraphId(groupId));
     this.groupId = groupId;
     this.edges = edges;
@@ -65,7 +68,8 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
    * @param other to copy
    * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public UntypedGraphImpl(final UntypedGraphImpl<V, E> other, boolean deepCopy) {
+  public UntypedGraphImpl(
+          UntypedGraphImpl<V, E> other, boolean deepCopy) {
     this(other, deepCopy, null, null);
   }
 
@@ -77,7 +81,11 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
    * @param vertexMapper to use for tracking mapping between original and copied vertices
    * @param edgesMapper to use for tracking mapping between original and copied edges
    */
-  public UntypedGraphImpl(final UntypedGraphImpl<V, E> other, boolean deepCopy, GraphEntityDeepCopyMapper<V> vertexMapper, GraphEntityDeepCopyMapper<E> edgesMapper) {
+  public UntypedGraphImpl(
+          final UntypedGraphImpl<V, E> other,
+          boolean deepCopy,
+          GraphEntityDeepCopyMapper<V> vertexMapper,
+          GraphEntityDeepCopyMapper<E> edgesMapper) {
     super(other);
 
     if(deepCopy){
@@ -85,8 +93,8 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
       this.vertices = other.getVertices().deepCloneWithMapping(vertexMapper);
       this.edges    = other.getEdges().deepCloneWithMapping(edgesMapper);
 
-      EdgeUtils.updateEdgeVertices(edges, (V originalVertex) -> vertexMapper.getMapping(originalVertex), true);
-      VertexUtils.updateVertexEdges(vertices, (E originalEdge) -> edgesMapper.getMapping(originalEdge), true );
+      EdgeUtils.updateEdgeVertices(edges, vertexMapper::getMapping, true);
+      VertexUtils.updateVertexEdges(vertices, edgesMapper::getMapping, true );
     }else{
       this.edges    = other.getEdges().shallowClone();
       this.vertices = other.getVertices(). shallowClone();

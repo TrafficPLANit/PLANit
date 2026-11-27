@@ -11,20 +11,30 @@ import org.goplanit.component.event.PlanitComponentEventType;
 import org.goplanit.component.event.PopulateFundamentalDiagramEvent;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 
 /**
- * Fundamental diagram traffic component. Here we track the relation between a macroscopic link segment and its fundamental diagram. To minimise memory usage only unique
- * fundamental diagrams are retained based on their relaxed hash codes. IF a duplicate it registered it is simply discarded and the related link segment is attached to the already
- * present fundamental diagram in the pool
+ * Fundamental diagram traffic component. It tracks the relation between a macroscopic link segment and its
+ * fundamental diagram. To minimise memory usage only unique fundamental diagrams are retained, based on their relaxed
+ * hash codes: a duplicate registered is discarded, and its link segment is attached to the fundamental diagram
+ * already in the pool
+ * <p>
+ *   Any overrides using PLANit network entities directly are to be invoked AFTER the initialization of the FDs, from
+ *   within PLANit itself (that is where they are available). Any settings carried over from a user directly (via a
+ *   configurator) are separate and part of the initialization (not yet implemented). These two interactions should be
+ *   kept separate.
+ * </p>
  *
  * @author markr
  *
  */
-public abstract class FundamentalDiagramComponent extends PlanitComponent<FundamentalDiagramComponent> implements Serializable {
+public abstract class FundamentalDiagramComponent extends PlanitComponent<FundamentalDiagramComponent>
+    implements Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = 5815100111048623093L;
@@ -35,21 +45,19 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   /** all unique fundamental diagrams found so far based on their relaxed hash code */
   private final Map<Integer, FundamentalDiagram> uniqueFundamentalDiagrams;
 
-  /** track fundamental diagrams where a link segment does not adopt the link segment type FD, but has a different one */
+  /** track fundamental diagrams where a link segment does not adopt the link segment type FD, but has a
+   *  different one */
   private final Map<MacroscopicLinkSegment, FundamentalDiagram> linkSegmentFundamentalDiagrams;
 
   /** track fundamental diagram registered per link segment type */
   private final Map<MacroscopicLinkSegmentType, FundamentalDiagram> linkSegmentTypeFundamentalDiagrams;
 
-  /**
-   * precision scale to apply for the relaxed hash code to compare fundamental diagrams on being identical regarding their floating point variables, where 6 equates to 6 decimals
-   * of precision
-   */
-  public static final int RELAXED_HASH_CODE_SCALE = 6;
+  /** track if there exist any nonlinear free flow branches across all Fds */
+  private boolean anyNonLinearFreeFlowBranch;
 
   /**
-   * Add the passed in FD as a new unique FD if it is not already present based on relaxed hash code identification. When present return the currently registered FD instead of the
-   * passed in one and the passed in FD is NOT added
+   * Add the passed in FD as a new unique FD if it is not already present based on relaxed hash code identification.
+   * When present return the currently registered FD instead of the passed in one and the passed in FD is NOT added
    * 
    * @param fundamentalDiagram to add
    * @return registered fundamental diagram for the generated relaxed hash code
@@ -61,6 +69,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
       usedFd = uniqueFundamentalDiagrams.get(relaxedHash);
     } else {
       uniqueFundamentalDiagrams.put(relaxedHash, usedFd);
+      anyNonLinearFreeFlowBranch = anyNonLinearFreeFlowBranch || !usedFd.getFreeFlowBranch().isLinear();
     }
     return usedFd;
   }
@@ -74,7 +83,8 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   private FundamentalDiagram getOrWarning(final MacroscopicLinkSegment linkSegment) {
     FundamentalDiagram foundFd = get(linkSegment);
     if (foundFd == null) {
-      LOGGER.warning(String.format("IGNORE: Fundamental diagram absent for link segment %s to %.2f", linkSegment.getXmlId()));
+      LOGGER.warning(String.format("IGNORE: Fundamental diagram absent for link segment %s to %.2f",
+              linkSegment.getXmlId()));
     }
     return foundFd;
   }
@@ -88,29 +98,109 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   private FundamentalDiagram getOrWarning(final MacroscopicLinkSegmentType linkSegmentType) {
     FundamentalDiagram foundFd = get(linkSegmentType);
     if (foundFd == null) {
-      LOGGER.warning(String.format("IGNORE: Fundamental diagram absent for link segment type %s to %.2f", linkSegmentType.getXmlId()));
+      LOGGER.warning(String.format("IGNORE: Fundamental diagram absent for link segment type %s",
+              linkSegmentType.getIdsAsString()));
     }
     return foundFd;
   }
 
   /**
-   * Initialise the default available fundamental diagrams for the layer the component is registered on. This includes the fundamental diagrams for the link segment types and
-   * possible anomalies for links where the physical link segment characteristics would overrule the link segment type defaults
-   * 
-   * @param parentNetworkLayer to initialise default fundamental diagrams for
+   * Factory method based on link segment type for derived components to implement
+   *
+   * @param lsType to use
+   * @param mode mode to use
+   * @return created FD
    */
-  protected abstract void initialiseDefaultFundamentalDiagramsForLayer(MacroscopicNetworkLayer parentNetworkLayer);
+  protected abstract FundamentalDiagram createFundamentalDiagramByLinkSegmentType(
+          MacroscopicLinkSegmentType lsType, Mode mode);
 
   /**
-   * Register the given fundamental diagram for the link segment. This overrules the fundamental diagram that would be used based on the link segment's type. In case there already
-   * exists an identical fundamental diagram (based on relaxed hashcode comparison), the link segment is assigned the already present fundamental diagram. The fundamental diagram
-   * used for the link segment is returned, which is either the passed in one, or an already present functionally identical version
+   * Populate the fundamental diagram component with FDs for each link segment type. None is generated for a specific
+   * link segment, unless the physical speed limit of the link is more restrictive than the one posted in the type.
+   * This is rare and triggers a warning to the user, who can then change the FDs used via the configurator if desired.
+   * <p>
+   * All fundamental diagrams are generated per macroscopic link segment type, based solely on physical
+   * characteristics, i.e., free speed, where that is possible. The estimated capacity of the FD is overruled with the
+   * one of the type when a registered link segment type explicitly requires a particular capacity, or when the FD
+   * cannot derive its capacity from physical characteristics, in which case either the set or default capacity of the
+   * link segment type is used.
+   * </p>
+   *
+   * @param parentNetworkLayer to use
+   */
+  protected void initialiseDefaultFundamentalDiagramsForLayer(MacroscopicNetworkLayer parentNetworkLayer){
+    Mode mode = parentNetworkLayer.getFirstSupportedMode();
+
+    /* link types */
+    for (MacroscopicLinkSegmentType lsType : parentNetworkLayer.getLinkSegmentTypes()) {
+      if (!lsType.isModeAllowed(mode)) {
+        continue;
+      }
+
+      /* create local */
+      var createdFd = createFundamentalDiagramByLinkSegmentType(lsType, mode);
+
+      /* register */
+      register(lsType, createdFd);
+    }
+
+    /*
+     * check if the speed limit of the link differs from the link segment type mode's limit, Only override the FD for
+     * the link if the speed limit is MORE restrictive, if it is not, the link segment type is more restrictive and
+     * is to be used. It is unlikely that the link speed is more restrictive, so log this as well so the user can
+     * decide if it is to be altered
+     */
+    for (MacroscopicLinkSegment linkSegment : parentNetworkLayer.getLinkSegments()) {
+      updateFundamentalDiagramForLinkIfRestricted(linkSegment, mode);
+    }
+  }
+
+  /**
+   * check if the speed limit of the link differs from the link segment type mode's limit. Only when the link's speed
+   * limit is MORE restrictive is the FD of the link overridden; otherwise the link segment type is more restrictive and
+   * is used. A more restrictive link speed is unlikely, so it is also logged, for the user to decide whether to alter
+   * it
+   *
+   * @param linkSegment to check
+   * @param mode to check
+   */
+  protected void updateFundamentalDiagramForLinkIfRestricted(
+          MacroscopicLinkSegment linkSegment, Mode mode) {
+
+    if (Precision.smaller(
+        linkSegment.getPhysicalSpeedLimitKmH(), linkSegment.getLinkSegmentType().getMaximumSpeedKmH(mode))) {
+      LOGGER.warning(String.format(
+              "Physical speed limit (%.2f) on link segment %s is more restrictive than the speed limit (%.2f) of " +
+                  "the applied link segment type %s",
+          linkSegment.getPhysicalSpeedLimitKmH(), linkSegment.getXmlId(),
+          linkSegment.getLinkSegmentType().getMaximumSpeedKmH(mode),linkSegment.getLinkSegmentType().getXmlId()));
+
+      /* update FD */
+      double modeSpeedLimit = linkSegment.getModelledSpeedLimitKmH(mode);
+      LOGGER.info(String.format("Overwriting fundamental diagram used on link segment %s, restricting free " +
+              "flow speed to %.2f", linkSegment.getXmlId(), modeSpeedLimit));
+
+      var newFd = get(linkSegment).deepClone();
+      newFd.setMaximumSpeedKmHour(modeSpeedLimit);
+
+      /* register */
+      register(linkSegment, newFd);
+    }
+  }
+
+  /**
+   * Register the given fundamental diagram for the link segment, overruling the one based on the link segment's type.
+   * When an identical fundamental diagram already exists (by relaxed hashcode comparison), the link segment is
+   * assigned that one. The fundamental diagram used for the link segment is returned: either the one passed in, or an
+   * already present functionally identical version
    * 
    * @param linkSegment        to use
    * @param fundamentalDiagram to register
-   * @return used Fd for the link segment, can be different (but functionally equivalent) if registered Fd was already present for another link segment
+   * @return used Fd for the link segment, can be different (but functionally equivalent) if registered Fd was already
+   *   present for another link segment
    */
-  protected FundamentalDiagram register(final MacroscopicLinkSegment linkSegment, final FundamentalDiagram fundamentalDiagram) {
+  protected FundamentalDiagram register(
+          final MacroscopicLinkSegment linkSegment, final FundamentalDiagram fundamentalDiagram) {
     int relaxedHash = fundamentalDiagram.relaxedHashCode(RELAXED_HASH_CODE_SCALE);
 
     /* only proceed if it differs from the one already currently used */
@@ -128,15 +218,18 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * Register the given fundamental diagram for the link segment type. In case there already exists an identical fundamental diagram (based on relaxed hashcode comparison), the
-   * link segment type is assigned the already present fundamental diagram. The fundamental diagram used for the link segment type is returned, which is either the passed in one,
-   * or an already present functionally identical version
+   * Register the given fundamental diagram for the link segment type. When an identical fundamental diagram already
+   * exists (by relaxed hashcode comparison), the link segment type is assigned that one. The fundamental diagram used
+   * for the link segment type is returned: either the one passed in, or an already present functionally identical
+   * version
    *
    * @param linkSegmentType    to use
    * @param fundamentalDiagram to register
-   * @return used Fd for the link segment type, can be different (but functionally equivalent) if registered Fd was already present for another link segment
+   * @return used Fd for the link segment type, can be different (but functionally equivalent) if registered Fd was
+   *  already present for another link segment
    */
-  protected FundamentalDiagram register(final MacroscopicLinkSegmentType linkSegmentType, final FundamentalDiagram fundamentalDiagram) {
+  protected FundamentalDiagram register(
+          final MacroscopicLinkSegmentType linkSegmentType, final FundamentalDiagram fundamentalDiagram) {
     int relaxedHash = fundamentalDiagram.relaxedHashCode(RELAXED_HASH_CODE_SCALE);
 
     /* only proceed if it differs from the one already currently used */
@@ -154,6 +247,12 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
+   * precision scale to apply for the relaxed hash code to compare fundamental diagrams on being identical regarding
+   * their floating point variables, where 6 equates to 6 decimals of precision
+   */
+  public static final int RELAXED_HASH_CODE_SCALE = 6;
+
+  /**
    * Base constructor
    * 
    * @param groupId token
@@ -163,6 +262,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
     this.uniqueFundamentalDiagrams = new HashMap<>();
     this.linkSegmentFundamentalDiagrams = new HashMap<>();
     this.linkSegmentTypeFundamentalDiagrams = new HashMap<>();
+    this.anyNonLinearFreeFlowBranch = false;
   }
 
   /**
@@ -175,26 +275,26 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
     super(other, deepCopy);
 
     this.uniqueFundamentalDiagrams = new HashMap<>();
-    other.uniqueFundamentalDiagrams.entrySet().forEach( e ->
-            uniqueFundamentalDiagrams.put( e.getKey(), deepCopy ? e.getValue().deepClone() : e.getValue()));
+    other.uniqueFundamentalDiagrams.forEach((key1, value1) ->
+            registerUniqueFundamentalDiagram(deepCopy ? value1.deepClone() : value1));
 
       this.linkSegmentFundamentalDiagrams = new HashMap<>();
       this.linkSegmentTypeFundamentalDiagrams = new HashMap<>();
 
       /* replace old references with deep copied new ones if needed */
-      other.linkSegmentFundamentalDiagrams.entrySet().forEach( entry ->
-              linkSegmentFundamentalDiagrams.put(
-                      entry.getKey(),
-                      deepCopy
-                              ? linkSegmentFundamentalDiagrams.get(entry.getValue().relaxedHashCode(RELAXED_HASH_CODE_SCALE))
-                              : entry.getValue()));
+      other.linkSegmentFundamentalDiagrams.forEach(
+          (key, value) -> linkSegmentFundamentalDiagrams.put(
+              key,
+              deepCopy
+                      ? uniqueFundamentalDiagrams.get(value.relaxedHashCode(RELAXED_HASH_CODE_SCALE))
+                      : value));
 
-      other.linkSegmentTypeFundamentalDiagrams.entrySet().forEach( entry ->
-              linkSegmentTypeFundamentalDiagrams.put(
-                      entry.getKey(),
-                      deepCopy
-                              ? linkSegmentTypeFundamentalDiagrams.get(entry.getValue().relaxedHashCode(RELAXED_HASH_CODE_SCALE))
-                              : entry.getValue()));
+      other.linkSegmentTypeFundamentalDiagrams.forEach(
+          (key, value) -> linkSegmentTypeFundamentalDiagrams.put(
+              key,
+              deepCopy
+                      ? uniqueFundamentalDiagrams.get(value.relaxedHashCode(RELAXED_HASH_CODE_SCALE))
+                      : value));
   }
 
   /**
@@ -222,12 +322,13 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * Set the capacity in pcu/h/lane to use for the Newell FD for a given link segment. This only impacts the backward wave speed used to keep the FD viable.
+   * Set the capacity in pcu/h/lane to use for the Newell FD for a given link segment.
    *
    * @param linkSegment         the specified link segment
    * @param capacityPcuHourLane to use
    */
-  public void setCapacityLinkSegmentPcuHourLane(final MacroscopicLinkSegment linkSegment, final double capacityPcuHourLane) {
+  public void setCapacityLinkSegmentPcuHourLane(
+          final MacroscopicLinkSegment linkSegment, final double capacityPcuHourLane) {
     FundamentalDiagram foundFd = getOrWarning(linkSegment);
     FundamentalDiagram newFd = foundFd.shallowClone();
     newFd.setCapacityPcuHour(capacityPcuHourLane);
@@ -235,13 +336,13 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * Set the maximum density in pcu/km/lane to use for the Newell FD for a given link segment. This only impacts the backward wave speed used to keep the FD viable. one to change
-   * the capacity.
+   * Set the maximum density in pcu/km/lane to use for the Newell FD for a given link segment.
    *
    * @param linkSegment         the specified link segment
    * @param maxDensityPcuKmLane to use
    */
-  public void setMaximumDensityLinkSegmentPcuKmLane(final MacroscopicLinkSegment linkSegment, final double maxDensityPcuKmLane) {
+  public void setMaximumDensityLinkSegmentPcuKmLane(
+          final MacroscopicLinkSegment linkSegment, final double maxDensityPcuKmLane) {
     FundamentalDiagram foundFd = getOrWarning(linkSegment);
     FundamentalDiagram newFd = foundFd.shallowClone();
     newFd.setMaximumDensityPcuKmHour(maxDensityPcuKmLane);
@@ -249,12 +350,13 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * Set the capacity in pcu/h/lane to use for the Newell FD for a given link segment type. This only impacts the backward wave speed used to keep the FD viable.
+   * Set the capacity in pcu/h/lane to use for the Newell FD for a given link segment type.
    *
    * @param linkSegmentType     the specified link segment type
    * @param capacityPcuHourLane to use
    */
-  public void setCapacityLinkSegmentTypePcuHourLane(final MacroscopicLinkSegmentType linkSegmentType, final double capacityPcuHourLane) {
+  public void setCapacityLinkSegmentTypePcuHourLane(
+          final MacroscopicLinkSegmentType linkSegmentType, final double capacityPcuHourLane) {
     FundamentalDiagram foundFd = getOrWarning(linkSegmentType);
     FundamentalDiagram newFd = foundFd.shallowClone();
     newFd.setCapacityPcuHour(capacityPcuHourLane);
@@ -262,13 +364,13 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * Set the maximum density in pcu/km/lane to use for the Newell FD for a given link segment type. This only impacts the backward wave speed used to keep the FD viable. one to
-   * change the capacity.
+   * Set the maximum density in pcu/km/lane to use for the Newell FD for a given link segment type.
    *
    * @param linkSegmentType     the specified link segment type
    * @param maxDensityPcuKmLane to use
    */
-  public void setMaximumDensityLinkSegmentTypePcuKmLane(final MacroscopicLinkSegmentType linkSegmentType, final double maxDensityPcuKmLane) {
+  public void setMaximumDensityLinkSegmentTypePcuKmLane(
+          final MacroscopicLinkSegmentType linkSegmentType, final double maxDensityPcuKmLane) {
     FundamentalDiagram foundFd = getOrWarning(linkSegmentType);
     FundamentalDiagram newFd = foundFd.shallowClone();
     newFd.setMaximumDensityPcuKmHour(maxDensityPcuKmLane);
@@ -276,10 +378,11 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * Method to collect all fundamental diagrams for the given link segments in a 1:1 fashion in a raw array based on the current setup of this component. The returned array is
-   * indexed by the link segments linkSegmentId (not id). The returned array is a newly created array yet the fundamental diagrams contained in it are references to the fundamental
-   * diagrams registered on this component. Further, it is also assumed that the provided link segments are indeed the segments (and types) on which the registered fundamental
-   * diagrams on this component are based. If not, then this would result in undefined behaviour.
+   * Collect the fundamental diagram of each of the given link segments in a raw array, from the current setup of this
+   * component. The array is indexed by the link segments' linkSegmentId (not id). The array is new, but the
+   * fundamental diagrams in it are references to those registered on this component. The given link segments are
+   * assumed to be the segments (and types) the registered fundamental diagrams are based on; if not, the behaviour is
+   * undefined.
    * 
    * @param linkSegments to collect fundamental diagrams for
    * @return fundamental diagrams per link segment by linkSegmentId, if no fd is present, the entry remains null
@@ -293,6 +396,15 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
+   * Check if any of the available fundamental diagrams has a non-linear free flow branch
+   *
+   * @return true if exists, false otherwise
+   */
+  public boolean hasAnyNonLinearFreeFlowBranchFundamentalDiagrams(){
+    return this.anyNonLinearFreeFlowBranch;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -303,8 +415,11 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * The fundamental diagram component registers for the PopulateFundamentalDiagramEvent in order to initialise its default fundamental diagrams based on the network layer that it
-   * is created for. Further user or builder overrides, can alter these subsequently at a later stage
+   * The fundamental diagram component registers for the PopulateFundamentalDiagramEvent in order to initialise its
+   * default fundamental diagrams based on the network layer that it is created for. Further user or builder overrides,
+   * can alter these subsequently at a later stage
+   *
+   * @return supported event types
    */
   @Override
   public PlanitComponentEventType[] getKnownSupportedEventTypes() {
@@ -312,9 +427,12 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * Registered for PopulateFundamentalDiagramEvent which allows the component to initialise all the default available Fds based on the network layer it is registered for.
-   * Delegates to {@link #initialiseDefaultFundamentalDiagramsForLayer(MacroscopicNetworkLayer)} for concrete derived implementations to execute
-   * 
+   * Registered for PopulateFundamentalDiagramEvent, which lets the component initialise all default Fds based on the
+   * network layer it is registered for. Delegates to
+   * {@link #initialiseDefaultFundamentalDiagramsForLayer(MacroscopicNetworkLayer)}, which concrete derived
+   * implementations execute
+   *
+   * @param event to process
    */
   @Override
   public void onPlanitComponentEvent(PlanitComponentEvent event) throws PlanItException {

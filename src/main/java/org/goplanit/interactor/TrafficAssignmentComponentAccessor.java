@@ -1,9 +1,9 @@
 package org.goplanit.interactor;
 
 /**
- * Implementing class requires access to one or more traffic assignment components. USed by for example cost implementations on traffic assignment to allow them access to traffic
- * assignment components without the need to have access to the actual assignment allowing the cost component to remain agnostic to the underlying assignment while still being able
- * to access its components that it requires
+ * Implementing class requires access to one or more traffic assignment components. Used, for example, by cost
+ * implementations on a traffic assignment, to access the components they require without access to the assignment
+ * itself, so the cost component remains agnostic of the underlying assignment
  * 
  * @author markr
  *

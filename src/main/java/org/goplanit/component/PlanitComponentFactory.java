@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.assignment.traditionalstatic.TraditionalStaticAssignment;
+import org.goplanit.choice.logit.BoundedMultinomialLogit;
+import org.goplanit.choice.weibit.Weibit;
 import org.goplanit.component.event.PlanitComponentEvent;
 import org.goplanit.component.event.PlanitComponentEventType;
 import org.goplanit.component.event.PlanitComponentListener;
@@ -20,6 +22,7 @@ import org.goplanit.component.event.PopulateInitialLinkSegmentCostEvent;
 import org.goplanit.component.event.PopulateNetworkEvent;
 import org.goplanit.component.event.PopulatePhysicalCostEvent;
 import org.goplanit.component.event.PopulateRoutedServicesEvent;
+import org.goplanit.component.event.PopulateNetworkPricingEvent;
 import org.goplanit.component.event.PopulateServiceNetworkEvent;
 import org.goplanit.component.event.PopulateZoningEvent;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
@@ -31,22 +34,30 @@ import org.goplanit.cost.physical.initial.InitialPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.goplanit.cost.virtual.SpeedConnectoidTravelTimeCost;
+import org.goplanit.cost.virtual.SteadyStateConnectoidTravelTimeCost;
 import org.goplanit.demands.Demands;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.gap.NormBasedGapFunction;
+import org.goplanit.gap.PathBasedGapFunction;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.Network;
 import org.goplanit.network.ServiceNetwork;
+import org.goplanit.pricing.NetworkPricing;
 import org.goplanit.path.OdPathSets;
 import org.goplanit.path.choice.PathChoice;
-import org.goplanit.path.choice.logit.LogitChoiceModel;
-import org.goplanit.path.choice.logit.MultinomialLogit;
+import org.goplanit.path.choice.StochasticPathChoice;
+import org.goplanit.choice.ChoiceModel;
+import org.goplanit.choice.logit.MultinomialLogit;
+import org.goplanit.path.filter.PathFilter;
+import org.goplanit.sdinteraction.smoothing.FixedStepSmoothing;
 import org.goplanit.sdinteraction.smoothing.MSASmoothing;
+import org.goplanit.sdinteraction.smoothing.MSRASmoothing;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.goplanit.supply.fundamentaldiagram.NewellFundamentalDiagramComponent;
+import org.goplanit.supply.fundamentaldiagram.QuadraticLinearFundamentalDiagramComponent;
 import org.goplanit.supply.network.nodemodel.NodeModelComponent;
 import org.goplanit.supply.network.nodemodel.TampereNodeModelComponent;
 import org.goplanit.supply.networkloading.NetworkLoading;
@@ -60,9 +71,17 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.zoning.Zoning;
+import java.util.Set;
 
 /**
- * Generic factory class for registered subclasses of predefined PLANit components, so it does not create instances of T but of subclasses of T.
+ * Generic factory class for registered subclasses of predefined PLANit components, so it does not create instances of T
+ * but of subclasses of T.
+ * <p>
+ * A project chooses its components by name, for example its traffic assignment or physical cost, while the reader of
+ * its inputs, not the project, knows how to fill them. The factory makes the named subclass, refusing one not
+ * registered for its kind, and fires a populate event for it, so a listener such as an input reader fills the new
+ * component, for example a network from its file.
+ * </p>
  *
  * @author markr
  *
@@ -76,8 +95,129 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
   /** generated UID */
   private static final long serialVersionUID = -4507287133047792042L;
 
-  /** instance of the super component class this factory creates subclass instances for */
-  protected final String componentSuperTypeCanonicalName;
+  /**
+   * register all implementations that are by default available as they are provided in the PLANit core packages
+   */
+  private static void registerDefaultImplementations() {
+    registerPlanitComponentType(Zoning.class);
+    registerPlanitComponentType(TraditionalStaticAssignment.class);
+    registerPlanitComponentType(StaticLtm.class);
+    registerPlanitComponentType(MSASmoothing.class);
+    registerPlanitComponentType(MSRASmoothing.class);
+    registerPlanitComponentType(FixedStepSmoothing.class);
+    registerPlanitComponentType(Demands.class);
+    registerPlanitComponentType(RoutedServices.class);
+    registerPlanitComponentType(MacroscopicNetwork.class);
+    registerPlanitComponentType(ServiceNetwork.class);
+    registerPlanitComponentType(NetworkPricing.class);
+    registerPlanitComponentType(BprLinkTravelTimeCost.class);
+    registerPlanitComponentType(FreeFlowLinkTravelTimeCost.class);
+    registerPlanitComponentType(SteadyStateTravelTimeCost.class);
+    registerPlanitComponentType(InitialMacroscopicLinkSegmentCost.class);
+    registerPlanitComponentType(FixedConnectoidTravelTimeCost.class);
+    registerPlanitComponentType(SpeedConnectoidTravelTimeCost.class);
+    registerPlanitComponentType(SteadyStateConnectoidTravelTimeCost.class);
+    registerPlanitComponentType(NewellFundamentalDiagramComponent.class);
+    registerPlanitComponentType(QuadraticLinearFundamentalDiagramComponent.class);
+    registerPlanitComponentType(TampereNodeModelComponent.class);
+    registerPlanitComponentType(StochasticPathChoice.class);
+    registerPlanitComponentType(MultinomialLogit.class);
+    registerPlanitComponentType(PathFilter.class);
+    registerPlanitComponentType(Weibit.class);
+    registerPlanitComponentType(BoundedMultinomialLogit.class);
+    registerPlanitComponentType(OdPathSets.class);
+    registerPlanitComponentType(LinkBasedRelativeDualityGapFunction.class);
+    registerPlanitComponentType(NormBasedGapFunction.class);
+    registerPlanitComponentType(PathBasedGapFunction.class);
+  }
+
+  /**
+   * Create a PLANit component with no parameters
+   *
+   * @param planitComponentClassName the name of the PLANit component to be created
+   * @param constructorParameters    parameters to pass to the constructor
+   * @return the created component object
+   */
+  private <T extends PlanitComponent<?>> T createTrafficComponent(
+          final String planitComponentClassName, final Object[] constructorParameters) {
+
+    final var eligibleComponentTypes = registeredPlanitComponents.get(componentSuperTypeCanonicalName);
+    PlanItRunTimeException.throwIf(
+            eligibleComponentTypes == null || !eligibleComponentTypes.contains(planitComponentClassName),
+        "Provided PLANit Component class %s is not eligible for construction",
+            planitComponentClassName != null ? planitComponentClassName : "");
+
+    T typedInstance = null;
+    try {
+      Object instance = ReflectionUtils.createInstance(planitComponentClassName, constructorParameters);
+      PlanItRunTimeException.throwIf(
+              !(instance instanceof PlanitComponent<?>),
+              "provided factory class is not eligible for construction since it is not derived from " +
+                  "PLANitComponent<?>");
+      typedInstance = (T) instance;
+    }catch(Exception e){
+      throw new PlanItRunTimeException(e);
+    }
+
+
+    /* register as listener for the PLANit component events it acts upon, if any, so it can act upon them before other
+     * registered listeners */
+    if (typedInstance.findKnownSupportedEventTypesAmong(getFiredEventTypes()).length > 0) {
+      addListener(typedInstance, EventListenerPriority.HIGH);
+    }
+    return typedInstance;
+  }
+
+  /**
+   * Dispatch an event on creation of a PLANit component with variable parameters
+   *
+   * @param newPlanitComponent the PLANit component being created
+   * @param parameters         parameter object array to be used by the event
+   */
+  private <T extends PlanitComponent<?>> void dispatchPopulatePlanitComponentEvent(
+          final T newPlanitComponent, final Object[] parameters) {
+
+    /* when possible use more specific event for user friendly access to event content on listeners */
+    /* TODO: type check parameters and issue message when not correct */
+    PlanitComponentEvent event = null;
+    if (newPlanitComponent instanceof MacroscopicNetwork && hasListener(PopulateNetworkEvent.EVENT_TYPE)) {
+      event = new PopulateNetworkEvent(this, (MacroscopicNetwork) newPlanitComponent);
+    } else if (newPlanitComponent instanceof Zoning && hasListener(PopulateZoningEvent.EVENT_TYPE)) {
+      event = new PopulateZoningEvent(this, (Zoning) newPlanitComponent, (MacroscopicNetwork) parameters[0]);
+    } else if (newPlanitComponent instanceof Demands && hasListener(PopulateDemandsEvent.EVENT_TYPE)) {
+      event = new PopulateDemandsEvent(this, (Demands) newPlanitComponent, (Zoning) parameters[0],
+          (MacroscopicNetwork) parameters[1]);
+    } else if (newPlanitComponent instanceof ServiceNetwork && hasListener(PopulateServiceNetworkEvent.EVENT_TYPE)) {
+      event = new PopulateServiceNetworkEvent(this, (ServiceNetwork) newPlanitComponent);
+    } else if (newPlanitComponent instanceof NetworkPricing && hasListener(PopulateNetworkPricingEvent.EVENT_TYPE)) {
+      event = new PopulateNetworkPricingEvent(this, (NetworkPricing) newPlanitComponent,
+          (MacroscopicNetwork) parameters[0]);
+    } else if (newPlanitComponent instanceof RoutedServices && hasListener(PopulateRoutedServicesEvent.EVENT_TYPE)) {
+      event = new PopulateRoutedServicesEvent(this, (RoutedServices) newPlanitComponent);
+    } else if (newPlanitComponent instanceof GapFunction && hasListener(PopulateGapFunctionEvent.EVENT_TYPE)) {
+      event = new PopulateGapFunctionEvent(this, (GapFunction) newPlanitComponent);
+    } else if (newPlanitComponent instanceof FundamentalDiagramComponent
+        && hasListener(PopulateFundamentalDiagramEvent.EVENT_TYPE)) {
+      event = new PopulateFundamentalDiagramEvent(this, (FundamentalDiagramComponent) newPlanitComponent,
+          (MacroscopicNetworkLayer) parameters[0]);
+    } else if (newPlanitComponent instanceof InitialMacroscopicLinkSegmentCost
+        && hasListener(PopulateInitialLinkSegmentCostEvent.EVENT_TYPE)) {
+      event = new PopulateInitialLinkSegmentCostEvent(this, (InitialMacroscopicLinkSegmentCost) newPlanitComponent,
+          (String) parameters[0], (MacroscopicNetwork) parameters[1], (TimePeriod) parameters[2]);
+    } else if (newPlanitComponent instanceof AbstractPhysicalCost
+        && hasListener(PopulatePhysicalCostEvent.EVENT_TYPE)) {
+      event = new PopulatePhysicalCostEvent(this, (AbstractPhysicalCost) newPlanitComponent,
+          (MacroscopicNetwork) parameters[0]);
+    } else if(hasListener(PopulateComponentEvent.EVENT_TYPE)){
+      /* fire generic populate component event, likely third party class, or one that is likely not meant for
+       * user listeners to do anything with */
+      event = new PopulateComponentEvent(this, newPlanitComponent, parameters);
+    }
+
+    if(event != null) {
+      fireEvent(event);
+    }
+  }
 
   /**
    * Register per traffic assignment component type the derived classes that are supported
@@ -92,6 +232,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registeredPlanitComponents.put(Smoothing.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(Demands.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(RoutedServices.class.getCanonicalName(), new TreeSet<>());
+    registeredPlanitComponents.put(NetworkPricing.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(Network.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(AbstractPhysicalCost.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(InitialPhysicalCost.class.getCanonicalName(), new TreeSet<>());
@@ -99,106 +240,16 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registeredPlanitComponents.put(FundamentalDiagramComponent.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(NodeModelComponent.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(PathChoice.class.getCanonicalName(), new TreeSet<>());
-    registeredPlanitComponents.put(LogitChoiceModel.class.getCanonicalName(), new TreeSet<>());
+    registeredPlanitComponents.put(PathFilter.class.getCanonicalName(), new TreeSet<>());
+    registeredPlanitComponents.put(ChoiceModel.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(OdPathSets.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(GapFunction.class.getCanonicalName(), new TreeSet<>());
 
     registerDefaultImplementations();
   }
 
-  /**
-   * register all implementations that are by default available as they are provided in the PLANit core packages
-   */
-  private static void registerDefaultImplementations() {
-    registerPlanitComponentType(Zoning.class);
-    registerPlanitComponentType(TraditionalStaticAssignment.class);
-    registerPlanitComponentType(StaticLtm.class);
-    registerPlanitComponentType(MSASmoothing.class);
-    registerPlanitComponentType(Demands.class);
-    registerPlanitComponentType(RoutedServices.class);
-    registerPlanitComponentType(MacroscopicNetwork.class);
-    registerPlanitComponentType(ServiceNetwork.class);
-    registerPlanitComponentType(BprLinkTravelTimeCost.class);
-    registerPlanitComponentType(FreeFlowLinkTravelTimeCost.class);
-    registerPlanitComponentType(SteadyStateTravelTimeCost.class);
-    registerPlanitComponentType(InitialMacroscopicLinkSegmentCost.class);
-    registerPlanitComponentType(FixedConnectoidTravelTimeCost.class);
-    registerPlanitComponentType(SpeedConnectoidTravelTimeCost.class);
-    registerPlanitComponentType(NewellFundamentalDiagramComponent.class);
-    registerPlanitComponentType(TampereNodeModelComponent.class);
-    registerPlanitComponentType(MultinomialLogit.class);
-    registerPlanitComponentType(OdPathSets.class);
-    registerPlanitComponentType(LinkBasedRelativeDualityGapFunction.class);
-    registerPlanitComponentType(NormBasedGapFunction.class);
-  }
-
-  /**
-   * Create a PLANit component with no parameters
-   *
-   * @param planitComponentClassName the name of the PLANit component to be created
-   * @param constructorParameters    parameters to pass to the constructor
-   * @return the created component object
-   */
-  private <T extends PlanitComponent<?>> T createTrafficComponent(final String planitComponentClassName, final Object[] constructorParameters) {
-    final var eligibleComponentTypes = registeredPlanitComponents.get(componentSuperTypeCanonicalName);
-    PlanItRunTimeException.throwIf(eligibleComponentTypes == null || !eligibleComponentTypes.contains(planitComponentClassName),
-        "Provided PLANit Component class %s is not eligible for construction", planitComponentClassName != null ? planitComponentClassName : "");
-
-    T typedInstance = null;
-    try {
-      Object instance = ReflectionUtils.createInstance(planitComponentClassName, constructorParameters);
-      PlanItRunTimeException.throwIf(!(instance instanceof PlanitComponent<?>), "provided factory class is not eligible for construction since it is not derived from PLANitComponent<?>");
-      typedInstance = (T) instance;
-    }catch(Exception e){
-      throw new PlanItRunTimeException(e);
-    }
-
-
-    /* register as listener for PLANit component events, so it can act upon them before other registered listeners */
-    addListener(typedInstance, EventListenerPriority.HIGH);
-    return typedInstance;
-  }
-
-  /**
-   * Dispatch an event on creation of a PLANit component with variable parameters
-   *
-   * @param newPlanitComponent the PLANit component being created
-   * @param parameters         parameter object array to be used by the event
-   */
-  private <T extends PlanitComponent<?>> void dispatchPopulatePlanitComponentEvent(final T newPlanitComponent, final Object[] parameters) {
-
-    /* when possible use more specific event for user friendly access to event content on listeners */
-    /* TODO: type check parameters and issue message when not correct */
-    PlanitComponentEvent event = null;
-    if (newPlanitComponent instanceof MacroscopicNetwork && hasListener(PopulateNetworkEvent.EVENT_TYPE)) {
-      event = new PopulateNetworkEvent(this, (MacroscopicNetwork) newPlanitComponent);
-    } else if (newPlanitComponent instanceof Zoning && hasListener(PopulateZoningEvent.EVENT_TYPE)) {
-      event = new PopulateZoningEvent(this, (Zoning) newPlanitComponent, (MacroscopicNetwork) parameters[0]);
-    } else if (newPlanitComponent instanceof Demands && hasListener(PopulateDemandsEvent.EVENT_TYPE)) {
-      event = new PopulateDemandsEvent(this, (Demands) newPlanitComponent, (Zoning) parameters[0], (MacroscopicNetwork) parameters[1]);
-    } else if (newPlanitComponent instanceof ServiceNetwork && hasListener(PopulateServiceNetworkEvent.EVENT_TYPE)) {
-      event = new PopulateServiceNetworkEvent(this, (ServiceNetwork) newPlanitComponent);
-    } else if (newPlanitComponent instanceof RoutedServices && hasListener(PopulateRoutedServicesEvent.EVENT_TYPE)) {
-      event = new PopulateRoutedServicesEvent(this, (RoutedServices) newPlanitComponent);
-    } else if (newPlanitComponent instanceof GapFunction && hasListener(PopulateGapFunctionEvent.EVENT_TYPE)) {
-      event = new PopulateGapFunctionEvent(this, (GapFunction) newPlanitComponent);
-    } else if (newPlanitComponent instanceof FundamentalDiagramComponent && hasListener(PopulateFundamentalDiagramEvent.EVENT_TYPE)) {
-      event = new PopulateFundamentalDiagramEvent(this, (FundamentalDiagramComponent) newPlanitComponent, (MacroscopicNetworkLayer) parameters[0]);
-    } else if (newPlanitComponent instanceof InitialMacroscopicLinkSegmentCost && hasListener(PopulateInitialLinkSegmentCostEvent.EVENT_TYPE)) {
-      event = new PopulateInitialLinkSegmentCostEvent(this, (InitialMacroscopicLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1], (TimePeriod) parameters[2]);
-    } else if (newPlanitComponent instanceof AbstractPhysicalCost && hasListener(PopulatePhysicalCostEvent.EVENT_TYPE)) {
-      event = new PopulatePhysicalCostEvent(this, (AbstractPhysicalCost) newPlanitComponent, (MacroscopicNetwork) parameters[0]);
-    } else if(hasListener(PopulateComponentEvent.EVENT_TYPE)){
-      /* fire generic populate component event, likely third party class, or one that is likely not meant for user listeners to do anything with */
-      event = new PopulateComponentEvent(this, newPlanitComponent, parameters);
-    }
-
-    if(event != null) {
-      fireEvent(event);
-    }
-  }
-
-  // PUBLIC
+  /** instance of the super component class this factory creates subclass instances for */
+  protected final String componentSuperTypeCanonicalName;
 
   /**
    * {@inheritDoc}
@@ -217,29 +268,14 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     }
   }
 
-  /**
-   * Constructor. Here we make sure it is a type that extends the PLANit component class. We do not do so generally on the class level since this might lead to conflicts when the
-   * class has generic arguments itself which leads to issues (that I have not been able to solve). In the latter case use the other constructor which gets around this problem by
-   * simply providing the canonical class name corresponding to type T
-   *
-   * @param <U>                PLANit component type
-   * @param componentSuperType super type for this factory
-   */
-  public <U extends PlanitComponent<U> & Serializable> PlanitComponentFactory(final Class<U> componentSuperType) {
-    this.componentSuperTypeCanonicalName = componentSuperType.getCanonicalName();
-  }
+  // PUBLIC
 
-  /**
-   * Constructor.
-   * 
-   * Use this constructor when the component super type that you use is not compatible with ClassT, for example because the super type itself uses generics, i.e., T(U,V), in which
-   * case the default constructor does not work. Make sure however, that the provided canonical class name is compatible with T, i.e., it must extend from TrafficAssigmentComponent
-   *
-   * @param componentSuperTypeCanonicalName super type's canonical class name for this factory which should be the same as ClassT.getCanonicalName()
-   */
-  public PlanitComponentFactory(String componentSuperTypeCanonicalName) {
-    this.componentSuperTypeCanonicalName = componentSuperTypeCanonicalName;
-  }
+  /** the component events the factory fires, one per kind of component it can populate */
+  public static final Set<PlanitComponentEventType> FIRED_COMPONENT_EVENT_TYPES = Set.of(
+      PopulateComponentEvent.EVENT_TYPE, PopulateDemandsEvent.EVENT_TYPE, PopulateFundamentalDiagramEvent.EVENT_TYPE,
+      PopulateGapFunctionEvent.EVENT_TYPE, PopulateInitialLinkSegmentCostEvent.EVENT_TYPE,
+      PopulateNetworkEvent.EVENT_TYPE, PopulateNetworkPricingEvent.EVENT_TYPE, PopulatePhysicalCostEvent.EVENT_TYPE,
+      PopulateRoutedServicesEvent.EVENT_TYPE, PopulateServiceNetworkEvent.EVENT_TYPE, PopulateZoningEvent.EVENT_TYPE);
 
   /**
    * Register a component type that one can choose for the given PLANit component
@@ -250,12 +286,14 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     Class<?> currentClass = planitComponent;
     while (currentClass != null) {
       final Type currentSuperClass = currentClass.getGenericSuperclass();
-      if (currentSuperClass instanceof ParameterizedType && ((ParameterizedType) currentSuperClass).getRawType() == PlanitComponent.class) {
+      if (currentSuperClass instanceof ParameterizedType
+          && ((ParameterizedType) currentSuperClass).getRawType() == PlanitComponent.class) {
         // superclass is a PLANitComponent class, so the current class is the
         // class that we need register by collecting the component entry and placing the component
         final var treeSet = registeredPlanitComponents.get(currentClass.getCanonicalName());
         if (treeSet == null) {
-          LOGGER.severe("Base class of PLANit component not registered as eligible on PLANit, component not eligible and therefore ignored");
+          LOGGER.severe("Base class of PLANit component not registered as eligible on PLANit, component not " +
+              "eligible and therefore ignored");
           return;
         }
 
@@ -270,8 +308,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
   }
 
   /**
-   * Simplified factory method which creates the component, registers the provided listeners for the temporary factory instance component and
-   * then invokes the creation with those listeners as a one-off call
+   * Simplified factory method which creates the component, registers the provided listeners for the temporary factory
+   * instance component and then invokes the creation with those listeners as a one-off call
    *
    * @param <C> type of component
    * @param <U> specific type of component
@@ -283,13 +321,18 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @return created component
    */
   public static <C extends PlanitComponent<?>, U extends C> U createWithListeners(
-      Class<C> clazzCategory, Class<U> concreteClass, final Object[] constructorParameters, final Object[] eventParameters, PlanitComponentListener... listeners) {
-    return (U) createWithListeners(clazzCategory, concreteClass.getCanonicalName(), constructorParameters, eventParameters, listeners);
+      Class<C> clazzCategory,
+      Class<U> concreteClass,
+      final Object[] constructorParameters,
+      final Object[] eventParameters,
+      PlanitComponentListener... listeners) {
+    return (U) createWithListeners(clazzCategory, concreteClass.getCanonicalName(), constructorParameters,
+        eventParameters, listeners);
   }
 
   /**
-   * Simplified factory method which creates the component, registers the provided listeners for the temporary factory instance component and
-   * then invokes the creation with those listeners as a one-off call
+   * Simplified factory method which creates the component, registers the provided listeners for the temporary factory
+   * instance component and then invokes the creation with those listeners as a one-off call
    *
    * @param <C> type of component
    * @param clazzCategory the concrete component belongs to
@@ -300,20 +343,24 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @return created component
    */
   public static <C extends PlanitComponent<?>> C createWithListeners(
-      Class<C> clazzCategory, String concreteClassCanonicalName, final Object[] constructorParameters, final Object[] eventParameters, PlanitComponentListener... listeners) {
+      Class<C> clazzCategory,
+      String concreteClassCanonicalName,
+      final Object[] constructorParameters,
+      final Object[] eventParameters,
+      PlanitComponentListener... listeners) {
     var factoryInstance = new PlanitComponentFactory<C>(clazzCategory.getCanonicalName());
     if(listeners != null) {
       for (var listener : listeners) {
         factoryInstance.addListener(listener);
       }
-      return factoryInstance.create(concreteClassCanonicalName, constructorParameters, eventParameters);
+      return factoryInstance.createAndDispatch(concreteClassCanonicalName, constructorParameters, eventParameters);
     }
-    return factoryInstance.create(concreteClassCanonicalName, constructorParameters);
+    return factoryInstance.createAndDispatch(concreteClassCanonicalName, constructorParameters);
   }
 
   /**
-   * Simplified factory method which creates the component, registers the provided listeners for the temporary factory instance component and
-   * then invokes the creation with those listeners as a one-off call
+   * Simplified factory method which creates the component, registers the provided listeners for the temporary factory
+   * instance component and then invokes the creation with those listeners as a one-off call
    *
    * @param <C> type of component
    * @param clazzCategory the concrete component belongs to
@@ -323,7 +370,10 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @return created component
    */
   public static <C extends PlanitComponent<?>> C createWithListeners(
-      Class<C> clazzCategory, String concreteClassCanonicalName, final Object[] constructorParameters, PlanitComponentListener... listeners) {
+      Class<C> clazzCategory,
+      String concreteClassCanonicalName,
+      final Object[] constructorParameters,
+      PlanitComponentListener... listeners) {
     return createWithListeners(clazzCategory, concreteClassCanonicalName, constructorParameters, null, listeners);
   }
 
@@ -336,14 +386,14 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @param constructorParameters to use
    * @return created component
    */
-  public static <C extends PlanitComponent<?>> C create(
+  public static <C extends PlanitComponent<?>> C createAndDispatch(
       Class<C> clazzCategory, String concreteClassCanonicalName, final Object[] constructorParameters) {
     return createWithListeners(clazzCategory, concreteClassCanonicalName, constructorParameters, null, null);
   }
 
   /**
-   * Simplified factory method which creates the component, registers the provided listeners for the temporary factory instance component and
-   * then invokes the creation with those listeners as a one-off call
+   * Simplified factory method which creates the component, registers the provided listeners for the temporary factory
+   * instance component and then invokes the creation with those listeners as a one-off call
    *
    * @param <C> type of component
    * @param <U> specific type of component
@@ -354,8 +404,41 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @return created component
    */
   public static <C extends PlanitComponent<?>, U extends C> U createWithListeners(
-      Class<C> clazzCategory, Class<U> concreteClass, final Object[] constructorParameters, PlanitComponentListener... listeners) {
+      Class<C> clazzCategory,
+      Class<U> concreteClass,
+      final Object[] constructorParameters,
+      PlanitComponentListener... listeners) {
     return createWithListeners(clazzCategory, concreteClass, constructorParameters, null, listeners);
+  }
+
+  /**
+   * Constructor. Here we make sure it is a type that extends the PLANit component class. We do not do so generally on
+   * the class level since this might lead to conflicts when the class has generic arguments itself which leads to
+   * issues (that I have not been able to solve). In the latter case use the other constructor which gets around this
+   * problem by simply providing the canonical class name corresponding to type T
+   *
+   * @param <U>                PLANit component type
+   * @param componentSuperType super type for this factory
+   */
+  public <U extends PlanitComponent<U> & Serializable> PlanitComponentFactory(final Class<U> componentSuperType) {
+    super(FIRED_COMPONENT_EVENT_TYPES);
+    this.componentSuperTypeCanonicalName = componentSuperType.getCanonicalName();
+  }
+
+  /**
+   * Constructor.
+   * 
+   * Use this constructor when the component super type that you use is not compatible with ClassT, for example because
+   * the super type itself uses generics, i.e., T(U,V), in which case the default constructor does not work. Make sure
+   * however, that the provided canonical class name is compatible with T, i.e., it must extend from
+   * TrafficAssigmentComponent
+   *
+   * @param componentSuperTypeCanonicalName super type's canonical class name for this factory which should be the same
+   *     as ClassT.getCanonicalName()
+   */
+  public PlanitComponentFactory(String componentSuperTypeCanonicalName) {
+    super(FIRED_COMPONENT_EVENT_TYPES);
+    this.componentSuperTypeCanonicalName = componentSuperTypeCanonicalName;
   }
 
   /**
@@ -366,30 +449,63 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @param constructorParameters    parameters to pass to the constructor
    * @return the created TrafficAssignmentComponent
    */
-  public <C extends PlanitComponent<?>> C create(final String planitComponentClassName, final Object[] constructorParameters) {
+  public <C extends PlanitComponent<?>> C createAndDispatch(
+          final String planitComponentClassName, final Object[] constructorParameters) {
     final C newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
     dispatchPopulatePlanitComponentEvent(newTrafficComponent, null);
     return newTrafficComponent;
   }
 
   /**
-   * Create PLANit component
+   * Create PLANit component and dispatch to listeners
    *
    * @param <C> type of component
    * @param planitComponentClassName the derived class name of the PLANit component (without packages)
    * @param constructorParameters    parameters to pass to the constructor
-   * @param eventParameters          object array which contains any additional data that might be required to populate the component
+   * @param eventParameters          object array which contains any additional data that might be required
+   *                                 to populate the component
    * @return the created component
    */
-  public <C extends PlanitComponent<?>> C create(final String planitComponentClassName, final Object[] constructorParameters, final Object... eventParameters) {
+  public <C extends PlanitComponent<?>> C createAndDispatch(
+      final String planitComponentClassName,
+      final Object[] constructorParameters,
+      final Object... eventParameters) {
     final C newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
     dispatchPopulatePlanitComponentEvent(newTrafficComponent, eventParameters);
     return newTrafficComponent;
   }
 
   /**
-   * Allows one to verify if this factory creates derived classes of the provided class super type. Useful in case the generic type parameter is not available at run time for this
-   * factory
+   * Create PLANit component but do not dispatch to listeners (yet). It is expected the caller will do this at a
+   * later stage.
+   *
+   * @param <C> type of component
+   * @param planitComponentClassName the derived class name of the PLANit component (without packages)
+   * @param constructorParameters    parameters to pass to the constructor
+   * @return the created component
+   */
+  public <C extends PlanitComponent<?>> C createWithoutDispatch(
+          final String planitComponentClassName, final Object[] constructorParameters) {
+    final C newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
+    return newTrafficComponent;
+  }
+
+  /**
+   * Create PLANit component but do not dispatch to listeners (yet). It is expected the caller will do this at a
+   * later stage.
+   *
+   * @param <C> type of component
+   * @param component the component to dispatch for being populated
+   * @param eventParameters          object array which contains any additional data that might be required
+   *                                 to populate the component
+   */
+  public <C extends PlanitComponent<?>> void dispatchComponent(final C component, final Object... eventParameters) {
+    dispatchPopulatePlanitComponentEvent(component, eventParameters);
+  }
+
+  /**
+   * Allows one to verify if this factory creates derived classes of the provided class super type. Useful in case
+   * the generic type parameter is not available at run time for this factory
    *
    * @param <U>        type to verify
    * @param superClazz class of type

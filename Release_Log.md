@@ -2,11 +2,47 @@
 
 PlanIt Releases
 
-This project contains core code which is used by all the interface projects.
+This project contains core code which is used by all the other PLANit modules/repositories (except PLANitUtils/XML).
+
+## 0.5.0
+
+**Enhancements**
+
+#102 Add support for fixed step size smoothing implementation
+#105 Add K-shortest path algorithm
+#107 Add support for custom implementation for method of self regulating averages a(MSRA) as a smoothing approach
+#108 Allow to normalise the scale parameter for additive based logit models (MNL/bounded MNL)
+#110 Support attaching geometries to outputs so we can more easily visualise in GIS software
+#111 Add support for odMulti-path outputs (as default) rather than only a single path per origin-destination
+#122,#123 Add support for SIMULATION output (per time period/iteration) such as gaps and computation times for easy post simulation analysis
+#124 Add support for relative scaling factor to cost/distance for additive logit models
+#125 Add support for quadratic linear fundamental diagram
+#130 Node model - Tampere - Add option to compute flow acceptance factors by turn including when turn has zero flow
+#135 Add option to persist various link ids in addition to link segment ids for link out formatter
+#99 (review) sLTM/prototype - Supporting stochastic path choice without fixed path set in sLTM
+#100 (review) sLTM/prototype - Add support for Weibitt for path choice
+#101 (review) sLTM/prototype - Add option to let user configure scale parameter of logit models via settings
+#104 (review) sLTM/prototype - Add support for route filtering as component of SUE path choice
+#106 (review) sLTM/prototype - Add support for bounded (MNL) choice model
+#109 (review) sLTM/prototype - Support path and OD output (adapters) for sLTM
+#114 (review) sLTM/prototype - Support inflow and outflow as general link properties for output
+#115 (review) sLTM/prototype - Support initial costs on sLTM
+#116 (review) sLTM/prototype - Add support for non-linear free flow branch FDs for path based sLTM
+#117 (review) sLTM/prototype - Let user configure Path Generator on sLTM settings for path based runs
+#118 (review) sLTM/prototype - Make network loading gap epsilon configurable for sLTM
+#121 (review) sLTM/prototype - Make it configurable to what sLTM network loading solution scheme we use at the start
+#126 (review) sLTM/prototype - Add support for concave free flow branch FDs
+#131 (review) sLTM/prototype - Support Bush (link) level outputs
+#132 (review) sLTM/prototype - Support computation of dcost/dflow in sLTM to take turn level acceptance factors into account
+
+**Bug fixes**
+
+#113 Internal ids are not recreated nor reset consistently when same traffic assignment instance is rerun, this is fixed
+#136 QL fundamental diagram dSpeedDFlow not calculated correctly, this has been fixed
 
 ## 0.4.0
 
-**enhancements**
+**Enhancements**
 
 * #95 updated to JUnit 5
 * #93 replace clone() methods with shallowClone() and deepClone() and avoid Cloneable interface
@@ -21,7 +57,7 @@ This project contains core code which is used by all the interface projects.
 * #80 log all settings of all traffic assignment components if requested (Default should be true)
 * #49 Centroids should not longer be a vertex in the network.
 
-**bug fixes**
+**Bug fixes**
 
 * #92 Cannot copy reference of factories in ManagedIdEntities implementations in copy constructor
 * #73 Breaking edges on directed graphs no longer correctly updates the edge segments

@@ -10,7 +10,8 @@ import org.goplanit.utils.service.routed.RoutedTripsSchedule;
  * 
  * @author markr
  */
-public class RoutedTripScheduleFactoryImpl extends RoutedTripFactoryImpl<RoutedTripSchedule> implements RoutedTripScheduleFactory {
+public class RoutedTripScheduleFactoryImpl extends RoutedTripFactoryImpl<RoutedTripSchedule>
+    implements RoutedTripScheduleFactory {
 
 
   /**

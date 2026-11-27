@@ -14,10 +14,9 @@ import org.goplanit.utils.mode.Modes;
 import org.goplanit.utils.mode.PredefinedMode;
 
 /**
- * Configurator class that allows one to create and modify a setup for the mapping of modes and macroscopic network layers without actually creating them yet. The final result can
- * be used to instantiate the layers on the actual network when the time is right.
- * 
- * We also provide some default suggestions for quick setups avoiding complicated manual configurations.
+ * Configurator to create and modify a mapping of modes to macroscopic network layers without creating the layers yet.
+ * The result can be used to instantiate the layers on the actual network when the time is right. It also provides
+ * some default setups for a quick start, avoiding complicated manual configurations.
  * 
  * @author markr
  *
@@ -32,6 +31,11 @@ public class MacroscopicNetworkLayerConfigurator {
 
   /** track mode to layer mapping */
   protected final Map<Mode, String> modeToLayerXmlId = new TreeMap<>();
+
+  /**
+   * Default constructor
+   */
+  protected MacroscopicNetworkLayerConfigurator(){}
 
   /**
    * proposed on_street layer id
@@ -69,8 +73,8 @@ public class MacroscopicNetworkLayerConfigurator {
   }
 
   /**
-   * create a multi-layer configuration that maps all passed in modes to either a rail, active, or on-street layer. Note that only predefined PLANit modes are automatically mapped.
-   * Custom modes must be manually mapped afterwards to the appropriate layer.
+   * create a multi-layer configuration that maps all passed in modes to either a rail, active, or on-street layer. Only
+   * predefined PLANit modes are mapped automatically; custom modes must be mapped to the appropriate layer afterwards.
    * 
    * The mapping works as follows: on-street layer:
    * <ul>
@@ -98,8 +102,8 @@ public class MacroscopicNetworkLayerConfigurator {
    * <li>train</li>
    * </ul>
    * 
-   * Note that by default tram and lightrail are marked as on on-street because we cannot assume they are always separate from road modes. We only idetnify modes on separate layers
-   * when these layers are truly separate pieces of infrastructure.
+   * By default tram and light rail are on the on-street layer, as they cannot be assumed to always be separate from
+   * road modes. Modes are only put on separate layers when these are truly separate pieces of infrastructure.
    * 
    * 
    * @param predefinedModes for multi-layer configuration

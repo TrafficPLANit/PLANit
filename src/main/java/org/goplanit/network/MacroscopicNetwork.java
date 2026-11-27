@@ -1,22 +1,21 @@
 package org.goplanit.network;
 
-import java.util.Map;
-import java.util.logging.Logger;
-
 import org.apache.commons.collections4.map.HashedMap;
-import org.goplanit.network.layer.macroscopic.MacroscopicGridNetworkLayerGenerator;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.network.layers.MacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdDeepCopyMapper;
-import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layers.MacroscopicNetworkLayers;
+import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
+
+import java.util.logging.Logger;
 
 /**
- * Macroscopic Network which stores one or more macroscopic network infrastructure layers that together form the complete (intermodal) network.
+ * Macroscopic Network which stores one or more macroscopic network infrastructure layers that together form the
+ * complete (intermodal) network.
  *
  * @author markr
  *
@@ -51,6 +50,16 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
   }
 
   /**
+   * Constructor
+   *
+   * @param tokenId contiguous id generation within this group for instances of this class
+   * @param crs explicit CRS to use (may be null if intention is to be clear it is undefined initially)
+   */
+  public MacroscopicNetwork(final IdGroupingToken tokenId, CoordinateReferenceSystem crs) {
+    super(tokenId, crs);
+  }
+
+  /**
    * Copy constructor.
    *
    * @param other to clone
@@ -59,33 +68,29 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    * @param layerMapper to use for tracking mapping between original and copied layers
    */
   protected MacroscopicNetwork(
-      final MacroscopicNetwork other, boolean deepCopy, ManagedIdDeepCopyMapper<Mode> modeMapper, ManagedIdDeepCopyMapper<MacroscopicNetworkLayer> layerMapper) {
+      final MacroscopicNetwork other,
+      boolean deepCopy,
+      ManagedIdDeepCopyMapper<Mode> modeMapper,
+      ManagedIdDeepCopyMapper<MacroscopicNetworkLayer> layerMapper) {
     super(other, deepCopy, modeMapper, layerMapper);
   }
 
-  @Override
-  public void logInfo(String prefix) {
-    LOGGER.info(String.format("%s XML id %s (external id: %s) has %d layers", prefix, getXmlId(), getExternalId(), getTransportLayers().size()));
-    /* for each layer log information regarding contents */
-    for(NetworkLayer networkLayer : getTransportLayers()) {
-      networkLayer.logInfo(LoggingUtils.networkLayerPrefix(networkLayer.getId()));
-    }
-  }
-
   /**
-   * Tries to initialise and create/register layers via a predefined configuration rather than letting the user do this manually via the infrastructure layers container. Only
+   * Tries to initialise and create/register layers via a predefined configuration rather than letting the user
+   * do this manually via the infrastructure layers container. Only
    * possible when the network is still empty and no layers are yet active
    * 
    * @param layerConfiguration to use for configuration
    */
   public void createAndRegisterLayers(MacroscopicNetworkLayerConfigurator layerConfiguration) {
     if (!getTransportLayers().isEmpty()) {
-      LOGGER.warning("unable to initialise layers based on provided configuration, since network already has layers defined");
+      LOGGER.warning("unable to initialise layers based on provided configuration, " +
+          "since network already has layers defined");
       return;
     }
 
     /* register layers */
-    Map<String, Long> xmlIdToId = new HashedMap<String, Long>();
+    var xmlIdToId = new HashedMap<String, Long>();
     for (String layerXmlId : layerConfiguration.transportLayersByXmlId) {
       NetworkLayer newLayer = getTransportLayers().getFactory().registerNew();
       newLayer.setXmlId(layerXmlId);
@@ -93,24 +98,8 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
     }
 
     /* register modes */
-    layerConfiguration.modeToLayerXmlId.forEach((mode, layerXmlId) -> getTransportLayers().get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
-  }
-
-  /**
-   * Create a macroscopic network instance using the id token provided and in addition generate a simple grid-based network layer for the predefined car mode, where each link is
-   * bi-directional and has a single link segment type with access for car (nothing else set). For a more sophisticated grid generator configure the dedicated generator class
-   * MacroscopicGridNetworkLayerGenerator by overriding its defaults that are used here.
-   * 
-   * @param tokenId to use
-   * @param rows    in the grid
-   * @param columns in the grid
-   * @return created grid network
-   */
-  public static MacroscopicNetwork createSimpleGrid(final IdGroupingToken tokenId, int rows, int columns) {
-    var network = new MacroscopicNetwork(tokenId);
-    var carMode = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
-    MacroscopicGridNetworkLayerGenerator.create(rows, columns, network.getTransportLayers(), carMode).generate();
-    return network;
+    layerConfiguration.modeToLayerXmlId.forEach((mode, layerXmlId) ->
+        getTransportLayers().get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
   }
 
   /**
@@ -118,7 +107,8 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    */
   @Override
   public MacroscopicNetwork shallowClone() {
-    return new MacroscopicNetwork(this, false, null, null);
+    return new MacroscopicNetwork(
+            this, false, null, null);
   }
 
   /**
@@ -126,7 +116,33 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    */
   @Override
   public MacroscopicNetwork deepClone() {
-    return new MacroscopicNetwork(this, true, new ManagedIdDeepCopyMapper<>(), new ManagedIdDeepCopyMapper<>());
+    return new MacroscopicNetwork(
+            this, true, new ManagedIdDeepCopyMapper<>(), new ManagedIdDeepCopyMapper<>());
   }
 
+  /**
+   * Construct a conjugate macroscopic network based on this network.
+   * TODO: currently we only support a single layer version for this by reuing the virtual network's network token for
+   * id generation to ensure contiguous numbering of ids across both networks
+   *
+   * @param token groupIdToken to use for the conjugate network id generation
+   * @param conjugateVirtualNetwork (optional) when present, integrate conjugate physical network with virtual network
+   *                                and use the virtual networks network id token for the managed layer id generation
+   * @return created conjugate Macroscopic network
+   */
+  public ConjugateMacroscopicNetwork createConjugate(
+      IdGroupingToken token, ConjugateVirtualNetwork conjugateVirtualNetwork) {
+
+    // create instance
+    ConjugateMacroscopicNetwork conjugateNetwork;
+    if(conjugateVirtualNetwork==null) {
+      conjugateNetwork = new ConjugateMacroscopicNetwork(token, this);
+    }else{
+      conjugateNetwork = new ConjugateMacroscopicNetwork(
+              token, conjugateVirtualNetwork.getLayer().getLayerIdGroupingToken(), this);
+    }
+    // create the actual conjugate network
+    conjugateNetwork.recreateFromReferenceNetwork(conjugateVirtualNetwork);
+    return conjugateNetwork;
+  }
 }

@@ -12,7 +12,8 @@ import org.goplanit.utils.service.routed.RoutedServicesLayers;
  * 
  * @author markr
  */
-public class RoutedServicesLayerFactoryImpl extends ManagedIdEntityFactoryImpl<RoutedServicesLayer> implements RoutedServicesLayerFactory {
+public class RoutedServicesLayerFactoryImpl extends ManagedIdEntityFactoryImpl<RoutedServicesLayer>
+    implements RoutedServicesLayerFactory {
 
   /** container to use */
   protected final RoutedServicesLayers routedServicesLayers;
@@ -33,7 +34,8 @@ public class RoutedServicesLayerFactoryImpl extends ManagedIdEntityFactoryImpl<R
    * @param tokenId              to use
    * @param routedServicesLayers to use
    */
-  protected RoutedServicesLayerFactoryImpl(final IdGroupingToken tokenId, final RoutedServicesLayers routedServicesLayers) {
+  protected RoutedServicesLayerFactoryImpl(
+      final IdGroupingToken tokenId, final RoutedServicesLayers routedServicesLayers) {
     super(tokenId);
     this.routedServicesLayers = routedServicesLayers;
   }

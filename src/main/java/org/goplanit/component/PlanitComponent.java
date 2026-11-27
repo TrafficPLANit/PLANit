@@ -7,6 +7,7 @@ import org.goplanit.component.event.PlanitComponentEvent;
 import org.goplanit.component.event.PlanitComponentEventType;
 import org.goplanit.component.event.PlanitComponentListener;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
@@ -15,15 +16,17 @@ import org.goplanit.utils.id.IdGroupingToken;
 /**
  * PLANit components are the main building blocks to create PLANit applications with.
  * <p>
- * Each component is also a listener for PlanitComponentEvents, upon creation by the component factory each component is automatically registered for these events (at high
- * priority). This allows each component to initialise itself in a flexible way before any user or builder would make changes to its default configuration via the same or other
- * events. It is not mandatory to implement any actions upon receiving such events. Therefore this base class implements an empty notify method which may be overridden by derived
- * implementations if desired.
+ * Each component is also a listener for PlanitComponentEvents: when the component factory creates a component, it is
+ * registered for these events automatically (at high priority). So each component can initialise itself flexibly
+ * before any user or builder changes its default configuration via the same or other events. Acting on these events
+ * is not mandatory, so this base class implements an empty notify method, which derived implementations may override.
  *
  * @author markr
+ * @param <T> type of component
  *
  */
-public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializable> implements ExternalIdAble, PlanitComponentListener {
+public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializable>
+    implements ExternalIdAble, PlanitComponentListener {
 
   /** store id information */
   private final ExternalIdAbleImpl idImpl;
@@ -188,5 +191,12 @@ public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializabl
    */
   public IdGroupingToken getIdGroupingToken() {
     return tokenId;
+  }
+
+  /**
+   * Recreate managed ids of the component (if supported). If not supported a PlanitRunTimeException is thrown
+   */
+  public void recreateManagedIds() {
+    throw new PlanItRunTimeException("recreateManagedIds not supported by", this.getClass().getCanonicalName());
   }
 }
